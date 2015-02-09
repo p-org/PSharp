@@ -15,25 +15,28 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
+using Microsoft.PSharp.Tooling;
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 
-namespace PSharp
+namespace Microsoft.PSharp.StaticAnalysis
 {
     /// <summary>
     /// This analysis computes the method summaries for every method
     /// in each machine of a P# program.
     /// </summary>
-    internal static class MethodSummaryAnalysis
+    public static class MethodSummaryAnalysis
     {
-        #region internal API
+        #region public API
 
         /// <summary>
         /// Runs the analysis.
         /// </summary>
-        internal static void Run()
+        public static void Run()
         {
             // Starts profiling the data flow analysis.
             if (Configuration.ShowDFARuntimeResults &&
@@ -60,7 +63,7 @@ namespace PSharp
         /// <summary>
         /// Prints the results of the analysis.
         /// </summary>
-        internal static void PrintGivesUpResults()
+        public static void PrintGivesUpResults()
         {
             Console.WriteLine("\n > Printing gives up ownership information:\n");
             foreach (var summary in AnalysisContext.Summaries)

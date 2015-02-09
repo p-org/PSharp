@@ -15,12 +15,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
+using Microsoft.PSharp.Tooling;
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 
-namespace PSharp
+namespace Microsoft.PSharp.StaticAnalysis
 {
     /// <summary>
     /// This analysis checks that all methods in each machine of a P#
@@ -37,14 +40,14 @@ namespace PSharp
     /// focus specifically on 'send' operations, but more generally on
     /// operations that give up ownership.
     /// </summary>
-    internal static class RespectsOwnershipAnalysis
+    public static class RespectsOwnershipAnalysis
     {
-        #region internal API
+        #region public API
 
         /// <summary>
         /// Runs the analysis.
         /// </summary>
-        internal static void Run()
+        public static void Run()
         {
             // Starts profiling the data flow analysis.
             if (Configuration.ShowROARuntimeResults &&
@@ -609,7 +612,7 @@ namespace PSharp
                                         newLog.Merge(log);
                                         newLog.AddTrace(syntaxNode.ToString(), syntaxNode.SyntaxTree.FilePath,
                                             syntaxNode.SyntaxTree.GetLineSpan(syntaxNode.Span).StartLinePosition.Line + 1);
-                                        ErrorReporter.ReportGivenUpFieldOwnershipError(newLog);
+                                        StaticAnalysisErrorReporter.ReportGivenUpFieldOwnershipError(newLog);
                                     }
                                 }
                             }
@@ -726,7 +729,7 @@ namespace PSharp
                                     newLog.Merge(log);
                                     newLog.AddTrace(stmt.ToString(), stmt.SyntaxTree.FilePath, stmt.SyntaxTree.
                                         GetLineSpan(stmt.Span).StartLinePosition.Line + 1);
-                                    ErrorReporter.ReportGivenUpFieldOwnershipError(newLog);
+                                    StaticAnalysisErrorReporter.ReportGivenUpFieldOwnershipError(newLog);
                                 }
 
                                 if (leftSymbol != null && !rightSymbol.Equals(leftSymbol))
@@ -748,7 +751,7 @@ namespace PSharp
                                             newLog.Merge(log);
                                             newLog.AddTrace(stmt.ToString(), stmt.SyntaxTree.FilePath, stmt.SyntaxTree.
                                                 GetLineSpan(stmt.Span).StartLinePosition.Line + 1);
-                                            ErrorReporter.ReportGivenUpFieldOwnershipError(newLog);
+                                            StaticAnalysisErrorReporter.ReportGivenUpFieldOwnershipError(newLog);
                                         }
                                     }
                                 }
@@ -818,7 +821,7 @@ namespace PSharp
             {
                 if (call.ArgumentList != null && call.ArgumentList.Arguments.Count > 0)
                 {
-                    ErrorReporter.ReportUnknownInvocation(callLog);
+                    StaticAnalysisErrorReporter.ReportUnknownInvocation(callLog);
                 }
                 
                 return new HashSet<ISymbol>();
@@ -830,7 +833,7 @@ namespace PSharp
             {
                 if (call.ArgumentList != null && call.ArgumentList.Arguments.Count > 0)
                 {
-                    ErrorReporter.ReportUnknownInvocation(callLog);
+                    StaticAnalysisErrorReporter.ReportUnknownInvocation(callLog);
                 }
 
                 return new HashSet<ISymbol>();
@@ -851,7 +854,7 @@ namespace PSharp
                         Utilities.DoesFieldBelongToMachine(v.Key, cfgNode.Summary) &&
                         FieldUsageAnalysis.IsAccessedBeforeBeingReset(v.Key, cfgNode.Summary)))
                     {
-                        ErrorReporter.ReportGivenUpFieldOwnershipError(callLog);
+                        StaticAnalysisErrorReporter.ReportGivenUpFieldOwnershipError(callLog);
                     }
                 }
             }
@@ -895,7 +898,7 @@ namespace PSharp
                 AnalysisContext.Solution).Result;
             if (definition == null || definition.DeclaringSyntaxReferences.IsEmpty)
             {
-                ErrorReporter.ReportUnknownInvocation(callLog);
+                StaticAnalysisErrorReporter.ReportUnknownInvocation(callLog);
                 return new HashSet<ISymbol>();
             }
 
@@ -911,7 +914,7 @@ namespace PSharp
                 if (!InheritanceAnalysis.TryGetPotentialMethodOverriders(out overriders,
                     call, syntaxNode, cfgNode, originalMachine, model))
                 {
-                    ErrorReporter.ReportUnknownVirtualCall(callLog);
+                    StaticAnalysisErrorReporter.ReportUnknownVirtualCall(callLog);
                 }
 
                 foreach (var overrider in overriders)
@@ -941,7 +944,7 @@ namespace PSharp
                             Utilities.DoesFieldBelongToMachine(v.Key, cfgNode.Summary) &&
                             FieldUsageAnalysis.IsAccessedBeforeBeingReset(v.Key, cfgNode.Summary)))
                         {
-                            ErrorReporter.ReportGivenUpFieldOwnershipError(callLog);
+                            StaticAnalysisErrorReporter.ReportGivenUpFieldOwnershipError(callLog);
                         }
                     }
                 }
@@ -1001,7 +1004,7 @@ namespace PSharp
                                     newLog.Merge(log);
                                     newLog.AddTrace(stmt.ToString(), stmt.SyntaxTree.FilePath, stmt.SyntaxTree.
                                         GetLineSpan(stmt.Span).StartLinePosition.Line + 1);
-                                    ErrorReporter.ReportPotentialDataRace(newLog);
+                                    StaticAnalysisErrorReporter.ReportPotentialDataRace(newLog);
                                 }
                             }
                             else if (variable.Initializer.Value is InvocationExpressionSyntax)
@@ -1059,7 +1062,7 @@ namespace PSharp
                                     newLog.Merge(log);
                                     newLog.AddTrace(stmt.ToString(), stmt.SyntaxTree.FilePath, stmt.SyntaxTree.
                                         GetLineSpan(stmt.Span).StartLinePosition.Line + 1);
-                                    ErrorReporter.ReportGivenUpOwnershipFieldAssignment(newLog);
+                                    StaticAnalysisErrorReporter.ReportGivenUpOwnershipFieldAssignment(newLog);
                                 }
 
                                 continue;
@@ -1072,7 +1075,7 @@ namespace PSharp
                                 newLog.Merge(log);
                                 newLog.AddTrace(stmt.ToString(), stmt.SyntaxTree.FilePath, stmt.SyntaxTree.
                                     GetLineSpan(stmt.Span).StartLinePosition.Line + 1);
-                                ErrorReporter.ReportPotentialDataRace(newLog);
+                                StaticAnalysisErrorReporter.ReportPotentialDataRace(newLog);
                                 continue;
                             }
                             else if (binaryExpr.Right is InvocationExpressionSyntax)
@@ -1101,7 +1104,7 @@ namespace PSharp
                                     newLog.Merge(log);
                                     newLog.AddTrace(stmt.ToString(), stmt.SyntaxTree.FilePath, stmt.SyntaxTree.
                                         GetLineSpan(stmt.Span).StartLinePosition.Line + 1);
-                                    ErrorReporter.ReportPotentialDataRace(newLog);
+                                    StaticAnalysisErrorReporter.ReportPotentialDataRace(newLog);
                                 }
                             }
                         }
@@ -1157,7 +1160,7 @@ namespace PSharp
                 AnalysisContext.Solution).Result;
             if (definition == null || definition.DeclaringSyntaxReferences.IsEmpty)
             {
-                ErrorReporter.ReportUnknownInvocation(callLog);
+                StaticAnalysisErrorReporter.ReportUnknownInvocation(callLog);
                 return;
             }
 
@@ -1182,7 +1185,7 @@ namespace PSharp
                             newLog.Merge(callLog);
                             newLog.AddTrace(access.ToString(), access.SyntaxTree.FilePath, access.SyntaxTree.
                                 GetLineSpan(access.Span).StartLinePosition.Line + 1);
-                            ErrorReporter.ReportPotentialDataRace(newLog);
+                            StaticAnalysisErrorReporter.ReportPotentialDataRace(newLog);
                         }
                     }
 
@@ -1190,12 +1193,12 @@ namespace PSharp
                         v => v.Value.Contains(idx) &&
                         Utilities.DoesFieldBelongToMachine(v.Key, cfgNode.Summary)))
                     {
-                        ErrorReporter.ReportGivenUpOwnershipFieldAssignment(callLog);
+                        StaticAnalysisErrorReporter.ReportGivenUpOwnershipFieldAssignment(callLog);
                     }
 
                     if (constructorSummary.GivesUpSet.Contains(idx))
                     {
-                        ErrorReporter.ReportGivenUpOwnershipSending(callLog);
+                        StaticAnalysisErrorReporter.ReportGivenUpOwnershipSending(callLog);
                     }
                 }
             }
@@ -1211,7 +1214,7 @@ namespace PSharp
                         newLog.Merge(callLog);
                         newLog.AddTrace(access.ToString(), access.SyntaxTree.FilePath, access.SyntaxTree.
                             GetLineSpan(access.Span).StartLinePosition.Line + 1);
-                        ErrorReporter.ReportPotentialDataRace(newLog);
+                        StaticAnalysisErrorReporter.ReportPotentialDataRace(newLog);
                     }
                 }
             }
@@ -1269,13 +1272,13 @@ namespace PSharp
                             newLog.Merge(callLog);
                             newLog.AddTrace(callee.ToString(), callee.SyntaxTree.FilePath, callee.SyntaxTree.
                                 GetLineSpan(callee.Span).StartLinePosition.Line + 1);
-                            ErrorReporter.ReportPotentialDataRace(newLog);
+                            StaticAnalysisErrorReporter.ReportPotentialDataRace(newLog);
                             return;
                         }
                     }
                 }
 
-                ErrorReporter.ReportUnknownInvocation(callLog);
+                StaticAnalysisErrorReporter.ReportUnknownInvocation(callLog);
                 return;
             }
 
@@ -1291,7 +1294,7 @@ namespace PSharp
                 if (!InheritanceAnalysis.TryGetPotentialMethodOverriders(out overriders,
                     call, syntaxNode, cfgNode, originalMachine, model))
                 {
-                    ErrorReporter.ReportUnknownVirtualCall(callLog);
+                    StaticAnalysisErrorReporter.ReportUnknownVirtualCall(callLog);
                 }
 
                 foreach (var overrider in overriders)
@@ -1326,7 +1329,7 @@ namespace PSharp
                                 newLog.Merge(callLog);
                                 newLog.AddTrace(access.ToString(), access.SyntaxTree.FilePath, access.SyntaxTree.
                                     GetLineSpan(access.Span).StartLinePosition.Line + 1);
-                                ErrorReporter.ReportPotentialDataRace(newLog);
+                                StaticAnalysisErrorReporter.ReportPotentialDataRace(newLog);
                             }
                         }
 
@@ -1334,12 +1337,12 @@ namespace PSharp
                             v => v.Value.Contains(idx) &&
                             Utilities.DoesFieldBelongToMachine(v.Key, cfgNode.Summary)))
                         {
-                            ErrorReporter.ReportGivenUpOwnershipFieldAssignment(callLog);
+                            StaticAnalysisErrorReporter.ReportGivenUpOwnershipFieldAssignment(callLog);
                         }
 
                         if (invocationSummary.GivesUpSet.Contains(idx))
                         {
-                            ErrorReporter.ReportGivenUpOwnershipSending(callLog);
+                            StaticAnalysisErrorReporter.ReportGivenUpOwnershipSending(callLog);
                         }
                     }
                 }
@@ -1355,7 +1358,7 @@ namespace PSharp
                             newLog.Merge(callLog);
                             newLog.AddTrace(access.ToString(), access.SyntaxTree.FilePath, access.SyntaxTree.
                                 GetLineSpan(access.Span).StartLinePosition.Line + 1);
-                            ErrorReporter.ReportPotentialDataRace(newLog);
+                            StaticAnalysisErrorReporter.ReportPotentialDataRace(newLog);
                         }
                     }
                 }
@@ -1500,7 +1503,7 @@ namespace PSharp
                     !DataFlowAnalysis.DoesResetInLoop(arg, syntaxNode, cfgNode,
                     givesUpSyntaxNode, givesUpCfgNode, model))
                 {
-                    ErrorReporter.ReportGivenUpOwnershipSending(log);
+                    StaticAnalysisErrorReporter.ReportGivenUpOwnershipSending(log);
                     return;
                 }
             }
@@ -1582,7 +1585,7 @@ namespace PSharp
                         givesUpNode.SyntaxNodes.First(), givesUpNode) &&
                         FieldUsageAnalysis.IsAccessedBeforeBeingReset(definition, givesUpNode.Summary))
                     {
-                        ErrorReporter.ReportGivenUpFieldOwnershipError(log);
+                        StaticAnalysisErrorReporter.ReportGivenUpFieldOwnershipError(log);
                     }
                     
                     return Utilities.IsTypeAllowedToBeSend(varDecl.Type, model);
@@ -1641,7 +1644,7 @@ namespace PSharp
                     newLog.Merge(log);
                     newLog.AddTrace(stmt.ToString(), stmt.SyntaxTree.FilePath, stmt.SyntaxTree.
                         GetLineSpan(stmt.Span).StartLinePosition.Line + 1);
-                    ErrorReporter.ReportPayloadFieldAssignment(newLog);
+                    StaticAnalysisErrorReporter.ReportPayloadFieldAssignment(newLog);
                     return true;
                 }
             }

@@ -15,18 +15,21 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
+using Microsoft.PSharp.Tooling;
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.MSBuild;
 
-namespace PSharp
+namespace Microsoft.PSharp.StaticAnalysis
 {
     /// <summary>
     /// The context of the static analysis.
     /// </summary>
-    internal static class AnalysisContext
+    public static class AnalysisContext
     {
         #region fields
 
@@ -67,12 +70,12 @@ namespace PSharp
 
         #endregion
 
-        #region internal API
+        #region public API
 
         /// <summary>
         /// Creates a new static analysis context.
         /// </summary>
-        internal static void Create()
+        public static void Create()
         {
             AnalysisContext.Machines = new List<ClassDeclarationSyntax>();
             AnalysisContext.MachineInheritance = new Dictionary<ClassDeclarationSyntax, ClassDeclarationSyntax>();
@@ -82,15 +85,16 @@ namespace PSharp
 
             // Create a new workspace.
             MSBuildWorkspace workspace = MSBuildWorkspace.Create();
-
+            Console.WriteLine(Configuration.SolutionFilePath);
             try
             {
                 // Populate the workspace with the user defined solution.
                 AnalysisContext.Solution = workspace.OpenSolutionAsync(
                     @"" + Configuration.SolutionFilePath + "").Result;
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine(ex.StackTrace);
                 ErrorReporter.Report("Please give a valid solution path.");
                 Environment.Exit(1);
             }
@@ -121,7 +125,7 @@ namespace PSharp
         /// <summary>
         /// Prints program statistics.
         /// </summary>
-        internal static void PrintStatistics()
+        public static void PrintStatistics()
         {
             if (!Configuration.ShowProgramStatistics)
             {

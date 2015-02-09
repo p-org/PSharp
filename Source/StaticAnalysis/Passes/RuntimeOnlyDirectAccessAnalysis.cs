@@ -14,12 +14,13 @@
 
 using System;
 using System.Linq;
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace PSharp
+namespace Microsoft.PSharp.StaticAnalysis
 {
     /// <summary>
     /// This analysis reports a warning if a machine has any fields that are
@@ -27,14 +28,14 @@ namespace PSharp
     /// has any public methods. Any exposed outside of the class methods
     /// must only be accessed by the P# runtime.
     /// </summary>
-    internal static class RuntimeOnlyDirectAccessAnalysis
+    public static class RuntimeOnlyDirectAccessAnalysis
     {
-        #region internal API
+        #region public API
 
         /// <summary>
         /// Runs the analysis.
         /// </summary>
-        internal static void Run()
+        public static void Run()
         {
             RuntimeOnlyDirectAccessAnalysis.CheckFields();
             RuntimeOnlyDirectAccessAnalysis.CheckMethods();
@@ -56,12 +57,12 @@ namespace PSharp
                 {
                     if (field.Modifiers.Any(SyntaxKind.PublicKeyword))
                     {
-                        ErrorReporter.Report("Field '{0}' of machine '{1}' is declared as " +
+                        StaticAnalysisErrorReporter.Report("Field '{0}' of machine '{1}' is declared as " +
                             "'public'.", field.Declaration.ToString(), classDecl.Identifier.ValueText);
                     }
                     else if (field.Modifiers.Any(SyntaxKind.InternalKeyword))
                     {
-                        ErrorReporter.Report("Field '{0}' of machine '{1}' is declared as " +
+                        StaticAnalysisErrorReporter.Report("Field '{0}' of machine '{1}' is declared as " +
                             "'internal'.", field.Declaration.ToString(), classDecl.Identifier.ValueText);
                     }
                 }
@@ -81,14 +82,14 @@ namespace PSharp
                 {
                     if (method.Modifiers.Any(SyntaxKind.PublicKeyword))
                     {
-                        ErrorReporter.Report("Method '{0}' of machine '{1}' is declared " +
-                            "as 'public'.", method.Identifier.ValueText,
+                        StaticAnalysisErrorReporter.Report("Method '{0}' of machine '{1}' is " +
+                            "declared as 'public'.", method.Identifier.ValueText,
                             classDecl.Identifier.ValueText);
                     }
                     else if (method.Modifiers.Any(SyntaxKind.InternalKeyword))
                     {
-                        ErrorReporter.Report("Method '{0}' of machine '{1}' is declared " +
-                            "as 'internal'.", method.Identifier.ValueText,
+                        StaticAnalysisErrorReporter.Report("Method '{0}' of machine '{1}' is " +
+                            "declared as 'internal'.", method.Identifier.ValueText,
                             classDecl.Identifier.ValueText);
                     }
                 }

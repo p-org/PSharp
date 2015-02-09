@@ -15,7 +15,7 @@
 using System;
 using Microsoft.CodeAnalysis;
 
-namespace PSharp
+namespace Microsoft.PSharp.StaticAnalysis
 {
     internal static class FieldUsageAnalysis
     {

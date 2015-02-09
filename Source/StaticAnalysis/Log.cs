@@ -16,7 +16,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace PSharp
+namespace Microsoft.PSharp.StaticAnalysis
 {
     internal class Log
     {

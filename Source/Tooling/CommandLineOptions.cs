@@ -13,12 +13,10 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
-namespace PSharp
+namespace Microsoft.PSharp.Tooling
 {
-    internal class CommandLineOptions
+    public class CommandLineOptions
     {
         #region fields
 
@@ -32,7 +30,7 @@ namespace PSharp
         /// Constructor.
         /// </summary>
         /// <param name="args">Array of arguments</param>
-        internal CommandLineOptions(string[] args)
+        public CommandLineOptions(string[] args)
         {
             this.Options = args;
         }
@@ -41,7 +39,7 @@ namespace PSharp
         /// Parses the command line options and assigns values to
         /// the global options for the analyser.
         /// </summary>
-        internal void Parse()
+        public void Parse()
         {
             for (int idx = 0; idx < this.Options.Length; idx++)
             {

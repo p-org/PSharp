@@ -15,26 +15,27 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace PSharp
+namespace Microsoft.PSharp.StaticAnalysis
 {
     /// <summary>
     /// This analysis reports a warning if methods in a machine do stuff that
     /// they are not supposed to e.g directly initialise a machine's state or
     /// call methods that they should not.
     /// </summary>
-    internal static class SanityCheckingAnalysis
+    public static class SanityCheckingAnalysis
     {
-        #region internal API
+        #region public API
 
         /// <summary>
         /// Runs the analysis.
         /// </summary>
-        internal static void Run()
+        public static void Run()
         {
             SanityCheckingAnalysis.CheckMethods();
         }
@@ -59,8 +60,8 @@ namespace PSharp
                     if (nestedClass.BaseList == null ||
                         !nestedClass.BaseList.Types.Any(t => t.ToString().Equals("State")))
                     {
-                        ErrorReporter.Report("Class '{0}' is not a state of the machine '{1}' and, " +
-                            "thus, is not allowed to be declared inside the machine body.",
+                        StaticAnalysisErrorReporter.Report("Class '{0}' is not a state of the machine '{1}' " +
+                            "and, thus, is not allowed to be declared inside the machine body.",
                             nestedClass.Identifier.ValueText, classDecl.Identifier.ValueText);
                     }
 
@@ -103,7 +104,7 @@ namespace PSharp
                     => v.ToString().Contains("System.Threading")))
             {
                 Log log = new Log(null, machine, null, null);
-                ErrorReporter.ReportExternalAsynchronyUsage(log);
+                StaticAnalysisErrorReporter.ReportExternalAsynchronyUsage(log);
             }
         }
 
@@ -137,7 +138,7 @@ namespace PSharp
                             Log log = new Log(method, machine, state, null);
                             log.AddTrace(callStmt.ToString(), callStmt.SyntaxTree.FilePath, callStmt.SyntaxTree.
                                 GetLineSpan(callStmt.Span).StartLinePosition.Line + 1);
-                            ErrorReporter.ReportRuntimeOnlyMethodAccess(log);
+                            StaticAnalysisErrorReporter.ReportRuntimeOnlyMethodAccess(log);
                         }
                     }
                 }
@@ -152,7 +153,7 @@ namespace PSharp
                             Log log = new Log(method, machine, state, null);
                             log.AddTrace(newObjStmt.ToString(), newObjStmt.SyntaxTree.FilePath, newObjStmt.SyntaxTree.
                                 GetLineSpan(newObjStmt.Span).StartLinePosition.Line + 1);
-                            ErrorReporter.ReportExplicitStateInitialisation(log);
+                            StaticAnalysisErrorReporter.ReportExplicitStateInitialisation(log);
                         }
                     }
                 }
@@ -171,7 +172,7 @@ namespace PSharp
                             Log log = new Log(method, machine, state, null);
                             log.AddTrace(newObjStmt.ToString(), newObjStmt.SyntaxTree.FilePath, newObjStmt.SyntaxTree.
                                 GetLineSpan(newObjStmt.Span).StartLinePosition.Line + 1);
-                            ErrorReporter.ReportExplicitStateInitialisation(log);
+                            StaticAnalysisErrorReporter.ReportExplicitStateInitialisation(log);
                         }
                     }
                 }

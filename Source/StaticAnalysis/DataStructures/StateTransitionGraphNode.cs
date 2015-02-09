@@ -15,11 +15,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace PSharp
+namespace Microsoft.PSharp.StaticAnalysis
 {
     internal class StateTransitionGraphNode
     {

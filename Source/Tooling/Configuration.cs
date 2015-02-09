@@ -12,64 +12,58 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace PSharp
+namespace Microsoft.PSharp.Tooling
 {
-    internal static class Configuration
+    public static class Configuration
     {
         /// <summary>
         /// The path to the solution file.
         /// </summary>
-        internal static string SolutionFilePath = "";
+        public static string SolutionFilePath = "";
 
         /// <summary>
         /// The name of the project to analyse.
         /// </summary>
-        internal static string ProjectName = "";
+        public static string ProjectName = "";
 
         /// <summary>
         /// Report warnings if true.
         /// </summary>
-        internal static bool ShowWarnings = false;
+        public static bool ShowWarnings = false;
 
         /// <summary>
         /// Reports gives up information.
         /// </summary>
-        internal static bool ShowGivesUpInformation = false;
+        public static bool ShowGivesUpInformation = false;
 
         /// <summary>
         /// Reports program statistics.
         /// </summary>
-        internal static bool ShowProgramStatistics = false;
+        public static bool ShowProgramStatistics = false;
 
         /// <summary>
         /// Reports runtime results for the whole execution.
         /// </summary>
-        internal static bool ShowRuntimeResults = false;
+        public static bool ShowRuntimeResults = false;
 
         /// <summary>
         /// Reports runtime results for the dataflow analysis.
         /// </summary>
-        internal static bool ShowDFARuntimeResults = false;
+        public static bool ShowDFARuntimeResults = false;
 
         /// <summary>
         /// Reports runtime results for the respects ownership analysis.
         /// </summary>
-        internal static bool ShowROARuntimeResults = false;
+        public static bool ShowROARuntimeResults = false;
 
         /// <summary>
         /// Perform the state transition analysis.
         /// </summary>
-        internal static bool DoStateTransitionAnalysis = true;
+        public static bool DoStateTransitionAnalysis = true;
 
         /// <summary>
         /// Analyse exception handling.
         /// </summary>
-        internal static bool AnalyseExceptionHandling = false;
+        public static bool AnalyseExceptionHandling = false;
     }
 }

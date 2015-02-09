@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="ErrorReporter.cs">
+// <copyright file="StaticAnalysisErrorReporter.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -13,46 +13,17 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Globalization;
 
-namespace PSharp
+using Microsoft.PSharp.Tooling;
+
+namespace Microsoft.PSharp.StaticAnalysis
 {
     /// <summary>
-    /// Reports errors and warnings to the user.
+    /// Reports static analysis errors and warnings to the user.
     /// </summary>
-    internal static class ErrorReporter
+    internal class StaticAnalysisErrorReporter : ErrorReporter
     {
-        #region Fields
-
-        /// <summary>
-        /// Number of errors discovered in the analysis.
-        /// </summary>
-        private static int ErrorCount = 0;
-
-        /// <summary>
-        /// Number of warnings reported by the analysis.
-        /// </summary>
-        private static int WarningCount = 0;
-
-        #endregion
-
         #region generic errors API
-
-        /// <summary>
-        /// Reports a generic error to the user.
-        /// </summary>
-        /// <param name="s">String</param>
-        /// <param name="args">Parameters</param>
-        internal static void Report(string s, params object[] args)
-        {
-            string message = ErrorReporter.Format(s, args);
-            ConsoleColor previous = Console.ForegroundColor;
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.Write("Error: ");
-            Console.ForegroundColor = previous;
-            Console.WriteLine(message);
-            ErrorReporter.ErrorCount++;
-        }
 
         /// <summary>
         /// Reports use of external asynchrony.
@@ -60,7 +31,7 @@ namespace PSharp
         /// <param name="log">Log</param>
         internal static void ReportExternalAsynchronyUsage(Log log)
         {
-            ErrorReporter.ReportGenericError(log,
+            StaticAnalysisErrorReporter.ReportGenericError(log,
                 "Machine '{0}' is trying to use non-P# asynchronous operations. " +
                 "This can lead to data races and is *strictly* not allowed.",
                 log.Machine);
@@ -74,13 +45,13 @@ namespace PSharp
         {
             if (log.State == null)
             {
-                ErrorReporter.ReportGenericError(log,
+                StaticAnalysisErrorReporter.ReportGenericError(log,
                     "Method '{0}' of machine '{1}' is trying to access a P# " +
                     "runtime only method.", log.Method, log.Machine);
             }
             else
             {
-                ErrorReporter.ReportGenericError(log,
+                StaticAnalysisErrorReporter.ReportGenericError(log,
                     "Method '{0}' in state {1} of machine '{2}' is trying to " +
                     "access a P# runtime only method.",
                     log.Method, log.State, log.Machine);
@@ -95,14 +66,14 @@ namespace PSharp
         {
             if (log.State == null)
             {
-                ErrorReporter.ReportGenericError(log,
+                StaticAnalysisErrorReporter.ReportGenericError(log,
                     "Method '{0}' of machine '{1}' is trying to explicitly " +
                     "initialize a machine state.",
                     log.Method, log.Machine);
             }
             else
             {
-                ErrorReporter.ReportGenericError(log,
+                StaticAnalysisErrorReporter.ReportGenericError(log,
                     "Method '{0}' in state {1} of machine '{2}' is trying to " +
                     "explicitly initialize a machine state.",
                     log.Method, log.State, log.Machine);
@@ -121,14 +92,14 @@ namespace PSharp
         {
             if (log.State == null)
             {
-                ErrorReporter.ReportDataRaceSource(log,
+                StaticAnalysisErrorReporter.ReportDataRaceSource(log,
                     "Method '{0}' of machine '{1}' sends payload '{2}', which " +
                     "contains data from a machine field.",
                     log.Method, log.Machine, log.Payload);
             }
             else
             {
-                ErrorReporter.ReportDataRaceSource(log,
+                StaticAnalysisErrorReporter.ReportDataRaceSource(log,
                     "Method '{0}' in state '{1}' of machine '{2}' sends payload " +
                     "'{3}', which contains data from a machine field.",
                     log.Method, log.State, log.Machine, log.Payload);
@@ -143,14 +114,14 @@ namespace PSharp
         {
             if (log.State == null)
             {
-                ErrorReporter.ReportDataRaceSource(log,
+                StaticAnalysisErrorReporter.ReportDataRaceSource(log,
                     "Method '{0}' of machine '{1}' assigns the latest received " +
                     "payload to a machine field.",
                     log.Method, log.Machine);
             }
             else
             {
-                ErrorReporter.ReportDataRaceSource(log,
+                StaticAnalysisErrorReporter.ReportDataRaceSource(log,
                     "Method '{0}' in state '{1}' of machine '{2}' assigns " +
                     "the latest received payload to a machine field.",
                     log.Method, log.State, log.Machine);
@@ -169,14 +140,14 @@ namespace PSharp
         {
             if (log.State == null)
             {
-                ErrorReporter.ReportOwnershipError(log,
+                StaticAnalysisErrorReporter.ReportOwnershipError(log,
                     "Method '{0}' of machine '{1}' assigns '{2}' to " +
                     "a machine field after giving up its ownership.",
                     log.Method, log.Machine, log.Payload);
             }
             else
             {
-                ErrorReporter.ReportOwnershipError(log,
+                StaticAnalysisErrorReporter.ReportOwnershipError(log,
                     "Method '{0}' in state '{1}' of machine '{2}' assigns " +
                     "'{3}' to a machine field after giving up its ownership.",
                     log.Method, log.State, log.Machine, log.Payload);
@@ -191,14 +162,14 @@ namespace PSharp
         {
             if (log.State == null)
             {
-                ErrorReporter.ReportOwnershipError(log,
+                StaticAnalysisErrorReporter.ReportOwnershipError(log,
                     "Method '{0}' of machine '{1}' sends an event that contains " +
                     "payload with already given up ownership.",
                     log.Method, log.Machine);
             }
             else
             {
-                ErrorReporter.ReportOwnershipError(log,
+                StaticAnalysisErrorReporter.ReportOwnershipError(log,
                     "Method '{0}' in state '{1}' of machine '{2}' sends an event that " +
                     "contains payload with already given up ownership.",
                     log.Method, log.State, log.Machine);
@@ -213,14 +184,14 @@ namespace PSharp
         {
             if (log.State == null)
             {
-                ErrorReporter.ReportOwnershipError(log,
+                StaticAnalysisErrorReporter.ReportOwnershipError(log,
                     "Method '{0}' of machine '{1}' accesses '{2}' after " +
                     "giving up its ownership.",
                     log.Method, log.Machine, log.Payload);
             }
             else
             {
-                ErrorReporter.ReportOwnershipError(log,
+                StaticAnalysisErrorReporter.ReportOwnershipError(log,
                     "Method '{0}' in state '{1}' of machine '{2}' accesses " +
                     "'{3}' after giving up its ownership.",
                     log.Method, log.State, log.Machine, log.Payload);
@@ -240,14 +211,14 @@ namespace PSharp
         {
             if (log.State == null)
             {
-                ErrorReporter.ReportWarning(log,
+                StaticAnalysisErrorReporter.ReportWarning(log,
                     "Method '{0}' of machine '{1}' calls a method with unavailable " +
                     "source code, which might be a source of errors.",
                     log.Method, log.Machine);
             }
             else
             {
-                ErrorReporter.ReportWarning(log,
+                StaticAnalysisErrorReporter.ReportWarning(log,
                     "Method '{0}' in state '{1}' of machine '{2}' calls a method " +
                     "with unavailable source code, which might be a source of errors.",
                     log.Method, log.State, log.Machine);
@@ -263,14 +234,14 @@ namespace PSharp
         {
             if (log.State == null)
             {
-                ErrorReporter.ReportWarning(log,
+                StaticAnalysisErrorReporter.ReportWarning(log,
                     "Method '{0}' of machine '{1}' calls a virtual method that " +
                     "cannot be further analysed.",
                     log.Method, log.Machine);
             }
             else
             {
-                ErrorReporter.ReportWarning(log,
+                StaticAnalysisErrorReporter.ReportWarning(log,
                     "Method '{0}' in state '{1}' of machine '{2}' calls a virtual " +
                     "method that cannot be further analysed.",
                     log.Method, log.State, log.Machine);
@@ -443,17 +414,6 @@ namespace PSharp
             }
 
             ErrorReporter.ErrorCount++;
-        }
-
-        /// <summary>
-        /// Formats a string.
-        /// </summary>
-        /// <param name="s">String</param>
-        /// <param name="args">Parameters</param>
-        /// <returns>string</returns>
-        private static string Format(string s, params object[] args)
-        {
-            return string.Format(CultureInfo.InvariantCulture, s, args);
         }
 
         #endregion

@@ -15,9 +15,9 @@
 using System;
 using System.Diagnostics;
 
-namespace PSharp
+namespace Microsoft.PSharp.Tooling
 {
-    internal static class Profiler
+    public static class Profiler
     {
         private static Stopwatch StopWatch = null;
 

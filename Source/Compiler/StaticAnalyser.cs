@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="Program.cs">
+// <copyright file="StaticAnalyser.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,19 +12,21 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-namespace PSharp
+using Microsoft.PSharp.StaticAnalysis;
+using Microsoft.PSharp.Tooling;
+
+namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Static analyser for the P# domain specific language using the
-    /// Roslyn compiler-as-a-service framework.
+    /// Static analyser for the P# language.
     /// </summary>
-    class Program
+    internal static class StaticAnalyser
     {
-        static void Main(string[] args)
+        /// <summary>
+        /// Starts the P# static analyser.
+        /// </summary>
+        public static void Run()
         {
-            // Parses the command line options.
-            new CommandLineOptions(args).Parse();
-
             // Starts profiling the analysis.
             if (Configuration.ShowRuntimeResults)
             {
