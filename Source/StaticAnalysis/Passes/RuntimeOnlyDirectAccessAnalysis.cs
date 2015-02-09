@@ -15,6 +15,8 @@
 using System;
 using System.Linq;
 
+using Microsoft.PSharp.Tooling;
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -37,6 +39,12 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         public static void Run()
         {
+            if (!AnalysisEngine.IsActive)
+            {
+                ErrorReporter.Report("Analysis engine is not active.");
+                Environment.Exit(1);
+            }
+
             RuntimeOnlyDirectAccessAnalysis.CheckFields();
             RuntimeOnlyDirectAccessAnalysis.CheckMethods();
         }
@@ -51,7 +59,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         private static void CheckFields()
         {
-            foreach (var classDecl in AnalysisContext.Machines)
+            foreach (var classDecl in AnalysisEngine.Machines)
             {
                 foreach (var field in classDecl.ChildNodes().OfType<FieldDeclarationSyntax>())
                 {
@@ -76,7 +84,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         private static void CheckMethods()
         {
-            foreach (var classDecl in AnalysisContext.Machines)
+            foreach (var classDecl in AnalysisEngine.Machines)
             {
                 foreach (var method in classDecl.ChildNodes().OfType<MethodDeclarationSyntax>())
                 {

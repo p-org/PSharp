@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="AnalysisContext.cs">
+// <copyright file="ParsingEngine.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -13,73 +13,31 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.PSharp.Tooling;
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.MSBuild;
 
 namespace Microsoft.PSharp.Parsing
 {
     /// <summary>
-    /// The P# parsing context.
+    /// The P# parsing engine.
     /// </summary>
-    public static class ParsingContext
+    public static class ParsingEngine
     {
-        #region fields
-
-        /// <summary>
-        /// The solution of the P# program.
-        /// </summary>
-        internal static Solution Solution = null;
-
-        /// <summary>
-        /// The project's compilation.
-        /// </summary>
-        internal static Compilation Compilation = null;
-
-        #endregion
-
         #region public API
 
         /// <summary>
-        /// Creates a new parsing context.
+        /// Runs the P# parsing engine.
         /// </summary>
-        public static void Create()
+        public static void Run()
         {
-            // Create a new workspace.
-            MSBuildWorkspace workspace = MSBuildWorkspace.Create();
-
-            try
-            {
-                // Populate the workspace with the user defined solution.
-                ParsingContext.Solution = workspace.OpenSolutionAsync(
-                    @"" + Configuration.SolutionFilePath + "").Result;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.StackTrace);
-                ErrorReporter.Report("Please give a valid solution path.");
-                Environment.Exit(1);
-            }
-
-            // Find the project specified by the user.
-            Project project = ParsingContext.Solution.Projects.Where(
-                p => p.Name.Equals(Configuration.ProjectName)).FirstOrDefault();
-
-            if (project == null)
-            {
-                ErrorReporter.Report("Please give a valid project name.");
-                Environment.Exit(1);
-            }
-
-            // Get the project's compilation.
-            ParsingContext.Compilation = project.GetCompilationAsync().Result;
-
-            ParsingContext.RewriteSyntaxTrees();
+            // Perform rewriting.
+            ParsingEngine.RewriteSyntaxTrees();
         }
 
         #endregion
@@ -91,28 +49,40 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         private static void RewriteSyntaxTrees()
         {
+            var rewritternTrees = new HashSet<SyntaxTree>();
+
             // Iterate the syntax trees for each project file.
-            foreach (var tree in ParsingContext.Compilation.SyntaxTrees)
+            foreach (var tree in ProgramContext.Compilation.SyntaxTrees)
             {
-                if (!ParsingContext.IsProgramSyntaxTree(tree))
+                if (!ParsingEngine.IsProgramSyntaxTree(tree))
                 {
                     continue;
                 }
 
                 // Get the tree's semantic model.
-                var model = ParsingContext.Compilation.GetSemanticModel(tree);
+                var model = ProgramContext.Compilation.GetSemanticModel(tree);
 
                 // Get the tree's root node compilation unit.
                 var root = (CompilationUnitSyntax)tree.GetRoot();
+                var rewrittenUnit = new MachineDeclarationRewriter(root).Run();
 
-                var newRoot = new MachineDeclarationRewriter(root).Run();
-                
-                //Console.WriteLine(newRoot.GetText());
+                rewritternTrees.Add(rewrittenUnit.SyntaxTree);
+            }
 
-                //foreach (var node in newRoot.ChildNodes())
-                //{
-                //    Console.WriteLine(" >> " + node.ToString());
-                //}
+            ProgramContext.ReplaceSyntaxTrees(rewritternTrees);
+
+            foreach (var tree in ProgramContext.Compilation.SyntaxTrees)
+            {
+                if (!ParsingEngine.IsProgramSyntaxTree(tree))
+                {
+                    continue;
+                }
+
+                // Get the tree's semantic model.
+                var model = ProgramContext.Compilation.GetSemanticModel(tree);
+
+                // Get the tree's root node compilation unit.
+                var root = (CompilationUnitSyntax)tree.GetRoot();
             }
         }
 

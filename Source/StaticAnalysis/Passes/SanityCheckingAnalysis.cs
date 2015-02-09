@@ -16,6 +16,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Microsoft.PSharp.Tooling;
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -37,6 +39,12 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         public static void Run()
         {
+            if (!AnalysisEngine.IsActive)
+            {
+                ErrorReporter.Report("Analysis engine is not active.");
+                Environment.Exit(1);
+            }
+
             SanityCheckingAnalysis.CheckMethods();
         }
 
@@ -51,7 +59,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         private static void CheckMethods()
         {
-            foreach (var classDecl in AnalysisContext.Machines)
+            foreach (var classDecl in AnalysisEngine.Machines)
             {
                 SanityCheckingAnalysis.CheckForExternalAsynchronyUseInMachine(classDecl);
 

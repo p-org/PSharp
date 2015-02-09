@@ -26,8 +26,8 @@ namespace Microsoft.PSharp
         /// </summary>
         public static void Run()
         {
-            // Create a new P# parsing context.
-            ParsingContext.Create();
+            // Runs the P# parsing engine.
+            ParsingEngine.Run();
         }
     }
 }

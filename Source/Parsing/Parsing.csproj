@@ -45,7 +45,7 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ParsingContext.cs" />
+    <Compile Include="ParsingEngine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rewriters\BaseRewriter.cs" />
     <Compile Include="Rewriters\MachineDeclarationRewriter.cs" />

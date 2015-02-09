@@ -16,6 +16,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Microsoft.PSharp.Tooling;
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -140,7 +142,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             method = null;
 
             var definition = SymbolFinder.FindSourceDefinitionAsync(type,
-                AnalysisContext.Solution).Result;
+                ProgramContext.Solution).Result;
             if (definition == null)
             {
                 return false;

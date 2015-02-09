@@ -31,12 +31,12 @@ namespace Microsoft.PSharp.StaticAnalysis
         internal static bool IsAccessedBeforeBeingReset(ISymbol field, MethodSummary summary)
         {
             StateTransitionGraphNode stateTransitionNode = null;
-            if (!AnalysisContext.StateTransitionGraphs.ContainsKey(summary.Machine))
+            if (!AnalysisEngine.StateTransitionGraphs.ContainsKey(summary.Machine))
             {
                 return true;
             }
             
-            stateTransitionNode = AnalysisContext.StateTransitionGraphs[summary.Machine].
+            stateTransitionNode = AnalysisEngine.StateTransitionGraphs[summary.Machine].
                 GetGraphNodeForSummary(summary);
             if (stateTransitionNode == null)
             {

@@ -67,7 +67,7 @@
     <Compile Include="Analyses\DataFlowAnalysis.cs" />
     <Compile Include="Analyses\FieldUsageAnalysis.cs" />
     <Compile Include="Analyses\InheritanceAnalysis.cs" />
-    <Compile Include="AnalysisContext.cs" />
+    <Compile Include="AnalysisEngine.cs" />
     <Compile Include="DataStructures\ControlFlowGraphNode.cs" />
     <Compile Include="DataStructures\DataFlowMap.cs" />
     <Compile Include="DataStructures\MethodSummary.cs" />

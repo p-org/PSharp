@@ -26,11 +26,14 @@ namespace Microsoft.PSharp
             // Parses the command line options.
             new CommandLineOptions(args).Parse();
 
+            // Creates a new P# program context.
+            ProgramContext.Create();
+
             // Run the parser.
             Parser.Run();
 
             // Run the static analyser.
-            //StaticAnalyser.Run();
+            StaticAnalyser.Run();
         }
     }
 }

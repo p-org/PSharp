@@ -807,7 +807,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         private bool IsGivesUpOperation(InvocationExpressionSyntax call)
         {
             var callee = Utilities.GetCallee(call);
-            var model = AnalysisContext.Compilation.GetSemanticModel(call.SyntaxTree);
+            var model = ProgramContext.Compilation.GetSemanticModel(call.SyntaxTree);
             var callSymbol = model.GetSymbolInfo(call).Symbol;
             if (callSymbol == null)
             {
@@ -820,7 +820,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol,
-                AnalysisContext.Solution).Result;
+                ProgramContext.Solution).Result;
             if (definition == null)
             {
                 return false;
@@ -828,7 +828,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             var calleeMethod = definition.DeclaringSyntaxReferences.First().GetSyntax()
                 as BaseMethodDeclarationSyntax;
-            if (AnalysisContext.Summaries.ContainsKey(calleeMethod) &&
+            if (AnalysisEngine.Summaries.ContainsKey(calleeMethod) &&
                 MethodSummary.Factory.Summarize(calleeMethod).GivesUpSet.Count > 0)
             {
                 return true;

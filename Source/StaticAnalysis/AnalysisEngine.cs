@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------
-// <copyright file="AnalysisContext.cs">
+// <copyright file="AnalysisEngine.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -22,26 +22,17 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.MSBuild;
 
 namespace Microsoft.PSharp.StaticAnalysis
 {
     /// <summary>
-    /// The P# static analysis context.
+    /// The P# static analysis engine.
     /// </summary>
-    public static class AnalysisContext
+    public static class AnalysisEngine
     {
         #region fields
 
-        /// <summary>
-        /// The solution of the P# program.
-        /// </summary>
-        internal static Solution Solution = null;
-
-        /// <summary>
-        /// The project's compilation.
-        /// </summary>
-        internal static Compilation Compilation = null;
+        internal static bool IsActive = false;
 
         /// <summary>
         /// List of machine class declerations in the project.
@@ -73,53 +64,40 @@ namespace Microsoft.PSharp.StaticAnalysis
         #region public API
 
         /// <summary>
-        /// Creates a new static analysis context.
+        /// Start the P# static analysis engine.
         /// </summary>
-        public static void Create()
+        public static void Start()
         {
-            AnalysisContext.Machines = new List<ClassDeclarationSyntax>();
-            AnalysisContext.MachineInheritance = new Dictionary<ClassDeclarationSyntax, ClassDeclarationSyntax>();
-            AnalysisContext.MachineActions = new Dictionary<ClassDeclarationSyntax, List<string>>();
-            AnalysisContext.Summaries = new Dictionary<BaseMethodDeclarationSyntax, MethodSummary>();
-            AnalysisContext.StateTransitionGraphs = new Dictionary<ClassDeclarationSyntax, StateTransitionGraphNode>();
+            AnalysisEngine.Machines = new List<ClassDeclarationSyntax>();
+            AnalysisEngine.MachineInheritance = new Dictionary<ClassDeclarationSyntax, ClassDeclarationSyntax>();
+            AnalysisEngine.MachineActions = new Dictionary<ClassDeclarationSyntax, List<string>>();
+            AnalysisEngine.Summaries = new Dictionary<BaseMethodDeclarationSyntax, MethodSummary>();
+            AnalysisEngine.StateTransitionGraphs = new Dictionary<ClassDeclarationSyntax, StateTransitionGraphNode>();
             
-            // Create a new workspace.
-            MSBuildWorkspace workspace = MSBuildWorkspace.Create();
-
-            try
-            {
-                // Populate the workspace with the user defined solution.
-                AnalysisContext.Solution = workspace.OpenSolutionAsync(
-                    @"" + Configuration.SolutionFilePath + "").Result;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.StackTrace);
-                ErrorReporter.Report("Please give a valid solution path.");
-                Environment.Exit(1);
-            }
-
-            // Find the project specified by the user.
-            Project project = AnalysisContext.Solution.Projects.Where(
-                p => p.Name.Equals(Configuration.ProjectName)).FirstOrDefault();
-            
-            if (project == null)
-            {
-                ErrorReporter.Report("Please give a valid project name.");
-                Environment.Exit(1);
-            }
-
-            // Get the project's compilation.
-            AnalysisContext.Compilation = project.GetCompilationAsync().Result;
-
             // Finds all the machines in the project.
-            AnalysisContext.FindAllMachines();
+            AnalysisEngine.FindAllMachines();
 
             // Finds machine inheritance information.
-            AnalysisContext.FindMachineInheritanceInformation();
+            AnalysisEngine.FindMachineInheritanceInformation();
 
             // Find all machine actions in the project.
-            AnalysisContext.FindAllMachineActions();
+            AnalysisEngine.FindAllMachineActions();
+
+            AnalysisEngine.IsActive = true;
+        }
+
+        /// <summary>
+        /// Stops the P# static analysis engine
+        /// </summary>
+        public static void Stop()
+        {
+            AnalysisEngine.Machines.Clear();
+            AnalysisEngine.MachineInheritance.Clear();
+            AnalysisEngine.MachineActions.Clear();
+            AnalysisEngine.Summaries.Clear();
+            AnalysisEngine.StateTransitionGraphs.Clear();
+
+            AnalysisEngine.IsActive = false;
         }
 
         /// <summary>
@@ -150,15 +128,15 @@ namespace Microsoft.PSharp.StaticAnalysis
         private static void FindAllMachines()
         {
             // Iterate the syntax trees for each project file.
-            foreach (var tree in AnalysisContext.Compilation.SyntaxTrees)
+            foreach (var tree in ProgramContext.Compilation.SyntaxTrees)
             {
-                if (!AnalysisContext.IsProgramSyntaxTree(tree))
+                if (!AnalysisEngine.IsProgramSyntaxTree(tree))
                 {
                     continue;
                 }
 
                 // Get the tree's semantic model.
-                var model = AnalysisContext.Compilation.GetSemanticModel(tree);
+                var model = ProgramContext.Compilation.GetSemanticModel(tree);
 
                 // Get the tree's root node compilation unit.
                 var root = (CompilationUnitSyntax)tree.GetRoot();
@@ -166,9 +144,9 @@ namespace Microsoft.PSharp.StaticAnalysis
                 // Iterate the class declerations only if they are machines.
                 foreach (var classDecl in root.DescendantNodes().OfType<ClassDeclarationSyntax>())
                 {
-                    if (AnalysisContext.IsMachine(classDecl))
+                    if (AnalysisEngine.IsMachine(classDecl))
                     {
-                        AnalysisContext.Machines.Add(classDecl);
+                        AnalysisEngine.Machines.Add(classDecl);
                     }
                 }
             }
@@ -180,9 +158,9 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         private static void FindMachineInheritanceInformation()
         {
-            foreach (var machine in AnalysisContext.Machines)
+            foreach (var machine in AnalysisEngine.Machines)
             {
-                var model = AnalysisContext.Compilation.GetSemanticModel(machine.SyntaxTree);
+                var model = ProgramContext.Compilation.GetSemanticModel(machine.SyntaxTree);
                 var types = machine.BaseList.Types;
                 foreach (var type in types)
                 {
@@ -191,9 +169,9 @@ namespace Microsoft.PSharp.StaticAnalysis
                     {
                         if (!typeSymbol.Name.Equals("Machine"))
                         {
-                            var inheritedMachine = AnalysisContext.Machines.Find(v
+                            var inheritedMachine = AnalysisEngine.Machines.Find(v
                                 => v.Identifier.ValueText.Equals(typeSymbol.Name));
-                            AnalysisContext.MachineInheritance.Add(machine, inheritedMachine);
+                            AnalysisEngine.MachineInheritance.Add(machine, inheritedMachine);
                         }
                     }
                 }
@@ -205,18 +183,18 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         private static void FindAllMachineActions()
         {
-            foreach (var machine in AnalysisContext.Machines)
+            foreach (var machine in AnalysisEngine.Machines)
             {
                 var actionBindingFunc = machine.ChildNodes().OfType<MethodDeclarationSyntax>().
                     SingleOrDefault(m => m.Modifiers.Any(SyntaxKind.OverrideKeyword) &&
                     m.Identifier.ValueText.Equals("DefineActionBindings"));
                 if (actionBindingFunc == null)
                 {
-                    AnalysisContext.MachineActions.Add(machine, new List<string>());
+                    AnalysisEngine.MachineActions.Add(machine, new List<string>());
                     continue;
                 }
 
-                var model = AnalysisContext.Compilation.GetSemanticModel(machine.SyntaxTree);
+                var model = ProgramContext.Compilation.GetSemanticModel(machine.SyntaxTree);
 
                 List<string> actionNames = new List<string>();
                 foreach (var action in actionBindingFunc.DescendantNodesAndSelf().
@@ -242,7 +220,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     actionNames.Add(methodName);
                 }
 
-                AnalysisContext.MachineActions.Add(machine, actionNames);
+                AnalysisEngine.MachineActions.Add(machine, actionNames);
             }
         }
 
@@ -261,9 +239,9 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
             else if (!classDecl.BaseList.Types.Any(t => t.ToString().Equals("Machine")))
             {
-                foreach (var tree in AnalysisContext.Compilation.SyntaxTrees)
+                foreach (var tree in ProgramContext.Compilation.SyntaxTrees)
                 {
-                    var model = AnalysisContext.Compilation.GetSemanticModel(tree);
+                    var model = ProgramContext.Compilation.GetSemanticModel(tree);
                     foreach (var type in classDecl.BaseList.Types)
                     {
                         ITypeSymbol typeSymbol = null;
@@ -284,7 +262,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                         var parentClass = typeSymbol.DeclaringSyntaxReferences.First()
                             .GetSyntax() as ClassDeclarationSyntax;
                         if (parentClass != null && parentClass is ClassDeclarationSyntax &&
-                            AnalysisContext.IsMachine(parentClass))
+                            AnalysisEngine.IsMachine(parentClass))
                         {
                             return true;
                         }

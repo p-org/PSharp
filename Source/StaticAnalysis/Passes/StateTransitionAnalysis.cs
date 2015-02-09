@@ -16,6 +16,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Microsoft.PSharp.Tooling;
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -51,7 +53,13 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         public static void Run()
         {
-            foreach (var machine in AnalysisContext.Machines)
+            if (!AnalysisEngine.IsActive)
+            {
+                ErrorReporter.Report("Analysis engine is not active.");
+                Environment.Exit(1);
+            }
+
+            foreach (var machine in AnalysisEngine.Machines)
             {
                 StateTransitionAnalysis.ConstructGraphForMachine(machine);
             }
@@ -67,7 +75,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="machine">Machine</param>
         private static void ConstructGraphForMachine(ClassDeclarationSyntax machine)
         {
-            var model = AnalysisContext.Compilation.GetSemanticModel(machine.SyntaxTree);
+            var model = ProgramContext.Compilation.GetSemanticModel(machine.SyntaxTree);
 
             Dictionary<ClassDeclarationSyntax, HashSet<ClassDeclarationSyntax>> stateTransitions = null;
             StateTransitionAnalysis.TryParseStateTransitions(out stateTransitions, machine, model);
@@ -101,7 +109,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             initNode.IsInitialNode = true;
             initNode.Construct(stateTransitions, actionBindings);
 
-            AnalysisContext.StateTransitionGraphs.Add(machine, initNode);
+            AnalysisEngine.StateTransitionGraphs.Add(machine, initNode);
         }
 
         /// <summary>
@@ -245,7 +253,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     as IdentifierNameSyntax;
                 var stateSymbol = model.GetTypeInfo(stateType).Type;
                 var stateDefinition = SymbolFinder.FindSourceDefinitionAsync(stateSymbol,
-                    AnalysisContext.Solution).Result;
+                    ProgramContext.Solution).Result;
                 if (stateDefinition == null)
                 {
                     return false;
@@ -290,7 +298,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     as TypeOfExpressionSyntax).Type as IdentifierNameSyntax;
                 var stateSymbol = model.GetTypeInfo(stateType).Type;
                 var stateDefinition = SymbolFinder.FindSourceDefinitionAsync(stateSymbol,
-                    AnalysisContext.Solution).Result;
+                    ProgramContext.Solution).Result;
                 if (stateDefinition == null)
                 {
                     continue;
@@ -336,7 +344,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     Expression as IdentifierNameSyntax;
                 var actionSymbol = model.GetSymbolInfo(actionType).Symbol;
                 var actionDefinition = SymbolFinder.FindSourceDefinitionAsync(actionSymbol,
-                    AnalysisContext.Solution).Result;
+                    ProgramContext.Solution).Result;
                 if (actionDefinition == null)
                 {
                     continue;
@@ -360,7 +368,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             MethodDeclarationSyntax method)
         {
             var invocations = new List<InvocationExpressionSyntax>();
-            var locations = SymbolFinder.FindReferencesAsync(symbol, AnalysisContext.Solution).
+            var locations = SymbolFinder.FindReferencesAsync(symbol, ProgramContext.Solution).
                 Result.First().Locations;
             foreach (var loc in locations)
             {

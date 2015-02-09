@@ -49,6 +49,12 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         public static void Run()
         {
+            if (!AnalysisEngine.IsActive)
+            {
+                ErrorReporter.Report("Analysis engine is not active.");
+                Environment.Exit(1);
+            }
+
             // Starts profiling the data flow analysis.
             if (Configuration.ShowROARuntimeResults &&
                 !Configuration.ShowRuntimeResults &&
@@ -57,7 +63,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 Profiler.StartMeasuringExecutionTime();
             }
 
-            foreach (var machine in AnalysisContext.Machines)
+            foreach (var machine in AnalysisEngine.Machines)
             {
                 RespectsOwnershipAnalysis.AnalyseMethodsInMachine(machine);
             }
@@ -110,10 +116,10 @@ namespace Microsoft.PSharp.StaticAnalysis
                 }
             }
 
-            if (AnalysisContext.MachineInheritance.ContainsKey(machineToAnalyse))
+            if (AnalysisEngine.MachineInheritance.ContainsKey(machineToAnalyse))
             {
                 RespectsOwnershipAnalysis.AnalyseMethodsInMachine(machine,
-                    AnalysisContext.MachineInheritance[machineToAnalyse]);
+                    AnalysisEngine.MachineInheritance[machineToAnalyse]);
             }
         }
 
@@ -389,9 +395,9 @@ namespace Microsoft.PSharp.StaticAnalysis
                 return;
             }
 
-            var model = AnalysisContext.Compilation.GetSemanticModel(call.SyntaxTree);
+            var model = ProgramContext.Compilation.GetSemanticModel(call.SyntaxTree);
             var callSymbol = model.GetSymbolInfo(call).Symbol;
-            var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol, AnalysisContext.Solution).Result;
+            var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol, ProgramContext.Solution).Result;
             var calleeMethod = definition.DeclaringSyntaxReferences.First().GetSyntax()
                 as BaseMethodDeclarationSyntax;
             var calleeSummary = MethodSummary.Factory.Summarize(calleeMethod);
@@ -450,7 +456,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             ControlFlowGraphNode givesUpNode, ClassDeclarationSyntax machine, ClassDeclarationSyntax state,
             ClassDeclarationSyntax originalMachine)
         {
-            var model = AnalysisContext.Compilation.GetSemanticModel(arg.SyntaxTree);
+            var model = ProgramContext.Compilation.GetSemanticModel(arg.SyntaxTree);
             
             if (arg is MemberAccessExpressionSyntax || arg is IdentifierNameSyntax)
             {
@@ -598,7 +604,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                                     ToString().Equals(target.ToString()))
                                 {
                                     var rightDef = SymbolFinder.FindSourceDefinitionAsync(rightSymbol,
-                                        AnalysisContext.Solution).Result;
+                                        ProgramContext.Solution).Result;
                                     var type = model.GetTypeInfo(variable.Initializer.Value).Type;
                                     if (rightDef != null && rightDef.Kind == SymbolKind.Field &&
                                         Utilities.DoesFieldBelongToMachine(rightDef, cfgNode.Summary) &&
@@ -715,7 +721,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                                 }
 
                                 var rightDef = SymbolFinder.FindSourceDefinitionAsync(rightSymbol,
-                                            AnalysisContext.Solution).Result;
+                                            ProgramContext.Solution).Result;
                                 var rightType = model.GetTypeInfo(binaryExpr.Right).Type;
                                 if (rightDef != null && rightDef.Kind == SymbolKind.Field &&
                                     Utilities.DoesFieldBelongToMachine(rightDef, cfgNode.Summary) &&
@@ -738,7 +744,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                                         cfgNode, givesUpNode.SyntaxNodes.First(), givesUpNode))
                                     {
                                         var leftDef = SymbolFinder.FindSourceDefinitionAsync(leftSymbol,
-                                            AnalysisContext.Solution).Result;
+                                            ProgramContext.Solution).Result;
                                         var leftType = model.GetTypeInfo(binaryExpr.Left).Type;
                                         if (leftDef != null && leftDef.Kind == SymbolKind.Field &&
                                             !Utilities.IsTypeAllowedToBeSend(leftType) &&
@@ -828,7 +834,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol,
-                AnalysisContext.Solution).Result;
+                ProgramContext.Solution).Result;
             if (definition == null || definition.DeclaringSyntaxReferences.IsEmpty)
             {
                 if (call.ArgumentList != null && call.ArgumentList.Arguments.Count > 0)
@@ -895,7 +901,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol,
-                AnalysisContext.Solution).Result;
+                ProgramContext.Solution).Result;
             if (definition == null || definition.DeclaringSyntaxReferences.IsEmpty)
             {
                 StaticAnalysisErrorReporter.ReportUnknownInvocation(callLog);
@@ -1051,7 +1057,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                                 }
 
                                 var leftDef = SymbolFinder.FindSourceDefinitionAsync(leftSymbol,
-                                    AnalysisContext.Solution).Result;
+                                    ProgramContext.Solution).Result;
                                 var type = model.GetTypeInfo(binaryExpr.Right).Type;
                                 if (leftDef != null && leftDef.Kind == SymbolKind.Field &&
                                     Utilities.DoesFieldBelongToMachine(leftDef, cfgNode.Summary) &&
@@ -1157,7 +1163,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             var callSymbol = model.GetSymbolInfo(call).Symbol;
             var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol,
-                AnalysisContext.Solution).Result;
+                ProgramContext.Solution).Result;
             if (definition == null || definition.DeclaringSyntaxReferences.IsEmpty)
             {
                 StaticAnalysisErrorReporter.ReportUnknownInvocation(callLog);
@@ -1254,7 +1260,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
             
             var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol,
-                AnalysisContext.Solution).Result;
+                ProgramContext.Solution).Result;
             if (definition == null || definition.DeclaringSyntaxReferences.IsEmpty)
             {
                 if (call.Expression is MemberAccessExpressionSyntax)
@@ -1560,7 +1566,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             else
             {
                 var definition = SymbolFinder.FindSourceDefinitionAsync(symbol,
-                    AnalysisContext.Solution).Result;
+                    ProgramContext.Solution).Result;
                 if (definition == null)
                 {
                     return false;
@@ -1637,7 +1643,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 }
 
                 var leftDef = SymbolFinder.FindSourceDefinitionAsync(leftSymbol,
-                    AnalysisContext.Solution).Result;
+                    ProgramContext.Solution).Result;
                 if (leftDef != null && leftDef.Kind == SymbolKind.Field)
                 {
                     Log newLog = new Log();

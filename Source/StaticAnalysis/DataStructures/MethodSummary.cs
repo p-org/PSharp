@@ -16,6 +16,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Microsoft.PSharp.Tooling;
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -122,9 +124,9 @@ namespace Microsoft.PSharp.StaticAnalysis
             /// <returns>MethodSummary</returns>
             internal static MethodSummary Summarize(BaseMethodDeclarationSyntax method)
             {
-                if (AnalysisContext.Summaries.ContainsKey(method))
+                if (AnalysisEngine.Summaries.ContainsKey(method))
                 {
-                    return AnalysisContext.Summaries[method];
+                    return AnalysisEngine.Summaries[method];
                 }
 
                 return new MethodSummary(method);
@@ -140,9 +142,9 @@ namespace Microsoft.PSharp.StaticAnalysis
             internal static MethodSummary Summarize(BaseMethodDeclarationSyntax method,
                 ClassDeclarationSyntax machine, ClassDeclarationSyntax state)
             {
-                if (AnalysisContext.Summaries.ContainsKey(method))
+                if (AnalysisEngine.Summaries.ContainsKey(method))
                 {
-                    return AnalysisContext.Summaries[method];
+                    return AnalysisEngine.Summaries[method];
                 }
 
                 return new MethodSummary(method, machine, state);
@@ -164,7 +166,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 return null;
             }
 
-            var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol, AnalysisContext.Solution).Result;
+            var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol, ProgramContext.Solution).Result;
             if (definition == null)
             {
                 return null;
@@ -202,7 +204,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 return null;
             }
 
-            var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol, AnalysisContext.Solution).Result;
+            var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol, ProgramContext.Solution).Result;
             if (definition == null || definition.DeclaringSyntaxReferences.IsEmpty)
             {
                 return null;
@@ -400,7 +402,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             
             this.DataFlowMap = DataFlowAnalysis.AnalyseControlFlowGraph(this);
             this.ComputeAnySideEffects();
-            AnalysisContext.Summaries.Add(this.Method, this);
+            AnalysisEngine.Summaries.Add(this.Method, this);
 
             //this.DataFlowMap.Print();
             //this.DataFlowMap.PrintReachabilityMap();
@@ -429,7 +431,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             try
             {
-                model = AnalysisContext.Compilation.GetSemanticModel(this.Method.SyntaxTree);
+                model = ProgramContext.Compilation.GetSemanticModel(this.Method.SyntaxTree);
             }
             catch
             {
@@ -465,11 +467,11 @@ namespace Microsoft.PSharp.StaticAnalysis
                     foreach (var pair in exitMap)
                     {
                         var keyDefinition = SymbolFinder.FindSourceDefinitionAsync(pair.Key,
-                            AnalysisContext.Solution).Result;
+                            ProgramContext.Solution).Result;
                         foreach (var value in pair.Value)
                         {
                             var valueDefinition = SymbolFinder.FindSourceDefinitionAsync(value,
-                            AnalysisContext.Solution).Result;
+                            ProgramContext.Solution).Result;
                             if (keyDefinition == null || valueDefinition == null)
                             {
                                 continue;

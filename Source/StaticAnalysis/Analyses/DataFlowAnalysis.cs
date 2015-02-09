@@ -16,6 +16,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Microsoft.PSharp.Tooling;
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -415,7 +417,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         internal static DataFlowMap AnalyseControlFlowGraph(MethodSummary summary)
         {
             var dataFlowMap = new DataFlowMap();
-            var model = AnalysisContext.Compilation.GetSemanticModel(summary.Method.SyntaxTree);
+            var model = ProgramContext.Compilation.GetSemanticModel(summary.Method.SyntaxTree);
 
             foreach (var param in summary.Method.ParameterList.Parameters)
             {
@@ -1275,7 +1277,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             var symbol = model.GetSymbolInfo(identifier).Symbol;
             var definition = SymbolFinder.FindSourceDefinitionAsync(symbol,
-                AnalysisContext.Solution).Result;
+                ProgramContext.Solution).Result;
             if (!(definition is IFieldSymbol))
             {
                 return;

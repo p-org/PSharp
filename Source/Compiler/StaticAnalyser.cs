@@ -33,8 +33,8 @@ namespace Microsoft.PSharp
                 Profiler.StartMeasuringExecutionTime();
             }
 
-            // Create a new P# analysis context.
-            AnalysisContext.Create();
+            // Starts the P# analysis engine.
+            AnalysisEngine.Start();
 
             // Runs an analysis that performs an initial sanity checking
             // to see if machine code behaves as it should.
@@ -74,7 +74,10 @@ namespace Microsoft.PSharp
             Profiler.PrintResults();
 
             // Prints program statistics.
-            AnalysisContext.PrintStatistics();
+            AnalysisEngine.PrintStatistics();
+
+            // Stops the P# analysis engine.
+            AnalysisEngine.Stop();
         }
     }
 }

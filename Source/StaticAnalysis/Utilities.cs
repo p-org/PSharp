@@ -14,6 +14,8 @@
 
 using System.Linq;
 
+using Microsoft.PSharp.Tooling;
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -43,7 +45,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             var definition = SymbolFinder.FindSourceDefinitionAsync(symbol,
-                AnalysisContext.Solution).Result;
+                ProgramContext.Solution).Result;
             var fieldDecl = definition.DeclaringSyntaxReferences.First().GetSyntax().
                 AncestorsAndSelf().OfType<FieldDeclarationSyntax>().First();
 
@@ -129,7 +131,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         {
             var type = model.GetTypeInfo(expr).Type;
             var typeDef = SymbolFinder.FindSourceDefinitionAsync(type,
-                AnalysisContext.Solution).Result;
+                ProgramContext.Solution).Result;
             if (typeDef != null && typeDef.DeclaringSyntaxReferences.First().
                 GetSyntax().IsKind(SyntaxKind.EnumDeclaration))
             {
@@ -166,7 +168,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 var symbol = model.GetSymbolInfo(identifier).Symbol;
                 var definition = SymbolFinder.FindSourceDefinitionAsync(symbol,
-                    AnalysisContext.Solution).Result;
+                    ProgramContext.Solution).Result;
                 if (definition != null)
                 {
                     var machineNode = definition.DeclaringSyntaxReferences.First().GetSyntax();
@@ -178,7 +180,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                         string machineName = machineNamespace.Name + "." + (machineNode
                             as ClassDeclarationSyntax).Identifier.ValueText;
 
-                        foreach (var knownMachine in AnalysisContext.Machines)
+                        foreach (var knownMachine in AnalysisEngine.Machines)
                         {
                             NamespaceDeclarationSyntax knownMachineNamespace = null;
                             Utilities.TryGetNamespaceDeclarationOfSyntaxNode(
@@ -235,7 +237,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             else
             {
                 var definition = SymbolFinder.FindSourceDefinitionAsync(typeSymbol,
-                    AnalysisContext.Solution).Result;
+                    ProgramContext.Solution).Result;
                 if (definition != null)
                 {
                     var machineNode = definition.DeclaringSyntaxReferences.First().GetSyntax();
@@ -246,7 +248,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                             machineNode, out machineNamespace);
                         string machineName = machineNamespace.Name + "." + (machineNode
                             as ClassDeclarationSyntax).Identifier.ValueText;
-                        foreach (var knownMachine in AnalysisContext.Machines)
+                        foreach (var knownMachine in AnalysisEngine.Machines)
                         {
                             NamespaceDeclarationSyntax knownMachineNamespace = null;
                             Utilities.TryGetNamespaceDeclarationOfSyntaxNode(
@@ -495,7 +497,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             var methodName = Utilities.GetFullMethodName(method, machine, null);
-            if (AnalysisContext.MachineActions[machine].Contains(methodName))
+            if (AnalysisEngine.MachineActions[machine].Contains(methodName))
             {
                 return true;
             }

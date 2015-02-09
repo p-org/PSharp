@@ -39,6 +39,11 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         private HashSet<string> MachineNames;
 
+        /// <summary>
+        /// Dictionary from machine to class declaration.
+        /// </summary>
+        private Dictionary<ClassDeclarationSyntax, ClassDeclarationSyntax> MachineDeclMap;
+
         #endregion
 
         #region internal API
@@ -52,6 +57,7 @@ namespace Microsoft.PSharp.Parsing
         {
             this.MachineDeclIds = new HashSet<IdentifierNameSyntax>();
             this.MachineNames = new HashSet<string>();
+            this.MachineDeclMap = new Dictionary<ClassDeclarationSyntax, ClassDeclarationSyntax>();
         }
 
         /// <summary>
@@ -60,9 +66,11 @@ namespace Microsoft.PSharp.Parsing
         /// <returns>CompilationUnitSyntax</returns>
         internal CompilationUnitSyntax Run()
         {
-            this.ParseRootCompilationUnit();
+            this.ParseMachineDeclarations();
             this.RewriteMachineDeclarations();
+
             this.ParseMachineClassDeclarations();
+            this.RewriteMachineClassDeclarations();
 
             return base.Result;
         }
@@ -72,9 +80,9 @@ namespace Microsoft.PSharp.Parsing
         #region private parsing API
 
         /// <summary>
-        /// Parses the root compilation unit.
+        /// Parses the root compilation unit for machine declarations.
         /// </summary>
-        private void ParseRootCompilationUnit()
+        private void ParseMachineDeclarations()
         {
             var nodes = base.Root.ChildNodes().ToList();
             for (int idx = 0; idx < nodes.Count - 1; idx++)
@@ -101,12 +109,23 @@ namespace Microsoft.PSharp.Parsing
         private void ParsePropertyDeclarationSyntax(PropertyDeclarationSyntax node)
         {
             var nodes = node.ChildNodes().ToList();
-            if (nodes.Count == 0 || !(nodes[0] is IdentifierNameSyntax))
+
+            var index = -1;
+            for (int idx = 0; idx < nodes.Count - 1; idx++)
+            {
+                if (nodes[idx] is IdentifierNameSyntax)
+                {
+                    index = idx;
+                    break;
+                }
+            }
+
+            if (index < 0)
             {
                 return;
             }
 
-            var id = nodes[0] as IdentifierNameSyntax;
+            var id = nodes[index] as IdentifierNameSyntax;
             if (!id.Identifier.ValueText.Equals("machine"))
             {
                 return;
@@ -124,10 +143,10 @@ namespace Microsoft.PSharp.Parsing
                 {
                     continue;
                 }
-
+                
                 var classIdToken = SyntaxFactory.Identifier(base.CreateWhitespaceTriviaList(),
                     classDecl.Identifier.ValueText, base.CreateWhitespaceTriviaList());
-                var newClassDecl = classDecl.WithIdentifier(classIdToken);
+                var rewrittenClassDecl = classDecl.WithIdentifier(classIdToken);
 
                 var machineIdToken = SyntaxFactory.Identifier(base.CreateWhitespaceTriviaList(),
                     "Machine", base.CreateEndOfLineTriviaList());
@@ -139,8 +158,9 @@ namespace Microsoft.PSharp.Parsing
                     SyntaxKind.ColonToken, base.CreateWhitespaceTriviaList(1));
                 var baseList = SyntaxFactory.BaseList(colonToken, seperatedList);
 
-                newClassDecl = newClassDecl.WithBaseList(baseList);
-                Console.WriteLine(newClassDecl.ToFullString());
+                rewrittenClassDecl = rewrittenClassDecl.WithBaseList(baseList);
+
+                MachineDeclMap.Add(classDecl, rewrittenClassDecl);
             }
         }
 
@@ -158,6 +178,16 @@ namespace Microsoft.PSharp.Parsing
             var id = SyntaxFactory.IdentifierName(idToken);
 
             base.Result = base.Root.ReplaceNodes(this.MachineDeclIds, (key, val) => id);
+            base.Result = SyntaxFactory.ParseCompilationUnit(base.Result.ToFullString());
+        }
+
+        /// <summary>
+        /// Rewrites machine declarations.
+        /// </summary>
+        private void RewriteMachineClassDeclarations()
+        {
+            base.Result = base.Result.ReplaceNodes(this.MachineDeclMap.Keys,
+                (key, val) => this.MachineDeclMap[key]);
             base.Result = SyntaxFactory.ParseCompilationUnit(base.Result.ToFullString());
         }
 
