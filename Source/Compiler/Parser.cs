@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="Program.cs">
+// <copyright file="Parser.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,25 +12,22 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Microsoft.PSharp.Tooling;
+using Microsoft.PSharp.Parsing;
 
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// The P# language compiler.
+    /// Parser for the P# language.
     /// </summary>
-    class Program
+    internal static class Parser
     {
-        static void Main(string[] args)
+        /// <summary>
+        /// Starts the P# parser.
+        /// </summary>
+        public static void Run()
         {
-            // Parses the command line options.
-            new CommandLineOptions(args).Parse();
-
-            // Run the parser.
-            Parser.Run();
-
-            // Run the static analyser.
-            //StaticAnalyser.Run();
+            // Create a new P# parsing context.
+            ParsingContext.Create();
         }
     }
 }

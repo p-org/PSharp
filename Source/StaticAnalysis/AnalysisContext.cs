@@ -27,7 +27,7 @@ using Microsoft.CodeAnalysis.MSBuild;
 namespace Microsoft.PSharp.StaticAnalysis
 {
     /// <summary>
-    /// The context of the static analysis.
+    /// The P# static analysis context.
     /// </summary>
     public static class AnalysisContext
     {
@@ -82,10 +82,10 @@ namespace Microsoft.PSharp.StaticAnalysis
             AnalysisContext.MachineActions = new Dictionary<ClassDeclarationSyntax, List<string>>();
             AnalysisContext.Summaries = new Dictionary<BaseMethodDeclarationSyntax, MethodSummary>();
             AnalysisContext.StateTransitionGraphs = new Dictionary<ClassDeclarationSyntax, StateTransitionGraphNode>();
-
+            
             // Create a new workspace.
             MSBuildWorkspace workspace = MSBuildWorkspace.Create();
-            Console.WriteLine(Configuration.SolutionFilePath);
+
             try
             {
                 // Populate the workspace with the user defined solution.
@@ -152,8 +152,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             // Iterate the syntax trees for each project file.
             foreach (var tree in AnalysisContext.Compilation.SyntaxTrees)
             {
-                if (tree.FilePath.Contains("\\AssemblyInfo.cs") ||
-                    tree.FilePath.Contains(".NETFramework,"))
+                if (!AnalysisContext.IsProgramSyntaxTree(tree))
                 {
                     continue;
                 }
@@ -292,6 +291,23 @@ namespace Microsoft.PSharp.StaticAnalysis
                     }
                 }
 
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Returns true if the syntax tree belongs to the P# program.
+        /// Else returns false.
+        /// </summary>
+        /// <param name="tree">SyntaxTree</param>
+        /// <returns>Boolean value</returns>
+        private static bool IsProgramSyntaxTree(SyntaxTree tree)
+        {
+            if (tree.FilePath.Contains("\\AssemblyInfo.cs") ||
+                    tree.FilePath.Contains(".NETFramework,"))
+            {
                 return false;
             }
 
