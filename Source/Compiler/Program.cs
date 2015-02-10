@@ -24,6 +24,9 @@ namespace Microsoft.PSharp
     {
         static void Main(string[] args)
         {
+            AppDomain currentDomain = AppDomain.CurrentDomain;
+            currentDomain.UnhandledException += new UnhandledExceptionEventHandler(UnhandledExceptionHandler);
+
             // Parses the command line options.
             new CommandLineOptions(args).Parse();
 
@@ -40,6 +43,18 @@ namespace Microsoft.PSharp
             Compiler.Run();
 
             Console.WriteLine(". Done");
+        }
+
+        /// <summary>
+        /// Handler for unhandled exceptions.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="args"></param>
+        static void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs args)
+        {
+            var ex = (Exception)args.ExceptionObject;
+            ErrorReporter.ReportErrorAndExit("detected unhandled exception, please " +
+                "send a minimal repro example to the developers.");
         }
     }
 }
