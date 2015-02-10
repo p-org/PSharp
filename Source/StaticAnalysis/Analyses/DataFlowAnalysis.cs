@@ -417,7 +417,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         internal static DataFlowMap AnalyseControlFlowGraph(MethodSummary summary)
         {
             var dataFlowMap = new DataFlowMap();
-            var model = ProgramContext.Compilation.GetSemanticModel(summary.Method.SyntaxTree);
+            var model = AnalysisContext.Compilation.GetSemanticModel(summary.Method.SyntaxTree);
 
             foreach (var param in summary.Method.ParameterList.Parameters)
             {
@@ -1277,7 +1277,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             var symbol = model.GetSymbolInfo(identifier).Symbol;
             var definition = SymbolFinder.FindSourceDefinitionAsync(symbol,
-                ProgramContext.Solution).Result;
+                ProgramInfo.Solution).Result;
             if (!(definition is IFieldSymbol))
             {
                 return;

@@ -39,12 +39,6 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         public static void Run()
         {
-            if (!AnalysisEngine.IsActive)
-            {
-                ErrorReporter.Report("Analysis engine is not active.");
-                Environment.Exit(1);
-            }
-
             SanityCheckingAnalysis.CheckMethods();
         }
 
@@ -59,7 +53,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         private static void CheckMethods()
         {
-            foreach (var classDecl in AnalysisEngine.Machines)
+            foreach (var classDecl in AnalysisContext.Machines)
             {
                 SanityCheckingAnalysis.CheckForExternalAsynchronyUseInMachine(classDecl);
 
@@ -68,7 +62,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     if (nestedClass.BaseList == null ||
                         !nestedClass.BaseList.Types.Any(t => t.ToString().Equals("State")))
                     {
-                        StaticAnalysisErrorReporter.Report("Class '{0}' is not a state of the machine '{1}' " +
+                        ErrorReporter.ReportErrorAndExit("Class '{0}' is not a state of the machine '{1}' " +
                             "and, thus, is not allowed to be declared inside the machine body.",
                             nestedClass.Identifier.ValueText, classDecl.Identifier.ValueText);
                     }
@@ -112,7 +106,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     => v.ToString().Contains("System.Threading")))
             {
                 Log log = new Log(null, machine, null, null);
-                StaticAnalysisErrorReporter.ReportExternalAsynchronyUsage(log);
+                AnalysisErrorReporter.ReportExternalAsynchronyUsage(log);
             }
         }
 
@@ -146,7 +140,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                             Log log = new Log(method, machine, state, null);
                             log.AddTrace(callStmt.ToString(), callStmt.SyntaxTree.FilePath, callStmt.SyntaxTree.
                                 GetLineSpan(callStmt.Span).StartLinePosition.Line + 1);
-                            StaticAnalysisErrorReporter.ReportRuntimeOnlyMethodAccess(log);
+                            AnalysisErrorReporter.ReportRuntimeOnlyMethodAccess(log);
                         }
                     }
                 }
@@ -161,7 +155,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                             Log log = new Log(method, machine, state, null);
                             log.AddTrace(newObjStmt.ToString(), newObjStmt.SyntaxTree.FilePath, newObjStmt.SyntaxTree.
                                 GetLineSpan(newObjStmt.Span).StartLinePosition.Line + 1);
-                            StaticAnalysisErrorReporter.ReportExplicitStateInitialisation(log);
+                            AnalysisErrorReporter.ReportExplicitStateInitialisation(log);
                         }
                     }
                 }
@@ -180,7 +174,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                             Log log = new Log(method, machine, state, null);
                             log.AddTrace(newObjStmt.ToString(), newObjStmt.SyntaxTree.FilePath, newObjStmt.SyntaxTree.
                                 GetLineSpan(newObjStmt.Span).StartLinePosition.Line + 1);
-                            StaticAnalysisErrorReporter.ReportExplicitStateInitialisation(log);
+                            AnalysisErrorReporter.ReportExplicitStateInitialisation(log);
                         }
                     }
                 }

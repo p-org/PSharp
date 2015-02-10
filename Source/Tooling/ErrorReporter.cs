@@ -22,28 +22,14 @@ namespace Microsoft.PSharp.Tooling
     /// </summary>
     public class ErrorReporter
     {
-        #region Fields
-
-        /// <summary>
-        /// Number of errors discovered in the analysis.
-        /// </summary>
-        protected static int ErrorCount = 0;
-
-        /// <summary>
-        /// Number of warnings reported by the analysis.
-        /// </summary>
-        protected static int WarningCount = 0;
-
-        #endregion
-
         #region public API
 
         /// <summary>
-        /// Reports a generic error to the user.
+        /// Reports a generic error to the user and exits.
         /// </summary>
         /// <param name="s">String</param>
         /// <param name="args">Parameters</param>
-        public static void Report(string s, params object[] args)
+        public static void ReportErrorAndExit(string s, params object[] args)
         {
             string message = ErrorReporter.Format(s, args);
             ConsoleColor previous = Console.ForegroundColor;
@@ -51,45 +37,7 @@ namespace Microsoft.PSharp.Tooling
             Console.Write("Error: ");
             Console.ForegroundColor = previous;
             Console.WriteLine(message);
-            ErrorReporter.ErrorCount++;
-        }
-
-        /// <summary>
-        /// Prints error statistics.
-        /// </summary>
-        public static void PrintStats()
-        {
-            var errorStr = "error";
-            if (ErrorReporter.ErrorCount > 1)
-            {
-                errorStr = "errors";
-            }
-
-            var warningStr = "warning";
-            if (ErrorReporter.WarningCount > 1)
-            {
-                warningStr = "warnings";
-            }
-
-            if ((ErrorReporter.ErrorCount > 0 || ErrorReporter.WarningCount > 0) &&
-                Configuration.ShowWarnings)
-            {
-                Console.WriteLine("P# static analyser detected '{0}' {1} and reported '{2}' {3}.",
-                    ErrorReporter.ErrorCount, errorStr,
-                    ErrorReporter.WarningCount, warningStr);
-                Console.WriteLine("(but absolutely no warranty provided)");
-            }
-            else if (ErrorReporter.ErrorCount > 0)
-            {
-                Console.WriteLine("P# static analyser detected '{0}' {1}.",
-                    ErrorReporter.ErrorCount, errorStr);
-                Console.WriteLine("(but absolutely no warranty provided)");
-            }
-            else
-            {
-                Console.WriteLine("P# static analyser did not detect any errors.");
-                Console.WriteLine("(but absolutely no warranty provided)");
-            }
+            Environment.Exit(1);
         }
 
         #endregion

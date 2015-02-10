@@ -12,6 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
 using Microsoft.PSharp.StaticAnalysis;
 using Microsoft.PSharp.Tooling;
 
@@ -27,14 +28,37 @@ namespace Microsoft.PSharp
         /// </summary>
         public static void Run()
         {
+            foreach (var programUnit in ProgramInfo.ProgramUnits)
+            {
+                Console.WriteLine("Analysing " + programUnit.Name + " ...");
+
+                StaticAnalyser.AnalyseProgramUnit(programUnit);
+            }
+
+            // Prints error statistics and profiling results.
+            AnalysisErrorReporter.PrintStats();
+
+            // Prints program statistics.
+            if (Configuration.ShowProgramStatistics)
+            {
+                AnalysisContext.PrintStatistics();
+            }
+        }
+
+        /// <summary>
+        /// Analyse the given P# program unit.
+        /// </summary>
+        /// <param name="programUnit">ProgramUnit</param>
+        private static void AnalyseProgramUnit(ProgramUnit programUnit)
+        {
             // Starts profiling the analysis.
             if (Configuration.ShowRuntimeResults)
             {
                 Profiler.StartMeasuringExecutionTime();
             }
 
-            // Starts the P# analysis engine.
-            AnalysisEngine.Start();
+            // Create a P# analysis context.
+            AnalysisContext.Create(programUnit);
 
             // Runs an analysis that performs an initial sanity checking
             // to see if machine code behaves as it should.
@@ -69,15 +93,7 @@ namespace Microsoft.PSharp
                 Profiler.StopMeasuringExecutionTime();
             }
 
-            // Prints error statistics and profiling results.
-            ErrorReporter.PrintStats();
             Profiler.PrintResults();
-
-            // Prints program statistics.
-            AnalysisEngine.PrintStatistics();
-
-            // Stops the P# analysis engine.
-            AnalysisEngine.Stop();
         }
     }
 }

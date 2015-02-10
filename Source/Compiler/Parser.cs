@@ -12,6 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
 using Microsoft.PSharp.Parsing;
 
 namespace Microsoft.PSharp
@@ -26,6 +27,8 @@ namespace Microsoft.PSharp
         /// </summary>
         public static void Run()
         {
+            Console.WriteLine("Parsing ...");
+
             // Runs the P# parsing engine.
             ParsingEngine.Run();
         }

@@ -67,12 +67,12 @@
     <Compile Include="Analyses\DataFlowAnalysis.cs" />
     <Compile Include="Analyses\FieldUsageAnalysis.cs" />
     <Compile Include="Analyses\InheritanceAnalysis.cs" />
-    <Compile Include="AnalysisEngine.cs" />
+    <Compile Include="AnalysisContext.cs" />
     <Compile Include="DataStructures\ControlFlowGraphNode.cs" />
     <Compile Include="DataStructures\DataFlowMap.cs" />
     <Compile Include="DataStructures\MethodSummary.cs" />
     <Compile Include="DataStructures\StateTransitionGraphNode.cs" />
-    <Compile Include="StaticAnalysisErrorReporter.cs" />
+    <Compile Include="AnalysisErrorReporter.cs" />
     <Compile Include="Log.cs" />
     <Compile Include="Passes\MethodSummaryAnalysis.cs" />
     <Compile Include="Passes\RespectsOwnershipAnalysis.cs" />

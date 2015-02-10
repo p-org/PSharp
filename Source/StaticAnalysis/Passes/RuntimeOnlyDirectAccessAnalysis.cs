@@ -39,12 +39,6 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         public static void Run()
         {
-            if (!AnalysisEngine.IsActive)
-            {
-                ErrorReporter.Report("Analysis engine is not active.");
-                Environment.Exit(1);
-            }
-
             RuntimeOnlyDirectAccessAnalysis.CheckFields();
             RuntimeOnlyDirectAccessAnalysis.CheckMethods();
         }
@@ -59,18 +53,18 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         private static void CheckFields()
         {
-            foreach (var classDecl in AnalysisEngine.Machines)
+            foreach (var classDecl in AnalysisContext.Machines)
             {
                 foreach (var field in classDecl.ChildNodes().OfType<FieldDeclarationSyntax>())
                 {
                     if (field.Modifiers.Any(SyntaxKind.PublicKeyword))
                     {
-                        StaticAnalysisErrorReporter.Report("Field '{0}' of machine '{1}' is declared as " +
+                        ErrorReporter.ReportErrorAndExit("Field '{0}' of machine '{1}' is declared as " +
                             "'public'.", field.Declaration.ToString(), classDecl.Identifier.ValueText);
                     }
                     else if (field.Modifiers.Any(SyntaxKind.InternalKeyword))
                     {
-                        StaticAnalysisErrorReporter.Report("Field '{0}' of machine '{1}' is declared as " +
+                        ErrorReporter.ReportErrorAndExit("Field '{0}' of machine '{1}' is declared as " +
                             "'internal'.", field.Declaration.ToString(), classDecl.Identifier.ValueText);
                     }
                 }
@@ -84,19 +78,19 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         private static void CheckMethods()
         {
-            foreach (var classDecl in AnalysisEngine.Machines)
+            foreach (var classDecl in AnalysisContext.Machines)
             {
                 foreach (var method in classDecl.ChildNodes().OfType<MethodDeclarationSyntax>())
                 {
                     if (method.Modifiers.Any(SyntaxKind.PublicKeyword))
                     {
-                        StaticAnalysisErrorReporter.Report("Method '{0}' of machine '{1}' is " +
+                        ErrorReporter.ReportErrorAndExit("Method '{0}' of machine '{1}' is " +
                             "declared as 'public'.", method.Identifier.ValueText,
                             classDecl.Identifier.ValueText);
                     }
                     else if (method.Modifiers.Any(SyntaxKind.InternalKeyword))
                     {
-                        StaticAnalysisErrorReporter.Report("Method '{0}' of machine '{1}' is " +
+                        ErrorReporter.ReportErrorAndExit("Method '{0}' of machine '{1}' is " +
                             "declared as 'internal'.", method.Identifier.ValueText,
                             classDecl.Identifier.ValueText);
                     }

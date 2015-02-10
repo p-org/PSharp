@@ -142,7 +142,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             method = null;
 
             var definition = SymbolFinder.FindSourceDefinitionAsync(type,
-                ProgramContext.Solution).Result;
+                ProgramInfo.Solution).Result;
             if (definition == null)
             {
                 return false;

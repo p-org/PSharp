@@ -109,8 +109,7 @@ namespace Microsoft.PSharp.Tooling
         {
             if (Configuration.SolutionFilePath.Equals(""))
             {
-                ErrorReporter.Report("Please give a valid solution path.");
-                Environment.Exit(1);
+                ErrorReporter.ReportErrorAndExit("Please give a valid solution path.");
             }
         }
 

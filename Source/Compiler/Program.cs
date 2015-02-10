@@ -12,6 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
 using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp
@@ -26,14 +27,16 @@ namespace Microsoft.PSharp
             // Parses the command line options.
             new CommandLineOptions(args).Parse();
 
-            // Creates a new P# program context.
-            ProgramContext.Create();
+            // Initializes program info.
+            ProgramInfo.Initialize();
 
             // Run the parser.
             Parser.Run();
 
             // Run the static analyser.
             StaticAnalyser.Run();
+
+            Console.WriteLine("Done.");
         }
     }
 }

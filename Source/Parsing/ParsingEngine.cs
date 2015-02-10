@@ -20,7 +20,6 @@ using Microsoft.PSharp.Tooling;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.MSBuild;
 
 namespace Microsoft.PSharp.Parsing
 {
@@ -36,8 +35,13 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         public static void Run()
         {
-            // Perform rewriting.
-            ParsingEngine.RewriteSyntaxTrees();
+            foreach (var programUnit in ProgramInfo.ProgramUnits.ToList())
+            {
+                var project = programUnit.Project;
+
+                // Performs rewriting.
+                ParsingEngine.RewriteSyntaxTrees(project);
+            }
         }
 
         #endregion
@@ -45,45 +49,29 @@ namespace Microsoft.PSharp.Parsing
         #region private methods
 
         /// <summary>
-        /// Rewrite P# syntax trees to C# syntax trees.
+        /// Rewrite P# syntax trees to C# syntax trees of the project.
         /// </summary>
-        private static void RewriteSyntaxTrees()
+        /// <param name="project">Project</param>
+        private static void RewriteSyntaxTrees(Project project)
         {
-            var rewritternTrees = new HashSet<SyntaxTree>();
+            var compilation = project.GetCompilationAsync().Result;
 
-            // Iterate the syntax trees for each project file.
-            foreach (var tree in ProgramContext.Compilation.SyntaxTrees)
+            var rewritternTrees = new HashSet<SyntaxTree>();
+            foreach (var tree in compilation.SyntaxTrees.ToList())
             {
                 if (!ParsingEngine.IsProgramSyntaxTree(tree))
                 {
                     continue;
                 }
 
-                // Get the tree's semantic model.
-                var model = ProgramContext.Compilation.GetSemanticModel(tree);
-
-                // Get the tree's root node compilation unit.
                 var root = (CompilationUnitSyntax)tree.GetRoot();
                 var rewrittenUnit = new MachineDeclarationRewriter(root).Run();
+                var rewrittenTree = rewrittenUnit.SyntaxTree.WithFilePath(tree.FilePath);
 
-                rewritternTrees.Add(rewrittenUnit.SyntaxTree);
+                rewritternTrees.Add(rewrittenTree);
             }
 
-            ProgramContext.ReplaceSyntaxTrees(rewritternTrees);
-
-            foreach (var tree in ProgramContext.Compilation.SyntaxTrees)
-            {
-                if (!ParsingEngine.IsProgramSyntaxTree(tree))
-                {
-                    continue;
-                }
-
-                // Get the tree's semantic model.
-                var model = ProgramContext.Compilation.GetSemanticModel(tree);
-
-                // Get the tree's root node compilation unit.
-                var root = (CompilationUnitSyntax)tree.GetRoot();
-            }
+            ProgramInfo.ReplaceSyntaxTrees(project, rewritternTrees);
         }
 
         /// <summary>

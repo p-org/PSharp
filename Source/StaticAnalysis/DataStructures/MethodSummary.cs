@@ -124,9 +124,9 @@ namespace Microsoft.PSharp.StaticAnalysis
             /// <returns>MethodSummary</returns>
             internal static MethodSummary Summarize(BaseMethodDeclarationSyntax method)
             {
-                if (AnalysisEngine.Summaries.ContainsKey(method))
+                if (AnalysisContext.Summaries.ContainsKey(method))
                 {
-                    return AnalysisEngine.Summaries[method];
+                    return AnalysisContext.Summaries[method];
                 }
 
                 return new MethodSummary(method);
@@ -142,9 +142,9 @@ namespace Microsoft.PSharp.StaticAnalysis
             internal static MethodSummary Summarize(BaseMethodDeclarationSyntax method,
                 ClassDeclarationSyntax machine, ClassDeclarationSyntax state)
             {
-                if (AnalysisEngine.Summaries.ContainsKey(method))
+                if (AnalysisContext.Summaries.ContainsKey(method))
                 {
-                    return AnalysisEngine.Summaries[method];
+                    return AnalysisContext.Summaries[method];
                 }
 
                 return new MethodSummary(method, machine, state);
@@ -166,7 +166,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 return null;
             }
 
-            var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol, ProgramContext.Solution).Result;
+            var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol, ProgramInfo.Solution).Result;
             if (definition == null)
             {
                 return null;
@@ -204,7 +204,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 return null;
             }
 
-            var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol, ProgramContext.Solution).Result;
+            var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol, ProgramInfo.Solution).Result;
             if (definition == null || definition.DeclaringSyntaxReferences.IsEmpty)
             {
                 return null;
@@ -402,7 +402,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             
             this.DataFlowMap = DataFlowAnalysis.AnalyseControlFlowGraph(this);
             this.ComputeAnySideEffects();
-            AnalysisEngine.Summaries.Add(this.Method, this);
+            AnalysisContext.Summaries.Add(this.Method, this);
 
             //this.DataFlowMap.Print();
             //this.DataFlowMap.PrintReachabilityMap();
@@ -431,7 +431,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             try
             {
-                model = ProgramContext.Compilation.GetSemanticModel(this.Method.SyntaxTree);
+                model = AnalysisContext.Compilation.GetSemanticModel(this.Method.SyntaxTree);
             }
             catch
             {
@@ -467,11 +467,11 @@ namespace Microsoft.PSharp.StaticAnalysis
                     foreach (var pair in exitMap)
                     {
                         var keyDefinition = SymbolFinder.FindSourceDefinitionAsync(pair.Key,
-                            ProgramContext.Solution).Result;
+                            ProgramInfo.Solution).Result;
                         foreach (var value in pair.Value)
                         {
                             var valueDefinition = SymbolFinder.FindSourceDefinitionAsync(value,
-                            ProgramContext.Solution).Result;
+                                ProgramInfo.Solution).Result;
                             if (keyDefinition == null || valueDefinition == null)
                             {
                                 continue;

@@ -49,12 +49,6 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         public static void Run()
         {
-            if (!AnalysisEngine.IsActive)
-            {
-                ErrorReporter.Report("Analysis engine is not active.");
-                Environment.Exit(1);
-            }
-
             // Starts profiling the data flow analysis.
             if (Configuration.ShowROARuntimeResults &&
                 !Configuration.ShowRuntimeResults &&
@@ -63,7 +57,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 Profiler.StartMeasuringExecutionTime();
             }
 
-            foreach (var machine in AnalysisEngine.Machines)
+            foreach (var machine in AnalysisContext.Machines)
             {
                 RespectsOwnershipAnalysis.AnalyseMethodsInMachine(machine);
             }
@@ -116,10 +110,10 @@ namespace Microsoft.PSharp.StaticAnalysis
                 }
             }
 
-            if (AnalysisEngine.MachineInheritance.ContainsKey(machineToAnalyse))
+            if (AnalysisContext.MachineInheritance.ContainsKey(machineToAnalyse))
             {
                 RespectsOwnershipAnalysis.AnalyseMethodsInMachine(machine,
-                    AnalysisEngine.MachineInheritance[machineToAnalyse]);
+                    AnalysisContext.MachineInheritance[machineToAnalyse]);
             }
         }
 
@@ -395,9 +389,9 @@ namespace Microsoft.PSharp.StaticAnalysis
                 return;
             }
 
-            var model = ProgramContext.Compilation.GetSemanticModel(call.SyntaxTree);
+            var model = AnalysisContext.Compilation.GetSemanticModel(call.SyntaxTree);
             var callSymbol = model.GetSymbolInfo(call).Symbol;
-            var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol, ProgramContext.Solution).Result;
+            var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol, ProgramInfo.Solution).Result;
             var calleeMethod = definition.DeclaringSyntaxReferences.First().GetSyntax()
                 as BaseMethodDeclarationSyntax;
             var calleeSummary = MethodSummary.Factory.Summarize(calleeMethod);
@@ -456,7 +450,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             ControlFlowGraphNode givesUpNode, ClassDeclarationSyntax machine, ClassDeclarationSyntax state,
             ClassDeclarationSyntax originalMachine)
         {
-            var model = ProgramContext.Compilation.GetSemanticModel(arg.SyntaxTree);
+            var model = AnalysisContext.Compilation.GetSemanticModel(arg.SyntaxTree);
             
             if (arg is MemberAccessExpressionSyntax || arg is IdentifierNameSyntax)
             {
@@ -604,7 +598,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                                     ToString().Equals(target.ToString()))
                                 {
                                     var rightDef = SymbolFinder.FindSourceDefinitionAsync(rightSymbol,
-                                        ProgramContext.Solution).Result;
+                                        ProgramInfo.Solution).Result;
                                     var type = model.GetTypeInfo(variable.Initializer.Value).Type;
                                     if (rightDef != null && rightDef.Kind == SymbolKind.Field &&
                                         Utilities.DoesFieldBelongToMachine(rightDef, cfgNode.Summary) &&
@@ -618,7 +612,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                                         newLog.Merge(log);
                                         newLog.AddTrace(syntaxNode.ToString(), syntaxNode.SyntaxTree.FilePath,
                                             syntaxNode.SyntaxTree.GetLineSpan(syntaxNode.Span).StartLinePosition.Line + 1);
-                                        StaticAnalysisErrorReporter.ReportGivenUpFieldOwnershipError(newLog);
+                                        AnalysisErrorReporter.ReportGivenUpFieldOwnershipError(newLog);
                                     }
                                 }
                             }
@@ -721,7 +715,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                                 }
 
                                 var rightDef = SymbolFinder.FindSourceDefinitionAsync(rightSymbol,
-                                            ProgramContext.Solution).Result;
+                                    ProgramInfo.Solution).Result;
                                 var rightType = model.GetTypeInfo(binaryExpr.Right).Type;
                                 if (rightDef != null && rightDef.Kind == SymbolKind.Field &&
                                     Utilities.DoesFieldBelongToMachine(rightDef, cfgNode.Summary) &&
@@ -735,7 +729,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                                     newLog.Merge(log);
                                     newLog.AddTrace(stmt.ToString(), stmt.SyntaxTree.FilePath, stmt.SyntaxTree.
                                         GetLineSpan(stmt.Span).StartLinePosition.Line + 1);
-                                    StaticAnalysisErrorReporter.ReportGivenUpFieldOwnershipError(newLog);
+                                    AnalysisErrorReporter.ReportGivenUpFieldOwnershipError(newLog);
                                 }
 
                                 if (leftSymbol != null && !rightSymbol.Equals(leftSymbol))
@@ -744,7 +738,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                                         cfgNode, givesUpNode.SyntaxNodes.First(), givesUpNode))
                                     {
                                         var leftDef = SymbolFinder.FindSourceDefinitionAsync(leftSymbol,
-                                            ProgramContext.Solution).Result;
+                                            ProgramInfo.Solution).Result;
                                         var leftType = model.GetTypeInfo(binaryExpr.Left).Type;
                                         if (leftDef != null && leftDef.Kind == SymbolKind.Field &&
                                             !Utilities.IsTypeAllowedToBeSend(leftType) &&
@@ -757,7 +751,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                                             newLog.Merge(log);
                                             newLog.AddTrace(stmt.ToString(), stmt.SyntaxTree.FilePath, stmt.SyntaxTree.
                                                 GetLineSpan(stmt.Span).StartLinePosition.Line + 1);
-                                            StaticAnalysisErrorReporter.ReportGivenUpFieldOwnershipError(newLog);
+                                            AnalysisErrorReporter.ReportGivenUpFieldOwnershipError(newLog);
                                         }
                                     }
                                 }
@@ -827,19 +821,19 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 if (call.ArgumentList != null && call.ArgumentList.Arguments.Count > 0)
                 {
-                    StaticAnalysisErrorReporter.ReportUnknownInvocation(callLog);
+                    AnalysisErrorReporter.ReportUnknownInvocation(callLog);
                 }
                 
                 return new HashSet<ISymbol>();
             }
 
             var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol,
-                ProgramContext.Solution).Result;
+                ProgramInfo.Solution).Result;
             if (definition == null || definition.DeclaringSyntaxReferences.IsEmpty)
             {
                 if (call.ArgumentList != null && call.ArgumentList.Arguments.Count > 0)
                 {
-                    StaticAnalysisErrorReporter.ReportUnknownInvocation(callLog);
+                    AnalysisErrorReporter.ReportUnknownInvocation(callLog);
                 }
 
                 return new HashSet<ISymbol>();
@@ -860,7 +854,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                         Utilities.DoesFieldBelongToMachine(v.Key, cfgNode.Summary) &&
                         FieldUsageAnalysis.IsAccessedBeforeBeingReset(v.Key, cfgNode.Summary)))
                     {
-                        StaticAnalysisErrorReporter.ReportGivenUpFieldOwnershipError(callLog);
+                        AnalysisErrorReporter.ReportGivenUpFieldOwnershipError(callLog);
                     }
                 }
             }
@@ -901,10 +895,10 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol,
-                ProgramContext.Solution).Result;
+                ProgramInfo.Solution).Result;
             if (definition == null || definition.DeclaringSyntaxReferences.IsEmpty)
             {
-                StaticAnalysisErrorReporter.ReportUnknownInvocation(callLog);
+                AnalysisErrorReporter.ReportUnknownInvocation(callLog);
                 return new HashSet<ISymbol>();
             }
 
@@ -920,7 +914,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 if (!InheritanceAnalysis.TryGetPotentialMethodOverriders(out overriders,
                     call, syntaxNode, cfgNode, originalMachine, model))
                 {
-                    StaticAnalysisErrorReporter.ReportUnknownVirtualCall(callLog);
+                    AnalysisErrorReporter.ReportUnknownVirtualCall(callLog);
                 }
 
                 foreach (var overrider in overriders)
@@ -950,7 +944,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                             Utilities.DoesFieldBelongToMachine(v.Key, cfgNode.Summary) &&
                             FieldUsageAnalysis.IsAccessedBeforeBeingReset(v.Key, cfgNode.Summary)))
                         {
-                            StaticAnalysisErrorReporter.ReportGivenUpFieldOwnershipError(callLog);
+                            AnalysisErrorReporter.ReportGivenUpFieldOwnershipError(callLog);
                         }
                     }
                 }
@@ -1010,7 +1004,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                                     newLog.Merge(log);
                                     newLog.AddTrace(stmt.ToString(), stmt.SyntaxTree.FilePath, stmt.SyntaxTree.
                                         GetLineSpan(stmt.Span).StartLinePosition.Line + 1);
-                                    StaticAnalysisErrorReporter.ReportPotentialDataRace(newLog);
+                                    AnalysisErrorReporter.ReportPotentialDataRace(newLog);
                                 }
                             }
                             else if (variable.Initializer.Value is InvocationExpressionSyntax)
@@ -1057,7 +1051,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                                 }
 
                                 var leftDef = SymbolFinder.FindSourceDefinitionAsync(leftSymbol,
-                                    ProgramContext.Solution).Result;
+                                    ProgramInfo.Solution).Result;
                                 var type = model.GetTypeInfo(binaryExpr.Right).Type;
                                 if (leftDef != null && leftDef.Kind == SymbolKind.Field &&
                                     Utilities.DoesFieldBelongToMachine(leftDef, cfgNode.Summary) &&
@@ -1068,7 +1062,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                                     newLog.Merge(log);
                                     newLog.AddTrace(stmt.ToString(), stmt.SyntaxTree.FilePath, stmt.SyntaxTree.
                                         GetLineSpan(stmt.Span).StartLinePosition.Line + 1);
-                                    StaticAnalysisErrorReporter.ReportGivenUpOwnershipFieldAssignment(newLog);
+                                    AnalysisErrorReporter.ReportGivenUpOwnershipFieldAssignment(newLog);
                                 }
 
                                 continue;
@@ -1081,7 +1075,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                                 newLog.Merge(log);
                                 newLog.AddTrace(stmt.ToString(), stmt.SyntaxTree.FilePath, stmt.SyntaxTree.
                                     GetLineSpan(stmt.Span).StartLinePosition.Line + 1);
-                                StaticAnalysisErrorReporter.ReportPotentialDataRace(newLog);
+                                AnalysisErrorReporter.ReportPotentialDataRace(newLog);
                                 continue;
                             }
                             else if (binaryExpr.Right is InvocationExpressionSyntax)
@@ -1110,7 +1104,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                                     newLog.Merge(log);
                                     newLog.AddTrace(stmt.ToString(), stmt.SyntaxTree.FilePath, stmt.SyntaxTree.
                                         GetLineSpan(stmt.Span).StartLinePosition.Line + 1);
-                                    StaticAnalysisErrorReporter.ReportPotentialDataRace(newLog);
+                                    AnalysisErrorReporter.ReportPotentialDataRace(newLog);
                                 }
                             }
                         }
@@ -1163,10 +1157,10 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             var callSymbol = model.GetSymbolInfo(call).Symbol;
             var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol,
-                ProgramContext.Solution).Result;
+                ProgramInfo.Solution).Result;
             if (definition == null || definition.DeclaringSyntaxReferences.IsEmpty)
             {
-                StaticAnalysisErrorReporter.ReportUnknownInvocation(callLog);
+                AnalysisErrorReporter.ReportUnknownInvocation(callLog);
                 return;
             }
 
@@ -1191,7 +1185,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                             newLog.Merge(callLog);
                             newLog.AddTrace(access.ToString(), access.SyntaxTree.FilePath, access.SyntaxTree.
                                 GetLineSpan(access.Span).StartLinePosition.Line + 1);
-                            StaticAnalysisErrorReporter.ReportPotentialDataRace(newLog);
+                            AnalysisErrorReporter.ReportPotentialDataRace(newLog);
                         }
                     }
 
@@ -1199,12 +1193,12 @@ namespace Microsoft.PSharp.StaticAnalysis
                         v => v.Value.Contains(idx) &&
                         Utilities.DoesFieldBelongToMachine(v.Key, cfgNode.Summary)))
                     {
-                        StaticAnalysisErrorReporter.ReportGivenUpOwnershipFieldAssignment(callLog);
+                        AnalysisErrorReporter.ReportGivenUpOwnershipFieldAssignment(callLog);
                     }
 
                     if (constructorSummary.GivesUpSet.Contains(idx))
                     {
-                        StaticAnalysisErrorReporter.ReportGivenUpOwnershipSending(callLog);
+                        AnalysisErrorReporter.ReportGivenUpOwnershipSending(callLog);
                     }
                 }
             }
@@ -1220,7 +1214,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                         newLog.Merge(callLog);
                         newLog.AddTrace(access.ToString(), access.SyntaxTree.FilePath, access.SyntaxTree.
                             GetLineSpan(access.Span).StartLinePosition.Line + 1);
-                        StaticAnalysisErrorReporter.ReportPotentialDataRace(newLog);
+                        AnalysisErrorReporter.ReportPotentialDataRace(newLog);
                     }
                 }
             }
@@ -1260,7 +1254,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
             
             var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol,
-                ProgramContext.Solution).Result;
+                ProgramInfo.Solution).Result;
             if (definition == null || definition.DeclaringSyntaxReferences.IsEmpty)
             {
                 if (call.Expression is MemberAccessExpressionSyntax)
@@ -1278,13 +1272,13 @@ namespace Microsoft.PSharp.StaticAnalysis
                             newLog.Merge(callLog);
                             newLog.AddTrace(callee.ToString(), callee.SyntaxTree.FilePath, callee.SyntaxTree.
                                 GetLineSpan(callee.Span).StartLinePosition.Line + 1);
-                            StaticAnalysisErrorReporter.ReportPotentialDataRace(newLog);
+                            AnalysisErrorReporter.ReportPotentialDataRace(newLog);
                             return;
                         }
                     }
                 }
 
-                StaticAnalysisErrorReporter.ReportUnknownInvocation(callLog);
+                AnalysisErrorReporter.ReportUnknownInvocation(callLog);
                 return;
             }
 
@@ -1300,7 +1294,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 if (!InheritanceAnalysis.TryGetPotentialMethodOverriders(out overriders,
                     call, syntaxNode, cfgNode, originalMachine, model))
                 {
-                    StaticAnalysisErrorReporter.ReportUnknownVirtualCall(callLog);
+                    AnalysisErrorReporter.ReportUnknownVirtualCall(callLog);
                 }
 
                 foreach (var overrider in overriders)
@@ -1335,7 +1329,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                                 newLog.Merge(callLog);
                                 newLog.AddTrace(access.ToString(), access.SyntaxTree.FilePath, access.SyntaxTree.
                                     GetLineSpan(access.Span).StartLinePosition.Line + 1);
-                                StaticAnalysisErrorReporter.ReportPotentialDataRace(newLog);
+                                AnalysisErrorReporter.ReportPotentialDataRace(newLog);
                             }
                         }
 
@@ -1343,12 +1337,12 @@ namespace Microsoft.PSharp.StaticAnalysis
                             v => v.Value.Contains(idx) &&
                             Utilities.DoesFieldBelongToMachine(v.Key, cfgNode.Summary)))
                         {
-                            StaticAnalysisErrorReporter.ReportGivenUpOwnershipFieldAssignment(callLog);
+                            AnalysisErrorReporter.ReportGivenUpOwnershipFieldAssignment(callLog);
                         }
 
                         if (invocationSummary.GivesUpSet.Contains(idx))
                         {
-                            StaticAnalysisErrorReporter.ReportGivenUpOwnershipSending(callLog);
+                            AnalysisErrorReporter.ReportGivenUpOwnershipSending(callLog);
                         }
                     }
                 }
@@ -1364,7 +1358,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                             newLog.Merge(callLog);
                             newLog.AddTrace(access.ToString(), access.SyntaxTree.FilePath, access.SyntaxTree.
                                 GetLineSpan(access.Span).StartLinePosition.Line + 1);
-                            StaticAnalysisErrorReporter.ReportPotentialDataRace(newLog);
+                            AnalysisErrorReporter.ReportPotentialDataRace(newLog);
                         }
                     }
                 }
@@ -1509,7 +1503,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     !DataFlowAnalysis.DoesResetInLoop(arg, syntaxNode, cfgNode,
                     givesUpSyntaxNode, givesUpCfgNode, model))
                 {
-                    StaticAnalysisErrorReporter.ReportGivenUpOwnershipSending(log);
+                    AnalysisErrorReporter.ReportGivenUpOwnershipSending(log);
                     return;
                 }
             }
@@ -1566,7 +1560,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             else
             {
                 var definition = SymbolFinder.FindSourceDefinitionAsync(symbol,
-                    ProgramContext.Solution).Result;
+                    ProgramInfo.Solution).Result;
                 if (definition == null)
                 {
                     return false;
@@ -1591,7 +1585,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                         givesUpNode.SyntaxNodes.First(), givesUpNode) &&
                         FieldUsageAnalysis.IsAccessedBeforeBeingReset(definition, givesUpNode.Summary))
                     {
-                        StaticAnalysisErrorReporter.ReportGivenUpFieldOwnershipError(log);
+                        AnalysisErrorReporter.ReportGivenUpFieldOwnershipError(log);
                     }
                     
                     return Utilities.IsTypeAllowedToBeSend(varDecl.Type, model);
@@ -1643,14 +1637,14 @@ namespace Microsoft.PSharp.StaticAnalysis
                 }
 
                 var leftDef = SymbolFinder.FindSourceDefinitionAsync(leftSymbol,
-                    ProgramContext.Solution).Result;
+                    ProgramInfo.Solution).Result;
                 if (leftDef != null && leftDef.Kind == SymbolKind.Field)
                 {
                     Log newLog = new Log();
                     newLog.Merge(log);
                     newLog.AddTrace(stmt.ToString(), stmt.SyntaxTree.FilePath, stmt.SyntaxTree.
                         GetLineSpan(stmt.Span).StartLinePosition.Line + 1);
-                    StaticAnalysisErrorReporter.ReportPayloadFieldAssignment(newLog);
+                    AnalysisErrorReporter.ReportPayloadFieldAssignment(newLog);
                     return true;
                 }
             }
