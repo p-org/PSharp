@@ -13,15 +13,15 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Linq;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 
 using Microsoft.PSharp.Tooling;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.PSharp.Compilation
@@ -31,6 +31,12 @@ namespace Microsoft.PSharp.Compilation
     /// </summary>
     public static class CompilationEngine
     {
+        #region fields
+
+        private static HashSet<string> OutputDirectories = null;
+
+        #endregion
+
         #region public API
 
         /// <summary>
@@ -38,6 +44,8 @@ namespace Microsoft.PSharp.Compilation
         /// </summary>
         public static void Run()
         {
+            CompilationEngine.OutputDirectories = new HashSet<string>();
+
             var projectDependencyGraph = ProgramInfo.Solution.GetProjectDependencyGraph();
 
             foreach (var projectId in projectDependencyGraph.GetTopologicallySortedProjects())
@@ -45,6 +53,9 @@ namespace Microsoft.PSharp.Compilation
                 // Compiles the project.
                 CompilationEngine.CompileProject(ProgramInfo.Solution.GetProject(projectId));
             }
+
+            // Links the P# runtime.
+            CompilationEngine.LinkRuntime();
         }
 
         #endregion
@@ -70,6 +81,32 @@ namespace Microsoft.PSharp.Compilation
         }
 
         /// <summary>
+        /// Links the P# runtime.
+        /// </summary>
+        private static void LinkRuntime()
+        {
+            Console.WriteLine(". Linking Microsoft.PSharp.dll");
+
+            foreach (var outputDir in CompilationEngine.OutputDirectories)
+            {
+                var assembly = typeof(Runtime).Assembly;
+                var localFileName = (new System.Uri(assembly.CodeBase)).LocalPath;
+                var fileName = outputDir + Path.DirectorySeparatorChar + "Microsoft.PSharp.dll";
+
+                if (File.Exists(fileName))
+                {
+                    continue;
+                }
+
+                File.Copy(localFileName, fileName);
+            }
+        }
+
+        #endregion
+
+        #region helper methods
+
+        /// <summary>
         /// Compiles the given compilation to a file.
         /// </summary>
         /// <param name="compilation">Compilation</param>
@@ -93,10 +130,12 @@ namespace Microsoft.PSharp.Compilation
             if (!Configuration.OutputFilePath.Equals(""))
             {
                 fileName = Configuration.OutputFilePath + Path.DirectorySeparatorChar + assemblyFileName;
+                CompilationEngine.OutputDirectories.Add(Configuration.OutputFilePath);
             }
             else
             {
                 fileName = outputPath;
+                CompilationEngine.OutputDirectories.Add(Path.GetDirectoryName(outputPath));
             }
 
             EmitResult emitResult = null;

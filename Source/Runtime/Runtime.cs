@@ -21,7 +21,6 @@ using System.Linq;
 using System.IO.Pipes;
 using System.Threading;
 
-using Microsoft.PSharp.Compilation;
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Scheduling;
 
@@ -350,16 +349,6 @@ namespace Microsoft.PSharp
         public static void AnalyzeExecution()
         {
             //Sequentializer.Run();
-        }
-
-        /// <summary>
-        /// Compiles the events and state machines to P code.
-        /// </summary>
-        public static void CompileToPLang()
-        {
-            new PSharpToPLang(Runtime.RegisteredMachineTypes,
-                Runtime.RegisteredMonitorTypes,
-                Runtime.RegisteredEventTypes).DoIt();
         }
 
         #endregion
