@@ -94,6 +94,10 @@ namespace Microsoft.PSharp.Parsing
             }
         }
 
+        /// <summary>
+        /// Parse a NamespaceDeclarationSyntax node.
+        /// </summary>
+        /// <param name="node">NamespaceDeclarationSyntax</param>
         private void ParseNamespaceDeclarationSyntax(NamespaceDeclarationSyntax node)
         {
             var nodes = node.ChildNodes().ToList();
@@ -103,9 +107,17 @@ namespace Microsoft.PSharp.Parsing
                 {
                     this.ParsePropertyDeclarationSyntax(nodes[idx] as PropertyDeclarationSyntax);
                 }
+                else if (nodes[idx] is FieldDeclarationSyntax)
+                {
+                    this.ParseFieldDeclarationSyntax(nodes[idx] as FieldDeclarationSyntax);
+                }
             }
         }
 
+        /// <summary>
+        /// Parse a PropertyDeclarationSyntax node.
+        /// </summary>
+        /// <param name="node">PropertyDeclarationSyntax</param>
         private void ParsePropertyDeclarationSyntax(PropertyDeclarationSyntax node)
         {
             var nodes = node.ChildNodes().ToList();
@@ -135,6 +147,29 @@ namespace Microsoft.PSharp.Parsing
             this.MachineNames.Add(node.Identifier.ValueText);
         }
 
+        /// <summary>
+        /// Parse a FieldDeclarationSyntax node. 
+        /// </summary>
+        /// <param name="node">FieldDeclarationSyntax</param>
+        private void ParseFieldDeclarationSyntax(FieldDeclarationSyntax node)
+        {
+            if (!(node.Declaration.Type is IdentifierNameSyntax))
+            {
+                return;
+            }
+
+            var id = node.Declaration.Type as IdentifierNameSyntax;
+            if (!id.Identifier.ValueText.Equals("machine"))
+            {
+                return;
+            }
+
+            this.MachineDeclIds.Add(id);
+        }
+
+        /// <summary>
+        /// Parse machine class declarations.
+        /// </summary>
         private void ParseMachineClassDeclarations()
         {
             foreach (var classDecl in base.Result.DescendantNodes().OfType<ClassDeclarationSyntax>())
