@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="Parser.cs">
+// <copyright file="Compiler.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -13,24 +13,24 @@
 //-----------------------------------------------------------------------
 
 using System;
-using Microsoft.PSharp.Parsing;
+using Microsoft.PSharp.Compilation;
 
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Parser for the P# language.
+    /// Compiler for the P# language.
     /// </summary>
-    internal static class Parser
+    internal static class Compiler
     {
         /// <summary>
-        /// Starts the P# parser.
+        /// Starts the P# compiler.
         /// </summary>
         public static void Run()
         {
-            Console.WriteLine(". Parsing");
+            Console.WriteLine(". Compiling");
 
-            // Runs the P# parsing engine.
-            ParsingEngine.Run();
+            // Runs the P# compilation engine.
+            CompilationEngine.Run();
         }
     }
 }

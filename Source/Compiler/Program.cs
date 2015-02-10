@@ -36,7 +36,10 @@ namespace Microsoft.PSharp
             // Run the static analyser.
             StaticAnalyser.Run();
 
-            Console.WriteLine("Done.");
+            // Run the compiler.
+            Compiler.Run();
+
+            Console.WriteLine(". Done");
         }
     }
 }

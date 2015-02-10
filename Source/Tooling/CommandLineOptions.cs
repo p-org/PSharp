@@ -53,6 +53,16 @@ namespace Microsoft.PSharp.Tooling
                 {
                     Configuration.SolutionFilePath = this.Options[idx].Substring(10);
                 }
+                else if (this.Options[idx].ToLower().StartsWith("/o:") &&
+                    this.Options[idx].Length > 3)
+                {
+                    Configuration.OutputFilePath = this.Options[idx].Substring(3);
+                }
+                else if (this.Options[idx].ToLower().StartsWith("/output:") &&
+                    this.Options[idx].Length > 8)
+                {
+                    Configuration.OutputFilePath = this.Options[idx].Substring(8);
+                }
                 else if (this.Options[idx].ToLower().StartsWith("/p:") &&
                     this.Options[idx].Length > 3)
                 {

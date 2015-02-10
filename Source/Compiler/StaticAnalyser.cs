@@ -30,7 +30,7 @@ namespace Microsoft.PSharp
         {
             foreach (var programUnit in ProgramInfo.ProgramUnits)
             {
-                Console.WriteLine("Analysing " + programUnit.Name + " ...");
+                Console.WriteLine(". Analysing " + programUnit.Name);
 
                 StaticAnalyser.AnalyseProgramUnit(programUnit);
             }

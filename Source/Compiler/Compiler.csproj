@@ -48,6 +48,7 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Compiler.cs" />
     <Compile Include="Parser.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -66,6 +67,10 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Compilation\Compilation.csproj">
+      <Project>{6cf10554-1535-4fe0-a949-eea5025d8604}</Project>
+      <Name>Compilation</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Parsing\Parsing.csproj">
       <Project>{14e9df49-1284-425c-a8b3-49ba437ca6af}</Project>
       <Name>Parsing</Name>

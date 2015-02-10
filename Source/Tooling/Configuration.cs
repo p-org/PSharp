@@ -22,6 +22,11 @@ namespace Microsoft.PSharp.Tooling
         public static string SolutionFilePath = "";
 
         /// <summary>
+        /// The output path.
+        /// </summary>
+        public static string OutputFilePath = "";
+
+        /// <summary>
         /// The name of the project to analyse.
         /// </summary>
         public static string ProjectName = "";
