@@ -42,6 +42,9 @@ namespace Microsoft.PSharp.Parsing
                 // Performs rewriting.
                 ParsingEngine.RewriteSyntaxTrees(project);
             }
+
+            // Updates the program info.
+            ProgramInfo.Update();
         }
 
         #endregion

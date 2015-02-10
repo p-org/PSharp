@@ -43,6 +43,11 @@ namespace Microsoft.PSharp.Tooling
         /// </summary>
         public static HashSet<ProgramUnit> ProgramUnits = null;
 
+        /// <summary>
+        /// True if program info has been initialized.
+        /// </summary>
+        private static bool HasInitialized = false;
+
         #endregion
 
         #region public API
@@ -68,17 +73,28 @@ namespace Microsoft.PSharp.Tooling
             }
 
             ProgramInfo.ProgramUnits = new HashSet<ProgramUnit>();
-
-            // Find the project specified by the user.
-            var project = ProgramInfo.Solution.Projects.Where(
-                p => p.Name.Equals(Configuration.ProjectName)).FirstOrDefault();
-
-            if (project == null)
+            if (Configuration.ProjectName.Equals(""))
             {
-                ErrorReporter.ReportErrorAndExit("Please give a valid project name.");
+                foreach (var project in ProgramInfo.Solution.Projects)
+                {
+                    ProgramInfo.ProgramUnits.Add(ProgramUnit.Create(project));
+                }
+            }
+            else
+            {
+                // Find the project specified by the user.
+                var project = ProgramInfo.Solution.Projects.Where(
+                    p => p.Name.Equals(Configuration.ProjectName)).FirstOrDefault();
+
+                if (project == null)
+                {
+                    ErrorReporter.ReportErrorAndExit("Please give a valid project name.");
+                }
+
+                ProgramInfo.ProgramUnits.Add(ProgramUnit.Create(project));
             }
 
-            ProgramInfo.ProgramUnits.Add(ProgramUnit.Create(project));
+            ProgramInfo.HasInitialized = true;
         }
 
         /// <summary>
@@ -86,6 +102,11 @@ namespace Microsoft.PSharp.Tooling
         /// </summary>
         public static void ReplaceSyntaxTrees(Project project, IEnumerable<SyntaxTree> syntaxTrees)
         {
+            if (!ProgramInfo.HasInitialized)
+            {
+                throw new PSharpToolException("ProgramInfo has not been initialized.");
+            }
+
             var updatedDocs = new HashSet<Document>();
             foreach (var doc in project.Documents)
             {
@@ -101,16 +122,39 @@ namespace Microsoft.PSharp.Tooling
             foreach (var doc in updatedDocs)
             {
                 var textTask = doc.GetTextAsync();
-
                 project = project.RemoveDocument(doc.Id);
                 project = project.AddDocument(doc.Name, textTask.Result, doc.Folders).Project;
             }
 
-            ProgramInfo.ProgramUnits.RemoveWhere(val => val.Project.Id.Equals(project.Id));
-            ProgramInfo.ProgramUnits.Add(ProgramUnit.Create(project));
-
             ProgramInfo.Solution = project.Solution;
             ProgramInfo.Workspace = project.Solution.Workspace;
+        }
+
+        /// <summary>
+        /// Recomputes and updates the program info.
+        /// </summary>
+        public static void Update()
+        {
+            if (!ProgramInfo.HasInitialized)
+            {
+                throw new PSharpToolException("ProgramInfo has not been initialized.");
+            }
+
+            ProgramInfo.ProgramUnits.Clear();
+            if (Configuration.ProjectName.Equals(""))
+            {
+                foreach (var project in ProgramInfo.Solution.Projects)
+                {
+                    ProgramInfo.ProgramUnits.Add(ProgramUnit.Create(project));
+                }
+            }
+            else
+            {
+                // Find the project specified by the user.
+                var project = ProgramInfo.Solution.Projects.Where(
+                    p => p.Name.Equals(Configuration.ProjectName)).FirstOrDefault();
+                ProgramInfo.ProgramUnits.Add(ProgramUnit.Create(project));
+            }
         }
 
         #endregion

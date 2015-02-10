@@ -48,10 +48,32 @@ namespace Microsoft.PSharp.Compilation
 
             var projectDependencyGraph = ProgramInfo.Solution.GetProjectDependencyGraph();
 
-            foreach (var projectId in projectDependencyGraph.GetTopologicallySortedProjects())
+            if (Configuration.ProjectName.Equals(""))
             {
-                // Compiles the project.
-                CompilationEngine.CompileProject(ProgramInfo.Solution.GetProject(projectId));
+                foreach (var projectId in projectDependencyGraph.GetTopologicallySortedProjects())
+                {
+                    // Compiles the project.
+                    CompilationEngine.CompileProject(ProgramInfo.Solution.GetProject(projectId));
+                }
+            }
+            else
+            {
+                // Find the project specified by the user.
+                var project = ProgramInfo.Solution.Projects.Where(
+                    p => p.Name.Equals(Configuration.ProjectName)).FirstOrDefault();
+
+                var projectDependencies = projectDependencyGraph.GetProjectsThatThisProjectTransitivelyDependsOn(project.Id);
+
+                foreach (var projectId in projectDependencyGraph.GetTopologicallySortedProjects())
+                {
+                    if (!projectDependencies.Contains(projectId) && !projectId.Equals(project.Id))
+                    {
+                        continue;
+                    }
+
+                    // Compiles the project.
+                    CompilationEngine.CompileProject(ProgramInfo.Solution.GetProject(projectId));
+                }
             }
 
             // Links the P# runtime.

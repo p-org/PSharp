@@ -48,6 +48,7 @@
     <Compile Include="CommandLineOptions.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="ErrorReporter.cs" />
+    <Compile Include="Exceptions.cs" />
     <Compile Include="Profiler.cs" />
     <Compile Include="ProgramInfo.cs" />
     <Compile Include="ProgramUnit.cs" />
