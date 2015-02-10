@@ -1,6 +1,6 @@
 P#
 ====================
-P# is a new language for high-reliability asynchronous .NET programming, co-designed with a static data race analysis and testing infrastructure. The co-design aspect of P# allows us to combine language design, analysis and testing in a unique way: the state-machine structure of a P# program enables us to create a more precise and scalable static analysis; while the race-freedom guarantees, provided by our analysis, contribute to the feasibility of systematically exploring a P# program to find bugs (e.g. assertion failures and unhandled exceptions).
+P# is a new language for high-reliability asynchronous .NET programming, *co-designed* with a static data race analysis and testing infrastructure. The co-design aspect of P# allows us to combine language design, analysis and testing in a unique way: the state-machine structure of a P# program enables us to create a more precise and scalable static analysis; while the race-freedom guarantees, provided by our analysis, contribute to the feasibility of systematically exploring a P# program to find bugs (e.g. assertion failures and unhandled exceptions).
 
 ## Build instructions
 1. Get Visual Studio 2015 Preview (required for Microsoft Roslyn).
@@ -18,3 +18,6 @@ The P# compiler can be used to parse a program, statically analyse it for data r
 Where ${PROJECT\_PATH} is the path to your P# project and ${SOLUTION\_NAME} is the name of your P# solution.
 
 To specify an output path destination please use the option ```/o:${OUTPUT\_PATH}```.
+
+## Publications
+- **Asynchronous Programming, Analysis and Testing with State Machines**. Pantazis Deligiannis, Alastair F. Donaldson, Jeroen Ketema, Akash Lal and Paul Thomson. In the *36th Annual ACM SIGPLAN Conference on Programming Language Design and Implementation* (PLDI 2015), to appear.
