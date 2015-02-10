@@ -91,6 +91,14 @@ namespace Microsoft.PSharp.Parsing
                 {
                     this.ParseNamespaceDeclarationSyntax(nodes[idx] as NamespaceDeclarationSyntax);
                 }
+                else if (nodes[idx] is PropertyDeclarationSyntax)
+                {
+                    this.ParsePropertyDeclarationSyntax(nodes[idx] as PropertyDeclarationSyntax);
+                }
+                else if (nodes[idx] is FieldDeclarationSyntax)
+                {
+                    this.ParseFieldDeclarationSyntax(nodes[idx] as FieldDeclarationSyntax);
+                }
             }
         }
 
