@@ -128,6 +128,13 @@ namespace Microsoft.PSharp.Tooling
 
             ProgramInfo.Solution = project.Solution;
             ProgramInfo.Workspace = project.Solution.Workspace;
+
+            //var compilation = project.GetCompilationAsync().Result;
+            //foreach (var tree in compilation.SyntaxTrees.ToList())
+            //{
+            //    var root = (Microsoft.CodeAnalysis.CSharp.Syntax.CompilationUnitSyntax)tree.GetRoot();
+            //    Console.WriteLine(root.ToFullString());
+            //}
         }
 
         /// <summary>

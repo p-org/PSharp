@@ -32,6 +32,11 @@ namespace Microsoft.PSharp.Tooling
         public static string ProjectName = "";
 
         /// <summary>
+        /// Skip the parsing stage of the compiler.
+        /// </summary>
+        public static bool SkipParsing = false;
+
+        /// <summary>
         /// Report warnings if true.
         /// </summary>
         public static bool ShowWarnings = false;

@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="Parser.cs">
+// <copyright file="TokenType.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,31 +12,33 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using Microsoft.PSharp.Parsing;
-using Microsoft.PSharp.Tooling;
-
-namespace Microsoft.PSharp
+namespace Microsoft.PSharp.Parsing
 {
     /// <summary>
-    /// Parser for the P# language.
+    /// P# token types.
     /// </summary>
-    internal static class Parser
+    enum TokenType
     {
-        /// <summary>
-        /// Starts the P# parser.
-        /// </summary>
-        public static void Run()
-        {
-            if (Configuration.SkipParsing)
-            {
-                return;
-            }
+        None = 0,
 
-            Console.WriteLine(". Parsing");
+        Machine,
+        State,
+        Event,
+        On,
+        Do,
+        Goto,
 
-            // Runs the P# parsing engine.
-            ParsingEngine.Run();
-        }
+        Semicolon,
+        Doublecolon,
+        LeftCurlyBracket,
+        RightCurlyBracket,
+        LeftParenthesis,
+        RightParenthesis,
+        LeftSquareBracket,
+        RightSquareBracket,
+
+        Private,
+        Protected,
+        Internal
     }
 }

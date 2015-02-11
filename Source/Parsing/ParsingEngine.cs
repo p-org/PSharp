@@ -20,6 +20,7 @@ using Microsoft.PSharp.Tooling;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.PSharp.Parsing
 {
@@ -59,7 +60,7 @@ namespace Microsoft.PSharp.Parsing
         {
             var compilation = project.GetCompilationAsync().Result;
 
-            var rewritternTrees = new HashSet<SyntaxTree>();
+            var rewrittenTrees = new HashSet<SyntaxTree>();
             foreach (var tree in compilation.SyntaxTrees.ToList())
             {
                 if (!ParsingEngine.IsProgramSyntaxTree(tree))
@@ -68,13 +69,15 @@ namespace Microsoft.PSharp.Parsing
                 }
 
                 var root = (CompilationUnitSyntax)tree.GetRoot();
-                var rewrittenUnit = new MachineDeclarationRewriter(root).Run();
-                var rewrittenTree = rewrittenUnit.SyntaxTree.WithFilePath(tree.FilePath);
 
-                rewritternTrees.Add(rewrittenTree);
+                string rewrittenTree = "";
+                new MachineRewriter(root.ToFullString()).TryGet(out rewrittenTree);
+
+                var source = SourceText.From(rewrittenTree);
+                rewrittenTrees.Add(tree.WithChangedText(source));
             }
 
-            ProgramInfo.ReplaceSyntaxTrees(project, rewritternTrees);
+            ProgramInfo.ReplaceSyntaxTrees(project, rewrittenTrees);
         }
 
         /// <summary>

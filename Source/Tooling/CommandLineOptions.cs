@@ -73,6 +73,10 @@ namespace Microsoft.PSharp.Tooling
                 {
                     Configuration.ProjectName = this.Options[idx].Substring(9);
                 }
+                else if (this.Options[idx].ToLower().Equals("/skipparsing"))
+                {
+                    Configuration.SkipParsing = true;
+                }
                 else if (this.Options[idx].ToLower().Equals("/showwarnings"))
                 {
                     Configuration.ShowWarnings = true;

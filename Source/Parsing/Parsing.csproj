@@ -48,7 +48,9 @@
     <Compile Include="ParsingEngine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rewriters\BaseRewriter.cs" />
-    <Compile Include="Rewriters\MachineDeclarationRewriter.cs" />
+    <Compile Include="Token.cs" />
+    <Compile Include="Rewriters\MachineRewriter.cs" />
+    <Compile Include="TokenType.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Tooling\Tooling.csproj">

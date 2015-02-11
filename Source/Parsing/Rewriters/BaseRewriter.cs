@@ -12,9 +12,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Collections.Generic;
+using System.IO;
 
 namespace Microsoft.PSharp.Parsing
 {
@@ -26,59 +25,61 @@ namespace Microsoft.PSharp.Parsing
         #region fields
 
         /// <summary>
-        /// Root of the given compilation unit.
+        /// Lines of text to tokenize.
         /// </summary>
-        protected CompilationUnitSyntax Root;
+        protected List<string> Lines;
 
         /// <summary>
-        /// Root of the rewritten compilation unit.
+        /// The current line index.
         /// </summary>
-        protected CompilationUnitSyntax Result;
+        protected int LineIndex;
 
         #endregion
 
         #region internal API
 
         /// <summary>
-        /// Constructor.
+        /// Constructor
         /// </summary>
-        /// <param name="root">CompilationUnitSyntax</param>
-        internal BaseRewriter(CompilationUnitSyntax root)
+        /// <param name="text">Text</param>
+        public BaseRewriter(string text)
         {
-            this.Root = root;
-            this.Result = null;
+            this.Lines = new List<string>();
+            using (StringReader sr = new StringReader(text))
+            {
+                string line;
+                while ((line = sr.ReadLine()) != null)
+                {
+                    this.Lines.Add(line);
+                }
+            }
+
+            this.LineIndex = 0;
+        }
+
+        /// <summary>
+        /// Tries to get the rewritten text.
+        /// </summary>
+        /// <param name="result">Rewritten text</param>
+        public void TryGet(out string result)
+        {
+            this.ParseNextLine();
+
+            result = "";
+            foreach (var line in this.Lines)
+            {
+                result += line + "\n";
+            }
         }
 
         #endregion
 
-        #region helped methods
+        #region protected methods
 
         /// <summary>
-        /// Creates a white space trivia list.
+        /// Parses the next available line.
         /// </summary>
-        /// <param name="spaceLength">Optional lenght for the white space</param>
-        /// <returns>SyntaxTriviaList</returns>
-        protected SyntaxTriviaList CreateWhitespaceTriviaList(int spaceLength = 0)
-        {
-            string space = "";
-            for (int idx = 0; idx < spaceLength; idx++)
-            {
-                space += space + " ";
-            }
-
-            var trivia = SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, space);
-            return SyntaxFactory.TriviaList(trivia);
-        }
-
-        /// <summary>
-        /// Creates an end of line trivia list.
-        /// </summary>
-        /// <returns>SyntaxTriviaList</returns>
-        protected SyntaxTriviaList CreateEndOfLineTriviaList()
-        {
-            var trivia = SyntaxFactory.SyntaxTrivia(SyntaxKind.EndOfLineTrivia, "\n");
-            return SyntaxFactory.TriviaList(trivia);
-        }
+        protected abstract void ParseNextLine();
 
         #endregion
     }
