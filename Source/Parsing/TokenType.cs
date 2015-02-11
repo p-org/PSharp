@@ -20,6 +20,7 @@ namespace Microsoft.PSharp.Parsing
     enum TokenType
     {
         None = 0,
+        WhiteSpace,
 
         Machine,
         State,

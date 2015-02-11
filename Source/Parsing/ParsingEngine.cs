@@ -71,7 +71,7 @@ namespace Microsoft.PSharp.Parsing
                 var root = (CompilationUnitSyntax)tree.GetRoot();
 
                 string rewrittenTree = "";
-                new MachineRewriter(root.ToFullString()).TryGet(out rewrittenTree);
+                new TopLevelRewriter(root.ToFullString()).TryGet(out rewrittenTree);
 
                 var source = SourceText.From(rewrittenTree);
                 rewrittenTrees.Add(tree.WithChangedText(source));

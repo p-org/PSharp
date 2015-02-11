@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="MachineRewriter.cs">
+// <copyright file="TopLevelRewriter.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -21,9 +21,9 @@ using Microsoft.PSharp.Tooling;
 namespace Microsoft.PSharp.Parsing
 {
     /// <summary>
-    /// The P# machine rewriter.
+    /// The P# top level declaration rewriter.
     /// </summary>
-    internal class MachineRewriter : BaseRewriter
+    internal class TopLevelRewriter : BaseRewriter
     {
         #region public API
 
@@ -31,7 +31,7 @@ namespace Microsoft.PSharp.Parsing
         /// Constructor
         /// </summary>
         /// <param name="text">Text</param>
-        public MachineRewriter(string text)
+        public TopLevelRewriter(string text)
             : base(text)
         {
             
@@ -52,7 +52,7 @@ namespace Microsoft.PSharp.Parsing
             }
 
             var split = Regex.Split(base.Lines[base.LineIndex], @"(//)|(/\*)|(\*/)|(;)|({)|(})|(:)|(\()|" +
-                @"(\))|(\[)|(\])|(machine)|(state)|(event)|(private)|(protected)|(internal)");
+                @"(\))|(\[)|(\])|(machine)|(state)|(event)|(private)|(protected)|(internal)|(\s+)");
 
             if (split.Length > 1)
             {
@@ -149,6 +149,10 @@ namespace Microsoft.PSharp.Parsing
                 {
                     tokens.Add(new Token(split[i], TokenType.RightSquareBracket));
                 }
+                else if (string.IsNullOrWhiteSpace(split[i]))
+                {
+                    tokens.Add(new Token(split[i], TokenType.WhiteSpace));
+                }
                 else
                 {
                     tokens.Add(new Token(split[i]));
@@ -188,21 +192,24 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="idx">Index of machine token</param>
         private void RewriteMachine(List<Token> tokens, int idx)
         {
+            var nonEmptyTokens = tokens.FindAll(val => val.Type != TokenType.WhiteSpace);
+
             string error = "Incorrect machine declaration in line " + base.LineIndex + ":\n";
             error += base.Lines[base.LineIndex];
 
-            if ((tokens.Count == 5 || tokens.Count == 7) && idx == 3)
+            if ((nonEmptyTokens.Count == 3 || nonEmptyTokens.Count == 5) &&
+                nonEmptyTokens[1].Equals(tokens[idx]))
             {
-                if (tokens[idx - 2].Type != TokenType.Private &&
-                    tokens[idx - 2].Type != TokenType.Protected &&
-                    tokens[idx - 2].Type != TokenType.Internal)
+                if (nonEmptyTokens[0].Type != TokenType.Private &&
+                    nonEmptyTokens[0].Type != TokenType.Protected &&
+                    nonEmptyTokens[0].Type != TokenType.Internal)
                 {
                     ErrorReporter.ReportErrorAndExit(error);
                 }
 
                 tokens[idx] = new Token("class");
 
-                if (tokens.Count == 5)
+                if (nonEmptyTokens.Count == 3)
                 {
                     tokens.Add(new Token(" : Machine"));
                 }
