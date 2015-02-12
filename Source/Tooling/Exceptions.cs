@@ -17,15 +17,15 @@ using System;
 namespace Microsoft.PSharp.Tooling
 {
     /// <summary>
-    /// Implements a P# tool exception.
+    /// Implements a P# generic exception.
     /// </summary>
-    public class PSharpToolException : Exception
+    public class PSharpGenericException : Exception
     {
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="message">Message</param>
-        public PSharpToolException(string message)
+        public PSharpGenericException(string message)
             : base(message)
         {
 

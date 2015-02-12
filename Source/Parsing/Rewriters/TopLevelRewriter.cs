@@ -28,11 +28,11 @@ namespace Microsoft.PSharp.Parsing
         #region public API
 
         /// <summary>
-        /// Constructor
+        /// Constructor.
         /// </summary>
-        /// <param name="text">Text</param>
-        public TopLevelRewriter(string text)
-            : base(text)
+        /// <param name="tokens">List of tokens</param>
+        public TopLevelRewriter(List<Token> tokens)
+            : base(tokens)
         {
             
         }
@@ -42,25 +42,23 @@ namespace Microsoft.PSharp.Parsing
         #region protected API
 
         /// <summary>
-        /// Parses the next available line.
+        /// Parses the next available token.
         /// </summary>
-        protected override void ParseNextLine()
+        protected override void ParseNextToken()
         {
-            if (base.LineIndex == base.Lines.Count)
+            if (base.Index == base.Tokens.Count)
             {
                 return;
             }
 
-            var split = Regex.Split(base.Lines[base.LineIndex], @"(//)|(/\*)|(\*/)|(;)|({)|(})|(:)|(\()|" +
-                @"(\))|(\[)|(\])|(machine)|(state)|(event)|(private)|(protected)|(internal)|(\s+)");
-
-            if (split.Length > 1)
+            var token = base.Tokens[base.Index];
+            if (token.Type == TokenType.Machine)
             {
-                this.ParseSplitLine(split);
+                this.RewriteMachineDeclaration();
             }
 
-            base.LineIndex++;
-            this.ParseNextLine();
+            base.Index++;
+            this.ParseNextToken();
         }
 
         #endregion
@@ -68,155 +66,41 @@ namespace Microsoft.PSharp.Parsing
         #region private API
 
         /// <summary>
-        /// Parses the split line.
+        /// Rewrites the machine declaration.
         /// </summary>
-        private void ParseSplitLine(string[] split)
+        private void RewriteMachineDeclaration()
         {
-            var tokens = new List<Token>();
+            base.Tokens[base.Index] = new Token("class", TokenType.Class);
+            base.Index++;
 
-            for (int i = 0; i < split.Length; i++)
+            base.SkipWhiteSpaceTokens();
+
+            if (base.Tokens[base.Index].Type != TokenType.None)
             {
-                if (split[i].Equals("//"))
-                {
-                    while (i < split.Length)
-                    {
-                        tokens.Add(new Token(split[i]));
-                        i++;
-                    }
-                }
-                else if (split[i].Equals("/*"))
-                {
-                    tokens.Add(new Token(split[i]));
-                    while (split[i].Equals("*/"))
-                    {
-                        i++;
-                        tokens.Add(new Token(split[i]));
-                    }
-                }
-                else if (split[i].Equals("machine"))
-                {
-                    tokens.Add(new Token(split[i], TokenType.Machine));
-                }
-                else if (split[i].Equals("state"))
-                {
-                    tokens.Add(new Token(split[i], TokenType.State));
-                }
-                else if (split[i].Equals("event"))
-                {
-                    tokens.Add(new Token(split[i], TokenType.Event));
-                }
-                else if (split[i].Equals("private"))
-                {
-                    tokens.Add(new Token(split[i], TokenType.Private));
-                }
-                else if (split[i].Equals("protected"))
-                {
-                    tokens.Add(new Token(split[i], TokenType.Protected));
-                }
-                else if (split[i].Equals("internal"))
-                {
-                    tokens.Add(new Token(split[i], TokenType.Internal));
-                }
-                else if (split[i].Equals(";"))
-                {
-                    tokens.Add(new Token(split[i], TokenType.Semicolon));
-                }
-                else if (split[i].Equals(":"))
-                {
-                    tokens.Add(new Token(split[i], TokenType.Doublecolon));
-                }
-                else if (split[i].Equals("{"))
-                {
-                    tokens.Add(new Token(split[i], TokenType.LeftCurlyBracket));
-                }
-                else if (split[i].Equals("}"))
-                {
-                    tokens.Add(new Token(split[i], TokenType.RightCurlyBracket));
-                }
-                else if (split[i].Equals("("))
-                {
-                    tokens.Add(new Token(split[i], TokenType.LeftParenthesis));
-                }
-                else if (split[i].Equals(")"))
-                {
-                    tokens.Add(new Token(split[i], TokenType.RightParenthesis));
-                }
-                else if (split[i].Equals("["))
-                {
-                    tokens.Add(new Token(split[i], TokenType.LeftSquareBracket));
-                }
-                else if (split[i].Equals("]"))
-                {
-                    tokens.Add(new Token(split[i], TokenType.RightSquareBracket));
-                }
-                else if (string.IsNullOrWhiteSpace(split[i]))
-                {
-                    tokens.Add(new Token(split[i], TokenType.WhiteSpace));
-                }
-                else
-                {
-                    tokens.Add(new Token(split[i]));
-                }
+                base.ReportParsingFailure();
             }
 
-            for (int idx = 0; idx < tokens.Count; idx++)
+            base.Index++;
+            var replaceIdx = base.Index;
+
+            base.SkipWhiteSpaceTokens();
+
+            if (base.Tokens[base.Index].Type == TokenType.LeftCurlyBracket)
             {
-                if (tokens[idx].Type == TokenType.Machine)
-                {
-                    this.RewriteMachine(tokens, idx);
-                }
-                else if (tokens[idx].Type == TokenType.State)
-                {
+                base.Tokens.Insert(replaceIdx, new Token(" ", TokenType.WhiteSpace));
+                replaceIdx++;
 
-                }
-                else if (tokens[idx].Type == TokenType.Event)
-                {
+                base.Tokens.Insert(replaceIdx, new Token(":", TokenType.Doublecolon));
+                replaceIdx++;
 
-                }
+                base.Tokens.Insert(replaceIdx, new Token(" ", TokenType.WhiteSpace));
+                replaceIdx++;
+
+                this.Tokens.Insert(replaceIdx, new Token("Machine"));
             }
-
-            var parsedLine = "";
-            foreach (var token in tokens)
+            else if (base.Tokens[base.Index].Type != TokenType.Doublecolon)
             {
-                parsedLine += token.String;
-            }
-
-            this.Lines[this.LineIndex] = parsedLine;
-        }
-
-        /// <summary>
-        /// Rewrite the token in the given index to a machine
-        /// declaration.
-        /// </summary>
-        /// <param name="tokens">List of tokens</param>
-        /// <param name="idx">Index of machine token</param>
-        private void RewriteMachine(List<Token> tokens, int idx)
-        {
-            var nonEmptyTokens = tokens.FindAll(val => val.Type != TokenType.WhiteSpace);
-
-            string error = "Incorrect machine declaration in line " + base.LineIndex + ":\n";
-            error += base.Lines[base.LineIndex];
-
-            if ((nonEmptyTokens.Count == 3 || nonEmptyTokens.Count == 5) &&
-                nonEmptyTokens[1].Equals(tokens[idx]))
-            {
-                if (nonEmptyTokens[0].Type != TokenType.Private &&
-                    nonEmptyTokens[0].Type != TokenType.Protected &&
-                    nonEmptyTokens[0].Type != TokenType.Internal)
-                {
-                    ErrorReporter.ReportErrorAndExit(error);
-                }
-
-                tokens[idx] = new Token("class");
-
-                if (nonEmptyTokens.Count == 3)
-                {
-                    tokens.Add(new Token(" : Machine"));
-                }
-            }
-            else
-            {
-                ErrorReporter.ReportErrorAndExit(error);
+                base.ReportParsingFailure();
             }
         }
 

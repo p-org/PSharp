@@ -104,7 +104,7 @@ namespace Microsoft.PSharp.Tooling
         {
             if (!ProgramInfo.HasInitialized)
             {
-                throw new PSharpToolException("ProgramInfo has not been initialized.");
+                throw new PSharpGenericException("ProgramInfo has not been initialized.");
             }
 
             var updatedDocs = new HashSet<Document>();
@@ -144,7 +144,7 @@ namespace Microsoft.PSharp.Tooling
         {
             if (!ProgramInfo.HasInitialized)
             {
-                throw new PSharpToolException("ProgramInfo has not been initialized.");
+                throw new PSharpGenericException("ProgramInfo has not been initialized.");
             }
 
             ProgramInfo.ProgramUnits.Clear();

@@ -15,6 +15,8 @@
 using System.Collections.Generic;
 using System.IO;
 
+using Microsoft.PSharp.Tooling;
+
 namespace Microsoft.PSharp.Parsing
 {
     /// <summary>
@@ -25,51 +27,37 @@ namespace Microsoft.PSharp.Parsing
         #region fields
 
         /// <summary>
-        /// Lines of text to tokenize.
+        /// Lines of tokens.
         /// </summary>
-        protected List<string> Lines;
+        protected List<Token> Tokens;
 
         /// <summary>
-        /// The current line index.
+        /// The current index.
         /// </summary>
-        protected int LineIndex;
+        protected int Index;
 
         #endregion
 
         #region internal API
 
         /// <summary>
-        /// Constructor
+        /// Constructor.
         /// </summary>
-        /// <param name="text">Text</param>
-        public BaseRewriter(string text)
+        /// <param name="tokens">List of tokens</param>
+        public BaseRewriter(List<Token> tokens)
         {
-            this.Lines = new List<string>();
-            using (StringReader sr = new StringReader(text))
-            {
-                string line;
-                while ((line = sr.ReadLine()) != null)
-                {
-                    this.Lines.Add(line);
-                }
-            }
-
-            this.LineIndex = 0;
+            this.Tokens = tokens;
+            this.Index = 0;
         }
 
         /// <summary>
-        /// Tries to get the rewritten text.
+        /// Returns the rewritten tokens.
         /// </summary>
-        /// <param name="result">Rewritten text</param>
-        public void TryGet(out string result)
+        /// <returns>Rewritten tokens</returns>
+        public List<Token> GetRewrittenTokens()
         {
-            this.ParseNextLine();
-
-            result = "";
-            foreach (var line in this.Lines)
-            {
-                result += line + "\n";
-            }
+            this.ParseNextToken();
+            return this.Tokens;
         }
 
         #endregion
@@ -77,9 +65,39 @@ namespace Microsoft.PSharp.Parsing
         #region protected methods
 
         /// <summary>
-        /// Parses the next available line.
+        /// Parses the next available token.
         /// </summary>
-        protected abstract void ParseNextLine();
+        protected abstract void ParseNextToken();
+
+        /// <summary>
+        /// Skips white space tokens.
+        /// </summary>
+        protected void SkipWhiteSpaceTokens()
+        {
+            while (this.Index < this.Tokens.Count &&
+                (this.Tokens[this.Index].Type == TokenType.WhiteSpace ||
+                this.Tokens[this.Index].Type == TokenType.NewLine))
+            {
+                this.Index++;
+            }
+
+            if (this.Index == this.Tokens.Count)
+            {
+                this.ReportParsingFailure();
+            }
+        }
+
+        #endregion
+
+        #region helper methods
+
+        /// <summary>
+        /// Reports a parting failure.
+        /// </summary>
+        protected void ReportParsingFailure()
+        {
+            ErrorReporter.ReportErrorAndExit("parser failed, please contact the developers.");
+        }
 
         #endregion
     }

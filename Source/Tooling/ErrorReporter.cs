@@ -28,6 +28,20 @@ namespace Microsoft.PSharp.Tooling
         /// Reports a generic error to the user and exits.
         /// </summary>
         /// <param name="s">String</param>
+        public static void ReportErrorAndExit(string s)
+        {
+            ConsoleColor previous = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.Write("Error: ");
+            Console.ForegroundColor = previous;
+            Console.WriteLine(s);
+            Environment.Exit(1);
+        }
+
+        /// <summary>
+        /// Reports a generic error to the user and exits.
+        /// </summary>
+        /// <param name="s">String</param>
         /// <param name="args">Parameters</param>
         public static void ReportErrorAndExit(string s, params object[] args)
         {

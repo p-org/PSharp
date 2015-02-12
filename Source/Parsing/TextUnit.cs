@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="Token.cs">
+// <copyright file="TextUnit.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -20,44 +20,41 @@ using System.Threading.Tasks;
 
 namespace Microsoft.PSharp.Parsing
 {
-    internal class Token
+    internal class TextUnit
     {
         #region fields
 
         /// <summary>
-        /// The string that this token represents.
+        /// The text that this text unit represents.
         /// </summary>
-        public readonly string String;
+        public readonly string Text;
 
         /// <summary>
-        /// The type of this token.
+        /// True if the text unit represents end of a line.
         /// </summary>
-        public readonly TokenType Type;
+        public readonly bool IsEndOfLine;
 
         #endregion
 
         #region public API
 
         /// <summary>
-        /// Constructor. By default the type of the token
-        /// is None.
+        /// Constructor.
         /// </summary>
-        /// <param name="text">String</param>
-        public Token(string text)
+        /// <param name="text">Text</param>
+        public TextUnit(string text)
         {
-            this.String = text;
-            this.Type = TokenType.None;
+            this.Text = text;
         }
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="text">String</param>
-        /// <param name="type">TokenType</param>
-        public Token(string text, TokenType type)
+        /// <param name="isEndOfLine">Is end of line</param>
+        public TextUnit(bool isEndOfLine)
         {
-            this.String = text;
-            this.Type = type;
+            this.Text = "";
+            this.IsEndOfLine = isEndOfLine;
         }
 
         #endregion

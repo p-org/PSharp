@@ -53,8 +53,7 @@ namespace Microsoft.PSharp
         static void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs args)
         {
             var ex = (Exception)args.ExceptionObject;
-            ErrorReporter.ReportErrorAndExit("detected unhandled exception, please " +
-                "send a minimal repro example to the developers.");
+            ErrorReporter.ReportErrorAndExit("tool failed, please contact the developers.");
         }
     }
 }

@@ -70,14 +70,31 @@ namespace Microsoft.PSharp.Parsing
 
                 var root = (CompilationUnitSyntax)tree.GetRoot();
 
-                string rewrittenTree = "";
-                new TopLevelRewriter(root.ToFullString()).TryGet(out rewrittenTree);
+                var tokens = new Lexer(root.ToFullString()).GetTokens();
+                tokens = new TopLevelRewriter(tokens).GetRewrittenTokens();
 
+                var rewrittenTree = ParsingEngine.ConvertToText(tokens);
                 var source = SourceText.From(rewrittenTree);
                 rewrittenTrees.Add(tree.WithChangedText(source));
             }
 
             ProgramInfo.ReplaceSyntaxTrees(project, rewrittenTrees);
+        }
+
+        /// <summary>
+        /// Converts the tokens to text.
+        /// </summary>
+        /// <param name="tokens">List of tokens</param>
+        /// <returns>Text</returns>
+        private static string ConvertToText(List<Token> tokens)
+        {
+            var text = "";
+            foreach (var token in tokens)
+            {
+                text += token.String;
+            }
+
+            return text;
         }
 
         /// <summary>

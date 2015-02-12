@@ -20,6 +20,7 @@ namespace Microsoft.PSharp.Parsing
     enum TokenType
     {
         None = 0,
+        NewLine,
         WhiteSpace,
 
         Machine,
@@ -31,6 +32,8 @@ namespace Microsoft.PSharp.Parsing
 
         Semicolon,
         Doublecolon,
+        Comma,
+
         LeftCurlyBracket,
         RightCurlyBracket,
         LeftParenthesis,
@@ -38,8 +41,21 @@ namespace Microsoft.PSharp.Parsing
         LeftSquareBracket,
         RightSquareBracket,
 
+        LessThanOperator,
+        GreaterThanOperator,
+
         Private,
         Protected,
-        Internal
+        Internal,
+        Public,
+
+        Abstract,
+        Virtual,
+        Override,
+
+        Namespace,
+        Class,
+
+        Using
     }
 }
