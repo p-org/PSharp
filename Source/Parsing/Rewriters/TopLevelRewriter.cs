@@ -52,7 +52,11 @@ namespace Microsoft.PSharp.Parsing
             }
 
             var token = base.Tokens[base.Index];
-            if (token.Type == TokenType.Machine)
+            if (token.Type == TokenType.Event)
+            {
+                this.RewriteEventDeclaration();
+            }
+            else if (token.Type == TokenType.Machine)
             {
                 this.RewriteMachineDeclaration();
             }
@@ -64,6 +68,63 @@ namespace Microsoft.PSharp.Parsing
         #endregion
 
         #region private API
+
+        /// <summary>
+        /// Rewrites the event declaration.
+        /// </summary>
+        private void RewriteEventDeclaration()
+        {
+            base.Tokens[base.Index] = new Token("class", TokenType.Class);
+            base.Index++;
+
+            base.SkipWhiteSpaceTokens();
+
+            if (base.Tokens[base.Index].Type != TokenType.None)
+            {
+                base.ReportParsingFailure();
+            }
+
+            var identifier = base.Tokens[base.Index].String;
+
+            base.Index++;
+            var replaceIdx = base.Index;
+
+            base.SkipWhiteSpaceTokens();
+
+            if (base.Tokens[base.Index].Type == TokenType.Semicolon)
+            {
+                base.Tokens.Insert(replaceIdx, new Token(" ", TokenType.WhiteSpace));
+                replaceIdx++;
+
+                base.Tokens.Insert(replaceIdx, new Token(":", TokenType.Doublecolon));
+                replaceIdx++;
+
+                base.Tokens.Insert(replaceIdx, new Token(" ", TokenType.WhiteSpace));
+                replaceIdx++;
+
+                base.Tokens.Insert(replaceIdx, new Token("Event"));
+            }
+            else
+            {
+                base.ReportParsingFailure();
+            }
+
+            base.Index = replaceIdx;
+            base.Index++;
+
+            var eventBody = "\n";
+            eventBody += "\t{\n";
+            eventBody += "\t\tpublic " + identifier + "()\n";
+            eventBody += "\t\t\t: base()\n";
+            eventBody += "\t\t{ }\n";
+            eventBody += "\n";
+            eventBody += "\t\tpublic " + identifier + "(Object payload)\n";
+            eventBody += "\t\t\t: base(payload)\n";
+            eventBody += "\t\t{ }\n";
+            eventBody += "\t}";
+
+            base.Tokens.Insert(base.Index, new Token(eventBody));
+        }
 
         /// <summary>
         /// Rewrites the machine declaration.
