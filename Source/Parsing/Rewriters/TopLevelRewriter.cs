@@ -60,6 +60,14 @@ namespace Microsoft.PSharp.Parsing
             {
                 this.RewriteMachineDeclaration();
             }
+            else if (token.Type == TokenType.State)
+            {
+                this.RewriteStateDeclaration();
+            }
+            else if (token.Type == TokenType.OnAction)
+            {
+                this.RewriteOnActionDeclaration();
+            }
 
             base.Index++;
             this.ParseNextToken();
@@ -135,7 +143,6 @@ namespace Microsoft.PSharp.Parsing
             base.Index++;
 
             base.SkipWhiteSpaceTokens();
-
             if (base.Tokens[base.Index].Type != TokenType.None)
             {
                 base.ReportParsingFailure();
@@ -145,7 +152,6 @@ namespace Microsoft.PSharp.Parsing
             var replaceIdx = base.Index;
 
             base.SkipWhiteSpaceTokens();
-
             if (base.Tokens[base.Index].Type == TokenType.LeftCurlyBracket)
             {
                 base.Tokens.Insert(replaceIdx, new Token(" ", TokenType.WhiteSpace));
@@ -162,6 +168,98 @@ namespace Microsoft.PSharp.Parsing
             else if (base.Tokens[base.Index].Type != TokenType.Doublecolon)
             {
                 base.ReportParsingFailure();
+            }
+        }
+
+        /// <summary>
+        /// Rewrites the state declaration.
+        /// </summary>
+        private void RewriteStateDeclaration()
+        {
+            base.Tokens[base.Index] = new Token("class", TokenType.Class);
+            base.Index++;
+
+            base.SkipWhiteSpaceTokens();
+            if (base.Tokens[base.Index].Type != TokenType.None)
+            {
+                base.ReportParsingFailure();
+            }
+
+            base.Index++;
+            var replaceIdx = base.Index;
+
+            base.SkipWhiteSpaceTokens();
+            if (base.Tokens[base.Index].Type == TokenType.LeftCurlyBracket)
+            {
+                base.Tokens.Insert(replaceIdx, new Token(" ", TokenType.WhiteSpace));
+                replaceIdx++;
+
+                base.Tokens.Insert(replaceIdx, new Token(":", TokenType.Doublecolon));
+                replaceIdx++;
+
+                base.Tokens.Insert(replaceIdx, new Token(" ", TokenType.WhiteSpace));
+                replaceIdx++;
+
+                this.Tokens.Insert(replaceIdx, new Token("State"));
+            }
+            else if (base.Tokens[base.Index].Type != TokenType.Doublecolon)
+            {
+                base.ReportParsingFailure();
+            }
+        }
+
+        /// <summary>
+        /// Rewrites the on action declaration.
+        /// </summary>
+        private void RewriteOnActionDeclaration()
+        {
+            var startIdx = base.Index;
+            base.Tokens[base.Index] = new Token("protected", TokenType.Private);
+            base.Index++;
+
+            base.SkipWhiteSpaceTokens();
+            var replaceIdx = base.Index;
+
+            if (base.Tokens[base.Index].Type == TokenType.Entry)
+            {
+                base.Tokens[replaceIdx] = new Token("override", TokenType.Override);
+                replaceIdx++;
+
+                base.Tokens.Insert(replaceIdx, new Token(" ", TokenType.WhiteSpace));
+                replaceIdx++;
+
+                base.Tokens.Insert(replaceIdx, new Token("void"));
+                replaceIdx++;
+
+                base.Tokens.Insert(replaceIdx, new Token(" ", TokenType.WhiteSpace));
+                replaceIdx++;
+
+                base.Tokens.Insert(replaceIdx, new Token("OnEntry"));
+                replaceIdx++;
+
+                base.Tokens.Insert(replaceIdx, new Token("(", TokenType.LeftParenthesis));
+                replaceIdx++;
+
+                base.Tokens.Insert(replaceIdx, new Token(")", TokenType.RightParenthesis));
+                replaceIdx++;
+
+                base.Index = replaceIdx;
+                base.Index++;
+
+                while (base.Tokens[base.Index].Type != TokenType.DoAction)
+                {
+                    base.Tokens.RemoveAt(base.Index);
+                }
+
+                base.Tokens.RemoveAt(base.Index);
+            }
+            else if (base.Tokens[base.Index].Type == TokenType.Exit)
+            {
+
+            }
+            else
+            {
+                throw new NotImplementedException("on action");
             }
         }
 

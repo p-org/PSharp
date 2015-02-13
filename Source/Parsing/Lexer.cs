@@ -530,7 +530,7 @@ namespace Microsoft.PSharp.Parsing
 
             if (textUnits[this.Index].Text.Equals("state"))
             {
-                throw new NotImplementedException("Have not implemented states.");
+                this.TokenizeStateDeclaration(textUnits);
             }
             else if (textUnits[this.Index].Text.Equals("action"))
             {
@@ -585,6 +585,158 @@ namespace Microsoft.PSharp.Parsing
             }
 
             this.TokenizeWhiteSpaceOrComments(textUnits);
+        }
+
+        /// <summary>
+        /// Tokenizes a state declaration.
+        /// </summary>
+        /// <param name="textUnits">Text units</param>
+        private void TokenizeStateDeclaration(List<TextUnit> textUnits)
+        {
+            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.State));
+            this.Index++;
+
+            this.TokenizeWhiteSpaceOrComments(textUnits);
+            if (Regex.IsMatch(textUnits[this.Index].Text, this.GetPattern()))
+            {
+                this.ReportParsingError("Expected identifier.");
+            }
+
+            this.Tokens.Add(new Token(textUnits[this.Index].Text));
+            this.Index++;
+
+            this.TokenizeWhiteSpaceOrComments(textUnits);
+            if (textUnits[this.Index].Text.Equals("{"))
+            {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.LeftCurlyBracket));
+                this.Index++;
+            }
+            else
+            {
+                this.ReportParsingError("Expected \"{\".");
+            }
+
+            this.TokenizeWhiteSpaceOrComments(textUnits);
+
+            bool end = false;
+            while (this.Index < textUnits.Count && !end)
+            {
+                switch (textUnits[this.Index].Text)
+                {
+                    case "//":
+                    case "#":
+                        this.TryTokenizeLineComment(textUnits);
+                        break;
+
+                    case "/*":
+                        this.TryTokenizeMultiLineComment(textUnits);
+                        break;
+
+                    case "on":
+                        this.TokenizeStateActionDeclaration(textUnits);
+                        break;
+
+                    case "private":
+                    case "protected":
+                    case "internal":
+                    case "public":
+                        this.ReportParsingError("State actions cannot have modifiers.");
+                        break;
+
+                    case "abstract":
+                        this.ReportParsingError("State actions cannot be abstract.");
+                        break;
+
+                    case "[":
+                        this.TokenizeAttributeList(textUnits);
+                        break;
+
+                    case "}":
+                        this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.RightCurlyBracket));
+                        end = true;
+                        this.Index++;
+                        this.TokenizeWhiteSpaceOrComments(textUnits);
+                        break;
+
+                    case "]":
+                    case "(":
+                    case ")":
+                    case "{":
+                    case "*/":
+                        this.ReportParsingError("Invalid use of \"" + textUnits[this.Index].Text + "\".");
+                        break;
+
+                    default:
+                        foreach (var tok in this.Tokens)
+                            Console.Write(tok.String);
+                        this.ReportParsingError("Unexpected declaration.");
+                        break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Tokenizes a state action declaration.
+        /// </summary>
+        /// <param name="textUnits">Text units</param>
+        private void TokenizeStateActionDeclaration(List<TextUnit> textUnits)
+        {
+            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.OnAction));
+            this.Index++;
+
+            this.TokenizeWhiteSpaceOrComments(textUnits);
+            if (textUnits[this.Index].Text.Equals("entry"))
+            {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Entry));
+                this.Index++;
+            }
+            else if (textUnits[this.Index].Text.Equals("exit"))
+            {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Exit));
+                this.Index++;
+            }
+            else if (!Regex.IsMatch(textUnits[this.Index].Text, this.GetPattern()))
+            {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text));
+                this.Index++;
+            }
+            else
+            {
+                this.ReportParsingError("Expected identifier.");
+            }
+
+            this.TokenizeWhiteSpaceOrComments(textUnits);
+            if (!textUnits[this.Index].Text.Equals("do"))
+            {
+                this.ReportParsingError("Expected \"do\".");
+            }
+
+            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.DoAction));
+            this.Index++;
+
+            this.TokenizeWhiteSpaceOrComments(textUnits);
+            if (textUnits[this.Index].Text.Equals("{"))
+            {
+                this.TokenizeRegion(textUnits);
+            }
+            else if (!Regex.IsMatch(textUnits[this.Index].Text, this.GetPattern()))
+            {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text));
+                this.Index++;
+
+                this.TokenizeWhiteSpaceOrComments(textUnits);
+                if (!textUnits[this.Index].Text.Equals(";"))
+                {
+                    this.ReportParsingError("Expected \";\".");
+                }
+
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Semicolon));
+                this.Index++;
+            }
+            else
+            {
+                this.ReportParsingError("Expected \"{\" or identifier.");
+            }
         }
 
         /// <summary>
@@ -840,9 +992,10 @@ namespace Microsoft.PSharp.Parsing
         {
             var pattern = @"(//|/\*|\*/|;|{|}|:|,|\(|\)|\[|\]|#|\s+|" +
                 @"<|>|" +
-                @"machine|state|event|" +
-                @"private|protected|internal|public|abstract|virtual|override|" +
-                @"using|namespace|class)";
+                @"\bmachine\b|\bstate\b|\bevent\b|" +
+                @"\bon\b|\bdo\b|\bgoto\b|\bentry\b|\bexit\b|" +
+                @"\bprivate\b|\bprotected\b|\binternal\b|\bpublic\b|\babstract\b|\bvirtual\b|\boverride\b|" +
+                @"\busing\b|\bnamespace\b|\bclass\b)";
             return pattern;
         }
 

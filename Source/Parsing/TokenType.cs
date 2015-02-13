@@ -26,9 +26,12 @@ namespace Microsoft.PSharp.Parsing
         Machine,
         State,
         Event,
-        On,
-        Do,
-        Goto,
+
+        OnAction,
+        DoAction,
+        GotoState,
+        Entry,
+        Exit,
 
         Semicolon,
         Doublecolon,
