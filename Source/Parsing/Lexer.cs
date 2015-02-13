@@ -85,16 +85,6 @@ namespace Microsoft.PSharp.Parsing
                 }
             }
 
-            //foreach (var unit in textUnits)
-            //{
-            //    if (unit.IsEndOfLine)
-            //    {
-            //        Console.Write("\n");
-            //    }
-
-            //    Console.Write(unit.Text);
-            //}
-
             this.Tokenize(textUnits);
         }
 
@@ -270,8 +260,6 @@ namespace Microsoft.PSharp.Parsing
                         break;
 
                     default:
-                        foreach (var tok in this.Tokens)
-                            Console.Write(tok.String);
                         this.ReportParsingError("Unexpected declaration.");
                         break;
                 }
@@ -417,15 +405,27 @@ namespace Microsoft.PSharp.Parsing
             {
                 this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Doublecolon));
                 this.Index++;
+
+                this.TokenizeWhiteSpaceOrComments(textUnits);
+                if (Regex.IsMatch(textUnits[this.Index].Text, this.GetPattern()))
+                {
+                    this.ReportParsingError("Expected identifier.");
+                }
+
+                this.Tokens.Add(new Token(textUnits[this.Index].Text));
+                this.Index++;
+
+                this.TokenizeWhiteSpaceOrComments(textUnits);
             }
-            else if (textUnits[this.Index].Text.Equals("{"))
+
+            if (textUnits[this.Index].Text.Equals("{"))
             {
-                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.LeftCurlyBracket));
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.MachineLeftCurlyBracket));
                 this.Index++;
             }
             else
             {
-                this.ReportParsingError("Expected base machine or \"{\".");
+                this.ReportParsingError("Expected \"{\".");
             }
 
             this.TokenizeWhiteSpaceOrComments(textUnits);
@@ -463,7 +463,7 @@ namespace Microsoft.PSharp.Parsing
                         break;
 
                     case "}":
-                        this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.RightCurlyBracket));
+                        this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.MachineRightCurlyBracket));
                         end = true;
                         this.Index++;
                         this.TokenizeWhiteSpaceOrComments(textUnits);
@@ -478,8 +478,6 @@ namespace Microsoft.PSharp.Parsing
                         break;
 
                     default:
-                        foreach (var tok in this.Tokens)
-                            Console.Write(tok.String);
                         this.ReportParsingError("Unexpected declaration.");
                         break;
                 }
@@ -666,8 +664,6 @@ namespace Microsoft.PSharp.Parsing
                         break;
 
                     default:
-                        foreach (var tok in this.Tokens)
-                            Console.Write(tok.String);
                         this.ReportParsingError("Unexpected declaration.");
                         break;
                 }
@@ -705,21 +701,46 @@ namespace Microsoft.PSharp.Parsing
             }
 
             this.TokenizeWhiteSpaceOrComments(textUnits);
-            if (!textUnits[this.Index].Text.Equals("do"))
+            if (textUnits[this.Index].Text.Equals("do"))
             {
-                this.ReportParsingError("Expected \"do\".");
-            }
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.DoAction));
+                this.Index++;
 
-            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.DoAction));
-            this.Index++;
+                this.TokenizeWhiteSpaceOrComments(textUnits);
+                if (textUnits[this.Index].Text.Equals("{"))
+                {
+                    this.TokenizeCurlyBracketRegion(textUnits);
+                }
+                else if (!Regex.IsMatch(textUnits[this.Index].Text, this.GetPattern()))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text));
+                    this.Index++;
 
-            this.TokenizeWhiteSpaceOrComments(textUnits);
-            if (textUnits[this.Index].Text.Equals("{"))
-            {
-                this.TokenizeCurlyBracketRegion(textUnits);
+                    this.TokenizeWhiteSpaceOrComments(textUnits);
+                    if (!textUnits[this.Index].Text.Equals(";"))
+                    {
+                        this.ReportParsingError("Expected \";\".");
+                    }
+
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Semicolon));
+                    this.Index++;
+                }
+                else
+                {
+                    this.ReportParsingError("Expected \"{\" or identifier.");
+                }
             }
-            else if (!Regex.IsMatch(textUnits[this.Index].Text, this.GetPattern()))
+            else if (textUnits[this.Index].Text.Equals("goto"))
             {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.GotoState));
+                this.Index++;
+
+                this.TokenizeWhiteSpaceOrComments(textUnits);
+                if (Regex.IsMatch(textUnits[this.Index].Text, this.GetPattern()))
+                {
+                    this.ReportParsingError("Expected identifier.");
+                }
+
                 this.Tokens.Add(new Token(textUnits[this.Index].Text));
                 this.Index++;
 
@@ -734,8 +755,10 @@ namespace Microsoft.PSharp.Parsing
             }
             else
             {
-                this.ReportParsingError("Expected \"{\" or identifier.");
+                this.ReportParsingError("Expected \"do\".");
             }
+
+            this.TokenizeWhiteSpaceOrComments(textUnits);
         }
 
         /// <summary>

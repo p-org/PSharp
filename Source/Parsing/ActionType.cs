@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="TokenType.cs">
+// <copyright file="ActionType.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -15,54 +15,14 @@
 namespace Microsoft.PSharp.Parsing
 {
     /// <summary>
-    /// P# token types.
+    /// P# action types.
     /// </summary>
-    internal enum TokenType
+    internal enum ActionType
     {
         None = 0,
-        NewLine,
-        WhiteSpace,
-
-        MachineDecl,
-        StateDecl,
-        EventDecl,
-        ActionDecl,
-
-        OnAction,
-        DoAction,
-        GotoState,
-        Entry,
-        Exit,
-
-        Semicolon,
-        Doublecolon,
-        Comma,
-
-        MachineLeftCurlyBracket,
-        MachineRightCurlyBracket,
-
-        LeftCurlyBracket,
-        RightCurlyBracket,
-        LeftParenthesis,
-        RightParenthesis,
-        LeftSquareBracket,
-        RightSquareBracket,
-
-        LessThanOperator,
-        GreaterThanOperator,
-
-        Private,
-        Protected,
-        Internal,
-        Public,
-
-        Abstract,
-        Virtual,
-        Override,
-
-        NamespaceDecl,
-        ClassDecl,
-
-        Using
+        OnEntry,
+        OnExit,
+        Do,
+        Goto
     }
 }

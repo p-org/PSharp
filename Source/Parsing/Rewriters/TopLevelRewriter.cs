@@ -14,7 +14,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 
 using Microsoft.PSharp.Tooling;
 
@@ -68,10 +67,6 @@ namespace Microsoft.PSharp.Parsing
             {
                 this.RewriteActionDeclaration();
             }
-            else if (token.Type == TokenType.OnAction)
-            {
-                this.RewriteOnActionDeclaration();
-            }
 
             base.Index++;
             this.ParseNextToken();
@@ -93,7 +88,7 @@ namespace Microsoft.PSharp.Parsing
 
             if (base.Tokens[base.Index].Type != TokenType.None)
             {
-                base.ReportParsingFailure();
+                throw new RewritingException("rewriter: identifier expected.");
             }
 
             var identifier = base.Tokens[base.Index].String;
@@ -118,7 +113,7 @@ namespace Microsoft.PSharp.Parsing
             }
             else
             {
-                base.ReportParsingFailure();
+                throw new RewritingException("rewriter: semicolon expected.");
             }
 
             base.Index = replaceIdx;
@@ -147,16 +142,20 @@ namespace Microsoft.PSharp.Parsing
             base.Index++;
 
             base.SkipWhiteSpaceTokens();
-            if (base.Tokens[base.Index].Type != TokenType.None)
+            if (base.Tokens[base.Index].Type == TokenType.None)
             {
-                base.ReportParsingFailure();
+                base.CurrentMachine = base.Tokens[base.Index].String;
+            }
+            else
+            {
+                throw new RewritingException("rewriter: machine identifier expected.");
             }
 
             base.Index++;
             var replaceIdx = base.Index;
 
             base.SkipWhiteSpaceTokens();
-            if (base.Tokens[base.Index].Type == TokenType.LeftCurlyBracket)
+            if (base.Tokens[base.Index].Type == TokenType.MachineLeftCurlyBracket)
             {
                 base.Tokens.Insert(replaceIdx, new Token(" ", TokenType.WhiteSpace));
                 replaceIdx++;
@@ -174,7 +173,7 @@ namespace Microsoft.PSharp.Parsing
             }
             else if (base.Tokens[base.Index].Type != TokenType.Doublecolon)
             {
-                base.ReportParsingFailure();
+                throw new RewritingException("rewriter: doublecolon expected.");
             }
         }
 
@@ -187,9 +186,13 @@ namespace Microsoft.PSharp.Parsing
             base.Index++;
 
             base.SkipWhiteSpaceTokens();
-            if (base.Tokens[base.Index].Type != TokenType.None)
+            if (base.Tokens[base.Index].Type == TokenType.None)
             {
-                base.ReportParsingFailure();
+                base.CurrentState = base.Tokens[base.Index].String;
+            }
+            else
+            {
+                throw new RewritingException("rewriter: state identifier expected.");
             }
 
             base.Index++;
@@ -214,7 +217,7 @@ namespace Microsoft.PSharp.Parsing
             }
             else
             {
-                base.ReportParsingFailure();
+                throw new RewritingException("rewriter: left curly bracket expected.");
             }
         }
 
@@ -229,7 +232,7 @@ namespace Microsoft.PSharp.Parsing
             base.SkipWhiteSpaceTokens();
             if (base.Tokens[base.Index].Type != TokenType.None)
             {
-                base.ReportParsingFailure();
+                throw new RewritingException("rewriter: identifier expected.");
             }
 
             base.Index++;
@@ -249,82 +252,8 @@ namespace Microsoft.PSharp.Parsing
             }
             else
             {
-                base.ReportParsingFailure();
+                throw new RewritingException("rewriter: left curly bracket expected.");
             }
-        }
-
-        /// <summary>
-        /// Rewrites the on action declaration.
-        /// </summary>
-        private void RewriteOnActionDeclaration()
-        {
-            var startIdx = base.Index;
-            base.Tokens[base.Index] = new Token("protected", TokenType.Private);
-            base.Index++;
-
-            base.SkipWhiteSpaceTokens();
-            if (base.Tokens[base.Index].Type == TokenType.Entry ||
-                base.Tokens[base.Index].Type == TokenType.Exit)
-            {
-                this.RewriteStateActionDeclaration(base.Tokens[base.Index].Type);
-            }
-            else
-            {
-                throw new NotImplementedException("on action");
-            }
-        }
-
-        /// <summary>
-        /// Rewrites the on action declaration.
-        /// </summary>
-        /// <param name="type">TokenType</param>
-        private void RewriteStateActionDeclaration(TokenType type)
-        {
-            if (type != TokenType.Entry && type != TokenType.Exit)
-            {
-                base.ReportParsingFailure();
-            }
-
-            var replaceIdx = base.Index;
-
-            base.Tokens[replaceIdx] = new Token("override", TokenType.Override);
-            replaceIdx++;
-
-            base.Tokens.Insert(replaceIdx, new Token(" ", TokenType.WhiteSpace));
-            replaceIdx++;
-
-            base.Tokens.Insert(replaceIdx, new Token("void"));
-            replaceIdx++;
-
-            base.Tokens.Insert(replaceIdx, new Token(" ", TokenType.WhiteSpace));
-            replaceIdx++;
-
-            if (type == TokenType.Entry)
-            {
-                base.Tokens.Insert(replaceIdx, new Token("OnEntry"));
-                replaceIdx++;
-            }
-            else if (type == TokenType.Exit)
-            {
-                base.Tokens.Insert(replaceIdx, new Token("OnExit"));
-                replaceIdx++;
-            }
-
-            base.Tokens.Insert(replaceIdx, new Token("(", TokenType.LeftParenthesis));
-            replaceIdx++;
-
-            base.Tokens.Insert(replaceIdx, new Token(")", TokenType.RightParenthesis));
-            replaceIdx++;
-
-            base.Index = replaceIdx;
-            base.Index++;
-
-            while (base.Tokens[base.Index].Type != TokenType.DoAction)
-            {
-                base.Tokens.RemoveAt(base.Index);
-            }
-
-            base.Tokens.RemoveAt(base.Index);
         }
 
         #endregion

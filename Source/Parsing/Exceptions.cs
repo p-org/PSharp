@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="TokenType.cs">
+// <copyright file="Exceptions.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,57 +12,23 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+
 namespace Microsoft.PSharp.Parsing
 {
     /// <summary>
-    /// P# token types.
+    /// Implements a rewriting exception.
     /// </summary>
-    internal enum TokenType
+    internal class RewritingException : Exception
     {
-        None = 0,
-        NewLine,
-        WhiteSpace,
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="message">Message</param>
+        public RewritingException(string message)
+            : base(message)
+        {
 
-        MachineDecl,
-        StateDecl,
-        EventDecl,
-        ActionDecl,
-
-        OnAction,
-        DoAction,
-        GotoState,
-        Entry,
-        Exit,
-
-        Semicolon,
-        Doublecolon,
-        Comma,
-
-        MachineLeftCurlyBracket,
-        MachineRightCurlyBracket,
-
-        LeftCurlyBracket,
-        RightCurlyBracket,
-        LeftParenthesis,
-        RightParenthesis,
-        LeftSquareBracket,
-        RightSquareBracket,
-
-        LessThanOperator,
-        GreaterThanOperator,
-
-        Private,
-        Protected,
-        Internal,
-        Public,
-
-        Abstract,
-        Virtual,
-        Override,
-
-        NamespaceDecl,
-        ClassDecl,
-
-        Using
+        }
     }
 }

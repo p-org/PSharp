@@ -45,12 +45,15 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Exceptions.cs" />
     <Compile Include="ParsingEngine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rewriters\BaseRewriter.cs" />
+    <Compile Include="Rewriters\StateActionRewriter.cs" />
     <Compile Include="TextUnit.cs" />
     <Compile Include="Token.cs" />
     <Compile Include="Rewriters\TopLevelRewriter.cs" />
+    <Compile Include="ActionType.cs" />
     <Compile Include="TokenType.cs" />
     <Compile Include="Lexer.cs" />
   </ItemGroup>

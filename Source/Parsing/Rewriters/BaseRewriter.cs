@@ -36,6 +36,16 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         protected int Index;
 
+        /// <summary>
+        /// The name of the currently parsed machine.
+        /// </summary>
+        protected string CurrentMachine;
+
+        /// <summary>
+        /// The name of the currently parsed state.
+        /// </summary>
+        protected string CurrentState;
+
         #endregion
 
         #region internal API
@@ -48,6 +58,8 @@ namespace Microsoft.PSharp.Parsing
         {
             this.Tokens = tokens;
             this.Index = 0;
+            this.CurrentMachine = "";
+            this.CurrentState = "";
         }
 
         /// <summary>
@@ -56,7 +68,15 @@ namespace Microsoft.PSharp.Parsing
         /// <returns>Rewritten tokens</returns>
         public List<Token> GetRewrittenTokens()
         {
-            this.ParseNextToken();
+            try
+            {
+                this.ParseNextToken();
+            }
+            catch (RewritingException ex)
+            {
+                ErrorReporter.ReportErrorAndExit(ex.Message);
+            }
+            
             return this.Tokens;
         }
 
@@ -83,20 +103,25 @@ namespace Microsoft.PSharp.Parsing
 
             if (this.Index == this.Tokens.Count)
             {
-                this.ReportParsingFailure();
+                throw new RewritingException("rewriter: unexpected end of token list.");
             }
         }
 
-        #endregion
-
-        #region helper methods
-
         /// <summary>
-        /// Reports a parting failure.
+        /// Erases white space tokens.
         /// </summary>
-        protected void ReportParsingFailure()
+        protected void EraseWhiteSpaceTokens()
         {
-            ErrorReporter.ReportErrorAndExit("parser failed, please contact the developers.");
+            while (this.Index < this.Tokens.Count &&
+                this.Tokens[this.Index].Type == TokenType.WhiteSpace)
+            {
+                this.Tokens.RemoveAt(this.Index);
+            }
+
+            if (this.Index == this.Tokens.Count)
+            {
+                throw new RewritingException("rewriter: unexpected end of token list.");
+            }
         }
 
         #endregion

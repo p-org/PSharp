@@ -29,6 +29,16 @@ namespace Microsoft.PSharp.Parsing
     /// </summary>
     public static class ParsingEngine
     {
+        #region fields
+
+        /// <summary>
+        /// Dictionary containing state actions (i.e. transtions and bindings).
+        /// </summary>
+        internal static Dictionary<string, Dictionary<string,
+            Dictionary<string, Tuple<string, ActionType>>>> StateActions;
+
+        #endregion
+
         #region public API
 
         /// <summary>
@@ -68,9 +78,13 @@ namespace Microsoft.PSharp.Parsing
                     continue;
                 }
 
+                ParsingEngine.StateActions = new Dictionary<string, Dictionary<string,
+                    Dictionary<string, Tuple<string, ActionType>>>>();
+
                 var root = (CompilationUnitSyntax)tree.GetRoot();
 
                 var tokens = new Lexer(root.ToFullString()).GetTokens();
+                tokens = new StateActionRewriter(tokens).GetRewrittenTokens();
                 tokens = new TopLevelRewriter(tokens).GetRewrittenTokens();
 
                 var rewrittenTree = ParsingEngine.ConvertToText(tokens);
