@@ -200,7 +200,7 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="textUnits">Text units</param>
         private void TokenizeNamespace(List<TextUnit> textUnits)
         {
-            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Namespace));
+            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.NamespaceDecl));
             this.Index++;
 
             this.TokenizeWhiteSpaceOrComments(textUnits);
@@ -370,7 +370,7 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="textUnits">Text units</param>
         private void TokenizeEventDeclaration(List<TextUnit> textUnits)
         {
-            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Event));
+            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.EventDecl));
             this.Index++;
 
             this.TokenizeWhiteSpaceOrComments(textUnits);
@@ -400,7 +400,7 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="textUnits">Text units</param>
         private void TokenizeMachineDeclaration(List<TextUnit> textUnits)
         {
-            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Machine));
+            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.MachineDecl));
             this.Index++;
 
             this.TokenizeWhiteSpaceOrComments(textUnits);
@@ -534,12 +534,11 @@ namespace Microsoft.PSharp.Parsing
             }
             else if (textUnits[this.Index].Text.Equals("action"))
             {
-                throw new NotImplementedException("Have not implemented actions.");
+                this.TokenizeActionDeclaration(textUnits);
             }
-            // TODO: REMOVE
             else if (textUnits[this.Index].Text.Equals("class"))
             {
-                this.TokenizeClassDeclaration(textUnits);
+                this.ReportParsingError("Classes cannot be declared inside a machine.");
             }
             else if (textUnits[this.Index].Text.Equals("override"))
             {
@@ -593,7 +592,7 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="textUnits">Text units</param>
         private void TokenizeStateDeclaration(List<TextUnit> textUnits)
         {
-            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.State));
+            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.StateDecl));
             this.Index++;
 
             this.TokenizeWhiteSpaceOrComments(textUnits);
@@ -717,7 +716,7 @@ namespace Microsoft.PSharp.Parsing
             this.TokenizeWhiteSpaceOrComments(textUnits);
             if (textUnits[this.Index].Text.Equals("{"))
             {
-                this.TokenizeRegion(textUnits);
+                this.TokenizeCurlyBracketRegion(textUnits);
             }
             else if (!Regex.IsMatch(textUnits[this.Index].Text, this.GetPattern()))
             {
@@ -740,12 +739,41 @@ namespace Microsoft.PSharp.Parsing
         }
 
         /// <summary>
+        /// Tokenizes an action declaration.
+        /// </summary>
+        /// <param name="textUnits">Text units</param>
+        private void TokenizeActionDeclaration(List<TextUnit> textUnits)
+        {
+            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.ActionDecl));
+            this.Index++;
+
+            this.TokenizeWhiteSpaceOrComments(textUnits);
+            if (Regex.IsMatch(textUnits[this.Index].Text, this.GetPattern()))
+            {
+                this.ReportParsingError("Expected identifier.");
+            }
+
+            this.Tokens.Add(new Token(textUnits[this.Index].Text));
+            this.Index++;
+
+            this.TokenizeWhiteSpaceOrComments(textUnits);
+            if (textUnits[this.Index].Text.Equals("{"))
+            {
+                this.TokenizeCurlyBracketRegion(textUnits);
+            }
+            else
+            {
+                this.ReportParsingError("Expected \"{\".");
+            }
+        }
+
+        /// <summary>
         /// Tokenizes a class declaration.
         /// </summary>
         /// <param name="textUnits">Text units</param>
         private void TokenizeClassDeclaration(List<TextUnit> textUnits)
         {
-            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Class));
+            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.ClassDecl));
             this.Index++;
 
             this.TokenizeWhiteSpaceOrComments(textUnits);
@@ -756,7 +784,7 @@ namespace Microsoft.PSharp.Parsing
                 this.TokenizeWhiteSpaceOrComments(textUnits);
             }
 
-            this.TokenizeRegion(textUnits);
+            this.TokenizeCurlyBracketRegion(textUnits);
         }
 
         /// <summary>
@@ -788,7 +816,7 @@ namespace Microsoft.PSharp.Parsing
             }
             else if (textUnits[this.Index].Text.Equals("{"))
             {
-                this.TokenizeRegion(textUnits);
+                this.TokenizeCurlyBracketRegion(textUnits);
             }
             else
             {
@@ -847,7 +875,7 @@ namespace Microsoft.PSharp.Parsing
         /// Tokenizes a generic region of code surrounded by curly brackets.
         /// </summary>
         /// <param name="textUnits">Text units</param>
-        private void TokenizeRegion(List<TextUnit> textUnits)
+        private void TokenizeCurlyBracketRegion(List<TextUnit> textUnits)
         {
             this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.LeftCurlyBracket));
             this.Index++;

@@ -23,9 +23,10 @@ namespace Microsoft.PSharp.Parsing
         NewLine,
         WhiteSpace,
 
-        Machine,
-        State,
-        Event,
+        MachineDecl,
+        StateDecl,
+        EventDecl,
+        ActionDecl,
 
         OnAction,
         DoAction,
@@ -56,8 +57,8 @@ namespace Microsoft.PSharp.Parsing
         Virtual,
         Override,
 
-        Namespace,
-        Class,
+        NamespaceDecl,
+        ClassDecl,
 
         Using
     }
