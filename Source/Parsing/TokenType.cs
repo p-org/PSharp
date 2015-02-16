@@ -37,6 +37,7 @@ namespace Microsoft.PSharp.Parsing
         Semicolon,
         Doublecolon,
         Comma,
+        Dot,
 
         MachineLeftCurlyBracket,
         MachineRightCurlyBracket,
@@ -62,7 +63,16 @@ namespace Microsoft.PSharp.Parsing
 
         NamespaceDecl,
         ClassDecl,
+        Using,
 
-        Using
+        This,
+        Base,
+        New,
+
+        ForLoop,
+        WhileLoop,
+        DoLoop,
+        IfCondition,
+        ElseCondition
     }
 }

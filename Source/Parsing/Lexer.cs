@@ -148,6 +148,7 @@ namespace Microsoft.PSharp.Parsing
                         break;
 
                     default:
+                        Console.WriteLine(" >> " + textUnits[this.Index].Text);
                         this.ReportParsingError("Must be declared inside a namespace.");
                         break;
                 }
@@ -164,18 +165,24 @@ namespace Microsoft.PSharp.Parsing
             this.Index++;
 
             this.TokenizeWhiteSpaceOrComments(textUnits);
-            if (Regex.IsMatch(textUnits[this.Index].Text, this.GetPattern()))
+            while (!textUnits[this.Index].Text.Equals(";"))
             {
-                this.ReportParsingError("Invalid use of the \"using\" directive.");
-            }
+                if (!Regex.IsMatch(textUnits[this.Index].Text, this.GetPattern()))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text));
+                    this.Index++;
+                }
+                else if (textUnits[this.Index].Text.Equals("."))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Dot));
+                    this.Index++;
+                }
+                else
+                {
+                    this.ReportParsingError("Invalid use of the \"using\" directive.");
+                }
 
-            this.Tokens.Add(new Token(textUnits[this.Index].Text));
-            this.Index++;
-
-            this.TokenizeWhiteSpaceOrComments(textUnits);
-            if (!textUnits[this.Index].Text.Equals(";"))
-            {
-                this.ReportParsingError("Missing \";\".");
+                this.TokenizeWhiteSpaceOrComments(textUnits);
             }
 
             this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Semicolon));
@@ -552,6 +559,7 @@ namespace Microsoft.PSharp.Parsing
                 {
                     this.TokenizeGenericList(textUnits);
                 }
+
                 if (Regex.IsMatch(textUnits[this.Index].Text, this.GetPattern()))
                 {
                     this.ReportParsingError("Expected identifier.");
@@ -709,7 +717,7 @@ namespace Microsoft.PSharp.Parsing
                 this.TokenizeWhiteSpaceOrComments(textUnits);
                 if (textUnits[this.Index].Text.Equals("{"))
                 {
-                    this.TokenizeCurlyBracketRegion(textUnits);
+                    this.TokenizeGenericCodeRegion(textUnits);
                 }
                 else if (!Regex.IsMatch(textUnits[this.Index].Text, this.GetPattern()))
                 {
@@ -782,7 +790,7 @@ namespace Microsoft.PSharp.Parsing
             this.TokenizeWhiteSpaceOrComments(textUnits);
             if (textUnits[this.Index].Text.Equals("{"))
             {
-                this.TokenizeCurlyBracketRegion(textUnits);
+                this.TokenizeGenericCodeRegion(textUnits);
             }
             else
             {
@@ -807,7 +815,7 @@ namespace Microsoft.PSharp.Parsing
                 this.TokenizeWhiteSpaceOrComments(textUnits);
             }
 
-            this.TokenizeCurlyBracketRegion(textUnits);
+            this.TokenizeGenericCodeRegion(textUnits);
         }
 
         /// <summary>
@@ -839,7 +847,7 @@ namespace Microsoft.PSharp.Parsing
             }
             else if (textUnits[this.Index].Text.Equals("{"))
             {
-                this.TokenizeCurlyBracketRegion(textUnits);
+                this.TokenizeCodeRegion(textUnits);
             }
             else
             {
@@ -895,10 +903,89 @@ namespace Microsoft.PSharp.Parsing
         }
 
         /// <summary>
+        /// Tokenizes a code region surrounded by curly brackets.
+        /// </summary>
+        /// <param name="textUnits">Text units</param>
+        private void TokenizeCodeRegion(List<TextUnit> textUnits)
+        {
+            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.LeftCurlyBracket));
+            this.Index++;
+
+            this.TokenizeWhiteSpaceOrComments(textUnits);
+
+            int bracketCounter = 1;
+            while (this.Index < textUnits.Count && bracketCounter > 0)
+            {
+                if (textUnits[this.Index].Text.Equals("{"))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.LeftCurlyBracket));
+                    bracketCounter++;
+                }
+                else if (textUnits[this.Index].Text.Equals("}"))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.RightCurlyBracket));
+                    bracketCounter--;
+                }
+                else if (textUnits[this.Index].Text.Equals("("))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.LeftParenthesis));
+                }
+                else if (textUnits[this.Index].Text.Equals(")"))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.RightParenthesis));
+                }
+                else if (textUnits[this.Index].Text.Equals(","))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Comma));
+                }
+                else if (textUnits[this.Index].Text.Equals("new"))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.New));
+                }
+                else if (textUnits[this.Index].Text.Equals("for"))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.ForLoop));
+                }
+                else if (textUnits[this.Index].Text.Equals("while"))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.WhileLoop));
+                }
+                else if (textUnits[this.Index].Text.Equals("do"))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.DoLoop));
+                }
+                else if (textUnits[this.Index].Text.Equals("if"))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.IfCondition));
+                }
+                else if (textUnits[this.Index].Text.Equals("else"))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.ElseCondition));
+                }
+                else if (textUnits[this.Index].Text.Equals("this."))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.This));
+                }
+                else if (textUnits[this.Index].Text.Equals("base."))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Base));
+                }
+                else
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text));
+                }
+
+                this.Index++;
+
+                this.TokenizeWhiteSpaceOrComments(textUnits);
+            }
+        }
+
+        /// <summary>
         /// Tokenizes a generic region of code surrounded by curly brackets.
         /// </summary>
         /// <param name="textUnits">Text units</param>
-        private void TokenizeCurlyBracketRegion(List<TextUnit> textUnits)
+        private void TokenizeGenericCodeRegion(List<TextUnit> textUnits)
         {
             this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.LeftCurlyBracket));
             this.Index++;
@@ -1041,12 +1128,14 @@ namespace Microsoft.PSharp.Parsing
         /// <returns></returns>
         private string GetPattern()
         {
-            var pattern = @"(//|/\*|\*/|;|{|}|:|,|\(|\)|\[|\]|#|\s+|" +
+            var pattern = @"(//|/\*|\*/|;|{|}|:|,|\.|\(|\)|\[|\]|#|\s+|" +
                 @"<|>|" +
+                @"this.|base.|this->|base->|" +
                 @"\bmachine\b|\bstate\b|\bevent\b|" +
                 @"\bon\b|\bdo\b|\bgoto\b|\bentry\b|\bexit\b|" +
                 @"\bprivate\b|\bprotected\b|\binternal\b|\bpublic\b|\babstract\b|\bvirtual\b|\boverride\b|" +
-                @"\busing\b|\bnamespace\b|\bclass\b)";
+                @"\busing\b|\bnamespace\b|\bclass\b|" +
+                @"\bnew\b)";
             return pattern;
         }
 
