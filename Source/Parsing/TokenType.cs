@@ -23,31 +23,20 @@ namespace Microsoft.PSharp.Parsing
         NewLine,
         WhiteSpace,
 
-        MachineDecl,
-        StateDecl,
-        EventDecl,
-        ActionDecl,
-
-        OnAction,
-        DoAction,
-        GotoState,
-        Entry,
-        Exit,
-
-        Semicolon,
-        Doublecolon,
-        Comma,
-        Dot,
-
-        MachineLeftCurlyBracket,
-        MachineRightCurlyBracket,
-
         LeftCurlyBracket,
         RightCurlyBracket,
         LeftParenthesis,
         RightParenthesis,
         LeftSquareBracket,
         RightSquareBracket,
+
+        MachineLeftCurlyBracket,
+        MachineRightCurlyBracket,
+
+        Semicolon,
+        Doublecolon,
+        Comma,
+        Dot,
 
         LessThanOperator,
         GreaterThanOperator,
@@ -65,6 +54,17 @@ namespace Microsoft.PSharp.Parsing
         ClassDecl,
         Using,
 
+        MachineDecl,
+        StateDecl,
+        EventDecl,
+        ActionDecl,
+
+        OnAction,
+        DoAction,
+        GotoState,
+        Entry,
+        Exit,
+
         This,
         Base,
         New,
@@ -73,6 +73,10 @@ namespace Microsoft.PSharp.Parsing
         WhileLoop,
         DoLoop,
         IfCondition,
-        ElseCondition
+        ElseCondition,
+
+        SendEvent,
+        RaiseEvent,
+        DeleteMachine
     }
 }

@@ -920,65 +920,109 @@ namespace Microsoft.PSharp.Parsing
                 {
                     this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.LeftCurlyBracket));
                     bracketCounter++;
+                    this.Index++;
                 }
                 else if (textUnits[this.Index].Text.Equals("}"))
                 {
                     this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.RightCurlyBracket));
                     bracketCounter--;
+                    this.Index++;
                 }
                 else if (textUnits[this.Index].Text.Equals("("))
                 {
                     this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.LeftParenthesis));
+                    this.Index++;
                 }
                 else if (textUnits[this.Index].Text.Equals(")"))
                 {
                     this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.RightParenthesis));
+                    this.Index++;
                 }
                 else if (textUnits[this.Index].Text.Equals(","))
                 {
                     this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Comma));
+                    this.Index++;
                 }
                 else if (textUnits[this.Index].Text.Equals("new"))
                 {
                     this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.New));
+                    this.Index++;
                 }
                 else if (textUnits[this.Index].Text.Equals("for"))
                 {
                     this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.ForLoop));
+                    this.Index++;
                 }
                 else if (textUnits[this.Index].Text.Equals("while"))
                 {
                     this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.WhileLoop));
+                    this.Index++;
                 }
                 else if (textUnits[this.Index].Text.Equals("do"))
                 {
                     this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.DoLoop));
+                    this.Index++;
                 }
                 else if (textUnits[this.Index].Text.Equals("if"))
                 {
                     this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.IfCondition));
+                    this.Index++;
                 }
                 else if (textUnits[this.Index].Text.Equals("else"))
                 {
                     this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.ElseCondition));
+                    this.Index++;
                 }
                 else if (textUnits[this.Index].Text.Equals("this."))
                 {
                     this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.This));
+                    this.Index++;
                 }
                 else if (textUnits[this.Index].Text.Equals("base."))
                 {
                     this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Base));
+                    this.Index++;
+                }
+                else if (textUnits[this.Index].Text.Equals("raise"))
+                {
+                    this.TokenizeRaiseStatement(textUnits);
                 }
                 else
                 {
                     this.Tokens.Add(new Token(textUnits[this.Index].Text));
+                    this.Index++;
                 }
-
-                this.Index++;
 
                 this.TokenizeWhiteSpaceOrComments(textUnits);
             }
+        }
+
+        /// <summary>
+        /// Tokenizes a raise statement.
+        /// </summary>
+        /// <param name="textUnits">Text units</param>
+        private void TokenizeRaiseStatement(List<TextUnit> textUnits)
+        {
+            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.RaiseEvent));
+            this.Index++;
+
+            this.TokenizeWhiteSpaceOrComments(textUnits);
+            if (Regex.IsMatch(textUnits[this.Index].Text, this.GetPattern()))
+            {
+                this.ReportParsingError("Expected event identifier.");
+            }
+
+            this.Tokens.Add(new Token(textUnits[this.Index].Text));
+            this.Index++;
+
+            this.TokenizeWhiteSpaceOrComments(textUnits);
+            if (!textUnits[this.Index].Text.Equals(";"))
+            {
+                this.ReportParsingError("Expected \";\".");
+            }
+
+            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Semicolon));
+            this.Index++;
         }
 
         /// <summary>
@@ -1131,10 +1175,11 @@ namespace Microsoft.PSharp.Parsing
             var pattern = @"(//|/\*|\*/|;|{|}|:|,|\.|\(|\)|\[|\]|#|\s+|" +
                 @"<|>|" +
                 @"this.|base.|this->|base->|" +
+                @"\busing\b|\bnamespace\b|\bclass\b|" +
                 @"\bmachine\b|\bstate\b|\bevent\b|" +
                 @"\bon\b|\bdo\b|\bgoto\b|\bentry\b|\bexit\b|" +
+                @"\braise\b|" +
                 @"\bprivate\b|\bprotected\b|\binternal\b|\bpublic\b|\babstract\b|\bvirtual\b|\boverride\b|" +
-                @"\busing\b|\bnamespace\b|\bclass\b|" +
                 @"\bnew\b)";
             return pattern;
         }

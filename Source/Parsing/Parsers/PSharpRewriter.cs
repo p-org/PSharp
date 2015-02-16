@@ -69,6 +69,10 @@ namespace Microsoft.PSharp.Parsing
             {
                 this.RewriteActionDeclaration();
             }
+            else if (token.Type == TokenType.RaiseEvent)
+            {
+                this.RewriteRaiseStatement();
+            }
 
             base.Index++;
             this.ParseNextToken();
@@ -330,6 +334,36 @@ namespace Microsoft.PSharp.Parsing
             {
                 throw new ParsingException("parser: left curly bracket expected.");
             }
+        }
+
+        /// <summary>
+        /// Rewrites the raise statement.
+        /// </summary>
+        private void RewriteRaiseStatement()
+        {
+            base.Tokens[base.Index] = new Token("this.", TokenType.This);
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token("Raise"));
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token("(", TokenType.LeftParenthesis));
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token("new", TokenType.New));
+            base.Index++;
+
+            base.SkipWhiteSpaceTokens();
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token("(", TokenType.LeftParenthesis));
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token(")", TokenType.RightParenthesis));
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token(")", TokenType.RightParenthesis));
+            base.Index++;
         }
 
         #endregion
