@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="PSharpTopLevelParser.cs">
+// <copyright file="PSharpRewriter.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -18,9 +18,9 @@ using System.Collections.Generic;
 namespace Microsoft.PSharp.Parsing
 {
     /// <summary>
-    /// The P# top level declaration parser.
+    /// The P# rewriter.
     /// </summary>
-    internal class PSharpTopLevelParser : BaseParser
+    internal class PSharpRewriter : BaseParser
     {
         #region public API
 
@@ -28,7 +28,7 @@ namespace Microsoft.PSharp.Parsing
         /// Constructor.
         /// </summary>
         /// <param name="tokens">List of tokens</param>
-        public PSharpTopLevelParser(List<Token> tokens)
+        public PSharpRewriter(List<Token> tokens)
             : base(tokens)
         {
             
@@ -60,6 +60,10 @@ namespace Microsoft.PSharp.Parsing
             else if (token.Type == TokenType.StateDecl)
             {
                 this.RewriteStateDeclaration();
+            }
+            else if (token.Type == TokenType.OnAction)
+            {
+                this.RewriteStateActionDeclaration();
             }
             else if (token.Type == TokenType.ActionDecl)
             {
@@ -220,6 +224,80 @@ namespace Microsoft.PSharp.Parsing
         }
 
         /// <summary>
+        /// Rewrites the state action declaration.
+        /// </summary>
+        private void RewriteStateActionDeclaration()
+        {
+            var type = GetActionType();
+            if (type == ActionType.OnEntry || type == ActionType.OnExit)
+            {
+                base.Tokens[base.Index] = new Token("protected", TokenType.Private);
+                base.Index++;
+
+                base.SkipWhiteSpaceTokens();
+                this.RewriteOnActionDeclaration(base.Tokens[base.Index].Type);
+            }
+            else if (type == ActionType.None)
+            {
+                throw new ParsingException("parser: no action type identified.");
+            }
+        }
+
+        /// <summary>
+        /// Rewrites the on action declaration.
+        /// </summary>
+        /// <param name="type">TokenType</param>
+        private void RewriteOnActionDeclaration(TokenType type)
+        {
+            if (type != TokenType.Entry && type != TokenType.Exit)
+            {
+                throw new ParsingException("parser: expected entry or exit on action type.");
+            }
+
+            var replaceIdx = base.Index;
+
+            base.Tokens[replaceIdx] = new Token("override", TokenType.Override);
+            replaceIdx++;
+
+            base.Tokens.Insert(replaceIdx, new Token(" ", TokenType.WhiteSpace));
+            replaceIdx++;
+
+            base.Tokens.Insert(replaceIdx, new Token("void"));
+            replaceIdx++;
+
+            base.Tokens.Insert(replaceIdx, new Token(" ", TokenType.WhiteSpace));
+            replaceIdx++;
+
+            if (type == TokenType.Entry)
+            {
+                base.Tokens.Insert(replaceIdx, new Token("OnEntry"));
+                replaceIdx++;
+            }
+            else if (type == TokenType.Exit)
+            {
+                base.Tokens.Insert(replaceIdx, new Token("OnExit"));
+                replaceIdx++;
+            }
+
+            base.Tokens.Insert(replaceIdx, new Token("(", TokenType.LeftParenthesis));
+            replaceIdx++;
+
+            base.Tokens.Insert(replaceIdx, new Token(")", TokenType.RightParenthesis));
+            replaceIdx++;
+
+            base.Index = replaceIdx;
+            base.Index++;
+
+            while (base.Index < base.Tokens.Count &&
+                base.Tokens[base.Index].Type != TokenType.DoAction)
+            {
+                base.Tokens.RemoveAt(base.Index);
+            }
+
+            base.Tokens.RemoveAt(base.Index);
+        }
+
+        /// <summary>
         /// Rewrites the action declaration.
         /// </summary>
         private void RewriteActionDeclaration()
@@ -252,6 +330,35 @@ namespace Microsoft.PSharp.Parsing
             {
                 throw new ParsingException("parser: left curly bracket expected.");
             }
+        }
+
+        #endregion
+
+        #region helper methods
+
+        /// <summary>
+        /// Returns the action type of the current state action declaration.
+        /// </summary>
+        /// <returns>ActionType</returns>
+        private ActionType GetActionType()
+        {
+            var startIdx = base.Index;
+
+            base.Index++;
+            base.SkipWhiteSpaceTokens();
+
+            if (base.Tokens[base.Index].Type == TokenType.Entry)
+            {
+                base.Index = startIdx;
+                return ActionType.OnEntry;
+            }
+            else if (base.Tokens[base.Index].Type == TokenType.Exit)
+            {
+                base.Index = startIdx;
+                return ActionType.OnExit;
+            }
+
+            throw new ParsingException("parser: no action type identified.");
         }
 
         #endregion

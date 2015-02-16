@@ -717,7 +717,7 @@ namespace Microsoft.PSharp.Parsing
                 this.TokenizeWhiteSpaceOrComments(textUnits);
                 if (textUnits[this.Index].Text.Equals("{"))
                 {
-                    this.TokenizeGenericCodeRegion(textUnits);
+                    this.TokenizeCodeRegion(textUnits);
                 }
                 else if (!Regex.IsMatch(textUnits[this.Index].Text, this.GetPattern()))
                 {
@@ -790,7 +790,7 @@ namespace Microsoft.PSharp.Parsing
             this.TokenizeWhiteSpaceOrComments(textUnits);
             if (textUnits[this.Index].Text.Equals("{"))
             {
-                this.TokenizeGenericCodeRegion(textUnits);
+                this.TokenizeCodeRegion(textUnits);
             }
             else
             {

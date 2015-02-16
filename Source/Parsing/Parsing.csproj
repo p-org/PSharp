@@ -49,10 +49,10 @@
     <Compile Include="ParsingEngine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Parsers\BaseParser.cs" />
-    <Compile Include="Parsers\PSharpStateActionParser.cs" />
+    <Compile Include="Parsers\PSharpParser.cs" />
     <Compile Include="TextUnit.cs" />
     <Compile Include="Token.cs" />
-    <Compile Include="Parsers\PSharpTopLevelParser.cs" />
+    <Compile Include="Parsers\PSharpRewriter.cs" />
     <Compile Include="ActionType.cs" />
     <Compile Include="TokenType.cs" />
     <Compile Include="Lexer.cs" />

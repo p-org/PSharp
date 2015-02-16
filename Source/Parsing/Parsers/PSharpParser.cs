@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="PSharpStateActionParser.cs">
+// <copyright file="PSharpParser.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -21,9 +21,9 @@ using Microsoft.PSharp.Tooling;
 namespace Microsoft.PSharp.Parsing
 {
     /// <summary>
-    /// The P# state action parser.
+    /// The P# parser.
     /// </summary>
-    internal class PSharpStateActionParser : BaseParser
+    internal class PSharpParser : BaseParser
     {
         #region public API
 
@@ -31,7 +31,7 @@ namespace Microsoft.PSharp.Parsing
         /// Constructor.
         /// </summary>
         /// <param name="tokens">List of tokens</param>
-        public PSharpStateActionParser(List<Token> tokens)
+        public PSharpParser(List<Token> tokens)
             : base(tokens)
         {
             
@@ -93,14 +93,6 @@ namespace Microsoft.PSharp.Parsing
             {
                 throw new ParsingException("parser: machine identifier expected.");
             }
-
-            while (base.Index < base.Tokens.Count &&
-                base.Tokens[base.Index].Type != TokenType.MachineLeftCurlyBracket)
-            {
-                base.Index++;
-            }
-
-            base.Index++;
         }
 
         /// <summary>
@@ -127,76 +119,14 @@ namespace Microsoft.PSharp.Parsing
         private void RewriteStateActionDeclaration()
         {
             var type = GetActionType();
-            if (type == ActionType.OnEntry || type == ActionType.OnExit)
-            {
-                base.Tokens[base.Index] = new Token("protected", TokenType.Private);
-                base.Index++;
-
-                base.SkipWhiteSpaceTokens();
-                this.RewriteOnActionDeclaration(base.Tokens[base.Index].Type);
-            }
-            else if (type == ActionType.Do || type == ActionType.Goto)
+            if (type == ActionType.Do || type == ActionType.Goto)
             {
                 this.EraseOnActionDeclaration();
             }
-            if (type == ActionType.None)
+            else if (type == ActionType.None)
             {
                 throw new ParsingException("parser: no action type identified.");
             }
-        }
-
-        /// <summary>
-        /// Rewrites the on action declaration.
-        /// </summary>
-        /// <param name="type">TokenType</param>
-        private void RewriteOnActionDeclaration(TokenType type)
-        {
-            if (type != TokenType.Entry && type != TokenType.Exit)
-            {
-                throw new ParsingException("parser: expected entry or exit on action type.");
-            }
-
-            var replaceIdx = base.Index;
-
-            base.Tokens[replaceIdx] = new Token("override", TokenType.Override);
-            replaceIdx++;
-
-            base.Tokens.Insert(replaceIdx, new Token(" ", TokenType.WhiteSpace));
-            replaceIdx++;
-
-            base.Tokens.Insert(replaceIdx, new Token("void"));
-            replaceIdx++;
-
-            base.Tokens.Insert(replaceIdx, new Token(" ", TokenType.WhiteSpace));
-            replaceIdx++;
-
-            if (type == TokenType.Entry)
-            {
-                base.Tokens.Insert(replaceIdx, new Token("OnEntry"));
-                replaceIdx++;
-            }
-            else if (type == TokenType.Exit)
-            {
-                base.Tokens.Insert(replaceIdx, new Token("OnExit"));
-                replaceIdx++;
-            }
-
-            base.Tokens.Insert(replaceIdx, new Token("(", TokenType.LeftParenthesis));
-            replaceIdx++;
-
-            base.Tokens.Insert(replaceIdx, new Token(")", TokenType.RightParenthesis));
-            replaceIdx++;
-
-            base.Index = replaceIdx;
-            base.Index++;
-
-            while (base.Index < base.Tokens.Count &&
-                base.Tokens[base.Index].Type != TokenType.DoAction)
-            {
-                base.Tokens.RemoveAt(base.Index);
-            }
-
-            base.Tokens.RemoveAt(base.Index);
         }
 
         /// <summary>
