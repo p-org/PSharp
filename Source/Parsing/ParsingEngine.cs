@@ -84,8 +84,8 @@ namespace Microsoft.PSharp.Parsing
                 var root = (CompilationUnitSyntax)tree.GetRoot();
 
                 var tokens = new Lexer(root.ToFullString()).GetTokens();
-                tokens = new StateActionRewriter(tokens).GetRewrittenTokens();
-                tokens = new TopLevelRewriter(tokens).GetRewrittenTokens();
+                tokens = new PSharpStateActionParser(tokens).GetParsedTokens();
+                tokens = new PSharpTopLevelParser(tokens).GetParsedTokens();
 
                 var rewrittenTree = ParsingEngine.ConvertToText(tokens);
                 var source = SourceText.From(rewrittenTree);

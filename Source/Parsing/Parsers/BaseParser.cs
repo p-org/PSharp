@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="BaseRewriter.cs">
+// <copyright file="BaseParser.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -13,16 +13,14 @@
 //-----------------------------------------------------------------------
 
 using System.Collections.Generic;
-using System.IO;
-
 using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp.Parsing
 {
     /// <summary>
-    /// Abstract rewriter.
+    /// Abstract parser.
     /// </summary>
-    internal abstract class BaseRewriter
+    internal abstract class BaseParser
     {
         #region fields
 
@@ -54,7 +52,7 @@ namespace Microsoft.PSharp.Parsing
         /// Constructor.
         /// </summary>
         /// <param name="tokens">List of tokens</param>
-        public BaseRewriter(List<Token> tokens)
+        public BaseParser(List<Token> tokens)
         {
             this.Tokens = tokens;
             this.Index = 0;
@@ -63,16 +61,16 @@ namespace Microsoft.PSharp.Parsing
         }
 
         /// <summary>
-        /// Returns the rewritten tokens.
+        /// Returns the parsed tokens.
         /// </summary>
-        /// <returns>Rewritten tokens</returns>
-        public List<Token> GetRewrittenTokens()
+        /// <returns>Parsed tokens</returns>
+        public List<Token> GetParsedTokens()
         {
             try
             {
                 this.ParseNextToken();
             }
-            catch (RewritingException ex)
+            catch (ParsingException ex)
             {
                 ErrorReporter.ReportErrorAndExit(ex.Message);
             }
@@ -103,7 +101,7 @@ namespace Microsoft.PSharp.Parsing
 
             if (this.Index == this.Tokens.Count)
             {
-                throw new RewritingException("rewriter: unexpected end of token list.");
+                throw new ParsingException("parser: unexpected end of token list.");
             }
         }
 
@@ -120,7 +118,7 @@ namespace Microsoft.PSharp.Parsing
 
             if (this.Index == this.Tokens.Count)
             {
-                throw new RewritingException("rewriter: unexpected end of token list.");
+                throw new ParsingException("parser: unexpected end of token list.");
             }
         }
 

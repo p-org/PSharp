@@ -17,15 +17,15 @@ using System;
 namespace Microsoft.PSharp.Parsing
 {
     /// <summary>
-    /// Implements a rewriting exception.
+    /// Implements a parsing exception.
     /// </summary>
-    internal class RewritingException : Exception
+    internal class ParsingException : Exception
     {
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="message">Message</param>
-        public RewritingException(string message)
+        public ParsingException(string message)
             : base(message)
         {
 

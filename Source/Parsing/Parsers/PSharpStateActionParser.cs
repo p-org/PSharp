@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="StateActionRewriter.cs">
+// <copyright file="PSharpStateActionParser.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -21,9 +21,9 @@ using Microsoft.PSharp.Tooling;
 namespace Microsoft.PSharp.Parsing
 {
     /// <summary>
-    /// The P# state action rewriter.
+    /// The P# state action parser.
     /// </summary>
-    internal class StateActionRewriter : BaseRewriter
+    internal class PSharpStateActionParser : BaseParser
     {
         #region public API
 
@@ -31,7 +31,7 @@ namespace Microsoft.PSharp.Parsing
         /// Constructor.
         /// </summary>
         /// <param name="tokens">List of tokens</param>
-        public StateActionRewriter(List<Token> tokens)
+        public PSharpStateActionParser(List<Token> tokens)
             : base(tokens)
         {
             
@@ -91,7 +91,7 @@ namespace Microsoft.PSharp.Parsing
             }
             else
             {
-                throw new RewritingException("rewriter: machine identifier expected.");
+                throw new ParsingException("parser: machine identifier expected.");
             }
 
             while (base.Index < base.Tokens.Count &&
@@ -117,7 +117,7 @@ namespace Microsoft.PSharp.Parsing
             }
             else
             {
-                throw new RewritingException("rewriter: state identifier expected.");
+                throw new ParsingException("parser: state identifier expected.");
             }
         }
 
@@ -141,7 +141,7 @@ namespace Microsoft.PSharp.Parsing
             }
             if (type == ActionType.None)
             {
-                throw new RewritingException("rewriter: no action type identified.");
+                throw new ParsingException("parser: no action type identified.");
             }
         }
 
@@ -153,7 +153,7 @@ namespace Microsoft.PSharp.Parsing
         {
             if (type != TokenType.Entry && type != TokenType.Exit)
             {
-                throw new RewritingException("rewriter: expected entry or exit on action type.");
+                throw new ParsingException("parser: expected entry or exit on action type.");
             }
 
             var replaceIdx = base.Index;
@@ -319,7 +319,7 @@ namespace Microsoft.PSharp.Parsing
             }
             else
             {
-                throw new RewritingException("rewriter: no action type identified.");
+                throw new ParsingException("parser: no action type identified.");
             }
 
             base.Index++;
@@ -363,7 +363,7 @@ namespace Microsoft.PSharp.Parsing
             }
             else
             {
-                throw new RewritingException("rewriter: identifier expected.");
+                throw new ParsingException("parser: identifier expected.");
             }
 
             base.Index =  startIdx;

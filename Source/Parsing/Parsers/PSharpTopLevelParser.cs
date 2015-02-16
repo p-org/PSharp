@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="TopLevelRewriter.cs">
+// <copyright file="PSharpTopLevelParser.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -15,14 +15,12 @@
 using System;
 using System.Collections.Generic;
 
-using Microsoft.PSharp.Tooling;
-
 namespace Microsoft.PSharp.Parsing
 {
     /// <summary>
-    /// The P# top level declaration rewriter.
+    /// The P# top level declaration parser.
     /// </summary>
-    internal class TopLevelRewriter : BaseRewriter
+    internal class PSharpTopLevelParser : BaseParser
     {
         #region public API
 
@@ -30,7 +28,7 @@ namespace Microsoft.PSharp.Parsing
         /// Constructor.
         /// </summary>
         /// <param name="tokens">List of tokens</param>
-        public TopLevelRewriter(List<Token> tokens)
+        public PSharpTopLevelParser(List<Token> tokens)
             : base(tokens)
         {
             
@@ -88,7 +86,7 @@ namespace Microsoft.PSharp.Parsing
 
             if (base.Tokens[base.Index].Type != TokenType.None)
             {
-                throw new RewritingException("rewriter: identifier expected.");
+                throw new ParsingException("parser: identifier expected.");
             }
 
             var identifier = base.Tokens[base.Index].String;
@@ -113,7 +111,7 @@ namespace Microsoft.PSharp.Parsing
             }
             else
             {
-                throw new RewritingException("rewriter: semicolon expected.");
+                throw new ParsingException("parser: semicolon expected.");
             }
 
             base.Index = replaceIdx;
@@ -148,7 +146,7 @@ namespace Microsoft.PSharp.Parsing
             }
             else
             {
-                throw new RewritingException("rewriter: machine identifier expected.");
+                throw new ParsingException("parser: machine identifier expected.");
             }
 
             base.Index++;
@@ -173,7 +171,7 @@ namespace Microsoft.PSharp.Parsing
             }
             else if (base.Tokens[base.Index].Type != TokenType.Doublecolon)
             {
-                throw new RewritingException("rewriter: doublecolon expected.");
+                throw new ParsingException("parser: doublecolon expected.");
             }
         }
 
@@ -192,7 +190,7 @@ namespace Microsoft.PSharp.Parsing
             }
             else
             {
-                throw new RewritingException("rewriter: state identifier expected.");
+                throw new ParsingException("parser: state identifier expected.");
             }
 
             base.Index++;
@@ -217,7 +215,7 @@ namespace Microsoft.PSharp.Parsing
             }
             else
             {
-                throw new RewritingException("rewriter: left curly bracket expected.");
+                throw new ParsingException("parser: left curly bracket expected.");
             }
         }
 
@@ -232,7 +230,7 @@ namespace Microsoft.PSharp.Parsing
             base.SkipWhiteSpaceTokens();
             if (base.Tokens[base.Index].Type != TokenType.None)
             {
-                throw new RewritingException("rewriter: identifier expected.");
+                throw new ParsingException("parser: identifier expected.");
             }
 
             base.Index++;
@@ -252,7 +250,7 @@ namespace Microsoft.PSharp.Parsing
             }
             else
             {
-                throw new RewritingException("rewriter: left curly bracket expected.");
+                throw new ParsingException("parser: left curly bracket expected.");
             }
         }
 
