@@ -73,6 +73,10 @@ namespace Microsoft.PSharp.Parsing
             {
                 this.RewriteRaiseStatement();
             }
+            else if (token.Type == TokenType.DeleteMachine)
+            {
+                this.RewriteDeleteStatement();
+            }
 
             base.Index++;
             this.ParseNextToken();
@@ -363,6 +367,27 @@ namespace Microsoft.PSharp.Parsing
             base.Index++;
 
             base.Tokens.Insert(base.Index, new Token(")", TokenType.RightParenthesis));
+            base.Index++;
+        }
+
+        /// <summary>
+        /// Rewrites the delete statement.
+        /// </summary>
+        private void RewriteDeleteStatement()
+        {
+            base.Tokens[base.Index] = new Token("this.", TokenType.This);
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token("Delete"));
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token("(", TokenType.LeftParenthesis));
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token(")", TokenType.RightParenthesis));
+            base.Index++;
+
+            base.SkipWhiteSpaceTokens();
             base.Index++;
         }
 

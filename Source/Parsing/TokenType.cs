@@ -74,6 +74,9 @@ namespace Microsoft.PSharp.Parsing
         DoLoop,
         IfCondition,
         ElseCondition,
+        Break,
+        Continue,
+        Return,
 
         SendEvent,
         RaiseEvent,

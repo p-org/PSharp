@@ -973,6 +973,21 @@ namespace Microsoft.PSharp.Parsing
                     this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.ElseCondition));
                     this.Index++;
                 }
+                else if (textUnits[this.Index].Text.Equals("break"))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Break));
+                    this.Index++;
+                }
+                else if (textUnits[this.Index].Text.Equals("continue"))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Continue));
+                    this.Index++;
+                }
+                else if (textUnits[this.Index].Text.Equals("return"))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Return));
+                    this.Index++;
+                }
                 else if (textUnits[this.Index].Text.Equals("this."))
                 {
                     this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.This));
@@ -986,6 +1001,10 @@ namespace Microsoft.PSharp.Parsing
                 else if (textUnits[this.Index].Text.Equals("raise"))
                 {
                     this.TokenizeRaiseStatement(textUnits);
+                }
+                else if (textUnits[this.Index].Text.Equals("delete"))
+                {
+                    this.TokenizeDeleteStatement(textUnits);
                 }
                 else
                 {
@@ -1013,6 +1032,25 @@ namespace Microsoft.PSharp.Parsing
             }
 
             this.Tokens.Add(new Token(textUnits[this.Index].Text));
+            this.Index++;
+
+            this.TokenizeWhiteSpaceOrComments(textUnits);
+            if (!textUnits[this.Index].Text.Equals(";"))
+            {
+                this.ReportParsingError("Expected \";\".");
+            }
+
+            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Semicolon));
+            this.Index++;
+        }
+
+        /// <summary>
+        /// Tokenizes a delete statement.
+        /// </summary>
+        /// <param name="textUnits">Text units</param>
+        private void TokenizeDeleteStatement(List<TextUnit> textUnits)
+        {
+            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.DeleteMachine));
             this.Index++;
 
             this.TokenizeWhiteSpaceOrComments(textUnits);
