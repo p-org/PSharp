@@ -452,6 +452,12 @@ namespace Microsoft.PSharp.Parsing
             base.Index++;
 
             base.Tokens.Insert(base.Index, new Token(")", TokenType.RightParenthesis));
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token(";", TokenType.Semicolon));
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token("return", TokenType.Return));
         }
 
         /// <summary>
