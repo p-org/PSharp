@@ -98,6 +98,7 @@ namespace Microsoft.PSharp.Parsing
         Continue,
         Return,
 
+        CreateMachine,
         SendEvent,
         RaiseEvent,
         DeleteMachine

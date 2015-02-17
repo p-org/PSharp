@@ -69,6 +69,10 @@ namespace Microsoft.PSharp.Parsing
             {
                 this.RewriteActionDeclaration();
             }
+            else if (token.Type == TokenType.CreateMachine)
+            {
+                this.RewriteCreateStatement();
+            }
             else if (token.Type == TokenType.RaiseEvent)
             {
                 this.RewriteRaiseStatement();
@@ -318,6 +322,100 @@ namespace Microsoft.PSharp.Parsing
             {
                 throw new ParsingException("parser: left curly bracket expected.");
             }
+        }
+
+        /// <summary>
+        /// Rewrites the create statement.
+        /// </summary>
+        private void RewriteCreateStatement()
+        {
+            base.Tokens[base.Index] = new Token("Machine");
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token(".", TokenType.Dot));
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token("Factory"));
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token(".", TokenType.Dot));
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token("CreateMachine"));
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token("<", TokenType.LessThanOperator));
+            base.Index++;
+
+            var startIdx = base.Index;
+            var machineId = "";
+            var payload = new List<List<Token>>();
+
+            base.SkipWhiteSpaceTokens();
+            machineId = base.Tokens[base.Index].String;
+            base.Index++;
+
+            while (base.Tokens[base.Index].Type != TokenType.LeftCurlyBracket)
+            {
+                base.Index++;
+            }
+
+            base.Index++;
+            base.SkipWhiteSpaceTokens();
+            while (base.Tokens[base.Index].Type != TokenType.RightCurlyBracket)
+            {
+                if (payload.Count == 0)
+                {
+                    payload.Add(new List<Token>());
+                }
+
+                if (base.Tokens[base.Index].Type == TokenType.Comma)
+                {
+                    payload.Add(new List<Token>());
+                }
+
+                payload[payload.Count - 1].Add(base.Tokens[base.Index]);
+                base.Index++;
+            }
+
+            while (base.Tokens[base.Index].Type != TokenType.Semicolon)
+            {
+                base.Index++;
+            }
+
+            base.Index--;
+            while (base.Index != startIdx)
+            {
+                base.Tokens.RemoveAt(base.Index);
+                base.Index--;
+            }
+
+            base.Tokens.Insert(base.Index, new Token(machineId, TokenType.EventIdentifier));
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token(">", TokenType.GreaterThanOperator));
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token("(", TokenType.LeftParenthesis));
+            base.Index++;
+
+            for (int idx = 0; idx < payload.Count; idx++)
+            {
+                foreach (var tok in payload[idx])
+                {
+                    base.Tokens.Insert(base.Index, tok);
+                    base.Index++;
+                }
+
+                if (idx < payload.Count - 1)
+                {
+                    base.Tokens.Insert(base.Index, new Token(",", TokenType.Comma));
+                    base.Index++;
+                }
+            }
+
+            base.Tokens[base.Index] = new Token(")", TokenType.RightParenthesis);
+            base.Index = startIdx - 1;
         }
 
         /// <summary>
