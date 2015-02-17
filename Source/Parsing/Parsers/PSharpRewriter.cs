@@ -61,7 +61,7 @@ namespace Microsoft.PSharp.Parsing
             {
                 this.RewriteStateDeclaration();
             }
-            else if (token.Type == TokenType.OnAction)
+            else if ((token.Type == TokenType.Entry) || (token.Type == TokenType.Exit))
             {
                 this.RewriteStateActionDeclaration();
             }
@@ -246,73 +246,40 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         private void RewriteStateActionDeclaration()
         {
-            var type = GetActionType();
-            if (type == ActionType.OnEntry || type == ActionType.OnExit)
-            {
-                base.Tokens[base.Index] = new Token("protected", TokenType.Private);
-                base.Index++;
-
-                base.SkipWhiteSpaceTokens();
-                this.RewriteOnActionDeclaration(base.Tokens[base.Index].Type);
-            }
-            else if (type == ActionType.None)
-            {
-                throw new ParsingException("parser: no action type identified.");
-            }
-        }
-
-        /// <summary>
-        /// Rewrites the on action declaration.
-        /// </summary>
-        /// <param name="type">TokenType</param>
-        private void RewriteOnActionDeclaration(TokenType type)
-        {
-            if (type != TokenType.Entry && type != TokenType.Exit)
-            {
-                throw new ParsingException("parser: expected entry or exit on action type.");
-            }
-
-            var replaceIdx = base.Index;
-
-            base.Tokens[replaceIdx] = new Token("override", TokenType.Override);
-            replaceIdx++;
-
-            base.Tokens.Insert(replaceIdx, new Token(" ", TokenType.WhiteSpace));
-            replaceIdx++;
-
-            base.Tokens.Insert(replaceIdx, new Token("void"));
-            replaceIdx++;
-
-            base.Tokens.Insert(replaceIdx, new Token(" ", TokenType.WhiteSpace));
-            replaceIdx++;
-
-            if (type == TokenType.Entry)
-            {
-                base.Tokens.Insert(replaceIdx, new Token("OnEntry"));
-                replaceIdx++;
-            }
-            else if (type == TokenType.Exit)
-            {
-                base.Tokens.Insert(replaceIdx, new Token("OnExit"));
-                replaceIdx++;
-            }
-
-            base.Tokens.Insert(replaceIdx, new Token("(", TokenType.LeftParenthesis));
-            replaceIdx++;
-
-            base.Tokens.Insert(replaceIdx, new Token(")", TokenType.RightParenthesis));
-            replaceIdx++;
-
-            base.Index = replaceIdx;
+            base.Tokens.Insert(base.Index, new Token("protected", TokenType.Protected));
             base.Index++;
 
-            while (base.Index < base.Tokens.Count &&
-                base.Tokens[base.Index].Type != TokenType.DoAction)
+            base.Tokens.Insert(base.Index, new Token(" ", TokenType.WhiteSpace));
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token("override", TokenType.Override));
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token(" ", TokenType.WhiteSpace));
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token("void"));
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token(" ", TokenType.WhiteSpace));
+            base.Index++;
+
+            if (base.Tokens[base.Index].Type == TokenType.Entry)
             {
-                base.Tokens.RemoveAt(base.Index);
+                base.Tokens[base.Index] = new Token("OnEntry");
+            }
+            else if (base.Tokens[base.Index].Type == TokenType.Exit)
+            {
+                base.Tokens[base.Index] = new Token("OnExit");
             }
 
-            base.Tokens.RemoveAt(base.Index);
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token("(", TokenType.LeftParenthesis));
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token(")", TokenType.RightParenthesis));
+            base.Index++;
         }
 
         /// <summary>
@@ -477,35 +444,6 @@ namespace Microsoft.PSharp.Parsing
             replaceIdx++;
 
             base.Index = replaceIdx;
-        }
-
-        #endregion
-
-        #region helper methods
-
-        /// <summary>
-        /// Returns the action type of the current state action declaration.
-        /// </summary>
-        /// <returns>ActionType</returns>
-        private ActionType GetActionType()
-        {
-            var startIdx = base.Index;
-
-            base.Index++;
-            base.SkipWhiteSpaceTokens();
-
-            if (base.Tokens[base.Index].Type == TokenType.Entry)
-            {
-                base.Index = startIdx;
-                return ActionType.OnEntry;
-            }
-            else if (base.Tokens[base.Index].Type == TokenType.Exit)
-            {
-                base.Index = startIdx;
-                return ActionType.OnExit;
-            }
-
-            throw new ParsingException("parser: no action type identified.");
         }
 
         #endregion

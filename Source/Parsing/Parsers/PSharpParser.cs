@@ -233,23 +233,13 @@ namespace Microsoft.PSharp.Parsing
             base.Index++;
             base.SkipWhiteSpaceTokens();
 
-            if (base.Tokens[base.Index].Type == TokenType.Entry)
-            {
-                base.Index = startIdx;
-                return ActionType.OnEntry;
-            }
-            else if (base.Tokens[base.Index].Type == TokenType.Exit)
-            {
-                base.Index = startIdx;
-                return ActionType.OnExit;
-            }
-            else if (base.Tokens[base.Index].Type == TokenType.ActionIdentifier)
+            if (base.Tokens[base.Index].Type == TokenType.EventIdentifier)
             {
                 eventId = base.Tokens[base.Index].String;
             }
             else
             {
-                throw new ParsingException("parser: no action type identified.");
+                throw new ParsingException("parser: event identifier expected.");
             }
 
             base.Index++;

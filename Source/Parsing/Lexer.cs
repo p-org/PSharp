@@ -653,6 +653,11 @@ namespace Microsoft.PSharp.Parsing
                         this.TryTokenizeMultiLineComment(textUnits);
                         break;
 
+                    case "entry":
+                    case "exit":
+                        this.TokenizeStateEntryOrExitDeclaration(textUnits);
+                        break;
+
                     case "on":
                         this.TokenizeStateActionDeclaration(textUnits);
                         break;
@@ -695,15 +700,11 @@ namespace Microsoft.PSharp.Parsing
         }
 
         /// <summary>
-        /// Tokenizes a state action declaration.
+        /// Tokenizes a state entry or exit declaration.
         /// </summary>
         /// <param name="textUnits">Text units</param>
-        private void TokenizeStateActionDeclaration(List<TextUnit> textUnits)
+        private void TokenizeStateEntryOrExitDeclaration(List<TextUnit> textUnits)
         {
-            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.OnAction));
-            this.Index++;
-
-            this.TokenizeWhiteSpaceOrComments(textUnits);
             if (textUnits[this.Index].Text.Equals("entry"))
             {
                 this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Entry));
@@ -714,14 +715,34 @@ namespace Microsoft.PSharp.Parsing
                 this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Exit));
                 this.Index++;
             }
-            else if (!Regex.IsMatch(textUnits[this.Index].Text, this.GetPattern()))
+
+            this.TokenizeWhiteSpaceOrComments(textUnits);
+            if (!textUnits[this.Index].Text.Equals("{"))
             {
-                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.ActionIdentifier));
+                this.ReportParsingError("Expected \"{\".");
+            }
+
+            this.TokenizeCodeRegion(textUnits);
+        }
+
+        /// <summary>
+        /// Tokenizes a state action declaration.
+        /// </summary>
+        /// <param name="textUnits">Text units</param>
+        private void TokenizeStateActionDeclaration(List<TextUnit> textUnits)
+        {
+            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.OnAction));
+            this.Index++;
+
+            this.TokenizeWhiteSpaceOrComments(textUnits);
+            if (!Regex.IsMatch(textUnits[this.Index].Text, this.GetPattern()))
+            {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.EventIdentifier));
                 this.Index++;
             }
             else
             {
-                this.ReportParsingError("Expected action identifier.");
+                this.ReportParsingError("Expected event identifier.");
             }
 
             this.TokenizeWhiteSpaceOrComments(textUnits);
@@ -731,28 +752,22 @@ namespace Microsoft.PSharp.Parsing
                 this.Index++;
 
                 this.TokenizeWhiteSpaceOrComments(textUnits);
-                if (textUnits[this.Index].Text.Equals("{"))
+                if (Regex.IsMatch(textUnits[this.Index].Text, this.GetPattern()))
                 {
-                    this.TokenizeCodeRegion(textUnits);
+                    this.ReportParsingError("Expected action identifier.");
                 }
-                else if (!Regex.IsMatch(textUnits[this.Index].Text, this.GetPattern()))
-                {
-                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.ActionIdentifier));
-                    this.Index++;
 
-                    this.TokenizeWhiteSpaceOrComments(textUnits);
-                    if (!textUnits[this.Index].Text.Equals(";"))
-                    {
-                        this.ReportParsingError("Expected \";\".");
-                    }
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.ActionIdentifier));
+                this.Index++;
 
-                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Semicolon));
-                    this.Index++;
-                }
-                else
+                this.TokenizeWhiteSpaceOrComments(textUnits);
+                if (!textUnits[this.Index].Text.Equals(";"))
                 {
-                    this.ReportParsingError("Expected \"{\" or identifier.");
+                    this.ReportParsingError("Expected \";\".");
                 }
+
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Semicolon));
+                this.Index++;
             }
             else if (textUnits[this.Index].Text.Equals("goto"))
             {
