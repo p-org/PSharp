@@ -137,33 +137,6 @@ namespace Microsoft.PSharp.Tooling
             //}
         }
 
-        /// <summary>
-        /// Recomputes and updates the program info.
-        /// </summary>
-        public static void Update()
-        {
-            if (!ProgramInfo.HasInitialized)
-            {
-                throw new PSharpGenericException("ProgramInfo has not been initialized.");
-            }
-
-            ProgramInfo.ProgramUnits.Clear();
-            if (Configuration.ProjectName.Equals(""))
-            {
-                foreach (var project in ProgramInfo.Solution.Projects)
-                {
-                    ProgramInfo.ProgramUnits.Add(ProgramUnit.Create(project));
-                }
-            }
-            else
-            {
-                // Find the project specified by the user.
-                var project = ProgramInfo.Solution.Projects.Where(
-                    p => p.Name.Equals(Configuration.ProjectName)).FirstOrDefault();
-                ProgramInfo.ProgramUnits.Add(ProgramUnit.Create(project));
-            }
-        }
-
         #endregion
     }
 }

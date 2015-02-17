@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.PSharp;
 
-namespace ParsingTest
+namespace PingPong
 {
     [Main]
     internal machine Server

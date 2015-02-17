@@ -51,16 +51,13 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         public static void Run()
         {
-            foreach (var programUnit in ProgramInfo.ProgramUnits.ToList())
+            foreach (var programUnit in ProgramInfo.ProgramUnits)
             {
-                var project = programUnit.Project;
+                var project = programUnit.GetProject();
 
                 // Performs rewriting.
                 ParsingEngine.RewriteSyntaxTrees(project);
             }
-
-            // Updates the program info.
-            ProgramInfo.Update();
         }
 
         #endregion

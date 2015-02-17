@@ -329,6 +329,10 @@ namespace Microsoft.PSharp.Parsing
             {
                 this.TokenizeClassDeclaration(textUnits);
             }
+            else if (textUnits[this.Index].Text.Equals("struct"))
+            {
+                this.TokenizeStructDeclaration(textUnits);
+            }
         }
 
         /// <summary>
@@ -362,6 +366,10 @@ namespace Microsoft.PSharp.Parsing
             else if (textUnits[this.Index].Text.Equals("class"))
             {
                 this.TokenizeClassDeclaration(textUnits);
+            }
+            else if (textUnits[this.Index].Text.Equals("struct"))
+            {
+                this.TokenizeStructDeclaration(textUnits);
             }
         }
 
@@ -552,6 +560,10 @@ namespace Microsoft.PSharp.Parsing
             else if (textUnits[this.Index].Text.Equals("class"))
             {
                 this.ReportParsingError("Classes cannot be declared inside a machine.");
+            }
+            else if (textUnits[this.Index].Text.Equals("struct"))
+            {
+                this.ReportParsingError("Structs cannot be declared inside a machine.");
             }
             else if (textUnits[this.Index].Text.Equals("override"))
             {
@@ -858,6 +870,26 @@ namespace Microsoft.PSharp.Parsing
         }
 
         /// <summary>
+        /// Tokenizes a struct declaration.
+        /// </summary>
+        /// <param name="textUnits">Text units</param>
+        private void TokenizeStructDeclaration(List<TextUnit> textUnits)
+        {
+            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.StructDecl));
+            this.Index++;
+
+            this.TokenizeWhiteSpaceOrComments(textUnits);
+            while (this.Index < textUnits.Count && !textUnits[this.Index].Text.Equals("{"))
+            {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text));
+                this.Index++;
+                this.TokenizeWhiteSpaceOrComments(textUnits);
+            }
+
+            this.TokenizeGenericCodeRegion(textUnits);
+        }
+
+        /// <summary>
         /// Tokenizes a method declaration.
         /// </summary>
         /// <param name="textUnits">Text units</param>
@@ -918,6 +950,39 @@ namespace Microsoft.PSharp.Parsing
                 }
 
                 this.TokenizeNextTextUnit(textUnits);
+            }
+        }
+
+        /// <summary>
+        /// Tokenizes a new statement.
+        /// </summary>
+        /// <param name="textUnits">Text units</param>
+        private void TokenizeNewStatement(List<TextUnit> textUnits)
+        {
+            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.New));
+            this.Index++;
+
+            this.TokenizeWhiteSpaceOrComments(textUnits);
+            while (this.Index < textUnits.Count && !textUnits[this.Index].Text.Equals("("))
+            {
+                if (!Regex.IsMatch(textUnits[this.Index].Text, this.GetPattern()))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.TypeIdentifier));
+                    this.Index++;
+                }
+                else if (textUnits[this.Index].Text.Equals("."))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Dot));
+                    this.Index++;
+                }
+                else if (textUnits[this.Index].Text.Equals("<"))
+                {
+                    this.TokenizeLessThanOperator(textUnits);
+                }
+                else
+                {
+                    this.ReportParsingError("Expected type identifier.");
+                }
             }
         }
 
@@ -1148,8 +1213,7 @@ namespace Microsoft.PSharp.Parsing
             }
             else if (textUnits[this.Index].Text.Equals("new"))
             {
-                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.New));
-                this.Index++;
+                this.TokenizeNewStatement(textUnits);
             }
             else if (textUnits[this.Index].Text.Equals("as"))
             {
@@ -1274,61 +1338,75 @@ namespace Microsoft.PSharp.Parsing
                 if (textUnits[this.Index].Text.Equals(","))
                 {
                     this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Comma));
+                    this.Index++;
                 }
                 else if (textUnits[this.Index].Text.Equals("."))
                 {
                     this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Dot));
+                    this.Index++;
                 }
                 else if (textUnits[this.Index].Text.Equals("!"))
                 {
                     this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.NotOperator));
+                    this.Index++;
                 }
                 else if (textUnits[this.Index].Text.Equals("+"))
                 {
                     this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.PlusOperator));
+                    this.Index++;
                 }
                 else if (textUnits[this.Index].Text.Equals("-"))
                 {
                     this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.MinusOperator));
+                    this.Index++;
                 }
                 else if (textUnits[this.Index].Text.Equals("*"))
                 {
                     this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.MultiplyOperator));
+                    this.Index++;
                 }
                 else if (textUnits[this.Index].Text.Equals("/"))
                 {
                     this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.DivideOperator));
+                    this.Index++;
                 }
                 else if (textUnits[this.Index].Text.Equals("%"))
                 {
                     this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.ModOperator));
+                    this.Index++;
                 }
                 else if (textUnits[this.Index].Text.Equals("new"))
                 {
-                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.New));
+                    this.TokenizeNewStatement(textUnits);
                 }
                 else if (textUnits[this.Index].Text.Equals("this"))
                 {
                     this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.This));
+                    this.Index++;
                 }
                 else if (textUnits[this.Index].Text.Equals("base"))
                 {
                     this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Base));
+                    this.Index++;
                 }
                 else if (textUnits[this.Index].Text.Equals("payload"))
                 {
                     this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Payload));
+                    this.Index++;
                 }
                 else if (!Regex.IsMatch(textUnits[this.Index].Text, this.GetPattern()))
                 {
                     this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Identifier));
+                    this.Index++;
                 }
                 else if (!String.IsNullOrWhiteSpace(textUnits[this.Index].Text))
                 {
                     this.ReportParsingError("Unexpected \"" + textUnits[this.Index].Text + "\".");
                 }
-
-                this.Index++;
+                else
+                {
+                    this.Index++;
+                }
             }
 
             this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.RightCurlyBracket));
@@ -1528,7 +1606,7 @@ namespace Microsoft.PSharp.Parsing
         {
             var pattern = @"(//|/\*|\*/|;|{|}|:|,|\.|\(|\)|\[|\]|#|\s+|" +
                 @"&|\||!|=|<|>|\+|-|\*|/|%|" +
-                @"\busing\b|\bnamespace\b|\bclass\b|" +
+                @"\busing\b|\bnamespace\b|\bclass\b|\bstruct\b|" +
                 @"\bmachine\b|\bstate\b|\bevent\b|" +
                 @"\bon\b|\bdo\b|\bgoto\b|\bto\b|\bentry\b|\bexit\b|" +
                 @"\bcreate\b|\braise\b|\bsend\b|" +

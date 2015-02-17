@@ -2,17 +2,8 @@
 using System.Collections.Generic;
 using Microsoft.PSharp;
 
-namespace ParsingTest
+namespace PingPong
 {
-    #region Events
-
-    internal event Ping;
-    internal event Pong;
-    internal event Stop;
-    internal event Unit;
-
-    #endregion
-
     public class Test
     {
         static void Main(string[] args)

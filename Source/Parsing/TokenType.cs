@@ -28,6 +28,7 @@ namespace Microsoft.PSharp.Parsing
         MachineIdentifier,
         StateIdentifier,
         ActionIdentifier,
+        TypeIdentifier,
         Identifier,
 
         LeftCurlyBracket,
@@ -70,6 +71,7 @@ namespace Microsoft.PSharp.Parsing
 
         NamespaceDecl,
         ClassDecl,
+        StructDecl,
         Using,
 
         MachineDecl,

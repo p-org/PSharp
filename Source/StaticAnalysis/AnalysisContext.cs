@@ -72,7 +72,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="programUnit">ProgramUnit</param>
         public static void Create(ProgramUnit programUnit)
         {
-            var project = programUnit.Project;
+            var project = programUnit.GetProject();
 
             AnalysisContext.Compilation = project.GetCompilationAsync().Result;
 

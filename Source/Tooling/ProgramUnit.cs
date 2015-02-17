@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -31,17 +32,7 @@ namespace Microsoft.PSharp.Tooling
         /// <summary>
         /// The P# project contains in this unit.
         /// </summary>
-        public readonly Project Project;
-
-        /// <summary>
-        /// The solution of the P# project of this unit..
-        /// </summary>
-        public readonly Solution Solution;
-
-        /// <summary>
-        /// The workspace of the P# project of this unit.
-        /// </summary>
-        public readonly Workspace Workspace;
+        private Project Project;
 
         #endregion
 
@@ -55,6 +46,17 @@ namespace Microsoft.PSharp.Tooling
         public static ProgramUnit Create(Project project)
         {
             return new ProgramUnit(project);
+        }
+
+        /// <summary>
+        /// Returns the project.
+        /// </summary>
+        /// <returns>Project</returns>
+        public Project GetProject()
+        {
+            this.Project = ProgramInfo.Solution.Projects.FirstOrDefault(
+                val => val.Name.Equals(Project.Name));
+            return this.Project;
         }
 
         /// <summary>
@@ -72,7 +74,7 @@ namespace Microsoft.PSharp.Tooling
 
         #endregion
 
-        #region public API
+        #region private API
 
         /// <summary>
         /// Constructor.
@@ -82,8 +84,6 @@ namespace Microsoft.PSharp.Tooling
         {
             this.Name = project.Name;
             this.Project = project;
-            this.Solution = project.Solution;
-            this.Workspace = project.Solution.Workspace;
         }
 
         #endregion

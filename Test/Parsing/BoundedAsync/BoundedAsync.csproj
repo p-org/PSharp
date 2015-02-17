@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{E85AB36C-8600-4EDF-9237-83CBC5568752}</ProjectGuid>
+    <ProjectGuid>{3FC3A452-7AD6-4EB8-A2CD-45EEAD027393}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ParsingTest</RootNamespace>
-    <AssemblyName>ParsingTest</AssemblyName>
+    <RootNamespace>BoundedAsync</RootNamespace>
+    <AssemblyName>BoundedAsync</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -34,13 +34,14 @@
   <ItemGroup>
     <Reference Include="Microsoft.PSharp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=c4566cf0a7f74012, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\Binaries\Release\Microsoft.PSharp.dll</HintPath>
+      <HintPath>..\..\Include\Microsoft.PSharp.dll</HintPath>
     </Reference>
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Client.cs" />
-    <Compile Include="Server.cs" />
+    <Compile Include="Process.cs" />
+    <Compile Include="Events.cs" />
+    <Compile Include="Scheduler.cs" />
     <Compile Include="Test.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
