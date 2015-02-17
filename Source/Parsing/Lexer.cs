@@ -1206,6 +1206,11 @@ namespace Microsoft.PSharp.Parsing
                 this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Base));
                 this.Index++;
             }
+            else if (textUnits[this.Index].Text.Equals("payload"))
+            {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Payload));
+                this.Index++;
+            }
             else if (textUnits[this.Index].Text.Equals("create"))
             {
                 this.TokenizeCreateStatement(textUnits);
@@ -1309,6 +1314,10 @@ namespace Microsoft.PSharp.Parsing
                 else if (textUnits[this.Index].Text.Equals("base"))
                 {
                     this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Base));
+                }
+                else if (textUnits[this.Index].Text.Equals("payload"))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Payload));
                 }
                 else if (!Regex.IsMatch(textUnits[this.Index].Text, this.GetPattern()))
                 {

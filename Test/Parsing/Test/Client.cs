@@ -14,7 +14,7 @@ namespace ParsingTest
         {
             entry
             {
-                this.Server = (Machine)this.Payload;
+                this.Server = (Machine)payload;
                 this.Counter = 0;
                 raise Unit;
             }
