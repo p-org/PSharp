@@ -1039,12 +1039,12 @@ namespace Microsoft.PSharp.Parsing
                     this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Return));
                     this.Index++;
                 }
-                else if (textUnits[this.Index].Text.Equals("this."))
+                else if (textUnits[this.Index].Text.Equals("this"))
                 {
                     this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.This));
                     this.Index++;
                 }
-                else if (textUnits[this.Index].Text.Equals("base."))
+                else if (textUnits[this.Index].Text.Equals("base"))
                 {
                     this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Base));
                     this.Index++;
@@ -1330,7 +1330,6 @@ namespace Microsoft.PSharp.Parsing
         {
             var pattern = @"(//|/\*|\*/|;|{|}|:|,|\.|\(|\)|\[|\]|#|\s+|" +
                 @"&|\||!|=|<|>|\+|-|\*|/|%|" +
-                @"this.|base.|this->|base->|" +
                 @"\busing\b|\bnamespace\b|\bclass\b|" +
                 @"\bmachine\b|\bstate\b|\bevent\b|" +
                 @"\bon\b|\bdo\b|\bgoto\b|\bentry\b|\bexit\b|" +

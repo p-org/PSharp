@@ -77,6 +77,10 @@ namespace Microsoft.PSharp.Parsing
             {
                 this.RewriteDeleteStatement();
             }
+            else if (token.Type == TokenType.This)
+            {
+                this.RewriteThis();
+            }
             else if (token.Type == TokenType.Identifier)
             {
                 this.RewriteIdentifier();
@@ -187,7 +191,6 @@ namespace Microsoft.PSharp.Parsing
                 this.Tokens.Insert(replaceIdx, new Token("Machine"));
 
                 base.Index = replaceIdx;
-                base.Index++;
             }
             else if (base.Tokens[base.Index].Type != TokenType.Doublecolon)
             {
@@ -231,7 +234,6 @@ namespace Microsoft.PSharp.Parsing
                 this.Tokens.Insert(replaceIdx, new Token("State"));
 
                 base.Index = replaceIdx;
-                base.Index++;
             }
             else
             {
@@ -340,7 +342,6 @@ namespace Microsoft.PSharp.Parsing
                 replaceIdx++;
 
                 base.Index = replaceIdx;
-                base.Index++;
             }
             else
             {
@@ -353,7 +354,10 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         private void RewriteRaiseStatement()
         {
-            base.Tokens[base.Index] = new Token("this.", TokenType.This);
+            base.Tokens[base.Index] = new Token("this", TokenType.This);
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token(".", TokenType.Dot));
             base.Index++;
 
             base.Tokens.Insert(base.Index, new Token("Raise"));
@@ -375,7 +379,6 @@ namespace Microsoft.PSharp.Parsing
             base.Index++;
 
             base.Tokens.Insert(base.Index, new Token(")", TokenType.RightParenthesis));
-            base.Index++;
         }
 
         /// <summary>
@@ -383,7 +386,10 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         private void RewriteDeleteStatement()
         {
-            base.Tokens[base.Index] = new Token("this.", TokenType.This);
+            base.Tokens[base.Index] = new Token("this", TokenType.This);
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token(".", TokenType.Dot));
             base.Index++;
 
             base.Tokens.Insert(base.Index, new Token("Delete"));
@@ -396,7 +402,35 @@ namespace Microsoft.PSharp.Parsing
             base.Index++;
 
             base.SkipWhiteSpaceTokens();
+        }
+
+        /// <summary>
+        /// Rewrites the this.
+        /// </summary>
+        private void RewriteThis()
+        {
+            if (base.CurrentState.Equals(""))
+            {
+                return;
+            }
+
+            var replaceIdx = base.Index;
             base.Index++;
+
+            base.SkipWhiteSpaceTokens();
+            if (base.Tokens[base.Index].Type == TokenType.Dot)
+            {
+                base.Tokens.RemoveAt(base.Index);
+                base.Tokens.RemoveAt(replaceIdx);
+                base.Index = replaceIdx - 1;
+            }
+            else
+            {
+                base.Tokens.Insert(base.Index, new Token(".", TokenType.Dot));
+                base.Index++;
+
+                base.Tokens.Insert(base.Index, new Token("Machine", TokenType.Identifier));
+            }
         }
 
         /// <summary>
@@ -412,18 +446,13 @@ namespace Microsoft.PSharp.Parsing
             }
 
             var replaceIdx = base.Index;
-            var prev = base.GetPreviousToken();
-            if (prev != null && (prev.Item1.Type == TokenType.This || prev.Item1.Type == TokenType.Base))
-            {
-                base.Tokens.RemoveAt(prev.Item2);
-                base.Index--;
-                replaceIdx--;
-            }
-
             base.Tokens.Insert(replaceIdx, new Token("(", TokenType.LeftParenthesis));
             replaceIdx++;
 
-            base.Tokens.Insert(replaceIdx, new Token("this.", TokenType.This));
+            base.Tokens.Insert(replaceIdx, new Token("this", TokenType.This));
+            replaceIdx++;
+
+            base.Tokens.Insert(replaceIdx, new Token(".", TokenType.Dot));
             replaceIdx++;
 
             base.Tokens.Insert(replaceIdx, new Token("Machine", TokenType.Identifier));
@@ -448,7 +477,6 @@ namespace Microsoft.PSharp.Parsing
             replaceIdx++;
 
             base.Index = replaceIdx;
-            base.Index++;
         }
 
         #endregion
