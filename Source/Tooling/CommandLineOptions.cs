@@ -73,9 +73,17 @@ namespace Microsoft.PSharp.Tooling
                 {
                     Configuration.ProjectName = this.Options[idx].Substring(9);
                 }
-                else if (this.Options[idx].ToLower().Equals("/skipparsing"))
+                else if (this.Options[idx].ToLower().Equals("/noparsing"))
                 {
-                    Configuration.SkipParsing = true;
+                    Configuration.NoParsing = true;
+                }
+                else if (this.Options[idx].ToLower().Equals("/noanalysis"))
+                {
+                    Configuration.NoStaticAnalysis = true;
+                }
+                else if (this.Options[idx].ToLower().Equals("/nocompile"))
+                {
+                    Configuration.NoCompilation = true;
                 }
                 else if (this.Options[idx].ToLower().Equals("/showwarnings"))
                 {
@@ -109,6 +117,11 @@ namespace Microsoft.PSharp.Tooling
                 else if (this.Options[idx].ToLower().Equals("/analyseexceptions"))
                 {
                     Configuration.AnalyseExceptionHandling = true;
+                }
+                else
+                {
+                    ErrorReporter.ReportErrorAndExit("cannot recognise command line option '" +
+                        this.Options[idx] + "'.");
                 }
             }
 

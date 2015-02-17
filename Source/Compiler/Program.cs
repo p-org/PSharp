@@ -24,8 +24,8 @@ namespace Microsoft.PSharp
     {
         static void Main(string[] args)
         {
-            //AppDomain currentDomain = AppDomain.CurrentDomain;
-            //currentDomain.UnhandledException += new UnhandledExceptionEventHandler(UnhandledExceptionHandler);
+            AppDomain currentDomain = AppDomain.CurrentDomain;
+            currentDomain.UnhandledException += new UnhandledExceptionEventHandler(UnhandledExceptionHandler);
 
             // Parses the command line options.
             new CommandLineOptions(args).Parse();
@@ -53,7 +53,7 @@ namespace Microsoft.PSharp
         static void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs args)
         {
             var ex = (Exception)args.ExceptionObject;
-            ErrorReporter.ReportErrorAndExit("tool failed, please contact the developers.");
+            ErrorReporter.ReportErrorAndExit("tool failed.");
         }
     }
 }

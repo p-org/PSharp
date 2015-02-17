@@ -14,6 +14,7 @@
 
 using System;
 using Microsoft.PSharp.Compilation;
+using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp
 {
@@ -27,6 +28,11 @@ namespace Microsoft.PSharp
         /// </summary>
         public static void Run()
         {
+            if (Configuration.NoCompilation)
+            {
+                return;
+            }
+
             Console.WriteLine(". Compiling");
 
             // Runs the P# compilation engine.

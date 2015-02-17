@@ -34,7 +34,17 @@ namespace Microsoft.PSharp.Tooling
         /// <summary>
         /// Skip the parsing stage of the compiler.
         /// </summary>
-        public static bool SkipParsing = false;
+        public static bool NoParsing = false;
+
+        /// <summary>
+        /// Skip the static analysis stage of the compiler.
+        /// </summary>
+        public static bool NoStaticAnalysis = false;
+
+        /// <summary>
+        /// Skip the compilation stage of the compiler.
+        /// </summary>
+        public static bool NoCompilation = false;
 
         /// <summary>
         /// Report warnings if true.

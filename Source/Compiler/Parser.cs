@@ -28,7 +28,7 @@ namespace Microsoft.PSharp
         /// </summary>
         public static void Run()
         {
-            if (Configuration.SkipParsing)
+            if (Configuration.NoParsing)
             {
                 return;
             }
