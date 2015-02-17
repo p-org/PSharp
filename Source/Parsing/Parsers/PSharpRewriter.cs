@@ -77,6 +77,14 @@ namespace Microsoft.PSharp.Parsing
             {
                 this.RewriteDeleteStatement();
             }
+            else if (token.Type == TokenType.Identifier)
+            {
+                this.RewriteIdentifier();
+            }
+            else if (token.Type == TokenType.StateRightCurlyBracket)
+            {
+                base.CurrentState = "";
+            }
 
             base.Index++;
             this.ParseNextToken();
@@ -96,9 +104,9 @@ namespace Microsoft.PSharp.Parsing
 
             base.SkipWhiteSpaceTokens();
 
-            if (base.Tokens[base.Index].Type != TokenType.None)
+            if (base.Tokens[base.Index].Type != TokenType.EventIdentifier)
             {
-                throw new ParsingException("parser: identifier expected.");
+                throw new ParsingException("parser: event identifier expected.");
             }
 
             var identifier = base.Tokens[base.Index].String;
@@ -152,7 +160,7 @@ namespace Microsoft.PSharp.Parsing
             base.Index++;
 
             base.SkipWhiteSpaceTokens();
-            if (base.Tokens[base.Index].Type == TokenType.None)
+            if (base.Tokens[base.Index].Type == TokenType.MachineIdentifier)
             {
                 base.CurrentMachine = base.Tokens[base.Index].String;
             }
@@ -196,7 +204,7 @@ namespace Microsoft.PSharp.Parsing
             base.Index++;
 
             base.SkipWhiteSpaceTokens();
-            if (base.Tokens[base.Index].Type == TokenType.None)
+            if (base.Tokens[base.Index].Type == TokenType.StateIdentifier)
             {
                 base.CurrentState = base.Tokens[base.Index].String;
             }
@@ -209,7 +217,7 @@ namespace Microsoft.PSharp.Parsing
             var replaceIdx = base.Index;
 
             base.SkipWhiteSpaceTokens();
-            if (base.Tokens[base.Index].Type == TokenType.LeftCurlyBracket)
+            if (base.Tokens[base.Index].Type == TokenType.StateLeftCurlyBracket)
             {
                 base.Tokens.Insert(replaceIdx, new Token(" ", TokenType.WhiteSpace));
                 replaceIdx++;
@@ -314,9 +322,9 @@ namespace Microsoft.PSharp.Parsing
             base.Index++;
 
             base.SkipWhiteSpaceTokens();
-            if (base.Tokens[base.Index].Type != TokenType.None)
+            if (base.Tokens[base.Index].Type != TokenType.ActionIdentifier)
             {
-                throw new ParsingException("parser: identifier expected.");
+                throw new ParsingException("parser: action identifier expected.");
             }
 
             base.Index++;
@@ -388,6 +396,58 @@ namespace Microsoft.PSharp.Parsing
             base.Index++;
 
             base.SkipWhiteSpaceTokens();
+            base.Index++;
+        }
+
+        /// <summary>
+        /// Rewrites the identifier.
+        /// </summary>
+        private void RewriteIdentifier()
+        {
+            if (base.CurrentState.Equals("") ||
+                !ParsingEngine.MachineFieldsAndMethods.ContainsKey(base.CurrentMachine) ||
+                !ParsingEngine.MachineFieldsAndMethods[base.CurrentMachine].Contains(base.Tokens[base.Index].String))
+            {
+                return;
+            }
+
+            var replaceIdx = base.Index;
+            var prev = base.GetPreviousToken();
+            if (prev != null && (prev.Item1.Type == TokenType.This || prev.Item1.Type == TokenType.Base))
+            {
+                base.Tokens.RemoveAt(prev.Item2);
+                base.Index--;
+                replaceIdx--;
+            }
+
+            base.Tokens.Insert(replaceIdx, new Token("(", TokenType.LeftParenthesis));
+            replaceIdx++;
+
+            base.Tokens.Insert(replaceIdx, new Token("this.", TokenType.This));
+            replaceIdx++;
+
+            base.Tokens.Insert(replaceIdx, new Token("Machine", TokenType.Identifier));
+            replaceIdx++;
+
+            base.Tokens.Insert(replaceIdx, new Token(" ", TokenType.WhiteSpace));
+            replaceIdx++;
+
+            base.Tokens.Insert(replaceIdx, new Token("as", TokenType.As));
+            replaceIdx++;
+
+            base.Tokens.Insert(replaceIdx, new Token(" ", TokenType.WhiteSpace));
+            replaceIdx++;
+
+            base.Tokens.Insert(replaceIdx, new Token(base.CurrentMachine, TokenType.Identifier));
+            replaceIdx++;
+
+            base.Tokens.Insert(replaceIdx, new Token(")", TokenType.RightParenthesis));
+            replaceIdx++;
+
+            base.Tokens.Insert(replaceIdx, new Token(".", TokenType.Dot));
+            replaceIdx++;
+
+            base.Index = replaceIdx;
             base.Index++;
         }
 

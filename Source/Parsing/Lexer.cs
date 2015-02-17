@@ -48,6 +48,11 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         protected int Index;
 
+        /// <summary>
+        /// The name of the currently parsed machine.
+        /// </summary>
+        protected string CurrentMachine;
+
         #endregion
 
         #region public API
@@ -62,6 +67,7 @@ namespace Microsoft.PSharp.Parsing
             this.Lines = new List<string>();
             this.LineIndex = 1;
             this.Index = 0;
+            this.CurrentMachine = "";
 
             var textUnits = new List<TextUnit>();
             using (StringReader sr = new StringReader(text))
@@ -371,10 +377,10 @@ namespace Microsoft.PSharp.Parsing
             this.TokenizeWhiteSpaceOrComments(textUnits);
             if (Regex.IsMatch(textUnits[this.Index].Text, this.GetPattern()))
             {
-                this.ReportParsingError("Expected identifier.");
+                this.ReportParsingError("Expected event identifier.");
             }
 
-            this.Tokens.Add(new Token(textUnits[this.Index].Text));
+            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.EventIdentifier));
             this.Index++;
 
             this.TokenizeWhiteSpaceOrComments(textUnits);
@@ -401,10 +407,12 @@ namespace Microsoft.PSharp.Parsing
             this.TokenizeWhiteSpaceOrComments(textUnits);
             if (Regex.IsMatch(textUnits[this.Index].Text, this.GetPattern()))
             {
-                this.ReportParsingError("Expected identifier.");
+                this.ReportParsingError("Expected machine identifier.");
             }
 
-            this.Tokens.Add(new Token(textUnits[this.Index].Text));
+            this.CurrentMachine = textUnits[this.Index].Text;
+
+            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.MachineIdentifier));
             this.Index++;
 
             this.TokenizeWhiteSpaceOrComments(textUnits);
@@ -557,13 +565,21 @@ namespace Microsoft.PSharp.Parsing
                 this.TokenizeWhiteSpaceOrComments(textUnits);
                 if (textUnits[this.Index].Text.Equals("<"))
                 {
-                    this.TokenizeGenericList(textUnits);
+                    this.TokenizeLessThanOperator(textUnits);
                 }
 
                 if (Regex.IsMatch(textUnits[this.Index].Text, this.GetPattern()))
                 {
                     this.ReportParsingError("Expected identifier.");
                 }
+
+                if (!ParsingEngine.MachineFieldsAndMethods.ContainsKey(this.CurrentMachine))
+                {
+                    ParsingEngine.MachineFieldsAndMethods.Add(this.CurrentMachine,
+                        new HashSet<string>());
+                }
+
+                ParsingEngine.MachineFieldsAndMethods[this.CurrentMachine].Add(textUnits[this.Index].Text);
 
                 while (this.Index < textUnits.Count &&
                     !textUnits[this.Index].Text.Equals(";") &&
@@ -604,16 +620,16 @@ namespace Microsoft.PSharp.Parsing
             this.TokenizeWhiteSpaceOrComments(textUnits);
             if (Regex.IsMatch(textUnits[this.Index].Text, this.GetPattern()))
             {
-                this.ReportParsingError("Expected identifier.");
+                this.ReportParsingError("Expected state identifier.");
             }
 
-            this.Tokens.Add(new Token(textUnits[this.Index].Text));
+            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.StateIdentifier));
             this.Index++;
 
             this.TokenizeWhiteSpaceOrComments(textUnits);
             if (textUnits[this.Index].Text.Equals("{"))
             {
-                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.LeftCurlyBracket));
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.StateLeftCurlyBracket));
                 this.Index++;
             }
             else
@@ -657,7 +673,7 @@ namespace Microsoft.PSharp.Parsing
                         break;
 
                     case "}":
-                        this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.RightCurlyBracket));
+                        this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.StateRightCurlyBracket));
                         end = true;
                         this.Index++;
                         this.TokenizeWhiteSpaceOrComments(textUnits);
@@ -700,12 +716,12 @@ namespace Microsoft.PSharp.Parsing
             }
             else if (!Regex.IsMatch(textUnits[this.Index].Text, this.GetPattern()))
             {
-                this.Tokens.Add(new Token(textUnits[this.Index].Text));
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.ActionIdentifier));
                 this.Index++;
             }
             else
             {
-                this.ReportParsingError("Expected identifier.");
+                this.ReportParsingError("Expected action identifier.");
             }
 
             this.TokenizeWhiteSpaceOrComments(textUnits);
@@ -721,7 +737,7 @@ namespace Microsoft.PSharp.Parsing
                 }
                 else if (!Regex.IsMatch(textUnits[this.Index].Text, this.GetPattern()))
                 {
-                    this.Tokens.Add(new Token(textUnits[this.Index].Text));
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.ActionIdentifier));
                     this.Index++;
 
                     this.TokenizeWhiteSpaceOrComments(textUnits);
@@ -746,10 +762,10 @@ namespace Microsoft.PSharp.Parsing
                 this.TokenizeWhiteSpaceOrComments(textUnits);
                 if (Regex.IsMatch(textUnits[this.Index].Text, this.GetPattern()))
                 {
-                    this.ReportParsingError("Expected identifier.");
+                    this.ReportParsingError("Expected state identifier.");
                 }
 
-                this.Tokens.Add(new Token(textUnits[this.Index].Text));
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.StateIdentifier));
                 this.Index++;
 
                 this.TokenizeWhiteSpaceOrComments(textUnits);
@@ -781,10 +797,18 @@ namespace Microsoft.PSharp.Parsing
             this.TokenizeWhiteSpaceOrComments(textUnits);
             if (Regex.IsMatch(textUnits[this.Index].Text, this.GetPattern()))
             {
-                this.ReportParsingError("Expected identifier.");
+                this.ReportParsingError("Expected action identifier.");
             }
 
-            this.Tokens.Add(new Token(textUnits[this.Index].Text));
+            if (!ParsingEngine.MachineFieldsAndMethods.ContainsKey(this.CurrentMachine))
+            {
+                ParsingEngine.MachineFieldsAndMethods.Add(this.CurrentMachine,
+                    new HashSet<string>());
+            }
+
+            ParsingEngine.MachineFieldsAndMethods[this.CurrentMachine].Add(textUnits[this.Index].Text);
+
+            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.ActionIdentifier));
             this.Index++;
 
             this.TokenizeWhiteSpaceOrComments(textUnits);
@@ -856,53 +880,6 @@ namespace Microsoft.PSharp.Parsing
         }
 
         /// <summary>
-        /// Tokenizes an attribute list.
-        /// </summary>
-        /// <param name="textUnits">Text units</param>
-        private void TokenizeAttributeList(List<TextUnit> textUnits)
-        {
-            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.LeftSquareBracket));
-            this.Index++;
-
-            this.TokenizeWhiteSpaceOrComments(textUnits);
-            while (this.Index < textUnits.Count && !textUnits[this.Index].Text.Equals("]"))
-            {
-                this.Tokens.Add(new Token(textUnits[this.Index].Text));
-                this.Index++;
-                this.TokenizeWhiteSpaceOrComments(textUnits);
-            }
-
-            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.RightSquareBracket));
-            this.Index++;
-
-            this.TokenizeWhiteSpaceOrComments(textUnits);
-        }
-
-        /// <summary>
-        /// Tokenizes a generic list.
-        /// </summary>
-        /// <param name="textUnits">Text units</param>
-        private void TokenizeGenericList(List<TextUnit> textUnits)
-        {
-            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.LessThanOperator));
-            this.Index++;
-
-            this.TokenizeWhiteSpaceOrComments(textUnits);
-            while (this.Index < textUnits.Count && !textUnits[this.Index].Text.Equals(">"))
-            {
-                this.Tokens.Add(new Token(textUnits[this.Index].Text));
-                this.Index++;
-
-                this.TokenizeWhiteSpaceOrComments(textUnits);
-            }
-
-            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.GreaterThanOperator));
-            this.Index++;
-
-            this.TokenizeWhiteSpaceOrComments(textUnits);
-        }
-
-        /// <summary>
         /// Tokenizes a code region surrounded by curly brackets.
         /// </summary>
         /// <param name="textUnits">Text units</param>
@@ -943,9 +920,83 @@ namespace Microsoft.PSharp.Parsing
                     this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Comma));
                     this.Index++;
                 }
+                else if (textUnits[this.Index].Text.Equals(";"))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Semicolon));
+                    this.Index++;
+                }
+                else if (textUnits[this.Index].Text.Equals(":"))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Doublecolon));
+                    this.Index++;
+                }
+                else if (textUnits[this.Index].Text.Equals("."))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Dot));
+                    this.Index++;
+                }
+                else if (textUnits[this.Index].Text.Equals("&"))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.AndOperator));
+                    this.Index++;
+                }
+                else if (textUnits[this.Index].Text.Equals("|"))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.OrOperator));
+                    this.Index++;
+                }
+                else if (textUnits[this.Index].Text.Equals("!"))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.NotOperator));
+                    this.Index++;
+                }
+                else if (textUnits[this.Index].Text.Equals("="))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.EqualOperator));
+                    this.Index++;
+                }
+                else if (textUnits[this.Index].Text.Equals("<"))
+                {
+                    this.TokenizeLessThanOperator(textUnits);
+                }
+                else if (textUnits[this.Index].Text.Equals(">"))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.GreaterThanOperator));
+                    this.Index++;
+                }
+                else if (textUnits[this.Index].Text.Equals("+"))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.PlusOperator));
+                    this.Index++;
+                }
+                else if (textUnits[this.Index].Text.Equals("-"))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.MinusOperator));
+                    this.Index++;
+                }
+                else if (textUnits[this.Index].Text.Equals("*"))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.MultiplyOperator));
+                    this.Index++;
+                }
+                else if (textUnits[this.Index].Text.Equals("/"))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.DivideOperator));
+                    this.Index++;
+                }
+                else if (textUnits[this.Index].Text.Equals("%"))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.ModOperator));
+                    this.Index++;
+                }
                 else if (textUnits[this.Index].Text.Equals("new"))
                 {
                     this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.New));
+                    this.Index++;
+                }
+                else if (textUnits[this.Index].Text.Equals("as"))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.As));
                     this.Index++;
                 }
                 else if (textUnits[this.Index].Text.Equals("for"))
@@ -1008,7 +1059,7 @@ namespace Microsoft.PSharp.Parsing
                 }
                 else
                 {
-                    this.Tokens.Add(new Token(textUnits[this.Index].Text));
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Identifier));
                     this.Index++;
                 }
 
@@ -1061,6 +1112,73 @@ namespace Microsoft.PSharp.Parsing
 
             this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Semicolon));
             this.Index++;
+        }
+
+        /// <summary>
+        /// Tokenizes an attribute list.
+        /// </summary>
+        /// <param name="textUnits">Text units</param>
+        private void TokenizeAttributeList(List<TextUnit> textUnits)
+        {
+            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.LeftSquareBracket));
+            this.Index++;
+
+            this.TokenizeWhiteSpaceOrComments(textUnits);
+            while (this.Index < textUnits.Count && !textUnits[this.Index].Text.Equals("]"))
+            {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text));
+                this.Index++;
+                this.TokenizeWhiteSpaceOrComments(textUnits);
+            }
+
+            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.RightSquareBracket));
+            this.Index++;
+
+            this.TokenizeWhiteSpaceOrComments(textUnits);
+        }
+
+        /// <summary>
+        /// Tokenizes the less than operator.
+        /// </summary>
+        /// <param name="textUnits">Text units</param>
+        private void TokenizeLessThanOperator(List<TextUnit> textUnits)
+        {
+            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.LessThanOperator));
+            this.Index++;
+
+            this.TokenizeWhiteSpaceOrComments(textUnits);
+            this.TryTokenizeGenericList(textUnits);
+        }
+
+        /// <summary>
+        /// Tries to tokenizes a generic list, if any.
+        /// </summary>
+        /// <param name="textUnits">Text units</param>
+        private void TryTokenizeGenericList(List<TextUnit> textUnits)
+        {
+            var tokens = new List<Token>();
+            var currentIdx = this.Index;
+
+            while (currentIdx < textUnits.Count && !textUnits[currentIdx].Text.Equals(">"))
+            {
+                if (textUnits[currentIdx].Text.Equals(";"))
+                {
+                    return;
+                }
+
+                tokens.Add(new Token(textUnits[currentIdx].Text));
+                currentIdx++;
+
+                this.TokenizeWhiteSpaceOrComments(textUnits);
+            }
+
+            tokens.Add(new Token(textUnits[currentIdx].Text, TokenType.GreaterThanOperator));
+            currentIdx++;
+
+            this.Tokens.AddRange(tokens);
+            this.Index = currentIdx;
+
+            this.TokenizeWhiteSpaceOrComments(textUnits);
         }
 
         /// <summary>
@@ -1132,7 +1250,7 @@ namespace Microsoft.PSharp.Parsing
 
             while (this.Index < textUnits.Count && !textUnits[this.Index].IsEndOfLine)
             {
-                this.Tokens.Add(new Token(textUnits[this.Index].Text));
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Comment));
                 this.Index++;
             }
 
@@ -1159,13 +1277,13 @@ namespace Microsoft.PSharp.Parsing
                 }
                 else
                 {
-                    this.Tokens.Add(new Token(textUnits[this.Index].Text));
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Comment));
                 }
 
                 this.Index++;
             }
 
-            this.Tokens.Add(new Token(textUnits[this.Index].Text));
+            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Comment));
 
             return true;
         }
@@ -1211,14 +1329,14 @@ namespace Microsoft.PSharp.Parsing
         private string GetPattern()
         {
             var pattern = @"(//|/\*|\*/|;|{|}|:|,|\.|\(|\)|\[|\]|#|\s+|" +
-                @"<|>|" +
+                @"&|\||!|=|<|>|\+|-|\*|/|%|" +
                 @"this.|base.|this->|base->|" +
                 @"\busing\b|\bnamespace\b|\bclass\b|" +
                 @"\bmachine\b|\bstate\b|\bevent\b|" +
                 @"\bon\b|\bdo\b|\bgoto\b|\bentry\b|\bexit\b|" +
                 @"\braise\b|" +
                 @"\bprivate\b|\bprotected\b|\binternal\b|\bpublic\b|\babstract\b|\bvirtual\b|\boverride\b|" +
-                @"\bnew\b)";
+                @"\bnew\b|\bas\b)";
             return pattern;
         }
 

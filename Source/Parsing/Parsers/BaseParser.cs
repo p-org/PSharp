@@ -12,6 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using Microsoft.PSharp.Tooling;
 
@@ -88,7 +89,29 @@ namespace Microsoft.PSharp.Parsing
         protected abstract void ParseNextToken();
 
         /// <summary>
-        /// Skips white space tokens.
+        /// Returns the first previous non-whitespace token.
+        /// </summary>
+        /// <returns>Token and its index</returns>
+        protected Tuple<Token, int> GetPreviousToken()
+        {
+            int currentIdx = this.Index - 1;
+            while (currentIdx >= 0 &&
+                (this.Tokens[currentIdx].Type == TokenType.WhiteSpace ||
+                this.Tokens[currentIdx].Type == TokenType.NewLine))
+            {
+                currentIdx--;
+            }
+
+            if (currentIdx < 0)
+            {
+                return null;
+            }
+
+            return new Tuple<Token, int>(this.Tokens[currentIdx], currentIdx);
+        }
+
+        /// <summary>
+        /// Skips whitespace tokens.
         /// </summary>
         protected void SkipWhiteSpaceTokens()
         {
@@ -106,7 +129,7 @@ namespace Microsoft.PSharp.Parsing
         }
 
         /// <summary>
-        /// Erases white space tokens.
+        /// Erases whitespace tokens.
         /// </summary>
         protected void EraseWhiteSpaceTokens()
         {

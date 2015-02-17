@@ -22,6 +22,13 @@ namespace Microsoft.PSharp.Parsing
         None = 0,
         NewLine,
         WhiteSpace,
+        Comment,
+
+        EventIdentifier,
+        MachineIdentifier,
+        StateIdentifier,
+        ActionIdentifier,
+        Identifier,
 
         LeftCurlyBracket,
         RightCurlyBracket,
@@ -32,14 +39,25 @@ namespace Microsoft.PSharp.Parsing
 
         MachineLeftCurlyBracket,
         MachineRightCurlyBracket,
+        StateLeftCurlyBracket,
+        StateRightCurlyBracket,
 
         Semicolon,
         Doublecolon,
         Comma,
         Dot,
 
+        AndOperator,
+        OrOperator,
+        NotOperator,
+        EqualOperator,
         LessThanOperator,
         GreaterThanOperator,
+        PlusOperator,
+        MinusOperator,
+        MultiplyOperator,
+        DivideOperator,
+        ModOperator,
 
         Private,
         Protected,
@@ -68,6 +86,7 @@ namespace Microsoft.PSharp.Parsing
         This,
         Base,
         New,
+        As,
 
         ForLoop,
         WhileLoop,

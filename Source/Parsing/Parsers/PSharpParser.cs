@@ -85,7 +85,7 @@ namespace Microsoft.PSharp.Parsing
             base.Index++;
 
             base.SkipWhiteSpaceTokens();
-            if (base.Tokens[base.Index].Type == TokenType.None)
+            if (base.Tokens[base.Index].Type == TokenType.MachineIdentifier)
             {
                 base.CurrentMachine = base.Tokens[base.Index].String;
             }
@@ -103,7 +103,7 @@ namespace Microsoft.PSharp.Parsing
             base.Index++;
 
             base.SkipWhiteSpaceTokens();
-            if (base.Tokens[base.Index].Type == TokenType.None)
+            if (base.Tokens[base.Index].Type == TokenType.StateIdentifier)
             {
                 base.CurrentState = base.Tokens[base.Index].String;
             }
@@ -243,7 +243,7 @@ namespace Microsoft.PSharp.Parsing
                 base.Index = startIdx;
                 return ActionType.OnExit;
             }
-            else if (base.Tokens[base.Index].Type == TokenType.None)
+            else if (base.Tokens[base.Index].Type == TokenType.ActionIdentifier)
             {
                 eventId = base.Tokens[base.Index].String;
             }
@@ -285,15 +285,15 @@ namespace Microsoft.PSharp.Parsing
                     "on event '{2}'", base.CurrentState, base.CurrentMachine, eventId);
             }
 
-            if (base.Tokens[base.Index].Type == TokenType.None && type == ActionType.Do ||
-                base.Tokens[base.Index].Type == TokenType.None && type == ActionType.Goto)
+            if (base.Tokens[base.Index].Type == TokenType.ActionIdentifier && type == ActionType.Do ||
+                base.Tokens[base.Index].Type == TokenType.StateIdentifier && type == ActionType.Goto)
             {
                 ParsingEngine.StateActions[base.CurrentMachine][base.CurrentState].Add(
                     eventId, new Tuple<string, ActionType>(base.Tokens[base.Index].String, type));
             }
             else
             {
-                throw new ParsingException("parser: identifier expected.");
+                throw new ParsingException("parser: action or state identifier expected.");
             }
 
             base.Index =  startIdx;

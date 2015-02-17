@@ -32,6 +32,11 @@ namespace Microsoft.PSharp.Parsing
         #region fields
 
         /// <summary>
+        /// Dictionary containing machine fields and methods.
+        /// </summary>
+        internal static Dictionary<string, HashSet<string>> MachineFieldsAndMethods;
+
+        /// <summary>
         /// Dictionary containing state actions (i.e. transtions and bindings).
         /// </summary>
         internal static Dictionary<string, Dictionary<string,
@@ -78,6 +83,7 @@ namespace Microsoft.PSharp.Parsing
                     continue;
                 }
 
+                ParsingEngine.MachineFieldsAndMethods = new Dictionary<string, HashSet<string>>();
                 ParsingEngine.StateActions = new Dictionary<string, Dictionary<string,
                     Dictionary<string, Tuple<string, ActionType>>>>();
 
