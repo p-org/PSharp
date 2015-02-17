@@ -73,6 +73,10 @@ namespace Microsoft.PSharp.Parsing
             {
                 this.RewriteRaiseStatement();
             }
+            else if (token.Type == TokenType.SendEvent)
+            {
+                this.RewriteSendStatement();
+            }
             else if (token.Type == TokenType.DeleteMachine)
             {
                 this.RewriteDeleteStatement();
@@ -346,6 +350,79 @@ namespace Microsoft.PSharp.Parsing
             base.Index++;
 
             base.Tokens.Insert(base.Index, new Token(")", TokenType.RightParenthesis));
+        }
+
+        /// <summary>
+        /// Rewrites the send statement.
+        /// </summary>
+        private void RewriteSendStatement()
+        {
+            base.Tokens[base.Index] = new Token("this", TokenType.This);
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token(".", TokenType.Dot));
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token("Send"));
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token("(", TokenType.LeftParenthesis));
+            base.Index++;
+
+            var startIdx = base.Index;
+            var eventId = "";
+            var machineIds = new List<Token>();
+
+            base.SkipWhiteSpaceTokens();
+            eventId = base.Tokens[base.Index].String;
+            base.Index++;
+
+            base.SkipWhiteSpaceTokens();
+            base.Tokens.RemoveAt(base.Index);
+            base.SkipWhiteSpaceTokens();
+
+            while (base.Tokens[base.Index].Type != TokenType.Semicolon)
+            {
+                machineIds.Add(base.Tokens[base.Index]);
+                base.Index++;
+            }
+
+            base.Index--;
+            while (base.Index != startIdx)
+            {
+                base.Tokens.RemoveAt(base.Index);
+                base.Index--;
+            }
+
+            foreach (var id in machineIds)
+            {
+                base.Tokens.Insert(base.Index, id);
+                base.Index++;
+            }
+
+            base.Tokens.Insert(base.Index, new Token(",", TokenType.Comma));
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token(" ", TokenType.WhiteSpace));
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token("new", TokenType.New));
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token(" ", TokenType.WhiteSpace));
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token(eventId, TokenType.EventIdentifier));
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token("(", TokenType.LeftParenthesis));
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token(")", TokenType.RightParenthesis));
+            base.Index++;
+
+            base.Tokens[base.Index] = new Token(")", TokenType.RightParenthesis);
+            base.Index = startIdx - 1;
         }
 
         /// <summary>

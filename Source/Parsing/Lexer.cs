@@ -794,7 +794,7 @@ namespace Microsoft.PSharp.Parsing
             }
             else
             {
-                this.ReportParsingError("Expected \"do\".");
+                this.ReportParsingError("Expected \"do\" or \"goto\".");
             }
 
             this.TokenizeWhiteSpaceOrComments(textUnits);
@@ -910,175 +910,14 @@ namespace Microsoft.PSharp.Parsing
             {
                 if (textUnits[this.Index].Text.Equals("{"))
                 {
-                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.LeftCurlyBracket));
                     bracketCounter++;
-                    this.Index++;
                 }
                 else if (textUnits[this.Index].Text.Equals("}"))
                 {
-                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.RightCurlyBracket));
                     bracketCounter--;
-                    this.Index++;
-                }
-                else if (textUnits[this.Index].Text.Equals("("))
-                {
-                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.LeftParenthesis));
-                    this.Index++;
-                }
-                else if (textUnits[this.Index].Text.Equals(")"))
-                {
-                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.RightParenthesis));
-                    this.Index++;
-                }
-                else if (textUnits[this.Index].Text.Equals(","))
-                {
-                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Comma));
-                    this.Index++;
-                }
-                else if (textUnits[this.Index].Text.Equals(";"))
-                {
-                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Semicolon));
-                    this.Index++;
-                }
-                else if (textUnits[this.Index].Text.Equals(":"))
-                {
-                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Doublecolon));
-                    this.Index++;
-                }
-                else if (textUnits[this.Index].Text.Equals("."))
-                {
-                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Dot));
-                    this.Index++;
-                }
-                else if (textUnits[this.Index].Text.Equals("&"))
-                {
-                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.AndOperator));
-                    this.Index++;
-                }
-                else if (textUnits[this.Index].Text.Equals("|"))
-                {
-                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.OrOperator));
-                    this.Index++;
-                }
-                else if (textUnits[this.Index].Text.Equals("!"))
-                {
-                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.NotOperator));
-                    this.Index++;
-                }
-                else if (textUnits[this.Index].Text.Equals("="))
-                {
-                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.EqualOperator));
-                    this.Index++;
-                }
-                else if (textUnits[this.Index].Text.Equals("<"))
-                {
-                    this.TokenizeLessThanOperator(textUnits);
-                }
-                else if (textUnits[this.Index].Text.Equals(">"))
-                {
-                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.GreaterThanOperator));
-                    this.Index++;
-                }
-                else if (textUnits[this.Index].Text.Equals("+"))
-                {
-                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.PlusOperator));
-                    this.Index++;
-                }
-                else if (textUnits[this.Index].Text.Equals("-"))
-                {
-                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.MinusOperator));
-                    this.Index++;
-                }
-                else if (textUnits[this.Index].Text.Equals("*"))
-                {
-                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.MultiplyOperator));
-                    this.Index++;
-                }
-                else if (textUnits[this.Index].Text.Equals("/"))
-                {
-                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.DivideOperator));
-                    this.Index++;
-                }
-                else if (textUnits[this.Index].Text.Equals("%"))
-                {
-                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.ModOperator));
-                    this.Index++;
-                }
-                else if (textUnits[this.Index].Text.Equals("new"))
-                {
-                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.New));
-                    this.Index++;
-                }
-                else if (textUnits[this.Index].Text.Equals("as"))
-                {
-                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.As));
-                    this.Index++;
-                }
-                else if (textUnits[this.Index].Text.Equals("for"))
-                {
-                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.ForLoop));
-                    this.Index++;
-                }
-                else if (textUnits[this.Index].Text.Equals("while"))
-                {
-                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.WhileLoop));
-                    this.Index++;
-                }
-                else if (textUnits[this.Index].Text.Equals("do"))
-                {
-                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.DoLoop));
-                    this.Index++;
-                }
-                else if (textUnits[this.Index].Text.Equals("if"))
-                {
-                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.IfCondition));
-                    this.Index++;
-                }
-                else if (textUnits[this.Index].Text.Equals("else"))
-                {
-                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.ElseCondition));
-                    this.Index++;
-                }
-                else if (textUnits[this.Index].Text.Equals("break"))
-                {
-                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Break));
-                    this.Index++;
-                }
-                else if (textUnits[this.Index].Text.Equals("continue"))
-                {
-                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Continue));
-                    this.Index++;
-                }
-                else if (textUnits[this.Index].Text.Equals("return"))
-                {
-                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Return));
-                    this.Index++;
-                }
-                else if (textUnits[this.Index].Text.Equals("this"))
-                {
-                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.This));
-                    this.Index++;
-                }
-                else if (textUnits[this.Index].Text.Equals("base"))
-                {
-                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Base));
-                    this.Index++;
-                }
-                else if (textUnits[this.Index].Text.Equals("raise"))
-                {
-                    this.TokenizeRaiseStatement(textUnits);
-                }
-                else if (textUnits[this.Index].Text.Equals("delete"))
-                {
-                    this.TokenizeDeleteStatement(textUnits);
-                }
-                else
-                {
-                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Identifier));
-                    this.Index++;
                 }
 
-                this.TokenizeWhiteSpaceOrComments(textUnits);
+                this.TokenizeNextTextUnit(textUnits);
             }
         }
 
@@ -1097,10 +936,53 @@ namespace Microsoft.PSharp.Parsing
                 this.ReportParsingError("Expected event identifier.");
             }
 
-            this.Tokens.Add(new Token(textUnits[this.Index].Text));
+            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.EventIdentifier));
             this.Index++;
 
             this.TokenizeWhiteSpaceOrComments(textUnits);
+            if (!textUnits[this.Index].Text.Equals(";"))
+            {
+                this.ReportParsingError("Expected \";\".");
+            }
+
+            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Semicolon));
+            this.Index++;
+        }
+
+        /// <summary>
+        /// Tokenizes a send statement.
+        /// </summary>
+        /// <param name="textUnits">Text units</param>
+        private void TokenizeSendStatement(List<TextUnit> textUnits)
+        {
+            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.SendEvent));
+            this.Index++;
+
+            this.TokenizeWhiteSpaceOrComments(textUnits);
+            if (Regex.IsMatch(textUnits[this.Index].Text, this.GetPattern()))
+            {
+                this.ReportParsingError("Expected event identifier.");
+            }
+
+            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.EventIdentifier));
+            this.Index++;
+
+            this.TokenizeWhiteSpaceOrComments(textUnits);
+            if (!textUnits[this.Index].Text.Equals("to"))
+            {
+                this.ReportParsingError("Expected \"to\".");
+            }
+
+            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.ToMachine));
+            this.Index++;
+
+            this.TokenizeWhiteSpaceOrComments(textUnits);
+
+            while (this.Index < textUnits.Count && !textUnits[this.Index].Text.Equals(";"))
+            {
+                this.TokenizeNextTextUnit(textUnits);
+            }
+
             if (!textUnits[this.Index].Text.Equals(";"))
             {
                 this.ReportParsingError("Expected \";\".");
@@ -1127,6 +1009,187 @@ namespace Microsoft.PSharp.Parsing
 
             this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Semicolon));
             this.Index++;
+        }
+
+        /// <summary>
+        /// Tokenizes the next text unit.
+        /// </summary>
+        /// <param name="textUnits">Text units</param>
+        private void TokenizeNextTextUnit(List<TextUnit> textUnits)
+        {
+            if (textUnits[this.Index].Text.Equals("{"))
+            {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.LeftCurlyBracket));
+                this.Index++;
+            }
+            else if (textUnits[this.Index].Text.Equals("}"))
+            {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.RightCurlyBracket));
+                this.Index++;
+            }
+            else if (textUnits[this.Index].Text.Equals("("))
+            {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.LeftParenthesis));
+                this.Index++;
+            }
+            else if (textUnits[this.Index].Text.Equals(")"))
+            {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.RightParenthesis));
+                this.Index++;
+            }
+            else if (textUnits[this.Index].Text.Equals(","))
+            {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Comma));
+                this.Index++;
+            }
+            else if (textUnits[this.Index].Text.Equals(";"))
+            {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Semicolon));
+                this.Index++;
+            }
+            else if (textUnits[this.Index].Text.Equals(":"))
+            {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Doublecolon));
+                this.Index++;
+            }
+            else if (textUnits[this.Index].Text.Equals("."))
+            {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Dot));
+                this.Index++;
+            }
+            else if (textUnits[this.Index].Text.Equals("&"))
+            {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.AndOperator));
+                this.Index++;
+            }
+            else if (textUnits[this.Index].Text.Equals("|"))
+            {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.OrOperator));
+                this.Index++;
+            }
+            else if (textUnits[this.Index].Text.Equals("!"))
+            {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.NotOperator));
+                this.Index++;
+            }
+            else if (textUnits[this.Index].Text.Equals("="))
+            {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.EqualOperator));
+                this.Index++;
+            }
+            else if (textUnits[this.Index].Text.Equals("<"))
+            {
+                this.TokenizeLessThanOperator(textUnits);
+            }
+            else if (textUnits[this.Index].Text.Equals(">"))
+            {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.GreaterThanOperator));
+                this.Index++;
+            }
+            else if (textUnits[this.Index].Text.Equals("+"))
+            {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.PlusOperator));
+                this.Index++;
+            }
+            else if (textUnits[this.Index].Text.Equals("-"))
+            {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.MinusOperator));
+                this.Index++;
+            }
+            else if (textUnits[this.Index].Text.Equals("*"))
+            {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.MultiplyOperator));
+                this.Index++;
+            }
+            else if (textUnits[this.Index].Text.Equals("/"))
+            {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.DivideOperator));
+                this.Index++;
+            }
+            else if (textUnits[this.Index].Text.Equals("%"))
+            {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.ModOperator));
+                this.Index++;
+            }
+            else if (textUnits[this.Index].Text.Equals("new"))
+            {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.New));
+                this.Index++;
+            }
+            else if (textUnits[this.Index].Text.Equals("as"))
+            {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.As));
+                this.Index++;
+            }
+            else if (textUnits[this.Index].Text.Equals("for"))
+            {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.ForLoop));
+                this.Index++;
+            }
+            else if (textUnits[this.Index].Text.Equals("while"))
+            {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.WhileLoop));
+                this.Index++;
+            }
+            else if (textUnits[this.Index].Text.Equals("do"))
+            {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.DoLoop));
+                this.Index++;
+            }
+            else if (textUnits[this.Index].Text.Equals("if"))
+            {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.IfCondition));
+                this.Index++;
+            }
+            else if (textUnits[this.Index].Text.Equals("else"))
+            {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.ElseCondition));
+                this.Index++;
+            }
+            else if (textUnits[this.Index].Text.Equals("break"))
+            {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Break));
+                this.Index++;
+            }
+            else if (textUnits[this.Index].Text.Equals("continue"))
+            {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Continue));
+                this.Index++;
+            }
+            else if (textUnits[this.Index].Text.Equals("return"))
+            {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Return));
+                this.Index++;
+            }
+            else if (textUnits[this.Index].Text.Equals("this"))
+            {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.This));
+                this.Index++;
+            }
+            else if (textUnits[this.Index].Text.Equals("base"))
+            {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Base));
+                this.Index++;
+            }
+            else if (textUnits[this.Index].Text.Equals("raise"))
+            {
+                this.TokenizeRaiseStatement(textUnits);
+            }
+            else if (textUnits[this.Index].Text.Equals("send"))
+            {
+                this.TokenizeSendStatement(textUnits);
+            }
+            else if (textUnits[this.Index].Text.Equals("delete"))
+            {
+                this.TokenizeDeleteStatement(textUnits);
+            }
+            else
+            {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Identifier));
+                this.Index++;
+            }
+
+            this.TokenizeWhiteSpaceOrComments(textUnits);
         }
 
         /// <summary>
@@ -1347,8 +1410,8 @@ namespace Microsoft.PSharp.Parsing
                 @"&|\||!|=|<|>|\+|-|\*|/|%|" +
                 @"\busing\b|\bnamespace\b|\bclass\b|" +
                 @"\bmachine\b|\bstate\b|\bevent\b|" +
-                @"\bon\b|\bdo\b|\bgoto\b|\bentry\b|\bexit\b|" +
-                @"\braise\b|" +
+                @"\bon\b|\bdo\b|\bgoto\b|\bto\b|\bentry\b|\bexit\b|" +
+                @"\braise\b|\bsend\b|" +
                 @"\bprivate\b|\bprotected\b|\binternal\b|\bpublic\b|\babstract\b|\bvirtual\b|\boverride\b|" +
                 @"\bnew\b|\bas\b)";
             return pattern;
