@@ -31,20 +31,23 @@ namespace Microsoft.PSharp
         protected internal readonly Object Payload;
 
         /// <summary>
-        /// Default constructor of the Event class.
+        /// Constructor.
         /// </summary>
-        protected Event()
+        /// <param name="payload">Optional payload</param>
+        protected Event(params Object[] payload)
         {
-            this.Payload = null;
-        }
-
-        /// <summary>
-        /// Constructor of the Event class.
-        /// </summary>
-        /// <param name="payload">Payload of the event</param>
-        protected Event(Object payload)
-        {
-            this.Payload = payload;
+            if (payload.Length == 0)
+            {
+                this.Payload = null;
+            }
+            else if (payload.Length == 1)
+            {
+                this.Payload = payload[0];
+            }
+            else
+            {
+                this.Payload = payload;
+            }
         }
     }
 }

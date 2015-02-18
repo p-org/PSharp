@@ -143,7 +143,7 @@ namespace Microsoft.PSharp
         /// main machine is constructed with an optional payload.
         /// </summary>
         /// <param name="payload">Optional payload</param>
-        public static void Start(Object payload = null)
+        public static void Start(params Object[] payload)
         {
             Runtime.Assert(Runtime.RegisteredMachineTypes.Any(val =>
                     val.IsDefined(typeof(Main), false)),
@@ -332,8 +332,8 @@ namespace Microsoft.PSharp
         /// The input payload must be the same as the one in the
         /// previous execution to achieve deterministic replaying.
         /// </summary>
-        /// <param name="payload">Payload</param>
-        public static void Replay(Object payload = null)
+        /// <param name="payload">Optional payload</param>
+        public static void Replay(params Object[] payload)
         {
             Runtime.Assert(ScheduleExplorer.Schedule.Count > 0,
                 "A previously executed schedule was not detected.\n");
@@ -360,9 +360,9 @@ namespace Microsoft.PSharp
         /// the given payload.
         /// </summary>
         /// <param name="m">Type of the machine</param>
-        /// <param name="payload">Payload</param>
+        /// <param name="payload">Optional payload</param>
         /// <returns>Machine</returns>
-        internal static Machine TryCreateNewMachineInstance(Type m, Object payload)
+        internal static Machine TryCreateNewMachineInstance(Type m, params Object[] payload)
         {
             Machine machine;
 
@@ -398,9 +398,9 @@ namespace Microsoft.PSharp
         /// the given payload.
         /// </summary>
         /// <typeparam name="T">Type of the machine</typeparam>
-        /// <param name="payload">Payload</param>
+        /// <param name="payload">Optional payload</param>
         /// <returns>Machine</returns>
-        internal static T TryCreateNewMachineInstance<T>(Object payload)
+        internal static T TryCreateNewMachineInstance<T>(params Object[] payload)
         {
             Object machine;
 
@@ -437,9 +437,9 @@ namespace Microsoft.PSharp
         /// of each monitor type.
         /// </summary>
         /// <param name="m">Type of the monitor</param>
-        /// <param name="payload">Payload</param>
+        /// <param name="payload">Optional payload</param>
         /// <returns>Monitor machine</returns>
-        internal static Machine TryCreateNewMonitorInstance(Type m, Object payload)
+        internal static Machine TryCreateNewMonitorInstance(Type m, params Object[] payload)
         {
             Utilities.Verbose("Creating new monitor: {0}\n", m);
             Runtime.Assert(Runtime.RegisteredMonitorTypes.Any(val => val == m),
@@ -476,9 +476,9 @@ namespace Microsoft.PSharp
         /// of each monitor type.
         /// </summary>
         /// <typeparam name="T">Type of the monitor</typeparam>
-        /// <param name="payload">Payload</param>
+        /// <param name="payload">Optional payload</param>
         /// <returns>Monitor machine</returns>
-        internal static T TryCreateNewMonitorInstance<T>(Object payload)
+        internal static T TryCreateNewMonitorInstance<T>(params Object[] payload)
         {
             Utilities.Verbose("Creating new monitor: {0}\n", typeof(T));
             Runtime.Assert(Runtime.RegisteredMonitorTypes.Any(val => val == typeof(T)),

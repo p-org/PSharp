@@ -376,6 +376,30 @@ namespace Microsoft.PSharp
             }
         }
 
+        /// <summary>
+        /// Starts the machine at the initial state with an
+        /// optional payload.
+        /// </summary>
+        /// /// <param name="payload">Optional payload</param>
+        private void GotoInitialState(params Object[] payload)
+        {
+            if (payload.Length == 0)
+            {
+                this.Payload = null;
+            }
+            else if (payload.Length == 1)
+            {
+                this.Payload = payload[0];
+            }
+            else
+            {
+                this.Payload = payload;
+            }
+
+            // Performs the on entry statements of the new state.
+            this.ExecuteCurrentStateOnEntry();
+        }
+
         #endregion
 
         #region P# internal methods
@@ -385,13 +409,13 @@ namespace Microsoft.PSharp
         /// </summary>
         /// /// <param name="payload">Optional payload</param>
         /// <returns>Task</returns>
-        internal Thread Start(Object payload = null)
+        internal Thread Start(params Object[] payload)
         {
             Thread thread = new Thread((Object pl) =>
             {
                 try
                 {
-                    this.GotoInitialState(pl);
+                    this.GotoInitialState((Object[])pl);
 
                     while (this.IsActive)
                     {
@@ -428,7 +452,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// /// <param name="payload">Optional payload</param>
         /// <returns>Task</returns>
-        internal Thread ScheduledStart(Object payload = null)
+        internal Thread ScheduledStart(params Object[] payload)
         {
             Thread thread = new Thread((Object pl) =>
             {
@@ -442,7 +466,7 @@ namespace Microsoft.PSharp
                         throw new TaskCanceledException();
                     }
 
-                    this.GotoInitialState(pl);
+                    this.GotoInitialState((Object[])pl);
 
                     while (this.IsActive)
                     {
@@ -475,38 +499,6 @@ namespace Microsoft.PSharp
             Runtime.Scheduler.WaitForThreadToStart(threadInfo);
 
             return thread;
-        }
-
-        /// <summary>
-        /// Starts the machine at the initial state with an
-        /// optional payload.
-        /// </summary>
-        /// /// <param name="payload">Optional payload</param>
-        internal void GotoInitialState(Object payload = null)
-        {
-            this.Payload = payload;
-            // Performs the on entry statements of the new state.
-            this.ExecuteCurrentStateOnEntry();
-        }
-
-        /// <summary>
-        /// The machine handles the next available event in its inbox.
-        /// </summary>
-        internal void HandleNextEvent()
-        {
-            System.Diagnostics.Debug.Assert(false);
-
-            if (this.RaisedEvent != null)
-            {
-                Event nextEvent = this.RaisedEvent;
-                this.RaisedEvent = null;
-                this.HandleEvent(nextEvent);
-            }
-            else
-            {
-                //Event nextEvent = this.Inbox.Take(this.CTS.Token);
-                //this.HandleEvent(nextEvent);
-            }
         }
 
         /// <summary>
@@ -626,7 +618,7 @@ namespace Microsoft.PSharp
             /// <param name="m">Type of machine</param>
             /// <param name="payload">Optional payload</param>
             /// <returns>Machine</returns>
-            public static Machine CreateMachine(Type m, Object payload = null)
+            public static Machine CreateMachine(Type m, params Object[] payload)
             {
                 Runtime.Assert(m.IsSubclassOf(typeof(Machine)), "The provided " +
                     "type '{0}' is not a subclass of Machine.\n", m.Name);
@@ -640,7 +632,7 @@ namespace Microsoft.PSharp
             /// <typeparam name="T">Type of machine</typeparam>
             /// <param name="payload">Optional payload</param>
             /// <returns>Machine</returns>
-            public static T CreateMachine<T>(Object payload = null)
+            public static T CreateMachine<T>(params Object[] payload)
             {
                 Runtime.Assert(typeof(T).IsSubclassOf(typeof(Machine)), "The provided " +
                     "type '{0}' is not a subclass of Machine.\n", typeof(T).Name);
@@ -653,7 +645,7 @@ namespace Microsoft.PSharp
             /// </summary>
             /// <param name="m">Type of monitor</param>
             /// <param name="payload">Optional payload</param>
-            public static void CreateMonitor(Type m, Object payload = null)
+            public static void CreateMonitor(Type m, params Object[] payload)
             {
                 Runtime.Assert(m.IsSubclassOf(typeof(Machine)), "The provided " +
                     "type '{0}' is not a subclass of Machine.\n", m.Name);
@@ -667,7 +659,7 @@ namespace Microsoft.PSharp
             /// </summary>
             /// <typeparam name="T">Type of monitor</typeparam>
             /// <param name="payload">Optional payload</param>
-            public static void CreateMonitor<T>(Object payload = null)
+            public static void CreateMonitor<T>(params Object[] payload)
             {
                 Runtime.Assert(typeof(T).IsSubclassOf(typeof(Machine)), "The provided " +
                     "type '{0}' is not a subclass of Machine.\n", typeof(T).Name);

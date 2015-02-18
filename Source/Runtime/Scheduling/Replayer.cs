@@ -56,8 +56,8 @@ namespace Microsoft.PSharp.Scheduling
         /// previous execution to achieve deterministic replaying.
         /// </summary>
         /// <param name="m">Main machine</param>
-        /// <param name="payload">Payload</param>
-        internal static void Run(Type m, Object payload = null)
+        /// <param name="payload">Optional payload</param>
+        internal static void Run(Type m, params Object[] payload)
         {
             Machine.Factory.CreateMachine(m, payload);
             Runtime.IsRunning = true;
