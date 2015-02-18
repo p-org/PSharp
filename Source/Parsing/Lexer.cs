@@ -1127,6 +1127,12 @@ namespace Microsoft.PSharp.Parsing
             this.Index++;
 
             this.TokenizeWhiteSpaceOrComments(textUnits);
+            if (textUnits[this.Index].Text.Equals("{"))
+            {
+                this.TokenizeArgumentsList(textUnits);
+            }
+
+            this.TokenizeWhiteSpaceOrComments(textUnits);
             if (!textUnits[this.Index].Text.Equals(";"))
             {
                 this.ReportParsingError("Expected \";\".");

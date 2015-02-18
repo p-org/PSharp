@@ -435,14 +435,58 @@ namespace Microsoft.PSharp.Parsing
             base.Tokens.Insert(base.Index, new Token("(", TokenType.LeftParenthesis));
             base.Index++;
 
+            var startIdx = base.Index;
+            var eventId = "";
+            var payload = new List<Token>();
+
+            base.SkipWhiteSpaceTokens();
+
+            eventId = base.Tokens[base.Index].Text;
+
+            base.Index++;
+            base.SkipWhiteSpaceTokens();
+
+            if (base.Tokens[base.Index].Type == TokenType.LeftCurlyBracket)
+            {
+                base.Index++;
+                while (base.Tokens[base.Index].Type != TokenType.RightCurlyBracket)
+                {
+                    payload.Add(base.Tokens[base.Index]);
+                    base.Index++;
+                }
+
+                base.Index++;
+                base.SkipWhiteSpaceTokens();
+            }
+
+            while (base.Tokens[base.Index].Type != TokenType.Semicolon)
+            {
+                base.Index++;
+            }
+
+            while (base.Index != startIdx)
+            {
+                base.Tokens.RemoveAt(base.Index);
+                base.Index--;
+            }
+
             base.Tokens.Insert(base.Index, new Token("new", TokenType.New));
             base.Index++;
 
-            base.SkipWhiteSpaceTokens();
+            base.Tokens.Insert(base.Index, new Token(" ", TokenType.WhiteSpace));
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token(eventId, TokenType.EventIdentifier));
             base.Index++;
 
             base.Tokens.Insert(base.Index, new Token("(", TokenType.LeftParenthesis));
             base.Index++;
+
+            foreach (var item in payload)
+            {
+                base.Tokens.Insert(base.Index, item);
+                base.Index++;
+            }
 
             base.Tokens.Insert(base.Index, new Token(")", TokenType.RightParenthesis));
             base.Index++;
@@ -454,6 +498,10 @@ namespace Microsoft.PSharp.Parsing
             base.Index++;
 
             base.Tokens.Insert(base.Index, new Token("return", TokenType.Return));
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token(";", TokenType.Semicolon));
+            base.Index = startIdx - 1;
         }
 
         /// <summary>
