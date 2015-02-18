@@ -34,13 +34,7 @@ namespace BoundedAsync
 
             on eUnit goto Sync;
 
-            //protected override HashSet<Type> DefineDeferredEvents()
-            //{
-            //    return new HashSet<Type>
-            //    {
-            //        typeof(eReq)
-            //    };
-            //}
+            defer eReq;
         }
 
         private state Sync

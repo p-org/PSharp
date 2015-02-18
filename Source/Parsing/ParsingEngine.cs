@@ -42,6 +42,16 @@ namespace Microsoft.PSharp.Parsing
         internal static Dictionary<string, Dictionary<string,
             Dictionary<string, Tuple<string, ActionType>>>> StateActions;
 
+        /// <summary>
+        /// Dictionary containing deferred events per state.
+        /// </summary>
+        internal static Dictionary<string, Dictionary<string, HashSet<string>>> DeferredEvents;
+
+        /// <summary>
+        /// Dictionary containing ignored events per state.
+        /// </summary>
+        internal static Dictionary<string, Dictionary<string, HashSet<string>>> IgnoredEvents;
+
         #endregion
 
         #region public API
@@ -83,6 +93,8 @@ namespace Microsoft.PSharp.Parsing
                 ParsingEngine.MachineFieldsAndMethods = new Dictionary<string, HashSet<string>>();
                 ParsingEngine.StateActions = new Dictionary<string, Dictionary<string,
                     Dictionary<string, Tuple<string, ActionType>>>>();
+                ParsingEngine.DeferredEvents = new Dictionary<string, Dictionary<string, HashSet<string>>>();
+                ParsingEngine.IgnoredEvents = new Dictionary<string, Dictionary<string, HashSet<string>>>();
 
                 var root = (CompilationUnitSyntax)tree.GetRoot();
 

@@ -82,6 +82,8 @@ namespace Microsoft.PSharp.Parsing
         OnAction,
         DoAction,
         GotoState,
+        DeferEvent,
+        IgnoreEvent,
         ToMachine,
         Entry,
         Exit,

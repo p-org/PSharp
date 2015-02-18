@@ -674,6 +674,14 @@ namespace Microsoft.PSharp.Parsing
                         this.TokenizeStateActionDeclaration(textUnits);
                         break;
 
+                    case "defer":
+                        this.TokenizeDeferEventsDeclaration(textUnits);
+                        break;
+
+                    case "ignore":
+                        this.TokenizeIgnoreEventsDeclaration(textUnits);
+                        break;
+
                     case "private":
                     case "protected":
                     case "internal":
@@ -808,6 +816,76 @@ namespace Microsoft.PSharp.Parsing
             {
                 this.ReportParsingError("Expected \"do\" or \"goto\".");
             }
+
+            this.TokenizeWhiteSpaceOrComments(textUnits);
+        }
+
+        /// <summary>
+        /// Tokenizes a defer events declaration.
+        /// </summary>
+        /// <param name="textUnits">Text units</param>
+        private void TokenizeDeferEventsDeclaration(List<TextUnit> textUnits)
+        {
+            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.DeferEvent));
+            this.Index++;
+
+            this.TokenizeWhiteSpaceOrComments(textUnits);
+            while (this.Index < textUnits.Count && !textUnits[this.Index].Text.Equals(";"))
+            {
+                if (!Regex.IsMatch(textUnits[this.Index].Text, this.GetPattern()))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.EventIdentifier));
+                }
+                else if (textUnits[this.Index].Text.Equals(","))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Comma));
+                }
+                else
+                {
+                    this.ReportParsingError("Expected event identifier.");
+                }
+
+                this.Index++;
+                this.TokenizeWhiteSpaceOrComments(textUnits, true);
+            }
+
+            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Semicolon));
+            this.Index++;
+
+            this.TokenizeWhiteSpaceOrComments(textUnits);
+        }
+
+        /// <summary>
+        /// Tokenizes an ignore events declaration.
+        /// </summary>
+        /// <param name="textUnits">Text units</param>
+        private void TokenizeIgnoreEventsDeclaration(List<TextUnit> textUnits)
+        {
+            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.IgnoreEvent));
+            this.Index++;
+
+            this.TokenizeWhiteSpaceOrComments(textUnits);
+            while (this.Index < textUnits.Count && !textUnits[this.Index].Text.Equals(";"))
+            {
+                if (!Regex.IsMatch(textUnits[this.Index].Text, this.GetPattern()))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.EventIdentifier));
+                }
+                else if (textUnits[this.Index].Text.Equals(","))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Comma));
+                }
+                else
+                {
+                    this.ReportParsingError("Expected event identifier.");
+                }
+
+                this.Index++;
+                this.TokenizeWhiteSpaceOrComments(textUnits, true);
+            }
+
+            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Semicolon));
+            this.Index++;
 
             this.TokenizeWhiteSpaceOrComments(textUnits);
         }
@@ -1081,11 +1159,6 @@ namespace Microsoft.PSharp.Parsing
             while (this.Index < textUnits.Count && !textUnits[this.Index].Text.Equals(";"))
             {
                 this.TokenizeNextTextUnit(textUnits);
-            }
-
-            if (!textUnits[this.Index].Text.Equals(";"))
-            {
-                this.ReportParsingError("Expected \";\".");
             }
 
             this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Semicolon));
@@ -1497,13 +1570,14 @@ namespace Microsoft.PSharp.Parsing
         /// Tokenizes white space or comments, if any.
         /// </summary>
         /// <param name="textUnits">Text units</param>
-        private void TokenizeWhiteSpaceOrComments(List<TextUnit> textUnits)
+        /// <param name="skip">True to skip white space or comments</param>
+        private void TokenizeWhiteSpaceOrComments(List<TextUnit> textUnits, bool skip = false)
         {
             while (this.Index < textUnits.Count)
             {
-                var repeat = this.TryTokenizeLineComment(textUnits);
-                repeat = repeat || this.TryTokenizeMultiLineComment(textUnits);
-                repeat = repeat || this.TryTokenizeWhiteSpace(textUnits);
+                var repeat = this.TryTokenizeLineComment(textUnits, skip);
+                repeat = repeat || this.TryTokenizeMultiLineComment(textUnits, skip);
+                repeat = repeat || this.TryTokenizeWhiteSpace(textUnits, skip);
 
                 if (!repeat)
                 {
@@ -1516,7 +1590,8 @@ namespace Microsoft.PSharp.Parsing
         /// Tries to tokenizes a line-wide comment, if any.
         /// </summary>
         /// <param name="textUnits">Text units</param>
-        private bool TryTokenizeLineComment(List<TextUnit> textUnits)
+        /// <param name="skip">True to skip the comment</param>
+        private bool TryTokenizeLineComment(List<TextUnit> textUnits, bool skip = false)
         {
             if (!textUnits[this.Index].Text.Equals("//") &&
                 !textUnits[this.Index].Text.Equals("#"))
@@ -1526,7 +1601,11 @@ namespace Microsoft.PSharp.Parsing
 
             while (this.Index < textUnits.Count && !textUnits[this.Index].IsEndOfLine)
             {
-                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Comment));
+                if (!skip)
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Comment));
+                }
+                
                 this.Index++;
             }
 
@@ -1537,7 +1616,8 @@ namespace Microsoft.PSharp.Parsing
         /// Tries to tokenize a multi-line comment, if any.
         /// </summary>
         /// <param name="textUnits">Text units</param>
-        private bool TryTokenizeMultiLineComment(List<TextUnit> textUnits)
+        /// <param name="skip">True to skip the comment</param>
+        private bool TryTokenizeMultiLineComment(List<TextUnit> textUnits, bool skip = false)
         {
             if (!textUnits[this.Index].Text.Equals("/*"))
             {
@@ -1546,12 +1626,12 @@ namespace Microsoft.PSharp.Parsing
 
             while (this.Index < textUnits.Count && !textUnits[this.Index].Text.Equals("*/"))
             {
-                if (textUnits[this.Index].IsEndOfLine)
+                if (textUnits[this.Index].IsEndOfLine && !skip)
                 {
                     this.Tokens.Add(new Token("\n", TokenType.NewLine));
                     this.LineIndex++;
                 }
-                else
+                else if (!skip)
                 {
                     this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Comment));
                 }
@@ -1559,7 +1639,10 @@ namespace Microsoft.PSharp.Parsing
                 this.Index++;
             }
 
-            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Comment));
+            if (!skip)
+            {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Comment));
+            }
 
             return true;
         }
@@ -1568,7 +1651,8 @@ namespace Microsoft.PSharp.Parsing
         /// Tries to tokenize white space, if any.
         /// </summary>
         /// <param name="textUnits">Text units</param>
-        private bool TryTokenizeWhiteSpace(List<TextUnit> textUnits)
+        /// <param name="skip">True to skip the white space</param>
+        private bool TryTokenizeWhiteSpace(List<TextUnit> textUnits, bool skip = false)
         {
             if (!String.IsNullOrWhiteSpace(textUnits[this.Index].Text))
             {
@@ -1578,12 +1662,12 @@ namespace Microsoft.PSharp.Parsing
             while (this.Index < textUnits.Count &&
                 String.IsNullOrWhiteSpace(textUnits[this.Index].Text))
             {
-                if (textUnits[this.Index].IsEndOfLine)
+                if (textUnits[this.Index].IsEndOfLine && !skip)
                 {
                     this.Tokens.Add(new Token("\n", TokenType.NewLine));
                     this.LineIndex++;
                 }
-                else
+                else if (!skip)
                 {
                     this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.WhiteSpace));
                 }
@@ -1608,7 +1692,7 @@ namespace Microsoft.PSharp.Parsing
                 @"&|\||!|=|<|>|\+|-|\*|/|%|" +
                 @"\busing\b|\bnamespace\b|\bclass\b|\bstruct\b|" +
                 @"\bmachine\b|\bstate\b|\bevent\b|" +
-                @"\bon\b|\bdo\b|\bgoto\b|\bto\b|\bentry\b|\bexit\b|" +
+                @"\bon\b|\bdo\b|\bgoto\b|\bdefer\b|\bignore\b|\bto\b|\bentry\b|\bexit\b|" +
                 @"\bcreate\b|\braise\b|\bsend\b|" +
                 @"\bprivate\b|\bprotected\b|\binternal\b|\bpublic\b|\babstract\b|\bvirtual\b|\boverride\b|" +
                 @"\bnew\b|\bas\b)";

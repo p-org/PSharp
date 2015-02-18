@@ -23,13 +23,7 @@ namespace BoundedAsync
 
             on eUnit goto Init;
 
-            //protected override HashSet<Type> DefineDeferredEvents()
-            //{
-            //    return new HashSet<Type>
-            //    {
-            //        typeof(eInit)
-            //    };
-            //}
+            defer eInit;
         }
 
         private state Init
@@ -78,14 +72,7 @@ namespace BoundedAsync
                 delete;
             }
 
-            //protected override HashSet<Type> DefineIgnoredEvents()
-            //{
-            //    return new HashSet<Type>
-            //    {
-            //        typeof(eResp),
-            //        typeof(eMyCount)
-            //    };
-            //}
+            ignore eResp, eMyCount;
         }
 
         private action InitAction

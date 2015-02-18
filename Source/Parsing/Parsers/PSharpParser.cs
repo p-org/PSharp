@@ -14,7 +14,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 using Microsoft.PSharp.Tooling;
 
@@ -62,11 +61,15 @@ namespace Microsoft.PSharp.Parsing
             }
             else if (token.Type == TokenType.OnAction)
             {
-                this.RewriteStateActionDeclaration();
+                this.ExtractStateActionDeclaration();
             }
-            else if (token.Type == TokenType.MachineRightCurlyBracket)
+            else if (token.Type == TokenType.DeferEvent)
             {
-                this.InstrumentStateActions();
+                this.ExtractDeferEventDeclaration();
+            }
+            else if (token.Type == TokenType.IgnoreEvent)
+            {
+                this.ExtractIgnoreEventDeclaration();
             }
 
             base.Index++;
@@ -78,7 +81,7 @@ namespace Microsoft.PSharp.Parsing
         #region private API
 
         /// <summary>
-        /// Rewrites the machine declaration.
+        /// Extracts the machine declaration.
         /// </summary>
         private void ExtractMachineDeclaration()
         {
@@ -96,7 +99,7 @@ namespace Microsoft.PSharp.Parsing
         }
 
         /// <summary>
-        /// Rewrites the state declaration.
+        /// Extracts the state declaration.
         /// </summary>
         private void ExtractStateDeclaration()
         {
@@ -114,14 +117,14 @@ namespace Microsoft.PSharp.Parsing
         }
 
         /// <summary>
-        /// Rewrites the state action declaration.
+        /// Extracts the state action declaration.
         /// </summary>
-        private void RewriteStateActionDeclaration()
+        private void ExtractStateActionDeclaration()
         {
             var type = GetActionType();
             if (type == ActionType.Do || type == ActionType.Goto)
             {
-                this.EraseOnActionDeclaration();
+                this.EraseStatement();
             }
             else if (type == ActionType.None)
             {
@@ -130,9 +133,127 @@ namespace Microsoft.PSharp.Parsing
         }
 
         /// <summary>
-        /// Erases the on action declaration.
+        /// Extracts the defer event declaration.
         /// </summary>
-        private void EraseOnActionDeclaration()
+        private void ExtractDeferEventDeclaration()
+        {
+            var startIdx = base.Index;
+            base.Index++;
+            base.SkipWhiteSpaceTokens();
+
+            if (!ParsingEngine.DeferredEvents.ContainsKey(base.CurrentMachine))
+            {
+                ParsingEngine.DeferredEvents.Add(base.CurrentMachine,
+                    new Dictionary<string, HashSet<string>>());
+            }
+
+            if (!ParsingEngine.DeferredEvents[base.CurrentMachine].ContainsKey(base.CurrentState))
+            {
+                ParsingEngine.DeferredEvents[base.CurrentMachine].Add(base.CurrentState,
+                    new HashSet<string>());
+            }
+
+            var eventIds = new List<string>();
+            while (base.Index < base.Tokens.Count &&
+                base.Tokens[base.Index].Type != TokenType.Semicolon)
+            {
+                if (base.Tokens[base.Index].Type == TokenType.Comma)
+                {
+                    eventIds.Add("");
+                }
+                else if (eventIds.Count == 0)
+                {
+                    eventIds.Add(base.Tokens[base.Index].String);
+                }
+                else
+                {
+                    eventIds[eventIds.Count - 1] += base.Tokens[base.Index].String;
+                }
+
+                base.Index++;
+            }
+
+            base.Index = startIdx;
+
+            foreach (var eventId in eventIds)
+            {
+                if (ParsingEngine.DeferredEvents[base.CurrentMachine][base.CurrentState].Contains(eventId))
+                {
+                    ErrorReporter.ReportErrorAndExit("State '{0}' in machine '{1}' already defers " +
+                        "event '{2}'", base.CurrentState, base.CurrentMachine, eventId);
+                }
+                else
+                {
+                    ParsingEngine.DeferredEvents[base.CurrentMachine][base.CurrentState].Add(eventId);
+                }
+            }
+
+            this.EraseStatement();
+        }
+
+        /// <summary>
+        /// Extracts the ignore event declaration.
+        /// </summary>
+        private void ExtractIgnoreEventDeclaration()
+        {
+            var startIdx = base.Index;
+            base.Index++;
+            base.SkipWhiteSpaceTokens();
+
+            if (!ParsingEngine.IgnoredEvents.ContainsKey(base.CurrentMachine))
+            {
+                ParsingEngine.IgnoredEvents.Add(base.CurrentMachine,
+                    new Dictionary<string, HashSet<string>>());
+            }
+
+            if (!ParsingEngine.IgnoredEvents[base.CurrentMachine].ContainsKey(base.CurrentState))
+            {
+                ParsingEngine.IgnoredEvents[base.CurrentMachine].Add(base.CurrentState,
+                    new HashSet<string>());
+            }
+
+            var eventIds = new List<string>();
+            while (base.Index < base.Tokens.Count &&
+                base.Tokens[base.Index].Type != TokenType.Semicolon)
+            {
+                if (base.Tokens[base.Index].Type == TokenType.Comma)
+                {
+                    eventIds.Add("");
+                }
+                else if (eventIds.Count == 0)
+                {
+                    eventIds.Add(base.Tokens[base.Index].String);
+                }
+                else
+                {
+                    eventIds[eventIds.Count - 1] += base.Tokens[base.Index].String;
+                }
+
+                base.Index++;
+            }
+
+            base.Index = startIdx;
+
+            foreach (var eventId in eventIds)
+            {
+                if (ParsingEngine.IgnoredEvents[base.CurrentMachine][base.CurrentState].Contains(eventId))
+                {
+                    ErrorReporter.ReportErrorAndExit("State '{0}' in machine '{1}' already ignores " +
+                        "event '{2}'", base.CurrentState, base.CurrentMachine, eventId);
+                }
+                else
+                {
+                    ParsingEngine.IgnoredEvents[base.CurrentMachine][base.CurrentState].Add(eventId);
+                }
+            }
+
+            this.EraseStatement();
+        }
+
+        /// <summary>
+        /// Erases a statement.
+        /// </summary>
+        private void EraseStatement()
         {
             while (base.Index < base.Tokens.Count &&
                 base.Tokens[base.Index].Type != TokenType.Semicolon)
@@ -141,79 +262,6 @@ namespace Microsoft.PSharp.Parsing
             }
 
             base.Tokens.RemoveAt(base.Index);
-        }
-
-        /// <summary>
-        /// Instruments the state actions.
-        /// </summary>
-        private void InstrumentStateActions()
-        {
-            if (!ParsingEngine.StateActions.ContainsKey(base.CurrentMachine))
-            {
-                return;
-            }
-
-            var stateFunc = "\n";
-            stateFunc += "\tprotected override Dictionary<Type, StepStateTransitions> DefineStepStateTransitions()\n";
-            stateFunc += "\t{\n";
-            stateFunc += "\t\tvar dict = new Dictionary<Type, StepStateTransitions>();\n";
-            stateFunc += "\n";
-
-            bool isEmpty = true;
-            foreach (var state in ParsingEngine.StateActions[base.CurrentMachine])
-            {
-                stateFunc += "\t\tvar " + state.Key.ToLower() + "Dict = new StepStateTransitions();\n";
-
-                foreach (var pair in state.Value.Where(val => val.Value.Item2 == ActionType.Goto))
-                {
-                    stateFunc += "\t\t" + state.Key.ToLower() + "Dict.Add(typeof(" + pair.Key +
-                        "), typeof(" + pair.Value.Item1 + "));\n";
-                    isEmpty = false;
-                }
-
-                stateFunc += "\t\tdict.Add(typeof(" + state.Key + "), " + state.Key.ToLower() + "Dict);\n";
-                stateFunc += "\n";
-            }
-
-            stateFunc += "\t\treturn dict;\n";
-            stateFunc += "\t}\n";
-
-            if (!isEmpty)
-            {
-                base.Tokens.Insert(base.Index, new Token(stateFunc));
-                base.Index++;
-            }
-
-            var actionFunc = "\n";
-            actionFunc += "\tprotected override Dictionary<Type, ActionBindings> DefineActionBindings()\n";
-            actionFunc += "\t{\n";
-            actionFunc += "\t\tvar dict = new Dictionary<Type, ActionBindings>();\n";
-            actionFunc += "\n";
-
-            isEmpty = true;
-            foreach (var state in ParsingEngine.StateActions[base.CurrentMachine])
-            {
-                actionFunc += "\t\tvar " + state.Key.ToLower() + "Dict = new ActionBindings();\n";
-
-                foreach (var pair in state.Value.Where(val => val.Value.Item2 == ActionType.Do))
-                {
-                    actionFunc += "\t\t" + state.Key.ToLower() + "Dict.Add(typeof(" + pair.Key +
-                        "), new Action(" + pair.Value.Item1 + "));\n";
-                    isEmpty = false;
-                }
-
-                actionFunc += "\t\tdict.Add(typeof(" + state.Key + "), " + state.Key.ToLower() + "Dict);\n";
-                actionFunc += "\n";
-            }
-
-            actionFunc += "\t\treturn dict;\n";
-            actionFunc += "\t}\n";
-
-            if (!isEmpty)
-            {
-                base.Tokens.Insert(base.Index, new Token(actionFunc));
-                base.Index++;
-            }
         }
 
         #endregion

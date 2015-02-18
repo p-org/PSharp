@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Microsoft.PSharp.Parsing
 {
@@ -97,8 +98,14 @@ namespace Microsoft.PSharp.Parsing
             {
                 this.RewriteIdentifier();
             }
+            else if (token.Type == TokenType.MachineRightCurlyBracket)
+            {
+                this.InstrumentTransitionsAndActionsBindings();
+            }
             else if (token.Type == TokenType.StateRightCurlyBracket)
             {
+                this.InstrumentDeferredEvents();
+                this.InstrumentIgnoredEvents();
                 base.CurrentState = "";
             }
 
@@ -643,6 +650,161 @@ namespace Microsoft.PSharp.Parsing
             replaceIdx++;
 
             base.Index = replaceIdx;
+        }
+
+        /// <summary>
+        /// Instruments the state transitions and action bindings.
+        /// </summary>
+        private void InstrumentTransitionsAndActionsBindings()
+        {
+            if (!ParsingEngine.StateActions.ContainsKey(base.CurrentMachine))
+            {
+                return;
+            }
+
+            var stateFunc = "\n";
+            stateFunc += "\tprotected override Dictionary<Type, StepStateTransitions> DefineStepStateTransitions()\n";
+            stateFunc += "\t{\n";
+            stateFunc += "\t\tvar dict = new Dictionary<Type, StepStateTransitions>();\n";
+            stateFunc += "\n";
+
+            bool isEmpty = true;
+            foreach (var state in ParsingEngine.StateActions[base.CurrentMachine])
+            {
+                stateFunc += "\t\tvar " + state.Key.ToLower() + "Dict = new StepStateTransitions();\n";
+
+                foreach (var pair in state.Value.Where(val => val.Value.Item2 == ActionType.Goto))
+                {
+                    stateFunc += "\t\t" + state.Key.ToLower() + "Dict.Add(typeof(" + pair.Key +
+                        "), typeof(" + pair.Value.Item1 + "));\n";
+                    isEmpty = false;
+                }
+
+                stateFunc += "\t\tdict.Add(typeof(" + state.Key + "), " + state.Key.ToLower() + "Dict);\n";
+                stateFunc += "\n";
+            }
+
+            stateFunc += "\t\treturn dict;\n";
+            stateFunc += "\t}\n";
+
+            if (!isEmpty)
+            {
+                base.Tokens.Insert(base.Index, new Token(stateFunc));
+                base.Index++;
+            }
+
+            var actionFunc = "\n";
+            actionFunc += "\tprotected override Dictionary<Type, ActionBindings> DefineActionBindings()\n";
+            actionFunc += "\t{\n";
+            actionFunc += "\t\tvar dict = new Dictionary<Type, ActionBindings>();\n";
+            actionFunc += "\n";
+
+            isEmpty = true;
+            foreach (var state in ParsingEngine.StateActions[base.CurrentMachine])
+            {
+                actionFunc += "\t\tvar " + state.Key.ToLower() + "Dict = new ActionBindings();\n";
+
+                foreach (var pair in state.Value.Where(val => val.Value.Item2 == ActionType.Do))
+                {
+                    actionFunc += "\t\t" + state.Key.ToLower() + "Dict.Add(typeof(" + pair.Key +
+                        "), new Action(" + pair.Value.Item1 + "));\n";
+                    isEmpty = false;
+                }
+
+                actionFunc += "\t\tdict.Add(typeof(" + state.Key + "), " + state.Key.ToLower() + "Dict);\n";
+                actionFunc += "\n";
+            }
+
+            actionFunc += "\t\treturn dict;\n";
+            actionFunc += "\t}\n";
+
+            if (!isEmpty)
+            {
+                base.Tokens.Insert(base.Index, new Token(actionFunc));
+                base.Index++;
+            }
+        }
+
+        /// <summary>
+        /// Instruments the deferred events.
+        /// </summary>
+        private void InstrumentDeferredEvents()
+        {
+            if (!ParsingEngine.DeferredEvents.ContainsKey(base.CurrentMachine) ||
+                !ParsingEngine.DeferredEvents[base.CurrentMachine].ContainsKey(base.CurrentState))
+            {
+                return;
+            }
+
+            var func = "\n";
+            func += "\tprotected override HashSet<Type> DefineDeferredEvents()\n";
+            func += "\t{\n";
+            func += "\t\treturn new HashSet<Type>\n";
+            func += "\t\t{\n";
+
+            var eventIds = ParsingEngine.DeferredEvents[base.CurrentMachine][base.CurrentState].ToList();
+            for (int idx = 0; idx < eventIds.Count; idx++)
+            {
+                func += "\t\t\ttypeof(" + eventIds[idx] + ")";
+                if (idx < eventIds.Count - 1)
+                {
+                    func += ",\n";
+                }
+                else
+                {
+                    func += "\n";
+                }
+            }
+
+            func += "\t\t};\n";
+            func += "\t}\n";
+
+            if (eventIds.Count > 0)
+            {
+                base.Tokens.Insert(base.Index, new Token(func));
+                base.Index++;
+            }
+        }
+
+        /// <summary>
+        /// Instruments the ignored events.
+        /// </summary>
+        private void InstrumentIgnoredEvents()
+        {
+            if (!ParsingEngine.IgnoredEvents.ContainsKey(base.CurrentMachine) ||
+                !ParsingEngine.IgnoredEvents[base.CurrentMachine].ContainsKey(base.CurrentState))
+            {
+                return;
+            }
+
+            var func = "\n";
+            func += "\tprotected override HashSet<Type> DefineIgnoredEvents()\n";
+            func += "\t{\n";
+            func += "\t\treturn new HashSet<Type>\n";
+            func += "\t\t{\n";
+
+            var eventIds = ParsingEngine.IgnoredEvents[base.CurrentMachine][base.CurrentState].ToList();
+            for (int idx = 0; idx < eventIds.Count; idx++)
+            {
+                func += "\t\t\ttypeof(" + eventIds[idx] + ")";
+                if (idx < eventIds.Count - 1)
+                {
+                    func += ",\n";
+                }
+                else
+                {
+                    func += "\n";
+                }
+            }
+
+            func += "\t\t};\n";
+            func += "\t}\n";
+
+            if (eventIds.Count > 0)
+            {
+                base.Tokens.Insert(base.Index, new Token(func));
+                base.Index++;
+            }
         }
 
         #endregion
