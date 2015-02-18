@@ -1146,6 +1146,12 @@ namespace Microsoft.PSharp.Parsing
             this.Index++;
 
             this.TokenizeWhiteSpaceOrComments(textUnits);
+            if (textUnits[this.Index].Text.Equals("{"))
+            {
+                this.TokenizeArgumentsList(textUnits);
+            }
+
+            this.TokenizeWhiteSpaceOrComments(textUnits);
             if (!textUnits[this.Index].Text.Equals("to"))
             {
                 this.ReportParsingError("Expected \"to\".");
@@ -1405,7 +1411,7 @@ namespace Microsoft.PSharp.Parsing
             this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.LeftCurlyBracket));
             this.Index++;
 
-            this.TokenizeWhiteSpaceOrComments(textUnits);
+            this.TokenizeWhiteSpaceOrComments(textUnits, true);
             while (this.Index < textUnits.Count && !textUnits[this.Index].Text.Equals("}"))
             {
                 if (textUnits[this.Index].Text.Equals(","))

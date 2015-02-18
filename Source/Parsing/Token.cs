@@ -25,9 +25,9 @@ namespace Microsoft.PSharp.Parsing
         #region fields
 
         /// <summary>
-        /// The string that this token represents.
+        /// The text that this token represents.
         /// </summary>
-        public readonly string String;
+        public readonly string Text;
 
         /// <summary>
         /// The type of this token.
@@ -45,7 +45,7 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="text">String</param>
         public Token(string text)
         {
-            this.String = text;
+            this.Text = text;
             this.Type = TokenType.None;
         }
 
@@ -56,7 +56,7 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="type">TokenType</param>
         public Token(string text, TokenType type)
         {
-            this.String = text;
+            this.Text = text;
             this.Type = type;
         }
 

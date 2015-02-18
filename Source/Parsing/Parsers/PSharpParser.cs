@@ -90,7 +90,7 @@ namespace Microsoft.PSharp.Parsing
             base.SkipWhiteSpaceTokens();
             if (base.Tokens[base.Index].Type == TokenType.MachineIdentifier)
             {
-                base.CurrentMachine = base.Tokens[base.Index].String;
+                base.CurrentMachine = base.Tokens[base.Index].Text;
             }
             else
             {
@@ -108,7 +108,7 @@ namespace Microsoft.PSharp.Parsing
             base.SkipWhiteSpaceTokens();
             if (base.Tokens[base.Index].Type == TokenType.StateIdentifier)
             {
-                base.CurrentState = base.Tokens[base.Index].String;
+                base.CurrentState = base.Tokens[base.Index].Text;
             }
             else
             {
@@ -163,11 +163,11 @@ namespace Microsoft.PSharp.Parsing
                 }
                 else if (eventIds.Count == 0)
                 {
-                    eventIds.Add(base.Tokens[base.Index].String);
+                    eventIds.Add(base.Tokens[base.Index].Text);
                 }
                 else
                 {
-                    eventIds[eventIds.Count - 1] += base.Tokens[base.Index].String;
+                    eventIds[eventIds.Count - 1] += base.Tokens[base.Index].Text;
                 }
 
                 base.Index++;
@@ -222,11 +222,11 @@ namespace Microsoft.PSharp.Parsing
                 }
                 else if (eventIds.Count == 0)
                 {
-                    eventIds.Add(base.Tokens[base.Index].String);
+                    eventIds.Add(base.Tokens[base.Index].Text);
                 }
                 else
                 {
-                    eventIds[eventIds.Count - 1] += base.Tokens[base.Index].String;
+                    eventIds[eventIds.Count - 1] += base.Tokens[base.Index].Text;
                 }
 
                 base.Index++;
@@ -283,7 +283,7 @@ namespace Microsoft.PSharp.Parsing
 
             if (base.Tokens[base.Index].Type == TokenType.EventIdentifier)
             {
-                eventId = base.Tokens[base.Index].String;
+                eventId = base.Tokens[base.Index].Text;
             }
             else
             {
@@ -327,7 +327,7 @@ namespace Microsoft.PSharp.Parsing
                 base.Tokens[base.Index].Type == TokenType.StateIdentifier && type == ActionType.Goto)
             {
                 ParsingEngine.StateActions[base.CurrentMachine][base.CurrentState].Add(
-                    eventId, new Tuple<string, ActionType>(base.Tokens[base.Index].String, type));
+                    eventId, new Tuple<string, ActionType>(base.Tokens[base.Index].Text, type));
             }
             else
             {

@@ -22,9 +22,9 @@ namespace BoundedAsync
                 Process2 = create Process { this };
                 Process3 = create Process { this };
 
-                //send eInit { Process2, Process3 } to Process1;
-                //send eInit { Process1, Process3 } to Process2;
-                //send eInit { Process1, Process2 } to Process3;
+                send eInit { Process2, Process3 } to Process1;
+                send eInit { Process1, Process3 } to Process2;
+                send eInit { Process1, Process2 } to Process3;
 
                 Count = 0;
                 DoneCounter = 3;

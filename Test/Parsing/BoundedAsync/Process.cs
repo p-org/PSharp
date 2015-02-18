@@ -45,11 +45,13 @@ namespace BoundedAsync
             {
                 this.CountMessage.Count = this.CountMessage.Count + 1;
 
+                Console.WriteLine("Process: Count: {0}", this.CountMessage.Count);
+
                 var msg1 = this.CountMessage;
                 var msg2 = new CountMessage(this.CountMessage.Count);
 
-                //send eMyCount { msg1 } to LeftProcess;
-                //send eMyCount { msg2 } to RightProcess;
+                send eMyCount { msg1 } to LeftProcess;
+                send eMyCount { msg2 } to RightProcess;
                 send eReq to Scheduler;
 
                 if (this.CountMessage.Count > 10)
@@ -68,6 +70,8 @@ namespace BoundedAsync
         {
             entry
             {
+                Console.WriteLine("Process: Done");
+
                 send eDone to Scheduler;
                 delete;
             }
@@ -77,15 +81,18 @@ namespace BoundedAsync
 
         private action InitAction
         {
-            this.LeftProcess = ((Tuple<Machine, Machine>)payload).Item1;
-            this.RightProcess = ((Tuple<Machine, Machine>)payload).Item2;
+            this.LeftProcess = ((Object[])payload)[0] as Machine;
+            this.RightProcess = ((Object[])payload)[1] as Machine;
 
             send eReq to Scheduler;
         }
 
         private action ConfirmThatInSync
         {
-            var countMsg = (CountMessage)payload;
+            Console.WriteLine("Process: Performing ConfirmThatInSync");
+
+            var countMsg = (CountMessage)((Object[])payload)[0];
+            //var countMsg = (CountMessage)payload;
 
             //Runtime.Assert((this.CountMessage.Count <= countMsg.Count) &&
                 //(this.CountMessage.Count >= (countMsg.Count - 1)));

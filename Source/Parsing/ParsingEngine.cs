@@ -120,7 +120,7 @@ namespace Microsoft.PSharp.Parsing
             var text = "";
             foreach (var token in tokens)
             {
-                text += token.String;
+                text += token.Text;
             }
 
             return text;

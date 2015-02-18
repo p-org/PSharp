@@ -132,7 +132,7 @@ namespace Microsoft.PSharp.Parsing
                 throw new ParsingException("parser: event identifier expected.");
             }
 
-            var identifier = base.Tokens[base.Index].String;
+            var identifier = base.Tokens[base.Index].Text;
 
             base.Index++;
             var replaceIdx = base.Index;
@@ -162,11 +162,7 @@ namespace Microsoft.PSharp.Parsing
 
             var eventBody = "\n";
             eventBody += "\t{\n";
-            eventBody += "\t\tpublic " + identifier + "()\n";
-            eventBody += "\t\t\t: base()\n";
-            eventBody += "\t\t{ }\n";
-            eventBody += "\n";
-            eventBody += "\t\tpublic " + identifier + "(Object payload)\n";
+            eventBody += "\t\tpublic " + identifier + "(params Object[] payload)\n";
             eventBody += "\t\t\t: base(payload)\n";
             eventBody += "\t\t{ }\n";
             eventBody += "\t}";
@@ -185,7 +181,7 @@ namespace Microsoft.PSharp.Parsing
             base.SkipWhiteSpaceTokens();
             if (base.Tokens[base.Index].Type == TokenType.MachineIdentifier)
             {
-                base.CurrentMachine = base.Tokens[base.Index].String;
+                base.CurrentMachine = base.Tokens[base.Index].Text;
             }
             else
             {
@@ -228,7 +224,7 @@ namespace Microsoft.PSharp.Parsing
             base.SkipWhiteSpaceTokens();
             if (base.Tokens[base.Index].Type == TokenType.StateIdentifier)
             {
-                base.CurrentState = base.Tokens[base.Index].String;
+                base.CurrentState = base.Tokens[base.Index].Text;
             }
             else
             {
@@ -363,7 +359,7 @@ namespace Microsoft.PSharp.Parsing
             var payload = new List<List<Token>>();
 
             base.SkipWhiteSpaceTokens();
-            machineId = base.Tokens[base.Index].String;
+            machineId = base.Tokens[base.Index].Text;
             base.Index++;
 
             while (base.Tokens[base.Index].Type != TokenType.LeftCurlyBracket)
@@ -487,13 +483,29 @@ namespace Microsoft.PSharp.Parsing
             var startIdx = base.Index;
             var eventId = "";
             var machineIds = new List<Token>();
+            var payload = new List<Token>();
 
             base.SkipWhiteSpaceTokens();
-            eventId = base.Tokens[base.Index].String;
+
+            eventId = base.Tokens[base.Index].Text;
+
             base.Index++;
-
             base.SkipWhiteSpaceTokens();
-            base.Tokens.RemoveAt(base.Index);
+
+            if (base.Tokens[base.Index].Type == TokenType.LeftCurlyBracket)
+            {
+                base.Index++;
+                while (base.Tokens[base.Index].Type != TokenType.RightCurlyBracket)
+                {
+                    payload.Add(base.Tokens[base.Index]);
+                    base.Index++;
+                }
+
+                base.Index++;
+                base.SkipWhiteSpaceTokens();
+            }
+           
+            base.Index++;
             base.SkipWhiteSpaceTokens();
 
             while (base.Tokens[base.Index].Type != TokenType.Semicolon)
@@ -532,6 +544,12 @@ namespace Microsoft.PSharp.Parsing
 
             base.Tokens.Insert(base.Index, new Token("(", TokenType.LeftParenthesis));
             base.Index++;
+
+            foreach (var item in payload)
+            {
+                base.Tokens.Insert(base.Index, item);
+                base.Index++;
+            }
 
             base.Tokens.Insert(base.Index, new Token(")", TokenType.RightParenthesis));
             base.Index++;
@@ -613,7 +631,7 @@ namespace Microsoft.PSharp.Parsing
         {
             if (base.CurrentState.Equals("") ||
                 !ParsingEngine.MachineFieldsAndMethods.ContainsKey(base.CurrentMachine) ||
-                !ParsingEngine.MachineFieldsAndMethods[base.CurrentMachine].Contains(base.Tokens[base.Index].String))
+                !ParsingEngine.MachineFieldsAndMethods[base.CurrentMachine].Contains(base.Tokens[base.Index].Text))
             {
                 return;
             }
