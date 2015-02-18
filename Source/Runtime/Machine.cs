@@ -606,6 +606,28 @@ namespace Microsoft.PSharp
             Runtime.Delete(this);
         }
 
+        /// <summary>
+        /// Checks if the assertion holds, and if not it reports
+        /// an error and exits.
+        /// </summary>
+        /// <param name="predicate">Predicate</param>
+        protected internal void Assert(bool predicate)
+        {
+            Runtime.Assert(predicate);
+        }
+
+        /// <summary>
+        /// Checks if the assertion holds, and if not it reports
+        /// an error and exits.
+        /// </summary>
+        /// <param name="predicate">Predicate</param>
+        /// <param name="s">Message</param>
+        /// <param name="args">Message arguments</param>
+        protected internal void Assert(bool predicate, string s, params object[] args)
+        {
+            Runtime.Assert(predicate, s, args);
+        }
+
         #endregion
 
         #region factory methods

@@ -93,7 +93,7 @@ namespace BoundedAsync
 
             var countMsg = (CountMessage)payload;
 
-            Runtime.Assert((this.CountMessage.Count <= countMsg.Count) &&
+            this.Assert((this.CountMessage.Count <= countMsg.Count) &&
                 (this.CountMessage.Count >= (countMsg.Count - 1)));
         }
     }

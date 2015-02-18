@@ -848,7 +848,7 @@ namespace Microsoft.PSharp
         /// an error and exits.
         /// </summary>
         /// <param name="predicate">Predicate</param>
-        public static void Assert(bool predicate)
+        internal static void Assert(bool predicate)
         {
             if (!predicate)
             {
@@ -881,7 +881,7 @@ namespace Microsoft.PSharp
         /// <param name="predicate">Predicate</param>
         /// <param name="s">Message</param>
         /// <param name="args">Message arguments</param>
-        public static void Assert(bool predicate, string s, params object[] args)
+        internal static void Assert(bool predicate, string s, params object[] args)
         {
             if (!predicate)
             {

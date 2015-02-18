@@ -287,6 +287,28 @@ namespace Microsoft.PSharp
             this.Machine.Delete();
         }
 
+        /// <summary>
+        /// Checks if the assertion holds, and if not it reports
+        /// an error and exits.
+        /// </summary>
+        /// <param name="predicate">Predicate</param>
+        protected void Assert(bool predicate)
+        {
+            this.Machine.Assert(predicate);
+        }
+
+        /// <summary>
+        /// Checks if the assertion holds, and if not it reports
+        /// an error and exits.
+        /// </summary>
+        /// <param name="predicate">Predicate</param>
+        /// <param name="s">Message</param>
+        /// <param name="args">Message arguments</param>
+        protected void Assert(bool predicate, string s, params object[] args)
+        {
+            this.Machine.Assert(predicate, s, args);
+        }
+
         #endregion
 
         #region factory methods
