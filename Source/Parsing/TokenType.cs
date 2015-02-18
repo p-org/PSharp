@@ -106,6 +106,7 @@ namespace Microsoft.PSharp.Parsing
         SendEvent,
         RaiseEvent,
         DeleteMachine,
+        Assert,
         Payload
     }
 }

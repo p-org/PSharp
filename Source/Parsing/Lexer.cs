@@ -1370,6 +1370,11 @@ namespace Microsoft.PSharp.Parsing
             {
                 this.TokenizeDeleteStatement(textUnits);
             }
+            else if (textUnits[this.Index].Text.Equals("assert"))
+            {
+                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Assert));
+                this.Index++;
+            }
             else
             {
                 this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Identifier));

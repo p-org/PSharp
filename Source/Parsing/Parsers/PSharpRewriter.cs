@@ -86,6 +86,10 @@ namespace Microsoft.PSharp.Parsing
             {
                 this.RewriteDeleteStatement();
             }
+            else if (token.Type == TokenType.Assert)
+            {
+                this.RewriteAssertStatement();
+            }
             else if (token.Type == TokenType.Payload)
             {
                 this.RewritePayload();
@@ -579,6 +583,21 @@ namespace Microsoft.PSharp.Parsing
             base.Index++;
 
             base.SkipWhiteSpaceTokens();
+        }
+
+        /// <summary>
+        /// Rewrites the assert statement.
+        /// </summary>
+        private void RewriteAssertStatement()
+        {
+            base.Tokens[base.Index] = new Token("this", TokenType.This);
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token(".", TokenType.Dot));
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token("Assert"));
+            base.Index++;
         }
 
         /// <summary>
