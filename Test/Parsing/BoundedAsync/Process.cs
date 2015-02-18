@@ -91,11 +91,10 @@ namespace BoundedAsync
         {
             Console.WriteLine("Process: Performing ConfirmThatInSync");
 
-            var countMsg = (CountMessage)((Object[])payload)[0];
-            //var countMsg = (CountMessage)payload;
+            var countMsg = (CountMessage)payload;
 
-            //Runtime.Assert((this.CountMessage.Count <= countMsg.Count) &&
-                //(this.CountMessage.Count >= (countMsg.Count - 1)));
+            Runtime.Assert((this.CountMessage.Count <= countMsg.Count) &&
+                (this.CountMessage.Count >= (countMsg.Count - 1)));
         }
     }
 }
