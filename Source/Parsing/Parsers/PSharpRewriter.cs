@@ -359,12 +359,17 @@ namespace Microsoft.PSharp.Parsing
             base.Index++;
 
             var startIdx = base.Index;
-            var machineId = "";
-            var payload = new List<List<Token>>();
+            var machineIds = new List<Token>();
+            var payload = new List<Token>();
 
             base.SkipWhiteSpaceTokens();
-            machineId = base.Tokens[base.Index].Text;
-            base.Index++;
+
+            while (base.Tokens[base.Index].Type != TokenType.Semicolon &&
+                base.Tokens[base.Index].Type != TokenType.LeftCurlyBracket)
+            {
+                machineIds.Add(base.Tokens[base.Index]);
+                base.Index++;
+            }
 
             while (base.Tokens[base.Index].Type != TokenType.LeftCurlyBracket)
             {
@@ -375,17 +380,7 @@ namespace Microsoft.PSharp.Parsing
             base.SkipWhiteSpaceTokens();
             while (base.Tokens[base.Index].Type != TokenType.RightCurlyBracket)
             {
-                if (payload.Count == 0)
-                {
-                    payload.Add(new List<Token>());
-                }
-
-                if (base.Tokens[base.Index].Type == TokenType.Comma)
-                {
-                    payload.Add(new List<Token>());
-                }
-
-                payload[payload.Count - 1].Add(base.Tokens[base.Index]);
+                payload.Add(base.Tokens[base.Index]);
                 base.Index++;
             }
 
@@ -401,8 +396,11 @@ namespace Microsoft.PSharp.Parsing
                 base.Index--;
             }
 
-            base.Tokens.Insert(base.Index, new Token(machineId, TokenType.EventIdentifier));
-            base.Index++;
+            foreach (var id in machineIds)
+            {
+                base.Tokens.Insert(base.Index, id);
+                base.Index++;
+            }
 
             base.Tokens.Insert(base.Index, new Token(">", TokenType.GreaterThanOperator));
             base.Index++;
@@ -410,19 +408,10 @@ namespace Microsoft.PSharp.Parsing
             base.Tokens.Insert(base.Index, new Token("(", TokenType.LeftParenthesis));
             base.Index++;
 
-            for (int idx = 0; idx < payload.Count; idx++)
+            foreach (var item in payload)
             {
-                foreach (var tok in payload[idx])
-                {
-                    base.Tokens.Insert(base.Index, tok);
-                    base.Index++;
-                }
-
-                if (idx < payload.Count - 1)
-                {
-                    base.Tokens.Insert(base.Index, new Token(",", TokenType.Comma));
-                    base.Index++;
-                }
+                base.Tokens.Insert(base.Index, item);
+                base.Index++;
             }
 
             base.Tokens[base.Index] = new Token(")", TokenType.RightParenthesis);

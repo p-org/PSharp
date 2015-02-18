@@ -1074,15 +1074,24 @@ namespace Microsoft.PSharp.Parsing
             this.Index++;
 
             this.TokenizeWhiteSpaceOrComments(textUnits);
-            if (Regex.IsMatch(textUnits[this.Index].Text, this.GetPattern()))
+            while (this.Index < textUnits.Count && (!textUnits[this.Index].Text.Equals("{") &&
+                !textUnits[this.Index].Text.Equals(";")))
             {
-                this.ReportParsingError("Expected machine identifier.");
+                if (textUnits[this.Index].Text.Equals("."))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Dot));
+                }
+                else if (!Regex.IsMatch(textUnits[this.Index].Text, this.GetPattern()))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.MachineIdentifier));
+                }
+                else if (!String.IsNullOrWhiteSpace(textUnits[this.Index].Text))
+                {
+                    this.ReportParsingError("Expected machine identifier.");
+                }
+
+                this.Index++;
             }
-
-            this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.MachineIdentifier));
-            this.Index++;
-
-            this.TokenizeWhiteSpaceOrComments(textUnits);
 
             if (textUnits[this.Index].Text.Equals(";"))
             {
@@ -1164,7 +1173,24 @@ namespace Microsoft.PSharp.Parsing
 
             while (this.Index < textUnits.Count && !textUnits[this.Index].Text.Equals(";"))
             {
-                this.TokenizeNextTextUnit(textUnits);
+                if (textUnits[this.Index].Text.Equals("."))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Dot));
+                }
+                else if (textUnits[this.Index].Text.Equals("this"))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.This));
+                }
+                else if (!Regex.IsMatch(textUnits[this.Index].Text, this.GetPattern()))
+                {
+                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Identifier));
+                }
+                else if (!String.IsNullOrWhiteSpace(textUnits[this.Index].Text))
+                {
+                    this.ReportParsingError("Expected identifier.");
+                }
+
+                this.Index++;
             }
 
             this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Semicolon));
