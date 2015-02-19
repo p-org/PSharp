@@ -123,7 +123,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 OfType<MethodDeclarationSyntax>().FirstOrDefault(v
                 => v.Identifier.ValueText.Equals("DefineStepStateTransitions") &&
                 v.Modifiers.Any(SyntaxKind.OverrideKeyword) && v.ReturnType.ToString().
-                Equals("Dictionary<Type, StepStateTransitions>"));
+                Equals("System.Collections.Generic.Dictionary<Type, StepStateTransitions>"));
             if (defineStepStateTransitionsMethod == null)
             {
                 return false;
@@ -180,7 +180,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 OfType<MethodDeclarationSyntax>().FirstOrDefault(v
                 => v.Identifier.ValueText.Equals("DefineActionBindings") &&
                 v.Modifiers.Any(SyntaxKind.OverrideKeyword) && v.ReturnType.ToString().
-                Equals("Dictionary<Type, ActionBindings>"));
+                Equals("System.Collections.Generic.Dictionary<Type, ActionBindings>"));
             if (defineActionBindingsMethod == null)
             {
                 return false;

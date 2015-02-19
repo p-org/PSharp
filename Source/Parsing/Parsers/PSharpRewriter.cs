@@ -767,9 +767,11 @@ namespace Microsoft.PSharp.Parsing
             }
 
             var stateFunc = "\n";
-            stateFunc += "\tprotected override Dictionary<Type, StepStateTransitions> DefineStepStateTransitions()\n";
+            stateFunc += "\tprotected override System.Collections.Generic.Dictionary<Type, " +
+                "StepStateTransitions> DefineStepStateTransitions()\n";
             stateFunc += "\t{\n";
-            stateFunc += "\t\tvar dict = new Dictionary<Type, StepStateTransitions>();\n";
+            stateFunc += "\t\tvar dict = new System.Collections.Generic.Dictionary<Type, " +
+                "StepStateTransitions>();\n";
             stateFunc += "\n";
 
             bool isEmpty = true;
@@ -798,9 +800,11 @@ namespace Microsoft.PSharp.Parsing
             }
 
             var actionFunc = "\n";
-            actionFunc += "\tprotected override Dictionary<Type, ActionBindings> DefineActionBindings()\n";
+            actionFunc += "\tprotected override System.Collections.Generic.Dictionary<Type, " +
+                "ActionBindings> DefineActionBindings()\n";
             actionFunc += "\t{\n";
-            actionFunc += "\t\tvar dict = new Dictionary<Type, ActionBindings>();\n";
+            actionFunc += "\t\tvar dict = new System.Collections.Generic.Dictionary<Type, " +
+                "ActionBindings>();\n";
             actionFunc += "\n";
 
             isEmpty = true;
@@ -841,9 +845,9 @@ namespace Microsoft.PSharp.Parsing
             }
 
             var func = "\n";
-            func += "\tprotected override HashSet<Type> DefineDeferredEvents()\n";
+            func += "\tprotected override System.Collections.Generic.HashSet<Type> DefineDeferredEvents()\n";
             func += "\t{\n";
-            func += "\t\treturn new HashSet<Type>\n";
+            func += "\t\treturn new System.Collections.Generic.HashSet<Type>\n";
             func += "\t\t{\n";
 
             var eventIds = ParsingEngine.DeferredEvents[base.CurrentMachine][base.CurrentState].ToList();
@@ -882,9 +886,9 @@ namespace Microsoft.PSharp.Parsing
             }
 
             var func = "\n";
-            func += "\tprotected override HashSet<Type> DefineIgnoredEvents()\n";
+            func += "\tprotected override System.Collections.Generic.HashSet<Type> DefineIgnoredEvents()\n";
             func += "\t{\n";
-            func += "\t\treturn new HashSet<Type>\n";
+            func += "\t\treturn new System.Collections.Generic.HashSet<Type>\n";
             func += "\t\t{\n";
 
             var eventIds = ParsingEngine.IgnoredEvents[base.CurrentMachine][base.CurrentState].ToList();
