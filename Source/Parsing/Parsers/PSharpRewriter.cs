@@ -50,6 +50,10 @@ namespace Microsoft.PSharp.Parsing
             }
 
             var token = base.Tokens[base.Index];
+            if (base.Index == 0)
+            {
+                this.InstrumentPSharpDll();
+            }
             if (token.Type == TokenType.EventDecl)
             {
                 this.RewriteEventDeclaration();
@@ -120,6 +124,32 @@ namespace Microsoft.PSharp.Parsing
         #endregion
 
         #region private API
+
+        /// <summary>
+        /// Instrument the P# dll.
+        /// </summary>
+        private void InstrumentPSharpDll()
+        {
+            base.Tokens.Insert(base.Index, new Token("using", TokenType.LeftParenthesis));
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token(" ", TokenType.WhiteSpace));
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token("Microsoft"));
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token(".", TokenType.Dot));
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token("PSharp"));
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token(";", TokenType.Semicolon));
+            base.Index++;
+
+            base.Tokens.Insert(base.Index, new Token("\n", TokenType.NewLine));
+        }
 
         /// <summary>
         /// Rewrites the event declaration.

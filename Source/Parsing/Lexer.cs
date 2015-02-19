@@ -1613,13 +1613,13 @@ namespace Microsoft.PSharp.Parsing
         /// Tokenizes white space or comments, if any.
         /// </summary>
         /// <param name="textUnits">Text units</param>
-        /// <param name="skip">True to skip white space or comments</param>
+        /// <param name="skip">True to skip white space</param>
         private void TokenizeWhiteSpaceOrComments(List<TextUnit> textUnits, bool skip = false)
         {
             while (this.Index < textUnits.Count)
             {
-                var repeat = this.TryTokenizeLineComment(textUnits, skip);
-                repeat = repeat || this.TryTokenizeMultiLineComment(textUnits, skip);
+                var repeat = this.TryTokenizeLineComment(textUnits);
+                repeat = repeat || this.TryTokenizeMultiLineComment(textUnits);
                 repeat = repeat || this.TryTokenizeWhiteSpace(textUnits, skip);
 
                 if (!repeat)
@@ -1630,11 +1630,10 @@ namespace Microsoft.PSharp.Parsing
         }
 
         /// <summary>
-        /// Tries to tokenizes a line-wide comment, if any.
+        /// Skip a line-wide comment, if any.
         /// </summary>
         /// <param name="textUnits">Text units</param>
-        /// <param name="skip">True to skip the comment</param>
-        private bool TryTokenizeLineComment(List<TextUnit> textUnits, bool skip = false)
+        private bool TryTokenizeLineComment(List<TextUnit> textUnits)
         {
             if (!textUnits[this.Index].Text.Equals("//") &&
                 !textUnits[this.Index].Text.Equals("#"))
@@ -1644,11 +1643,6 @@ namespace Microsoft.PSharp.Parsing
 
             while (this.Index < textUnits.Count && !textUnits[this.Index].IsEndOfLine)
             {
-                if (!skip)
-                {
-                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Comment));
-                }
-                
                 this.Index++;
             }
 
@@ -1656,11 +1650,10 @@ namespace Microsoft.PSharp.Parsing
         }
 
         /// <summary>
-        /// Tries to tokenize a multi-line comment, if any.
+        /// Skip a multi-line comment, if any.
         /// </summary>
         /// <param name="textUnits">Text units</param>
-        /// <param name="skip">True to skip the comment</param>
-        private bool TryTokenizeMultiLineComment(List<TextUnit> textUnits, bool skip = false)
+        private bool TryTokenizeMultiLineComment(List<TextUnit> textUnits)
         {
             if (!textUnits[this.Index].Text.Equals("/*"))
             {
@@ -1669,22 +1662,7 @@ namespace Microsoft.PSharp.Parsing
 
             while (this.Index < textUnits.Count && !textUnits[this.Index].Text.Equals("*/"))
             {
-                if (textUnits[this.Index].IsEndOfLine && !skip)
-                {
-                    this.Tokens.Add(new Token("\n", TokenType.NewLine));
-                    this.LineIndex++;
-                }
-                else if (!skip)
-                {
-                    this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Comment));
-                }
-
                 this.Index++;
-            }
-
-            if (!skip)
-            {
-                this.Tokens.Add(new Token(textUnits[this.Index].Text, TokenType.Comment));
             }
 
             return true;
