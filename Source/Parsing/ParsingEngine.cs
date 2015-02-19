@@ -82,10 +82,9 @@ namespace Microsoft.PSharp.Parsing
         {
             var compilation = project.GetCompilationAsync().Result;
 
-            var rewrittenTrees = new HashSet<SyntaxTree>();
             foreach (var tree in compilation.SyntaxTrees.ToList())
             {
-                if (!ParsingEngine.IsProgramSyntaxTree(tree))
+                if (!ProgramInfo.IsPSharpFile(tree))
                 {
                     continue;
                 }
@@ -104,10 +103,9 @@ namespace Microsoft.PSharp.Parsing
 
                 var rewrittenTree = ParsingEngine.ConvertToText(tokens);
                 var source = SourceText.From(rewrittenTree);
-                rewrittenTrees.Add(tree.WithChangedText(source));
-            }
 
-            ProgramInfo.ReplaceSyntaxTrees(project, rewrittenTrees);
+                ProgramInfo.ReplaceSyntaxTree(tree.WithChangedText(source), ref project);
+            }
         }
 
         /// <summary>

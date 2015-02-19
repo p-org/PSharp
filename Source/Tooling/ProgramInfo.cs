@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
@@ -98,43 +99,40 @@ namespace Microsoft.PSharp.Tooling
         }
 
         /// <summary>
-        /// Replaces the existing syntax trees with the given ones.
+        /// Replaces an existing syntax tree with the given one.
         /// </summary>
-        public static void ReplaceSyntaxTrees(Project project, IEnumerable<SyntaxTree> syntaxTrees)
+        /// <param name="tree">SyntaxTree</param>
+        /// <param name="project">Project</param>
+        public static void ReplaceSyntaxTree(SyntaxTree tree, ref Project project)
         {
             if (!ProgramInfo.HasInitialized)
             {
                 throw new PSharpGenericException("ProgramInfo has not been initialized.");
             }
 
-            var updatedDocs = new HashSet<Document>();
-            foreach (var doc in project.Documents)
-            {
-                var tree = syntaxTrees.FirstOrDefault(val => val.FilePath.Equals(doc.FilePath));
-                if (tree == null)
-                {
-                    continue;
-                }
+            var doc = project.Documents.First(val => val.FilePath.Equals(tree.FilePath));
+            doc = doc.WithSyntaxRoot(tree.GetRoot());
 
-                updatedDocs.Add(doc.WithSyntaxRoot(tree.GetRoot()));
-            }
-
-            foreach (var doc in updatedDocs)
-            {
-                var textTask = doc.GetTextAsync();
-                project = project.RemoveDocument(doc.Id);
-                project = project.AddDocument(doc.Name, textTask.Result, doc.Folders).Project;
-            }
+            var textTask = doc.GetTextAsync();
+            project = project.RemoveDocument(doc.Id);
+            project = project.AddDocument(doc.Name, textTask.Result, doc.Folders).Project;
 
             ProgramInfo.Solution = project.Solution;
             ProgramInfo.Workspace = project.Solution.Workspace;
 
-            //var compilation = project.GetCompilationAsync().Result;
-            //foreach (var tree in compilation.SyntaxTrees.ToList())
-            //{
-            //    var root = (Microsoft.CodeAnalysis.CSharp.Syntax.CompilationUnitSyntax)tree.GetRoot();
-            //    Console.WriteLine(root.ToFullString());
-            //}
+            //var root = (Microsoft.CodeAnalysis.CSharp.Syntax.CompilationUnitSyntax)tree.GetRoot();
+            //Console.WriteLine(root.ToFullString());
+        }
+
+        /// <summary>
+        /// True if the syntax tree belongs to a P# program, else false.
+        /// </summary>
+        /// <param name="tree">SyntaxTree</param>
+        /// <returns>Boolean value</returns>
+        public static bool IsPSharpFile(SyntaxTree tree)
+        {
+            var ext = Path.GetExtension(tree.FilePath);
+            return ext.Equals(".ps") ? true : false;
         }
 
         #endregion

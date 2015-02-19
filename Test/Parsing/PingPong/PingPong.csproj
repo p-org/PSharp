@@ -39,9 +39,9 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Client.cs" />
-    <Compile Include="Events.cs" />
-    <Compile Include="Server.cs" />
+    <Compile Include="Client.ps" />
+    <Compile Include="Events.ps" />
+    <Compile Include="Server.ps" />
     <Compile Include="Test.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
