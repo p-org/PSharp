@@ -42,14 +42,13 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\Packages\Microsoft.CodeAnalysis.Workspaces.Common.0.7.4080704-beta\lib\net45\Microsoft.CodeAnalysis.Workspaces.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.VisualStudio.Package.LanguageService.14.0, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
-    <Reference Include="Microsoft.VisualStudio.TextManager.Interop, Version=7.1.40304.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Exceptions.cs" />
+    <Compile Include="Lexers\ILexer.cs" />
     <Compile Include="Lexers\PSharpLexer.cs" />
-    <Compile Include="Lexers\PSharpVisualStudioLexer.cs" />
+    <Compile Include="Parsers\IParser.cs" />
     <Compile Include="Parsers\PSharpSanitizer.cs" />
     <Compile Include="ParsingEngine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

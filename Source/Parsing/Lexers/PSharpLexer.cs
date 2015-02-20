@@ -22,7 +22,7 @@ namespace Microsoft.PSharp.Parsing
     /// <summary>
     /// The P# lexer.
     /// </summary>
-    public class PSharpLexer
+    public class PSharpLexer : ILexer
     {
         #region fields
 
@@ -37,11 +37,6 @@ namespace Microsoft.PSharp.Parsing
         protected List<TextUnit> TextUnits;
 
         /// <summary>
-        /// Lines of the original text.
-        /// </summary>
-        protected List<string> Lines;
-
-        /// <summary>
         /// The current line index.
         /// </summary>
         protected int LineIndex;
@@ -51,55 +46,33 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         protected int Index;
 
-        /// <summary>
-        /// The name of the currently parsed machine.
-        /// </summary>
-        protected string CurrentMachine;
-
-        /// <summary>
-        /// True by default.
-        /// </summary>
-        protected bool RemoveSkippedTokens;
-
         #endregion
 
         #region public API
 
         /// <summary>
-        /// Constructor.
+        /// Tokenizes the given text.
         /// </summary>
-        protected PSharpLexer()
+        /// <param name="text">Text to tokenize</param>
+        /// <returns>List of tokens</returns>
+        public List<Token> Tokenize(string text)
         {
-            this.Tokens = new List<Token>();
-            this.Lines = new List<string>();
-            this.LineIndex = 1;
-            this.Index = 0;
-            this.CurrentMachine = "";
-            this.RemoveSkippedTokens = false;
-        }
+            if (text.Length == 0)
+            {
+                return new List<Token>();
+            }
 
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="text">Text</param>
-        /// <param name="removedSkippedTokens">Remove skipped tokens</param>
-        public PSharpLexer(string text, bool removeSkippedTokens = false)
-        {
             this.Tokens = new List<Token>();
             this.TextUnits = new List<TextUnit>();
-            this.Lines = new List<string>();
             this.LineIndex = 1;
             this.Index = 0;
-            this.CurrentMachine = "";
-            this.RemoveSkippedTokens = removeSkippedTokens;
 
             using (StringReader sr = new StringReader(text))
             {
-                string line;
-                while ((line = sr.ReadLine()) != null)
+                string lineText;
+                while ((lineText = sr.ReadLine()) != null)
                 {
-                    this.Lines.Add(line);
-                    var split = this.SplitText(line);
+                    var split = this.SplitText(lineText);
                     foreach (var tok in split)
                     {
                         if (tok.Equals(""))
@@ -115,13 +88,7 @@ namespace Microsoft.PSharp.Parsing
             }
 
             this.TokenizeNext();
-        }
 
-        /// <summary>
-        /// Returns the tokens.
-        /// </summary>
-        public List<Token> GetTokens()
-        {
             return this.Tokens;
         }
 

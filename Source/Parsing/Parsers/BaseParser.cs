@@ -21,7 +21,7 @@ namespace Microsoft.PSharp.Parsing
     /// <summary>
     /// Abstract parser.
     /// </summary>
-    internal abstract class BaseParser
+    internal abstract class BaseParser : IParser
     {
         #region fields
 

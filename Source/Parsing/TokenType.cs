@@ -69,7 +69,6 @@ namespace Microsoft.PSharp.Parsing
         Protected,
         Internal,
         Public,
-
         Abstract,
         Virtual,
         Override,
