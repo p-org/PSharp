@@ -182,8 +182,6 @@ namespace Microsoft.PSharp.VisualStudio
                 case TokenType.Override:
 
                 case TokenType.NamespaceDecl:
-                case TokenType.ClassDecl:
-                case TokenType.StructDecl:
                 case TokenType.Using:
 
                 case TokenType.MachineDecl:
@@ -221,6 +219,11 @@ namespace Microsoft.PSharp.VisualStudio
                 case TokenType.Assert:
                 case TokenType.Payload:
                     classification = "PSharp.Keyword";
+                    break;
+
+                case TokenType.ClassDecl:
+                case TokenType.StructDecl:
+                    classification = "PSharp.None";
                     break;
 
                 default:

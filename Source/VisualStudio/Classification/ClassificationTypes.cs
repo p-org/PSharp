@@ -28,6 +28,10 @@ namespace Microsoft.PSharp.VisualStudio
         internal static ClassificationTypeDefinition PSharpClassificationDefinition = null;
 
         [Export(typeof(ClassificationTypeDefinition))]
+        [Name("PSharp.None")]
+        internal static ClassificationTypeDefinition PSharpNoneDefinition = null;
+
+        [Export(typeof(ClassificationTypeDefinition))]
         [Name("PSharp.Keyword")]
         internal static ClassificationTypeDefinition PSharpKeywordDefinition = null;
 
