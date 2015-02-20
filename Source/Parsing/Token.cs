@@ -20,7 +20,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.PSharp.Parsing
 {
-    internal class Token
+    public class Token
     {
         #region fields
 
@@ -34,6 +34,11 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         public readonly TokenType Type;
 
+        /// <summary>
+        /// The source code line of this token.
+        /// </summary>
+        public readonly int Line;
+
         #endregion
 
         #region public API
@@ -46,6 +51,20 @@ namespace Microsoft.PSharp.Parsing
         public Token(string text)
         {
             this.Text = text;
+            this.Line = 0;
+            this.Type = TokenType.None;
+        }
+
+        /// <summary>
+        /// Constructor. By default the type of the token
+        /// is None.
+        /// </summary>
+        /// <param name="text">String</param>
+        /// <param name="line">Line</param>
+        public Token(string text, int line)
+        {
+            this.Text = text;
+            this.Line = line;
             this.Type = TokenType.None;
         }
 
@@ -57,6 +76,20 @@ namespace Microsoft.PSharp.Parsing
         public Token(string text, TokenType type)
         {
             this.Text = text;
+            this.Line = 0;
+            this.Type = type;
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="text">String</param>
+        /// <param name="line">Line</param>
+        /// <param name="type">TokenType</param>
+        public Token(string text, int line, TokenType type)
+        {
+            this.Text = text;
+            this.Line = line;
             this.Type = type;
         }
 

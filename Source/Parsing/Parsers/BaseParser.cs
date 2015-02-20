@@ -111,10 +111,56 @@ namespace Microsoft.PSharp.Parsing
         }
 
         /// <summary>
+        /// Skips whitespace and comment tokens.
+        /// </summary>
+        protected void SkipWhiteSpaceAndCommentTokens()
+        {
+            while (this.Index < this.Tokens.Count)
+            {
+                var repeat = this.EraseLineComment();
+                repeat = repeat || this.EraseMultiLineComment();
+                repeat = repeat || this.SkipWhiteSpaceTokens();
+
+                if (!repeat)
+                {
+                    break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Erases whitespace and comment tokens.
+        /// </summary>
+        protected void EraseWhiteSpaceAndCommentTokens()
+        {
+            while (this.Index < this.Tokens.Count)
+            {
+                var repeat = this.EraseLineComment();
+                repeat = repeat || this.EraseMultiLineComment();
+                repeat = repeat || this.EraseWhiteSpaceTokens();
+
+                if (!repeat)
+                {
+                    break;
+                }
+            }
+        }
+
+        #endregion
+
+        #region private methods
+
+        /// <summary>
         /// Skips whitespace tokens.
         /// </summary>
-        protected void SkipWhiteSpaceTokens()
+        protected bool SkipWhiteSpaceTokens()
         {
+            if ((this.Tokens[this.Index].Type != TokenType.WhiteSpace) &&
+                (this.Tokens[this.Index].Type != TokenType.NewLine))
+            {
+                return false;
+            }
+
             while (this.Index < this.Tokens.Count &&
                 (this.Tokens[this.Index].Type == TokenType.WhiteSpace ||
                 this.Tokens[this.Index].Type == TokenType.NewLine))
@@ -124,15 +170,73 @@ namespace Microsoft.PSharp.Parsing
 
             if (this.Index == this.Tokens.Count)
             {
-                throw new ParsingException("parser: unexpected end of token list.");
+                throw new ParsingException("unexpected end of token list.");
             }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Erases a line-wide comment, if any.
+        /// </summary>
+        private bool EraseLineComment()
+        {
+            if ((this.Tokens[this.Index].Type != TokenType.Comment) &&
+                (this.Tokens[this.Index].Type != TokenType.Region))
+            {
+                return false;
+            }
+
+            while (this.Index < this.Tokens.Count &&
+                this.Tokens[this.Index].Type != TokenType.NewLine)
+            {
+                this.Tokens.RemoveAt(this.Index);
+            }
+
+            if (this.Index == this.Tokens.Count)
+            {
+                throw new ParsingException("unexpected end of token list.");
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Erases a multi-line comment, if any.
+        /// </summary>
+        private bool EraseMultiLineComment()
+        {
+            if (this.Tokens[this.Index].Type != TokenType.CommentStart)
+            {
+                return false;
+            }
+
+            while (this.Index < this.Tokens.Count &&
+                this.Tokens[this.Index].Type != TokenType.CommentEnd)
+            {
+                this.Tokens.RemoveAt(this.Index);
+            }
+
+            if (this.Index == this.Tokens.Count)
+            {
+                throw new ParsingException("unexpected end of token list.");
+            }
+
+            this.Tokens.RemoveAt(this.Index);
+
+            return true;
         }
 
         /// <summary>
         /// Erases whitespace tokens.
         /// </summary>
-        protected void EraseWhiteSpaceTokens()
+        protected bool EraseWhiteSpaceTokens()
         {
+            if (this.Tokens[this.Index].Type != TokenType.WhiteSpace)
+            {
+                return false;
+            }
+
             while (this.Index < this.Tokens.Count &&
                 this.Tokens[this.Index].Type == TokenType.WhiteSpace)
             {
@@ -141,8 +245,10 @@ namespace Microsoft.PSharp.Parsing
 
             if (this.Index == this.Tokens.Count)
             {
-                throw new ParsingException("parser: unexpected end of token list.");
+                throw new ParsingException("unexpected end of token list.");
             }
+
+            return true;
         }
 
         #endregion

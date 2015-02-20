@@ -163,7 +163,7 @@ namespace Microsoft.PSharp.Parsing
 
             if (base.Tokens[base.Index].Type != TokenType.EventIdentifier)
             {
-                throw new ParsingException("parser: event identifier expected.");
+                throw new ParsingException("event identifier expected.");
             }
 
             var identifier = base.Tokens[base.Index].Text;
@@ -188,7 +188,7 @@ namespace Microsoft.PSharp.Parsing
             }
             else
             {
-                throw new ParsingException("parser: semicolon expected.");
+                throw new ParsingException("semicolon expected.");
             }
 
             base.Index = replaceIdx;
@@ -219,7 +219,7 @@ namespace Microsoft.PSharp.Parsing
             }
             else
             {
-                throw new ParsingException("parser: machine identifier expected.");
+                throw new ParsingException("machine identifier expected.");
             }
 
             base.Index++;
@@ -243,7 +243,7 @@ namespace Microsoft.PSharp.Parsing
             }
             else if (base.Tokens[base.Index].Type != TokenType.Doublecolon)
             {
-                throw new ParsingException("parser: doublecolon expected.");
+                throw new ParsingException("doublecolon expected.");
             }
         }
 
@@ -262,7 +262,7 @@ namespace Microsoft.PSharp.Parsing
             }
             else
             {
-                throw new ParsingException("parser: state identifier expected.");
+                throw new ParsingException("state identifier expected.");
             }
 
             base.Index++;
@@ -286,7 +286,7 @@ namespace Microsoft.PSharp.Parsing
             }
             else
             {
-                throw new ParsingException("parser: left curly bracket expected.");
+                throw new ParsingException("left curly bracket expected.");
             }
         }
 
@@ -342,7 +342,7 @@ namespace Microsoft.PSharp.Parsing
             base.SkipWhiteSpaceTokens();
             if (base.Tokens[base.Index].Type != TokenType.ActionIdentifier)
             {
-                throw new ParsingException("parser: action identifier expected.");
+                throw new ParsingException("action identifier expected.");
             }
 
             base.Index++;
@@ -361,7 +361,7 @@ namespace Microsoft.PSharp.Parsing
             }
             else
             {
-                throw new ParsingException("parser: left curly bracket expected.");
+                throw new ParsingException("left curly bracket expected.");
             }
         }
 

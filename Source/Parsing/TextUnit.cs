@@ -20,7 +20,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.PSharp.Parsing
 {
-    internal class TextUnit
+    public class TextUnit
     {
         #region fields
 
@@ -28,11 +28,6 @@ namespace Microsoft.PSharp.Parsing
         /// The text that this text unit represents.
         /// </summary>
         public readonly string Text;
-
-        /// <summary>
-        /// True if the text unit represents end of a line.
-        /// </summary>
-        public readonly bool IsEndOfLine;
 
         #endregion
 
@@ -45,16 +40,6 @@ namespace Microsoft.PSharp.Parsing
         public TextUnit(string text)
         {
             this.Text = text;
-        }
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="isEndOfLine">Is end of line</param>
-        public TextUnit(bool isEndOfLine)
-        {
-            this.Text = "";
-            this.IsEndOfLine = isEndOfLine;
         }
 
         #endregion

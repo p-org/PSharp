@@ -17,12 +17,17 @@ namespace Microsoft.PSharp.Parsing
     /// <summary>
     /// P# token types.
     /// </summary>
-    internal enum TokenType
+    public enum TokenType
     {
         None = 0,
+
         NewLine,
         WhiteSpace,
+
         Comment,
+        CommentStart,
+        CommentEnd,
+        Region,
 
         EventIdentifier,
         MachineIdentifier,

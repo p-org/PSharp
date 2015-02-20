@@ -26,7 +26,7 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         /// <param name="message">Message</param>
         public ParsingException(string message)
-            : base(message)
+            : base("parser: " + message)
         {
 
         }

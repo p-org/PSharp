@@ -97,7 +97,8 @@ namespace Microsoft.PSharp.Parsing
 
                 var root = (CompilationUnitSyntax)tree.GetRoot();
 
-                var tokens = new Lexer(root.ToFullString()).GetTokens();
+                var tokens = new PSharpLexer(root.ToFullString()).GetTokens();
+                tokens = new PSharpSanitizer(tokens).GetParsedTokens();
                 tokens = new PSharpParser(tokens).GetParsedTokens();
                 tokens = new PSharpRewriter(tokens).GetParsedTokens();
 

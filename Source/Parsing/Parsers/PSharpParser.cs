@@ -33,7 +33,7 @@ namespace Microsoft.PSharp.Parsing
         public PSharpParser(List<Token> tokens)
             : base(tokens)
         {
-            
+
         }
 
         #endregion
@@ -94,7 +94,7 @@ namespace Microsoft.PSharp.Parsing
             }
             else
             {
-                throw new ParsingException("parser: machine identifier expected.");
+                throw new ParsingException("machine identifier expected.");
             }
         }
 
@@ -112,7 +112,7 @@ namespace Microsoft.PSharp.Parsing
             }
             else
             {
-                throw new ParsingException("parser: state identifier expected.");
+                throw new ParsingException("state identifier expected.");
             }
         }
 
@@ -128,7 +128,7 @@ namespace Microsoft.PSharp.Parsing
             }
             else if (type == ActionType.None)
             {
-                throw new ParsingException("parser: no action type identified.");
+                throw new ParsingException("no action type identified.");
             }
         }
 
@@ -287,7 +287,7 @@ namespace Microsoft.PSharp.Parsing
             }
             else
             {
-                throw new ParsingException("parser: event identifier expected.");
+                throw new ParsingException("event identifier expected.");
             }
 
             base.Index++;
@@ -331,7 +331,7 @@ namespace Microsoft.PSharp.Parsing
             }
             else
             {
-                throw new ParsingException("parser: action or state identifier expected.");
+                throw new ParsingException("action or state identifier expected.");
             }
 
             base.Index =  startIdx;

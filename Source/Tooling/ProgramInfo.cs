@@ -120,7 +120,7 @@ namespace Microsoft.PSharp.Tooling
             ProgramInfo.Solution = project.Solution;
             ProgramInfo.Workspace = project.Solution.Workspace;
 
-            //var root = (Microsoft.CodeAnalysis.CSharp.Syntax.CompilationUnitSyntax)tree.GetRoot();
+            //var root = (CodeAnalysis.CSharp.Syntax.CompilationUnitSyntax)tree.GetRoot();
             //Console.WriteLine(root.ToFullString());
         }
 
