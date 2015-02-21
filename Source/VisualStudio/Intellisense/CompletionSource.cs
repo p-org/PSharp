@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 
@@ -38,6 +39,7 @@ namespace Microsoft.PSharp.VisualStudio
         {
             this.SourceProvider = sourceProvider;
             this.Buffer = textBuffer;
+            this.IsDisposed = false;
         }
 
         void ICompletionSource.AugmentCompletionSession(ICompletionSession session, IList<CompletionSet> completionSets)

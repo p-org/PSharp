@@ -14,6 +14,7 @@
 
 using System.ComponentModel.Composition;
 using System.Windows.Media;
+
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 
@@ -23,12 +24,23 @@ namespace Microsoft.PSharp.VisualStudio
     [ClassificationType(ClassificationTypeNames = "PSharp.Keyword")]
     [Name("PSharp.Keyword")]
     [UserVisible(true)]
-    //[Order(Before = Priority.Default)]
-    internal sealed class PSharpMachineDeclFormat : ClassificationFormatDefinition
+    internal sealed class PSharpKeywordFormat : ClassificationFormatDefinition
     {
-        public PSharpMachineDeclFormat()
+        public PSharpKeywordFormat()
         {
-            this.ForegroundColor = Colors.Blue;
+            this.ForegroundColor = Colors.SteelBlue;
+        }
+    }
+
+    [Export(typeof(EditorFormatDefinition))]
+    [ClassificationType(ClassificationTypeNames = "PSharp.Comment")]
+    [Name("PSharp.Comment")]
+    [UserVisible(true)]
+    internal sealed class PSharpCommentFormat : ClassificationFormatDefinition
+    {
+        public PSharpCommentFormat()
+        {
+            this.ForegroundColor = Colors.SeaGreen;
         }
     }
 }

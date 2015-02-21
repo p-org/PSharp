@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System.ComponentModel.Composition;
+
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 

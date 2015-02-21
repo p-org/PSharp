@@ -15,6 +15,7 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Runtime.InteropServices;
+
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Language.Intellisense;

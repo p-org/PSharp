@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="PSharpClassifierProvider.cs">
+// <copyright file="SmartIndentProvider.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,33 +12,29 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Linq;
+using System.Text;
 
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Classification;
-using Microsoft.VisualStudio.Text.Tagging;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.PSharp.VisualStudio
 {
     /// <summary>
-    /// The P# classifier provider.
+    /// The P# smart indent provider.
     /// </summary>
-    [Export(typeof(ITaggerProvider))]
+    [Export(typeof(ISmartIndentProvider))]
     [ContentType("psharp")]
-    [TagType(typeof(ClassificationTag))]
-    internal sealed class PSharpClassifierProvider : ITaggerProvider
+    internal sealed class SmartIndentProvider : ISmartIndentProvider
     {
-        [Import]
-        internal IClassificationTypeRegistryService ClassificationTypeRegistry = null;
-
-        [Import]
-        internal IBufferTagAggregatorFactoryService AggregatorFactory = null;
-
-        public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
+        public ISmartIndent CreateSmartIndent(ITextView textView)
         {
-            var tagAggregator = this.AggregatorFactory.CreateTagAggregator<PSharpTokenTag>(buffer);
-            return new PSharpClassifier(buffer, tagAggregator, this.ClassificationTypeRegistry) as ITagger<T>;
+            return new Indent(textView);
         }
     }
 }

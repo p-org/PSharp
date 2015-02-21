@@ -14,6 +14,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell;

@@ -12,9 +12,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Microsoft.VisualStudio.Text.Tagging;
-
 using Microsoft.PSharp.Parsing;
+using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.PSharp.VisualStudio
 {

@@ -86,6 +86,8 @@
     <Compile Include="ContentTypeDefinitions.cs" />
     <Compile Include="Classification\ClassificationFormats.cs" />
     <Compile Include="Classification\ClassificationTypes.cs" />
+    <Compile Include="Indentation\Indent.cs" />
+    <Compile Include="Indentation\SmartIndentProvider.cs" />
     <Compile Include="Intellisense\CompletionCommandHandler.cs" />
     <Compile Include="Intellisense\CompletionHandlerProvider.cs" />
     <Compile Include="Intellisense\CompletionSource.cs" />

@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Tagging;
