@@ -19,12 +19,13 @@ namespace Microsoft.PSharp.Parsing
     /// <summary>
     /// Interface for a parser.
     /// </summary>
-    internal interface IParser
+    public interface IParser
     {
         /// <summary>
         /// Returns the parsed tokens.
         /// </summary>
+        /// <param name="tokens">List of tokens</param>
         /// <returns>Parsed tokens</returns>
-        List<Token> GetParsedTokens();
+        List<Token> ParseTokens(List<Token> tokens);
     }
 }

@@ -28,9 +28,8 @@ namespace Microsoft.PSharp.Parsing
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="tokens">List of tokens</param>
-        public PSharpRewriter(List<Token> tokens)
-            : base(tokens)
+        public PSharpRewriter()
+            : base()
         {
             
         }
@@ -159,7 +158,7 @@ namespace Microsoft.PSharp.Parsing
             base.Tokens[base.Index] = new Token("class", TokenType.ClassDecl);
             base.Index++;
 
-            base.SkipWhiteSpaceTokens();
+            base.SkipWhiteSpaceAndCommentTokens();
 
             if (base.Tokens[base.Index].Type != TokenType.EventIdentifier)
             {
@@ -171,7 +170,7 @@ namespace Microsoft.PSharp.Parsing
             base.Index++;
             var replaceIdx = base.Index;
 
-            base.SkipWhiteSpaceTokens();
+            base.SkipWhiteSpaceAndCommentTokens();
 
             if (base.Tokens[base.Index].Type == TokenType.Semicolon)
             {
@@ -212,7 +211,7 @@ namespace Microsoft.PSharp.Parsing
             base.Tokens[base.Index] = new Token("class", TokenType.ClassDecl);
             base.Index++;
 
-            base.SkipWhiteSpaceTokens();
+            base.SkipWhiteSpaceAndCommentTokens();
             if (base.Tokens[base.Index].Type == TokenType.MachineIdentifier)
             {
                 base.CurrentMachine = base.Tokens[base.Index].Text;
@@ -225,7 +224,7 @@ namespace Microsoft.PSharp.Parsing
             base.Index++;
             var replaceIdx = base.Index;
 
-            base.SkipWhiteSpaceTokens();
+            base.SkipWhiteSpaceAndCommentTokens();
             if (base.Tokens[base.Index].Type == TokenType.MachineLeftCurlyBracket)
             {
                 base.Tokens.Insert(replaceIdx, new Token(" ", TokenType.WhiteSpace));
@@ -255,7 +254,7 @@ namespace Microsoft.PSharp.Parsing
             base.Tokens[base.Index] = new Token("class", TokenType.ClassDecl);
             base.Index++;
 
-            base.SkipWhiteSpaceTokens();
+            base.SkipWhiteSpaceAndCommentTokens();
             if (base.Tokens[base.Index].Type == TokenType.StateIdentifier)
             {
                 base.CurrentState = base.Tokens[base.Index].Text;
@@ -268,7 +267,7 @@ namespace Microsoft.PSharp.Parsing
             base.Index++;
             var replaceIdx = base.Index;
 
-            base.SkipWhiteSpaceTokens();
+            base.SkipWhiteSpaceAndCommentTokens();
             if (base.Tokens[base.Index].Type == TokenType.StateLeftCurlyBracket)
             {
                 base.Tokens.Insert(replaceIdx, new Token(" ", TokenType.WhiteSpace));
@@ -339,7 +338,7 @@ namespace Microsoft.PSharp.Parsing
             base.Tokens[base.Index] = new Token("void", TokenType.ClassDecl);
             base.Index++;
 
-            base.SkipWhiteSpaceTokens();
+            base.SkipWhiteSpaceAndCommentTokens();
             if (base.Tokens[base.Index].Type != TokenType.ActionIdentifier)
             {
                 throw new ParsingException("action identifier expected.");
@@ -348,7 +347,7 @@ namespace Microsoft.PSharp.Parsing
             base.Index++;
             var replaceIdx = base.Index;
 
-            base.SkipWhiteSpaceTokens();
+            base.SkipWhiteSpaceAndCommentTokens();
             if (base.Tokens[base.Index].Type == TokenType.LeftCurlyBracket)
             {
                 base.Tokens.Insert(replaceIdx, new Token("(", TokenType.LeftParenthesis));
@@ -392,7 +391,7 @@ namespace Microsoft.PSharp.Parsing
             var machineIds = new List<Token>();
             var payload = new List<Token>();
 
-            base.SkipWhiteSpaceTokens();
+            base.SkipWhiteSpaceAndCommentTokens();
 
             while (base.Tokens[base.Index].Type != TokenType.Semicolon &&
                 base.Tokens[base.Index].Type != TokenType.LeftCurlyBracket)
@@ -407,7 +406,7 @@ namespace Microsoft.PSharp.Parsing
             }
 
             base.Index++;
-            base.SkipWhiteSpaceTokens();
+            base.SkipWhiteSpaceAndCommentTokens();
             while (base.Tokens[base.Index].Type != TokenType.RightCurlyBracket)
             {
                 payload.Add(base.Tokens[base.Index]);
@@ -469,12 +468,12 @@ namespace Microsoft.PSharp.Parsing
             var eventId = "";
             var payload = new List<Token>();
 
-            base.SkipWhiteSpaceTokens();
+            base.SkipWhiteSpaceAndCommentTokens();
 
             eventId = base.Tokens[base.Index].Text;
 
             base.Index++;
-            base.SkipWhiteSpaceTokens();
+            base.SkipWhiteSpaceAndCommentTokens();
 
             if (base.Tokens[base.Index].Type == TokenType.LeftCurlyBracket)
             {
@@ -486,7 +485,7 @@ namespace Microsoft.PSharp.Parsing
                 }
 
                 base.Index++;
-                base.SkipWhiteSpaceTokens();
+                base.SkipWhiteSpaceAndCommentTokens();
             }
 
             while (base.Tokens[base.Index].Type != TokenType.Semicolon)
@@ -556,12 +555,12 @@ namespace Microsoft.PSharp.Parsing
             var machineIds = new List<Token>();
             var payload = new List<Token>();
 
-            base.SkipWhiteSpaceTokens();
+            base.SkipWhiteSpaceAndCommentTokens();
 
             eventId = base.Tokens[base.Index].Text;
 
             base.Index++;
-            base.SkipWhiteSpaceTokens();
+            base.SkipWhiteSpaceAndCommentTokens();
 
             if (base.Tokens[base.Index].Type == TokenType.LeftCurlyBracket)
             {
@@ -573,11 +572,11 @@ namespace Microsoft.PSharp.Parsing
                 }
 
                 base.Index++;
-                base.SkipWhiteSpaceTokens();
+                base.SkipWhiteSpaceAndCommentTokens();
             }
            
             base.Index++;
-            base.SkipWhiteSpaceTokens();
+            base.SkipWhiteSpaceAndCommentTokens();
 
             while (base.Tokens[base.Index].Type != TokenType.Semicolon)
             {
@@ -649,7 +648,7 @@ namespace Microsoft.PSharp.Parsing
             base.Tokens.Insert(base.Index, new Token(")", TokenType.RightParenthesis));
             base.Index++;
 
-            base.SkipWhiteSpaceTokens();
+            base.SkipWhiteSpaceAndCommentTokens();
         }
 
         /// <summary>
@@ -694,7 +693,7 @@ namespace Microsoft.PSharp.Parsing
             var replaceIdx = base.Index;
             base.Index++;
 
-            base.SkipWhiteSpaceTokens();
+            base.SkipWhiteSpaceAndCommentTokens();
             if (base.Tokens[base.Index].Type == TokenType.Dot)
             {
                 base.Tokens.RemoveAt(base.Index);

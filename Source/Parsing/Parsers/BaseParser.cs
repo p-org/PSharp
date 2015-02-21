@@ -14,6 +14,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+
 using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp.Parsing
@@ -21,12 +23,17 @@ namespace Microsoft.PSharp.Parsing
     /// <summary>
     /// Abstract parser.
     /// </summary>
-    internal abstract class BaseParser : IParser
+    public abstract class BaseParser : IParser
     {
         #region fields
 
         /// <summary>
-        /// Lines of tokens.
+        /// List of original tokens.
+        /// </summary>
+        protected List<Token> OriginalTokens;
+
+        /// <summary>
+        /// List of tokens.
         /// </summary>
         protected List<Token> Tokens;
 
@@ -52,21 +59,24 @@ namespace Microsoft.PSharp.Parsing
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="tokens">List of tokens</param>
-        public BaseParser(List<Token> tokens)
+        public BaseParser()
         {
-            this.Tokens = tokens;
-            this.Index = 0;
-            this.CurrentMachine = "";
-            this.CurrentState = "";
+            
         }
 
         /// <summary>
         /// Returns the parsed tokens.
         /// </summary>
+        /// <param name="tokens">List of tokens</param>
         /// <returns>Parsed tokens</returns>
-        public List<Token> GetParsedTokens()
+        public List<Token> ParseTokens(List<Token> tokens)
         {
+            this.OriginalTokens = tokens.ToList();
+            this.Tokens = tokens;
+            this.Index = 0;
+            this.CurrentMachine = "";
+            this.CurrentState = "";
+
             try
             {
                 this.ParseNextToken();
@@ -153,7 +163,7 @@ namespace Microsoft.PSharp.Parsing
         /// <summary>
         /// Skips whitespace tokens.
         /// </summary>
-        protected bool SkipWhiteSpaceTokens()
+        private bool SkipWhiteSpaceTokens()
         {
             if ((this.Tokens[this.Index].Type != TokenType.WhiteSpace) &&
                 (this.Tokens[this.Index].Type != TokenType.NewLine))
@@ -230,7 +240,7 @@ namespace Microsoft.PSharp.Parsing
         /// <summary>
         /// Erases whitespace tokens.
         /// </summary>
-        protected bool EraseWhiteSpaceTokens()
+        private bool EraseWhiteSpaceTokens()
         {
             if (this.Tokens[this.Index].Type != TokenType.WhiteSpace)
             {

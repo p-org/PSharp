@@ -49,7 +49,7 @@
     <Compile Include="Lexers\ILexer.cs" />
     <Compile Include="Lexers\PSharpLexer.cs" />
     <Compile Include="Parsers\IParser.cs" />
-    <Compile Include="Parsers\PSharpSanitizer.cs" />
+    <Compile Include="Parsers\PSharpErrorParser.cs" />
     <Compile Include="ParsingEngine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Parsers\BaseParser.cs" />

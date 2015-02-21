@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="PSharpSanitizer.cs">
+// <copyright file="PSharpErrorParser.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -14,26 +14,54 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp.Parsing
 {
     /// <summary>
-    /// The P# sanitizer.
+    /// The P# error parser.
     /// </summary>
-    internal class PSharpSanitizer : BaseParser
+    public class PSharpErrorParser : BaseParser
     {
+        #region fields
+
+        /// <summary>
+        /// File path of syntax tree currently analysed.
+        /// </summary>
+        private string FilePath;
+
+        /// <summary>
+        /// True if the parser should report a console error.
+        /// Else false.
+        /// </summary>
+        private bool ReportConsoleError;
+
+        #endregion
+
         #region public API
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="tokens">List of tokens</param>
-        public PSharpSanitizer(List<Token> tokens)
-            : base(tokens)
+        public PSharpErrorParser()
+            : base()
         {
+            this.FilePath = "";
+            this.ReportConsoleError = false;
+        }
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="filePath">File path</param>
+        public PSharpErrorParser(string filePath)
+            : base()
+        {
+            this.FilePath = filePath;
+            this.ReportConsoleError = true;
         }
 
         #endregion
@@ -1182,8 +1210,33 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="error">Error</param>
         private void ReportParsingError(string error)
         {
-            error += " In line " + base.Tokens[base.Index].Line + ":\n";
-            //error += this.Lines[this.LineIndex - 1];
+            if (!this.ReportConsoleError)
+            {
+                return;
+            }
+
+            var errorToken = base.Tokens[base.Index];
+            var errorLine = base.OriginalTokens.Where(val => val.Line == errorToken.Line);
+
+            error += "\nIn " + this.FilePath + " (line " + errorToken.Line + "):\n";
+            foreach (var token in errorLine)
+            {
+                error += token.Text;
+            }
+
+            foreach (var token in errorLine)
+            {
+                if (token.Equals(errorToken))
+                {
+                    error += new StringBuilder().Append('~', token.Text.Length);
+                    break;
+                }
+                else
+                {
+                    error += new StringBuilder().Append(' ', token.Text.Length);
+                }
+            }
+
             ErrorReporter.ReportErrorAndExit(error);
         }
 

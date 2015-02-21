@@ -19,7 +19,7 @@ namespace Microsoft.PSharp.Parsing
     /// <summary>
     /// Interface for a lexer.
     /// </summary>
-    internal interface ILexer
+    public interface ILexer
     {
         /// <summary>
         /// Tokenizes the given text.

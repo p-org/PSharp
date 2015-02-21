@@ -29,9 +29,8 @@ namespace Microsoft.PSharp.Parsing
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="tokens">List of tokens</param>
-        public PSharpParser(List<Token> tokens)
-            : base(tokens)
+        public PSharpParser()
+            : base()
         {
 
         }
@@ -87,7 +86,7 @@ namespace Microsoft.PSharp.Parsing
         {
             base.Index++;
 
-            base.SkipWhiteSpaceTokens();
+            base.SkipWhiteSpaceAndCommentTokens();
             if (base.Tokens[base.Index].Type == TokenType.MachineIdentifier)
             {
                 base.CurrentMachine = base.Tokens[base.Index].Text;
@@ -105,7 +104,7 @@ namespace Microsoft.PSharp.Parsing
         {
             base.Index++;
 
-            base.SkipWhiteSpaceTokens();
+            base.SkipWhiteSpaceAndCommentTokens();
             if (base.Tokens[base.Index].Type == TokenType.StateIdentifier)
             {
                 base.CurrentState = base.Tokens[base.Index].Text;
@@ -139,7 +138,7 @@ namespace Microsoft.PSharp.Parsing
         {
             var startIdx = base.Index;
             base.Index++;
-            base.SkipWhiteSpaceTokens();
+            base.SkipWhiteSpaceAndCommentTokens();
 
             if (!ParsingEngine.DeferredEvents.ContainsKey(base.CurrentMachine))
             {
@@ -198,7 +197,7 @@ namespace Microsoft.PSharp.Parsing
         {
             var startIdx = base.Index;
             base.Index++;
-            base.SkipWhiteSpaceTokens();
+            base.SkipWhiteSpaceAndCommentTokens();
 
             if (!ParsingEngine.IgnoredEvents.ContainsKey(base.CurrentMachine))
             {
@@ -279,7 +278,7 @@ namespace Microsoft.PSharp.Parsing
             var eventId = "";
 
             base.Index++;
-            base.SkipWhiteSpaceTokens();
+            base.SkipWhiteSpaceAndCommentTokens();
 
             if (base.Tokens[base.Index].Type == TokenType.EventIdentifier)
             {
@@ -291,7 +290,7 @@ namespace Microsoft.PSharp.Parsing
             }
 
             base.Index++;
-            base.SkipWhiteSpaceTokens();
+            base.SkipWhiteSpaceAndCommentTokens();
 
             if (base.Tokens[base.Index].Type == TokenType.DoAction)
             {
@@ -303,7 +302,7 @@ namespace Microsoft.PSharp.Parsing
             }
 
             base.Index++;
-            base.SkipWhiteSpaceTokens();
+            base.SkipWhiteSpaceAndCommentTokens();
 
             if (!ParsingEngine.StateActions.ContainsKey(base.CurrentMachine))
             {
