@@ -13,16 +13,10 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
-using System.ComponentModel.Composition;
-using System.Linq;
-using System.Text;
 
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
-using Microsoft.VisualStudio.TextManager.Interop;
-using Microsoft.VisualStudio.Utilities;
 
 using Microsoft.PSharp.Parsing;
 
@@ -63,10 +57,12 @@ namespace Microsoft.PSharp.VisualStudio
             }
 
             var currentLine = line;
-            while (currentLine.LineNumber > 0 && currentLine.Length == 0)
+
+            do
             {
                 currentLine = line.Snapshot.GetLineFromLineNumber(currentLine.LineNumber - 1);
             }
+            while (currentLine.LineNumber > 0 && currentLine.Length == 0);
 
             var tokens = new PSharpLexer().Tokenize(currentLine.GetText());
 

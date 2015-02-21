@@ -37,12 +37,12 @@ namespace Microsoft.PSharp.VisualStudio
         internal static ClassificationTypeDefinition PSharpKeywordDefinition = null;
 
         [Export(typeof(ClassificationTypeDefinition))]
-        [Name("PSharp.NewLine")]
-        internal static ClassificationTypeDefinition PSharpNewLineDefinition = null;
+        [Name("PSharp.TypeIdentifier")]
+        internal static ClassificationTypeDefinition PSharpTypeIdentifierDefinition = null;
 
         [Export(typeof(ClassificationTypeDefinition))]
-        [Name("PSharp.WhiteSpace")]
-        internal static ClassificationTypeDefinition PSharpWhiteSpaceDefinition = null;
+        [Name("PSharp.Identifier")]
+        internal static ClassificationTypeDefinition PSharpIdentifierDefinition = null;
 
         [Export(typeof(ClassificationTypeDefinition))]
         [Name("PSharp.Comment")]
@@ -51,10 +51,6 @@ namespace Microsoft.PSharp.VisualStudio
         [Export(typeof(ClassificationTypeDefinition))]
         [Name("PSharp.Region")]
         internal static ClassificationTypeDefinition PSharpRegionDefinition = null;
-
-        [Export(typeof(ClassificationTypeDefinition))]
-        [Name("PSharp.Identifier")]
-        internal static ClassificationTypeDefinition PSharpIdentifierDefinition = null;
 
         [Export(typeof(ClassificationTypeDefinition))]
         [Name("PSharp.LeftCurlyBracket")]
@@ -99,5 +95,13 @@ namespace Microsoft.PSharp.VisualStudio
         [Export(typeof(ClassificationTypeDefinition))]
         [Name("PSharp.Operator")]
         internal static ClassificationTypeDefinition PSharpOperatorDefinition = null;
+
+        [Export(typeof(ClassificationTypeDefinition))]
+        [Name("PSharp.NewLine")]
+        internal static ClassificationTypeDefinition PSharpNewLineDefinition = null;
+
+        [Export(typeof(ClassificationTypeDefinition))]
+        [Name("PSharp.WhiteSpace")]
+        internal static ClassificationTypeDefinition PSharpWhiteSpaceDefinition = null;
     }
 }

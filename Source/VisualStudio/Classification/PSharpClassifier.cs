@@ -100,6 +100,9 @@ namespace Microsoft.PSharp.VisualStudio
                 case TokenType.StateIdentifier:
                 case TokenType.ActionIdentifier:
                 case TokenType.TypeIdentifier:
+                    classification = "PSharp.TypeIdentifier";
+                    break;
+
                 case TokenType.Identifier:
                     classification = "PSharp.Identifier";
                     break;

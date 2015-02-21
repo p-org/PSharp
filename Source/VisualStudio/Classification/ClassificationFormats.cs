@@ -28,7 +28,19 @@ namespace Microsoft.PSharp.VisualStudio
     {
         public PSharpKeywordFormat()
         {
-            this.ForegroundColor = Colors.SteelBlue;
+            this.ForegroundColor = Colors.CornflowerBlue;
+        }
+    }
+
+    [Export(typeof(EditorFormatDefinition))]
+    [ClassificationType(ClassificationTypeNames = "PSharp.TypeIdentifier")]
+    [Name("PSharp.TypeIdentifier")]
+    [UserVisible(true)]
+    internal sealed class PSharpTypeIdentifierFormat : ClassificationFormatDefinition
+    {
+        public PSharpTypeIdentifierFormat()
+        {
+            this.ForegroundColor = Colors.MediumAquamarine;
         }
     }
 
