@@ -34,10 +34,11 @@ namespace Microsoft.PSharp.Parsing
         private string FilePath;
 
         /// <summary>
-        /// True if the parser should report a console error.
+        /// True if the parser is running internally and not from
+        /// visual studio or another external tool.
         /// Else false.
         /// </summary>
-        private bool ReportConsoleError;
+        private bool IsRunningInternally;
 
         #endregion
 
@@ -50,18 +51,18 @@ namespace Microsoft.PSharp.Parsing
             : base()
         {
             this.FilePath = "";
-            this.ReportConsoleError = false;
+            this.IsRunningInternally = false;
         }
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="filePath">File path</param>
-        public PSharpErrorParser(string filePath)
+        internal PSharpErrorParser(string filePath)
             : base()
         {
             this.FilePath = filePath;
-            this.ReportConsoleError = true;
+            this.IsRunningInternally = true;
         }
 
         #endregion
@@ -75,7 +76,11 @@ namespace Microsoft.PSharp.Parsing
         {
             if (base.Index == base.Tokens.Count)
             {
-                return;
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Using,
+                    TokenType.NamespaceDecl
+                });
             }
 
             var token = base.Tokens[base.Index];
@@ -95,10 +100,14 @@ namespace Microsoft.PSharp.Parsing
                     break;
 
                 case TokenType.Using:
+                    base.Index++;
+                    base.SkipWhiteSpaceAndCommentTokens();
                     this.CheckUsingDirective();
                     break;
 
                 case TokenType.NamespaceDecl:
+                    base.Index++;
+                    base.SkipWhiteSpaceAndCommentTokens();
                     this.CheckNamespaceDeclaration();
                     break;
 
@@ -128,26 +137,43 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         private void CheckUsingDirective()
         {
-            base.Index++;
-            base.SkipWhiteSpaceAndCommentTokens();
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.Identifier)
+            {
+                this.ReportParsingError("Expected identifier.");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Identifier
+                });
+            }
 
             while (base.Index < base.Tokens.Count &&
                 base.Tokens[base.Index].Type != TokenType.Semicolon)
             {
-                if ((base.Tokens[base.Index].Type != TokenType.Identifier) &&
-                    (base.Tokens[base.Index].Type != TokenType.Dot) &&
-                    (base.Tokens[base.Index].Type != TokenType.NewLine))
+                if (base.Tokens[base.Index].Type != TokenType.Identifier &&
+                    base.Tokens[base.Index].Type != TokenType.Dot &&
+                    base.Tokens[base.Index].Type != TokenType.NewLine)
                 {
-                    this.ReportParsingError("Invalid use of the \"using\" directive.");
+                    this.ReportParsingError("Expected identifier.");
+                    throw new EndOfTokensException(new List<TokenType>
+                    {
+                        TokenType.Identifier,
+                        TokenType.Dot
+                    });
                 }
 
                 base.Index++;
                 base.EraseWhiteSpaceAndCommentTokens();
             }
 
-            if (base.Index == base.Tokens.Count)
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.Semicolon)
             {
-                this.ReportParsingError("Invalid use of the \"using\" directive.");
+                this.ReportParsingError("Expected \";\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Semicolon
+                });
             }
         }
 
@@ -156,26 +182,43 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         private void CheckNamespaceDeclaration()
         {
-            base.Index++;
-            base.SkipWhiteSpaceAndCommentTokens();
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.Identifier)
+            {
+                this.ReportParsingError("Expected namespace identifier.");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Identifier
+                });
+            }
 
             while (base.Index < base.Tokens.Count &&
                 base.Tokens[base.Index].Type != TokenType.LeftCurlyBracket)
             {
-                if ((base.Tokens[base.Index].Type != TokenType.Identifier) &&
-                    (base.Tokens[base.Index].Type != TokenType.Dot) &&
-                    (base.Tokens[base.Index].Type != TokenType.NewLine))
+                if (base.Tokens[base.Index].Type != TokenType.Identifier &&
+                    base.Tokens[base.Index].Type != TokenType.Dot &&
+                    base.Tokens[base.Index].Type != TokenType.NewLine)
                 {
                     this.ReportParsingError("Expected namespace identifier.");
+                    throw new EndOfTokensException(new List<TokenType>
+                    {
+                        TokenType.Identifier,
+                        TokenType.Dot
+                    });
                 }
 
                 base.Index++;
                 base.EraseWhiteSpaceAndCommentTokens();
             }
 
-            if (base.Index == base.Tokens.Count)
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.LeftCurlyBracket)
             {
-                this.ReportParsingError("Expected \"{\" after the namespace identifier.");
+                this.ReportParsingError("Expected \"{\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.LeftCurlyBracket
+                });
             }
 
             base.Index++;
@@ -191,9 +234,19 @@ namespace Microsoft.PSharp.Parsing
         {
             if (base.Index == base.Tokens.Count)
             {
-                return;
+                this.ReportParsingError("Expected \"}\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Private,
+                    TokenType.Protected,
+                    TokenType.Internal,
+                    TokenType.Public,
+                    TokenType.Abstract,
+                    TokenType.LeftSquareBracket,
+                    TokenType.RightCurlyBracket
+                });
             }
-            
+
             bool fixpoint = false;
             var token = base.Tokens[base.Index];
             switch (token.Type)
@@ -211,28 +264,24 @@ namespace Microsoft.PSharp.Parsing
                     this.EraseMultiLineComment();
                     break;
 
-                case TokenType.ClassDecl:
-                    this.ReportParsingError("Cannot declare a new class inside a P# file.");
-                    break;
-
-                case TokenType.StructDecl:
-                    this.ReportParsingError("Cannot declare a new struct inside a P# file.");
-                    break;
-
                 case TokenType.Private:
                 case TokenType.Protected:
                 case TokenType.Internal:
                 case TokenType.Public:
+                    base.Index++;
+                    base.SkipWhiteSpaceAndCommentTokens();
                     this.CheckTopLevelAccessModifier();
-                    this.CheckTopLevelAbstractModifier();
                     break;
 
                 case TokenType.Abstract:
+                    base.Index++;
+                    base.SkipWhiteSpaceAndCommentTokens();
                     this.CheckTopLevelAbstractModifier();
-                    this.CheckTopLevelAccessModifier();
                     break;
 
                 case TokenType.LeftSquareBracket:
+                    base.Index++;
+                    base.SkipWhiteSpaceAndCommentTokens();
                     this.CheckAttributeList();
                     break;
 
@@ -266,22 +315,35 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         private void CheckTopLevelAccessModifier()
         {
-            if ((base.Tokens[base.Index].Type != TokenType.Private) &&
-                (base.Tokens[base.Index].Type != TokenType.Protected) &&
-                (base.Tokens[base.Index].Type != TokenType.Internal) &&
-                (base.Tokens[base.Index].Type != TokenType.Public))
+            if (base.Index == base.Tokens.Count ||
+                (base.Tokens[base.Index].Type != TokenType.Abstract &&
+                base.Tokens[base.Index].Type != TokenType.EventDecl &&
+                base.Tokens[base.Index].Type != TokenType.MachineDecl))
             {
-                return;
+                this.ReportParsingError("Expected event or machine declaration.");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Abstract,
+                    TokenType.EventDecl,
+                    TokenType.MachineDecl
+                });
             }
 
-            base.Index++;
-            base.SkipWhiteSpaceAndCommentTokens();
-            if ((base.Tokens[base.Index].Type == TokenType.Private) ||
-                (base.Tokens[base.Index].Type == TokenType.Protected) ||
-                (base.Tokens[base.Index].Type == TokenType.Internal) ||
-                (base.Tokens[base.Index].Type == TokenType.Public))
+            if (base.Tokens[base.Index].Type == TokenType.Abstract)
             {
-                this.ReportParsingError("More than one access modifier.");
+                base.Index++;
+                base.SkipWhiteSpaceAndCommentTokens();
+
+                if (base.Index == base.Tokens.Count ||
+                    base.Tokens[base.Index].Type == TokenType.Abstract)
+                {
+                    this.ReportParsingError("Expected event or machine declaration.");
+                    throw new EndOfTokensException(new List<TokenType>
+                    {
+                        TokenType.EventDecl,
+                        TokenType.MachineDecl
+                    });
+                }
             }
 
             this.CheckTopLevelDeclaration();
@@ -292,17 +354,24 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         private void CheckTopLevelAbstractModifier()
         {
-            if (base.Tokens[base.Index].Type != TokenType.Abstract)
+            if (base.Index == base.Tokens.Count ||
+                (base.Tokens[base.Index].Type != TokenType.Private &&
+                base.Tokens[base.Index].Type != TokenType.Protected &&
+                base.Tokens[base.Index].Type != TokenType.Internal &&
+                base.Tokens[base.Index].Type != TokenType.Public))
             {
-                return;
+                this.ReportParsingError("Expected access modifier.");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Private,
+                    TokenType.Protected,
+                    TokenType.Internal,
+                    TokenType.Public
+                });
             }
 
             base.Index++;
             base.SkipWhiteSpaceAndCommentTokens();
-            if (base.Tokens[base.Index].Type == TokenType.Abstract)
-            {
-                this.ReportParsingError("Duplicate \"abstract\" modifier.");
-            }
 
             this.CheckTopLevelDeclaration();
         }
@@ -312,21 +381,30 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         private void CheckTopLevelDeclaration()
         {
+            if (base.Index == base.Tokens.Count ||
+                (base.Tokens[base.Index].Type != TokenType.EventDecl &&
+                base.Tokens[base.Index].Type != TokenType.MachineDecl))
+            {
+                this.ReportParsingError("Expected event or machine declaration.");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Abstract,
+                    TokenType.EventDecl,
+                    TokenType.MachineDecl
+                });
+            }
+
             if (base.Tokens[base.Index].Type == TokenType.EventDecl)
             {
+                base.Index++;
+                base.SkipWhiteSpaceAndCommentTokens();
                 this.CheckEventDeclaration();
             }
             else if (base.Tokens[base.Index].Type == TokenType.MachineDecl)
             {
+                base.Index++;
+                base.SkipWhiteSpaceAndCommentTokens();
                 this.CheckMachineDeclaration();
-            }
-            else if (base.Tokens[base.Index].Type == TokenType.ClassDecl)
-            {
-                this.ReportParsingError("Cannot declare a new class inside a P# file.");
-            }
-            else if (base.Tokens[base.Index].Type == TokenType.StructDecl)
-            {
-                this.ReportParsingError("Cannot declare a new struct inside a P# file.");
             }
         }
 
@@ -335,11 +413,14 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         private void CheckEventDeclaration()
         {
-            base.Index++;
-            base.SkipWhiteSpaceAndCommentTokens();
-            if (base.Tokens[base.Index].Type != TokenType.Identifier)
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.Identifier)
             {
                 this.ReportParsingError("Expected event identifier.");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Identifier
+                });
             }
 
             base.Tokens[base.Index] = new Token(base.Tokens[base.Index].Text,
@@ -347,9 +428,15 @@ namespace Microsoft.PSharp.Parsing
 
             base.Index++;
             base.SkipWhiteSpaceAndCommentTokens();
-            if (base.Tokens[base.Index].Type != TokenType.Semicolon)
+
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.Semicolon)
             {
                 this.ReportParsingError("Expected \";\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Semicolon
+                });
             }
         }
 
@@ -358,11 +445,14 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         private void CheckMachineDeclaration()
         {
-            base.Index++;
-            base.SkipWhiteSpaceAndCommentTokens();
-            if (base.Tokens[base.Index].Type != TokenType.Identifier)
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.Identifier)
             {
                 this.ReportParsingError("Expected machine identifier.");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Identifier
+                });
             }
 
             base.CurrentMachine = base.Tokens[base.Index].Text;
@@ -371,19 +461,47 @@ namespace Microsoft.PSharp.Parsing
 
             base.Index++;
             base.SkipWhiteSpaceAndCommentTokens();
+
+            if (base.Index == base.Tokens.Count ||
+                (base.Tokens[base.Index].Type != TokenType.Doublecolon &&
+                base.Tokens[base.Index].Type != TokenType.LeftCurlyBracket))
+            {
+                this.ReportParsingError("Expected \"{\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Doublecolon,
+                    TokenType.LeftCurlyBracket
+                });
+            }
+
             if (base.Tokens[base.Index].Type == TokenType.Doublecolon)
             {
                 base.Index++;
                 base.SkipWhiteSpaceAndCommentTokens();
 
+                if (base.Index == base.Tokens.Count ||
+                    base.Tokens[base.Index].Type != TokenType.Identifier)
+                {
+                    this.ReportParsingError("Expected base machine identifier.");
+                    throw new EndOfTokensException(new List<TokenType>
+                    {
+                        TokenType.Identifier
+                    });
+                }
+
                 while (base.Index < base.Tokens.Count &&
                     base.Tokens[base.Index].Type != TokenType.LeftCurlyBracket)
                 {
-                    if ((base.Tokens[base.Index].Type != TokenType.Identifier) &&
-                        (base.Tokens[base.Index].Type != TokenType.Dot) &&
-                        (base.Tokens[base.Index].Type != TokenType.NewLine))
+                    if (base.Tokens[base.Index].Type != TokenType.Identifier &&
+                        base.Tokens[base.Index].Type != TokenType.Dot &&
+                        base.Tokens[base.Index].Type != TokenType.NewLine)
                     {
                         this.ReportParsingError("Expected base machine identifier.");
+                        throw new EndOfTokensException(new List<TokenType>
+                        {
+                            TokenType.Identifier,
+                            TokenType.Dot
+                        });
                     }
 
                     base.Index++;
@@ -391,9 +509,14 @@ namespace Microsoft.PSharp.Parsing
                 }
             }
 
-            if (base.Tokens[base.Index].Type != TokenType.LeftCurlyBracket)
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.LeftCurlyBracket)
             {
                 this.ReportParsingError("Expected \"{\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.LeftCurlyBracket
+                });
             }
 
             base.Tokens[base.Index] = new Token(base.Tokens[base.Index].Text,
@@ -412,7 +535,14 @@ namespace Microsoft.PSharp.Parsing
         {
             if (base.Index == base.Tokens.Count)
             {
-                return;
+                this.ReportParsingError("Expected \"}\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Private,
+                    TokenType.Protected,
+                    TokenType.LeftSquareBracket,
+                    TokenType.RightCurlyBracket
+                });
             }
 
             bool fixpoint = false;
@@ -432,16 +562,10 @@ namespace Microsoft.PSharp.Parsing
                     this.EraseMultiLineComment();
                     break;
 
-                case TokenType.ClassDecl:
-                    this.ReportParsingError("Cannot declare a new class inside a machine.");
-                    break;
-
-                case TokenType.StructDecl:
-                    this.ReportParsingError("Cannot declare a new struct inside a machine.");
-                    break;
-
                 case TokenType.Private:
                 case TokenType.Protected:
+                    base.Index++;
+                    base.SkipWhiteSpaceAndCommentTokens();
                     this.CheckMachineLevelAccessModifier();
                     break;
 
@@ -455,6 +579,8 @@ namespace Microsoft.PSharp.Parsing
                     break;
 
                 case TokenType.LeftSquareBracket:
+                    base.Index++;
+                    base.SkipWhiteSpaceAndCommentTokens();
                     this.CheckAttributeList();
                     break;
 
@@ -491,58 +617,97 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         private void CheckMachineLevelAccessModifier()
         {
-            base.Index++;
-            base.SkipWhiteSpaceAndCommentTokens();
-            if ((base.Tokens[base.Index].Type == TokenType.Private) ||
-                (base.Tokens[base.Index].Type == TokenType.Protected) ||
-                (base.Tokens[base.Index].Type == TokenType.Internal) ||
-                (base.Tokens[base.Index].Type == TokenType.Public))
+            if (base.Index == base.Tokens.Count ||
+                (base.Tokens[base.Index].Type != TokenType.Override &&
+                base.Tokens[base.Index].Type != TokenType.StateDecl &&
+                base.Tokens[base.Index].Type != TokenType.ActionDecl &&
+                base.Tokens[base.Index].Type != TokenType.Identifier))
             {
-                this.ReportParsingError("More than one access modifier.");
-            }
-            else if (base.Tokens[base.Index].Type == TokenType.Abstract)
-            {
-                this.ReportParsingError("Machine fields, states or actions cannot be abstract.");
+                this.ReportParsingError("Expected state, action or method declaration.");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Override,
+                    TokenType.StateDecl,
+                    TokenType.ActionDecl,
+                    TokenType.Identifier
+                });
             }
 
             if (base.Tokens[base.Index].Type == TokenType.Override)
             {
                 base.Index++;
                 base.SkipWhiteSpaceAndCommentTokens();
+
+                if (base.Index == base.Tokens.Count ||
+                    (base.Tokens[base.Index].Type != TokenType.StateDecl &&
+                    base.Tokens[base.Index].Type != TokenType.ActionDecl &&
+                    base.Tokens[base.Index].Type != TokenType.Identifier))
+                {
+                    this.ReportParsingError("Expected state, action or method declaration.");
+                    throw new EndOfTokensException(new List<TokenType>
+                    {
+                        TokenType.StateDecl,
+                        TokenType.ActionDecl,
+                        TokenType.Identifier
+                    });
+                }
             }
 
             if (base.Tokens[base.Index].Type == TokenType.StateDecl)
             {
+                base.Index++;
+                base.SkipWhiteSpaceAndCommentTokens();
                 this.CheckStateDeclaration();
             }
             else if (base.Tokens[base.Index].Type == TokenType.ActionDecl)
             {
+                base.Index++;
+                base.SkipWhiteSpaceAndCommentTokens();
                 this.CheckActionDeclaration();
-            }
-            else if (base.Tokens[base.Index].Type == TokenType.ClassDecl)
-            {
-                this.ReportParsingError("Cannot declare a new class inside a machine.");
-            }
-            else if (base.Tokens[base.Index].Type == TokenType.StructDecl)
-            {
-                this.ReportParsingError("Cannot declare a new struct inside a machine.");
-            }
-            else if (base.Tokens[base.Index].Type == TokenType.Override)
-            {
-                this.ReportParsingError("Duplicate \"override\" modifier.");
             }
             else if (base.Tokens[base.Index].Type == TokenType.Identifier)
             {
                 base.Index++;
                 base.SkipWhiteSpaceAndCommentTokens();
-                if (base.Tokens[base.Index].Type == TokenType.LessThanOperator)
+
+                if (base.Index == base.Tokens.Count ||
+                    (base.Tokens[base.Index].Type != TokenType.LessThanOperator &&
+                    base.Tokens[base.Index].Type != TokenType.Identifier))
                 {
-                    this.CheckLessThanOperator();
+                    this.ReportParsingError("Expected state, action or method declaration.");
+                    throw new EndOfTokensException(new List<TokenType>
+                    {
+                        TokenType.LessThanOperator,
+                        TokenType.Identifier
+                    });
                 }
 
-                if (base.Tokens[base.Index].Type != TokenType.Identifier)
+                if (base.Tokens[base.Index].Type == TokenType.LessThanOperator)
                 {
-                    this.ReportParsingError("Expected identifier.");
+                    base.Index++;
+                    base.SkipWhiteSpaceAndCommentTokens();
+                    this.CheckLessThanOperator();
+
+                    if (base.Index == base.Tokens.Count ||
+                        base.Tokens[base.Index].Type != TokenType.Identifier)
+                    {
+                        this.ReportParsingError("Expected method declaration.");
+                        throw new EndOfTokensException(new List<TokenType>
+                        {
+                            TokenType.Identifier
+                        });
+                    }
+                }
+
+                if (base.Index == base.Tokens.Count ||
+                    (base.Tokens[base.Index].Type != TokenType.Identifier))
+                {
+                    this.ReportParsingError("Expected state, action or method declaration.");
+                    throw new EndOfTokensException(new List<TokenType>
+                    {
+                        TokenType.LessThanOperator,
+                        TokenType.Identifier
+                    });
                 }
 
                 if (!ParsingEngine.MachineFieldsAndMethods.ContainsKey(base.CurrentMachine))
@@ -563,12 +728,10 @@ namespace Microsoft.PSharp.Parsing
 
                 if (base.Tokens[base.Index].Type == TokenType.LeftParenthesis)
                 {
+                    base.Index++;
+                    base.SkipWhiteSpaceAndCommentTokens();
                     this.CheckMethodDeclaration();
                 }
-            }
-            else
-            {
-                this.ReportParsingError("Expected identifier.");
             }
         }
 
@@ -577,11 +740,14 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         private void CheckStateDeclaration()
         {
-            base.Index++;
-            base.SkipWhiteSpaceAndCommentTokens();
-            if (base.Tokens[base.Index].Type != TokenType.Identifier)
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.Identifier)
             {
                 this.ReportParsingError("Expected state identifier.");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Identifier
+                });
             }
 
             base.CurrentState = base.Tokens[base.Index].Text;
@@ -590,9 +756,15 @@ namespace Microsoft.PSharp.Parsing
 
             base.Index++;
             base.SkipWhiteSpaceAndCommentTokens();
-            if (base.Tokens[base.Index].Type != TokenType.LeftCurlyBracket)
+
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.LeftCurlyBracket)
             {
                 this.ReportParsingError("Expected \"{\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.LeftCurlyBracket
+                });
             }
 
             base.Tokens[base.Index] = new Token(base.Tokens[base.Index].Text,
@@ -611,7 +783,17 @@ namespace Microsoft.PSharp.Parsing
         {
             if (base.Index == base.Tokens.Count)
             {
-                return;
+                this.ReportParsingError("Expected \"}\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Entry,
+                    TokenType.Exit,
+                    TokenType.OnAction,
+                    TokenType.DeferEvent,
+                    TokenType.IgnoreEvent,
+                    TokenType.LeftSquareBracket,
+                    TokenType.RightCurlyBracket
+                });
             }
 
             bool fixpoint = false;
@@ -632,22 +814,32 @@ namespace Microsoft.PSharp.Parsing
                     break;
 
                 case TokenType.Entry:
+                    base.Index++;
+                    base.SkipWhiteSpaceAndCommentTokens();
                     this.CheckStateEntryDeclaration();
                     break;
 
                 case TokenType.Exit:
+                    base.Index++;
+                    base.SkipWhiteSpaceAndCommentTokens();
                     this.CheckStateExitDeclaration();
                     break;
 
                 case TokenType.OnAction:
+                    base.Index++;
+                    base.SkipWhiteSpaceAndCommentTokens();
                     this.CheckStateActionDeclaration();
                     break;
 
                 case TokenType.DeferEvent:
+                    base.Index++;
+                    base.SkipWhiteSpaceAndCommentTokens();
                     this.CheckDeferEventsDeclaration();
                     break;
 
                 case TokenType.IgnoreEvent:
+                    base.Index++;
+                    base.SkipWhiteSpaceAndCommentTokens();
                     this.CheckIgnoreEventsDeclaration();
                     break;
 
@@ -663,6 +855,8 @@ namespace Microsoft.PSharp.Parsing
                     break;
 
                 case TokenType.LeftSquareBracket:
+                    base.Index++;
+                    base.SkipWhiteSpaceAndCommentTokens();
                     this.CheckAttributeList();
                     break;
 
@@ -699,13 +893,18 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         private void CheckStateEntryDeclaration()
         {
-            base.Index++;
-            base.SkipWhiteSpaceAndCommentTokens();
-            if (base.Tokens[base.Index].Type != TokenType.LeftCurlyBracket)
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.LeftCurlyBracket)
             {
                 this.ReportParsingError("Expected \"{\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.LeftCurlyBracket
+                });
             }
 
+            base.Index++;
+            base.SkipWhiteSpaceAndCommentTokens();
             this.CheckCodeRegion();
         }
 
@@ -714,13 +913,18 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         private void CheckStateExitDeclaration()
         {
-            base.Index++;
-            base.SkipWhiteSpaceAndCommentTokens();
-            if (base.Tokens[base.Index].Type != TokenType.LeftCurlyBracket)
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.LeftCurlyBracket)
             {
                 this.ReportParsingError("Expected \"{\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.LeftCurlyBracket
+                });
             }
 
+            base.Index++;
+            base.SkipWhiteSpaceAndCommentTokens();
             this.CheckCodeRegion();
         }
 
@@ -729,11 +933,14 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         private void CheckStateActionDeclaration()
         {
-            base.Index++;
-            base.SkipWhiteSpaceAndCommentTokens();
-            if (base.Tokens[base.Index].Type != TokenType.Identifier)
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.Identifier)
             {
                 this.ReportParsingError("Expected event identifier.");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Identifier
+                });
             }
 
             base.Tokens[base.Index] = new Token(base.Tokens[base.Index].Text,
@@ -741,13 +948,32 @@ namespace Microsoft.PSharp.Parsing
 
             base.Index++;
             base.SkipWhiteSpaceAndCommentTokens();
+
+            if (base.Index == base.Tokens.Count ||
+                (base.Tokens[base.Index].Type != TokenType.DoAction &&
+                base.Tokens[base.Index].Type != TokenType.GotoState))
+            {
+                this.ReportParsingError("Expected \"do\" or \"goto\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.DoAction,
+                    TokenType.GotoState
+                });
+            }
+
             if (base.Tokens[base.Index].Type == TokenType.DoAction)
             {
                 base.Index++;
                 base.SkipWhiteSpaceAndCommentTokens();
-                if (base.Tokens[base.Index].Type != TokenType.Identifier)
+
+                if (base.Index == base.Tokens.Count ||
+                    base.Tokens[base.Index].Type != TokenType.Identifier)
                 {
                     this.ReportParsingError("Expected action identifier.");
+                    throw new EndOfTokensException(new List<TokenType>
+                    {
+                        TokenType.Identifier
+                    });
                 }
 
                 base.Tokens[base.Index] = new Token(base.Tokens[base.Index].Text,
@@ -755,18 +981,30 @@ namespace Microsoft.PSharp.Parsing
 
                 base.Index++;
                 base.SkipWhiteSpaceAndCommentTokens();
-                if (base.Tokens[base.Index].Type != TokenType.Semicolon)
+
+                if (base.Index == base.Tokens.Count ||
+                    base.Tokens[base.Index].Type != TokenType.Semicolon)
                 {
                     this.ReportParsingError("Expected \";\".");
+                    throw new EndOfTokensException(new List<TokenType>
+                    {
+                        TokenType.Semicolon
+                    });
                 }
             }
             else if (base.Tokens[base.Index].Type == TokenType.GotoState)
             {
                 base.Index++;
                 base.SkipWhiteSpaceAndCommentTokens();
-                if (base.Tokens[base.Index].Type != TokenType.Identifier)
+
+                if (base.Index == base.Tokens.Count ||
+                    base.Tokens[base.Index].Type != TokenType.Identifier)
                 {
                     this.ReportParsingError("Expected state identifier.");
+                    throw new EndOfTokensException(new List<TokenType>
+                    {
+                        TokenType.Identifier
+                    });
                 }
 
                 base.Tokens[base.Index] = new Token(base.Tokens[base.Index].Text,
@@ -774,14 +1012,16 @@ namespace Microsoft.PSharp.Parsing
 
                 base.Index++;
                 base.SkipWhiteSpaceAndCommentTokens();
-                if (base.Tokens[base.Index].Type != TokenType.Semicolon)
+
+                if (base.Index == base.Tokens.Count ||
+                    base.Tokens[base.Index].Type != TokenType.Semicolon)
                 {
                     this.ReportParsingError("Expected \";\".");
+                    throw new EndOfTokensException(new List<TokenType>
+                    {
+                        TokenType.Semicolon
+                    });
                 }
-            }
-            else
-            {
-                this.ReportParsingError("Expected \"do\" or \"goto\".");
             }
         }
 
@@ -790,23 +1030,61 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         private void CheckDeferEventsDeclaration()
         {
-            base.Index++;
-            base.SkipWhiteSpaceAndCommentTokens();
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.Identifier)
+            {
+                this.ReportParsingError("Expected event identifier.");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Identifier
+                });
+            }
+
+            bool expectsComma = false;
             while (base.Index < base.Tokens.Count &&
                 base.Tokens[base.Index].Type != TokenType.Semicolon)
             {
+                if (!expectsComma && base.Tokens[base.Index].Type != TokenType.Identifier)
+                {
+                    this.ReportParsingError("Expected event identifier.");
+                    throw new EndOfTokensException(new List<TokenType>
+                    {
+                        TokenType.Identifier
+                    });
+                }
+
+                if (expectsComma && base.Tokens[base.Index].Type != TokenType.Comma)
+                {
+                    this.ReportParsingError("Expected \",\".");
+                    throw new EndOfTokensException(new List<TokenType>
+                    {
+                        TokenType.Comma
+                    });
+                }
+
                 if (base.Tokens[base.Index].Type == TokenType.Identifier)
                 {
                     base.Tokens[base.Index] = new Token(base.Tokens[base.Index].Text,
                         base.Tokens[base.Index].Line, TokenType.EventIdentifier);
+                    expectsComma = true;
                 }
-                else if (base.Tokens[base.Index].Type != TokenType.Comma)
+                else if (base.Tokens[base.Index].Type == TokenType.Comma)
                 {
-                    this.ReportParsingError("Expected event identifier.");
+                    expectsComma = false;
                 }
 
                 base.Index++;
                 base.EraseWhiteSpaceAndCommentTokens();
+            }
+
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.Semicolon)
+            {
+                this.ReportParsingError("Expected \";\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Semicolon
+                });
             }
         }
 
@@ -815,23 +1093,61 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         private void CheckIgnoreEventsDeclaration()
         {
-            base.Index++;
-            base.SkipWhiteSpaceAndCommentTokens();
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.Identifier)
+            {
+                this.ReportParsingError("Expected event identifier.");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Identifier
+                });
+            }
+
+            bool expectsComma = false;
             while (base.Index < base.Tokens.Count &&
                 base.Tokens[base.Index].Type != TokenType.Semicolon)
             {
+                if (!expectsComma && base.Tokens[base.Index].Type != TokenType.Identifier)
+                {
+                    this.ReportParsingError("Expected event identifier.");
+                    throw new EndOfTokensException(new List<TokenType>
+                    {
+                        TokenType.Identifier
+                    });
+                }
+
+                if (expectsComma && base.Tokens[base.Index].Type != TokenType.Comma)
+                {
+                    this.ReportParsingError("Expected \",\".");
+                    throw new EndOfTokensException(new List<TokenType>
+                    {
+                        TokenType.Comma
+                    });
+                }
+
                 if (base.Tokens[base.Index].Type == TokenType.Identifier)
                 {
                     base.Tokens[base.Index] = new Token(base.Tokens[base.Index].Text,
                         base.Tokens[base.Index].Line, TokenType.EventIdentifier);
+                    expectsComma = true;
                 }
-                else if (base.Tokens[base.Index].Type != TokenType.Comma)
+                else if (base.Tokens[base.Index].Type == TokenType.Comma)
                 {
-                    this.ReportParsingError("Expected event identifier.");
+                    expectsComma = false;
                 }
 
                 base.Index++;
                 base.EraseWhiteSpaceAndCommentTokens();
+            }
+
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.Semicolon)
+            {
+                this.ReportParsingError("Expected \";\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Semicolon
+                });
             }
         }
 
@@ -840,11 +1156,14 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         private void CheckActionDeclaration()
         {
-            base.Index++;
-            base.SkipWhiteSpaceAndCommentTokens();
-            if (base.Tokens[base.Index].Type != TokenType.Identifier)
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.Identifier)
             {
                 this.ReportParsingError("Expected action identifier.");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Identifier
+                });
             }
 
             if (!ParsingEngine.MachineFieldsAndMethods.ContainsKey(base.CurrentMachine))
@@ -860,11 +1179,19 @@ namespace Microsoft.PSharp.Parsing
 
             base.Index++;
             base.SkipWhiteSpaceAndCommentTokens();
-            if (base.Tokens[base.Index].Type != TokenType.LeftCurlyBracket)
+
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.LeftCurlyBracket)
             {
                 this.ReportParsingError("Expected \"{\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.LeftCurlyBracket
+                });
             }
 
+            base.Index++;
+            base.SkipWhiteSpaceAndCommentTokens();
             this.CheckCodeRegion();
         }
 
@@ -873,8 +1200,6 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         private void CheckMethodDeclaration()
         {
-            base.Index++;
-            base.SkipWhiteSpaceAndCommentTokens();
             while (base.Index < base.Tokens.Count &&
                 base.Tokens[base.Index].Type != TokenType.RightParenthesis)
             {
@@ -887,13 +1212,24 @@ namespace Microsoft.PSharp.Parsing
 
             base.Index++;
             base.SkipWhiteSpaceAndCommentTokens();
+
+            if (base.Index == base.Tokens.Count ||
+                (base.Tokens[base.Index].Type != TokenType.LeftCurlyBracket &&
+                base.Tokens[base.Index].Type != TokenType.Semicolon))
+            {
+                this.ReportParsingError("Expected \"{\" or \";\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.LeftCurlyBracket,
+                    TokenType.Semicolon
+                });
+            }
+
             if (base.Tokens[base.Index].Type == TokenType.LeftCurlyBracket)
             {
+                base.Index++;
+                base.SkipWhiteSpaceAndCommentTokens();
                 this.CheckCodeRegion();
-            }
-            else if (base.Tokens[base.Index].Type != TokenType.Semicolon)
-            {
-                this.ReportParsingError("Expected \";\" or \"{\".");
             }
         }
 
@@ -902,8 +1238,19 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         private void CheckCodeRegion()
         {
-            base.Index++;
-            base.SkipWhiteSpaceAndCommentTokens();
+            if (base.Index == base.Tokens.Count)
+            {
+                this.ReportParsingError("Expected \"}\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.RightCurlyBracket,
+                    TokenType.New,
+                    TokenType.CreateMachine,
+                    TokenType.RaiseEvent,
+                    TokenType.SendEvent,
+                    TokenType.DeleteMachine
+                });
+            }
 
             int bracketCounter = 1;
             while (base.Index < base.Tokens.Count && bracketCounter > 0)
@@ -923,22 +1270,32 @@ namespace Microsoft.PSharp.Parsing
                 }
                 else if (base.Tokens[base.Index].Type == TokenType.New)
                 {
+                    base.Index++;
+                    base.SkipWhiteSpaceAndCommentTokens();
                     this.CheckNewStatement();
                 }
                 else if (base.Tokens[base.Index].Type == TokenType.CreateMachine)
                 {
+                    base.Index++;
+                    base.SkipWhiteSpaceAndCommentTokens();
                     this.CheckCreateStatement();
                 }
                 else if (base.Tokens[base.Index].Type == TokenType.RaiseEvent)
                 {
+                    base.Index++;
+                    base.SkipWhiteSpaceAndCommentTokens();
                     this.CheckRaiseStatement();
                 }
                 else if (base.Tokens[base.Index].Type == TokenType.SendEvent)
                 {
+                    base.Index++;
+                    base.SkipWhiteSpaceAndCommentTokens();
                     this.CheckSendStatement();
                 }
                 else if (base.Tokens[base.Index].Type == TokenType.DeleteMachine)
                 {
+                    base.Index++;
+                    base.SkipWhiteSpaceAndCommentTokens();
                     this.CheckDeleteStatement();
                 }
 
@@ -948,6 +1305,16 @@ namespace Microsoft.PSharp.Parsing
                     base.SkipWhiteSpaceAndCommentTokens();
                 }
             }
+
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.RightCurlyBracket)
+            {
+                this.ReportParsingError("Expected \"}\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.RightCurlyBracket
+                });
+            }
         }
 
         /// <summary>
@@ -955,11 +1322,33 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         private void CheckNewStatement()
         {
-            base.Index++;
-            base.SkipWhiteSpaceAndCommentTokens();
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.Identifier)
+            {
+                this.ReportParsingError("Expected type identifier.");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Identifier
+                });
+            }
+
             while (base.Index < base.Tokens.Count &&
                 base.Tokens[base.Index].Type != TokenType.LeftParenthesis)
             {
+                if (base.Tokens[base.Index].Type != TokenType.Identifier &&
+                    base.Tokens[base.Index].Type != TokenType.Dot &&
+                    base.Tokens[base.Index].Type != TokenType.LessThanOperator &&
+                    base.Tokens[base.Index].Type != TokenType.NewLine)
+                {
+                    this.ReportParsingError("Expected type identifier.");
+                    throw new EndOfTokensException(new List<TokenType>
+                    {
+                        TokenType.Identifier,
+                        TokenType.Dot,
+                        TokenType.LessThanOperator
+                    });
+                }
+
                 if (base.Tokens[base.Index].Type == TokenType.Identifier)
                 {
                     base.Tokens[base.Index] = new Token(base.Tokens[base.Index].Text,
@@ -967,15 +1356,23 @@ namespace Microsoft.PSharp.Parsing
                 }
                 else if (base.Tokens[base.Index].Type == TokenType.LessThanOperator)
                 {
+                    base.Index++;
+                    base.SkipWhiteSpaceAndCommentTokens();
                     this.CheckLessThanOperator();
-                }
-                else if (base.Tokens[base.Index].Type != TokenType.Dot)
-                {
-                    this.ReportParsingError("Expected type identifier.");
                 }
 
                 base.Index++;
                 base.SkipWhiteSpaceAndCommentTokens();
+            }
+
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.LeftParenthesis)
+            {
+                this.ReportParsingError("Expected \"(\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.LeftParenthesis
+                });
             }
 
             base.Index--;
@@ -986,33 +1383,59 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         private void CheckCreateStatement()
         {
-            base.Index++;
-            base.SkipWhiteSpaceAndCommentTokens();
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.Identifier)
+            {
+                this.ReportParsingError("Expected base machine identifier.");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Identifier
+                });
+            }
+
             while (base.Index < base.Tokens.Count &&
                 base.Tokens[base.Index].Type != TokenType.LeftCurlyBracket &&
                 base.Tokens[base.Index].Type != TokenType.Semicolon)
             {
+                if (base.Tokens[base.Index].Type != TokenType.Identifier &&
+                    base.Tokens[base.Index].Type != TokenType.Dot &&
+                    base.Tokens[base.Index].Type != TokenType.NewLine)
+                {
+                    this.ReportParsingError("Expected base machine identifier.");
+                    throw new EndOfTokensException(new List<TokenType>
+                    {
+                        TokenType.Identifier,
+                        TokenType.Dot
+                    });
+                }
+
                 if (base.Tokens[base.Index].Type == TokenType.Identifier)
                 {
                     base.Tokens[base.Index] = new Token(base.Tokens[base.Index].Text,
                         base.Tokens[base.Index].Line, TokenType.MachineIdentifier);
-                }
-                else if (base.Tokens[base.Index].Type != TokenType.Dot)
-                {
-                    this.ReportParsingError("Expected machine identifier.");
                 }
 
                 base.Index++;
                 base.SkipWhiteSpaceAndCommentTokens();
             }
 
+            if (base.Index == base.Tokens.Count ||
+                (base.Tokens[base.Index].Type != TokenType.LeftCurlyBracket &&
+                base.Tokens[base.Index].Type != TokenType.Semicolon))
+            {
+                this.ReportParsingError("Expected \"{\" or \";\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.LeftCurlyBracket,
+                    TokenType.Semicolon
+                });
+            }
+
             if (base.Tokens[base.Index].Type == TokenType.LeftCurlyBracket)
             {
+                base.Index++;
+                base.SkipWhiteSpaceAndCommentTokens();
                 this.CheckArgumentsList();
-            }
-            else if (base.Tokens[base.Index].Type != TokenType.Semicolon)
-            {
-                this.ReportParsingError("Expected \";\" or \"{\".");
             }
         }
 
@@ -1021,11 +1444,14 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         private void CheckRaiseStatement()
         {
-            base.Index++;
-            base.SkipWhiteSpaceAndCommentTokens();
-            if (base.Tokens[base.Index].Type != TokenType.Identifier)
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.Identifier)
             {
                 this.ReportParsingError("Expected event identifier.");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Identifier
+                });
             }
 
             base.Tokens[base.Index] = new Token(base.Tokens[base.Index].Text,
@@ -1033,15 +1459,36 @@ namespace Microsoft.PSharp.Parsing
 
             base.Index++;
             base.SkipWhiteSpaceAndCommentTokens();
+
+            if (base.Index == base.Tokens.Count ||
+                (base.Tokens[base.Index].Type != TokenType.LeftCurlyBracket &&
+                base.Tokens[base.Index].Type != TokenType.Semicolon))
+            {
+                this.ReportParsingError("Expected \"{\" or \";\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.LeftCurlyBracket,
+                    TokenType.Semicolon
+                });
+            }
+
             if (base.Tokens[base.Index].Type == TokenType.LeftCurlyBracket)
             {
+                base.Index++;
+                base.SkipWhiteSpaceAndCommentTokens();
                 this.CheckArgumentsList();
             }
 
             base.SkipWhiteSpaceAndCommentTokens();
-            if (base.Tokens[base.Index].Type != TokenType.Semicolon)
+
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.Semicolon)
             {
                 this.ReportParsingError("Expected \";\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Semicolon
+                });
             }
         }
 
@@ -1050,11 +1497,14 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         private void CheckSendStatement()
         {
-            base.Index++;
-            base.SkipWhiteSpaceAndCommentTokens();
-            if (base.Tokens[base.Index].Type != TokenType.Identifier)
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.Identifier)
             {
                 this.ReportParsingError("Expected event identifier.");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Identifier
+                });
             }
 
             base.Tokens[base.Index] = new Token(base.Tokens[base.Index].Text,
@@ -1062,32 +1512,83 @@ namespace Microsoft.PSharp.Parsing
 
             base.Index++;
             base.SkipWhiteSpaceAndCommentTokens();
+
+            if (base.Index == base.Tokens.Count ||
+                (base.Tokens[base.Index].Type != TokenType.LeftCurlyBracket &&
+                base.Tokens[base.Index].Type != TokenType.ToMachine))
+            {
+                this.ReportParsingError("Expected \"{\" or \"to\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.LeftCurlyBracket,
+                    TokenType.ToMachine
+                });
+            }
+
             if (base.Tokens[base.Index].Type == TokenType.LeftCurlyBracket)
             {
+                base.Index++;
+                base.SkipWhiteSpaceAndCommentTokens();
                 this.CheckArgumentsList();
                 base.Index++;
             }
 
             base.SkipWhiteSpaceAndCommentTokens();
-            if (base.Tokens[base.Index].Type != TokenType.ToMachine)
+
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.ToMachine)
             {
                 this.ReportParsingError("Expected \"to\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.ToMachine
+                });
             }
 
             base.Index++;
             base.SkipWhiteSpaceAndCommentTokens();
+
+            if (base.Index == base.Tokens.Count ||
+                (base.Tokens[base.Index].Type != TokenType.Identifier &&
+                base.Tokens[base.Index].Type != TokenType.This))
+            {
+                this.ReportParsingError("Expected machine identifier.");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Identifier,
+                    TokenType.This
+                });
+            }
+
             while (base.Index < base.Tokens.Count &&
                 base.Tokens[base.Index].Type != TokenType.Semicolon)
             {
                 if (base.Tokens[base.Index].Type != TokenType.Identifier &&
                     base.Tokens[base.Index].Type != TokenType.This &&
-                    base.Tokens[base.Index].Type != TokenType.Dot)
+                    base.Tokens[base.Index].Type != TokenType.Dot &&
+                    base.Tokens[base.Index].Type != TokenType.NewLine)
                 {
-                    this.ReportParsingError("Expected identifier.");
+                    this.ReportParsingError("Expected machine identifier.");
+                    throw new EndOfTokensException(new List<TokenType>
+                    {
+                        TokenType.Identifier,
+                        TokenType.This,
+                        TokenType.Dot
+                    });
                 }
 
                 base.Index++;
                 base.SkipWhiteSpaceAndCommentTokens();
+            }
+
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.Semicolon)
+            {
+                this.ReportParsingError("Expected \";\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Semicolon
+                });
             }
         }
 
@@ -1096,11 +1597,14 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         private void CheckDeleteStatement()
         {
-            base.Index++;
-            base.SkipWhiteSpaceAndCommentTokens();
-            if (base.Tokens[base.Index].Type != TokenType.Semicolon)
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.Semicolon)
             {
                 this.ReportParsingError("Expected \";\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Semicolon
+                });
             }
         }
 
@@ -1109,8 +1613,6 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         private void CheckAttributeList()
         {
-            base.Index++;
-            base.SkipWhiteSpaceAndCommentTokens();
             while (base.Index < base.Tokens.Count &&
                 base.Tokens[base.Index].Type != TokenType.RightSquareBracket)
             {
@@ -1120,6 +1622,16 @@ namespace Microsoft.PSharp.Parsing
                 base.Index++;
                 base.EraseWhiteSpaceAndCommentTokens();
             }
+
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.RightSquareBracket)
+            {
+                this.ReportParsingError("Expected \"]\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.RightSquareBracket
+                });
+            }
         }
 
         /// <summary>
@@ -1127,18 +1639,28 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         private void CheckArgumentsList()
         {
-            base.Index++;
-            base.SkipWhiteSpaceAndCommentTokens();
             while (base.Index < base.Tokens.Count &&
                 base.Tokens[base.Index].Type != TokenType.RightCurlyBracket)
             {
                 if (base.Tokens[base.Index].Type == TokenType.New)
                 {
+                    base.Index++;
+                    base.SkipWhiteSpaceAndCommentTokens();
                     this.CheckNewStatement();
                 }
 
                 base.Index++;
                 base.EraseWhiteSpaceAndCommentTokens();
+            }
+
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.RightCurlyBracket)
+            {
+                this.ReportParsingError("Expected \"}\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.RightCurlyBracket
+                });
             }
         }
 
@@ -1147,9 +1669,6 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         private void CheckLessThanOperator()
         {
-            base.Index++;
-            base.SkipWhiteSpaceAndCommentTokens();
-
             this.CheckGenericList();
         }
 
@@ -1171,6 +1690,16 @@ namespace Microsoft.PSharp.Parsing
 
                 tokens.Add(new Token(base.Tokens[replaceIdx].Text, base.Tokens[replaceIdx].Line));
                 replaceIdx++;
+            }
+
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.GreaterThanOperator)
+            {
+                this.ReportParsingError("Expected \">\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.GreaterThanOperator
+                });
             }
 
             foreach (var tok in tokens)
@@ -1205,17 +1734,25 @@ namespace Microsoft.PSharp.Parsing
         }
 
         /// <summary>
-        /// Reports a parting error.
+        /// Reports a parsing error. Only works if the parser is
+        /// running internally.
         /// </summary>
         /// <param name="error">Error</param>
         private void ReportParsingError(string error)
         {
-            if (!this.ReportConsoleError)
+            if (!this.IsRunningInternally)
             {
                 return;
             }
 
-            var errorToken = base.Tokens[base.Index];
+            var errorIndex = base.Index;
+            if (base.Index == base.Tokens.Count &&
+                base.Index > 0)
+            {
+                errorIndex--;
+            }
+
+            var errorToken = base.Tokens[errorIndex];
             var errorLine = base.OriginalTokens.Where(val => val.Line == errorToken.Line);
 
             error += "\nIn " + this.FilePath + " (line " + errorToken.Line + "):\n";
@@ -1226,7 +1763,7 @@ namespace Microsoft.PSharp.Parsing
 
             foreach (var token in errorLine)
             {
-                if (token.Equals(errorToken))
+                if (token.Equals(errorToken) && errorIndex == base.Index)
                 {
                     error += new StringBuilder().Append('~', token.Text.Length);
                     break;
@@ -1235,6 +1772,11 @@ namespace Microsoft.PSharp.Parsing
                 {
                     error += new StringBuilder().Append(' ', token.Text.Length);
                 }
+            }
+
+            if (errorIndex != base.Index)
+            {
+                error += "^";
             }
 
             ErrorReporter.ReportErrorAndExit(error);

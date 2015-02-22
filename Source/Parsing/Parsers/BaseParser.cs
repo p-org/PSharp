@@ -52,6 +52,11 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         protected string CurrentState;
 
+        /// <summary>
+        /// List of expected token types at end of parsing.
+        /// </summary>
+        protected List<TokenType> ExpectedTokenTypes;
+
         #endregion
 
         #region internal API
@@ -61,7 +66,7 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         public BaseParser()
         {
-            
+
         }
 
         /// <summary>
@@ -76,10 +81,15 @@ namespace Microsoft.PSharp.Parsing
             this.Index = 0;
             this.CurrentMachine = "";
             this.CurrentState = "";
+            this.ExpectedTokenTypes = new List<TokenType>();
 
             try
             {
                 this.ParseNextToken();
+            }
+            catch (EndOfTokensException ex)
+            {
+                this.ExpectedTokenTypes = ex.ExpectedTokenTypes;
             }
             catch (ParsingException ex)
             {
@@ -87,6 +97,15 @@ namespace Microsoft.PSharp.Parsing
             }
             
             return this.Tokens;
+        }
+
+        /// <summary>
+        /// Returns the expected token types at the end of parsing.
+        /// </summary>
+        /// <returns>Expected token types</returns>
+        public List<TokenType> GetExpectedTokenTypes()
+        {
+            return this.ExpectedTokenTypes;
         }
 
         #endregion
@@ -178,11 +197,6 @@ namespace Microsoft.PSharp.Parsing
                 this.Index++;
             }
 
-            if (this.Index == this.Tokens.Count)
-            {
-                throw new ParsingException("unexpected end of token list.");
-            }
-
             return true;
         }
 
@@ -201,11 +215,6 @@ namespace Microsoft.PSharp.Parsing
                 this.Tokens[this.Index].Type != TokenType.NewLine)
             {
                 this.Tokens.RemoveAt(this.Index);
-            }
-
-            if (this.Index == this.Tokens.Count)
-            {
-                throw new ParsingException("unexpected end of token list.");
             }
 
             return true;
@@ -227,11 +236,6 @@ namespace Microsoft.PSharp.Parsing
                 this.Tokens.RemoveAt(this.Index);
             }
 
-            if (this.Index == this.Tokens.Count)
-            {
-                throw new ParsingException("unexpected end of token list.");
-            }
-
             this.Tokens.RemoveAt(this.Index);
 
             return true;
@@ -251,11 +255,6 @@ namespace Microsoft.PSharp.Parsing
                 this.Tokens[this.Index].Type == TokenType.WhiteSpace)
             {
                 this.Tokens.RemoveAt(this.Index);
-            }
-
-            if (this.Index == this.Tokens.Count)
-            {
-                throw new ParsingException("unexpected end of token list.");
             }
 
             return true;

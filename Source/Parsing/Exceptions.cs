@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 
 namespace Microsoft.PSharp.Parsing
 {
@@ -29,6 +30,25 @@ namespace Microsoft.PSharp.Parsing
             : base("parser: " + message)
         {
 
+        }
+    }
+
+    /// <summary>
+    /// Implements a parsing exception. It is triggered when the
+    /// parser reaches the end of token list.
+    /// </summary>
+    internal class EndOfTokensException : Exception
+    {
+        internal List<TokenType> ExpectedTokenTypes;
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="expectedTokensTypes">Expected token types</param>
+        public EndOfTokensException(List<TokenType> expectedTokensTypes)
+            : base()
+        {
+            this.ExpectedTokenTypes = expectedTokensTypes;
         }
     }
 }

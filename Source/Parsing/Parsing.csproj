@@ -55,6 +55,7 @@
     <Compile Include="Parsers\BaseParser.cs" />
     <Compile Include="Parsers\PSharpParser.cs" />
     <Compile Include="TextUnit.cs" />
+    <Compile Include="TokenTypeRegistry.cs" />
     <Compile Include="Token.cs" />
     <Compile Include="Parsers\PSharpRewriter.cs" />
     <Compile Include="ActionType.cs" />

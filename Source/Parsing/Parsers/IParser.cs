@@ -27,5 +27,11 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="tokens">List of tokens</param>
         /// <returns>Parsed tokens</returns>
         List<Token> ParseTokens(List<Token> tokens);
+
+        /// <summary>
+        /// Returns the expected token types at the end of parsing.
+        /// </summary>
+        /// <returns>Expected token types</returns>
+        List<TokenType> GetExpectedTokenTypes();
     }
 }

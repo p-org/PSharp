@@ -14,6 +14,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+
+using Microsoft.PSharp.Parsing;
 
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
@@ -46,18 +49,33 @@ namespace Microsoft.PSharp.VisualStudio
         {
             var keywords = this.GetKeywords();
 
+            var snapshot = this.Buffer.CurrentSnapshot;
+            var trackSpan = this.FindTokenSpanAtPosition(session.GetTriggerPoint(this.Buffer), session);
+            var preSpan = new SnapshotSpan(snapshot, new Span(snapshot.GetLineFromLineNumber(0).Start,
+                trackSpan.GetStartPoint(snapshot).Position));
+
+            var tokens = new PSharpLexer().Tokenize(preSpan.GetText());
+            var parser = new PSharpErrorParser();
+            parser.ParseTokens(tokens);
+            this.RefineAvailableKeywords(parser.GetExpectedTokenTypes(), keywords);
+
             this.CompletionList = new List<Completion>();
 
             foreach (var keyword in keywords)
             {
-                this.CompletionList.Add(new Completion(keyword, keyword, keyword, null, null));
+                this.CompletionList.Add(new Completion(keyword.Key, keyword.Key,
+                    keyword.Value.Item1, null, null));
+            }
+
+            if (keywords.Count == 0)
+            {
+                return;
             }
 
             completionSets.Add(new CompletionSet(
                 "Tokens",
                 "Tokens",
-                this.FindTokenSpanAtPosition(session.GetTriggerPoint(this.Buffer),
-                    session),
+                trackSpan,
                 this.CompletionList,
                 null));
         }
@@ -71,58 +89,72 @@ namespace Microsoft.PSharp.VisualStudio
         }
 
         /// <summary>
+        /// Refines the available keywords
+        /// </summary>
+        /// <param name="expectedTokenTypes">Expected token types</param>
+        /// <param name="keywords">Keywords</param>
+        private void RefineAvailableKeywords(List<TokenType> expectedTokens,
+            Dictionary<string, Tuple<string>> keywords)
+        {
+            var tokens = expectedTokens.Select(val => TokenTypeRegistry.GetText(val));
+            foreach (var key in keywords.Keys.Where(val => !tokens.Contains(val)).ToList())
+            {
+                keywords.Remove(key);
+            }
+        }
+
+        /// <summary>
         /// Returns the P# keywords.
         /// </summary>
-        /// <returns>List of strings</returns>
-        private List<string> GetKeywords()
+        /// <returns>Dictionary of keywords</returns>
+        private Dictionary<string, Tuple<string>> GetKeywords()
         {
-            var keywords = new List<string>();
+            var keywords = new Dictionary<string, Tuple<string>>();
+            
+            keywords.Add("private", new Tuple<string>("private Keyword"));
+            keywords.Add("protected", new Tuple<string>("protected Keyword"));
+            keywords.Add("internal", new Tuple<string>("internal Keyword"));
+            keywords.Add("public", new Tuple<string>("public Keyword"));
+            keywords.Add("abstract", new Tuple<string>("abstract Keyword"));
+            keywords.Add("virtual", new Tuple<string>("virtual Keyword"));
+            keywords.Add("override", new Tuple<string>("override Keyword"));
 
-            keywords.Add("private");
-            keywords.Add("protected");
-            keywords.Add("internal");
-            keywords.Add("public");
-            keywords.Add("abstract");
-            keywords.Add("virtual");
-            keywords.Add("override");
+            keywords.Add("namespace", new Tuple<string>("namespace Keyword"));
+            keywords.Add("using", new Tuple<string>("using Keyword"));
 
-            keywords.Add("namespace");
-            keywords.Add("using");
+            keywords.Add("machine", new Tuple<string>("machine Keyword"));
+            keywords.Add("state", new Tuple<string>("state Keyword"));
+            keywords.Add("event", new Tuple<string>("event Keyword"));
+            keywords.Add("action", new Tuple<string>("action Keyword"));
+            
+            keywords.Add("on", new Tuple<string>("on Keyword"));
+            keywords.Add("do", new Tuple<string>("do Keyword"));
+            keywords.Add("goto", new Tuple<string>("goto Keyword"));
+            keywords.Add("defer", new Tuple<string>("defer Keyword"));
+            keywords.Add("ignore", new Tuple<string>("ignore Keyword"));
+            keywords.Add("to", new Tuple<string>("to Keyword"));
+            keywords.Add("entry", new Tuple<string>("entry Keyword"));
+            keywords.Add("exit", new Tuple<string>("exit Keyword"));
 
-            keywords.Add("machine");
-            keywords.Add("state");
-            keywords.Add("event");
-            keywords.Add("action");
+            keywords.Add("this", new Tuple<string>("this Keyword"));
+            keywords.Add("base", new Tuple<string>("base Keyword"));
 
-            keywords.Add("on");
-            keywords.Add("do");
-            keywords.Add("goto");
-            keywords.Add("defer");
-            keywords.Add("ignore");
-            keywords.Add("to");
-            keywords.Add("entry");
-            keywords.Add("exit");
+            keywords.Add("new", new Tuple<string>("new Keyword"));
+            keywords.Add("as", new Tuple<string>("as Keyword"));
+            keywords.Add("for", new Tuple<string>("for Keyword"));
+            keywords.Add("while", new Tuple<string>("while Keyword"));
+            keywords.Add("if", new Tuple<string>("if Keyword"));
+            keywords.Add("else", new Tuple<string>("else Keyword"));
+            keywords.Add("break", new Tuple<string>("break Keyword"));
+            keywords.Add("continue", new Tuple<string>("continue Keyword"));
+            keywords.Add("return", new Tuple<string>("return Keyword"));
 
-            keywords.Add("this");
-            keywords.Add("base");
-
-            keywords.Add("new");
-            keywords.Add("as");
-            keywords.Add("for");
-            keywords.Add("while");
-            keywords.Add("do");
-            keywords.Add("if");
-            keywords.Add("else");
-            keywords.Add("break");
-            keywords.Add("continue");
-            keywords.Add("return");
-
-            keywords.Add("create");
-            keywords.Add("send");
-            keywords.Add("raise");
-            keywords.Add("delete");
-            keywords.Add("assert");
-            keywords.Add("payload");
+            keywords.Add("create", new Tuple<string>("create Keyword"));
+            keywords.Add("send", new Tuple<string>("send Keyword"));
+            keywords.Add("raise", new Tuple<string>("raise Keyword"));
+            keywords.Add("delete", new Tuple<string>("delete Keyword"));
+            keywords.Add("assert", new Tuple<string>("assert Keyword"));
+            keywords.Add("payload", new Tuple<string>("payload Keyword"));
 
             return keywords;
         }
