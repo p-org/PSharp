@@ -63,6 +63,10 @@ namespace Microsoft.PSharp.VisualStudio
                 currentLine = line.Snapshot.GetLineFromLineNumber(currentLine.LineNumber - 1);
             }
             while (currentLine.LineNumber > 0 && currentLine.Length == 0);
+            if (line.LineNumber == 0)
+            {
+                return indent;
+            }
 
             var tokens = new PSharpLexer().Tokenize(currentLine.GetText());
 
@@ -88,6 +92,7 @@ namespace Microsoft.PSharp.VisualStudio
                     token.Type == TokenType.StateLeftCurlyBracket)
                 {
                     indent += tabSize;
+                    break;
                 }
                 else if (!codeFound)
                 {
