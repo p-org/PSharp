@@ -671,13 +671,59 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         private void RewritePayload()
         {
-            base.Tokens[base.Index] = new Token("this", TokenType.This);
+            var startIdx = base.Index;
             base.Index++;
 
-            base.Tokens.Insert(base.Index, new Token(".", TokenType.Dot));
-            base.Index++;
+            var isArray = false;
+            base.SkipWhiteSpaceAndCommentTokens();
+            if (base.Tokens[base.Index].Type == TokenType.LeftSquareBracket)
+            {
+                isArray = true;
+            }
 
-            base.Tokens.Insert(base.Index, new Token("Payload"));
+            base.Index = startIdx;
+
+            if (isArray)
+            {
+                base.Tokens[base.Index] = new Token("(", TokenType.LeftParenthesis);
+                base.Index++;
+
+                base.Tokens.Insert(base.Index, new Token("(", TokenType.LeftParenthesis));
+                base.Index++;
+
+                base.Tokens.Insert(base.Index, new Token("Object"));
+                base.Index++;
+
+                base.Tokens.Insert(base.Index, new Token("[", TokenType.LeftSquareBracket));
+                base.Index++;
+
+                base.Tokens.Insert(base.Index, new Token("]", TokenType.RightSquareBracket));
+                base.Index++;
+
+                base.Tokens.Insert(base.Index, new Token(")", TokenType.RightParenthesis));
+                base.Index++;
+
+                base.Tokens.Insert(base.Index, new Token("this", TokenType.This));
+                base.Index++;
+
+                base.Tokens.Insert(base.Index, new Token(".", TokenType.Dot));
+                base.Index++;
+
+                base.Tokens.Insert(base.Index, new Token("Payload"));
+                base.Index++;
+
+                base.Tokens.Insert(base.Index, new Token(")", TokenType.RightParenthesis));
+            }
+            else
+            {
+                base.Tokens[base.Index] = new Token("this", TokenType.This);
+                base.Index++;
+
+                base.Tokens.Insert(base.Index, new Token(".", TokenType.Dot));
+                base.Index++;
+
+                base.Tokens.Insert(base.Index, new Token("Payload"));
+            }
         }
 
         /// <summary>

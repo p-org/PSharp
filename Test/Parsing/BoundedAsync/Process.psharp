@@ -14,7 +14,7 @@ namespace BoundedAsync
         private state _Init
         {
             entry
-            {
+            {	
                 this.Scheduler = (Machine)payload;
                 raise eUnit;
             }
@@ -69,7 +69,7 @@ namespace BoundedAsync
             entry
             {
                 Console.WriteLine("Process: Done");
-
+				
                 send eDone to Scheduler;
                 delete;
             }
@@ -78,13 +78,13 @@ namespace BoundedAsync
         }
 
         private action InitAction
-        {
-            this.LeftProcess = ((Object[])payload)[0] as Machine;
-            this.RightProcess = ((Object[])payload)[1] as Machine;
+        {	
+			this.LeftProcess = payload[0] as Machine;
+            this.RightProcess = payload[1] as Machine;
 
             send eReq to Scheduler;
         }
-
+		
         private action ConfirmThatInSync
         {
             Console.WriteLine("Process: Performing ConfirmThatInSync");
