@@ -109,6 +109,11 @@ namespace Microsoft.PSharp.VisualStudio
                 if (this.Session == null || this.Session.IsDismissed)
                 {
                     this.TriggerCompletion();
+                    if (this.Session == null)
+                    {
+                        return VSConstants.S_OK;
+                    }
+
                     this.Session.Filter();
                 }
                 // The completion session is already active, so just filter.

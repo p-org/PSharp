@@ -720,13 +720,16 @@ namespace Microsoft.PSharp.Parsing
                     });
                 }
 
-                if (!ParsingEngine.MachineFieldsAndMethods.ContainsKey(base.CurrentMachine))
+                if (ParsingEngine.MachineFieldsAndMethods != null)
                 {
-                    ParsingEngine.MachineFieldsAndMethods.Add(base.CurrentMachine,
-                        new HashSet<string>());
-                }
+                    if (!ParsingEngine.MachineFieldsAndMethods.ContainsKey(base.CurrentMachine))
+                    {
+                        ParsingEngine.MachineFieldsAndMethods.Add(base.CurrentMachine,
+                            new HashSet<string>());
+                    }
 
-                ParsingEngine.MachineFieldsAndMethods[base.CurrentMachine].Add(base.Tokens[base.Index].Text);
+                    ParsingEngine.MachineFieldsAndMethods[base.CurrentMachine].Add(base.Tokens[base.Index].Text);
+                }
 
                 while (base.Index < base.Tokens.Count &&
                     base.Tokens[base.Index].Type != TokenType.Semicolon &&
@@ -1183,13 +1186,16 @@ namespace Microsoft.PSharp.Parsing
                 });
             }
 
-            if (!ParsingEngine.MachineFieldsAndMethods.ContainsKey(base.CurrentMachine))
+            if (ParsingEngine.MachineFieldsAndMethods != null)
             {
-                ParsingEngine.MachineFieldsAndMethods.Add(base.CurrentMachine,
-                    new HashSet<string>());
-            }
+                if (!ParsingEngine.MachineFieldsAndMethods.ContainsKey(base.CurrentMachine))
+                {
+                    ParsingEngine.MachineFieldsAndMethods.Add(base.CurrentMachine,
+                        new HashSet<string>());
+                }
 
-            ParsingEngine.MachineFieldsAndMethods[base.CurrentMachine].Add(base.Tokens[base.Index].Text);
+                ParsingEngine.MachineFieldsAndMethods[base.CurrentMachine].Add(base.Tokens[base.Index].Text);
+            }
 
             base.Tokens[base.Index] = new Token(base.Tokens[base.Index].Text,
                 base.Tokens[base.Index].Line, base.Index, TokenType.ActionIdentifier);
