@@ -240,11 +240,11 @@ namespace Microsoft.PSharp.Parsing
                 this.ReportParsingError("Expected \"}\".");
                 throw new EndOfTokensException(new List<TokenType>
                 {
-                    TokenType.Private,
-                    TokenType.Protected,
                     TokenType.Internal,
                     TokenType.Public,
                     TokenType.Abstract,
+                    TokenType.EventDecl,
+                    TokenType.MachineDecl,
                     TokenType.LeftSquareBracket,
                     TokenType.RightCurlyBracket
                 });
@@ -269,8 +269,20 @@ namespace Microsoft.PSharp.Parsing
                     this.SkipWhiteSpaceAndCommentTokens();
                     break;
 
-                case TokenType.Private:
-                case TokenType.Protected:
+                case TokenType.EventDecl:
+                    base.Index++;
+                    base.SkipWhiteSpaceAndCommentTokens();
+                    this.CheckEventDeclaration();
+                    base.Index++;
+                    break;
+
+                case TokenType.MachineDecl:
+                    base.Index++;
+                    base.SkipWhiteSpaceAndCommentTokens();
+                    this.CheckMachineDeclaration();
+                    base.Index++;
+                    break;
+
                 case TokenType.Internal:
                 case TokenType.Public:
                     base.Index++;
@@ -296,6 +308,11 @@ namespace Microsoft.PSharp.Parsing
                 case TokenType.RightCurlyBracket:
                     fixpoint = true;
                     base.Index++;
+                    break;
+
+                case TokenType.Private:
+                case TokenType.Protected:
+                    this.ReportParsingError("Event and machine declarations must be internal or public.");
                     break;
 
                 case TokenType.RightSquareBracket:
@@ -342,7 +359,8 @@ namespace Microsoft.PSharp.Parsing
                 base.SkipWhiteSpaceAndCommentTokens();
 
                 if (base.Index == base.Tokens.Count ||
-                    base.Tokens[base.Index].Type == TokenType.Abstract)
+                    (base.Tokens[base.Index].Type != TokenType.EventDecl &&
+                    base.Tokens[base.Index].Type != TokenType.MachineDecl))
                 {
                     this.ReportParsingError("Expected event or machine declaration.");
                     throw new EndOfTokensException(new List<TokenType>
@@ -362,23 +380,39 @@ namespace Microsoft.PSharp.Parsing
         private void CheckTopLevelAbstractModifier()
         {
             if (base.Index == base.Tokens.Count ||
-                (base.Tokens[base.Index].Type != TokenType.Private &&
-                base.Tokens[base.Index].Type != TokenType.Protected &&
-                base.Tokens[base.Index].Type != TokenType.Internal &&
-                base.Tokens[base.Index].Type != TokenType.Public))
+                (base.Tokens[base.Index].Type != TokenType.Internal &&
+                base.Tokens[base.Index].Type != TokenType.Public &&
+                base.Tokens[base.Index].Type != TokenType.EventDecl &&
+                base.Tokens[base.Index].Type != TokenType.MachineDecl))
             {
-                this.ReportParsingError("Expected access modifier.");
+                this.ReportParsingError("Expected event or machine declaration.");
                 throw new EndOfTokensException(new List<TokenType>
                 {
-                    TokenType.Private,
-                    TokenType.Protected,
                     TokenType.Internal,
-                    TokenType.Public
+                    TokenType.Public,
+                    TokenType.EventDecl,
+                    TokenType.MachineDecl
                 });
             }
 
-            base.Index++;
-            base.SkipWhiteSpaceAndCommentTokens();
+            if (base.Tokens[base.Index].Type == TokenType.Internal ||
+                base.Tokens[base.Index].Type == TokenType.Public)
+            {
+                base.Index++;
+                base.SkipWhiteSpaceAndCommentTokens();
+
+                if (base.Index == base.Tokens.Count ||
+                    (base.Tokens[base.Index].Type != TokenType.EventDecl &&
+                    base.Tokens[base.Index].Type != TokenType.MachineDecl))
+                {
+                    this.ReportParsingError("Expected event or machine declaration.");
+                    throw new EndOfTokensException(new List<TokenType>
+                    {
+                        TokenType.EventDecl,
+                        TokenType.MachineDecl
+                    });
+                }
+            }
 
             this.CheckTopLevelDeclaration();
         }
@@ -547,6 +581,8 @@ namespace Microsoft.PSharp.Parsing
                 {
                     TokenType.Private,
                     TokenType.Protected,
+                    TokenType.StateDecl,
+                    TokenType.ActionDecl,
                     TokenType.LeftSquareBracket,
                     TokenType.RightCurlyBracket
                 });
@@ -571,21 +607,33 @@ namespace Microsoft.PSharp.Parsing
                     this.SkipWhiteSpaceAndCommentTokens();
                     break;
 
+                case TokenType.StateDecl:
+                    base.Index++;
+                    base.SkipWhiteSpaceAndCommentTokens();
+                    this.CheckStateDeclaration();
+                    base.Index++;
+                    break;
+
+                case TokenType.ActionDecl:
+                    base.Index++;
+                    base.SkipWhiteSpaceAndCommentTokens();
+                    this.CheckActionDeclaration();
+                    base.Index++;
+                    break;
+
+                case TokenType.Identifier:
+                    base.Index++;
+                    base.SkipWhiteSpaceAndCommentTokens();
+                    this.CheckFieldOrMethodDeclaration();
+                    base.Index++;
+                    break;
+
                 case TokenType.Private:
                 case TokenType.Protected:
                     base.Index++;
                     base.SkipWhiteSpaceAndCommentTokens();
                     this.CheckMachineLevelAccessModifier();
                     base.Index++;
-                    break;
-
-                case TokenType.Internal:
-                case TokenType.Public:
-                    this.ReportParsingError("Machine fields, states or actions must be private or protected.");
-                    break;
-
-                case TokenType.Abstract:
-                    this.ReportParsingError("Machine fields, states or actions cannot be abstract.");
                     break;
 
                 case TokenType.LeftSquareBracket:
@@ -601,6 +649,15 @@ namespace Microsoft.PSharp.Parsing
                     base.CurrentMachine = "";
                     fixpoint = true;
                     base.Index++;
+                    break;
+
+                case TokenType.Internal:
+                case TokenType.Public:
+                    this.ReportParsingError("Machine fields, states or actions must be private or protected.");
+                    break;
+
+                case TokenType.Abstract:
+                    this.ReportParsingError("Machine fields, states or actions cannot be abstract.");
                     break;
 
                 case TokenType.RightSquareBracket:
@@ -679,72 +736,7 @@ namespace Microsoft.PSharp.Parsing
             {
                 base.Index++;
                 base.SkipWhiteSpaceAndCommentTokens();
-
-                if (base.Index == base.Tokens.Count ||
-                    (base.Tokens[base.Index].Type != TokenType.LessThanOperator &&
-                    base.Tokens[base.Index].Type != TokenType.Identifier))
-                {
-                    this.ReportParsingError("Expected state, action or method declaration.");
-                    throw new EndOfTokensException(new List<TokenType>
-                    {
-                        TokenType.LessThanOperator,
-                        TokenType.Identifier
-                    });
-                }
-
-                if (base.Tokens[base.Index].Type == TokenType.LessThanOperator)
-                {
-                    base.Index++;
-                    base.SkipWhiteSpaceAndCommentTokens();
-                    this.CheckLessThanOperator();
-
-                    if (base.Index == base.Tokens.Count ||
-                        base.Tokens[base.Index].Type != TokenType.Identifier)
-                    {
-                        this.ReportParsingError("Expected method declaration.");
-                        throw new EndOfTokensException(new List<TokenType>
-                        {
-                            TokenType.Identifier
-                        });
-                    }
-                }
-
-                if (base.Index == base.Tokens.Count ||
-                    (base.Tokens[base.Index].Type != TokenType.Identifier))
-                {
-                    this.ReportParsingError("Expected state, action or method declaration.");
-                    throw new EndOfTokensException(new List<TokenType>
-                    {
-                        TokenType.LessThanOperator,
-                        TokenType.Identifier
-                    });
-                }
-
-                if (ParsingEngine.MachineFieldsAndMethods != null)
-                {
-                    if (!ParsingEngine.MachineFieldsAndMethods.ContainsKey(base.CurrentMachine))
-                    {
-                        ParsingEngine.MachineFieldsAndMethods.Add(base.CurrentMachine,
-                            new HashSet<string>());
-                    }
-
-                    ParsingEngine.MachineFieldsAndMethods[base.CurrentMachine].Add(base.Tokens[base.Index].Text);
-                }
-
-                while (base.Index < base.Tokens.Count &&
-                    base.Tokens[base.Index].Type != TokenType.Semicolon &&
-                    base.Tokens[base.Index].Type != TokenType.LeftParenthesis)
-                {
-                    base.Index++;
-                    base.SkipWhiteSpaceAndCommentTokens();
-                }
-
-                if (base.Tokens[base.Index].Type == TokenType.LeftParenthesis)
-                {
-                    base.Index++;
-                    base.SkipWhiteSpaceAndCommentTokens();
-                    this.CheckMethodDeclaration();
-                }
+                this.CheckFieldOrMethodDeclaration();
             }
         }
 
@@ -1216,6 +1208,78 @@ namespace Microsoft.PSharp.Parsing
             base.Index++;
             base.SkipWhiteSpaceAndCommentTokens();
             this.CheckCodeRegion();
+        }
+
+        /// <summary>
+        /// Checks a field or method declaration for errors.
+        /// </summary>
+        private void CheckFieldOrMethodDeclaration()
+        {
+            if (base.Index == base.Tokens.Count ||
+                    (base.Tokens[base.Index].Type != TokenType.LessThanOperator &&
+                    base.Tokens[base.Index].Type != TokenType.Identifier))
+            {
+                this.ReportParsingError("Expected state, action or method declaration.");
+                throw new EndOfTokensException(new List<TokenType>
+                    {
+                        TokenType.LessThanOperator,
+                        TokenType.Identifier
+                    });
+            }
+
+            if (base.Tokens[base.Index].Type == TokenType.LessThanOperator)
+            {
+                base.Index++;
+                base.SkipWhiteSpaceAndCommentTokens();
+                this.CheckLessThanOperator();
+
+                if (base.Index == base.Tokens.Count ||
+                    base.Tokens[base.Index].Type != TokenType.Identifier)
+                {
+                    this.ReportParsingError("Expected method declaration.");
+                    throw new EndOfTokensException(new List<TokenType>
+                        {
+                            TokenType.Identifier
+                        });
+                }
+            }
+
+            if (base.Index == base.Tokens.Count ||
+                (base.Tokens[base.Index].Type != TokenType.Identifier))
+            {
+                this.ReportParsingError("Expected state, action or method declaration.");
+                throw new EndOfTokensException(new List<TokenType>
+                    {
+                        TokenType.LessThanOperator,
+                        TokenType.Identifier
+                    });
+            }
+
+            if (ParsingEngine.MachineFieldsAndMethods != null)
+            {
+                if (!ParsingEngine.MachineFieldsAndMethods.ContainsKey(base.CurrentMachine))
+                {
+                    ParsingEngine.MachineFieldsAndMethods.Add(base.CurrentMachine,
+                        new HashSet<string>());
+                }
+
+                ParsingEngine.MachineFieldsAndMethods[base.CurrentMachine].Add(base.Tokens[base.Index].Text);
+            }
+
+            while (base.Index < base.Tokens.Count &&
+                base.Tokens[base.Index].Type != TokenType.Semicolon &&
+                base.Tokens[base.Index].Type != TokenType.LeftParenthesis)
+            {
+                base.Index++;
+                base.SkipWhiteSpaceAndCommentTokens();
+            }
+
+            if (base.Tokens[base.Index].Type == TokenType.LeftParenthesis)
+            {
+                base.Index++;
+                base.SkipWhiteSpaceAndCommentTokens();
+                this.CheckMethodDeclaration();
+            }
         }
 
         /// <summary>

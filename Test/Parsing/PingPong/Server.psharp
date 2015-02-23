@@ -3,12 +3,12 @@
 namespace PingPong
 {
     [Main]
-    internal machine Server
+    machine Server
     {	
-        private Client Client;
+        Client Client;
 
         [Initial]
-        private state Init
+        state Init
         {
             entry
             {
@@ -19,7 +19,7 @@ namespace PingPong
             on Unit goto Playing;
         }
 
-        private state Playing
+        state Playing
         {
             entry
             {
@@ -31,12 +31,12 @@ namespace PingPong
             on Stop do StopIt;
         }
 
-        private action SendPong
+        action SendPong
         {
             send Pong to this.Client;
         }
 
-        private action StopIt
+        action StopIt
         {
             Console.WriteLine("Server stopped.\n");
             delete;
