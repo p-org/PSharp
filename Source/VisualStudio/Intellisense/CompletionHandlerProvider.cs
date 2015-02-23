@@ -28,7 +28,7 @@ namespace Microsoft.PSharp.VisualStudio
     /// The P# completion handler provider.
     /// </summary>
     [Export(typeof(IVsTextViewCreationListener))]
-    [Name("token completion handler")]
+    [Name("P# completion handler")]
     [ContentType("psharp")]
     [TextViewRole(PredefinedTextViewRoles.Editable)]
     internal class CompletionHandlerProvider : IVsTextViewCreationListener

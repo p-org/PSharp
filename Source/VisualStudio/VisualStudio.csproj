@@ -92,6 +92,7 @@
     <Compile Include="Intellisense\CompletionHandlerProvider.cs" />
     <Compile Include="Intellisense\CompletionSource.cs" />
     <Compile Include="Intellisense\CompletionSourceProvider.cs" />
+    <Compile Include="Intellisense\Keywords.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Tagging\PSharpTokenTag.cs" />
     <Compile Include="Tagging\PSharpTokenTagger.cs" />

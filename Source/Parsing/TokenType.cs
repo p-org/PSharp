@@ -25,6 +25,7 @@ namespace Microsoft.PSharp.Parsing
         WhiteSpace,
 
         Comment,
+        CommentLine,
         CommentStart,
         CommentEnd,
         Region,

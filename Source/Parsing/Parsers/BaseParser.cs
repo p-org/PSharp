@@ -146,27 +146,9 @@ namespace Microsoft.PSharp.Parsing
         {
             while (this.Index < this.Tokens.Count)
             {
-                var repeat = this.EraseLineComment();
-                repeat = repeat || this.EraseMultiLineComment();
+                var repeat = this.CommentOutLineComment();
+                repeat = repeat || this.CommentOutMultiLineComment();
                 repeat = repeat || this.SkipWhiteSpaceTokens();
-
-                if (!repeat)
-                {
-                    break;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Erases whitespace and comment tokens.
-        /// </summary>
-        protected void EraseWhiteSpaceAndCommentTokens()
-        {
-            while (this.Index < this.Tokens.Count)
-            {
-                var repeat = this.EraseLineComment();
-                repeat = repeat || this.EraseMultiLineComment();
-                repeat = repeat || this.EraseWhiteSpaceTokens();
 
                 if (!repeat)
                 {
@@ -201,11 +183,11 @@ namespace Microsoft.PSharp.Parsing
         }
 
         /// <summary>
-        /// Erases a line-wide comment, if any.
+        /// Comments out a line-wide comment, if any.
         /// </summary>
-        private bool EraseLineComment()
+        private bool CommentOutLineComment()
         {
-            if ((this.Tokens[this.Index].Type != TokenType.Comment) &&
+            if ((this.Tokens[this.Index].Type != TokenType.CommentLine) &&
                 (this.Tokens[this.Index].Type != TokenType.Region))
             {
                 return false;
@@ -214,16 +196,18 @@ namespace Microsoft.PSharp.Parsing
             while (this.Index < this.Tokens.Count &&
                 this.Tokens[this.Index].Type != TokenType.NewLine)
             {
-                this.Tokens.RemoveAt(this.Index);
+                this.Tokens[this.Index] = new Token(this.Tokens[this.Index].Text,
+                    this.Tokens[this.Index].Line, this.Index, TokenType.Comment);
+                this.Index++;
             }
 
             return true;
         }
 
         /// <summary>
-        /// Erases a multi-line comment, if any.
+        /// Comments out a multi-line comment, if any.
         /// </summary>
-        private bool EraseMultiLineComment()
+        private bool CommentOutMultiLineComment()
         {
             if (this.Tokens[this.Index].Type != TokenType.CommentStart)
             {
@@ -233,29 +217,12 @@ namespace Microsoft.PSharp.Parsing
             while (this.Index < this.Tokens.Count &&
                 this.Tokens[this.Index].Type != TokenType.CommentEnd)
             {
-                this.Tokens.RemoveAt(this.Index);
+                this.Tokens[this.Index] = new Token(this.Tokens[this.Index].Text,
+                    this.Tokens[this.Index].Line, this.Index, TokenType.Comment);
+                this.Index++;
             }
 
-            this.Tokens.RemoveAt(this.Index);
-
-            return true;
-        }
-
-        /// <summary>
-        /// Erases whitespace tokens.
-        /// </summary>
-        private bool EraseWhiteSpaceTokens()
-        {
-            if (this.Tokens[this.Index].Type != TokenType.WhiteSpace)
-            {
-                return false;
-            }
-
-            while (this.Index < this.Tokens.Count &&
-                this.Tokens[this.Index].Type == TokenType.WhiteSpace)
-            {
-                this.Tokens.RemoveAt(this.Index);
-            }
+            this.Index++;
 
             return true;
         }

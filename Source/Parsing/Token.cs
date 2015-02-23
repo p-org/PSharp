@@ -39,6 +39,11 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         public readonly int Line;
 
+        /// <summary>
+        /// The index of this token.
+        /// </summary>
+        public readonly int Index;
+
         #endregion
 
         #region public API
@@ -52,6 +57,7 @@ namespace Microsoft.PSharp.Parsing
         {
             this.Text = text;
             this.Line = 0;
+            this.Index = 0;
             this.Type = TokenType.None;
         }
 
@@ -61,10 +67,12 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         /// <param name="text">String</param>
         /// <param name="line">Line</param>
-        public Token(string text, int line)
+        /// <param name="index">Index</param>
+        public Token(string text, int line, int index)
         {
             this.Text = text;
             this.Line = line;
+            this.Index = index;
             this.Type = TokenType.None;
         }
 
@@ -77,6 +85,7 @@ namespace Microsoft.PSharp.Parsing
         {
             this.Text = text;
             this.Line = 0;
+            this.Index = 0;
             this.Type = type;
         }
 
@@ -85,11 +94,13 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         /// <param name="text">String</param>
         /// <param name="line">Line</param>
+        /// <param name="index">Index</param>
         /// <param name="type">TokenType</param>
-        public Token(string text, int line, TokenType type)
+        public Token(string text, int line, int index, TokenType type)
         {
             this.Text = text;
             this.Line = line;
+            this.Index = index;
             this.Type = type;
         }
 

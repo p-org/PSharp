@@ -86,6 +86,7 @@ namespace Microsoft.PSharp.VisualStudio
                     break;
 
                 case TokenType.Comment:
+                case TokenType.CommentLine:
                 case TokenType.CommentStart:
                 case TokenType.CommentEnd:
                     classification = "PSharp.Comment";

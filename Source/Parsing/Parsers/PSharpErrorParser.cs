@@ -87,28 +87,32 @@ namespace Microsoft.PSharp.Parsing
             switch (token.Type)
             {
                 case TokenType.WhiteSpace:
+                case TokenType.Comment:
                 case TokenType.NewLine:
+                    base.Index++;
                     break;
 
-                case TokenType.Comment:
+                case TokenType.CommentLine:
                 case TokenType.Region:
-                    this.EraseLineComment();
+                    this.SkipWhiteSpaceAndCommentTokens();
                     break;
 
                 case TokenType.CommentStart:
-                    this.EraseMultiLineComment();
+                    this.SkipWhiteSpaceAndCommentTokens();
                     break;
 
                 case TokenType.Using:
                     base.Index++;
                     base.SkipWhiteSpaceAndCommentTokens();
                     this.CheckUsingDirective();
+                    base.Index++;
                     break;
 
                 case TokenType.NamespaceDecl:
                     base.Index++;
                     base.SkipWhiteSpaceAndCommentTokens();
                     this.CheckNamespaceDeclaration();
+                    base.Index++;
                     break;
 
                 case TokenType.RightSquareBracket:
@@ -124,7 +128,6 @@ namespace Microsoft.PSharp.Parsing
                     break;
             }
 
-            base.Index++;
             this.ParseNextToken();
         }
 
@@ -163,7 +166,7 @@ namespace Microsoft.PSharp.Parsing
                 }
 
                 base.Index++;
-                base.EraseWhiteSpaceAndCommentTokens();
+                base.SkipWhiteSpaceAndCommentTokens();
             }
 
             if (base.Index == base.Tokens.Count ||
@@ -208,7 +211,7 @@ namespace Microsoft.PSharp.Parsing
                 }
 
                 base.Index++;
-                base.EraseWhiteSpaceAndCommentTokens();
+                base.SkipWhiteSpaceAndCommentTokens();
             }
 
             if (base.Index == base.Tokens.Count ||
@@ -252,16 +255,18 @@ namespace Microsoft.PSharp.Parsing
             switch (token.Type)
             {
                 case TokenType.WhiteSpace:
+                case TokenType.Comment:
                 case TokenType.NewLine:
+                    base.Index++;
                     break;
 
-                case TokenType.Comment:
+                case TokenType.CommentLine:
                 case TokenType.Region:
-                    this.EraseLineComment();
+                    this.SkipWhiteSpaceAndCommentTokens();
                     break;
 
                 case TokenType.CommentStart:
-                    this.EraseMultiLineComment();
+                    this.SkipWhiteSpaceAndCommentTokens();
                     break;
 
                 case TokenType.Private:
@@ -271,22 +276,26 @@ namespace Microsoft.PSharp.Parsing
                     base.Index++;
                     base.SkipWhiteSpaceAndCommentTokens();
                     this.CheckTopLevelAccessModifier();
+                    base.Index++;
                     break;
 
                 case TokenType.Abstract:
                     base.Index++;
                     base.SkipWhiteSpaceAndCommentTokens();
                     this.CheckTopLevelAbstractModifier();
+                    base.Index++;
                     break;
 
                 case TokenType.LeftSquareBracket:
                     base.Index++;
                     base.SkipWhiteSpaceAndCommentTokens();
                     this.CheckAttributeList();
+                    base.Index++;
                     break;
 
                 case TokenType.RightCurlyBracket:
                     fixpoint = true;
+                    base.Index++;
                     break;
 
                 case TokenType.RightSquareBracket:
@@ -301,8 +310,6 @@ namespace Microsoft.PSharp.Parsing
                     this.ReportParsingError("Unexpected declaration.");
                     break;
             }
-
-            base.Index++;
 
             if (!fixpoint)
             {
@@ -393,7 +400,7 @@ namespace Microsoft.PSharp.Parsing
                     TokenType.MachineDecl
                 });
             }
-
+            
             if (base.Tokens[base.Index].Type == TokenType.EventDecl)
             {
                 base.Index++;
@@ -424,7 +431,7 @@ namespace Microsoft.PSharp.Parsing
             }
 
             base.Tokens[base.Index] = new Token(base.Tokens[base.Index].Text,
-                base.Tokens[base.Index].Line, TokenType.EventIdentifier);
+                base.Tokens[base.Index].Line, base.Index, TokenType.EventIdentifier);
 
             base.Index++;
             base.SkipWhiteSpaceAndCommentTokens();
@@ -457,7 +464,7 @@ namespace Microsoft.PSharp.Parsing
 
             base.CurrentMachine = base.Tokens[base.Index].Text;
             base.Tokens[base.Index] = new Token(base.Tokens[base.Index].Text,
-                base.Tokens[base.Index].Line, TokenType.MachineIdentifier);
+                base.Tokens[base.Index].Line, base.Index, TokenType.MachineIdentifier);
 
             base.Index++;
             base.SkipWhiteSpaceAndCommentTokens();
@@ -505,7 +512,7 @@ namespace Microsoft.PSharp.Parsing
                     }
 
                     base.Index++;
-                    base.EraseWhiteSpaceAndCommentTokens();
+                    base.SkipWhiteSpaceAndCommentTokens();
                 }
             }
 
@@ -520,7 +527,7 @@ namespace Microsoft.PSharp.Parsing
             }
 
             base.Tokens[base.Index] = new Token(base.Tokens[base.Index].Text,
-                base.Tokens[base.Index].Line, TokenType.MachineLeftCurlyBracket);
+                base.Tokens[base.Index].Line, base.Index, TokenType.MachineLeftCurlyBracket);
 
             base.Index++;
             base.SkipWhiteSpaceAndCommentTokens();
@@ -550,16 +557,18 @@ namespace Microsoft.PSharp.Parsing
             switch (token.Type)
             {
                 case TokenType.WhiteSpace:
+                case TokenType.Comment:
                 case TokenType.NewLine:
+                    base.Index++;
                     break;
 
-                case TokenType.Comment:
+                case TokenType.CommentLine:
                 case TokenType.Region:
-                    this.EraseLineComment();
+                    this.SkipWhiteSpaceAndCommentTokens();
                     break;
 
                 case TokenType.CommentStart:
-                    this.EraseMultiLineComment();
+                    this.SkipWhiteSpaceAndCommentTokens();
                     break;
 
                 case TokenType.Private:
@@ -567,6 +576,7 @@ namespace Microsoft.PSharp.Parsing
                     base.Index++;
                     base.SkipWhiteSpaceAndCommentTokens();
                     this.CheckMachineLevelAccessModifier();
+                    base.Index++;
                     break;
 
                 case TokenType.Internal:
@@ -582,13 +592,15 @@ namespace Microsoft.PSharp.Parsing
                     base.Index++;
                     base.SkipWhiteSpaceAndCommentTokens();
                     this.CheckAttributeList();
+                    base.Index++;
                     break;
 
                 case TokenType.RightCurlyBracket:
                     base.Tokens[base.Index] = new Token(base.Tokens[base.Index].Text,
-                        base.Tokens[base.Index].Line, TokenType.MachineRightCurlyBracket);
+                        base.Tokens[base.Index].Line, base.Index, TokenType.MachineRightCurlyBracket);
                     base.CurrentMachine = "";
                     fixpoint = true;
+                    base.Index++;
                     break;
 
                 case TokenType.RightSquareBracket:
@@ -603,8 +615,6 @@ namespace Microsoft.PSharp.Parsing
                     this.ReportParsingError("Unexpected declaration.");
                     break;
             }
-
-            base.Index++;
 
             if (!fixpoint)
             {
@@ -752,7 +762,7 @@ namespace Microsoft.PSharp.Parsing
 
             base.CurrentState = base.Tokens[base.Index].Text;
             base.Tokens[base.Index] = new Token(base.Tokens[base.Index].Text,
-                base.Tokens[base.Index].Line, TokenType.StateIdentifier);
+                base.Tokens[base.Index].Line, base.Index, TokenType.StateIdentifier);
 
             base.Index++;
             base.SkipWhiteSpaceAndCommentTokens();
@@ -768,7 +778,7 @@ namespace Microsoft.PSharp.Parsing
             }
 
             base.Tokens[base.Index] = new Token(base.Tokens[base.Index].Text,
-                base.Tokens[base.Index].Line, TokenType.StateLeftCurlyBracket);
+                base.Tokens[base.Index].Line, base.Index, TokenType.StateLeftCurlyBracket);
 
             base.Index++;
             base.SkipWhiteSpaceAndCommentTokens();
@@ -801,46 +811,53 @@ namespace Microsoft.PSharp.Parsing
             switch (token.Type)
             {
                 case TokenType.WhiteSpace:
+                case TokenType.Comment:
                 case TokenType.NewLine:
+                    base.Index++;
                     break;
 
-                case TokenType.Comment:
+                case TokenType.CommentLine:
                 case TokenType.Region:
-                    this.EraseLineComment();
+                    this.SkipWhiteSpaceAndCommentTokens();
                     break;
 
                 case TokenType.CommentStart:
-                    this.EraseMultiLineComment();
+                    this.SkipWhiteSpaceAndCommentTokens();
                     break;
 
                 case TokenType.Entry:
                     base.Index++;
                     base.SkipWhiteSpaceAndCommentTokens();
                     this.CheckStateEntryDeclaration();
+                    base.Index++;
                     break;
 
                 case TokenType.Exit:
                     base.Index++;
                     base.SkipWhiteSpaceAndCommentTokens();
                     this.CheckStateExitDeclaration();
+                    base.Index++;
                     break;
 
                 case TokenType.OnAction:
                     base.Index++;
                     base.SkipWhiteSpaceAndCommentTokens();
                     this.CheckStateActionDeclaration();
+                    base.Index++;
                     break;
 
                 case TokenType.DeferEvent:
                     base.Index++;
                     base.SkipWhiteSpaceAndCommentTokens();
                     this.CheckDeferEventsDeclaration();
+                    base.Index++;
                     break;
 
                 case TokenType.IgnoreEvent:
                     base.Index++;
                     base.SkipWhiteSpaceAndCommentTokens();
                     this.CheckIgnoreEventsDeclaration();
+                    base.Index++;
                     break;
 
                 case TokenType.Private:
@@ -858,13 +875,15 @@ namespace Microsoft.PSharp.Parsing
                     base.Index++;
                     base.SkipWhiteSpaceAndCommentTokens();
                     this.CheckAttributeList();
+                    base.Index++;
                     break;
 
                 case TokenType.RightCurlyBracket:
                     base.Tokens[base.Index] = new Token(base.Tokens[base.Index].Text,
-                        base.Tokens[base.Index].Line, TokenType.StateRightCurlyBracket);
+                        base.Tokens[base.Index].Line, base.Index, TokenType.StateRightCurlyBracket);
                     base.CurrentState = "";
                     fixpoint = true;
+                    base.Index++;
                     break;
 
                 case TokenType.RightSquareBracket:
@@ -879,8 +898,6 @@ namespace Microsoft.PSharp.Parsing
                     this.ReportParsingError("Unexpected declaration.");
                     break;
             }
-
-            base.Index++;
 
             if (!fixpoint)
             {
@@ -944,7 +961,7 @@ namespace Microsoft.PSharp.Parsing
             }
 
             base.Tokens[base.Index] = new Token(base.Tokens[base.Index].Text,
-                base.Tokens[base.Index].Line, TokenType.EventIdentifier);
+                base.Tokens[base.Index].Line, base.Index, TokenType.EventIdentifier);
 
             base.Index++;
             base.SkipWhiteSpaceAndCommentTokens();
@@ -977,7 +994,7 @@ namespace Microsoft.PSharp.Parsing
                 }
 
                 base.Tokens[base.Index] = new Token(base.Tokens[base.Index].Text,
-                    base.Tokens[base.Index].Line, TokenType.ActionIdentifier);
+                    base.Tokens[base.Index].Line, base.Index, TokenType.ActionIdentifier);
 
                 base.Index++;
                 base.SkipWhiteSpaceAndCommentTokens();
@@ -1008,7 +1025,7 @@ namespace Microsoft.PSharp.Parsing
                 }
 
                 base.Tokens[base.Index] = new Token(base.Tokens[base.Index].Text,
-                    base.Tokens[base.Index].Line, TokenType.StateIdentifier);
+                    base.Tokens[base.Index].Line, base.Index, TokenType.StateIdentifier);
 
                 base.Index++;
                 base.SkipWhiteSpaceAndCommentTokens();
@@ -1065,7 +1082,7 @@ namespace Microsoft.PSharp.Parsing
                 if (base.Tokens[base.Index].Type == TokenType.Identifier)
                 {
                     base.Tokens[base.Index] = new Token(base.Tokens[base.Index].Text,
-                        base.Tokens[base.Index].Line, TokenType.EventIdentifier);
+                        base.Tokens[base.Index].Line, base.Index, TokenType.EventIdentifier);
                     expectsComma = true;
                 }
                 else if (base.Tokens[base.Index].Type == TokenType.Comma)
@@ -1074,7 +1091,7 @@ namespace Microsoft.PSharp.Parsing
                 }
 
                 base.Index++;
-                base.EraseWhiteSpaceAndCommentTokens();
+                base.SkipWhiteSpaceAndCommentTokens();
             }
 
             if (base.Index == base.Tokens.Count ||
@@ -1128,7 +1145,7 @@ namespace Microsoft.PSharp.Parsing
                 if (base.Tokens[base.Index].Type == TokenType.Identifier)
                 {
                     base.Tokens[base.Index] = new Token(base.Tokens[base.Index].Text,
-                        base.Tokens[base.Index].Line, TokenType.EventIdentifier);
+                        base.Tokens[base.Index].Line, base.Index, TokenType.EventIdentifier);
                     expectsComma = true;
                 }
                 else if (base.Tokens[base.Index].Type == TokenType.Comma)
@@ -1137,7 +1154,7 @@ namespace Microsoft.PSharp.Parsing
                 }
 
                 base.Index++;
-                base.EraseWhiteSpaceAndCommentTokens();
+                base.SkipWhiteSpaceAndCommentTokens();
             }
 
             if (base.Index == base.Tokens.Count ||
@@ -1175,7 +1192,7 @@ namespace Microsoft.PSharp.Parsing
             ParsingEngine.MachineFieldsAndMethods[base.CurrentMachine].Add(base.Tokens[base.Index].Text);
 
             base.Tokens[base.Index] = new Token(base.Tokens[base.Index].Text,
-                base.Tokens[base.Index].Line, TokenType.ActionIdentifier);
+                base.Tokens[base.Index].Line, base.Index, TokenType.ActionIdentifier);
 
             base.Index++;
             base.SkipWhiteSpaceAndCommentTokens();
@@ -1204,10 +1221,10 @@ namespace Microsoft.PSharp.Parsing
                 base.Tokens[base.Index].Type != TokenType.RightParenthesis)
             {
                 base.Tokens[base.Index] = new Token(base.Tokens[base.Index].Text,
-                    base.Tokens[base.Index].Line);
+                    base.Tokens[base.Index].Line, base.Index);
 
                 base.Index++;
-                base.EraseWhiteSpaceAndCommentTokens();
+                base.SkipWhiteSpaceAndCommentTokens();
             }
 
             base.Index++;
@@ -1266,7 +1283,7 @@ namespace Microsoft.PSharp.Parsing
                 else if (base.Tokens[base.Index].Type == TokenType.DoAction)
                 {
                     base.Tokens[base.Index] = new Token(base.Tokens[base.Index].Text,
-                        base.Tokens[base.Index].Line, TokenType.DoLoop);
+                        base.Tokens[base.Index].Line, base.Index, TokenType.DoLoop);
                 }
                 else if (base.Tokens[base.Index].Type == TokenType.New)
                 {
@@ -1352,7 +1369,7 @@ namespace Microsoft.PSharp.Parsing
                 if (base.Tokens[base.Index].Type == TokenType.Identifier)
                 {
                     base.Tokens[base.Index] = new Token(base.Tokens[base.Index].Text,
-                        base.Tokens[base.Index].Line, TokenType.TypeIdentifier);
+                        base.Tokens[base.Index].Line, base.Index, TokenType.TypeIdentifier);
                 }
                 else if (base.Tokens[base.Index].Type == TokenType.LessThanOperator)
                 {
@@ -1412,7 +1429,7 @@ namespace Microsoft.PSharp.Parsing
                 if (base.Tokens[base.Index].Type == TokenType.Identifier)
                 {
                     base.Tokens[base.Index] = new Token(base.Tokens[base.Index].Text,
-                        base.Tokens[base.Index].Line, TokenType.MachineIdentifier);
+                        base.Tokens[base.Index].Line, base.Index, TokenType.MachineIdentifier);
                 }
 
                 base.Index++;
@@ -1455,7 +1472,7 @@ namespace Microsoft.PSharp.Parsing
             }
 
             base.Tokens[base.Index] = new Token(base.Tokens[base.Index].Text,
-                base.Tokens[base.Index].Line, TokenType.EventIdentifier);
+                base.Tokens[base.Index].Line, base.Index, TokenType.EventIdentifier);
 
             base.Index++;
             base.SkipWhiteSpaceAndCommentTokens();
@@ -1508,7 +1525,7 @@ namespace Microsoft.PSharp.Parsing
             }
 
             base.Tokens[base.Index] = new Token(base.Tokens[base.Index].Text,
-                base.Tokens[base.Index].Line, TokenType.EventIdentifier);
+                base.Tokens[base.Index].Line, base.Index, TokenType.EventIdentifier);
 
             base.Index++;
             base.SkipWhiteSpaceAndCommentTokens();
@@ -1617,10 +1634,10 @@ namespace Microsoft.PSharp.Parsing
                 base.Tokens[base.Index].Type != TokenType.RightSquareBracket)
             {
                 base.Tokens[base.Index] = new Token(base.Tokens[base.Index].Text,
-                    base.Tokens[base.Index].Line);
+                    base.Tokens[base.Index].Line, base.Index);
 
                 base.Index++;
-                base.EraseWhiteSpaceAndCommentTokens();
+                base.SkipWhiteSpaceAndCommentTokens();
             }
 
             if (base.Index == base.Tokens.Count ||
@@ -1650,7 +1667,7 @@ namespace Microsoft.PSharp.Parsing
                 }
 
                 base.Index++;
-                base.EraseWhiteSpaceAndCommentTokens();
+                base.SkipWhiteSpaceAndCommentTokens();
             }
 
             if (base.Index == base.Tokens.Count ||
@@ -1688,7 +1705,7 @@ namespace Microsoft.PSharp.Parsing
                     return;
                 }
 
-                tokens.Add(new Token(base.Tokens[replaceIdx].Text, base.Tokens[replaceIdx].Line));
+                tokens.Add(new Token(base.Tokens[replaceIdx].Text, base.Tokens[replaceIdx].Line, replaceIdx));
                 replaceIdx++;
             }
 
@@ -1706,30 +1723,6 @@ namespace Microsoft.PSharp.Parsing
             {
                 base.Tokens[base.Index] = tok;
                 base.Index++;
-            }
-        }
-
-        /// <summary>
-        /// Erases the line-wide comment.
-        /// </summary>
-        private void EraseLineComment()
-        {
-            while (base.Index < base.Tokens.Count &&
-                base.Tokens[base.Index].Type != TokenType.NewLine)
-            {
-                base.Tokens.RemoveAt(base.Index);
-            }
-        }
-
-        /// <summary>
-        /// Erases the line-wide comment.
-        /// </summary>
-        private void EraseMultiLineComment()
-        {
-            while (base.Index < base.Tokens.Count &&
-                base.Tokens[base.Index].Type != TokenType.CommentEnd)
-            {
-                base.Tokens.RemoveAt(base.Index);
             }
         }
 
