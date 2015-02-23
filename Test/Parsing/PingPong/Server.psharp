@@ -4,7 +4,7 @@ namespace PingPong
 {
     [Main]
     internal machine Server
-    {
+    {	
         private Client Client;
 
         [Initial]

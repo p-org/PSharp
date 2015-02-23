@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="ContentTypeDefinitions.cs">
+// <copyright file="SuggestedActionsSourceProvider.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -13,23 +13,31 @@
 //-----------------------------------------------------------------------
 
 using System.ComponentModel.Composition;
+
+using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.PSharp.VisualStudio
 {
-    /// <summary>
-    /// Exports content type definitions.
-    /// </summary>
-    internal static class ContentTypeDefinitions
+    [Export(typeof(ISuggestedActionsSourceProvider))]
+    [Name("P# suggested actions")]
+    [ContentType("psharp")]
+    internal class SuggestedActionsSourceProvider : ISuggestedActionsSourceProvider
     {
-        [Export]
-        [Name("psharp")]
-        [BaseDefinition("code")]
-        internal static ContentTypeDefinition PSharpContentType = null;
+        [Import(typeof(ITextStructureNavigatorSelectorService))]
+        internal ITextStructureNavigatorSelectorService NavigatorService { get; set; }
 
-        [Export]
-        [FileExtension(".psharp")]
-        [ContentType("psharp")]
-        internal static FileExtensionToContentTypeDefinition PSharpFileType = null;
+        public ISuggestedActionsSource CreateSuggestedActionsSource(ITextView textView, ITextBuffer textBuffer)
+        {
+            if (textBuffer == null && textView == null)
+            {
+                return null;
+            }
+
+            return new SuggestedActionsSource(this, textView, textBuffer);
+        }
     }
 }

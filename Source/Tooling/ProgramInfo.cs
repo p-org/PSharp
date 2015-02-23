@@ -132,7 +132,7 @@ namespace Microsoft.PSharp.Tooling
         public static bool IsPSharpFile(SyntaxTree tree)
         {
             var ext = Path.GetExtension(tree.FilePath);
-            return ext.Equals(".ps") ? true : false;
+            return ext.Equals(".psharp") ? true : false;
         }
 
         #endregion

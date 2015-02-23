@@ -39,9 +39,9 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Client.ps" />
-    <Compile Include="Events.ps" />
-    <Compile Include="Server.ps" />
+    <Compile Include="Client.psharp" />
+    <Compile Include="Events.psharp" />
+    <Compile Include="Server.psharp" />
     <Compile Include="Test.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -13,5 +13,8 @@
   </Dependencies>
   <Assets>
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%|" />
+    <Asset Type="Microsoft.VisualStudio.ProjectTemplate" d:Source="File" d:TargetPath="ProjectTemplates\PSharpConsoleApplication.zip" />
+    <Asset Type="Microsoft.VisualStudio.ItemTemplate" d:Source="File" d:TargetPath="ItemTemplates\Machine.zip" />
+    <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="Parsing" Path="|Parsing|" AssemblyName="|Parsing;AssemblyName|" />
   </Assets>
 </PackageManifest>

@@ -39,9 +39,9 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Process.ps" />
-    <Compile Include="Events.ps" />
-    <Compile Include="Scheduler.ps" />
+    <Compile Include="Process.psharp" />
+    <Compile Include="Events.psharp" />
+    <Compile Include="Scheduler.psharp" />
     <Compile Include="Test.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
