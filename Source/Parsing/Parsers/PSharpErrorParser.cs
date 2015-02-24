@@ -1335,7 +1335,8 @@ namespace Microsoft.PSharp.Parsing
                     TokenType.CreateMachine,
                     TokenType.RaiseEvent,
                     TokenType.SendEvent,
-                    TokenType.DeleteMachine
+                    TokenType.DeleteMachine,
+                    TokenType.Assert
                 });
             }
 
