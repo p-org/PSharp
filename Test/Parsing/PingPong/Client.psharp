@@ -7,8 +7,7 @@ namespace PingPong
         private Machine Server;
         private int Counter;
 
-        [Initial]
-        private state Init
+        private start state Init
         {
             entry
             {

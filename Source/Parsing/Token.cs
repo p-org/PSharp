@@ -25,6 +25,11 @@ namespace Microsoft.PSharp.Parsing
         #region fields
 
         /// <summary>
+        /// The text unit that this token represents.
+        /// </summary>
+        public readonly TextUnit TextUnit;
+
+        /// <summary>
         /// The text that this token represents.
         /// </summary>
         public readonly string Text;
@@ -39,40 +44,43 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         public readonly int Line;
 
-        /// <summary>
-        /// The index of this token.
-        /// </summary>
-        public readonly int Index;
-
         #endregion
 
         #region public API
 
         /// <summary>
-        /// Constructor. By default the type of the token
-        /// is None.
+        /// Constructor. By default the type of the token is None.
         /// </summary>
         /// <param name="text">String</param>
         public Token(string text)
         {
             this.Text = text;
             this.Line = 0;
-            this.Index = 0;
             this.Type = TokenType.None;
         }
 
         /// <summary>
-        /// Constructor. By default the type of the token
-        /// is None.
+        /// Constructor. By default the type of the token is None.
         /// </summary>
         /// <param name="text">String</param>
         /// <param name="line">Line</param>
-        /// <param name="index">Index</param>
-        public Token(string text, int line, int index)
+        public Token(string text, int line)
         {
             this.Text = text;
             this.Line = line;
-            this.Index = index;
+            this.Type = TokenType.None;
+        }
+
+        /// <summary>
+        /// Constructor. By default the type of the token is None.
+        /// </summary>
+        /// <param name="unit">TextUnit</param>
+        /// <param name="line">Line</param>
+        public Token(TextUnit unit, int line)
+        {
+            this.TextUnit = unit;
+            this.Text = unit.Text;
+            this.Line = line;
             this.Type = TokenType.None;
         }
 
@@ -85,7 +93,6 @@ namespace Microsoft.PSharp.Parsing
         {
             this.Text = text;
             this.Line = 0;
-            this.Index = 0;
             this.Type = type;
         }
 
@@ -94,13 +101,25 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         /// <param name="text">String</param>
         /// <param name="line">Line</param>
-        /// <param name="index">Index</param>
         /// <param name="type">TokenType</param>
-        public Token(string text, int line, int index, TokenType type)
+        public Token(string text, int line, TokenType type)
         {
             this.Text = text;
             this.Line = line;
-            this.Index = index;
+            this.Type = type;
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="unit">TextUnit</param>
+        /// <param name="line">Line</param>
+        /// <param name="type">TokenType</param>
+        public Token(TextUnit unit, int line, TokenType type)
+        {
+            this.TextUnit = unit;
+            this.Text = unit.Text;
+            this.Line = line;
             this.Type = type;
         }
 

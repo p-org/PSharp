@@ -89,11 +89,11 @@ namespace Microsoft.PSharp.Parsing
                     text = "=";
                     break;
 
-                case TokenType.LessThanOperator:
+                case TokenType.LeftAngleBracket:
                     text = "<";
                     break;
 
-                case TokenType.GreaterThanOperator:
+                case TokenType.RightAngleBracket:
                     text = ">";
                     break;
 
@@ -161,8 +161,16 @@ namespace Microsoft.PSharp.Parsing
                     text = "using";
                     break;
 
-                case TokenType.MachineDecl:
+                case TokenType.MainMachine:
                     text = "machine";
+                    break;
+
+                case TokenType.StartState:
+                    text = "main";
+                    break;
+
+                case TokenType.MachineDecl:
+                    text = "start";
                     break;
 
                 case TokenType.StateDecl:

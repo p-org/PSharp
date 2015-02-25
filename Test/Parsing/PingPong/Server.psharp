@@ -2,13 +2,11 @@
 
 namespace PingPong
 {
-    [Main]
-    machine Server
+    main machine Server
     {	
         Client Client;
 
-        [Initial]
-        state Init
+        start state Init
         {
             entry
             {
@@ -18,7 +16,7 @@ namespace PingPong
 
             on Unit goto Playing;
         }
-
+		
         state Playing
         {
             entry

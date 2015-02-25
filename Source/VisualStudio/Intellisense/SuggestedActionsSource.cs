@@ -75,7 +75,7 @@ namespace Microsoft.PSharp.VisualStudio
                     trackSpan.GetStartPoint(snapshot).Position));
 
                 var tokens = new PSharpLexer().Tokenize(preSpan.GetText());
-                var parser = new PSharpErrorParser();
+                var parser = new PSharpParser();
                 parser.ParseTokens(tokens);
 
                 var expected = parser.GetExpectedTokenTypes();
@@ -111,7 +111,7 @@ namespace Microsoft.PSharp.VisualStudio
                 trackSpan.GetStartPoint(snapshot).Position));
 
             var tokens = new PSharpLexer().Tokenize(preSpan.GetText());
-            var parser = new PSharpErrorParser();
+            var parser = new PSharpParser();
             parser.ParseTokens(tokens);
 
             var expected = parser.GetExpectedTokenTypes();

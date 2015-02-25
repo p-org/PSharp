@@ -2,8 +2,7 @@
 
 namespace BoundedAsync
 {
-    [Main]
-    internal machine Scheduler
+    internal main machine Scheduler
     {
         private Machine Process1;
         private Machine Process2;
@@ -11,8 +10,7 @@ namespace BoundedAsync
         private int Count;
         private int DoneCounter;
 
-        [Initial]
-        private state Init
+        private start state Init
         {
             entry
             {

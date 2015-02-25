@@ -10,8 +10,7 @@ namespace BoundedAsync
 
         private CountMessage CountMessage;
 
-        [Initial]
-        private state _Init
+        private start state _Init
         {
             entry
             {	
@@ -23,7 +22,7 @@ namespace BoundedAsync
 
             defer eInit;
         }
-
+		
         private state Init
         {
             entry

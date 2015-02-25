@@ -38,6 +38,9 @@ namespace Microsoft.PSharp.VisualStudio
             keywords.Add("namespace", new Tuple<string>("namespace Keyword"));
             keywords.Add("using", new Tuple<string>("using Keyword"));
 
+            keywords.Add("main", new Tuple<string>("main Keyword"));
+            keywords.Add("start", new Tuple<string>("start Keyword"));
+
             keywords.Add("machine", new Tuple<string>("machine Keyword"));
             keywords.Add("state", new Tuple<string>("state Keyword"));
             keywords.Add("event", new Tuple<string>("event Keyword"));

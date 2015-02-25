@@ -50,16 +50,26 @@
     <Compile Include="Lexers\ILexer.cs" />
     <Compile Include="Lexers\PSharpLexer.cs" />
     <Compile Include="Parsers\IParser.cs" />
-    <Compile Include="Parsers\PSharpErrorParser.cs" />
+    <Compile Include="Parsers\PSharpParser.cs" />
     <Compile Include="ParsingEngine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Parsers\BaseParser.cs" />
-    <Compile Include="Parsers\PSharpParser.cs" />
+    <Compile Include="Syntax\TypeIdentifierNode.cs" />
+    <Compile Include="Syntax\PSharpSyntaxNode.cs" />
+    <Compile Include="Syntax\ExitDeclarationNode.cs" />
+    <Compile Include="Syntax\ProgramRoot.cs" />
+    <Compile Include="Syntax\FieldDeclarationNode.cs" />
+    <Compile Include="Syntax\MethodDeclarationNode.cs" />
+    <Compile Include="Syntax\ActionDeclarationNode.cs" />
+    <Compile Include="Syntax\BaseActionDeclarationNode.cs" />
+    <Compile Include="Syntax\EntryDeclarationNode.cs" />
+    <Compile Include="Syntax\StateDeclarationNode.cs" />
+    <Compile Include="Syntax\EventDeclarationNode.cs" />
+    <Compile Include="Syntax\UsingDeclarationNode.cs" />
+    <Compile Include="Syntax\NamespaceDeclarationNode.cs" />
+    <Compile Include="Syntax\MachineDeclarationNode.cs" />
     <Compile Include="TextUnit.cs" />
     <Compile Include="TokenTypeRegistry.cs" />
     <Compile Include="Token.cs" />
-    <Compile Include="Parsers\PSharpRewriter.cs" />
-    <Compile Include="ActionType.cs" />
     <Compile Include="TokenType.cs" />
   </ItemGroup>
   <ItemGroup>

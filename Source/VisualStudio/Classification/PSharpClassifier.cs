@@ -168,8 +168,8 @@ namespace Microsoft.PSharp.VisualStudio
                 case TokenType.OrOperator:
                 case TokenType.NotOperator:
                 case TokenType.EqualOperator:
-                case TokenType.LessThanOperator:
-                case TokenType.GreaterThanOperator:
+                case TokenType.LeftAngleBracket:
+                case TokenType.RightAngleBracket:
                 case TokenType.PlusOperator:
                 case TokenType.MinusOperator:
                 case TokenType.MultiplyOperator:
@@ -188,6 +188,9 @@ namespace Microsoft.PSharp.VisualStudio
 
                 case TokenType.NamespaceDecl:
                 case TokenType.Using:
+
+                case TokenType.MainMachine:
+                case TokenType.StartState:
 
                 case TokenType.MachineDecl:
                 case TokenType.StateDecl:

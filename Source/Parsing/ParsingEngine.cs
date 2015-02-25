@@ -29,31 +29,6 @@ namespace Microsoft.PSharp.Parsing
     /// </summary>
     public static class ParsingEngine
     {
-        #region fields
-
-        /// <summary>
-        /// Dictionary containing machine fields and methods.
-        /// </summary>
-        internal static Dictionary<string, HashSet<string>> MachineFieldsAndMethods;
-
-        /// <summary>
-        /// Dictionary containing state actions (i.e. transtions and bindings).
-        /// </summary>
-        internal static Dictionary<string, Dictionary<string,
-            Dictionary<string, Tuple<string, ActionType>>>> StateActions;
-
-        /// <summary>
-        /// Dictionary containing deferred events per state.
-        /// </summary>
-        internal static Dictionary<string, Dictionary<string, HashSet<string>>> DeferredEvents;
-
-        /// <summary>
-        /// Dictionary containing ignored events per state.
-        /// </summary>
-        internal static Dictionary<string, Dictionary<string, HashSet<string>>> IgnoredEvents;
-
-        #endregion
-
         #region public API
 
         /// <summary>
@@ -89,40 +64,16 @@ namespace Microsoft.PSharp.Parsing
                     continue;
                 }
 
-                ParsingEngine.MachineFieldsAndMethods = new Dictionary<string, HashSet<string>>();
-                ParsingEngine.StateActions = new Dictionary<string, Dictionary<string,
-                    Dictionary<string, Tuple<string, ActionType>>>>();
-                ParsingEngine.DeferredEvents = new Dictionary<string, Dictionary<string, HashSet<string>>>();
-                ParsingEngine.IgnoredEvents = new Dictionary<string, Dictionary<string, HashSet<string>>>();
-
                 var root = (CompilationUnitSyntax)tree.GetRoot();
 
                 var tokens = new PSharpLexer().Tokenize(root.ToFullString());
-                tokens = new PSharpErrorParser(tree.FilePath).ParseTokens(tokens);
-                tokens = new PSharpParser().ParseTokens(tokens);
-                tokens = new PSharpRewriter().ParseTokens(tokens);
+                var program = new PSharpParser(tree.FilePath).ParseTokens(tokens);
+                var rewrittenTree = program.Rewrite();
 
-                var rewrittenTree = ParsingEngine.ConvertToText(tokens);
                 var source = SourceText.From(rewrittenTree);
 
                 ProgramInfo.ReplaceSyntaxTree(tree.WithChangedText(source), ref project);
             }
-        }
-
-        /// <summary>
-        /// Converts the tokens to text.
-        /// </summary>
-        /// <param name="tokens">List of tokens</param>
-        /// <returns>Text</returns>
-        private static string ConvertToText(List<Token> tokens)
-        {
-            var text = "";
-            foreach (var token in tokens)
-            {
-                text += token.Text;
-            }
-
-            return text;
         }
 
         /// <summary>

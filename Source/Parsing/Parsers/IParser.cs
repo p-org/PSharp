@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System.Collections.Generic;
+using Microsoft.PSharp.Parsing.Syntax;
 
 namespace Microsoft.PSharp.Parsing
 {
@@ -25,8 +26,8 @@ namespace Microsoft.PSharp.Parsing
         /// Returns the parsed tokens.
         /// </summary>
         /// <param name="tokens">List of tokens</param>
-        /// <returns>Parsed tokens</returns>
-        List<Token> ParseTokens(List<Token> tokens);
+        /// <returns>The P# program root</returns>
+        ProgramRoot ParseTokens(List<Token> tokens);
 
         /// <summary>
         /// Returns the expected token types at the end of parsing.

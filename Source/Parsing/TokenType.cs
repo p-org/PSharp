@@ -43,6 +43,8 @@ namespace Microsoft.PSharp.Parsing
         RightParenthesis,
         LeftSquareBracket,
         RightSquareBracket,
+        LeftAngleBracket,
+        RightAngleBracket,
 
         MachineLeftCurlyBracket,
         MachineRightCurlyBracket,
@@ -58,8 +60,6 @@ namespace Microsoft.PSharp.Parsing
         OrOperator,
         NotOperator,
         EqualOperator,
-        LessThanOperator,
-        GreaterThanOperator,
         PlusOperator,
         MinusOperator,
         MultiplyOperator,
@@ -83,6 +83,9 @@ namespace Microsoft.PSharp.Parsing
         StateDecl,
         EventDecl,
         ActionDecl,
+
+        MainMachine,
+        StartState,
 
         OnAction,
         DoAction,

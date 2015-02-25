@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="TextUnit.cs">
+// <copyright file="PSharpSyntaxNode.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -18,62 +18,72 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Microsoft.PSharp.Parsing
+namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
-    /// A single unit of text.
+    /// P# syntax node.
     /// </summary>
-    public class TextUnit
+    public abstract class PSharpSyntaxNode
     {
         #region fields
 
         /// <summary>
-        /// The text of this text unit.
+        /// The text unit.
         /// </summary>
-        public readonly string Text;
+        internal TextUnit TextUnit;
 
         /// <summary>
-        /// The length of this text unit.
+        /// The rewritten text unit.
         /// </summary>
-        public readonly int Length;
+        internal TextUnit RewrittenTextUnit;
 
         /// <summary>
-        /// The starting point of this text unit.
+        /// The rewritten tokens.
         /// </summary>
-        public readonly int Start;
-
-        /// <summary>
-        /// The end point of this text unit.
-        /// </summary>
-        public readonly int End;
+        internal List<Token> RewrittenTokens;
 
         #endregion
 
         #region public API
 
         /// <summary>
-        /// Constructor.
+        /// Returns the full text.
         /// </summary>
-        /// <param name="text">Text</param>
-        /// <param name="length">Text length</param>
-        /// <param name="position">Starting position</param>
-        public TextUnit(string text, int length, int position)
-        {
-            this.Text = text;
-            this.Length = length;
-            this.Start = position;
-            this.End = position + length - 1;
-        }
+        /// <returns>string</returns>
+        public abstract string GetFullText();
 
         /// <summary>
-        /// Returns a clone of the text unit.
+        /// Returns the rewritten text.
         /// </summary>
-        /// <param name="textUnit">TextUnit</param>
+        /// <returns>string</returns>
+        public abstract string GetRewrittenText();
+
+        #endregion
+
+        #region internal API
+
+        /// <summary>
+        /// Rewrites the syntax node declaration to the intermediate C#
+        /// representation.
+        /// </summary>
         /// <param name="position">Position</param>
-        /// <returns>TextUnit</returns>
-        public static TextUnit Clone(TextUnit textUnit, int position)
+        internal abstract void Rewrite(ref int position);
+
+        /// <summary>
+        /// Generates a new text unit.
+        /// </summary>
+        internal abstract void GenerateTextUnit();
+
+        #endregion
+
+        #region protected API
+
+        /// <summary>
+        /// Default constructor.
+        /// </summary>
+        protected PSharpSyntaxNode()
         {
-            return new TextUnit(textUnit.Text, textUnit.Length, position);
+            this.RewrittenTokens = new List<Token>();
         }
 
         #endregion

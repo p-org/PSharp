@@ -86,22 +86,22 @@ namespace Microsoft.PSharp.VisualStudio
                     {
                         if (tokens[pre].Type == TokenType.MachineDecl)
                         {
-                            tokens[idx] = new Token(tokens[idx].Text, tokens[idx].Line, idx, TokenType.MachineIdentifier);
+                            tokens[idx] = new Token(tokens[idx].Text, tokens[idx].Line, TokenType.MachineIdentifier);
                             break;
                         }
                         else if (tokens[pre].Type == TokenType.StateDecl)
                         {
-                            tokens[idx] = new Token(tokens[idx].Text, tokens[idx].Line, idx, TokenType.StateIdentifier);
+                            tokens[idx] = new Token(tokens[idx].Text, tokens[idx].Line, TokenType.StateIdentifier);
                             break;
                         }
                         else if (tokens[pre].Type == TokenType.EventDecl)
                         {
-                            tokens[idx] = new Token(tokens[idx].Text, tokens[idx].Line, idx, TokenType.EventIdentifier);
+                            tokens[idx] = new Token(tokens[idx].Text, tokens[idx].Line, TokenType.EventIdentifier);
                             break;
                         }
                         else if (tokens[pre].Type == TokenType.ActionDecl)
                         {
-                            tokens[idx] = new Token(tokens[idx].Text, tokens[idx].Line, idx, TokenType.ActionIdentifier);
+                            tokens[idx] = new Token(tokens[idx].Text, tokens[idx].Line, TokenType.ActionIdentifier);
                             break;
                         }
                         else if (tokens[pre].Type != TokenType.WhiteSpace)
@@ -134,7 +134,7 @@ namespace Microsoft.PSharp.VisualStudio
                 }
                 else if (isLineCommentEnabled /*|| isMultiLineCommentEnabled*/)
                 {
-                    tokens[idx] = new Token(tokens[idx].Text, tokens[idx].Line, idx, TokenType.Comment);
+                    tokens[idx] = new Token(tokens[idx].Text, tokens[idx].Line, TokenType.Comment);
                 }
 
                 if (!isMultiLineCommentEnabled && tokens[idx].Type == TokenType.CommentLine)
