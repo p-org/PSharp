@@ -38,14 +38,19 @@ namespace Microsoft.PSharp.Parsing.Syntax
         public Token Modifier;
 
         /// <summary>
-        /// The override modifier token.
+        /// The inheritance modifier token.
         /// </summary>
-        public Token OverrideModifier;
+        public Token InheritanceModifier;
 
         /// <summary>
         /// The identifier token.
         /// </summary>
         public Token Identifier;
+
+        /// <summary>
+        /// The semicolon token.
+        /// </summary>
+        public Token SemicolonToken;
 
         #endregion
 
@@ -100,10 +105,10 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 text += " ";
             }
 
-            if (this.OverrideModifier != null)
+            if (this.InheritanceModifier != null)
             {
-                text += this.OverrideModifier.TextUnit.Text;
-                base.RewrittenTokens.Add(this.OverrideModifier);
+                text += this.InheritanceModifier.TextUnit.Text;
+                base.RewrittenTokens.Add(this.InheritanceModifier);
                 text += " ";
             }
 
@@ -126,17 +131,25 @@ namespace Microsoft.PSharp.Parsing.Syntax
             base.RewrittenTokens.Add(new Token(rightParenthesisTextUnit, this.ActionKeyword.Line, TokenType.RightParenthesis));
             text += rightParenthesis;
 
-            text += "\n" + base.LeftCurlyBracketToken.TextUnit.Text + "\n";
-            base.RewrittenTokens.Add(this.LeftCurlyBracketToken);
-
-            foreach (var stmt in base.RewriteStatements())
+            if (base.LeftCurlyBracketToken != null)
             {
-                text += stmt.Text;//.TextUnit.Text;
-                base.RewrittenTokens.Add(stmt);
-            }
+                text += "\n" + base.LeftCurlyBracketToken.TextUnit.Text + "\n";
+                base.RewrittenTokens.Add(this.LeftCurlyBracketToken);
 
-            text += base.RightCurlyBracketToken.TextUnit.Text + "\n";
-            base.RewrittenTokens.Add(this.RightCurlyBracketToken);
+                foreach (var stmt in base.RewriteStatements())
+                {
+                    text += stmt.Text;//.TextUnit.Text;
+                    base.RewrittenTokens.Add(stmt);
+                }
+
+                text += base.RightCurlyBracketToken.TextUnit.Text + "\n";
+                base.RewrittenTokens.Add(this.RightCurlyBracketToken);
+            }
+            else
+            {
+                text += this.SemicolonToken.TextUnit.Text + "\n";
+                base.RewrittenTokens.Add(this.SemicolonToken);
+            }
 
             base.RewrittenTextUnit = new TextUnit(text, text.Length, start);
             position = base.RewrittenTextUnit.End + 1;
@@ -150,10 +163,10 @@ namespace Microsoft.PSharp.Parsing.Syntax
             var text = "";
             var initToken = this.ActionKeyword;
 
-            if (this.OverrideModifier != null)
+            if (this.InheritanceModifier != null)
             {
-                initToken = this.OverrideModifier;
-                text += this.OverrideModifier.TextUnit.Text;
+                initToken = this.InheritanceModifier;
+                text += this.InheritanceModifier.TextUnit.Text;
                 text += " ";
             }
 
@@ -169,18 +182,29 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += this.Identifier.TextUnit.Text;
 
-            text += "\n" + base.LeftCurlyBracketToken.TextUnit.Text + "\n";
-
-            foreach (var stmt in base.Statements)
+            if (base.LeftCurlyBracketToken != null)
             {
-                text += stmt.TextUnit.Text;
+                text += "\n" + base.LeftCurlyBracketToken.TextUnit.Text + "\n";
+
+                foreach (var stmt in base.Statements)
+                {
+                    text += stmt.TextUnit.Text;
+                }
+
+                text += base.RightCurlyBracketToken.TextUnit.Text + "\n";
+
+                int length = base.RightCurlyBracketToken.TextUnit.End - initToken.TextUnit.Start + 1;
+
+                base.TextUnit = new TextUnit(text, length, initToken.TextUnit.Start);
             }
+            else
+            {
+                text += this.SemicolonToken.TextUnit.Text + "\n";
 
-            text += base.RightCurlyBracketToken.TextUnit.Text + "\n";
+                int length = this.SemicolonToken.TextUnit.End - initToken.TextUnit.Start + 1;
 
-            int length = base.RightCurlyBracketToken.TextUnit.End - initToken.TextUnit.Start + 1;
-
-            base.TextUnit = new TextUnit(text, length, initToken.TextUnit.Start);
+                base.TextUnit = new TextUnit(text, length, initToken.TextUnit.Start);
+            }
         }
 
         #endregion

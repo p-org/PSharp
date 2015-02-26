@@ -33,9 +33,9 @@ namespace Microsoft.PSharp.Parsing.Syntax
         public Token Modifier;
 
         /// <summary>
-        /// The override modifier token.
+        /// The inheritance modifier token.
         /// </summary>
-        public Token OverrideModifier;
+        public Token InheritanceModifier;
 
         /// <summary>
         /// The type identifier token
@@ -120,10 +120,10 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 text += " ";
             }
 
-            if (this.OverrideModifier != null)
+            if (this.InheritanceModifier != null)
             {
-                text += this.OverrideModifier.TextUnit.Text;
-                base.RewrittenTokens.Add(this.OverrideModifier);
+                text += this.InheritanceModifier.TextUnit.Text;
+                base.RewrittenTokens.Add(this.InheritanceModifier);
                 text += " ";
             }
 
@@ -180,10 +180,10 @@ namespace Microsoft.PSharp.Parsing.Syntax
             var text = "";
             Token initToken = null;
 
-            if (this.OverrideModifier != null)
+            if (this.InheritanceModifier != null)
             {
-                initToken = this.OverrideModifier;
-                text += this.OverrideModifier.TextUnit.Text;
+                initToken = this.InheritanceModifier;
+                text += this.InheritanceModifier.TextUnit.Text;
                 text += " ";
             }
 

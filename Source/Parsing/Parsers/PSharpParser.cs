@@ -342,6 +342,7 @@ namespace Microsoft.PSharp.Parsing
                     TokenType.Internal,
                     TokenType.Public,
                     TokenType.Abstract,
+                    TokenType.Virtual,
                     TokenType.MainMachine,
                     TokenType.EventDecl,
                     TokenType.MachineDecl,
@@ -391,6 +392,7 @@ namespace Microsoft.PSharp.Parsing
                     break;
 
                 case TokenType.Abstract:
+                case TokenType.Virtual:
                     this.VisitTopLevelAbstractModifier(node);
                     this.Index++;
                     break;
@@ -445,6 +447,7 @@ namespace Microsoft.PSharp.Parsing
 
             if (this.Index == this.Tokens.Count ||
                 (this.Tokens[this.Index].Type != TokenType.Abstract &&
+                this.Tokens[this.Index].Type != TokenType.Virtual &&
                 this.Tokens[this.Index].Type != TokenType.MainMachine &&
                 this.Tokens[this.Index].Type != TokenType.EventDecl &&
                 this.Tokens[this.Index].Type != TokenType.MachineDecl))
@@ -453,6 +456,7 @@ namespace Microsoft.PSharp.Parsing
                 throw new EndOfTokensException(new List<TokenType>
                 {
                     TokenType.Abstract,
+                    TokenType.Virtual,
                     TokenType.MainMachine,
                     TokenType.EventDecl,
                     TokenType.MachineDecl
@@ -796,6 +800,12 @@ namespace Microsoft.PSharp.Parsing
                     this.Index++;
                     break;
 
+                case TokenType.Abstract:
+                case TokenType.Virtual:
+                    this.VisitMachineLevelAbstractModifier(node);
+                    this.Index++;
+                    break;
+
                 case TokenType.LeftSquareBracket:
                     this.Index++;
                     this.SkipWhiteSpaceAndCommentTokens();
@@ -815,10 +825,6 @@ namespace Microsoft.PSharp.Parsing
                 case TokenType.Internal:
                 case TokenType.Public:
                     this.ReportParsingError("Machine fields, states or actions must be private or protected.");
-                    break;
-
-                case TokenType.Abstract:
-                    this.ReportParsingError("Machine fields, states or actions cannot be abstract.");
                     break;
 
                 case TokenType.RightSquareBracket:
@@ -852,7 +858,9 @@ namespace Microsoft.PSharp.Parsing
             this.SkipWhiteSpaceAndCommentTokens();
 
             if (this.Index == this.Tokens.Count ||
-                (this.Tokens[this.Index].Type != TokenType.Override &&
+                (this.Tokens[this.Index].Type != TokenType.Abstract &&
+                this.Tokens[this.Index].Type != TokenType.Virtual &&
+                this.Tokens[this.Index].Type != TokenType.Override &&
                 this.Tokens[this.Index].Type != TokenType.StartState &&
                 this.Tokens[this.Index].Type != TokenType.StateDecl &&
                 this.Tokens[this.Index].Type != TokenType.ActionDecl &&
@@ -861,6 +869,8 @@ namespace Microsoft.PSharp.Parsing
                 this.ReportParsingError("Expected state, action, field or method declaration.");
                 throw new EndOfTokensException(new List<TokenType>
                 {
+                    TokenType.Abstract,
+                    TokenType.Virtual,
                     TokenType.Override,
                     TokenType.StartState,
                     TokenType.StateDecl,
@@ -869,10 +879,11 @@ namespace Microsoft.PSharp.Parsing
                 });
             }
 
-            Token overrideModifier = null;
-            if (this.Tokens[this.Index].Type == TokenType.Override)
+            if (this.Tokens[this.Index].Type == TokenType.Abstract ||
+                this.Tokens[this.Index].Type == TokenType.Virtual ||
+                this.Tokens[this.Index].Type == TokenType.Override)
             {
-                overrideModifier = this.Tokens[this.Index];
+                var inheritanceModifier = this.Tokens[this.Index];
 
                 this.Index++;
                 this.SkipWhiteSpaceAndCommentTokens();
@@ -891,11 +902,11 @@ namespace Microsoft.PSharp.Parsing
 
                 if (this.Tokens[this.Index].Type == TokenType.ActionDecl)
                 {
-                    this.VisitActionDeclaration(parentNode, modifier, overrideModifier);
+                    this.VisitActionDeclaration(parentNode, modifier, inheritanceModifier);
                 }
                 else if (this.Tokens[this.Index].Type == TokenType.Identifier)
                 {
-                    this.VisitFieldOrMethodDeclaration(parentNode, modifier, overrideModifier);
+                    this.VisitFieldOrMethodDeclaration(parentNode, modifier, inheritanceModifier);
                 }
             }
             else if (this.Tokens[this.Index].Type == TokenType.StartState)
@@ -908,12 +919,24 @@ namespace Microsoft.PSharp.Parsing
             }
             else if (this.Tokens[this.Index].Type == TokenType.ActionDecl)
             {
-                this.VisitActionDeclaration(parentNode, modifier, overrideModifier);
+                this.VisitActionDeclaration(parentNode, modifier, null);
             }
             else if (this.Tokens[this.Index].Type == TokenType.Identifier)
             {
-                this.VisitFieldOrMethodDeclaration(parentNode, modifier, overrideModifier);
+                this.VisitFieldOrMethodDeclaration(parentNode, modifier, null);
             }
+        }
+
+        /// <summary>
+        /// Visits a machine level abstract modifier.
+        /// </summary>
+        /// <param name="parentNode">Node</param>
+        private void VisitMachineLevelAbstractModifier(MachineDeclarationNode parentNode)
+        {
+            var abstractModifier = this.Tokens[this.Index];
+
+            this.Index++;
+            this.SkipWhiteSpaceAndCommentTokens();
         }
 
         /// <summary>
@@ -1085,7 +1108,8 @@ namespace Microsoft.PSharp.Parsing
                     break;
 
                 case TokenType.Abstract:
-                    this.ReportParsingError("State actions cannot be abstract.");
+                case TokenType.Virtual:
+                    this.ReportParsingError("State actions cannot be abstract or virtual.");
                     break;
 
                 case TokenType.RightSquareBracket:
@@ -1431,13 +1455,13 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         /// <param name="parentNode">Node</param>
         /// <param name="modifier">Modifier</param>
-        /// <param name="overrideModifier">Override modifier</param>
+        /// <param name="inheritanceModifier">Inheritance modifier</param>
         private void VisitActionDeclaration(MachineDeclarationNode parentNode, Token modifier,
-            Token overrideModifier)
+            Token inheritanceModifier)
         {
             var node = new ActionDeclarationNode(parentNode);
             node.Modifier = modifier;
-            node.OverrideModifier = overrideModifier;
+            node.InheritanceModifier = inheritanceModifier;
             node.ActionKeyword = this.Tokens[this.Index];
 
             this.Index++;
@@ -1462,18 +1486,26 @@ namespace Microsoft.PSharp.Parsing
             this.SkipWhiteSpaceAndCommentTokens();
 
             if (this.Index == this.Tokens.Count ||
-                this.Tokens[this.Index].Type != TokenType.LeftCurlyBracket)
+                (this.Tokens[this.Index].Type != TokenType.LeftCurlyBracket &&
+                this.Tokens[this.Index].Type != TokenType.Semicolon))
             {
-                this.ReportParsingError("Expected \"{\".");
+                this.ReportParsingError("Expected \"{\" or \";\".");
                 throw new EndOfTokensException(new List<TokenType>
                 {
-                    TokenType.LeftCurlyBracket
+                    TokenType.LeftAngleBracket,
+                    TokenType.Identifier
                 });
             }
 
-            node.LeftCurlyBracketToken = this.Tokens[this.Index];
-
-            this.VisitCodeRegion(node);
+            if (this.Tokens[this.Index].Type == TokenType.LeftCurlyBracket)
+            {
+                node.LeftCurlyBracketToken = this.Tokens[this.Index];
+                this.VisitCodeRegion(node);
+            }
+            else if (this.Tokens[this.Index].Type == TokenType.Semicolon)
+            {
+                node.SemicolonToken = this.Tokens[this.Index];
+            }
 
             parentNode.ActionDeclarations.Add(node);
         }
@@ -1483,9 +1515,9 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         /// <param name="parentNode">Node</param>
         /// <param name="modifier">Modifier</param>
-        /// <param name="overrideModifier">Override modifier</param>
+        /// <param name="inheritanceModifier">Inheritance modifier</param>
         private void VisitFieldOrMethodDeclaration(MachineDeclarationNode parentNode, Token modifier,
-            Token overrideModifier)
+            Token inheritanceModifier)
         {
             var typeNode = new TypeIdentifierNode();
             typeNode.Identifier = this.Tokens[this.Index];
@@ -1494,15 +1526,15 @@ namespace Microsoft.PSharp.Parsing
             this.SkipWhiteSpaceAndCommentTokens();
 
             if (this.Index == this.Tokens.Count ||
-                    (this.Tokens[this.Index].Type != TokenType.LeftAngleBracket &&
-                    this.Tokens[this.Index].Type != TokenType.Identifier))
+                (this.Tokens[this.Index].Type != TokenType.LeftAngleBracket &&
+                this.Tokens[this.Index].Type != TokenType.Identifier))
             {
-                this.ReportParsingError("Expected state, action or method declaration.");
+                this.ReportParsingError("Expected field or method declaration.");
                 throw new EndOfTokensException(new List<TokenType>
-                    {
-                        TokenType.LeftAngleBracket,
-                        TokenType.Identifier
-                    });
+                {
+                    TokenType.LeftAngleBracket,
+                    TokenType.Identifier
+                });
             }
 
             if (this.Tokens[this.Index].Type == TokenType.LeftAngleBracket)
@@ -1512,44 +1544,40 @@ namespace Microsoft.PSharp.Parsing
                 if (this.Index == this.Tokens.Count ||
                     this.Tokens[this.Index].Type != TokenType.Identifier)
                 {
-                    this.ReportParsingError("Expected method declaration.");
+                    this.ReportParsingError("Expected field or method declaration.");
                     throw new EndOfTokensException(new List<TokenType>
-                        {
-                            TokenType.Identifier
-                        });
-                }
-            }
-
-            if (this.Index == this.Tokens.Count ||
-                (this.Tokens[this.Index].Type != TokenType.Identifier))
-            {
-                this.ReportParsingError("Expected state, action or method declaration.");
-                throw new EndOfTokensException(new List<TokenType>
                     {
-                        TokenType.LeftAngleBracket,
                         TokenType.Identifier
                     });
+                }
             }
 
             var identifierToken = this.Tokens[this.Index];
 
-            while (this.Index < this.Tokens.Count &&
-                this.Tokens[this.Index].Type != TokenType.Semicolon &&
-                this.Tokens[this.Index].Type != TokenType.LeftParenthesis)
+            this.Index++;
+            this.SkipWhiteSpaceAndCommentTokens();
+
+            if (this.Index == this.Tokens.Count ||
+                    (this.Tokens[this.Index].Type != TokenType.LeftParenthesis &&
+                    this.Tokens[this.Index].Type != TokenType.Semicolon))
             {
-                this.Index++;
-                this.SkipWhiteSpaceAndCommentTokens();
+                this.ReportParsingError("Expected \"(\" or \";\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.LeftParenthesis,
+                    TokenType.Semicolon
+                });
             }
 
             if (this.Tokens[this.Index].Type == TokenType.LeftParenthesis)
             {
-                this.VisitMethodDeclaration(parentNode, modifier, overrideModifier, typeNode, identifierToken);
+                this.VisitMethodDeclaration(parentNode, modifier, inheritanceModifier, typeNode, identifierToken);
             }
             else if (this.Tokens[this.Index].Type == TokenType.Semicolon)
             {
-                if (overrideModifier != null)
+                if (inheritanceModifier != null)
                 {
-                    this.ReportParsingError("A field declaration cannot have the override modifier.");
+                    this.ReportParsingError("A field declaration cannot have the abstract, virtual or override modifier.");
                 }
 
                 var node = new FieldDeclarationNode(parentNode);
@@ -1567,15 +1595,15 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         /// <param name="parentNode">Node</param>
         /// <param name="modifier">Modifier</param>
-        /// <param name="overrideModifier">Override modifier</param>
+        /// <param name="inheritanceModifier">Inheritance modifier</param>
         /// <param name="typeNode">TypeNode</param>
         /// <param name="identifier">Identifier</param>
         private void VisitMethodDeclaration(MachineDeclarationNode parentNode, Token modifier,
-            Token overrideModifier, TypeIdentifierNode typeNode, Token identifier)
+            Token inheritanceModifier, TypeIdentifierNode typeNode, Token identifier)
         {
             var node = new MethodDeclarationNode(parentNode);
             node.Modifier = modifier;
-            node.OverrideModifier = overrideModifier;
+            node.InheritanceModifier = inheritanceModifier;
             node.TypeIdentifier = typeNode;
             node.Identifier = identifier;
 
@@ -2239,24 +2267,35 @@ namespace Microsoft.PSharp.Parsing
             }
 
             var errorToken = this.Tokens[errorIndex];
-            var errorLine = this.OriginalTokens.Where(val => val.Line == errorToken.Line);
+            var errorLine = this.OriginalTokens.Where(val => val.Line == errorToken.Line).ToList();
 
             error += "\nIn " + this.Root.FilePath + " (line " + errorToken.Line + "):\n";
-            foreach (var token in errorLine)
+
+            int nonWhiteIndex = 0;
+            for (int idx = 0; idx < errorLine.Count; idx++)
             {
-                error += token.Text;
+                if (errorLine[idx].Type != TokenType.WhiteSpace)
+                {
+                    nonWhiteIndex = idx;
+                    break;
+                }
             }
 
-            foreach (var token in errorLine)
+            for (int idx = nonWhiteIndex; idx < errorLine.Count; idx++)
             {
-                if (token.Equals(errorToken) && errorIndex == this.Index)
+                error += errorLine[idx].TextUnit.Text;
+            }
+
+            for (int idx = nonWhiteIndex; idx < errorLine.Count; idx++)
+            {
+                if (errorLine[idx].Equals(errorToken) && errorIndex == this.Index)
                 {
-                    error += new StringBuilder().Append('~', token.Text.Length);
+                    error += new StringBuilder().Append('~', errorLine[idx].TextUnit.Text.Length);
                     break;
                 }
                 else
                 {
-                    error += new StringBuilder().Append(' ', token.Text.Length);
+                    error += new StringBuilder().Append(' ', errorLine[idx].TextUnit.Text.Length);
                 }
             }
 

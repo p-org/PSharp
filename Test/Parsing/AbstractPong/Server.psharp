@@ -1,0 +1,14 @@
+﻿using System;
+
+namespace AbstractPong
+{
+    internal main machine Server : BaseServer
+    {
+		protected override action Foo
+		{
+			Text += "world!";
+			Console.WriteLine(Text);
+			delete;
+		}
+    }
+}
