@@ -177,20 +177,20 @@ namespace Microsoft.PSharp.Parsing.Syntax
             this.SkipWhiteSpaceAndCommentTokens();
 
             while (this.RewrittenStatements[this.Index].Type != TokenType.Semicolon &&
-                this.RewrittenStatements[this.Index].Type != TokenType.LeftCurlyBracket)
+                this.RewrittenStatements[this.Index].Type != TokenType.LeftParenthesis)
             {
                 machineIds.Add(this.RewrittenStatements[this.Index]);
                 this.Index++;
             }
 
-            while (this.RewrittenStatements[this.Index].Type != TokenType.LeftCurlyBracket)
+            while (this.RewrittenStatements[this.Index].Type != TokenType.LeftParenthesis)
             {
                 this.Index++;
             }
 
             this.Index++;
             this.SkipWhiteSpaceAndCommentTokens();
-            while (this.RewrittenStatements[this.Index].Type != TokenType.RightCurlyBracket)
+            while (this.RewrittenStatements[this.Index].Type != TokenType.RightParenthesis)
             {
                 payload.Add(this.RewrittenStatements[this.Index]);
                 this.Index++;
@@ -258,10 +258,10 @@ namespace Microsoft.PSharp.Parsing.Syntax
             this.Index++;
             this.SkipWhiteSpaceAndCommentTokens();
 
-            if (this.RewrittenStatements[this.Index].Type == TokenType.LeftCurlyBracket)
+            if (this.RewrittenStatements[this.Index].Type == TokenType.LeftParenthesis)
             {
                 this.Index++;
-                while (this.RewrittenStatements[this.Index].Type != TokenType.RightCurlyBracket)
+                while (this.RewrittenStatements[this.Index].Type != TokenType.RightParenthesis)
                 {
                     payload.Add(this.RewrittenStatements[this.Index]);
                     this.Index++;
@@ -345,10 +345,10 @@ namespace Microsoft.PSharp.Parsing.Syntax
             this.Index++;
             this.SkipWhiteSpaceAndCommentTokens();
 
-            if (this.RewrittenStatements[this.Index].Type == TokenType.LeftCurlyBracket)
+            if (this.RewrittenStatements[this.Index].Type == TokenType.LeftParenthesis)
             {
                 this.Index++;
-                while (this.RewrittenStatements[this.Index].Type != TokenType.RightCurlyBracket)
+                while (this.RewrittenStatements[this.Index].Type != TokenType.RightParenthesis)
                 {
                     payload.Add(this.RewrittenStatements[this.Index]);
                     this.Index++;

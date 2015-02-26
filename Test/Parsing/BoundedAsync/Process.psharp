@@ -47,8 +47,8 @@ namespace BoundedAsync
                 var msg1 = this.CountMessage;
                 var msg2 = new CountMessage(this.CountMessage.Count);
 
-                send eMyCount { msg1 } to LeftProcess;
-                send eMyCount { msg2 } to RightProcess;
+                send eMyCount ( msg1 ) to LeftProcess;
+                send eMyCount ( msg2 ) to RightProcess;
                 send eReq to Scheduler;
 
                 if (this.CountMessage.Count > 10)

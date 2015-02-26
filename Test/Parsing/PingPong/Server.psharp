@@ -10,7 +10,7 @@ namespace PingPong
         {
             entry
             {
-                this.Client = create Client { this };
+                this.Client = create Client ( this );
                 raise Unit;
             }
 
