@@ -13,7 +13,6 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.PSharp.Tooling;
@@ -50,7 +49,7 @@ namespace Microsoft.PSharp.Parsing
         #region private methods
 
         /// <summary>
-        /// Rewrite P# syntax trees to C# syntax trees of the project.
+        /// Rewrites syntax trees to C#.
         /// </summary>
         /// <param name="project">Project</param>
         private static void RewriteSyntaxTrees(Project project)
@@ -59,38 +58,52 @@ namespace Microsoft.PSharp.Parsing
 
             foreach (var tree in compilation.SyntaxTrees.ToList())
             {
-                if (!ProgramInfo.IsPSharpFile(tree))
+                if (ProgramInfo.IsPSharpFile(tree))
                 {
-                    continue;
+                    ParsingEngine.RewritePSharpSyntaxTree(ref project, tree);
                 }
-
-                var root = (CompilationUnitSyntax)tree.GetRoot();
-
-                var tokens = new PSharpLexer().Tokenize(root.ToFullString());
-                var program = new PSharpParser(tree.FilePath).ParseTokens(tokens);
-                var rewrittenTree = program.Rewrite();
-
-                var source = SourceText.From(rewrittenTree);
-
-                ProgramInfo.ReplaceSyntaxTree(tree.WithChangedText(source), ref project);
+                else if (ProgramInfo.IsPFile(tree))
+                {
+                    ParsingEngine.RewritePSyntaxTree(ref project, tree);
+                }
             }
         }
 
         /// <summary>
-        /// Returns true if the syntax tree belongs to the P# program.
-        /// Else returns false.
+        /// Rewrites a P# syntax tree to C#.
         /// </summary>
+        /// <param name="project">Project</param>
         /// <param name="tree">SyntaxTree</param>
-        /// <returns>Boolean value</returns>
-        private static bool IsProgramSyntaxTree(SyntaxTree tree)
+        private static void RewritePSharpSyntaxTree(ref Project project, SyntaxTree tree)
         {
-            if (tree.FilePath.Contains("\\AssemblyInfo.cs") ||
-                    tree.FilePath.Contains(".NETFramework,"))
+            var root = (CompilationUnitSyntax)tree.GetRoot();
+
+            var tokens = new PSharpLexer().Tokenize(root.ToFullString());
+            var program = new PSharpParser(tree.FilePath).ParseTokens(tokens);
+            var rewrittenTree = program.Rewrite();
+
+            var source = SourceText.From(rewrittenTree);
+
+            ProgramInfo.ReplaceSyntaxTree(tree.WithChangedText(source), ref project);
+        }
+
+        /// <summary>
+        /// Rewrites a P syntax tree to C#.
+        /// </summary>
+        /// <param name="project">Project</param>
+        /// <param name="tree">SyntaxTree</param>
+        private static void RewritePSyntaxTree(ref Project project, SyntaxTree tree)
+        {
+            var root = (CompilationUnitSyntax)tree.GetRoot();
+
+            var tokens = new PLexer().Tokenize(root.ToFullString());
+
+            foreach (var tok in tokens)
             {
-                return false;
+                Console.Write(tok.TextUnit.Text);
             }
 
-            return true;
+            Environment.Exit(1);
         }
 
         #endregion

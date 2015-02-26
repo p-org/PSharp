@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="PSharpLexer.cs">
+// <copyright file="PLexer.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -17,9 +17,9 @@ using System;
 namespace Microsoft.PSharp.Parsing
 {
     /// <summary>
-    /// The P# lexer.
+    /// The P lexer.
     /// </summary>
-    public class PSharpLexer : BaseLexer
+    public class PLexer : BaseLexer
     {
         #region protected API
 
@@ -174,50 +174,6 @@ namespace Microsoft.PSharp.Parsing
                     this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.NonDeterministic));
                     break;
 
-                case "private":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Private));
-                    break;
-
-                case "protected":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Protected));
-                    break;
-
-                case "internal":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Internal));
-                    break;
-
-                case "public":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Public));
-                    break;
-
-                case "abstract":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Abstract));
-                    break;
-
-                case "virtual":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Virtual));
-                    break;
-
-                case "override":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Override));
-                    break;
-
-                case "namespace":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.NamespaceDecl));
-                    break;
-
-                case "class":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.ClassDecl));
-                    break;
-
-                case "struct":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.StructDecl));
-                    break;
-
-                case "using":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Using));
-                    break;
-
                 case "machine":
                     this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.MachineDecl));
                     break;
@@ -318,6 +274,14 @@ namespace Microsoft.PSharp.Parsing
                     this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.As));
                     break;
 
+                case "keys":
+                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Keys));
+                    break;
+
+                case "values":
+                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Values));
+                    break;
+
                 case "for":
                     this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.ForLoop));
                     break;
@@ -382,6 +346,22 @@ namespace Microsoft.PSharp.Parsing
                     this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Bool));
                     break;
 
+                case "foreign":
+                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Foreign));
+                    break;
+
+                case "any":
+                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Any));
+                    break;
+
+                case "seq":
+                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Seq));
+                    break;
+
+                case "map":
+                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Map));
+                    break;
+
                 default:
                     if (String.IsNullOrWhiteSpace(unit.Text))
                     {
@@ -394,7 +374,7 @@ namespace Microsoft.PSharp.Parsing
 
                     break;
             }
-            
+
             this.Index++;
             this.TokenizeNext();
         }
@@ -412,14 +392,11 @@ namespace Microsoft.PSharp.Parsing
                 @"!|&&|\|\||" +
                 @"%|\$|" +
                 @"{|}|\(|\)|\[|\]|" +
-                @"\busing\b|\bnamespace\b|\bclass\b|\bstruct\b|" +
                 @"\bmachine\b|\bmodel\b|\bmonitor\b|\bstate\b|\bevent\b|" +
                 @"\bmain\b|\bstart\b|" +
                 @"\bdefer\b|\bignore\b|\bto\b|\bentry\b|\bexit\b|" +
                 @"\bcreate\b|\braise\b|\bsend\b|" +
                 @"\bon\b|\bdo\b|\bgoto\b|" +
-                @"\bprivate\b|\bprotected\b|\binternal\b|\bpublic\b|" +
-                @"\babstract\b|\bvirtual\b|\boverride\b|" +
                 @"\bvar\b|" +
                 @"\bnew\b|\bin\b|\bas\b" +
                 @"|\s+)";

@@ -77,12 +77,20 @@ namespace Microsoft.PSharp.VisualStudio
         internal static ClassificationTypeDefinition PSharpRightSquareBracketDefinition = null;
 
         [Export(typeof(ClassificationTypeDefinition))]
+        [Name("PSharp.LeftAngleBracket")]
+        internal static ClassificationTypeDefinition PSharpLeftAngleBracketDefinition = null;
+
+        [Export(typeof(ClassificationTypeDefinition))]
+        [Name("PSharp.RightAngleBracket")]
+        internal static ClassificationTypeDefinition PSharpRightAngleBracketDefinition = null;
+
+        [Export(typeof(ClassificationTypeDefinition))]
         [Name("PSharp.Semicolon")]
         internal static ClassificationTypeDefinition PSharpSemicolonDefinition = null;
 
         [Export(typeof(ClassificationTypeDefinition))]
-        [Name("PSharp.Doublecolon")]
-        internal static ClassificationTypeDefinition PSharpDoublecolonDefinition = null;
+        [Name("PSharp.Colon")]
+        internal static ClassificationTypeDefinition PSharpColonDefinition = null;
 
         [Export(typeof(ClassificationTypeDefinition))]
         [Name("PSharp.Comma")]

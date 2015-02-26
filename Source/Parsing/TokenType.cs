@@ -52,19 +52,29 @@ namespace Microsoft.PSharp.Parsing
         StateRightCurlyBracket,
 
         Semicolon,
-        Doublecolon,
+        Colon,
         Comma,
         Dot,
 
-        AndOperator,
-        OrOperator,
-        NotOperator,
-        EqualOperator,
-        PlusOperator,
-        MinusOperator,
-        MultiplyOperator,
-        DivideOperator,
-        ModOperator,
+        EqualOp,
+        AssignOp,
+        InsertOp,
+        RemoveOp,
+        NotEqualOp,
+        LessOrEqualOp,
+        GreaterOrEqualOp,
+
+        PlusOp,
+        MinusOp,
+        MulOp,
+        DivOp,
+        ModOp,
+
+        LogNotOp,
+        LogAndOp,
+        LogOrOp,
+
+        NonDeterministic,
 
         Private,
         Protected,
@@ -80,6 +90,7 @@ namespace Microsoft.PSharp.Parsing
         Using,
 
         MachineDecl,
+        ModelDecl,
         MonitorDecl,
         StateDecl,
         EventDecl,

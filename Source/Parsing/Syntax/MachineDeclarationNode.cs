@@ -53,9 +53,9 @@ namespace Microsoft.PSharp.Parsing.Syntax
         public Token Identifier;
 
         /// <summary>
-        /// The double colon token.
+        /// The colon token.
         /// </summary>
-        public Token DoubleColonToken;
+        public Token ColonToken;
 
         /// <summary>
         /// The base name tokens.
@@ -191,11 +191,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
             text += this.Identifier.TextUnit.Text;
             text += " ";
 
-            base.RewrittenTokens.Add(new Token(new TextUnit(":", 1, text.Length), this.MachineKeyword.Line, TokenType.Doublecolon));
+            base.RewrittenTokens.Add(new Token(new TextUnit(":", 1, text.Length), this.MachineKeyword.Line, TokenType.Colon));
             text += ":";
             text += " ";
 
-            if (this.DoubleColonToken != null)
+            if (this.ColonToken != null)
             {
                 foreach (var node in this.BaseNameTokens)
                 {
@@ -295,10 +295,10 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += this.Identifier.TextUnit.Text;
 
-            if (this.DoubleColonToken != null)
+            if (this.ColonToken != null)
             {
                 text += " ";
-                text += this.DoubleColonToken.TextUnit.Text;
+                text += this.ColonToken.TextUnit.Text;
                 text += " ";
 
                 foreach (var node in this.BaseNameTokens)

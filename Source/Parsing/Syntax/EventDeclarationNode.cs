@@ -98,7 +98,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
             text += this.Identifier.TextUnit.Text;
             text += " ";
 
-            base.RewrittenTokens.Add(new Token(new TextUnit(":", 1, text.Length), this.EventKeyword.Line, TokenType.Doublecolon));
+            base.RewrittenTokens.Add(new Token(new TextUnit(":", 1, text.Length), this.EventKeyword.Line, TokenType.Colon));
             text += ":";
             text += " ";
 

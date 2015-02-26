@@ -57,11 +57,19 @@ namespace Microsoft.PSharp.Parsing
                     text = "]";
                     break;
 
+                case TokenType.LeftAngleBracket:
+                    text = "<";
+                    break;
+
+                case TokenType.RightAngleBracket:
+                    text = ">";
+                    break;
+
                 case TokenType.Semicolon:
                     text = ";";
                     break;
 
-                case TokenType.Doublecolon:
+                case TokenType.Colon:
                     text = ":";
                     break;
 
@@ -73,48 +81,68 @@ namespace Microsoft.PSharp.Parsing
                     text = ".";
                     break;
 
-                case TokenType.AndOperator:
-                    text = "&";
+                case TokenType.EqualOp:
+                    text = "==";
                     break;
 
-                case TokenType.OrOperator:
-                    text = "|";
-                    break;
-
-                case TokenType.NotOperator:
-                    text = "!";
-                    break;
-
-                case TokenType.EqualOperator:
+                case TokenType.AssignOp:
                     text = "=";
                     break;
 
-                case TokenType.LeftAngleBracket:
-                    text = "<";
+                case TokenType.InsertOp:
+                    text = "+=";
                     break;
 
-                case TokenType.RightAngleBracket:
-                    text = ">";
+                case TokenType.RemoveOp:
+                    text = "-=";
                     break;
 
-                case TokenType.PlusOperator:
+                case TokenType.NotEqualOp:
+                    text = "!=";
+                    break;
+
+                case TokenType.LessOrEqualOp:
+                    text = "<=";
+                    break;
+
+                case TokenType.GreaterOrEqualOp:
+                    text = ">=";
+                    break;
+
+                case TokenType.PlusOp:
                     text = "+";
                     break;
 
-                case TokenType.MinusOperator:
+                case TokenType.MinusOp:
                     text = "-";
                     break;
 
-                case TokenType.MultiplyOperator:
-                    text = "-";
+                case TokenType.MulOp:
+                    text = "*";
                     break;
 
-                case TokenType.DivideOperator:
+                case TokenType.DivOp:
                     text = "/";
                     break;
 
-                case TokenType.ModOperator:
+                case TokenType.ModOp:
                     text = "%";
+                    break;
+
+                case TokenType.LogNotOp:
+                    text = "!";
+                    break;
+
+                case TokenType.LogAndOp:
+                    text = "&&";
+                    break;
+
+                case TokenType.LogOrOp:
+                    text = "||";
+                    break;
+
+                case TokenType.NonDeterministic:
+                    text = "$";
                     break;
 
                 case TokenType.Private:
@@ -163,6 +191,10 @@ namespace Microsoft.PSharp.Parsing
 
                 case TokenType.MachineDecl:
                     text = "machine";
+                    break;
+
+                case TokenType.ModelDecl:
+                    text = "model";
                     break;
 
                 case TokenType.MonitorDecl:

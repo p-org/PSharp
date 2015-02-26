@@ -148,12 +148,20 @@ namespace Microsoft.PSharp.VisualStudio
                     classification = "PSharp.RightCurlyBracket";
                     break;
 
+                case TokenType.LeftAngleBracket:
+                    classification = "PSharp.LeftAngleBracket";
+                    break;
+
+                case TokenType.RightAngleBracket:
+                    classification = "PSharp.RightAngleBracket";
+                    break;
+
                 case TokenType.Semicolon:
                     classification = "PSharp.Semicolon";
                     break;
 
-                case TokenType.Doublecolon:
-                    classification = "PSharp.Doublecolon";
+                case TokenType.Colon:
+                    classification = "PSharp.Colon";
                     break;
 
                 case TokenType.Comma:
@@ -164,17 +172,25 @@ namespace Microsoft.PSharp.VisualStudio
                     classification = "PSharp.Dot";
                     break;
 
-                case TokenType.AndOperator:
-                case TokenType.OrOperator:
-                case TokenType.NotOperator:
-                case TokenType.EqualOperator:
-                case TokenType.LeftAngleBracket:
-                case TokenType.RightAngleBracket:
-                case TokenType.PlusOperator:
-                case TokenType.MinusOperator:
-                case TokenType.MultiplyOperator:
-                case TokenType.DivideOperator:
-                case TokenType.ModOperator:
+                case TokenType.EqualOp:
+                case TokenType.AssignOp:
+                case TokenType.InsertOp:
+                case TokenType.RemoveOp:
+                case TokenType.NotEqualOp:
+                case TokenType.LessOrEqualOp:
+                case TokenType.GreaterOrEqualOp:
+
+                case TokenType.PlusOp:
+                case TokenType.MinusOp:
+                case TokenType.MulOp:
+                case TokenType.DivOp:
+                case TokenType.ModOp:
+
+                case TokenType.LogNotOp:
+                case TokenType.LogAndOp:
+                case TokenType.LogOrOp:
+
+                case TokenType.NonDeterministic:
                     classification = "PSharp.Operator";
                     break;
 
@@ -190,6 +206,7 @@ namespace Microsoft.PSharp.VisualStudio
                 case TokenType.Using:
 
                 case TokenType.MachineDecl:
+                case TokenType.ModelDecl:
                 case TokenType.MonitorDecl:
                 case TokenType.StateDecl:
                 case TokenType.EventDecl:

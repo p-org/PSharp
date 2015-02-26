@@ -659,20 +659,20 @@ namespace Microsoft.PSharp.Parsing
             this.SkipWhiteSpaceAndCommentTokens();
 
             if (this.Index == this.Tokens.Count ||
-                (this.Tokens[this.Index].Type != TokenType.Doublecolon &&
+                (this.Tokens[this.Index].Type != TokenType.Colon &&
                 this.Tokens[this.Index].Type != TokenType.LeftCurlyBracket))
             {
                 this.ReportParsingError("Expected \"{\".");
                 throw new EndOfTokensException(new List<TokenType>
                 {
-                    TokenType.Doublecolon,
+                    TokenType.Colon,
                     TokenType.LeftCurlyBracket
                 });
             }
 
-            if (this.Tokens[this.Index].Type == TokenType.Doublecolon)
+            if (this.Tokens[this.Index].Type == TokenType.Colon)
             {
-                node.DoubleColonToken = this.Tokens[this.Index];
+                node.ColonToken = this.Tokens[this.Index];
 
                 this.Index++;
                 this.SkipWhiteSpaceAndCommentTokens();
