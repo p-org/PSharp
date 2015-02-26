@@ -161,16 +161,12 @@ namespace Microsoft.PSharp.Parsing
                     text = "using";
                     break;
 
-                case TokenType.MainMachine:
+                case TokenType.MachineDecl:
                     text = "machine";
                     break;
 
-                case TokenType.StartState:
-                    text = "main";
-                    break;
-
-                case TokenType.MachineDecl:
-                    text = "start";
+                case TokenType.MonitorDecl:
+                    text = "monitor";
                     break;
 
                 case TokenType.StateDecl:
@@ -183,6 +179,14 @@ namespace Microsoft.PSharp.Parsing
 
                 case TokenType.ActionDecl:
                     text = "action";
+                    break;
+
+                case TokenType.MainMachine:
+                    text = "main";
+                    break;
+
+                case TokenType.StartState:
+                    text = "start";
                     break;
 
                 case TokenType.OnAction:
@@ -229,8 +233,36 @@ namespace Microsoft.PSharp.Parsing
                     text = "new";
                     break;
 
+                case TokenType.Null:
+                    text = "null";
+                    break;
+
+                case TokenType.True:
+                    text = "true";
+                    break;
+
+                case TokenType.False:
+                    text = "false";
+                    break;
+
+                case TokenType.SizeOf:
+                    text = "sizeof";
+                    break;
+
+                case TokenType.In:
+                    text = "in";
+                    break;
+
                 case TokenType.As:
                     text = "as";
+                    break;
+
+                case TokenType.Keys:
+                    text = "keys";
+                    break;
+
+                case TokenType.Values:
+                    text = "values";
                     break;
 
                 case TokenType.ForLoop:
@@ -287,6 +319,34 @@ namespace Microsoft.PSharp.Parsing
 
                 case TokenType.Payload:
                     text = "payload";
+                    break;
+
+                case TokenType.Var:
+                    text = "var";
+                    break;
+
+                case TokenType.Int:
+                    text = "int";
+                    break;
+
+                case TokenType.Bool:
+                    text = "bool";
+                    break;
+
+                case TokenType.Foreign:
+                    text = "foreign";
+                    break;
+
+                case TokenType.Any:
+                    text = "any";
+                    break;
+
+                case TokenType.Seq:
+                    text = "seq";
+                    break;
+
+                case TokenType.Map:
+                    text = "map";
                     break;
 
                 default:

@@ -80,6 +80,7 @@ namespace Microsoft.PSharp.Parsing
         Using,
 
         MachineDecl,
+        MonitorDecl,
         StateDecl,
         EventDecl,
         ActionDecl,
@@ -99,7 +100,15 @@ namespace Microsoft.PSharp.Parsing
         This,
         Base,
         New,
+        Null,
+        True,
+        False,
+
+        SizeOf,
+        In,
         As,
+        Keys,
+        Values,
 
         ForLoop,
         WhileLoop,
@@ -115,6 +124,14 @@ namespace Microsoft.PSharp.Parsing
         RaiseEvent,
         DeleteMachine,
         Assert,
-        Payload
+        Payload,
+
+        Var,
+        Int,
+        Bool,
+        Foreign,
+        Any,
+        Seq,
+        Map
     }
 }

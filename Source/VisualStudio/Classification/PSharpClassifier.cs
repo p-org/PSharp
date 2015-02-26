@@ -189,13 +189,14 @@ namespace Microsoft.PSharp.VisualStudio
                 case TokenType.NamespaceDecl:
                 case TokenType.Using:
 
-                case TokenType.MainMachine:
-                case TokenType.StartState:
-
                 case TokenType.MachineDecl:
+                case TokenType.MonitorDecl:
                 case TokenType.StateDecl:
                 case TokenType.EventDecl:
                 case TokenType.ActionDecl:
+
+                case TokenType.MainMachine:
+                case TokenType.StartState:
 
                 case TokenType.OnAction:
                 case TokenType.DoAction:
@@ -208,9 +209,15 @@ namespace Microsoft.PSharp.VisualStudio
 
                 case TokenType.This:
                 case TokenType.Base:
-
                 case TokenType.New:
+                case TokenType.Null:
+                case TokenType.True:
+                case TokenType.False:
+
+                case TokenType.SizeOf:
+                case TokenType.In:
                 case TokenType.As:
+
                 case TokenType.ForLoop:
                 case TokenType.WhileLoop:
                 case TokenType.DoLoop:
@@ -226,6 +233,10 @@ namespace Microsoft.PSharp.VisualStudio
                 case TokenType.DeleteMachine:
                 case TokenType.Assert:
                 case TokenType.Payload:
+
+                case TokenType.Var:
+                case TokenType.Int:
+                case TokenType.Bool:
                     classification = "PSharp.Keyword";
                     break;
 

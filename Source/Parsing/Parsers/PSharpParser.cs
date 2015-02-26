@@ -864,6 +864,8 @@ namespace Microsoft.PSharp.Parsing
                 this.Tokens[this.Index].Type != TokenType.StartState &&
                 this.Tokens[this.Index].Type != TokenType.StateDecl &&
                 this.Tokens[this.Index].Type != TokenType.ActionDecl &&
+                this.Tokens[this.Index].Type != TokenType.Int &&
+                this.Tokens[this.Index].Type != TokenType.Bool &&
                 this.Tokens[this.Index].Type != TokenType.Identifier))
             {
                 this.ReportParsingError("Expected state, action, field or method declaration.");
@@ -875,6 +877,8 @@ namespace Microsoft.PSharp.Parsing
                     TokenType.StartState,
                     TokenType.StateDecl,
                     TokenType.ActionDecl,
+                    TokenType.Int,
+                    TokenType.Bool,
                     TokenType.Identifier
                 });
             }
@@ -890,12 +894,16 @@ namespace Microsoft.PSharp.Parsing
 
                 if (this.Index == this.Tokens.Count ||
                     (this.Tokens[this.Index].Type != TokenType.ActionDecl &&
+                    this.Tokens[this.Index].Type != TokenType.Int &&
+                    this.Tokens[this.Index].Type != TokenType.Bool &&
                     this.Tokens[this.Index].Type != TokenType.Identifier))
                 {
                     this.ReportParsingError("Expected action or method declaration.");
                     throw new EndOfTokensException(new List<TokenType>
                     {
                         TokenType.ActionDecl,
+                        TokenType.Int,
+                        TokenType.Bool,
                         TokenType.Identifier
                     });
                 }
@@ -904,7 +912,9 @@ namespace Microsoft.PSharp.Parsing
                 {
                     this.VisitActionDeclaration(parentNode, modifier, inheritanceModifier);
                 }
-                else if (this.Tokens[this.Index].Type == TokenType.Identifier)
+                else if (this.Tokens[this.Index].Type == TokenType.Int ||
+                    this.Tokens[this.Index].Type == TokenType.Bool ||
+                    this.Tokens[this.Index].Type == TokenType.Identifier)
                 {
                     this.VisitFieldOrMethodDeclaration(parentNode, modifier, inheritanceModifier);
                 }
@@ -921,7 +931,9 @@ namespace Microsoft.PSharp.Parsing
             {
                 this.VisitActionDeclaration(parentNode, modifier, null);
             }
-            else if (this.Tokens[this.Index].Type == TokenType.Identifier)
+            else if (this.Tokens[this.Index].Type == TokenType.Int ||
+                this.Tokens[this.Index].Type == TokenType.Bool ||
+                this.Tokens[this.Index].Type == TokenType.Identifier)
             {
                 this.VisitFieldOrMethodDeclaration(parentNode, modifier, null);
             }

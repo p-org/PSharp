@@ -276,16 +276,12 @@ namespace Microsoft.PSharp.Parsing
                     this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Using));
                     break;
 
-                case "main":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.MainMachine));
-                    break;
-
                 case "machine":
                     this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.MachineDecl));
                     break;
 
-                case "start":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.StartState));
+                case "monitor":
+                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.MonitorDecl));
                     break;
 
                 case "state":
@@ -298,6 +294,14 @@ namespace Microsoft.PSharp.Parsing
 
                 case "action":
                     this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.ActionDecl));
+                    break;
+
+                case "main":
+                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.MainMachine));
+                    break;
+
+                case "start":
+                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.StartState));
                     break;
 
                 case "on":
@@ -342,6 +346,26 @@ namespace Microsoft.PSharp.Parsing
 
                 case "new":
                     this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.New));
+                    break;
+
+                case "null":
+                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Null));
+                    break;
+
+                case "true":
+                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.True));
+                    break;
+
+                case "false":
+                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.False));
+                    break;
+
+                case "sizeof":
+                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.SizeOf));
+                    break;
+
+                case "in":
+                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.In));
                     break;
 
                 case "as":
@@ -400,6 +424,18 @@ namespace Microsoft.PSharp.Parsing
                     this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Payload));
                     break;
 
+                case "var":
+                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Var));
+                    break;
+
+                case "int":
+                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Int));
+                    break;
+
+                case "bool":
+                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Bool));
+                    break;
+
                 default:
                     if (String.IsNullOrWhiteSpace(unit.Text))
                     {
@@ -412,7 +448,7 @@ namespace Microsoft.PSharp.Parsing
 
                     break;
             }
-
+            
             this.Index++;
             this.TokenizeNext();
         }
@@ -430,11 +466,12 @@ namespace Microsoft.PSharp.Parsing
             var pattern = @"(//|/\*|\*/|;|{|}|:|,|\.|\(|\)|\[|\]|#|\s+|" +
                 @"&|\||!|=|<|>|\+|-|\*|/|%|" +
                 @"\busing\b|\bnamespace\b|\bclass\b|\bstruct\b|" +
-                @"\bmain\b|\bstart\b|\bmachine\b|\bstate\b|\bevent\b|" +
+                @"\bmain\b|\bstart\b|\bmachine\b|\bmonitor\b|\bstate\b|\bevent\b|" +
                 @"\bon\b|\bdo\b|\bgoto\b|\bdefer\b|\bignore\b|\bto\b|\bentry\b|\bexit\b|" +
                 @"\bcreate\b|\braise\b|\bsend\b|" +
                 @"\bprivate\b|\bprotected\b|\binternal\b|\bpublic\b|\babstract\b|\bvirtual\b|\boverride\b|" +
-                @"\bnew\b|\bas\b)";
+                @"\bvar\b|" +
+                @"\bnew\b|\bin\b|\bas\b)";
             return pattern;
         }
 
