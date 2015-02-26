@@ -13,107 +13,21 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text.RegularExpressions;
 
 namespace Microsoft.PSharp.Parsing
 {
     /// <summary>
     /// The P# lexer.
     /// </summary>
-    public class PSharpLexer : ILexer
+    public class PSharpLexer : BaseLexer
     {
-        #region fields
-
-        /// <summary>
-        /// List of tokens.
-        /// </summary>
-        protected List<Token> Tokens;
-
-        /// <summary>
-        /// List of text units to be tokenized.
-        /// </summary>
-        protected List<TextUnit> TextUnits;
-
-        /// <summary>
-        /// The current line index.
-        /// </summary>
-        protected int LineIndex;
-
-        /// <summary>
-        /// The current index.
-        /// </summary>
-        protected int Index;
-
-        #endregion
-
-        #region public API
-
-        /// <summary>
-        /// Tokenizes the given text.
-        /// </summary>
-        /// <param name="text">Text to tokenize</param>
-        /// <returns>List of tokens</returns>
-        public List<Token> Tokenize(string text)
-        {
-            if (text.Length == 0)
-            {
-                return new List<Token>();
-            }
-
-            this.Tokens = new List<Token>();
-            this.TextUnits = new List<TextUnit>();
-            this.LineIndex = 1;
-            this.Index = 0;
-
-            using (StringReader sr = new StringReader(text))
-            {
-                int position = 0;
-                string lineText;
-                while ((lineText = sr.ReadLine()) != null)
-                {
-                    var split = this.SplitText(lineText);
-                    foreach (var tok in split)
-                    {
-                        if (tok.Equals(""))
-                        {
-                            continue;
-                        }
-
-                        this.TextUnits.Add(new TextUnit(tok, tok.Length, position));
-                        position += tok.Length;
-                    }
-
-                    this.TextUnits.Add(new TextUnit("\n", 1, position));
-                    position++;
-                }
-            }
-
-            this.TokenizeNext();
-
-            return this.Tokens;
-        }
-
-        #endregion
-
         #region protected API
-
-        /// <summary>
-        /// Splits the given text using a regex pattern and returns the split text.
-        /// </summary>
-        /// <param name="text">Text</param>
-        /// <returns>Tokenized text</returns>
-        protected string[] SplitText(string text)
-        {
-            return Regex.Split(text, this.GetPattern());
-        }
 
         /// <summary>
         /// Tokenizes the next text units.
         /// </summary>
         /// <param name="textUnits">Text units</param>
-        protected void TokenizeNext()
+        protected override void TokenizeNext()
         {
             if (this.Index == this.TextUnits.Count)
             {
@@ -453,15 +367,11 @@ namespace Microsoft.PSharp.Parsing
             this.TokenizeNext();
         }
 
-        #endregion
-
-        #region helper methods
-
         /// <summary>
         /// Returns the regex pattern.
         /// </summary>
         /// <returns></returns>
-        private string GetPattern()
+        protected override string GetPattern()
         {
             var pattern = @"(//|/\*|\*/|;|{|}|:|,|\.|\(|\)|\[|\]|#|\s+|" +
                 @"&|\||!|=|<|>|\+|-|\*|/|%|" +
