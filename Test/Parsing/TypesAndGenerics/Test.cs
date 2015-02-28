@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.PSharp;
 
-namespace PingPong
+namespace TypesAndGenerics
 {
     public class Test
     {

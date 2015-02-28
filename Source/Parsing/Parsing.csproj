@@ -78,7 +78,6 @@
     <Compile Include="Syntax\P\PMachineDeclarationNode.cs" />
     <Compile Include="Syntax\P\PEventDeclarationNode.cs" />
     <Compile Include="Syntax\P\PStateDeclarationNode.cs" />
-    <Compile Include="Syntax\TypeIdentifierNode.cs" />
     <Compile Include="Syntax\PSharpSyntaxNode.cs" />
     <Compile Include="Syntax\ExitDeclarationNode.cs" />
     <Compile Include="PSharpProgram.cs" />

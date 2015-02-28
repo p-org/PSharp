@@ -67,6 +67,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <returns>string</returns>
         public override string GetFullText()
         {
+            if (this.StmtTokens.Count == 0)
+            {
+                return "";
+            }
+
             return base.TextUnit.Text;
         }
 
@@ -76,6 +81,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <returns>string</returns>
         public override string GetRewrittenText()
         {
+            if (this.StmtTokens.Count == 0)
+            {
+                return "";
+            }
+
             return base.RewrittenTextUnit.Text;
         }
 
@@ -90,6 +100,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <param name="position">Position</param>
         internal override void Rewrite(ref int position)
         {
+            if (this.StmtTokens.Count == 0)
+            {
+                return;
+            }
+
             this.Index = 0;
             this.RewrittenStmtTokens = this.StmtTokens.ToList();
             this.RewriteNextToken(ref position);
@@ -111,6 +126,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         internal override void GenerateTextUnit()
         {
+            if (this.StmtTokens.Count == 0)
+            {
+                return;
+            }
+
             var text = "";
 
             foreach (var tok in this.StmtTokens)

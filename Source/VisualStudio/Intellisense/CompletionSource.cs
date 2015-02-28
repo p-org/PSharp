@@ -49,6 +49,8 @@ namespace Microsoft.PSharp.VisualStudio
 
         void ICompletionSource.AugmentCompletionSession(ICompletionSession session, IList<CompletionSet> completionSets)
         {
+            return;
+
             var keywords = Keywords.Get();
 
             var snapshot = this.Buffer.CurrentSnapshot;

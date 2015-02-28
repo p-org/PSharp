@@ -31,9 +31,9 @@ namespace Microsoft.PSharp.Parsing.Syntax
         public Token NewKeyword;
 
         /// <summary>
-        /// The type identifier node.
+        /// The type identifier.
         /// </summary>
-        public TypeIdentifierNode TypeIdentifier;
+        public Token TypeIdentifier;
 
         /// <summary>
         /// The left parenthesis token.
@@ -98,8 +98,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
             var text = this.NewKeyword.TextUnit.Text;
             text += " ";
 
-            this.TypeIdentifier.Rewrite(ref position);
-            text += this.TypeIdentifier.GetRewrittenText();
+            text += this.TypeIdentifier.TextUnit.Text;
 
             text += "(";
 
@@ -125,8 +124,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
             var text = this.NewKeyword.TextUnit.Text;
             text += " ";
 
-            this.TypeIdentifier.GenerateTextUnit();
-            text += this.TypeIdentifier.GetFullText();
+            text += this.TypeIdentifier.TextUnit.Text;
 
             text += " ";
 

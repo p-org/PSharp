@@ -36,9 +36,9 @@ namespace Microsoft.PSharp.Parsing.Syntax
         public Token Modifier;
 
         /// <summary>
-        /// The type identifier node.
+        /// The type identifier.
         /// </summary>
-        public TypeIdentifierNode TypeIdentifier;
+        public Token TypeIdentifier;
 
         /// <summary>
         /// The identifier token.
@@ -109,8 +109,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 text += " ";
             }
 
-            this.TypeIdentifier.GenerateTextUnit();
-            text += this.TypeIdentifier.GetFullText();
+            text += this.TypeIdentifier.TextUnit.Text;
             text += " ";
 
             text += this.Identifier.TextUnit.Text;
