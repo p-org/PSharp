@@ -95,6 +95,7 @@ namespace Microsoft.PSharp.Parsing
         StateDecl,
         EventDecl,
         ActionDecl,
+        FunDecl,
 
         MainMachine,
         StartState,
@@ -121,14 +122,16 @@ namespace Microsoft.PSharp.Parsing
         Keys,
         Values,
 
-        ForLoop,
-        WhileLoop,
-        DoLoop,
         IfCondition,
         ElseCondition,
+        DoLoop,
+        ForLoop,
+        ForeachLoop,
+        WhileLoop,
         Break,
         Continue,
         Return,
+        Lock,
 
         CreateMachine,
         SendEvent,

@@ -15,8 +15,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Microsoft.PSharp.Parsing.Syntax
 {
@@ -235,51 +233,29 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             if (this.Modifier != null)
             {
-                base.RewrittenTokens.Add(this.Modifier);
                 text += this.Modifier.TextUnit.Text;
                 text += " ";
             }
 
-            var classKeyword = "class";
-            var classTextUnit = new TextUnit(classKeyword, classKeyword.Length, text.Length);
-            base.RewrittenTokens.Add(new Token(classTextUnit, this.StateKeyword.Line, TokenType.ClassDecl));
-            text += classKeyword;
-            text += " ";
-
-            text += this.Identifier.TextUnit.Text;
-            text += " ";
-
-            base.RewrittenTokens.Add(new Token(new TextUnit(":", 1, text.Length), this.StateKeyword.Line, TokenType.Colon));
-            text += ":";
-            text += " ";
-
-            var stateClass = "State";
-            var stateTextUnit = new TextUnit(stateClass, stateClass.Length, text.Length);
-            base.RewrittenTokens.Add(new Token(stateTextUnit, this.StateKeyword.Line, TokenType.TypeIdentifier));
-            text += stateClass;
-
+            text += "class " + this.Identifier.TextUnit.Text + " : State";
             text += "\n" + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
-            base.RewrittenTokens.Add(this.LeftCurlyBracketToken);
 
             if (this.EntryDeclaration != null)
             {
                 text += this.EntryDeclaration.GetRewrittenText();
-                base.RewrittenTokens.AddRange(this.EntryDeclaration.RewrittenTokens);
             }
 
             if (this.ExitDeclaration != null)
             {
                 text += this.ExitDeclaration.GetRewrittenText();
-                base.RewrittenTokens.AddRange(this.ExitDeclaration.RewrittenTokens);
             }
 
             text += this.InstrumentDeferredEvents();
             text += this.InstrumentIgnoredEvents();
 
             text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
-            base.RewrittenTokens.Add(this.RightCurlyBracketToken);
 
-            base.RewrittenTextUnit = new TextUnit(text, text.Length, start);
+            base.RewrittenTextUnit = new TextUnit(text, start);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -327,9 +303,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
 
-            int length = this.RightCurlyBracketToken.TextUnit.End - initToken.TextUnit.Start + 1;
-
-            base.TextUnit = new TextUnit(text, length, initToken.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, initToken.TextUnit.Start);
         }
 
         #endregion

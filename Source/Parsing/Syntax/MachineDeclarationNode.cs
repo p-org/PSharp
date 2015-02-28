@@ -15,8 +15,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Microsoft.PSharp.Parsing.Syntax
 {
@@ -101,6 +99,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         /// <param name="isMain">Is main machine</param>
         public MachineDeclarationNode(bool isMain)
+            : base()
         {
             this.IsMain = isMain;
             this.BaseNameTokens = new List<Token>();
@@ -170,81 +169,58 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             if (this.Modifier != null)
             {
-                base.RewrittenTokens.Add(this.Modifier);
                 text += this.Modifier.TextUnit.Text;
                 text += " ";
             }
 
             if (this.AbstractModifier != null)
             {
-                base.RewrittenTokens.Add(this.AbstractModifier);
                 text += this.AbstractModifier.TextUnit.Text;
                 text += " ";
             }
 
-            var classKeyword = "class";
-            var classTextUnit = new TextUnit(classKeyword, classKeyword.Length, text.Length);
-            base.RewrittenTokens.Add(new Token(classTextUnit, this.MachineKeyword.Line, TokenType.ClassDecl));
-            text += classKeyword;
-            text += " ";
-
-            text += this.Identifier.TextUnit.Text;
-            text += " ";
-
-            base.RewrittenTokens.Add(new Token(new TextUnit(":", 1, text.Length), this.MachineKeyword.Line, TokenType.Colon));
-            text += ":";
-            text += " ";
+            text += "class " + this.Identifier.TextUnit.Text + " : ";
 
             if (this.ColonToken != null)
             {
                 foreach (var node in this.BaseNameTokens)
                 {
-                    base.RewrittenTokens.Add(node);
                     text += node.TextUnit.Text;
                 }
             }
             else
             {
-                var machineClass = "Machine";
-                var machineTextUnit = new TextUnit(machineClass, machineClass.Length, text.Length);
-                base.RewrittenTokens.Add(new Token(machineTextUnit, this.MachineKeyword.Line, TokenType.TypeIdentifier));
-                text += machineClass;
+                text += "Machine";
             }
 
             text += "\n" + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
-            base.RewrittenTokens.Add(this.LeftCurlyBracketToken);
 
             foreach (var node in this.FieldDeclarations)
             {
                 text += node.GetRewrittenText();
-                base.RewrittenTokens.AddRange(node.RewrittenTokens);
             }
 
             foreach (var node in this.StateDeclarations)
             {
                 text += node.GetRewrittenText();
-                base.RewrittenTokens.AddRange(node.RewrittenTokens);
             }
 
             foreach (var node in this.ActionDeclarations)
             {
                 text += node.GetRewrittenText();
-                base.RewrittenTokens.AddRange(node.RewrittenTokens);
             }
 
             foreach (var node in this.MethodDeclarations)
             {
                 text += node.GetRewrittenText();
-                base.RewrittenTokens.AddRange(node.RewrittenTokens);
             }
 
             text += this.InstrumentStateTransitions();
             text += this.InstrumentActionsBindings();
 
             text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
-            base.RewrittenTokens.Add(this.RightCurlyBracketToken);
 
-            base.RewrittenTextUnit = new TextUnit(text, text.Length, start);
+            base.RewrittenTextUnit = new TextUnit(text, start);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -331,9 +307,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
 
-            int length = this.RightCurlyBracketToken.TextUnit.End - initToken.TextUnit.Start + 1;
-
-            base.TextUnit = new TextUnit(text, length, initToken.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, initToken.TextUnit.Start);
         }
 
         #endregion

@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="EventDeclarationNode.cs">
+// <copyright file="StatementBlockNode.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -19,35 +19,57 @@ using System.Linq;
 namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
-    /// Event declaration node.
+    /// Statement block node.
     /// </summary>
-    public sealed class EventDeclarationNode : PSharpSyntaxNode
+    public sealed class StatementBlockNode : PSharpSyntaxNode
     {
         #region fields
 
         /// <summary>
-        /// The event keyword.
+        /// The machine parent node.
         /// </summary>
-        public Token EventKeyword;
+        public readonly MachineDeclarationNode Machine;
 
         /// <summary>
-        /// The modifier token.
+        /// The state parent node.
         /// </summary>
-        public Token Modifier;
+        public readonly StateDeclarationNode State;
 
         /// <summary>
-        /// The identifier token.
+        /// The left curly bracket token.
         /// </summary>
-        public Token Identifier;
+        public Token LeftCurlyBracketToken;
 
         /// <summary>
-        /// The semicolon token.
+        /// List of statement nodes.
         /// </summary>
-        public Token SemicolonToken;
+        public List<StatementNode> Statements;
+
+        /// <summary>
+        /// The right curly bracket token.
+        /// </summary>
+        public Token RightCurlyBracketToken;
+
+        /// <summary>
+        /// The current index.
+        /// </summary>
+        private int Index;
 
         #endregion
 
         #region public API
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="machineNode">MachineDeclarationNode</param>
+        /// <param name="stateNode">StateDeclarationNode</param>
+        public StatementBlockNode(MachineDeclarationNode machineNode, StateDeclarationNode stateNode)
+        {
+            this.Machine = machineNode;
+            this.State = stateNode;
+            this.Statements = new List<StatementNode>();
+        }
 
         /// <summary>
         /// Returns the full text.
@@ -78,24 +100,23 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <param name="position">Position</param>
         internal override void Rewrite(ref int position)
         {
-            var text = "";
-            
-            if (this.Modifier != null)
+            var start = position;
+
+            foreach (var stmt in this.Statements)
             {
-                text += this.Modifier.TextUnit.Text;
-                text += " ";
+                stmt.Rewrite(ref position);
             }
 
-            text += "class " + this.Identifier.TextUnit.Text + " : Event";
+            var text = "\n" + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
 
-            text += "\n";
-            text += "{\n";
-            text += " public " + this.Identifier.TextUnit.Text + "(params Object[] payload)\n";
-            text += "  : base(payload)\n";
-            text += " { }\n";
-            text += "}\n";
+            foreach (var stmt in this.Statements)
+            {
+                text += stmt.GetRewrittenText();
+            }
 
-            base.RewrittenTextUnit = new TextUnit(text, position);
+            text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
+
+            base.RewrittenTextUnit = new TextUnit(text, start);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -104,24 +125,21 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         internal override void GenerateTextUnit()
         {
-            var text = "";
-            var initToken = this.EventKeyword;
-
-            if (this.Modifier != null)
+            foreach (var stmt in this.Statements)
             {
-                initToken = this.Modifier;
-                text += this.Modifier.TextUnit.Text;
-                text += " ";
+                stmt.GenerateTextUnit();
             }
 
-            text += this.EventKeyword.TextUnit.Text;
-            text += " ";
+            var text = "\n" + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
 
-            text += this.Identifier.TextUnit.Text;
+            foreach (var stmt in this.Statements)
+            {
+                text += stmt.GetFullText();
+            }
 
-            text += this.SemicolonToken.TextUnit.Text + "\n";
+            text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, initToken.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, this.LeftCurlyBracketToken.TextUnit.Start);
         }
 
         #endregion

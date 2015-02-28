@@ -19,14 +19,13 @@ namespace Microsoft.PSharp.Parsing
     /// <summary>
     /// The P lexer.
     /// </summary>
-    public class PLexer : BaseLexer
+    public sealed class PLexer : BaseLexer
     {
         #region protected API
 
         /// <summary>
-        /// Tokenizes the next text units.
+        /// Tokenizes the next text unit.
         /// </summary>
-        /// <param name="textUnits">Text units</param>
         protected override void TokenizeNext()
         {
             if (this.Index == this.TextUnits.Count)
@@ -154,10 +153,6 @@ namespace Microsoft.PSharp.Parsing
                     this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.DivOp));
                     break;
 
-                case "%":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.ModOp));
-                    break;
-
                 case "!":
                     this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.LogNotOp));
                     break;
@@ -197,6 +192,9 @@ namespace Microsoft.PSharp.Parsing
                 case "action":
                     this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.ActionDecl));
                     break;
+                case "fun":
+                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.FunDecl));
+                    break;
 
                 case "main":
                     this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.MainMachine));
@@ -226,24 +224,12 @@ namespace Microsoft.PSharp.Parsing
                     this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.IgnoreEvent));
                     break;
 
-                case "to":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.ToMachine));
-                    break;
-
                 case "entry":
                     this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Entry));
                     break;
 
                 case "exit":
                     this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Exit));
-                    break;
-
-                case "this":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.This));
-                    break;
-
-                case "base":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Base));
                     break;
 
                 case "new":
@@ -282,20 +268,20 @@ namespace Microsoft.PSharp.Parsing
                     this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Values));
                     break;
 
-                case "for":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.ForLoop));
-                    break;
-
-                case "while":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.WhileLoop));
-                    break;
-
                 case "if":
                     this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.IfCondition));
                     break;
 
                 case "else":
                     this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.ElseCondition));
+                    break;
+
+                case "for":
+                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.ForLoop));
+                    break;
+
+                case "while":
+                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.WhileLoop));
                     break;
 
                 case "break":
@@ -308,10 +294,6 @@ namespace Microsoft.PSharp.Parsing
 
                 case "return":
                     this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Return));
-                    break;
-
-                case "create":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.CreateMachine));
                     break;
 
                 case "send":
@@ -390,12 +372,12 @@ namespace Microsoft.PSharp.Parsing
                 @"==|=|\+=|-=|!=|<=|>=|<|>|" +
                 @"\+|-|\*|/|" +
                 @"!|&&|\|\||" +
-                @"%|\$|" +
+                @"\$|" +
                 @"{|}|\(|\)|\[|\]|" +
-                @"\bmachine\b|\bmodel\b|\bmonitor\b|\bstate\b|\bevent\b|" +
+                @"\bmachine\b|\bmodel\b|\bmonitor\b|\bstate\b|\bevent\b|\bfun\b|" +
                 @"\bmain\b|\bstart\b|" +
-                @"\bdefer\b|\bignore\b|\bto\b|\bentry\b|\bexit\b|" +
-                @"\bcreate\b|\braise\b|\bsend\b|" +
+                @"\bdefer\b|\bignore\b|\bentry\b|\bexit\b|" +
+                @"\braise\b|\bsend\b|" +
                 @"\bon\b|\bdo\b|\bgoto\b|" +
                 @"\bvar\b|" +
                 @"\bnew\b|\bin\b|\bas\b" +

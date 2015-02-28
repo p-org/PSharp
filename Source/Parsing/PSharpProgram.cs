@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="ProgramRoot.cs">
+// <copyright file="PSharpProgram.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,28 +12,17 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
+using Microsoft.PSharp.Parsing.Syntax;
 
-namespace Microsoft.PSharp.Parsing.Syntax
+namespace Microsoft.PSharp.Parsing
 {
     /// <summary>
-    /// The root to a P# program.
+    /// A P# program.
     /// </summary>
-    public sealed class ProgramRoot
+    public sealed class PSharpProgram : AbstractPSharpProgram
     {
         #region fields
-
-        /// <summary>
-        /// The rewritten text.
-        /// </summary>
-        private string RewrittenText;
-
-        /// <summary>
-        /// File path of P# program.
-        /// </summary>
-        internal readonly string FilePath;
 
         /// <summary>
         /// List of using declarations.
@@ -53,12 +42,9 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Constructor.
         /// </summary>
         /// <param name="filePath">File path</param>
-        public ProgramRoot(string filePath)
-            : base()
+        public PSharpProgram(string filePath)
+            : base(filePath)
         {
-            this.RewrittenText = "";
-            this.FilePath = filePath;
-
             this.UsingDeclarations = new List<UsingDeclarationNode>();
             this.NamespaceDeclarations = new List<NamespaceDeclarationNode>();
         }
@@ -67,7 +53,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Rewrites the P# program to the C#-IR.
         /// </summary>
         /// <returns>Rewritten text</returns>
-        public string Rewrite()
+        public override string Rewrite()
         {
             this.RewrittenText = "";
             int position = 0;
@@ -92,7 +78,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Returns the full text of this P# program.
         /// </summary>
         /// <returns>Full text</returns>
-        public string GetFullText()
+        public override string GetFullText()
         {
             var text = "";
 
@@ -110,22 +96,9 @@ namespace Microsoft.PSharp.Parsing.Syntax
         }
 
         /// <summary>
-        /// Returns the rewritten to C#-IR text of this P# program.
-        /// </summary>
-        /// <returns>Rewritten text</returns>
-        public string GetRewrittenText()
-        {
-            return this.RewrittenText;
-        }
-
-        #endregion
-
-        #region internal API
-
-        /// <summary>
         /// Generates the text units of this P# program.
         /// </summary>
-        internal void GenerateTextUnits()
+        public override void GenerateTextUnits()
         {
             foreach (var node in this.UsingDeclarations)
             {
@@ -136,22 +109,6 @@ namespace Microsoft.PSharp.Parsing.Syntax
             {
                 node.GenerateTextUnit();
             }
-        }
-
-        #endregion
-
-        #region private API
-
-        /// <summary>
-        /// Instrument the P# dll.
-        /// </summary>
-        /// <param name="position">Position</param>
-        /// <returns>Text</returns>
-        private string InstrumentPSharpDll(ref int position)
-        {
-            var text = "using Microsoft.PSharp;\n";
-            position += text.Length;
-            return text;
         }
 
         #endregion

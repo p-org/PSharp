@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="EventDeclarationNode.cs">
+// <copyright file="RaiseStatementNode.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -19,35 +19,50 @@ using System.Linq;
 namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
-    /// Event declaration node.
+    /// Raise statement node.
     /// </summary>
-    public sealed class EventDeclarationNode : PSharpSyntaxNode
+    public sealed class RaiseStatementNode : StatementNode
     {
         #region fields
 
         /// <summary>
-        /// The event keyword.
+        /// The raise keyword.
         /// </summary>
-        public Token EventKeyword;
+        public Token RaiseKeyword;
 
         /// <summary>
-        /// The modifier token.
+        /// The event identifier.
         /// </summary>
-        public Token Modifier;
+        public Token EventIdentifier;
 
         /// <summary>
-        /// The identifier token.
+        /// The left parenthesis token.
         /// </summary>
-        public Token Identifier;
+        public Token LeftParenthesisToken;
 
         /// <summary>
-        /// The semicolon token.
+        /// The event payload.
         /// </summary>
-        public Token SemicolonToken;
+        public ExpressionNode Payload;
+
+        /// <summary>
+        /// The right parenthesis token.
+        /// </summary>
+        public Token RightParenthesisToken;
 
         #endregion
 
         #region public API
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="node">Node</param>
+        public RaiseStatementNode(StatementBlockNode node)
+            : base(node)
+        {
+
+        }
 
         /// <summary>
         /// Returns the full text.
@@ -78,24 +93,23 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <param name="position">Position</param>
         internal override void Rewrite(ref int position)
         {
-            var text = "";
-            
-            if (this.Modifier != null)
+            var start = position;
+
+            var text = "this.Raise(new " + this.EventIdentifier.TextUnit.Text + "(";
+
+            if (this.LeftParenthesisToken != null)
             {
-                text += this.Modifier.TextUnit.Text;
-                text += " ";
+                this.Payload.Rewrite(ref position);
+                text += this.Payload.GetRewrittenText();
             }
 
-            text += "class " + this.Identifier.TextUnit.Text + " : Event";
+            text += "))";
 
-            text += "\n";
-            text += "{\n";
-            text += " public " + this.Identifier.TextUnit.Text + "(params Object[] payload)\n";
-            text += "  : base(payload)\n";
-            text += " { }\n";
-            text += "}\n";
+            text += this.SemicolonToken.TextUnit.Text + "\n";
 
-            base.RewrittenTextUnit = new TextUnit(text, position);
+            text += "return;\n";
+
+            base.RewrittenTextUnit = new TextUnit(text, start);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -104,24 +118,23 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         internal override void GenerateTextUnit()
         {
-            var text = "";
-            var initToken = this.EventKeyword;
-
-            if (this.Modifier != null)
-            {
-                initToken = this.Modifier;
-                text += this.Modifier.TextUnit.Text;
-                text += " ";
-            }
-
-            text += this.EventKeyword.TextUnit.Text;
+            var text = this.RaiseKeyword.TextUnit.Text;
             text += " ";
 
-            text += this.Identifier.TextUnit.Text;
+            text += this.EventIdentifier.TextUnit.Text;
+            text += " ";
+
+            if (this.LeftParenthesisToken != null)
+            {
+                this.Payload.GenerateTextUnit();
+                text += this.LeftParenthesisToken.TextUnit.Text;
+                text += this.Payload.GetFullText();
+                text += this.RightParenthesisToken.TextUnit.Text;
+            }
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, initToken.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, this.RaiseKeyword.TextUnit.Start);
         }
 
         #endregion

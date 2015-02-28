@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="EventDeclarationNode.cs">
+// <copyright file="DeleteStatementNode.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -19,35 +19,30 @@ using System.Linq;
 namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
-    /// Event declaration node.
+    /// Delete statement node.
     /// </summary>
-    public sealed class EventDeclarationNode : PSharpSyntaxNode
+    public sealed class DeleteStatementNode : StatementNode
     {
         #region fields
 
         /// <summary>
-        /// The event keyword.
+        /// The delete keyword.
         /// </summary>
-        public Token EventKeyword;
-
-        /// <summary>
-        /// The modifier token.
-        /// </summary>
-        public Token Modifier;
-
-        /// <summary>
-        /// The identifier token.
-        /// </summary>
-        public Token Identifier;
-
-        /// <summary>
-        /// The semicolon token.
-        /// </summary>
-        public Token SemicolonToken;
+        public Token DeleteKeyword;
 
         #endregion
 
         #region public API
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="node">Node</param>
+        public DeleteStatementNode(StatementBlockNode node)
+            : base(node)
+        {
+
+        }
 
         /// <summary>
         /// Returns the full text.
@@ -78,24 +73,13 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <param name="position">Position</param>
         internal override void Rewrite(ref int position)
         {
-            var text = "";
-            
-            if (this.Modifier != null)
-            {
-                text += this.Modifier.TextUnit.Text;
-                text += " ";
-            }
+            var start = position;
 
-            text += "class " + this.Identifier.TextUnit.Text + " : Event";
+            var text = "this.Delete()";
 
-            text += "\n";
-            text += "{\n";
-            text += " public " + this.Identifier.TextUnit.Text + "(params Object[] payload)\n";
-            text += "  : base(payload)\n";
-            text += " { }\n";
-            text += "}\n";
+            text += this.SemicolonToken.TextUnit.Text + "\n";
 
-            base.RewrittenTextUnit = new TextUnit(text, position);
+            base.RewrittenTextUnit = new TextUnit(text, start);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -105,23 +89,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         internal override void GenerateTextUnit()
         {
             var text = "";
-            var initToken = this.EventKeyword;
 
-            if (this.Modifier != null)
-            {
-                initToken = this.Modifier;
-                text += this.Modifier.TextUnit.Text;
-                text += " ";
-            }
-
-            text += this.EventKeyword.TextUnit.Text;
-            text += " ";
-
-            text += this.Identifier.TextUnit.Text;
+            text += this.DeleteKeyword.TextUnit.Text;
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, initToken.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, this.DeleteKeyword.TextUnit.Start);
         }
 
         #endregion

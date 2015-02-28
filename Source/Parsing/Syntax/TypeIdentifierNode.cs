@@ -15,8 +15,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Microsoft.PSharp.Parsing.Syntax
 {
@@ -28,9 +26,9 @@ namespace Microsoft.PSharp.Parsing.Syntax
         #region fields
 
         /// <summary>
-        /// The identifier token.
+        /// The identifier tokens.
         /// </summary>
-        public Token Identifier;
+        public List<Token> Identifier;
 
         /// <summary>
         /// The left angle bracket token.
@@ -56,6 +54,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         public TypeIdentifierNode()
         {
+            this.Identifier = new List<Token>();
             this.TypeTokens = new List<Token>();
         }
 
@@ -97,7 +96,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         internal override void GenerateTextUnit()
         {
-            var text = this.Identifier.TextUnit.Text;
+            var text = "";
+
+            foreach (var id in this.Identifier)
+            {
+                text += id.TextUnit.Text;
+            }
 
             if (this.LeftAngleBracket != null)
             {
@@ -110,15 +114,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
                 text += this.RightAngleBracket.TextUnit.Text;
 
-                int length = this.RightAngleBracket.TextUnit.End - this.Identifier.TextUnit.Start + 1;
-
-                base.TextUnit = new TextUnit(text, length, this.Identifier.TextUnit.Start);
+                base.TextUnit = new TextUnit(text, this.Identifier.First().TextUnit.Start);
             }
             else
             {
-                int length = this.Identifier.TextUnit.End - this.Identifier.TextUnit.Start + 1;
-
-                base.TextUnit = new TextUnit(text, length, this.Identifier.TextUnit.Start);
+                base.TextUnit = new TextUnit(text, this.Identifier.First().TextUnit.Start);
             }
         }
 

@@ -15,8 +15,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Microsoft.PSharp.Parsing.Syntax
 {
@@ -102,9 +100,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 
-            int length = this.SemicolonToken.TextUnit.End - this.UsingKeyword.TextUnit.Start + 1;
-
-            base.TextUnit = new TextUnit(text, length, this.UsingKeyword.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, this.UsingKeyword.TextUnit.Start);
         }
 
         #endregion

@@ -55,14 +55,13 @@ namespace Microsoft.PSharp.Parsing
         /// Constructor.
         /// </summary>
         /// <param name="text">Text</param>
-        /// <param name="length">Text length</param>
         /// <param name="position">Starting position</param>
-        public TextUnit(string text, int length, int position)
+        public TextUnit(string text, int position)
         {
             this.Text = text;
-            this.Length = length;
+            this.Length = text.Length;
             this.Start = position;
-            this.End = position + length - 1;
+            this.End = position + text.Length - 1;
         }
 
         /// <summary>
@@ -73,7 +72,7 @@ namespace Microsoft.PSharp.Parsing
         /// <returns>TextUnit</returns>
         public static TextUnit Clone(TextUnit textUnit, int position)
         {
-            return new TextUnit(textUnit.Text, textUnit.Length, position);
+            return new TextUnit(textUnit.Text, position);
         }
 
         #endregion

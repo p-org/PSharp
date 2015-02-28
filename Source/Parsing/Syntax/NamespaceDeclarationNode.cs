@@ -15,8 +15,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Microsoft.PSharp.Parsing.Syntax
 {
@@ -113,34 +111,28 @@ namespace Microsoft.PSharp.Parsing.Syntax
             }
 
             var text = this.NamespaceKeyword.TextUnit.Text;
-            base.RewrittenTokens.Add(this.NamespaceKeyword);
             text += " ";
 
             foreach (var token in this.IdentifierTokens)
             {
-                base.RewrittenTokens.Add(token);
                 text += token.TextUnit.Text;
             }
 
             text += "\n" + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
-            base.RewrittenTokens.Add(this.LeftCurlyBracketToken);
 
             foreach (var node in this.EventDeclarations)
             {
                 text += node.GetRewrittenText();
-                base.RewrittenTokens.AddRange(node.RewrittenTokens);
             }
 
             foreach (var node in this.MachineDeclarations)
             {
                 text += node.GetRewrittenText();
-                base.RewrittenTokens.AddRange(node.RewrittenTokens);
             }
 
             text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
-            base.RewrittenTokens.Add(this.RightCurlyBracketToken);
 
-            base.RewrittenTextUnit = new TextUnit(text, text.Length, start);
+            base.RewrittenTextUnit = new TextUnit(text, start);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -181,9 +173,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
 
-            int length = this.RightCurlyBracketToken.TextUnit.End - this.NamespaceKeyword.TextUnit.Start + 1;
-
-            base.TextUnit = new TextUnit(text, length, this.NamespaceKeyword.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, this.NamespaceKeyword.TextUnit.Start);
         }
 
         #endregion

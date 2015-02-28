@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="PSharpSyntaxNode.cs">
+// <copyright file="StatementNode.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -19,53 +19,35 @@ using System.Linq;
 namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
-    /// P# syntax node.
+    /// Abstract statement node.
     /// </summary>
-    public abstract class PSharpSyntaxNode
+    public abstract class StatementNode : PSharpSyntaxNode
     {
         #region fields
 
         /// <summary>
-        /// The text unit.
+        /// The block node.
         /// </summary>
-        internal TextUnit TextUnit;
+        public readonly StatementBlockNode Parent;
 
         /// <summary>
-        /// The rewritten text unit.
+        /// The semicolon token.
         /// </summary>
-        internal TextUnit RewrittenTextUnit;
+        public Token SemicolonToken;
 
         #endregion
 
         #region public API
 
         /// <summary>
-        /// Returns the full text.
+        /// Constructor.
         /// </summary>
-        /// <returns>string</returns>
-        public abstract string GetFullText();
-
-        /// <summary>
-        /// Returns the rewritten text.
-        /// </summary>
-        /// <returns>string</returns>
-        public abstract string GetRewrittenText();
-
-        #endregion
-
-        #region internal API
-
-        /// <summary>
-        /// Rewrites the syntax node declaration to the intermediate C#
-        /// representation.
-        /// </summary>
-        /// <param name="position">Position</param>
-        internal abstract void Rewrite(ref int position);
-
-        /// <summary>
-        /// Generates a new text unit.
-        /// </summary>
-        internal abstract void GenerateTextUnit();
+        /// <param name="node">Node</param>
+        public StatementNode(StatementBlockNode node)
+            : base()
+        {
+            this.Parent = node;
+        }
 
         #endregion
     }

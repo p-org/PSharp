@@ -15,15 +15,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
     /// Entry declaration node.
     /// </summary>
-    public sealed class EntryDeclarationNode : BaseActionDeclarationNode
+    public sealed class EntryDeclarationNode : PSharpSyntaxNode
     {
         #region fields
 
@@ -32,6 +30,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         public Token EntryKeyword;
 
+        /// <summary>
+        /// The statement block.
+        /// </summary>
+        public StatementBlockNode StatementBlock;
+
         #endregion
 
         #region public API
@@ -39,10 +42,8 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="machineNode">MachineDeclarationNode</param>
-        /// <param name="stateNode">StateDeclarationNode</param>
-        public EntryDeclarationNode(MachineDeclarationNode machineNode, StateDeclarationNode stateNode)
-            : base(machineNode, stateNode)
+        public EntryDeclarationNode()
+            : base()
         {
 
         }
@@ -78,54 +79,13 @@ namespace Microsoft.PSharp.Parsing.Syntax
         internal override void Rewrite(ref int position)
         {
             var start = position;
-            var text = "";
+            this.StatementBlock.Rewrite(ref position);
 
-            var protectedKeyword = "protected";
-            var protectedTextUnit = new TextUnit(protectedKeyword, protectedKeyword.Length, text.Length);
-            base.RewrittenTokens.Add(new Token(protectedTextUnit, this.EntryKeyword.Line, TokenType.Protected));
-            text += protectedKeyword;
-            text += " ";
+            var text = "protected override void OnEntry()";
 
-            var overrideKeyword = "override";
-            var overrideTextUnit = new TextUnit(overrideKeyword, overrideKeyword.Length, text.Length);
-            base.RewrittenTokens.Add(new Token(overrideTextUnit, this.EntryKeyword.Line, TokenType.Override));
-            text += overrideKeyword;
-            text += " ";
+            text += StatementBlock.GetRewrittenText();
 
-            var voidKeyword = "void";
-            var voidTextUnit = new TextUnit(voidKeyword, voidKeyword.Length, text.Length);
-            base.RewrittenTokens.Add(new Token(voidTextUnit, this.EntryKeyword.Line, TokenType.TypeIdentifier));
-            text += voidKeyword;
-            text += " ";
-
-            var onEntryKeyword = "OnEntry";
-            var onEntryTextUnit = new TextUnit(onEntryKeyword, onEntryKeyword.Length, text.Length);
-            base.RewrittenTokens.Add(new Token(onEntryTextUnit, this.EntryKeyword.Line, TokenType.Identifier));
-            text += onEntryKeyword;
-
-            var leftParenthesis = "(";
-            var leftParenthesisTextUnit = new TextUnit(leftParenthesis, leftParenthesis.Length, text.Length);
-            base.RewrittenTokens.Add(new Token(leftParenthesisTextUnit, this.EntryKeyword.Line, TokenType.LeftParenthesis));
-            text += leftParenthesis;
-
-            var rightParenthesis = ")";
-            var rightParenthesisTextUnit = new TextUnit(rightParenthesis, rightParenthesis.Length, text.Length);
-            base.RewrittenTokens.Add(new Token(rightParenthesisTextUnit, this.EntryKeyword.Line, TokenType.RightParenthesis));
-            text += rightParenthesis;
-
-            text += "\n" + base.LeftCurlyBracketToken.TextUnit.Text + "\n";
-            base.RewrittenTokens.Add(this.LeftCurlyBracketToken);
-
-            foreach (var stmt in base.RewriteStatements())
-            {
-                text += stmt.Text;//.TextUnit.Text;
-                base.RewrittenTokens.Add(stmt);
-            }
-
-            text += base.RightCurlyBracketToken.TextUnit.Text + "\n";
-            base.RewrittenTokens.Add(this.RightCurlyBracketToken);
-
-            base.RewrittenTextUnit = new TextUnit(text, text.Length, start);
+            base.RewrittenTextUnit = new TextUnit(text, start);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -134,20 +94,13 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         internal override void GenerateTextUnit()
         {
+            this.StatementBlock.GenerateTextUnit();
+
             var text = this.EntryKeyword.TextUnit.Text;
 
-            text += "\n" + base.LeftCurlyBracketToken.TextUnit.Text + "\n";
+            text += this.StatementBlock.GetFullText();
 
-            foreach (var stmt in base.Statements)
-            {
-                text += stmt.TextUnit.Text;
-            }
-
-            text += base.RightCurlyBracketToken.TextUnit.Text + "\n";
-
-            int length = base.RightCurlyBracketToken.TextUnit.End - this.EntryKeyword.TextUnit.Start + 1;
-
-            base.TextUnit = new TextUnit(text, length, this.EntryKeyword.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, this.EntryKeyword.TextUnit.Start);
         }
 
         #endregion

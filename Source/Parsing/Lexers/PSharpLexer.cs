@@ -19,14 +19,13 @@ namespace Microsoft.PSharp.Parsing
     /// <summary>
     /// The P# lexer.
     /// </summary>
-    public class PSharpLexer : BaseLexer
+    public sealed class PSharpLexer : BaseLexer
     {
         #region protected API
 
         /// <summary>
-        /// Tokenizes the next text units.
+        /// Tokenizes the next text unit.
         /// </summary>
-        /// <param name="textUnits">Text units</param>
         protected override void TokenizeNext()
         {
             if (this.Index == this.TextUnits.Count)
@@ -318,20 +317,24 @@ namespace Microsoft.PSharp.Parsing
                     this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.As));
                     break;
 
-                case "for":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.ForLoop));
-                    break;
-
-                case "while":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.WhileLoop));
-                    break;
-
                 case "if":
                     this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.IfCondition));
                     break;
 
                 case "else":
                     this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.ElseCondition));
+                    break;
+
+                case "for":
+                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.ForLoop));
+                    break;
+
+                case "foreach":
+                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.ForeachLoop));
+                    break;
+
+                case "while":
+                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.WhileLoop));
                     break;
 
                 case "break":
@@ -344,6 +347,10 @@ namespace Microsoft.PSharp.Parsing
 
                 case "return":
                     this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Return));
+                    break;
+
+                case "lock":
+                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Lock));
                     break;
 
                 case "create":
@@ -413,7 +420,7 @@ namespace Microsoft.PSharp.Parsing
                 @"%|\$|" +
                 @"{|}|\(|\)|\[|\]|" +
                 @"\busing\b|\bnamespace\b|\bclass\b|\bstruct\b|" +
-                @"\bmachine\b|\bmodel\b|\bmonitor\b|\bstate\b|\bevent\b|" +
+                @"\bmachine\b|\bmodel\b|\bmonitor\b|\bstate\b|\bevent\b|\baction\b|" +
                 @"\bmain\b|\bstart\b|" +
                 @"\bdefer\b|\bignore\b|\bto\b|\bentry\b|\bexit\b|" +
                 @"\bcreate\b|\braise\b|\bsend\b|" +

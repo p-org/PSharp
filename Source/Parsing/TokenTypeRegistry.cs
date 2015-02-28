@@ -213,6 +213,10 @@ namespace Microsoft.PSharp.Parsing
                     text = "action";
                     break;
 
+                case TokenType.FunDecl:
+                    text = "fun";
+                    break;
+
                 case TokenType.MainMachine:
                     text = "main";
                     break;
@@ -297,24 +301,28 @@ namespace Microsoft.PSharp.Parsing
                     text = "values";
                     break;
 
-                case TokenType.ForLoop:
-                    text = "for";
-                    break;
-
-                case TokenType.WhileLoop:
-                    text = "while";
-                    break;
-
-                case TokenType.DoLoop:
-                    text = "do";
-                    break;
-
                 case TokenType.IfCondition:
                     text = "if";
                     break;
 
                 case TokenType.ElseCondition:
                     text = "else";
+                    break;
+
+                case TokenType.DoLoop:
+                    text = "do";
+                    break;
+
+                case TokenType.ForLoop:
+                    text = "for";
+                    break;
+
+                case TokenType.ForeachLoop:
+                    text = "foreach";
+                    break;
+
+                case TokenType.WhileLoop:
+                    text = "while";
                     break;
 
                 case TokenType.Break:

@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="EventDeclarationNode.cs">
+// <copyright file="AssertStatementNode.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -19,35 +19,45 @@ using System.Linq;
 namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
-    /// Event declaration node.
+    /// Assert statement node.
     /// </summary>
-    public sealed class EventDeclarationNode : PSharpSyntaxNode
+    public sealed class AssertStatementNode : StatementNode
     {
         #region fields
 
         /// <summary>
-        /// The event keyword.
+        /// The assert keyword.
         /// </summary>
-        public Token EventKeyword;
+        public Token AssertKeyword;
 
         /// <summary>
-        /// The modifier token.
+        /// The left parenthesis token.
         /// </summary>
-        public Token Modifier;
+        public Token LeftParenthesisToken;
 
         /// <summary>
-        /// The identifier token.
+        /// The assert predicate.
         /// </summary>
-        public Token Identifier;
+        public ExpressionNode Predicate;
 
         /// <summary>
-        /// The semicolon token.
+        /// The right parenthesis token.
         /// </summary>
-        public Token SemicolonToken;
+        public Token RightParenthesisToken;
 
         #endregion
 
         #region public API
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="node">Node</param>
+        public AssertStatementNode(StatementBlockNode node)
+            : base(node)
+        {
+
+        }
 
         /// <summary>
         /// Returns the full text.
@@ -78,24 +88,21 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <param name="position">Position</param>
         internal override void Rewrite(ref int position)
         {
-            var text = "";
-            
-            if (this.Modifier != null)
-            {
-                text += this.Modifier.TextUnit.Text;
-                text += " ";
-            }
+            var start = position;
 
-            text += "class " + this.Identifier.TextUnit.Text + " : Event";
+            this.Predicate.Rewrite(ref position);
 
-            text += "\n";
-            text += "{\n";
-            text += " public " + this.Identifier.TextUnit.Text + "(params Object[] payload)\n";
-            text += "  : base(payload)\n";
-            text += " { }\n";
-            text += "}\n";
+            var text = "this.Assert";
 
-            base.RewrittenTextUnit = new TextUnit(text, position);
+            text += this.LeftParenthesisToken.TextUnit.Text;
+
+            text += this.Predicate.GetRewrittenText();
+
+            text += this.RightParenthesisToken.TextUnit.Text;
+
+            text += this.SemicolonToken.TextUnit.Text + "\n";
+
+            base.RewrittenTextUnit = new TextUnit(text, start);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -104,24 +111,22 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         internal override void GenerateTextUnit()
         {
+            this.Predicate.GenerateTextUnit();
+
             var text = "";
-            var initToken = this.EventKeyword;
 
-            if (this.Modifier != null)
-            {
-                initToken = this.Modifier;
-                text += this.Modifier.TextUnit.Text;
-                text += " ";
-            }
-
-            text += this.EventKeyword.TextUnit.Text;
+            text += this.AssertKeyword.TextUnit.Text;
             text += " ";
 
-            text += this.Identifier.TextUnit.Text;
+            text += this.LeftParenthesisToken.TextUnit.Text;
+
+            text += this.Predicate.GetFullText();
+
+            text += this.RightParenthesisToken.TextUnit.Text;
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, initToken.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, this.AssertKeyword.TextUnit.Start);
         }
 
         #endregion

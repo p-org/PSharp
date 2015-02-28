@@ -97,11 +97,15 @@ namespace Microsoft.PSharp.Parsing
             var root = (CompilationUnitSyntax)tree.GetRoot();
 
             var tokens = new PLexer().Tokenize(root.ToFullString());
-
             foreach (var tok in tokens)
             {
                 Console.Write(tok.TextUnit.Text);
             }
+
+            var program = new PParser(tree.FilePath).ParseTokens(tokens);
+            var rewrittenTree = program.Rewrite();
+
+            Console.WriteLine(rewrittenTree);
 
             Environment.Exit(1);
         }

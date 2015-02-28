@@ -80,11 +80,11 @@ namespace Microsoft.PSharp.Parsing
                             continue;
                         }
 
-                        this.TextUnits.Add(new TextUnit(tok, tok.Length, position));
+                        this.TextUnits.Add(new TextUnit(tok, position));
                         position += tok.Length;
                     }
 
-                    this.TextUnits.Add(new TextUnit("\n", 1, position));
+                    this.TextUnits.Add(new TextUnit("\n", position));
                     position++;
                 }
             }
@@ -109,9 +109,8 @@ namespace Microsoft.PSharp.Parsing
         }
 
         /// <summary>
-        /// Tokenizes the next text units.
+        /// Tokenizes the next text unit.
         /// </summary>
-        /// <param name="textUnits">Text units</param>
         protected abstract void TokenizeNext();
 
         /// <summary>

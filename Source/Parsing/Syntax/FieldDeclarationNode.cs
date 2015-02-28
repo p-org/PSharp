@@ -15,8 +15,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Microsoft.PSharp.Parsing.Syntax
 {
@@ -38,7 +36,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         public Token Modifier;
 
         /// <summary>
-        /// The type identifier token
+        /// The type identifier node.
         /// </summary>
         public TypeIdentifierNode TypeIdentifier;
 
@@ -103,8 +101,6 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         internal override void GenerateTextUnit()
         {
-            this.TypeIdentifier.GenerateTextUnit();
-
             var text = "";
 
             if (this.Modifier != null)
@@ -113,6 +109,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 text += " ";
             }
 
+            this.TypeIdentifier.GenerateTextUnit();
             text += this.TypeIdentifier.GetFullText();
             text += " ";
 
@@ -122,15 +119,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             if (this.Modifier != null)
             {
-                int length = this.SemicolonToken.TextUnit.End - this.Modifier.TextUnit.Start + 1;
-
-                base.TextUnit = new TextUnit(text, length, this.Modifier.TextUnit.Start);
+                base.TextUnit = new TextUnit(text, this.Modifier.TextUnit.Start);
             }
             else
             {
-                int length = this.SemicolonToken.TextUnit.End - this.TypeIdentifier.TextUnit.Start + 1;
-
-                base.TextUnit = new TextUnit(text, length, this.TypeIdentifier.TextUnit.Start);
+                base.TextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Start);
             }
         }
 

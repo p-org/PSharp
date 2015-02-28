@@ -211,6 +211,7 @@ namespace Microsoft.PSharp.VisualStudio
                 case TokenType.StateDecl:
                 case TokenType.EventDecl:
                 case TokenType.ActionDecl:
+                case TokenType.FunDecl:
 
                 case TokenType.MainMachine:
                 case TokenType.StartState:
@@ -235,11 +236,12 @@ namespace Microsoft.PSharp.VisualStudio
                 case TokenType.In:
                 case TokenType.As:
 
-                case TokenType.ForLoop:
-                case TokenType.WhileLoop:
-                case TokenType.DoLoop:
                 case TokenType.IfCondition:
                 case TokenType.ElseCondition:
+                case TokenType.DoLoop:
+                case TokenType.ForLoop:
+                case TokenType.ForeachLoop:
+                case TokenType.WhileLoop:
                 case TokenType.Break:
                 case TokenType.Continue:
                 case TokenType.Return:

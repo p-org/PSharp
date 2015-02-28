@@ -52,17 +52,40 @@
     <Compile Include="Lexers\PLexer.cs" />
     <Compile Include="Lexers\PSharpLexer.cs" />
     <Compile Include="Parsers\IParser.cs" />
+    <Compile Include="Parsers\BaseParser.cs" />
+    <Compile Include="Parsers\PParser.cs" />
     <Compile Include="Parsers\PSharpParser.cs" />
     <Compile Include="ParsingEngine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="IPSharpProgram.cs" />
+    <Compile Include="AbstractPSharpProgram.cs" />
+    <Compile Include="PProgram.cs" />
+    <Compile Include="Syntax\Statements\AssertStatementNode.cs" />
+    <Compile Include="Syntax\Statements\NewStatementNode.cs" />
+    <Compile Include="Syntax\Statements\SendStatementNode.cs" />
+    <Compile Include="Syntax\Statements\RaiseStatementNode.cs" />
+    <Compile Include="Syntax\Statements\DeleteStatementNode.cs" />
+    <Compile Include="Syntax\Statements\IfStatementNode.cs" />
+    <Compile Include="Syntax\Statements\CreateStatementNode.cs" />
+    <Compile Include="Syntax\Statements\ExpressionNode.cs" />
+    <Compile Include="Syntax\Statements\GenericStatementNode.cs" />
+    <Compile Include="Syntax\Statements\StatementNode.cs" />
+    <Compile Include="Syntax\P\PEntryDeclarationNode.cs" />
+    <Compile Include="Syntax\P\PExitDeclarationNode.cs" />
+    <Compile Include="Syntax\P\PBaseActionDeclarationNode.cs" />
+    <Compile Include="Syntax\P\PFunctionDeclarationNode.cs" />
+    <Compile Include="Syntax\P\PFieldDeclarationNode.cs" />
+    <Compile Include="Syntax\P\PMachineDeclarationNode.cs" />
+    <Compile Include="Syntax\P\PEventDeclarationNode.cs" />
+    <Compile Include="Syntax\P\PStateDeclarationNode.cs" />
     <Compile Include="Syntax\TypeIdentifierNode.cs" />
     <Compile Include="Syntax\PSharpSyntaxNode.cs" />
     <Compile Include="Syntax\ExitDeclarationNode.cs" />
-    <Compile Include="Syntax\ProgramRoot.cs" />
+    <Compile Include="PSharpProgram.cs" />
     <Compile Include="Syntax\FieldDeclarationNode.cs" />
     <Compile Include="Syntax\MethodDeclarationNode.cs" />
     <Compile Include="Syntax\ActionDeclarationNode.cs" />
-    <Compile Include="Syntax\BaseActionDeclarationNode.cs" />
+    <Compile Include="Syntax\StatementBlockNode.cs" />
     <Compile Include="Syntax\EntryDeclarationNode.cs" />
     <Compile Include="Syntax\StateDeclarationNode.cs" />
     <Compile Include="Syntax\EventDeclarationNode.cs" />
@@ -80,6 +103,7 @@
       <Name>Tooling</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

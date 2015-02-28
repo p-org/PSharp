@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="IParser.cs">
+// <copyright file="IPSharpProgram.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,27 +12,34 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System.Collections.Generic;
-using Microsoft.PSharp.Parsing.Syntax;
-
 namespace Microsoft.PSharp.Parsing
 {
     /// <summary>
-    /// Interface for a parser.
+    /// Interface to a P# program.
     /// </summary>
-    public interface IParser
+    public interface IPSharpProgram
     {
         /// <summary>
-        /// Returns a P# program.
+        /// Rewrites the P# program to the C#-IR.
         /// </summary>
-        /// <param name="tokens">List of tokens</param>
-        /// <returns>P# program</returns>
-        IPSharpProgram ParseTokens(List<Token> tokens);
+        /// <returns>Rewritten text</returns>
+        string Rewrite();
 
         /// <summary>
-        /// Returns the expected token types at the end of parsing.
+        /// Returns the full text of this P# program.
         /// </summary>
-        /// <returns>Expected token types</returns>
-        List<TokenType> GetExpectedTokenTypes();
+        /// <returns>Full text</returns>
+        string GetFullText();
+
+        /// <summary>
+        /// Returns the rewritten to C#-IR text of this P# program.
+        /// </summary>
+        /// <returns>Rewritten text</returns>
+        string GetRewrittenText();
+
+        /// <summary>
+        /// Generates the text units of this P# program.
+        /// </summary>
+        void GenerateTextUnits();
     }
 }

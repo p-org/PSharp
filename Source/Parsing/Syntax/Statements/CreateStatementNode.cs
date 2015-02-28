@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="EventDeclarationNode.cs">
+// <copyright file="CreateStatementNode.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -19,35 +19,50 @@ using System.Linq;
 namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
-    /// Event declaration node.
+    /// Create statement node.
     /// </summary>
-    public sealed class EventDeclarationNode : PSharpSyntaxNode
+    public sealed class CreateStatementNode : StatementNode
     {
         #region fields
 
         /// <summary>
-        /// The event keyword.
+        /// The create keyword.
         /// </summary>
-        public Token EventKeyword;
+        public Token CreateKeyword;
 
         /// <summary>
-        /// The modifier token.
+        /// The machine identifier.
         /// </summary>
-        public Token Modifier;
+        public List<Token> MachineIdentifier;
 
         /// <summary>
-        /// The identifier token.
+        /// The left parenthesis token.
         /// </summary>
-        public Token Identifier;
+        public Token LeftParenthesisToken;
 
         /// <summary>
-        /// The semicolon token.
+        /// The machine creation payload.
         /// </summary>
-        public Token SemicolonToken;
+        public ExpressionNode Payload;
+
+        /// <summary>
+        /// The right parenthesis token.
+        /// </summary>
+        public Token RightParenthesisToken;
 
         #endregion
 
         #region public API
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="node">Node</param>
+        public CreateStatementNode(StatementBlockNode node)
+            : base(node)
+        {
+            this.MachineIdentifier = new List<Token>();
+        }
 
         /// <summary>
         /// Returns the full text.
@@ -78,24 +93,28 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <param name="position">Position</param>
         internal override void Rewrite(ref int position)
         {
-            var text = "";
-            
-            if (this.Modifier != null)
+            var start = position;
+
+            var text = "Machine.Factory.CreateMachine<";
+
+            foreach (var id in this.MachineIdentifier)
             {
-                text += this.Modifier.TextUnit.Text;
-                text += " ";
+                text += id.TextUnit.Text;
             }
 
-            text += "class " + this.Identifier.TextUnit.Text + " : Event";
+            text += ">(";
 
-            text += "\n";
-            text += "{\n";
-            text += " public " + this.Identifier.TextUnit.Text + "(params Object[] payload)\n";
-            text += "  : base(payload)\n";
-            text += " { }\n";
-            text += "}\n";
+            if (this.Payload != null)
+            {
+                this.Payload.Rewrite(ref position);
+                text += this.Payload.GetRewrittenText();
+            }
 
-            base.RewrittenTextUnit = new TextUnit(text, position);
+            text += ")";
+
+            text += this.SemicolonToken.TextUnit.Text + "\n";
+
+            base.RewrittenTextUnit = new TextUnit(text, start);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -104,24 +123,29 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         internal override void GenerateTextUnit()
         {
-            var text = "";
-            var initToken = this.EventKeyword;
-
-            if (this.Modifier != null)
-            {
-                initToken = this.Modifier;
-                text += this.Modifier.TextUnit.Text;
-                text += " ";
-            }
-
-            text += this.EventKeyword.TextUnit.Text;
+            var text = this.CreateKeyword.TextUnit.Text;
             text += " ";
 
-            text += this.Identifier.TextUnit.Text;
+            foreach (var id in this.MachineIdentifier)
+            {
+                text += id.TextUnit.Text;
+            }
+
+            text += " ";
+
+            text += this.LeftParenthesisToken.TextUnit.Text;
+
+            if (this.Payload != null)
+            {
+                this.Payload.GenerateTextUnit();
+                text += this.Payload.GetFullText();
+            }
+
+            text += this.RightParenthesisToken.TextUnit.Text;
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, initToken.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, this.CreateKeyword.TextUnit.Start);
         }
 
         #endregion
