@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="ExitDeclarationNode.cs">
+// <copyright file="PGenericStatementNode.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -16,24 +16,19 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.PSharp.Parsing.Syntax
+namespace Microsoft.PSharp.Parsing.Syntax.P
 {
     /// <summary>
-    /// Exit declaration node.
+    /// Generic statement node.
     /// </summary>
-    public sealed class ExitDeclarationNode : PSharpSyntaxNode
+    public sealed class PGenericStatementNode : PStatementNode
     {
         #region fields
 
         /// <summary>
-        /// The exit keyword.
+        /// The expression node.
         /// </summary>
-        public Token ExitKeyword;
-
-        /// <summary>
-        /// The statement block.
-        /// </summary>
-        public StatementBlockNode StatementBlock;
+        public PExpressionNode Expression;
 
         #endregion
 
@@ -42,8 +37,9 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor.
         /// </summary>
-        public ExitDeclarationNode()
-            : base()
+        /// <param name="node">Node</param>
+        public PGenericStatementNode(PStatementBlockNode node)
+            : base(node)
         {
 
         }
@@ -78,13 +74,17 @@ namespace Microsoft.PSharp.Parsing.Syntax
         internal override void Rewrite(ref int position)
         {
             var start = position;
-            
-            var text = "protected override void OnExit()";
+            var text = "";
 
-            this.StatementBlock.Rewrite(ref position);
-            text += StatementBlock.GetRewrittenText();
+            this.Expression.Rewrite(ref position);
+            text += this.Expression.GetRewrittenText();
 
-            base.RewrittenTextUnit = new TextUnit(text, this.ExitKeyword.TextUnit.Line, start);
+            if (this.SemicolonToken != null)
+            {
+                text += this.SemicolonToken.TextUnit.Text + "\n";
+            }
+
+            base.RewrittenTextUnit = new TextUnit(text, this.Expression.TextUnit.Line, start);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -93,13 +93,18 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         internal override void GenerateTextUnit()
         {
-            var text = this.ExitKeyword.TextUnit.Text;
+            var text = "";
 
-            this.StatementBlock.GenerateTextUnit();
-            text += this.StatementBlock.GetFullText();
+            this.Expression.GenerateTextUnit();
+            text += this.Expression.GetFullText();
 
-            base.TextUnit = new TextUnit(text, this.ExitKeyword.TextUnit.Line,
-                this.ExitKeyword.TextUnit.Start);
+            if (this.SemicolonToken != null)
+            {
+                text += this.SemicolonToken.TextUnit.Text + "\n";
+            }
+
+            base.TextUnit = new TextUnit(text, this.Expression.TextUnit.Line,
+                this.Expression.TextUnit.Start);
         }
 
         #endregion

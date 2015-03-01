@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="ExitDeclarationNode.cs">
+// <copyright file="PAssertStatementNode.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -16,24 +16,34 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.PSharp.Parsing.Syntax
+namespace Microsoft.PSharp.Parsing.Syntax.P
 {
     /// <summary>
-    /// Exit declaration node.
+    /// Assert statement node.
     /// </summary>
-    public sealed class ExitDeclarationNode : PSharpSyntaxNode
+    public sealed class PAssertStatementNode : PStatementNode
     {
         #region fields
 
         /// <summary>
-        /// The exit keyword.
+        /// The assert keyword.
         /// </summary>
-        public Token ExitKeyword;
+        public Token AssertKeyword;
 
         /// <summary>
-        /// The statement block.
+        /// The left parenthesis token.
         /// </summary>
-        public StatementBlockNode StatementBlock;
+        public Token LeftParenthesisToken;
+
+        /// <summary>
+        /// The assert predicate.
+        /// </summary>
+        public PExpressionNode Predicate;
+
+        /// <summary>
+        /// The right parenthesis token.
+        /// </summary>
+        public Token RightParenthesisToken;
 
         #endregion
 
@@ -42,8 +52,9 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor.
         /// </summary>
-        public ExitDeclarationNode()
-            : base()
+        /// <param name="node">Node</param>
+        public PAssertStatementNode(PStatementBlockNode node)
+            : base(node)
         {
 
         }
@@ -78,13 +89,20 @@ namespace Microsoft.PSharp.Parsing.Syntax
         internal override void Rewrite(ref int position)
         {
             var start = position;
-            
-            var text = "protected override void OnExit()";
 
-            this.StatementBlock.Rewrite(ref position);
-            text += StatementBlock.GetRewrittenText();
+            this.Predicate.Rewrite(ref position);
 
-            base.RewrittenTextUnit = new TextUnit(text, this.ExitKeyword.TextUnit.Line, start);
+            var text = "this.Assert";
+
+            text += this.LeftParenthesisToken.TextUnit.Text;
+
+            text += this.Predicate.GetRewrittenText();
+
+            text += this.RightParenthesisToken.TextUnit.Text;
+
+            text += this.SemicolonToken.TextUnit.Text + "\n";
+
+            base.RewrittenTextUnit = new TextUnit(text, this.AssertKeyword.TextUnit.Line, start);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -93,13 +111,23 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         internal override void GenerateTextUnit()
         {
-            var text = this.ExitKeyword.TextUnit.Text;
+            this.Predicate.GenerateTextUnit();
 
-            this.StatementBlock.GenerateTextUnit();
-            text += this.StatementBlock.GetFullText();
+            var text = "";
 
-            base.TextUnit = new TextUnit(text, this.ExitKeyword.TextUnit.Line,
-                this.ExitKeyword.TextUnit.Start);
+            text += this.AssertKeyword.TextUnit.Text;
+            text += " ";
+
+            text += this.LeftParenthesisToken.TextUnit.Text;
+
+            text += this.Predicate.GetFullText();
+
+            text += this.RightParenthesisToken.TextUnit.Text;
+
+            text += this.SemicolonToken.TextUnit.Text + "\n";
+
+            base.TextUnit = new TextUnit(text, this.AssertKeyword.TextUnit.Line,
+                this.AssertKeyword.TextUnit.Start);
         }
 
         #endregion

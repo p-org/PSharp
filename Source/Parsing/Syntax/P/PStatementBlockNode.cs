@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="ExitDeclarationNode.cs">
+// <copyright file="PStatementBlockNode.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -16,24 +16,39 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.PSharp.Parsing.Syntax
+namespace Microsoft.PSharp.Parsing.Syntax.P
 {
     /// <summary>
-    /// Exit declaration node.
+    /// Statement block node.
     /// </summary>
-    public sealed class ExitDeclarationNode : PSharpSyntaxNode
+    public sealed class PStatementBlockNode : PSharpSyntaxNode
     {
         #region fields
 
         /// <summary>
-        /// The exit keyword.
+        /// The machine parent node.
         /// </summary>
-        public Token ExitKeyword;
+        public readonly PMachineDeclarationNode Machine;
 
         /// <summary>
-        /// The statement block.
+        /// The state parent node.
         /// </summary>
-        public StatementBlockNode StatementBlock;
+        public readonly PStateDeclarationNode State;
+
+        /// <summary>
+        /// The left curly bracket token.
+        /// </summary>
+        public Token LeftCurlyBracketToken;
+
+        /// <summary>
+        /// List of statement nodes.
+        /// </summary>
+        public List<PStatementNode> Statements;
+
+        /// <summary>
+        /// The right curly bracket token.
+        /// </summary>
+        public Token RightCurlyBracketToken;
 
         #endregion
 
@@ -42,10 +57,13 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor.
         /// </summary>
-        public ExitDeclarationNode()
-            : base()
+        /// <param name="machineNode">PMachineDeclarationNode</param>
+        /// <param name="stateNode">PStateDeclarationNode</param>
+        public PStatementBlockNode(PMachineDeclarationNode machineNode, PStateDeclarationNode stateNode)
         {
-
+            this.Machine = machineNode;
+            this.State = stateNode;
+            this.Statements = new List<PStatementNode>();
         }
 
         /// <summary>
@@ -78,13 +96,22 @@ namespace Microsoft.PSharp.Parsing.Syntax
         internal override void Rewrite(ref int position)
         {
             var start = position;
-            
-            var text = "protected override void OnExit()";
 
-            this.StatementBlock.Rewrite(ref position);
-            text += StatementBlock.GetRewrittenText();
+            foreach (var stmt in this.Statements)
+            {
+                stmt.Rewrite(ref position);
+            }
 
-            base.RewrittenTextUnit = new TextUnit(text, this.ExitKeyword.TextUnit.Line, start);
+            var text = "\n" + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
+
+            foreach (var stmt in this.Statements)
+            {
+                text += stmt.GetRewrittenText();
+            }
+
+            text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
+
+            base.RewrittenTextUnit = new TextUnit(text, this.LeftCurlyBracketToken.TextUnit.Line, start);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -93,13 +120,22 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         internal override void GenerateTextUnit()
         {
-            var text = this.ExitKeyword.TextUnit.Text;
+            foreach (var stmt in this.Statements)
+            {
+                stmt.GenerateTextUnit();
+            }
 
-            this.StatementBlock.GenerateTextUnit();
-            text += this.StatementBlock.GetFullText();
+            var text = "\n" + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, this.ExitKeyword.TextUnit.Line,
-                this.ExitKeyword.TextUnit.Start);
+            foreach (var stmt in this.Statements)
+            {
+                text += stmt.GetFullText();
+            }
+
+            text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
+
+            base.TextUnit = new TextUnit(text, this.LeftCurlyBracketToken.TextUnit.Line,
+                this.LeftCurlyBracketToken.TextUnit.Start);
         }
 
         #endregion

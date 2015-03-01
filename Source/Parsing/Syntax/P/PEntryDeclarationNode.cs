@@ -21,7 +21,7 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
     /// <summary>
     /// Entry declaration node.
     /// </summary>
-    public sealed class PEntryDeclarationNode : PBaseActionDeclarationNode
+    public sealed class PEntryDeclarationNode : PSharpSyntaxNode
     {
         #region fields
 
@@ -30,6 +30,11 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
         /// </summary>
         public Token EntryKeyword;
 
+        /// <summary>
+        /// The statement block.
+        /// </summary>
+        public PStatementBlockNode StatementBlock;
+
         #endregion
 
         #region public API
@@ -37,10 +42,8 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="machineNode">PMachineDeclarationNode</param>
-        /// <param name="stateNode">PStateDeclarationNode</param>
-        public PEntryDeclarationNode(PMachineDeclarationNode machineNode, PStateDeclarationNode stateNode)
-            : base(machineNode, stateNode)
+        public PEntryDeclarationNode()
+            : base()
         {
 
         }
@@ -76,16 +79,11 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
         internal override void Rewrite(ref int position)
         {
             var start = position;
+
             var text = "protected override void OnEntry()";
 
-            text += "\n" + base.LeftCurlyBracketToken.TextUnit.Text + "\n";
-
-            foreach (var stmt in base.RewriteStatements())
-            {
-                text += stmt.Text;//.TextUnit.Text;
-            }
-
-            text += base.RightCurlyBracketToken.TextUnit.Text + "\n";
+            this.StatementBlock.Rewrite(ref position);
+            text += StatementBlock.GetRewrittenText();
 
             base.RewrittenTextUnit = new TextUnit(text, this.EntryKeyword.TextUnit.Line, start);
             position = base.RewrittenTextUnit.End + 1;
@@ -98,14 +96,8 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
         {
             var text = this.EntryKeyword.TextUnit.Text;
 
-            text += "\n" + base.LeftCurlyBracketToken.TextUnit.Text + "\n";
-
-            foreach (var stmt in base.Statements)
-            {
-                text += stmt.TextUnit.Text;
-            }
-
-            text += base.RightCurlyBracketToken.TextUnit.Text + "\n";
+            this.StatementBlock.GenerateTextUnit();
+            text += this.StatementBlock.GetFullText();
 
             base.TextUnit = new TextUnit(text, this.EntryKeyword.TextUnit.Line,
                 this.EntryKeyword.TextUnit.Start);

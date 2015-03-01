@@ -16,6 +16,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Microsoft.CodeAnalysis;
+
 namespace Microsoft.PSharp.Parsing
 {
     /// <summary>
@@ -78,6 +80,18 @@ namespace Microsoft.PSharp.Parsing
         #endregion
 
         #region protected API
+
+        /// <summary>
+        /// Instrument the system dll.
+        /// </summary>
+        /// <param name="position">Position</param>
+        /// <returns>Text</returns>
+        protected string InstrumentSystemDll(ref int position)
+        {
+            var text = "using System;\n";
+            position += text.Length;
+            return text;
+        }
 
         /// <summary>
         /// Instrument the P# dll.

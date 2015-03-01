@@ -516,7 +516,7 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="parentNode">Node</param>
         private void VisitStateEntryDeclaration(PStateDeclarationNode parentNode)
         {
-            var node = new PEntryDeclarationNode(parentNode.Machine, parentNode);
+            var node = new PEntryDeclarationNode();
             node.EntryKeyword = base.Tokens[base.Index];
 
             base.Index++;
@@ -532,9 +532,9 @@ namespace Microsoft.PSharp.Parsing
                 });
             }
 
-            node.LeftCurlyBracketToken = base.Tokens[base.Index];
-
-            this.VisitStatementBlock(node);
+            var blockNode = new PStatementBlockNode(parentNode.Machine, parentNode);
+            this.VisitStatementBlock(blockNode);
+            node.StatementBlock = blockNode;
 
             parentNode.EntryDeclaration = node;
         }
@@ -545,7 +545,7 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="parentNode">Node</param>
         private void VisitStateExitDeclaration(PStateDeclarationNode parentNode)
         {
-            var node = new PExitDeclarationNode(parentNode.Machine, parentNode);
+            var node = new PExitDeclarationNode();
             node.ExitKeyword = base.Tokens[base.Index];
 
             base.Index++;
@@ -561,9 +561,9 @@ namespace Microsoft.PSharp.Parsing
                 });
             }
 
-            node.LeftCurlyBracketToken = base.Tokens[base.Index];
-
-            this.VisitStatementBlock(node);
+            var blockNode = new PStatementBlockNode(parentNode.Machine, parentNode);
+            this.VisitStatementBlock(blockNode);
+            node.StatementBlock = blockNode;
 
             parentNode.ExitDeclaration = node;
         }
@@ -836,7 +836,7 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="isModel">Is model</param>
         private void VisitFunctionDeclaration(PMachineDeclarationNode parentNode, bool isModel)
         {
-            var node = new PFunctionDeclarationNode(parentNode);
+            var node = new PFunctionDeclarationNode();
             node.IsModel = isModel;
 
             if (isModel)
@@ -916,8 +916,9 @@ namespace Microsoft.PSharp.Parsing
                 });
             }
 
-            node.LeftCurlyBracketToken = base.Tokens[base.Index];
-            this.VisitStatementBlock(node);
+            var blockNode = new PStatementBlockNode(parentNode, null);
+            this.VisitStatementBlock(blockNode);
+            node.StatementBlock = blockNode;
 
             parentNode.FunctionDeclarations.Add(node);
         }
@@ -987,17 +988,35 @@ namespace Microsoft.PSharp.Parsing
         /// Visits a block of statements.
         /// </summary>
         /// <param name="node">Node</param>
-        private void VisitStatementBlock(PBaseActionDeclarationNode node)
+        private void VisitStatementBlock(PStatementBlockNode node)
         {
+            node.LeftCurlyBracketToken = base.Tokens[base.Index];
+
             base.Index++;
             base.SkipWhiteSpaceAndCommentTokens();
 
+            this.VisitNextStatement(node);
+        }
+
+        /// <summary>
+        /// Visits the next statement.
+        /// </summary>
+        /// <param name="node">Node</param>
+        private void VisitNextStatement(PStatementBlockNode node)
+        {
             if (base.Index == base.Tokens.Count)
             {
                 this.ReportParsingError("Expected \"}\".");
                 throw new EndOfTokensException(new List<TokenType>
                 {
-                    TokenType.RightCurlyBracket,
+                    TokenType.IfCondition,
+                    TokenType.DoLoop,
+                    TokenType.ForLoop,
+                    TokenType.ForeachLoop,
+                    TokenType.WhileLoop,
+                    TokenType.Break,
+                    TokenType.Continue,
+                    TokenType.Return,
                     TokenType.New,
                     TokenType.CreateMachine,
                     TokenType.RaiseEvent,
@@ -1007,288 +1026,456 @@ namespace Microsoft.PSharp.Parsing
                 });
             }
 
-            var startIdx = base.Index;
-
-            int bracketCounter = 1;
-            while (base.Index < base.Tokens.Count && bracketCounter > 0)
+            bool fixpoint = false;
+            var token = base.Tokens[base.Index];
+            switch (token.Type)
             {
-                if (base.Tokens[base.Index].Type == TokenType.LeftCurlyBracket)
-                {
-                    bracketCounter++;
-                }
-                else if (base.Tokens[base.Index].Type == TokenType.RightCurlyBracket)
-                {
-                    bracketCounter--;
-                }
-                else if (base.Tokens[base.Index].Type == TokenType.New)
-                {
-                    this.VisitNewStatement();
-                }
-                else if (base.Tokens[base.Index].Type == TokenType.RaiseEvent)
-                {
-                    this.VisitRaiseStatement();
-                }
-                else if (base.Tokens[base.Index].Type == TokenType.SendEvent)
-                {
-                    this.VisitSendStatement();
-                }
-                else if (base.Tokens[base.Index].Type == TokenType.DeleteMachine)
-                {
-                    this.VisitDeleteStatement();
-                }
-
-                if (bracketCounter > 0)
-                {
+                case TokenType.WhiteSpace:
+                case TokenType.Comment:
+                case TokenType.NewLine:
                     base.Index++;
+                    break;
+
+                case TokenType.CommentLine:
+                case TokenType.Region:
                     base.SkipWhiteSpaceAndCommentTokens();
-                }
+                    break;
+
+                case TokenType.New:
+                    this.VisitNewStatement(node);
+                    break;
+
+                case TokenType.RaiseEvent:
+                    this.VisitRaiseStatement(node);
+                    break;
+
+                case TokenType.SendEvent:
+                    this.VisitSendStatement(node);
+                    break;
+
+                case TokenType.Assert:
+                    this.VisitAssertStatement(node);
+                    break;
+
+                case TokenType.IfCondition:
+                    this.VisitIfStatement(node);
+                    break;
+
+                case TokenType.Identifier:
+                    this.VisitGenericStatement(node);
+                    break;
+
+                case TokenType.RightCurlyBracket:
+                    node.RightCurlyBracketToken = base.Tokens[base.Index];
+                    fixpoint = true;
+                    base.Index++;
+                    break;
+
+                default:
+                    this.ReportParsingError("Unexpected token.");
+                    break;
             }
 
-            if (node != null)
-                for (int idx = startIdx; idx < base.Index; idx++)
-                {
-                    node.Statements.Add(base.Tokens[idx]);
-                }
-
-            if (base.Index == base.Tokens.Count ||
-                base.Tokens[base.Index].Type != TokenType.RightCurlyBracket)
+            if (!fixpoint)
             {
-                this.ReportParsingError("Expected \"}\".");
-                throw new EndOfTokensException(new List<TokenType>
-                {
-                    TokenType.RightCurlyBracket
-                });
+                this.VisitNextStatement(node);
             }
-
-            if (node != null)
-                node.RightCurlyBracketToken = base.Tokens[base.Index];
         }
 
         /// <summary>
-        /// Visits a new statement.
+        /// Visits a create statement.
         /// </summary>
-        private void VisitNewStatement()
+        /// <param name="parentNode">Node</param>
+        private void VisitNewStatement(PStatementBlockNode parentNode)
         {
-            base.Tokens[base.Index] = new Token(base.Tokens[base.Index].TextUnit,
-                TokenType.CreateMachine);
+            var node = new PNewStatementNode(parentNode);
+            node.NewKeyword = base.Tokens[base.Index];
 
-            //base.Index++;
-            //base.SkipWhiteSpaceAndCommentTokens();
+            base.Index++;
+            base.SkipWhiteSpaceAndCommentTokens();
 
-            //if (base.Index == base.Tokens.Count ||
-            //    base.Tokens[base.Index].Type != TokenType.Identifier)
-            //{
-            //    this.ReportParsingError("Expected base machine identifier.");
-            //    throw new EndOfTokensException(new List<TokenType>
-            //    {
-            //        TokenType.Identifier
-            //    });
-            //}
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.Identifier)
+            {
+                this.ReportParsingError("Expected machine identifier.");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Identifier
+                });
+            }
 
-            //while (base.Index < base.Tokens.Count &&
-            //    base.Tokens[base.Index].Type != TokenType.LeftParenthesis &&
-            //    base.Tokens[base.Index].Type != TokenType.Semicolon)
-            //{
-            //    if (base.Tokens[base.Index].Type != TokenType.Identifier &&
-            //        base.Tokens[base.Index].Type != TokenType.Dot &&
-            //        base.Tokens[base.Index].Type != TokenType.NewLine)
-            //    {
-            //        this.ReportParsingError("Expected identifier.");
-            //        throw new EndOfTokensException(new List<TokenType>
-            //        {
-            //            TokenType.Identifier,
-            //            TokenType.Dot
-            //        });
-            //    }
+            node.MachineIdentifier = base.Tokens[base.Index];
 
-            //    if (base.Tokens[base.Index].Type == TokenType.Identifier)
-            //    {
-            //        base.Tokens[base.Index] = new Token(base.Tokens[base.Index].TextUnit,
-            //            base.Tokens[base.Index].Line, TokenType.MachineIdentifier);
-            //    }
+            base.Index++;
+            base.SkipWhiteSpaceAndCommentTokens();
 
-            //    base.Index++;
-            //    base.SkipWhiteSpaceAndCommentTokens();
-            //}
+            if (base.Index == base.Tokens.Count ||
+                (base.Tokens[base.Index].Type != TokenType.LeftParenthesis &&
+                base.Tokens[base.Index].Type != TokenType.Semicolon))
+            {
+                this.ReportParsingError("Expected \"(\" or \";\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.LeftParenthesis,
+                    TokenType.Semicolon
+                });
+            }
 
-            //if (base.Index == base.Tokens.Count ||
-            //    (base.Tokens[base.Index].Type != TokenType.LeftParenthesis &&
-            //    base.Tokens[base.Index].Type != TokenType.Semicolon))
-            //{
-            //    this.ReportParsingError("Expected \"(\" or \";\".");
-            //    throw new EndOfTokensException(new List<TokenType>
-            //    {
-            //        TokenType.LeftParenthesis,
-            //        TokenType.Semicolon
-            //    });
-            //}
+            if (base.Tokens[base.Index].Type == TokenType.LeftParenthesis)
+            {
+                node.LeftParenthesisToken = base.Tokens[base.Index];
 
-            //if (base.Tokens[base.Index].Type == TokenType.LeftParenthesis)
-            //{
-            //    this.VisitArgumentsList();
-            //}
+                var payload = new PExpressionNode(parentNode);
+                this.VisitArgumentsList(payload);
+
+                node.Payload = payload;
+                node.RightParenthesisToken = base.Tokens[base.Index];
+
+                base.Index++;
+                base.SkipWhiteSpaceAndCommentTokens();
+            }
+
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.Semicolon)
+            {
+                this.ReportParsingError("Expected \";\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Semicolon
+                });
+            }
+
+            node.SemicolonToken = base.Tokens[base.Index];
+            parentNode.Statements.Add(node);
+            base.Index++;
         }
 
         /// <summary>
         /// Visits a raise statement.
         /// </summary>
-        private void VisitRaiseStatement()
+        /// <param name="parentNode">Node</param>
+        private void VisitRaiseStatement(PStatementBlockNode parentNode)
         {
-            //base.Index++;
-            //base.SkipWhiteSpaceAndCommentTokens();
+            var node = new PRaiseStatementNode(parentNode);
+            node.RaiseKeyword = base.Tokens[base.Index];
 
-            //if (base.Index == base.Tokens.Count ||
-            //    base.Tokens[base.Index].Type != TokenType.Identifier)
-            //{
-            //    this.ReportParsingError("Expected event identifier.");
-            //    throw new EndOfTokensException(new List<TokenType>
-            //    {
-            //        TokenType.Identifier
-            //    });
-            //}
+            base.Index++;
+            base.SkipWhiteSpaceAndCommentTokens();
 
-            //base.Tokens[base.Index] = new Token(base.Tokens[base.Index].TextUnit,
-            //    base.Tokens[base.Index].Line, TokenType.EventIdentifier);
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.Identifier)
+            {
+                this.ReportParsingError("Expected event identifier.");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Identifier
+                });
+            }
 
-            //base.Index++;
-            //base.SkipWhiteSpaceAndCommentTokens();
+            base.Tokens[base.Index] = new Token(base.Tokens[base.Index].TextUnit,
+                TokenType.EventIdentifier);
 
-            //if (base.Index == base.Tokens.Count ||
-            //    (base.Tokens[base.Index].Type != TokenType.LeftParenthesis &&
-            //    base.Tokens[base.Index].Type != TokenType.Semicolon))
-            //{
-            //    this.ReportParsingError("Expected \"(\" or \";\".");
-            //    throw new EndOfTokensException(new List<TokenType>
-            //    {
-            //        TokenType.LeftParenthesis,
-            //        TokenType.Semicolon
-            //    });
-            //}
+            node.EventIdentifier = base.Tokens[base.Index];
 
-            //if (base.Tokens[base.Index].Type == TokenType.LeftParenthesis)
-            //{
-            //    this.VisitArgumentsList();
-            //}
+            base.Index++;
+            base.SkipWhiteSpaceAndCommentTokens();
 
-            //base.SkipWhiteSpaceAndCommentTokens();
+            if (base.Index == base.Tokens.Count ||
+                (base.Tokens[base.Index].Type != TokenType.Comma &&
+                base.Tokens[base.Index].Type != TokenType.Semicolon))
+            {
+                this.ReportParsingError("Expected \",\" or \";\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Comma,
+                    TokenType.Semicolon
+                });
+            }
 
-            //if (base.Index == base.Tokens.Count ||
-            //    base.Tokens[base.Index].Type != TokenType.Semicolon)
-            //{
-            //    this.ReportParsingError("Expected \";\".");
-            //    throw new EndOfTokensException(new List<TokenType>
-            //    {
-            //        TokenType.Semicolon
-            //    });
-            //}
+            if (base.Tokens[base.Index].Type == TokenType.Comma)
+            {
+                node.Comma = base.Tokens[base.Index];
+
+                var payload = new PExpressionNode(parentNode);
+                this.VisitPayloadList(payload);
+
+                node.Payload = payload;
+            }
+
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.Semicolon)
+            {
+                this.ReportParsingError("Expected \";\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Semicolon
+                });
+            }
+
+            node.SemicolonToken = base.Tokens[base.Index];
+            parentNode.Statements.Add(node);
+            base.Index++;
         }
 
         /// <summary>
         /// Visits a send statement.
         /// </summary>
-        private void VisitSendStatement()
+        /// <param name="parentNode">Node</param>
+        private void VisitSendStatement(PStatementBlockNode parentNode)
         {
-            //base.Index++;
-            //base.SkipWhiteSpaceAndCommentTokens();
+            var node = new PSendStatementNode(parentNode);
+            node.SendKeyword = base.Tokens[base.Index];
 
-            //if (base.Index == base.Tokens.Count ||
-            //    base.Tokens[base.Index].Type != TokenType.Identifier)
-            //{
-            //    this.ReportParsingError("Expected event identifier.");
-            //    throw new EndOfTokensException(new List<TokenType>
-            //    {
-            //        TokenType.Identifier
-            //    });
-            //}
+            base.Index++;
+            base.SkipWhiteSpaceAndCommentTokens();
 
-            //base.Tokens[base.Index] = new Token(base.Tokens[base.Index].TextUnit,
-            //    base.Tokens[base.Index].Line, TokenType.EventIdentifier);
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.Identifier)
+            {
+                this.ReportParsingError("Expected machine identifier.");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Identifier
+                });
+            }
 
-            //base.Index++;
-            //base.SkipWhiteSpaceAndCommentTokens();
+            var machineIdentifier = new PExpressionNode(parentNode);
+            machineIdentifier.StmtTokens.Add(base.Tokens[base.Index]);
+            node.MachineIdentifier = machineIdentifier;
 
-            //if (base.Index == base.Tokens.Count ||
-            //    (base.Tokens[base.Index].Type != TokenType.LeftParenthesis &&
-            //    base.Tokens[base.Index].Type != TokenType.ToMachine))
-            //{
-            //    this.ReportParsingError("Expected \"(\" or \"to\".");
-            //    throw new EndOfTokensException(new List<TokenType>
-            //    {
-            //        TokenType.LeftParenthesis,
-            //        TokenType.ToMachine
-            //    });
-            //}
+            base.Index++;
+            base.SkipWhiteSpaceAndCommentTokens();
 
-            //if (base.Tokens[base.Index].Type == TokenType.LeftParenthesis)
-            //{
-            //    this.VisitArgumentsList();
-            //    base.Index++;
-            //}
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.Comma)
+            {
+                this.ReportParsingError("Expected \",\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Comma
+                });
+            }
 
-            //base.SkipWhiteSpaceAndCommentTokens();
+            node.MachineComma = base.Tokens[base.Index];
 
-            //if (base.Index == base.Tokens.Count ||
-            //    base.Tokens[base.Index].Type != TokenType.ToMachine)
-            //{
-            //    this.ReportParsingError("Expected \"to\".");
-            //    throw new EndOfTokensException(new List<TokenType>
-            //    {
-            //        TokenType.ToMachine
-            //    });
-            //}
+            base.Index++;
+            base.SkipWhiteSpaceAndCommentTokens();
 
-            //base.Index++;
-            //base.SkipWhiteSpaceAndCommentTokens();
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.Identifier)
+            {
+                this.ReportParsingError("Expected event identifier.");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Identifier
+                });
+            }
 
-            //if (base.Index == base.Tokens.Count ||
-            //    (base.Tokens[base.Index].Type != TokenType.Identifier &&
-            //    base.Tokens[base.Index].Type != TokenType.This))
-            //{
-            //    this.ReportParsingError("Expected machine identifier.");
-            //    throw new EndOfTokensException(new List<TokenType>
-            //    {
-            //        TokenType.Identifier,
-            //        TokenType.This
-            //    });
-            //}
+            base.Tokens[base.Index] = new Token(base.Tokens[base.Index].TextUnit,
+                TokenType.EventIdentifier);
 
-            //while (base.Index < base.Tokens.Count &&
-            //    base.Tokens[base.Index].Type != TokenType.Semicolon)
-            //{
-            //    if (base.Tokens[base.Index].Type != TokenType.Identifier &&
-            //        base.Tokens[base.Index].Type != TokenType.This &&
-            //        base.Tokens[base.Index].Type != TokenType.Dot &&
-            //        base.Tokens[base.Index].Type != TokenType.NewLine)
-            //    {
-            //        this.ReportParsingError("Expected machine identifier.");
-            //        throw new EndOfTokensException(new List<TokenType>
-            //        {
-            //            TokenType.Identifier,
-            //            TokenType.This,
-            //            TokenType.Dot
-            //        });
-            //    }
+            node.EventIdentifier = base.Tokens[base.Index];
 
-            //    base.Index++;
-            //    base.SkipWhiteSpaceAndCommentTokens();
-            //}
+            base.Index++;
+            base.SkipWhiteSpaceAndCommentTokens();
 
-            //if (base.Index == base.Tokens.Count ||
-            //    base.Tokens[base.Index].Type != TokenType.Semicolon)
-            //{
-            //    this.ReportParsingError("Expected \";\".");
-            //    throw new EndOfTokensException(new List<TokenType>
-            //    {
-            //        TokenType.Semicolon
-            //    });
-            //}
+            if (base.Index == base.Tokens.Count ||
+                (base.Tokens[base.Index].Type != TokenType.Comma &&
+                base.Tokens[base.Index].Type != TokenType.Semicolon))
+            {
+                this.ReportParsingError("Expected \",\" or \";\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Comma,
+                    TokenType.Semicolon
+                });
+            }
+
+            if (base.Tokens[base.Index].Type == TokenType.Comma)
+            {
+                node.EventComma = base.Tokens[base.Index];
+
+                var payload = new PExpressionNode(parentNode);
+                this.VisitPayloadList(payload);
+
+                node.Payload = payload;
+            }
+
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.Semicolon)
+            {
+                this.ReportParsingError("Expected \";\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Semicolon
+                });
+            }
+
+            node.SemicolonToken = base.Tokens[base.Index];
+            parentNode.Statements.Add(node);
+            base.Index++;
         }
 
         /// <summary>
-        /// Visits a delete statement.
+        /// Visits an if statement.
         /// </summary>
-        private void VisitDeleteStatement()
+        /// <param name="parentNode">Node</param>
+        private void VisitIfStatement(PStatementBlockNode parentNode)
         {
+            var node = new PIfStatementNode(parentNode);
+            node.IfKeyword = base.Tokens[base.Index];
+
+            base.Index++;
+            base.SkipWhiteSpaceAndCommentTokens();
+
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.LeftParenthesis)
+            {
+                this.ReportParsingError("Expected \"(\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.LeftParenthesis
+                });
+            }
+
+            node.LeftParenthesisToken = base.Tokens[base.Index];
+
+            base.Index++;
+            base.SkipWhiteSpaceAndCommentTokens();
+
+            var guard = new PExpressionNode(parentNode);
+
+
+            int counter = 1;
+            while (base.Index < base.Tokens.Count)
+            {
+                if (base.Tokens[base.Index].Type == TokenType.LeftParenthesis)
+                {
+                    counter++;
+                }
+                else if (base.Tokens[base.Index].Type == TokenType.RightParenthesis)
+                {
+                    counter--;
+                }
+
+                if (counter == 0)
+                {
+                    break;
+                }
+
+                guard.StmtTokens.Add(base.Tokens[base.Index]);
+                base.Index++;
+                base.SkipCommentTokens();
+            }
+
+            node.Guard = guard;
+
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.RightParenthesis)
+            {
+                this.ReportParsingError("Expected \")\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.RightParenthesis
+                });
+            }
+
+            node.RightParenthesisToken = base.Tokens[base.Index];
+
+            base.Index++;
+            base.SkipWhiteSpaceAndCommentTokens();
+
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.LeftCurlyBracket)
+            {
+                this.ReportParsingError("Expected \"{\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.LeftCurlyBracket
+                });
+            }
+
+            var blockNode = new PStatementBlockNode(parentNode.Machine, parentNode.State);
+            this.VisitStatementBlock(blockNode);
+            node.StatementBlock = blockNode;
+
+            //base.Index++;
+            //base.SkipWhiteSpaceAndCommentTokens();
+
+            //if (base.Tokens[base.Index].Type == TokenType.ElseCondition)
+            //{
+
+            //}
+
+            parentNode.Statements.Add(node);
+            base.Index++;
+        }
+
+        /// <summary>
+        /// Visits an assert statement.
+        /// </summary>
+        /// <param name="parentNode">Node</param>
+        private void VisitAssertStatement(PStatementBlockNode parentNode)
+        {
+            var node = new PAssertStatementNode(parentNode);
+            node.AssertKeyword = base.Tokens[base.Index];
+
+            base.Index++;
+            base.SkipWhiteSpaceAndCommentTokens();
+
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.LeftParenthesis)
+            {
+                this.ReportParsingError("Expected \"(\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.LeftParenthesis
+                });
+            }
+
+            node.LeftParenthesisToken = base.Tokens[base.Index];
+
+            base.Index++;
+            base.SkipWhiteSpaceAndCommentTokens();
+
+            var predicate = new PExpressionNode(parentNode);
+            int counter = 1;
+
+            while (base.Index < base.Tokens.Count)
+            {
+                if (base.Tokens[base.Index].Type == TokenType.LeftParenthesis)
+                {
+                    counter++;
+                }
+                else if (base.Tokens[base.Index].Type == TokenType.RightParenthesis)
+                {
+                    counter--;
+                }
+
+                if (counter == 0)
+                {
+                    break;
+                }
+
+                predicate.StmtTokens.Add(base.Tokens[base.Index]);
+                base.Index++;
+                base.SkipCommentTokens();
+            }
+
+            node.Predicate = predicate;
+
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.RightParenthesis)
+            {
+                this.ReportParsingError("Expected \")\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.RightParenthesis
+                });
+            }
+
+            node.RightParenthesisToken = base.Tokens[base.Index];
+
             base.Index++;
             base.SkipWhiteSpaceAndCommentTokens();
 
@@ -1301,6 +1488,41 @@ namespace Microsoft.PSharp.Parsing
                     TokenType.Semicolon
                 });
             }
+
+            node.SemicolonToken = base.Tokens[base.Index];
+            parentNode.Statements.Add(node);
+            base.Index++;
+        }
+
+        /// <summary>
+        /// Visits a generic statement.
+        /// </summary>
+        /// <param name="parentNode">Node</param>
+        private void VisitGenericStatement(PStatementBlockNode parentNode)
+        {
+            var node = new PGenericStatementNode(parentNode);
+
+            var expression = new PExpressionNode(parentNode);
+            while (base.Index < base.Tokens.Count &&
+                base.Tokens[base.Index].Type != TokenType.Semicolon)
+            {
+                if (base.Tokens[base.Index].Type == TokenType.New)
+                {
+                    node.Expression = expression;
+                    parentNode.Statements.Add(node);
+                    return;
+                }
+
+                expression.StmtTokens.Add(base.Tokens[base.Index]);
+                base.Index++;
+                base.SkipCommentTokens();
+            }
+
+            node.Expression = expression;
+            node.SemicolonToken = base.Tokens[base.Index];
+
+            parentNode.Statements.Add(node);
+            base.Index++;
         }
 
         /// <summary>
@@ -1409,6 +1631,78 @@ namespace Microsoft.PSharp.Parsing
             }
 
             node.TypeTokens.Add(this.Tokens[base.Index]);
+        }
+
+        /// <summary>
+        /// Visits an argument list.
+        /// </summary>
+        /// <param name="node">Node</param>
+        private void VisitArgumentsList(PExpressionNode node)
+        {
+            base.Index++;
+            base.SkipWhiteSpaceAndCommentTokens();
+
+            int counter = 1;
+            while (base.Index < base.Tokens.Count)
+            {
+                if (base.Tokens[base.Index].Type == TokenType.LeftParenthesis)
+                {
+                    counter++;
+                }
+                else if (base.Tokens[base.Index].Type == TokenType.RightParenthesis)
+                {
+                    counter--;
+                }
+
+                if (counter == 0)
+                {
+                    break;
+                }
+
+                node.StmtTokens.Add(base.Tokens[base.Index]);
+
+                base.Index++;
+                base.SkipWhiteSpaceAndCommentTokens();
+            }
+
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.RightParenthesis)
+            {
+                this.ReportParsingError("Expected \")\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.RightParenthesis
+                });
+            }
+        }
+
+        /// <summary>
+        /// Visits a payload list.
+        /// </summary>
+        /// <param name="node">Node</param>
+        private void VisitPayloadList(PExpressionNode node)
+        {
+            base.Index++;
+            base.SkipWhiteSpaceAndCommentTokens();
+
+            while (base.Index < base.Tokens.Count &&
+                base.Tokens[base.Index].Type != TokenType.Semicolon)
+            {
+                node.StmtTokens.Add(base.Tokens[base.Index]);
+
+                base.Index++;
+                base.SkipWhiteSpaceAndCommentTokens();
+            }
+
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.Semicolon)
+            {
+                this.ReportParsingError("Expected \";\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Semicolon
+                });
+            }
         }
 
         #endregion

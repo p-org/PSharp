@@ -79,10 +79,10 @@ namespace Microsoft.PSharp.Parsing.Syntax
         internal override void Rewrite(ref int position)
         {
             var start = position;
-            this.StatementBlock.Rewrite(ref position);
-
+            
             var text = "protected override void OnEntry()";
 
+            this.StatementBlock.Rewrite(ref position);
             text += StatementBlock.GetRewrittenText();
 
             base.RewrittenTextUnit = new TextUnit(text, this.EntryKeyword.TextUnit.Line, start);
@@ -94,10 +94,9 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         internal override void GenerateTextUnit()
         {
-            this.StatementBlock.GenerateTextUnit();
-
             var text = this.EntryKeyword.TextUnit.Text;
 
+            this.StatementBlock.GenerateTextUnit();
             text += this.StatementBlock.GetFullText();
 
             base.TextUnit = new TextUnit(text, this.EntryKeyword.TextUnit.Line,

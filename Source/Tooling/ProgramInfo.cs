@@ -120,8 +120,7 @@ namespace Microsoft.PSharp.Tooling
             ProgramInfo.Solution = project.Solution;
             ProgramInfo.Workspace = project.Solution.Workspace;
 
-            var root = (CodeAnalysis.CSharp.Syntax.CompilationUnitSyntax)tree.GetRoot();
-            Console.WriteLine(root.ToFullString());
+            ProgramInfo.PrintSyntaxTree(tree);
         }
 
         /// <summary>
@@ -144,6 +143,24 @@ namespace Microsoft.PSharp.Tooling
         {
             var ext = Path.GetExtension(tree.FilePath);
             return ext.Equals(".p") ? true : false;
+        }
+
+        #endregion
+
+        #region private API
+
+        /// <summary>
+        /// Print the syntax tree for debug.
+        /// </summary>
+        /// <param name="tree">SyntaxTree</param>
+        private static void PrintSyntaxTree(SyntaxTree tree)
+        {
+            var root = (CodeAnalysis.CSharp.Syntax.CompilationUnitSyntax)tree.GetRoot();
+            var lines = System.Text.RegularExpressions.Regex.Split(root.ToFullString(), "\r\n|\r|\n");
+            for (int idx = 0; idx < lines.Length; idx++)
+            {
+                Console.WriteLine(idx + 1 + " " + lines[idx]);
+            }
         }
 
         #endregion

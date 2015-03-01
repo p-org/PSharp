@@ -61,9 +61,10 @@ namespace Microsoft.PSharp.Parsing
             this.RewrittenText = "";
             int position = 0;
 
+            this.RewrittenText += this.InstrumentSystemDll(ref position);
             this.RewrittenText += this.InstrumentPSharpDll(ref position);
 
-            this.RewrittenText += "namespace _PNAMESPACE_\n";
+            this.RewrittenText += "namespace Microsoft.PSharp\n";
             this.RewrittenText += "{\n";
 
             foreach (var node in this.EventDeclarations)

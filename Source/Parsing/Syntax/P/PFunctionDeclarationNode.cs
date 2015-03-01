@@ -21,7 +21,7 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
     /// <summary>
     /// Function declaration node.
     /// </summary>
-    public sealed class PFunctionDeclarationNode : PBaseActionDeclarationNode
+    public sealed class PFunctionDeclarationNode : PSharpSyntaxNode
     {
         #region fields
 
@@ -65,6 +65,11 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
         /// </summary>
         public List<Token> ReturnTypeTokens;
 
+        /// <summary>
+        /// The statement block.
+        /// </summary>
+        public PStatementBlockNode StatementBlock;
+
         #endregion
 
         #region public API
@@ -72,9 +77,8 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="machineNode">PMachineDeclarationNode</param>
-        public PFunctionDeclarationNode(PMachineDeclarationNode machineNode)
-            : base(machineNode, null)
+        public PFunctionDeclarationNode()
+            : base()
         {
             this.Parameters = new List<Token>();
             this.ReturnTypeTokens = new List<Token>();
@@ -117,6 +121,11 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
                 text += node.TextUnit.Text;
             }
 
+            if (this.ReturnTypeTokens.Count == 0)
+            {
+                text += "void";
+            }
+
             text += " ";
             text += this.Identifier.TextUnit.Text;
 
@@ -129,14 +138,8 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
 
             text += this.RightParenthesisToken.TextUnit.Text;
 
-            text += "\n" + base.LeftCurlyBracketToken.TextUnit.Text + "\n";
-
-            foreach (var stmt in base.RewriteStatements())
-            {
-                text += stmt.Text;//.TextUnit.Text;
-            }
-
-            text += base.RightCurlyBracketToken.TextUnit.Text + "\n";
+            this.StatementBlock.Rewrite(ref position);
+            text += StatementBlock.GetRewrittenText();
 
             base.RewrittenTextUnit = new TextUnit(text, this.FunctionKeyword.TextUnit.Line, start);
             position = base.RewrittenTextUnit.End + 1;
@@ -163,14 +166,8 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
 
             text += this.RightParenthesisToken.TextUnit.Text;
 
-            text += "\n" + base.LeftCurlyBracketToken.TextUnit.Text + "\n";
-
-            foreach (var stmt in base.Statements)
-            {
-                text += stmt.TextUnit.Text;
-            }
-
-            text += base.RightCurlyBracketToken.TextUnit.Text + "\n";
+            this.StatementBlock.GenerateTextUnit();
+            text += this.StatementBlock.GetFullText();
 
             base.TextUnit = new TextUnit(text, this.FunctionKeyword.TextUnit.Line,
                 this.FunctionKeyword.TextUnit.Start);

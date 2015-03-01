@@ -80,6 +80,7 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
             var start = position;
             var text = "";
 
+            this.RewriteTypeTokens();
             foreach (var tok in this.TypeTokens)
             {
                 text += tok.TextUnit.Text;
@@ -108,6 +109,26 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
 
             base.TextUnit = new TextUnit(text, this.TypeTokens.First().TextUnit.Line,
                 this.TypeTokens.First().TextUnit.Start);
+        }
+
+        #endregion
+
+        #region private API
+
+        /// <summary>
+        /// Rewrites the type tokens.
+        /// </summary>
+        private void RewriteTypeTokens()
+        {
+            for (int idx = 0; idx < this.TypeTokens.Count; idx++)
+            {
+                var token = this.TypeTokens[idx];
+                if (token.Type == TokenType.MachineDecl)
+                {
+                    var textUnit = new TextUnit("Machine", token.TextUnit.Line, token.TextUnit.Start);
+                    this.TypeTokens[idx] = new Token(textUnit, token.Type);
+                }
+            }
         }
 
         #endregion

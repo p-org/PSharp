@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="PExitDeclarationNode.cs">
+// <copyright file="PSendStatementNode.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -19,21 +19,41 @@ using System.Linq;
 namespace Microsoft.PSharp.Parsing.Syntax.P
 {
     /// <summary>
-    /// Exit declaration node.
+    /// Send statement node.
     /// </summary>
-    public sealed class PExitDeclarationNode : PSharpSyntaxNode
+    public sealed class PSendStatementNode : PStatementNode
     {
         #region fields
 
         /// <summary>
-        /// The exit keyword.
+        /// The send keyword.
         /// </summary>
-        public Token ExitKeyword;
+        public Token SendKeyword;
 
         /// <summary>
-        /// The statement block.
+        /// The event identifier.
         /// </summary>
-        public PStatementBlockNode StatementBlock;
+        public Token EventIdentifier;
+
+        /// <summary>
+        /// The machine comma token.
+        /// </summary>
+        public Token MachineComma;
+
+        /// <summary>
+        /// The machine identifier.
+        /// </summary>
+        public PExpressionNode MachineIdentifier;
+
+        /// <summary>
+        /// The event comma token.
+        /// </summary>
+        public Token EventComma;
+
+        /// <summary>
+        /// The event payload.
+        /// </summary>
+        public PExpressionNode Payload;
 
         #endregion
 
@@ -42,8 +62,9 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
         /// <summary>
         /// Constructor.
         /// </summary>
-        public PExitDeclarationNode()
-            : base()
+        /// <param name="node">Node</param>
+        public PSendStatementNode(PStatementBlockNode node)
+            : base(node)
         {
 
         }
@@ -79,12 +100,24 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
         {
             var start = position;
 
-            var text = "protected override void OnExit()";
+            var text = "this.Send(";
 
-            this.StatementBlock.Rewrite(ref position);
-            text += StatementBlock.GetRewrittenText();
+            this.MachineIdentifier.Rewrite(ref position);
+            text += this.MachineIdentifier.GetRewrittenText();
 
-            base.RewrittenTextUnit = new TextUnit(text, this.ExitKeyword.TextUnit.Line, start);
+            text += ", new " + this.EventIdentifier.TextUnit.Text + "(";
+
+            if (this.Payload != null)
+            {
+                this.Payload.Rewrite(ref position);
+                text += this.Payload.GetRewrittenText();
+            }
+
+            text += "))";
+
+            text += this.SemicolonToken.TextUnit.Text + "\n";
+
+            base.RewrittenTextUnit = new TextUnit(text, this.SendKeyword.TextUnit.Line, start);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -93,13 +126,29 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
         /// </summary>
         internal override void GenerateTextUnit()
         {
-            var text = this.ExitKeyword.TextUnit.Text;
+            var text = this.SendKeyword.TextUnit.Text;
+            text += " ";
 
-            this.StatementBlock.GenerateTextUnit();
-            text += this.StatementBlock.GetFullText();
+            this.MachineIdentifier.GenerateTextUnit();
+            text += this.MachineIdentifier.GetFullText();
 
-            base.TextUnit = new TextUnit(text, this.ExitKeyword.TextUnit.Line,
-                this.ExitKeyword.TextUnit.Start);
+            text += this.MachineComma.TextUnit.Text;
+            text += " ";
+
+            text += this.EventIdentifier.TextUnit.Text;
+
+            if (this.EventComma != null)
+            {
+                text += this.EventComma.TextUnit.Text;
+                text += " ";
+
+                this.Payload.GenerateTextUnit();
+            }
+
+            text += this.SemicolonToken.TextUnit.Text + "\n";
+
+            base.TextUnit = new TextUnit(text, this.SendKeyword.TextUnit.Line,
+                this.SendKeyword.TextUnit.Start);
         }
 
         #endregion

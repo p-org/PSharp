@@ -131,8 +131,6 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 text += id.TextUnit.Text;
             }
 
-            text += " ";
-
             text += this.LeftParenthesisToken.TextUnit.Text;
 
             if (this.Payload != null)
