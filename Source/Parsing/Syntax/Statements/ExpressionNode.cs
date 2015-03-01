@@ -117,7 +117,8 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 text += token.TextUnit.Text;
             }
 
-            base.RewrittenTextUnit = new TextUnit(text, start);
+            base.RewrittenTextUnit = new TextUnit(text,
+                this.StmtTokens.First().TextUnit.Line, start);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -138,7 +139,8 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 text += tok.TextUnit.Text;
             }
 
-            base.TextUnit = new TextUnit(text, this.StmtTokens.First().TextUnit.Start);
+            base.TextUnit = new TextUnit(text, this.StmtTokens.First().TextUnit.Line,
+                this.StmtTokens.First().TextUnit.Start);
         }
 
         #endregion
@@ -195,16 +197,16 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             if (isArray)
             {
-                int line = this.RewrittenStmtTokens[this.Index].Line;
+                int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
                 var text = "((Object[])this.Payload)";
-                this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, position), line);
+                this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line, position));
                 position += text.Length;
             }
             else
             {
-                int line = this.RewrittenStmtTokens[this.Index].Line;
+                int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
                 var text = "this.Payload";
-                this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, position), line);
+                this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line, position));
                 position += text.Length;
             }
         }
@@ -232,9 +234,9 @@ namespace Microsoft.PSharp.Parsing.Syntax
             }
             else
             {
-                int line = this.RewrittenStmtTokens[this.Index].Line;
+                int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
                 var text = "this.Machine";
-                this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, position), line);
+                this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line, position));
                 position += text.Length;
             }
         }
@@ -247,18 +249,18 @@ namespace Microsoft.PSharp.Parsing.Syntax
         {
             if (this.Parent.Machine == null || this.Parent.State == null ||
                 !(this.Parent.Machine.FieldDeclarations.Any(val => val.Identifier.TextUnit.Text.
-                Equals(this.RewrittenStmtTokens[this.Index].Text)) ||
+                Equals(this.RewrittenStmtTokens[this.Index].TextUnit.Text)) ||
                 this.Parent.Machine.ActionDeclarations.Any(val => val.Identifier.TextUnit.Text.
-                Equals(this.RewrittenStmtTokens[this.Index].Text)) ||
+                Equals(this.RewrittenStmtTokens[this.Index].TextUnit.Text)) ||
                 this.Parent.Machine.MethodDeclarations.Any(val => val.Identifier.TextUnit.Text.
-                Equals(this.RewrittenStmtTokens[this.Index].Text))))
+                Equals(this.RewrittenStmtTokens[this.Index].TextUnit.Text))))
             {
                 return;
             }
 
-            int line = this.RewrittenStmtTokens[this.Index].Line;
+            int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
             var text = "(this.Machine as " + this.Parent.Machine.Identifier.TextUnit.Text + ").";
-            this.RewrittenStmtTokens.Insert(this.Index, new Token(new TextUnit(text, position), line));
+            this.RewrittenStmtTokens.Insert(this.Index, new Token(new TextUnit(text, line, position)));
             position += text.Length;
             this.Index++;
         }

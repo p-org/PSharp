@@ -50,11 +50,6 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         public Token RightCurlyBracketToken;
 
-        /// <summary>
-        /// The current index.
-        /// </summary>
-        private int Index;
-
         #endregion
 
         #region public API
@@ -116,7 +111,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
 
-            base.RewrittenTextUnit = new TextUnit(text, start);
+            base.RewrittenTextUnit = new TextUnit(text, this.LeftCurlyBracketToken.TextUnit.Line, start);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -139,7 +134,8 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, this.LeftCurlyBracketToken.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, this.LeftCurlyBracketToken.TextUnit.Line,
+                this.LeftCurlyBracketToken.TextUnit.Start);
         }
 
         #endregion

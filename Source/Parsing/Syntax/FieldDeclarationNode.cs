@@ -118,11 +118,13 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             if (this.Modifier != null)
             {
-                base.TextUnit = new TextUnit(text, this.Modifier.TextUnit.Start);
+                base.TextUnit = new TextUnit(text, this.Modifier.TextUnit.Line,
+                    this.Modifier.TextUnit.Start);
             }
             else
             {
-                base.TextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Start);
+                base.TextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Line,
+                    this.TypeIdentifier.TextUnit.Start);
             }
         }
 

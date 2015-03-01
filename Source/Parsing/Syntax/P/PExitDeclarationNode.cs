@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="UsingDeclarationNode.cs">
+// <copyright file="PExitDeclarationNode.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -16,29 +16,19 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.PSharp.Parsing.Syntax
+namespace Microsoft.PSharp.Parsing.Syntax.P
 {
     /// <summary>
-    /// Using declaration node.
+    /// Exit declaration node.
     /// </summary>
-    public sealed class UsingDeclarationNode : PSharpSyntaxNode
+    public sealed class PExitDeclarationNode : PBaseActionDeclarationNode
     {
         #region fields
 
         /// <summary>
-        /// The using keyword.
+        /// The exit keyword.
         /// </summary>
-        public Token UsingKeyword;
-
-        /// <summary>
-        /// The identifier tokens.
-        /// </summary>
-        public List<Token> IdentifierTokens;
-
-        /// <summary>
-        /// The semicolon token.
-        /// </summary>
-        public Token SemicolonToken;
+        public Token ExitKeyword;
 
         #endregion
 
@@ -47,9 +37,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor.
         /// </summary>
-        public UsingDeclarationNode()
+        /// <param name="machineNode">PMachineDeclarationNode</param>
+        /// <param name="stateNode">PStateDeclarationNode</param>
+        public PExitDeclarationNode(PMachineDeclarationNode machineNode, PStateDeclarationNode stateNode)
+            : base(machineNode, stateNode)
         {
-            this.IdentifierTokens = new List<Token>();
+
         }
 
         /// <summary>
@@ -81,7 +74,19 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <param name="position">Position</param>
         internal override void Rewrite(ref int position)
         {
-            base.RewrittenTextUnit = TextUnit.Clone(base.TextUnit, position);
+            var start = position;
+            var text = "protected override void OnExit()";
+
+            text += "\n" + base.LeftCurlyBracketToken.TextUnit.Text + "\n";
+
+            foreach (var stmt in base.RewriteStatements())
+            {
+                text += stmt.Text;//.TextUnit.Text;
+            }
+
+            text += base.RightCurlyBracketToken.TextUnit.Text + "\n";
+
+            base.RewrittenTextUnit = new TextUnit(text, this.ExitKeyword.TextUnit.Line, start);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -90,18 +95,14 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         internal override void GenerateTextUnit()
         {
-            var text = this.UsingKeyword.TextUnit.Text;
-            text += " ";
+            var text = this.ExitKeyword.TextUnit.Text;
 
-            foreach (var token in this.IdentifierTokens)
-            {
-                text += token.TextUnit.Text;
-            }
+            text += "\n" + base.LeftCurlyBracketToken.TextUnit.Text + "\n";
 
-            text += this.SemicolonToken.TextUnit.Text + "\n";
+            text += base.RightCurlyBracketToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, this.UsingKeyword.TextUnit.Line,
-                this.UsingKeyword.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, this.ExitKeyword.TextUnit.Line,
+                this.ExitKeyword.TextUnit.Start);
         }
 
         #endregion

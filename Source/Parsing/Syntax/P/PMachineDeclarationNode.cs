@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="MachineDeclarationNode.cs">
+// <copyright file="PMachineDeclarationNode.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -16,12 +16,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.PSharp.Parsing.Syntax
+namespace Microsoft.PSharp.Parsing.Syntax.P
 {
     /// <summary>
     /// Machine declaration node.
     /// </summary>
-    public sealed class MachineDeclarationNode : PSharpSyntaxNode
+    public sealed class PMachineDeclarationNode : PSharpSyntaxNode
     {
         #region fields
 
@@ -36,29 +36,9 @@ namespace Microsoft.PSharp.Parsing.Syntax
         public Token MachineKeyword;
 
         /// <summary>
-        /// The modifier token.
-        /// </summary>
-        public Token Modifier;
-
-        /// <summary>
-        /// The abstract modifier token.
-        /// </summary>
-        public Token AbstractModifier;
-
-        /// <summary>
         /// The identifier token.
         /// </summary>
         public Token Identifier;
-
-        /// <summary>
-        /// The colon token.
-        /// </summary>
-        public Token ColonToken;
-
-        /// <summary>
-        /// The base name tokens.
-        /// </summary>
-        public List<Token> BaseNameTokens;
 
         /// <summary>
         /// The left curly bracket token.
@@ -68,22 +48,17 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// List of field declarations.
         /// </summary>
-        public List<FieldDeclarationNode> FieldDeclarations;
+        public List<PFieldDeclarationNode> FieldDeclarations;
 
         /// <summary>
         /// List of state declarations.
         /// </summary>
-        public List<StateDeclarationNode> StateDeclarations;
+        public List<PStateDeclarationNode> StateDeclarations;
 
         /// <summary>
-        /// List of action declarations.
+        /// List of function declarations.
         /// </summary>
-        public List<ActionDeclarationNode> ActionDeclarations;
-
-        /// <summary>
-        /// List of method declarations.
-        /// </summary>
-        public List<MethodDeclarationNode> MethodDeclarations;
+        public List<PFunctionDeclarationNode> FunctionDeclarations;
 
         /// <summary>
         /// The right curly bracket token.
@@ -98,15 +73,13 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Constructor.
         /// </summary>
         /// <param name="isMain">Is main machine</param>
-        public MachineDeclarationNode(bool isMain)
+        public PMachineDeclarationNode(bool isMain)
             : base()
         {
             this.IsMain = isMain;
-            this.BaseNameTokens = new List<Token>();
-            this.FieldDeclarations = new List<FieldDeclarationNode>();
-            this.StateDeclarations = new List<StateDeclarationNode>();
-            this.ActionDeclarations = new List<ActionDeclarationNode>();
-            this.MethodDeclarations = new List<MethodDeclarationNode>();
+            this.FieldDeclarations = new List<PFieldDeclarationNode>();
+            this.StateDeclarations = new List<PStateDeclarationNode>();
+            this.FunctionDeclarations = new List<PFunctionDeclarationNode>();
         }
 
         /// <summary>
@@ -150,51 +123,19 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 node.Rewrite(ref position);
             }
 
-            foreach (var node in this.ActionDeclarations)
-            {
-                node.Rewrite(ref position);
-            }
-
-            foreach (var node in this.MethodDeclarations)
+            foreach (var node in this.FunctionDeclarations)
             {
                 node.Rewrite(ref position);
             }
 
             var text = "";
-            var initToken = this.MachineKeyword;
 
             if (this.IsMain)
             {
                 text += "[Main]\n";
             }
 
-            if (this.Modifier != null)
-            {
-                initToken = this.Modifier;
-                text += this.Modifier.TextUnit.Text;
-                text += " ";
-            }
-
-            if (this.AbstractModifier != null)
-            {
-                initToken = this.AbstractModifier;
-                text += this.AbstractModifier.TextUnit.Text;
-                text += " ";
-            }
-
-            text += "class " + this.Identifier.TextUnit.Text + " : ";
-
-            if (this.ColonToken != null)
-            {
-                foreach (var node in this.BaseNameTokens)
-                {
-                    text += node.TextUnit.Text;
-                }
-            }
-            else
-            {
-                text += "Machine";
-            }
+            text += "class " + this.Identifier.TextUnit.Text + " : Machine";
 
             text += "\n" + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
 
@@ -208,12 +149,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 text += node.GetRewrittenText();
             }
 
-            foreach (var node in this.ActionDeclarations)
-            {
-                text += node.GetRewrittenText();
-            }
-
-            foreach (var node in this.MethodDeclarations)
+            foreach (var node in this.FunctionDeclarations)
             {
                 text += node.GetRewrittenText();
             }
@@ -223,7 +159,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
 
-            base.RewrittenTextUnit = new TextUnit(text, initToken.TextUnit.Line, start);
+            base.RewrittenTextUnit = new TextUnit(text, this.MachineKeyword.TextUnit.Line, start);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -242,49 +178,17 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 node.GenerateTextUnit();
             }
 
-            foreach (var node in this.ActionDeclarations)
-            {
-                node.GenerateTextUnit();
-            }
-
-            foreach (var node in this.MethodDeclarations)
+            foreach (var node in this.FunctionDeclarations)
             {
                 node.GenerateTextUnit();
             }
 
             var text = "";
-            var initToken = this.MachineKeyword;
-
-            if (this.AbstractModifier != null)
-            {
-                initToken = this.AbstractModifier;
-                text += this.AbstractModifier.TextUnit.Text;
-                text += " ";
-            }
-
-            if (this.Modifier != null)
-            {
-                initToken = this.Modifier;
-                text += this.Modifier.TextUnit.Text;
-                text += " ";
-            }
 
             text += this.MachineKeyword.TextUnit.Text;
             text += " ";
 
             text += this.Identifier.TextUnit.Text;
-
-            if (this.ColonToken != null)
-            {
-                text += " ";
-                text += this.ColonToken.TextUnit.Text;
-                text += " ";
-
-                foreach (var node in this.BaseNameTokens)
-                {
-                    text += node.TextUnit.Text;
-                }
-            }
 
             text += "\n" + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
 
@@ -298,19 +202,15 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 text += node.GetFullText();
             }
 
-            foreach (var node in this.ActionDeclarations)
-            {
-                text += node.GetFullText();
-            }
-
-            foreach (var node in this.MethodDeclarations)
+            foreach (var node in this.FunctionDeclarations)
             {
                 text += node.GetFullText();
             }
 
             text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, initToken.TextUnit.Line, initToken.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, this.MachineKeyword.TextUnit.Line,
+                this.MachineKeyword.TextUnit.Start);
         }
 
         #endregion

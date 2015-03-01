@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="NewStatementNode.cs">
+// <copyright file="PFunctionDeclarationNode.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -16,24 +16,29 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.PSharp.Parsing.Syntax
+namespace Microsoft.PSharp.Parsing.Syntax.P
 {
     /// <summary>
-    /// New statement node.
+    /// Function declaration node.
     /// </summary>
-    public sealed class NewStatementNode : StatementNode
+    public sealed class PFunctionDeclarationNode : PBaseActionDeclarationNode
     {
         #region fields
 
         /// <summary>
-        /// The new keyword.
+        /// True if the function is a model.
         /// </summary>
-        public Token NewKeyword;
+        public bool IsModel;
 
         /// <summary>
-        /// The type identifier.
+        /// The function keyword.
         /// </summary>
-        public Token TypeIdentifier;
+        public Token FunctionKeyword;
+
+        /// <summary>
+        /// The identifier token.
+        /// </summary>
+        public Token Identifier;
 
         /// <summary>
         /// The left parenthesis token.
@@ -41,14 +46,24 @@ namespace Microsoft.PSharp.Parsing.Syntax
         public Token LeftParenthesisToken;
 
         /// <summary>
-        /// The constructor arguments.
+        /// List of parameter tokens.
         /// </summary>
-        public ExpressionNode Arguments;
+        public List<Token> Parameters;
 
         /// <summary>
         /// The right parenthesis token.
         /// </summary>
         public Token RightParenthesisToken;
+
+        /// <summary>
+        /// The colon token.
+        /// </summary>
+        public Token ColonToken;
+
+        /// <summary>
+        /// The return type tokens.
+        /// </summary>
+        public List<Token> ReturnTypeTokens;
 
         #endregion
 
@@ -57,11 +72,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="node">Node</param>
-        public NewStatementNode(StatementBlockNode node)
-            : base(node)
+        /// <param name="machineNode">PMachineDeclarationNode</param>
+        public PFunctionDeclarationNode(PMachineDeclarationNode machineNode)
+            : base(machineNode, null)
         {
-
+            this.Parameters = new List<Token>();
+            this.ReturnTypeTokens = new List<Token>();
         }
 
         /// <summary>
@@ -94,25 +110,35 @@ namespace Microsoft.PSharp.Parsing.Syntax
         internal override void Rewrite(ref int position)
         {
             var start = position;
+            var text = "";
 
-            var text = this.NewKeyword.TextUnit.Text;
-            text += " ";
-
-            text += this.TypeIdentifier.TextUnit.Text;
-
-            text += "(";
-
-            if (this.Arguments != null)
+            foreach (var node in this.ReturnTypeTokens)
             {
-                this.Arguments.Rewrite(ref position);
-                text += this.Arguments.GetRewrittenText();
+                text += node.TextUnit.Text;
             }
 
-            text += ")";
+            text += " ";
+            text += this.Identifier.TextUnit.Text;
 
-            text += this.SemicolonToken.TextUnit.Text + "\n";
+            text += this.LeftParenthesisToken.TextUnit.Text;
 
-            base.RewrittenTextUnit = new TextUnit(text, this.NewKeyword.TextUnit.Line, start);
+            foreach (var param in this.Parameters)
+            {
+                text += param.TextUnit.Text;
+            }
+
+            text += this.RightParenthesisToken.TextUnit.Text;
+
+            text += "\n" + base.LeftCurlyBracketToken.TextUnit.Text + "\n";
+
+            foreach (var stmt in base.RewriteStatements())
+            {
+                text += stmt.Text;//.TextUnit.Text;
+            }
+
+            text += base.RightCurlyBracketToken.TextUnit.Text + "\n";
+
+            base.RewrittenTextUnit = new TextUnit(text, this.FunctionKeyword.TextUnit.Line, start);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -121,27 +147,33 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         internal override void GenerateTextUnit()
         {
-            var text = this.NewKeyword.TextUnit.Text;
+            var text = "";
+
+            text += this.FunctionKeyword.TextUnit.Text;
             text += " ";
 
-            text += this.TypeIdentifier.TextUnit.Text;
-
-            text += " ";
+            text += this.Identifier.TextUnit.Text;
 
             text += this.LeftParenthesisToken.TextUnit.Text;
 
-            if (this.Arguments != null)
+            foreach (var param in this.Parameters)
             {
-                this.Arguments.GenerateTextUnit();
-                text += this.Arguments.GetFullText();
+                text += param.TextUnit.Text;
             }
 
             text += this.RightParenthesisToken.TextUnit.Text;
 
-            text += this.SemicolonToken.TextUnit.Text + "\n";
+            text += "\n" + base.LeftCurlyBracketToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, this.NewKeyword.TextUnit.Line,
-                this.NewKeyword.TextUnit.Start);
+            foreach (var stmt in base.Statements)
+            {
+                text += stmt.TextUnit.Text;
+            }
+
+            text += base.RightCurlyBracketToken.TextUnit.Text + "\n";
+
+            base.TextUnit = new TextUnit(text, this.FunctionKeyword.TextUnit.Line,
+                this.FunctionKeyword.TextUnit.Start);
         }
 
         #endregion

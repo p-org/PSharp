@@ -37,366 +37,365 @@ namespace Microsoft.PSharp.Parsing
             switch (unit.Text)
             {
                 case "\n":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.NewLine));
-                    this.LineIndex++;
+                    this.Tokens.Add(new Token(unit, TokenType.NewLine));
                     break;
 
                 case " ":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.WhiteSpace));
+                    this.Tokens.Add(new Token(unit, TokenType.WhiteSpace));
                     break;
 
                 case "//":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.CommentLine));
+                    this.Tokens.Add(new Token(unit, TokenType.CommentLine));
                     break;
 
                 case "/*":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.CommentStart));
+                    this.Tokens.Add(new Token(unit, TokenType.CommentStart));
                     break;
 
                 case "*/":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.CommentEnd));
+                    this.Tokens.Add(new Token(unit, TokenType.CommentEnd));
                     break;
 
                 case "#":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Region));
+                    this.Tokens.Add(new Token(unit, TokenType.Region));
                     break;
 
                 case "{":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.LeftCurlyBracket));
+                    this.Tokens.Add(new Token(unit, TokenType.LeftCurlyBracket));
                     break;
 
                 case "}":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.RightCurlyBracket));
+                    this.Tokens.Add(new Token(unit, TokenType.RightCurlyBracket));
                     break;
 
                 case "(":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.LeftParenthesis));
+                    this.Tokens.Add(new Token(unit, TokenType.LeftParenthesis));
                     break;
 
                 case ")":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.RightParenthesis));
+                    this.Tokens.Add(new Token(unit, TokenType.RightParenthesis));
                     break;
 
                 case "[":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.LeftSquareBracket));
+                    this.Tokens.Add(new Token(unit, TokenType.LeftSquareBracket));
                     break;
 
                 case "]":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.RightSquareBracket));
+                    this.Tokens.Add(new Token(unit, TokenType.RightSquareBracket));
                     break;
 
                 case "<":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.LeftAngleBracket));
+                    this.Tokens.Add(new Token(unit, TokenType.LeftAngleBracket));
                     break;
 
                 case ">":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.RightAngleBracket));
+                    this.Tokens.Add(new Token(unit, TokenType.RightAngleBracket));
                     break;
 
                 case ";":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Semicolon));
+                    this.Tokens.Add(new Token(unit, TokenType.Semicolon));
                     break;
 
                 case ":":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Colon));
+                    this.Tokens.Add(new Token(unit, TokenType.Colon));
                     break;
 
                 case ",":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Comma));
+                    this.Tokens.Add(new Token(unit, TokenType.Comma));
                     break;
 
                 case ".":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Dot));
+                    this.Tokens.Add(new Token(unit, TokenType.Dot));
                     break;
 
                 case "==":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.EqualOp));
+                    this.Tokens.Add(new Token(unit, TokenType.EqualOp));
                     break;
 
                 case "=":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.AssignOp));
+                    this.Tokens.Add(new Token(unit, TokenType.AssignOp));
                     break;
 
                 case "+=":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.InsertOp));
+                    this.Tokens.Add(new Token(unit, TokenType.InsertOp));
                     break;
 
                 case "-=":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.RemoveOp));
+                    this.Tokens.Add(new Token(unit, TokenType.RemoveOp));
                     break;
 
                 case "!=":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.NotEqualOp));
+                    this.Tokens.Add(new Token(unit, TokenType.NotEqualOp));
                     break;
 
                 case "<=":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.LessOrEqualOp));
+                    this.Tokens.Add(new Token(unit, TokenType.LessOrEqualOp));
                     break;
 
                 case ">=":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.GreaterOrEqualOp));
+                    this.Tokens.Add(new Token(unit, TokenType.GreaterOrEqualOp));
                     break;
 
                 case "+":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.PlusOp));
+                    this.Tokens.Add(new Token(unit, TokenType.PlusOp));
                     break;
 
                 case "-":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.MinusOp));
+                    this.Tokens.Add(new Token(unit, TokenType.MinusOp));
                     break;
 
                 case "*":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.MulOp));
+                    this.Tokens.Add(new Token(unit, TokenType.MulOp));
                     break;
 
                 case "/":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.DivOp));
+                    this.Tokens.Add(new Token(unit, TokenType.DivOp));
                     break;
 
                 case "%":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.ModOp));
+                    this.Tokens.Add(new Token(unit, TokenType.ModOp));
                     break;
 
                 case "!":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.LogNotOp));
+                    this.Tokens.Add(new Token(unit, TokenType.LogNotOp));
                     break;
 
                 case "&&":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.LogAndOp));
+                    this.Tokens.Add(new Token(unit, TokenType.LogAndOp));
                     break;
 
                 case "||":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.LogOrOp));
+                    this.Tokens.Add(new Token(unit, TokenType.LogOrOp));
                     break;
 
                 case "$":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.NonDeterministic));
+                    this.Tokens.Add(new Token(unit, TokenType.NonDeterministic));
                     break;
 
                 case "private":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Private));
+                    this.Tokens.Add(new Token(unit, TokenType.Private));
                     break;
 
                 case "protected":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Protected));
+                    this.Tokens.Add(new Token(unit, TokenType.Protected));
                     break;
 
                 case "internal":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Internal));
+                    this.Tokens.Add(new Token(unit, TokenType.Internal));
                     break;
 
                 case "public":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Public));
+                    this.Tokens.Add(new Token(unit, TokenType.Public));
                     break;
 
                 case "abstract":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Abstract));
+                    this.Tokens.Add(new Token(unit, TokenType.Abstract));
                     break;
 
                 case "virtual":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Virtual));
+                    this.Tokens.Add(new Token(unit, TokenType.Virtual));
                     break;
 
                 case "override":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Override));
+                    this.Tokens.Add(new Token(unit, TokenType.Override));
                     break;
 
                 case "namespace":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.NamespaceDecl));
+                    this.Tokens.Add(new Token(unit, TokenType.NamespaceDecl));
                     break;
 
                 case "class":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.ClassDecl));
+                    this.Tokens.Add(new Token(unit, TokenType.ClassDecl));
                     break;
 
                 case "struct":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.StructDecl));
+                    this.Tokens.Add(new Token(unit, TokenType.StructDecl));
                     break;
 
                 case "using":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Using));
+                    this.Tokens.Add(new Token(unit, TokenType.Using));
                     break;
 
                 case "machine":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.MachineDecl));
+                    this.Tokens.Add(new Token(unit, TokenType.MachineDecl));
                     break;
 
                 case "model":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.ModelDecl));
+                    this.Tokens.Add(new Token(unit, TokenType.ModelDecl));
                     break;
 
                 case "monitor":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.MonitorDecl));
+                    this.Tokens.Add(new Token(unit, TokenType.MonitorDecl));
                     break;
 
                 case "state":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.StateDecl));
+                    this.Tokens.Add(new Token(unit, TokenType.StateDecl));
                     break;
 
                 case "event":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.EventDecl));
+                    this.Tokens.Add(new Token(unit, TokenType.EventDecl));
                     break;
 
                 case "action":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.ActionDecl));
+                    this.Tokens.Add(new Token(unit, TokenType.ActionDecl));
                     break;
 
                 case "main":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.MainMachine));
+                    this.Tokens.Add(new Token(unit, TokenType.MainMachine));
                     break;
 
                 case "start":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.StartState));
+                    this.Tokens.Add(new Token(unit, TokenType.StartState));
                     break;
 
                 case "on":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.OnAction));
+                    this.Tokens.Add(new Token(unit, TokenType.OnAction));
                     break;
 
                 case "do":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.DoAction));
+                    this.Tokens.Add(new Token(unit, TokenType.DoAction));
                     break;
 
                 case "goto":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.GotoState));
+                    this.Tokens.Add(new Token(unit, TokenType.GotoState));
                     break;
 
                 case "defer":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.DeferEvent));
+                    this.Tokens.Add(new Token(unit, TokenType.DeferEvent));
                     break;
 
                 case "ignore":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.IgnoreEvent));
+                    this.Tokens.Add(new Token(unit, TokenType.IgnoreEvent));
                     break;
 
                 case "to":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.ToMachine));
+                    this.Tokens.Add(new Token(unit, TokenType.ToMachine));
                     break;
 
                 case "entry":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Entry));
+                    this.Tokens.Add(new Token(unit, TokenType.Entry));
                     break;
 
                 case "exit":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Exit));
+                    this.Tokens.Add(new Token(unit, TokenType.Exit));
                     break;
 
                 case "this":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.This));
+                    this.Tokens.Add(new Token(unit, TokenType.This));
                     break;
 
                 case "base":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Base));
+                    this.Tokens.Add(new Token(unit, TokenType.Base));
                     break;
 
                 case "new":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.New));
+                    this.Tokens.Add(new Token(unit, TokenType.New));
                     break;
 
                 case "null":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Null));
+                    this.Tokens.Add(new Token(unit, TokenType.Null));
                     break;
 
                 case "true":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.True));
+                    this.Tokens.Add(new Token(unit, TokenType.True));
                     break;
 
                 case "false":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.False));
+                    this.Tokens.Add(new Token(unit, TokenType.False));
                     break;
 
                 case "sizeof":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.SizeOf));
+                    this.Tokens.Add(new Token(unit, TokenType.SizeOf));
                     break;
 
                 case "in":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.In));
+                    this.Tokens.Add(new Token(unit, TokenType.In));
                     break;
 
                 case "as":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.As));
+                    this.Tokens.Add(new Token(unit, TokenType.As));
                     break;
 
                 case "if":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.IfCondition));
+                    this.Tokens.Add(new Token(unit, TokenType.IfCondition));
                     break;
 
                 case "else":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.ElseCondition));
+                    this.Tokens.Add(new Token(unit, TokenType.ElseCondition));
                     break;
 
                 case "for":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.ForLoop));
+                    this.Tokens.Add(new Token(unit, TokenType.ForLoop));
                     break;
 
                 case "foreach":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.ForeachLoop));
+                    this.Tokens.Add(new Token(unit, TokenType.ForeachLoop));
                     break;
 
                 case "while":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.WhileLoop));
+                    this.Tokens.Add(new Token(unit, TokenType.WhileLoop));
                     break;
 
                 case "break":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Break));
+                    this.Tokens.Add(new Token(unit, TokenType.Break));
                     break;
 
                 case "continue":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Continue));
+                    this.Tokens.Add(new Token(unit, TokenType.Continue));
                     break;
 
                 case "return":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Return));
+                    this.Tokens.Add(new Token(unit, TokenType.Return));
                     break;
 
                 case "lock":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Lock));
+                    this.Tokens.Add(new Token(unit, TokenType.Lock));
                     break;
 
                 case "create":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.CreateMachine));
+                    this.Tokens.Add(new Token(unit, TokenType.CreateMachine));
                     break;
 
                 case "send":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.SendEvent));
+                    this.Tokens.Add(new Token(unit, TokenType.SendEvent));
                     break;
 
                 case "raise":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.RaiseEvent));
+                    this.Tokens.Add(new Token(unit, TokenType.RaiseEvent));
                     break;
 
                 case "delete":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.DeleteMachine));
+                    this.Tokens.Add(new Token(unit, TokenType.DeleteMachine));
                     break;
 
                 case "assert":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Assert));
+                    this.Tokens.Add(new Token(unit, TokenType.Assert));
                     break;
 
                 case "payload":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Payload));
+                    this.Tokens.Add(new Token(unit, TokenType.Payload));
                     break;
 
                 case "var":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Var));
+                    this.Tokens.Add(new Token(unit, TokenType.Var));
                     break;
 
                 case "int":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Int));
+                    this.Tokens.Add(new Token(unit, TokenType.Int));
                     break;
 
                 case "bool":
-                    this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Bool));
+                    this.Tokens.Add(new Token(unit, TokenType.Bool));
                     break;
 
                 default:
                     if (String.IsNullOrWhiteSpace(unit.Text))
                     {
-                        this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.WhiteSpace));
+                        this.Tokens.Add(new Token(unit, TokenType.WhiteSpace));
                     }
                     else
                     {
-                        this.Tokens.Add(new Token(unit, this.LineIndex, TokenType.Identifier));
+                        this.Tokens.Add(new Token(unit, TokenType.Identifier));
                     }
 
                     break;

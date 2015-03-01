@@ -39,11 +39,6 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         public readonly TokenType Type;
 
-        /// <summary>
-        /// The source code line of this token.
-        /// </summary>
-        public readonly int Line;
-
         #endregion
 
         #region public API
@@ -55,19 +50,6 @@ namespace Microsoft.PSharp.Parsing
         public Token(string text)
         {
             this.Text = text;
-            this.Line = 0;
-            this.Type = TokenType.None;
-        }
-
-        /// <summary>
-        /// Constructor. By default the type of the token is None.
-        /// </summary>
-        /// <param name="text">String</param>
-        /// <param name="line">Line</param>
-        public Token(string text, int line)
-        {
-            this.Text = text;
-            this.Line = line;
             this.Type = TokenType.None;
         }
 
@@ -75,12 +57,10 @@ namespace Microsoft.PSharp.Parsing
         /// Constructor. By default the type of the token is None.
         /// </summary>
         /// <param name="unit">TextUnit</param>
-        /// <param name="line">Line</param>
-        public Token(TextUnit unit, int line)
+        public Token(TextUnit unit)
         {
             this.TextUnit = unit;
             this.Text = unit.Text;
-            this.Line = line;
             this.Type = TokenType.None;
         }
 
@@ -92,20 +72,6 @@ namespace Microsoft.PSharp.Parsing
         public Token(string text, TokenType type)
         {
             this.Text = text;
-            this.Line = 0;
-            this.Type = type;
-        }
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="text">String</param>
-        /// <param name="line">Line</param>
-        /// <param name="type">TokenType</param>
-        public Token(string text, int line, TokenType type)
-        {
-            this.Text = text;
-            this.Line = line;
             this.Type = type;
         }
 
@@ -113,13 +79,11 @@ namespace Microsoft.PSharp.Parsing
         /// Constructor.
         /// </summary>
         /// <param name="unit">TextUnit</param>
-        /// <param name="line">Line</param>
         /// <param name="type">TokenType</param>
-        public Token(TextUnit unit, int line, TokenType type)
+        public Token(TextUnit unit, TokenType type)
         {
             this.TextUnit = unit;
             this.Text = unit.Text;
-            this.Line = line;
             this.Type = type;
         }
 

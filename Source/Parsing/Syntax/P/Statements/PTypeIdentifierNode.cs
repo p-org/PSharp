@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="UsingDeclarationNode.cs">
+// <copyright file="PTypeIdentifierNode.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -16,29 +16,19 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.PSharp.Parsing.Syntax
+namespace Microsoft.PSharp.Parsing.Syntax.P
 {
     /// <summary>
-    /// Using declaration node.
+    /// Type identifier node.
     /// </summary>
-    public sealed class UsingDeclarationNode : PSharpSyntaxNode
+    public sealed class PTypeIdentifierNode : PSharpSyntaxNode
     {
         #region fields
 
         /// <summary>
-        /// The using keyword.
+        /// The type tokens.
         /// </summary>
-        public Token UsingKeyword;
-
-        /// <summary>
-        /// The identifier tokens.
-        /// </summary>
-        public List<Token> IdentifierTokens;
-
-        /// <summary>
-        /// The semicolon token.
-        /// </summary>
-        public Token SemicolonToken;
+        public List<Token> TypeTokens;
 
         #endregion
 
@@ -47,9 +37,10 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor.
         /// </summary>
-        public UsingDeclarationNode()
+        public PTypeIdentifierNode()
+            : base()
         {
-            this.IdentifierTokens = new List<Token>();
+            this.TypeTokens = new List<Token>();
         }
 
         /// <summary>
@@ -81,7 +72,20 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <param name="position">Position</param>
         internal override void Rewrite(ref int position)
         {
-            base.RewrittenTextUnit = TextUnit.Clone(base.TextUnit, position);
+            if (this.TypeTokens.Count == 0)
+            {
+                return;
+            }
+
+            var start = position;
+            var text = "";
+
+            foreach (var tok in this.TypeTokens)
+            {
+                text += tok.TextUnit.Text;
+            }
+
+            base.RewrittenTextUnit = new TextUnit(text, this.TypeTokens.First().TextUnit.Line, start);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -90,18 +94,20 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         internal override void GenerateTextUnit()
         {
-            var text = this.UsingKeyword.TextUnit.Text;
-            text += " ";
-
-            foreach (var token in this.IdentifierTokens)
+            if (this.TypeTokens.Count == 0)
             {
-                text += token.TextUnit.Text;
+                return;
             }
 
-            text += this.SemicolonToken.TextUnit.Text + "\n";
+            var text = "";
 
-            base.TextUnit = new TextUnit(text, this.UsingKeyword.TextUnit.Line,
-                this.UsingKeyword.TextUnit.Start);
+            foreach (var tok in this.TypeTokens)
+            {
+                text += tok.TextUnit.Text;
+            }
+
+            base.TextUnit = new TextUnit(text, this.TypeTokens.First().TextUnit.Line,
+                this.TypeTokens.First().TextUnit.Start);
         }
 
         #endregion

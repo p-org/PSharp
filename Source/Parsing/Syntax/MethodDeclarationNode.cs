@@ -114,15 +114,18 @@ namespace Microsoft.PSharp.Parsing.Syntax
         {
             var start = position;
             var text = "";
+            Token initToken = null;
 
             if (this.Modifier != null)
             {
+                initToken = this.Modifier;
                 text += this.Modifier.TextUnit.Text;
                 text += " ";
             }
 
             if (this.InheritanceModifier != null)
             {
+                initToken = this.InheritanceModifier;
                 text += this.InheritanceModifier.TextUnit.Text;
                 text += " ";
             }
@@ -151,8 +154,16 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 text += this.SemicolonToken.TextUnit.Text + "\n";
             }
 
-            base.TextUnit = new TextUnit(text, start);
-            position = base.RewrittenTextUnit.End + 1;
+            if (initToken != null)
+            {
+                base.TextUnit = new TextUnit(text, initToken.TextUnit.Line, start);
+                position = base.RewrittenTextUnit.End + 1;
+            }
+            else
+            {
+                base.TextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Line, start);
+                position = base.RewrittenTextUnit.End + 1;
+            }
         }
 
         /// <summary>
@@ -200,13 +211,15 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 {
                     int length = this.StatementBlock.TextUnit.End - initToken.TextUnit.Start + 1;
 
-                    base.TextUnit = new TextUnit(text, initToken.TextUnit.Start);
+                    base.TextUnit = new TextUnit(text, initToken.TextUnit.Line,
+                        initToken.TextUnit.Start);
                 }
                 else
                 {
                     int length = this.StatementBlock.TextUnit.End - this.TypeIdentifier.TextUnit.Start + 1;
 
-                    base.TextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Start);
+                    base.TextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Line,
+                        this.TypeIdentifier.TextUnit.Start);
                 }
             }
             else
@@ -215,11 +228,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
                 if (initToken != null)
                 {
-                    base.TextUnit = new TextUnit(text, initToken.TextUnit.Start);
+                    base.TextUnit = new TextUnit(text, initToken.TextUnit.Line, initToken.TextUnit.Start);
                 }
                 else
                 {
-                    base.TextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Start);
+                    base.TextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Line,
+                        this.TypeIdentifier.TextUnit.Start);
                 }
             }
         }

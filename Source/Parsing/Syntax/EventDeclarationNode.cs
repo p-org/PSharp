@@ -79,9 +79,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
         internal override void Rewrite(ref int position)
         {
             var text = "";
-            
+            var initToken = this.EventKeyword;
+
             if (this.Modifier != null)
             {
+                initToken = this.Modifier;
                 text += this.Modifier.TextUnit.Text;
                 text += " ";
             }
@@ -95,7 +97,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
             text += " { }\n";
             text += "}\n";
 
-            base.RewrittenTextUnit = new TextUnit(text, position);
+            base.RewrittenTextUnit = new TextUnit(text, initToken.TextUnit.Line, position);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -121,7 +123,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, initToken.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, initToken.TextUnit.Line, initToken.TextUnit.Start);
         }
 
         #endregion

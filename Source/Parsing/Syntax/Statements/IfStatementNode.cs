@@ -110,7 +110,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += this.StatementBlock.GetRewrittenText();
 
-            base.RewrittenTextUnit = new TextUnit(text, start);
+            base.RewrittenTextUnit = new TextUnit(text, this.IfKeyword.TextUnit.Line, start);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -135,7 +135,8 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += this.StatementBlock.GetFullText();
 
-            base.TextUnit = new TextUnit(text, this.IfKeyword.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, this.IfKeyword.TextUnit.Line,
+                this.IfKeyword.TextUnit.Start);
         }
 
         #endregion

@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="UsingDeclarationNode.cs">
+// <copyright file="PEventDeclarationNode.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -16,24 +16,34 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.PSharp.Parsing.Syntax
+namespace Microsoft.PSharp.Parsing.Syntax.P
 {
     /// <summary>
-    /// Using declaration node.
+    /// P event declaration node.
     /// </summary>
-    public sealed class UsingDeclarationNode : PSharpSyntaxNode
+    public sealed class PEventDeclarationNode : PSharpSyntaxNode
     {
         #region fields
 
         /// <summary>
-        /// The using keyword.
+        /// The event keyword.
         /// </summary>
-        public Token UsingKeyword;
+        public Token EventKeyword;
 
         /// <summary>
-        /// The identifier tokens.
+        /// The identifier token.
         /// </summary>
-        public List<Token> IdentifierTokens;
+        public Token Identifier;
+
+        /// <summary>
+        /// The colon token.
+        /// </summary>
+        public Token ColonToken;
+
+        /// <summary>
+        /// The payload type identifier node.
+        /// </summary>
+        public PTypeIdentifierNode PayloadType;
 
         /// <summary>
         /// The semicolon token.
@@ -47,9 +57,10 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor.
         /// </summary>
-        public UsingDeclarationNode()
+        public PEventDeclarationNode()
+            : base()
         {
-            this.IdentifierTokens = new List<Token>();
+
         }
 
         /// <summary>
@@ -81,7 +92,16 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <param name="position">Position</param>
         internal override void Rewrite(ref int position)
         {
-            base.RewrittenTextUnit = TextUnit.Clone(base.TextUnit, position);
+            var text = "class " + this.Identifier.TextUnit.Text + " : Event";
+
+            text += "\n";
+            text += "{\n";
+            text += " public " + this.Identifier.TextUnit.Text + "(params Object[] payload)\n";
+            text += "  : base(payload)\n";
+            text += " { }\n";
+            text += "}\n";
+
+            base.RewrittenTextUnit = new TextUnit(text, this.EventKeyword.TextUnit.Line, position);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -90,18 +110,27 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         internal override void GenerateTextUnit()
         {
-            var text = this.UsingKeyword.TextUnit.Text;
+            var text = "";
+
+            text += this.EventKeyword.TextUnit.Text;
             text += " ";
 
-            foreach (var token in this.IdentifierTokens)
+            text += this.Identifier.TextUnit.Text;
+
+            if (this.ColonToken != null)
             {
-                text += token.TextUnit.Text;
+                text += " ";
+                text += this.ColonToken.TextUnit.Text;
+                text += " ";
+
+                this.PayloadType.GenerateTextUnit();
+                text += this.PayloadType.GetFullText();
             }
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, this.UsingKeyword.TextUnit.Line,
-                this.UsingKeyword.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, this.EventKeyword.TextUnit.Line,
+                this.EventKeyword.TextUnit.Start);
         }
 
         #endregion

@@ -36,11 +36,6 @@ namespace Microsoft.PSharp.Parsing
         protected List<TextUnit> TextUnits;
 
         /// <summary>
-        /// The current line index.
-        /// </summary>
-        protected int LineIndex;
-
-        /// <summary>
         /// The current index.
         /// </summary>
         protected int Index;
@@ -63,12 +58,12 @@ namespace Microsoft.PSharp.Parsing
 
             this.Tokens = new List<Token>();
             this.TextUnits = new List<TextUnit>();
-            this.LineIndex = 1;
             this.Index = 0;
 
             using (StringReader sr = new StringReader(text))
             {
                 int position = 0;
+                int line = 1;
                 string lineText;
                 while ((lineText = sr.ReadLine()) != null)
                 {
@@ -80,12 +75,13 @@ namespace Microsoft.PSharp.Parsing
                             continue;
                         }
 
-                        this.TextUnits.Add(new TextUnit(tok, position));
+                        this.TextUnits.Add(new TextUnit(tok, line, position));
                         position += tok.Length;
                     }
 
-                    this.TextUnits.Add(new TextUnit("\n", position));
+                    this.TextUnits.Add(new TextUnit("\n", line, position));
                     position++;
+                    line++;
                 }
             }
 

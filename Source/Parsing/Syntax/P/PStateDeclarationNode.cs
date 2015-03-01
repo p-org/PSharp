@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="StateDeclarationNode.cs">
+// <copyright file="PStateDeclarationNode.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -16,12 +16,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.PSharp.Parsing.Syntax
+namespace Microsoft.PSharp.Parsing.Syntax.P
 {
     /// <summary>
     /// State declaration node.
     /// </summary>
-    public sealed class StateDeclarationNode : PSharpSyntaxNode
+    public sealed class PStateDeclarationNode : PSharpSyntaxNode
     {
         #region fields
 
@@ -33,17 +33,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// The machine parent node.
         /// </summary>
-        public readonly MachineDeclarationNode Machine;
+        public readonly PMachineDeclarationNode Machine;
 
         /// <summary>
         /// The state keyword.
         /// </summary>
         public Token StateKeyword;
-
-        /// <summary>
-        /// The modifier token.
-        /// </summary>
-        public Token Modifier;
 
         /// <summary>
         /// The identifier token.
@@ -58,12 +53,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Entry declaration.
         /// </summary>
-        public EntryDeclarationNode EntryDeclaration;
+        public PEntryDeclarationNode EntryDeclaration;
 
         /// <summary>
         /// Exit declaration.
         /// </summary>
-        public ExitDeclarationNode ExitDeclaration;
+        public PExitDeclarationNode ExitDeclaration;
 
         /// <summary>
         /// Dictionary containing state transitions.
@@ -97,9 +92,10 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="machineNode">MachineDeclarationNode</param>
+        /// <param name="machineNode">PMachineDeclarationNode</param>
         /// <param name="isInit">Is initial state</param>
-        public StateDeclarationNode(MachineDeclarationNode machineNode, bool isInit)
+        public PStateDeclarationNode(PMachineDeclarationNode machineNode, bool isInit)
+            : base()
         {
             this.IsInitial = isInit;
             this.Machine = machineNode;
@@ -225,21 +221,14 @@ namespace Microsoft.PSharp.Parsing.Syntax
             }
 
             var text = "";
-            var initToken = this.StateKeyword;
 
             if (this.IsInitial)
             {
                 text += "[Initial]\n";
             }
 
-            if (this.Modifier != null)
-            {
-                initToken = this.Modifier;
-                text += this.Modifier.TextUnit.Text;
-                text += " ";
-            }
+            text += "class " +  this.Identifier.TextUnit.Text + " : State";
 
-            text += "class " + this.Identifier.TextUnit.Text + " : State";
             text += "\n" + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
 
             if (this.EntryDeclaration != null)
@@ -257,7 +246,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
 
-            base.RewrittenTextUnit = new TextUnit(text, initToken.TextUnit.Line, start);
+            base.RewrittenTextUnit = new TextUnit(text, this.StateKeyword.TextUnit.Line, start);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -277,14 +266,6 @@ namespace Microsoft.PSharp.Parsing.Syntax
             }
 
             var text = "";
-            var initToken = this.StateKeyword;
-
-            if (this.Modifier != null)
-            {
-                initToken = this.Modifier;
-                text += this.Modifier.TextUnit.Text;
-                text += " ";
-            }
 
             text += this.StateKeyword.TextUnit.Text;
             text += " ";
@@ -305,7 +286,8 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, initToken.TextUnit.Line, initToken.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, this.StateKeyword.TextUnit.Line,
+                this.StateKeyword.TextUnit.Start);
         }
 
         #endregion

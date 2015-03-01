@@ -172,9 +172,10 @@ namespace Microsoft.PSharp.Parsing
             }
 
             var errorToken = this.Tokens[errorIndex];
-            var errorLine = this.OriginalTokens.Where(val => val.Line == errorToken.Line).ToList();
+            var errorLine = this.OriginalTokens.Where(
+                val => val.TextUnit.Line == errorToken.TextUnit.Line).ToList();
 
-            error += "\nIn " + this.FilePath + " (line " + errorToken.Line + "):\n";
+            error += "\nIn " + this.FilePath + " (line " + errorToken.TextUnit.Line + "):\n";
 
             int nonWhiteIndex = 0;
             for (int idx = 0; idx < errorLine.Count; idx++)

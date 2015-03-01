@@ -60,6 +60,7 @@
     <Compile Include="IPSharpProgram.cs" />
     <Compile Include="AbstractPSharpProgram.cs" />
     <Compile Include="PProgram.cs" />
+    <Compile Include="Syntax\P\Statements\PTypeIdentifierNode.cs" />
     <Compile Include="Syntax\Statements\AssertStatementNode.cs" />
     <Compile Include="Syntax\Statements\NewStatementNode.cs" />
     <Compile Include="Syntax\Statements\SendStatementNode.cs" />

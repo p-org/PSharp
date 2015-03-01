@@ -105,15 +105,18 @@ namespace Microsoft.PSharp.Parsing.Syntax
             }
 
             var text = "";
+            var initToken = this.ActionKeyword;
 
             if (this.Modifier != null)
             {
+                initToken = this.Modifier;
                 text += this.Modifier.TextUnit.Text;
                 text += " ";
             }
 
             if (this.InheritanceModifier != null)
             {
+                initToken = this.InheritanceModifier;
                 text += this.InheritanceModifier.TextUnit.Text;
                 text += " ";
             }
@@ -129,7 +132,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 text += this.SemicolonToken.TextUnit.Text + "\n";
             }
 
-            base.RewrittenTextUnit = new TextUnit(text, start);
+            base.RewrittenTextUnit = new TextUnit(text, initToken.TextUnit.Line, start);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -169,13 +172,13 @@ namespace Microsoft.PSharp.Parsing.Syntax
             {
                 text += this.StatementBlock.GetFullText();
 
-                base.TextUnit = new TextUnit(text, initToken.TextUnit.Start);
+                base.TextUnit = new TextUnit(text, initToken.TextUnit.Line, initToken.TextUnit.Start);
             }
             else
             {
                 text += this.SemicolonToken.TextUnit.Text + "\n";
 
-                base.TextUnit = new TextUnit(text, initToken.TextUnit.Start);
+                base.TextUnit = new TextUnit(text, initToken.TextUnit.Line, initToken.TextUnit.Start);
             }
         }
 

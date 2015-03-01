@@ -114,7 +114,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 
-            base.RewrittenTextUnit = new TextUnit(text, start);
+            base.RewrittenTextUnit = new TextUnit(text, this.CreateKeyword.TextUnit.Line, start);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -145,7 +145,8 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, this.CreateKeyword.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, this.CreateKeyword.TextUnit.Line,
+                this.CreateKeyword.TextUnit.Start);
         }
 
         #endregion

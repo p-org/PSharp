@@ -486,7 +486,7 @@ namespace Microsoft.PSharp.Parsing
             }
 
             base.Tokens[base.Index] = new Token(base.Tokens[base.Index].TextUnit,
-                base.Tokens[base.Index].Line, TokenType.EventIdentifier);
+                TokenType.EventIdentifier);
 
             node.Identifier = base.Tokens[base.Index];
 
@@ -561,7 +561,7 @@ namespace Microsoft.PSharp.Parsing
 
             base.CurrentMachine = base.Tokens[base.Index].Text;
             base.Tokens[base.Index] = new Token(base.Tokens[base.Index].TextUnit,
-                base.Tokens[base.Index].Line, TokenType.MachineIdentifier);
+                TokenType.MachineIdentifier);
 
             node.Identifier = base.Tokens[base.Index];
 
@@ -632,7 +632,7 @@ namespace Microsoft.PSharp.Parsing
             }
 
             base.Tokens[base.Index] = new Token(base.Tokens[base.Index].TextUnit,
-                base.Tokens[base.Index].Line, TokenType.MachineLeftCurlyBracket);
+                TokenType.MachineLeftCurlyBracket);
 
             node.LeftCurlyBracketToken = base.Tokens[base.Index];
 
@@ -725,7 +725,7 @@ namespace Microsoft.PSharp.Parsing
 
                 case TokenType.RightCurlyBracket:
                     base.Tokens[base.Index] = new Token(base.Tokens[base.Index].TextUnit,
-                        base.Tokens[base.Index].Line, TokenType.MachineRightCurlyBracket);
+                        TokenType.MachineRightCurlyBracket);
                     node.RightCurlyBracketToken = base.Tokens[base.Index];
                     base.CurrentMachine = "";
                     fixpoint = true;
@@ -903,7 +903,7 @@ namespace Microsoft.PSharp.Parsing
 
             base.CurrentState = base.Tokens[base.Index].Text;
             base.Tokens[base.Index] = new Token(base.Tokens[base.Index].TextUnit,
-                base.Tokens[base.Index].Line, TokenType.StateIdentifier);
+                TokenType.StateIdentifier);
 
             node.Identifier = base.Tokens[base.Index];
 
@@ -921,7 +921,7 @@ namespace Microsoft.PSharp.Parsing
             }
 
             base.Tokens[base.Index] = new Token(base.Tokens[base.Index].TextUnit,
-                base.Tokens[base.Index].Line, TokenType.StateLeftCurlyBracket);
+                TokenType.StateLeftCurlyBracket);
 
             node.LeftCurlyBracketToken = base.Tokens[base.Index];
 
@@ -1007,7 +1007,7 @@ namespace Microsoft.PSharp.Parsing
 
                 case TokenType.RightCurlyBracket:
                     base.Tokens[base.Index] = new Token(base.Tokens[base.Index].TextUnit,
-                        base.Tokens[base.Index].Line, TokenType.StateRightCurlyBracket);
+                        TokenType.StateRightCurlyBracket);
                     node.RightCurlyBracketToken = base.Tokens[base.Index];
                     base.CurrentState = "";
                     fixpoint = true;
@@ -1115,7 +1115,7 @@ namespace Microsoft.PSharp.Parsing
             }
 
             base.Tokens[base.Index] = new Token(base.Tokens[base.Index].TextUnit,
-                base.Tokens[base.Index].Line, TokenType.EventIdentifier);
+                TokenType.EventIdentifier);
 
             var eventIdentifier = base.Tokens[base.Index];
 
@@ -1150,7 +1150,7 @@ namespace Microsoft.PSharp.Parsing
                 }
 
                 base.Tokens[base.Index] = new Token(base.Tokens[base.Index].TextUnit,
-                    base.Tokens[base.Index].Line, TokenType.ActionIdentifier);
+                    TokenType.ActionIdentifier);
 
                 var actionIdentifier = base.Tokens[base.Index];
                 if (!parentNode.AddActionBinding(eventIdentifier, actionIdentifier))
@@ -1187,7 +1187,7 @@ namespace Microsoft.PSharp.Parsing
                 }
 
                 base.Tokens[base.Index] = new Token(base.Tokens[base.Index].TextUnit,
-                    base.Tokens[base.Index].Line, TokenType.StateIdentifier);
+                    TokenType.StateIdentifier);
 
                 var stateIdentifier = base.Tokens[base.Index];
                 if (!parentNode.AddStateTransition(eventIdentifier, stateIdentifier))
@@ -1254,7 +1254,7 @@ namespace Microsoft.PSharp.Parsing
                 if (base.Tokens[base.Index].Type == TokenType.Identifier)
                 {
                     base.Tokens[base.Index] = new Token(base.Tokens[base.Index].TextUnit,
-                        base.Tokens[base.Index].Line, TokenType.EventIdentifier);
+                        TokenType.EventIdentifier);
 
                     if (!parentNode.AddDeferredEvent(base.Tokens[base.Index]))
                     {
@@ -1327,7 +1327,7 @@ namespace Microsoft.PSharp.Parsing
                 if (base.Tokens[base.Index].Type == TokenType.Identifier)
                 {
                     base.Tokens[base.Index] = new Token(base.Tokens[base.Index].TextUnit,
-                        base.Tokens[base.Index].Line, TokenType.EventIdentifier);
+                        TokenType.EventIdentifier);
 
                     if (!parentNode.AddIgnoredEvent(base.Tokens[base.Index]))
                     {
@@ -1384,7 +1384,7 @@ namespace Microsoft.PSharp.Parsing
             }
 
             base.Tokens[base.Index] = new Token(base.Tokens[base.Index].TextUnit,
-                base.Tokens[base.Index].Line, TokenType.ActionIdentifier);
+                TokenType.ActionIdentifier);
 
             node.Identifier = base.Tokens[base.Index];
 
@@ -1426,8 +1426,9 @@ namespace Microsoft.PSharp.Parsing
         private void VisitFieldOrMethodDeclaration(MachineDeclarationNode parentNode, Token modifier,
             Token inheritanceModifier)
         {
-            Token typeIdentifier = null;
-            this.VisitTypeIdentifier(out typeIdentifier);
+            TextUnit textUnit = null;
+            this.VisitTypeIdentifier(ref textUnit);
+            var typeIdentifier = new Token(textUnit, TokenType.TypeIdentifier);
 
             if (base.Index == base.Tokens.Count ||
                 base.Tokens[base.Index].Type != TokenType.Identifier)
@@ -1502,8 +1503,7 @@ namespace Microsoft.PSharp.Parsing
             while (base.Index < base.Tokens.Count &&
                 base.Tokens[base.Index].Type != TokenType.RightParenthesis)
             {
-                base.Tokens[base.Index] = new Token(base.Tokens[base.Index].TextUnit,
-                    base.Tokens[base.Index].Line);
+                base.Tokens[base.Index] = new Token(base.Tokens[base.Index].TextUnit);
 
                 node.Parameters.Add(base.Tokens[base.Index]);
 
@@ -1675,8 +1675,9 @@ namespace Microsoft.PSharp.Parsing
                 });
             }
 
-            Token typeIdentifier = null;
-            this.VisitTypeIdentifier(out typeIdentifier);
+            TextUnit textUnit = null;
+            this.VisitTypeIdentifier(ref textUnit);
+            var typeIdentifier = new Token(textUnit, TokenType.TypeIdentifier);
             node.TypeIdentifier = typeIdentifier;
 
             if (base.Index == base.Tokens.Count ||
@@ -1752,7 +1753,7 @@ namespace Microsoft.PSharp.Parsing
                 if (base.Tokens[base.Index].Type == TokenType.Identifier)
                 {
                     base.Tokens[base.Index] = new Token(base.Tokens[base.Index].TextUnit,
-                        base.Tokens[base.Index].Line, TokenType.MachineIdentifier);
+                        TokenType.MachineIdentifier);
                 }
 
                 node.MachineIdentifier.Add(base.Tokens[base.Index]);
@@ -1825,7 +1826,7 @@ namespace Microsoft.PSharp.Parsing
             }
 
             base.Tokens[base.Index] = new Token(base.Tokens[base.Index].TextUnit,
-                base.Tokens[base.Index].Line, TokenType.EventIdentifier);
+                TokenType.EventIdentifier);
 
             node.EventIdentifier = base.Tokens[base.Index];
 
@@ -1896,7 +1897,7 @@ namespace Microsoft.PSharp.Parsing
             }
 
             base.Tokens[base.Index] = new Token(base.Tokens[base.Index].TextUnit,
-                base.Tokens[base.Index].Line, TokenType.EventIdentifier);
+                TokenType.EventIdentifier);
 
             node.EventIdentifier = base.Tokens[base.Index];
 
@@ -2237,8 +2238,8 @@ namespace Microsoft.PSharp.Parsing
         /// <summary>
         /// Visits a type identifier.
         /// </summary>
-        /// <param name="token">Token</param>
-        private void VisitTypeIdentifier(out Token token)
+        /// <param name="textUnit">TextUnit</param>
+        private void VisitTypeIdentifier(ref TextUnit textUnit)
         {
             if (base.Index == base.Tokens.Count ||
                 (base.Tokens[base.Index].Type != TokenType.Int &&
@@ -2252,9 +2253,8 @@ namespace Microsoft.PSharp.Parsing
                 });
             }
 
-            TextUnit textUnit = null;
             var position = base.Tokens[base.Index].TextUnit.Start;
-            var line = base.Tokens[base.Index].Line;
+            var line = base.Tokens[base.Index].TextUnit.Line;
 
             bool expectsDot = false;
             while (base.Index < base.Tokens.Count)
@@ -2281,11 +2281,13 @@ namespace Microsoft.PSharp.Parsing
 
                 if (textUnit == null)
                 {
-                    textUnit = new TextUnit(base.Tokens[base.Index].TextUnit.Text, position);
+                    textUnit = new TextUnit(base.Tokens[base.Index].TextUnit.Text,
+                        line, position);
                 }
                 else
                 {
-                    textUnit = new TextUnit(textUnit.Text + base.Tokens[base.Index].TextUnit.Text, position);
+                    textUnit = new TextUnit(textUnit.Text + base.Tokens[base.Index].TextUnit.Text,
+                        line, position);
                 }
 
                 base.Index++;
@@ -2294,7 +2296,8 @@ namespace Microsoft.PSharp.Parsing
 
             if (base.Tokens[base.Index].Type == TokenType.LeftAngleBracket)
             {
-                textUnit = new TextUnit(textUnit.Text + base.Tokens[base.Index].TextUnit.Text, position);
+                textUnit = new TextUnit(textUnit.Text + base.Tokens[base.Index].TextUnit.Text,
+                    line, position);
 
                 base.Index++;
                 base.SkipWhiteSpaceAndCommentTokens();
@@ -2325,7 +2328,8 @@ namespace Microsoft.PSharp.Parsing
                         break;
                     }
 
-                    textUnit = new TextUnit(textUnit.Text + base.Tokens[base.Index].TextUnit.Text, position);
+                    textUnit = new TextUnit(textUnit.Text + base.Tokens[base.Index].TextUnit.Text,
+                        line, position);
 
                     base.Index++;
                     base.SkipWhiteSpaceAndCommentTokens();
@@ -2341,13 +2345,12 @@ namespace Microsoft.PSharp.Parsing
                     });
                 }
 
-                textUnit = new TextUnit(textUnit.Text + base.Tokens[base.Index].TextUnit.Text, position);
+                textUnit = new TextUnit(textUnit.Text + base.Tokens[base.Index].TextUnit.Text,
+                    line, position);
 
                 base.Index++;
                 base.SkipWhiteSpaceAndCommentTokens();
             }
-
-            token = new Token(textUnit, line, TokenType.TypeIdentifier);
         }
 
         /// <summary>
@@ -2372,8 +2375,7 @@ namespace Microsoft.PSharp.Parsing
                     break;
                 }
 
-                base.Tokens[base.Index] = new Token(base.Tokens[base.Index].TextUnit,
-                    base.Tokens[base.Index].Line);
+                base.Tokens[base.Index] = new Token(base.Tokens[base.Index].TextUnit);
 
                 base.Index++;
                 base.SkipWhiteSpaceAndCommentTokens();
@@ -2398,7 +2400,6 @@ namespace Microsoft.PSharp.Parsing
         {
             base.Index++;
             base.SkipWhiteSpaceAndCommentTokens();
-
 
             int counter = 1;
             while (base.Index < base.Tokens.Count)
