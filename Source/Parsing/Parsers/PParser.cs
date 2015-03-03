@@ -1125,10 +1125,13 @@ namespace Microsoft.PSharp.Parsing
             {
                 node.LeftParenthesisToken = base.Tokens[base.Index];
 
-                var payload = new PExpressionNode(parentNode);
-                this.VisitArgumentsList(payload);
+                base.Index++;
+                base.SkipWhiteSpaceAndCommentTokens();
 
+                var payload = new PPayloadSendExpressionNode(parentNode);
+                this.VisitPayload(payload);
                 node.Payload = payload;
+
                 node.RightParenthesisToken = base.Tokens[base.Index];
 
                 base.Index++;

@@ -43,7 +43,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         /// <summary>
         /// The machine creation payload.
         /// </summary>
-        public PExpressionNode Payload;
+        public PPayloadSendExpressionNode Payload;
 
         /// <summary>
         /// The right parenthesis token.

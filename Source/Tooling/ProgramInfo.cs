@@ -120,7 +120,7 @@ namespace Microsoft.PSharp.Tooling
             ProgramInfo.Solution = project.Solution;
             ProgramInfo.Workspace = project.Solution.Workspace;
 
-            ProgramInfo.PrintSyntaxTree(tree);
+            //ProgramInfo.PrintSyntaxTree(tree);
         }
 
         /// <summary>

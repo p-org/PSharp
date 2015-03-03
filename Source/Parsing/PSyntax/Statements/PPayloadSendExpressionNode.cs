@@ -55,7 +55,9 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         protected override void RunSpecialisedRewrittingPass(ref int position)
         {
             this.Index = 0;
-            this.RewritePayload();
+
+            var payloadType = "";
+            this.RewritePayload(ref payloadType);
         }
 
         #endregion
@@ -65,11 +67,22 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         /// <summary>
         /// Rewrites a payload.
         /// </summary>
-        private void RewritePayload()
+        /// <param name="payloadType">Payload type</param>
+        private void RewritePayload(ref string payloadType)
         {
             if (base.RewrittenStmtTokens[this.Index].Type == TokenType.LeftParenthesis)
             {
-                this.RewritePayloadTuple();
+                this.RewritePayloadTuple(ref payloadType);
+            }
+            else if (base.RewrittenStmtTokens[this.Index].Type == TokenType.This)
+            {
+                payloadType += "Machine";
+            }
+            else
+            {
+                var field = base.Parent.Machine.FieldDeclarations.Find(val => val.Identifier.TextUnit.Text.Equals(
+                    base.RewrittenStmtTokens[this.Index].TextUnit.Text));
+                payloadType += field.Type.GetRewrittenText();
             }
 
             this.Index++;
@@ -78,12 +91,13 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         /// <summary>
         /// Rewrites a payload tuple.
         /// </summary>
-        private void RewritePayloadTuple()
+        /// <param name="payloadType">Payload type</param>
+        private void RewritePayloadTuple(ref string payloadType)
         {
+            var tupleType = "Tuple<";
             var tupleIdx = this.Index;
             this.Index++;
 
-            int tupleSize = 1;
             bool expectsComma = false;
             while (this.Index < base.RewrittenStmtTokens.Count &&
                 base.RewrittenStmtTokens[this.Index].Type != TokenType.RightParenthesis)
@@ -99,24 +113,23 @@ namespace Microsoft.PSharp.Parsing.PSyntax
                 if (base.RewrittenStmtTokens[this.Index].Type == TokenType.Identifier ||
                     base.RewrittenStmtTokens[this.Index].Type == TokenType.LeftParenthesis)
                 {
-                    this.RewritePayload();
+                    var type = "";
+                    this.RewritePayload(ref type);
+                    tupleType += type;
                     expectsComma = true;
                 }
                 else if (base.RewrittenStmtTokens[this.Index].Type == TokenType.Comma)
                 {
-                    this.Index++;
-                    tupleSize++;
+                    tupleType += ",";
                     expectsComma = false;
+                    this.Index++;
                 }
             }
 
-            var tupleStr = "new Tuple<Object";
-            for (int idx = 0; idx < tupleSize - 1; idx++)
-            {
-                tupleStr += ", Object";
-            }
-            tupleStr += ">(";
+            tupleType += ">";
+            payloadType += tupleType;
 
+            var tupleStr = "new " + tupleType + "(";
             var textUnit = new TextUnit(tupleStr, base.RewrittenStmtTokens[tupleIdx].TextUnit.Line,
                 base.RewrittenStmtTokens[tupleIdx].TextUnit.Start);
             base.RewrittenStmtTokens[tupleIdx] = new Token(textUnit);
