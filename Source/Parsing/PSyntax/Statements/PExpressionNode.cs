@@ -16,12 +16,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.PSharp.Parsing.Syntax.P
+namespace Microsoft.PSharp.Parsing.PSyntax
 {
     /// <summary>
     /// Expression node.
     /// </summary>
-    public class PExpressionNode : PSharpSyntaxNode
+    public class PExpressionNode : PSyntaxNode
     {
         #region fields
 
@@ -38,7 +38,17 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
         /// <summary>
         /// The rewritten statement tokens.
         /// </summary>
-        public List<Token> RewrittenStmtTokens;
+        protected List<Token> RewrittenStmtTokens;
+
+        /// <summary>
+        /// Received payloads.
+        /// </summary>
+        public List<PPayloadReceiveNode> Payloads;
+
+        /// <summary>
+        /// Pending received payloads.
+        /// </summary>
+        private List<PPayloadReceiveNode> PendingPayloads;
 
         /// <summary>
         /// The current index.
@@ -59,6 +69,8 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
             this.Parent = node;
             this.StmtTokens = new List<Token>();
             this.RewrittenStmtTokens = new List<Token>();
+            this.Payloads = new List<PPayloadReceiveNode>();
+            this.PendingPayloads = new List<PPayloadReceiveNode>();
         }
 
         /// <summary>
@@ -107,6 +119,8 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
 
             this.Index = 0;
             this.RewrittenStmtTokens = this.StmtTokens.ToList();
+            this.PendingPayloads = this.Payloads.ToList();
+            this.RunSpecialisedRewrittingPass(ref position);
             this.RewriteNextToken(ref position);
 
             var start = position;
@@ -136,6 +150,11 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
 
             foreach (var tok in this.StmtTokens)
             {
+                if (tok == null)
+                {
+                    continue;
+                }
+
                 text += tok.TextUnit.Text;
             }
 
@@ -148,10 +167,24 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
         #region protected API
 
         /// <summary>
+        /// Can be overriden by child classes to implement specialised
+        /// rewritting functionality.
+        /// </summary>
+        /// <param name="position">Position</param>
+        protected virtual void RunSpecialisedRewrittingPass(ref int position)
+        {
+
+        }
+
+        #endregion
+
+        #region private API
+
+        /// <summary>
         /// Rewrites the next token.
         /// </summary>
         /// <param name="position">Position</param>
-        protected void RewriteNextToken(ref int position)
+        private void RewriteNextToken(ref int position)
         {
             if (this.Index == this.RewrittenStmtTokens.Count)
             {
@@ -159,9 +192,13 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
             }
 
             var token = this.RewrittenStmtTokens[this.Index];
-            if (token.Type == TokenType.Payload)
+            if (token == null)
             {
                 this.RewritePayload(ref position);
+            }
+            else if (token.Type == TokenType.MachineDecl)
+            {
+                this.RewriteMachineType(ref position);
             }
             else if (token.Type == TokenType.This)
             {
@@ -182,33 +219,27 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
         /// param name="position">Position</param>
         private void RewritePayload(ref int position)
         {
-            var startIdx = this.Index;
-            this.Index++;
+            var payload = this.PendingPayloads[0];
+            this.PendingPayloads.RemoveAt(0);
 
-            var isArray = false;
-            this.SkipWhiteSpaceTokens();
-            if (this.Index < this.RewrittenStmtTokens.Count &&
-                this.RewrittenStmtTokens[this.Index].Type == TokenType.LeftSquareBracket)
-            {
-                isArray = true;
-            }
+            payload.GenerateTextUnit();
+            payload.Rewrite(ref position);
+            var text = payload.GetRewrittenText();
+            var line = payload.TextUnit.Line;
 
-            this.Index = startIdx;
+            this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line, position));
+            position += text.Length;
+        }
 
-            if (isArray)
-            {
-                int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
-                var text = "((Object[])this.Payload)";
-                this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line, position));
-                position += text.Length;
-            }
-            else
-            {
-                int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
-                var text = "this.Payload";
-                this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line, position));
-                position += text.Length;
-            }
+        /// <summary>
+        /// Rewrites the machine type.
+        /// </summary>
+        /// param name="position">Position</param>
+        private void RewriteMachineType(ref int position)
+        {
+            var textUnit = new TextUnit("Machine", this.RewrittenStmtTokens[this.Index].TextUnit.Line,
+                this.RewrittenStmtTokens[this.Index].TextUnit.Start);
+            this.RewrittenStmtTokens[this.Index] = new Token(textUnit, this.RewrittenStmtTokens[this.Index].Type);
         }
 
         /// <summary>
@@ -222,30 +253,17 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
                 return;
             }
 
-            var removeIdx = this.Index + 1;
-            this.SkipWhiteSpaceTokens();
-
-            if (removeIdx < this.RewrittenStmtTokens.Count &&
-                this.RewrittenStmtTokens[removeIdx].Type == TokenType.Dot)
-            {
-                this.RewrittenStmtTokens.RemoveAt(this.Index);
-                this.RewrittenStmtTokens.RemoveAt(this.Index);
-                this.Index--;
-            }
-            else
-            {
-                int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
-                var text = "this.Machine";
-                this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line, position));
-                position += text.Length;
-            }
+            int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
+            var text = "this.Machine";
+            this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line, position));
+            position += text.Length;
         }
 
         /// <summary>
         /// Rewrites the identifier.
         /// </summary>
         /// <param name="position">Position</param>
-        protected void RewriteIdentifier(ref int position)
+        private void RewriteIdentifier(ref int position)
         {
             if (this.Parent.Machine == null || this.Parent.State == null ||
                 !(this.Parent.Machine.FieldDeclarations.Any(val => val.Identifier.TextUnit.Text.

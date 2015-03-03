@@ -231,6 +231,10 @@ namespace Microsoft.PSharp.Parsing
                     this.Tokens.Add(new Token(unit, TokenType.Exit));
                     break;
 
+                case "this":
+                    this.Tokens.Add(new Token(unit, TokenType.This));
+                    break;
+
                 case "new":
                     this.Tokens.Add(new Token(unit, TokenType.New));
                     break;

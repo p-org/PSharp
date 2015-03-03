@@ -16,12 +16,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.PSharp.Parsing.Syntax.P
+namespace Microsoft.PSharp.Parsing.PSyntax
 {
     /// <summary>
     /// Abstract statement node.
     /// </summary>
-    public abstract class PStatementNode : PSharpSyntaxNode
+    public abstract class PStatementNode : PSyntaxNode
     {
         #region fields
 

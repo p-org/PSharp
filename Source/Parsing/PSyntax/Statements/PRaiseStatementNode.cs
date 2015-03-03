@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="PIfStatementNode.cs">
+// <copyright file="PRaiseStatementNode.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -16,39 +16,34 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.PSharp.Parsing.Syntax.P
+namespace Microsoft.PSharp.Parsing.PSyntax
 {
     /// <summary>
-    /// If statement node.
+    /// Raise statement node.
     /// </summary>
-    public sealed class PIfStatementNode : PStatementNode
+    public sealed class PRaiseStatementNode : PStatementNode
     {
         #region fields
 
         /// <summary>
-        /// The if keyword.
+        /// The raise keyword.
         /// </summary>
-        public Token IfKeyword;
+        public Token RaiseKeyword;
 
         /// <summary>
-        /// The left parenthesis token.
+        /// The event identifier.
         /// </summary>
-        public Token LeftParenthesisToken;
+        public Token EventIdentifier;
 
         /// <summary>
-        /// The guard predicate.
+        /// The comma token.
         /// </summary>
-        public PExpressionNode Guard;
+        public Token Comma;
 
         /// <summary>
-        /// The right parenthesis token.
+        /// The event payload.
         /// </summary>
-        public Token RightParenthesisToken;
-
-        /// <summary>
-        /// The statement block.
-        /// </summary>
-        public PStatementBlockNode StatementBlock;
+        public PExpressionNode Payload;
 
         #endregion
 
@@ -58,7 +53,7 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
         /// Constructor.
         /// </summary>
         /// <param name="node">Node</param>
-        public PIfStatementNode(PStatementBlockNode node)
+        public PRaiseStatementNode(PStatementBlockNode node)
             : base(node)
         {
 
@@ -95,22 +90,21 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
         {
             var start = position;
 
-            this.Guard.Rewrite(ref position);
-            this.StatementBlock.Rewrite(ref position);
+            var text = "this.Raise(new " + this.EventIdentifier.TextUnit.Text + "(";
 
-            var text = "";
+            if (this.Comma != null)
+            {
+                this.Payload.Rewrite(ref position);
+                text += this.Payload.GetRewrittenText();
+            }
 
-            text += this.IfKeyword.TextUnit.Text;
+            text += "))";
 
-            text += this.LeftParenthesisToken.TextUnit.Text;
+            text += this.SemicolonToken.TextUnit.Text + "\n";
 
-            text += this.Guard.GetRewrittenText();
+            text += "return;\n";
 
-            text += this.RightParenthesisToken.TextUnit.Text;
-
-            text += this.StatementBlock.GetRewrittenText();
-
-            base.RewrittenTextUnit = new TextUnit(text, this.IfKeyword.TextUnit.Line, start);
+            base.RewrittenTextUnit = new TextUnit(text, this.RaiseKeyword.TextUnit.Line, start);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -119,24 +113,23 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
         /// </summary>
         internal override void GenerateTextUnit()
         {
-            this.Guard.GenerateTextUnit();
-            this.StatementBlock.GenerateTextUnit();
-
-            var text = "";
-
-            text += this.IfKeyword.TextUnit.Text;
+            var text = this.RaiseKeyword.TextUnit.Text;
             text += " ";
 
-            text += this.LeftParenthesisToken.TextUnit.Text;
+            text += this.EventIdentifier.TextUnit.Text;
+            text += " ";
 
-            text += this.Guard.GetFullText();
+            if (this.Comma != null)
+            {
+                this.Payload.GenerateTextUnit();
+                text += this.Comma.TextUnit.Text;
+                text += this.Payload.GetFullText();
+            }
 
-            text += this.RightParenthesisToken.TextUnit.Text;
+            text += this.SemicolonToken.TextUnit.Text + "\n";
 
-            text += this.StatementBlock.GetFullText();
-
-            base.TextUnit = new TextUnit(text, this.IfKeyword.TextUnit.Line,
-                this.IfKeyword.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, this.RaiseKeyword.TextUnit.Line,
+                this.RaiseKeyword.TextUnit.Start);
         }
 
         #endregion

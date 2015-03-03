@@ -145,13 +145,13 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
         #endregion
 
-        #region protected API
+        #region private API
 
         /// <summary>
         /// Rewrites the next token.
         /// </summary>
         /// <param name="position">Position</param>
-        protected void RewriteNextToken(ref int position)
+        private void RewriteNextToken(ref int position)
         {
             if (this.Index == this.RewrittenStmtTokens.Count)
             {
@@ -245,7 +245,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Rewrites the identifier.
         /// </summary>
         /// <param name="position">Position</param>
-        protected void RewriteIdentifier(ref int position)
+        private void RewriteIdentifier(ref int position)
         {
             if (this.Parent.Machine == null || this.Parent.State == null ||
                 !(this.Parent.Machine.FieldDeclarations.Any(val => val.Identifier.TextUnit.Text.

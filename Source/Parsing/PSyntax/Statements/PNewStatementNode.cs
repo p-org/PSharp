@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="PExitDeclarationNode.cs">
+// <copyright file="PNewStatementNode.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -16,24 +16,39 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.PSharp.Parsing.Syntax.P
+namespace Microsoft.PSharp.Parsing.PSyntax
 {
     /// <summary>
-    /// Exit declaration node.
+    /// New statement node.
     /// </summary>
-    public sealed class PExitDeclarationNode : PSharpSyntaxNode
+    public sealed class PNewStatementNode : PStatementNode
     {
         #region fields
 
         /// <summary>
-        /// The exit keyword.
+        /// The new keyword.
         /// </summary>
-        public Token ExitKeyword;
+        public Token NewKeyword;
 
         /// <summary>
-        /// The statement block.
+        /// The machine identifier.
         /// </summary>
-        public PStatementBlockNode StatementBlock;
+        public Token MachineIdentifier;
+
+        /// <summary>
+        /// The left parenthesis token.
+        /// </summary>
+        public Token LeftParenthesisToken;
+
+        /// <summary>
+        /// The machine creation payload.
+        /// </summary>
+        public PExpressionNode Payload;
+
+        /// <summary>
+        /// The right parenthesis token.
+        /// </summary>
+        public Token RightParenthesisToken;
 
         #endregion
 
@@ -42,8 +57,9 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
         /// <summary>
         /// Constructor.
         /// </summary>
-        public PExitDeclarationNode()
-            : base()
+        /// <param name="node">Node</param>
+        public PNewStatementNode(PStatementBlockNode node)
+            : base(node)
         {
 
         }
@@ -79,12 +95,23 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
         {
             var start = position;
 
-            var text = "protected override void OnExit()";
+            var text = "Machine.Factory.CreateMachine<";
 
-            this.StatementBlock.Rewrite(ref position);
-            text += StatementBlock.GetRewrittenText();
+            text += this.MachineIdentifier.TextUnit.Text;
 
-            base.RewrittenTextUnit = new TextUnit(text, this.ExitKeyword.TextUnit.Line, start);
+            text += ">(";
+
+            if (this.Payload != null)
+            {
+                this.Payload.Rewrite(ref position);
+                text += this.Payload.GetRewrittenText();
+            }
+
+            text += ")";
+
+            text += this.SemicolonToken.TextUnit.Text + "\n";
+
+            base.RewrittenTextUnit = new TextUnit(text, this.NewKeyword.TextUnit.Line, start);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -93,13 +120,25 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
         /// </summary>
         internal override void GenerateTextUnit()
         {
-            var text = this.ExitKeyword.TextUnit.Text;
+            var text = this.NewKeyword.TextUnit.Text;
+            text += " ";
 
-            this.StatementBlock.GenerateTextUnit();
-            text += this.StatementBlock.GetFullText();
+            text += this.MachineIdentifier.TextUnit.Text;
 
-            base.TextUnit = new TextUnit(text, this.ExitKeyword.TextUnit.Line,
-                this.ExitKeyword.TextUnit.Start);
+            text += this.LeftParenthesisToken.TextUnit.Text;
+
+            if (this.Payload != null)
+            {
+                this.Payload.GenerateTextUnit();
+                text += this.Payload.GetFullText();
+            }
+
+            text += this.RightParenthesisToken.TextUnit.Text;
+
+            text += this.SemicolonToken.TextUnit.Text + "\n";
+
+            base.TextUnit = new TextUnit(text, this.NewKeyword.TextUnit.Line,
+                this.NewKeyword.TextUnit.Start);
         }
 
         #endregion

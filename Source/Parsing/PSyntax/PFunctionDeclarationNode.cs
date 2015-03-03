@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="PEntryDeclarationNode.cs">
+// <copyright file="PFunctionDeclarationNode.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -16,19 +16,54 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.PSharp.Parsing.Syntax.P
+namespace Microsoft.PSharp.Parsing.PSyntax
 {
     /// <summary>
-    /// Entry declaration node.
+    /// Function declaration node.
     /// </summary>
-    public sealed class PEntryDeclarationNode : PSharpSyntaxNode
+    public sealed class PFunctionDeclarationNode : PSyntaxNode
     {
         #region fields
 
         /// <summary>
-        /// The entry keyword.
+        /// True if the function is a model.
         /// </summary>
-        public Token EntryKeyword;
+        public bool IsModel;
+
+        /// <summary>
+        /// The function keyword.
+        /// </summary>
+        public Token FunctionKeyword;
+
+        /// <summary>
+        /// The identifier token.
+        /// </summary>
+        public Token Identifier;
+
+        /// <summary>
+        /// The left parenthesis token.
+        /// </summary>
+        public Token LeftParenthesisToken;
+
+        /// <summary>
+        /// List of parameter tokens.
+        /// </summary>
+        public List<Token> Parameters;
+
+        /// <summary>
+        /// The right parenthesis token.
+        /// </summary>
+        public Token RightParenthesisToken;
+
+        /// <summary>
+        /// The colon token.
+        /// </summary>
+        public Token ColonToken;
+
+        /// <summary>
+        /// The return type tokens.
+        /// </summary>
+        public List<Token> ReturnTypeTokens;
 
         /// <summary>
         /// The statement block.
@@ -42,10 +77,11 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
         /// <summary>
         /// Constructor.
         /// </summary>
-        public PEntryDeclarationNode()
+        public PFunctionDeclarationNode()
             : base()
         {
-
+            this.Parameters = new List<Token>();
+            this.ReturnTypeTokens = new List<Token>();
         }
 
         /// <summary>
@@ -66,7 +102,6 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
             return base.RewrittenTextUnit.Text;
         }
 
-
         #endregion
 
         #region internal API
@@ -79,13 +114,34 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
         internal override void Rewrite(ref int position)
         {
             var start = position;
+            var text = "";
 
-            var text = "protected override void OnEntry()";
+            foreach (var node in this.ReturnTypeTokens)
+            {
+                text += node.TextUnit.Text;
+            }
+
+            if (this.ReturnTypeTokens.Count == 0)
+            {
+                text += "void";
+            }
+
+            text += " ";
+            text += this.Identifier.TextUnit.Text;
+
+            text += this.LeftParenthesisToken.TextUnit.Text;
+
+            foreach (var param in this.Parameters)
+            {
+                text += param.TextUnit.Text;
+            }
+
+            text += this.RightParenthesisToken.TextUnit.Text;
 
             this.StatementBlock.Rewrite(ref position);
             text += StatementBlock.GetRewrittenText();
 
-            base.RewrittenTextUnit = new TextUnit(text, this.EntryKeyword.TextUnit.Line, start);
+            base.RewrittenTextUnit = new TextUnit(text, this.FunctionKeyword.TextUnit.Line, start);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -94,13 +150,27 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
         /// </summary>
         internal override void GenerateTextUnit()
         {
-            var text = this.EntryKeyword.TextUnit.Text;
+            var text = "";
+
+            text += this.FunctionKeyword.TextUnit.Text;
+            text += " ";
+
+            text += this.Identifier.TextUnit.Text;
+
+            text += this.LeftParenthesisToken.TextUnit.Text;
+
+            foreach (var param in this.Parameters)
+            {
+                text += param.TextUnit.Text;
+            }
+
+            text += this.RightParenthesisToken.TextUnit.Text;
 
             this.StatementBlock.GenerateTextUnit();
             text += this.StatementBlock.GetFullText();
 
-            base.TextUnit = new TextUnit(text, this.EntryKeyword.TextUnit.Line,
-                this.EntryKeyword.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, this.FunctionKeyword.TextUnit.Line,
+                this.FunctionKeyword.TextUnit.Start);
         }
 
         #endregion

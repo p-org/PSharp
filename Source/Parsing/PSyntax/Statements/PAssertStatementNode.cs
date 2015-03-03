@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="PSendStatementNode.cs">
+// <copyright file="PAssertStatementNode.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -16,44 +16,34 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.PSharp.Parsing.Syntax.P
+namespace Microsoft.PSharp.Parsing.PSyntax
 {
     /// <summary>
-    /// Send statement node.
+    /// Assert statement node.
     /// </summary>
-    public sealed class PSendStatementNode : PStatementNode
+    public sealed class PAssertStatementNode : PStatementNode
     {
         #region fields
 
         /// <summary>
-        /// The send keyword.
+        /// The assert keyword.
         /// </summary>
-        public Token SendKeyword;
+        public Token AssertKeyword;
 
         /// <summary>
-        /// The event identifier.
+        /// The left parenthesis token.
         /// </summary>
-        public Token EventIdentifier;
+        public Token LeftParenthesisToken;
 
         /// <summary>
-        /// The machine comma token.
+        /// The assert predicate.
         /// </summary>
-        public Token MachineComma;
+        public PExpressionNode Predicate;
 
         /// <summary>
-        /// The machine identifier.
+        /// The right parenthesis token.
         /// </summary>
-        public PExpressionNode MachineIdentifier;
-
-        /// <summary>
-        /// The event comma token.
-        /// </summary>
-        public Token EventComma;
-
-        /// <summary>
-        /// The event payload.
-        /// </summary>
-        public PExpressionNode Payload;
+        public Token RightParenthesisToken;
 
         #endregion
 
@@ -63,7 +53,7 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
         /// Constructor.
         /// </summary>
         /// <param name="node">Node</param>
-        public PSendStatementNode(PStatementBlockNode node)
+        public PAssertStatementNode(PStatementBlockNode node)
             : base(node)
         {
 
@@ -100,24 +90,19 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
         {
             var start = position;
 
-            var text = "this.Send(";
+            this.Predicate.Rewrite(ref position);
 
-            this.MachineIdentifier.Rewrite(ref position);
-            text += this.MachineIdentifier.GetRewrittenText();
+            var text = "this.Assert";
 
-            text += ", new " + this.EventIdentifier.TextUnit.Text + "(";
+            text += this.LeftParenthesisToken.TextUnit.Text;
 
-            if (this.Payload != null)
-            {
-                this.Payload.Rewrite(ref position);
-                text += this.Payload.GetRewrittenText();
-            }
+            text += this.Predicate.GetRewrittenText();
 
-            text += "))";
+            text += this.RightParenthesisToken.TextUnit.Text;
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 
-            base.RewrittenTextUnit = new TextUnit(text, this.SendKeyword.TextUnit.Line, start);
+            base.RewrittenTextUnit = new TextUnit(text, this.AssertKeyword.TextUnit.Line, start);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -126,29 +111,23 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
         /// </summary>
         internal override void GenerateTextUnit()
         {
-            var text = this.SendKeyword.TextUnit.Text;
+            this.Predicate.GenerateTextUnit();
+
+            var text = "";
+
+            text += this.AssertKeyword.TextUnit.Text;
             text += " ";
 
-            this.MachineIdentifier.GenerateTextUnit();
-            text += this.MachineIdentifier.GetFullText();
+            text += this.LeftParenthesisToken.TextUnit.Text;
 
-            text += this.MachineComma.TextUnit.Text;
-            text += " ";
+            text += this.Predicate.GetFullText();
 
-            text += this.EventIdentifier.TextUnit.Text;
-
-            if (this.EventComma != null)
-            {
-                text += this.EventComma.TextUnit.Text;
-                text += " ";
-
-                this.Payload.GenerateTextUnit();
-            }
+            text += this.RightParenthesisToken.TextUnit.Text;
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, this.SendKeyword.TextUnit.Line,
-                this.SendKeyword.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, this.AssertKeyword.TextUnit.Line,
+                this.AssertKeyword.TextUnit.Start);
         }
 
         #endregion

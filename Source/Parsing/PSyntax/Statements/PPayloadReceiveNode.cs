@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="PStatementBlockNode.cs">
+// <copyright file="PPayloadReceiveNode.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -16,39 +16,44 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.PSharp.Parsing.Syntax.P
+namespace Microsoft.PSharp.Parsing.PSyntax
 {
     /// <summary>
-    /// Statement block node.
+    /// Payload receive node.
     /// </summary>
-    public sealed class PStatementBlockNode : PSharpSyntaxNode
+    public sealed class PPayloadReceiveNode : PSyntaxNode
     {
         #region fields
 
         /// <summary>
-        /// The machine parent node.
+        /// The payload keyword.
         /// </summary>
-        public readonly PMachineDeclarationNode Machine;
+        public Token PayloadKeyword;
 
         /// <summary>
-        /// The state parent node.
+        /// The as keyword.
         /// </summary>
-        public readonly PStateDeclarationNode State;
+        public Token AsKeyword;
 
         /// <summary>
-        /// The left curly bracket token.
+        /// The type node.
         /// </summary>
-        public Token LeftCurlyBracketToken;
+        public PTypeNode Type;
 
         /// <summary>
-        /// List of statement nodes.
+        /// The right parenthesis token.
         /// </summary>
-        public List<PStatementNode> Statements;
+        public Token RightParenthesisToken;
 
         /// <summary>
-        /// The right curly bracket token.
+        /// The dot token.
         /// </summary>
-        public Token RightCurlyBracketToken;
+        public Token DotToken;
+
+        /// <summary>
+        /// The index token.
+        /// </summary>
+        public Token IndexToken;
 
         #endregion
 
@@ -57,13 +62,10 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="machineNode">PMachineDeclarationNode</param>
-        /// <param name="stateNode">PStateDeclarationNode</param>
-        public PStatementBlockNode(PMachineDeclarationNode machineNode, PStateDeclarationNode stateNode)
+        public PPayloadReceiveNode()
+            : base()
         {
-            this.Machine = machineNode;
-            this.State = stateNode;
-            this.Statements = new List<PStatementNode>();
+
         }
 
         /// <summary>
@@ -96,22 +98,26 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
         internal override void Rewrite(ref int position)
         {
             var start = position;
+            var text = "";
 
-            foreach (var stmt in this.Statements)
+            this.Type.Rewrite(ref position);
+            text += "(" + this.Type.GetRewrittenText() + ")";
+            text += "this.Payload";
+
+            if (this.RightParenthesisToken != null)
             {
-                stmt.Rewrite(ref position);
+                text += this.RightParenthesisToken.TextUnit.Text;
+
+                if (this.DotToken != null)
+                {
+                    text += this.DotToken.TextUnit.Text;
+
+                    var index = Int32.Parse(this.IndexToken.TextUnit.Text) + 1;
+                    text += "Item" + index;
+                }
             }
 
-            var text = "\n" + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
-
-            foreach (var stmt in this.Statements)
-            {
-                text += stmt.GetRewrittenText();
-            }
-
-            text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
-
-            base.RewrittenTextUnit = new TextUnit(text, this.LeftCurlyBracketToken.TextUnit.Line, start);
+            base.RewrittenTextUnit = new TextUnit(text, this.PayloadKeyword.TextUnit.Line, start);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -120,22 +126,28 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
         /// </summary>
         internal override void GenerateTextUnit()
         {
-            foreach (var stmt in this.Statements)
+            var text = this.PayloadKeyword.TextUnit.Text;
+            text += " ";
+
+            text += this.AsKeyword.TextUnit.Text;
+            text += " ";
+
+            this.Type.GenerateTextUnit();
+            text += this.Type.GetFullText();
+
+            if (this.RightParenthesisToken != null)
             {
-                stmt.GenerateTextUnit();
+                text += this.RightParenthesisToken.TextUnit.Text;
+
+                if (this.DotToken != null)
+                {
+                    text += this.DotToken.TextUnit.Text;
+                    text += this.IndexToken.TextUnit.Text;
+                }
             }
 
-            var text = "\n" + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
-
-            foreach (var stmt in this.Statements)
-            {
-                text += stmt.GetFullText();
-            }
-
-            text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
-
-            base.TextUnit = new TextUnit(text, this.LeftCurlyBracketToken.TextUnit.Line,
-                this.LeftCurlyBracketToken.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, this.PayloadKeyword.TextUnit.Line,
+                this.PayloadKeyword.TextUnit.Start);
         }
 
         #endregion

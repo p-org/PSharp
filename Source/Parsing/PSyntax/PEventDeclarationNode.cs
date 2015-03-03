@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="PNewStatementNode.cs">
+// <copyright file="PEventDeclarationNode.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -16,39 +16,39 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.PSharp.Parsing.Syntax.P
+namespace Microsoft.PSharp.Parsing.PSyntax
 {
     /// <summary>
-    /// New statement node.
+    /// P event declaration node.
     /// </summary>
-    public sealed class PNewStatementNode : PStatementNode
+    public sealed class PEventDeclarationNode : PSyntaxNode
     {
         #region fields
 
         /// <summary>
-        /// The new keyword.
+        /// The event keyword.
         /// </summary>
-        public Token NewKeyword;
+        public Token EventKeyword;
 
         /// <summary>
-        /// The machine identifier.
+        /// The identifier token.
         /// </summary>
-        public Token MachineIdentifier;
+        public Token Identifier;
 
         /// <summary>
-        /// The left parenthesis token.
+        /// The colon token.
         /// </summary>
-        public Token LeftParenthesisToken;
+        public Token ColonToken;
 
         /// <summary>
-        /// The machine creation payload.
+        /// The payload type node.
         /// </summary>
-        public PExpressionNode Payload;
+        public PTypeNode PayloadType;
 
         /// <summary>
-        /// The right parenthesis token.
+        /// The semicolon token.
         /// </summary>
-        public Token RightParenthesisToken;
+        public Token SemicolonToken;
 
         #endregion
 
@@ -57,9 +57,8 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="node">Node</param>
-        public PNewStatementNode(PStatementBlockNode node)
-            : base(node)
+        public PEventDeclarationNode()
+            : base()
         {
 
         }
@@ -93,25 +92,16 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
         /// <param name="position">Position</param>
         internal override void Rewrite(ref int position)
         {
-            var start = position;
+            var text = "class " + this.Identifier.TextUnit.Text + " : Event";
 
-            var text = "Machine.Factory.CreateMachine<";
+            text += "\n";
+            text += "{\n";
+            text += " public " + this.Identifier.TextUnit.Text + "(params Object[] payload)\n";
+            text += "  : base(payload)\n";
+            text += " { }\n";
+            text += "}\n";
 
-            text += this.MachineIdentifier.TextUnit.Text;
-
-            text += ">(";
-
-            if (this.Payload != null)
-            {
-                this.Payload.Rewrite(ref position);
-                text += this.Payload.GetRewrittenText();
-            }
-
-            text += ")";
-
-            text += this.SemicolonToken.TextUnit.Text + "\n";
-
-            base.RewrittenTextUnit = new TextUnit(text, this.NewKeyword.TextUnit.Line, start);
+            base.RewrittenTextUnit = new TextUnit(text, this.EventKeyword.TextUnit.Line, position);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -120,25 +110,27 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
         /// </summary>
         internal override void GenerateTextUnit()
         {
-            var text = this.NewKeyword.TextUnit.Text;
+            var text = "";
+
+            text += this.EventKeyword.TextUnit.Text;
             text += " ";
 
-            text += this.MachineIdentifier.TextUnit.Text;
+            text += this.Identifier.TextUnit.Text;
 
-            text += this.LeftParenthesisToken.TextUnit.Text;
-
-            if (this.Payload != null)
+            if (this.ColonToken != null)
             {
-                this.Payload.GenerateTextUnit();
-                text += this.Payload.GetFullText();
-            }
+                text += " ";
+                text += this.ColonToken.TextUnit.Text;
+                text += " ";
 
-            text += this.RightParenthesisToken.TextUnit.Text;
+                this.PayloadType.GenerateTextUnit();
+                text += this.PayloadType.GetFullText();
+            }
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, this.NewKeyword.TextUnit.Line,
-                this.NewKeyword.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, this.EventKeyword.TextUnit.Line,
+                this.EventKeyword.TextUnit.Start);
         }
 
         #endregion

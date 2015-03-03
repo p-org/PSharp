@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="PTypeIdentifierNode.cs">
+// <copyright file="PStatementBlockNode.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -16,19 +16,39 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.PSharp.Parsing.Syntax.P
+namespace Microsoft.PSharp.Parsing.PSyntax
 {
     /// <summary>
-    /// Type identifier node.
+    /// Statement block node.
     /// </summary>
-    public sealed class PTypeIdentifierNode : PSharpSyntaxNode
+    public sealed class PStatementBlockNode : PSyntaxNode
     {
         #region fields
 
         /// <summary>
-        /// The type tokens.
+        /// The machine parent node.
         /// </summary>
-        public List<Token> TypeTokens;
+        public readonly PMachineDeclarationNode Machine;
+
+        /// <summary>
+        /// The state parent node.
+        /// </summary>
+        public readonly PStateDeclarationNode State;
+
+        /// <summary>
+        /// The left curly bracket token.
+        /// </summary>
+        public Token LeftCurlyBracketToken;
+
+        /// <summary>
+        /// List of statement nodes.
+        /// </summary>
+        public List<PStatementNode> Statements;
+
+        /// <summary>
+        /// The right curly bracket token.
+        /// </summary>
+        public Token RightCurlyBracketToken;
 
         #endregion
 
@@ -37,10 +57,13 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
         /// <summary>
         /// Constructor.
         /// </summary>
-        public PTypeIdentifierNode()
-            : base()
+        /// <param name="machineNode">PMachineDeclarationNode</param>
+        /// <param name="stateNode">PStateDeclarationNode</param>
+        public PStatementBlockNode(PMachineDeclarationNode machineNode, PStateDeclarationNode stateNode)
         {
-            this.TypeTokens = new List<Token>();
+            this.Machine = machineNode;
+            this.State = stateNode;
+            this.Statements = new List<PStatementNode>();
         }
 
         /// <summary>
@@ -72,21 +95,23 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
         /// <param name="position">Position</param>
         internal override void Rewrite(ref int position)
         {
-            if (this.TypeTokens.Count == 0)
-            {
-                return;
-            }
-
             var start = position;
-            var text = "";
 
-            this.RewriteTypeTokens();
-            foreach (var tok in this.TypeTokens)
+            foreach (var stmt in this.Statements)
             {
-                text += tok.TextUnit.Text;
+                stmt.Rewrite(ref position);
             }
 
-            base.RewrittenTextUnit = new TextUnit(text, this.TypeTokens.First().TextUnit.Line, start);
+            var text = "\n" + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
+
+            foreach (var stmt in this.Statements)
+            {
+                text += stmt.GetRewrittenText();
+            }
+
+            text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
+
+            base.RewrittenTextUnit = new TextUnit(text, this.LeftCurlyBracketToken.TextUnit.Line, start);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -95,40 +120,22 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
         /// </summary>
         internal override void GenerateTextUnit()
         {
-            if (this.TypeTokens.Count == 0)
+            foreach (var stmt in this.Statements)
             {
-                return;
+                stmt.GenerateTextUnit();
             }
 
-            var text = "";
+            var text = "\n" + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
 
-            foreach (var tok in this.TypeTokens)
+            foreach (var stmt in this.Statements)
             {
-                text += tok.TextUnit.Text;
+                text += stmt.GetFullText();
             }
 
-            base.TextUnit = new TextUnit(text, this.TypeTokens.First().TextUnit.Line,
-                this.TypeTokens.First().TextUnit.Start);
-        }
+            text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
 
-        #endregion
-
-        #region private API
-
-        /// <summary>
-        /// Rewrites the type tokens.
-        /// </summary>
-        private void RewriteTypeTokens()
-        {
-            for (int idx = 0; idx < this.TypeTokens.Count; idx++)
-            {
-                var token = this.TypeTokens[idx];
-                if (token.Type == TokenType.MachineDecl)
-                {
-                    var textUnit = new TextUnit("Machine", token.TextUnit.Line, token.TextUnit.Start);
-                    this.TypeTokens[idx] = new Token(textUnit, token.Type);
-                }
-            }
+            base.TextUnit = new TextUnit(text, this.LeftCurlyBracketToken.TextUnit.Line,
+                this.LeftCurlyBracketToken.TextUnit.Start);
         }
 
         #endregion

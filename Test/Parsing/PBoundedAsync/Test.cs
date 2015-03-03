@@ -9,8 +9,8 @@ namespace PBoundedAsync
         static void Main(string[] args)
         {
             Runtime.RegisterNewEvent(typeof(unit));
-            Runtime.RegisterNewEvent(typeof(req));
-            Runtime.RegisterNewEvent(typeof(resp));
+            Runtime.RegisterNewEvent(typeof(Req));
+            Runtime.RegisterNewEvent(typeof(Resp));
             Runtime.RegisterNewEvent(typeof(init));
             Runtime.RegisterNewEvent(typeof(myCount));
 

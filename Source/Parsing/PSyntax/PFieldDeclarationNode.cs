@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="PGenericStatementNode.cs">
+// <copyright file="PFieldDeclarationNode.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -16,32 +16,56 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.PSharp.Parsing.Syntax.P
+namespace Microsoft.PSharp.Parsing.PSyntax
 {
     /// <summary>
-    /// Generic statement node.
+    /// Field declaration node.
     /// </summary>
-    public sealed class PGenericStatementNode : PStatementNode
+    public sealed class PFieldDeclarationNode : PSyntaxNode
     {
         #region fields
 
         /// <summary>
-        /// The expression node.
+        /// The machine parent node.
         /// </summary>
-        public PExpressionNode Expression;
+        private PMachineDeclarationNode Machine;
+
+        /// <summary>
+        /// The field keyword.
+        /// </summary>
+        public Token FieldKeyword;
+
+        /// <summary>
+        /// The identifier token.
+        /// </summary>
+        public Token Identifier;
+
+        /// <summary>
+        /// The colon token.
+        /// </summary>
+        public Token ColonToken;
+
+        /// <summary>
+        /// The type node.
+        /// </summary>
+        public PTypeNode Type;
+
+        /// <summary>
+        /// The semicolon token.
+        /// </summary>
+        public Token SemicolonToken;
 
         #endregion
 
         #region public API
 
         /// <summary>
-        /// Constructor.
+        /// Constructor
         /// </summary>
-        /// <param name="node">Node</param>
-        public PGenericStatementNode(PStatementBlockNode node)
-            : base(node)
+        /// <param name="machineNode">PMachineDeclarationNode</param>
+        public PFieldDeclarationNode(PMachineDeclarationNode machineNode)
         {
-
+            this.Machine = machineNode;
         }
 
         /// <summary>
@@ -73,18 +97,18 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
         /// <param name="position">Position</param>
         internal override void Rewrite(ref int position)
         {
-            var start = position;
             var text = "";
+            var start = position;
 
-            this.Expression.Rewrite(ref position);
-            text += this.Expression.GetRewrittenText();
+            this.Type.Rewrite(ref position);
+            text += this.Type.GetRewrittenText();
 
-            if (this.SemicolonToken != null)
-            {
-                text += this.SemicolonToken.TextUnit.Text + "\n";
-            }
+            text += " ";
+            text += this.Identifier.TextUnit.Text;
 
-            base.RewrittenTextUnit = new TextUnit(text, this.Expression.TextUnit.Line, start);
+            text += this.SemicolonToken.TextUnit.Text + "\n";
+
+            base.RewrittenTextUnit = new TextUnit(text, this.FieldKeyword.TextUnit.Line, start);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -95,16 +119,22 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
         {
             var text = "";
 
-            this.Expression.GenerateTextUnit();
-            text += this.Expression.GetFullText();
+            text += this.FieldKeyword.TextUnit.Text;
+            text += " ";
 
-            if (this.SemicolonToken != null)
-            {
-                text += this.SemicolonToken.TextUnit.Text + "\n";
-            }
+            text += this.Identifier.TextUnit.Text;
 
-            base.TextUnit = new TextUnit(text, this.Expression.TextUnit.Line,
-                this.Expression.TextUnit.Start);
+            text += " ";
+            text += this.ColonToken.TextUnit.Text;
+            text += " ";
+
+            this.Type.GenerateTextUnit();
+            text += this.Type.GetFullText();
+
+            text += this.SemicolonToken.TextUnit.Text + "\n";
+
+            base.TextUnit = new TextUnit(text, this.FieldKeyword.TextUnit.Line,
+                this.FieldKeyword.TextUnit.Start);
         }
 
         #endregion

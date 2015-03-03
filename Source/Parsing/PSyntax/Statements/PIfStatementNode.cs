@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="PFieldDeclarationNode.cs">
+// <copyright file="PIfStatementNode.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -16,56 +16,52 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.PSharp.Parsing.Syntax.P
+namespace Microsoft.PSharp.Parsing.PSyntax
 {
     /// <summary>
-    /// Field declaration node.
+    /// If statement node.
     /// </summary>
-    public sealed class PFieldDeclarationNode : PSharpSyntaxNode
+    public sealed class PIfStatementNode : PStatementNode
     {
         #region fields
 
         /// <summary>
-        /// The machine parent node.
+        /// The if keyword.
         /// </summary>
-        private PMachineDeclarationNode Machine;
+        public Token IfKeyword;
 
         /// <summary>
-        /// The field keyword.
+        /// The left parenthesis token.
         /// </summary>
-        public Token FieldKeyword;
+        public Token LeftParenthesisToken;
 
         /// <summary>
-        /// The identifier token.
+        /// The guard predicate.
         /// </summary>
-        public Token Identifier;
+        public PExpressionNode Guard;
 
         /// <summary>
-        /// The colon token.
+        /// The right parenthesis token.
         /// </summary>
-        public Token ColonToken;
+        public Token RightParenthesisToken;
 
         /// <summary>
-        /// The type identifier node.
+        /// The statement block.
         /// </summary>
-        public PTypeIdentifierNode Type;
-
-        /// <summary>
-        /// The semicolon token.
-        /// </summary>
-        public Token SemicolonToken;
+        public PStatementBlockNode StatementBlock;
 
         #endregion
 
         #region public API
 
         /// <summary>
-        /// Constructor
+        /// Constructor.
         /// </summary>
-        /// <param name="machineNode">PMachineDeclarationNode</param>
-        public PFieldDeclarationNode(PMachineDeclarationNode machineNode)
+        /// <param name="node">Node</param>
+        public PIfStatementNode(PStatementBlockNode node)
+            : base(node)
         {
-            this.Machine = machineNode;
+
         }
 
         /// <summary>
@@ -97,18 +93,24 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
         /// <param name="position">Position</param>
         internal override void Rewrite(ref int position)
         {
-            var text = "";
             var start = position;
 
-            this.Type.Rewrite(ref position);
-            text += this.Type.GetRewrittenText();
+            this.Guard.Rewrite(ref position);
+            this.StatementBlock.Rewrite(ref position);
 
-            text += " ";
-            text += this.Identifier.TextUnit.Text;
+            var text = "";
 
-            text += this.SemicolonToken.TextUnit.Text + "\n";
+            text += this.IfKeyword.TextUnit.Text;
 
-            base.RewrittenTextUnit = new TextUnit(text, this.FieldKeyword.TextUnit.Line, start);
+            text += this.LeftParenthesisToken.TextUnit.Text;
+
+            text += this.Guard.GetRewrittenText();
+
+            text += this.RightParenthesisToken.TextUnit.Text;
+
+            text += this.StatementBlock.GetRewrittenText();
+
+            base.RewrittenTextUnit = new TextUnit(text, this.IfKeyword.TextUnit.Line, start);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -117,24 +119,24 @@ namespace Microsoft.PSharp.Parsing.Syntax.P
         /// </summary>
         internal override void GenerateTextUnit()
         {
+            this.Guard.GenerateTextUnit();
+            this.StatementBlock.GenerateTextUnit();
+
             var text = "";
 
-            text += this.FieldKeyword.TextUnit.Text;
+            text += this.IfKeyword.TextUnit.Text;
             text += " ";
 
-            text += this.Identifier.TextUnit.Text;
+            text += this.LeftParenthesisToken.TextUnit.Text;
 
-            text += " ";
-            text += this.ColonToken.TextUnit.Text;
-            text += " ";
+            text += this.Guard.GetFullText();
 
-            this.Type.GenerateTextUnit();
-            text += this.Type.GetFullText();
+            text += this.RightParenthesisToken.TextUnit.Text;
 
-            text += this.SemicolonToken.TextUnit.Text + "\n";
+            text += this.StatementBlock.GetFullText();
 
-            base.TextUnit = new TextUnit(text, this.FieldKeyword.TextUnit.Line,
-                this.FieldKeyword.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, this.IfKeyword.TextUnit.Line,
+                this.IfKeyword.TextUnit.Start);
         }
 
         #endregion

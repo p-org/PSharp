@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="PProgram.cs">
+// <copyright file="PSharpProgram.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,30 +12,26 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
 
-using Microsoft.PSharp.Parsing.Syntax.P;
-
-namespace Microsoft.PSharp.Parsing
+namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
-    /// A P program.
+    /// A P# program.
     /// </summary>
-    public sealed class PProgram : AbstractPSharpProgram
+    public sealed class PSharpProgram : AbstractPSharpProgram
     {
         #region fields
 
         /// <summary>
-        /// List of event declarations.
+        /// List of using declarations.
         /// </summary>
-        public List<PEventDeclarationNode> EventDeclarations;
+        public List<UsingDeclarationNode> UsingDeclarations;
 
         /// <summary>
-        /// List of machine declarations.
+        /// List of namespace declarations.
         /// </summary>
-        public List<PMachineDeclarationNode> MachineDeclarations;
+        public List<NamespaceDeclarationNode> NamespaceDeclarations;
 
         #endregion
 
@@ -45,11 +41,11 @@ namespace Microsoft.PSharp.Parsing
         /// Constructor.
         /// </summary>
         /// <param name="filePath">File path</param>
-        public PProgram(string filePath)
+        public PSharpProgram(string filePath)
             : base(filePath)
         {
-            this.EventDeclarations = new List<PEventDeclarationNode>();
-            this.MachineDeclarations = new List<PMachineDeclarationNode>();
+            this.UsingDeclarations = new List<UsingDeclarationNode>();
+            this.NamespaceDeclarations = new List<NamespaceDeclarationNode>();
         }
 
         /// <summary>
@@ -61,25 +57,18 @@ namespace Microsoft.PSharp.Parsing
             this.RewrittenText = "";
             int position = 0;
 
-            this.RewrittenText += this.InstrumentSystemDll(ref position);
             this.RewrittenText += this.InstrumentPSharpDll(ref position);
-
-            this.RewrittenText += "namespace Microsoft.PSharp\n";
-            this.RewrittenText += "{\n";
-
-            foreach (var node in this.EventDeclarations)
+            foreach (var node in this.UsingDeclarations)
             {
                 node.Rewrite(ref position);
                 this.RewrittenText += node.GetRewrittenText();
             }
 
-            foreach (var node in this.MachineDeclarations)
+            foreach (var node in this.NamespaceDeclarations)
             {
                 node.Rewrite(ref position);
                 this.RewrittenText += node.GetRewrittenText();
             }
-
-            this.RewrittenText += "}\n";
 
             return this.RewrittenText;
         }
@@ -92,12 +81,12 @@ namespace Microsoft.PSharp.Parsing
         {
             var text = "";
 
-            foreach (var node in this.EventDeclarations)
+            foreach (var node in this.UsingDeclarations)
             {
                 text += node.GetFullText();
             }
 
-            foreach (var node in this.MachineDeclarations)
+            foreach (var node in this.NamespaceDeclarations)
             {
                 text += node.GetFullText();
             }
@@ -110,12 +99,12 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         public override void GenerateTextUnits()
         {
-            foreach (var node in this.EventDeclarations)
+            foreach (var node in this.UsingDeclarations)
             {
                 node.GenerateTextUnit();
             }
 
-            foreach (var node in this.MachineDeclarations)
+            foreach (var node in this.NamespaceDeclarations)
             {
                 node.GenerateTextUnit();
             }
