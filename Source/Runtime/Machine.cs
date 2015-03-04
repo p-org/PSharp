@@ -62,13 +62,6 @@ namespace Microsoft.PSharp
         private Stack<State> StateStack;
 
         /// <summary>
-        /// Handle to an optional wrapper for this machine.
-        /// A wrapper can be used for environment to machine
-        /// communication through function calls.
-        /// </summary>
-        protected internal MachineWrapper Wrapper;
-
-        /// <summary>
         /// False if machine has stopped.
         /// </summary>
         private bool IsActive;

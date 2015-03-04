@@ -49,11 +49,12 @@
     <Compile Include="Collections\StepStateTransitions.cs" />
     <Compile Include="Collections\SystematicBlockingQueue.cs" />
     <Compile Include="CommandLineOptions.cs" />
-    <Compile Include="Event.cs" />
+    <Compile Include="Events\Default.cs" />
+    <Compile Include="Events\Halt.cs" />
+    <Compile Include="Events\Event.cs" />
     <Compile Include="Attributes\Initial.cs" />
     <Compile Include="Exceptions.cs" />
     <Compile Include="Machine.cs" />
-    <Compile Include="MachineWrapper.cs" />
     <Compile Include="Model.cs" />
     <Compile Include="Profiler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
