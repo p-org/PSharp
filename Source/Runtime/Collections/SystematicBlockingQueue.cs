@@ -21,8 +21,6 @@ using System.Diagnostics;
 
 using Microsoft.PSharp.Scheduling;
 
-using QueueMonitor = System.Threading.Monitor;
-
 namespace Microsoft.PSharp
 {
     public class SystematicBlockingQueue<T>

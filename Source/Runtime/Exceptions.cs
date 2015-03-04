@@ -21,7 +21,7 @@ namespace Microsoft.PSharp
     /// <summary>
     /// This exception is thrown whenever an event is raised.
     /// </summary>
-    internal class EventRaisedException : Exception
+    internal sealed class EventRaisedException : Exception
     {
         /// <summary>
         /// The raised event.
@@ -42,7 +42,7 @@ namespace Microsoft.PSharp
     /// This exception is thrown whenever the Return() statement
     /// is executed to pop a state from the call state stack.
     /// </summary>
-    internal class ReturnUsedException : Exception
+    internal sealed class ReturnUsedException : Exception
     {
         /// <summary>
         /// State from which Return() was used.
@@ -63,7 +63,7 @@ namespace Microsoft.PSharp
     /// This exception is thrown whenever the scheduler detects
     /// non-deterministic behaviour.
     /// </summary>
-    internal class NondeterminismException : Exception
+    internal sealed class NondeterminismException : Exception
     {
 
     }

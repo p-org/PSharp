@@ -23,6 +23,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
+using Microsoft.PSharp.Scheduling;
 
 namespace Microsoft.PSharp
 {
@@ -138,7 +139,6 @@ namespace Microsoft.PSharp
 
             this.RaisedEvent = null;
             this.StateStack = new Stack<State>();
-            this.Wrapper = null;
             this.IsActive = true;
 
             this.CTS = new CancellationTokenSource();
@@ -149,6 +149,318 @@ namespace Microsoft.PSharp
 
             this.InitializeStates();
             this.AssertStateValidity();
+        }
+
+        #endregion
+
+        #region P# API methods
+
+        /// <summary>
+        /// Defines all possible step state transitions for each state.
+        /// It must return a dictionary where a key represents
+        /// a state and a value represents the state's transitions.
+        /// </summary>
+        /// <returns>Dictionary<Type, StateTransitions></returns>
+        protected virtual Dictionary<Type, StepStateTransitions> DefineStepStateTransitions()
+        {
+            return new Dictionary<Type, StepStateTransitions>();
+        }
+
+        /// <summary>
+        /// Defines all possible call state transitions for each state.
+        /// It must return a dictionary where a key represents
+        /// a state and a value represents the state's transitions.
+        /// </summary>
+        /// <returns>Dictionary<Type, StateTransitions></returns>
+        protected virtual Dictionary<Type, CallStateTransitions> DefineCallStateTransitions()
+        {
+            return new Dictionary<Type, CallStateTransitions>();
+        }
+
+        /// <summary>
+        /// Defines all possible action bindings for each state.
+        /// It must return a dictionary where a key represents
+        /// a state and a value represents the state's action bindings.
+        /// </summary>
+        /// <returns>Dictionary<Type, ActionBindings></returns>
+        protected virtual Dictionary<Type, ActionBindings> DefineActionBindings()
+        {
+            return new Dictionary<Type, ActionBindings>();
+        }
+
+        /// <summary>
+        /// Sends an asynchronous event to a machine.
+        /// </summary>
+        /// <param name="m">Machine</param>
+        /// <param name="e">Event</param>
+        protected internal void Send(Machine m, Event e)
+        {
+            Runtime.Send(m, e, this.GetType().Name);
+        }
+
+        /// <summary>
+        /// Invokes the specified monitor with the given event.
+        /// </summary>
+        /// <typeparam name="T">Type of the monitor</typeparam>
+        /// <param name="e">Event</param>
+        protected internal void Invoke<T>(Event e)
+        {
+            Runtime.Invoke<T>(e);
+        }
+
+        /// <summary>
+        /// Raises an event internally and returns from the execution context.
+        /// </summary>
+        /// <param name="e">Event</param>
+        protected internal void Raise(Event e)
+        {
+            Utilities.Verbose("Machine {0} raised event {1}.\n", this, e);
+            throw new EventRaisedException(e);
+        }
+
+        /// <summary>
+        /// Pops the current state from the call state stack.
+        /// </summary>
+        protected internal void Return()
+        {
+            throw new ReturnUsedException(this.StateStack.Pop());
+        }
+
+        /// <summary>
+        /// Stop listening to events and delete the machine.
+        /// </summary>
+        protected internal void Delete()
+        {
+            this.StopListener();
+            Runtime.Delete(this);
+        }
+
+        /// <summary>
+        /// Checks if the assertion holds, and if not it reports
+        /// an error and exits.
+        /// </summary>
+        /// <param name="predicate">Predicate</param>
+        protected internal void Assert(bool predicate)
+        {
+            Runtime.Assert(predicate);
+        }
+
+        /// <summary>
+        /// Checks if the assertion holds, and if not it reports
+        /// an error and exits.
+        /// </summary>
+        /// <param name="predicate">Predicate</param>
+        /// <param name="s">Message</param>
+        /// <param name="args">Message arguments</param>
+        protected internal void Assert(bool predicate, string s, params object[] args)
+        {
+            Runtime.Assert(predicate, s, args);
+        }
+
+        #endregion
+
+        #region factory methods
+
+        /// <summary>
+        /// Factory class for creating machines.
+        /// </summary>
+        public static class Factory
+        {
+            /// <summary>
+            /// Creates a new machine of type T with an optional payload.
+            /// </summary>
+            /// <typeparam name="T">Type of machine</typeparam>
+            /// <param name="payload">Optional payload</param>
+            /// <returns>Machine</returns>
+            public static T Create<T>(params Object[] payload)
+            {
+                Runtime.Assert(typeof(T).IsSubclassOf(typeof(Machine)), "Type '{0}' is " +
+                    "not a subclass of Machine.\n", typeof(T).Name);
+                var machine = Runtime.TryCreateNewMachineInstance<T>(payload);
+                return machine;
+            }
+
+            /// <summary>
+            /// Creates a new machine of type T with an optional payload.
+            /// </summary>
+            /// <param name="m">Type of machine</param>
+            /// <param name="payload">Optional payload</param>
+            /// <returns>Machine</returns>
+            internal static Machine Create(Type m, params Object[] payload)
+            {
+                Runtime.Assert(m.IsSubclassOf(typeof(Machine)), "Type '{0}' is not " +
+                    "a subclass of Machine.\n", m.Name);
+                var machine = Runtime.TryCreateNewMachineInstance(m, payload);
+                return machine;
+            }
+
+            /// <summary>
+            /// Creates a new monitor of type T with an optional payload.
+            /// </summary>
+            /// <typeparam name="T">Type of monitor</typeparam>
+            /// <param name="payload">Optional payload</param>
+            public static void CreateMonitor<T>(params Object[] payload)
+            {
+                Runtime.Assert(typeof(T).IsSubclassOf(typeof(Machine)), "Type '{0}' is not " +
+                    "a subclass of Machine.\n", typeof(T).Name);
+                Runtime.Assert(typeof(T).IsDefined(typeof(Monitor), false), "Type '{0}' is " +
+                    "not a monitor.\n", typeof(T).Name);
+                Runtime.TryCreateNewMonitorInstance<T>(payload);
+            }
+
+            /// <summary>
+            /// Creates a new monitor of type T with an optional payload.
+            /// </summary>
+            /// <param name="m">Type of monitor</param>
+            /// <param name="payload">Optional payload</param>
+            internal static void CreateMonitor(Type m, params Object[] payload)
+            {
+                Runtime.Assert(m.IsSubclassOf(typeof(Machine)), "Type '{0}' is not a " +
+                    "subclass of Machine.\n", m.Name);
+                Runtime.Assert(m.IsDefined(typeof(Monitor), false), "Type '{0}' is not " +
+                    "a monitor.\n", m.Name);
+                Runtime.TryCreateNewMonitorInstance(m, payload);
+            }
+        }
+
+        #endregion
+
+        #region P# internal methods
+
+        /// <summary>
+        /// Starts the machine concurrently with an optional payload.
+        /// </summary>
+        /// /// <param name="payload">Optional payload</param>
+        /// <returns>Task</returns>
+        internal Thread Start(params Object[] payload)
+        {
+            Thread thread = new Thread((Object pl) =>
+            {
+                try
+                {
+                    this.GotoInitialState((Object[])pl);
+
+                    while (this.IsActive)
+                    {
+                        if (this.RaisedEvent != null)
+                        {
+                            Event nextEvent = this.RaisedEvent;
+                            this.RaisedEvent = null;
+                            this.HandleEvent(nextEvent);
+                        }
+                        else
+                        {
+                            // We are using a blocking collection so the attempt to
+                            // dequeue an event will block if there is no available
+                            // event in the mailbox. The operation will unblock when
+                            // the next event arrives.
+                            Event nextEvent = this.Inbox.Take(this.CTS.Token);
+                            if (this.CTS.Token.IsCancellationRequested)
+                                break;
+                            this.HandleEvent(nextEvent);
+                        }
+                    }
+                }
+                catch (TaskCanceledException) { }
+            });
+
+            thread.Start(payload);
+
+            return thread;
+        }
+
+        /// <summary>
+        /// Starts the machine concurrently with an optional payload and
+        /// the scheduler enabled.
+        /// </summary>
+        /// /// <param name="payload">Optional payload</param>
+        /// <returns>Task</returns>
+        internal Thread ScheduledStart(params Object[] payload)
+        {
+            Thread thread = new Thread((Object pl) =>
+            {
+                ThreadInfo currThread = Runtime.Scheduler.GetCurrentThreadInfo();
+                Runtime.Scheduler.ThreadStarted(currThread);
+
+                try
+                {
+                    if (Runtime.Scheduler.DeadlockHasOccurred)
+                    {
+                        throw new TaskCanceledException();
+                    }
+
+                    this.GotoInitialState((Object[])pl);
+
+                    while (this.IsActive)
+                    {
+                        if (this.RaisedEvent != null)
+                        {
+                            Event nextEvent = this.RaisedEvent;
+                            this.RaisedEvent = null;
+                            this.HandleEvent(nextEvent);
+                        }
+                        else
+                        {
+                            // We are using a blocking collection so the attempt to
+                            // dequeue an event will block if there is no available
+                            // event in the mailbox. The operation will unblock when
+                            // the next event arrives.
+                            Event nextEvent = this.ScheduledInbox.Take();
+                            this.HandleEvent(nextEvent);
+                        }
+                    }
+                }
+                catch (TaskCanceledException) { }
+
+                Runtime.Scheduler.ThreadEnded(currThread);
+            });
+
+            ThreadInfo threadInfo = Runtime.Scheduler.AddNewThreadInfo(thread);
+
+            thread.Start(payload);
+
+            Runtime.Scheduler.WaitForThreadToStart(threadInfo);
+
+            return thread;
+        }
+
+        /// <summary>
+        /// Enqueues an event.
+        /// </summary>
+        /// <param name="e">Event</param>
+        /// <param name="sender">Sender machine</param>
+        internal void Enqueue(Event e, string sender)
+        {
+            if (Runtime.Options.Mode == Runtime.Mode.Execution)
+            {
+                this.Inbox.Add(e);
+            }
+            else if (Runtime.Options.Mode == Runtime.Mode.BugFinding)
+            {
+                this.ScheduledInbox.Add(e);
+                ScheduleExplorer.Add(sender, this.GetType().Name, e.GetType().Name);
+            }
+        }
+
+        /// <summary>
+        /// Stop listening to events.
+        /// </summary>
+        internal void StopListener()
+        {
+            this.IsActive = false;
+
+            if (Runtime.Options.Mode == Runtime.Mode.Execution)
+                this.CTS.Cancel();
+            else if (Runtime.Options.Mode == Runtime.Mode.BugFinding)
+                this.ScheduledInbox.Cancel();
+        }
+
+        /// <summary>
+        /// Resets the machine ID counter.
+        /// </summary>
+        internal static void ResetMachineIDCounter()
+        {
+            Machine.IdCounter = 0;
         }
 
         #endregion
@@ -391,297 +703,6 @@ namespace Microsoft.PSharp
 
             // Performs the on entry statements of the new state.
             this.ExecuteCurrentStateOnEntry();
-        }
-
-        #endregion
-
-        #region P# internal methods
-
-        /// <summary>
-        /// Starts the machine concurrently with an optional payload.
-        /// </summary>
-        /// /// <param name="payload">Optional payload</param>
-        /// <returns>Task</returns>
-        internal Thread Start(params Object[] payload)
-        {
-            Thread thread = new Thread((Object pl) =>
-            {
-                try
-                {
-                    this.GotoInitialState((Object[])pl);
-
-                    while (this.IsActive)
-                    {
-                        if (this.RaisedEvent != null)
-                        {
-                            Event nextEvent = this.RaisedEvent;
-                            this.RaisedEvent = null;
-                            this.HandleEvent(nextEvent);
-                        }
-                        else
-                        {
-                            // We are using a blocking collection so the attempt to
-                            // dequeue an event will block if there is no available
-                            // event in the mailbox. The operation will unblock when
-                            // the next event arrives.
-                            Event nextEvent = this.Inbox.Take(this.CTS.Token);
-                            if (this.CTS.Token.IsCancellationRequested)
-                                break;
-                            this.HandleEvent(nextEvent);
-                        }
-                    }
-                }
-                catch (TaskCanceledException) { }
-            });
-
-            thread.Start(payload);
-
-            return thread;
-        }
-
-        /// <summary>
-        /// Starts the machine concurrently with an optional payload and
-        /// the scheduler enabled.
-        /// </summary>
-        /// /// <param name="payload">Optional payload</param>
-        /// <returns>Task</returns>
-        internal Thread ScheduledStart(params Object[] payload)
-        {
-            Thread thread = new Thread((Object pl) =>
-            {
-                ThreadInfo currThread = Runtime.Scheduler.GetCurrentThreadInfo();
-                Runtime.Scheduler.ThreadStarted(currThread);
-
-                try
-                {
-                    if (Runtime.Scheduler.DeadlockHasOccurred)
-                    {
-                        throw new TaskCanceledException();
-                    }
-
-                    this.GotoInitialState((Object[])pl);
-
-                    while (this.IsActive)
-                    {
-                        if (this.RaisedEvent != null)
-                        {
-                            Event nextEvent = this.RaisedEvent;
-                            this.RaisedEvent = null;
-                            this.HandleEvent(nextEvent);
-                        }
-                        else
-                        {
-                            // We are using a blocking collection so the attempt to
-                            // dequeue an event will block if there is no available
-                            // event in the mailbox. The operation will unblock when
-                            // the next event arrives.
-                            Event nextEvent = this.ScheduledInbox.Take();
-                            this.HandleEvent(nextEvent);
-                        }
-                    }
-                }
-                catch (TaskCanceledException) { }
-
-                Runtime.Scheduler.ThreadEnded(currThread);
-            });
-
-            ThreadInfo threadInfo = Runtime.Scheduler.AddNewThreadInfo(thread);
-
-            thread.Start(payload);
-
-            Runtime.Scheduler.WaitForThreadToStart(threadInfo);
-
-            return thread;
-        }
-
-        /// <summary>
-        /// Stop listening to events.
-        /// </summary>
-        internal void StopListener()
-        {
-            this.IsActive = false;
-
-            if (Runtime.Options.Mode == Runtime.Mode.Execution)
-                this.CTS.Cancel();
-            else if (Runtime.Options.Mode == Runtime.Mode.BugFinding)
-                this.ScheduledInbox.Cancel();
-        }
-
-        /// <summary>
-        /// Resets the machine ID counter.
-        /// </summary>
-        internal static void ResetMachineIDCounter()
-        {
-            Machine.IdCounter = 0;
-        }
-
-        #endregion
-
-        #region P# API methods
-
-        /// <summary>
-        /// Defines all possible step state transitions for each state.
-        /// It must return a dictionary where a key represents
-        /// a state and a value represents the state's transitions.
-        /// </summary>
-        /// <returns>Dictionary<Type, StateTransitions></returns>
-        protected virtual Dictionary<Type, StepStateTransitions> DefineStepStateTransitions()
-        {
-            return new Dictionary<Type, StepStateTransitions>();
-        }
-
-        /// <summary>
-        /// Defines all possible call state transitions for each state.
-        /// It must return a dictionary where a key represents
-        /// a state and a value represents the state's transitions.
-        /// </summary>
-        /// <returns>Dictionary<Type, StateTransitions></returns>
-        protected virtual Dictionary<Type, CallStateTransitions> DefineCallStateTransitions()
-        {
-            return new Dictionary<Type, CallStateTransitions>();
-        }
-
-        /// <summary>
-        /// Defines all possible action bindings for each state.
-        /// It must return a dictionary where a key represents
-        /// a state and a value represents the state's action bindings.
-        /// </summary>
-        /// <returns>Dictionary<Type, ActionBindings></returns>
-        protected virtual Dictionary<Type, ActionBindings> DefineActionBindings()
-        {
-            return new Dictionary<Type, ActionBindings>();
-        }
-
-        /// <summary>
-        /// Sends an asynchronous event to a machine.
-        /// </summary>
-        /// <param name="m">Machine</param>
-        /// <param name="e">Event</param>
-        protected internal void Send(Machine m, Event e)
-        {
-            Runtime.Send(this.GetType().Name, m, e);
-        }
-
-        /// <summary>
-        /// Invokes the specified monitor with the given event.
-        /// </summary>
-        /// <typeparam name="T">Type of the monitor</typeparam>
-        /// <param name="e">Event</param>
-        protected internal void Invoke<T>(Event e)
-        {
-            Runtime.Invoke<T>(e);
-        }
-
-        /// <summary>
-        /// Raises an event internally and returns from the execution context.
-        /// </summary>
-        /// <param name="e">Event</param>
-        protected internal void Raise(Event e)
-        {
-            Utilities.Verbose("Machine {0} raised event {1}.\n", this, e);
-            throw new EventRaisedException(e);
-        }
-
-        /// <summary>
-        /// Pops the current state from the call state stack.
-        /// </summary>
-        protected internal void Return()
-        {
-            throw new ReturnUsedException(this.StateStack.Pop());
-        }
-
-        /// <summary>
-        /// Stop listening to events and delete the machine.
-        /// </summary>
-        protected internal void Delete()
-        {
-            this.StopListener();
-            Runtime.Delete(this);
-        }
-
-        /// <summary>
-        /// Checks if the assertion holds, and if not it reports
-        /// an error and exits.
-        /// </summary>
-        /// <param name="predicate">Predicate</param>
-        protected internal void Assert(bool predicate)
-        {
-            Runtime.Assert(predicate);
-        }
-
-        /// <summary>
-        /// Checks if the assertion holds, and if not it reports
-        /// an error and exits.
-        /// </summary>
-        /// <param name="predicate">Predicate</param>
-        /// <param name="s">Message</param>
-        /// <param name="args">Message arguments</param>
-        protected internal void Assert(bool predicate, string s, params object[] args)
-        {
-            Runtime.Assert(predicate, s, args);
-        }
-
-        #endregion
-
-        #region factory methods
-
-        public static class Factory
-        {
-            /// <summary>
-            /// Creates a new machine of type T with an optional payload.
-            /// </summary>
-            /// <param name="m">Type of machine</param>
-            /// <param name="payload">Optional payload</param>
-            /// <returns>Machine</returns>
-            public static Machine CreateMachine(Type m, params Object[] payload)
-            {
-                Runtime.Assert(m.IsSubclassOf(typeof(Machine)), "The provided " +
-                    "type '{0}' is not a subclass of Machine.\n", m.Name);
-                Machine machine = Runtime.TryCreateNewMachineInstance(m, payload);
-                return machine;
-            }
-
-            /// <summary>
-            /// Creates a new machine of type T with an optional payload.
-            /// </summary>
-            /// <typeparam name="T">Type of machine</typeparam>
-            /// <param name="payload">Optional payload</param>
-            /// <returns>Machine</returns>
-            public static T CreateMachine<T>(params Object[] payload)
-            {
-                Runtime.Assert(typeof(T).IsSubclassOf(typeof(Machine)), "The provided " +
-                    "type '{0}' is not a subclass of Machine.\n", typeof(T).Name);
-                T machine = Runtime.TryCreateNewMachineInstance<T>(payload);
-                return machine;
-            }
-
-            /// <summary>
-            /// Creates a new monitor of type T with an optional payload.
-            /// </summary>
-            /// <param name="m">Type of monitor</param>
-            /// <param name="payload">Optional payload</param>
-            public static void CreateMonitor(Type m, params Object[] payload)
-            {
-                Runtime.Assert(m.IsSubclassOf(typeof(Machine)), "The provided " +
-                    "type '{0}' is not a subclass of Machine.\n", m.Name);
-                Runtime.Assert(m.IsDefined(typeof(Monitor), false), "The provided " +
-                    "type '{0}' is not a monitor.\n", m.Name);
-                Machine machine = Runtime.TryCreateNewMonitorInstance(m, payload);
-            }
-
-            /// <summary>
-            /// Creates a new monitor of type T with an optional payload.
-            /// </summary>
-            /// <typeparam name="T">Type of monitor</typeparam>
-            /// <param name="payload">Optional payload</param>
-            public static void CreateMonitor<T>(params Object[] payload)
-            {
-                Runtime.Assert(typeof(T).IsSubclassOf(typeof(Machine)), "The provided " +
-                    "type '{0}' is not a subclass of Machine.\n", typeof(T).Name);
-                Runtime.Assert(typeof(T).IsDefined(typeof(Monitor), false), "The provided " +
-                    "type '{0}' is not a monitor.\n", typeof(T).Name);
-                T machine = Runtime.TryCreateNewMonitorInstance<T>(payload);
-            }
         }
 
         #endregion

@@ -19,7 +19,7 @@ using System.Runtime.CompilerServices;
 
 namespace Microsoft.PSharp
 {
-    public class IdentityEqualityComparer<T> : IEqualityComparer<T> where T : class
+    internal sealed class IdentityEqualityComparer<T> : IEqualityComparer<T> where T : class
     {
         public int GetHashCode(T value)
         {

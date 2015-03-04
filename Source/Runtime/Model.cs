@@ -24,7 +24,7 @@ using Microsoft.PSharp.Scheduling;
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Static class implementing model specific methods.
+    /// Static class implementing environmental modelling specific methods.
     /// </summary>
     public static class Model
     {
@@ -80,12 +80,7 @@ namespace Microsoft.PSharp
             {
                 bool result = false;
 
-                if (Runtime.Options.Mode == Runtime.Mode.Replay)
-                {
-                    result = Model.NDBooleanChoices[0];
-                    Model.NDBooleanChoices.RemoveAt(0);
-                }
-                else if (Runtime.Options.Mode == Runtime.Mode.BugFinding)
+                if (Runtime.Options.Mode == Runtime.Mode.BugFinding)
                 {
                     if (Havoc.UnsignedInteger(2) == 1)
                         result = true;

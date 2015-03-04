@@ -59,7 +59,7 @@ namespace Microsoft.PSharp.Scheduling
         /// <param name="payload">Optional payload</param>
         internal static void Run(Type m, params Object[] payload)
         {
-            Machine.Factory.CreateMachine(m, payload);
+            Machine.Factory.Create(m, payload);
             Runtime.IsRunning = true;
         }
 

@@ -369,17 +369,9 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 return false;
             }
-            
-            if (((factory.Expression is MemberAccessExpressionSyntax) &&
-                !((factory.Expression as MemberAccessExpressionSyntax).
-                Name.Identifier.ValueText.Equals("CreateMachine") ||
-                (factory.Expression as MemberAccessExpressionSyntax).
-                Name.Identifier.ValueText.Equals("CreateMonitor"))) ||
-                ((factory.Expression is IdentifierNameSyntax) &&
-                !((factory.Expression as IdentifierNameSyntax).
-                Identifier.ValueText.Equals("CreateMachine") ||
-                (factory.Expression as IdentifierNameSyntax).
-                Identifier.ValueText.Equals("CreateMonitor"))))
+
+            var model = AnalysisContext.Compilation.GetSemanticModel(factory.SyntaxTree);
+            if (!Utilities.IsMachineFactoryMethod(factory, model))
             {
                 return false;
             }
@@ -457,13 +449,17 @@ namespace Microsoft.PSharp.StaticAnalysis
                 return false;
             }
 
+            var model = AnalysisContext.Compilation.GetSemanticModel(call.SyntaxTree);
+            if (Utilities.IsMachineFactoryMethod(call, model))
+            {
+                return false;
+            }
+
             if (call.Expression is MemberAccessExpressionSyntax)
             {
                 var callStmt = call.Expression as MemberAccessExpressionSyntax;
                 if (callStmt.Name.Identifier.ValueText.Equals("Send") ||
-                    callStmt.Name.Identifier.ValueText.Equals("Invoke") ||
-                    callStmt.Name.Identifier.ValueText.Equals("CreateMachine") ||
-                    callStmt.Name.Identifier.ValueText.Equals("CreateMonitor"))
+                    callStmt.Name.Identifier.ValueText.Equals("Invoke"))
                 {
                     return false;
                 }
@@ -472,9 +468,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 var callStmt = call.Expression as IdentifierNameSyntax;
                 if (callStmt.Identifier.ValueText.Equals("Send") ||
-                    callStmt.Identifier.ValueText.Equals("Invoke") ||
-                    callStmt.Identifier.ValueText.Equals("CreateMachine") ||
-                    callStmt.Identifier.ValueText.Equals("CreateMonitor"))
+                    callStmt.Identifier.ValueText.Equals("Invoke"))
                 {
                     return false;
                 }
@@ -485,7 +479,6 @@ namespace Microsoft.PSharp.StaticAnalysis
                 return false;
             }
 
-            var model = AnalysisContext.Compilation.GetSemanticModel(call.SyntaxTree);
             var callSymbol = model.GetSymbolInfo(call).Symbol;
             var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol, ProgramInfo.Solution).Result;
             var calleeMethod = definition.DeclaringSyntaxReferences.First().GetSyntax()

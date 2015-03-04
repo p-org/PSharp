@@ -16,6 +16,7 @@ namespace PBoundedAsync
 
             Runtime.RegisterNewMachine(typeof(Scheduler));
             Runtime.RegisterNewMachine(typeof(Process));
+            Runtime.Options.Verbose = true;
 
             Runtime.Start();
             Runtime.Wait();

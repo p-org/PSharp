@@ -95,7 +95,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         {
             var start = position;
 
-            var text = "Machine.Factory.CreateMachine<";
+            var text = "Machine.Factory.Create<";
 
             text += this.MachineIdentifier.TextUnit.Text;
 
