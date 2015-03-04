@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="Event.cs" company="Microsoft">
+// <copyright file="Halt.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -16,38 +16,20 @@
 
 using System;
 
-using Microsoft.PSharp.Scheduling;
-
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Abstract class representing an event.
+    /// The halt event.
     /// </summary>
-    public abstract class Event
+    public sealed class Halt : Event
     {
         /// <summary>
-        /// Payload of the event.
+        /// Default constructor.
         /// </summary>
-        protected internal readonly Object Payload;
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="payload">Optional payload</param>
-        protected Event(params Object[] payload)
+        private Halt()
+            : base()
         {
-            if (payload.Length == 0)
-            {
-                this.Payload = null;
-            }
-            else if (payload.Length == 1)
-            {
-                this.Payload = payload[0];
-            }
-            else
-            {
-                this.Payload = payload;
-            }
+
         }
     }
 }
