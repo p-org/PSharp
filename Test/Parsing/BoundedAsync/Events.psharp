@@ -7,7 +7,6 @@ namespace BoundedAsync
     internal event eUnit;
     internal event eReq;
     internal event eResp;
-    internal event eDone;
     internal event eInit;
     internal event eMyCount;
 

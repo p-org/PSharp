@@ -51,7 +51,7 @@ namespace BoundedAsync
                 send eMyCount ( msg2 ) to RightProcess;
                 send eReq to Scheduler;
 
-                if (this.CountMessage.Count > 10)
+                if (this.CountMessage.Count == 10)
                 {
                     raise eUnit;
                 }
@@ -68,9 +68,6 @@ namespace BoundedAsync
             entry
             {
                 Console.WriteLine("Process: Done");
-				
-                send eDone to Scheduler;
-                delete;
             }
 
             ignore eResp, eMyCount;
@@ -86,12 +83,9 @@ namespace BoundedAsync
 		
         private action ConfirmThatInSync
         {
-            Console.WriteLine("Process: Performing ConfirmThatInSync");
-
             var countMsg = (CountMessage)payload;
-
-            assert((this.CountMessage.Count <= countMsg.Count) &&
-                (this.CountMessage.Count >= (countMsg.Count - 1)));
+			assert(this.CountMessage.Count <= countMsg.Count &&
+			  this.CountMessage.Count >= countMsg.Count - 1);
         }
     }
 }

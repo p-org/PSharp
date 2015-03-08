@@ -25,7 +25,6 @@ namespace BoundedAsync
             Runtime.RegisterNewEvent(typeof(eUnit));
             Runtime.RegisterNewEvent(typeof(eReq));
             Runtime.RegisterNewEvent(typeof(eResp));
-            Runtime.RegisterNewEvent(typeof(eDone));
             Runtime.RegisterNewEvent(typeof(eInit));
             Runtime.RegisterNewEvent(typeof(eMyCount));
 

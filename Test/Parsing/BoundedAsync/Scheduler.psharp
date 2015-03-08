@@ -43,18 +43,8 @@ namespace BoundedAsync
             }
 
             on eResp goto Sync;
-            on eUnit goto Done;
 
             on eReq do CountReq;
-            on eDone do CheckIfDone;
-        }
-
-        private state Done
-        {
-            entry
-            {
-                delete;
-            }
         }
 
         private action CountReq
@@ -65,16 +55,6 @@ namespace BoundedAsync
             {
                 this.Count = 0;
                 raise eResp;
-            }
-        }
-
-        private action CheckIfDone
-        {
-            this.DoneCounter--;
-
-            if (this.DoneCounter == 0)
-            {
-                delete;
             }
         }
     }

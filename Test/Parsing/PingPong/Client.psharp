@@ -25,7 +25,6 @@ namespace PingPong
             {
                 if (this.Counter == 5)
                 {
-                    send Halt to this.Server;
 					raise Halt;
                 }
             }
