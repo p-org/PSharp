@@ -119,22 +119,22 @@ namespace Microsoft.PSharp.StaticAnalysis
         {
             stateTransitions = new Dictionary<ClassDeclarationSyntax, HashSet<ClassDeclarationSyntax>>();
 
-            var defineStepStateTransitionsMethod = machine.ChildNodes().
+            var defineGotoStateTransitionsMethod = machine.ChildNodes().
                 OfType<MethodDeclarationSyntax>().FirstOrDefault(v
-                => v.Identifier.ValueText.Equals("DefineStepStateTransitions") &&
+                => v.Identifier.ValueText.Equals("DefineGotoStateTransitions") &&
                 v.Modifiers.Any(SyntaxKind.OverrideKeyword) && v.ReturnType.ToString().
-                Equals("System.Collections.Generic.Dictionary<Type, StepStateTransitions>"));
-            if (defineStepStateTransitionsMethod == null)
+                Equals("System.Collections.Generic.Dictionary<Type, GotoStateTransitions>"));
+            if (defineGotoStateTransitionsMethod == null)
             {
                 return false;
             }
 
-            var returnStmt = defineStepStateTransitionsMethod.DescendantNodes().
+            var returnStmt = defineGotoStateTransitionsMethod.DescendantNodes().
                 OfType<ReturnStatementSyntax>().First();
             var returnSymbol = model.GetSymbolInfo(returnStmt.Expression).Symbol;
             Dictionary<ClassDeclarationSyntax, IdentifierNameSyntax> stateMap = null;
             if (!StateTransitionAnalysis.TryParseStateMap(out stateMap, returnSymbol,
-                defineStepStateTransitionsMethod, model))
+                defineGotoStateTransitionsMethod, model))
             {
                 return false;
             }
@@ -148,10 +148,10 @@ namespace Microsoft.PSharp.StaticAnalysis
 
                 var dictionarySymbol = model.GetSymbolInfo(state.Value).Symbol;
                 var dictionaryInvocations = StateTransitionAnalysis.GetInvocationsFromSymbol(
-                    dictionarySymbol, defineStepStateTransitionsMethod);
+                    dictionarySymbol, defineGotoStateTransitionsMethod);
 
                 var transitions = ParseTransitions(dictionarySymbol,
-                    defineStepStateTransitionsMethod, model);
+                    defineGotoStateTransitionsMethod, model);
                 if (transitions.Count == 0)
                 {
                     continue;

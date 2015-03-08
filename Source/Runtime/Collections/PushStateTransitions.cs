@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="CallStateTransitions.cs" company="Microsoft">
+// <copyright file="PushStateTransitions.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -21,21 +21,21 @@ using System.Collections.Generic;
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Class representing a collection of call state transitions.
+    /// Class representing a collection of push state transitions.
     /// </summary>
-    public sealed class CallStateTransitions : IEnumerable<KeyValuePair<Type, Type>>
+    public sealed class PushStateTransitions : IEnumerable<KeyValuePair<Type, Type>>
     {
         /// <summary>
-        /// A dictionary of call state transitions. A key represents
+        /// A dictionary of push state transitions. A key represents
         /// the type of an event, and the value is the target state
-        /// of the call transition.
+        /// of the push transition.
         /// </summary>
         private Dictionary<Type, Type> Dictionary;
 
         /// <summary>
-        /// Default constructor of the CallStateTransitions class.
+        /// Default constructor of the PushStateTransitions class.
         /// </summary>
-        public CallStateTransitions()
+        public PushStateTransitions()
         {
             this.Dictionary = new Dictionary<Type, Type>();
         }

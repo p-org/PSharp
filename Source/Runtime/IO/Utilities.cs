@@ -29,10 +29,7 @@ namespace Microsoft.PSharp.IO
         internal static void ReportError(string s, params object[] args)
         {
             string message = Utilities.Format(s, args);
-            ConsoleColor previous = Console.ForegroundColor;
-            Console.ForegroundColor = ConsoleColor.Red;
             Console.Write("Runtime Error: ");
-            Console.ForegroundColor = previous;
             Console.WriteLine(message);
         }
 

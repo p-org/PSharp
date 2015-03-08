@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Scheduling;
@@ -31,11 +32,6 @@ namespace Microsoft.PSharp
     public static class Runtime
     {
         #region fields
-
-        /// <summary>
-        /// List of state machines in the program.
-        /// </summary>
-        private static List<Machine> Machines = new List<Machine>();
 
         /// <summary>
         /// List of monitors in the program.
@@ -65,7 +61,12 @@ namespace Microsoft.PSharp
         /// <summary>
         /// List of machine tasks.
         /// </summary>
-        private static List<Thread> MachineTasks = new List<Thread>();
+        private static List<Task> MachineTasks = new List<Task>();
+
+        /// <summary>
+        /// List of machine tasks.
+        /// </summary>
+        //private static List<Thread> MachineTasks = new List<Thread>();
 
         /// <summary>
         /// The bug-finding scheduler.
@@ -161,16 +162,18 @@ namespace Microsoft.PSharp
         /// </summary>
         public static void Wait()
         {
-            Thread[] taskArray = null;
+            Task[] taskArray = null;
             lock (Runtime.Lock)
             {
                 taskArray = Runtime.MachineTasks.ToArray();
             }
 
-            foreach (Thread thread in taskArray)
-            {
-                thread.Join();
-            }
+            Task.WaitAll(taskArray);
+
+            //foreach (var task in taskArray)
+            //{
+            //    thread.Join();
+            //}
 
             bool moreTasksExist = false;
             lock (Runtime.Lock)
@@ -301,31 +304,36 @@ namespace Microsoft.PSharp
         /// <returns>Machine</returns>
         internal static Machine TryCreateNewMachineInstance(Type m, params Object[] payload)
         {
-            Machine machine;
-
-            lock (Runtime.Lock)
-            {
-                Utilities.Verbose("Creating new machine: {0}\n", m);
-                Runtime.Assert(Runtime.RegisteredMachineTypes.Any(val => val == m),
-                    "Machine '{0}' has not been registered with the P# runtime.\n", m.Name);
-                machine = Activator.CreateInstance(m) as Machine;
-                Runtime.Machines.Add(machine);
-            }
+            Utilities.Verbose("Creating new machine: {0}\n", m);
+            Runtime.Assert(Runtime.RegisteredMachineTypes.Any(val => val == m),
+                "Machine '{0}' has not been registered with the P# runtime.\n", m.Name);
+            Machine machine = Activator.CreateInstance(m) as Machine;
 
             if (Runtime.Options.Mode == Runtime.Mode.Execution)
             {
+                Task task = new Task(() =>
+                {
+                    try
+                    {
+                        machine.Start(payload);
+                    }
+                    catch (TaskCanceledException) { }
+                });
+
                 lock (Runtime.Lock)
                 {
-                    Runtime.MachineTasks.Add(machine.Start(payload));
+                    Runtime.MachineTasks.Add(task);
                 }
+                
+                task.Start();
             }
-            else if (Runtime.Options.Mode == Runtime.Mode.BugFinding)
-            {
-                lock (Runtime.Lock)
-                {
-                    Runtime.MachineTasks.Add(machine.ScheduledStart(payload));
-                }
-            }
+            //else if (Runtime.Options.Mode == Runtime.Mode.BugFinding)
+            //{
+            //    lock (Runtime.Lock)
+            //    {
+            //        Runtime.MachineTasks.Add(machine.ScheduledStart(payload));
+            //    }
+            //}
 
             return machine;
         }
@@ -339,27 +347,28 @@ namespace Microsoft.PSharp
         /// <returns>Machine</returns>
         internal static T TryCreateNewMachineInstance<T>(params Object[] payload)
         {
-            Object machine;
+            Utilities.Verbose("Creating new machine: {0}\n", typeof(T));
+            Runtime.Assert(Runtime.RegisteredMachineTypes.Any(val => val == typeof(T)),
+                "Machine '{0}' has not been registered with the P# runtime.\n", typeof(T).Name);
+            Object machine = Activator.CreateInstance(typeof(T));
 
-            lock (Runtime.Lock)
+            if (Runtime.Options.Mode == Runtime.Mode.Execution)
             {
-                Utilities.Verbose("Creating new machine: {0}\n", typeof(T));
-                Runtime.Assert(Runtime.RegisteredMachineTypes.Any(val => val == typeof(T)),
-                    "Machine '{0}' has not been registered with the P# runtime.\n", typeof(T).Name);
-                machine = Activator.CreateInstance(typeof(T));
-                Runtime.Machines.Add(machine as Machine);
-            }
+                Task task = new Task(() =>
+                {
+                    try
+                    {
+                        (machine as Machine).Start(payload);
+                    }
+                    catch (TaskCanceledException) { }
+                });
 
-            lock (Runtime.Lock)
-            {
-                if (Runtime.Options.Mode == Runtime.Mode.Execution)
+                lock (Runtime.Lock)
                 {
-                    Runtime.MachineTasks.Add((machine as Machine).Start(payload));
+                    Runtime.MachineTasks.Add(task);
                 }
-                else if (Runtime.Options.Mode == Runtime.Mode.BugFinding)
-                {
-                    Runtime.MachineTasks.Add((machine as Machine).ScheduledStart(payload));
-                }
+                
+                task.Start();
             }
 
             return (T)machine;
@@ -390,14 +399,14 @@ namespace Microsoft.PSharp
             {
                 lock (Runtime.Lock)
                 {
-                    Runtime.MachineTasks.Add(machine.Start(payload));
+                    //Runtime.MachineTasks.Add(machine.Start(payload));
                 }
             }
             else if (Runtime.Options.Mode == Runtime.Mode.BugFinding)
             {
                 lock (Runtime.Lock)
                 {
-                    Runtime.MachineTasks.Add(machine.ScheduledStart(payload));
+                    //Runtime.MachineTasks.Add(machine.ScheduledStart(payload));
                 }
             }
 
@@ -427,14 +436,14 @@ namespace Microsoft.PSharp
             {
                 lock (Runtime.Lock)
                 {
-                    Runtime.MachineTasks.Add((machine as Machine).Start(payload));
+                    //Runtime.MachineTasks.Add((machine as Machine).Start(payload));
                 }
             }
             else if (Runtime.Options.Mode == Runtime.Mode.BugFinding)
             {
                 lock (Runtime.Lock)
                 {
-                    Runtime.MachineTasks.Add((machine as Machine).ScheduledStart(payload));
+                    //Runtime.MachineTasks.Add((machine as Machine).ScheduledStart(payload));
                 }
             }
 
@@ -442,21 +451,36 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Attempts to send an asynchronous event to a machine.
+        /// Attempts to send (i.e. enqueue) an asynchronous event to a machine.
         /// </summary>
-        /// <param name="receiver">Receiver machine</param>
+        /// <param name="target">Target machine</param>
         /// <param name="e">Event</param>
         /// <param name="sender">Sender machine</param>
-        internal static void Send(Machine receiver, Event e, string sender)
+        internal static void Send(Machine target, Event e, string sender)
         {
-            Utilities.Verbose("Sending event {0} to machine {1}\n", e, receiver);
+            Utilities.Verbose("Sending event {0} to machine {1}\n", e, target);
+            Runtime.Assert(e != null, "Machine '{0}' received a null event.\n", target);
             Runtime.Assert(Runtime.RegisteredEventTypes.Any(val => val == e.GetType()),
                 "Event '{0}' has not been registered with the P# runtime.\n", e);
-            Runtime.Assert(!receiver.GetType().IsDefined(typeof(Monitor), false),
+            Runtime.Assert(!target.GetType().IsDefined(typeof(Monitor), false),
                 "Cannot use Runtime.Send() to directly send an event to a monitor. " +
                 "Use Runtime.Invoke() instead.\n");
 
-            receiver.Enqueue(e, sender);
+            Task task = new Task(() =>
+            {
+                try
+                {
+                    target.Enqueue(e, sender);
+                }
+                catch (TaskCanceledException) { }
+            });
+
+            lock (Runtime.Lock)
+            {
+                Runtime.MachineTasks.Add(task);
+            }
+            
+            task.Start();
         }
 
         /// <summary>
@@ -538,7 +562,6 @@ namespace Microsoft.PSharp
         {
             Runtime.IsRunning = false;
 
-            Runtime.Machines.Clear();
             Runtime.Monitors.Clear();
 
             Runtime.RegisteredMachineTypes.Clear();

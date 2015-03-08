@@ -230,15 +230,15 @@ namespace Microsoft.PSharp.Parsing.PSyntax
 
             var text = "\n";
             text += "protected override System.Collections.Generic.Dictionary<Type, " +
-                "StepStateTransitions> DefineStepStateTransitions()\n";
+                "GotoStateTransitions> DefineGotoStateTransitions()\n";
             text += "{\n";
             text += " var dict = new System.Collections.Generic.Dictionary<Type, " +
-                "StepStateTransitions>();\n";
+                "GotoStateTransitions>();\n";
             text += "\n";
 
             foreach (var state in this.StateDeclarations)
             {
-                text += " var " + state.Identifier.TextUnit.Text.ToLower() + "Dict = new StepStateTransitions();\n";
+                text += " var " + state.Identifier.TextUnit.Text.ToLower() + "Dict = new GotoStateTransitions();\n";
 
                 foreach (var transition in state.StateTransitions)
                 {

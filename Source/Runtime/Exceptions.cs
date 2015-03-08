@@ -19,26 +19,6 @@ using System;
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// This exception is thrown whenever an event is raised.
-    /// </summary>
-    internal sealed class EventRaisedException : Exception
-    {
-        /// <summary>
-        /// The raised event.
-        /// </summary>
-        internal Event RaisedEvent;
-
-        /// <summary>
-        /// Default constructor of the EventRaisedException class.
-        /// </summary>
-        /// <param name="e">Raised event</param>
-        public EventRaisedException(Event e)
-        {
-            this.RaisedEvent = e;
-        }
-    }
-
-    /// <summary>
     /// This exception is thrown whenever the Return() statement
     /// is executed to pop a state from the call state stack.
     /// </summary>

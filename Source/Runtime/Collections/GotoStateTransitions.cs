@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="StepStateTransitions.cs" company="Microsoft">
+// <copyright file="GotoStateTransitions.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -21,23 +21,23 @@ using System.Collections.Generic;
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Class representing a collection of step state transitions.
+    /// Class representing a collection of goto state transitions.
     /// </summary>
-    public sealed class StepStateTransitions : IEnumerable<KeyValuePair<Type, Tuple<Type, Action>>>
+    public sealed class GotoStateTransitions : IEnumerable<KeyValuePair<Type, Tuple<Type, Action>>>
     {
         /// <summary>
-        /// A dictionary of step state transitions. A key represents
+        /// A dictionary of goto state transitions. A key represents
         /// the type of an event, and the value is the target state
-        /// of the step transition and an optional lambda function,
+        /// of the goto transition and an optional lambda function,
         /// which can override the default OnExit function of the
         /// exiting state.
         /// </summary>
         private Dictionary<Type, Tuple<Type, Action>> Dictionary;
 
         /// <summary>
-        /// Default constructor of the StepStateTransitions class.
+        /// Default constructor of the GotoStateTransitions class.
         /// </summary>
-        public StepStateTransitions()
+        public GotoStateTransitions()
         {
             this.Dictionary = new Dictionary<Type, Tuple<Type, Action>>();
         }

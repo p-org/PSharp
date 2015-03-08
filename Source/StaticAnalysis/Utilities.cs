@@ -501,8 +501,8 @@ namespace Microsoft.PSharp.StaticAnalysis
             if (method.Modifiers.Any(SyntaxKind.AbstractKeyword) ||
                 method.Identifier.ValueText.Equals("DefineIgnoredEvents") ||
                 method.Identifier.ValueText.Equals("DefineDeferredEvents") ||
-                method.Identifier.ValueText.Equals("DefineStepStateTransitions") ||
-                method.Identifier.ValueText.Equals("DefineCallStateTransitions") ||
+                method.Identifier.ValueText.Equals("DefineGotoStateTransitions") ||
+                method.Identifier.ValueText.Equals("DefinePushStateTransitions") ||
                 method.Identifier.ValueText.Equals("DefineActionBindings"))
             {
                 return false;

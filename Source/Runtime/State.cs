@@ -56,14 +56,14 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Dictionary containing all the step state transitions.
+        /// Dictionary containing all the goto state transitions.
         /// </summary>
-        private StepStateTransitions StepTransitions;
+        private GotoStateTransitions GotoTransitions;
 
         /// <summary>
-        /// Dictionary containing all the call state transitions.
+        /// Dictionary containing all the push state transitions.
         /// </summary>
-        private CallStateTransitions CallTransitions;
+        private PushStateTransitions PushTransitions;
 
         /// <summary>
         /// Dictionary containing all the action bindings.
@@ -71,14 +71,14 @@ namespace Microsoft.PSharp
         private ActionBindings ActionBindings;
 
         /// <summary>
-        /// Set of ignored event types.
-        /// </summary>
-        internal HashSet<Type> IgnoredEvents;
-
-        /// <summary>
         /// Set of deferred event types.
         /// </summary>
-        internal HashSet<Type> DeferredEvents;
+        private HashSet<Type> DeferredEvents;
+
+        /// <summary>
+        /// Set of ignored event types.
+        /// </summary>
+        private HashSet<Type> IgnoredEvents;
 
         #endregion
 
@@ -87,47 +87,47 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Initializes the state.
         /// </summary>
-        /// <param name="sst">Step state transitions</param>
-        /// <param name="cst">Call state transitions</param>
+        /// <param name="sst">Goto state transitions</param>
+        /// <param name="cst">Push state transitions</param>
         /// <param name="ab">Action bindings</param>
-        internal void InitializeState(StepStateTransitions sst,
-            CallStateTransitions cst, ActionBindings ab)
+        internal void InitializeState(GotoStateTransitions sst,
+            PushStateTransitions cst, ActionBindings ab)
         {
-            if (sst == null) this.StepTransitions = new StepStateTransitions();
-            else this.StepTransitions = sst;
+            if (sst == null) this.GotoTransitions = new GotoStateTransitions();
+            else this.GotoTransitions = sst;
 
-            if (cst == null) this.CallTransitions = new CallStateTransitions();
-            else this.CallTransitions = cst;
+            if (cst == null) this.PushTransitions = new PushStateTransitions();
+            else this.PushTransitions = cst;
 
             if (ab == null) this.ActionBindings = new ActionBindings();
             else this.ActionBindings = ab;
 
-            this.IgnoredEvents = this.DefineIgnoredEvents();
             this.DeferredEvents = this.DefineDeferredEvents();
+            this.IgnoredEvents = this.DefineIgnoredEvents();
 
             this.DoErrorChecking();
         }
 
         /// <summary>
-        /// Checks if the state contains a step state transition
+        /// Checks if the state contains a goto state transition
         /// triggered from the given event.
         /// </summary>
         /// <param name="e">Event</param>
         /// <returns>Boolean value</returns>
-        internal bool ContainsStepTransition(Event e)
+        internal bool ContainsGotoTransition(Event e)
         {
-            return this.StepTransitions.ContainsKey(e.GetType());
+            return this.GotoTransitions.ContainsKey(e.GetType());
         }
 
         /// <summary>
-        /// Checks if the state contains a call state transition
+        /// Checks if the state contains a push state transition
         /// triggered from the given event.
         /// </summary>
         /// <param name="e">Event</param>
         /// <returns>Boolean value</returns>
-        internal bool ContainsCallTransition(Event e)
+        internal bool ContainsPushTransition(Event e)
         {
-            return this.CallTransitions.ContainsKey(e.GetType());
+            return this.PushTransitions.ContainsKey(e.GetType());
         }
 
         /// <summary>
@@ -142,27 +142,47 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Checks if the given event is deferred in this state.
+        /// </summary>
+        /// <param name="e">Event</param>
+        /// <returns>Boolean value</returns>
+        internal bool IsDeferred(Event e)
+        {
+            return this.DeferredEvents.Contains(e.GetType());
+        }
+
+        /// <summary>
+        /// Checks if the given event is ignored in this state.
+        /// </summary>
+        /// <param name="e">Event</param>
+        /// <returns>Boolean value</returns>
+        internal bool IsIgnored(Event e)
+        {
+            return this.IgnoredEvents.Contains(e.GetType());
+        }
+
+        /// <summary>
         /// Returns the type of the state that is the target of
-        /// the step transition triggered by the given event, and
+        /// the goto transition triggered by the given event, and
         /// an optional lambda function which can override the
         /// default OnExit function of the exiting state.
         /// </summary>
         /// <param name="e">Event</param>
         /// <returns>Type of the state</returns>
-        internal Tuple<Type, Action> GetStepTransition(Event e)
+        internal Tuple<Type, Action> GetGotoTransition(Event e)
         {
-            return this.StepTransitions[e.GetType()];
+            return this.GotoTransitions[e.GetType()];
         }
 
         /// <summary>
         /// Returns the type of the state that is the target of
-        /// the call transition triggered by the given event.
+        /// the push transition triggered by the given event.
         /// </summary>
         /// <param name="e">Event</param>
         /// <returns>Type of the state</returns>
-        internal Type GetCallTransition(Event e)
+        internal Type GetPushTransition(Event e)
         {
-            return this.CallTransitions[e.GetType()];
+            return this.PushTransitions[e.GetType()];
         }
 
         /// <summary>
@@ -192,17 +212,18 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Checks if the state can handle the given event.
+        /// Checks if the state can handle the given event. An event
+        /// can be handled if it is deferred, or leads to a transition
+        /// or action binding. Ignored events have been removed.
         /// </summary>
         /// <param name="e">Event</param>
         /// <returns>Boolean value</returns>
         internal bool CanHandleEvent(Event e)
         {
-            if (!this.IgnoredEvents.Contains(e.GetType()) &&
-                !this.DeferredEvents.Contains(e.GetType()) &&
-                (this.ContainsStepTransition(e) ||
-                this.ContainsCallTransition(e) ||
-                this.ContainsActionBinding(e)))
+            if (this.IsDeferred(e) ||
+                this.ContainsGotoTransition(e) ||
+                this.ContainsPushTransition(e) ||
+                this.ContainsActionBinding(e))
             {
                 return true;
             }
@@ -225,19 +246,19 @@ namespace Microsoft.PSharp
         protected virtual void OnExit() { }
 
         /// <summary>
-        /// Defines all event types that are ignored by this state.
+        /// Defines all event types that are deferred by this state.
         /// </summary>
         /// <returns>Set of event types</returns>
-        protected virtual HashSet<Type> DefineIgnoredEvents()
+        protected virtual HashSet<Type> DefineDeferredEvents()
         {
             return new HashSet<Type>();
         }
 
         /// <summary>
-        /// Defines all event types that are deferred by this state.
+        /// Defines all event types that are ignored by this state.
         /// </summary>
         /// <returns>Set of event types</returns>
-        protected virtual HashSet<Type> DefineDeferredEvents()
+        protected virtual HashSet<Type> DefineIgnoredEvents()
         {
             return new HashSet<Type>();
         }
@@ -272,7 +293,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Pops the current state from the call state stack.
+        /// Pops the current state from the push state stack.
         /// </summary>
         protected void Return()
         {
@@ -337,8 +358,8 @@ namespace Microsoft.PSharp
         {
             List<Type> events = new List<Type>();
 
-            events.AddRange(this.StepTransitions.Keys());
-            events.AddRange(this.CallTransitions.Keys());
+            events.AddRange(this.GotoTransitions.Keys());
+            events.AddRange(this.PushTransitions.Keys());
             events.AddRange(this.ActionBindings.Keys());
 
             for (int i = 0; i < events.Count; i++)

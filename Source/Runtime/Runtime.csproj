@@ -45,8 +45,8 @@
     <Compile Include="Attributes\Monitor.cs" />
     <Compile Include="Attributes\Ghost.cs" />
     <Compile Include="Collections\ActionBindings.cs" />
-    <Compile Include="Collections\CallStateTransitions.cs" />
-    <Compile Include="Collections\StepStateTransitions.cs" />
+    <Compile Include="Collections\PushStateTransitions.cs" />
+    <Compile Include="Collections\GotoStateTransitions.cs" />
     <Compile Include="Collections\SystematicBlockingQueue.cs" />
     <Compile Include="CommandLineOptions.cs" />
     <Compile Include="Events\Default.cs" />

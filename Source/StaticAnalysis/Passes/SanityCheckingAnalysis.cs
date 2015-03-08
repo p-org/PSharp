@@ -133,8 +133,8 @@ namespace Microsoft.PSharp.StaticAnalysis
                             callStmt.Name.Identifier.ValueText.Equals("OnExit") ||
                             callStmt.Name.Identifier.ValueText.Equals("DefineIgnoredEvents") ||
                             callStmt.Name.Identifier.ValueText.Equals("DefineDeferredEvents") ||
-                            callStmt.Name.Identifier.ValueText.Equals("DefineStepStateTransitions") ||
-                            callStmt.Name.Identifier.ValueText.Equals("DefineCallStateTransitions") ||
+                            callStmt.Name.Identifier.ValueText.Equals("DefineGotoStateTransitions") ||
+                            callStmt.Name.Identifier.ValueText.Equals("DefinePushStateTransitions") ||
                             callStmt.Name.Identifier.ValueText.Equals("DefineActionBindings"))
                         {
                             Log log = new Log(method, machine, state, null);

@@ -115,11 +115,7 @@ namespace Microsoft.PSharp.Compilation
                 var localFileName = (new System.Uri(assembly.CodeBase)).LocalPath;
                 var fileName = outputDir + Path.DirectorySeparatorChar + "Microsoft.PSharp.dll";
 
-                if (File.Exists(fileName))
-                {
-                    continue;
-                }
-
+                File.Delete(fileName);
                 File.Copy(localFileName, fileName);
             }
         }
