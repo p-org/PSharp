@@ -11,8 +11,6 @@ namespace AbstractPong
             Runtime.RegisterNewMachine(typeof(Server));
 
             Runtime.Start();
-            Runtime.Wait();
-            Runtime.Dispose();
         }
     }
 }

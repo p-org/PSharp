@@ -6,7 +6,6 @@ namespace PingPong
 
     internal event Ping;
     internal event Pong;
-    internal event Stop;
     internal event Unit;
 
     #endregion

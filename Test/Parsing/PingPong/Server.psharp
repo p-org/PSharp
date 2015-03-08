@@ -26,18 +26,11 @@ namespace PingPong
 
             on Unit do SendPong;
             on Ping do SendPong;
-            on Stop do StopIt;
         }
 
         action SendPong
         {
             send Pong to this.Client;
-        }
-
-        action StopIt
-        {
-            Console.WriteLine("Server stopped.\n");
-            delete;
         }
     }
 }

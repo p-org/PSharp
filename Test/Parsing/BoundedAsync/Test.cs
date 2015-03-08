@@ -33,8 +33,6 @@ namespace BoundedAsync
             Runtime.RegisterNewMachine(typeof(Process));
 
             Runtime.Start();
-            Runtime.Wait();
-            Runtime.Dispose();
         }
     }
 }

@@ -98,7 +98,7 @@ namespace Microsoft.PSharp
         /// Inbox of the state machine. Incoming events are
         /// queued here. Events are dequeued to be processed.
         /// </summary>
-        internal List<Event> Inbox;
+        private List<Event> Inbox;
 
         /// <summary>
         /// Inbox of the state machine. Incoming events are
@@ -112,7 +112,7 @@ namespace Microsoft.PSharp
         /// Incoming events are queued here. Events are dequeued to be
         /// processed. A thread-safe blocking collection is used.
         /// </summary>
-        internal SystematicBlockingQueue<Event> ScheduledInbox;
+        private SystematicBlockingQueue<Event> ScheduledInbox;
 
         /// <summary>
         /// Handle to the latest received event type.
@@ -223,7 +223,7 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         protected internal void Raise(Event e)
         {
-            Utilities.Verbose("Machine {0} raised event {1}.\n", this, e);
+            Utilities.Verbose("Machine {0} raised event {1}\n", this, e);
             this.HandleEvent(e);
         }
 
@@ -233,15 +233,6 @@ namespace Microsoft.PSharp
         protected internal void Return()
         {
             throw new ReturnUsedException(this.StateStack.Pop());
-        }
-
-        /// <summary>
-        /// Stop listening to events and delete the machine.
-        /// </summary>
-        protected internal void Delete()
-        {
-            this.StopListener();
-            Runtime.Delete(this);
         }
 
         /// <summary>
@@ -414,10 +405,12 @@ namespace Microsoft.PSharp
             {
                 lock (this.Lock)
                 {
-                    this.Inbox.Add(e);
-
-                    Event nextEvent = this.DequeueNextEvent();
-                    this.HandleEvent(nextEvent);
+                    if (!this.IsHalted)
+                    {
+                        this.Inbox.Add(e);
+                        Event nextEvent = this.DequeueNextEvent();
+                        this.HandleEvent(nextEvent);
+                    }
                 }
             }
             else if (Runtime.Options.Mode == Runtime.Mode.BugFinding)
@@ -472,6 +465,7 @@ namespace Microsoft.PSharp
         private Event DequeueNextEvent()
         {
             State currentState = this.StateStack.Peek();
+            Event nextEvent = null;
 
             if (this.Inbox.Count > 0)
             {
@@ -482,6 +476,10 @@ namespace Microsoft.PSharp
                     if (currentState.IsIgnored(this.Inbox[idx]))
                     {
                         this.Inbox.RemoveAt(idx);
+                        if (idx == this.Inbox.Count)
+                        {
+                            break;
+                        }
                     }
 
                     // Dequeue the first event that is not handled by the state,
@@ -489,12 +487,14 @@ namespace Microsoft.PSharp
                     if (!currentState.CanHandleEvent(this.Inbox[idx]) ||
                         !currentState.IsDeferred(this.Inbox[idx]))
                     {
-                        return this.Inbox[idx];
+                        nextEvent = this.Inbox[idx];
+                        this.Inbox.RemoveAt(idx);
+                        break;
                     }
                 }
             }
 
-            return null;
+            return nextEvent;
         }
 
         /// <summary>
@@ -521,7 +521,9 @@ namespace Microsoft.PSharp
                     // is halt, then terminate the machine.
                     if (e.GetType().Equals(typeof(Halt)))
                     {
+                        Utilities.Verbose("{0}: HALT\n", this);
                         this.IsHalted = true;
+                        this.CleanUpResources();
                         return;
                     }
 
@@ -566,11 +568,14 @@ namespace Microsoft.PSharp
                 break;
             }
 
-            this.Message = null;
-            this.Payload = null;
+            if (!this.IsHalted)
+            {
+                this.Message = null;
+                this.Payload = null;
 
-            Event nextEvent = this.DequeueNextEvent();
-            this.HandleEvent(nextEvent);
+                Event nextEvent = this.DequeueNextEvent();
+                this.HandleEvent(nextEvent);
+            }
         }
 
         /// <summary>
@@ -671,8 +676,6 @@ namespace Microsoft.PSharp
             this.StateStack.Push(nextState);
             // The machine performs the on entry statements of the new state.
             this.ExecuteCurrentStateOnEntry();
-            Runtime.Assert(this.StateStack.Peek() != null, "Machine '{0}' cannot not " +
-                "have a null current state.\n", this.GetType().Name);
         }
 
         /// <summary>
@@ -686,8 +689,6 @@ namespace Microsoft.PSharp
             this.StateStack.Push(nextState);
             // The machine performs the on entry statements of the new state.
             this.ExecuteCurrentStateOnEntry();
-            Runtime.Assert(this.StateStack.Peek() != null, "Machine '{0}' cannot not " +
-                "have a null current state.\n", this.GetType().Name);
         }
 
         /// <summary>
@@ -835,14 +836,10 @@ namespace Microsoft.PSharp
         {
             try
             {
-                if (onExit == null)
+                // Performs the on exit statements of the current state.
+                this.StateStack.Peek().ExecuteExitFunction();
+                if (onExit != null)
                 {
-                    // Performs the on exit statements of the current state.
-                    this.StateStack.Peek().ExecuteExitFunction();
-                }
-                else
-                {
-                    // Overrides the on exit method of the current state.
                     onExit();
                 }
             }
@@ -860,49 +857,6 @@ namespace Microsoft.PSharp
                 // Handles generic exception.
                 this.ReportGenericAssertion(ex);
             }
-        }
-
-        /// <summary>
-        /// Attempts to find a state in the push state stack that can handle
-        /// the given event. If such a state is found, then it manipulates
-        /// the push state stack appropriately.
-        /// </summary>
-        /// <param name="currentState">Current state</param>
-        /// <param name="e">Event</param>
-        /// <returns>Boolean value</returns>
-        private bool TryFindStateThatCanHandleEvent(ref State currentState, Event e)
-        {
-            bool result = false;
-            State handlerState = null;
-
-            foreach (var state in this.StateStack)
-            {
-                if (state.Equals(currentState))
-                {
-                    continue;
-                }
-
-                if (state.ContainsGotoTransition(e) ||
-                    state.ContainsPushTransition(e) ||
-                    state.ContainsActionBinding(e))
-                {
-                    result = true;
-                    handlerState = state;
-                    break;
-                }
-            }
-
-            if (result)
-            {
-                while (!this.StateStack.Peek().Equals(handlerState))
-                {
-                    this.StateStack.Pop();
-                }
-
-                currentState = handlerState;
-            }
-
-            return result;
         }
 
         #endregion
@@ -998,10 +952,28 @@ namespace Microsoft.PSharp
         /// <param name="ex">Exception</param>
         private void ReportGenericAssertion(Exception ex)
         {
-            Runtime.Assert(false, "Exception '{0}' was thrown while machine '{1}' was " +
-                "in state '{2}'. The stack trace is:\n{3}\n", ex.GetType(), this.GetType().Name,
-                this.StateStack.Peek().GetType().Name, ex.StackTrace);
+            Runtime.Assert(false, "Exception '{0}' was thrown in machine '{1}'. The stack " +
+                "trace is:\n{2}\n", ex.GetType(), this.GetType().Name, ex.StackTrace);
         }
+
+        #endregion
+
+        #region cleanup methods
+
+        /// <summary>
+        /// Cleans up resources at machine termination.
+        /// </summary>
+        private void CleanUpResources()
+        {
+            this.StateTypes.Clear();
+            this.GotoTransitions.Clear();
+            this.PushTransitions.Clear();
+            this.ActionBindings.Clear();
+            this.Inbox.Clear();
+
+            this.Message = null;
+            this.Payload = null;
+    }
 
         #endregion
     }

@@ -301,14 +301,6 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Stop listening to events and delete the machine.
-        /// </summary>
-        protected void Delete()
-        {
-            this.Machine.Delete();
-        }
-
-        /// <summary>
         /// Checks if the assertion holds, and if not it reports
         /// an error and exits.
         /// </summary>

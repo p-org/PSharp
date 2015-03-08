@@ -25,14 +25,13 @@ namespace PingPong
             {
                 if (this.Counter == 5)
                 {
-                    send Stop to this.Server;
-                    this.StopIt();
+                    send Halt to this.Server;
+					raise Halt;
                 }
             }
 
             on Unit goto Playing;
             on Pong do SendPing;
-            on Stop do StopIt;
         }
 
         private action SendPing
@@ -41,12 +40,6 @@ namespace PingPong
             Console.WriteLine("\nTurns: {0} / 5\n", this.Counter);
             send Ping to this.Server;
             raise Unit;
-        }
-
-        private action StopIt
-        {
-            Console.WriteLine("Client stopped.\n");
-            delete;
         }
     }
 }

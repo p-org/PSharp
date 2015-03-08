@@ -19,8 +19,6 @@ namespace PBoundedAsync
             Runtime.Options.Verbose = true;
 
             Runtime.Start();
-            Runtime.Wait();
-            Runtime.Dispose();
         }
     }
 }

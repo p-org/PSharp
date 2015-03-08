@@ -26,7 +26,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Default constructor.
         /// </summary>
-        private Default()
+        public Default()
             : base()
         {
 

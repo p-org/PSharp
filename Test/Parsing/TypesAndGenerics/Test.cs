@@ -17,8 +17,6 @@ namespace TypesAndGenerics
             Runtime.RegisterNewMachine(typeof(Client));
             
             Runtime.Start();
-            Runtime.Wait();
-            Runtime.Dispose();
         }
     }
 }

@@ -145,7 +145,28 @@ namespace Microsoft.PSharp
         /// <param name="payload">Optional payload</param>
         public static void Start(params Object[] payload)
         {
-            Runtime.IsRunning = true;
+            Runtime.Initialize();
+
+            Runtime.Assert(Runtime.RegisteredMachineTypes.Any(val =>
+                    val.IsDefined(typeof(Main), false)),
+                    "No main machine is registered.\n");
+
+            // Start the main machine.
+            Type mainMachine = Runtime.RegisteredMachineTypes.First(val =>
+                val.IsDefined(typeof(Main), false));
+            Machine.Factory.Create(mainMachine, payload);
+
+            Runtime.Wait();
+        }
+
+        /// <summary>
+        /// Starts the P# runtime asynchronously by invoking the main machine.
+        /// The main machine is constructed with an optional payload.
+        /// </summary>
+        /// <param name="payload">Optional payload</param>
+        public static void StartAsync(params Object[] payload)
+        {
+            Runtime.Initialize();
 
             Runtime.Assert(Runtime.RegisteredMachineTypes.Any(val =>
                     val.IsDefined(typeof(Main), false)),
@@ -185,6 +206,8 @@ namespace Microsoft.PSharp
             {
                 Runtime.Wait();
             }
+
+            Runtime.Dispose();
         }
 
         /// <summary>
@@ -500,14 +523,21 @@ namespace Microsoft.PSharp
             {
                 if (m.GetType() == typeof(T))
                 {
-                    if (Runtime.Options.Mode == Runtime.Mode.Execution)
+                    Task task = new Task(() =>
                     {
-                        m.Inbox.Add(e);
-                    }
-                    else if (Runtime.Options.Mode == Runtime.Mode.BugFinding)
+                        try
+                        {
+                            m.Enqueue(e, null);
+                        }
+                        catch (TaskCanceledException) { }
+                    });
+
+                    lock (Runtime.Lock)
                     {
-                        m.ScheduledInbox.Add(e);
+                        Runtime.MachineTasks.Add(task);
                     }
+
+                    task.Start();
 
                     return;
                 }
@@ -544,35 +574,17 @@ namespace Microsoft.PSharp
 
         #endregion
 
-        #region cleanup methods
+        #region P# runtime private methods
 
         /// <summary>
-        /// Deletes a machine from the P# runtime.
+        /// Initializes the P# runtime.
         /// </summary>
-        /// <param name="m">Machine</param>
-        internal static void Delete(Machine m)
+        private static void Initialize()
         {
+            Runtime.RegisterNewEvent(typeof(Halt));
+            Runtime.RegisterNewEvent(typeof(Default));
 
-        }
-
-        /// <summary>
-        /// Stops the P# runtime and performs cleanup.
-        /// </summary>
-        public static void Dispose()
-        {
-            Runtime.IsRunning = false;
-
-            Runtime.Monitors.Clear();
-
-            Runtime.RegisteredMachineTypes.Clear();
-            Runtime.RegisteredMonitorTypes.Clear();
-            Runtime.RegisteredEventTypes.Clear();
-
-            Runtime.MachineTasks.Clear();
-
-            Machine.ResetMachineIDCounter();
-            Runtime.Options.SchedulingStrategy.Reset();
-            ScheduleExplorer.ResetExploredSchedule();
+            Runtime.IsRunning = true;
         }
 
         #endregion
@@ -706,6 +718,30 @@ namespace Microsoft.PSharp
 
                 Runtime.Scheduler.ErrorOccurred();
             }
+        }
+
+        #endregion
+
+        #region cleanup methods
+
+        /// <summary>
+        /// Stops the P# runtime and performs cleanup.
+        /// </summary>
+        public static void Dispose()
+        {
+            Runtime.IsRunning = false;
+
+            Runtime.Monitors.Clear();
+
+            Runtime.RegisteredMachineTypes.Clear();
+            Runtime.RegisteredMonitorTypes.Clear();
+            Runtime.RegisteredEventTypes.Clear();
+
+            Runtime.MachineTasks.Clear();
+
+            Machine.ResetMachineIDCounter();
+            Runtime.Options.SchedulingStrategy.Reset();
+            ScheduleExplorer.ResetExploredSchedule();
         }
 
         #endregion
