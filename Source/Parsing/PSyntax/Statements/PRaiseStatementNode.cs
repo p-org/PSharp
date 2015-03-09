@@ -90,7 +90,22 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         {
             var start = position;
 
-            var text = "this.Raise(new " + this.EventIdentifier.TextUnit.Text + "(";
+            var text = "this.Raise(new ";
+
+            if (this.EventIdentifier.Type == TokenType.HaltEvent)
+            {
+                text += "Microsoft.PSharp.Halt";
+            }
+            else if (this.EventIdentifier.Type == TokenType.DefaultEvent)
+            {
+                text += "Microsoft.PSharp.Default";
+            }
+            else
+            {
+                text += this.EventIdentifier.TextUnit.Text;
+            }
+
+            text += "(";
 
             if (this.Comma != null)
             {

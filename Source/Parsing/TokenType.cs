@@ -140,6 +140,9 @@ namespace Microsoft.PSharp.Parsing
         Assert,
         Payload,
 
+        HaltEvent,
+        DefaultEvent,
+
         Var,
         Int,
         Bool,

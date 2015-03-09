@@ -476,17 +476,24 @@ namespace Microsoft.PSharp.Parsing
             base.SkipWhiteSpaceAndCommentTokens();
 
             if (base.Index == base.Tokens.Count ||
-                base.Tokens[base.Index].Type != TokenType.Identifier)
+                (base.Tokens[base.Index].Type != TokenType.Identifier &&
+                base.Tokens[base.Index].Type != TokenType.HaltEvent &&
+                base.Tokens[base.Index].Type != TokenType.DefaultEvent))
             {
                 this.ReportParsingError("Expected event identifier.");
                 throw new EndOfTokensException(new List<TokenType>
                 {
-                    TokenType.Identifier
+                    TokenType.Identifier,
+                    TokenType.HaltEvent,
+                    TokenType.DefaultEvent
                 });
             }
 
-            base.Tokens[base.Index] = new Token(base.Tokens[base.Index].TextUnit,
-                TokenType.EventIdentifier);
+            if (base.Tokens[base.Index].Type == TokenType.Identifier)
+            {
+                base.Tokens[base.Index] = new Token(base.Tokens[base.Index].TextUnit,
+                    TokenType.EventIdentifier);
+            }
 
             node.Identifier = base.Tokens[base.Index];
 
@@ -1105,17 +1112,24 @@ namespace Microsoft.PSharp.Parsing
             base.SkipWhiteSpaceAndCommentTokens();
 
             if (base.Index == base.Tokens.Count ||
-                base.Tokens[base.Index].Type != TokenType.Identifier)
+                (base.Tokens[base.Index].Type != TokenType.Identifier &&
+                base.Tokens[base.Index].Type != TokenType.HaltEvent &&
+                base.Tokens[base.Index].Type != TokenType.DefaultEvent))
             {
                 this.ReportParsingError("Expected event identifier.");
                 throw new EndOfTokensException(new List<TokenType>
                 {
-                    TokenType.Identifier
+                    TokenType.Identifier,
+                    TokenType.HaltEvent,
+                    TokenType.DefaultEvent
                 });
             }
 
-            base.Tokens[base.Index] = new Token(base.Tokens[base.Index].TextUnit,
-                TokenType.EventIdentifier);
+            if (base.Tokens[base.Index].Type == TokenType.Identifier)
+            {
+                base.Tokens[base.Index] = new Token(base.Tokens[base.Index].TextUnit,
+                    TokenType.EventIdentifier);
+            }
 
             var eventIdentifier = base.Tokens[base.Index];
 
@@ -1220,12 +1234,16 @@ namespace Microsoft.PSharp.Parsing
             base.SkipWhiteSpaceAndCommentTokens();
 
             if (base.Index == base.Tokens.Count ||
-                base.Tokens[base.Index].Type != TokenType.Identifier)
+                (base.Tokens[base.Index].Type != TokenType.Identifier &&
+                base.Tokens[base.Index].Type != TokenType.HaltEvent &&
+                base.Tokens[base.Index].Type != TokenType.DefaultEvent))
             {
                 this.ReportParsingError("Expected event identifier.");
                 throw new EndOfTokensException(new List<TokenType>
                 {
-                    TokenType.Identifier
+                    TokenType.Identifier,
+                    TokenType.HaltEvent,
+                    TokenType.DefaultEvent
                 });
             }
 
@@ -1233,12 +1251,17 @@ namespace Microsoft.PSharp.Parsing
             while (base.Index < base.Tokens.Count &&
                 base.Tokens[base.Index].Type != TokenType.Semicolon)
             {
-                if (!expectsComma && base.Tokens[base.Index].Type != TokenType.Identifier)
+                if (!expectsComma &&
+                    (base.Tokens[base.Index].Type != TokenType.Identifier &&
+                    base.Tokens[base.Index].Type != TokenType.HaltEvent &&
+                    base.Tokens[base.Index].Type != TokenType.DefaultEvent))
                 {
                     this.ReportParsingError("Expected event identifier.");
                     throw new EndOfTokensException(new List<TokenType>
                     {
-                        TokenType.Identifier
+                        TokenType.Identifier,
+                        TokenType.HaltEvent,
+                        TokenType.DefaultEvent
                     });
                 }
 
@@ -1256,6 +1279,16 @@ namespace Microsoft.PSharp.Parsing
                     base.Tokens[base.Index] = new Token(base.Tokens[base.Index].TextUnit,
                         TokenType.EventIdentifier);
 
+                    if (!parentNode.AddDeferredEvent(base.Tokens[base.Index]))
+                    {
+                        this.ReportParsingError("Unexpected event identifier.");
+                    }
+
+                    expectsComma = true;
+                }
+                else if (base.Tokens[base.Index].Type == TokenType.HaltEvent ||
+                    base.Tokens[base.Index].Type == TokenType.DefaultEvent)
+                {
                     if (!parentNode.AddDeferredEvent(base.Tokens[base.Index]))
                     {
                         this.ReportParsingError("Unexpected event identifier.");
@@ -1293,12 +1326,16 @@ namespace Microsoft.PSharp.Parsing
             base.SkipWhiteSpaceAndCommentTokens();
 
             if (base.Index == base.Tokens.Count ||
-                base.Tokens[base.Index].Type != TokenType.Identifier)
+                (base.Tokens[base.Index].Type != TokenType.Identifier &&
+                base.Tokens[base.Index].Type != TokenType.HaltEvent &&
+                base.Tokens[base.Index].Type != TokenType.DefaultEvent))
             {
                 this.ReportParsingError("Expected event identifier.");
                 throw new EndOfTokensException(new List<TokenType>
                 {
-                    TokenType.Identifier
+                    TokenType.Identifier,
+                    TokenType.HaltEvent,
+                    TokenType.DefaultEvent
                 });
             }
 
@@ -1306,12 +1343,17 @@ namespace Microsoft.PSharp.Parsing
             while (base.Index < base.Tokens.Count &&
                 base.Tokens[base.Index].Type != TokenType.Semicolon)
             {
-                if (!expectsComma && base.Tokens[base.Index].Type != TokenType.Identifier)
+                if (!expectsComma &&
+                    (base.Tokens[base.Index].Type != TokenType.Identifier &&
+                    base.Tokens[base.Index].Type != TokenType.HaltEvent &&
+                    base.Tokens[base.Index].Type != TokenType.DefaultEvent))
                 {
                     this.ReportParsingError("Expected event identifier.");
                     throw new EndOfTokensException(new List<TokenType>
                     {
-                        TokenType.Identifier
+                        TokenType.Identifier,
+                        TokenType.HaltEvent,
+                        TokenType.DefaultEvent
                     });
                 }
 
@@ -1330,6 +1372,16 @@ namespace Microsoft.PSharp.Parsing
                         TokenType.EventIdentifier);
 
                     if (!parentNode.AddIgnoredEvent(base.Tokens[base.Index]))
+                    {
+                        this.ReportParsingError("Unexpected event identifier.");
+                    }
+
+                    expectsComma = true;
+                }
+                else if (base.Tokens[base.Index].Type == TokenType.HaltEvent ||
+                    base.Tokens[base.Index].Type == TokenType.DefaultEvent)
+                {
+                    if (!parentNode.AddDeferredEvent(base.Tokens[base.Index]))
                     {
                         this.ReportParsingError("Unexpected event identifier.");
                     }
@@ -1816,17 +1868,22 @@ namespace Microsoft.PSharp.Parsing
             base.SkipWhiteSpaceAndCommentTokens();
 
             if (base.Index == base.Tokens.Count ||
-                base.Tokens[base.Index].Type != TokenType.Identifier)
+                (base.Tokens[base.Index].Type != TokenType.Identifier &&
+                base.Tokens[base.Index].Type != TokenType.HaltEvent))
             {
                 this.ReportParsingError("Expected event identifier.");
                 throw new EndOfTokensException(new List<TokenType>
                 {
-                    TokenType.Identifier
+                    TokenType.Identifier,
+                    TokenType.HaltEvent
                 });
             }
 
-            base.Tokens[base.Index] = new Token(base.Tokens[base.Index].TextUnit,
-                TokenType.EventIdentifier);
+            if (base.Tokens[base.Index].Type == TokenType.Identifier)
+            {
+                base.Tokens[base.Index] = new Token(base.Tokens[base.Index].TextUnit,
+                    TokenType.EventIdentifier);
+            }
 
             node.EventIdentifier = base.Tokens[base.Index];
 
@@ -1887,17 +1944,22 @@ namespace Microsoft.PSharp.Parsing
             base.SkipWhiteSpaceAndCommentTokens();
 
             if (base.Index == base.Tokens.Count ||
-                base.Tokens[base.Index].Type != TokenType.Identifier)
+                (base.Tokens[base.Index].Type != TokenType.Identifier &&
+                base.Tokens[base.Index].Type != TokenType.HaltEvent))
             {
                 this.ReportParsingError("Expected event identifier.");
                 throw new EndOfTokensException(new List<TokenType>
                 {
-                    TokenType.Identifier
+                    TokenType.Identifier,
+                    TokenType.HaltEvent
                 });
             }
 
-            base.Tokens[base.Index] = new Token(base.Tokens[base.Index].TextUnit,
-                TokenType.EventIdentifier);
+            if (base.Tokens[base.Index].Type == TokenType.Identifier)
+            {
+                base.Tokens[base.Index] = new Token(base.Tokens[base.Index].TextUnit,
+                    TokenType.EventIdentifier);
+            }
 
             node.EventIdentifier = base.Tokens[base.Index];
 

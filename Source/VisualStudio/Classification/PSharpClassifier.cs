@@ -253,6 +253,9 @@ namespace Microsoft.PSharp.VisualStudio
                 case TokenType.Assert:
                 case TokenType.Payload:
 
+                case TokenType.HaltEvent:
+                case TokenType.DefaultEvent:
+
                 case TokenType.Var:
                 case TokenType.Int:
                 case TokenType.Bool:

@@ -110,7 +110,22 @@ namespace Microsoft.PSharp.Parsing.Syntax
             this.MachineIdentifier.Rewrite(ref position);
             text += this.MachineIdentifier.GetRewrittenText();
 
-            text += ", new " + this.EventIdentifier.TextUnit.Text + "(";
+            text += ", new ";
+
+            if (this.EventIdentifier.Type == TokenType.HaltEvent)
+            {
+                text += "Microsoft.PSharp.Halt";
+            }
+            else if (this.EventIdentifier.Type == TokenType.DefaultEvent)
+            {
+                text += "Microsoft.PSharp.Default";
+            }
+            else
+            {
+                text += this.EventIdentifier.TextUnit.Text;
+            }
+
+            text += "(";
 
             if (this.Payload != null)
             {

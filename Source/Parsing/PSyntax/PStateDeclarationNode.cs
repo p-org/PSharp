@@ -314,7 +314,19 @@ namespace Microsoft.PSharp.Parsing.PSyntax
             var eventIds = this.DeferredEvents.ToList();
             for (int idx = 0; idx < eventIds.Count; idx++)
             {
-                text += "   typeof(" + eventIds[idx].TextUnit.Text + ")";
+                if (eventIds[idx].Type == TokenType.HaltEvent)
+                {
+                    text += "   typeof(Microsoft.PSharp.Halt)";
+                }
+                else if (eventIds[idx].Type == TokenType.DefaultEvent)
+                {
+                    text += "   typeof(Microsoft.PSharp.Default)";
+                }
+                else
+                {
+                    text += "   typeof(" + eventIds[idx].TextUnit.Text + ")";
+                }
+
                 if (idx < eventIds.Count - 1)
                 {
                     text += ",\n";
@@ -351,7 +363,19 @@ namespace Microsoft.PSharp.Parsing.PSyntax
             var eventIds = this.IgnoredEvents.ToList();
             for (int idx = 0; idx < eventIds.Count; idx++)
             {
-                text += "   typeof(" + eventIds[idx].TextUnit.Text + ")";
+                if (eventIds[idx].Type == TokenType.HaltEvent)
+                {
+                    text += "   typeof(Microsoft.PSharp.Halt)";
+                }
+                else if (eventIds[idx].Type == TokenType.DefaultEvent)
+                {
+                    text += "   typeof(Microsoft.PSharp.Default)";
+                }
+                else
+                {
+                    text += "   typeof(" + eventIds[idx].TextUnit.Text + ")";
+                }
+
                 if (idx < eventIds.Count - 1)
                 {
                     text += ",\n";

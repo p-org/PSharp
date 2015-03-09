@@ -242,9 +242,22 @@ namespace Microsoft.PSharp.Parsing.PSyntax
 
                 foreach (var transition in state.StateTransitions)
                 {
+                    string eventId = "";
+                    if (transition.Key.Type == TokenType.HaltEvent)
+                    {
+                        eventId = "Microsoft.PSharp.Halt";
+                    }
+                    else if (transition.Key.Type == TokenType.DefaultEvent)
+                    {
+                        eventId = "Microsoft.PSharp.Default";
+                    }
+                    else
+                    {
+                        eventId = transition.Key.TextUnit.Text;
+                    }
+
                     text += " " + state.Identifier.TextUnit.Text.ToLower() + "Dict.Add(typeof(" +
-                        transition.Key.TextUnit.Text +
-                        "), typeof(" + transition.Value.TextUnit.Text + "));\n";
+                        eventId + "), typeof(" + transition.Value.TextUnit.Text + "));\n";
                 }
 
                 text += " dict.Add(typeof(" + state.Identifier.TextUnit.Text + "), " +
@@ -283,9 +296,22 @@ namespace Microsoft.PSharp.Parsing.PSyntax
 
                 foreach (var binding in state.ActionBindings)
                 {
+                    string eventId = "";
+                    if (binding.Key.Type == TokenType.HaltEvent)
+                    {
+                        eventId = "Microsoft.PSharp.Halt";
+                    }
+                    else if (binding.Key.Type == TokenType.DefaultEvent)
+                    {
+                        eventId = "Microsoft.PSharp.Default";
+                    }
+                    else
+                    {
+                        eventId = binding.Key.TextUnit.Text;
+                    }
+
                     text += " " + state.Identifier.TextUnit.Text.ToLower() + "Dict.Add(typeof(" +
-                        binding.Key.TextUnit.Text +
-                        "), new Action(" + binding.Value.TextUnit.Text + "));\n";
+                        eventId + "), new Action(" + binding.Value.TextUnit.Text + "));\n";
                 }
 
                 text += " dict.Add(typeof(" + state.Identifier.TextUnit.Text + "), " +

@@ -319,6 +319,14 @@ namespace Microsoft.PSharp.Parsing
                     this.Tokens.Add(new Token(unit, TokenType.Payload));
                     break;
 
+                case "halt":
+                    this.Tokens.Add(new Token(unit, TokenType.HaltEvent));
+                    break;
+
+                case "default":
+                    this.Tokens.Add(new Token(unit, TokenType.DefaultEvent));
+                    break;
+
                 case "var":
                     this.Tokens.Add(new Token(unit, TokenType.Var));
                     break;

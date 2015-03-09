@@ -25,11 +25,12 @@ namespace PingPong
             {
                 if (this.Counter == 5)
                 {
-					raise Halt;
+					raise halt;
                 }
             }
 
             on Unit goto Playing;
+
             on Pong do SendPing;
         }
 
