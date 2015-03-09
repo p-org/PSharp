@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TypesAndGenerics", "TypesAn
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PingPong", "PingPong\PingPong.csproj", "{09823B80-83E7-4340-B4E5-EAC95D28BCD0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PGerman", "PGerman\PGerman.csproj", "{62D61258-B48B-42BA-900A-5368BDD40403}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{09823B80-83E7-4340-B4E5-EAC95D28BCD0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{09823B80-83E7-4340-B4E5-EAC95D28BCD0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{09823B80-83E7-4340-B4E5-EAC95D28BCD0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{62D61258-B48B-42BA-900A-5368BDD40403}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{62D61258-B48B-42BA-900A-5368BDD40403}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{62D61258-B48B-42BA-900A-5368BDD40403}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{62D61258-B48B-42BA-900A-5368BDD40403}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
