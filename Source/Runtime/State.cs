@@ -220,10 +220,26 @@ namespace Microsoft.PSharp
         /// <returns>Boolean value</returns>
         internal bool CanHandleEvent(Event e)
         {
-            if (this.IsDeferred(e) ||
-                this.ContainsGotoTransition(e) ||
-                this.ContainsPushTransition(e) ||
-                this.ContainsActionBinding(e))
+            if (this.DeferredEvents.Contains(e.GetType()) ||
+                this.GotoTransitions.ContainsKey(e.GetType()) ||
+                this.PushTransitions.ContainsKey(e.GetType()) ||
+                this.ActionBindings.ContainsKey(e.GetType()))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Checks if the state has a default handler.
+        /// </summary>
+        /// <returns></returns>
+        internal bool HasDefaultHandler()
+        {
+            if (this.GotoTransitions.ContainsKey(typeof(Default)) ||
+                this.PushTransitions.ContainsKey(typeof(Default)) ||
+                this.ActionBindings.ContainsKey(typeof(Default)))
             {
                 return true;
             }

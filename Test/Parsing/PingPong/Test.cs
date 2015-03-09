@@ -15,6 +15,7 @@ namespace PingPong
             Runtime.RegisterNewMachine(typeof(Server));
             Runtime.RegisterNewMachine(typeof(Client));
 
+            Runtime.Options.Verbose = true;
             Runtime.Start();
         }
     }

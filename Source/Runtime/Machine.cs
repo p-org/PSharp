@@ -224,7 +224,8 @@ namespace Microsoft.PSharp
         protected internal void Raise(Event e)
         {
             Utilities.Verbose("Machine {0} raised event {1}\n", this, e);
-            this.HandleEvent(e);
+            State currentState = this.StateStack.Peek();
+            this.HandleEvent(currentState, e);
         }
 
         /// <summary>
@@ -408,8 +409,9 @@ namespace Microsoft.PSharp
                     if (!this.IsHalted)
                     {
                         this.Inbox.Add(e);
-                        Event nextEvent = this.DequeueNextEvent();
-                        this.HandleEvent(nextEvent);
+                        State currentState = this.StateStack.Peek();
+                        Event nextEvent = this.DequeueNextEvent(currentState);
+                        this.HandleEvent(currentState, nextEvent);
                     }
                 }
             }
@@ -461,10 +463,10 @@ namespace Microsoft.PSharp
         /// Dequeues the next available event. If no event is
         /// available returns null.
         /// </summary>
+        /// <param name="currentState">Current state</param>
         /// <returns>Next event</returns>
-        private Event DequeueNextEvent()
+        private Event DequeueNextEvent(State currentState)
         {
-            State currentState = this.StateStack.Peek();
             Event nextEvent = null;
 
             if (this.Inbox.Count > 0)
@@ -500,15 +502,21 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Handles the given event.
         /// </summary>
+        /// <param name="currentState">Current state</param>
         /// <param name="e">Event to handle</param>
-        private void HandleEvent(Event e)
+        private void HandleEvent(State currentState, Event e)
         {
             if (e == null)
             {
-                return;
+                if (currentState.HasDefaultHandler())
+                {
+                    e = new Default();
+                }
+                else
+                {
+                    return;
+                }
             }
-
-            State currentState = this.StateStack.Peek();
 
             this.Message = e.GetType();
             this.Payload = e.Payload;
@@ -573,8 +581,9 @@ namespace Microsoft.PSharp
                 this.Message = null;
                 this.Payload = null;
 
-                Event nextEvent = this.DequeueNextEvent();
-                this.HandleEvent(nextEvent);
+                currentState = this.StateStack.Peek();
+                Event nextEvent = this.DequeueNextEvent(currentState);
+                this.HandleEvent(currentState, nextEvent);
             }
         }
 
