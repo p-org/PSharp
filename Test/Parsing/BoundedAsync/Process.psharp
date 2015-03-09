@@ -19,8 +19,6 @@ namespace BoundedAsync
             }
 
             on eUnit goto Init;
-
-            defer eInit;
         }
 		
         private state Init
@@ -51,7 +49,7 @@ namespace BoundedAsync
                 send eMyCount ( msg2 ) to RightProcess;
                 send eReq to Scheduler;
 
-                if (this.CountMessage.Count == 10)
+                if (this.CountMessage.Count > 10)
                 {
                     raise eUnit;
                 }
