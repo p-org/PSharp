@@ -357,8 +357,20 @@ namespace Microsoft.PSharp.Parsing
                     text = "assert";
                     break;
 
+                case TokenType.Assume:
+                    text = "assume";
+                    break;
+
                 case TokenType.Payload:
                     text = "payload";
+                    break;
+
+                case TokenType.HaltEvent:
+                    text = "halt";
+                    break;
+
+                case TokenType.DefaultEvent:
+                    text = "default";
                     break;
 
                 case TokenType.Var:

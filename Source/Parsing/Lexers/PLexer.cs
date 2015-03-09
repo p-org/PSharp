@@ -315,6 +315,10 @@ namespace Microsoft.PSharp.Parsing
                     this.Tokens.Add(new Token(unit, TokenType.Assert));
                     break;
 
+                case "assume":
+                    this.Tokens.Add(new Token(unit, TokenType.Assume));
+                    break;
+
                 case "payload":
                     this.Tokens.Add(new Token(unit, TokenType.Payload));
                     break;

@@ -160,15 +160,55 @@ namespace Microsoft.PSharp.Parsing
             base.SkipWhiteSpaceAndCommentTokens();
 
             if (base.Index == base.Tokens.Count ||
-                (base.Tokens[base.Index].Type != TokenType.Colon &&
+                (base.Tokens[base.Index].Type != TokenType.Assert &&
+                base.Tokens[base.Index].Type != TokenType.Assume &&
+                base.Tokens[base.Index].Type != TokenType.Colon &&
                 base.Tokens[base.Index].Type != TokenType.Semicolon))
             {
                 this.ReportParsingError("Expected \":\" or \";\".");
                 throw new EndOfTokensException(new List<TokenType>
                 {
+                    TokenType.Assert,
+                    TokenType.Assume,
                     TokenType.Colon,
                     TokenType.Semicolon
                 });
+            }
+
+            if (base.Tokens[base.Index].Type == TokenType.Assert ||
+                base.Tokens[base.Index].Type == TokenType.Assume)
+            {
+                node.AssertAssumeKeyword = base.Tokens[base.Index];
+
+                base.Index++;
+                base.SkipWhiteSpaceAndCommentTokens();
+
+                if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.Identifier)
+                {
+                    this.ReportParsingError("Expected identifier.");
+                    throw new EndOfTokensException(new List<TokenType>
+                    {
+                        TokenType.Identifier
+                    });
+                }
+
+                node.AssertIdentifier = base.Tokens[base.Index];
+
+                base.Index++;
+                base.SkipWhiteSpaceAndCommentTokens();
+
+                if (base.Index == base.Tokens.Count ||
+                    (base.Tokens[base.Index].Type != TokenType.Colon &&
+                    base.Tokens[base.Index].Type != TokenType.Semicolon))
+                {
+                    this.ReportParsingError("Expected \":\" or \";\".");
+                    throw new EndOfTokensException(new List<TokenType>
+                    {
+                        TokenType.Colon,
+                        TokenType.Semicolon
+                    });
+                }
             }
 
             if (base.Tokens[base.Index].Type == TokenType.Colon)

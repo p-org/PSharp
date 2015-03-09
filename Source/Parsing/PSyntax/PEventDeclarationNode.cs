@@ -46,6 +46,16 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         public PTypeNode PayloadType;
 
         /// <summary>
+        /// The assert or assume keyword.
+        /// </summary>
+        public Token AssertAssumeKeyword;
+
+        /// <summary>
+        /// The assert identifier token.
+        /// </summary>
+        public Token AssertIdentifier;
+
+        /// <summary>
         /// The semicolon token.
         /// </summary>
         public Token SemicolonToken;

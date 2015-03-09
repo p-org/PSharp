@@ -251,6 +251,7 @@ namespace Microsoft.PSharp.VisualStudio
                 case TokenType.RaiseEvent:
                 case TokenType.DeleteMachine:
                 case TokenType.Assert:
+                case TokenType.Assume:
                 case TokenType.Payload:
 
                 case TokenType.HaltEvent:

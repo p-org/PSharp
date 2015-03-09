@@ -138,6 +138,7 @@ namespace Microsoft.PSharp.Parsing
         RaiseEvent,
         DeleteMachine,
         Assert,
+        Assume,
         Payload,
 
         HaltEvent,
