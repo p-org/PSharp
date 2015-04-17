@@ -102,16 +102,35 @@ namespace Microsoft.PSharp.Parsing.PSyntax
                 stmt.Rewrite(ref position);
             }
 
-            var text = "\n" + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
+            var text = "\n";
+
+            if (this.LeftCurlyBracketToken != null &&
+                this.RightCurlyBracketToken != null)
+            {
+                text += this.LeftCurlyBracketToken.TextUnit.Text + "\n";
+            }
 
             foreach (var stmt in this.Statements)
             {
                 text += stmt.GetRewrittenText();
             }
 
-            text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
+            if (this.LeftCurlyBracketToken != null &&
+                this.RightCurlyBracketToken != null)
+            {
+                text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
+            }
 
-            base.RewrittenTextUnit = new TextUnit(text, this.LeftCurlyBracketToken.TextUnit.Line, start);
+            if (this.LeftCurlyBracketToken != null &&
+                this.RightCurlyBracketToken != null)
+            {
+                base.RewrittenTextUnit = new TextUnit(text, this.LeftCurlyBracketToken.TextUnit.Line, start);
+            }
+            else
+            {
+                base.RewrittenTextUnit = new TextUnit(text, this.Statements.First().TextUnit.Line, start);
+            }
+
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -125,17 +144,36 @@ namespace Microsoft.PSharp.Parsing.PSyntax
                 stmt.GenerateTextUnit();
             }
 
-            var text = "\n" + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
+            var text = "\n";
+
+            if (this.LeftCurlyBracketToken != null &&
+                this.RightCurlyBracketToken != null)
+            {
+                text += this.LeftCurlyBracketToken.TextUnit.Text + "\n";
+            }
 
             foreach (var stmt in this.Statements)
             {
                 text += stmt.GetFullText();
             }
 
-            text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
+            if (this.LeftCurlyBracketToken != null &&
+                this.RightCurlyBracketToken != null)
+            {
+                text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
+            }
 
-            base.TextUnit = new TextUnit(text, this.LeftCurlyBracketToken.TextUnit.Line,
-                this.LeftCurlyBracketToken.TextUnit.Start);
+            if (this.LeftCurlyBracketToken != null &&
+                this.RightCurlyBracketToken != null)
+            {
+                base.TextUnit = new TextUnit(text, this.LeftCurlyBracketToken.TextUnit.Line,
+                    this.LeftCurlyBracketToken.TextUnit.Start);
+            }
+            else
+            {
+                base.TextUnit = new TextUnit(text, this.Statements.First().TextUnit.Line,
+                    this.Statements.First().TextUnit.Start);
+            }
         }
 
         #endregion

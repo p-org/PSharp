@@ -159,6 +159,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
                 text += this.ElseKeyword.TextUnit.Text;
                 if (this.ElseStatementBlock != null)
                 {
+                    this.ElseStatementBlock.GenerateTextUnit();
                     text += this.ElseStatementBlock.GetFullText();
                 }
             }

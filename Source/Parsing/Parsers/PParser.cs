@@ -1384,11 +1384,17 @@ namespace Microsoft.PSharp.Parsing
             }
 
             var machineIdentifier = new PExpressionNode(parentNode);
-            machineIdentifier.StmtTokens.Add(base.Tokens[base.Index]);
-            node.MachineIdentifier = machineIdentifier;
 
-            base.Index++;
-            base.SkipWhiteSpaceAndCommentTokens();
+            while (base.Index < base.Tokens.Count &&
+                base.Tokens[base.Index].Type != TokenType.Comma)
+            {
+                machineIdentifier.StmtTokens.Add(base.Tokens[base.Index]);
+
+                base.Index++;
+                base.SkipWhiteSpaceAndCommentTokens();
+            }
+
+            node.MachineIdentifier = machineIdentifier;
 
             if (base.Index == base.Tokens.Count ||
                 base.Tokens[base.Index].Type != TokenType.Comma)
@@ -1679,8 +1685,9 @@ namespace Microsoft.PSharp.Parsing
             else if (base.Tokens[base.Index].Type == TokenType.LeftCurlyBracket)
             {
                 this.VisitStatementBlock(blockNode);
-                node.StatementBlock = blockNode;
             }
+
+            node.StatementBlock = blockNode;
 
             base.Index++;
             base.SkipWhiteSpaceAndCommentTokens();
@@ -1842,8 +1849,9 @@ namespace Microsoft.PSharp.Parsing
             else if (base.Tokens[base.Index].Type == TokenType.LeftCurlyBracket)
             {
                 this.VisitStatementBlock(blockNode);
-                node.StatementBlock = blockNode;
             }
+
+            node.StatementBlock = blockNode;
 
             parentNode.Statements.Add(node);
             base.Index++;
