@@ -36,19 +36,9 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         public Token MachineIdentifier;
 
         /// <summary>
-        /// The left parenthesis token.
-        /// </summary>
-        public Token LeftParenthesisToken;
-
-        /// <summary>
         /// The machine creation payload.
         /// </summary>
         public PPayloadSendExpressionNode Payload;
-
-        /// <summary>
-        /// The right parenthesis token.
-        /// </summary>
-        public Token RightParenthesisToken;
 
         #endregion
 
@@ -125,15 +115,11 @@ namespace Microsoft.PSharp.Parsing.PSyntax
 
             text += this.MachineIdentifier.TextUnit.Text;
 
-            text += this.LeftParenthesisToken.TextUnit.Text;
-
             if (this.Payload != null)
             {
                 this.Payload.GenerateTextUnit();
                 text += this.Payload.GetFullText();
             }
-
-            text += this.RightParenthesisToken.TextUnit.Text;
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 

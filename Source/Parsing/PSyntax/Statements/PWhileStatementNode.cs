@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="PIfStatementNode.cs">
+// <copyright file="PWhileStatementNode.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -19,16 +19,16 @@ using System.Linq;
 namespace Microsoft.PSharp.Parsing.PSyntax
 {
     /// <summary>
-    /// If statement node.
+    /// While statement node.
     /// </summary>
-    public sealed class PIfStatementNode : PStatementNode
+    public sealed class PWhileStatementNode : PStatementNode
     {
         #region fields
 
         /// <summary>
-        /// The if keyword.
+        /// The while keyword.
         /// </summary>
-        public Token IfKeyword;
+        public Token WhileKeyword;
 
         /// <summary>
         /// The left parenthesis token.
@@ -50,16 +50,6 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         /// </summary>
         public PStatementBlockNode StatementBlock;
 
-        /// <summary>
-        /// The else keyword.
-        /// </summary>
-        public Token ElseKeyword;
-
-        /// <summary>
-        /// The else statement block.
-        /// </summary>
-        public PStatementBlockNode ElseStatementBlock;
-
         #endregion
 
         #region public API
@@ -68,7 +58,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         /// Constructor.
         /// </summary>
         /// <param name="node">Node</param>
-        public PIfStatementNode(PStatementBlockNode node)
+        public PWhileStatementNode(PStatementBlockNode node)
             : base(node)
         {
 
@@ -107,7 +97,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
 
             var text = "";
 
-            text += this.IfKeyword.TextUnit.Text;
+            text += this.WhileKeyword.TextUnit.Text;
 
             text += this.LeftParenthesisToken.TextUnit.Text;
 
@@ -119,17 +109,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
             this.StatementBlock.Rewrite(ref position);
             text += this.StatementBlock.GetRewrittenText();
 
-            if (this.ElseKeyword != null)
-            {
-                text += this.ElseKeyword.TextUnit.Text;
-                if (this.ElseStatementBlock != null)
-                {
-                    this.ElseStatementBlock.Rewrite(ref position);
-                    text += this.ElseStatementBlock.GetRewrittenText();
-                }
-            }
-
-            base.RewrittenTextUnit = new TextUnit(text, this.IfKeyword.TextUnit.Line, start);
+            base.RewrittenTextUnit = new TextUnit(text, this.WhileKeyword.TextUnit.Line, start);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -143,7 +123,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
 
             var text = "";
 
-            text += this.IfKeyword.TextUnit.Text;
+            text += this.WhileKeyword.TextUnit.Text;
             text += " ";
 
             text += this.LeftParenthesisToken.TextUnit.Text;
@@ -154,17 +134,8 @@ namespace Microsoft.PSharp.Parsing.PSyntax
 
             text += this.StatementBlock.GetFullText();
 
-            if (this.ElseKeyword != null)
-            {
-                text += this.ElseKeyword.TextUnit.Text;
-                if (this.ElseStatementBlock != null)
-                {
-                    text += this.ElseStatementBlock.GetFullText();
-                }
-            }
-
-            base.TextUnit = new TextUnit(text, this.IfKeyword.TextUnit.Line,
-                this.IfKeyword.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, this.WhileKeyword.TextUnit.Line,
+                this.WhileKeyword.TextUnit.Start);
         }
 
         #endregion
