@@ -97,7 +97,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
             {
                 return "";
             }
-
+            
             return base.RewrittenTextUnit.Text;
         }
 
@@ -206,7 +206,8 @@ namespace Microsoft.PSharp.Parsing.PSyntax
             }
             else if (token.Type == TokenType.Identifier)
             {
-                this.RewriteIdentifier(ref position);
+                this.RewriteMemberIdentifier(ref position);
+                this.RewriteTupleIndexIdentifier(ref position);
             }
 
             this.Index++;
@@ -260,10 +261,10 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         }
 
         /// <summary>
-        /// Rewrites the identifier.
+        /// Rewrites the member identifier.
         /// </summary>
         /// <param name="position">Position</param>
-        private void RewriteIdentifier(ref int position)
+        private void RewriteMemberIdentifier(ref int position)
         {
             if (this.Parent.Machine == null || this.Parent.State == null ||
                 !(this.Parent.Machine.FieldDeclarations.Any(val => val.Identifier.TextUnit.Text.
@@ -279,6 +280,31 @@ namespace Microsoft.PSharp.Parsing.PSyntax
             this.RewrittenStmtTokens.Insert(this.Index, new Token(new TextUnit(text, line, position)));
             position += text.Length;
             this.Index++;
+        }
+
+        /// <summary>
+        /// Rewrites the tuple index identifier.
+        /// </summary>
+        /// <param name="position">Position</param>
+        private void RewriteTupleIndexIdentifier(ref int position)
+        {
+            int index = -1;
+            if (!int.TryParse(this.RewrittenStmtTokens[this.Index].TextUnit.Text, out index))
+            {
+                return;
+            }
+
+            index++;
+            if (this.Index == 0 ||
+                this.RewrittenStmtTokens[this.Index - 1].Type != TokenType.Dot)
+            {
+                return;
+            }
+
+            int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
+            var text = "Item" + index;
+            this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line, position));
+            position += text.Length;
         }
 
         /// <summary>
