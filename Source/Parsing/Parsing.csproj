@@ -74,6 +74,10 @@
     <Compile Include="PSyntax\Statements\PStatementNode.cs" />
     <Compile Include="PSyntax\Statements\PRaiseStatementNode.cs" />
     <Compile Include="PSyntax\Statements\PSendStatementNode.cs" />
+    <Compile Include="PSyntax\Types\PSeqType.cs" />
+    <Compile Include="PSyntax\Types\PTupleType.cs" />
+    <Compile Include="PSyntax\Types\PBaseType.cs" />
+    <Compile Include="PSyntax\Types\PType.cs" />
     <Compile Include="Syntax\Statements\AssertStatementNode.cs" />
     <Compile Include="Syntax\Statements\NewStatementNode.cs" />
     <Compile Include="Syntax\Statements\SendStatementNode.cs" />

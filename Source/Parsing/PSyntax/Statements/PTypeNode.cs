@@ -36,6 +36,11 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         public List<Token> RewrittenTypeTokens;
 
         /// <summary>
+        /// The actual type.
+        /// </summary>
+        internal PBaseType Type;
+
+        /// <summary>
         /// The current index.
         /// </summary>
         private int Index;
@@ -93,7 +98,11 @@ namespace Microsoft.PSharp.Parsing.PSyntax
 
             this.Index = 0;
             this.RewrittenTypeTokens = this.TypeTokens.ToList();
-            this.RewriteTypeTokens();
+
+            var type = new PBaseType();
+            this.RewriteTypeTokens(ref type);
+            this.Type = type;
+
             foreach (var tok in this.RewrittenTypeTokens)
             {
                 text += tok.TextUnit.Text;
@@ -131,26 +140,47 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         /// <summary>
         /// Rewrites a type.
         /// </summary>
-        private void RewriteTypeTokens()
+        /// <param name="type">PBaseType</param>
+        private void RewriteTypeTokens(ref PBaseType type)
         {
             if (this.RewrittenTypeTokens[this.Index].Type == TokenType.MachineDecl)
             {
                 var textUnit = new TextUnit("Machine", this.RewrittenTypeTokens[this.Index].TextUnit.Line,
                     this.RewrittenTypeTokens[this.Index].TextUnit.Start);
                 this.RewrittenTypeTokens[this.Index] = new Token(textUnit, TokenType.MachineDecl);
+                type.Type = PType.Machine;
+            }
+            else if (this.RewrittenTypeTokens[this.Index].Type == TokenType.Int)
+            {
+                type.Type = PType.Int;
+            }
+            else if (this.RewrittenTypeTokens[this.Index].Type == TokenType.Bool)
+            {
+                type.Type = PType.Bool;
+            }
+            else if (this.RewrittenTypeTokens[this.Index].Type == TokenType.Seq)
+            {
+                type = new PSeqType();
+                this.RewriteSeqTypeTokens(ref type);
             }
             else if (this.RewrittenTypeTokens[this.Index].Type == TokenType.LeftParenthesis)
             {
-                this.RewriteTupleTypeTokens();
+                type = new PTupleType();
+                this.RewriteTupleTypeTokens(ref type);
+            }
+            else
+            {
+                type.Type = PType.Foreign;
             }
 
             this.Index++;
         }
 
         /// <summary>
-        /// Rewrites a type tuple.
+        /// Rewrites a tuple type.
         /// </summary>
-        private void RewriteTupleTypeTokens()
+        /// <param name="type">PBaseType</param>
+        private void RewriteTupleTypeTokens(ref PBaseType tupleType)
         {
             var tupleIdx = this.Index;
             this.Index++;
@@ -174,7 +204,9 @@ namespace Microsoft.PSharp.Parsing.PSyntax
                     this.RewrittenTypeTokens[this.Index].Type == TokenType.Bool ||
                     this.RewrittenTypeTokens[this.Index].Type == TokenType.LeftParenthesis)
                 {
-                    this.RewriteTypeTokens();
+                    var type = new PBaseType();
+                    this.RewriteTypeTokens(ref type);
+                    (tupleType as PTupleType).TupleTypes.Add(type);
                     expectsComma = true;
                 }
                 else if (this.RewrittenTypeTokens[this.Index].Type == TokenType.Comma)
@@ -187,6 +219,30 @@ namespace Microsoft.PSharp.Parsing.PSyntax
             var leftTextUnit = new TextUnit("Tuple<", this.RewrittenTypeTokens[tupleIdx].TextUnit.Line,
                 this.RewrittenTypeTokens[tupleIdx].TextUnit.Start);
             this.RewrittenTypeTokens[tupleIdx] = new Token(leftTextUnit);
+
+            var rightTextUnit = new TextUnit(">", this.RewrittenTypeTokens[this.Index].TextUnit.Line,
+                this.RewrittenTypeTokens[this.Index].TextUnit.Start);
+            this.RewrittenTypeTokens[this.Index] = new Token(rightTextUnit);
+        }
+
+        /// <summary>
+        /// Rewrites a seq type.
+        /// </summary>
+        /// <param name="type">PBaseType</param>
+        private void RewriteSeqTypeTokens(ref PBaseType seqType)
+        {
+            var seqIdx = this.Index;
+            this.Index++;
+
+            this.RewrittenTypeTokens.RemoveAt(this.Index);
+
+            var type = new PBaseType();
+            this.RewriteTypeTokens(ref type);
+            (seqType as PSeqType).SeqType = type;
+
+            var leftTextUnit = new TextUnit("List<", this.RewrittenTypeTokens[seqIdx].TextUnit.Line,
+                this.RewrittenTypeTokens[seqIdx].TextUnit.Start);
+            this.RewrittenTypeTokens[seqIdx] = new Token(leftTextUnit);
 
             var rightTextUnit = new TextUnit(">", this.RewrittenTypeTokens[this.Index].TextUnit.Line,
                 this.RewrittenTypeTokens[this.Index].TextUnit.Start);

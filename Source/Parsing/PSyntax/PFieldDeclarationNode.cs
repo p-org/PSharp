@@ -48,7 +48,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         /// <summary>
         /// The type node.
         /// </summary>
-        public PTypeNode Type;
+        public PTypeNode TypeNode;
 
         /// <summary>
         /// The semicolon token.
@@ -100,11 +100,16 @@ namespace Microsoft.PSharp.Parsing.PSyntax
             var text = "";
             var start = position;
 
-            this.Type.Rewrite(ref position);
-            text += this.Type.GetRewrittenText();
+            this.TypeNode.Rewrite(ref position);
+            text += this.TypeNode.GetRewrittenText();
 
             text += " ";
             text += this.Identifier.TextUnit.Text;
+
+            if (this.TypeNode.Type.Type == PType.Seq)
+            {
+                text += " = new " + this.TypeNode.GetRewrittenText() + "()";
+            }
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 
@@ -128,8 +133,8 @@ namespace Microsoft.PSharp.Parsing.PSyntax
             text += this.ColonToken.TextUnit.Text;
             text += " ";
 
-            this.Type.GenerateTextUnit();
-            text += this.Type.GetFullText();
+            this.TypeNode.GenerateTextUnit();
+            text += this.TypeNode.GetFullText();
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 

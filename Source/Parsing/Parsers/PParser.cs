@@ -1024,9 +1024,6 @@ namespace Microsoft.PSharp.Parsing
             var nodes = new List<PFieldDeclarationNode>();
             var fieldKeyword = base.Tokens[base.Index];
 
-            //var node = new PFieldDeclarationNode(parentNode);
-            //node.FieldKeyword = base.Tokens[base.Index];
-
             base.Index++;
             base.SkipWhiteSpaceAndCommentTokens();
 
@@ -1101,7 +1098,7 @@ namespace Microsoft.PSharp.Parsing
 
             foreach (var node in nodes)
             {
-                node.Type = typeNode;
+                node.TypeNode = typeNode;
             }
 
             if (base.Index == base.Tokens.Count ||

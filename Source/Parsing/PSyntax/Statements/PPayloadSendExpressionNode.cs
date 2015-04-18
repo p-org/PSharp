@@ -82,7 +82,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
             {
                 var field = base.Parent.Machine.FieldDeclarations.Find(val => val.Identifier.TextUnit.Text.Equals(
                     base.RewrittenStmtTokens[this.Index].TextUnit.Text));
-                payloadType += field.Type.GetRewrittenText();
+                payloadType += field.TypeNode.GetRewrittenText();
             }
 
             this.Index++;
