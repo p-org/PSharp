@@ -204,6 +204,10 @@ namespace Microsoft.PSharp.Parsing.PSyntax
             {
                 this.RewriteThis(ref position);
             }
+            else if (token.Type == TokenType.SizeOf)
+            {
+                this.RewriteSizeOf(ref position);
+            }
             else if (token.Type == TokenType.Identifier)
             {
                 this.RewriteMemberIdentifier(ref position);
@@ -258,6 +262,53 @@ namespace Microsoft.PSharp.Parsing.PSyntax
             var text = "this.Machine";
             this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line, position));
             position += text.Length;
+        }
+
+        /// <summary>
+        /// Rewrites the sizeof keyword.
+        /// </summary>
+        /// param name="position">Position</param>
+        private void RewriteSizeOf(ref int position)
+        {
+            int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
+            var text = ".Count";
+
+            this.RewrittenStmtTokens.RemoveAt(this.Index);
+            if (this.RewrittenStmtTokens.Count == this.Index ||
+                this.RewrittenStmtTokens[this.Index].Type != TokenType.LeftParenthesis)
+            {
+                return;
+            }
+
+            int leftParenIndex = this.Index;
+            this.Index++;
+
+            int counter = 1;
+            while (this.Index < this.RewrittenStmtTokens.Count)
+            {
+                if (this.RewrittenStmtTokens[this.Index].Type == TokenType.LeftParenthesis)
+                {
+                    counter++;
+                }
+                else if (this.RewrittenStmtTokens[this.Index].Type == TokenType.RightParenthesis)
+                {
+                    counter--;
+                }
+
+                if (counter == 0)
+                {
+                    break;
+                }
+
+                this.Index++;
+            }
+
+            this.RewrittenStmtTokens.RemoveAt(this.Index);
+            this.RewrittenStmtTokens.RemoveAt(leftParenIndex);
+
+            this.RewrittenStmtTokens.Insert(this.Index - 1, new Token(new TextUnit(text, line, position)));
+            position += text.Length;
+            this.Index--;
         }
 
         /// <summary>
