@@ -55,9 +55,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         protected override void RunSpecialisedRewrittingPass(ref int position)
         {
             this.Index = 0;
-
-            var payloadType = "";
-            this.RewritePayload(ref payloadType);
+            this.RewritePayload();
         }
 
         #endregion
@@ -67,22 +65,11 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         /// <summary>
         /// Rewrites a payload.
         /// </summary>
-        /// <param name="payloadType">Payload type</param>
-        private void RewritePayload(ref string payloadType)
+        private void RewritePayload()
         {
             if (base.RewrittenStmtTokens[this.Index].Type == TokenType.LeftParenthesis)
             {
-                this.RewritePayloadTuple(ref payloadType);
-            }
-            else if (base.RewrittenStmtTokens[this.Index].Type == TokenType.This)
-            {
-                payloadType += "Machine";
-            }
-            else
-            {
-                var field = base.Parent.Machine.FieldDeclarations.Find(val => val.Identifier.TextUnit.Text.Equals(
-                    base.RewrittenStmtTokens[this.Index].TextUnit.Text));
-                payloadType += field.TypeNode.GetRewrittenText();
+                this.RewritePayloadTuple();
             }
 
             this.Index++;
@@ -91,19 +78,21 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         /// <summary>
         /// Rewrites a payload tuple.
         /// </summary>
-        /// <param name="payloadType">Payload type</param>
-        private void RewritePayloadTuple(ref string payloadType)
+        private void RewritePayloadTuple()
         {
-            var tupleType = "Tuple<";
             var tupleIdx = this.Index;
             this.Index++;
 
+            int tupleSize = 1;
             bool expectsComma = false;
             while (this.Index < base.RewrittenStmtTokens.Count &&
                 base.RewrittenStmtTokens[this.Index].Type != TokenType.RightParenthesis)
             {
                 if (!expectsComma &&
                     (base.RewrittenStmtTokens[this.Index].Type != TokenType.Identifier &&
+                    base.RewrittenStmtTokens[this.Index].Type != TokenType.This &&
+                    base.RewrittenStmtTokens[this.Index].Type != TokenType.True &&
+                    base.RewrittenStmtTokens[this.Index].Type != TokenType.False &&
                     base.RewrittenStmtTokens[this.Index].Type != TokenType.LeftParenthesis) ||
                     (expectsComma && base.RewrittenStmtTokens[this.Index].Type != TokenType.Comma))
                 {
@@ -111,28 +100,34 @@ namespace Microsoft.PSharp.Parsing.PSyntax
                 }
 
                 if (base.RewrittenStmtTokens[this.Index].Type == TokenType.Identifier ||
+                    base.RewrittenStmtTokens[this.Index].Type == TokenType.This ||
+                    base.RewrittenStmtTokens[this.Index].Type == TokenType.True ||
+                    base.RewrittenStmtTokens[this.Index].Type == TokenType.False ||
                     base.RewrittenStmtTokens[this.Index].Type == TokenType.LeftParenthesis)
                 {
-                    var type = "";
-                    this.RewritePayload(ref type);
-                    tupleType += type;
+                    this.RewritePayload();
                     expectsComma = true;
                 }
                 else if (base.RewrittenStmtTokens[this.Index].Type == TokenType.Comma)
                 {
-                    tupleType += ",";
+                    tupleSize++;
                     expectsComma = false;
                     this.Index++;
                 }
             }
 
-            tupleType += ">";
-            payloadType += tupleType;
-
-            var tupleStr = "new " + tupleType + "(";
-            var textUnit = new TextUnit(tupleStr, base.RewrittenStmtTokens[tupleIdx].TextUnit.Line,
-                base.RewrittenStmtTokens[tupleIdx].TextUnit.Start);
-            base.RewrittenStmtTokens[tupleIdx] = new Token(textUnit);
+            if (tupleSize > 1)
+            {
+                var tupleStr = "Tuple.Create(";
+                var textUnit = new TextUnit(tupleStr, base.RewrittenStmtTokens[tupleIdx].TextUnit.Line,
+                    base.RewrittenStmtTokens[tupleIdx].TextUnit.Start);
+                base.RewrittenStmtTokens[tupleIdx] = new Token(textUnit);
+            }
+            else
+            {
+                base.RewrittenStmtTokens.RemoveAt(this.Index);
+                base.RewrittenStmtTokens.RemoveAt(tupleIdx);
+            }
         }
 
         #endregion
