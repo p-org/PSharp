@@ -23,7 +23,7 @@ using Microsoft.PSharp.Scheduling;
 
 namespace Microsoft.PSharp
 {
-    public class SystematicBlockingQueue<T>
+    internal class SystematicBlockingQueue<T>
     {
         private List<T> list;
         bool cancelled;
