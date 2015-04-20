@@ -59,8 +59,9 @@ namespace Microsoft.PSharp.Parsing.PSyntax
             this.RewrittenText = "";
             int position = 0;
 
-            this.RewrittenText += this.InstrumentSystemDll(ref position);
-            this.RewrittenText += this.InstrumentPSharpDll(ref position);
+            this.RewrittenText += base.InstrumentSystemDll(ref position);
+            this.RewrittenText += base.InstrumentSystemCollectionsGenericDll(ref position);
+            this.RewrittenText += base.InstrumentPSharpDll(ref position);
 
             this.RewrittenText += "namespace Microsoft.PSharp\n";
             this.RewrittenText += "{\n";

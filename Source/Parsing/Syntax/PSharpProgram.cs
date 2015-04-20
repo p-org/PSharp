@@ -57,7 +57,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
             this.RewrittenText = "";
             int position = 0;
 
-            this.RewrittenText += this.InstrumentPSharpDll(ref position);
+            this.RewrittenText += base.InstrumentPSharpDll(ref position);
             foreach (var node in this.UsingDeclarations)
             {
                 node.Rewrite(ref position);

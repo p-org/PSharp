@@ -250,7 +250,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
 
             this.RewrittenStmtTokens.Insert(this.Index - 1, new Token(new TextUnit(text, line, position)));
             position += text.Length;
-            this.Index = sizeOfIndex;
+            this.Index = sizeOfIndex - 1;
         }
 
         /// <summary>

@@ -94,6 +94,18 @@ namespace Microsoft.PSharp.Parsing
         }
 
         /// <summary>
+        /// Instrument the system generic collections dll.
+        /// </summary>
+        /// <param name="position">Position</param>
+        /// <returns>Text</returns>
+        protected string InstrumentSystemCollectionsGenericDll(ref int position)
+        {
+            var text = "using System.Collections.Generic;\n";
+            position += text.Length;
+            return text;
+        }
+
+        /// <summary>
         /// Instrument the P# dll.
         /// </summary>
         /// <param name="position">Position</param>
