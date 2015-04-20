@@ -82,11 +82,11 @@ namespace Microsoft.PSharp.Parsing
         #region protected API
 
         /// <summary>
-        /// Instrument the system dll.
+        /// Instrument the system library.
         /// </summary>
         /// <param name="position">Position</param>
         /// <returns>Text</returns>
-        protected string InstrumentSystemDll(ref int position)
+        protected string InstrumentSystemLibrary(ref int position)
         {
             var text = "using System;\n";
             position += text.Length;
@@ -94,11 +94,11 @@ namespace Microsoft.PSharp.Parsing
         }
 
         /// <summary>
-        /// Instrument the system generic collections dll.
+        /// Instrument the system generic collections library.
         /// </summary>
         /// <param name="position">Position</param>
         /// <returns>Text</returns>
-        protected string InstrumentSystemCollectionsGenericDll(ref int position)
+        protected string InstrumentSystemCollectionsGenericLibrary(ref int position)
         {
             var text = "using System.Collections.Generic;\n";
             position += text.Length;
@@ -106,13 +106,25 @@ namespace Microsoft.PSharp.Parsing
         }
 
         /// <summary>
-        /// Instrument the P# dll.
+        /// Instrument the P# library.
         /// </summary>
         /// <param name="position">Position</param>
         /// <returns>Text</returns>
-        protected string InstrumentPSharpDll(ref int position)
+        protected string InstrumentPSharpLibrary(ref int position)
         {
             var text = "using Microsoft.PSharp;\n";
+            position += text.Length;
+            return text;
+        }
+
+        /// <summary>
+        /// Instrument the P# collections library.
+        /// </summary>
+        /// <param name="position">Position</param>
+        /// <returns>Text</returns>
+        protected string InstrumentPSharpCollectionsLibrary(ref int position)
+        {
+            var text = "using Microsoft.PSharp.Collections;\n";
             position += text.Length;
             return text;
         }

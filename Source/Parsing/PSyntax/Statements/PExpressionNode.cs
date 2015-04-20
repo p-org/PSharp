@@ -323,7 +323,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
 
             if (tupleSize > 1)
             {
-                var tupleStr = "Tuple.Create(";
+                var tupleStr = "Container.Create(";
                 var textUnit = new TextUnit(tupleStr, this.RewrittenStmtTokens[tupleIdx].TextUnit.Line,
                     this.RewrittenStmtTokens[tupleIdx].TextUnit.Start);
                 this.RewrittenStmtTokens[tupleIdx] = new Token(textUnit);

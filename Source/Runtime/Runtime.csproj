@@ -44,6 +44,8 @@
     <Compile Include="Attributes\Main.cs" />
     <Compile Include="Attributes\Monitor.cs" />
     <Compile Include="Attributes\Ghost.cs" />
+    <Compile Include="Collections\Container.cs" />
+    <Compile Include="Collections\Seq.cs" />
     <Compile Include="Library\ActionBindings.cs" />
     <Compile Include="Library\PushStateTransitions.cs" />
     <Compile Include="Library\GotoStateTransitions.cs" />

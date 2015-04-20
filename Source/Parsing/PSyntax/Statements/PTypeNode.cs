@@ -216,7 +216,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
                 }
             }
 
-            var leftTextUnit = new TextUnit("Tuple<", this.RewrittenTypeTokens[tupleIdx].TextUnit.Line,
+            var leftTextUnit = new TextUnit("Container<", this.RewrittenTypeTokens[tupleIdx].TextUnit.Line,
                 this.RewrittenTypeTokens[tupleIdx].TextUnit.Start);
             this.RewrittenTypeTokens[tupleIdx] = new Token(leftTextUnit);
 
@@ -240,7 +240,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
             this.RewriteTypeTokens(ref type);
             (seqType as PSeqType).SeqType = type;
 
-            var leftTextUnit = new TextUnit("List<", this.RewrittenTypeTokens[seqIdx].TextUnit.Line,
+            var leftTextUnit = new TextUnit("Seq<", this.RewrittenTypeTokens[seqIdx].TextUnit.Line,
                 this.RewrittenTypeTokens[seqIdx].TextUnit.Start);
             this.RewrittenTypeTokens[seqIdx] = new Token(leftTextUnit);
 
