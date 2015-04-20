@@ -90,7 +90,8 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         {
             var start = position;
 
-            var text = "this.Raise(new ";
+            var text = "{\n";
+            text += "this.Raise(new ";
 
             if (this.EventIdentifier.Type == TokenType.HaltEvent)
             {
@@ -118,6 +119,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
             text += this.SemicolonToken.TextUnit.Text + "\n";
 
             text += "return;\n";
+            text += "}\n";
 
             base.RewrittenTextUnit = new TextUnit(text, this.RaiseKeyword.TextUnit.Line, start);
             position = base.RewrittenTextUnit.End + 1;
