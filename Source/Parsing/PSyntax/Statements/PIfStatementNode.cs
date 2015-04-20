@@ -107,7 +107,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
 
             var text = "";
 
-            text += this.IfKeyword.TextUnit.Text;
+            text += this.IfKeyword.TextUnit.Text + " ";
 
             text += this.LeftParenthesisToken.TextUnit.Text;
 
@@ -121,7 +121,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
 
             if (this.ElseKeyword != null)
             {
-                text += this.ElseKeyword.TextUnit.Text;
+                text += this.ElseKeyword.TextUnit.Text + " ";
                 if (this.ElseStatementBlock != null)
                 {
                     this.ElseStatementBlock.Rewrite(ref position);
@@ -143,8 +143,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
 
             var text = "";
 
-            text += this.IfKeyword.TextUnit.Text;
-            text += " ";
+            text += this.IfKeyword.TextUnit.Text + " ";
 
             text += this.LeftParenthesisToken.TextUnit.Text;
 
@@ -156,7 +155,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
 
             if (this.ElseKeyword != null)
             {
-                text += this.ElseKeyword.TextUnit.Text;
+                text += this.ElseKeyword.TextUnit.Text + " ";
                 if (this.ElseStatementBlock != null)
                 {
                     this.ElseStatementBlock.GenerateTextUnit();
