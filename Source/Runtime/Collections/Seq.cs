@@ -14,19 +14,21 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Microsoft.PSharp.Collections
 {
     /// <summary>
     /// Class implementing a sequence of T elements.
     /// </summary>
-    public class Seq<T>
+    public class Seq<T> : ICloneable
     {
         /// <summary>
         /// Sequence of T elements.
         /// </summary>
-        private List<T> Sequence;
+        internal List<T> Sequence;
 
         /// <summary>
         /// Performs indexing.
@@ -81,6 +83,36 @@ namespace Microsoft.PSharp.Collections
         public void RemoveAt(int index)
         {
             this.Sequence.RemoveAt(index);
+        }
+
+        /// <summary>
+        /// Clones the sequence.
+        /// </summary>
+        /// <returns>Clone</returns>
+        public object Clone()
+        {
+            var clone = new Seq<T>();
+
+            var elementType = this.Sequence.GetType().GetGenericArguments()[0];
+
+            if (elementType.IsValueType)
+            {
+                clone.Sequence = this.Sequence.ToList();
+            }
+            else if (typeof(ICloneable).IsAssignableFrom(elementType))
+            {
+                foreach (var element in this.Sequence)
+                {
+                    var clonedElement = (element as ICloneable).Clone();
+                    clone.Sequence.Add((T)Convert.ChangeType(clonedElement, typeof(T)));
+                }
+            }
+            else
+            {
+                clone.Sequence = this.Sequence;
+            }
+
+            return clone;
         }
     }
 }

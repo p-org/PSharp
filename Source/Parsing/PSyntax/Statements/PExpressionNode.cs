@@ -278,6 +278,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         /// <summary>
         /// Rewrites a tuple, recursively.
         /// </summary>
+        /// <param name="index">Index</param>
         protected void RewriteTuple(ref int index)
         {
             var tupleIdx = index;

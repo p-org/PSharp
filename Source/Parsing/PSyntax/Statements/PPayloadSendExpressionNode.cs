@@ -12,6 +12,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System.Linq;
+
 namespace Microsoft.PSharp.Parsing.PSyntax
 {
     /// <summary>
@@ -54,6 +56,51 @@ namespace Microsoft.PSharp.Parsing.PSyntax
             if (base.RewrittenStmtTokens[this.Index].Type == TokenType.LeftParenthesis)
             {
                 base.RewriteTuple(ref this.Index);
+            }
+
+            this.Index = 0;
+            while (this.Index < this.RewrittenStmtTokens.Count)
+            {
+                this.RewriteCloneablePayload();
+                this.Index++;
+            }
+        }
+
+        #endregion
+
+        #region private API
+
+        /// <summary>
+        /// Rewrites the cloneable payload.
+        /// </summary>
+        private void RewriteCloneablePayload()
+        {
+            if (this.Parent.Machine == null ||
+                !(this.Parent.Machine.FieldDeclarations.Any(val => val.Identifier.TextUnit.Text.
+                Equals(this.RewrittenStmtTokens[this.Index].TextUnit.Text))))
+            {
+                return;
+            }
+
+            var field = this.Parent.Machine.FieldDeclarations.Find(val => val.Identifier.TextUnit.Text.
+                Equals(this.RewrittenStmtTokens[this.Index].TextUnit.Text));
+            if (field.TypeNode.Type.Type != PType.Tuple &&
+                field.TypeNode.Type.Type != PType.Seq)
+            {
+                return;
+            }
+
+            var cloneStr = ".Clone()";
+            var textUnit = new TextUnit(cloneStr, this.RewrittenStmtTokens[this.Index].TextUnit.Line,
+                this.RewrittenStmtTokens[this.Index].TextUnit.Start + cloneStr.Length);
+
+            if (this.Index + 1 == this.RewrittenStmtTokens.Count)
+            {
+                this.RewrittenStmtTokens.Add(new Token(textUnit));
+            }
+            else
+            {
+                this.RewrittenStmtTokens.Insert(this.Index + 1, new Token(textUnit));
             }
         }
 
