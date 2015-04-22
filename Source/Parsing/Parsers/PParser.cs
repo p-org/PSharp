@@ -1614,8 +1614,8 @@ namespace Microsoft.PSharp.Parsing
             base.SkipWhiteSpaceAndCommentTokens();
 
             var predicate = new PExpressionNode(parentNode);
-            int counter = 1;
 
+            int counter = 1;
             while (base.Index < base.Tokens.Count)
             {
                 if (base.Tokens[base.Index].Type == TokenType.LeftParenthesis)
@@ -1712,6 +1712,19 @@ namespace Microsoft.PSharp.Parsing
             int counter = 1;
             while (base.Index < base.Tokens.Count)
             {
+                if (base.Tokens[base.Index].Type == TokenType.Payload)
+                {
+                    var payloadNode = new PPayloadReceiveNode();
+                    this.VisitReceivedPayload(payloadNode);
+                    guard.StmtTokens.Add(null);
+                    guard.Payloads.Add(payloadNode);
+
+                    if (payloadNode.RightParenthesisToken != null)
+                    {
+                        counter--;
+                    }
+                }
+
                 if (base.Tokens[base.Index].Type == TokenType.LeftParenthesis)
                 {
                     counter++;
@@ -1885,6 +1898,19 @@ namespace Microsoft.PSharp.Parsing
             int counter = 1;
             while (base.Index < base.Tokens.Count)
             {
+                if (base.Tokens[base.Index].Type == TokenType.Payload)
+                {
+                    var payloadNode = new PPayloadReceiveNode();
+                    this.VisitReceivedPayload(payloadNode);
+                    guard.StmtTokens.Add(null);
+                    guard.Payloads.Add(payloadNode);
+
+                    if (payloadNode.RightParenthesisToken != null)
+                    {
+                        counter--;
+                    }
+                }
+
                 if (base.Tokens[base.Index].Type == TokenType.LeftParenthesis)
                 {
                     counter++;
