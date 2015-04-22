@@ -278,6 +278,15 @@ namespace Microsoft.PSharp.Parsing.PSyntax
             while (this.Index < this.RewrittenStmtTokens.Count)
             {
                 if (this.RewrittenStmtTokens[this.Index] != null &&
+                    this.RewrittenStmtTokens[this.Index].Type == TokenType.Null)
+                {
+                    var nullStr = "default(Machine)";
+                    var nullTextUnit = new TextUnit(nullStr, this.RewrittenStmtTokens[this.Index].TextUnit.Line,
+                        this.RewrittenStmtTokens[this.Index].TextUnit.Start);
+                    this.RewrittenStmtTokens[this.Index] = new Token(nullTextUnit);
+                }
+
+                if (this.RewrittenStmtTokens[this.Index] != null &&
                     this.RewrittenStmtTokens[this.Index].Type == TokenType.LeftParenthesis)
                 {
                     counter++;
@@ -314,7 +323,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
 
             int line = this.RewrittenStmtTokens[leftParenIndex].TextUnit.Line;
             var tupleStr = "Container.Create(";
-            var textUnit = new TextUnit(tupleStr, this.RewrittenStmtTokens[leftParenIndex].TextUnit.Line,
+            var textUnit = new TextUnit(tupleStr, line,
                 this.RewrittenStmtTokens[leftParenIndex].TextUnit.Start);
             this.RewrittenStmtTokens[leftParenIndex] = new Token(textUnit);
             this.Index = assignIndex;
