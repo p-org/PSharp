@@ -746,7 +746,7 @@ namespace Microsoft.PSharp.Parsing
                         });
                     }
 
-                    var blockNode = new PStatementBlockNode(parentNode.Machine, parentNode);
+                    var blockNode = new PStatementBlockNode(parentNode.Machine, null);
                     this.VisitStatementBlock(blockNode);
 
                     if (!parentNode.AddStateTransition(eventIdentifier, stateIdentifier, blockNode))
