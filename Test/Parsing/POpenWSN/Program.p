@@ -137,12 +137,16 @@ machine OpenWSN_Mote {
 	
 	state WaitForNewSlot {
 		ignore Data, Ack;
+
 		entry {
 		
 		}
+
 		on newSlot do CheckOperationTobePerfomed;
+
 		on Tx goto DataTransmissionMode;
 		on Rx goto DataReceptionMode;
+
 		on Sleep goto WaitForNewSlot with
 		{
 			send slotTimer, endSlot;

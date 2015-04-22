@@ -271,11 +271,52 @@ namespace Microsoft.PSharp.Parsing.PSyntax
                 return;
             }
 
-            int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
+            int leftParenIndex = this.Index;
+            this.Index++;
+
+            int counter = 1;
+            while (this.Index < this.RewrittenStmtTokens.Count)
+            {
+                if (this.RewrittenStmtTokens[this.Index] != null &&
+                    this.RewrittenStmtTokens[this.Index].Type == TokenType.LeftParenthesis)
+                {
+                    counter++;
+                }
+                else if (this.RewrittenStmtTokens[this.Index] != null && 
+                    this.RewrittenStmtTokens[this.Index].Type == TokenType.RightParenthesis)
+                {
+                    counter--;
+                }
+
+                if (counter == 0)
+                {
+                    break;
+                }
+
+                this.Index++;
+            }
+
+            if (counter > 0)
+            {
+                this.Index = assignIndex;
+                return;
+            }
+
+            this.Index++;
+            this.SkipWhiteSpaceTokens();
+            if (this.Index < this.RewrittenStmtTokens.Count &&
+                this.RewrittenStmtTokens[this.Index] != null &&
+                this.RewrittenStmtTokens[this.Index].TextUnit.Text.StartsWith("."))
+            {
+                this.Index = assignIndex;
+                return;
+            }
+
+            int line = this.RewrittenStmtTokens[leftParenIndex].TextUnit.Line;
             var tupleStr = "Container.Create(";
-            var textUnit = new TextUnit(tupleStr, this.RewrittenStmtTokens[this.Index].TextUnit.Line,
-                this.RewrittenStmtTokens[this.Index].TextUnit.Start);
-            this.RewrittenStmtTokens[this.Index] = new Token(textUnit);
+            var textUnit = new TextUnit(tupleStr, this.RewrittenStmtTokens[leftParenIndex].TextUnit.Line,
+                this.RewrittenStmtTokens[leftParenIndex].TextUnit.Start);
+            this.RewrittenStmtTokens[leftParenIndex] = new Token(textUnit);
             this.Index = assignIndex;
         }
 

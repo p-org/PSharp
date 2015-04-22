@@ -265,7 +265,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
                         eventId = transition.Key.TextUnit.Text;
                     }
 
-                    if (onExitText.Length == 0)
+                    if (onExitText.Length > 0)
                     {
                         text += " " + state.Identifier.TextUnit.Text.ToLower() + "Dict.Add(typeof(" +
                             eventId + "), typeof(" + transition.Value.TextUnit.Text + "), () => " +
