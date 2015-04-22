@@ -2055,17 +2055,21 @@ namespace Microsoft.PSharp.Parsing
             base.SkipWhiteSpaceAndCommentTokens();
 
             if (base.Index == base.Tokens.Count ||
-                    (base.Tokens[base.Index].Type != TokenType.MachineDecl &&
-                    base.Tokens[base.Index].Type != TokenType.Int &&
-                    base.Tokens[base.Index].Type != TokenType.Bool &&
-                    base.Tokens[base.Index].Type != TokenType.LeftParenthesis))
+                (base.Tokens[base.Index].Type != TokenType.MachineDecl &&
+                base.Tokens[base.Index].Type != TokenType.Int &&
+                base.Tokens[base.Index].Type != TokenType.Bool &&
+                base.Tokens[base.Index].Type != TokenType.Seq &&
+                base.Tokens[base.Index].Type != TokenType.Map &&
+                base.Tokens[base.Index].Type != TokenType.LeftParenthesis))
             {
                 this.ReportParsingError("Expected type.");
                 throw new EndOfTokensException(new List<TokenType>
                 {
                     TokenType.MachineDecl,
                     TokenType.Int,
-                    TokenType.Bool
+                    TokenType.Bool,
+                    TokenType.Seq,
+                    TokenType.Map
                 });
             }
 
@@ -2077,6 +2081,8 @@ namespace Microsoft.PSharp.Parsing
                     base.Tokens[base.Index].Type != TokenType.MachineDecl &&
                     base.Tokens[base.Index].Type != TokenType.Int &&
                     base.Tokens[base.Index].Type != TokenType.Bool &&
+                    base.Tokens[base.Index].Type != TokenType.Seq &&
+                    base.Tokens[base.Index].Type != TokenType.Map &&
                     base.Tokens[base.Index].Type != TokenType.LeftParenthesis) ||
                     (expectsComma && base.Tokens[base.Index].Type != TokenType.Comma))
                 {
@@ -2086,6 +2092,8 @@ namespace Microsoft.PSharp.Parsing
                 if (base.Tokens[base.Index].Type == TokenType.MachineDecl ||
                     base.Tokens[base.Index].Type == TokenType.Int ||
                     base.Tokens[base.Index].Type == TokenType.Bool ||
+                    base.Tokens[base.Index].Type == TokenType.Seq ||
+                    base.Tokens[base.Index].Type == TokenType.Map ||
                     base.Tokens[base.Index].Type == TokenType.LeftParenthesis)
                 {
                     this.VisitTypeIdentifier(node);
