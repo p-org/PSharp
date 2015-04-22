@@ -715,24 +715,61 @@ namespace Microsoft.PSharp.Parsing
 
                 base.Tokens[base.Index] = new Token(base.Tokens[base.Index].TextUnit,
                     TokenType.StateIdentifier);
-
                 var stateIdentifier = base.Tokens[base.Index];
-                if (!parentNode.AddStateTransition(eventIdentifier, stateIdentifier))
-                {
-                    this.ReportParsingError("Unexpected state identifier.");
-                }
 
                 base.Index++;
                 base.SkipWhiteSpaceAndCommentTokens();
 
                 if (base.Index == base.Tokens.Count ||
-                    base.Tokens[base.Index].Type != TokenType.Semicolon)
+                    (base.Tokens[base.Index].Type != TokenType.WithExit &&
+                    base.Tokens[base.Index].Type != TokenType.Semicolon))
                 {
                     this.ReportParsingError("Expected \";\".");
                     throw new EndOfTokensException(new List<TokenType>
                     {
                         TokenType.Semicolon
                     });
+                }
+
+                if (base.Tokens[base.Index].Type == TokenType.WithExit)
+                {
+                    base.Index++;
+                    base.SkipWhiteSpaceAndCommentTokens();
+
+                    if (base.Index == base.Tokens.Count ||
+                        base.Tokens[base.Index].Type != TokenType.LeftCurlyBracket)
+                    {
+                        this.ReportParsingError("Expected \"{\".");
+                        throw new EndOfTokensException(new List<TokenType>
+                        {
+                            TokenType.LeftCurlyBracket
+                        });
+                    }
+
+                    var blockNode = new PStatementBlockNode(parentNode.Machine, parentNode);
+                    this.VisitStatementBlock(blockNode);
+
+                    if (!parentNode.AddStateTransition(eventIdentifier, stateIdentifier, blockNode))
+                    {
+                        this.ReportParsingError("Unexpected state identifier.");
+                    }
+
+                    if (base.Index == base.Tokens.Count ||
+                        base.Tokens[base.Index].Type != TokenType.Semicolon)
+                    {
+                        this.ReportParsingError("Expected \";\".");
+                        throw new EndOfTokensException(new List<TokenType>
+                        {
+                            TokenType.Semicolon
+                        });
+                    }
+                }
+                else
+                {
+                    if (!parentNode.AddStateTransition(eventIdentifier, stateIdentifier))
+                    {
+                        this.ReportParsingError("Unexpected state identifier.");
+                    }
                 }
             }
         }
@@ -999,6 +1036,30 @@ namespace Microsoft.PSharp.Parsing
             base.SkipWhiteSpaceAndCommentTokens();
 
             if (base.Index == base.Tokens.Count ||
+                (base.Tokens[base.Index].Type != TokenType.Colon &&
+                base.Tokens[base.Index].Type != TokenType.LeftCurlyBracket))
+            {
+                this.ReportParsingError("Expected \":\" or \"{\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Colon,
+                    TokenType.LeftCurlyBracket
+                });
+            }
+
+            if (base.Tokens[base.Index].Type == TokenType.Colon)
+            {
+                node.ColonToken = base.Tokens[base.Index];
+
+                base.Index++;
+                base.SkipWhiteSpaceAndCommentTokens();
+
+                var typeNode = new PTypeNode();
+                this.VisitTypeIdentifier(typeNode);
+                node.ReturnTypeNode = typeNode;
+            }
+
+            if (base.Index == base.Tokens.Count ||
                 base.Tokens[base.Index].Type != TokenType.LeftCurlyBracket)
             {
                 this.ReportParsingError("Expected \"{\".");
@@ -1199,6 +1260,9 @@ namespace Microsoft.PSharp.Parsing
                     this.VisitWhileStatement(node);
                     break;
 
+                case TokenType.Break:
+                case TokenType.Continue:
+                case TokenType.Return:
                 case TokenType.Identifier:
                     this.VisitGenericStatement(node);
                     break;
@@ -1639,6 +1703,9 @@ namespace Microsoft.PSharp.Parsing
                 base.Tokens[base.Index].Type != TokenType.Assert &&
                 base.Tokens[base.Index].Type != TokenType.IfCondition &&
                 base.Tokens[base.Index].Type != TokenType.WhileLoop &&
+                base.Tokens[base.Index].Type != TokenType.Break &&
+                base.Tokens[base.Index].Type != TokenType.Continue &&
+                base.Tokens[base.Index].Type != TokenType.Return &&
                 base.Tokens[base.Index].Type != TokenType.Identifier &&
                 base.Tokens[base.Index].Type != TokenType.LeftCurlyBracket))
             {
@@ -1675,7 +1742,10 @@ namespace Microsoft.PSharp.Parsing
             {
                 this.VisitWhileStatement(blockNode);
             }
-            else if (base.Tokens[base.Index].Type == TokenType.Identifier)
+            else if (base.Tokens[base.Index].Type == TokenType.Break ||
+                base.Tokens[base.Index].Type == TokenType.Continue ||
+                base.Tokens[base.Index].Type == TokenType.Return ||
+                base.Tokens[base.Index].Type == TokenType.Identifier)
             {
                 this.VisitGenericStatement(blockNode);
             }
@@ -1703,6 +1773,9 @@ namespace Microsoft.PSharp.Parsing
                     base.Tokens[base.Index].Type != TokenType.Assert &&
                     base.Tokens[base.Index].Type != TokenType.IfCondition &&
                     base.Tokens[base.Index].Type != TokenType.WhileLoop &&
+                    base.Tokens[base.Index].Type != TokenType.Break &&
+                    base.Tokens[base.Index].Type != TokenType.Continue &&
+                    base.Tokens[base.Index].Type != TokenType.Return &&
                     base.Tokens[base.Index].Type != TokenType.Identifier &&
                     base.Tokens[base.Index].Type != TokenType.IfCondition &&
                     base.Tokens[base.Index].Type != TokenType.LeftCurlyBracket))

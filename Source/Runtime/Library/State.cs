@@ -164,7 +164,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Returns the type of the state that is the target of
         /// the goto transition triggered by the given event, and
-        /// an optional lambda function which can override the
+        /// an optional lambda function which can execute after the
         /// default OnExit function of the exiting state.
         /// </summary>
         /// <param name="e">Event</param>

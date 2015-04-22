@@ -257,7 +257,7 @@ machine OpenWSN_Mote {
 			if((payload as (machine,int)).0 == myTimeParent.0)
 				lastSynched = 0; //synched 
 			
-			send (payload as (machine,int)).0, Ack, (this, myRank);
+			//send (payload as (machine,int)).0, Ack, (this, myRank);
 			
 			send slotTimer, endSlot;
 		};
@@ -276,6 +276,7 @@ model SlotTimerMachine {
 			AllMotes = payload as seq[machine];
 			raise Local;
 		}
+
 		on Local goto SendNewSlot;
 	}
 	
@@ -284,10 +285,11 @@ model SlotTimerMachine {
 			i = sizeof(AllMotes) - 1;
 			while(i>=0)
 			{
-				send AllMotes[i], newSlot, (true, (null, null));
+				//send AllMotes[i], newSlot, (true, (null, null));
 				i = i - 1;
 			}
 		}
+
 		on endSlot do increaseCounter;
 		on Local goto SendNewSlot;
 	}

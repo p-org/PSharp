@@ -260,6 +260,10 @@ namespace Microsoft.PSharp.Parsing
                     this.Tokens.Add(new Token(unit, TokenType.GotoState));
                     break;
 
+                case "with":
+                    this.Tokens.Add(new Token(unit, TokenType.WithExit));
+                    break;
+
                 case "defer":
                     this.Tokens.Add(new Token(unit, TokenType.DeferEvent));
                     break;
@@ -435,7 +439,7 @@ namespace Microsoft.PSharp.Parsing
                 @"\bmain\b|\bstart\b|" +
                 @"\bdefer\b|\bignore\b|\bto\b|\bentry\b|\bexit\b|" +
                 @"\bcreate\b|\braise\b|\bsend\b|" +
-                @"\bon\b|\bdo\b|\bgoto\b|" +
+                @"\bon\b|\bdo\b|\bgoto\b|\bwith\b|" +
                 @"\bprivate\b|\bprotected\b|\binternal\b|\bpublic\b|" +
                 @"\babstract\b|\bvirtual\b|\boverride\b|" +
                 @"\bvar\b|" +

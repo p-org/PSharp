@@ -29,8 +29,8 @@ namespace Microsoft.PSharp
         /// A dictionary of goto state transitions. A key represents
         /// the type of an event, and the value is the target state
         /// of the goto transition and an optional lambda function,
-        /// which can override the default OnExit function of the
-        /// exiting state.
+        /// which can execute after the default OnExit function of
+        /// the exiting state.
         /// </summary>
         private Dictionary<Type, Tuple<Type, Action>> Dictionary;
 
@@ -43,8 +43,8 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Adds the specified pair of event, state to transition to, and
-        /// an optional lambda function, which can override the default
+        /// Adds the specified pair of event, state to transition to, and an
+        /// optional lambda function, which can execute after the default
         /// OnExit function of the exiting state, to the collection.
         /// </summary>
         /// <param name="e">Type of the event</param>

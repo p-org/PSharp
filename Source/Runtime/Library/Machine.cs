@@ -553,10 +553,10 @@ namespace Microsoft.PSharp
                 {
                     var transition = currentState.GetGotoTransition(e);
                     Type targetState = transition.Item1;
-                    Action onExitOverride = transition.Item2;
+                    Action onExitAction = transition.Item2;
                     Utilities.Verbose("{0}: {1} --- GOTO ---> {2}\n",
                         this, currentState, targetState);
-                    this.Goto(targetState, onExitOverride);
+                    this.Goto(targetState, onExitAction);
                 }
                 // Checks if the event can trigger a push state transition.
                 else if (currentState.ContainsPushTransition(e))
@@ -674,7 +674,7 @@ namespace Microsoft.PSharp
         /// Performs a goto transition to the given state.
         /// </summary>
         /// <param name="s">Type of the state</param>
-        /// <param name="onExit">Lambda to override OnExit</param>
+        /// <param name="onExit">Goto on exit action</param>
         private void Goto(Type s, Action onExit)
         {
             State nextState = this.InitializeState(s);
@@ -840,7 +840,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Executes the on exit function of the current state.
         /// </summary>
-        /// <param name="onExit">Lambda to override OnExit</param>
+        /// <param name="onExit">Goto on exit action</param>
         private void ExecuteCurrentStateOnExit(Action onExit)
         {
             try

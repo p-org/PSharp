@@ -237,6 +237,10 @@ namespace Microsoft.PSharp.Parsing
                     text = "goto";
                     break;
 
+                case TokenType.WithExit:
+                    text = "with";
+                    break;
+
                 case TokenType.DeferEvent:
                     text = "defer";
                     break;

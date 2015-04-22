@@ -8,21 +8,16 @@ namespace PGerman
     {
         static void Main(string[] args)
         {
-            Runtime.RegisterNewEvent(typeof(unit));
-            Runtime.RegisterNewEvent(typeof(req_share));
-            Runtime.RegisterNewEvent(typeof(req_excl));
-            Runtime.RegisterNewEvent(typeof(need_invalidate));
-            Runtime.RegisterNewEvent(typeof(invalidate_ack));
-            Runtime.RegisterNewEvent(typeof(grant));
-            Runtime.RegisterNewEvent(typeof(ask_share));
-            Runtime.RegisterNewEvent(typeof(ask_excl));
-            Runtime.RegisterNewEvent(typeof(invalidate));
-            Runtime.RegisterNewEvent(typeof(grant_excl));
-            Runtime.RegisterNewEvent(typeof(grant_share));
-            Runtime.RegisterNewEvent(typeof(normal));
-            Runtime.RegisterNewEvent(typeof(wait));
-            Runtime.RegisterNewEvent(typeof(invalidate_sharers));
-            Runtime.RegisterNewEvent(typeof(sharer_id));
+            Runtime.RegisterNewEvent(typeof(newSlot));
+            Runtime.RegisterNewEvent(typeof(endSlot));
+            Runtime.RegisterNewEvent(typeof(Local));
+            Runtime.RegisterNewEvent(typeof(TxDone));
+            Runtime.RegisterNewEvent(typeof(Tx));
+            Runtime.RegisterNewEvent(typeof(Rx));
+            Runtime.RegisterNewEvent(typeof(Sleep));
+            Runtime.RegisterNewEvent(typeof(Data));
+            Runtime.RegisterNewEvent(typeof(Ack));
+            Runtime.RegisterNewEvent(typeof(Initialize));
 
             Runtime.RegisterNewMachine(typeof(GodMachine));
             Runtime.RegisterNewMachine(typeof(OpenWSN_Mote));

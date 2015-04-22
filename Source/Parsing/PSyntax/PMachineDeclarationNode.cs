@@ -242,6 +242,15 @@ namespace Microsoft.PSharp.Parsing.PSyntax
 
                 foreach (var transition in state.StateTransitions)
                 {
+                    var onExitText = "";
+                    if (state.TransitionsOnExitActions.ContainsKey(transition.Key))
+                    {
+                        var onExitAction = state.TransitionsOnExitActions[transition.Key];
+                        int position = 0;
+                        onExitAction.Rewrite(ref position);
+                        onExitText = onExitAction.GetRewrittenText();
+                    }
+
                     string eventId = "";
                     if (transition.Key.Type == TokenType.HaltEvent)
                     {
@@ -256,8 +265,17 @@ namespace Microsoft.PSharp.Parsing.PSyntax
                         eventId = transition.Key.TextUnit.Text;
                     }
 
-                    text += " " + state.Identifier.TextUnit.Text.ToLower() + "Dict.Add(typeof(" +
-                        eventId + "), typeof(" + transition.Value.TextUnit.Text + "));\n";
+                    if (onExitText.Length == 0)
+                    {
+                        text += " " + state.Identifier.TextUnit.Text.ToLower() + "Dict.Add(typeof(" +
+                            eventId + "), typeof(" + transition.Value.TextUnit.Text + "), () => " +
+                            onExitText + ");\n";
+                    }
+                    else
+                    {
+                        text += " " + state.Identifier.TextUnit.Text.ToLower() + "Dict.Add(typeof(" +
+                            eventId + "), typeof(" + transition.Value.TextUnit.Text + "));\n";
+                    }
                 }
 
                 text += " dict.Add(typeof(" + state.Identifier.TextUnit.Text + "), " +

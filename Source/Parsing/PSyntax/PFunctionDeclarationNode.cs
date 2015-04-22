@@ -61,9 +61,9 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         public Token ColonToken;
 
         /// <summary>
-        /// The return type tokens.
+        /// The return type node.
         /// </summary>
-        public List<Token> ReturnTypeTokens;
+        public PTypeNode ReturnTypeNode;
 
         /// <summary>
         /// The statement block.
@@ -81,7 +81,6 @@ namespace Microsoft.PSharp.Parsing.PSyntax
             : base()
         {
             this.Parameters = new List<Token>();
-            this.ReturnTypeTokens = new List<Token>();
         }
 
         /// <summary>
@@ -116,12 +115,12 @@ namespace Microsoft.PSharp.Parsing.PSyntax
             var start = position;
             var text = "";
 
-            foreach (var node in this.ReturnTypeTokens)
+            if (this.ColonToken != null)
             {
-                text += node.TextUnit.Text;
+                this.ReturnTypeNode.Rewrite(ref position);
+                text += this.ReturnTypeNode.GetRewrittenText();
             }
-
-            if (this.ReturnTypeTokens.Count == 0)
+            else
             {
                 text += "void";
             }
@@ -165,6 +164,13 @@ namespace Microsoft.PSharp.Parsing.PSyntax
             }
 
             text += this.RightParenthesisToken.TextUnit.Text;
+
+            if (this.ColonToken != null)
+            {
+                text += " " + this.ColonToken.TextUnit.Text + " ";
+                this.ReturnTypeNode.GenerateTextUnit();
+                text += this.ReturnTypeNode.GetFullText();
+            }
 
             this.StatementBlock.GenerateTextUnit();
             text += this.StatementBlock.GetFullText();
