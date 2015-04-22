@@ -51,6 +51,11 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         public List<Token> Parameters;
 
         /// <summary>
+        /// List of parameter type nodes.
+        /// </summary>
+        public List<PTypeNode> ParameterTypeNodes;
+
+        /// <summary>
         /// The right parenthesis token.
         /// </summary>
         public Token RightParenthesisToken;
@@ -81,6 +86,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
             : base()
         {
             this.Parameters = new List<Token>();
+            this.ParameterTypeNodes = new List<PTypeNode>();
         }
 
         /// <summary>
@@ -130,9 +136,16 @@ namespace Microsoft.PSharp.Parsing.PSyntax
 
             text += this.LeftParenthesisToken.TextUnit.Text;
 
-            foreach (var param in this.Parameters)
+            for (int idx = 0; idx < this.Parameters.Count; idx++)
             {
-                text += param.TextUnit.Text;
+                if (idx > 0)
+                {
+                    text += ", ";
+                }
+
+                this.ParameterTypeNodes[idx].Rewrite(ref position);
+                text += this.ParameterTypeNodes[idx].GetRewrittenText();
+                text += " " + this.Parameters[idx].TextUnit.Text;
             }
 
             text += this.RightParenthesisToken.TextUnit.Text;
@@ -158,9 +171,16 @@ namespace Microsoft.PSharp.Parsing.PSyntax
 
             text += this.LeftParenthesisToken.TextUnit.Text;
 
-            foreach (var param in this.Parameters)
+            for (int idx = 0; idx < this.Parameters.Count; idx++)
             {
-                text += param.TextUnit.Text;
+                if (idx > 0)
+                {
+                    text += ", ";
+                }
+
+                text += this.Parameters[idx].TextUnit.Text + ":";
+                this.ParameterTypeNodes[idx].GenerateTextUnit();
+                text += this.ParameterTypeNodes[idx].GetFullText();
             }
 
             text += this.RightParenthesisToken.TextUnit.Text;

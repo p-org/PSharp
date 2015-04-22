@@ -1019,15 +1019,67 @@ namespace Microsoft.PSharp.Parsing
             base.Index++;
             base.SkipWhiteSpaceAndCommentTokens();
 
+            bool expectsColon = false;
+            bool expectsType = false;
+            bool expectsComma = false;
             while (base.Index < base.Tokens.Count &&
                 base.Tokens[base.Index].Type != TokenType.RightParenthesis)
             {
-                base.Tokens[base.Index] = new Token(base.Tokens[base.Index].TextUnit);
+                if ((!expectsColon && !expectsComma && !expectsType &&
+                    base.Tokens[base.Index].Type != TokenType.Identifier) ||
+                    (!expectsColon && !expectsComma && expectsType &&
+                    base.Tokens[base.Index].Type != TokenType.MachineDecl &&
+                    base.Tokens[base.Index].Type != TokenType.Int &&
+                    base.Tokens[base.Index].Type != TokenType.Bool &&
+                    base.Tokens[base.Index].Type != TokenType.Seq &&
+                    base.Tokens[base.Index].Type != TokenType.Map &&
+                    base.Tokens[base.Index].Type != TokenType.LeftParenthesis) ||
+                    (expectsColon && base.Tokens[base.Index].Type != TokenType.Colon) ||
+                    (expectsComma && base.Tokens[base.Index].Type != TokenType.Comma))
+                {
+                    break;
+                }
 
-                node.Parameters.Add(base.Tokens[base.Index]);
+                if (!expectsType &&
+                    base.Tokens[base.Index].Type == TokenType.Identifier)
+                {
+                    node.Parameters.Add(base.Tokens[base.Index]);
 
-                base.Index++;
-                base.SkipWhiteSpaceAndCommentTokens();
+                    base.Index++;
+                    base.SkipWhiteSpaceAndCommentTokens();
+
+                    expectsColon = true;
+                }
+                else if (base.Tokens[base.Index].Type == TokenType.Colon)
+                {
+                    base.Index++;
+                    base.SkipWhiteSpaceAndCommentTokens();
+
+                    expectsColon = false;
+                    expectsType = true;
+                }
+                else if (expectsType &&
+                    (base.Tokens[base.Index].Type == TokenType.MachineDecl ||
+                    base.Tokens[base.Index].Type == TokenType.Int ||
+                    base.Tokens[base.Index].Type == TokenType.Bool ||
+                    base.Tokens[base.Index].Type == TokenType.Seq ||
+                    base.Tokens[base.Index].Type == TokenType.Map ||
+                    base.Tokens[base.Index].Type == TokenType.LeftParenthesis))
+                {
+                    var typeNode = new PTypeNode();
+                    this.VisitTypeIdentifier(typeNode);
+                    node.ParameterTypeNodes.Add(typeNode);
+
+                    expectsType = false;
+                    expectsComma = true;
+                }
+                else if (base.Tokens[base.Index].Type == TokenType.Comma)
+                {
+                    base.Index++;
+                    base.SkipWhiteSpaceAndCommentTokens();
+
+                    expectsComma = false;
+                }
             }
 
             node.RightParenthesisToken = base.Tokens[base.Index];
