@@ -254,6 +254,32 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         }
 
         /// <summary>
+        /// Rewrites the tuple assignment.
+        /// </summary>
+        /// param name="position">Position</param>
+        protected void RewriteTupleAssignment(ref int position)
+        {
+            var assignIndex = this.Index;
+
+            this.Index++;
+            this.SkipWhiteSpaceTokens();
+            if (this.Index == this.RewrittenStmtTokens.Count ||
+                this.RewrittenStmtTokens[this.Index] == null ||
+                this.RewrittenStmtTokens[this.Index].Type != TokenType.LeftParenthesis)
+            {
+                this.Index = assignIndex;
+                return;
+            }
+
+            int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
+            var tupleStr = "Container.Create(";
+            var textUnit = new TextUnit(tupleStr, this.RewrittenStmtTokens[this.Index].TextUnit.Line,
+                this.RewrittenStmtTokens[this.Index].TextUnit.Start);
+            this.RewrittenStmtTokens[this.Index] = new Token(textUnit);
+            this.Index = assignIndex;
+        }
+
+        /// <summary>
         /// Rewrites the member identifier.
         /// </summary>
         /// <param name="position">Position</param>
@@ -385,6 +411,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
             this.Index++;
             this.SkipWhiteSpaceTokens();
             if (this.Index == this.RewrittenStmtTokens.Count ||
+                this.RewrittenStmtTokens[this.Index] == null ||
                 this.RewrittenStmtTokens[this.Index].Type != TokenType.InsertOp)
             {
                 this.Index = seqIndex;
@@ -430,6 +457,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
             this.Index++;
             this.SkipWhiteSpaceTokens();
             if (this.Index == this.RewrittenStmtTokens.Count ||
+                this.RewrittenStmtTokens[this.Index] == null ||
                 this.RewrittenStmtTokens[this.Index].Type != TokenType.RemoveOp)
             {
                 this.Index = seqIndex;
@@ -438,7 +466,8 @@ namespace Microsoft.PSharp.Parsing.PSyntax
 
             this.Index++;
             this.SkipWhiteSpaceTokens();
-            if (this.Index == this.RewrittenStmtTokens.Count)
+            if (this.Index == this.RewrittenStmtTokens.Count ||
+                this.RewrittenStmtTokens[this.Index] == null)
             {
                 this.Index = seqIndex;
                 return;
@@ -503,6 +532,10 @@ namespace Microsoft.PSharp.Parsing.PSyntax
             {
                 this.RewriteSizeOf(ref position);
             }
+            else if (token.Type == TokenType.AssignOp)
+            {
+                this.RewriteTupleAssignment(ref position);
+            }
             else if (token.Type == TokenType.NonDeterministic)
             {
                 this.RewriteNonDeterministicChoice(ref position);
@@ -543,6 +576,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         private void SkipWhiteSpaceTokens()
         {
             while (this.Index < this.RewrittenStmtTokens.Count &&
+                this.RewrittenStmtTokens[this.Index] != null &&
                 (this.RewrittenStmtTokens[this.Index].Type == TokenType.WhiteSpace ||
                 this.RewrittenStmtTokens[this.Index].Type == TokenType.NewLine))
             {
