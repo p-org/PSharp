@@ -90,7 +90,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
                 return;
             }
 
-            var cloneStr = ".Clone()";
+            var cloneStr = ".Clone() as " + field.TypeNode.GetRewrittenText();
             var textUnit = new TextUnit(cloneStr, this.RewrittenStmtTokens[this.Index].TextUnit.Line,
                 this.RewrittenStmtTokens[this.Index].TextUnit.Start + cloneStr.Length);
 

@@ -54,23 +54,47 @@ main model GodMachine {
 			N2 = new OpenWSN_Mote(1);
 			N3 = new OpenWSN_Mote(2);
 			N4 = new OpenWSN_Mote(1);
+
 			//initalize the slot machine
-			templ += (0, N1); templ += (0, N2); templ += (0, N3); templ += (0, N4);
+			templ += (0, N1);
+			templ += (0, N2);
+			templ += (0, N3);
+			templ += (0, N4);
 			slotT = new SlotTimerMachine(templ);
-			templ -= 0; templ -= 0; templ -= 0; templ -= 0; assert(sizeof(templ) == 0);
+			templ -= 0;
+			templ -= 0;
+			templ -= 0;
+			templ -= 0;
+			assert(sizeof(templ) == 0);
+
 			//initialize the connection
 			templ += (0, N2);
 			send N1, Initialize, (slotT,templ);
-			templ -= 0; assert(sizeof(templ) == 0);
-			templ += (0, N1); templ += (0, N3); templ += (0, N4);
+			templ -= 0;
+			assert(sizeof(templ) == 0);
+			templ += (0, N1);
+			templ += (0, N3);
+			templ += (0, N4);
+
 			send N2, Initialize, (slotT,templ);
-			templ -= 0; templ -= 0; templ -= 0; assert(sizeof(templ) == 0);
-			templ += (0, N2); templ += (0, N4);
+			templ -= 0;
+			templ -= 0;
+			templ -= 0;
+			assert(sizeof(templ) == 0);
+			templ += (0, N2);
+			templ += (0, N4);
+
 			send N3, Initialize, (slotT,templ);
-			templ -= 0; templ -= 0; assert(sizeof(templ) == 0);
-			templ += (0, N2); templ += (0, N3);
+			templ -= 0;
+			templ -= 0;
+			assert(sizeof(templ) == 0);
+			templ += (0, N2);
+			templ += (0, N3);
+
 			send N4, Initialize, (slotT,templ);
-			templ -= 0; templ -= 0; assert(sizeof(templ) == 0);			
+			templ -= 0;
+			templ -= 0;
+			assert(sizeof(templ) == 0);			
 		}
 	}
 }
