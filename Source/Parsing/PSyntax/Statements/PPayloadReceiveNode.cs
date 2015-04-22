@@ -103,7 +103,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
             this.Type.Rewrite(ref position);
             text += "(" + this.Type.GetRewrittenText() + ")";
             text += "this.Payload";
-
+            
             if (this.RightParenthesisToken != null)
             {
                 text += this.RightParenthesisToken.TextUnit.Text;

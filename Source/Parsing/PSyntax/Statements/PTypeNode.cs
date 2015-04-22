@@ -193,6 +193,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
                     (this.RewrittenTypeTokens[this.Index].Type != TokenType.MachineDecl &&
                     this.RewrittenTypeTokens[this.Index].Type != TokenType.Int &&
                     this.RewrittenTypeTokens[this.Index].Type != TokenType.Bool &&
+                    this.RewrittenTypeTokens[this.Index].Type != TokenType.Seq &&
                     this.RewrittenTypeTokens[this.Index].Type != TokenType.LeftParenthesis) ||
                     (expectsComma && this.RewrittenTypeTokens[this.Index].Type != TokenType.Comma))
                 {
@@ -202,6 +203,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
                 if (this.RewrittenTypeTokens[this.Index].Type == TokenType.MachineDecl ||
                     this.RewrittenTypeTokens[this.Index].Type == TokenType.Int ||
                     this.RewrittenTypeTokens[this.Index].Type == TokenType.Bool ||
+                    this.RewrittenTypeTokens[this.Index].Type == TokenType.Seq ||
                     this.RewrittenTypeTokens[this.Index].Type == TokenType.LeftParenthesis)
                 {
                     var type = new PBaseType();
