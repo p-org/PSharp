@@ -1487,7 +1487,8 @@ namespace Microsoft.PSharp.Parsing
             base.SkipWhiteSpaceAndCommentTokens();
 
             if (base.Index == base.Tokens.Count ||
-                base.Tokens[base.Index].Type != TokenType.Identifier)
+                (base.Tokens[base.Index].Type != TokenType.Identifier &&
+                base.Tokens[base.Index].Type != TokenType.LeftParenthesis))
             {
                 this.ReportParsingError("Expected machine identifier.");
                 throw new EndOfTokensException(new List<TokenType>
@@ -1501,10 +1502,20 @@ namespace Microsoft.PSharp.Parsing
             while (base.Index < base.Tokens.Count &&
                 base.Tokens[base.Index].Type != TokenType.Comma)
             {
-                machineIdentifier.StmtTokens.Add(base.Tokens[base.Index]);
+                if (base.Tokens[base.Index].Type == TokenType.Payload)
+                {
+                    var payloadNode = new PPayloadReceiveNode();
+                    this.VisitReceivedPayload(payloadNode);
+                    machineIdentifier.StmtTokens.Add(null);
+                    machineIdentifier.Payloads.Add(payloadNode);
+                }
+                else
+                {
+                    machineIdentifier.StmtTokens.Add(base.Tokens[base.Index]);
 
-                base.Index++;
-                base.SkipWhiteSpaceAndCommentTokens();
+                    base.Index++;
+                    base.SkipWhiteSpaceAndCommentTokens();
+                }
             }
 
             node.MachineIdentifier = machineIdentifier;

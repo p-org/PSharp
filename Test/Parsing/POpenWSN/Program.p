@@ -285,7 +285,7 @@ machine OpenWSN_Mote {
 			if((payload as (machine,int)).0 == myTimeParent.0)
 				lastSynched = 0; //synched 
 			
-			//send (payload as (machine,int)).0, Ack, (this, myRank);
+			send (payload as (machine,int)).0, Ack, (this, myRank);
 			
 			send slotTimer, endSlot;
 		};
