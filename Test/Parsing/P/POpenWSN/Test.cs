@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.PSharp;
 
-namespace PGerman
+namespace POpenWSN
 {
     public class Test
     {
