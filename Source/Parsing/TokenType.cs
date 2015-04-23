@@ -103,6 +103,7 @@ namespace Microsoft.PSharp.Parsing
         OnAction,
         DoAction,
         GotoState,
+        PushState,
         WithExit,
         DeferEvent,
         IgnoreEvent,

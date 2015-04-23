@@ -62,6 +62,7 @@
     <Compile Include="PSyntax\PProgram.cs" />
     <Compile Include="PSyntax\PSyntaxNode.cs" />
     <Compile Include="PSyntax\PStatementBlockNode.cs" />
+    <Compile Include="PSyntax\Statements\PPushStatementNode.cs" />
     <Compile Include="PSyntax\Statements\PAssertStatementNode.cs" />
     <Compile Include="PSyntax\Statements\PWhileStatementNode.cs" />
     <Compile Include="PSyntax\Statements\PPayloadSendExpressionNode.cs" />

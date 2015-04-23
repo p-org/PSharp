@@ -1311,6 +1311,10 @@ namespace Microsoft.PSharp.Parsing
                     this.VisitSendStatement(node);
                     break;
 
+                case TokenType.PushState:
+                    this.VisitPushStatement(node);
+                    break;
+
                 case TokenType.Assert:
                     this.VisitAssertStatement(node);
                     break;
@@ -1592,6 +1596,48 @@ namespace Microsoft.PSharp.Parsing
                 this.VisitPayload(payload);
                 node.Payload = payload;
             }
+
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.Semicolon)
+            {
+                this.ReportParsingError("Expected \";\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Semicolon
+                });
+            }
+
+            node.SemicolonToken = base.Tokens[base.Index];
+            parentNode.Statements.Add(node);
+            base.Index++;
+        }
+
+        /// <summary>
+        /// Visits a push statement.
+        /// </summary>
+        /// <param name="parentNode">Node</param>
+        private void VisitPushStatement(PStatementBlockNode parentNode)
+        {
+            var node = new PPushStatementNode(parentNode);
+            node.PushKeyword = base.Tokens[base.Index];
+
+            base.Index++;
+            base.SkipWhiteSpaceAndCommentTokens();
+
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.Identifier)
+            {
+                this.ReportParsingError("Expected state identifier.");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Identifier
+                });
+            }
+
+            node.StateToken = base.Tokens[base.Index];
+
+            base.Index++;
+            base.SkipWhiteSpaceAndCommentTokens();
 
             if (base.Index == base.Tokens.Count ||
                 base.Tokens[base.Index].Type != TokenType.Semicolon)

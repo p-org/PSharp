@@ -237,6 +237,10 @@ namespace Microsoft.PSharp.Parsing
                     text = "goto";
                     break;
 
+                case TokenType.PushState:
+                    text = "push";
+                    break;
+
                 case TokenType.WithExit:
                     text = "with";
                     break;

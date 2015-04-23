@@ -215,6 +215,10 @@ namespace Microsoft.PSharp.Parsing
                     this.Tokens.Add(new Token(unit, TokenType.GotoState));
                     break;
 
+                case "push":
+                    this.Tokens.Add(new Token(unit, TokenType.PushState));
+                    break;
+
                 case "with":
                     this.Tokens.Add(new Token(unit, TokenType.WithExit));
                     break;
@@ -401,7 +405,7 @@ namespace Microsoft.PSharp.Parsing
                 @"\bmain\b|\bstart\b|" +
                 @"\bdefer\b|\bignore\b|\bentry\b|\bexit\b|" +
                 @"\braise\b|\bsend\b|" +
-                @"\bon\b|\bdo\b|\bgoto\b|\bwith\b|" +
+                @"\bon\b|\bdo\b|\bgoto\b|\bpush\b|\bwith\b|" +
                 @"\bvar\b|" +
                 @"\bnew\b|\bin\b|\bas\b" +
                 @"|\s+)";
