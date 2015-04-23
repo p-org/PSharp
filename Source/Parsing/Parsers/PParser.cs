@@ -1089,6 +1089,7 @@ namespace Microsoft.PSharp.Parsing
 
             if (base.Index == base.Tokens.Count ||
                 (base.Tokens[base.Index].Type != TokenType.Colon &&
+                base.Tokens[base.Index].Type != TokenType.LeftSquareBracket &&
                 base.Tokens[base.Index].Type != TokenType.LeftCurlyBracket))
             {
                 this.ReportParsingError("Expected \":\" or \"{\".");
@@ -1109,6 +1110,16 @@ namespace Microsoft.PSharp.Parsing
                 var typeNode = new PTypeNode();
                 this.VisitTypeIdentifier(typeNode);
                 node.ReturnTypeNode = typeNode;
+            }
+
+            if (base.Tokens[base.Index].Type == TokenType.LeftSquareBracket)
+            {
+                while (base.Index < base.Tokens.Count &&
+                    base.Tokens[base.Index].Type != TokenType.LeftCurlyBracket)
+                {
+                    base.Index++;
+                    base.SkipWhiteSpaceAndCommentTokens();
+                }
             }
 
             if (base.Index == base.Tokens.Count ||

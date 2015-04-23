@@ -23,15 +23,14 @@ event doneStateChange assert 1;
 
 
 ////////////////////////////////////////////////////////////
-// THe topology under test is
+// The topology under test is
 // OC1 -- BC1 -- BC2 -- OC2
-
+//
 // If Rank = 1 it implies that the clock is a stratum 1 clock.
 ///////////////////////////////////////////////////////////
 
-// main machine the got machine which creates the verification instance
+// main machine which creates the verification instance
 main model GodMachine {
-
 	//the clock nodes
 	var OC1 : machine;
 	var OC2 : machine;
