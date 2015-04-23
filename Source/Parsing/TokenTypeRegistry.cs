@@ -369,6 +369,10 @@ namespace Microsoft.PSharp.Parsing
                     text = "payload";
                     break;
 
+                case TokenType.Trigger:
+                    text = "trigger";
+                    break;
+
                 case TokenType.HaltEvent:
                     text = "halt";
                     break;

@@ -119,7 +119,7 @@ namespace Microsoft.PSharp
         /// If there was no event received yet the returned
         /// value is null.
         /// </summary>
-        protected internal Type Message;
+        protected internal Type Trigger;
 
         /// <summary>
         /// Handle to the payload of the last received event.
@@ -518,7 +518,7 @@ namespace Microsoft.PSharp
                 }
             }
 
-            this.Message = e.GetType();
+            this.Trigger = e.GetType();
             this.Payload = e.Payload;
 
             while (true)
@@ -578,7 +578,7 @@ namespace Microsoft.PSharp
 
             if (!this.IsHalted)
             {
-                this.Message = null;
+                this.Trigger = null;
                 this.Payload = null;
 
                 currentState = this.StateStack.Peek();
@@ -980,7 +980,7 @@ namespace Microsoft.PSharp
             this.ActionBindings.Clear();
             this.Inbox.Clear();
 
-            this.Message = null;
+            this.Trigger = null;
             this.Payload = null;
     }
 

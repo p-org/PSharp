@@ -40,9 +40,9 @@ namespace Microsoft.PSharp
         /// If there was no event received yet the returned
         /// value is null.
         /// </summary>
-        protected Type Message
+        protected Type Trigger
         {
-            get { return this.Machine.Message; }
+            get { return this.Machine.Trigger; }
         }
 
         /// <summary>

@@ -141,6 +141,7 @@ namespace Microsoft.PSharp.Parsing
         Assert,
         Assume,
         Payload,
+        Trigger,
 
         HaltEvent,
         DefaultEvent,

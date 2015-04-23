@@ -217,6 +217,61 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         }
 
         /// <summary>
+        /// Rewrites the trigger keyword.
+        /// </summary>
+        /// param name="position">Position</param>
+        protected void RewriteTrigger(ref int position)
+        {
+            int triggerIndex = this.Index;
+
+            int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
+            var text = "this.Trigger";
+            this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line, position));
+            position += text.Length;
+
+            this.Index++;
+            this.SkipWhiteSpaceTokens();
+            if (this.RewrittenStmtTokens.Count == this.Index ||
+                this.RewrittenStmtTokens[this.Index].Type != TokenType.EqualOp)
+            {
+                this.Index = triggerIndex;
+                this.Index--;
+                this.SkipWhiteSpaceTokens(true);
+                if (this.Index < 0 ||
+                    this.RewrittenStmtTokens[this.Index].Type != TokenType.EqualOp)
+                {
+                    this.Index = triggerIndex;
+                    return;
+                }
+                else
+                {
+                    this.Index = triggerIndex;
+                    this.Index--;
+                }
+            }
+            else
+            {
+                this.Index++;
+                this.SkipWhiteSpaceTokens();
+            }
+
+            if (this.Index < 0 ||
+                this.RewrittenStmtTokens.Count == this.Index ||
+                this.RewrittenStmtTokens[this.Index].Type != TokenType.Identifier)
+            {
+                this.Index = triggerIndex;
+                return;
+            }
+
+            line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
+            text = "typeof(" + this.RewrittenStmtTokens[this.Index].TextUnit.Text + ")";
+            this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line, position));
+            position += 8;
+
+            this.Index = triggerIndex;
+        }
+
+        /// <summary>
         /// Rewrites the sizeof keyword.
         /// </summary>
         /// param name="position">Position</param>
@@ -324,11 +379,9 @@ namespace Microsoft.PSharp.Parsing.PSyntax
                 return;
             }
 
-            int line = this.RewrittenStmtTokens[leftParenIndex].TextUnit.Line;
-            var tupleStr = "Container.Create(";
-            var textUnit = new TextUnit(tupleStr, line,
-                this.RewrittenStmtTokens[leftParenIndex].TextUnit.Start);
-            this.RewrittenStmtTokens[leftParenIndex] = new Token(textUnit);
+            var index = leftParenIndex;
+            this.RewriteTuple(ref index);
+
             this.Index = assignIndex;
         }
 
@@ -368,8 +421,15 @@ namespace Microsoft.PSharp.Parsing.PSyntax
             while (index < this.RewrittenStmtTokens.Count &&
                 this.RewrittenStmtTokens[index].Type != TokenType.RightParenthesis)
             {
-                if (!expectsComma &&
-                    (this.RewrittenStmtTokens[index].Type != TokenType.Identifier &&
+                if (this.RewrittenStmtTokens[index].Type == TokenType.WhiteSpace ||
+                    this.RewrittenStmtTokens[index].Type == TokenType.NewLine)
+                {
+                    index++;
+                    continue;
+                }
+
+                if ((!expectsComma &&
+                    this.RewrittenStmtTokens[index].Type != TokenType.Identifier &&
                     this.RewrittenStmtTokens[index].Type != TokenType.This &&
                     this.RewrittenStmtTokens[index].Type != TokenType.True &&
                     this.RewrittenStmtTokens[index].Type != TokenType.False &&
@@ -587,6 +647,10 @@ namespace Microsoft.PSharp.Parsing.PSyntax
             {
                 this.RewriteNull(ref position);
             }
+            else if (token.Type == TokenType.Trigger)
+            {
+                this.RewriteTrigger(ref position);
+            }
             else if (token.Type == TokenType.SizeOf)
             {
                 this.RewriteSizeOf(ref position);
@@ -632,14 +696,23 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         /// <summary>
         /// Skips whitespace tokens.
         /// </summary>
-        private void SkipWhiteSpaceTokens()
+        /// <param name="backwards">Skip backwards</param>
+        private void SkipWhiteSpaceTokens(bool backwards = false)
         {
-            while (this.Index < this.RewrittenStmtTokens.Count &&
+            while (this.Index >= 0 &&
+                this.Index < this.RewrittenStmtTokens.Count &&
                 this.RewrittenStmtTokens[this.Index] != null &&
                 (this.RewrittenStmtTokens[this.Index].Type == TokenType.WhiteSpace ||
                 this.RewrittenStmtTokens[this.Index].Type == TokenType.NewLine))
             {
-                this.Index++;
+                if (!backwards)
+                {
+                    this.Index++;
+                }
+                else
+                {
+                    this.Index--;
+                }
             }
 
             return;

@@ -357,7 +357,7 @@ machine PortMachine {
 	}
 	
 	fun HandleAnnounce() {
-		if(ErBestVar.1 > payload.1)
+		if(ErBestVar.1 > (payload as (machine, int)).1)
 		{
 			ErBestVar = payload as (machine, int);
 		}

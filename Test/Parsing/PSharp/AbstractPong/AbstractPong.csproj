@@ -33,7 +33,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.PSharp">
-      <HintPath>..\..\..\Binaries\Release\Microsoft.PSharp.dll</HintPath>
+      <HintPath>..\..\..\..\Binaries\Release\Microsoft.PSharp.dll</HintPath>
     </Reference>
     <Reference Include="System" />
   </ItemGroup>
