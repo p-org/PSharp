@@ -20,4 +20,4 @@ Where ${PROJECT\_PATH} is the path to your P# project and ${SOLUTION\_NAME} is t
 To specify an output path destination please use the option ```/o:${OUTPUT\_PATH}```.
 
 ## Publications
-- **Asynchronous Programming, Analysis and Testing with State Machines**. Pantazis Deligiannis, Alastair F. Donaldson, Jeroen Ketema, Akash Lal and Paul Thomson. In the *36th ACM SIGPLAN Conference on Programming Language Design and Implementation* (PLDI 2015), to appear.
+- **Asynchronous Programming, Analysis and Testing with State Machines**. Pantazis Deligiannis, Alastair F. Donaldson, Jeroen Ketema, Akash Lal and Paul Thomson. In proceedings of the *36th ACM SIGPLAN Conference on Programming Language Design and Implementation* (PLDI'15), July 2015.
