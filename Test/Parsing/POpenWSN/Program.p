@@ -61,6 +61,7 @@ main model GodMachine {
 			templ += (0, N3);
 			templ += (0, N4);
 			slotT = new SlotTimerMachine(templ);
+
 			templ -= 0;
 			templ -= 0;
 			templ -= 0;
@@ -311,9 +312,10 @@ model SlotTimerMachine {
 	state SendNewSlot {
 		entry {
 			i = sizeof(AllMotes) - 1;
+
 			while(i>=0)
 			{
-				//send AllMotes[i], newSlot, (true, (null, null));
+				send AllMotes[i], newSlot, (true, (null, null));
 				i = i - 1;
 			}
 		}

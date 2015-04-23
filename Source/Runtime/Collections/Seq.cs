@@ -99,6 +99,13 @@ namespace Microsoft.PSharp.Collections
             {
                 clone.Sequence = this.Sequence.ToList();
             }
+            else if (elementType == typeof(Machine))
+            {
+                foreach (var element in this.Sequence)
+                {
+                    clone.Sequence.Add(element);
+                }
+            }
             else if (typeof(ICloneable).IsAssignableFrom(elementType))
             {
                 foreach (var element in this.Sequence)

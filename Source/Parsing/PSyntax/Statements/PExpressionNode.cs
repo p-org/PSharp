@@ -205,6 +205,18 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         }
 
         /// <summary>
+        /// Rewrites the null keyword.
+        /// </summary>
+        /// param name="position">Position</param>
+        protected void RewriteNull(ref int position)
+        {
+            int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
+            var text = "default(Machine)";
+            this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line, position));
+            position += text.Length;
+        }
+
+        /// <summary>
         /// Rewrites the sizeof keyword.
         /// </summary>
         /// param name="position">Position</param>
@@ -277,15 +289,6 @@ namespace Microsoft.PSharp.Parsing.PSyntax
             int counter = 1;
             while (this.Index < this.RewrittenStmtTokens.Count)
             {
-                if (this.RewrittenStmtTokens[this.Index] != null &&
-                    this.RewrittenStmtTokens[this.Index].Type == TokenType.Null)
-                {
-                    var nullStr = "default(Machine)";
-                    var nullTextUnit = new TextUnit(nullStr, this.RewrittenStmtTokens[this.Index].TextUnit.Line,
-                        this.RewrittenStmtTokens[this.Index].TextUnit.Start);
-                    this.RewrittenStmtTokens[this.Index] = new Token(nullTextUnit);
-                }
-
                 if (this.RewrittenStmtTokens[this.Index] != null &&
                     this.RewrittenStmtTokens[this.Index].Type == TokenType.LeftParenthesis)
                 {
@@ -370,6 +373,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
                     this.RewrittenStmtTokens[index].Type != TokenType.This &&
                     this.RewrittenStmtTokens[index].Type != TokenType.True &&
                     this.RewrittenStmtTokens[index].Type != TokenType.False &&
+                    this.RewrittenStmtTokens[index].Type != TokenType.Null &&
                     this.RewrittenStmtTokens[index].Type != TokenType.LeftParenthesis) ||
                     (expectsComma && this.RewrittenStmtTokens[index].Type != TokenType.Comma))
                 {
@@ -379,6 +383,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
                 if (this.RewrittenStmtTokens[index].Type == TokenType.Identifier ||
                     this.RewrittenStmtTokens[index].Type == TokenType.This ||
                     this.RewrittenStmtTokens[index].Type == TokenType.True ||
+                    this.RewrittenStmtTokens[index].Type == TokenType.Null ||
                     this.RewrittenStmtTokens[index].Type == TokenType.False)
                 {
                     index++;
@@ -577,6 +582,10 @@ namespace Microsoft.PSharp.Parsing.PSyntax
             else if (token.Type == TokenType.This)
             {
                 this.RewriteThis(ref position);
+            }
+            else if (token.Type == TokenType.Null)
+            {
+                this.RewriteNull(ref position);
             }
             else if (token.Type == TokenType.SizeOf)
             {

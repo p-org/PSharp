@@ -2367,6 +2367,7 @@ namespace Microsoft.PSharp.Parsing
                     base.Tokens[base.Index].Type != TokenType.Identifier &&
                     base.Tokens[base.Index].Type != TokenType.True &&
                     base.Tokens[base.Index].Type != TokenType.False &&
+                    base.Tokens[base.Index].Type != TokenType.Null &&
                     base.Tokens[base.Index].Type != TokenType.LeftParenthesis) ||
                     (expectsComma && base.Tokens[base.Index].Type != TokenType.Comma))
                 {
@@ -2377,6 +2378,7 @@ namespace Microsoft.PSharp.Parsing
                     base.Tokens[base.Index].Type == TokenType.Identifier ||
                     base.Tokens[base.Index].Type == TokenType.True ||
                     base.Tokens[base.Index].Type == TokenType.False ||
+                    base.Tokens[base.Index].Type == TokenType.Null ||
                     base.Tokens[base.Index].Type == TokenType.LeftParenthesis)
                 {
                     this.VisitPayload(node);
