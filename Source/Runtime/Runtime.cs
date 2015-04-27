@@ -329,10 +329,10 @@ namespace Microsoft.PSharp
         /// <returns>Machine</returns>
         internal static Machine TryCreateNewMachineInstance(Type m, params Object[] payload)
         {
-            Utilities.Verbose("Creating new machine: {0}\n", m);
             Runtime.Assert(Runtime.RegisteredMachineTypes.Any(val => val == m),
                 "Machine '{0}' has not been registered with the P# runtime.\n", m.Name);
             Machine machine = Activator.CreateInstance(m) as Machine;
+            Utilities.Verbose("<CreateLog> Machine {0}({1}) is created.", m, machine.Id);
 
             if (Runtime.Options.Mode == Runtime.Mode.Execution)
             {
@@ -372,10 +372,11 @@ namespace Microsoft.PSharp
         /// <returns>Machine</returns>
         internal static T TryCreateNewMachineInstance<T>(params Object[] payload)
         {
-            Utilities.Verbose("Creating new machine: {0}\n", typeof(T));
             Runtime.Assert(Runtime.RegisteredMachineTypes.Any(val => val == typeof(T)),
                 "Machine '{0}' has not been registered with the P# runtime.\n", typeof(T).Name);
             Object machine = Activator.CreateInstance(typeof(T));
+            Utilities.Verbose("<CreateLog> Machine {0}({1}) is created.", typeof(T),
+                (machine as Machine).Id);
 
             if (Runtime.Options.Mode == Runtime.Mode.Execution)
             {
@@ -413,13 +414,14 @@ namespace Microsoft.PSharp
                 return;
             }
 
-            Utilities.Verbose("Creating new monitor: {0}\n", m);
             Runtime.Assert(Runtime.RegisteredMonitorTypes.Any(val => val == m),
                 "Monitor '{0}' has not been registered with the P# runtime.\n", m.Name);
             Runtime.Assert(!Runtime.Monitors.Any(val => val.GetType() == m),
                 "A monitor of type '{0}' already exists.\n", m.Name);
 
             Monitor monitor = Activator.CreateInstance(m) as Monitor;
+            Utilities.Verbose("<CreateLog> Monitor {0} is created.", m);
+
             Runtime.Monitors.Add(monitor);
         }
 
@@ -437,13 +439,14 @@ namespace Microsoft.PSharp
                 return;
             }
 
-            Utilities.Verbose("Creating new monitor: {0}\n", typeof(T));
             Runtime.Assert(Runtime.RegisteredMonitorTypes.Any(val => val == typeof(T)),
                 "Monitor '{0}' has not been registered with the P# runtime.\n", typeof(T).Name);
             Runtime.Assert(!Runtime.Monitors.Any(val => val.GetType() == typeof(T)),
                 "A monitor of type '{0}' already exists.\n", typeof(T).Name);
 
             Object monitor = Activator.CreateInstance(typeof(T));
+            Utilities.Verbose("<CreateLog> Monitor {0} is created.", typeof(T));
+
             Runtime.Monitors.Add(monitor as Monitor);
         }
 
@@ -455,7 +458,6 @@ namespace Microsoft.PSharp
         /// <param name="sender">Sender machine</param>
         internal static void Send(Machine target, Event e, string sender)
         {
-            Utilities.Verbose("Sending event {0} to machine {1}\n", e, target);
             Runtime.Assert(e != null, "Machine '{0}' received a null event.\n", target);
             Runtime.Assert(Runtime.RegisteredEventTypes.Any(val => val == e.GetType()),
                 "Event '{0}' has not been registered with the P# runtime.\n", e);
@@ -489,7 +491,6 @@ namespace Microsoft.PSharp
                 return;
             }
 
-            Utilities.Verbose("Sending event {0} to monitor {1}\n", e, typeof(T));
             Runtime.Assert(Runtime.Monitors.Any(val => val.GetType() == typeof(T)),
                 "A monitor of type '{0}' does not exists.\n", typeof(T).Name);
             Runtime.Assert(Runtime.RegisteredEventTypes.Any(val => val == e.GetType()),
@@ -649,7 +650,11 @@ namespace Microsoft.PSharp
             {
                 Utilities.ReportError("Assertion failure.\n");
 
-                if (Runtime.Options.CountAssertions)
+                if (Runtime.Options.Mode == Runtime.Mode.Execution)
+                {
+                    Environment.Exit(1);
+                }
+                else if (Runtime.Options.CountAssertions)
                 {
                     Runtime.AssertionFailureCount++;
                 }
@@ -676,7 +681,11 @@ namespace Microsoft.PSharp
                 string message = Utilities.Format(s, args);
                 Utilities.ReportError(message);
 
-                if (Runtime.Options.CountAssertions)
+                if (Runtime.Options.Mode == Runtime.Mode.Execution)
+                {
+                    Environment.Exit(1);
+                }
+                else if (Runtime.Options.CountAssertions)
                 {
                     Runtime.AssertionFailureCount++;
                 }

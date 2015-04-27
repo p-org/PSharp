@@ -223,7 +223,7 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         protected internal void Raise(Event e)
         {
-            Utilities.Verbose("Machine {0} raised event {1}\n", this, e);
+            Utilities.Verbose("<RaiseLog> Machine {0}({1}) raised event {2}.", this, this.Id, e);
             MachineState currentState = this.StateStack.Peek();
             this.HandleEvent(currentState, e);
         }
@@ -380,6 +380,9 @@ namespace Microsoft.PSharp
                 {
                     if (!this.IsHalted)
                     {
+                        Utilities.Verbose("<EnqueueLog> Machine {0}({1}) enqueued event {2}.",
+                            this, this.Id, e.GetType());
+
                         this.Inbox.Add(e);
                         MachineState currentState = this.StateStack.Peek();
                         Event nextEvent = this.DequeueNextEvent(currentState);
@@ -453,15 +456,6 @@ namespace Microsoft.PSharp
                         idx--;
                         continue;
                     }
-                    //// Remove any ignored events.
-                    //if (currentState.IgnoredEvents.Contains(this.Inbox[idx].GetType()))
-                    //{
-                    //    this.Inbox.RemoveAt(idx);
-                    //    if (idx == this.Inbox.Count)
-                    //    {
-                    //        break;
-                    //    }
-                    //}
 
                     // Dequeue the first event that is not handled by the state,
                     // or is not deferred.
@@ -469,6 +463,9 @@ namespace Microsoft.PSharp
                         !currentState.DeferredEvents.Contains(this.Inbox[idx].GetType()))
                     {
                         nextEvent = this.Inbox[idx];
+                        Utilities.Verbose("<DequeueLog> Machine {0}({1}) dequeued event {2}.",
+                            this, this.Id, nextEvent.GetType());
+
                         this.Inbox.RemoveAt(idx);
                         break;
                     }
@@ -508,7 +505,7 @@ namespace Microsoft.PSharp
                     // is halt, then terminate the machine.
                     if (e.GetType().Equals(typeof(Halt)))
                     {
-                        Utilities.Verbose("{0}: HALT\n", this);
+                        Utilities.Verbose("<HaltLog> Machine {0}({1}) halted.", this, this.Id);
                         this.IsHalted = true;
                         this.CleanUpResources();
                         return;
@@ -533,16 +530,12 @@ namespace Microsoft.PSharp
                     var transition = currentState.GotoTransitions[e.GetType()];
                     Type targetState = transition.Item1;
                     Action onExitAction = transition.Item2;
-                    Utilities.Verbose("{0}: {1} --- GOTO ---> {2}\n",
-                        this, currentState, targetState);
                     this.Goto(targetState, onExitAction);
                 }
                 // Checks if the event can trigger a push state transition.
                 else if (currentState.PushTransitions.ContainsKey(e.GetType()))
                 {
                     Type targetState = currentState.PushTransitions[e.GetType()];
-                    Utilities.Verbose("{0}: {1} --- PUSH ---> {2}\n",
-                        this, currentState, targetState);
                     this.Push(targetState);
                 }
                 // Checks if the event can trigger an action.
@@ -756,87 +749,6 @@ namespace Microsoft.PSharp
             }
         }
 
-        /// <summary>
-        /// The machine handles the given event.
-        /// </summary>
-        /// <param name="e">Type of the event</param>
-        //private void HandleEvent(Event e)
-        //{
-        //    State currentState = this.StateStack.Peek();
-        //    this.Message = e.GetType();
-        //    this.Payload = e.Payload;
-
-        //    // Checks if the event can be handled by the current state.
-        //    if (!currentState.CanHandleEvent(e))
-        //    {
-        //        // Checks if the event can be handled by any state in the push
-        //        // state stack, if there are any. If it can be handled, then
-        //        // the push state stack is manipulated appropriately.
-        //        if (!this.TryFindStateThatCanHandleEvent(ref currentState, e))
-        //        {
-        //            Runtime.Assert(!(currentState.IgnoredEvents.Contains(e.GetType()) &&
-        //                currentState.DeferredEvents.Contains(e.GetType())), "Machine '{0}' " +
-        //                "received event '{1}' which is both ignored and deferred in state '{2}'.\n",
-        //                this.GetType().Name, e.GetType().Name, currentState.GetType().Name);
-        //            Runtime.Assert(currentState.IgnoredEvents.Contains(e.GetType()) ||
-        //                currentState.DeferredEvents.Contains(e.GetType()), "Machine '{0}' " +
-        //                "received event '{1}', which cannot be handled in state '{2}'.\n",
-        //                this.GetType().Name, e.GetType().Name, currentState.GetType().Name);
-
-        //            // If the event to process is in the ignored set of the current
-        //            // state (or stack of states in case of a push transition), then
-        //            // the event is removed from the inbox queue.
-        //            if (currentState.IgnoredEvents.Contains(e.GetType()))
-        //            {
-        //                return;
-        //            }
-        //            // If the event to process is in the deferred set of the current
-        //            // state (or stack of states in case of a push transition), then
-        //            // the event processing is deferred and the machine will attempt
-        //            // to process the next event in the inbox queue.
-        //            else if (currentState.DeferredEvents.Contains(e.GetType()))
-        //            {
-        //                if (Runtime.Options.Mode == Runtime.Mode.Execution)
-        //                    this.Inbox.Add(e);
-        //                else if (Runtime.Options.Mode == Runtime.Mode.BugFinding)
-        //                    this.ScheduledInbox.Add(e);
-        //                return;
-        //            }
-        //        }
-        //    }
-
-        //    // If the event is neither in the ignored nor in the deferred set
-        //    // of the current state, then the machine can process it. The
-        //    // machine checks if the event triggers a goto state transition.
-        //    if (currentState.ContainsGotoTransition(e))
-        //    {
-        //        var transition = currentState.GetGotoTransition(e);
-        //        Type targetState = transition.Item1;
-        //        Action onExitOverride = transition.Item2;
-        //        Utilities.Verbose("{0}: {1} --- STEP ---> {2}\n",
-        //            this, currentState, targetState);
-        //        this.Goto(targetState, onExitOverride);
-        //    }
-        //    // If the event is neither in the ignored nor in the deferred set
-        //    // of the current state, then the machine can process it. The
-        //    // machine checks if the event triggers a push state transition.
-        //    else if (currentState.ContainsPushTransition(e))
-        //    {
-        //        Type targetState = currentState.GetPushTransition(e);
-        //        Utilities.Verbose("{0}: {1} --- CALL ---> {2}\n",
-        //            this, currentState, targetState);
-        //        this.Push(targetState);
-        //    }
-        //    // If the event is neither in the ignored nor in the deferred set
-        //    // of the current state, then the machine can process it. The
-        //    // machine checks if the event triggers an action.
-        //    else if (currentState.ContainsActionBinding(e))
-        //    {
-        //        Action action = currentState.GetActionBinding(e);
-        //        this.Do(action);
-        //    }
-        //}
-
         #endregion
 
         #region helper methods
@@ -850,6 +762,8 @@ namespace Microsoft.PSharp
             {
                 // Performs the on entry statements of the new state.
                 this.StateStack.Peek().ExecuteEntryFunction();
+                Utilities.Verbose("<StateLog> Machine {0}({1}) entered state {2}.",
+                    this, this.Id, this.StateStack.Peek());
             }
             catch (ReturnUsedException ex)
             {
@@ -873,6 +787,9 @@ namespace Microsoft.PSharp
         /// <param name="onExit">Goto on exit action</param>
         private void ExecuteCurrentStateOnExit(Action onExit)
         {
+            Utilities.Verbose("<ExitLog> Machine {0}({1}) exiting state {2}.",
+                this, this.Id, this.StateStack.Peek());
+
             try
             {
                 // Performs the on exit statements of the current state.

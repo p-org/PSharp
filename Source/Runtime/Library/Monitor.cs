@@ -129,7 +129,7 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         protected internal void Raise(Event e)
         {
-            Utilities.Verbose("Monitor {0} raised event {1}\n", this, e);
+            Utilities.Verbose("<RaiseLog> Monitor {0} raised event {1}.", this, e);
             MonitorState currentState = this.StateStack.Peek();
             this.HandleEvent(currentState, e);
         }
@@ -212,6 +212,9 @@ namespace Microsoft.PSharp
         {
             if (!this.IsHalted)
             {
+                Utilities.Verbose("<EnqueueLog> Monitor {0} enqueued event {1}.",
+                    this, e.GetType());
+
                 this.Inbox.Add(e);
                 MonitorState currentState = this.StateStack.Peek();
                 Event nextEvent = this.DequeueNextEvent(currentState);
@@ -247,6 +250,9 @@ namespace Microsoft.PSharp
                     }
 
                     nextEvent = this.Inbox[idx];
+                    Utilities.Verbose("<DequeueLog> Monitor {0} dequeued event {1}.",
+                        this, nextEvent.GetType());
+
                     this.Inbox.RemoveAt(idx);
                     break;
                 }
@@ -285,7 +291,7 @@ namespace Microsoft.PSharp
                     // is halt, then terminate the monitor.
                     if (e.GetType().Equals(typeof(Halt)))
                     {
-                        Utilities.Verbose("{0}: HALT\n", this);
+                        Utilities.Verbose("<HaltLog> Monitor {0} halted.", this);
                         this.IsHalted = true;
                         this.CleanUpResources();
                         return;
@@ -310,8 +316,6 @@ namespace Microsoft.PSharp
                     var transition = currentState.GotoTransitions[e.GetType()];
                     Type targetState = transition.Item1;
                     Action onExitAction = transition.Item2;
-                    Utilities.Verbose("{0}: {1} --- GOTO ---> {2}\n",
-                        this, currentState, targetState);
                     this.Goto(targetState, onExitAction);
                 }
                 // Checks if the event can trigger an action.
@@ -471,6 +475,8 @@ namespace Microsoft.PSharp
             {
                 // Performs the on entry statements of the new state.
                 this.StateStack.Peek().ExecuteEntryFunction();
+                Utilities.Verbose("<StateLog> Monitor {0} entered state {1}.",
+                    this, this.StateStack.Peek());
             }
             catch (Exception ex)
             {
@@ -485,6 +491,9 @@ namespace Microsoft.PSharp
         /// <param name="onExit">Goto on exit action</param>
         private void ExecuteCurrentStateOnExit(Action onExit)
         {
+            Utilities.Verbose("<ExitLog> Monitor {0} exiting state {1}.",
+                this, this.StateStack.Peek());
+
             try
             {
                 // Performs the on exit statements of the current state.

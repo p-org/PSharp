@@ -29,7 +29,7 @@ namespace Microsoft.PSharp.IO
         internal static void ReportError(string s, params object[] args)
         {
             string message = Utilities.Format(s, args);
-            Console.Write("Runtime Error: ");
+            Console.Write("Error: ");
             Console.WriteLine(message);
         }
 
