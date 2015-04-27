@@ -61,19 +61,24 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         public PExitDeclarationNode ExitDeclaration;
 
         /// <summary>
-        /// Dictionary containing state transitions.
+        /// Dictionary containing goto state transitions.
         /// </summary>
-        internal Dictionary<Token, Token> StateTransitions;
+        internal Dictionary<Token, Token> GotoStateTransitions;
 
         /// <summary>
-        /// Dictionary containing transitions on exit actions.
+        /// Dictionary containing push state transitions.
         /// </summary>
-        internal Dictionary<Token, PStatementBlockNode> TransitionsOnExitActions;
+        internal Dictionary<Token, Token> PushStateTransitions;
 
         /// <summary>
         /// Dictionary containing actions bindings.
         /// </summary>
         internal Dictionary<Token, Token> ActionBindings;
+
+        /// <summary>
+        /// Dictionary containing transitions on exit actions.
+        /// </summary>
+        internal Dictionary<Token, PStatementBlockNode> TransitionsOnExitActions;
 
         /// <summary>
         /// Set of deferred events.
@@ -104,33 +109,55 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         {
             this.IsInitial = isInit;
             this.Machine = machineNode;
-            this.StateTransitions = new Dictionary<Token, Token>();
-            this.TransitionsOnExitActions = new Dictionary<Token, PStatementBlockNode>();
+            this.GotoStateTransitions = new Dictionary<Token, Token>();
+            this.PushStateTransitions = new Dictionary<Token, Token>();
             this.ActionBindings = new Dictionary<Token, Token>();
+            this.TransitionsOnExitActions = new Dictionary<Token, PStatementBlockNode>();
             this.DeferredEvents = new HashSet<Token>();
             this.IgnoredEvents = new HashSet<Token>();
         }
 
         /// <summary>
-        /// Adds a state transition.
+        /// Adds a goto state transition.
         /// </summary>
         /// <param name="eventIdentifier">Token</param>
         /// <param name="stateIdentifier">Token</param>
         /// <param name="stmtBlock">Statement block</param>
         /// <returns>Boolean value</returns>
-        public bool AddStateTransition(Token eventIdentifier, Token stateIdentifier, PStatementBlockNode stmtBlock = null)
+        public bool AddGotoStateTransition(Token eventIdentifier, Token stateIdentifier, PStatementBlockNode stmtBlock = null)
         {
-            if (this.StateTransitions.ContainsKey(eventIdentifier) ||
+            if (this.GotoStateTransitions.ContainsKey(eventIdentifier) ||
+                this.PushStateTransitions.ContainsKey(eventIdentifier) ||
                 this.ActionBindings.ContainsKey(eventIdentifier))
             {
                 return false;
             }
 
-            this.StateTransitions.Add(eventIdentifier, stateIdentifier);
+            this.GotoStateTransitions.Add(eventIdentifier, stateIdentifier);
             if (stmtBlock != null)
             {
                 this.TransitionsOnExitActions.Add(eventIdentifier, stmtBlock);
             }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Adds a push state transition.
+        /// </summary>
+        /// <param name="eventIdentifier">Token</param>
+        /// <param name="stateIdentifier">Token</param>
+        /// <returns>Boolean value</returns>
+        public bool AddPushStateTransition(Token eventIdentifier, Token stateIdentifier)
+        {
+            if (this.GotoStateTransitions.ContainsKey(eventIdentifier) ||
+                this.PushStateTransitions.ContainsKey(eventIdentifier) ||
+                this.ActionBindings.ContainsKey(eventIdentifier))
+            {
+                return false;
+            }
+
+            this.PushStateTransitions.Add(eventIdentifier, stateIdentifier);
 
             return true;
         }
@@ -143,7 +170,8 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         /// <returns>Boolean value</returns>
         public bool AddActionBinding(Token eventIdentifier, Token actionIdentifier)
         {
-            if (this.StateTransitions.ContainsKey(eventIdentifier) ||
+            if (this.GotoStateTransitions.ContainsKey(eventIdentifier) ||
+                this.PushStateTransitions.ContainsKey(eventIdentifier) ||
                 this.ActionBindings.ContainsKey(eventIdentifier))
             {
                 return false;

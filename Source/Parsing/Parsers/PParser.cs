@@ -651,13 +651,15 @@ namespace Microsoft.PSharp.Parsing
 
             if (base.Index == base.Tokens.Count ||
                 (base.Tokens[base.Index].Type != TokenType.DoAction &&
-                base.Tokens[base.Index].Type != TokenType.GotoState))
+                base.Tokens[base.Index].Type != TokenType.GotoState &&
+                base.Tokens[base.Index].Type != TokenType.PushState))
             {
-                this.ReportParsingError("Expected \"do\" or \"goto\".");
+                this.ReportParsingError("Expected \"do\", \"goto\" or \"push\".");
                 throw new EndOfTokensException(new List<TokenType>
                 {
                     TokenType.DoAction,
-                    TokenType.GotoState
+                    TokenType.GotoState,
+                    TokenType.PushState
                 });
             }
 
@@ -749,7 +751,7 @@ namespace Microsoft.PSharp.Parsing
                     var blockNode = new PStatementBlockNode(parentNode.Machine, null);
                     this.VisitStatementBlock(blockNode);
 
-                    if (!parentNode.AddStateTransition(eventIdentifier, stateIdentifier, blockNode))
+                    if (!parentNode.AddGotoStateTransition(eventIdentifier, stateIdentifier, blockNode))
                     {
                         this.ReportParsingError("Unexpected state identifier.");
                     }
@@ -766,10 +768,47 @@ namespace Microsoft.PSharp.Parsing
                 }
                 else
                 {
-                    if (!parentNode.AddStateTransition(eventIdentifier, stateIdentifier))
+                    if (!parentNode.AddGotoStateTransition(eventIdentifier, stateIdentifier))
                     {
                         this.ReportParsingError("Unexpected state identifier.");
                     }
+                }
+            }
+            else if (base.Tokens[base.Index].Type == TokenType.PushState)
+            {
+                base.Index++;
+                base.SkipWhiteSpaceAndCommentTokens();
+
+                if (base.Index == base.Tokens.Count ||
+                    base.Tokens[base.Index].Type != TokenType.Identifier)
+                {
+                    this.ReportParsingError("Expected state identifier.");
+                    throw new EndOfTokensException(new List<TokenType>
+                    {
+                        TokenType.Identifier
+                    });
+                }
+
+                base.Tokens[base.Index] = new Token(base.Tokens[base.Index].TextUnit,
+                    TokenType.StateIdentifier);
+                var stateIdentifier = base.Tokens[base.Index];
+
+                base.Index++;
+                base.SkipWhiteSpaceAndCommentTokens();
+
+                if (base.Index == base.Tokens.Count ||
+                    base.Tokens[base.Index].Type != TokenType.Semicolon)
+                {
+                    this.ReportParsingError("Expected \";\".");
+                    throw new EndOfTokensException(new List<TokenType>
+                    {
+                        TokenType.Semicolon
+                    });
+                }
+
+                if (!parentNode.AddPushStateTransition(eventIdentifier, stateIdentifier))
+                {
+                    this.ReportParsingError("Unexpected state identifier.");
                 }
             }
         }
