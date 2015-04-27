@@ -882,7 +882,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             var callSymbol = model.GetSymbolInfo(call).Symbol;
             if (callSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.Machine") ||
                 callSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.Machine.Factory") ||
-                callSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.State"))
+                callSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.MachineState"))
             {
                 return new HashSet<ISymbol>();
             }
@@ -1239,7 +1239,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             var callSymbol = model.GetSymbolInfo(call).Symbol;
             if (callSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.Machine") ||
                 callSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.Machine.Factory") ||
-                callSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.State"))
+                callSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.MachineState"))
             {
                 RespectsOwnershipAnalysis.DetectPotentialDataRaceInGivesUpOperation(call, target,
                     syntaxNode, cfgNode, givesUpSyntaxNode, givesUpCfgNode, model, callLog);
@@ -1378,7 +1378,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             var opSymbol = model.GetSymbolInfo(operation).Symbol;
 
             if ((opSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.Machine") ||
-                opSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.State")) &&
+                opSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.MachineState")) &&
                 opSymbol.Name.Equals("Send"))
             {
                 if (operation.ArgumentList.Arguments[1].Expression is ObjectCreationExpressionSyntax)
@@ -1411,7 +1411,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 }
             }
             else if ((opSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.Machine") ||
-                opSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.State")) &&
+                opSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.MachineState")) &&
                 opSymbol.Name.Equals("Invoke"))
             {
                 if (operation.ArgumentList.Arguments[0].Expression is ObjectCreationExpressionSyntax)
@@ -1444,7 +1444,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
             else if ((opSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.Machine") ||
                 opSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.Machine.Factory") ||
-                opSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.State")) &&
+                opSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.MachineState")) &&
                 (opSymbol.Name.Equals("Create") || opSymbol.Name.Equals("CreateMonitor")))
             {
                 if (operation.ArgumentList.Arguments.Count == 0)
@@ -1533,13 +1533,13 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
             
             if (symbol.ToString().Equals("Microsoft.PSharp.Machine.Payload") ||
-                symbol.ToString().Equals("Microsoft.PSharp.State.Payload"))
+                symbol.ToString().Equals("Microsoft.PSharp.MachineState.Payload"))
             {
                 return false;
             }
             else if (typeSymbol.ToString().Equals("Microsoft.PSharp.Machine") ||
                 symbol.ToString().Equals("Microsoft.PSharp.Machine") ||
-                symbol.ToString().Equals("Microsoft.PSharp.State.Machine"))
+                symbol.ToString().Equals("Microsoft.PSharp.MachineState.Machine"))
             {
                 return true;
             }
@@ -1615,7 +1615,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             if (payloadSymbol.ToString().Equals("Microsoft.PSharp.Machine.Payload") ||
-                payloadSymbol.ToString().Equals("Microsoft.PSharp.State.Payload"))
+                payloadSymbol.ToString().Equals("Microsoft.PSharp.MachineState.Payload"))
             {
                 ISymbol leftSymbol = null;
                 if (expr.Left is IdentifierNameSyntax)

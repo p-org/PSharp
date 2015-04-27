@@ -42,11 +42,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Attributes\Main.cs" />
-    <Compile Include="Attributes\Monitor.cs" />
     <Compile Include="Attributes\Ghost.cs" />
     <Compile Include="Collections\Container.cs" />
     <Compile Include="Collections\Seq.cs" />
     <Compile Include="Library\ActionBindings.cs" />
+    <Compile Include="Library\MonitorState.cs" />
+    <Compile Include="Library\Monitor.cs" />
     <Compile Include="Library\PushStateTransitions.cs" />
     <Compile Include="Library\GotoStateTransitions.cs" />
     <Compile Include="Collections\SystematicBlockingQueue.cs" />
@@ -71,7 +72,7 @@
     <Compile Include="Scheduling\Schedulers\NonPreemptiveSchedulingStrategy.cs" />
     <Compile Include="Runtime.cs" />
     <Compile Include="Scheduling\TestConfiguration.cs" />
-    <Compile Include="Library\State.cs" />
+    <Compile Include="Library\MachineState.cs" />
     <Compile Include="IO\Utilities.cs" />
     <Compile Include="ThreadInfo.cs" />
     <Compile Include="Utilities\IdentityEqualityComparer.cs" />

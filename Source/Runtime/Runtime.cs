@@ -34,11 +34,6 @@ namespace Microsoft.PSharp
         #region fields
 
         /// <summary>
-        /// List of monitors in the program.
-        /// </summary>
-        private static List<Machine> Monitors = new List<Machine>();
-
-        /// <summary>
         /// Set of registered state machine types.
         /// </summary>
         private static HashSet<Type> RegisteredMachineTypes = new HashSet<Type>();
@@ -52,6 +47,11 @@ namespace Microsoft.PSharp
         /// Set of registered event types.
         /// </summary>
         private static HashSet<Type> RegisteredEventTypes = new HashSet<Type>();
+
+        /// <summary>
+        /// List of monitors in the program.
+        /// </summary>
+        private static List<Monitor> Monitors = new List<Monitor>();
 
         /// <summary>
         /// Lock used by the runtime.
@@ -96,6 +96,8 @@ namespace Microsoft.PSharp
         {
             Runtime.Assert(Runtime.IsRunning == false, "Cannot register event '{0}'" +
                 "because the P# runtime has already started.\n", e.Name);
+            Runtime.Assert(e.IsSubclassOf(typeof(Event)), "Type '{0}' is not " +
+                    "a subclass of Event.\n", e.Name);
             Runtime.RegisteredEventTypes.Add(e);
         }
 
@@ -108,8 +110,8 @@ namespace Microsoft.PSharp
         {
             Runtime.Assert(Runtime.IsRunning == false, "Cannot register machine '{0}'" +
                 "because the P# runtime has already started.\n", m.Name);
-            Runtime.Assert(!m.IsDefined(typeof(Monitor), false), "Cannot register '{0}'" +
-                "as a machine.\n", m.Name);
+            Runtime.Assert(m.IsSubclassOf(typeof(Machine)), "Type '{0}' is not " +
+                    "a subclass of Machine.\n", m.Name);
 
             if (m.IsDefined(typeof(Main), false))
             {
@@ -131,8 +133,8 @@ namespace Microsoft.PSharp
         {
             Runtime.Assert(Runtime.IsRunning == false, "Cannot register monitor '{0}'" +
                 "because the P# runtime has already started.\n", m.Name);
-            Runtime.Assert(m.IsDefined(typeof(Monitor), false), "Cannot register " +
-                "'{0}' as a monitor.\n", m.Name);
+            Runtime.Assert(m.IsSubclassOf(typeof(Monitor)), "Type '{0}' is not " +
+                    "a subclass of Monitor.\n", m.Name);
             Runtime.Assert(!m.IsDefined(typeof(Main), false),
                 "Monitor '{0}' cannot be declared as main.\n", m.Name);
             Runtime.RegisteredMonitorTypes.Add(m);
@@ -404,8 +406,8 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="m">Type of the monitor</param>
         /// <param name="payload">Optional payload</param>
-        /// <returns>Monitor machine</returns>
-        internal static Machine TryCreateNewMonitorInstance(Type m, params Object[] payload)
+        /// <returns>Monitor</returns>
+        internal static Monitor TryCreateNewMonitorInstance(Type m, params Object[] payload)
         {
             Utilities.Verbose("Creating new monitor: {0}\n", m);
             Runtime.Assert(Runtime.RegisteredMonitorTypes.Any(val => val == m),
@@ -413,27 +415,10 @@ namespace Microsoft.PSharp
             Runtime.Assert(!Runtime.Monitors.Any(val => val.GetType() == m),
                 "A monitor of type '{0}' already exists.\n", m.Name);
 
-            Machine machine = Activator.CreateInstance(m) as Machine;
+            Monitor monitor = Activator.CreateInstance(m) as Monitor;
+            Runtime.Monitors.Add(monitor);
 
-            Runtime.Monitors.Add(machine);
-
-
-            if (Runtime.Options.Mode == Runtime.Mode.Execution)
-            {
-                lock (Runtime.Lock)
-                {
-                    //Runtime.MachineTasks.Add(machine.Start(payload));
-                }
-            }
-            else if (Runtime.Options.Mode == Runtime.Mode.BugFinding)
-            {
-                lock (Runtime.Lock)
-                {
-                    //Runtime.MachineTasks.Add(machine.ScheduledStart(payload));
-                }
-            }
-
-            return machine;
+            return monitor;
         }
 
         /// <summary>
@@ -443,7 +428,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <typeparam name="T">Type of the monitor</typeparam>
         /// <param name="payload">Optional payload</param>
-        /// <returns>Monitor machine</returns>
+        /// <returns>Monitor</returns>
         internal static T TryCreateNewMonitorInstance<T>(params Object[] payload)
         {
             Utilities.Verbose("Creating new monitor: {0}\n", typeof(T));
@@ -452,25 +437,10 @@ namespace Microsoft.PSharp
             Runtime.Assert(!Runtime.Monitors.Any(val => val.GetType() == typeof(T)),
                 "A monitor of type '{0}' already exists.\n", typeof(T).Name);
 
-            Object machine = Activator.CreateInstance(typeof(T));
-            Runtime.Monitors.Add(machine as Machine);
+            Object monitor = Activator.CreateInstance(typeof(T));
+            Runtime.Monitors.Add(monitor as Monitor);
 
-            if (Runtime.Options.Mode == Runtime.Mode.Execution)
-            {
-                lock (Runtime.Lock)
-                {
-                    //Runtime.MachineTasks.Add((machine as Machine).Start(payload));
-                }
-            }
-            else if (Runtime.Options.Mode == Runtime.Mode.BugFinding)
-            {
-                lock (Runtime.Lock)
-                {
-                    //Runtime.MachineTasks.Add((machine as Machine).ScheduledStart(payload));
-                }
-            }
-
-            return (T)machine;
+            return (T)monitor;
         }
 
         /// <summary>
@@ -485,9 +455,6 @@ namespace Microsoft.PSharp
             Runtime.Assert(e != null, "Machine '{0}' received a null event.\n", target);
             Runtime.Assert(Runtime.RegisteredEventTypes.Any(val => val == e.GetType()),
                 "Event '{0}' has not been registered with the P# runtime.\n", e);
-            Runtime.Assert(!target.GetType().IsDefined(typeof(Monitor), false),
-                "Cannot use Runtime.Send() to directly send an event to a monitor. " +
-                "Use Runtime.Invoke() instead.\n");
 
             Task task = new Task(() =>
             {
@@ -523,23 +490,7 @@ namespace Microsoft.PSharp
             {
                 if (m.GetType() == typeof(T))
                 {
-                    Task task = new Task(() =>
-                    {
-                        try
-                        {
-                            m.Enqueue(e, null);
-                        }
-                        catch (TaskCanceledException) { }
-                    });
-
-                    lock (Runtime.Lock)
-                    {
-                        Runtime.MachineTasks.Add(task);
-                    }
-
-                    task.Start();
-
-                    return;
+                    m.Enqueue(e, null);
                 }
             }
         }

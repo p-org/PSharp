@@ -266,7 +266,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
                 text += "[Initial]\n";
             }
 
-            text += "class " +  this.Identifier.TextUnit.Text + " : State";
+            text += "class " +  this.Identifier.TextUnit.Text + " : MachineState";
 
             text += "\n" + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
 

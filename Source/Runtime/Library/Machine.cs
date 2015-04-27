@@ -35,7 +35,7 @@ namespace Microsoft.PSharp
         #region static fields
 
         /// <summary>
-        /// Monotonipushy increasing machine ID counter.
+        /// Monotonically increasing machine ID counter.
         /// </summary>
         private static int IdCounter = 0;
 
@@ -62,7 +62,7 @@ namespace Microsoft.PSharp
         /// A stack of machine states. The state on the top of
         /// the stack represents the current state.
         /// </summary>
-        private Stack<State> StateStack;
+        private Stack<MachineState> StateStack;
 
         /// <summary>
         /// True if machine has halted.
@@ -146,7 +146,7 @@ namespace Microsoft.PSharp
             else if (Runtime.Options.Mode == Runtime.Mode.BugFinding)
                 this.ScheduledInbox = new SystematicBlockingQueue<Event>();
 
-            this.StateStack = new Stack<State>();
+            this.StateStack = new Stack<MachineState>();
             this.IsHalted = false;
             this.IsActive = true;
 
@@ -224,7 +224,7 @@ namespace Microsoft.PSharp
         protected internal void Raise(Event e)
         {
             Utilities.Verbose("Machine {0} raised event {1}\n", this, e);
-            State currentState = this.StateStack.Peek();
+            MachineState currentState = this.StateStack.Peek();
             this.HandleEvent(currentState, e);
         }
 
@@ -293,34 +293,6 @@ namespace Microsoft.PSharp
                     "a subclass of Machine.\n", m.Name);
                 var machine = Runtime.TryCreateNewMachineInstance(m, payload);
                 return machine;
-            }
-
-            /// <summary>
-            /// Creates a new monitor of type T with an optional payload.
-            /// </summary>
-            /// <typeparam name="T">Type of monitor</typeparam>
-            /// <param name="payload">Optional payload</param>
-            public static void CreateMonitor<T>(params Object[] payload)
-            {
-                Runtime.Assert(typeof(T).IsSubclassOf(typeof(Machine)), "Type '{0}' is not " +
-                    "a subclass of Machine.\n", typeof(T).Name);
-                Runtime.Assert(typeof(T).IsDefined(typeof(Monitor), false), "Type '{0}' is " +
-                    "not a monitor.\n", typeof(T).Name);
-                Runtime.TryCreateNewMonitorInstance<T>(payload);
-            }
-
-            /// <summary>
-            /// Creates a new monitor of type T with an optional payload.
-            /// </summary>
-            /// <param name="m">Type of monitor</param>
-            /// <param name="payload">Optional payload</param>
-            internal static void CreateMonitor(Type m, params Object[] payload)
-            {
-                Runtime.Assert(m.IsSubclassOf(typeof(Machine)), "Type '{0}' is not a " +
-                    "subclass of Machine.\n", m.Name);
-                Runtime.Assert(m.IsDefined(typeof(Monitor), false), "Type '{0}' is not " +
-                    "a monitor.\n", m.Name);
-                Runtime.TryCreateNewMonitorInstance(m, payload);
             }
         }
 
@@ -409,7 +381,7 @@ namespace Microsoft.PSharp
                     if (!this.IsHalted)
                     {
                         this.Inbox.Add(e);
-                        State currentState = this.StateStack.Peek();
+                        MachineState currentState = this.StateStack.Peek();
                         Event nextEvent = this.DequeueNextEvent(currentState);
                         this.HandleEvent(currentState, nextEvent);
                     }
@@ -465,7 +437,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="currentState">Current state</param>
         /// <returns>Next event</returns>
-        private Event DequeueNextEvent(State currentState)
+        private Event DequeueNextEvent(MachineState currentState)
         {
             Event nextEvent = null;
 
@@ -474,15 +446,22 @@ namespace Microsoft.PSharp
                 // Iterate through the event in the inbox.
                 for (int idx = 0; idx < this.Inbox.Count; idx++)
                 {
-                    // Remove any ignored events.
+                    // Remove an ignored event.
                     if (currentState.IgnoredEvents.Contains(this.Inbox[idx].GetType()))
                     {
                         this.Inbox.RemoveAt(idx);
-                        if (idx == this.Inbox.Count)
-                        {
-                            break;
-                        }
+                        idx--;
+                        continue;
                     }
+                    //// Remove any ignored events.
+                    //if (currentState.IgnoredEvents.Contains(this.Inbox[idx].GetType()))
+                    //{
+                    //    this.Inbox.RemoveAt(idx);
+                    //    if (idx == this.Inbox.Count)
+                    //    {
+                    //        break;
+                    //    }
+                    //}
 
                     // Dequeue the first event that is not handled by the state,
                     // or is not deferred.
@@ -504,7 +483,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="currentState">Current state</param>
         /// <param name="e">Event to handle</param>
-        private void HandleEvent(State currentState, Event e)
+        private void HandleEvent(MachineState currentState, Event e)
         {
             if (e == null)
             {
@@ -603,7 +582,7 @@ namespace Microsoft.PSharp
                     BindingFlags.NonPublic | BindingFlags.Public |
                     BindingFlags.DeclaredOnly))
                 {
-                    if (s.IsClass && s.IsSubclassOf(typeof(State)))
+                    if (s.IsClass && s.IsSubclassOf(typeof(MachineState)))
                     {
                         if (s.IsDefined(typeof(Initial), false))
                         {
@@ -612,7 +591,7 @@ namespace Microsoft.PSharp
                             initialState = s;
                         }
 
-                        Runtime.Assert(s.BaseType == typeof(State), "State '{0}' is " +
+                        Runtime.Assert(s.BaseType == typeof(MachineState), "State '{0}' is " +
                             "not of the correct type.\n", s.Name);
                         this.StateTypes.Add(s);
                     }
@@ -630,9 +609,9 @@ namespace Microsoft.PSharp
         /// <param name="s">Type of the state</param>
         /// <param name="withPushStmt">Was push stmt used?</param>
         /// <returns>State</returns>
-        private State InitializeState(Type s, bool withPushStmt = false)
+        private MachineState InitializeState(Type s, bool withPushStmt = false)
         {
-            State state = State.Factory.CreateState(s);
+            MachineState state = Activator.CreateInstance(s) as MachineState;
             state.InitializeState();
             state.Machine = this;
 
@@ -732,7 +711,7 @@ namespace Microsoft.PSharp
             this.ExecuteCurrentStateOnExit(onExit);
             this.StateStack.Pop();
             // The machine transitions to the new state.
-            State nextState = this.InitializeState(s);
+            MachineState nextState = this.InitializeState(s);
             this.StateStack.Push(nextState);
             // The machine performs the on entry statements of the new state.
             this.ExecuteCurrentStateOnEntry();
@@ -744,7 +723,7 @@ namespace Microsoft.PSharp
         /// <param name="s">Type of the state</param>
         private void Push(Type s)
         {
-            State nextState = this.InitializeState(s, true);
+            MachineState nextState = this.InitializeState(s, true);
             // The machine transitions to the new state.
             this.StateStack.Push(nextState);
             // The machine performs the on entry statements of the new state.
@@ -998,7 +977,7 @@ namespace Microsoft.PSharp
         /// Checks if the Return() statement was performed properly.
         /// </summary>
         /// <param name="returningState">Returnig state</param>
-        private void AssertReturnStatementValidity(State returningState)
+        private void AssertReturnStatementValidity(MachineState returningState)
         {
             Runtime.Assert(this.StateStack.Count > 0, "Machine '{0}' executed a Return() " +
                 "statement while there was only the state '{1}' in the stack.\n",

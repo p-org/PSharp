@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="State.cs" company="Microsoft">
+// <copyright file="MonitorState.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -16,24 +16,20 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-
-using Microsoft.PSharp.IO;
-using Microsoft.PSharp.Scheduling;
 
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Abstract class representing a state of a state machine.
+    /// Abstract class representing a state of a monitor.
     /// </summary>
-    public abstract class State
+    public abstract class MonitorState
     {
         #region fields
 
         /// <summary>
-        /// Handle to the machine that owns this state instance.
+        /// Handle to the monitor that owns this state instance.
         /// </summary>
-        protected internal Machine Machine;
+        protected internal Monitor Monitor;
 
         /// <summary>
         /// Handle to the latest received event type.
@@ -42,7 +38,7 @@ namespace Microsoft.PSharp
         /// </summary>
         protected Type Trigger
         {
-            get { return this.Machine.Trigger; }
+            get { return this.Monitor.Trigger; }
         }
 
         /// <summary>
@@ -52,7 +48,7 @@ namespace Microsoft.PSharp
         /// </summary>
         protected Object Payload
         {
-            get { return this.Machine.Payload; }
+            get { return this.Monitor.Payload; }
         }
 
         /// <summary>
@@ -71,11 +67,6 @@ namespace Microsoft.PSharp
         internal ActionBindings ActionBindings;
 
         /// <summary>
-        /// Set of deferred event types.
-        /// </summary>
-        internal HashSet<Type> DeferredEvents;
-
-        /// <summary>
         /// Set of ignored event types.
         /// </summary>
         internal HashSet<Type> IgnoredEvents;
@@ -89,7 +80,6 @@ namespace Microsoft.PSharp
         /// </summary>
         internal void InitializeState()
         {
-            this.DeferredEvents = this.DefineDeferredEvents();
             this.IgnoredEvents = this.DefineIgnoredEvents();
         }
 
@@ -118,8 +108,7 @@ namespace Microsoft.PSharp
         /// <returns>Boolean value</returns>
         internal bool CanHandleEvent(Type e)
         {
-            if (this.DeferredEvents.Contains(e) ||
-                this.GotoTransitions.ContainsKey(e) ||
+            if (this.GotoTransitions.ContainsKey(e) ||
                 this.PushTransitions.ContainsKey(e) ||
                 this.ActionBindings.ContainsKey(e))
             {
@@ -178,40 +167,12 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Sends an asynchronous event to a machine.
-        /// </summary>
-        /// <param name="m">Machine</param>
-        /// <param name="e">Event</param>
-        protected void Send(Machine m, Event e)
-        {
-            this.Machine.Send(m, e);
-        }
-
-        /// <summary>
-        /// Invokes the specified monitor with the given event.
-        /// </summary>
-        /// <typeparam name="T">Type of the monitor</typeparam>
-        /// <param name="e">Event</param>
-        protected internal void Invoke<T>(Event e)
-        {
-            this.Machine.Invoke<T>(e);
-        }
-
-        /// <summary>
         /// Raises an event internally and returns from the execution context.
         /// </summary>
         /// <param name="e">Event</param>
         protected void Raise(Event e)
         {
-            this.Machine.Raise(e);
-        }
-
-        /// <summary>
-        /// Pops the current state from the push state stack.
-        /// </summary>
-        protected void Return()
-        {
-            this.Machine.Return();
+            this.Monitor.Raise(e);
         }
 
         /// <summary>
@@ -221,7 +182,7 @@ namespace Microsoft.PSharp
         /// <param name="predicate">Predicate</param>
         protected void Assert(bool predicate)
         {
-            this.Machine.Assert(predicate);
+            this.Monitor.Assert(predicate);
         }
 
         /// <summary>
@@ -233,24 +194,7 @@ namespace Microsoft.PSharp
         /// <param name="args">Message arguments</param>
         protected void Assert(bool predicate, string s, params object[] args)
         {
-            this.Machine.Assert(predicate, s, args);
-        }
-
-        #endregion
-
-        #region factory methods
-
-        internal static class Factory
-        {
-            /// <summary>
-            /// Create a new state.
-            /// </summary>
-            /// <param name="s">Type of state</param>
-            /// <returns></returns>
-            internal static State CreateState(Type s)
-            {
-                return Activator.CreateInstance(s) as State;
-            }
+            this.Monitor.Assert(predicate, s, args);
         }
 
         #endregion

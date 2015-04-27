@@ -638,16 +638,48 @@ namespace Microsoft.PSharp.Parsing
                 });
             }
 
-            if (base.Tokens[base.Index].Type == TokenType.Identifier)
+            var eventIdentifiers = new List<Token>();
+
+            bool expectsComma = false;
+            while (base.Index < base.Tokens.Count &&
+                base.Tokens[base.Index].Type != TokenType.DoAction &&
+                base.Tokens[base.Index].Type != TokenType.GotoState &&
+                base.Tokens[base.Index].Type != TokenType.PushState)
             {
-                base.Tokens[base.Index] = new Token(base.Tokens[base.Index].TextUnit,
-                    TokenType.EventIdentifier);
+                if ((!expectsComma &&
+                    base.Tokens[base.Index].Type != TokenType.Identifier &&
+                    base.Tokens[base.Index].Type != TokenType.HaltEvent &&
+                    base.Tokens[base.Index].Type != TokenType.DefaultEvent) ||
+                    (expectsComma && base.Tokens[base.Index].Type != TokenType.Comma))
+                {
+                    break;
+                }
+
+                if (base.Tokens[base.Index].Type == TokenType.Identifier ||
+                    base.Tokens[base.Index].Type == TokenType.HaltEvent ||
+                    base.Tokens[base.Index].Type == TokenType.DefaultEvent)
+                {
+                    if (base.Tokens[base.Index].Type == TokenType.Identifier)
+                    {
+                        base.Tokens[base.Index] = new Token(base.Tokens[base.Index].TextUnit,
+                            TokenType.EventIdentifier);
+                    }
+
+                    eventIdentifiers.Add(base.Tokens[base.Index]);
+
+                    base.Index++;
+                    base.SkipWhiteSpaceAndCommentTokens();
+
+                    expectsComma = true;
+                }
+                else if (base.Tokens[base.Index].Type == TokenType.Comma)
+                {
+                    base.Index++;
+                    base.SkipWhiteSpaceAndCommentTokens();
+
+                    expectsComma = false;
+                }
             }
-
-            var eventIdentifier = base.Tokens[base.Index];
-
-            base.Index++;
-            base.SkipWhiteSpaceAndCommentTokens();
 
             if (base.Index == base.Tokens.Count ||
                 (base.Tokens[base.Index].Type != TokenType.DoAction &&
@@ -682,9 +714,12 @@ namespace Microsoft.PSharp.Parsing
                     TokenType.ActionIdentifier);
 
                 var actionIdentifier = base.Tokens[base.Index];
-                if (!parentNode.AddActionBinding(eventIdentifier, actionIdentifier))
+                foreach (var eventIdentifier in eventIdentifiers)
                 {
-                    this.ReportParsingError("Unexpected action identifier.");
+                    if (!parentNode.AddActionBinding(eventIdentifier, actionIdentifier))
+                    {
+                        this.ReportParsingError("Unexpected action identifier.");
+                    }
                 }
 
                 base.Index++;
@@ -751,9 +786,12 @@ namespace Microsoft.PSharp.Parsing
                     var blockNode = new PStatementBlockNode(parentNode.Machine, null);
                     this.VisitStatementBlock(blockNode);
 
-                    if (!parentNode.AddGotoStateTransition(eventIdentifier, stateIdentifier, blockNode))
+                    foreach (var eventIdentifier in eventIdentifiers)
                     {
-                        this.ReportParsingError("Unexpected state identifier.");
+                        if (!parentNode.AddGotoStateTransition(eventIdentifier, stateIdentifier, blockNode))
+                        {
+                            this.ReportParsingError("Unexpected state identifier.");
+                        }
                     }
 
                     if (base.Index == base.Tokens.Count ||
@@ -768,9 +806,12 @@ namespace Microsoft.PSharp.Parsing
                 }
                 else
                 {
-                    if (!parentNode.AddGotoStateTransition(eventIdentifier, stateIdentifier))
+                    foreach (var eventIdentifier in eventIdentifiers)
                     {
-                        this.ReportParsingError("Unexpected state identifier.");
+                        if (!parentNode.AddGotoStateTransition(eventIdentifier, stateIdentifier))
+                        {
+                            this.ReportParsingError("Unexpected state identifier.");
+                        }
                     }
                 }
             }
@@ -806,9 +847,12 @@ namespace Microsoft.PSharp.Parsing
                     });
                 }
 
-                if (!parentNode.AddPushStateTransition(eventIdentifier, stateIdentifier))
+                foreach (var eventIdentifier in eventIdentifiers)
                 {
-                    this.ReportParsingError("Unexpected state identifier.");
+                    if (!parentNode.AddPushStateTransition(eventIdentifier, stateIdentifier))
+                    {
+                        this.ReportParsingError("Unexpected state identifier.");
+                    }
                 }
             }
         }

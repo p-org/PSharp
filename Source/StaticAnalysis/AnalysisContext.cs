@@ -220,7 +220,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         {
             if (classDecl.BaseList == null ||
                 classDecl.BaseList.Types.Any(t => t.ToString().Equals("Event")) ||
-                classDecl.BaseList.Types.Any(t => t.ToString().Equals("State")))
+                classDecl.BaseList.Types.Any(t => t.ToString().Equals("MachineState")))
             {
                 return false;
             }

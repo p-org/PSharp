@@ -212,7 +212,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                             }
 
                             var s = model.GetSymbolInfo(machine).Symbol;
-                            return s.ToString().Equals("Microsoft.PSharp.State.Machine");
+                            return s.ToString().Equals("Microsoft.PSharp.MachineState.Machine");
                         }
                     }
                 }
@@ -280,7 +280,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                             }
 
                             var s = model.GetSymbolInfo(machine).Symbol;
-                            return s.ToString().Equals("Microsoft.PSharp.State.Machine");
+                            return s.ToString().Equals("Microsoft.PSharp.MachineState.Machine");
                         }
                     }
                 }
@@ -452,7 +452,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             var suffix = model.GetSymbolInfo(call).Symbol.ContainingSymbol.ToString();
             if (!(suffix.Equals("Microsoft.PSharp.Machine") ||
-                suffix.Equals("Microsoft.PSharp.State") ||
+                suffix.Equals("Microsoft.PSharp.MachineState") ||
                 suffix.Equals("Microsoft.PSharp.Machine.Factory")))
             {
                 return false;

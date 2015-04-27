@@ -27,13 +27,13 @@ namespace Microsoft.PSharp
         /// <summary>
         /// State from which Return() was used.
         /// </summary>
-        internal State ReturningState;
+        internal MachineState ReturningState;
 
         /// <summary>
         /// Default constructor of the ReturnUsedException class.
         /// </summary>
         /// <param name="s">State</param>
-        public ReturnUsedException(State s)
+        public ReturnUsedException(MachineState s)
         {
             this.ReturningState = s;
         }
