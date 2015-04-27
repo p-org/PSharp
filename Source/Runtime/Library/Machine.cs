@@ -204,6 +204,8 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         protected internal void Send(Machine m, Event e)
         {
+            Utilities.Verbose("<SendLog> Machine {0}({1}) sent event {2} to machine {3}({4}).",
+                this, this.Id, e.GetType(), m, m.Id);
             Runtime.Send(m, e, this.GetType().Name);
         }
 
@@ -224,8 +226,7 @@ namespace Microsoft.PSharp
         protected internal void Raise(Event e)
         {
             Utilities.Verbose("<RaiseLog> Machine {0}({1}) raised event {2}.", this, this.Id, e);
-            MachineState currentState = this.StateStack.Peek();
-            this.HandleEvent(currentState, e);
+            this.HandleEvent(e);
         }
 
         /// <summary>
@@ -384,9 +385,8 @@ namespace Microsoft.PSharp
                             this, this.Id, e.GetType());
 
                         this.Inbox.Add(e);
-                        MachineState currentState = this.StateStack.Peek();
-                        Event nextEvent = this.DequeueNextEvent(currentState);
-                        this.HandleEvent(currentState, nextEvent);
+                        Event nextEvent = this.DequeueNextEvent();
+                        this.HandleEvent(nextEvent);
                     }
                 }
             }
@@ -438,9 +438,8 @@ namespace Microsoft.PSharp
         /// Dequeues the next available event. If no event is
         /// available returns null.
         /// </summary>
-        /// <param name="currentState">Current state</param>
         /// <returns>Next event</returns>
-        private Event DequeueNextEvent(MachineState currentState)
+        private Event DequeueNextEvent()
         {
             Event nextEvent = null;
 
@@ -450,7 +449,7 @@ namespace Microsoft.PSharp
                 for (int idx = 0; idx < this.Inbox.Count; idx++)
                 {
                     // Remove an ignored event.
-                    if (currentState.IgnoredEvents.Contains(this.Inbox[idx].GetType()))
+                    if (this.StateStack.Peek().IgnoredEvents.Contains(this.Inbox[idx].GetType()))
                     {
                         this.Inbox.RemoveAt(idx);
                         idx--;
@@ -459,8 +458,8 @@ namespace Microsoft.PSharp
 
                     // Dequeue the first event that is not handled by the state,
                     // or is not deferred.
-                    if (!currentState.CanHandleEvent(this.Inbox[idx].GetType()) ||
-                        !currentState.DeferredEvents.Contains(this.Inbox[idx].GetType()))
+                    if (!this.StateStack.Peek().CanHandleEvent(this.Inbox[idx].GetType()) ||
+                        !this.StateStack.Peek().DeferredEvents.Contains(this.Inbox[idx].GetType()))
                     {
                         nextEvent = this.Inbox[idx];
                         Utilities.Verbose("<DequeueLog> Machine {0}({1}) dequeued event {2}.",
@@ -478,13 +477,12 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Handles the given event.
         /// </summary>
-        /// <param name="currentState">Current state</param>
         /// <param name="e">Event to handle</param>
-        private void HandleEvent(MachineState currentState, Event e)
+        private void HandleEvent(Event e)
         {
             if (e == null)
             {
-                if (currentState.HasDefaultHandler())
+                if (this.StateStack.Peek().HasDefaultHandler())
                 {
                     e = new Default();
                 }
@@ -493,7 +491,7 @@ namespace Microsoft.PSharp
                     return;
                 }
             }
-
+            
             this.Trigger = e.GetType();
             this.Payload = e.Payload;
 
@@ -514,34 +512,36 @@ namespace Microsoft.PSharp
                     // If the event cannot be handled then report an error and exit.
                     Runtime.Assert(false, "Machine '{0}' received event '{1}' that cannot be " +
                         "handled in state '{2}'.\n", this.GetType().Name, e.GetType().Name,
-                        currentState.GetType().Name);
+                        this.StateStack.Peek().GetType().Name);
                 }
 
                 // If current state cannot handle the event then pop the state.
-                if (!currentState.CanHandleEvent(e.GetType()))
+                if (!this.StateStack.Peek().CanHandleEvent(e.GetType()))
                 {
+                    Utilities.Verbose("<ExitLog> Machine {0}({1}) popping state {2}.",
+                        this, this.Id, this.StateStack.Peek());
                     this.StateStack.Pop();
                     continue;
                 }
-
+                
                 // Checks if the event can trigger a goto state transition.
-                if (currentState.GotoTransitions.ContainsKey(e.GetType()))
+                if (this.StateStack.Peek().GotoTransitions.ContainsKey(e.GetType()))
                 {
-                    var transition = currentState.GotoTransitions[e.GetType()];
+                    var transition = this.StateStack.Peek().GotoTransitions[e.GetType()];
                     Type targetState = transition.Item1;
                     Action onExitAction = transition.Item2;
-                    this.Goto(targetState, onExitAction);
+                    this.GotoState(targetState, onExitAction);
                 }
                 // Checks if the event can trigger a push state transition.
-                else if (currentState.PushTransitions.ContainsKey(e.GetType()))
+                else if (this.StateStack.Peek().PushTransitions.ContainsKey(e.GetType()))
                 {
-                    Type targetState = currentState.PushTransitions[e.GetType()];
-                    this.Push(targetState);
+                    Type targetState = this.StateStack.Peek().PushTransitions[e.GetType()];
+                    this.PushState(targetState);
                 }
                 // Checks if the event can trigger an action.
-                else if (currentState.ActionBindings.ContainsKey(e.GetType()))
+                else if (this.StateStack.Peek().ActionBindings.ContainsKey(e.GetType()))
                 {
-                    Action action = currentState.ActionBindings[e.GetType()];
+                    Action action = this.StateStack.Peek().ActionBindings[e.GetType()];
                     this.Do(action);
                 }
 
@@ -553,9 +553,8 @@ namespace Microsoft.PSharp
                 this.Trigger = null;
                 this.Payload = null;
 
-                currentState = this.StateStack.Peek();
-                Event nextEvent = this.DequeueNextEvent(currentState);
-                this.HandleEvent(currentState, nextEvent);
+                Event nextEvent = this.DequeueNextEvent();
+                this.HandleEvent(nextEvent);
             }
         }
 
@@ -698,7 +697,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="s">Type of the state</param>
         /// <param name="onExit">Goto on exit action</param>
-        private void Goto(Type s, Action onExit)
+        private void GotoState(Type s, Action onExit)
         {
             // The machine performs the on exit statements of the current state.
             this.ExecuteCurrentStateOnExit(onExit);
@@ -714,9 +713,9 @@ namespace Microsoft.PSharp
         /// Performs a push transition to the given state.
         /// </summary>
         /// <param name="s">Type of the state</param>
-        private void Push(Type s)
+        private void PushState(Type s)
         {
-            MachineState nextState = this.InitializeState(s, true);
+            MachineState nextState = this.InitializeState(s);
             // The machine transitions to the new state.
             this.StateStack.Push(nextState);
             // The machine performs the on entry statements of the new state.
@@ -758,12 +757,13 @@ namespace Microsoft.PSharp
         /// </summary>
         private void ExecuteCurrentStateOnEntry()
         {
+            Utilities.Verbose("<StateLog> Machine {0}({1}) entered state {2}.",
+                this, this.Id, this.StateStack.Peek());
+
             try
             {
                 // Performs the on entry statements of the new state.
                 this.StateStack.Peek().ExecuteEntryFunction();
-                Utilities.Verbose("<StateLog> Machine {0}({1}) entered state {2}.",
-                    this, this.Id, this.StateStack.Peek());
             }
             catch (ReturnUsedException ex)
             {

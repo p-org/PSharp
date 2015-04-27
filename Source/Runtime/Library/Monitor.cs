@@ -130,8 +130,7 @@ namespace Microsoft.PSharp
         protected internal void Raise(Event e)
         {
             Utilities.Verbose("<RaiseLog> Monitor {0} raised event {1}.", this, e);
-            MonitorState currentState = this.StateStack.Peek();
-            this.HandleEvent(currentState, e);
+            this.HandleEvent(e);
         }
 
         /// <summary>
@@ -216,9 +215,8 @@ namespace Microsoft.PSharp
                     this, e.GetType());
 
                 this.Inbox.Add(e);
-                MonitorState currentState = this.StateStack.Peek();
-                Event nextEvent = this.DequeueNextEvent(currentState);
-                this.HandleEvent(currentState, nextEvent);
+                Event nextEvent = this.DequeueNextEvent();
+                this.HandleEvent(nextEvent);
             }
         }
 
@@ -230,9 +228,8 @@ namespace Microsoft.PSharp
         /// Dequeues the next available event. If no event is
         /// available returns null.
         /// </summary>
-        /// <param name="currentState">Current state</param>
         /// <returns>Next event</returns>
-        private Event DequeueNextEvent(MonitorState currentState)
+        private Event DequeueNextEvent()
         {
             Event nextEvent = null;
 
@@ -242,7 +239,7 @@ namespace Microsoft.PSharp
                 for (int idx = 0; idx < this.Inbox.Count; idx++)
                 {
                     // Remove an ignored event.
-                    if (currentState.IgnoredEvents.Contains(this.Inbox[idx].GetType()))
+                    if (this.StateStack.Peek().IgnoredEvents.Contains(this.Inbox[idx].GetType()))
                     {
                         this.Inbox.RemoveAt(idx);
                         idx--;
@@ -264,13 +261,12 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Handles the given event.
         /// </summary>
-        /// <param name="currentState">Current state</param>
         /// <param name="e">Event to handle</param>
-        private void HandleEvent(MonitorState currentState, Event e)
+        private void HandleEvent(Event e)
         {
             if (e == null)
             {
-                if (currentState.HasDefaultHandler())
+                if (this.StateStack.Peek().HasDefaultHandler())
                 {
                     e = new Default();
                 }
@@ -300,28 +296,28 @@ namespace Microsoft.PSharp
                     // If the event cannot be handled then report an error and exit.
                     Runtime.Assert(false, "Monitor '{0}' received event '{1}' that cannot be " +
                         "handled in state '{2}'.\n", this.GetType().Name, e.GetType().Name,
-                        currentState.GetType().Name);
+                        this.StateStack.Peek().GetType().Name);
                 }
 
                 // If current state cannot handle the event then pop the state.
-                if (!currentState.CanHandleEvent(e.GetType()))
+                if (!this.StateStack.Peek().CanHandleEvent(e.GetType()))
                 {
                     this.StateStack.Pop();
                     continue;
                 }
 
                 // Checks if the event can trigger a goto state transition.
-                if (currentState.GotoTransitions.ContainsKey(e.GetType()))
+                if (this.StateStack.Peek().GotoTransitions.ContainsKey(e.GetType()))
                 {
-                    var transition = currentState.GotoTransitions[e.GetType()];
+                    var transition = this.StateStack.Peek().GotoTransitions[e.GetType()];
                     Type targetState = transition.Item1;
                     Action onExitAction = transition.Item2;
                     this.Goto(targetState, onExitAction);
                 }
                 // Checks if the event can trigger an action.
-                else if (currentState.ActionBindings.ContainsKey(e.GetType()))
+                else if (this.StateStack.Peek().ActionBindings.ContainsKey(e.GetType()))
                 {
-                    Action action = currentState.ActionBindings[e.GetType()];
+                    Action action = this.StateStack.Peek().ActionBindings[e.GetType()];
                     this.Do(action);
                 }
 
@@ -333,9 +329,8 @@ namespace Microsoft.PSharp
                 this.Trigger = null;
                 this.Payload = null;
 
-                currentState = this.StateStack.Peek();
-                Event nextEvent = this.DequeueNextEvent(currentState);
-                this.HandleEvent(currentState, nextEvent);
+                Event nextEvent = this.DequeueNextEvent();
+                this.HandleEvent(nextEvent);
             }
         }
 
