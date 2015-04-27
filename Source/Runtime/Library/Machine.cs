@@ -475,7 +475,7 @@ namespace Microsoft.PSharp
                 for (int idx = 0; idx < this.Inbox.Count; idx++)
                 {
                     // Remove any ignored events.
-                    if (currentState.IsIgnored(this.Inbox[idx]))
+                    if (currentState.IgnoredEvents.Contains(this.Inbox[idx].GetType()))
                     {
                         this.Inbox.RemoveAt(idx);
                         if (idx == this.Inbox.Count)
@@ -486,8 +486,8 @@ namespace Microsoft.PSharp
 
                     // Dequeue the first event that is not handled by the state,
                     // or is not deferred.
-                    if (!currentState.CanHandleEvent(this.Inbox[idx]) ||
-                        !currentState.IsDeferred(this.Inbox[idx]))
+                    if (!currentState.CanHandleEvent(this.Inbox[idx].GetType()) ||
+                        !currentState.DeferredEvents.Contains(this.Inbox[idx].GetType()))
                     {
                         nextEvent = this.Inbox[idx];
                         this.Inbox.RemoveAt(idx);
@@ -542,16 +542,16 @@ namespace Microsoft.PSharp
                 }
 
                 // If current state cannot handle the event then pop the state.
-                if (!currentState.CanHandleEvent(e))
+                if (!currentState.CanHandleEvent(e.GetType()))
                 {
                     this.StateStack.Pop();
                     continue;
                 }
 
                 // Checks if the event can trigger a goto state transition.
-                if (currentState.ContainsGotoTransition(e))
+                if (currentState.GotoTransitions.ContainsKey(e.GetType()))
                 {
-                    var transition = currentState.GetGotoTransition(e);
+                    var transition = currentState.GotoTransitions[e.GetType()];
                     Type targetState = transition.Item1;
                     Action onExitAction = transition.Item2;
                     Utilities.Verbose("{0}: {1} --- GOTO ---> {2}\n",
@@ -559,17 +559,17 @@ namespace Microsoft.PSharp
                     this.Goto(targetState, onExitAction);
                 }
                 // Checks if the event can trigger a push state transition.
-                else if (currentState.ContainsPushTransition(e))
+                else if (currentState.PushTransitions.ContainsKey(e.GetType()))
                 {
-                    Type targetState = currentState.GetPushTransition(e);
+                    Type targetState = currentState.PushTransitions[e.GetType()];
                     Utilities.Verbose("{0}: {1} --- PUSH ---> {2}\n",
                         this, currentState, targetState);
                     this.Push(targetState);
                 }
                 // Checks if the event can trigger an action.
-                else if (currentState.ContainsActionBinding(e))
+                else if (currentState.ActionBindings.ContainsKey(e.GetType()))
                 {
-                    Action action = currentState.GetActionBinding(e);
+                    Action action = currentState.ActionBindings[e.GetType()];
                     this.Do(action);
                 }
 
@@ -628,10 +628,13 @@ namespace Microsoft.PSharp
         /// Initializes a state of the given type.
         /// </summary>
         /// <param name="s">Type of the state</param>
+        /// <param name="withPushStmt">Was push stmt used?</param>
         /// <returns>State</returns>
-        private State InitializeState(Type s)
+        private State InitializeState(Type s, bool withPushStmt = false)
         {
             State state = State.Factory.CreateState(s);
+            state.InitializeState();
+            state.Machine = this;
 
             GotoStateTransitions sst = null;
             PushStateTransitions cst = null;
@@ -641,8 +644,56 @@ namespace Microsoft.PSharp
             this.PushTransitions.TryGetValue(s, out cst);
             this.ActionBindings.TryGetValue(s, out ab);
 
-            state.Machine = this;
-            state.InitializeState(sst, cst, ab);
+            if (sst == null) state.GotoTransitions = new GotoStateTransitions();
+            else state.GotoTransitions = sst;
+
+            if (cst == null) state.PushTransitions = new PushStateTransitions();
+            else state.PushTransitions = cst;
+
+            if (ab == null) state.ActionBindings = new ActionBindings();
+            else state.ActionBindings = ab;
+
+            // If push statement was used do the following logic.
+            if (withPushStmt)
+            {
+                foreach (var e in Runtime.GetRegisteredEventTypes())
+                {
+                    if (!state.CanHandleEvent(e))
+                    {
+                        state.DeferredEvents.Add(e);
+                    }
+                }
+            }
+            // If the state stack is non-empty, update the data structures
+            // with the following logic.
+            else if (this.StateStack.Count > 0)
+            {
+                var lowerState = this.StateStack.Peek();
+
+                foreach (var e in lowerState.DeferredEvents)
+                {
+                    if (!state.CanHandleEvent(e))
+                    {
+                        state.DeferredEvents.Add(e);
+                    }
+                }
+
+                foreach (var e in lowerState.IgnoredEvents)
+                {
+                    if (!state.CanHandleEvent(e))
+                    {
+                        state.IgnoredEvents.Add(e);
+                    }
+                }
+
+                foreach (var action in lowerState.ActionBindings)
+                {
+                    if (!state.CanHandleEvent(action.Key))
+                    {
+                        state.ActionBindings.Add(action.Key, action.Value);
+                    }
+                }
+            }
 
             return state;
         }
@@ -677,11 +728,11 @@ namespace Microsoft.PSharp
         /// <param name="onExit">Goto on exit action</param>
         private void Goto(Type s, Action onExit)
         {
-            State nextState = this.InitializeState(s);
             // The machine performs the on exit statements of the current state.
             this.ExecuteCurrentStateOnExit(onExit);
-            // The machine transitions to the new state.
             this.StateStack.Pop();
+            // The machine transitions to the new state.
+            State nextState = this.InitializeState(s);
             this.StateStack.Push(nextState);
             // The machine performs the on entry statements of the new state.
             this.ExecuteCurrentStateOnEntry();
@@ -693,7 +744,7 @@ namespace Microsoft.PSharp
         /// <param name="s">Type of the state</param>
         private void Push(Type s)
         {
-            State nextState = this.InitializeState(s);
+            State nextState = this.InitializeState(s, true);
             // The machine transitions to the new state.
             this.StateStack.Push(nextState);
             // The machine performs the on entry statements of the new state.

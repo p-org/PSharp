@@ -58,27 +58,27 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Dictionary containing all the goto state transitions.
         /// </summary>
-        private GotoStateTransitions GotoTransitions;
+        internal GotoStateTransitions GotoTransitions;
 
         /// <summary>
         /// Dictionary containing all the push state transitions.
         /// </summary>
-        private PushStateTransitions PushTransitions;
+        internal PushStateTransitions PushTransitions;
 
         /// <summary>
         /// Dictionary containing all the action bindings.
         /// </summary>
-        private ActionBindings ActionBindings;
+        internal ActionBindings ActionBindings;
 
         /// <summary>
         /// Set of deferred event types.
         /// </summary>
-        private HashSet<Type> DeferredEvents;
+        internal HashSet<Type> DeferredEvents;
 
         /// <summary>
         /// Set of ignored event types.
         /// </summary>
-        private HashSet<Type> IgnoredEvents;
+        internal HashSet<Type> IgnoredEvents;
 
         #endregion
 
@@ -87,112 +87,10 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Initializes the state.
         /// </summary>
-        /// <param name="sst">Goto state transitions</param>
-        /// <param name="cst">Push state transitions</param>
-        /// <param name="ab">Action bindings</param>
-        internal void InitializeState(GotoStateTransitions sst,
-            PushStateTransitions cst, ActionBindings ab)
+        internal void InitializeState()
         {
-            if (sst == null) this.GotoTransitions = new GotoStateTransitions();
-            else this.GotoTransitions = sst;
-
-            if (cst == null) this.PushTransitions = new PushStateTransitions();
-            else this.PushTransitions = cst;
-
-            if (ab == null) this.ActionBindings = new ActionBindings();
-            else this.ActionBindings = ab;
-
             this.DeferredEvents = this.DefineDeferredEvents();
             this.IgnoredEvents = this.DefineIgnoredEvents();
-
-            this.DoErrorChecking();
-        }
-
-        /// <summary>
-        /// Checks if the state contains a goto state transition
-        /// triggered from the given event.
-        /// </summary>
-        /// <param name="e">Event</param>
-        /// <returns>Boolean value</returns>
-        internal bool ContainsGotoTransition(Event e)
-        {
-            return this.GotoTransitions.ContainsKey(e.GetType());
-        }
-
-        /// <summary>
-        /// Checks if the state contains a push state transition
-        /// triggered from the given event.
-        /// </summary>
-        /// <param name="e">Event</param>
-        /// <returns>Boolean value</returns>
-        internal bool ContainsPushTransition(Event e)
-        {
-            return this.PushTransitions.ContainsKey(e.GetType());
-        }
-
-        /// <summary>
-        /// Checks if the state contains an action binding
-        /// triggered from the given event.
-        /// </summary>
-        /// <param name="e">Event</param>
-        /// <returns>Boolean value</returns>
-        internal bool ContainsActionBinding(Event e)
-        {
-            return this.ActionBindings.ContainsKey(e.GetType());
-        }
-
-        /// <summary>
-        /// Checks if the given event is deferred in this state.
-        /// </summary>
-        /// <param name="e">Event</param>
-        /// <returns>Boolean value</returns>
-        internal bool IsDeferred(Event e)
-        {
-            return this.DeferredEvents.Contains(e.GetType());
-        }
-
-        /// <summary>
-        /// Checks if the given event is ignored in this state.
-        /// </summary>
-        /// <param name="e">Event</param>
-        /// <returns>Boolean value</returns>
-        internal bool IsIgnored(Event e)
-        {
-            return this.IgnoredEvents.Contains(e.GetType());
-        }
-
-        /// <summary>
-        /// Returns the type of the state that is the target of
-        /// the goto transition triggered by the given event, and
-        /// an optional lambda function which can execute after the
-        /// default OnExit function of the exiting state.
-        /// </summary>
-        /// <param name="e">Event</param>
-        /// <returns>Type of the state</returns>
-        internal Tuple<Type, Action> GetGotoTransition(Event e)
-        {
-            return this.GotoTransitions[e.GetType()];
-        }
-
-        /// <summary>
-        /// Returns the type of the state that is the target of
-        /// the push transition triggered by the given event.
-        /// </summary>
-        /// <param name="e">Event</param>
-        /// <returns>Type of the state</returns>
-        internal Type GetPushTransition(Event e)
-        {
-            return this.PushTransitions[e.GetType()];
-        }
-
-        /// <summary>
-        /// Returns the action that is triggered by the given event.
-        /// </summary>
-        /// <param name="e">Event</param>
-        /// <returns>Action</returns>
-        internal Action GetActionBinding(Event e)
-        {
-            return this.ActionBindings[e.GetType()];
         }
 
         /// <summary>
@@ -212,18 +110,18 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Checks if the state can handle the given event. An event
-        /// can be handled if it is deferred, or leads to a transition
-        /// or action binding. Ignored events have been removed.
+        /// Checks if the state can handle the given event type. An event
+        /// can be handled if it is deferred, or leads to a transition or
+        /// action binding. Ignored events have been removed.
         /// </summary>
-        /// <param name="e">Event</param>
+        /// <param name="e">Event type</param>
         /// <returns>Boolean value</returns>
-        internal bool CanHandleEvent(Event e)
+        internal bool CanHandleEvent(Type e)
         {
-            if (this.DeferredEvents.Contains(e.GetType()) ||
-                this.GotoTransitions.ContainsKey(e.GetType()) ||
-                this.PushTransitions.ContainsKey(e.GetType()) ||
-                this.ActionBindings.ContainsKey(e.GetType()))
+            if (this.DeferredEvents.Contains(e) ||
+                this.GotoTransitions.ContainsKey(e) ||
+                this.PushTransitions.ContainsKey(e) ||
+                this.ActionBindings.ContainsKey(e))
             {
                 return true;
             }
@@ -352,34 +250,6 @@ namespace Microsoft.PSharp
             internal static State CreateState(Type s)
             {
                 return Activator.CreateInstance(s) as State;
-            }
-        }
-
-        #endregion
-
-        #region error checking
-
-        /// <summary>
-        /// Check machine for errors.
-        /// </summary>
-        private void DoErrorChecking()
-        {
-            List<Type> events = new List<Type>();
-
-            events.AddRange(this.GotoTransitions.Keys());
-            events.AddRange(this.PushTransitions.Keys());
-            events.AddRange(this.ActionBindings.Keys());
-
-            for (int i = 0; i < events.Count; i++)
-            {
-                for (int j = 0; j < events.Count; j++)
-                {
-                    if (i == j)
-                        continue;
-                    Runtime.Assert(events[i] != events[j], "State '{0}' can trigger more " +
-                        "than one state transition or action binding when receiving " +
-                        "event '{1}'.\n", this.GetType().Name, events[i].Name);
-                }
             }
         }
 

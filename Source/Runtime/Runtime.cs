@@ -545,6 +545,15 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Returns all registered event types.
+        /// </summary>
+        /// <returns>List of event types</returns>
+        internal static List<Type> GetRegisteredEventTypes()
+        {
+            return Runtime.RegisteredEventTypes.ToList();
+        }
+
+        /// <summary>
         /// Prints the explored execution schedule.
         /// </summary>
         internal static void PrintExploredSchedule()
