@@ -384,6 +384,11 @@ namespace Microsoft.PSharp.Parsing
                     base.Index++;
                     break;
 
+                case TokenType.ColdState:
+                case TokenType.HotState:
+                    base.Index++;
+                    break;
+
                 case TokenType.RightCurlyBracket:
                     base.Tokens[base.Index] = new Token(base.Tokens[base.Index].TextUnit,
                         TokenType.MachineRightCurlyBracket);
@@ -414,13 +419,32 @@ namespace Microsoft.PSharp.Parsing
             base.SkipWhiteSpaceAndCommentTokens();
 
             if (base.Index == base.Tokens.Count ||
-                base.Tokens[base.Index].Type != TokenType.StateDecl)
+                (base.Tokens[base.Index].Type != TokenType.StateDecl &&
+                base.Tokens[base.Index].Type != TokenType.ColdState &&
+                base.Tokens[base.Index].Type != TokenType.HotState))
             {
                 this.ReportParsingError("Expected state declaration.");
                 throw new EndOfTokensException(new List<TokenType>
                 {
                     TokenType.StateDecl
                 });
+            }
+
+            if (base.Tokens[base.Index].Type == TokenType.ColdState ||
+                base.Tokens[base.Index].Type == TokenType.HotState)
+            {
+                base.Index++;
+                base.SkipWhiteSpaceAndCommentTokens();
+
+                if (base.Index == base.Tokens.Count ||
+                    base.Tokens[base.Index].Type != TokenType.StateDecl)
+                {
+                    this.ReportParsingError("Expected state declaration.");
+                    throw new EndOfTokensException(new List<TokenType>
+                    {
+                        TokenType.StateDecl
+                    });
+                }
             }
 
             this.VisitStateDeclaration(parentNode, true);

@@ -147,6 +147,9 @@ namespace Microsoft.PSharp.Parsing
         HaltEvent,
         DefaultEvent,
 
+        ColdState,
+        HotState,
+
         Var,
         Int,
         Bool,

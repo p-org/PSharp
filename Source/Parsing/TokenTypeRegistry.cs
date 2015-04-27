@@ -385,6 +385,14 @@ namespace Microsoft.PSharp.Parsing
                     text = "default";
                     break;
 
+                case TokenType.ColdState:
+                    text = "cold";
+                    break;
+
+                case TokenType.HotState:
+                    text = "state";
+                    break;
+
                 case TokenType.Var:
                     text = "var";
                     break;
