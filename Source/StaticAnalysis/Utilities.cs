@@ -444,8 +444,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 callee = Utilities.GetCallee(call);
             }
 
-            if (!(callee.Equals("Send") || callee.Equals("Invoke") ||
-                callee.Equals("Create") || callee.Equals("CreateMonitor")))
+            if (!(callee.Equals("Send") || callee.Equals("Create")))
             {
                 return false;
             }

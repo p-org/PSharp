@@ -71,7 +71,7 @@ namespace Microsoft.PSharp.Parsing
                     TokenType.EventDecl,
                     TokenType.MachineDecl,
                     TokenType.ModelDecl,
-                    TokenType.MonitorDecl
+                    TokenType.Monitor
                 });
             }
 
@@ -107,7 +107,7 @@ namespace Microsoft.PSharp.Parsing
                     base.Index++;
                     break;
 
-                case TokenType.MonitorDecl:
+                case TokenType.Monitor:
                     this.VisitMachineDeclaration(false, true);
                     base.Index++;
                     break;
@@ -1417,6 +1417,10 @@ namespace Microsoft.PSharp.Parsing
                     this.VisitSendStatement(node);
                     break;
 
+                case TokenType.Monitor:
+                    this.VisitMonitorStatement(node);
+                    break;
+
                 case TokenType.PushState:
                     this.VisitPushStatement(node);
                     break;
@@ -1657,6 +1661,115 @@ namespace Microsoft.PSharp.Parsing
             }
 
             node.MachineComma = base.Tokens[base.Index];
+
+            base.Index++;
+            base.SkipWhiteSpaceAndCommentTokens();
+
+            if (base.Index == base.Tokens.Count ||
+                (base.Tokens[base.Index].Type != TokenType.Identifier &&
+                base.Tokens[base.Index].Type != TokenType.HaltEvent))
+            {
+                this.ReportParsingError("Expected event identifier.");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Identifier,
+                    TokenType.HaltEvent
+                });
+            }
+
+            if (base.Tokens[base.Index].Type == TokenType.Identifier)
+            {
+                base.Tokens[base.Index] = new Token(base.Tokens[base.Index].TextUnit,
+                    TokenType.EventIdentifier);
+            }
+
+            node.EventIdentifier = base.Tokens[base.Index];
+
+            base.Index++;
+            base.SkipWhiteSpaceAndCommentTokens();
+
+            if (base.Index == base.Tokens.Count ||
+                (base.Tokens[base.Index].Type != TokenType.Comma &&
+                base.Tokens[base.Index].Type != TokenType.Semicolon))
+            {
+                this.ReportParsingError("Expected \",\" or \";\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Comma,
+                    TokenType.Semicolon
+                });
+            }
+
+            if (base.Tokens[base.Index].Type == TokenType.Comma)
+            {
+                node.EventComma = base.Tokens[base.Index];
+
+                base.Index++;
+                base.SkipWhiteSpaceAndCommentTokens();
+
+                var payload = new PPayloadSendExpressionNode(parentNode);
+                this.VisitPayload(payload);
+                node.Payload = payload;
+            }
+
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.Semicolon)
+            {
+                this.ReportParsingError("Expected \";\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Semicolon
+                });
+            }
+
+            node.SemicolonToken = base.Tokens[base.Index];
+            parentNode.Statements.Add(node);
+            base.Index++;
+        }
+
+        /// <summary>
+        /// Visits a monitor statement.
+        /// </summary>
+        /// <param name="parentNode">Node</param>
+        private void VisitMonitorStatement(PStatementBlockNode parentNode)
+        {
+            if (parentNode.Machine.IsMonitor)
+            {
+                this.ReportParsingError("Monitors cannot \"send\".");
+            }
+
+            var node = new PMonitorStatementNode(parentNode);
+            node.MonitorKeyword = base.Tokens[base.Index];
+
+            base.Index++;
+            base.SkipWhiteSpaceAndCommentTokens();
+
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.Identifier)
+            {
+                this.ReportParsingError("Expected monitor identifier.");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Identifier
+                });
+            }
+
+            node.MonitorIdentifier = base.Tokens[base.Index];
+
+            base.Index++;
+            base.SkipWhiteSpaceAndCommentTokens();
+
+            if (base.Index == base.Tokens.Count ||
+                base.Tokens[base.Index].Type != TokenType.Comma)
+            {
+                this.ReportParsingError("Expected \",\".");
+                throw new EndOfTokensException(new List<TokenType>
+                {
+                    TokenType.Comma
+                });
+            }
+
+            node.MonitorComma = base.Tokens[base.Index];
 
             base.Index++;
             base.SkipWhiteSpaceAndCommentTokens();
@@ -1979,6 +2092,10 @@ namespace Microsoft.PSharp.Parsing
             {
                 this.VisitSendStatement(blockNode);
             }
+            else if (base.Tokens[base.Index].Type == TokenType.Monitor)
+            {
+                this.VisitMonitorStatement(blockNode);
+            }
             else if (base.Tokens[base.Index].Type == TokenType.Assert)
             {
                 this.VisitAssertStatement(blockNode);
@@ -2161,6 +2278,10 @@ namespace Microsoft.PSharp.Parsing
             else if (base.Tokens[base.Index].Type == TokenType.SendEvent)
             {
                 this.VisitSendStatement(blockNode);
+            }
+            else if (base.Tokens[base.Index].Type == TokenType.Monitor)
+            {
+                this.VisitMonitorStatement(blockNode);
             }
             else if (base.Tokens[base.Index].Type == TokenType.Assert)
             {

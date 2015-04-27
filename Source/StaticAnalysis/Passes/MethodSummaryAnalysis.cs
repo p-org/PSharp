@@ -195,8 +195,6 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 MethodSummaryAnalysis.TryComputeGivesUpSetForSendControlFlowGraphNode(
                     givesUpNode, summary);
-                MethodSummaryAnalysis.TryComputeGivesUpSetForInvokeControlFlowGraphNode(
-                    givesUpNode, summary);
                 MethodSummaryAnalysis.TryComputeGivesUpSetForFactoryControlFlowGraphNode(
                     givesUpNode, summary);
                 MethodSummaryAnalysis.TryComputeGivesUpSetForGenericControlFlowGraphNode(
@@ -255,73 +253,6 @@ namespace Microsoft.PSharp.StaticAnalysis
                 send.ArgumentList.Arguments[1].Expression.IsKind(SyntaxKind.AsExpression))
             {
                 var binExpr = send.ArgumentList.Arguments[1].Expression
-                    as BinaryExpressionSyntax;
-                if ((binExpr.Left is IdentifierNameSyntax) || (binExpr.Left is MemberAccessExpressionSyntax))
-                {
-                    MethodSummaryAnalysis.ComputeGivesUpSetForArgument(binExpr.Left,
-                        cfgNode, summary);
-                }
-                else if (binExpr.Left is InvocationExpressionSyntax)
-                {
-                    var invocation = binExpr.Left as InvocationExpressionSyntax;
-                    for (int i = 1; i < invocation.ArgumentList.Arguments.Count; i++)
-                    {
-                        MethodSummaryAnalysis.ComputeGivesUpSetForArgument(invocation.ArgumentList.
-                            Arguments[i].Expression, cfgNode, summary);
-                    }
-                }
-            }
-
-            return true;
-        }
-
-        /// <summary>
-        /// Tries to compute the 'gives_up' set of indexes for the given control flow graph node.
-        /// If the node does not contain an 'Invoke' operation, then it returns false.
-        /// </summary>
-        /// <param name="cfgNode">ControlFlowGraphNode</param>
-        /// <param name="summary">MethodSummary</param>
-        /// <returns>Boolean value</returns>
-        private static bool TryComputeGivesUpSetForInvokeControlFlowGraphNode(ControlFlowGraphNode cfgNode,
-            MethodSummary summary)
-        {
-            var invokeExpr = cfgNode.SyntaxNodes.First() as ExpressionStatementSyntax;
-            if (invokeExpr == null)
-            {
-                return false;
-            }
-
-            var invoke = invokeExpr.Expression as InvocationExpressionSyntax;
-            if (invoke == null || !((invoke.Expression is MemberAccessExpressionSyntax) ||
-                (invoke.Expression is IdentifierNameSyntax)))
-            {
-                return false;
-            }
-
-            if (((invoke.Expression is MemberAccessExpressionSyntax) &&
-                !(invoke.Expression as MemberAccessExpressionSyntax).
-                Name.Identifier.ValueText.Equals("Invoke")) ||
-                ((invoke.Expression is IdentifierNameSyntax) &&
-                !(invoke.Expression as IdentifierNameSyntax).
-                Identifier.ValueText.Equals("Invoke")))
-            {
-                return false;
-            }
-
-            if (invoke.ArgumentList.Arguments[0].Expression is ObjectCreationExpressionSyntax)
-            {
-                var objCreation = invoke.ArgumentList.Arguments[0].Expression
-                    as ObjectCreationExpressionSyntax;
-                foreach (var arg in objCreation.ArgumentList.Arguments)
-                {
-                    MethodSummaryAnalysis.ComputeGivesUpSetForArgument(
-                        arg.Expression, cfgNode, summary);
-                }
-            }
-            else if (invoke.ArgumentList.Arguments[0].Expression is BinaryExpressionSyntax &&
-                invoke.ArgumentList.Arguments[0].Expression.IsKind(SyntaxKind.AsExpression))
-            {
-                var binExpr = invoke.ArgumentList.Arguments[0].Expression
                     as BinaryExpressionSyntax;
                 if ((binExpr.Left is IdentifierNameSyntax) || (binExpr.Left is MemberAccessExpressionSyntax))
                 {
@@ -458,8 +389,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             if (call.Expression is MemberAccessExpressionSyntax)
             {
                 var callStmt = call.Expression as MemberAccessExpressionSyntax;
-                if (callStmt.Name.Identifier.ValueText.Equals("Send") ||
-                    callStmt.Name.Identifier.ValueText.Equals("Invoke"))
+                if (callStmt.Name.Identifier.ValueText.Equals("Send"))
                 {
                     return false;
                 }
@@ -467,8 +397,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             else if (call.Expression is IdentifierNameSyntax)
             {
                 var callStmt = call.Expression as IdentifierNameSyntax;
-                if (callStmt.Identifier.ValueText.Equals("Send") ||
-                    callStmt.Identifier.ValueText.Equals("Invoke"))
+                if (callStmt.Identifier.ValueText.Equals("Send"))
                 {
                     return false;
                 }

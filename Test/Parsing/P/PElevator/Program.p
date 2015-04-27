@@ -141,7 +141,7 @@ main model User {
     state Loop {
         entry {
             if ($) {
-				//monitor M, eOpenDoor;
+				monitor M, eOpenDoor;
 				send ElevatorV,eOpenDoor;
             } else if ($) {
                send ElevatorV,eCloseDoor;
@@ -171,7 +171,7 @@ model Door {
 
     state OpenDoor {
         entry {
-			//monitor M, eDoorOpened;
+			monitor M, eDoorOpened;
             send ElevatorV,eDoorOpened;
             raise eUnit;
         }

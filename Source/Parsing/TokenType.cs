@@ -91,7 +91,7 @@ namespace Microsoft.PSharp.Parsing
 
         MachineDecl,
         ModelDecl,
-        MonitorDecl,
+        Monitor,
         StateDecl,
         EventDecl,
         ActionDecl,

@@ -482,7 +482,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <typeparam name="T">Type of the monitor</typeparam>
         /// <param name="e">Event</param>
-        internal static void Invoke<T>(Event e)
+        internal static void Monitor<T>(Event e)
         {
             if (Runtime.Options.Mode == Runtime.Mode.Execution)
             {

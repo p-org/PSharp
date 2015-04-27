@@ -188,9 +188,9 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <typeparam name="T">Type of the monitor</typeparam>
         /// <param name="e">Event</param>
-        protected internal void Invoke<T>(Event e)
+        protected internal void Monitor<T>(Event e)
         {
-            this.Machine.Invoke<T>(e);
+            this.Machine.Monitor<T>(e);
         }
 
         /// <summary>

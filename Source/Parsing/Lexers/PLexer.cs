@@ -177,7 +177,7 @@ namespace Microsoft.PSharp.Parsing
                     break;
 
                 case "monitor":
-                    this.Tokens.Add(new Token(unit, TokenType.MonitorDecl));
+                    this.Tokens.Add(new Token(unit, TokenType.Monitor));
                     break;
 
                 case "state":

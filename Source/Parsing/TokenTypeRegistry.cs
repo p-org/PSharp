@@ -197,7 +197,7 @@ namespace Microsoft.PSharp.Parsing
                     text = "model";
                     break;
 
-                case TokenType.MonitorDecl:
+                case TokenType.Monitor:
                     text = "monitor";
                     break;
 

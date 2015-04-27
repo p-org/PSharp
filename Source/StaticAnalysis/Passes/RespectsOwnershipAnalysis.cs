@@ -135,8 +135,6 @@ namespace Microsoft.PSharp.StaticAnalysis
                     OfType<InvocationExpressionSyntax>().First();
                 RespectsOwnershipAnalysis.AnalyseSendExpression(givesUpSource, givesUpNode,
                     machine, state, originalMachine);
-                RespectsOwnershipAnalysis.AnalyseInvokeExpression(givesUpSource, givesUpNode,
-                    machine, state, originalMachine);
                 RespectsOwnershipAnalysis.AnalyseFactoryExpression(givesUpSource, givesUpNode,
                     machine, state, originalMachine);
                 RespectsOwnershipAnalysis.AnalyseGenericCallExpression(givesUpSource, givesUpNode,
@@ -203,66 +201,6 @@ namespace Microsoft.PSharp.StaticAnalysis
                     {
                         RespectsOwnershipAnalysis.AnalyseArgumentSyntax(invocation.ArgumentList.Arguments[i].
                             Expression, send, givesUpNode, machine, state, originalMachine);
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Analyse the given 'Invoke' expression to check if it respects the
-        /// given up ownerships.
-        /// </summary>
-        /// <param name="invoke">Invoke call</param>
-        /// <param name="givesUpNode">Gives up node</param>
-        /// <param name="machine">Machine</param>
-        /// <param name="state">State</param>
-        /// <param name="originalMachine">Original machine</param>
-        private static void AnalyseInvokeExpression(InvocationExpressionSyntax invoke, ControlFlowGraphNode givesUpNode,
-            ClassDeclarationSyntax machine, ClassDeclarationSyntax state, ClassDeclarationSyntax originalMachine)
-        {
-            if (!((invoke.Expression is MemberAccessExpressionSyntax) ||
-                (invoke.Expression is IdentifierNameSyntax)))
-            {
-                return;
-            }
-
-            if (((invoke.Expression is MemberAccessExpressionSyntax) &&
-                !(invoke.Expression as MemberAccessExpressionSyntax).
-                Name.Identifier.ValueText.Equals("Invoke")) ||
-                ((invoke.Expression is IdentifierNameSyntax) &&
-                !(invoke.Expression as IdentifierNameSyntax).
-                Identifier.ValueText.Equals("Invoke")))
-            {
-                return;
-            }
-
-            if (invoke.ArgumentList.Arguments[0].Expression is ObjectCreationExpressionSyntax)
-            {
-                var objCreation = invoke.ArgumentList.Arguments[0].Expression
-                    as ObjectCreationExpressionSyntax;
-                foreach (var arg in objCreation.ArgumentList.Arguments)
-                {
-                    RespectsOwnershipAnalysis.AnalyseArgumentSyntax(arg.Expression,
-                        invoke, givesUpNode, machine, state, originalMachine);
-                }
-            }
-            else if (invoke.ArgumentList.Arguments[0].Expression is BinaryExpressionSyntax &&
-                invoke.ArgumentList.Arguments[0].Expression.IsKind(SyntaxKind.AsExpression))
-            {
-                var binExpr = invoke.ArgumentList.Arguments[0].Expression
-                    as BinaryExpressionSyntax;
-                if ((binExpr.Left is IdentifierNameSyntax) || (binExpr.Left is MemberAccessExpressionSyntax))
-                {
-                    RespectsOwnershipAnalysis.AnalyseArgumentSyntax(binExpr.Left,
-                        invoke, givesUpNode, machine, state, originalMachine);
-                }
-                else if (binExpr.Left is InvocationExpressionSyntax)
-                {
-                    var invocation = binExpr.Left as InvocationExpressionSyntax;
-                    for (int i = 1; i < invocation.ArgumentList.Arguments.Count; i++)
-                    {
-                        RespectsOwnershipAnalysis.AnalyseArgumentSyntax(invocation.ArgumentList.Arguments[i].
-                            Expression, invoke, givesUpNode, machine, state, originalMachine);
                     }
                 }
             }
@@ -362,8 +300,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             if (call.Expression is MemberAccessExpressionSyntax)
             {
                 var callStmt = call.Expression as MemberAccessExpressionSyntax;
-                if (callStmt.Name.Identifier.ValueText.Equals("Send") ||
-                    callStmt.Name.Identifier.ValueText.Equals("Invoke"))
+                if (callStmt.Name.Identifier.ValueText.Equals("Send"))
                 {
                     return;
                 }
@@ -371,8 +308,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             else if (call.Expression is IdentifierNameSyntax)
             {
                 var callStmt = call.Expression as IdentifierNameSyntax;
-                if (callStmt.Identifier.ValueText.Equals("Send") ||
-                    callStmt.Identifier.ValueText.Equals("Invoke"))
+                if (callStmt.Identifier.ValueText.Equals("Send"))
                 {
                     return;
                 }
@@ -1397,38 +1333,6 @@ namespace Microsoft.PSharp.StaticAnalysis
                         as BinaryExpressionSyntax;
                     if ((binExpr.Left is IdentifierNameSyntax) ||
                         (binExpr.Left is MemberAccessExpressionSyntax))
-                    {
-                        arguments.Add(binExpr.Left);
-                    }
-                    else if (binExpr.Left is InvocationExpressionSyntax)
-                    {
-                        var invocation = binExpr.Left as InvocationExpressionSyntax;
-                        for (int i = 1; i < invocation.ArgumentList.Arguments.Count; i++)
-                        {
-                            arguments.Add(invocation.ArgumentList.Arguments[i].Expression);
-                        }
-                    }
-                }
-            }
-            else if ((opSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.Machine") ||
-                opSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.MachineState")) &&
-                opSymbol.Name.Equals("Invoke"))
-            {
-                if (operation.ArgumentList.Arguments[0].Expression is ObjectCreationExpressionSyntax)
-                {
-                    var objCreation = operation.ArgumentList.Arguments[0].Expression
-                        as ObjectCreationExpressionSyntax;
-                    foreach (var arg in objCreation.ArgumentList.Arguments)
-                    {
-                        arguments.Add(arg.Expression);
-                    }
-                }
-                else if (operation.ArgumentList.Arguments[0].Expression is BinaryExpressionSyntax &&
-                    operation.ArgumentList.Arguments[0].Expression.IsKind(SyntaxKind.AsExpression))
-                {
-                    var binExpr = operation.ArgumentList.Arguments[0].Expression
-                        as BinaryExpressionSyntax;
-                    if ((binExpr.Left is IdentifierNameSyntax) || (binExpr.Left is MemberAccessExpressionSyntax))
                     {
                         arguments.Add(binExpr.Left);
                     }
