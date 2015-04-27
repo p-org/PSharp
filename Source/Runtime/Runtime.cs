@@ -492,7 +492,7 @@ namespace Microsoft.PSharp
             }
 
             Runtime.Assert(Runtime.Monitors.Any(val => val.GetType() == typeof(T)),
-                "A monitor of type '{0}' does not exists.\n", typeof(T).Name);
+                "A monitor of type '{0}' does not exist.\n", typeof(T).Name);
             Runtime.Assert(Runtime.RegisteredEventTypes.Any(val => val == e.GetType()),
                 "Event '{0}' has not been registered with the P# runtime.\n", e.GetType().Name);
 
