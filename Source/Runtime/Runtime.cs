@@ -406,9 +406,13 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="m">Type of the monitor</param>
         /// <param name="payload">Optional payload</param>
-        /// <returns>Monitor</returns>
-        internal static Monitor TryCreateNewMonitorInstance(Type m, params Object[] payload)
+        internal static void TryCreateNewMonitorInstance(Type m, params Object[] payload)
         {
+            if (Runtime.Options.Mode == Runtime.Mode.Execution)
+            {
+                return;
+            }
+
             Utilities.Verbose("Creating new monitor: {0}\n", m);
             Runtime.Assert(Runtime.RegisteredMonitorTypes.Any(val => val == m),
                 "Monitor '{0}' has not been registered with the P# runtime.\n", m.Name);
@@ -417,8 +421,6 @@ namespace Microsoft.PSharp
 
             Monitor monitor = Activator.CreateInstance(m) as Monitor;
             Runtime.Monitors.Add(monitor);
-
-            return monitor;
         }
 
         /// <summary>
@@ -428,9 +430,13 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <typeparam name="T">Type of the monitor</typeparam>
         /// <param name="payload">Optional payload</param>
-        /// <returns>Monitor</returns>
-        internal static T TryCreateNewMonitorInstance<T>(params Object[] payload)
+        internal static void TryCreateNewMonitorInstance<T>(params Object[] payload)
         {
+            if (Runtime.Options.Mode == Runtime.Mode.Execution)
+            {
+                return;
+            }
+
             Utilities.Verbose("Creating new monitor: {0}\n", typeof(T));
             Runtime.Assert(Runtime.RegisteredMonitorTypes.Any(val => val == typeof(T)),
                 "Monitor '{0}' has not been registered with the P# runtime.\n", typeof(T).Name);
@@ -439,8 +445,6 @@ namespace Microsoft.PSharp
 
             Object monitor = Activator.CreateInstance(typeof(T));
             Runtime.Monitors.Add(monitor as Monitor);
-
-            return (T)monitor;
         }
 
         /// <summary>
@@ -480,6 +484,11 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         internal static void Invoke<T>(Event e)
         {
+            if (Runtime.Options.Mode == Runtime.Mode.Execution)
+            {
+                return;
+            }
+
             Utilities.Verbose("Sending event {0} to monitor {1}\n", e, typeof(T));
             Runtime.Assert(Runtime.Monitors.Any(val => val.GetType() == typeof(T)),
                 "A monitor of type '{0}' does not exists.\n", typeof(T).Name);
