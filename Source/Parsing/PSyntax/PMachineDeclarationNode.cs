@@ -31,6 +31,11 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         public readonly bool IsMain;
 
         /// <summary>
+        /// True if the machine is a monitor.
+        /// </summary>
+        public readonly bool IsMonitor;
+
+        /// <summary>
         /// The machine keyword.
         /// </summary>
         public Token MachineKeyword;
@@ -73,10 +78,12 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         /// Constructor.
         /// </summary>
         /// <param name="isMain">Is main machine</param>
-        public PMachineDeclarationNode(bool isMain)
+        /// <param name="isMain">Is a monitor</param>
+        public PMachineDeclarationNode(bool isMain, bool isMonitor)
             : base()
         {
             this.IsMain = isMain;
+            this.IsMonitor = isMonitor;
             this.FieldDeclarations = new List<PFieldDeclarationNode>();
             this.StateDeclarations = new List<PStateDeclarationNode>();
             this.FunctionDeclarations = new List<PFunctionDeclarationNode>();
@@ -135,7 +142,14 @@ namespace Microsoft.PSharp.Parsing.PSyntax
                 text += "[Main]\n";
             }
 
-            text += "class " + this.Identifier.TextUnit.Text + " : Machine";
+            if (!this.IsMonitor)
+            {
+                text += "class " + this.Identifier.TextUnit.Text + " : Machine";
+            }
+            else
+            {
+                text += "class " + this.Identifier.TextUnit.Text + " : Monitor";
+            }
 
             text += "\n" + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
 
@@ -155,7 +169,12 @@ namespace Microsoft.PSharp.Parsing.PSyntax
             }
 
             text += this.InstrumentGotoStateTransitions();
-            text += this.InstrumentPushStateTransitions();
+
+            if (!this.IsMonitor)
+            {
+                text += this.InstrumentPushStateTransitions();
+            }
+
             text += this.InstrumentActionsBindings();
 
             text += this.RightCurlyBracketToken.TextUnit.Text + "\n";

@@ -150,6 +150,11 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         /// <returns>Boolean value</returns>
         public bool AddPushStateTransition(Token eventIdentifier, Token stateIdentifier)
         {
+            if (this.Machine.IsMonitor)
+            {
+                return false;
+            }
+
             if (this.GotoStateTransitions.ContainsKey(eventIdentifier) ||
                 this.PushStateTransitions.ContainsKey(eventIdentifier) ||
                 this.ActionBindings.ContainsKey(eventIdentifier))
@@ -189,6 +194,11 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         /// <returns>Boolean value</returns>
         public bool AddDeferredEvent(Token eventIdentifier)
         {
+            if (this.Machine.IsMonitor)
+            {
+                return false;
+            }
+
             if (this.DeferredEvents.Contains(eventIdentifier) ||
                 this.IgnoredEvents.Contains(eventIdentifier))
             {
@@ -266,7 +276,14 @@ namespace Microsoft.PSharp.Parsing.PSyntax
                 text += "[Initial]\n";
             }
 
-            text += "class " +  this.Identifier.TextUnit.Text + " : MachineState";
+            if (!this.Machine.IsMonitor)
+            {
+                text += "class " + this.Identifier.TextUnit.Text + " : MachineState";
+            }
+            else
+            {
+                text += "class " + this.Identifier.TextUnit.Text + " : MonitorState";
+            }
 
             text += "\n" + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
 
@@ -280,7 +297,11 @@ namespace Microsoft.PSharp.Parsing.PSyntax
                 text += this.ExitDeclaration.GetRewrittenText();
             }
 
-            text += this.InstrumentDeferredEvents();
+            if (!this.Machine.IsMonitor)
+            {
+                text += this.InstrumentDeferredEvents();
+            }
+            
             text += this.InstrumentIgnoredEvents();
 
             text += this.RightCurlyBracketToken.TextUnit.Text + "\n";

@@ -141,7 +141,7 @@ main model User {
     state Loop {
         entry {
             if ($) {
-				monitor M, eOpenDoor;
+				//monitor M, eOpenDoor;
 				send ElevatorV,eOpenDoor;
             } else if ($) {
                send ElevatorV,eCloseDoor;
@@ -171,7 +171,7 @@ model Door {
 
     state OpenDoor {
         entry {
-			monitor M, eDoorOpened;
+			//monitor M, eDoorOpened;
             send ElevatorV,eDoorOpened;
             raise eUnit;
         }
@@ -274,11 +274,11 @@ model Timer {
 }
 
 monitor M {
-    start cold state WaitForRequest {
+    start /*cold*/ state WaitForRequest {
         on eOpenDoor goto WaitForResponse;
     }
 
-    hot state WaitForResponse {
+    /*hot*/ state WaitForResponse {
         on eDoorOpened goto WaitForRequest;
     }
 }

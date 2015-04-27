@@ -70,7 +70,8 @@ namespace Microsoft.PSharp.Parsing
                     TokenType.MainMachine,
                     TokenType.EventDecl,
                     TokenType.MachineDecl,
-                    TokenType.ModelDecl
+                    TokenType.ModelDecl,
+                    TokenType.MonitorDecl
                 });
             }
 
@@ -102,12 +103,17 @@ namespace Microsoft.PSharp.Parsing
                     break;
 
                 case TokenType.MachineDecl:
-                    this.VisitMachineDeclaration(false);
+                    this.VisitMachineDeclaration(false, false);
+                    base.Index++;
+                    break;
+
+                case TokenType.MonitorDecl:
+                    this.VisitMachineDeclaration(false, true);
                     base.Index++;
                     break;
 
                 case TokenType.ModelDecl:
-                    this.VisitMachineDeclaration(false);
+                    this.VisitMachineDeclaration(false, false);
                     base.Index++;
                     break;
 
@@ -258,16 +264,17 @@ namespace Microsoft.PSharp.Parsing
                 });
             }
 
-            this.VisitMachineDeclaration(true);
+            this.VisitMachineDeclaration(true, false);
         }
 
         /// <summary>
         /// Visits a machine declaration.
         /// </summary>
         /// <param name="isMain">Is main machine</param>
-        private void VisitMachineDeclaration(bool isMain)
+        /// <param name="isMain">Is a monitor</param>
+        private void VisitMachineDeclaration(bool isMain, bool isMonitor)
         {
-            var node = new PMachineDeclarationNode(isMain);
+            var node = new PMachineDeclarationNode(isMain, isMonitor);
             node.MachineKeyword = base.Tokens[base.Index];
 
             base.Index++;
@@ -817,6 +824,11 @@ namespace Microsoft.PSharp.Parsing
             }
             else if (base.Tokens[base.Index].Type == TokenType.PushState)
             {
+                if (parentNode.Machine.IsMonitor)
+                {
+                    this.ReportParsingError("Monitors cannot \"push\".");
+                }
+
                 base.Index++;
                 base.SkipWhiteSpaceAndCommentTokens();
 
@@ -863,6 +875,11 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="parentNode">Node</param>
         private void VisitDeferEventsDeclaration(PStateDeclarationNode parentNode)
         {
+            if (parentNode.Machine.IsMonitor)
+            {
+                this.ReportParsingError("Monitors cannot \"defer\".");
+            }
+
             base.Index++;
             base.SkipWhiteSpaceAndCommentTokens();
 
@@ -922,6 +939,12 @@ namespace Microsoft.PSharp.Parsing
                 else if (base.Tokens[base.Index].Type == TokenType.HaltEvent ||
                     base.Tokens[base.Index].Type == TokenType.DefaultEvent)
                 {
+                    if (parentNode.Machine.IsMonitor &&
+                        base.Tokens[base.Index].Type == TokenType.DefaultEvent)
+                    {
+                        this.ReportParsingError("Monitors cannot use the \"default\" event.");
+                    }
+
                     if (!parentNode.AddDeferredEvent(base.Tokens[base.Index]))
                     {
                         this.ReportParsingError("Unexpected event identifier.");
@@ -1578,6 +1601,11 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="parentNode">Node</param>
         private void VisitSendStatement(PStatementBlockNode parentNode)
         {
+            if (parentNode.Machine.IsMonitor)
+            {
+                this.ReportParsingError("Monitors cannot \"send\".");
+            }
+
             var node = new PSendStatementNode(parentNode);
             node.SendKeyword = base.Tokens[base.Index];
 
@@ -1701,6 +1729,11 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="parentNode">Node</param>
         private void VisitPushStatement(PStatementBlockNode parentNode)
         {
+            if (parentNode.Machine.IsMonitor)
+            {
+                this.ReportParsingError("Monitors cannot \"push\".");
+            }
+
             var node = new PPushStatementNode(parentNode);
             node.PushKeyword = base.Tokens[base.Index];
 
