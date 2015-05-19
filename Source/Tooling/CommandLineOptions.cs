@@ -114,7 +114,7 @@ namespace Microsoft.PSharp.Tooling
                 {
                     Configuration.DoStateTransitionAnalysis = false;
                 }
-                else if (this.Options[idx].ToLower().Equals("/analyseexceptions"))
+                else if (this.Options[idx].ToLower().Equals("/analyzeexceptions"))
                 {
                     Configuration.AnalyseExceptionHandling = true;
                 }
