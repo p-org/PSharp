@@ -77,13 +77,13 @@ namespace Microsoft.PSharp.Tooling
                 {
                     Configuration.NoParsing = true;
                 }
-                else if (this.Options[idx].ToLower().Equals("/noanalysis"))
-                {
-                    Configuration.NoStaticAnalysis = true;
-                }
                 else if (this.Options[idx].ToLower().Equals("/nocompile"))
                 {
                     Configuration.NoCompilation = true;
+                }
+                else if (this.Options[idx].ToLower().Equals("/analyze"))
+                {
+                    Configuration.RunAnalysis = true;
                 }
                 else if (this.Options[idx].ToLower().Equals("/showwarnings"))
                 {

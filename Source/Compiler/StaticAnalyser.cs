@@ -28,14 +28,14 @@ namespace Microsoft.PSharp
         /// </summary>
         public static void Run()
         {
-            if (Configuration.NoStaticAnalysis)
+            if (!Configuration.RunAnalysis)
             {
                 return;
             }
 
             foreach (var programUnit in ProgramInfo.ProgramUnits)
             {
-                Console.WriteLine(". Analysing " + programUnit.Name);
+                Console.WriteLine(". Analyzing " + programUnit.Name);
 
                 StaticAnalyser.AnalyseProgramUnit(programUnit);
             }

@@ -36,11 +36,11 @@ namespace Microsoft.PSharp
             // Run the parser.
             Parser.Run();
 
-            // Run the static analyser.
-            StaticAnalyser.Run();
-
             // Run the compiler.
             Compiler.Run();
+
+            // Run the static analyser.
+            StaticAnalyser.Run();
 
             Console.WriteLine(". Done");
         }
