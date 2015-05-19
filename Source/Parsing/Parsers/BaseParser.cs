@@ -42,15 +42,7 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         protected IPSharpProgram Program;
 
-        /// <summary>
-        /// List of tokens.
-        /// </summary>
-        protected List<Token> Tokens;
-
-        /// <summary>
-        /// The current index.
-        /// </summary>
-        protected int Index;
+        protected TokenStream TokenStream;
 
         /// <summary>
         /// The name of the currently parsed machine.
@@ -105,8 +97,7 @@ namespace Microsoft.PSharp.Parsing
         {
             this.OriginalTokens = tokens.ToList();
             this.Program = this.CreateNewProgram();
-            this.Tokens = tokens;
-            this.Index = 0;
+            this.TokenStream = new TokenStream(tokens);
             this.CurrentMachine = "";
             this.CurrentState = "";
             this.ExpectedTokenTypes = new List<TokenType>();
@@ -164,14 +155,14 @@ namespace Microsoft.PSharp.Parsing
                 return;
             }
 
-            var errorIndex = this.Index;
-            if (this.Index == this.Tokens.Count &&
-                this.Index > 0)
+            var errorIndex = this.TokenStream.Index;
+            if (this.TokenStream.Index == this.TokenStream.Length &&
+                this.TokenStream.Index > 0)
             {
                 errorIndex--;
             }
 
-            var errorToken = this.Tokens[errorIndex];
+            var errorToken = this.TokenStream.GetAt(errorIndex);
             var errorLine = this.OriginalTokens.Where(
                 val => val.TextUnit.Line == errorToken.TextUnit.Line).ToList();
 
@@ -194,7 +185,7 @@ namespace Microsoft.PSharp.Parsing
 
             for (int idx = nonWhiteIndex; idx < errorLine.Count; idx++)
             {
-                if (errorLine[idx].Equals(errorToken) && errorIndex == this.Index)
+                if (errorLine[idx].Equals(errorToken) && errorIndex == this.TokenStream.Index)
                 {
                     error += new StringBuilder().Append('~', errorLine[idx].TextUnit.Text.Length);
                     break;
@@ -205,7 +196,7 @@ namespace Microsoft.PSharp.Parsing
                 }
             }
 
-            if (errorIndex != this.Index)
+            if (errorIndex != this.TokenStream.Index)
             {
                 error += "^";
             }
@@ -220,7 +211,7 @@ namespace Microsoft.PSharp.Parsing
         protected List<Token> SkipWhiteSpaceAndCommentTokens()
         {
             var skipped = new List<Token>();
-            while (this.Index < this.Tokens.Count)
+            while (!this.TokenStream.Done)
             {
                 var repeat = this.CommentOutLineComment();
                 repeat = repeat || this.CommentOutMultiLineComment();
@@ -240,7 +231,7 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         protected void SkipCommentTokens()
         {
-            while (this.Index < this.Tokens.Count)
+            while (!this.TokenStream.Done)
             {
                 var repeat = this.CommentOutLineComment();
                 repeat = repeat || this.CommentOutMultiLineComment();
@@ -263,18 +254,17 @@ namespace Microsoft.PSharp.Parsing
         /// <returns>Boolean value</returns>
         private bool SkipWhiteSpaceTokens(List<Token> skipped)
         {
-            if ((this.Tokens[this.Index].Type != TokenType.WhiteSpace) &&
-                (this.Tokens[this.Index].Type != TokenType.NewLine))
+            if ((this.TokenStream.Peek().Type != TokenType.WhiteSpace) &&
+                (this.TokenStream.Peek().Type != TokenType.NewLine))
             {
                 return false;
             }
 
-            while (this.Index < this.Tokens.Count &&
-                (this.Tokens[this.Index].Type == TokenType.WhiteSpace ||
-                this.Tokens[this.Index].Type == TokenType.NewLine))
+            while (!this.TokenStream.Done &&
+                (this.TokenStream.Peek().Type == TokenType.WhiteSpace ||
+                this.TokenStream.Peek().Type == TokenType.NewLine))
             {
-                skipped.Add(this.Tokens[this.Index]);
-                this.Index++;
+                skipped.Add(this.TokenStream.Next());
             }
 
             return true;
@@ -286,16 +276,16 @@ namespace Microsoft.PSharp.Parsing
         /// <returns>Boolean value</returns>
         private bool CommentOutLineComment()
         {
-            if ((this.Tokens[this.Index].Type != TokenType.CommentLine) &&
-                (this.Tokens[this.Index].Type != TokenType.Region))
+            if ((this.TokenStream.Peek().Type != TokenType.CommentLine) &&
+                (this.TokenStream.Peek().Type != TokenType.Region))
             {
                 return false;
             }
 
-            while (this.Index < this.Tokens.Count &&
-                this.Tokens[this.Index].Type != TokenType.NewLine)
+            while (!this.TokenStream.Done &&
+                this.TokenStream.Peek().Type != TokenType.NewLine)
             {
-                this.Tokens.RemoveAt(this.Index);
+                this.TokenStream.Consume();
             }
 
             return true;
@@ -307,18 +297,18 @@ namespace Microsoft.PSharp.Parsing
         /// <returns>Boolean value</returns>
         private bool CommentOutMultiLineComment()
         {
-            if (this.Tokens[this.Index].Type != TokenType.CommentStart)
+            if (this.TokenStream.Peek().Type != TokenType.CommentStart)
             {
                 return false;
             }
 
-            while (this.Index < this.Tokens.Count &&
-                this.Tokens[this.Index].Type != TokenType.CommentEnd)
+            while (!this.TokenStream.Done &&
+                this.TokenStream.Peek().Type != TokenType.CommentEnd)
             {
-                this.Tokens.RemoveAt(this.Index);
+                this.TokenStream.Consume();
             }
 
-            this.Tokens.RemoveAt(this.Index);
+            this.TokenStream.Consume();
 
             return true;
         }
