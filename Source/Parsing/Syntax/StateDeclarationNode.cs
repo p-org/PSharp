@@ -239,7 +239,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 text += " ";
             }
 
-            text += "class " + this.Identifier.TextUnit.Text + " : State";
+            text += "class " + this.Identifier.TextUnit.Text + " : MachineState";
             text += "\n" + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
 
             if (this.EntryDeclaration != null)

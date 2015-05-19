@@ -385,8 +385,7 @@ namespace Microsoft.PSharp
                             this, this.Id, e.GetType());
 
                         this.Inbox.Add(e);
-                        Event nextEvent = this.DequeueNextEvent();
-                        this.HandleEvent(nextEvent);
+                        this.StartEventHandler();
                     }
                 }
             }
@@ -435,6 +434,38 @@ namespace Microsoft.PSharp
         #region private machine methods
 
         /// <summary>
+        /// Starts an event handling loop. The loop terminates if
+        /// there is no next event to process or if the machine is
+        /// halted.
+        /// </summary>
+        private void StartEventHandler()
+        {
+            Event nextEvent = this.DequeueNextEvent();
+
+            while (!this.IsHalted)
+            {
+                if (nextEvent == null)
+                {
+                    if (this.StateStack.Peek().HasDefaultHandler())
+                    {
+                        nextEvent = new Default();
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                this.Trigger = nextEvent.GetType();
+                this.Payload = nextEvent.Payload;
+                
+                this.HandleEvent(nextEvent);
+
+                nextEvent = this.DequeueNextEvent();
+            }
+        }
+
+        /// <summary>
         /// Dequeues the next available event. If no event is
         /// available returns null.
         /// </summary>
@@ -480,21 +511,6 @@ namespace Microsoft.PSharp
         /// <param name="e">Event to handle</param>
         private void HandleEvent(Event e)
         {
-            if (e == null)
-            {
-                if (this.StateStack.Peek().HasDefaultHandler())
-                {
-                    e = new Default();
-                }
-                else
-                {
-                    return;
-                }
-            }
-            
-            this.Trigger = e.GetType();
-            this.Payload = e.Payload;
-
             while (true)
             {
                 if (this.StateStack.Count == 0)
@@ -548,14 +564,8 @@ namespace Microsoft.PSharp
                 break;
             }
 
-            if (!this.IsHalted)
-            {
-                this.Trigger = null;
-                this.Payload = null;
-
-                Event nextEvent = this.DequeueNextEvent();
-                this.HandleEvent(nextEvent);
-            }
+            this.Trigger = null;
+            this.Payload = null;
         }
 
         /// <summary>
