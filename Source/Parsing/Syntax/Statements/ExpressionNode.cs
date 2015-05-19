@@ -167,6 +167,10 @@ namespace Microsoft.PSharp.Parsing.Syntax
             {
                 this.RewriteThis(ref position);
             }
+            else if (token.Type == TokenType.NonDeterministic)
+            {
+                this.RewriteNonDeterministicChoice(ref position);
+            }
             else if (token.Type == TokenType.Identifier)
             {
                 this.RewriteIdentifier(ref position);
@@ -239,6 +243,18 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line, position));
                 position += text.Length;
             }
+        }
+
+        /// <summary>
+        /// Rewrites the non-deterministic choice.
+        /// </summary>
+        /// <param name="position">Position</param>
+        protected void RewriteNonDeterministicChoice(ref int position)
+        {
+            int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
+            var text = "Microsoft.PSharp.Havoc.Boolean";
+            this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line, position));
+            position += text.Length;
         }
 
         /// <summary>

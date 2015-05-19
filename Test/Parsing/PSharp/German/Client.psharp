@@ -1,0 +1,133 @@
+﻿namespace German
+{
+    internal machine Client
+    {
+	    private Machine Host;
+		private bool Pending;
+
+        start state Init
+        {
+            entry
+            {
+			    Host = payload[0] as Machine;
+				Pending = (bool)payload[1];
+
+				raise unit;
+            }
+
+			on unit goto Invalid;
+        }
+
+		state Invalid
+        {
+			on ask_share goto AskedShare;
+			on ask_excl goto AskedExcl;
+			on invalidate goto Invalidating;
+			on grant_excl goto Exclusive;
+			on grant_share goto Sharing;
+        }
+
+		state AskedShare
+		{
+		    entry
+			{
+			    send req_share ( this ) to Host;
+				Pending = true;
+
+				raise unit;
+		    }
+			
+			on unit goto InvalidWait;
+	    }
+
+		state AskedExcl
+		{
+		    entry
+			{
+			    send req_excl ( this ) to Host;
+				Pending = true;
+
+				raise unit;
+		    }
+			
+			on unit goto InvalidWait;
+	    }
+
+		state InvalidWait
+        {
+			defer ask_share, ask_excl;
+
+			on invalidate goto Invalidating;
+			on grant_excl goto Exclusive;
+			on grant_share goto Sharing;
+        }
+
+		state AskedExcl2
+		{
+		    entry
+			{
+			    send req_excl ( this ) to Host;
+				Pending = true;
+
+				raise unit;
+		    }
+			
+			on unit goto SharingWait;
+	    }
+
+		state Sharing
+		{
+		    entry
+			{
+				Pending = false;
+		    }
+			
+			on invalidate goto Invalidating;
+			on grant_share goto Sharing;
+			on grant_excl goto Exclusive;
+			on ask_share goto Sharing;
+			on ask_excl goto AskedExcl2;
+	    }
+
+		state SharingWait
+        {
+			defer ask_share, ask_excl;
+
+			on invalidate goto Invalidating;
+			on grant_share goto SharingWait;
+			on grant_excl goto Exclusive;
+        }
+
+		state Exclusive
+		{
+		    entry
+			{
+			    Pending = false;
+		    }
+			
+			on invalidate goto Invalidating;
+			on grant_share goto Sharing;
+			on grant_excl goto Exclusive;
+
+			ignore ask_share, ask_excl;
+	    }
+
+		state Invalidating
+		{
+		    entry
+			{
+			    send invalidate_ack to Host;
+
+			    if (Pending)
+			    {
+				    raise wait;
+			    }
+			    else
+				    raise normal;
+		    }
+			
+			on wait goto InvalidWait;
+			on normal goto Invalid;
+	    }
+    }
+}

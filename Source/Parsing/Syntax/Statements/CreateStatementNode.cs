@@ -104,11 +104,8 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += ">(";
 
-            if (this.Payload != null)
-            {
-                this.Payload.Rewrite(ref position);
-                text += this.Payload.GetRewrittenText();
-            }
+            this.Payload.Rewrite(ref position);
+            text += this.Payload.GetRewrittenText();
 
             text += ")";
 
@@ -133,11 +130,8 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += this.LeftParenthesisToken.TextUnit.Text;
 
-            if (this.Payload != null)
-            {
-                this.Payload.GenerateTextUnit();
-                text += this.Payload.GetFullText();
-            }
+            this.Payload.GenerateTextUnit();
+            text += this.Payload.GetFullText();
 
             text += this.RightParenthesisToken.TextUnit.Text;
 

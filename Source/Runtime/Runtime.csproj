@@ -58,7 +58,7 @@
     <Compile Include="Attributes\Initial.cs" />
     <Compile Include="Exceptions.cs" />
     <Compile Include="Library\Machine.cs" />
-    <Compile Include="Library\Model.cs" />
+    <Compile Include="Library\Havoc.cs" />
     <Compile Include="Profiler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Scheduling\EventType.cs" />

@@ -1678,7 +1678,10 @@ namespace Microsoft.PSharp.Parsing
                 case TokenType.IfCondition:
                     this.VisitIfStatement(node);
                     break;
-
+                    
+                case TokenType.Break:
+                case TokenType.Continue:
+                case TokenType.Return:
                 case TokenType.This:
                 case TokenType.Base:
                 case TokenType.Var:
@@ -1815,30 +1818,25 @@ namespace Microsoft.PSharp.Parsing
             }
 
             if (base.Index == base.Tokens.Count ||
-                (base.Tokens[base.Index].Type != TokenType.LeftParenthesis &&
-                base.Tokens[base.Index].Type != TokenType.Semicolon))
+                base.Tokens[base.Index].Type != TokenType.LeftParenthesis)
             {
-                this.ReportParsingError("Expected \"(\" or \";\".");
+                this.ReportParsingError("Expected \"(\".");
                 throw new EndOfTokensException(new List<TokenType>
                 {
-                    TokenType.LeftParenthesis,
-                    TokenType.Semicolon
+                    TokenType.LeftParenthesis
                 });
             }
 
-            if (base.Tokens[base.Index].Type == TokenType.LeftParenthesis)
-            {
-                node.LeftParenthesisToken = base.Tokens[base.Index];
+            node.LeftParenthesisToken = base.Tokens[base.Index];
 
-                var payload = new ExpressionNode(parentNode);
-                this.VisitArgumentsList(payload);
+            var payload = new ExpressionNode(parentNode);
+            this.VisitArgumentsList(payload);
 
-                node.Payload = payload;
-                node.RightParenthesisToken = base.Tokens[base.Index];
+            node.Payload = payload;
+            node.RightParenthesisToken = base.Tokens[base.Index];
 
-                base.Index++;
-                base.SkipWhiteSpaceAndCommentTokens();
-            }
+            base.Index++;
+            base.SkipWhiteSpaceAndCommentTokens();
 
             if (base.Index == base.Tokens.Count ||
                 base.Tokens[base.Index].Type != TokenType.Semicolon)
@@ -2088,8 +2086,7 @@ namespace Microsoft.PSharp.Parsing
             base.SkipWhiteSpaceAndCommentTokens();
 
             var guard = new ExpressionNode(parentNode);
-
-
+            
             int counter = 1;
             while (base.Index < base.Tokens.Count)
             {
@@ -2130,7 +2127,22 @@ namespace Microsoft.PSharp.Parsing
             base.SkipWhiteSpaceAndCommentTokens();
 
             if (base.Index == base.Tokens.Count ||
-                base.Tokens[base.Index].Type != TokenType.LeftCurlyBracket)
+                (base.Tokens[base.Index].Type != TokenType.New &&
+                base.Tokens[base.Index].Type != TokenType.CreateMachine &&
+                base.Tokens[base.Index].Type != TokenType.RaiseEvent &&
+                base.Tokens[base.Index].Type != TokenType.SendEvent &&
+                base.Tokens[base.Index].Type != TokenType.Assert &&
+                base.Tokens[base.Index].Type != TokenType.IfCondition &&
+                base.Tokens[base.Index].Type != TokenType.Break &&
+                base.Tokens[base.Index].Type != TokenType.Continue &&
+                base.Tokens[base.Index].Type != TokenType.Return &&
+                base.Tokens[base.Index].Type != TokenType.This &&
+                base.Tokens[base.Index].Type != TokenType.Base &&
+                base.Tokens[base.Index].Type != TokenType.Var &&
+                base.Tokens[base.Index].Type != TokenType.Int &&
+                base.Tokens[base.Index].Type != TokenType.Bool &&
+                base.Tokens[base.Index].Type != TokenType.Identifier &&
+                base.Tokens[base.Index].Type != TokenType.LeftCurlyBracket))
             {
                 this.ReportParsingError("Expected \"{\".");
                 throw new EndOfTokensException(new List<TokenType>
@@ -2140,19 +2152,134 @@ namespace Microsoft.PSharp.Parsing
             }
 
             var blockNode = new StatementBlockNode(parentNode.Machine, parentNode.State);
-            this.VisitStatementBlock(blockNode);
+            
+            if (base.Tokens[base.Index].Type == TokenType.New)
+            {
+                this.VisitNewStatement(blockNode);
+            }
+            else if (base.Tokens[base.Index].Type == TokenType.CreateMachine)
+            {
+                this.VisitCreateStatement(blockNode);
+            }
+            else if (base.Tokens[base.Index].Type == TokenType.RaiseEvent)
+            {
+                this.VisitRaiseStatement(blockNode);
+            }
+            else if (base.Tokens[base.Index].Type == TokenType.SendEvent)
+            {
+                this.VisitSendStatement(blockNode);
+            }
+            else if (base.Tokens[base.Index].Type == TokenType.Assert)
+            {
+                this.VisitAssertStatement(blockNode);
+            }
+            else if (base.Tokens[base.Index].Type == TokenType.IfCondition)
+            {
+                this.VisitIfStatement(blockNode);
+            }
+            else if (base.Tokens[base.Index].Type == TokenType.Break ||
+                base.Tokens[base.Index].Type == TokenType.Continue ||
+                base.Tokens[base.Index].Type == TokenType.Return ||
+                base.Tokens[base.Index].Type == TokenType.This ||
+                base.Tokens[base.Index].Type == TokenType.Base ||
+                base.Tokens[base.Index].Type == TokenType.Var ||
+                base.Tokens[base.Index].Type == TokenType.Int ||
+                base.Tokens[base.Index].Type == TokenType.Bool ||
+                base.Tokens[base.Index].Type == TokenType.Identifier)
+            {
+                this.VisitGenericStatement(blockNode);
+            }
+            else if (base.Tokens[base.Index].Type == TokenType.LeftCurlyBracket)
+            {
+                this.VisitStatementBlock(blockNode);
+            }
+            
             node.StatementBlock = blockNode;
 
-            //base.Index++;
-            //base.SkipWhiteSpaceAndCommentTokens();
+            base.Index++;
+            base.SkipWhiteSpaceAndCommentTokens();
 
-            //if (base.Tokens[base.Index].Type == TokenType.ElseCondition)
-            //{
+            if (base.Tokens[base.Index].Type == TokenType.ElseCondition)
+            {
+                node.ElseKeyword = base.Tokens[base.Index];
 
-            //}
+                base.Index++;
+                base.SkipWhiteSpaceAndCommentTokens();
+
+                if (base.Index == base.Tokens.Count ||
+                    (base.Tokens[base.Index].Type != TokenType.New &&
+                    base.Tokens[base.Index].Type != TokenType.CreateMachine &&
+                    base.Tokens[base.Index].Type != TokenType.RaiseEvent &&
+                    base.Tokens[base.Index].Type != TokenType.SendEvent &&
+                    base.Tokens[base.Index].Type != TokenType.Assert &&
+                    base.Tokens[base.Index].Type != TokenType.IfCondition &&
+                    base.Tokens[base.Index].Type != TokenType.Break &&
+                    base.Tokens[base.Index].Type != TokenType.Continue &&
+                    base.Tokens[base.Index].Type != TokenType.Return &&
+                    base.Tokens[base.Index].Type != TokenType.This &&
+                    base.Tokens[base.Index].Type != TokenType.Base &&
+                    base.Tokens[base.Index].Type != TokenType.Var &&
+                    base.Tokens[base.Index].Type != TokenType.Int &&
+                    base.Tokens[base.Index].Type != TokenType.Bool &&
+                    base.Tokens[base.Index].Type != TokenType.Identifier &&
+                    base.Tokens[base.Index].Type != TokenType.LeftCurlyBracket))
+                {
+                    this.ReportParsingError("Expected \"{\".");
+                    throw new EndOfTokensException(new List<TokenType>
+                    {
+                        TokenType.LeftCurlyBracket
+                    });
+                }
+
+                var elseBlockNode = new StatementBlockNode(parentNode.Machine, parentNode.State);
+
+                if (base.Tokens[base.Index].Type == TokenType.New)
+                {
+                    this.VisitNewStatement(elseBlockNode);
+                }
+                else if (base.Tokens[base.Index].Type == TokenType.CreateMachine)
+                {
+                    this.VisitCreateStatement(elseBlockNode);
+                }
+                else if (base.Tokens[base.Index].Type == TokenType.RaiseEvent)
+                {
+                    this.VisitRaiseStatement(elseBlockNode);
+                }
+                else if (base.Tokens[base.Index].Type == TokenType.SendEvent)
+                {
+                    this.VisitSendStatement(elseBlockNode);
+                }
+                else if (base.Tokens[base.Index].Type == TokenType.Assert)
+                {
+                    this.VisitAssertStatement(elseBlockNode);
+                }
+                else if (base.Tokens[base.Index].Type == TokenType.IfCondition)
+                {
+                    this.VisitIfStatement(elseBlockNode);
+                }
+                else if (base.Tokens[base.Index].Type == TokenType.Break ||
+                    base.Tokens[base.Index].Type == TokenType.Continue ||
+                    base.Tokens[base.Index].Type == TokenType.Return ||
+                    base.Tokens[base.Index].Type == TokenType.This ||
+                    base.Tokens[base.Index].Type == TokenType.Base ||
+                    base.Tokens[base.Index].Type == TokenType.Var ||
+                    base.Tokens[base.Index].Type == TokenType.Int ||
+                    base.Tokens[base.Index].Type == TokenType.Bool ||
+                    base.Tokens[base.Index].Type == TokenType.Identifier)
+                {
+                    this.VisitGenericStatement(elseBlockNode);
+                }
+                else if (base.Tokens[base.Index].Type == TokenType.LeftCurlyBracket)
+                {
+                    this.VisitStatementBlock(elseBlockNode);
+                    base.Index++;
+                    base.SkipWhiteSpaceAndCommentTokens();
+                }
+
+                node.ElseStatementBlock = elseBlockNode;
+            }
 
             parentNode.Statements.Add(node);
-            base.Index++;
         }
 
         /// <summary>

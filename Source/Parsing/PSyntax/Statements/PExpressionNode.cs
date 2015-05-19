@@ -610,7 +610,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         protected void RewriteNonDeterministicChoice(ref int position)
         {
             int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
-            var text = "Microsoft.PSharp.Model.Havoc.Boolean";
+            var text = "Microsoft.PSharp.Havoc.Boolean";
             this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line, position));
             position += text.Length;
         }

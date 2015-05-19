@@ -1513,26 +1513,21 @@ namespace Microsoft.PSharp.Parsing
             base.SkipWhiteSpaceAndCommentTokens();
 
             if (base.Index == base.Tokens.Count ||
-                (base.Tokens[base.Index].Type != TokenType.LeftParenthesis &&
-                base.Tokens[base.Index].Type != TokenType.Semicolon))
+                base.Tokens[base.Index].Type != TokenType.LeftParenthesis)
             {
-                this.ReportParsingError("Expected \"(\" or \";\".");
+                this.ReportParsingError("Expected \"(\".");
                 throw new EndOfTokensException(new List<TokenType>
                 {
-                    TokenType.LeftParenthesis,
-                    TokenType.Semicolon
+                    TokenType.LeftParenthesis
                 });
             }
 
-            if (base.Tokens[base.Index].Type == TokenType.LeftParenthesis)
-            {
-                var payload = new PPayloadSendExpressionNode(parentNode);
-                this.VisitPayloadTuple(payload);
-                node.Payload = payload;
+            var payload = new PPayloadSendExpressionNode(parentNode);
+            this.VisitPayloadTuple(payload);
+            node.Payload = payload;
 
-                base.Index++;
-                base.SkipWhiteSpaceAndCommentTokens();
-            }
+            base.Index++;
+            base.SkipWhiteSpaceAndCommentTokens();
 
             if (base.Index == base.Tokens.Count ||
                 base.Tokens[base.Index].Type != TokenType.Semicolon)
@@ -2086,6 +2081,7 @@ namespace Microsoft.PSharp.Parsing
                 (base.Tokens[base.Index].Type != TokenType.New &&
                 base.Tokens[base.Index].Type != TokenType.RaiseEvent &&
                 base.Tokens[base.Index].Type != TokenType.SendEvent &&
+                base.Tokens[base.Index].Type != TokenType.Monitor &&
                 base.Tokens[base.Index].Type != TokenType.Assert &&
                 base.Tokens[base.Index].Type != TokenType.IfCondition &&
                 base.Tokens[base.Index].Type != TokenType.WhileLoop &&
@@ -2160,6 +2156,7 @@ namespace Microsoft.PSharp.Parsing
                     (base.Tokens[base.Index].Type != TokenType.New &&
                     base.Tokens[base.Index].Type != TokenType.RaiseEvent &&
                     base.Tokens[base.Index].Type != TokenType.SendEvent &&
+                    base.Tokens[base.Index].Type != TokenType.Monitor &&
                     base.Tokens[base.Index].Type != TokenType.Assert &&
                     base.Tokens[base.Index].Type != TokenType.IfCondition &&
                     base.Tokens[base.Index].Type != TokenType.WhileLoop &&
@@ -2176,16 +2173,52 @@ namespace Microsoft.PSharp.Parsing
                         TokenType.LeftCurlyBracket
                     });
                 }
+                
+                var elseBlockNode = new PStatementBlockNode(parentNode.Machine, parentNode.State);
 
-                if (base.Tokens[base.Index].Type == TokenType.LeftCurlyBracket)
+                if (base.Tokens[base.Index].Type == TokenType.New)
                 {
-                    var elseBlockNode = new PStatementBlockNode(parentNode.Machine, parentNode.State);
+                    this.VisitNewStatement(elseBlockNode);
+                }
+                else if (base.Tokens[base.Index].Type == TokenType.RaiseEvent)
+                {
+                    this.VisitRaiseStatement(elseBlockNode);
+                }
+                else if (base.Tokens[base.Index].Type == TokenType.SendEvent)
+                {
+                    this.VisitSendStatement(elseBlockNode);
+                }
+                else if (base.Tokens[base.Index].Type == TokenType.Monitor)
+                {
+                    this.VisitMonitorStatement(elseBlockNode);
+                }
+                else if (base.Tokens[base.Index].Type == TokenType.Assert)
+                {
+                    this.VisitAssertStatement(elseBlockNode);
+                }
+                else if (base.Tokens[base.Index].Type == TokenType.IfCondition)
+                {
+                    this.VisitIfStatement(elseBlockNode);
+                }
+                else if (base.Tokens[base.Index].Type == TokenType.WhileLoop)
+                {
+                    this.VisitWhileStatement(elseBlockNode);
+                }
+                else if (base.Tokens[base.Index].Type == TokenType.Break ||
+                    base.Tokens[base.Index].Type == TokenType.Continue ||
+                    base.Tokens[base.Index].Type == TokenType.Return ||
+                    base.Tokens[base.Index].Type == TokenType.Identifier)
+                {
+                    this.VisitGenericStatement(elseBlockNode);
+                }
+                else if (base.Tokens[base.Index].Type == TokenType.LeftCurlyBracket)
+                {
                     this.VisitStatementBlock(elseBlockNode);
-                    node.ElseStatementBlock = elseBlockNode;
-
                     base.Index++;
                     base.SkipWhiteSpaceAndCommentTokens();
                 }
+
+                node.ElseStatementBlock = elseBlockNode;
             }
 
             parentNode.Statements.Add(node);

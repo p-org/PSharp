@@ -91,11 +91,8 @@ namespace Microsoft.PSharp.Parsing.PSyntax
 
             text += ">(";
 
-            if (this.Payload != null)
-            {
-                this.Payload.Rewrite(ref position);
-                text += this.Payload.GetRewrittenText();
-            }
+            this.Payload.Rewrite(ref position);
+            text += this.Payload.GetRewrittenText();
 
             text += ")";
 
@@ -115,11 +112,8 @@ namespace Microsoft.PSharp.Parsing.PSyntax
 
             text += this.MachineIdentifier.TextUnit.Text;
 
-            if (this.Payload != null)
-            {
-                this.Payload.GenerateTextUnit();
-                text += this.Payload.GetFullText();
-            }
+            this.Payload.GenerateTextUnit();
+            text += this.Payload.GetFullText();
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 

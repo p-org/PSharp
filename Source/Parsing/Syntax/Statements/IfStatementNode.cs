@@ -50,6 +50,16 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         public StatementBlockNode StatementBlock;
 
+        /// <summary>
+        /// The else keyword.
+        /// </summary>
+        public Token ElseKeyword;
+
+        /// <summary>
+        /// The else statement block.
+        /// </summary>
+        public StatementBlockNode ElseStatementBlock;
+
         #endregion
 
         #region public API
@@ -110,6 +120,16 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += this.StatementBlock.GetRewrittenText();
 
+            if (this.ElseKeyword != null)
+            {
+                text += this.ElseKeyword.TextUnit.Text + " ";
+                if (this.ElseStatementBlock != null)
+                {
+                    this.ElseStatementBlock.Rewrite(ref position);
+                    text += this.ElseStatementBlock.GetRewrittenText();
+                }
+            }
+
             base.RewrittenTextUnit = new TextUnit(text, this.IfKeyword.TextUnit.Line, start);
             position = base.RewrittenTextUnit.End + 1;
         }
@@ -134,6 +154,16 @@ namespace Microsoft.PSharp.Parsing.Syntax
             text += this.RightParenthesisToken.TextUnit.Text;
 
             text += this.StatementBlock.GetFullText();
+
+            if (this.ElseKeyword != null)
+            {
+                text += this.ElseKeyword.TextUnit.Text + " ";
+                if (this.ElseStatementBlock != null)
+                {
+                    this.ElseStatementBlock.GenerateTextUnit();
+                    text += this.ElseStatementBlock.GetFullText();
+                }
+            }
 
             base.TextUnit = new TextUnit(text, this.IfKeyword.TextUnit.Line,
                 this.IfKeyword.TextUnit.Start);

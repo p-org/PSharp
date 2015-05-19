@@ -1,0 +1,22 @@
+﻿namespace German
+{
+    #region internal events
+
+	internal event unit;
+	internal event req_share;
+	internal event req_excl;
+	internal event need_invalidate;
+	internal event invalidate_ack;
+	internal event grant;
+	internal event ask_share;
+	internal event ask_excl;
+	internal event invalidate;
+	internal event grant_excl;
+	internal event grant_share;
+	internal event normal;
+	internal event wait;
+	internal event invalidate_sharers;
+	internal event sharer_id;
+
+    #endregion
+}

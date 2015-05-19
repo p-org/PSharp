@@ -1,0 +1,67 @@
+﻿namespace German
+{
+    internal main machine Host
+    {
+        private Machine CurrentClient;
+        private Tuple<Machine, Machine, Machine> Clients;
+        private Machine CurrentCPU;
+		private List<Machine> SharerList;
+
+		private bool IsCurrReqExcl;
+		private bool IsExclGranted;
+
+		private int S;
+		private int I;
+
+        private start state Init
+        {
+            entry
+            {	
+			    Machine client1 = create Client (this, false);
+				Machine client2 = create Client (this, false);
+				Machine client3 = create Client (this, false);
+
+                this.Clients = Tuple.Create(client1, client2, client3);
+
+				this.CurrentClient = null;
+				this.CurrentCPU = create CPU (this.Clients);
+
+				this.SharerList = new List<Machine>();
+				assert(this.SharerList.Count == 0);
+
+                raise unit;
+            }
+
+            on unit goto Receive;
+        }
+		
+        private state Receive
+        {
+            entry
+            {
+
+            }
+
+			on req_share goto ShareRequest;
+			on req_excl goto ExclRequest;
+
+			defer invalidate_ack;
+        }
+
+		private state ShareRequest
+        {
+            entry
+            {
+
+            }
+        }
+
+		private state ExclRequest
+        {
+            entry
+            {
+
+            }
+        }
+    }
+}

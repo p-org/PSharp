@@ -1,0 +1,51 @@
+﻿namespace German
+{
+    internal machine CPU
+    {
+	    private Tuple<Machine, Machine, Machine> Cache;
+
+        start state Init
+        {
+            entry
+            {
+			    Cache = payload as Tuple<Machine, Machine, Machine>;
+
+				raise unit;
+            }
+
+			on unit goto MakeReq;
+        }
+
+		state MakeReq
+        {
+            entry
+            {
+			    if ($)
+				{
+				    if ($)
+			            send ask_share to Cache.Item1;
+				    else
+						send ask_excl to Cache.Item1;
+			    }
+			    else if ($)
+			    {
+				    if ($)
+			            send ask_share to Cache.Item2;
+				    else
+						send ask_excl to Cache.Item2;
+			    }
+			    else
+			    {
+				    if ($)
+			            send ask_share to Cache.Item3;
+				    else
+						send ask_excl to Cache.Item3;
+			    }
+
+				raise unit;
+            }
+
+			on unit goto MakeReq;
+        }
+    }
+}
