@@ -52,7 +52,7 @@ namespace Microsoft.PSharp
                 if (this.Options[idx].ToLower().Equals("/bugfinding") ||
                     this.Options[idx].ToLower().Equals("/bf"))
                 {
-                    Runtime.Options.Mode = Runtime.Mode.BugFinding;
+                    Runtime.Options.FindBugs = true;
                 }
                 else
                 {

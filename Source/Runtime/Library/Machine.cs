@@ -140,10 +140,10 @@ namespace Microsoft.PSharp
             this.Id = Machine.IdCounter++;
             this.Lock = new Object();
 
-            if (Runtime.Options.Mode == Runtime.Mode.Execution)
+            if (!Runtime.Options.FindBugs)
                 this.Inbox = new List<Event>();
                 //this.Inbox = new BlockingCollection<Event>();
-            else if (Runtime.Options.Mode == Runtime.Mode.BugFinding)
+            else if (Runtime.Options.FindBugs)
                 this.ScheduledInbox = new SystematicBlockingQueue<Event>();
 
             this.StateStack = new Stack<MachineState>();
@@ -375,7 +375,7 @@ namespace Microsoft.PSharp
         /// <param name="sender">Sender machine</param>
         internal void Enqueue(Event e, string sender)
         {
-            if (Runtime.Options.Mode == Runtime.Mode.Execution)
+            if (!Runtime.Options.FindBugs)
             {
                 lock (this.Lock)
                 {
@@ -389,7 +389,7 @@ namespace Microsoft.PSharp
                     }
                 }
             }
-            else if (Runtime.Options.Mode == Runtime.Mode.BugFinding)
+            else if (Runtime.Options.FindBugs)
             {
                 this.ScheduledInbox.Add(e);
                 ScheduleExplorer.Add(sender, this.GetType().Name, e.GetType().Name);
@@ -415,9 +415,9 @@ namespace Microsoft.PSharp
         {
             this.IsActive = false;
 
-            if (Runtime.Options.Mode == Runtime.Mode.Execution)
+            if (!Runtime.Options.FindBugs)
                 this.CTS.Cancel();
-            else if (Runtime.Options.Mode == Runtime.Mode.BugFinding)
+            else if (Runtime.Options.FindBugs)
                 this.ScheduledInbox.Cancel();
         }
 

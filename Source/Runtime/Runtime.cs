@@ -221,7 +221,7 @@ namespace Microsoft.PSharp
         public static void Test(TestConfiguration testConfig)
         {
             Runtime.Scheduler.SchedulingStrategy = testConfig.SchedulingStrategy;
-            Runtime.Options.Mode = Runtime.Mode.BugFinding;
+            Runtime.Options.FindBugs = true;
             Runtime.Options.CountAssertions = true;
 
             Console.WriteLine("Starting: " + testConfig.Name);
@@ -334,7 +334,7 @@ namespace Microsoft.PSharp
             Machine machine = Activator.CreateInstance(m) as Machine;
             Utilities.Verbose("<CreateLog> Machine {0}({1}) is created.", m, machine.Id);
 
-            if (Runtime.Options.Mode == Runtime.Mode.Execution)
+            if (!Runtime.Options.FindBugs)
             {
                 Task task = new Task(() =>
                 {
@@ -378,7 +378,7 @@ namespace Microsoft.PSharp
             Utilities.Verbose("<CreateLog> Machine {0}({1}) is created.", typeof(T),
                 (machine as Machine).Id);
 
-            if (Runtime.Options.Mode == Runtime.Mode.Execution)
+            if (!Runtime.Options.FindBugs)
             {
                 Task task = new Task(() =>
                 {
@@ -409,7 +409,7 @@ namespace Microsoft.PSharp
         /// <param name="payload">Optional payload</param>
         internal static void TryCreateNewMonitorInstance(Type m, params Object[] payload)
         {
-            if (Runtime.Options.Mode == Runtime.Mode.Execution)
+            if (!Runtime.Options.FindBugs)
             {
                 return;
             }
@@ -434,7 +434,7 @@ namespace Microsoft.PSharp
         /// <param name="payload">Optional payload</param>
         internal static void TryCreateNewMonitorInstance<T>(params Object[] payload)
         {
-            if (Runtime.Options.Mode == Runtime.Mode.Execution)
+            if (!Runtime.Options.FindBugs)
             {
                 return;
             }
@@ -486,7 +486,7 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         internal static void Monitor<T>(Event e)
         {
-            if (Runtime.Options.Mode == Runtime.Mode.Execution)
+            if (!Runtime.Options.FindBugs)
             {
                 return;
             }
@@ -519,7 +519,7 @@ namespace Microsoft.PSharp
         /// </summary>
         internal static void PrintExploredSchedule()
         {
-            if (Runtime.Options.Mode == Runtime.Mode.Execution)
+            if (!Runtime.Options.FindBugs)
             {
                 Utilities.WriteLine("The explored schedule can only " +
                     "be printed in bug finding mode.\n");
@@ -567,12 +567,6 @@ namespace Microsoft.PSharp
         public static class Options
         {
             /// <summary>
-            /// The active P# runtime mode. P# is by default
-            /// executing without ghost machines.
-            /// </summary>
-            public static Mode Mode = Runtime.Mode.Execution;
-
-            /// <summary>
             /// The scheduling strategy to be used. The default is the random
             /// scheduling strategy.
             /// </summary>
@@ -587,6 +581,11 @@ namespace Microsoft.PSharp
             public static bool PrintExploredSchedule = true;
 
             /// <summary>
+            /// Run the runtime in bug-finding mode.
+            /// </summary>
+            public static bool FindBugs = false;
+
+            /// <summary>
             /// True to switch verbose mode on. False by default.
             /// </summary>
             public static bool Verbose = false;
@@ -597,23 +596,6 @@ namespace Microsoft.PSharp
             /// do not cause the environment to exit.
             /// </summary>
             public static bool CountAssertions = false;
-        }
-
-        /// <summary>
-        /// P# runtime mode type.
-        /// </summary>
-        public enum Mode
-        {
-            /// <summary>
-            /// P# executes without ghost machines. The Main
-            /// attribute is not required in this mode.
-            /// </summary>
-            Execution = 0,
-            /// <summary>
-            /// P# uses ghost machines to find bugs. The Main
-            /// attribute is required in this mode.
-            /// </summary>
-            BugFinding = 1
         }
 
         /// <summary>
@@ -650,7 +632,7 @@ namespace Microsoft.PSharp
             {
                 Utilities.ReportError("Assertion failure.\n");
 
-                if (Runtime.Options.Mode == Runtime.Mode.Execution)
+                if (!Runtime.Options.FindBugs)
                 {
                     Environment.Exit(1);
                 }
@@ -681,7 +663,7 @@ namespace Microsoft.PSharp
                 string message = Utilities.Format(s, args);
                 Utilities.ReportError(message);
 
-                if (Runtime.Options.Mode == Runtime.Mode.Execution)
+                if (!Runtime.Options.FindBugs)
                 {
                     Environment.Exit(1);
                 }
