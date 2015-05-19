@@ -40,7 +40,7 @@ namespace Microsoft.PSharp
             Compiler.Run();
 
             // Run the static analyser.
-            StaticAnalyser.Run();
+            StaticAnalyzer.Run();
 
             Console.WriteLine(". Done");
         }

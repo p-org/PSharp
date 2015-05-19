@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="StaticAnalyser.cs">
+// <copyright file="StaticAnalyzer.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -21,7 +21,7 @@ namespace Microsoft.PSharp
     /// <summary>
     /// Static analyser for the P# language.
     /// </summary>
-    internal static class StaticAnalyser
+    internal static class StaticAnalyzer
     {
         /// <summary>
         /// Starts the P# static analyser.
@@ -37,7 +37,7 @@ namespace Microsoft.PSharp
             {
                 Console.WriteLine(". Analyzing " + programUnit.Name);
 
-                StaticAnalyser.AnalyseProgramUnit(programUnit);
+                StaticAnalyzer.AnalyseProgramUnit(programUnit);
             }
 
             // Prints error statistics and profiling results.
