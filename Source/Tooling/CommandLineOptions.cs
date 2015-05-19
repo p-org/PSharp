@@ -116,7 +116,7 @@ namespace Microsoft.PSharp.Tooling
                 }
                 else if (this.Options[idx].ToLower().Equals("/analyzeexceptions"))
                 {
-                    Configuration.AnalyseExceptionHandling = true;
+                    Configuration.AnalyzeExceptionHandling = true;
                 }
                 else
                 {

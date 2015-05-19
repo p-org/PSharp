@@ -639,7 +639,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="successor">Successor</param>
         private void HandleTryStatement(TryStatementSyntax stmt, ControlFlowGraphNode successor)
         {
-            if (Configuration.AnalyseExceptionHandling)
+            if (Configuration.AnalyzeExceptionHandling)
             {
                 var catchSuccessors = new List<ControlFlowGraphNode>();
                 foreach (var catchBlock in stmt.Catches)

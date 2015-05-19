@@ -84,6 +84,6 @@ namespace Microsoft.PSharp.Tooling
         /// <summary>
         /// Analyse exception handling.
         /// </summary>
-        public static bool AnalyseExceptionHandling = false;
+        public static bool AnalyzeExceptionHandling = false;
     }
 }
