@@ -16,7 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.PSharp.Parsing.PSyntax
+namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
     /// A P program.
@@ -28,12 +28,12 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         /// <summary>
         /// List of event declarations.
         /// </summary>
-        public List<PEventDeclarationNode> EventDeclarations;
+        public List<EventDeclarationNode> EventDeclarations;
 
         /// <summary>
         /// List of machine declarations.
         /// </summary>
-        public List<PMachineDeclarationNode> MachineDeclarations;
+        public List<MachineDeclarationNode> MachineDeclarations;
 
         #endregion
 
@@ -46,8 +46,8 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         public PProgram(string filePath)
             : base(filePath)
         {
-            this.EventDeclarations = new List<PEventDeclarationNode>();
-            this.MachineDeclarations = new List<PMachineDeclarationNode>();
+            this.EventDeclarations = new List<EventDeclarationNode>();
+            this.MachineDeclarations = new List<MachineDeclarationNode>();
         }
 
         /// <summary>

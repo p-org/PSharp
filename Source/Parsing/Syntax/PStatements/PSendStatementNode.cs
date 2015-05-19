@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="PPushStatementNode.cs">
+// <copyright file="PSendStatementNode.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -16,24 +16,44 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.PSharp.Parsing.PSyntax
+namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
-    /// Push statement node.
+    /// Send statement node.
     /// </summary>
-    public sealed class PPushStatementNode : PStatementNode
+    public sealed class PSendStatementNode : StatementNode
     {
         #region fields
 
         /// <summary>
-        /// The push keyword.
+        /// The send keyword.
         /// </summary>
-        public Token PushKeyword;
+        public Token SendKeyword;
 
         /// <summary>
-        /// The state token.
+        /// The event identifier.
         /// </summary>
-        public Token StateToken;
+        public Token EventIdentifier;
+
+        /// <summary>
+        /// The machine comma token.
+        /// </summary>
+        public Token MachineComma;
+
+        /// <summary>
+        /// The machine identifier.
+        /// </summary>
+        public PExpressionNode MachineIdentifier;
+
+        /// <summary>
+        /// The event comma token.
+        /// </summary>
+        public Token EventComma;
+
+        /// <summary>
+        /// The event payload.
+        /// </summary>
+        public PExpressionNode Payload;
 
         #endregion
 
@@ -43,7 +63,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         /// Constructor.
         /// </summary>
         /// <param name="node">Node</param>
-        public PPushStatementNode(PStatementBlockNode node)
+        public PSendStatementNode(StatementBlockNode node)
             : base(node)
         {
 
@@ -80,15 +100,39 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         {
             var start = position;
 
-            var text = "this.Push(";
+            var text = "this.Send(";
 
-            text += "typeof(" + this.StateToken.TextUnit.Text + ")";
+            this.MachineIdentifier.Rewrite(ref position);
+            text += this.MachineIdentifier.GetRewrittenText();
 
-            text += ")";
+            text += ", new ";
+
+            if (this.EventIdentifier.Type == TokenType.HaltEvent)
+            {
+                text += "Microsoft.PSharp.Halt";
+            }
+            else if (this.EventIdentifier.Type == TokenType.DefaultEvent)
+            {
+                text += "Microsoft.PSharp.Default";
+            }
+            else
+            {
+                text += this.EventIdentifier.TextUnit.Text;
+            }
+
+            text += "(";
+
+            if (this.Payload != null)
+            {
+                this.Payload.Rewrite(ref position);
+                text += this.Payload.GetRewrittenText();
+            }
+
+            text += "))";
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 
-            base.RewrittenTextUnit = new TextUnit(text, this.PushKeyword.TextUnit.Line, start);
+            base.RewrittenTextUnit = new TextUnit(text, this.SendKeyword.TextUnit.Line, start);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -97,17 +141,29 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         /// </summary>
         internal override void GenerateTextUnit()
         {
-            var text = "";
-
-            text += this.PushKeyword.TextUnit.Text;
+            var text = this.SendKeyword.TextUnit.Text;
             text += " ";
 
-            text += this.StateToken.TextUnit.Text;
+            this.MachineIdentifier.GenerateTextUnit();
+            text += this.MachineIdentifier.GetFullText();
+
+            text += this.MachineComma.TextUnit.Text;
+            text += " ";
+
+            text += this.EventIdentifier.TextUnit.Text;
+
+            if (this.EventComma != null)
+            {
+                text += this.EventComma.TextUnit.Text;
+                text += " ";
+
+                this.Payload.GenerateTextUnit();
+            }
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, this.PushKeyword.TextUnit.Line,
-                this.PushKeyword.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, this.SendKeyword.TextUnit.Line,
+                this.SendKeyword.TextUnit.Start);
         }
 
         #endregion

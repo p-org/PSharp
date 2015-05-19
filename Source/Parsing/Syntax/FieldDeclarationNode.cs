@@ -21,14 +21,14 @@ namespace Microsoft.PSharp.Parsing.Syntax
     /// <summary>
     /// Field declaration node.
     /// </summary>
-    public sealed class FieldDeclarationNode : PSharpSyntaxNode
+    public class FieldDeclarationNode : PSharpSyntaxNode
     {
         #region fields
 
         /// <summary>
         /// The machine parent node.
         /// </summary>
-        private MachineDeclarationNode Machine;
+        protected MachineDeclarationNode Machine;
 
         /// <summary>
         /// The modifier token.

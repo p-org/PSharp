@@ -41,6 +41,26 @@ namespace Microsoft.PSharp.Parsing.Syntax
         public Token Identifier;
 
         /// <summary>
+        /// The colon token.
+        /// </summary>
+        public Token ColonToken;
+
+        /// <summary>
+        /// The payload type node.
+        /// </summary>
+        public PTypeNode PayloadType;
+
+        /// <summary>
+        /// The assert or assume keyword.
+        /// </summary>
+        public Token AssertAssumeKeyword;
+
+        /// <summary>
+        /// The assert identifier token.
+        /// </summary>
+        public Token AssertIdentifier;
+
+        /// <summary>
         /// The semicolon token.
         /// </summary>
         public Token SemicolonToken;
@@ -120,6 +140,16 @@ namespace Microsoft.PSharp.Parsing.Syntax
             text += " ";
 
             text += this.Identifier.TextUnit.Text;
+
+            if (this.ColonToken != null)
+            {
+                text += " ";
+                text += this.ColonToken.TextUnit.Text;
+                text += " ";
+
+                this.PayloadType.GenerateTextUnit();
+                text += this.PayloadType.GetFullText();
+            }
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 

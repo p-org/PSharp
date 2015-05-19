@@ -52,7 +52,7 @@ main machine Host {
 			raise unit;
 		}
 		
-		on unit goto ProcessReq;	
+		on unit goto ProcessReq;
 	}
 	
 	state ExclRequest {

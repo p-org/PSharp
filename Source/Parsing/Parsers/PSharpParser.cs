@@ -548,7 +548,7 @@ namespace Microsoft.PSharp.Parsing
         private void VisitMachineDeclaration(NamespaceDeclarationNode parentNode, bool isMain,
             Token modifier, Token abstractModifier)
         {
-            var node = new MachineDeclarationNode(isMain);
+            var node = new MachineDeclarationNode(isMain, false);
             node.Modifier = modifier;
             node.AbstractModifier = abstractModifier;
             node.MachineKeyword = base.Tokens[base.Index];
@@ -1204,7 +1204,7 @@ namespace Microsoft.PSharp.Parsing
                     TokenType.StateIdentifier);
 
                 var stateIdentifier = base.Tokens[base.Index];
-                if (!parentNode.AddStateTransition(eventIdentifier, stateIdentifier))
+                if (!parentNode.AddGotoStateTransition(eventIdentifier, stateIdentifier))
                 {
                     this.ReportParsingError("Unexpected state identifier.");
                 }

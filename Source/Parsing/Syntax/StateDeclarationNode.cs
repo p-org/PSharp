@@ -66,14 +66,24 @@ namespace Microsoft.PSharp.Parsing.Syntax
         public ExitDeclarationNode ExitDeclaration;
 
         /// <summary>
-        /// Dictionary containing state transitions.
+        /// Dictionary containing goto state transitions.
         /// </summary>
-        internal Dictionary<Token, Token> StateTransitions;
+        internal Dictionary<Token, Token> GotoStateTransitions;
+
+        /// <summary>
+        /// Dictionary containing push state transitions.
+        /// </summary>
+        internal Dictionary<Token, Token> PushStateTransitions;
 
         /// <summary>
         /// Dictionary containing actions bindings.
         /// </summary>
         internal Dictionary<Token, Token> ActionBindings;
+
+        /// <summary>
+        /// Dictionary containing transitions on exit actions.
+        /// </summary>
+        internal Dictionary<Token, StatementBlockNode> TransitionsOnExitActions;
 
         /// <summary>
         /// Set of deferred events.
@@ -97,33 +107,67 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="machineNode">MachineDeclarationNode</param>
+        /// <param name="machineNode">PMachineDeclarationNode</param>
         /// <param name="isInit">Is initial state</param>
         public StateDeclarationNode(MachineDeclarationNode machineNode, bool isInit)
+            : base()
         {
             this.IsInitial = isInit;
             this.Machine = machineNode;
-            this.StateTransitions = new Dictionary<Token, Token>();
+            this.GotoStateTransitions = new Dictionary<Token, Token>();
+            this.PushStateTransitions = new Dictionary<Token, Token>();
             this.ActionBindings = new Dictionary<Token, Token>();
+            this.TransitionsOnExitActions = new Dictionary<Token, StatementBlockNode>();
             this.DeferredEvents = new HashSet<Token>();
             this.IgnoredEvents = new HashSet<Token>();
         }
 
         /// <summary>
-        /// Adds a state transition.
+        /// Adds a goto state transition.
         /// </summary>
         /// <param name="eventIdentifier">Token</param>
         /// <param name="stateIdentifier">Token</param>
+        /// <param name="stmtBlock">Statement block</param>
         /// <returns>Boolean value</returns>
-        public bool AddStateTransition(Token eventIdentifier, Token stateIdentifier)
+        public bool AddGotoStateTransition(Token eventIdentifier, Token stateIdentifier, StatementBlockNode stmtBlock = null)
         {
-            if (this.StateTransitions.ContainsKey(eventIdentifier) ||
+            if (this.GotoStateTransitions.ContainsKey(eventIdentifier) ||
+                this.PushStateTransitions.ContainsKey(eventIdentifier) ||
                 this.ActionBindings.ContainsKey(eventIdentifier))
             {
                 return false;
             }
 
-            this.StateTransitions.Add(eventIdentifier, stateIdentifier);
+            this.GotoStateTransitions.Add(eventIdentifier, stateIdentifier);
+            if (stmtBlock != null)
+            {
+                this.TransitionsOnExitActions.Add(eventIdentifier, stmtBlock);
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Adds a push state transition.
+        /// </summary>
+        /// <param name="eventIdentifier">Token</param>
+        /// <param name="stateIdentifier">Token</param>
+        /// <returns>Boolean value</returns>
+        public bool AddPushStateTransition(Token eventIdentifier, Token stateIdentifier)
+        {
+            if (this.Machine.IsMonitor)
+            {
+                return false;
+            }
+
+            if (this.GotoStateTransitions.ContainsKey(eventIdentifier) ||
+                this.PushStateTransitions.ContainsKey(eventIdentifier) ||
+                this.ActionBindings.ContainsKey(eventIdentifier))
+            {
+                return false;
+            }
+
+            this.PushStateTransitions.Add(eventIdentifier, stateIdentifier);
 
             return true;
         }
@@ -136,7 +180,8 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <returns>Boolean value</returns>
         public bool AddActionBinding(Token eventIdentifier, Token actionIdentifier)
         {
-            if (this.StateTransitions.ContainsKey(eventIdentifier) ||
+            if (this.GotoStateTransitions.ContainsKey(eventIdentifier) ||
+                this.PushStateTransitions.ContainsKey(eventIdentifier) ||
                 this.ActionBindings.ContainsKey(eventIdentifier))
             {
                 return false;
@@ -154,6 +199,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <returns>Boolean value</returns>
         public bool AddDeferredEvent(Token eventIdentifier)
         {
+            if (this.Machine.IsMonitor)
+            {
+                return false;
+            }
+
             if (this.DeferredEvents.Contains(eventIdentifier) ||
                 this.IgnoredEvents.Contains(eventIdentifier))
             {
@@ -239,7 +289,15 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 text += " ";
             }
 
-            text += "class " + this.Identifier.TextUnit.Text + " : MachineState";
+            if (!this.Machine.IsMonitor)
+            {
+                text += "class " + this.Identifier.TextUnit.Text + " : MachineState";
+            }
+            else
+            {
+                text += "class " + this.Identifier.TextUnit.Text + " : MonitorState";
+            }
+
             text += "\n" + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
 
             if (this.EntryDeclaration != null)
@@ -252,7 +310,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 text += this.ExitDeclaration.GetRewrittenText();
             }
 
-            text += this.InstrumentDeferredEvents();
+            if (!this.Machine.IsMonitor)
+            {
+                text += this.InstrumentDeferredEvents();
+            }
+
             text += this.InstrumentIgnoredEvents();
 
             text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
@@ -274,6 +336,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
             if (this.ExitDeclaration != null)
             {
                 this.ExitDeclaration.GenerateTextUnit();
+            }
+
+            foreach (var onExitAction in this.TransitionsOnExitActions)
+            {
+                onExitAction.Value.GenerateTextUnit();
             }
 
             var text = "";
@@ -322,7 +389,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
             {
                 return "";
             }
-            
+
             var text = "\n";
             text += " protected override System.Collections.Generic.HashSet<Type> DefineDeferredEvents()\n";
             text += " {\n";
@@ -357,7 +424,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += "  };\n";
             text += " }\n";
-            
+
             return text;
         }
 
@@ -393,7 +460,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 {
                     text += "   typeof(" + eventIds[idx].TextUnit.Text + ")";
                 }
-                
+
                 if (idx < eventIds.Count - 1)
                 {
                     text += ",\n";

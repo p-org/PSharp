@@ -16,12 +16,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.PSharp.Parsing.PSyntax
+namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
     /// New statement node.
     /// </summary>
-    public sealed class PNewStatementNode : PStatementNode
+    public sealed class PNewStatementNode : StatementNode
     {
         #region fields
 
@@ -48,7 +48,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         /// Constructor.
         /// </summary>
         /// <param name="node">Node</param>
-        public PNewStatementNode(PStatementBlockNode node)
+        public PNewStatementNode(StatementBlockNode node)
             : base(node)
         {
 

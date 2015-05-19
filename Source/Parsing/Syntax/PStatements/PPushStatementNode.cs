@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="PAssertStatementNode.cs">
+// <copyright file="PPushStatementNode.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -16,34 +16,24 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.PSharp.Parsing.PSyntax
+namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
-    /// Assert statement node.
+    /// Push statement node.
     /// </summary>
-    public sealed class PAssertStatementNode : PStatementNode
+    public sealed class PPushStatementNode : StatementNode
     {
         #region fields
 
         /// <summary>
-        /// The assert keyword.
+        /// The push keyword.
         /// </summary>
-        public Token AssertKeyword;
+        public Token PushKeyword;
 
         /// <summary>
-        /// The left parenthesis token.
+        /// The state token.
         /// </summary>
-        public Token LeftParenthesisToken;
-
-        /// <summary>
-        /// The assert predicate.
-        /// </summary>
-        public PExpressionNode Predicate;
-
-        /// <summary>
-        /// The right parenthesis token.
-        /// </summary>
-        public Token RightParenthesisToken;
+        public Token StateToken;
 
         #endregion
 
@@ -53,7 +43,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         /// Constructor.
         /// </summary>
         /// <param name="node">Node</param>
-        public PAssertStatementNode(PStatementBlockNode node)
+        public PPushStatementNode(StatementBlockNode node)
             : base(node)
         {
 
@@ -90,19 +80,15 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         {
             var start = position;
 
-            this.Predicate.Rewrite(ref position);
+            var text = "this.Push(";
 
-            var text = "this.Assert";
+            text += "typeof(" + this.StateToken.TextUnit.Text + ")";
 
-            text += this.LeftParenthesisToken.TextUnit.Text;
-
-            text += this.Predicate.GetRewrittenText();
-
-            text += this.RightParenthesisToken.TextUnit.Text;
+            text += ")";
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 
-            base.RewrittenTextUnit = new TextUnit(text, this.AssertKeyword.TextUnit.Line, start);
+            base.RewrittenTextUnit = new TextUnit(text, this.PushKeyword.TextUnit.Line, start);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -111,23 +97,17 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         /// </summary>
         internal override void GenerateTextUnit()
         {
-            this.Predicate.GenerateTextUnit();
-
             var text = "";
 
-            text += this.AssertKeyword.TextUnit.Text;
+            text += this.PushKeyword.TextUnit.Text;
             text += " ";
 
-            text += this.LeftParenthesisToken.TextUnit.Text;
-
-            text += this.Predicate.GetFullText();
-
-            text += this.RightParenthesisToken.TextUnit.Text;
+            text += this.StateToken.TextUnit.Text;
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, this.AssertKeyword.TextUnit.Line,
-                this.AssertKeyword.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, this.PushKeyword.TextUnit.Line,
+                this.PushKeyword.TextUnit.Start);
         }
 
         #endregion

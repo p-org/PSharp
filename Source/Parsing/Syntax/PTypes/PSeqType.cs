@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="PBaseType.cs">
+// <copyright file="PSeqType.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,19 +12,31 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-namespace Microsoft.PSharp.Parsing.PSyntax
+namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
-    /// Base type.
+    /// Seq type.
     /// </summary>
-    internal class PBaseType
+    internal sealed class PSeqType : PBaseType
     {
         #region fields
 
         /// <summary>
-        /// The type.
+        /// The seq type.
         /// </summary>
-        public PType Type;
+        public PBaseType SeqType;
+
+        #endregion
+
+        #region public API
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        public PSeqType()
+        {
+            base.Type = PType.Seq;
+        }
 
         #endregion
     }

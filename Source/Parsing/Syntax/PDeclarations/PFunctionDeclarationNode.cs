@@ -16,12 +16,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.PSharp.Parsing.PSyntax
+namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
     /// Function declaration node.
     /// </summary>
-    public sealed class PFunctionDeclarationNode : PSyntaxNode
+    public sealed class PFunctionDeclarationNode : PSharpSyntaxNode
     {
         #region fields
 
@@ -73,7 +73,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         /// <summary>
         /// The statement block.
         /// </summary>
-        public PStatementBlockNode StatementBlock;
+        public StatementBlockNode StatementBlock;
 
         #endregion
 

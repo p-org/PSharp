@@ -14,7 +14,7 @@
 
 using System.Linq;
 
-namespace Microsoft.PSharp.Parsing.PSyntax
+namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
     /// Payload send expression node.
@@ -36,7 +36,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         /// Constructor.
         /// </summary>
         /// <param name="node">Node</param>
-        public PPayloadSendExpressionNode(PStatementBlockNode node)
+        public PPayloadSendExpressionNode(StatementBlockNode node)
             : base(node)
         {
 
@@ -83,7 +83,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
             }
 
             var field = this.Parent.Machine.FieldDeclarations.Find(val => val.Identifier.TextUnit.Text.
-                Equals(this.RewrittenStmtTokens[this.Index].TextUnit.Text));
+                Equals(this.RewrittenStmtTokens[this.Index].TextUnit.Text)) as PFieldDeclarationNode;
             if (field.TypeNode.Type.Type != PType.Tuple &&
                 field.TypeNode.Type.Type != PType.Seq)
             {

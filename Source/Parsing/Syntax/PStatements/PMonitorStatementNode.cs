@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="PPayloadReceiveNode.cs">
+// <copyright file="PMonitorStatementNode.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -16,44 +16,44 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.PSharp.Parsing.PSyntax
+namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
-    /// Payload receive node.
+    /// Monitor statement node.
     /// </summary>
-    public sealed class PPayloadReceiveNode : PSyntaxNode
+    public sealed class PMonitorStatementNode : StatementNode
     {
         #region fields
 
         /// <summary>
-        /// The payload keyword.
+        /// The monitor keyword.
         /// </summary>
-        public Token PayloadKeyword;
+        public Token MonitorKeyword;
 
         /// <summary>
-        /// The as keyword.
+        /// The event identifier.
         /// </summary>
-        public Token AsKeyword;
+        public Token EventIdentifier;
 
         /// <summary>
-        /// The type node.
+        /// The monitor comma token.
         /// </summary>
-        public PTypeNode Type;
+        public Token MonitorComma;
 
         /// <summary>
-        /// The right parenthesis token.
+        /// The monitor identifier.
         /// </summary>
-        public Token RightParenthesisToken;
+        public Token MonitorIdentifier;
 
         /// <summary>
-        /// The dot token.
+        /// The event comma token.
         /// </summary>
-        public Token DotToken;
+        public Token EventComma;
 
         /// <summary>
-        /// The index token.
+        /// The event payload.
         /// </summary>
-        public Token IndexToken;
+        public PExpressionNode Payload;
 
         #endregion
 
@@ -62,8 +62,9 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         /// <summary>
         /// Constructor.
         /// </summary>
-        public PPayloadReceiveNode()
-            : base()
+        /// <param name="node">Node</param>
+        public PMonitorStatementNode(StatementBlockNode node)
+            : base(node)
         {
 
         }
@@ -98,26 +99,39 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         internal override void Rewrite(ref int position)
         {
             var start = position;
-            var text = "";
 
-            this.Type.Rewrite(ref position);
-            text += "(" + this.Type.GetRewrittenText() + ")";
-            text += "this.Payload";
-            
-            if (this.RightParenthesisToken != null)
+            var text = "this.Monitor<";
+
+            text += this.MonitorIdentifier.TextUnit.Text;
+
+            text += ">(new ";
+
+            if (this.EventIdentifier.Type == TokenType.HaltEvent)
             {
-                text += this.RightParenthesisToken.TextUnit.Text;
-
-                if (this.DotToken != null)
-                {
-                    text += this.DotToken.TextUnit.Text;
-
-                    var index = Int32.Parse(this.IndexToken.TextUnit.Text) + 1;
-                    text += "Item" + index;
-                }
+                text += "Microsoft.PSharp.Halt";
+            }
+            else if (this.EventIdentifier.Type == TokenType.DefaultEvent)
+            {
+                text += "Microsoft.PSharp.Default";
+            }
+            else
+            {
+                text += this.EventIdentifier.TextUnit.Text;
             }
 
-            base.RewrittenTextUnit = new TextUnit(text, this.PayloadKeyword.TextUnit.Line, start);
+            text += "(";
+
+            if (this.Payload != null)
+            {
+                this.Payload.Rewrite(ref position);
+                text += this.Payload.GetRewrittenText();
+            }
+
+            text += "))";
+
+            text += this.SemicolonToken.TextUnit.Text + "\n";
+
+            base.RewrittenTextUnit = new TextUnit(text, this.MonitorKeyword.TextUnit.Line, start);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -126,28 +140,28 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         /// </summary>
         internal override void GenerateTextUnit()
         {
-            var text = this.PayloadKeyword.TextUnit.Text;
+            var text = this.MonitorKeyword.TextUnit.Text;
             text += " ";
 
-            text += this.AsKeyword.TextUnit.Text;
+            text += this.MonitorIdentifier.TextUnit.Text;
+
+            text += this.MonitorComma.TextUnit.Text;
             text += " ";
 
-            this.Type.GenerateTextUnit();
-            text += this.Type.GetFullText();
+            text += this.EventIdentifier.TextUnit.Text;
 
-            if (this.RightParenthesisToken != null)
+            if (this.EventComma != null)
             {
-                text += this.RightParenthesisToken.TextUnit.Text;
+                text += this.EventComma.TextUnit.Text;
+                text += " ";
 
-                if (this.DotToken != null)
-                {
-                    text += this.DotToken.TextUnit.Text;
-                    text += this.IndexToken.TextUnit.Text;
-                }
+                this.Payload.GenerateTextUnit();
             }
 
-            base.TextUnit = new TextUnit(text, this.PayloadKeyword.TextUnit.Line,
-                this.PayloadKeyword.TextUnit.Start);
+            text += this.SemicolonToken.TextUnit.Text + "\n";
+
+            base.TextUnit = new TextUnit(text, this.MonitorKeyword.TextUnit.Line,
+                this.MonitorKeyword.TextUnit.Start);
         }
 
         #endregion

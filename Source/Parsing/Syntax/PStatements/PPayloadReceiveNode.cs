@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="PEntryDeclarationNode.cs">
+// <copyright file="PPayloadReceiveNode.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -16,24 +16,44 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.PSharp.Parsing.PSyntax
+namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
-    /// Entry declaration node.
+    /// Payload receive node.
     /// </summary>
-    public sealed class PEntryDeclarationNode : PSyntaxNode
+    public sealed class PPayloadReceiveNode : PSharpSyntaxNode
     {
         #region fields
 
         /// <summary>
-        /// The entry keyword.
+        /// The payload keyword.
         /// </summary>
-        public Token EntryKeyword;
+        public Token PayloadKeyword;
 
         /// <summary>
-        /// The statement block.
+        /// The as keyword.
         /// </summary>
-        public PStatementBlockNode StatementBlock;
+        public Token AsKeyword;
+
+        /// <summary>
+        /// The type node.
+        /// </summary>
+        public PTypeNode Type;
+
+        /// <summary>
+        /// The right parenthesis token.
+        /// </summary>
+        public Token RightParenthesisToken;
+
+        /// <summary>
+        /// The dot token.
+        /// </summary>
+        public Token DotToken;
+
+        /// <summary>
+        /// The index token.
+        /// </summary>
+        public Token IndexToken;
 
         #endregion
 
@@ -42,7 +62,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         /// <summary>
         /// Constructor.
         /// </summary>
-        public PEntryDeclarationNode()
+        public PPayloadReceiveNode()
             : base()
         {
 
@@ -66,7 +86,6 @@ namespace Microsoft.PSharp.Parsing.PSyntax
             return base.RewrittenTextUnit.Text;
         }
 
-
         #endregion
 
         #region internal API
@@ -79,13 +98,26 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         internal override void Rewrite(ref int position)
         {
             var start = position;
+            var text = "";
 
-            var text = "protected override void OnEntry()";
+            this.Type.Rewrite(ref position);
+            text += "(" + this.Type.GetRewrittenText() + ")";
+            text += "this.Payload";
+            
+            if (this.RightParenthesisToken != null)
+            {
+                text += this.RightParenthesisToken.TextUnit.Text;
 
-            this.StatementBlock.Rewrite(ref position);
-            text += StatementBlock.GetRewrittenText();
+                if (this.DotToken != null)
+                {
+                    text += this.DotToken.TextUnit.Text;
 
-            base.RewrittenTextUnit = new TextUnit(text, this.EntryKeyword.TextUnit.Line, start);
+                    var index = Int32.Parse(this.IndexToken.TextUnit.Text) + 1;
+                    text += "Item" + index;
+                }
+            }
+
+            base.RewrittenTextUnit = new TextUnit(text, this.PayloadKeyword.TextUnit.Line, start);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -94,13 +126,28 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         /// </summary>
         internal override void GenerateTextUnit()
         {
-            var text = this.EntryKeyword.TextUnit.Text;
+            var text = this.PayloadKeyword.TextUnit.Text;
+            text += " ";
 
-            this.StatementBlock.GenerateTextUnit();
-            text += this.StatementBlock.GetFullText();
+            text += this.AsKeyword.TextUnit.Text;
+            text += " ";
 
-            base.TextUnit = new TextUnit(text, this.EntryKeyword.TextUnit.Line,
-                this.EntryKeyword.TextUnit.Start);
+            this.Type.GenerateTextUnit();
+            text += this.Type.GetFullText();
+
+            if (this.RightParenthesisToken != null)
+            {
+                text += this.RightParenthesisToken.TextUnit.Text;
+
+                if (this.DotToken != null)
+                {
+                    text += this.DotToken.TextUnit.Text;
+                    text += this.IndexToken.TextUnit.Text;
+                }
+            }
+
+            base.TextUnit = new TextUnit(text, this.PayloadKeyword.TextUnit.Line,
+                this.PayloadKeyword.TextUnit.Start);
         }
 
         #endregion

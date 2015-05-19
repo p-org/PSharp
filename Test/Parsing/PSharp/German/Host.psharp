@@ -37,11 +37,6 @@
 		
         private state Receive
         {
-            entry
-            {
-
-            }
-
 			on req_share goto ShareRequest;
 			on req_excl goto ExclRequest;
 
@@ -52,16 +47,94 @@
         {
             entry
             {
+			    CurrentClient = payload as machine;
+				IsCurrReqExcl = false;
 
+				raise unit;
             }
+
+			on unit goto ProcessReq;
         }
 
 		private state ExclRequest
         {
             entry
             {
+			    CurrentClient = payload as machine;
+				IsCurrReqExcl = true;
 
+				raise unit;
             }
+
+			on unit goto ProcessReq;
         }
+
+		private state ProcessReq
+        {
+            entry
+            {
+				if (IsCurrReqExcl || IsExclGranted)
+			    {
+				    raise need_invalidate;
+			    }
+			    else
+				    raise grant;
+            }
+
+			on need_invalidate goto Inv;
+			on grant goto GrantAccess;
+        }
+
+		private state Inv
+        {
+            entry
+            {
+			    I = 0;
+			    S = SharerList.Count;
+			    if (S == 0)
+				    raise grant;
+			    while (I < S)
+			    {
+				    send invalidate to SharerList[I];
+				    I = I + 1;
+			    }
+            }
+
+			on invalidate_ack do RecAck;
+
+			on grant goto GrantAccess;
+
+			defer req_share, req_excl;
+        }
+
+		private state GrantAccess
+        {
+            entry
+            {
+			    if (IsCurrReqExcl)
+			    {
+				    IsExclGranted = true;
+				    send grant_excl to CurrentClient;
+			    }
+			    else
+			    {
+				    send grant_share to CurrentClient;
+			    }
+
+			    SharerList.Insert(0, CurrentClient);
+			    
+				raise unit;
+            }
+
+			on unit goto Receive;
+        }
+
+		action RecAck()
+		{
+		    SharerList.RemoveAt(0);
+			S = SharerList.Count;
+		    if (S == 0)
+			    raise grant;
+	    }
     }
 }

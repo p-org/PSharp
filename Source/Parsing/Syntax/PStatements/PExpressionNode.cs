@@ -16,29 +16,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.PSharp.Parsing.PSyntax
+namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
     /// Expression node.
     /// </summary>
-    public class PExpressionNode : PSyntaxNode
+    public class PExpressionNode : ExpressionNode
     {
         #region fields
-
-        /// <summary>
-        /// The block node.
-        /// </summary>
-        public readonly PStatementBlockNode Parent;
-
-        /// <summary>
-        /// The statement tokens.
-        /// </summary>
-        public List<Token> StmtTokens;
-
-        /// <summary>
-        /// The rewritten statement tokens.
-        /// </summary>
-        protected List<Token> RewrittenStmtTokens;
 
         /// <summary>
         /// Received payloads.
@@ -63,12 +48,9 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         /// Constructor.
         /// </summary>
         /// <param name="node">Node</param>
-        public PExpressionNode(PStatementBlockNode node)
-            : base()
+        public PExpressionNode(StatementBlockNode node)
+            : base(node)
         {
-            this.Parent = node;
-            this.StmtTokens = new List<Token>();
-            this.RewrittenStmtTokens = new List<Token>();
             this.Payloads = new List<PPayloadReceiveNode>();
             this.PendingPayloads = new List<PPayloadReceiveNode>();
         }
@@ -517,7 +499,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
             }
 
             var field = this.Parent.Machine.FieldDeclarations.Find(val => val.Identifier.TextUnit.Text.
-                Equals(this.RewrittenStmtTokens[this.Index].TextUnit.Text));
+                Equals(this.RewrittenStmtTokens[this.Index].TextUnit.Text)) as PFieldDeclarationNode;
             if (field.TypeNode.Type.Type != PType.Seq)
             {
                 return;
@@ -563,7 +545,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
             }
 
             var field = this.Parent.Machine.FieldDeclarations.Find(val => val.Identifier.TextUnit.Text.
-                Equals(this.RewrittenStmtTokens[this.Index].TextUnit.Text));
+                Equals(this.RewrittenStmtTokens[this.Index].TextUnit.Text)) as PFieldDeclarationNode;
             if (field.TypeNode.Type.Type != PType.Seq)
             {
                 return;
@@ -601,18 +583,6 @@ namespace Microsoft.PSharp.Parsing.PSyntax
             this.RewrittenStmtTokens.Insert(this.Index + 1, new Token(new TextUnit(text, line, position)));
             position += text.Length;
             this.Index = seqIndex;
-        }
-
-        /// <summary>
-        /// Rewrites the non-deterministic choice.
-        /// </summary>
-        /// <param name="position">Position</param>
-        protected void RewriteNonDeterministicChoice(ref int position)
-        {
-            int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
-            var text = "Microsoft.PSharp.Havoc.Boolean";
-            this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line, position));
-            position += text.Length;
         }
 
         #endregion

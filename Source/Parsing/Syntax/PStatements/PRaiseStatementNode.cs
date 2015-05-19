@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="PMonitorStatementNode.cs">
+// <copyright file="PRaiseStatementNode.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -16,19 +16,19 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.PSharp.Parsing.PSyntax
+namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
-    /// Monitor statement node.
+    /// Raise statement node.
     /// </summary>
-    public sealed class PMonitorStatementNode : PStatementNode
+    public sealed class PRaiseStatementNode : StatementNode
     {
         #region fields
 
         /// <summary>
-        /// The monitor keyword.
+        /// The raise keyword.
         /// </summary>
-        public Token MonitorKeyword;
+        public Token RaiseKeyword;
 
         /// <summary>
         /// The event identifier.
@@ -36,19 +36,9 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         public Token EventIdentifier;
 
         /// <summary>
-        /// The monitor comma token.
+        /// The comma token.
         /// </summary>
-        public Token MonitorComma;
-
-        /// <summary>
-        /// The monitor identifier.
-        /// </summary>
-        public Token MonitorIdentifier;
-
-        /// <summary>
-        /// The event comma token.
-        /// </summary>
-        public Token EventComma;
+        public Token Comma;
 
         /// <summary>
         /// The event payload.
@@ -63,7 +53,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         /// Constructor.
         /// </summary>
         /// <param name="node">Node</param>
-        public PMonitorStatementNode(PStatementBlockNode node)
+        public PRaiseStatementNode(StatementBlockNode node)
             : base(node)
         {
 
@@ -100,11 +90,8 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         {
             var start = position;
 
-            var text = "this.Monitor<";
-
-            text += this.MonitorIdentifier.TextUnit.Text;
-
-            text += ">(new ";
+            var text = "{\n";
+            text += "this.Raise(new ";
 
             if (this.EventIdentifier.Type == TokenType.HaltEvent)
             {
@@ -121,7 +108,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
 
             text += "(";
 
-            if (this.Payload != null)
+            if (this.Comma != null)
             {
                 this.Payload.Rewrite(ref position);
                 text += this.Payload.GetRewrittenText();
@@ -131,7 +118,10 @@ namespace Microsoft.PSharp.Parsing.PSyntax
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 
-            base.RewrittenTextUnit = new TextUnit(text, this.MonitorKeyword.TextUnit.Line, start);
+            text += "return;\n";
+            text += "}\n";
+
+            base.RewrittenTextUnit = new TextUnit(text, this.RaiseKeyword.TextUnit.Line, start);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -140,28 +130,23 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         /// </summary>
         internal override void GenerateTextUnit()
         {
-            var text = this.MonitorKeyword.TextUnit.Text;
-            text += " ";
-
-            text += this.MonitorIdentifier.TextUnit.Text;
-
-            text += this.MonitorComma.TextUnit.Text;
+            var text = this.RaiseKeyword.TextUnit.Text;
             text += " ";
 
             text += this.EventIdentifier.TextUnit.Text;
+            text += " ";
 
-            if (this.EventComma != null)
+            if (this.Comma != null)
             {
-                text += this.EventComma.TextUnit.Text;
-                text += " ";
-
                 this.Payload.GenerateTextUnit();
+                text += this.Comma.TextUnit.Text;
+                text += this.Payload.GetFullText();
             }
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, this.MonitorKeyword.TextUnit.Line,
-                this.MonitorKeyword.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, this.RaiseKeyword.TextUnit.Line,
+                this.RaiseKeyword.TextUnit.Start);
         }
 
         #endregion

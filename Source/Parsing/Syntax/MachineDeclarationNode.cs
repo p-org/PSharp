@@ -31,6 +31,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
         public readonly bool IsMain;
 
         /// <summary>
+        /// True if the machine is a monitor.
+        /// </summary>
+        public readonly bool IsMonitor;
+
+        /// <summary>
         /// The machine keyword.
         /// </summary>
         public Token MachineKeyword;
@@ -86,6 +91,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
         public List<MethodDeclarationNode> MethodDeclarations;
 
         /// <summary>
+        /// List of function declarations.
+        /// </summary>
+        public List<PFunctionDeclarationNode> FunctionDeclarations;
+
+        /// <summary>
         /// The right curly bracket token.
         /// </summary>
         public Token RightCurlyBracketToken;
@@ -98,15 +108,18 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Constructor.
         /// </summary>
         /// <param name="isMain">Is main machine</param>
-        public MachineDeclarationNode(bool isMain)
+        /// <param name="isMonitor">Is a monitor</param>
+        public MachineDeclarationNode(bool isMain, bool isMonitor)
             : base()
         {
             this.IsMain = isMain;
+            this.IsMonitor = isMonitor;
             this.BaseNameTokens = new List<Token>();
             this.FieldDeclarations = new List<FieldDeclarationNode>();
             this.StateDeclarations = new List<StateDeclarationNode>();
             this.ActionDeclarations = new List<ActionDeclarationNode>();
             this.MethodDeclarations = new List<MethodDeclarationNode>();
+            this.FunctionDeclarations = new List<PFunctionDeclarationNode>();
         }
 
         /// <summary>
@@ -160,6 +173,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 node.Rewrite(ref position);
             }
 
+            foreach (var node in this.FunctionDeclarations)
+            {
+                node.Rewrite(ref position);
+            }
+
             var text = "";
             var initToken = this.MachineKeyword;
 
@@ -191,9 +209,13 @@ namespace Microsoft.PSharp.Parsing.Syntax
                     text += node.TextUnit.Text;
                 }
             }
-            else
+            else if (!this.IsMonitor)
             {
                 text += "Machine";
+            }
+            else
+            {
+                text += "Monitor";
             }
 
             text += "\n" + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
@@ -218,7 +240,18 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 text += node.GetRewrittenText();
             }
 
-            text += this.InstrumentStateTransitions();
+            foreach (var node in this.FunctionDeclarations)
+            {
+                text += node.GetRewrittenText();
+            }
+
+            text += this.InstrumentGotoStateTransitions();
+
+            if (!this.IsMonitor)
+            {
+                text += this.InstrumentPushStateTransitions();
+            }
+
             text += this.InstrumentActionsBindings();
 
             text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
@@ -248,6 +281,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
             }
 
             foreach (var node in this.MethodDeclarations)
+            {
+                node.GenerateTextUnit();
+            }
+
+            foreach (var node in this.FunctionDeclarations)
             {
                 node.GenerateTextUnit();
             }
@@ -308,6 +346,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 text += node.GetFullText();
             }
 
+            foreach (var node in this.FunctionDeclarations)
+            {
+                text += node.GetFullText();
+            }
+
             text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
 
             base.TextUnit = new TextUnit(text, initToken.TextUnit.Line, initToken.TextUnit.Start);
@@ -318,12 +361,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         #region private API
 
         /// <summary>
-        /// Instruments the state transitions.
+        /// Instruments the goto state transitions.
         /// </summary>
         /// <returns>Text</returns>
-        private string InstrumentStateTransitions()
+        private string InstrumentGotoStateTransitions()
         {
-            if (!this.StateDeclarations.Any(val => val.StateTransitions.Count > 0))
+            if (!this.StateDeclarations.Any(val => val.GotoStateTransitions.Count > 0))
             {
                 return "";
             }
@@ -340,8 +383,17 @@ namespace Microsoft.PSharp.Parsing.Syntax
             {
                 text += " var " + state.Identifier.TextUnit.Text.ToLower() + "Dict = new GotoStateTransitions();\n";
 
-                foreach (var transition in state.StateTransitions)
+                foreach (var transition in state.GotoStateTransitions)
                 {
+                    var onExitText = "";
+                    if (state.TransitionsOnExitActions.ContainsKey(transition.Key))
+                    {
+                        var onExitAction = state.TransitionsOnExitActions[transition.Key];
+                        int position = 0;
+                        onExitAction.Rewrite(ref position);
+                        onExitText = onExitAction.GetRewrittenText();
+                    }
+
                     string eventId = "";
                     if (transition.Key.Type == TokenType.HaltEvent)
                     {
@@ -356,8 +408,89 @@ namespace Microsoft.PSharp.Parsing.Syntax
                         eventId = transition.Key.TextUnit.Text;
                     }
 
-                    text += " " + state.Identifier.TextUnit.Text.ToLower() + "Dict.Add(typeof(" +
-                        eventId + "), typeof(" + transition.Value.TextUnit.Text + "));\n";
+                    if (onExitText.Length > 0)
+                    {
+                        text += " " + state.Identifier.TextUnit.Text.ToLower() + "Dict.Add(typeof(" +
+                            eventId + "), typeof(" + transition.Value.TextUnit.Text + "), () => " +
+                            onExitText + ");\n";
+                    }
+                    else
+                    {
+                        text += " " + state.Identifier.TextUnit.Text.ToLower() + "Dict.Add(typeof(" +
+                            eventId + "), typeof(" + transition.Value.TextUnit.Text + "));\n";
+                    }
+                }
+
+                text += " dict.Add(typeof(" + state.Identifier.TextUnit.Text + "), " +
+                    state.Identifier.TextUnit.Text.ToLower() + "Dict);\n";
+                text += "\n";
+            }
+
+            text += " return dict;\n";
+            text += "}\n";
+
+            return text;
+        }
+
+        /// <summary>
+        /// Instruments the push state transitions.
+        /// </summary>
+        /// <returns>Text</returns>
+        private string InstrumentPushStateTransitions()
+        {
+            if (!this.StateDeclarations.Any(val => val.PushStateTransitions.Count > 0))
+            {
+                return "";
+            }
+
+            var text = "\n";
+            text += "protected override System.Collections.Generic.Dictionary<Type, " +
+                "PushStateTransitions> DefinePushStateTransitions()\n";
+            text += "{\n";
+            text += " var dict = new System.Collections.Generic.Dictionary<Type, " +
+                "PushStateTransitions>();\n";
+            text += "\n";
+
+            foreach (var state in this.StateDeclarations)
+            {
+                text += " var " + state.Identifier.TextUnit.Text.ToLower() + "Dict = new PushStateTransitions();\n";
+
+                foreach (var transition in state.PushStateTransitions)
+                {
+                    var onExitText = "";
+                    if (state.TransitionsOnExitActions.ContainsKey(transition.Key))
+                    {
+                        var onExitAction = state.TransitionsOnExitActions[transition.Key];
+                        int position = 0;
+                        onExitAction.Rewrite(ref position);
+                        onExitText = onExitAction.GetRewrittenText();
+                    }
+
+                    string eventId = "";
+                    if (transition.Key.Type == TokenType.HaltEvent)
+                    {
+                        eventId = "Microsoft.PSharp.Halt";
+                    }
+                    else if (transition.Key.Type == TokenType.DefaultEvent)
+                    {
+                        eventId = "Microsoft.PSharp.Default";
+                    }
+                    else
+                    {
+                        eventId = transition.Key.TextUnit.Text;
+                    }
+
+                    if (onExitText.Length > 0)
+                    {
+                        text += " " + state.Identifier.TextUnit.Text.ToLower() + "Dict.Add(typeof(" +
+                            eventId + "), typeof(" + transition.Value.TextUnit.Text + "), () => " +
+                            onExitText + ");\n";
+                    }
+                    else
+                    {
+                        text += " " + state.Identifier.TextUnit.Text.ToLower() + "Dict.Add(typeof(" +
+                            eventId + "), typeof(" + transition.Value.TextUnit.Text + "));\n";
+                    }
                 }
 
                 text += " dict.Add(typeof(" + state.Identifier.TextUnit.Text + "), " +
@@ -399,7 +532,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
                     string eventId = "";
                     if (binding.Key.Type == TokenType.HaltEvent)
                     {
-                        eventId  = "Microsoft.PSharp.Halt";
+                        eventId = "Microsoft.PSharp.Halt";
                     }
                     else if (binding.Key.Type == TokenType.DefaultEvent)
                     {
@@ -407,7 +540,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
                     }
                     else
                     {
-                        eventId  = binding.Key.TextUnit.Text;
+                        eventId = binding.Key.TextUnit.Text;
                     }
 
                     text += " " + state.Identifier.TextUnit.Text.ToLower() + "Dict.Add(typeof(" +

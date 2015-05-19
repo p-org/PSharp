@@ -104,20 +104,19 @@ namespace Microsoft.PSharp.Parsing.Syntax
         internal override void Rewrite(ref int position)
         {
             var start = position;
-
-            this.Guard.Rewrite(ref position);
-            this.StatementBlock.Rewrite(ref position);
-
+            
             var text = "";
 
-            text += this.IfKeyword.TextUnit.Text;
+            text += this.IfKeyword.TextUnit.Text + " ";
 
             text += this.LeftParenthesisToken.TextUnit.Text;
 
+            this.Guard.Rewrite(ref position);
             text += this.Guard.GetRewrittenText();
 
             text += this.RightParenthesisToken.TextUnit.Text;
 
+            this.StatementBlock.Rewrite(ref position);
             text += this.StatementBlock.GetRewrittenText();
 
             if (this.ElseKeyword != null)
@@ -144,8 +143,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             var text = "";
 
-            text += this.IfKeyword.TextUnit.Text;
-            text += " ";
+            text += this.IfKeyword.TextUnit.Text + " ";
 
             text += this.LeftParenthesisToken.TextUnit.Text;
 

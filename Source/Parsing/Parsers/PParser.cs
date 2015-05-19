@@ -15,7 +15,7 @@
 using System;
 using System.Collections.Generic;
 
-using Microsoft.PSharp.Parsing.PSyntax;
+using Microsoft.PSharp.Parsing.Syntax;
 
 namespace Microsoft.PSharp.Parsing
 {
@@ -134,7 +134,7 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         private void VisitEventDeclaration()
         {
-            var node = new PEventDeclarationNode();
+            var node = new EventDeclarationNode();
             node.EventKeyword = base.Tokens[base.Index];
 
             base.Index++;
@@ -274,7 +274,7 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="isMain">Is a monitor</param>
         private void VisitMachineDeclaration(bool isMain, bool isMonitor)
         {
-            var node = new PMachineDeclarationNode(isMain, isMonitor);
+            var node = new MachineDeclarationNode(isMain, isMonitor);
             node.MachineKeyword = base.Tokens[base.Index];
 
             base.Index++;
@@ -326,7 +326,7 @@ namespace Microsoft.PSharp.Parsing
         /// Visits the next intra-machine declration.
         /// </summary>
         /// <param name="node">Node</param>
-        private void VisitNextIntraMachineDeclaration(PMachineDeclarationNode node)
+        private void VisitNextIntraMachineDeclaration(MachineDeclarationNode node)
         {
             if (base.Index == base.Tokens.Count)
             {
@@ -413,7 +413,7 @@ namespace Microsoft.PSharp.Parsing
         /// Visits a start state modifier.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        private void VisitStartStateModifier(PMachineDeclarationNode parentNode)
+        private void VisitStartStateModifier(MachineDeclarationNode parentNode)
         {
             base.Index++;
             base.SkipWhiteSpaceAndCommentTokens();
@@ -455,9 +455,9 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         /// <param name="parentNode">Node</param>
         /// <param name="isInit">Is initial state</param>
-        private void VisitStateDeclaration(PMachineDeclarationNode parentNode, bool isInit)
+        private void VisitStateDeclaration(MachineDeclarationNode parentNode, bool isInit)
         {
-            var node = new PStateDeclarationNode(parentNode, isInit);
+            var node = new StateDeclarationNode(parentNode, isInit);
             node.StateKeyword = base.Tokens[base.Index];
 
             base.Index++;
@@ -509,7 +509,7 @@ namespace Microsoft.PSharp.Parsing
         /// Visits the next intra-state declration.
         /// </summary>
         /// <param name="node">Node</param>
-        private void VisitNextIntraStateDeclaration(PStateDeclarationNode node)
+        private void VisitNextIntraStateDeclaration(StateDeclarationNode node)
         {
             if (base.Index == base.Tokens.Count)
             {
@@ -592,9 +592,9 @@ namespace Microsoft.PSharp.Parsing
         /// Visits a state entry declaration.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        private void VisitStateEntryDeclaration(PStateDeclarationNode parentNode)
+        private void VisitStateEntryDeclaration(StateDeclarationNode parentNode)
         {
-            var node = new PEntryDeclarationNode();
+            var node = new EntryDeclarationNode();
             node.EntryKeyword = base.Tokens[base.Index];
 
             base.Index++;
@@ -610,7 +610,7 @@ namespace Microsoft.PSharp.Parsing
                 });
             }
 
-            var blockNode = new PStatementBlockNode(parentNode.Machine, parentNode);
+            var blockNode = new StatementBlockNode(parentNode.Machine, parentNode);
             this.VisitStatementBlock(blockNode);
             node.StatementBlock = blockNode;
 
@@ -621,9 +621,9 @@ namespace Microsoft.PSharp.Parsing
         /// Visits a state exit declaration.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        private void VisitStateExitDeclaration(PStateDeclarationNode parentNode)
+        private void VisitStateExitDeclaration(StateDeclarationNode parentNode)
         {
-            var node = new PExitDeclarationNode();
+            var node = new ExitDeclarationNode();
             node.ExitKeyword = base.Tokens[base.Index];
 
             base.Index++;
@@ -639,7 +639,7 @@ namespace Microsoft.PSharp.Parsing
                 });
             }
 
-            var blockNode = new PStatementBlockNode(parentNode.Machine, parentNode);
+            var blockNode = new StatementBlockNode(parentNode.Machine, parentNode);
             this.VisitStatementBlock(blockNode);
             node.StatementBlock = blockNode;
 
@@ -650,7 +650,7 @@ namespace Microsoft.PSharp.Parsing
         /// Visits a state action declaration.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        private void VisitStateActionDeclaration(PStateDeclarationNode parentNode)
+        private void VisitStateActionDeclaration(StateDeclarationNode parentNode)
         {
             base.Index++;
             base.SkipWhiteSpaceAndCommentTokens();
@@ -814,7 +814,7 @@ namespace Microsoft.PSharp.Parsing
                         });
                     }
 
-                    var blockNode = new PStatementBlockNode(parentNode.Machine, null);
+                    var blockNode = new StatementBlockNode(parentNode.Machine, null);
                     this.VisitStatementBlock(blockNode);
 
                     foreach (var eventIdentifier in eventIdentifiers)
@@ -897,7 +897,7 @@ namespace Microsoft.PSharp.Parsing
         /// Visits a defer events declaration.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        private void VisitDeferEventsDeclaration(PStateDeclarationNode parentNode)
+        private void VisitDeferEventsDeclaration(StateDeclarationNode parentNode)
         {
             if (parentNode.Machine.IsMonitor)
             {
@@ -1000,7 +1000,7 @@ namespace Microsoft.PSharp.Parsing
         /// Visits an ignore events declaration.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        private void VisitIgnoreEventsDeclaration(PStateDeclarationNode parentNode)
+        private void VisitIgnoreEventsDeclaration(StateDeclarationNode parentNode)
         {
             base.Index++;
             base.SkipWhiteSpaceAndCommentTokens();
@@ -1093,7 +1093,7 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         /// <param name="parentNode">Node</param>
         /// <param name="isModel">Is model</param>
-        private void VisitFunctionDeclaration(PMachineDeclarationNode parentNode, bool isModel)
+        private void VisitFunctionDeclaration(MachineDeclarationNode parentNode, bool isModel)
         {
             var node = new PFunctionDeclarationNode();
             node.IsModel = isModel;
@@ -1262,7 +1262,7 @@ namespace Microsoft.PSharp.Parsing
                 });
             }
 
-            var blockNode = new PStatementBlockNode(parentNode, null);
+            var blockNode = new StatementBlockNode(parentNode, null);
             this.VisitStatementBlock(blockNode);
             node.StatementBlock = blockNode;
 
@@ -1273,7 +1273,7 @@ namespace Microsoft.PSharp.Parsing
         /// Visits a field declaration.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        private void VisitFieldDeclaration(PMachineDeclarationNode parentNode)
+        private void VisitFieldDeclaration(MachineDeclarationNode parentNode)
         {
             var nodes = new List<PFieldDeclarationNode>();
             var fieldKeyword = base.Tokens[base.Index];
@@ -1376,7 +1376,7 @@ namespace Microsoft.PSharp.Parsing
         /// Visits a block of statements.
         /// </summary>
         /// <param name="node">Node</param>
-        private void VisitStatementBlock(PStatementBlockNode node)
+        private void VisitStatementBlock(StatementBlockNode node)
         {
             node.LeftCurlyBracketToken = base.Tokens[base.Index];
 
@@ -1390,7 +1390,7 @@ namespace Microsoft.PSharp.Parsing
         /// Visits the next statement.
         /// </summary>
         /// <param name="node">Node</param>
-        private void VisitNextStatement(PStatementBlockNode node)
+        private void VisitNextStatement(StatementBlockNode node)
         {
             if (base.Index == base.Tokens.Count)
             {
@@ -1489,7 +1489,7 @@ namespace Microsoft.PSharp.Parsing
         /// Visits a create statement.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        private void VisitNewStatement(PStatementBlockNode parentNode)
+        private void VisitNewStatement(StatementBlockNode parentNode)
         {
             var node = new PNewStatementNode(parentNode);
             node.NewKeyword = base.Tokens[base.Index];
@@ -1548,7 +1548,7 @@ namespace Microsoft.PSharp.Parsing
         /// Visits a raise statement.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        private void VisitRaiseStatement(PStatementBlockNode parentNode)
+        private void VisitRaiseStatement(StatementBlockNode parentNode)
         {
             var node = new PRaiseStatementNode(parentNode);
             node.RaiseKeyword = base.Tokens[base.Index];
@@ -1622,7 +1622,7 @@ namespace Microsoft.PSharp.Parsing
         /// Visits a send statement.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        private void VisitSendStatement(PStatementBlockNode parentNode)
+        private void VisitSendStatement(StatementBlockNode parentNode)
         {
             if (parentNode.Machine.IsMonitor)
             {
@@ -1750,7 +1750,7 @@ namespace Microsoft.PSharp.Parsing
         /// Visits a monitor statement.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        private void VisitMonitorStatement(PStatementBlockNode parentNode)
+        private void VisitMonitorStatement(StatementBlockNode parentNode)
         {
             if (parentNode.Machine.IsMonitor)
             {
@@ -1859,7 +1859,7 @@ namespace Microsoft.PSharp.Parsing
         /// Visits a push statement.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        private void VisitPushStatement(PStatementBlockNode parentNode)
+        private void VisitPushStatement(StatementBlockNode parentNode)
         {
             if (parentNode.Machine.IsMonitor)
             {
@@ -1906,9 +1906,9 @@ namespace Microsoft.PSharp.Parsing
         /// Visits an assert statement.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        private void VisitAssertStatement(PStatementBlockNode parentNode)
+        private void VisitAssertStatement(StatementBlockNode parentNode)
         {
-            var node = new PAssertStatementNode(parentNode);
+            var node = new AssertStatementNode(parentNode);
             node.AssertKeyword = base.Tokens[base.Index];
 
             base.Index++;
@@ -2000,9 +2000,9 @@ namespace Microsoft.PSharp.Parsing
         /// Visits an if statement.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        private void VisitIfStatement(PStatementBlockNode parentNode)
+        private void VisitIfStatement(StatementBlockNode parentNode)
         {
-            var node = new PIfStatementNode(parentNode);
+            var node = new IfStatementNode(parentNode);
             node.IfKeyword = base.Tokens[base.Index];
 
             base.Index++;
@@ -2098,7 +2098,7 @@ namespace Microsoft.PSharp.Parsing
                 });
             }
 
-            var blockNode = new PStatementBlockNode(parentNode.Machine, parentNode.State);
+            var blockNode = new StatementBlockNode(parentNode.Machine, parentNode.State);
 
             if (base.Tokens[base.Index].Type == TokenType.New)
             {
@@ -2174,7 +2174,7 @@ namespace Microsoft.PSharp.Parsing
                     });
                 }
                 
-                var elseBlockNode = new PStatementBlockNode(parentNode.Machine, parentNode.State);
+                var elseBlockNode = new StatementBlockNode(parentNode.Machine, parentNode.State);
 
                 if (base.Tokens[base.Index].Type == TokenType.New)
                 {
@@ -2228,9 +2228,9 @@ namespace Microsoft.PSharp.Parsing
         /// Visits an while statement.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        private void VisitWhileStatement(PStatementBlockNode parentNode)
+        private void VisitWhileStatement(StatementBlockNode parentNode)
         {
-            var node = new PWhileStatementNode(parentNode);
+            var node = new WhileStatementNode(parentNode);
             node.WhileKeyword = base.Tokens[base.Index];
 
             base.Index++;
@@ -2322,7 +2322,7 @@ namespace Microsoft.PSharp.Parsing
                 });
             }
 
-            var blockNode = new PStatementBlockNode(parentNode.Machine, parentNode.State);
+            var blockNode = new StatementBlockNode(parentNode.Machine, parentNode.State);
 
             if (base.Tokens[base.Index].Type == TokenType.New)
             {
@@ -2371,9 +2371,9 @@ namespace Microsoft.PSharp.Parsing
         /// Visits a generic statement.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        private void VisitGenericStatement(PStatementBlockNode parentNode)
+        private void VisitGenericStatement(StatementBlockNode parentNode)
         {
-            var node = new PGenericStatementNode(parentNode);
+            var node = new GenericStatementNode(parentNode);
 
             var expression = new PExpressionNode(parentNode);
             while (base.Index < base.Tokens.Count &&

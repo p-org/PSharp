@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="PRaiseStatementNode.cs">
+// <copyright file="WhileStatementNode.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -16,34 +16,39 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.PSharp.Parsing.PSyntax
+namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
-    /// Raise statement node.
+    /// While statement node.
     /// </summary>
-    public sealed class PRaiseStatementNode : PStatementNode
+    public sealed class WhileStatementNode : StatementNode
     {
         #region fields
 
         /// <summary>
-        /// The raise keyword.
+        /// The while keyword.
         /// </summary>
-        public Token RaiseKeyword;
+        public Token WhileKeyword;
 
         /// <summary>
-        /// The event identifier.
+        /// The left parenthesis token.
         /// </summary>
-        public Token EventIdentifier;
+        public Token LeftParenthesisToken;
 
         /// <summary>
-        /// The comma token.
+        /// The guard predicate.
         /// </summary>
-        public Token Comma;
+        public ExpressionNode Guard;
 
         /// <summary>
-        /// The event payload.
+        /// The right parenthesis token.
         /// </summary>
-        public PExpressionNode Payload;
+        public Token RightParenthesisToken;
+
+        /// <summary>
+        /// The statement block.
+        /// </summary>
+        public StatementBlockNode StatementBlock;
 
         #endregion
 
@@ -53,7 +58,7 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         /// Constructor.
         /// </summary>
         /// <param name="node">Node</param>
-        public PRaiseStatementNode(PStatementBlockNode node)
+        public WhileStatementNode(StatementBlockNode node)
             : base(node)
         {
 
@@ -90,38 +95,21 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         {
             var start = position;
 
-            var text = "{\n";
-            text += "this.Raise(new ";
+            var text = "";
 
-            if (this.EventIdentifier.Type == TokenType.HaltEvent)
-            {
-                text += "Microsoft.PSharp.Halt";
-            }
-            else if (this.EventIdentifier.Type == TokenType.DefaultEvent)
-            {
-                text += "Microsoft.PSharp.Default";
-            }
-            else
-            {
-                text += this.EventIdentifier.TextUnit.Text;
-            }
+            text += this.WhileKeyword.TextUnit.Text;
 
-            text += "(";
+            text += this.LeftParenthesisToken.TextUnit.Text;
 
-            if (this.Comma != null)
-            {
-                this.Payload.Rewrite(ref position);
-                text += this.Payload.GetRewrittenText();
-            }
+            this.Guard.Rewrite(ref position);
+            text += this.Guard.GetRewrittenText();
 
-            text += "))";
+            text += this.RightParenthesisToken.TextUnit.Text;
 
-            text += this.SemicolonToken.TextUnit.Text + "\n";
+            this.StatementBlock.Rewrite(ref position);
+            text += this.StatementBlock.GetRewrittenText();
 
-            text += "return;\n";
-            text += "}\n";
-
-            base.RewrittenTextUnit = new TextUnit(text, this.RaiseKeyword.TextUnit.Line, start);
+            base.RewrittenTextUnit = new TextUnit(text, this.WhileKeyword.TextUnit.Line, start);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -130,23 +118,24 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         /// </summary>
         internal override void GenerateTextUnit()
         {
-            var text = this.RaiseKeyword.TextUnit.Text;
+            this.Guard.GenerateTextUnit();
+            this.StatementBlock.GenerateTextUnit();
+
+            var text = "";
+
+            text += this.WhileKeyword.TextUnit.Text;
             text += " ";
 
-            text += this.EventIdentifier.TextUnit.Text;
-            text += " ";
+            text += this.LeftParenthesisToken.TextUnit.Text;
 
-            if (this.Comma != null)
-            {
-                this.Payload.GenerateTextUnit();
-                text += this.Comma.TextUnit.Text;
-                text += this.Payload.GetFullText();
-            }
+            text += this.Guard.GetFullText();
 
-            text += this.SemicolonToken.TextUnit.Text + "\n";
+            text += this.RightParenthesisToken.TextUnit.Text;
 
-            base.TextUnit = new TextUnit(text, this.RaiseKeyword.TextUnit.Line,
-                this.RaiseKeyword.TextUnit.Start);
+            text += this.StatementBlock.GetFullText();
+
+            base.TextUnit = new TextUnit(text, this.WhileKeyword.TextUnit.Line,
+                this.WhileKeyword.TextUnit.Start);
         }
 
         #endregion

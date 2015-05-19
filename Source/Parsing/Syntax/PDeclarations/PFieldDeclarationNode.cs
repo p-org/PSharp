@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="PExitDeclarationNode.cs">
+// <copyright file="PFieldDeclarationNode.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -16,34 +16,40 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.PSharp.Parsing.PSyntax
+namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
-    /// Exit declaration node.
+    /// Field declaration node.
     /// </summary>
-    public sealed class PExitDeclarationNode : PSyntaxNode
+    public sealed class PFieldDeclarationNode : FieldDeclarationNode
     {
         #region fields
 
         /// <summary>
-        /// The exit keyword.
+        /// The field keyword.
         /// </summary>
-        public Token ExitKeyword;
+        public Token FieldKeyword;
 
         /// <summary>
-        /// The statement block.
+        /// The colon token.
         /// </summary>
-        public PStatementBlockNode StatementBlock;
+        public Token ColonToken;
+
+        /// <summary>
+        /// The type node.
+        /// </summary>
+        public PTypeNode TypeNode;
 
         #endregion
 
         #region public API
 
         /// <summary>
-        /// Constructor.
+        /// Constructor
         /// </summary>
-        public PExitDeclarationNode()
-            : base()
+        /// <param name="machineNode">PMachineDeclarationNode</param>
+        public PFieldDeclarationNode(MachineDeclarationNode machineNode)
+            : base(machineNode)
         {
 
         }
@@ -77,14 +83,24 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         /// <param name="position">Position</param>
         internal override void Rewrite(ref int position)
         {
+            var text = "";
             var start = position;
 
-            var text = "protected override void OnExit()";
+            this.TypeNode.Rewrite(ref position);
+            text += this.TypeNode.GetRewrittenText();
 
-            this.StatementBlock.Rewrite(ref position);
-            text += StatementBlock.GetRewrittenText();
+            text += " ";
+            text += this.Identifier.TextUnit.Text;
 
-            base.RewrittenTextUnit = new TextUnit(text, this.ExitKeyword.TextUnit.Line, start);
+            if (this.TypeNode.Type.Type == PType.Tuple ||
+                this.TypeNode.Type.Type == PType.Seq)
+            {
+                text += " = new " + this.TypeNode.GetRewrittenText() + "()";
+            }
+
+            text += this.SemicolonToken.TextUnit.Text + "\n";
+
+            base.RewrittenTextUnit = new TextUnit(text, this.FieldKeyword.TextUnit.Line, start);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -93,13 +109,24 @@ namespace Microsoft.PSharp.Parsing.PSyntax
         /// </summary>
         internal override void GenerateTextUnit()
         {
-            var text = this.ExitKeyword.TextUnit.Text;
+            var text = "";
 
-            this.StatementBlock.GenerateTextUnit();
-            text += this.StatementBlock.GetFullText();
+            text += this.FieldKeyword.TextUnit.Text;
+            text += " ";
 
-            base.TextUnit = new TextUnit(text, this.ExitKeyword.TextUnit.Line,
-                this.ExitKeyword.TextUnit.Start);
+            text += this.Identifier.TextUnit.Text;
+
+            text += " ";
+            text += this.ColonToken.TextUnit.Text;
+            text += " ";
+
+            this.TypeNode.GenerateTextUnit();
+            text += this.TypeNode.GetFullText();
+
+            text += this.SemicolonToken.TextUnit.Text + "\n";
+
+            base.TextUnit = new TextUnit(text, this.FieldKeyword.TextUnit.Line,
+                this.FieldKeyword.TextUnit.Start);
         }
 
         #endregion

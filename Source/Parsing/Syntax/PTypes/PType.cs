@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="PStatementNode.cs">
+// <copyright file="PType.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,43 +12,21 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace Microsoft.PSharp.Parsing.PSyntax
+namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
-    /// Abstract statement node.
+    /// P# token types.
     /// </summary>
-    public abstract class PStatementNode : PSyntaxNode
+    internal enum PType
     {
-        #region fields
-
-        /// <summary>
-        /// The block node.
-        /// </summary>
-        public readonly PStatementBlockNode Parent;
-
-        /// <summary>
-        /// The semicolon token.
-        /// </summary>
-        public Token SemicolonToken;
-
-        #endregion
-
-        #region public API
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="node">Node</param>
-        public PStatementNode(PStatementBlockNode node)
-            : base()
-        {
-            this.Parent = node;
-        }
-
-        #endregion
+        Var,
+        Machine,
+        Int,
+        Bool,
+        Foreign,
+        Any,
+        Tuple,
+        Seq,
+        Map
     }
 }
