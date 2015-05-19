@@ -276,10 +276,6 @@ namespace Microsoft.PSharp.Parsing
                     this.Tokens.Add(new Token(unit, TokenType.IgnoreEvent));
                     break;
 
-                case "to":
-                    this.Tokens.Add(new Token(unit, TokenType.ToMachine));
-                    break;
-
                 case "entry":
                     this.Tokens.Add(new Token(unit, TokenType.Entry));
                     break;
@@ -372,10 +368,6 @@ namespace Microsoft.PSharp.Parsing
                     this.Tokens.Add(new Token(unit, TokenType.RaiseEvent));
                     break;
 
-                case "delete":
-                    this.Tokens.Add(new Token(unit, TokenType.DeleteMachine));
-                    break;
-
                 case "assert":
                     this.Tokens.Add(new Token(unit, TokenType.Assert));
                     break;
@@ -445,7 +437,7 @@ namespace Microsoft.PSharp.Parsing
                 @"\busing\b|\bnamespace\b|\bclass\b|\bstruct\b|" +
                 @"\bmachine\b|\bmodel\b|\bmonitor\b|\bstate\b|\bevent\b|\baction\b|" +
                 @"\bmain\b|\bstart\b|" +
-                @"\bdefer\b|\bignore\b|\bto\b|\bentry\b|\bexit\b|" +
+                @"\bdefer\b|\bignore\b|\bentry\b|\bexit\b|" +
                 @"\bcreate\b|\braise\b|\bsend\b|" +
                 @"\bon\b|\bdo\b|\bgoto\b|\bpush\b|\bwith\b|" +
                 @"\bprivate\b|\bprotected\b|\binternal\b|\bpublic\b|" +

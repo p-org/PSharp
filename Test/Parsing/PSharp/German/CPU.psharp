@@ -8,7 +8,7 @@
         {
             entry
             {
-			    Cache = payload as Tuple<Machine, Machine, Machine>;
+			    Cache = payload as Tuple<machine, machine, machine>;
 
 				raise unit;
             }
@@ -23,23 +23,23 @@
 			    if ($)
 				{
 				    if ($)
-			            send ask_share to Cache.Item1;
+			            send Cache.Item1, ask_share;
 				    else
-						send ask_excl to Cache.Item1;
+						send Cache.Item1, ask_excl;
 			    }
 			    else if ($)
 			    {
 				    if ($)
-			            send ask_share to Cache.Item2;
+			            send Cache.Item2, ask_share;
 				    else
-						send ask_excl to Cache.Item2;
+						send Cache.Item2, ask_excl;
 			    }
 			    else
 			    {
 				    if ($)
-			            send ask_share to Cache.Item3;
+			            send Cache.Item3, ask_share;
 				    else
-						send ask_excl to Cache.Item3;
+						send Cache.Item3, ask_excl;
 			    }
 
 				raise unit;

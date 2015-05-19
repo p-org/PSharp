@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="Exceptions.cs">
+// <copyright file="BaseParseVisitor.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -15,34 +15,27 @@
 using System;
 using System.Collections.Generic;
 
+using Microsoft.PSharp.Parsing.Syntax;
+
 namespace Microsoft.PSharp.Parsing
 {
     /// <summary>
-    /// Implements a parsing exception.
+    /// The P# parsing visitor.
     /// </summary>
-    internal class ParsingException : Exception
+    public abstract class BaseParseVisitor
     {
-        internal List<TokenType> ExpectedTokenTypes;
+        /// <summary>
+        /// The token stream to visit.
+        /// </summary>
+        protected TokenStream TokenStream;
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="expectedTokensTypes">Expected token types</param>
-        public ParsingException(List<TokenType> expectedTokensTypes)
-            : base("")
+        /// <param name="tokenStream">TokenStream</param>
+        public BaseParseVisitor(TokenStream tokenStream)
         {
-            this.ExpectedTokenTypes = expectedTokensTypes;
-        }
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="message">Message</param>
-        /// <param name="expectedTokensTypes">Expected token types</param>
-        public ParsingException(string message, List<TokenType> expectedTokensTypes)
-            : base(message)
-        {
-            this.ExpectedTokenTypes = expectedTokensTypes;
+            this.TokenStream = tokenStream;
         }
     }
 }

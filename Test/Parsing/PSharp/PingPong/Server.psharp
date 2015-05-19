@@ -21,7 +21,7 @@ namespace PingPong
         {
             entry
             {
-                send Pong to this.Client;
+                send this.Client, Pong;
             }
 
             on Unit do SendPong;
@@ -30,7 +30,7 @@ namespace PingPong
 
         action SendPong
         {
-            send Pong to this.Client;
+            send this.Client, Pong;
         }
     }
 }

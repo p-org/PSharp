@@ -24,7 +24,7 @@ namespace TypesAndGenerics
         {
             entry
             {
-                send Pong to this.Client;
+                send this.Client, Pong;
             }
 
             on Unit do SendPong;
@@ -34,7 +34,7 @@ namespace TypesAndGenerics
 
         action SendPong
         {
-            send Pong to this.Client;
+            send this.Client, Pong;
         }
 
         action StopIt

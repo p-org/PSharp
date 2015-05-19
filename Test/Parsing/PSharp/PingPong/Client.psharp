@@ -38,7 +38,7 @@ namespace PingPong
         {
             this.Counter++;
             Console.WriteLine("\nTurns: {0} / 5\n", this.Counter);
-            send Ping to this.Server;
+            send this.Server, Ping;
             raise Unit;
         }
     }

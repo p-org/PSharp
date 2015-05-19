@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="Exceptions.cs">
+// <copyright file="PayloadVisitor.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -15,34 +15,42 @@
 using System;
 using System.Collections.Generic;
 
+using Microsoft.PSharp.Parsing.Syntax;
+
 namespace Microsoft.PSharp.Parsing
 {
     /// <summary>
-    /// Implements a parsing exception.
+    /// The P# payload parsing visitor.
     /// </summary>
-    internal class ParsingException : Exception
+    public sealed class PayloadVisitor : BaseParseVisitor
     {
-        internal List<TokenType> ExpectedTokenTypes;
-
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="expectedTokensTypes">Expected token types</param>
-        public ParsingException(List<TokenType> expectedTokensTypes)
-            : base("")
+        /// <param name="tokenStream">TokenStream</param>
+        public PayloadVisitor(TokenStream tokenStream)
+            : base(tokenStream)
         {
-            this.ExpectedTokenTypes = expectedTokensTypes;
+
         }
 
         /// <summary>
-        /// Constructor.
+        /// Visits the syntax node.
         /// </summary>
-        /// <param name="message">Message</param>
-        /// <param name="expectedTokensTypes">Expected token types</param>
-        public ParsingException(string message, List<TokenType> expectedTokensTypes)
-            : base(message)
+        /// <param name="node">Node</param>
+        public void Visit(PPayloadSendExpressionNode node)
         {
-            this.ExpectedTokenTypes = expectedTokensTypes;
+            if (base.TokenStream.Peek().Type == TokenType.LeftParenthesis)
+            {
+                new PayloadTupleVisitor(base.TokenStream).Visit(node);
+            }
+            else
+            {
+                node.StmtTokens.Add(base.TokenStream.Peek());
+            }
+
+            base.TokenStream.Index++;
+            base.TokenStream.SkipWhiteSpaceAndCommentTokens();
         }
     }
 }

@@ -107,7 +107,6 @@ namespace Microsoft.PSharp.Parsing
         WithExit,
         DeferEvent,
         IgnoreEvent,
-        ToMachine,
         Entry,
         Exit,
 
@@ -138,7 +137,6 @@ namespace Microsoft.PSharp.Parsing
         CreateMachine,
         SendEvent,
         RaiseEvent,
-        DeleteMachine,
         Assert,
         Assume,
         Payload,

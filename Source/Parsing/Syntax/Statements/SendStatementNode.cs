@@ -36,9 +36,9 @@ namespace Microsoft.PSharp.Parsing.Syntax
         public Token EventIdentifier;
 
         /// <summary>
-        /// The to keyword.
+        /// The machine separator token.
         /// </summary>
-        public Token ToKeyword;
+        public Token MachineSeparator;
 
         /// <summary>
         /// The machine identifier.
@@ -46,19 +46,14 @@ namespace Microsoft.PSharp.Parsing.Syntax
         public ExpressionNode MachineIdentifier;
 
         /// <summary>
-        /// The left parenthesis token.
+        /// The event separator token.
         /// </summary>
-        public Token LeftParenthesisToken;
+        public Token EventSeparator;
 
         /// <summary>
         /// The event payload.
         /// </summary>
         public ExpressionNode Payload;
-
-        /// <summary>
-        /// The right parenthesis token.
-        /// </summary>
-        public Token RightParenthesisToken;
 
         #endregion
 
@@ -149,22 +144,21 @@ namespace Microsoft.PSharp.Parsing.Syntax
             var text = this.SendKeyword.TextUnit.Text;
             text += " ";
 
-            text += this.EventIdentifier.TextUnit.Text;
-            text += " ";
-
-            if (this.LeftParenthesisToken != null)
-            {
-                this.Payload.GenerateTextUnit();
-                text += this.LeftParenthesisToken.TextUnit.Text;
-                text += this.Payload.GetFullText();
-                text += this.RightParenthesisToken.TextUnit.Text;
-            }
-
-            text += this.ToKeyword.TextUnit.Text;
-            text += " ";
-
             this.MachineIdentifier.GenerateTextUnit();
             text += this.MachineIdentifier.GetFullText();
+
+            text += this.MachineSeparator.TextUnit.Text;
+            text += " ";
+
+            text += this.EventIdentifier.TextUnit.Text;
+
+            if (this.EventSeparator != null)
+            {
+                text += this.EventSeparator.TextUnit.Text;
+                text += " ";
+
+                this.Payload.GenerateTextUnit();
+            }
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 

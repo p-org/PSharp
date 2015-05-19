@@ -128,13 +128,21 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 text += id.TextUnit.Text;
             }
 
-            text += this.LeftParenthesisToken.TextUnit.Text;
+            if (this.LeftParenthesisToken != null &&
+                this.RightParenthesisToken != null)
+            {
+                text += this.LeftParenthesisToken.TextUnit.Text;
+            }
 
             this.Payload.GenerateTextUnit();
             text += this.Payload.GetFullText();
 
-            text += this.RightParenthesisToken.TextUnit.Text;
-
+            if (this.LeftParenthesisToken != null &&
+                this.RightParenthesisToken != null)
+            {
+                text += this.RightParenthesisToken.TextUnit.Text;
+            }
+            
             text += this.SemicolonToken.TextUnit.Text + "\n";
 
             base.TextUnit = new TextUnit(text, this.CreateKeyword.TextUnit.Line,

@@ -159,17 +159,6 @@ namespace Microsoft.PSharp.Parsing.Syntax
         }
 
         /// <summary>
-        /// Rewrites the machine type.
-        /// </summary>
-        /// param name="position">Position</param>
-        protected void RewriteMachineType(ref int position)
-        {
-            var textUnit = new TextUnit("Machine", this.RewrittenStmtTokens[this.Index].TextUnit.Line,
-                this.RewrittenStmtTokens[this.Index].TextUnit.Start);
-            this.RewrittenStmtTokens[this.Index] = new Token(textUnit, this.RewrittenStmtTokens[this.Index].Type);
-        }
-
-        /// <summary>
         /// Rewrites the this keyword.
         /// </summary>
         /// param name="position">Position</param>

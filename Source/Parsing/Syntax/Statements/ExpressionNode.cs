@@ -145,6 +145,33 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
         #endregion
 
+        #region protected API
+
+        /// <summary>
+        /// Rewrites the machine type.
+        /// </summary>
+        /// param name="position">Position</param>
+        protected void RewriteMachineType(ref int position)
+        {
+            var textUnit = new TextUnit("Machine", this.RewrittenStmtTokens[this.Index].TextUnit.Line,
+                this.RewrittenStmtTokens[this.Index].TextUnit.Start);
+            this.RewrittenStmtTokens[this.Index] = new Token(textUnit, this.RewrittenStmtTokens[this.Index].Type);
+        }
+
+        /// <summary>
+        /// Rewrites the non-deterministic choice.
+        /// </summary>
+        /// <param name="position">Position</param>
+        protected void RewriteNonDeterministicChoice(ref int position)
+        {
+            int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
+            var text = "Microsoft.PSharp.Havoc.Boolean";
+            this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line, position));
+            position += text.Length;
+        }
+
+        #endregion
+
         #region private API
 
         /// <summary>
@@ -162,6 +189,10 @@ namespace Microsoft.PSharp.Parsing.Syntax
             if (token.Type == TokenType.Payload)
             {
                 this.RewritePayload(ref position);
+            }
+            else if (token.Type == TokenType.MachineDecl)
+            {
+                this.RewriteMachineType(ref position);
             }
             else if (token.Type == TokenType.This)
             {
@@ -244,19 +275,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 position += text.Length;
             }
         }
-
-        /// <summary>
-        /// Rewrites the non-deterministic choice.
-        /// </summary>
-        /// <param name="position">Position</param>
-        protected void RewriteNonDeterministicChoice(ref int position)
-        {
-            int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
-            var text = "Microsoft.PSharp.Havoc.Boolean";
-            this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line, position));
-            position += text.Length;
-        }
-
+        
         /// <summary>
         /// Rewrites the identifier.
         /// </summary>

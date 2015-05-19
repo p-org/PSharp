@@ -17,9 +17,9 @@ namespace BoundedAsync
                 Process2 = create Process ( this );
                 Process3 = create Process ( this );
 
-                send eInit ( Process3, Process2 ) to Process1;
-                send eInit ( Process3, Process1 ) to Process2;
-                send eInit ( Process1, Process2 ) to Process3;
+                send Process1, eInit ( Process3, Process2 );
+                send Process2, eInit ( Process3, Process1 );
+                send Process3, eInit ( Process1, Process2 );
 
                 Count = 0;
 
@@ -33,9 +33,9 @@ namespace BoundedAsync
         {
             exit
             {
-                send eResp to Process1;
-                send eResp to Process2;
-                send eResp to Process3;
+                send Process1, eResp;
+                send Process2, eResp;
+                send Process3, eResp;
             }
 
             on eResp goto Sync;

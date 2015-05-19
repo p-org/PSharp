@@ -25,7 +25,7 @@ namespace TypesAndGenerics
             {
                 if (this.Counter == 5)
                 {
-                    send Stop to this.Server;
+                    send this.Server, Stop;
                     this.StopIt();
                 }
             }
@@ -39,7 +39,7 @@ namespace TypesAndGenerics
         {
             this.Counter++;
             Console.WriteLine("\nTurns: {0} / 5\n", this.Counter);
-            send Ping to this.Server;
+            send this.Server, Ping;
             raise Unit;
         }
 

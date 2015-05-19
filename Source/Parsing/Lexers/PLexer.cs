@@ -315,10 +315,6 @@ namespace Microsoft.PSharp.Parsing
                     this.Tokens.Add(new Token(unit, TokenType.RaiseEvent));
                     break;
 
-                case "delete":
-                    this.Tokens.Add(new Token(unit, TokenType.DeleteMachine));
-                    break;
-
                 case "assert":
                     this.Tokens.Add(new Token(unit, TokenType.Assert));
                     break;

@@ -9,7 +9,7 @@
         {
             entry
             {
-			    Host = payload[0] as Machine;
+			    Host = payload[0] as machine;
 				Pending = (bool)payload[1];
 
 				raise unit;
@@ -31,7 +31,7 @@
 		{
 		    entry
 			{
-			    send req_share ( this ) to Host;
+			    send Host, req_share ( this );
 				Pending = true;
 
 				raise unit;
@@ -44,7 +44,7 @@
 		{
 		    entry
 			{
-			    send req_excl ( this ) to Host;
+			    send Host, req_excl ( this );
 				Pending = true;
 
 				raise unit;
@@ -66,7 +66,7 @@
 		{
 		    entry
 			{
-			    send req_excl ( this ) to Host;
+			    send Host, req_excl ( this );
 				Pending = true;
 
 				raise unit;
@@ -116,7 +116,7 @@
 		{
 		    entry
 			{
-			    send invalidate_ack to Host;
+			    send Host, invalidate_ack;
 
 			    if (Pending)
 			    {

@@ -253,10 +253,6 @@ namespace Microsoft.PSharp.Parsing
                     text = "ignore";
                     break;
 
-                case TokenType.ToMachine:
-                    text = "to";
-                    break;
-
                 case TokenType.Entry:
                     text = "entry";
                     break;
@@ -355,10 +351,6 @@ namespace Microsoft.PSharp.Parsing
 
                 case TokenType.RaiseEvent:
                     text = "raise";
-                    break;
-
-                case TokenType.DeleteMachine:
-                    text = "delete";
                     break;
 
                 case TokenType.Assert:

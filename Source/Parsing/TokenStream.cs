@@ -54,6 +54,21 @@ namespace Microsoft.PSharp.Parsing
             }
         }
 
+        /// <summary>
+        /// The name of the currently parsed machine.
+        /// </summary>
+        internal string CurrentMachine;
+
+        /// <summary>
+        /// The name of the currently parsed state.
+        /// </summary>
+        internal string CurrentState;
+
+        /// <summary>
+        /// True if this is a P# stream. False if a P stream.
+        /// </summary>
+        internal bool IsPSharp;
+
         #endregion
 
         #region public API
@@ -66,6 +81,8 @@ namespace Microsoft.PSharp.Parsing
         {
             this.Tokens = tokens.ToList();
             this.Index = 0;
+            this.CurrentMachine = "";
+            this.CurrentState = "";
         }
 
         /// <summary>
@@ -84,20 +101,6 @@ namespace Microsoft.PSharp.Parsing
             this.Index++;
 
             return token;
-        }
-
-        /// <summary>
-        /// Consumes the next token in the stream. Does nothing 
-        /// if the stream is empty.
-        /// </summary>
-        public void Consume()
-        {
-            if (this.Index == this.Tokens.Count)
-            {
-                return;
-            }
-            
-            this.Tokens.RemoveAt(this.Index);
         }
 
         /// <summary>
@@ -142,6 +145,129 @@ namespace Microsoft.PSharp.Parsing
             }
             
             return this.Tokens[index];
+        }
+
+        /// <summary>
+        /// Skips whitespace and comment tokens.
+        /// </summary>
+        /// <returns>Skipped tokens</returns>
+        public List<Token> SkipWhiteSpaceAndCommentTokens()
+        {
+            var skipped = new List<Token>();
+            while (!this.Done)
+            {
+                var repeat = this.CommentOutLineComment();
+                repeat = repeat || this.CommentOutMultiLineComment();
+                repeat = repeat || this.SkipWhiteSpaceTokens(skipped);
+
+                if (!repeat)
+                {
+                    break;
+                }
+            }
+
+            return skipped;
+        }
+
+        /// <summary>
+        /// Skips comment tokens.
+        /// </summary>
+        public void SkipCommentTokens()
+        {
+            while (!this.Done)
+            {
+                var repeat = this.CommentOutLineComment();
+                repeat = repeat || this.CommentOutMultiLineComment();
+
+                if (!repeat)
+                {
+                    break;
+                }
+            }
+        }
+
+        #endregion
+
+        #region private API
+
+        /// <summary>
+        /// Consumes the next token in the stream. Does nothing 
+        /// if the stream is empty.
+        /// </summary>
+        private void Consume()
+        {
+            if (this.Index == this.Tokens.Count)
+            {
+                return;
+            }
+
+            this.Tokens.RemoveAt(this.Index);
+        }
+
+        /// <summary>
+        /// Skips whitespace tokens.
+        /// </summary>
+        /// <param name="skipped">Skipped tokens</param>
+        /// <returns>Boolean value</returns>
+        private bool SkipWhiteSpaceTokens(List<Token> skipped)
+        {
+            if ((this.Peek().Type != TokenType.WhiteSpace) &&
+                (this.Peek().Type != TokenType.NewLine))
+            {
+                return false;
+            }
+
+            while (!this.Done &&
+                (this.Peek().Type == TokenType.WhiteSpace ||
+                this.Peek().Type == TokenType.NewLine))
+            {
+                skipped.Add(this.Next());
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Comments out a line-wide comment, if any.
+        /// </summary>
+        /// <returns>Boolean value</returns>
+        private bool CommentOutLineComment()
+        {
+            if ((this.Peek().Type != TokenType.CommentLine) &&
+                (this.Peek().Type != TokenType.Region))
+            {
+                return false;
+            }
+
+            while (!this.Done &&
+                this.Peek().Type != TokenType.NewLine)
+            {
+                this.Consume();
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Comments out a multi-line comment, if any.
+        /// </summary>
+        /// <returns>Boolean value</returns>
+        private bool CommentOutMultiLineComment()
+        {
+            if (this.Peek().Type != TokenType.CommentStart)
+            {
+                return false;
+            }
+
+            while (!this.Done &&
+                this.Peek().Type != TokenType.CommentEnd)
+            {
+                this.Consume();
+            }
+
+            this.Consume();
+
+            return true;
         }
 
         #endregion

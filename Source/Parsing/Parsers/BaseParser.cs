@@ -45,16 +45,6 @@ namespace Microsoft.PSharp.Parsing
         protected TokenStream TokenStream;
 
         /// <summary>
-        /// The name of the currently parsed machine.
-        /// </summary>
-        protected string CurrentMachine;
-
-        /// <summary>
-        /// The name of the currently parsed state.
-        /// </summary>
-        protected string CurrentState;
-
-        /// <summary>
         /// List of expected token types at end of parsing.
         /// </summary>
         protected List<TokenType> ExpectedTokenTypes;
@@ -96,23 +86,18 @@ namespace Microsoft.PSharp.Parsing
         public IPSharpProgram ParseTokens(List<Token> tokens)
         {
             this.OriginalTokens = tokens.ToList();
-            this.Program = this.CreateNewProgram();
             this.TokenStream = new TokenStream(tokens);
-            this.CurrentMachine = "";
-            this.CurrentState = "";
+            this.Program = this.CreateNewProgram();
             this.ExpectedTokenTypes = new List<TokenType>();
 
             try
             {
                 this.ParseNextToken();
             }
-            catch (EndOfTokensException ex)
-            {
-                this.ExpectedTokenTypes = ex.ExpectedTokenTypes;
-            }
             catch (ParsingException ex)
             {
-                ErrorReporter.ReportErrorAndExit(ex.Message);
+                this.ReportParsingError(ex.Message);
+                this.ExpectedTokenTypes = ex.ExpectedTokenTypes;
             }
 
             this.Program.GenerateTextUnits();
@@ -150,7 +135,7 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="error">Error</param>
         protected void ReportParsingError(string error)
         {
-            if (!this.IsRunningInternally)
+            if (!this.IsRunningInternally || error.Length == 0)
             {
                 return;
             }
@@ -202,115 +187,6 @@ namespace Microsoft.PSharp.Parsing
             }
 
             ErrorReporter.ReportErrorAndExit(error);
-        }
-
-        /// <summary>
-        /// Skips whitespace and comment tokens.
-        /// </summary>
-        /// <returns>Skipped tokens</returns>
-        protected List<Token> SkipWhiteSpaceAndCommentTokens()
-        {
-            var skipped = new List<Token>();
-            while (!this.TokenStream.Done)
-            {
-                var repeat = this.CommentOutLineComment();
-                repeat = repeat || this.CommentOutMultiLineComment();
-                repeat = repeat || this.SkipWhiteSpaceTokens(skipped);
-
-                if (!repeat)
-                {
-                    break;
-                }
-            }
-
-            return skipped;
-        }
-
-        /// <summary>
-        /// Skips comment tokens.
-        /// </summary>
-        protected void SkipCommentTokens()
-        {
-            while (!this.TokenStream.Done)
-            {
-                var repeat = this.CommentOutLineComment();
-                repeat = repeat || this.CommentOutMultiLineComment();
-
-                if (!repeat)
-                {
-                    break;
-                }
-            }
-        }
-
-        #endregion
-
-        #region private API
-
-        /// <summary>
-        /// Skips whitespace tokens.
-        /// </summary>
-        /// <param name="skipped">Skipped tokens</param>
-        /// <returns>Boolean value</returns>
-        private bool SkipWhiteSpaceTokens(List<Token> skipped)
-        {
-            if ((this.TokenStream.Peek().Type != TokenType.WhiteSpace) &&
-                (this.TokenStream.Peek().Type != TokenType.NewLine))
-            {
-                return false;
-            }
-
-            while (!this.TokenStream.Done &&
-                (this.TokenStream.Peek().Type == TokenType.WhiteSpace ||
-                this.TokenStream.Peek().Type == TokenType.NewLine))
-            {
-                skipped.Add(this.TokenStream.Next());
-            }
-
-            return true;
-        }
-
-        /// <summary>
-        /// Comments out a line-wide comment, if any.
-        /// </summary>
-        /// <returns>Boolean value</returns>
-        private bool CommentOutLineComment()
-        {
-            if ((this.TokenStream.Peek().Type != TokenType.CommentLine) &&
-                (this.TokenStream.Peek().Type != TokenType.Region))
-            {
-                return false;
-            }
-
-            while (!this.TokenStream.Done &&
-                this.TokenStream.Peek().Type != TokenType.NewLine)
-            {
-                this.TokenStream.Consume();
-            }
-
-            return true;
-        }
-
-        /// <summary>
-        /// Comments out a multi-line comment, if any.
-        /// </summary>
-        /// <returns>Boolean value</returns>
-        private bool CommentOutMultiLineComment()
-        {
-            if (this.TokenStream.Peek().Type != TokenType.CommentStart)
-            {
-                return false;
-            }
-
-            while (!this.TokenStream.Done &&
-                this.TokenStream.Peek().Type != TokenType.CommentEnd)
-            {
-                this.TokenStream.Consume();
-            }
-
-            this.TokenStream.Consume();
-
-            return true;
         }
 
         #endregion

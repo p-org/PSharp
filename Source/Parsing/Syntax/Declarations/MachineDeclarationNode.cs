@@ -107,6 +107,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor.
         /// </summary>
+        /// <param name="isPSharp">Is P# machine</param>
         /// <param name="isMain">Is main machine</param>
         /// <param name="isMonitor">Is a monitor</param>
         public MachineDeclarationNode(bool isMain, bool isMonitor)
