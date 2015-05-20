@@ -135,7 +135,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     OfType<InvocationExpressionSyntax>().First();
                 RespectsOwnershipAnalysis.AnalyseSendExpression(givesUpSource, givesUpNode,
                     machine, state, originalMachine);
-                RespectsOwnershipAnalysis.AnalyseFactoryExpression(givesUpSource, givesUpNode,
+                RespectsOwnershipAnalysis.AnalyseCreateExpression(givesUpSource, givesUpNode,
                     machine, state, originalMachine);
                 RespectsOwnershipAnalysis.AnalyseGenericCallExpression(givesUpSource, givesUpNode,
                     machine, state, originalMachine);
@@ -207,53 +207,57 @@ namespace Microsoft.PSharp.StaticAnalysis
         }
 
         /// <summary>
-        /// Analyse the given 'Factory' expression to check if it respects the
+        /// Analyse the given 'Create' expression to check if it respects the
         /// given up ownerships.
         /// </summary>
-        /// <param name="factory">Factory call</param>
+        /// <param name="send">Create call</param>
         /// <param name="givesUpNode">Gives up node</param>
         /// <param name="machine">Machine</param>
         /// <param name="state">State</param>
         /// <param name="originalMachine">Original machine</param>
-        private static void AnalyseFactoryExpression(InvocationExpressionSyntax factory, ControlFlowGraphNode givesUpNode,
+        private static void AnalyseCreateExpression(InvocationExpressionSyntax create, ControlFlowGraphNode givesUpNode,
             ClassDeclarationSyntax machine, ClassDeclarationSyntax state, ClassDeclarationSyntax originalMachine)
         {
-            if (!((factory.Expression is MemberAccessExpressionSyntax) ||
-                (factory.Expression is IdentifierNameSyntax)))
+            if (!((create.Expression is MemberAccessExpressionSyntax) ||
+                (create.Expression is IdentifierNameSyntax)))
             {
                 return;
             }
 
-            var model = AnalysisContext.Compilation.GetSemanticModel(factory.SyntaxTree);
-            if (!Utilities.IsMachineFactoryMethod(factory, model))
+            if (((create.Expression is MemberAccessExpressionSyntax) &&
+                !(create.Expression as MemberAccessExpressionSyntax).
+                Name.Identifier.ValueText.Equals("Create")) ||
+                ((create.Expression is IdentifierNameSyntax) &&
+                !(create.Expression as IdentifierNameSyntax).
+                Identifier.ValueText.Equals("Create")))
             {
                 return;
             }
 
-            if (factory.ArgumentList.Arguments.Count == 0)
+            if (create.ArgumentList.Arguments.Count == 0)
             {
                 return;
             }
 
-            if (factory.ArgumentList.Arguments[0].Expression is ObjectCreationExpressionSyntax)
+            if (create.ArgumentList.Arguments[0].Expression is ObjectCreationExpressionSyntax)
             {
-                var objCreation = factory.ArgumentList.Arguments[0].Expression
+                var objCreation = create.ArgumentList.Arguments[0].Expression
                     as ObjectCreationExpressionSyntax;
                 foreach (var arg in objCreation.ArgumentList.Arguments)
                 {
                     RespectsOwnershipAnalysis.AnalyseArgumentSyntax(arg.Expression,
-                        factory, givesUpNode, machine, state, originalMachine);
+                        create, givesUpNode, machine, state, originalMachine);
                 }
             }
-            else if (factory.ArgumentList.Arguments[0].Expression is BinaryExpressionSyntax &&
-                factory.ArgumentList.Arguments[0].Expression.IsKind(SyntaxKind.AsExpression))
+            else if (create.ArgumentList.Arguments[0].Expression is BinaryExpressionSyntax &&
+                create.ArgumentList.Arguments[0].Expression.IsKind(SyntaxKind.AsExpression))
             {
-                var binExpr = factory.ArgumentList.Arguments[0].Expression
+                var binExpr = create.ArgumentList.Arguments[0].Expression
                     as BinaryExpressionSyntax;
                 if ((binExpr.Left is IdentifierNameSyntax) || (binExpr.Left is MemberAccessExpressionSyntax))
                 {
                     RespectsOwnershipAnalysis.AnalyseArgumentSyntax(binExpr.Left,
-                        factory, givesUpNode, machine, state, originalMachine);
+                        create, givesUpNode, machine, state, originalMachine);
                 }
                 else if (binExpr.Left is InvocationExpressionSyntax)
                 {
@@ -261,15 +265,15 @@ namespace Microsoft.PSharp.StaticAnalysis
                     for (int i = 1; i < invocation.ArgumentList.Arguments.Count; i++)
                     {
                         RespectsOwnershipAnalysis.AnalyseArgumentSyntax(invocation.ArgumentList.Arguments[i].
-                            Expression, factory, givesUpNode, machine, state, originalMachine);
+                            Expression, create, givesUpNode, machine, state, originalMachine);
                     }
                 }
             }
-            else if ((factory.ArgumentList.Arguments[0].Expression is IdentifierNameSyntax) ||
-                (factory.ArgumentList.Arguments[0].Expression is MemberAccessExpressionSyntax))
+            else if ((create.ArgumentList.Arguments[0].Expression is IdentifierNameSyntax) ||
+                (create.ArgumentList.Arguments[0].Expression is MemberAccessExpressionSyntax))
             {
-                RespectsOwnershipAnalysis.AnalyseArgumentSyntax(factory.ArgumentList.Arguments[0].
-                    Expression, factory, givesUpNode, machine, state, originalMachine);
+                RespectsOwnershipAnalysis.AnalyseArgumentSyntax(create.ArgumentList.Arguments[0].
+                    Expression, create, givesUpNode, machine, state, originalMachine);
             }
         }
 
@@ -292,15 +296,12 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             var model = AnalysisContext.Compilation.GetSemanticModel(call.SyntaxTree);
-            if (Utilities.IsMachineFactoryMethod(call, model))
-            {
-                return;
-            }
 
             if (call.Expression is MemberAccessExpressionSyntax)
             {
                 var callStmt = call.Expression as MemberAccessExpressionSyntax;
-                if (callStmt.Name.Identifier.ValueText.Equals("Send"))
+                if (callStmt.Name.Identifier.ValueText.Equals("Send") ||
+                    callStmt.Name.Identifier.ValueText.Equals("Create"))
                 {
                     return;
                 }
@@ -308,7 +309,8 @@ namespace Microsoft.PSharp.StaticAnalysis
             else if (call.Expression is IdentifierNameSyntax)
             {
                 var callStmt = call.Expression as IdentifierNameSyntax;
-                if (callStmt.Identifier.ValueText.Equals("Send"))
+                if (callStmt.Identifier.ValueText.Equals("Send") ||
+                    callStmt.Identifier.ValueText.Equals("Create"))
                 {
                     return;
                 }
@@ -817,7 +819,6 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             var callSymbol = model.GetSymbolInfo(call).Symbol;
             if (callSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.Machine") ||
-                callSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.Machine.Factory") ||
                 callSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.MachineState"))
             {
                 return new HashSet<ISymbol>();
@@ -1174,7 +1175,6 @@ namespace Microsoft.PSharp.StaticAnalysis
             
             var callSymbol = model.GetSymbolInfo(call).Symbol;
             if (callSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.Machine") ||
-                callSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.Machine.Factory") ||
                 callSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.MachineState"))
             {
                 RespectsOwnershipAnalysis.DetectPotentialDataRaceInGivesUpOperation(call, target,
@@ -1347,7 +1347,6 @@ namespace Microsoft.PSharp.StaticAnalysis
                 }
             }
             else if ((opSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.Machine") ||
-                opSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.Machine.Factory") ||
                 opSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.MachineState")) &&
                 (opSymbol.Name.Equals("Create") || opSymbol.Name.Equals("CreateMonitor")))
             {

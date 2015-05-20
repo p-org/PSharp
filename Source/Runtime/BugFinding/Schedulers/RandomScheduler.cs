@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="RandomSchedulingStrategy.cs" company="Microsoft">
+// <copyright file="RandomScheduler.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -18,68 +18,51 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.PSharp.Scheduling
+namespace Microsoft.PSharp.BugFinding
 {
     /// <summary>
     /// Class representing a random delay scheduler.
     /// </summary>
-    public sealed class RandomSchedulingStrategy : ISchedulingStrategy
+    public sealed class RandomScheduler : IScheduler
     {
-        private int seed;
-        private Random rand;
-        private int numSchedPoints = 0;
+        private int Seed;
+        private Random Random;
+        private int NumOfSchedulingPoints;
 
-        public RandomSchedulingStrategy(int seed)
+        public RandomScheduler(int seed)
         {
-            this.seed = seed;
-            rand = new Random(seed);
+            this.Seed = seed;
+            this.Random = new Random(seed);
+            this.NumOfSchedulingPoints = 0;
         }
 
-        public int GetNumSchedPoints()
+        public Machine Next(List<Machine> machines)
         {
-            return numSchedPoints;
-        }
-
-        public ThreadInfo ReachedSchedulingPoint(int currTid, List<ThreadInfo> threadList)
-        {
-            var enabledThreads = threadList.Where((tid) => tid.Enabled).ToList();
-            if (enabledThreads.Count == 0)
+            if (machines.Count == 0)
             {
                 return null;
             }
 
-            // POR
-            ThreadInfo currThreadInfo = threadList[currTid];
-            if (currThreadInfo.Enabled && currThreadInfo.eventType == EventType.TAKE)
-            {
-                return currThreadInfo;
-            }
+            this.NumOfSchedulingPoints++;
 
-            numSchedPoints++;
-
-            int i = rand.Next(enabledThreads.Count);
-            return enabledThreads.ElementAt(i);
+            int id = this.Random.Next(machines.Count);
+            return machines[id];
         }
 
-        public bool GetRandomBool()
+        public int GetNumOfSchedulingPoints()
         {
-            return rand.Next(2) != 0;
-        }
-
-        public int GetRandomInt(int ceiling)
-        {
-            return rand.Next(ceiling);
+            return this.NumOfSchedulingPoints;
         }
 
         public bool Reset()
         {
-            numSchedPoints = 0;
+            this.NumOfSchedulingPoints = 0;
             return true;
         }
 
         public string GetDescription()
         {
-            return "Random (seed is " + seed + ")";
+            return "Random (seed is " + this.Seed + ")";
         }
     }
 }

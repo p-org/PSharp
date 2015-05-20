@@ -43,6 +43,7 @@
   <ItemGroup>
     <Compile Include="Attributes\Main.cs" />
     <Compile Include="Attributes\Ghost.cs" />
+    <Compile Include="BugFinding\MachineInfo.cs" />
     <Compile Include="Collections\Container.cs" />
     <Compile Include="Collections\Seq.cs" />
     <Compile Include="Library\ActionBindings.cs" />
@@ -50,7 +51,6 @@
     <Compile Include="Library\Monitor.cs" />
     <Compile Include="Library\PushStateTransitions.cs" />
     <Compile Include="Library\GotoStateTransitions.cs" />
-    <Compile Include="Collections\SystematicBlockingQueue.cs" />
     <Compile Include="CommandLineOptions.cs" />
     <Compile Include="Events\Default.cs" />
     <Compile Include="Events\Halt.cs" />
@@ -61,20 +61,20 @@
     <Compile Include="Library\Havoc.cs" />
     <Compile Include="Profiler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Scheduling\EventType.cs" />
-    <Compile Include="Scheduling\Replayer.cs" />
-    <Compile Include="Scheduling\Scheduler.cs" />
-    <Compile Include="Scheduling\Schedulers\DFSSchedulingStrategy.cs" />
-    <Compile Include="Scheduling\ScheduleStep.cs" />
-    <Compile Include="Scheduling\ScheduleExplorer.cs" />
-    <Compile Include="Scheduling\ISchedulingStrategy.cs" />
-    <Compile Include="Scheduling\Schedulers\RandomSchedulingStrategy.cs" />
-    <Compile Include="Scheduling\Schedulers\NonPreemptiveSchedulingStrategy.cs" />
+    <Compile Include="BugFinding\EventType.cs" />
+    <Compile Include="BugFinding\Replayer.cs" />
+    <Compile Include="BugFinding\BugFinder.cs" />
+    <Compile Include="BugFinding\Schedulers\DFSScheduler.cs" />
+    <Compile Include="BugFinding\ScheduleStep.cs" />
+    <Compile Include="BugFinding\ScheduleExplorer.cs" />
+    <Compile Include="BugFinding\IScheduler.cs" />
+    <Compile Include="BugFinding\Schedulers\RandomScheduler.cs" />
+    <Compile Include="BugFinding\Schedulers\NonPreemptiveScheduler.cs" />
     <Compile Include="Runtime.cs" />
-    <Compile Include="Scheduling\TestConfiguration.cs" />
+    <Compile Include="BugFinding\TestConfiguration.cs" />
     <Compile Include="Library\MachineState.cs" />
     <Compile Include="IO\Utilities.cs" />
-    <Compile Include="ThreadInfo.cs" />
+    <Compile Include="BugFinding\ThreadInfo.cs" />
     <Compile Include="Utilities\IdentityEqualityComparer.cs" />
   </ItemGroup>
   <ItemGroup>

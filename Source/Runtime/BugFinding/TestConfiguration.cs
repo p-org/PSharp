@@ -15,7 +15,7 @@
 //-----------------------------------------------------------------------
 
 using System;
-using Microsoft.PSharp.Scheduling;
+using Microsoft.PSharp.BugFinding;
 
 namespace Microsoft.PSharp
 {
@@ -24,7 +24,7 @@ namespace Microsoft.PSharp
         public string Name;
         public Action EntryPoint;
 
-        public ISchedulingStrategy SchedulingStrategy;
+        public IScheduler SchedulingStrategy;
         public int ScheduleLimit = 10;
         public bool UntilBugFound = false;
         public double SoftTimeLimit = 0;
@@ -41,7 +41,7 @@ namespace Microsoft.PSharp
 
         public double Time = 0;
 
-        public TestConfiguration(string name, Action entryPoint, ISchedulingStrategy schedStrat, int scheduleLimit)
+        public TestConfiguration(string name, Action entryPoint, IScheduler schedStrat, int scheduleLimit)
         {
             this.Name = name;
             this.EntryPoint = entryPoint;

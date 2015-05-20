@@ -195,7 +195,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 MethodSummaryAnalysis.TryComputeGivesUpSetForSendControlFlowGraphNode(
                     givesUpNode, summary);
-                MethodSummaryAnalysis.TryComputeGivesUpSetForFactoryControlFlowGraphNode(
+                MethodSummaryAnalysis.TryComputeGivesUpSetForCreateControlFlowGraphNode(
                     givesUpNode, summary);
                 MethodSummaryAnalysis.TryComputeGivesUpSetForGenericControlFlowGraphNode(
                     givesUpNode, summary);
@@ -275,57 +275,56 @@ namespace Microsoft.PSharp.StaticAnalysis
 
         /// <summary>
         /// Tries to compute the 'gives_up' set of indexes for the given control flow graph node.
-        /// If the node does not contain a 'Factory' operation, then it returns false.
+        /// If the node does not contain a 'Create' operation, then it returns false.
         /// </summary>
         /// <param name="cfgNode">ControlFlowGraphNode</param>
         /// <param name="summary">MethodSummary</param>
         /// <returns>Boolean value</returns>
-        private static bool TryComputeGivesUpSetForFactoryControlFlowGraphNode(ControlFlowGraphNode cfgNode,
+        private static bool TryComputeGivesUpSetForCreateControlFlowGraphNode(ControlFlowGraphNode cfgNode,
             MethodSummary summary)
         {
-            var factoryLocalDecl = cfgNode.SyntaxNodes.First() as LocalDeclarationStatementSyntax;
-            var factoryExpr = cfgNode.SyntaxNodes.First() as ExpressionStatementSyntax;
-
-            InvocationExpressionSyntax factory = null;
-            if (factoryLocalDecl != null)
-            {
-                factory = factoryLocalDecl.DescendantNodesAndSelf().OfType<InvocationExpressionSyntax>().First();
-            }
-            else if (factoryExpr != null)
-            {
-                factory = factoryExpr.DescendantNodesAndSelf().OfType<InvocationExpressionSyntax>().First();
-            }
-            else if (factory == null || !((factory.Expression is MemberAccessExpressionSyntax) ||
-                (factory.Expression is IdentifierNameSyntax)))
+            var createExpr = cfgNode.SyntaxNodes.First() as ExpressionStatementSyntax;
+            if (createExpr == null)
             {
                 return false;
             }
 
-            var model = AnalysisContext.Compilation.GetSemanticModel(factory.SyntaxTree);
-            if (!Utilities.IsMachineFactoryMethod(factory, model))
+            var create = createExpr.Expression as InvocationExpressionSyntax;
+            if (create == null || !((create.Expression is MemberAccessExpressionSyntax) ||
+                (create.Expression is IdentifierNameSyntax)))
             {
                 return false;
             }
 
-            if (factory.ArgumentList.Arguments.Count == 0)
+            if (((create.Expression is MemberAccessExpressionSyntax) &&
+                !(create.Expression as MemberAccessExpressionSyntax).
+                Name.Identifier.ValueText.Equals("Create")) ||
+                ((create.Expression is IdentifierNameSyntax) &&
+                !(create.Expression as IdentifierNameSyntax).
+                Identifier.ValueText.Equals("Create")))
+            {
+                return false;
+            }
+
+            if (create.ArgumentList.Arguments.Count == 0)
             {
                 return true;
             }
 
-            if (factory.ArgumentList.Arguments[0].Expression is ObjectCreationExpressionSyntax)
+            if (create.ArgumentList.Arguments[0].Expression is ObjectCreationExpressionSyntax)
             {
-                var objCreation = factory.ArgumentList.Arguments[0].Expression
+                var objCreation = create.ArgumentList.Arguments[0].Expression
                     as ObjectCreationExpressionSyntax;
                 foreach (var arg in objCreation.ArgumentList.Arguments)
                 {
-                    MethodSummaryAnalysis.ComputeGivesUpSetForArgument(
-                        arg.Expression, cfgNode, summary);
+                    MethodSummaryAnalysis.ComputeGivesUpSetForArgument(arg.Expression,
+                        cfgNode, summary);
                 }
             }
-            else if (factory.ArgumentList.Arguments[0].Expression is BinaryExpressionSyntax &&
-                factory.ArgumentList.Arguments[0].Expression.IsKind(SyntaxKind.AsExpression))
+            else if (create.ArgumentList.Arguments[0].Expression is BinaryExpressionSyntax &&
+                create.ArgumentList.Arguments[0].Expression.IsKind(SyntaxKind.AsExpression))
             {
-                var binExpr = factory.ArgumentList.Arguments[0].Expression
+                var binExpr = create.ArgumentList.Arguments[0].Expression
                     as BinaryExpressionSyntax;
                 if ((binExpr.Left is IdentifierNameSyntax) || (binExpr.Left is MemberAccessExpressionSyntax))
                 {
@@ -342,10 +341,10 @@ namespace Microsoft.PSharp.StaticAnalysis
                     }
                 }
             }
-            else if ((factory.ArgumentList.Arguments[0].Expression is IdentifierNameSyntax) ||
-                (factory.ArgumentList.Arguments[0].Expression is MemberAccessExpressionSyntax))
+            else if ((create.ArgumentList.Arguments[0].Expression is IdentifierNameSyntax) ||
+                (create.ArgumentList.Arguments[0].Expression is MemberAccessExpressionSyntax))
             {
-                MethodSummaryAnalysis.ComputeGivesUpSetForArgument(factory.ArgumentList.
+                MethodSummaryAnalysis.ComputeGivesUpSetForArgument(create.ArgumentList.
                     Arguments[0].Expression, cfgNode, summary);
             }
 
@@ -381,15 +380,12 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             var model = AnalysisContext.Compilation.GetSemanticModel(call.SyntaxTree);
-            if (Utilities.IsMachineFactoryMethod(call, model))
-            {
-                return false;
-            }
 
             if (call.Expression is MemberAccessExpressionSyntax)
             {
                 var callStmt = call.Expression as MemberAccessExpressionSyntax;
-                if (callStmt.Name.Identifier.ValueText.Equals("Send"))
+                if (callStmt.Name.Identifier.ValueText.Equals("Send") ||
+                    callStmt.Name.Identifier.ValueText.Equals("Create"))
                 {
                     return false;
                 }
@@ -397,7 +393,8 @@ namespace Microsoft.PSharp.StaticAnalysis
             else if (call.Expression is IdentifierNameSyntax)
             {
                 var callStmt = call.Expression as IdentifierNameSyntax;
-                if (callStmt.Identifier.ValueText.Equals("Send"))
+                if (callStmt.Identifier.ValueText.Equals("Send") ||
+                    callStmt.Identifier.ValueText.Equals("Create"))
                 {
                     return false;
                 }

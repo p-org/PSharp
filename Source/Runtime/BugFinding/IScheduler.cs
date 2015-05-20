@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="ScheduleStep.cs" company="Microsoft">
+// <copyright file="IScheduler.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -14,43 +14,38 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
 
-namespace Microsoft.PSharp.Scheduling
+namespace Microsoft.PSharp.BugFinding
 {
     /// <summary>
-    /// Class representing a single path step.
+    /// Interface of a generic scheduler.
     /// </summary>
-    internal sealed class ScheduleStep
+    public interface IScheduler
     {
         /// <summary>
-        /// Sender machine.
+        /// Returns the next machine to schedule.
         /// </summary>
-        internal readonly string Sender;
+        /// <param name="machines">Machines</param>
+        /// <returns>Machine</returns>
+        Machine Next(List<Machine> machines);
 
         /// <summary>
-        /// Receiver machine.
+        /// Returns number of scheduling points.
         /// </summary>
-        internal readonly string Receiver;
+        /// <returns>Integer value</returns>
+        int GetNumOfSchedulingPoints();
 
         /// <summary>
-        /// Sent event.
+        /// Returns a textual description of the scheduler.
         /// </summary>
-        internal readonly string Event;
+        /// <returns>String</returns>
+        string GetDescription();
 
         /// <summary>
-        /// Constructor of the PathStep class.
+        /// Resets the scheduling strategy.
         /// </summary>
-        /// <param name="sender">Sender machine</param>
-        /// <param name="receiver">Receiver machine</param>
-        /// <param name="e">Sent event</param>
-        public ScheduleStep(string sender, string receiver, string e)
-        {
-            this.Sender = sender;
-            this.Receiver = receiver;
-            this.Event = e;
-        }
+        /// <returns>Boolean value</returns>
+        bool Reset();
     }
 }

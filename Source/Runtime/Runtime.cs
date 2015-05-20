@@ -18,11 +18,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.PSharp.BugFinding;
 using Microsoft.PSharp.IO;
-using Microsoft.PSharp.Scheduling;
 
 namespace Microsoft.PSharp
 {
@@ -64,20 +63,15 @@ namespace Microsoft.PSharp
         private static List<Task> MachineTasks = new List<Task>();
 
         /// <summary>
-        /// List of machine tasks.
-        /// </summary>
-        //private static List<Thread> MachineTasks = new List<Thread>();
-
-        /// <summary>
-        /// The bug-finding scheduler.
-        /// </summary>
-        internal static Scheduler Scheduler = new Scheduler();
-
-        /// <summary>
         /// True if runtime is running. False otherwise.
         /// </summary>
-        internal static bool IsRunning = false;
+        private static bool IsRunning = false;
 
+        /// <summary>
+        /// The P# bug-finder.
+        /// </summary>
+        internal static BugFinder BugFinder = new BugFinder();
+        
         /// <summary>
         /// Assertion failure counter.
         /// </summary>
@@ -162,51 +156,31 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Starts the P# runtime asynchronously by invoking the main machine.
-        /// The main machine is constructed with an optional payload.
-        /// </summary>
-        /// <param name="payload">Optional payload</param>
-        public static void StartAsync(params Object[] payload)
-        {
-            Runtime.Initialize();
-
-            Runtime.Assert(Runtime.RegisteredMachineTypes.Any(val =>
-                    val.IsDefined(typeof(Main), false)),
-                    "No main machine is registered.\n");
-
-            // Start the main machine.
-            Type mainMachine = Runtime.RegisteredMachineTypes.First(val =>
-                val.IsDefined(typeof(Main), false));
-            Machine.Factory.Create(mainMachine, payload);
-        }
-
-        /// <summary>
         /// Waits until the P# runtime has finished.
         /// </summary>
         public static void Wait()
         {
             Task[] taskArray = null;
-            lock (Runtime.Lock)
+
+            while (Runtime.IsRunning)
             {
-                taskArray = Runtime.MachineTasks.ToArray();
-            }
+                lock (Runtime.Lock)
+                {
+                    taskArray = Runtime.MachineTasks.ToArray();
+                }
+                
+                Task.WaitAll(taskArray);
 
-            Task.WaitAll(taskArray);
+                bool moreTasksExist = false;
+                lock (Runtime.Lock)
+                {
+                    moreTasksExist = taskArray.Length != Runtime.MachineTasks.Count;
+                }
 
-            //foreach (var task in taskArray)
-            //{
-            //    thread.Join();
-            //}
-
-            bool moreTasksExist = false;
-            lock (Runtime.Lock)
-            {
-                moreTasksExist = taskArray.Length != Runtime.MachineTasks.Count;
-            }
-
-            if (moreTasksExist)
-            {
-                Runtime.Wait();
+                if (!moreTasksExist)
+                {
+                    break;
+                }
             }
 
             Runtime.Dispose();
@@ -218,95 +192,95 @@ namespace Microsoft.PSharp
         /// by default, and measures assertion failures and the testing runtime.
         /// </summary>
         /// <param name="testConfig">Test configuration</param>
-        public static void Test(TestConfiguration testConfig)
-        {
-            Runtime.Scheduler.SchedulingStrategy = testConfig.SchedulingStrategy;
-            Runtime.Options.FindBugs = true;
-            Runtime.Options.CountAssertions = true;
+        //public static void Test(TestConfiguration testConfig)
+        //{
+        //    Runtime.BugFinder.SchedulingStrategy = testConfig.SchedulingStrategy;
+        //    Runtime.Options.FindBugs = true;
+        //    Runtime.Options.CountAssertions = true;
 
-            Console.WriteLine("Starting: " + testConfig.Name);
+        //    Console.WriteLine("Starting: " + testConfig.Name);
 
-            Stopwatch stopWatch = new Stopwatch();
-            stopWatch.Start();
+        //    Stopwatch stopWatch = new Stopwatch();
+        //    stopWatch.Start();
 
-            while (testConfig.NumSchedules < testConfig.ScheduleLimit)
-            {
-                //Console.WriteLine("Starting iteration: {0}", iteration + 1);
+        //    while (testConfig.NumSchedules < testConfig.ScheduleLimit)
+        //    {
+        //        //Console.WriteLine("Starting iteration: {0}", iteration + 1);
 
-                bool cont = Runtime.Scheduler.Reset();
+        //        bool cont = Runtime.BugFinder.Reset();
 
-                if (testConfig.SoftTimeLimit > 1 &&
-                    stopWatch.Elapsed.TotalSeconds > testConfig.SoftTimeLimit)
-                {
-                    break;
-                }
+        //        if (testConfig.SoftTimeLimit > 1 &&
+        //            stopWatch.Elapsed.TotalSeconds > testConfig.SoftTimeLimit)
+        //        {
+        //            break;
+        //        }
 
-                if (!cont)
-                {
-                    testConfig.Completed = true;
-                    break;
-                }
+        //        if (!cont)
+        //        {
+        //            testConfig.Completed = true;
+        //            break;
+        //        }
 
-                testConfig.EntryPoint();
+        //        testConfig.EntryPoint();
 
-                if (testConfig.NumSchedules == 0)
-                {
-                    testConfig.NumSteps = Runtime.Scheduler.SchedulingStrategy.GetNumSchedPoints();
-                }
+        //        if (testConfig.NumSchedules == 0)
+        //        {
+        //            testConfig.NumSteps = Runtime.BugFinder.SchedulingStrategy.GetNumOfSchedulingPoints();
+        //        }
 
-                testConfig.NumSchedules++;
+        //        testConfig.NumSchedules++;
 
-                // If it is a "real" deadlock (not due to e.g. an assertion failure)
-                // then we record this.
-                if (Runtime.Scheduler.DeadlockHasOccurred &&
-                    !Runtime.Scheduler.ErrorHasOccurred)
-                {
-                    testConfig.NumDeadlocks++;
-                    Console.WriteLine("Terminated due to DEADLOCK!");
-                }
+        //        // If it is a "real" deadlock (not due to e.g. an assertion failure)
+        //        // then we record this.
+        //        if (Runtime.BugFinder.DeadlockHasOccurred &&
+        //            !Runtime.BugFinder.ErrorHasOccurred)
+        //        {
+        //            testConfig.NumDeadlocks++;
+        //            Console.WriteLine("Terminated due to DEADLOCK!");
+        //        }
 
-                if (Runtime.Scheduler.ErrorHasOccurred)
-                {
-                    Console.WriteLine("Terminated due to ERROR!");
-                }
+        //        if (Runtime.BugFinder.ErrorHasOccurred)
+        //        {
+        //            Console.WriteLine("Terminated due to ERROR!");
+        //        }
 
-                // If it is an error or a deadlock then deadlockHasOccurred will be set.
-                if (Runtime.Scheduler.DeadlockHasOccurred)
-                {
-                    testConfig.NumBuggy++;
-                    if (testConfig.NumSchedulesToFirstBug == -1)
-                    {
-                        testConfig.NumSchedulesToFirstBug = testConfig.NumSchedules;
-                        testConfig.TimeToFirstBug = stopWatch.Elapsed.TotalSeconds;
-                    }
-                }
+        //        // If it is an error or a deadlock then deadlockHasOccurred will be set.
+        //        if (Runtime.BugFinder.DeadlockHasOccurred)
+        //        {
+        //            testConfig.NumBuggy++;
+        //            if (testConfig.NumSchedulesToFirstBug == -1)
+        //            {
+        //                testConfig.NumSchedulesToFirstBug = testConfig.NumSchedules;
+        //                testConfig.TimeToFirstBug = stopWatch.Elapsed.TotalSeconds;
+        //            }
+        //        }
 
-                if (Runtime.Scheduler.HitDepthBound)
-                {
-                    testConfig.NumHitDepthBound++;
-                }
+        //        if (Runtime.BugFinder.HitDepthBound)
+        //        {
+        //            testConfig.NumHitDepthBound++;
+        //        }
 
-                //Console.WriteLine("Finished iteration: {0}", iteration + 1);
-                if (testConfig.NumSchedules % 500 == 0)
-                {
-                    Console.Error.WriteLine("Finished schedule {0}", testConfig.NumSchedules);
-                }
+        //        //Console.WriteLine("Finished iteration: {0}", iteration + 1);
+        //        if (testConfig.NumSchedules % 500 == 0)
+        //        {
+        //            Console.Error.WriteLine("Finished schedule {0}", testConfig.NumSchedules);
+        //        }
 
-                if (testConfig.UntilBugFound && testConfig.NumBuggy > 0)
-                {
-                    break;
-                }
-            }
+        //        if (testConfig.UntilBugFound && testConfig.NumBuggy > 0)
+        //        {
+        //            break;
+        //        }
+        //    }
 
-            stopWatch.Stop();
-            testConfig.Time = stopWatch.Elapsed.TotalSeconds;
+        //    stopWatch.Stop();
+        //    testConfig.Time = stopWatch.Elapsed.TotalSeconds;
 
-            Console.Error.WriteLine("Found {0} buggy schedules.", testConfig.NumBuggy);
-            Console.Error.WriteLine("  ({0} of them were deadlocks.)", testConfig.NumDeadlocks);
-            Console.Error.WriteLine("Explored {0} schedules.", testConfig.NumSchedules);
-            Console.Error.WriteLine("There were {0} steps on the first schedule.", testConfig.NumSteps);
-            Console.Error.WriteLine("Elapsed: {0} seconds.", testConfig.Time);
-        }
+        //    Console.Error.WriteLine("Found {0} buggy schedules.", testConfig.NumBuggy);
+        //    Console.Error.WriteLine("  ({0} of them were deadlocks.)", testConfig.NumDeadlocks);
+        //    Console.Error.WriteLine("Explored {0} schedules.", testConfig.NumSchedules);
+        //    Console.Error.WriteLine("There were {0} steps on the first schedule.", testConfig.NumSteps);
+        //    Console.Error.WriteLine("Elapsed: {0} seconds.", testConfig.Time);
+        //}
 
         /// <summary>
         /// Analyzes the latest P# execution.
@@ -334,31 +308,21 @@ namespace Microsoft.PSharp
             Machine machine = Activator.CreateInstance(m) as Machine;
             Utilities.Verbose("<CreateLog> Machine {0}({1}) is created.", m, machine.Id);
 
-            if (!Runtime.Options.FindBugs)
+            Task task = new Task(() =>
             {
-                Task task = new Task(() =>
+                try
                 {
-                    try
-                    {
-                        machine.Start(payload);
-                    }
-                    catch (TaskCanceledException) { }
-                });
-
-                lock (Runtime.Lock)
-                {
-                    Runtime.MachineTasks.Add(task);
+                    machine.Start(payload);
                 }
-                
-                task.Start();
+                catch (TaskCanceledException) { }
+            });
+
+            lock (Runtime.Lock)
+            {
+                Runtime.MachineTasks.Add(task);
             }
-            //else if (Runtime.Options.Mode == Runtime.Mode.BugFinding)
-            //{
-            //    lock (Runtime.Lock)
-            //    {
-            //        Runtime.MachineTasks.Add(machine.ScheduledStart(payload));
-            //    }
-            //}
+
+            task.Start();
 
             return machine;
         }
@@ -378,24 +342,21 @@ namespace Microsoft.PSharp
             Utilities.Verbose("<CreateLog> Machine {0}({1}) is created.", typeof(T),
                 (machine as Machine).Id);
 
-            if (!Runtime.Options.FindBugs)
+            Task task = new Task(() =>
             {
-                Task task = new Task(() =>
+                try
                 {
-                    try
-                    {
-                        (machine as Machine).Start(payload);
-                    }
-                    catch (TaskCanceledException) { }
-                });
-
-                lock (Runtime.Lock)
-                {
-                    Runtime.MachineTasks.Add(task);
+                    (machine as Machine).Start(payload);
                 }
-                
-                task.Start();
+                catch (TaskCanceledException) { }
+            });
+
+            lock (Runtime.Lock)
+            {
+                Runtime.MachineTasks.Add(task);
             }
+
+            task.Start();
 
             return (T)machine;
         }
@@ -567,11 +528,10 @@ namespace Microsoft.PSharp
         public static class Options
         {
             /// <summary>
-            /// The scheduling strategy to be used. The default is the random
-            /// scheduling strategy.
+            /// The bug-finding scheduler to be used. The default is the
+            /// random scheduler.
             /// </summary>
-            public static ISchedulingStrategy SchedulingStrategy =
-                new RandomSchedulingStrategy(0);
+            public static IScheduler Scheduler = new RandomScheduler(DateTime.Now.Millisecond);
 
             /// <summary>
             /// When the runtime stops after running in bug finding mode
@@ -584,6 +544,12 @@ namespace Microsoft.PSharp
             /// Run the runtime in bug-finding mode.
             /// </summary>
             public static bool FindBugs = false;
+
+            /// <summary>
+            /// True to print the bug-finder's scheduling info.
+            /// False by default.
+            /// </summary>
+            public static bool PrintScheduleInfo = false;
 
             /// <summary>
             /// True to switch verbose mode on. False by default.
@@ -645,7 +611,7 @@ namespace Microsoft.PSharp
                     Environment.Exit(1);
                 }
 
-                Runtime.Scheduler.ErrorOccurred();
+                Runtime.BugFinder.NotifyAssertionFailure();
             }
         }
 
@@ -676,7 +642,7 @@ namespace Microsoft.PSharp
                     Environment.Exit(1);
                 }
 
-                Runtime.Scheduler.ErrorOccurred();
+                Runtime.BugFinder.NotifyAssertionFailure();
             }
         }
 
@@ -689,8 +655,11 @@ namespace Microsoft.PSharp
         /// </summary>
         public static void Dispose()
         {
-            Runtime.IsRunning = false;
-
+            if (!Runtime.IsRunning)
+            {
+                return;
+            }
+            
             Runtime.Monitors.Clear();
 
             Runtime.RegisteredMachineTypes.Clear();
@@ -700,8 +669,9 @@ namespace Microsoft.PSharp
             Runtime.MachineTasks.Clear();
 
             Machine.ResetMachineIDCounter();
-            Runtime.Options.SchedulingStrategy.Reset();
             ScheduleExplorer.ResetExploredSchedule();
+
+            Runtime.IsRunning = false;
         }
 
         #endregion

@@ -20,7 +20,7 @@ using System.Linq;
 
 using Microsoft.PSharp.IO;
 
-namespace Microsoft.PSharp.Scheduling
+namespace Microsoft.PSharp.BugFinding
 {
     /// <summary>
     /// Static class implementing execution schedule replay methods.
@@ -60,7 +60,6 @@ namespace Microsoft.PSharp.Scheduling
         internal static void Run(Type m, params Object[] payload)
         {
             Machine.Factory.Create(m, payload);
-            Runtime.IsRunning = true;
         }
 
         /// <summary>

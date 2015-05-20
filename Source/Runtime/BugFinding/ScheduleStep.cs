@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="ISchedulingStrategy.cs" company="Microsoft">
+// <copyright file="ScheduleStep.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -14,46 +14,43 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
-namespace Microsoft.PSharp.Scheduling
+namespace Microsoft.PSharp.BugFinding
 {
     /// <summary>
-    /// Interface of a generic scheduling strategy.
+    /// Class representing a single path step.
     /// </summary>
-    public interface ISchedulingStrategy
+    internal sealed class ScheduleStep
     {
-        ThreadInfo ReachedSchedulingPoint(int currTid, List<ThreadInfo> threadList);
+        /// <summary>
+        /// Sender machine.
+        /// </summary>
+        internal readonly string Sender;
 
         /// <summary>
-        /// Resets the scheduling strategy.
+        /// Receiver machine.
         /// </summary>
-        /// <returns>Boolean value</returns>
-        bool Reset();
+        internal readonly string Receiver;
 
         /// <summary>
-        /// Gets the description of the scheduling strategy.
+        /// Sent event.
         /// </summary>
-        /// <returns>String</returns>
-        string GetDescription();
+        internal readonly string Event;
 
         /// <summary>
-        /// Returns a random boolean value.
+        /// Constructor of the PathStep class.
         /// </summary>
-        /// <returns>Boolean value</returns>
-        bool GetRandomBool();
-
-        /// <summary>
-        /// Returns a random integer value.
-        /// </summary>
-        /// <param name="ceiling">Ceiling</param>
-        /// <returns>Integer value</returns>
-        int GetRandomInt(int ceiling);
-
-        /// <summary>
-        /// Get number of scheduling points.
-        /// </summary>
-        /// <returns>Integer value</returns>
-        int GetNumSchedPoints();
+        /// <param name="sender">Sender machine</param>
+        /// <param name="receiver">Receiver machine</param>
+        /// <param name="e">Sent event</param>
+        public ScheduleStep(string sender, string receiver, string e)
+        {
+            this.Sender = sender;
+            this.Receiver = receiver;
+            this.Event = e;
+        }
     }
 }

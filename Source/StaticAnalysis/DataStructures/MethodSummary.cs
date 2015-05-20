@@ -198,7 +198,6 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             if (callSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.Machine") ||
-                callSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.Machine.Factory") ||
                 callSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.MachineState"))
             {
                 return null;

@@ -451,38 +451,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             var suffix = model.GetSymbolInfo(call).Symbol.ContainingSymbol.ToString();
             if (!(suffix.Equals("Microsoft.PSharp.Machine") ||
-                suffix.Equals("Microsoft.PSharp.MachineState") ||
-                suffix.Equals("Microsoft.PSharp.Machine.Factory")))
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        /// <summary>
-        /// Returns true if the given call is invoking a machine factory method.
-        /// Returns false if it is not.
-        /// </summary>
-        /// <param name="call">Call</param>
-        /// <param name="model">Semantic model</param>
-        /// <param name="callee">Callee (optional)</param>
-        /// <returns>Boolean value</returns>
-        internal static bool IsMachineFactoryMethod(InvocationExpressionSyntax call, SemanticModel model,
-            string callee = null)
-        {
-            if (callee == null)
-            {
-                callee = Utilities.GetCallee(call);
-            }
-
-            if (!(callee.Equals("Create") || callee.Equals("CreateMonitor")))
-            {
-                return false;
-            }
-
-            var suffix = model.GetSymbolInfo(call).Symbol.ContainingSymbol.ToString();
-            if (!(suffix.Equals("Microsoft.PSharp.Machine.Factory")))
+                suffix.Equals("Microsoft.PSharp.MachineState")))
             {
                 return false;
             }

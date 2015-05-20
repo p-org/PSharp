@@ -20,7 +20,7 @@ using System.Linq;
 
 using Microsoft.PSharp.IO;
 
-namespace Microsoft.PSharp.Scheduling
+namespace Microsoft.PSharp.BugFinding
 {
     /// <summary>
     /// Static class implementing schedule exploration methods

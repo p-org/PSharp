@@ -15,15 +15,10 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
-using Microsoft.PSharp.Scheduling;
 
 namespace Microsoft.PSharp
 {
@@ -70,16 +65,6 @@ namespace Microsoft.PSharp
         private bool IsHalted;
 
         /// <summary>
-        /// False if machine has stopped.
-        /// </summary>
-        private bool IsActive;
-
-        /// <summary>
-        /// Cancellation token source for the machine.
-        /// </summary>
-        private CancellationTokenSource CTS;
-
-        /// <summary>
         /// Collection of all possible goto state transitions.
         /// </summary>
         private Dictionary<Type, GotoStateTransitions> GotoTransitions;
@@ -99,20 +84,6 @@ namespace Microsoft.PSharp
         /// queued here. Events are dequeued to be processed.
         /// </summary>
         private List<Event> Inbox;
-
-        /// <summary>
-        /// Inbox of the state machine. Incoming events are
-        /// queued here. Events are dequeued to be processed.
-        /// A thread-safe blocking collection is used.
-        /// </summary>
-        //internal BlockingCollection<Event> Inbox;
-
-        /// <summary>
-        /// Inbox of the state machine (used during bug-finding mode).
-        /// Incoming events are queued here. Events are dequeued to be
-        /// processed. A thread-safe blocking collection is used.
-        /// </summary>
-        private SystematicBlockingQueue<Event> ScheduledInbox;
 
         /// <summary>
         /// Handle to the latest received event type.
@@ -140,17 +111,10 @@ namespace Microsoft.PSharp
             this.Id = Machine.IdCounter++;
             this.Lock = new Object();
 
-            if (!Runtime.Options.FindBugs)
-                this.Inbox = new List<Event>();
-                //this.Inbox = new BlockingCollection<Event>();
-            else if (Runtime.Options.FindBugs)
-                this.ScheduledInbox = new SystematicBlockingQueue<Event>();
+            this.Inbox = new List<Event>();
 
             this.StateStack = new Stack<MachineState>();
             this.IsHalted = false;
-            this.IsActive = true;
-
-            this.CTS = new CancellationTokenSource();
 
             this.GotoTransitions = this.DefineGotoStateTransitions();
             this.PushTransitions = this.DefinePushStateTransitions();
@@ -198,6 +162,26 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Creates a new machine of type T with an optional payload.
+        /// </summary>
+        /// <typeparam name="T">Type of machine</typeparam>
+        /// <param name="payload">Optional payload</param>
+        /// <returns>Machine</returns>
+        protected internal T Create<T>(params Object[] payload)
+        {
+            Runtime.Assert(typeof(T).IsSubclassOf(typeof(Machine)), "Type '{0}' is " +
+                "not a subclass of Machine.\n", typeof(T).Name);
+            var machine = Runtime.TryCreateNewMachineInstance<T>(payload);
+
+            if (Runtime.Options.FindBugs)
+            {
+                Runtime.BugFinder.Schedule(this);
+            }
+
+            return machine;
+        }
+
+        /// <summary>
         /// Sends an asynchronous event to a machine.
         /// </summary>
         /// <param name="m">Machine</param>
@@ -207,6 +191,11 @@ namespace Microsoft.PSharp
             Utilities.Verbose("<SendLog> Machine {0}({1}) sent event {2} to machine {3}({4}).",
                 this, this.Id, e.GetType(), m, m.Id);
             Runtime.Send(m, e, this.GetType().Name);
+
+            if (Runtime.Options.FindBugs)
+            {
+                Runtime.BugFinder.Schedule(this);
+            }
         }
 
         /// <summary>
@@ -264,24 +253,10 @@ namespace Microsoft.PSharp
         #region factory methods
 
         /// <summary>
-        /// Factory class for creating machines.
+        /// Factory class for creating machines internally.
         /// </summary>
-        public static class Factory
+        internal static class Factory
         {
-            /// <summary>
-            /// Creates a new machine of type T with an optional payload.
-            /// </summary>
-            /// <typeparam name="T">Type of machine</typeparam>
-            /// <param name="payload">Optional payload</param>
-            /// <returns>Machine</returns>
-            public static T Create<T>(params Object[] payload)
-            {
-                Runtime.Assert(typeof(T).IsSubclassOf(typeof(Machine)), "Type '{0}' is " +
-                    "not a subclass of Machine.\n", typeof(T).Name);
-                var machine = Runtime.TryCreateNewMachineInstance<T>(payload);
-                return machine;
-            }
-
             /// <summary>
             /// Creates a new machine of type T with an optional payload.
             /// </summary>
@@ -309,63 +284,25 @@ namespace Microsoft.PSharp
         {
             lock (this.Lock)
             {
-                this.GotoInitialState(payload);
-            }
-        }
-
-        /// <summary>
-        /// Starts the machine concurrently with an optional payload and
-        /// the scheduler enabled.
-        /// </summary>
-        /// /// <param name="payload">Optional payload</param>
-        /// <returns>Task</returns>
-        internal Thread ScheduledStart(params Object[] payload)
-        {
-            Thread thread = new Thread((Object pl) =>
-            {
-                ThreadInfo currThread = Runtime.Scheduler.GetCurrentThreadInfo();
-                Runtime.Scheduler.ThreadStarted(currThread);
-
-                try
+                if (Runtime.Options.FindBugs)
                 {
-                    if (Runtime.Scheduler.DeadlockHasOccurred)
-                    {
-                        throw new TaskCanceledException();
-                    }
-
-                    this.GotoInitialState((Object[])pl);
-
-                    //while (this.IsActive)
-                    //{
-                    //    if (this.RaisedEvent != null)
-                    //    {
-                    //        Event nextEvent = this.RaisedEvent;
-                    //        this.RaisedEvent = null;
-                    //        this.HandleEvent(nextEvent);
-                    //    }
-                    //    else
-                    //    {
-                    //        // We are using a blocking collection so the attempt to
-                    //        // dequeue an event will block if there is no available
-                    //        // event in the mailbox. The operation will unblock when
-                    //        // the next event arrives.
-                    //        Event nextEvent = this.ScheduledInbox.Take();
-                    //        this.HandleEvent(nextEvent);
-                    //    }
-                    //}
+                    Runtime.BugFinder.NotifyHandlerStarted(this);
                 }
-                catch (TaskCanceledException) { }
+                
+                this.GotoInitialState(payload);
 
-                Runtime.Scheduler.ThreadEnded(currThread);
-            });
-
-            ThreadInfo threadInfo = Runtime.Scheduler.AddNewThreadInfo(thread);
-
-            thread.Start(payload);
-
-            Runtime.Scheduler.WaitForThreadToStart(threadInfo);
-
-            return thread;
+                if (Runtime.Options.FindBugs)
+                {
+                    if (this.IsHalted)
+                    {
+                        Runtime.BugFinder.NotifyMachineHalted(this);
+                    }
+                    else
+                    {
+                        Runtime.BugFinder.NotifyHandlerPaused(this);
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -375,24 +312,22 @@ namespace Microsoft.PSharp
         /// <param name="sender">Sender machine</param>
         internal void Enqueue(Event e, string sender)
         {
-            if (!Runtime.Options.FindBugs)
+            lock (this.Inbox)
             {
-                lock (this.Lock)
+                if (!this.IsHalted)
                 {
-                    if (!this.IsHalted)
-                    {
-                        Utilities.Verbose("<EnqueueLog> Machine {0}({1}) enqueued event {2}.",
-                            this, this.Id, e.GetType());
-
-                        this.Inbox.Add(e);
-                        this.StartEventHandler();
-                    }
+                    Utilities.Verbose("<EnqueueLog> Machine {0}({1}) enqueued event {2}.",
+                        this, this.Id, e.GetType());
+                    this.Inbox.Add(e);
                 }
             }
-            else if (Runtime.Options.FindBugs)
+
+            lock (this.Lock)
             {
-                this.ScheduledInbox.Add(e);
-                ScheduleExplorer.Add(sender, this.GetType().Name, e.GetType().Name);
+                if (!this.IsHalted)
+                {
+                    this.StartEventHandler();
+                }
             }
         }
 
@@ -406,19 +341,6 @@ namespace Microsoft.PSharp
             {
                 return this.IsHalted;
             }
-        }
-
-        /// <summary>
-        /// Stop listening to events.
-        /// </summary>
-        internal void StopListener()
-        {
-            this.IsActive = false;
-
-            if (!Runtime.Options.FindBugs)
-                this.CTS.Cancel();
-            else if (Runtime.Options.FindBugs)
-                this.ScheduledInbox.Cancel();
         }
 
         /// <summary>
@@ -440,7 +362,16 @@ namespace Microsoft.PSharp
         /// </summary>
         private void StartEventHandler()
         {
-            Event nextEvent = this.DequeueNextEvent();
+            if (Runtime.Options.FindBugs)
+            {
+                Runtime.BugFinder.NotifyHandlerStarted(this);
+            }
+
+            Event nextEvent = null;
+            lock (this.Inbox)
+            {
+                nextEvent = this.DequeueNextEvent();
+            }
 
             while (!this.IsHalted)
             {
@@ -461,7 +392,22 @@ namespace Microsoft.PSharp
                 
                 this.HandleEvent(nextEvent);
 
-                nextEvent = this.DequeueNextEvent();
+                lock (this.Inbox)
+                {
+                    nextEvent = this.DequeueNextEvent();
+                }
+            }
+
+            if (Runtime.Options.FindBugs)
+            {
+                if (this.IsHalted)
+                {
+                    Runtime.BugFinder.NotifyMachineHalted(this);
+                }
+                else
+                {
+                    Runtime.BugFinder.NotifyHandlerPaused(this);
+                }
             }
         }
 
@@ -519,9 +465,13 @@ namespace Microsoft.PSharp
                     // is halt, then terminate the machine.
                     if (e.GetType().Equals(typeof(Halt)))
                     {
-                        Utilities.Verbose("<HaltLog> Machine {0}({1}) halted.", this, this.Id);
-                        this.IsHalted = true;
-                        this.CleanUpResources();
+                        lock (this.Inbox)
+                        {
+                            Utilities.Verbose("<HaltLog> Machine {0}({1}) halted.", this, this.Id);
+                            this.IsHalted = true;
+                            this.CleanUpResources();
+                        }
+                        
                         return;
                     }
 
@@ -747,10 +697,6 @@ namespace Microsoft.PSharp
                 // Handles the returning state.
                 this.AssertReturnStatementValidity(ex.ReturningState);
             }
-            catch (TaskCanceledException ex)
-            {
-                throw ex;
-            }
             catch (Exception ex)
             {
                 // Handles generic exception.
@@ -779,10 +725,6 @@ namespace Microsoft.PSharp
             {
                 // Handles the returning state.
                 this.AssertReturnStatementValidity(ex.ReturningState);
-            }
-            catch (TaskCanceledException ex)
-            {
-                throw ex;
             }
             catch (Exception ex)
             {
@@ -813,10 +755,6 @@ namespace Microsoft.PSharp
             {
                 // Handles the returning state.
                 this.AssertReturnStatementValidity(ex.ReturningState);
-            }
-            catch (TaskCanceledException ex)
-            {
-                throw ex;
             }
             catch (Exception ex)
             {
@@ -873,7 +811,7 @@ namespace Microsoft.PSharp
         /// <returns>int</returns>
         public override int GetHashCode()
         {
-            return base.GetHashCode();
+            return this.Id.GetHashCode();
         }
 
         /// <summary>

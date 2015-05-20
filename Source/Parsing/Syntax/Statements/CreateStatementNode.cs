@@ -95,7 +95,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         {
             var start = position;
 
-            var text = "Machine.Factory.Create<";
+            var text = "this.Create<";
 
             foreach (var id in this.MachineIdentifier)
             {

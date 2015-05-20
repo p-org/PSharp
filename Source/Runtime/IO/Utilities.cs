@@ -41,6 +41,14 @@ namespace Microsoft.PSharp.IO
             Console.WriteLine(message);
         }
 
+        internal static void WriteSchedule(string s, params object[] args)
+        {
+            if (!Runtime.Options.PrintScheduleInfo)
+                return;
+            string message = Utilities.Format(s, args);
+            Console.WriteLine(message);
+        }
+
         internal static void WriteLine(string s, params object[] args)
         {
             string message = Utilities.Format(s, args);

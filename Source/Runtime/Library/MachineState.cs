@@ -174,6 +174,17 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Creates a new machine of type T with an optional payload.
+        /// </summary>
+        /// <typeparam name="T">Type of machine</typeparam>
+        /// <param name="payload">Optional payload</param>
+        /// <returns>Machine</returns>
+        protected internal T Create<T>(params Object[] payload)
+        {
+            return this.Machine.Create<T>(payload);
+        }
+
+        /// <summary>
         /// Sends an asynchronous event to a machine.
         /// </summary>
         /// <param name="m">Machine</param>
