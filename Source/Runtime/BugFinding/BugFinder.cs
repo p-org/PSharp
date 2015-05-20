@@ -57,7 +57,7 @@ namespace Microsoft.PSharp.BugFinding
             if (Runtime.Options.BugFindingStrategy == Runtime.BugFindingStrategy.Random)
                 this.Scheduler = new RandomScheduler(DateTime.Now.Millisecond);
             else if (Runtime.Options.BugFindingStrategy == Runtime.BugFindingStrategy.DFS)
-                this.Scheduler = new DFSScheduler(0);
+                this.Scheduler = new DFSScheduler();
 
             this.ActiveMachines = new List<Machine>();
             this.MachineInfoMap = new Dictionary<Machine, MachineInfo>();

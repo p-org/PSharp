@@ -25,8 +25,19 @@ namespace Microsoft.PSharp.BugFinding
     /// </summary>
     public sealed class RandomScheduler : IScheduler
     {
+        /// <summary>
+        /// Nondeterminitic seed.
+        /// </summary>
         private int Seed;
+
+        /// <summary>
+        /// Randomizer.
+        /// </summary>
         private Random Random;
+
+        /// <summary>
+        /// Number of scheduling points.
+        /// </summary>
         private int NumOfSchedulingPoints;
 
         /// <summary>
