@@ -17,7 +17,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.BugFinding;
@@ -70,7 +69,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// The P# bug-finder.
         /// </summary>
-        internal static BugFinder BugFinder;
+        public static BugFinder BugFinder = null;
 
         #endregion
 
@@ -84,9 +83,9 @@ namespace Microsoft.PSharp
         public static void RegisterNewEvent(Type e)
         {
             Runtime.Assert(Runtime.IsRunning == false, "Cannot register event '{0}'" +
-                "because the P# runtime has already started.\n", e.Name);
+                "because the P# runtime has already started.", e.Name);
             Runtime.Assert(e.IsSubclassOf(typeof(Event)), "Type '{0}' is not " +
-                    "a subclass of Event.\n", e.Name);
+                    "a subclass of Event.", e.Name);
             Runtime.RegisteredEventTypes.Add(e);
         }
 
@@ -98,16 +97,16 @@ namespace Microsoft.PSharp
         public static void RegisterNewMachine(Type m)
         {
             Runtime.Assert(Runtime.IsRunning == false, "Cannot register machine '{0}'" +
-                "because the P# runtime has already started.\n", m.Name);
+                "because the P# runtime has already started.", m.Name);
             Runtime.Assert(m.IsSubclassOf(typeof(Machine)), "Type '{0}' is not " +
-                    "a subclass of Machine.\n", m.Name);
+                    "a subclass of Machine.", m.Name);
 
             if (m.IsDefined(typeof(Main), false))
             {
                 Runtime.Assert(!Runtime.RegisteredMachineTypes.Any(val =>
                     val.IsDefined(typeof(Main), false)),
                     "Machine '{0}' cannot be declared as main. A main machine already " +
-                    "exists.\n", m.Name);
+                    "exists.", m.Name);
             }
 
             Runtime.RegisteredMachineTypes.Add(m);
@@ -121,11 +120,11 @@ namespace Microsoft.PSharp
         public static void RegisterNewMonitor(Type m)
         {
             Runtime.Assert(Runtime.IsRunning == false, "Cannot register monitor '{0}'" +
-                "because the P# runtime has already started.\n", m.Name);
+                "because the P# runtime has already started.", m.Name);
             Runtime.Assert(m.IsSubclassOf(typeof(Monitor)), "Type '{0}' is not " +
-                    "a subclass of Monitor.\n", m.Name);
+                    "a subclass of Monitor.", m.Name);
             Runtime.Assert(!m.IsDefined(typeof(Main), false),
-                "Monitor '{0}' cannot be declared as main.\n", m.Name);
+                "Monitor '{0}' cannot be declared as main.", m.Name);
             Runtime.RegisteredMonitorTypes.Add(m);
         }
 
@@ -140,7 +139,7 @@ namespace Microsoft.PSharp
 
             Runtime.Assert(Runtime.RegisteredMachineTypes.Any(val =>
                     val.IsDefined(typeof(Main), false)),
-                    "No main machine is registered.\n");
+                    "No main machine is registered.");
 
             // Start the main machine.
             Type mainMachine = Runtime.RegisteredMachineTypes.First(val =>
@@ -185,121 +184,12 @@ namespace Microsoft.PSharp
                 }
             }
 
-            if (Runtime.Options.FindBugs)
-            {
-                Runtime.BugFinder.Report();
-            }
-
             Runtime.Dispose();
         }
 
-        /// <summary>
-        /// Tests the P# program using the given runtime action. The program is
-        /// tested a used-defined number of times. It enables bug-finding mode
-        /// by default, and measures assertion failures and the testing runtime.
-        /// </summary>
-        /// <param name="testConfig">Test configuration</param>
-        //public static void Test(TestConfiguration testConfig)
-        //{
-        //    Runtime.BugFinder.SchedulingStrategy = testConfig.SchedulingStrategy;
-        //    Runtime.Options.FindBugs = true;
-        //    Runtime.Options.CountAssertions = true;
+#endregion
 
-        //    Console.WriteLine("Starting: " + testConfig.Name);
-
-        //    Stopwatch stopWatch = new Stopwatch();
-        //    stopWatch.Start();
-
-        //    while (testConfig.NumSchedules < testConfig.ScheduleLimit)
-        //    {
-        //        //Console.WriteLine("Starting iteration: {0}", iteration + 1);
-
-        //        bool cont = Runtime.BugFinder.Reset();
-
-        //        if (testConfig.SoftTimeLimit > 1 &&
-        //            stopWatch.Elapsed.TotalSeconds > testConfig.SoftTimeLimit)
-        //        {
-        //            break;
-        //        }
-
-        //        if (!cont)
-        //        {
-        //            testConfig.Completed = true;
-        //            break;
-        //        }
-
-        //        testConfig.EntryPoint();
-
-        //        if (testConfig.NumSchedules == 0)
-        //        {
-        //            testConfig.NumSteps = Runtime.BugFinder.SchedulingStrategy.GetNumOfSchedulingPoints();
-        //        }
-
-        //        testConfig.NumSchedules++;
-
-        //        // If it is a "real" deadlock (not due to e.g. an assertion failure)
-        //        // then we record this.
-        //        if (Runtime.BugFinder.DeadlockHasOccurred &&
-        //            !Runtime.BugFinder.ErrorHasOccurred)
-        //        {
-        //            testConfig.NumDeadlocks++;
-        //            Console.WriteLine("Terminated due to DEADLOCK!");
-        //        }
-
-        //        if (Runtime.BugFinder.ErrorHasOccurred)
-        //        {
-        //            Console.WriteLine("Terminated due to ERROR!");
-        //        }
-
-        //        // If it is an error or a deadlock then deadlockHasOccurred will be set.
-        //        if (Runtime.BugFinder.DeadlockHasOccurred)
-        //        {
-        //            testConfig.NumBuggy++;
-        //            if (testConfig.NumSchedulesToFirstBug == -1)
-        //            {
-        //                testConfig.NumSchedulesToFirstBug = testConfig.NumSchedules;
-        //                testConfig.TimeToFirstBug = stopWatch.Elapsed.TotalSeconds;
-        //            }
-        //        }
-
-        //        if (Runtime.BugFinder.HitDepthBound)
-        //        {
-        //            testConfig.NumHitDepthBound++;
-        //        }
-
-        //        //Console.WriteLine("Finished iteration: {0}", iteration + 1);
-        //        if (testConfig.NumSchedules % 500 == 0)
-        //        {
-        //            Console.Error.WriteLine("Finished schedule {0}", testConfig.NumSchedules);
-        //        }
-
-        //        if (testConfig.UntilBugFound && testConfig.NumBuggy > 0)
-        //        {
-        //            break;
-        //        }
-        //    }
-
-        //    stopWatch.Stop();
-        //    testConfig.Time = stopWatch.Elapsed.TotalSeconds;
-
-        //    Console.Error.WriteLine("Found {0} buggy schedules.", testConfig.NumBuggy);
-        //    Console.Error.WriteLine("  ({0} of them were deadlocks.)", testConfig.NumDeadlocks);
-        //    Console.Error.WriteLine("Explored {0} schedules.", testConfig.NumSchedules);
-        //    Console.Error.WriteLine("There were {0} steps on the first schedule.", testConfig.NumSteps);
-        //    Console.Error.WriteLine("Elapsed: {0} seconds.", testConfig.Time);
-        //}
-
-        /// <summary>
-        /// Analyzes the latest P# execution.
-        /// </summary>
-        public static void AnalyzeExecution()
-        {
-            //Sequentializer.Run();
-        }
-
-        #endregion
-
-        #region P# runtime internal methods
+#region P# runtime internal methods
 
         /// <summary>
         /// Attempts to create a new machine instance of type T with
@@ -311,7 +201,7 @@ namespace Microsoft.PSharp
         internal static Machine TryCreateNewMachineInstance(Type m, params Object[] payload)
         {
             Runtime.Assert(Runtime.RegisteredMachineTypes.Any(val => val == m),
-                "Machine '{0}' has not been registered with the P# runtime.\n", m.Name);
+                "Machine '{0}' has not been registered with the P# runtime.", m.Name);
             Machine machine = Activator.CreateInstance(m) as Machine;
             Utilities.Verbose("<CreateLog> Machine {0}({1}) is created.", m, machine.Id);
 
@@ -344,7 +234,7 @@ namespace Microsoft.PSharp
         internal static T TryCreateNewMachineInstance<T>(params Object[] payload)
         {
             Runtime.Assert(Runtime.RegisteredMachineTypes.Any(val => val == typeof(T)),
-                "Machine '{0}' has not been registered with the P# runtime.\n", typeof(T).Name);
+                "Machine '{0}' has not been registered with the P# runtime.", typeof(T).Name);
             Object machine = Activator.CreateInstance(typeof(T));
             Utilities.Verbose("<CreateLog> Machine {0}({1}) is created.", typeof(T),
                 (machine as Machine).Id);
@@ -383,9 +273,9 @@ namespace Microsoft.PSharp
             }
 
             Runtime.Assert(Runtime.RegisteredMonitorTypes.Any(val => val == m),
-                "Monitor '{0}' has not been registered with the P# runtime.\n", m.Name);
+                "Monitor '{0}' has not been registered with the P# runtime.", m.Name);
             Runtime.Assert(!Runtime.Monitors.Any(val => val.GetType() == m),
-                "A monitor of type '{0}' already exists.\n", m.Name);
+                "A monitor of type '{0}' already exists.", m.Name);
 
             Monitor monitor = Activator.CreateInstance(m) as Monitor;
             Utilities.Verbose("<CreateLog> Monitor {0} is created.", m);
@@ -408,9 +298,9 @@ namespace Microsoft.PSharp
             }
 
             Runtime.Assert(Runtime.RegisteredMonitorTypes.Any(val => val == typeof(T)),
-                "Monitor '{0}' has not been registered with the P# runtime.\n", typeof(T).Name);
+                "Monitor '{0}' has not been registered with the P# runtime.", typeof(T).Name);
             Runtime.Assert(!Runtime.Monitors.Any(val => val.GetType() == typeof(T)),
-                "A monitor of type '{0}' already exists.\n", typeof(T).Name);
+                "A monitor of type '{0}' already exists.", typeof(T).Name);
 
             Object monitor = Activator.CreateInstance(typeof(T));
             Utilities.Verbose("<CreateLog> Monitor {0} is created.", typeof(T));
@@ -426,9 +316,9 @@ namespace Microsoft.PSharp
         /// <param name="sender">Sender machine</param>
         internal static void Send(Machine target, Event e, string sender)
         {
-            Runtime.Assert(e != null, "Machine '{0}' received a null event.\n", target);
+            Runtime.Assert(e != null, "Machine '{0}' received a null event.", target);
             Runtime.Assert(Runtime.RegisteredEventTypes.Any(val => val == e.GetType()),
-                "Event '{0}' has not been registered with the P# runtime.\n", e);
+                "Event '{0}' has not been registered with the P# runtime.", e);
 
             Task task = new Task(() =>
             {
@@ -460,9 +350,9 @@ namespace Microsoft.PSharp
             }
 
             Runtime.Assert(Runtime.Monitors.Any(val => val.GetType() == typeof(T)),
-                "A monitor of type '{0}' does not exist.\n", typeof(T).Name);
+                "A monitor of type '{0}' does not exist.", typeof(T).Name);
             Runtime.Assert(Runtime.RegisteredEventTypes.Any(val => val == e.GetType()),
-                "Event '{0}' has not been registered with the P# runtime.\n", e.GetType().Name);
+                "Event '{0}' has not been registered with the P# runtime.", e.GetType().Name);
 
             foreach (var m in Runtime.Monitors)
             {
@@ -490,7 +380,7 @@ namespace Microsoft.PSharp
             if (!Runtime.Options.FindBugs)
             {
                 Utilities.WriteLine("The explored schedule can only " +
-                    "be printed in bug finding mode.\n");
+                    "be printed in bug finding mode.");
             }
             else
             {
@@ -506,13 +396,13 @@ namespace Microsoft.PSharp
         internal static Type GetMachineType(string m)
         {
             Type result = Runtime.RegisteredMachineTypes.FirstOrDefault(t => t.Name.Equals(m));
-            Runtime.Assert(result != null, "No machine of type '{0}' was found.\n", m);
+            Runtime.Assert(result != null, "No machine of type '{0}' was found.", m);
             return result;
         }
 
-        #endregion
+#endregion
 
-        #region P# runtime private methods
+#region P# runtime private methods
 
         /// <summary>
         /// Initializes the P# runtime.
@@ -524,15 +414,15 @@ namespace Microsoft.PSharp
 
             if (Runtime.Options.FindBugs)
             {
-                Runtime.BugFinder = new BugFinder();
+                Runtime.Assert(Runtime.BugFinder != null, "Bugfinder is not initialized.");
             }
 
             Runtime.IsRunning = true;
         }
 
-        #endregion
+#endregion
 
-        #region runtime options
+#region runtime options
 
         /// <summary>
         /// Static class implementing options for the P# runtime.
@@ -543,12 +433,6 @@ namespace Microsoft.PSharp
             /// Run the runtime in bug-finding mode.
             /// </summary>
             public static bool FindBugs = false;
-
-            /// <summary>
-            /// The bug-finding scheduling strategy to be used. Random is enabled
-            /// by default.
-            /// </summary>
-            public static BugFindingStrategy BugFindingStrategy = BugFindingStrategy.Random;
 
             /// <summary>
             /// When the runtime stops after running in bug finding mode
@@ -576,28 +460,9 @@ namespace Microsoft.PSharp
             public static bool CountAssertions = false;
         }
 
-        /// <summary>
-        /// P# runtime scheduling type.
-        /// </summary>
-        public enum BugFindingStrategy
-        {
-            /// <summary>
-            /// Enables the random scheduler.
-            /// </summary>
-            Random = 0,
-            /// <summary>
-            /// Enables the round robin scheduler.
-            /// </summary>
-            RoundRobin = 1,
-            /// <summary>
-            /// Enables the depth first search scheduler.
-            /// </summary>
-            DFS = 2
-        }
+#endregion
 
-        #endregion
-
-        #region error checking
+#region error checking
 
         /// <summary>
         /// Checks if the assertion holds, and if not it reports
@@ -646,9 +511,9 @@ namespace Microsoft.PSharp
             }
         }
 
-        #endregion
+#endregion
 
-        #region cleanup methods
+#region cleanup methods
 
         /// <summary>
         /// Disposes resources of the P# runtime.
@@ -674,6 +539,6 @@ namespace Microsoft.PSharp
             Runtime.IsRunning = false;
         }
 
-        #endregion
+#endregion
     }
 }

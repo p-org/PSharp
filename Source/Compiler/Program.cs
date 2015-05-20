@@ -42,6 +42,9 @@ namespace Microsoft.PSharp
             // Run the static analyser.
             StaticAnalyzer.Run();
 
+            // Run the dynamic analyser.
+            DynamicAnalyzer.Run();
+
             Console.WriteLine(". Done");
         }
 

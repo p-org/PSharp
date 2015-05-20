@@ -30,10 +30,7 @@ namespace Microsoft.PSharp.Tooling
         /// <param name="s">String</param>
         public static void ReportErrorAndExit(string s)
         {
-            ConsoleColor previous = Console.ForegroundColor;
-            Console.ForegroundColor = ConsoleColor.Red;
             Console.Write("Error: ");
-            Console.ForegroundColor = previous;
             Console.WriteLine(s);
             Environment.Exit(1);
         }
@@ -46,10 +43,7 @@ namespace Microsoft.PSharp.Tooling
         public static void ReportErrorAndExit(string s, params object[] args)
         {
             string message = ErrorReporter.Format(s, args);
-            ConsoleColor previous = Console.ForegroundColor;
-            Console.ForegroundColor = ConsoleColor.Red;
             Console.Write("Error: ");
-            Console.ForegroundColor = previous;
             Console.WriteLine(message);
             Environment.Exit(1);
         }

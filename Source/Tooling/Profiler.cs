@@ -39,6 +39,15 @@ namespace Microsoft.PSharp.Tooling
         }
 
         /// <summary>
+        /// Returns profilling results.
+        /// </summary>
+        /// <returns>Seconds</returns>
+        public static double Results()
+        {
+            return Profiler.StopWatch.Elapsed.TotalSeconds;
+        }
+
+        /// <summary>
         /// Prints profiling results.
         /// </summary>
         public static void PrintResults()

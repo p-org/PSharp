@@ -28,7 +28,7 @@ namespace Microsoft.PSharp
         /// </summary>
         public static void Run()
         {
-            if (!Configuration.RunAnalysis)
+            if (!Configuration.RunStaticAnalysis)
             {
                 return;
             }
@@ -36,7 +36,6 @@ namespace Microsoft.PSharp
             foreach (var programUnit in ProgramInfo.ProgramUnits)
             {
                 Console.WriteLine(". Analyzing " + programUnit.Name);
-
                 StaticAnalyzer.AnalyseProgramUnit(programUnit);
             }
 

@@ -16,10 +16,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 
-namespace Microsoft.PSharp.BugFinding
+using Microsoft.PSharp.BugFinding;
+
+namespace Microsoft.PSharp.DynamicAnalysis
 {
     /// <summary>
     /// Class representing a depth-first search scheduler.
@@ -71,7 +72,7 @@ namespace Microsoft.PSharp.BugFinding
                 scs = new List<SChoice>();
                 foreach (var machine in machines)
                 {
-                    scs.Add(new SChoice(machine.Id));
+                    scs.Add(new SChoice(machine));
                 }
 
                 this.ScheduleStack.Add(scs);
@@ -91,7 +92,7 @@ namespace Microsoft.PSharp.BugFinding
                 previousChoice.IsDone = false;
             }
 
-            next = machines.Find(val => val.Id == nextChoice.Id);
+            next = nextChoice.Machine;
             nextChoice.Done();
             this.Index++;
 
@@ -168,7 +169,7 @@ namespace Microsoft.PSharp.BugFinding
                 Console.WriteLine("Index: " + idx);
                 foreach (var sc in this.ScheduleStack[idx])
                 {
-                    Console.Write(sc.Id + " [" + sc.IsDone + "], ");
+                    Console.Write(sc.Machine.GetType() + " [" + sc.IsDone + "], ");
                 }
                 Console.WriteLine();
             }
@@ -176,22 +177,21 @@ namespace Microsoft.PSharp.BugFinding
     }
 
     /// <summary>
-    /// A scheduling choice. Contains an integer that represents
-    /// a machine Id and a boolean that is true if the choice has
-    /// been previously explored.
+    /// A scheduling choice. Contains a referce to a machine and a boolean
+    /// that is true if the choice has been previously explored.
     /// </summary>
     internal class SChoice
     {
-        public int Id;
+        public Machine Machine;
         public bool IsDone;
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="id">Id</param>
-        public SChoice(int id)
+        /// <param name="machine">Machine</param>
+        public SChoice(Machine machine)
         {
-            this.Id = id;
+            this.Machine = machine;
             this.IsDone = false;
         }
 

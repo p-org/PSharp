@@ -95,6 +95,13 @@ namespace Microsoft.PSharp.Compilation
             try
             {
                 CompilationEngine.ToFile(compilation, project.CompilationOptions.OutputKind, project.OutputFilePath);
+
+                if (Configuration.RunDynamicAnalysis)
+                {
+                    var dll = CompilationEngine.ToFile(compilation, OutputKind.DynamicallyLinkedLibrary,
+                        project.OutputFilePath);
+                    Configuration.AssembliesToBeAnalyzed.Add(dll);
+                }
             }
             catch (ApplicationException ex)
             {
@@ -107,7 +114,7 @@ namespace Microsoft.PSharp.Compilation
         /// </summary>
         private static void LinkRuntime()
         {
-            Console.WriteLine(". Linking Microsoft.PSharp.dll");
+            Console.WriteLine("... Linking Microsoft.PSharp.dll");
 
             foreach (var outputDir in CompilationEngine.OutputDirectories)
             {
@@ -129,7 +136,9 @@ namespace Microsoft.PSharp.Compilation
         /// </summary>
         /// <param name="compilation">Compilation</param>
         /// <param name="outputKind">OutputKind</param>
-        private static void ToFile(CodeAnalysis.Compilation compilation, OutputKind outputKind, string outputPath)
+        /// <param name="outputPath">OutputPath</param>
+        /// <returns>Output</returns>
+        private static string ToFile(CodeAnalysis.Compilation compilation, OutputKind outputKind, string outputPath)
         {
             string assemblyFileName = null;
             if (outputKind == OutputKind.ConsoleApplication)
@@ -152,7 +161,7 @@ namespace Microsoft.PSharp.Compilation
             }
             else
             {
-                fileName = outputPath;
+                fileName = Path.GetDirectoryName(outputPath) + Path.DirectorySeparatorChar + assemblyFileName;
                 CompilationEngine.OutputDirectories.Add(Path.GetDirectoryName(outputPath));
             }
 
@@ -162,8 +171,8 @@ namespace Microsoft.PSharp.Compilation
                 emitResult = targetCompilation.Emit(outputFile);
                 if (emitResult.Success)
                 {
-                    Console.WriteLine(". Writing " + outputPath);
-                    return;
+                    Console.WriteLine("... Writing " + fileName);
+                    return fileName;
                 }
             }
 

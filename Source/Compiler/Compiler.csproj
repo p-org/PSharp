@@ -52,6 +52,7 @@
     <Compile Include="Parser.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="DynamicAnalyzer.cs" />
     <Compile Include="StaticAnalyzer.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -68,8 +69,12 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Compilation\Compilation.csproj">
-      <Project>{6cf10554-1535-4fe0-a949-eea5025d8604}</Project>
+      <Project>{06ccbe95-2e41-4188-bb97-aee702c1bd25}</Project>
       <Name>Compilation</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DynamicAnalysis\DynamicAnalysis.csproj">
+      <Project>{6cf10554-1535-4fe0-a949-eea5025d8604}</Project>
+      <Name>DynamicAnalysis</Name>
     </ProjectReference>
     <ProjectReference Include="..\Parsing\Parsing.csproj">
       <Project>{14e9df49-1284-425c-a8b3-49ba437ca6af}</Project>

@@ -83,7 +83,40 @@ namespace Microsoft.PSharp.Tooling
                 }
                 else if (this.Options[idx].ToLower().Equals("/analyze"))
                 {
-                    Configuration.RunAnalysis = true;
+                    Configuration.RunStaticAnalysis = true;
+                }
+                else if (this.Options[idx].ToLower().Equals("/test"))
+                {
+                    Configuration.RunDynamicAnalysis = true;
+                }
+                else if (this.Options[idx].ToLower().StartsWith("/sch:") &&
+                    this.Options[idx].Length > 5)
+                {
+                    Configuration.SchedulingStrategy = this.Options[idx].Substring(5);
+                }
+                else if (this.Options[idx].ToLower().StartsWith("/i:") &&
+                    this.Options[idx].Length > 3)
+                {
+                    int i = 1;
+                    if (!int.TryParse(this.Options[idx].Substring(3), out i))
+                    {
+                        ErrorReporter.ReportErrorAndExit("Please give a valid number of iterations " +
+                            "'/i:[x]', where [x] > 0.");
+                    }
+
+                    Configuration.SchedulingIterations = i;
+                }
+                else if (this.Options[idx].ToLower().StartsWith("/timeout:") &&
+                    this.Options[idx].Length > 9)
+                {
+                    int i = 0;
+                    if (!int.TryParse(this.Options[idx].Substring(9), out i))
+                    {
+                        ErrorReporter.ReportErrorAndExit("Please give a valid timeout " +
+                            "'/timeout:[x]', where [x] > 0.");
+                    }
+
+                    Configuration.AnalysisTimeout = i;
                 }
                 else if (this.Options[idx].ToLower().Equals("/showwarnings"))
                 {
@@ -137,6 +170,14 @@ namespace Microsoft.PSharp.Tooling
             if (Configuration.SolutionFilePath.Equals(""))
             {
                 ErrorReporter.ReportErrorAndExit("Please give a valid solution path.");
+            }
+
+            if (!Configuration.SchedulingStrategy.Equals("") &&
+                !Configuration.SchedulingStrategy.Equals("random") &&
+                !Configuration.SchedulingStrategy.Equals("dfs"))
+            {
+                ErrorReporter.ReportErrorAndExit("Please give a valid scheduling strategy " +
+                    "'/sch:[x]', where [x] is 'random' or 'dfs'.");
             }
         }
 

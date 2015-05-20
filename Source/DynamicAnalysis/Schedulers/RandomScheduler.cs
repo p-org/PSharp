@@ -18,7 +18,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.PSharp.BugFinding
+using Microsoft.PSharp.BugFinding;
+
+namespace Microsoft.PSharp.DynamicAnalysis
 {
     /// <summary>
     /// Class representing a random delay scheduler.

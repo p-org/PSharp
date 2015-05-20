@@ -59,18 +59,18 @@ namespace Microsoft.PSharp.StaticAnalysis
             if ((AnalysisErrorReporter.ErrorCount > 0 || AnalysisErrorReporter.WarningCount > 0) &&
                 Configuration.ShowWarnings)
             {
-                Console.WriteLine(". Static analysis detected '{0}' {1} and reported '{2}' {3}",
+                Console.WriteLine("... Static analysis detected '{0}' {1} and reported '{2}' {3}",
                     AnalysisErrorReporter.ErrorCount, errorStr,
                     AnalysisErrorReporter.WarningCount, warningStr);
             }
             else if (AnalysisErrorReporter.ErrorCount > 0)
             {
-                Console.WriteLine(". Static analysis detected '{0}' {1}",
+                Console.WriteLine("... Static analysis detected '{0}' {1}",
                     AnalysisErrorReporter.ErrorCount, errorStr);
             }
             else
             {
-                Console.WriteLine(". No static analysis errors detected (but absolutely no warranty provided)");
+                Console.WriteLine("... No static analysis errors detected (but absolutely no warranty provided)");
             }
         }
         

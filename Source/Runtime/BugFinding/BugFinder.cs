@@ -17,7 +17,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
 
@@ -26,7 +25,7 @@ namespace Microsoft.PSharp.BugFinding
     /// <summary>
     /// Class implementing the P# bug-finding scheduler.
     /// </summary>
-    internal class BugFinder
+    public sealed class BugFinder
     {
         #region fields
 
@@ -46,11 +45,6 @@ namespace Microsoft.PSharp.BugFinding
         private Dictionary<Machine, MachineInfo> MachineInfoMap;
 
         /// <summary>
-        /// Profiler for measurements.
-        /// </summary>
-        private Profiler Profiler;
-
-        /// <summary>
         /// Number of found bugs.
         /// </summary>
         private int FoundBugs;
@@ -62,31 +56,38 @@ namespace Microsoft.PSharp.BugFinding
 
         #endregion
 
-        #region internal bug-finder methods
+        #region public bug-finder methods
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        internal BugFinder()
+        /// <param name="scheduler">Scheduler</param>
+        public BugFinder(IScheduler scheduler)
         {
-            if (Runtime.Options.BugFindingStrategy == Runtime.BugFindingStrategy.Random)
-                this.Scheduler = new RandomScheduler(DateTime.Now.Millisecond);
-            else if (Runtime.Options.BugFindingStrategy == Runtime.BugFindingStrategy.DFS)
-                this.Scheduler = new DFSScheduler();
+            this.Scheduler = scheduler;
 
             this.ActiveMachines = new List<Machine>();
             this.MachineInfoMap = new Dictionary<Machine, MachineInfo>();
-
-            this.Profiler = new Profiler();
+            
             this.FoundBugs = 0;
-
             this.IsRunning = true;
 
             Utilities.WriteSchedule("<ScheduleLog> Configuration: {0}.",
                 this.Scheduler.GetDescription());
-
-            this.Profiler.StartMeasuringExecutionTime();
         }
+
+        /// <summary>
+        /// Reports the progress of the bug-finder.
+        /// </summary>
+        public void Report()
+        {
+            Utilities.WriteLine("... Found {0} bug{1}.", this.FoundBugs,
+                this.FoundBugs == 1 ? "" : "s");
+        }
+
+        #endregion
+
+        #region internal bug-finder methods
 
         /// <summary>
         /// Schedules the next machine to execute.
@@ -223,24 +224,14 @@ namespace Microsoft.PSharp.BugFinding
         }
 
         /// <summary>
-        /// Reports the progress of the bug-finder.
-        /// </summary>
-        internal void Report()
-        {
-            Utilities.WriteLine("Found bugs: {0}.", this.FoundBugs);
-            Utilities.WriteLine("Exploration time: {0} sec.", this.Profiler.Result());
-        }
-
-        /// <summary>
         /// Resets the state of the bug-finder.
         /// </summary>
-        internal void Reset()
+        public void Reset()
         {
             this.Scheduler.Reset();
             this.ActiveMachines.Clear();
             this.MachineInfoMap.Clear();
-
-            this.Profiler = new Profiler();
+            
             this.FoundBugs = 0;
         }
 
@@ -275,8 +266,6 @@ namespace Microsoft.PSharp.BugFinding
             }
 
             this.IsRunning = false;
-
-            this.Profiler.StopMeasuringExecutionTime();
 
             foreach (var machine in this.ActiveMachines)
             {

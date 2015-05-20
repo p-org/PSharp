@@ -12,6 +12,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System.Collections.Generic;
+
 namespace Microsoft.PSharp.Tooling
 {
     public static class Configuration
@@ -44,7 +46,32 @@ namespace Microsoft.PSharp.Tooling
         /// <summary>
         /// Run the static analysis stage of the compiler.
         /// </summary>
-        public static bool RunAnalysis = false;
+        public static bool RunStaticAnalysis = false;
+
+        /// <summary>
+        /// Run the dynamic analysis of the compiler.
+        /// </summary>
+        public static bool RunDynamicAnalysis = false;
+
+        /// <summary>
+        /// The name of the assemblies to be analyzed for bugs.
+        /// </summary>
+        public static List<string> AssembliesToBeAnalyzed = new List<string>();
+
+        /// <summary>
+        /// Scheduling strategy to use with the dynamic analyzer.
+        /// </summary>
+        public static string SchedulingStrategy = "";
+
+        /// <summary>
+        /// Number of scheduling iterations.
+        /// </summary>
+        public static int SchedulingIterations = 1;
+
+        /// <summary>
+        /// Analysis timeout.
+        /// </summary>
+        public static int AnalysisTimeout = 0;
 
         /// <summary>
         /// Report warnings if true.
