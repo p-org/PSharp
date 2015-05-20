@@ -70,19 +70,6 @@ namespace Microsoft.PSharp.DynamicAnalysis
             AnalysisContext.FindEntryPoint();
         }
 
-        /// <summary>
-        /// Prints program statistics.
-        /// </summary>
-        public static void PrintStatistics()
-        {
-            //Console.WriteLine("Number of machines in the program: {0}",
-            //    StateTransitionAnalysis.NumOfMachines);
-            //Console.WriteLine("Number of state transitions in the program: {0}",
-            //    StateTransitionAnalysis.NumOfTransitions);
-            //Console.WriteLine("Number of action bindings in the program: {0}",
-            //    StateTransitionAnalysis.NumOfActionBindings);
-        }
-
         #endregion
 
         #region private methods

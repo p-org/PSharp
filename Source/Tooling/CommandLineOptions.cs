@@ -43,6 +43,8 @@ namespace Microsoft.PSharp.Tooling
         {
             for (int idx = 0; idx < this.Options.Length; idx++)
             {
+                #region core options
+
                 if (this.Options[idx].ToLower().StartsWith("/s:") &&
                     this.Options[idx].Length > 3)
                 {
@@ -81,31 +83,6 @@ namespace Microsoft.PSharp.Tooling
                 {
                     Configuration.NoCompilation = true;
                 }
-                else if (this.Options[idx].ToLower().Equals("/analyze"))
-                {
-                    Configuration.RunStaticAnalysis = true;
-                }
-                else if (this.Options[idx].ToLower().Equals("/test"))
-                {
-                    Configuration.RunDynamicAnalysis = true;
-                }
-                else if (this.Options[idx].ToLower().StartsWith("/sch:") &&
-                    this.Options[idx].Length > 5)
-                {
-                    Configuration.SchedulingStrategy = this.Options[idx].Substring(5);
-                }
-                else if (this.Options[idx].ToLower().StartsWith("/i:") &&
-                    this.Options[idx].Length > 3)
-                {
-                    int i = 1;
-                    if (!int.TryParse(this.Options[idx].Substring(3), out i))
-                    {
-                        ErrorReporter.ReportErrorAndExit("Please give a valid number of iterations " +
-                            "'/i:[x]', where [x] > 0.");
-                    }
-
-                    Configuration.SchedulingIterations = i;
-                }
                 else if (this.Options[idx].ToLower().StartsWith("/timeout:") &&
                     this.Options[idx].Length > 9)
                 {
@@ -117,6 +94,27 @@ namespace Microsoft.PSharp.Tooling
                     }
 
                     Configuration.AnalysisTimeout = i;
+                }
+                else if (this.Options[idx].ToLower().StartsWith("/v:") &&
+                    this.Options[idx].Length > 3)
+                {
+                    int i = 1;
+                    if (!int.TryParse(this.Options[idx].Substring(3), out i))
+                    {
+                        ErrorReporter.ReportErrorAndExit("Please give a valid verbosity level " +
+                            "'/v:[x]', where 0 <= [x] <= 2.");
+                    }
+
+                    Configuration.Verbose = i;
+                }
+
+                #endregion
+
+                #region static analysis options
+
+                else if (this.Options[idx].ToLower().Equals("/analyze"))
+                {
+                    Configuration.RunStaticAnalysis = true;
                 }
                 else if (this.Options[idx].ToLower().Equals("/showwarnings"))
                 {
@@ -151,11 +149,48 @@ namespace Microsoft.PSharp.Tooling
                 {
                     Configuration.AnalyzeExceptionHandling = true;
                 }
+
+                #endregion
+
+                #region dynamic analysis options
+
+                else if (this.Options[idx].ToLower().Equals("/test"))
+                {
+                    Configuration.RunDynamicAnalysis = true;
+                }
+                else if (this.Options[idx].ToLower().StartsWith("/sch:") &&
+                    this.Options[idx].Length > 5)
+                {
+                    Configuration.SchedulingStrategy = this.Options[idx].Substring(5);
+                }
+                else if (this.Options[idx].ToLower().StartsWith("/i:") &&
+                    this.Options[idx].Length > 3)
+                {
+                    int i = 1;
+                    if (!int.TryParse(this.Options[idx].Substring(3), out i))
+                    {
+                        ErrorReporter.ReportErrorAndExit("Please give a valid number of iterations " +
+                            "'/i:[x]', where [x] > 0.");
+                    }
+
+                    Configuration.SchedulingIterations = i;
+                }
+                else if (this.Options[idx].ToLower().Equals("/explore"))
+                {
+                    Configuration.FullExploration = true;
+                }
+
+                #endregion
+
+                #region error
+
                 else
                 {
                     ErrorReporter.ReportErrorAndExit("cannot recognise command line option '" +
                         this.Options[idx] + "'.");
                 }
+
+                #endregion
             }
 
             this.CheckForParsingErrors();

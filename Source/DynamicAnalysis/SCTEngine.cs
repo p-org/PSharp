@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -76,7 +77,9 @@ namespace Microsoft.PSharp.DynamicAnalysis
                 scheduler = new DFSScheduler();
 
             Runtime.Options.FindBugs = true;
+
             Runtime.Options.PrintScheduleInfo = true;
+            Runtime.Options.Verbose = true;
 
             Runtime.BugFinder = new BugFinder(scheduler);
         }
@@ -98,8 +101,11 @@ namespace Microsoft.PSharp.DynamicAnalysis
                     }
 
                     Runtime.BugFinder.Start();
+                    var sw = SCTEngine.RedirectOutput();
+
                     AnalysisContext.EntryPoint.Invoke(null, null);
 
+                    SCTEngine.ResetOutput();
                     SCTEngine.ExploredSchedules++;
                     if (Runtime.BugFinder.BugFound)
                     {
@@ -107,6 +113,15 @@ namespace Microsoft.PSharp.DynamicAnalysis
                     }
 
                     Runtime.BugFinder.Reset();
+                    if (!Configuration.FullExploration && SCTEngine.FoundBugs > 0)
+                    {
+                        var path = Path.GetDirectoryName(AnalysisContext.Assembly.Location) +
+                            Path.DirectorySeparatorChar + Path.GetFileNameWithoutExtension(
+                                AnalysisContext.Assembly.Location) + ".txt";
+                        Console.WriteLine("... Writing {0}", path);
+                        File.WriteAllText(path, sw.ToString());
+                        break;
+                    }
                 }
             });
 
@@ -143,12 +158,46 @@ namespace Microsoft.PSharp.DynamicAnalysis
                 SCTEngine.FoundBugs == 1 ? "" : "s");
             Console.WriteLine("... Explored {0} schedule{1}.", SCTEngine.ExploredSchedules,
                 SCTEngine.ExploredSchedules == 1 ? "" : "s");
+            Console.WriteLine("... Found {0} % buggy schedules.",
+                (SCTEngine.FoundBugs * 100 / SCTEngine.ExploredSchedules));
             Console.WriteLine("... Elapsed {0} sec.", Profiler.Results());
         }
 
         #endregion
 
         #region helper API
+
+        /// <summary>
+        /// Redirects the console output.
+        /// </summary>
+        /// <returns>StringWriter</returns>
+        private static StringWriter RedirectOutput()
+        {
+            if (Configuration.Verbose == 2)
+            {
+                return null;
+            }
+
+            var sw = new StringWriter();
+            Console.SetOut(sw);
+
+            return sw;
+        }
+
+        /// <summary>
+        /// Resets the console output.
+        /// </summary>
+        private static void ResetOutput()
+        {
+            if (Configuration.Verbose == 2)
+            {
+                return;
+            }
+
+            var sw = new StreamWriter(Console.OpenStandardOutput());
+            sw.AutoFlush = true;
+            Console.SetOut(sw);
+        }
 
         /// <summary>
         /// Returns true if the engine should print the current iteration.
