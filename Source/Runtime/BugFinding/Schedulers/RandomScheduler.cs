@@ -29,40 +29,71 @@ namespace Microsoft.PSharp.BugFinding
         private Random Random;
         private int NumOfSchedulingPoints;
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="seed">Seed</param>
         public RandomScheduler(int seed)
         {
             this.Seed = seed;
             this.Random = new Random(seed);
             this.NumOfSchedulingPoints = 0;
         }
-
-        public Machine Next(List<Machine> machines)
+        
+        /// <summary>
+        /// Returns the next machine to schedule.
+        /// </summary>
+        /// <param name="next">Next</param>
+        /// <param name="machines">Machines</param>
+        /// <returns>Boolean value</returns>
+        bool IScheduler.TryGetNext(out Machine next, List<Machine> machines)
         {
             if (machines.Count == 0)
             {
-                return null;
+                next = null;
+                return false;
             }
 
             this.NumOfSchedulingPoints++;
 
             int id = this.Random.Next(machines.Count);
-            return machines[id];
-        }
-
-        public int GetNumOfSchedulingPoints()
-        {
-            return this.NumOfSchedulingPoints;
-        }
-
-        public bool Reset()
-        {
-            this.NumOfSchedulingPoints = 0;
+            next = machines[id];
             return true;
         }
 
-        public string GetDescription()
+        /// <summary>
+        /// Returns true if the scheduler has finished.
+        /// </summary>
+        /// <returns>Boolean value</returns>
+        bool IScheduler.HasFinished()
+        {
+            return false;
+        }
+        
+        /// <summary>
+        /// Returns number of scheduling points.
+        /// </summary>
+        /// <returns>Integer value</returns>
+        int IScheduler.GetNumOfSchedulingPoints()
+        {
+            return this.NumOfSchedulingPoints;
+        }
+        
+        /// <summary>
+        /// Returns a textual description of the scheduler.
+        /// </summary>
+        /// <returns>String</returns>
+        string IScheduler.GetDescription()
         {
             return "Random (seed is " + this.Seed + ")";
+        }
+
+        /// <summary>
+        /// Resets the scheduler.
+        /// </summary>
+        void IScheduler.Reset()
+        {
+            this.NumOfSchedulingPoints = 0;
         }
     }
 }

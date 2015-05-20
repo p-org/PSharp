@@ -194,6 +194,7 @@ namespace Microsoft.PSharp
 
             if (Runtime.Options.FindBugs)
             {
+                Runtime.BugFinder.NotifyPendingEvent(m);
                 Runtime.BugFinder.Schedule(this);
             }
         }
@@ -332,15 +333,11 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Checks if machine has terminated.
+        /// Forces the machine to stop.
         /// </summary>
-        /// <returns></returns>
-        internal bool IsTerminated()
+        internal void Stop()
         {
-            lock (this.Lock)
-            {
-                return this.IsHalted;
-            }
+            throw new ScheduleCancelledException();
         }
 
         /// <summary>
@@ -368,13 +365,13 @@ namespace Microsoft.PSharp
             }
 
             Event nextEvent = null;
-            lock (this.Inbox)
-            {
-                nextEvent = this.DequeueNextEvent();
-            }
-
             while (!this.IsHalted)
             {
+                lock (this.Inbox)
+                {
+                    nextEvent = this.DequeueNextEvent();
+                }
+
                 if (nextEvent == null)
                 {
                     if (this.StateStack.Peek().HasDefaultHandler())
@@ -392,9 +389,9 @@ namespace Microsoft.PSharp
                 
                 this.HandleEvent(nextEvent);
 
-                lock (this.Inbox)
+                if (Runtime.Options.FindBugs)
                 {
-                    nextEvent = this.DequeueNextEvent();
+                    Runtime.BugFinder.NotifyHandledEvent(this);
                 }
             }
 
@@ -697,6 +694,10 @@ namespace Microsoft.PSharp
                 // Handles the returning state.
                 this.AssertReturnStatementValidity(ex.ReturningState);
             }
+            catch (ScheduleCancelledException)
+            {
+                this.IsHalted = true;
+            }
             catch (Exception ex)
             {
                 // Handles generic exception.
@@ -725,6 +726,10 @@ namespace Microsoft.PSharp
             {
                 // Handles the returning state.
                 this.AssertReturnStatementValidity(ex.ReturningState);
+            }
+            catch (ScheduleCancelledException)
+            {
+                this.IsHalted = true;
             }
             catch (Exception ex)
             {
@@ -755,6 +760,10 @@ namespace Microsoft.PSharp
             {
                 // Handles the returning state.
                 this.AssertReturnStatementValidity(ex.ReturningState);
+            }
+            catch (ScheduleCancelledException)
+            {
+                this.IsHalted = true;
             }
             catch (Exception ex)
             {

@@ -61,7 +61,6 @@
     <Compile Include="Library\Havoc.cs" />
     <Compile Include="Profiler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="BugFinding\EventType.cs" />
     <Compile Include="BugFinding\Replayer.cs" />
     <Compile Include="BugFinding\BugFinder.cs" />
     <Compile Include="BugFinding\Schedulers\DFSScheduler.cs" />
@@ -74,8 +73,6 @@
     <Compile Include="BugFinding\TestConfiguration.cs" />
     <Compile Include="Library\MachineState.cs" />
     <Compile Include="IO\Utilities.cs" />
-    <Compile Include="BugFinding\ThreadInfo.cs" />
-    <Compile Include="Utilities\IdentityEqualityComparer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="PSharp.snk" />

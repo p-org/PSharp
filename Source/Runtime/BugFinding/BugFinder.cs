@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
 
@@ -27,6 +28,8 @@ namespace Microsoft.PSharp.BugFinding
     /// </summary>
     public class BugFinder
     {
+        #region fields
+
         /// <summary>
         /// The scheduler to be used for bug-finding.
         /// </summary>
@@ -42,38 +45,53 @@ namespace Microsoft.PSharp.BugFinding
         /// </summary>
         private Dictionary<Machine, MachineInfo> MachineInfoMap;
 
+        #endregion
+
+        #region public bug-finder methods
+
         /// <summary>
         /// Constructor.
         /// </summary>
         public BugFinder()
         {
-            this.Scheduler = Runtime.Options.Scheduler;
+            if (Runtime.Options.BugFindingStrategy == Runtime.BugFindingStrategy.Random)
+                this.Scheduler = new RandomScheduler(DateTime.Now.Millisecond);
+            else if (Runtime.Options.BugFindingStrategy == Runtime.BugFindingStrategy.DFS)
+                this.Scheduler = new DFSScheduler(0);
+
             this.ActiveMachines = new List<Machine>();
             this.MachineInfoMap = new Dictionary<Machine, MachineInfo>();
+
+            Utilities.WriteSchedule("<ScheduleLog> Configuration: {0}.",
+                this.Scheduler.GetDescription());
         }
 
         /// <summary>
-        /// Schedule the next machine to execute.
+        /// Schedules the next machine to execute.
         /// </summary>
         /// <param name="machine">Machine</param>
+        /// <returns>Boolean</returns>
         public void Schedule(Machine machine)
         {
             this.MachineInfoMap[machine].IsActive = false;
 
-            var next = this.Scheduler.Next(this.ActiveMachines);
-            if (next == null)
+            Machine next = null;
+            if (!this.Scheduler.TryGetNext(out next, this.ActiveMachines))
             {
+                Utilities.WriteSchedule("<ScheduleLog> Schedule explored.",
+                    machine, machine.Id);
+                this.Close(machine);
                 return;
             }
 
             Utilities.WriteSchedule("<ScheduleLog> Machine {0}({1}) is scheduled.",
-                machine, machine.Id);
+                next, next.Id);
+            this.MachineInfoMap[next].IsActive = true;
 
             if (machine.Id != next.Id)
             {
                 lock (next)
                 {
-                    this.MachineInfoMap[next].IsActive = true;
                     System.Threading.Monitor.PulseAll(next);
                 }
 
@@ -92,20 +110,13 @@ namespace Microsoft.PSharp.BugFinding
         }
 
         /// <summary>
-        /// Notify that the machine has finished its current event
-        /// handling loop.
+        /// Notify that the machine has finished its current event handling
+        /// loop.
         /// </summary>
         /// <param name="machine">Machine</param>
         public void NotifyHandlerStarted(Machine machine)
         {
-            if (!this.ActiveMachines.Contains(machine))
-            {
-                this.ActiveMachines.Add(machine);
-                if (!this.MachineInfoMap.ContainsKey(machine))
-                {
-                    this.MachineInfoMap.Add(machine, new MachineInfo(machine.Id));
-                }
-            }
+            this.TryAddActiveMachine(machine);
 
             if (this.ActiveMachines.Count == 1)
             {
@@ -128,9 +139,17 @@ namespace Microsoft.PSharp.BugFinding
         /// <param name="machine">Machine</param>
         public void NotifyHandlerPaused(Machine machine)
         {
+            Utilities.WriteSchedule("<ScheduleLog> Machine {0}({1}) paused.",
+                machine, machine.Id);
+
             this.MachineInfoMap[machine].IsActive = false;
             this.MachineInfoMap[machine].IsPaused = true;
-            this.ActiveMachines.Remove(machine);
+
+            if (this.MachineInfoMap[machine].PendingCounter == 0)
+            {
+                this.ActiveMachines.Remove(machine);
+            }
+            
             this.Schedule(machine);
         }
 
@@ -140,10 +159,35 @@ namespace Microsoft.PSharp.BugFinding
         /// <param name="machine">Machine</param>
         public void NotifyMachineHalted(Machine machine)
         {
+            Utilities.WriteSchedule("<ScheduleLog> Machine {0}({1}) halted.",
+                machine, machine.Id);
+
             this.MachineInfoMap[machine].IsActive = false;
             this.MachineInfoMap[machine].IsHalted = true;
             this.ActiveMachines.Remove(machine);
             this.Schedule(machine);
+        }
+
+        /// <summary>
+        /// Notify that the machine has a pending event.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        public void NotifyPendingEvent(Machine machine)
+        {
+            if (!this.MachineInfoMap[machine].IsHalted)
+            {
+                this.MachineInfoMap[machine].PendingCounter++;
+                this.TryAddActiveMachine(machine);
+            }
+        }
+
+        /// <summary>
+        /// Notify that the machine handled an event event.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        public void NotifyHandledEvent(Machine machine)
+        {
+            this.MachineInfoMap[machine].PendingCounter--;
         }
 
         /// <summary>
@@ -162,6 +206,54 @@ namespace Microsoft.PSharp.BugFinding
         {
             this.Scheduler.Reset();
             this.ActiveMachines.Clear();
+            this.MachineInfoMap.Clear();
         }
+
+        #endregion
+
+        #region private bug-finder methods
+
+        /// <summary>
+        /// Tries to add a new active machine.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        private void TryAddActiveMachine(Machine machine)
+        {
+            if (!this.ActiveMachines.Contains(machine))
+            {
+                this.ActiveMachines.Add(machine);
+                if (!this.MachineInfoMap.ContainsKey(machine))
+                {
+                    this.MachineInfoMap.Add(machine, new MachineInfo(machine.Id));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Kills the remaining machine tasks.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        private void Close(Machine machine)
+        {
+            var machines = this.ActiveMachines.FindAll(val => val.Id != machine.Id);
+            foreach (var m in machines)
+            {
+                m.Stop();
+            }
+
+            try
+            {
+                machine.Stop();
+            }
+            catch (ScheduleCancelledException)
+            {
+                
+            }
+
+            this.ActiveMachines.Clear();
+            this.MachineInfoMap.Clear();
+        }
+        
+        #endregion
     }
 }

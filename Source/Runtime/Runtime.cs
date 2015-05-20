@@ -16,8 +16,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.BugFinding;
@@ -70,7 +70,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// The P# bug-finder.
         /// </summary>
-        internal static BugFinder BugFinder = new BugFinder();
+        internal static BugFinder BugFinder;
         
         /// <summary>
         /// Assertion failure counter.
@@ -169,7 +169,14 @@ namespace Microsoft.PSharp
                     taskArray = Runtime.MachineTasks.ToArray();
                 }
                 
-                Task.WaitAll(taskArray);
+                try
+                {
+                    Task.WaitAll(taskArray);
+                }
+                catch (AggregateException)
+                {
+                    break;
+                }
 
                 bool moreTasksExist = false;
                 lock (Runtime.Lock)
@@ -515,6 +522,8 @@ namespace Microsoft.PSharp
             Runtime.RegisterNewEvent(typeof(Halt));
             Runtime.RegisterNewEvent(typeof(Default));
 
+            Runtime.BugFinder = new BugFinder();
+
             Runtime.IsRunning = true;
         }
 
@@ -528,10 +537,15 @@ namespace Microsoft.PSharp
         public static class Options
         {
             /// <summary>
-            /// The bug-finding scheduler to be used. The default is the
-            /// random scheduler.
+            /// Run the runtime in bug-finding mode.
             /// </summary>
-            public static IScheduler Scheduler = new RandomScheduler(DateTime.Now.Millisecond);
+            public static bool FindBugs = false;
+
+            /// <summary>
+            /// The bug-finding scheduling strategy to be used. Random is enabled
+            /// by default.
+            /// </summary>
+            public static BugFindingStrategy BugFindingStrategy = BugFindingStrategy.Random;
 
             /// <summary>
             /// When the runtime stops after running in bug finding mode
@@ -539,11 +553,6 @@ namespace Microsoft.PSharp
             /// behaviour is enabled by default.
             /// </summary>
             public static bool PrintExploredSchedule = true;
-
-            /// <summary>
-            /// Run the runtime in bug-finding mode.
-            /// </summary>
-            public static bool FindBugs = false;
 
             /// <summary>
             /// True to print the bug-finder's scheduling info.
@@ -567,7 +576,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// P# runtime scheduling type.
         /// </summary>
-        public enum SchedulingType
+        public enum BugFindingStrategy
         {
             /// <summary>
             /// Enables the random scheduler.
@@ -651,7 +660,7 @@ namespace Microsoft.PSharp
         #region cleanup methods
 
         /// <summary>
-        /// Stops the P# runtime and performs cleanup.
+        /// Disposes resources of the P# runtime.
         /// </summary>
         public static void Dispose()
         {

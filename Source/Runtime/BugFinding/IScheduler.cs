@@ -26,9 +26,16 @@ namespace Microsoft.PSharp.BugFinding
         /// <summary>
         /// Returns the next machine to schedule.
         /// </summary>
+        /// <param name="next">Next</param>
         /// <param name="machines">Machines</param>
-        /// <returns>Machine</returns>
-        Machine Next(List<Machine> machines);
+        /// <returns>Boolean value</returns>
+        bool TryGetNext(out Machine next, List<Machine> machines);
+
+        /// <summary>
+        /// True if the scheduler has finished.
+        /// </summary>
+        /// <returns>Boolean value</returns>
+        bool HasFinished();
 
         /// <summary>
         /// Returns number of scheduling points.
@@ -41,11 +48,10 @@ namespace Microsoft.PSharp.BugFinding
         /// </summary>
         /// <returns>String</returns>
         string GetDescription();
-
+        
         /// <summary>
-        /// Resets the scheduling strategy.
+        /// Resets the scheduler.
         /// </summary>
-        /// <returns>Boolean value</returns>
-        bool Reset();
+        void Reset();
     }
 }
