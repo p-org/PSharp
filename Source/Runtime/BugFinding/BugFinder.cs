@@ -68,11 +68,16 @@ namespace Microsoft.PSharp.BugFinding
         public BugFinder(IScheduler scheduler)
         {
             this.Scheduler = scheduler;
-
             this.ActiveMachines = new List<Machine>();
             this.MachineInfoMap = new Dictionary<Machine, MachineInfo>();
-            
             this.BugFound = false;
+        }
+
+        /// <summary>
+        /// Starts the bug-finder.
+        /// </summary>
+        public void Start()
+        {   
             this.IsRunning = true;
         }
 
@@ -84,7 +89,6 @@ namespace Microsoft.PSharp.BugFinding
             this.Scheduler.Reset();
             this.ActiveMachines.Clear();
             this.MachineInfoMap.Clear();
-
             this.BugFound = false;
         }
 
@@ -261,11 +265,12 @@ namespace Microsoft.PSharp.BugFinding
             foreach (var machine in this.ActiveMachines)
             {
                 machine.ForceHalt();
+                lock (machine)
+                {
+                    System.Threading.Monitor.PulseAll(machine);
+                }
             }
             
-            this.ActiveMachines.Clear();
-            this.MachineInfoMap.Clear();
-
             throw new ScheduleCancelledException();
         }
         

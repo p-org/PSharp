@@ -97,6 +97,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
                         Console.WriteLine("..... Iteration #{0}", i + 1);
                     }
 
+                    Runtime.BugFinder.Start();
                     AnalysisContext.EntryPoint.Invoke(null, null);
 
                     SCTEngine.ExploredSchedules++;

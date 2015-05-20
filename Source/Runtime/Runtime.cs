@@ -207,11 +207,7 @@ namespace Microsoft.PSharp
 
             Task task = new Task(() =>
             {
-                try
-                {
-                    machine.Start(payload);
-                }
-                catch (TaskCanceledException) { }
+                machine.Start(payload);
             });
 
             lock (Runtime.Lock)
@@ -241,11 +237,7 @@ namespace Microsoft.PSharp
 
             Task task = new Task(() =>
             {
-                try
-                {
-                    (machine as Machine).Start(payload);
-                }
-                catch (TaskCanceledException) { }
+                (machine as Machine).Start(payload);
             });
 
             lock (Runtime.Lock)
@@ -322,11 +314,7 @@ namespace Microsoft.PSharp
 
             Task task = new Task(() =>
             {
-                try
-                {
-                    target.Enqueue(e, sender);
-                }
-                catch (TaskCanceledException) { }
+                target.Enqueue(e, sender);
             });
 
             lock (Runtime.Lock)
@@ -495,12 +483,11 @@ namespace Microsoft.PSharp
                 return;
             }
 
-            Runtime.Monitors.Clear();
-
             Runtime.RegisteredMachineTypes.Clear();
             Runtime.RegisteredMonitorTypes.Clear();
             Runtime.RegisteredEventTypes.Clear();
 
+            Runtime.Monitors.Clear();
             Runtime.MachineTasks.Clear();
 
             Machine.ResetMachineIDCounter();
