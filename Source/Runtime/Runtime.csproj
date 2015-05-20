@@ -68,7 +68,6 @@
     <Compile Include="BugFinding\ScheduleExplorer.cs" />
     <Compile Include="BugFinding\IScheduler.cs" />
     <Compile Include="BugFinding\Schedulers\RandomScheduler.cs" />
-    <Compile Include="BugFinding\Schedulers\NonPreemptiveScheduler.cs" />
     <Compile Include="Runtime.cs" />
     <Compile Include="BugFinding\TestConfiguration.cs" />
     <Compile Include="Library\MachineState.cs" />
