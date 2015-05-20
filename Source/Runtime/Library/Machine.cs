@@ -169,7 +169,7 @@ namespace Microsoft.PSharp
         /// <returns>Machine</returns>
         protected internal T Create<T>(params Object[] payload)
         {
-            Runtime.Assert(typeof(T).IsSubclassOf(typeof(Machine)), "Type '{0}' is " +
+            this.Assert(typeof(T).IsSubclassOf(typeof(Machine)), "Type '{0}' is " +
                 "not a subclass of Machine.\n", typeof(T).Name);
             var machine = Runtime.TryCreateNewMachineInstance<T>(payload);
 
@@ -333,11 +333,11 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Forces the machine to stop.
+        /// Forces the machine to halt.
         /// </summary>
-        internal void Stop()
+        internal void ForceHalt()
         {
-            throw new ScheduleCancelledException();
+            this.IsHalted = true;
         }
 
         /// <summary>
@@ -473,7 +473,7 @@ namespace Microsoft.PSharp
                     }
 
                     // If the event cannot be handled then report an error and exit.
-                    Runtime.Assert(false, "Machine '{0}' received event '{1}' that cannot be " +
+                    this.Assert(false, "Machine '{0}' received event '{1}' that cannot be " +
                         "handled in state '{2}'.\n", this.GetType().Name, e.GetType().Name,
                         this.StateStack.Peek().GetType().Name);
                 }
@@ -535,12 +535,12 @@ namespace Microsoft.PSharp
                     {
                         if (s.IsDefined(typeof(Initial), false))
                         {
-                            Runtime.Assert(initialState == null, "Machine '{0}' can not have " +
+                            this.Assert(initialState == null, "Machine '{0}' can not have " +
                                 "more than one initial states.\n", this.GetType().Name);
                             initialState = s;
                         }
 
-                        Runtime.Assert(s.BaseType == typeof(MachineState), "State '{0}' is " +
+                        this.Assert(s.BaseType == typeof(MachineState), "State '{0}' is " +
                             "not of the correct type.\n", s.Name);
                         this.StateTypes.Add(s);
                     }
@@ -841,9 +841,9 @@ namespace Microsoft.PSharp
         /// </summary>
         private void AssertStateValidity()
         {
-            Runtime.Assert(this.StateTypes.Count > 0, "Machine '{0}' must " +
+            this.Assert(this.StateTypes.Count > 0, "Machine '{0}' must " +
                 "have one or more states.\n", this.GetType().Name);
-            Runtime.Assert(this.StateStack.Peek() != null, "Machine '{0}' " +
+            this.Assert(this.StateStack.Peek() != null, "Machine '{0}' " +
                 "must not have a null current state.\n", this.GetType().Name);
         }
 
@@ -853,7 +853,7 @@ namespace Microsoft.PSharp
         /// <param name="returningState">Returnig state</param>
         private void AssertReturnStatementValidity(MachineState returningState)
         {
-            Runtime.Assert(this.StateStack.Count > 0, "Machine '{0}' executed a Return() " +
+            this.Assert(this.StateStack.Count > 0, "Machine '{0}' executed a Return() " +
                 "statement while there was only the state '{1}' in the stack.\n",
                 this.GetType().Name, returningState.GetType().Name);
         }
@@ -865,7 +865,7 @@ namespace Microsoft.PSharp
         /// <param name="ex">Exception</param>
         private void ReportGenericAssertion(Exception ex)
         {
-            Runtime.Assert(false, "Exception '{0}' was thrown in machine '{1}'. The stack " +
+            this.Assert(false, "Exception '{0}' was thrown in machine '{1}'. The stack " +
                 "trace is:\n{2}\n", ex.GetType(), this.GetType().Name, ex.StackTrace);
         }
 

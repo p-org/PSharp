@@ -26,7 +26,7 @@ namespace Microsoft.PSharp.BugFinding
     /// <summary>
     /// Class implementing the P# bug-finding scheduler.
     /// </summary>
-    public class BugFinder
+    internal class BugFinder
     {
         #region fields
 
@@ -45,14 +45,29 @@ namespace Microsoft.PSharp.BugFinding
         /// </summary>
         private Dictionary<Machine, MachineInfo> MachineInfoMap;
 
+        /// <summary>
+        /// Profiler for measurements.
+        /// </summary>
+        private Profiler Profiler;
+
+        /// <summary>
+        /// Number of found bugs.
+        /// </summary>
+        private int FoundBugs;
+
+        /// <summary>
+        /// Is the bug-finder running.
+        /// </summary>
+        private bool IsRunning;
+
         #endregion
 
-        #region public bug-finder methods
+        #region internal bug-finder methods
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public BugFinder()
+        internal BugFinder()
         {
             if (Runtime.Options.BugFindingStrategy == Runtime.BugFindingStrategy.Random)
                 this.Scheduler = new RandomScheduler(DateTime.Now.Millisecond);
@@ -62,8 +77,15 @@ namespace Microsoft.PSharp.BugFinding
             this.ActiveMachines = new List<Machine>();
             this.MachineInfoMap = new Dictionary<Machine, MachineInfo>();
 
+            this.Profiler = new Profiler();
+            this.FoundBugs = 0;
+
+            this.IsRunning = true;
+
             Utilities.WriteSchedule("<ScheduleLog> Configuration: {0}.",
                 this.Scheduler.GetDescription());
+
+            this.Profiler.StartMeasuringExecutionTime();
         }
 
         /// <summary>
@@ -71,7 +93,7 @@ namespace Microsoft.PSharp.BugFinding
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <returns>Boolean</returns>
-        public void Schedule(Machine machine)
+        internal void Schedule(Machine machine)
         {
             this.MachineInfoMap[machine].IsActive = false;
 
@@ -80,7 +102,7 @@ namespace Microsoft.PSharp.BugFinding
             {
                 Utilities.WriteSchedule("<ScheduleLog> Schedule explored.",
                     machine, machine.Id);
-                this.Close(machine);
+                this.Close();
                 return;
             }
 
@@ -114,7 +136,7 @@ namespace Microsoft.PSharp.BugFinding
         /// loop.
         /// </summary>
         /// <param name="machine">Machine</param>
-        public void NotifyHandlerStarted(Machine machine)
+        internal void NotifyHandlerStarted(Machine machine)
         {
             this.TryAddActiveMachine(machine);
 
@@ -137,7 +159,7 @@ namespace Microsoft.PSharp.BugFinding
         /// handling loop, because its event queue is empty.
         /// </summary>
         /// <param name="machine">Machine</param>
-        public void NotifyHandlerPaused(Machine machine)
+        internal void NotifyHandlerPaused(Machine machine)
         {
             Utilities.WriteSchedule("<ScheduleLog> Machine {0}({1}) paused.",
                 machine, machine.Id);
@@ -157,7 +179,7 @@ namespace Microsoft.PSharp.BugFinding
         /// Notify that the machine has halted.
         /// </summary>
         /// <param name="machine">Machine</param>
-        public void NotifyMachineHalted(Machine machine)
+        internal void NotifyMachineHalted(Machine machine)
         {
             Utilities.WriteSchedule("<ScheduleLog> Machine {0}({1}) halted.",
                 machine, machine.Id);
@@ -172,9 +194,10 @@ namespace Microsoft.PSharp.BugFinding
         /// Notify that the machine has a pending event.
         /// </summary>
         /// <param name="machine">Machine</param>
-        public void NotifyPendingEvent(Machine machine)
+        internal void NotifyPendingEvent(Machine machine)
         {
-            if (!this.MachineInfoMap[machine].IsHalted)
+            if (this.MachineInfoMap.ContainsKey(machine) &&
+                !this.MachineInfoMap[machine].IsHalted)
             {
                 this.MachineInfoMap[machine].PendingCounter++;
                 this.TryAddActiveMachine(machine);
@@ -185,7 +208,7 @@ namespace Microsoft.PSharp.BugFinding
         /// Notify that the machine handled an event event.
         /// </summary>
         /// <param name="machine">Machine</param>
-        public void NotifyHandledEvent(Machine machine)
+        internal void NotifyHandledEvent(Machine machine)
         {
             this.MachineInfoMap[machine].PendingCounter--;
         }
@@ -193,20 +216,32 @@ namespace Microsoft.PSharp.BugFinding
         /// <summary>
         /// Notify that an assertion has failed.
         /// </summary>
-        /// <param name="machine">Machine</param>
-        public void NotifyAssertionFailure()
+        internal void NotifyAssertionFailure()
         {
+            this.FoundBugs++;
+            this.Close();
+        }
 
+        /// <summary>
+        /// Reports the progress of the bug-finder.
+        /// </summary>
+        internal void Report()
+        {
+            Utilities.WriteLine("Found bugs: {0}.", this.FoundBugs);
+            Utilities.WriteLine("Exploration time: {0} sec.", this.Profiler.Result());
         }
 
         /// <summary>
         /// Resets the state of the bug-finder.
         /// </summary>
-        public void Reset()
+        internal void Reset()
         {
             this.Scheduler.Reset();
             this.ActiveMachines.Clear();
             this.MachineInfoMap.Clear();
+
+            this.Profiler = new Profiler();
+            this.FoundBugs = 0;
         }
 
         #endregion
@@ -230,28 +265,28 @@ namespace Microsoft.PSharp.BugFinding
         }
 
         /// <summary>
-        /// Kills the remaining machine tasks.
+        /// Terminates the bug-finding scheduler.
         /// </summary>
-        /// <param name="machine">Machine</param>
-        private void Close(Machine machine)
+        private void Close()
         {
-            var machines = this.ActiveMachines.FindAll(val => val.Id != machine.Id);
-            foreach (var m in machines)
+            if (!this.IsRunning)
             {
-                m.Stop();
+                return;
             }
 
-            try
-            {
-                machine.Stop();
-            }
-            catch (ScheduleCancelledException)
-            {
-                
-            }
+            this.IsRunning = false;
 
+            this.Profiler.StopMeasuringExecutionTime();
+
+            foreach (var machine in this.ActiveMachines)
+            {
+                machine.ForceHalt();
+            }
+            
             this.ActiveMachines.Clear();
             this.MachineInfoMap.Clear();
+
+            throw new ScheduleCancelledException();
         }
         
         #endregion

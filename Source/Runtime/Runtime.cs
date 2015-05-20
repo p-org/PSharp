@@ -71,11 +71,6 @@ namespace Microsoft.PSharp
         /// The P# bug-finder.
         /// </summary>
         internal static BugFinder BugFinder;
-        
-        /// <summary>
-        /// Assertion failure counter.
-        /// </summary>
-        private static int AssertionFailureCount = 0;
 
         #endregion
 
@@ -188,6 +183,11 @@ namespace Microsoft.PSharp
                 {
                     break;
                 }
+            }
+
+            if (Runtime.Options.FindBugs)
+            {
+                Runtime.BugFinder.Report();
             }
 
             Runtime.Dispose();
@@ -522,7 +522,10 @@ namespace Microsoft.PSharp
             Runtime.RegisterNewEvent(typeof(Halt));
             Runtime.RegisterNewEvent(typeof(Default));
 
-            Runtime.BugFinder = new BugFinder();
+            if (Runtime.Options.FindBugs)
+            {
+                Runtime.BugFinder = new BugFinder();
+            }
 
             Runtime.IsRunning = true;
         }
@@ -605,22 +608,16 @@ namespace Microsoft.PSharp
         {
             if (!predicate)
             {
-                Utilities.ReportError("Assertion failure.\n");
+                Utilities.ReportError("Assertion failure.");
 
-                if (!Runtime.Options.FindBugs)
+                if (Runtime.Options.FindBugs)
                 {
-                    Environment.Exit(1);
-                }
-                else if (Runtime.Options.CountAssertions)
-                {
-                    Runtime.AssertionFailureCount++;
+                    Runtime.BugFinder.NotifyAssertionFailure();
                 }
                 else
                 {
                     Environment.Exit(1);
                 }
-
-                Runtime.BugFinder.NotifyAssertionFailure();
             }
         }
 
@@ -638,20 +635,14 @@ namespace Microsoft.PSharp
                 string message = Utilities.Format(s, args);
                 Utilities.ReportError(message);
 
-                if (!Runtime.Options.FindBugs)
+                if (Runtime.Options.FindBugs)
                 {
-                    Environment.Exit(1);
-                }
-                else if (Runtime.Options.CountAssertions)
-                {
-                    Runtime.AssertionFailureCount++;
+                    Runtime.BugFinder.NotifyAssertionFailure();
                 }
                 else
                 {
                     Environment.Exit(1);
                 }
-
-                Runtime.BugFinder.NotifyAssertionFailure();
             }
         }
 
