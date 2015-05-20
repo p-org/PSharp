@@ -373,22 +373,6 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Prints the explored execution schedule.
-        /// </summary>
-        internal static void PrintExploredSchedule()
-        {
-            if (!Runtime.Options.FindBugs)
-            {
-                Utilities.WriteLine("The explored schedule can only " +
-                    "be printed in bug finding mode.");
-            }
-            else
-            {
-                ScheduleExplorer.Print();
-            }
-        }
-
-        /// <summary>
         /// Returns the machine type of the given string.
         /// </summary>
         /// <param name="m">String</param>
@@ -435,13 +419,6 @@ namespace Microsoft.PSharp
             public static bool FindBugs = false;
 
             /// <summary>
-            /// When the runtime stops after running in bug finding mode
-            /// it will print the explored execution schedule. This
-            /// behaviour is enabled by default.
-            /// </summary>
-            public static bool PrintExploredSchedule = true;
-
-            /// <summary>
             /// True to print the bug-finder's scheduling info.
             /// False by default.
             /// </summary>
@@ -451,13 +428,6 @@ namespace Microsoft.PSharp
             /// True to switch verbose mode on. False by default.
             /// </summary>
             public static bool Verbose = false;
-
-            /// <summary>
-            /// Counts the assertion failures. Only enabled internally
-            /// when runtime is in testing mode. When enabled, assertions
-            /// do not cause the environment to exit.
-            /// </summary>
-            public static bool CountAssertions = false;
         }
 
 #endregion
@@ -524,7 +494,7 @@ namespace Microsoft.PSharp
             {
                 return;
             }
-            
+
             Runtime.Monitors.Clear();
 
             Runtime.RegisteredMachineTypes.Clear();
@@ -534,7 +504,6 @@ namespace Microsoft.PSharp
             Runtime.MachineTasks.Clear();
 
             Machine.ResetMachineIDCounter();
-            ScheduleExplorer.ResetExploredSchedule();
 
             Runtime.IsRunning = false;
         }

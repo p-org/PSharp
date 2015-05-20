@@ -29,6 +29,11 @@ namespace Microsoft.PSharp.DynamicAnalysis
         #region fields
 
         /// <summary>
+        /// Number of found bugs.
+        /// </summary>
+        private static int FoundBugs;
+
+        /// <summary>
         /// Explored schedules so far.
         /// </summary>
         private static int ExploredSchedules;
@@ -47,47 +52,8 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// </summary>
         public static void Run()
         {
-            Console.WriteLine("... SCT using '{0}'", AnalysisContext.Strategy);
-
             SCTEngine.Setup();
-
-            Task task = new Task(() =>
-            {
-                for (int i = 0; i < Configuration.SchedulingIterations; i++)
-                {
-                    if (SCTEngine.ShouldPrintIteration(i + 1))
-                    {
-                        Console.WriteLine("..... Iteration #{0}", i + 1);
-                    }
-                    
-                    AnalysisContext.EntryPoint.Invoke(null, null);
-                    SCTEngine.ExploredSchedules++;
-                }
-            });
-
-            Profiler.StartMeasuringExecutionTime();
-            task.Start();
-
-            try
-            {
-                if (Configuration.AnalysisTimeout > 0)
-                {
-                    task.Wait(Configuration.AnalysisTimeout * 1000);
-                }
-                else
-                {
-                    task.Wait();
-                }
-            }
-            catch (AggregateException ex)
-            {
-                ErrorReporter.ReportErrorAndExit(ex.Message);
-            }
-            finally
-            {
-                Profiler.StopMeasuringExecutionTime();
-            }
-            
+            SCTEngine.FindBugs();
             SCTEngine.Report();
         }
 
@@ -116,11 +82,64 @@ namespace Microsoft.PSharp.DynamicAnalysis
         }
 
         /// <summary>
+        /// Explores the P# program for bugs.
+        /// </summary>
+        private static void FindBugs()
+        {
+            Console.WriteLine("... SCT using '{0}'", AnalysisContext.Strategy);
+
+            Task task = new Task(() =>
+            {
+                for (int i = 0; i < Configuration.SchedulingIterations; i++)
+                {
+                    if (SCTEngine.ShouldPrintIteration(i + 1))
+                    {
+                        Console.WriteLine("..... Iteration #{0}", i + 1);
+                    }
+
+                    AnalysisContext.EntryPoint.Invoke(null, null);
+
+                    SCTEngine.ExploredSchedules++;
+                    if (Runtime.BugFinder.BugFound)
+                    {
+                        SCTEngine.FoundBugs++;
+                    }
+
+                    Runtime.BugFinder.Reset();
+                }
+            });
+
+            Profiler.StartMeasuringExecutionTime();
+            task.Start();
+
+            try
+            {
+                if (Configuration.AnalysisTimeout > 0)
+                {
+                    task.Wait(Configuration.AnalysisTimeout * 1000);
+                }
+                else
+                {
+                    task.Wait();
+                }
+            }
+            catch (AggregateException ex)
+            {
+                ErrorReporter.ReportErrorAndExit(ex.Message);
+            }
+            finally
+            {
+                Profiler.StopMeasuringExecutionTime();
+            }
+        }
+
+        /// <summary>
         /// Reports the testing results.
         /// </summary>
         private static void Report()
         {
-            Runtime.BugFinder.Report();
+            Console.WriteLine("... Found {0} bug{1}.", SCTEngine.FoundBugs,
+                SCTEngine.FoundBugs == 1 ? "" : "s");
             Console.WriteLine("... Explored {0} schedule{1}.", SCTEngine.ExploredSchedules,
                 SCTEngine.ExploredSchedules == 1 ? "" : "s");
             Console.WriteLine("... Elapsed {0} sec.", Profiler.Results());

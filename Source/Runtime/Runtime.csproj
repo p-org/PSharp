@@ -62,13 +62,9 @@
     <Compile Include="Library\Havoc.cs" />
     <Compile Include="Utilities\Profiler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="BugFinding\Replayer.cs" />
     <Compile Include="BugFinding\BugFinder.cs" />
-    <Compile Include="BugFinding\ScheduleStep.cs" />
-    <Compile Include="BugFinding\ScheduleExplorer.cs" />
     <Compile Include="BugFinding\IScheduler.cs" />
     <Compile Include="Runtime.cs" />
-    <Compile Include="BugFinding\TestConfiguration.cs" />
     <Compile Include="Library\MachineState.cs" />
     <Compile Include="IO\Utilities.cs" />
   </ItemGroup>

@@ -43,16 +43,19 @@ namespace Microsoft.PSharp.BugFinding
         /// Map from machines to their infos.
         /// </summary>
         private Dictionary<Machine, MachineInfo> MachineInfoMap;
-
-        /// <summary>
-        /// Number of found bugs.
-        /// </summary>
-        private int FoundBugs;
-
+        
         /// <summary>
         /// Is the bug-finder running.
         /// </summary>
         private bool IsRunning;
+
+        /// <summary>
+        /// True if a bug was found.
+        /// </summary>
+        public bool BugFound
+        {
+            get; private set;
+        }
 
         #endregion
 
@@ -69,20 +72,20 @@ namespace Microsoft.PSharp.BugFinding
             this.ActiveMachines = new List<Machine>();
             this.MachineInfoMap = new Dictionary<Machine, MachineInfo>();
             
-            this.FoundBugs = 0;
+            this.BugFound = false;
             this.IsRunning = true;
-
-            Utilities.WriteSchedule("<ScheduleLog> Configuration: {0}.",
-                this.Scheduler.GetDescription());
         }
 
         /// <summary>
-        /// Reports the progress of the bug-finder.
+        /// Resets the state of the bug-finder.
         /// </summary>
-        public void Report()
+        public void Reset()
         {
-            Utilities.WriteLine("... Found {0} bug{1}.", this.FoundBugs,
-                this.FoundBugs == 1 ? "" : "s");
+            this.Scheduler.Reset();
+            this.ActiveMachines.Clear();
+            this.MachineInfoMap.Clear();
+
+            this.BugFound = false;
         }
 
         #endregion
@@ -219,20 +222,8 @@ namespace Microsoft.PSharp.BugFinding
         /// </summary>
         internal void NotifyAssertionFailure()
         {
-            this.FoundBugs++;
+            this.BugFound = true;
             this.Close();
-        }
-
-        /// <summary>
-        /// Resets the state of the bug-finder.
-        /// </summary>
-        public void Reset()
-        {
-            this.Scheduler.Reset();
-            this.ActiveMachines.Clear();
-            this.MachineInfoMap.Clear();
-            
-            this.FoundBugs = 0;
         }
 
         #endregion
