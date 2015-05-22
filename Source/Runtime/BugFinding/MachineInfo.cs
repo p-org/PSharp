@@ -32,19 +32,9 @@ namespace Microsoft.PSharp
         internal bool IsActive;
 
         /// <summary>
-        /// Is machine paused because its event queue is empty.
+        /// Number of pending tasks.
         /// </summary>
-        internal bool IsPaused;
-
-        /// <summary>
-        /// Is machine halted.
-        /// </summary>
-        internal bool IsHalted;
-
-        /// <summary>
-        /// Number of pending events.
-        /// </summary>
-        internal int PendingCounter;
+        internal int PendingTasks;
 
         /// <summary>
         /// Constructor.
@@ -54,9 +44,7 @@ namespace Microsoft.PSharp
         {
             this.Id = id;
             this.IsActive = false;
-            this.IsPaused = false;
-            this.IsHalted = false;
-            this.PendingCounter = 0;
+            this.PendingTasks = 0;
         }
 
         public override bool Equals(object obj)

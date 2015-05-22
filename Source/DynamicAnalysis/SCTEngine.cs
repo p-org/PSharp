@@ -30,6 +30,11 @@ namespace Microsoft.PSharp.DynamicAnalysis
         #region fields
 
         /// <summary>
+        /// The bug-finding scheduler.
+        /// </summary>
+        private static IScheduler Scheduler;
+
+        /// <summary>
         /// Number of found bugs.
         /// </summary>
         private static int FoundBugs;
@@ -70,18 +75,15 @@ namespace Microsoft.PSharp.DynamicAnalysis
             SCTEngine.ExploredSchedules = 0;
             SCTEngine.PrintGuard = 1;
 
-            IScheduler scheduler = null;
             if (AnalysisContext.Strategy == SchedulingStrategy.Random)
-                scheduler = new RandomScheduler(DateTime.Now.Millisecond);
+                SCTEngine.Scheduler = new RandomScheduler(DateTime.Now.Millisecond);
             else if (AnalysisContext.Strategy == SchedulingStrategy.DFS)
-                scheduler = new DFSScheduler();
+                SCTEngine.Scheduler = new DFSScheduler();
 
             Runtime.Options.FindBugs = true;
 
             Runtime.Options.PrintScheduleInfo = true;
             Runtime.Options.Verbose = true;
-
-            Runtime.BugFinder = new BugFinder(scheduler);
         }
 
         /// <summary>
@@ -100,7 +102,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
                         Console.WriteLine("..... Iteration #{0}", i + 1);
                     }
 
-                    Runtime.BugFinder.Start();
+                    Runtime.BugFinder = new BugFinder(SCTEngine.Scheduler);
                     var sw = SCTEngine.RedirectOutput();
 
                     AnalysisContext.EntryPoint.Invoke(null, null);
@@ -112,7 +114,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
                         SCTEngine.FoundBugs++;
                     }
 
-                    Runtime.BugFinder.Reset();
+                    SCTEngine.Scheduler.Reset();
                     if (!Configuration.FullExploration && SCTEngine.FoundBugs > 0)
                     {
                         var path = Path.GetDirectoryName(AnalysisContext.Assembly.Location) +
@@ -133,6 +135,10 @@ namespace Microsoft.PSharp.DynamicAnalysis
                 if (Configuration.AnalysisTimeout > 0)
                 {
                     task.Wait(Configuration.AnalysisTimeout * 1000);
+                    if (!task.IsCompleted)
+                    {
+                        Runtime.Dispose();
+                    }
                 }
                 else
                 {
@@ -158,8 +164,13 @@ namespace Microsoft.PSharp.DynamicAnalysis
                 SCTEngine.FoundBugs == 1 ? "" : "s");
             Console.WriteLine("... Explored {0} schedule{1}.", SCTEngine.ExploredSchedules,
                 SCTEngine.ExploredSchedules == 1 ? "" : "s");
-            Console.WriteLine("... Found {0} % buggy schedules.",
+
+            if (SCTEngine.ExploredSchedules > 0)
+            {
+                Console.WriteLine("... Found {0} % buggy schedules.",
                 (SCTEngine.FoundBugs * 100 / SCTEngine.ExploredSchedules));
+            }
+            
             Console.WriteLine("... Elapsed {0} sec.", Profiler.Results());
         }
 

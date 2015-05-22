@@ -35,6 +35,11 @@ namespace Microsoft.PSharp.BugFinding
         private IScheduler Scheduler;
 
         /// <summary>
+        /// Lock used by the bug-finder.
+        /// </summary>
+        private Object Lock;
+
+        /// <summary>
         /// List of active machines to schedule.
         /// </summary>
         private List<Machine> ActiveMachines;
@@ -43,7 +48,7 @@ namespace Microsoft.PSharp.BugFinding
         /// Map from machines to their infos.
         /// </summary>
         private Dictionary<Machine, MachineInfo> MachineInfoMap;
-        
+
         /// <summary>
         /// Is the bug-finder running.
         /// </summary>
@@ -68,28 +73,11 @@ namespace Microsoft.PSharp.BugFinding
         public BugFinder(IScheduler scheduler)
         {
             this.Scheduler = scheduler;
+            this.Lock = new Object();
             this.ActiveMachines = new List<Machine>();
             this.MachineInfoMap = new Dictionary<Machine, MachineInfo>();
             this.BugFound = false;
-        }
-
-        /// <summary>
-        /// Starts the bug-finder.
-        /// </summary>
-        public void Start()
-        {   
             this.IsRunning = true;
-        }
-
-        /// <summary>
-        /// Resets the state of the bug-finder.
-        /// </summary>
-        public void Reset()
-        {
-            this.Scheduler.Reset();
-            this.ActiveMachines.Clear();
-            this.MachineInfoMap.Clear();
-            this.BugFound = false;
         }
 
         #endregion
@@ -100,8 +88,8 @@ namespace Microsoft.PSharp.BugFinding
         /// Schedules the next machine to execute.
         /// </summary>
         /// <param name="machine">Machine</param>
-        /// <returns>Boolean</returns>
-        internal void Schedule(Machine machine)
+        /// <param name="sleep">Sleep</param>
+        internal void Schedule(Machine machine, bool sleep = true)
         {
             this.MachineInfoMap[machine].IsActive = false;
 
@@ -110,7 +98,8 @@ namespace Microsoft.PSharp.BugFinding
             {
                 Utilities.WriteSchedule("<ScheduleLog> Schedule explored.",
                     machine, machine.Id);
-                this.Close();
+                Console.WriteLine(">> ActiveMachines: " + ActiveMachines.Count);
+                this.Close(machine);
                 return;
             }
 
@@ -125,100 +114,93 @@ namespace Microsoft.PSharp.BugFinding
                     System.Threading.Monitor.PulseAll(next);
                 }
 
-                if (!this.MachineInfoMap[machine].IsPaused &&
-                    !this.MachineInfoMap[machine].IsHalted)
+                if (sleep)
                 {
                     lock (machine)
                     {
+                        Console.WriteLine(">> before: " + machine.Id);
                         while (!this.MachineInfoMap[machine].IsActive)
                         {
                             System.Threading.Monitor.Wait(machine);
                         }
+                        Console.WriteLine(">> after: " + machine.Id);
                     }
                 }
             }
+
+            this.ExitIfScheduleFinished(machine);
         }
 
         /// <summary>
-        /// Notify that the machine has finished its current event handling
-        /// loop.
+        /// Notify that a new task for the given machine has been created.
         /// </summary>
         /// <param name="machine">Machine</param>
-        internal void NotifyHandlerStarted(Machine machine)
+        internal void NotifyNewTaskCreated(Machine machine)
         {
+            Console.WriteLine(">> new task for machine: " + machine.Id);
+            this.ExitIfScheduleFinished(machine);
             this.TryAddActiveMachine(machine);
 
             if (this.ActiveMachines.Count == 1)
             {
+                Console.WriteLine(">> only machine: " + machine.Id + " " + this.MachineInfoMap[machine].PendingTasks + " " + this.MachineInfoMap[machine].IsActive);
                 this.MachineInfoMap[machine].IsActive = true;
             }
-            
+
+            this.MachineInfoMap[machine].PendingTasks++;
+        }
+
+        /// <summary>
+        /// Notify that the task has started.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        internal void NotifyNewTaskStarted(Machine machine)
+        {
+            Console.WriteLine(">> new task started for machine: " + machine.Id + " " + this.MachineInfoMap[machine].PendingTasks);
+            this.ExitIfScheduleFinished(machine);
+
             lock (machine)
             {
                 while (!this.MachineInfoMap[machine].IsActive)
                 {
+                    Console.WriteLine(">> before new task: " + machine.Id + " " + this.MachineInfoMap[machine].PendingTasks + " " + this.MachineInfoMap[machine].IsActive);
                     System.Threading.Monitor.Wait(machine);
+                    Console.WriteLine(">> after new task: " + machine.Id + " " + this.MachineInfoMap[machine].PendingTasks + " " + this.MachineInfoMap[machine].IsActive);
                 }
             }
+
+            this.ExitIfScheduleFinished(machine);
         }
 
         /// <summary>
-        /// Notify that the machine has paused its current event
-        /// handling loop, because its event queue is empty.
+        /// Notify that the task has completed.
         /// </summary>
         /// <param name="machine">Machine</param>
-        internal void NotifyHandlerPaused(Machine machine)
+        internal void NotifyTaskCompleted(Machine machine)
         {
-            Utilities.WriteSchedule("<ScheduleLog> Machine {0}({1}) paused.",
-                machine, machine.Id);
+            Console.WriteLine(">> task completed for machine: " + machine.Id + " " + this.MachineInfoMap[machine].PendingTasks + " " + this.MachineInfoMap[machine].IsActive);
+            
+            if (!this.IsRunning)
+            {
+                return;
+            }
 
-            this.MachineInfoMap[machine].IsActive = false;
-            this.MachineInfoMap[machine].IsPaused = true;
-
-            if (this.MachineInfoMap[machine].PendingCounter == 0)
+            this.MachineInfoMap[machine].PendingTasks--;
+            if (this.MachineInfoMap[machine].PendingTasks == 0)
             {
                 this.ActiveMachines.Remove(machine);
+                Console.WriteLine(">> removed: " + machine.Id);
+                this.Schedule(machine, false);
             }
-            
-            this.Schedule(machine);
-        }
-
-        /// <summary>
-        /// Notify that the machine has halted.
-        /// </summary>
-        /// <param name="machine">Machine</param>
-        internal void NotifyMachineHalted(Machine machine)
-        {
-            Utilities.WriteSchedule("<ScheduleLog> Machine {0}({1}) halted.",
-                machine, machine.Id);
-
-            this.MachineInfoMap[machine].IsActive = false;
-            this.MachineInfoMap[machine].IsHalted = true;
-            this.ActiveMachines.Remove(machine);
-            this.Schedule(machine);
-        }
-
-        /// <summary>
-        /// Notify that the machine has a pending event.
-        /// </summary>
-        /// <param name="machine">Machine</param>
-        internal void NotifyPendingEvent(Machine machine)
-        {
-            if (this.MachineInfoMap.ContainsKey(machine) &&
-                !this.MachineInfoMap[machine].IsHalted)
+            else
             {
-                this.MachineInfoMap[machine].PendingCounter++;
-                this.TryAddActiveMachine(machine);
+                lock (machine)
+                {
+                    System.Threading.Monitor.PulseAll(machine);
+                }
             }
-        }
 
-        /// <summary>
-        /// Notify that the machine handled an event event.
-        /// </summary>
-        /// <param name="machine">Machine</param>
-        internal void NotifyHandledEvent(Machine machine)
-        {
-            this.MachineInfoMap[machine].PendingCounter--;
+            Console.WriteLine(">> exit completion: " + machine.Id + " " + this.MachineInfoMap[machine].PendingTasks + " " + this.MachineInfoMap[machine].IsActive);
         }
 
         /// <summary>
@@ -227,7 +209,7 @@ namespace Microsoft.PSharp.BugFinding
         internal void NotifyAssertionFailure()
         {
             this.BugFound = true;
-            this.Close();
+            this.Close(null);
         }
 
         #endregion
@@ -251,19 +233,42 @@ namespace Microsoft.PSharp.BugFinding
         }
 
         /// <summary>
+        /// Forces the task to exit of the schedule has finished.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        private void ExitIfScheduleFinished(Machine machine)
+        {
+            lock (this.Lock)
+            {
+                if (!this.IsRunning)
+                {
+                    throw new ScheduleCancelledException();
+                }
+            }
+        }
+
+        /// <summary>
         /// Terminates the bug-finding scheduler.
         /// </summary>
-        private void Close()
+        private void Close(Machine m)
         {
-            if (!this.IsRunning)
+            lock (this.Lock)
             {
-                return;
-            }
+                Console.WriteLine(">>> closing 1: {0}", m != null ? m.Id.ToString() : "");
 
-            this.IsRunning = false;
+                if (!this.IsRunning)
+                {
+                    return;
+                }
+
+                Console.WriteLine(">>> closing 2: {0}", m != null ? m.Id.ToString() : "");
+
+                this.IsRunning = false;
+            }
 
             foreach (var machine in this.ActiveMachines)
             {
+                this.MachineInfoMap[machine].IsActive = true;
                 machine.ForceHalt();
                 lock (machine)
                 {

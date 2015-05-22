@@ -50,6 +50,7 @@
     <Compile Include="Library\ActionBindings.cs" />
     <Compile Include="Library\MonitorState.cs" />
     <Compile Include="Library\Monitor.cs" />
+    <Compile Include="Library\MachineStatus.cs" />
     <Compile Include="Library\PushStateTransitions.cs" />
     <Compile Include="Library\GotoStateTransitions.cs" />
     <Compile Include="Utilities\CommandLineOptions.cs" />

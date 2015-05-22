@@ -60,9 +60,9 @@ namespace Microsoft.PSharp
         private Stack<MachineState> StateStack;
 
         /// <summary>
-        /// True if machine has halted.
+        /// The status of the machine.
         /// </summary>
-        private bool IsHalted;
+        private MachineStatus Status;
 
         /// <summary>
         /// Collection of all possible goto state transitions.
@@ -84,6 +84,11 @@ namespace Microsoft.PSharp
         /// queued here. Events are dequeued to be processed.
         /// </summary>
         private List<Event> Inbox;
+
+        /// <summary>
+        /// A raised event. Null if there is no event raised.
+        /// </summary>
+        private Event RaisedEvent;
 
         /// <summary>
         /// Handle to the latest received event type.
@@ -114,7 +119,7 @@ namespace Microsoft.PSharp
             this.Inbox = new List<Event>();
 
             this.StateStack = new Stack<MachineState>();
-            this.IsHalted = false;
+            this.Status = MachineStatus.None;
 
             this.GotoTransitions = this.DefineGotoStateTransitions();
             this.PushTransitions = this.DefinePushStateTransitions();
@@ -171,14 +176,7 @@ namespace Microsoft.PSharp
         {
             this.Assert(typeof(T).IsSubclassOf(typeof(Machine)), "Type '{0}' is " +
                 "not a subclass of Machine.", typeof(T).Name);
-            var machine = Runtime.TryCreateNewMachineInstance<T>(payload);
-
-            if (Runtime.Options.FindBugs)
-            {
-                Runtime.BugFinder.Schedule(this);
-            }
-
-            return machine;
+            return Runtime.TryCreateNewMachineInstance<T>(this, payload);
         }
 
         /// <summary>
@@ -190,13 +188,7 @@ namespace Microsoft.PSharp
         {
             Utilities.Verbose("<SendLog> Machine {0}({1}) sent event {2} to machine {3}({4}).",
                 this, this.Id, e.GetType(), m, m.Id);
-            Runtime.Send(m, e, this.GetType().Name);
-
-            if (Runtime.Options.FindBugs)
-            {
-                Runtime.BugFinder.NotifyPendingEvent(m);
-                Runtime.BugFinder.Schedule(this);
-            }
+            Runtime.Send(this, m, e);
         }
 
         /// <summary>
@@ -216,7 +208,8 @@ namespace Microsoft.PSharp
         protected internal void Raise(Event e)
         {
             Utilities.Verbose("<RaiseLog> Machine {0}({1}) raised event {2}.", this, this.Id, e);
-            this.HandleEvent(e);
+            this.RaisedEvent = e;
+            //this.HandleEvent(e);
         }
 
         /// <summary>
@@ -285,24 +278,9 @@ namespace Microsoft.PSharp
         {
             lock (this.Lock)
             {
-                if (Runtime.Options.FindBugs)
-                {
-                    Runtime.BugFinder.NotifyHandlerStarted(this);
-                }
-                
+                this.Status = MachineStatus.Active;
                 this.GotoInitialState(payload);
-
-                if (Runtime.Options.FindBugs)
-                {
-                    if (this.IsHalted)
-                    {
-                        Runtime.BugFinder.NotifyMachineHalted(this);
-                    }
-                    else
-                    {
-                        Runtime.BugFinder.NotifyHandlerPaused(this);
-                    }
-                }
+                this.RunEventHandler();
             }
         }
 
@@ -310,12 +288,11 @@ namespace Microsoft.PSharp
         /// Enqueues an event.
         /// </summary>
         /// <param name="e">Event</param>
-        /// <param name="sender">Sender machine</param>
-        internal void Enqueue(Event e, string sender)
+        internal void Enqueue(Event e)
         {
             lock (this.Inbox)
             {
-                if (!this.IsHalted)
+                if (this.Status != MachineStatus.Halted)
                 {
                     Utilities.Verbose("<EnqueueLog> Machine {0}({1}) enqueued event {2}.",
                         this, this.Id, e.GetType());
@@ -325,9 +302,9 @@ namespace Microsoft.PSharp
 
             lock (this.Lock)
             {
-                if (!this.IsHalted)
+                if (this.Status == MachineStatus.Active)
                 {
-                    this.StartEventHandler();
+                    this.RunEventHandler();
                 }
             }
         }
@@ -337,7 +314,7 @@ namespace Microsoft.PSharp
         /// </summary>
         internal void ForceHalt()
         {
-            this.IsHalted = true;
+            this.Status = MachineStatus.Halted;
         }
 
         /// <summary>
@@ -353,25 +330,20 @@ namespace Microsoft.PSharp
         #region private machine methods
 
         /// <summary>
-        /// Starts an event handling loop. The loop terminates if
-        /// there is no next event to process or if the machine is
-        /// halted.
+        /// Runs the event handler. The handlers terminates if there
+        /// is no next event to process or if the machine is halted.
         /// </summary>
-        private void StartEventHandler()
+        private void RunEventHandler()
         {
-            if (Runtime.Options.FindBugs)
-            {
-                Runtime.BugFinder.NotifyHandlerStarted(this);
-            }
-
             Event nextEvent = null;
-            while (!this.IsHalted)
+            while (this.Status == MachineStatus.Active)
             {
                 lock (this.Inbox)
                 {
-                    nextEvent = this.DequeueNextEvent();
+                    nextEvent = this.GetNextEvent();
                 }
 
+                // Check if next event to process is null.
                 if (nextEvent == null)
                 {
                     if (this.StateStack.Peek().HasDefaultHandler())
@@ -384,42 +356,38 @@ namespace Microsoft.PSharp
                     }
                 }
 
+                // Assign trigger and payload.
                 this.Trigger = nextEvent.GetType();
                 this.Payload = nextEvent.Payload;
                 
+                // Handle next event.
                 this.HandleEvent(nextEvent);
 
-                if (Runtime.Options.FindBugs)
-                {
-                    Runtime.BugFinder.NotifyHandledEvent(this);
-                }
-            }
-
-            if (Runtime.Options.FindBugs)
-            {
-                if (this.IsHalted)
-                {
-                    Runtime.BugFinder.NotifyMachineHalted(this);
-                }
-                else
-                {
-                    Runtime.BugFinder.NotifyHandlerPaused(this);
-                }
+                // Reset trigger and payload.
+                this.Trigger = null;
+                this.Payload = null;
             }
         }
 
         /// <summary>
-        /// Dequeues the next available event. If no event is
-        /// available returns null.
+        /// Gets the next available event. It gives priority to raised events,
+        /// else deqeues from the inbox. Returns null if no event is available.
         /// </summary>
         /// <returns>Next event</returns>
-        private Event DequeueNextEvent()
+        private Event GetNextEvent()
         {
             Event nextEvent = null;
 
-            if (this.Inbox.Count > 0)
+            // Raised events have priority.
+            if (this.RaisedEvent != null)
             {
-                // Iterate through the event in the inbox.
+                nextEvent = this.RaisedEvent;
+                this.RaisedEvent = null;
+            }
+            // If there is no raised event, then dequeue.
+            else if (this.Inbox.Count > 0)
+            {
+                // Iterate through the events in the inbox.
                 for (int idx = 0; idx < this.Inbox.Count; idx++)
                 {
                     // Remove an ignored event.
@@ -465,7 +433,7 @@ namespace Microsoft.PSharp
                         lock (this.Inbox)
                         {
                             Utilities.Verbose("<HaltLog> Machine {0}({1}) halted.", this, this.Id);
-                            this.IsHalted = true;
+                            this.Status = MachineStatus.Halted;
                             this.CleanUpResources();
                         }
                         
@@ -510,9 +478,6 @@ namespace Microsoft.PSharp
 
                 break;
             }
-
-            this.Trigger = null;
-            this.Payload = null;
         }
 
         /// <summary>
@@ -696,7 +661,7 @@ namespace Microsoft.PSharp
             }
             catch (ScheduleCancelledException)
             {
-                this.IsHalted = true;
+                this.Status = MachineStatus.Halted;
             }
             catch (Exception ex)
             {
@@ -729,7 +694,7 @@ namespace Microsoft.PSharp
             }
             catch (ScheduleCancelledException)
             {
-                this.IsHalted = true;
+                this.Status = MachineStatus.Halted;
             }
             catch (Exception ex)
             {
@@ -763,7 +728,7 @@ namespace Microsoft.PSharp
             }
             catch (ScheduleCancelledException)
             {
-                this.IsHalted = true;
+                this.Status = MachineStatus.Halted;
             }
             catch (Exception ex)
             {

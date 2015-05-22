@@ -8,6 +8,12 @@ namespace PBoundedAsync
     {
         static void Main(string[] args)
         {
+            Test.Execute();
+        }
+
+        [EntryPoint]
+        public static void Execute()
+        {
             Runtime.RegisterNewEvent(typeof(unit));
             Runtime.RegisterNewEvent(typeof(Req));
             Runtime.RegisterNewEvent(typeof(Resp));
@@ -16,6 +22,7 @@ namespace PBoundedAsync
 
             Runtime.RegisterNewMachine(typeof(Scheduler));
             Runtime.RegisterNewMachine(typeof(Process));
+
             Runtime.Options.Verbose = true;
 
             Runtime.Start();
