@@ -441,9 +441,8 @@ namespace Microsoft.PSharp
                     }
 
                     // If the event cannot be handled then report an error and exit.
-                    this.Assert(false, "Machine '{0}' received event '{1}' that cannot be " +
-                        "handled in state '{2}'.", this.GetType().Name, e.GetType().Name,
-                        this.StateStack.Peek().GetType().Name);
+                    this.Assert(false, "Machine '{0}' received event '{1}' that cannot be handled.",
+                        this.GetType().Name, e.GetType().Name);
                 }
 
                 // If current state cannot handle the event then pop the state.

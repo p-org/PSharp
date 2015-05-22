@@ -184,7 +184,7 @@ namespace Microsoft.PSharp
                     break;
                 }
             }
-            Console.WriteLine("CLEANUP");
+
             Runtime.Dispose();
         }
 

@@ -115,7 +115,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
                     }
 
                     SCTEngine.Scheduler.Reset();
-                    if (!Configuration.FullExploration && SCTEngine.FoundBugs > 0)
+                    if (sw != null && !Configuration.FullExploration && SCTEngine.FoundBugs > 0)
                     {
                         var path = Path.GetDirectoryName(AnalysisContext.Assembly.Location) +
                             Path.DirectorySeparatorChar + Path.GetFileNameWithoutExtension(
@@ -145,9 +145,10 @@ namespace Microsoft.PSharp.DynamicAnalysis
                     task.Wait();
                 }
             }
-            catch (AggregateException ex)
+            catch (AggregateException)
             {
-                ErrorReporter.ReportErrorAndExit(ex.Message);
+                ErrorReporter.ReportErrorAndExit("Internal systematic testing exception. " +
+                    "Please contact the developers.");
             }
             finally
             {

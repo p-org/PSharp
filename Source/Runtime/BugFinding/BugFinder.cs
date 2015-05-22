@@ -98,7 +98,6 @@ namespace Microsoft.PSharp.BugFinding
             {
                 Utilities.WriteSchedule("<ScheduleLog> Schedule explored.",
                     machine, machine.Id);
-                Console.WriteLine(">> ActiveMachines: " + ActiveMachines.Count);
                 this.Close(machine);
                 return;
             }
@@ -118,12 +117,10 @@ namespace Microsoft.PSharp.BugFinding
                 {
                     lock (machine)
                     {
-                        Console.WriteLine(">> before: " + machine.Id);
                         while (!this.MachineInfoMap[machine].IsActive)
                         {
                             System.Threading.Monitor.Wait(machine);
                         }
-                        Console.WriteLine(">> after: " + machine.Id);
                     }
                 }
             }
@@ -137,13 +134,11 @@ namespace Microsoft.PSharp.BugFinding
         /// <param name="machine">Machine</param>
         internal void NotifyNewTaskCreated(Machine machine)
         {
-            Console.WriteLine(">> new task for machine: " + machine.Id);
             this.ExitIfScheduleFinished(machine);
             this.TryAddActiveMachine(machine);
 
             if (this.ActiveMachines.Count == 1)
             {
-                Console.WriteLine(">> only machine: " + machine.Id + " " + this.MachineInfoMap[machine].PendingTasks + " " + this.MachineInfoMap[machine].IsActive);
                 this.MachineInfoMap[machine].IsActive = true;
             }
 
@@ -156,16 +151,13 @@ namespace Microsoft.PSharp.BugFinding
         /// <param name="machine">Machine</param>
         internal void NotifyNewTaskStarted(Machine machine)
         {
-            Console.WriteLine(">> new task started for machine: " + machine.Id + " " + this.MachineInfoMap[machine].PendingTasks);
             this.ExitIfScheduleFinished(machine);
 
             lock (machine)
             {
                 while (!this.MachineInfoMap[machine].IsActive)
                 {
-                    Console.WriteLine(">> before new task: " + machine.Id + " " + this.MachineInfoMap[machine].PendingTasks + " " + this.MachineInfoMap[machine].IsActive);
                     System.Threading.Monitor.Wait(machine);
-                    Console.WriteLine(">> after new task: " + machine.Id + " " + this.MachineInfoMap[machine].PendingTasks + " " + this.MachineInfoMap[machine].IsActive);
                 }
             }
 
@@ -177,9 +169,7 @@ namespace Microsoft.PSharp.BugFinding
         /// </summary>
         /// <param name="machine">Machine</param>
         internal void NotifyTaskCompleted(Machine machine)
-        {
-            Console.WriteLine(">> task completed for machine: " + machine.Id + " " + this.MachineInfoMap[machine].PendingTasks + " " + this.MachineInfoMap[machine].IsActive);
-            
+        {            
             if (!this.IsRunning)
             {
                 return;
@@ -189,7 +179,6 @@ namespace Microsoft.PSharp.BugFinding
             if (this.MachineInfoMap[machine].PendingTasks == 0)
             {
                 this.ActiveMachines.Remove(machine);
-                Console.WriteLine(">> removed: " + machine.Id);
                 this.Schedule(machine, false);
             }
             else
@@ -199,8 +188,6 @@ namespace Microsoft.PSharp.BugFinding
                     System.Threading.Monitor.PulseAll(machine);
                 }
             }
-
-            Console.WriteLine(">> exit completion: " + machine.Id + " " + this.MachineInfoMap[machine].PendingTasks + " " + this.MachineInfoMap[machine].IsActive);
         }
 
         /// <summary>
@@ -254,14 +241,10 @@ namespace Microsoft.PSharp.BugFinding
         {
             lock (this.Lock)
             {
-                Console.WriteLine(">>> closing 1: {0}", m != null ? m.Id.ToString() : "");
-
                 if (!this.IsRunning)
                 {
                     return;
                 }
-
-                Console.WriteLine(">>> closing 2: {0}", m != null ? m.Id.ToString() : "");
 
                 this.IsRunning = false;
             }
