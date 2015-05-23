@@ -8,6 +8,12 @@ namespace PGerman
     {
         static void Main(string[] args)
         {
+            Test.Execute();
+        }
+
+        [EntryPoint]
+        public static void Execute()
+        {
             Runtime.RegisterNewEvent(typeof(unit));
             Runtime.RegisterNewEvent(typeof(req_share));
             Runtime.RegisterNewEvent(typeof(req_excl));
