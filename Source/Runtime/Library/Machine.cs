@@ -80,8 +80,8 @@ namespace Microsoft.PSharp
         private Dictionary<Type, ActionBindings> ActionBindings;
 
         /// <summary>
-        /// Inbox of the state machine. Incoming events are
-        /// queued here. Events are dequeued to be processed.
+        /// Inbox of the state machine. Incoming events are queued here.
+        /// Events are dequeued to be processed.
         /// </summary>
         private List<Event> Inbox;
 

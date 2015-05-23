@@ -356,6 +356,8 @@ namespace Microsoft.PSharp
                 Runtime.BugFinder.NotifyNewTaskCreated(target);
             }
 
+            target.Enqueue(e);
+
             Task task = new Task(() =>
             {
                 if (Runtime.Options.FindBugs)
@@ -363,7 +365,6 @@ namespace Microsoft.PSharp
                     Runtime.BugFinder.NotifyNewTaskStarted(target);
                 }
 
-                target.Enqueue(e);
                 target.Run();
 
                 if (Runtime.Options.FindBugs)
