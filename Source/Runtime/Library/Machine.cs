@@ -271,16 +271,33 @@ namespace Microsoft.PSharp
         #region P# internal methods
 
         /// <summary>
-        /// Starts the machine concurrently with an optional payload.
+        /// Runs the machine with an optional payload.
         /// </summary>
         /// /// <param name="payload">Optional payload</param>
-        internal void Start(params Object[] payload)
+        internal void Run()
         {
             lock (this.Lock)
             {
-                this.Status = MachineStatus.Active;
-                this.GotoInitialState(payload);
+                if (this.Status == MachineStatus.Halted)
+                {
+                    return;
+                }
+                else if (this.Status == MachineStatus.None)
+                {
+                    this.Status = MachineStatus.Running;
+                    this.ExecuteCurrentStateOnEntry();
+                }
+                else if (this.Status == MachineStatus.Waiting)
+                {
+                    this.Status = MachineStatus.Running;
+                }
+
                 this.RunEventHandler();
+
+                if (this.Status != MachineStatus.Halted)
+                {
+                    this.Status = MachineStatus.Waiting;
+                }
             }
         }
 
@@ -299,13 +316,25 @@ namespace Microsoft.PSharp
                     this.Inbox.Add(e);
                 }
             }
+        }
 
-            lock (this.Lock)
+        /// <summary>
+        /// Assigns the optional initial payload.
+        /// </summary>
+        /// <param name="payload">Optional payload</param>
+        internal void AssignInitialPayload(params Object[] payload)
+        {
+            if (payload.Length == 0)
             {
-                if (this.Status == MachineStatus.Active)
-                {
-                    this.RunEventHandler();
-                }
+                this.Payload = null;
+            }
+            else if (payload.Length == 1)
+            {
+                this.Payload = payload[0];
+            }
+            else
+            {
+                this.Payload = payload;
             }
         }
 
@@ -336,7 +365,7 @@ namespace Microsoft.PSharp
         private void RunEventHandler()
         {
             Event nextEvent = null;
-            while (this.Status == MachineStatus.Active)
+            while (this.Status == MachineStatus.Running)
             {
                 lock (this.Inbox)
                 {
@@ -588,29 +617,6 @@ namespace Microsoft.PSharp
             }
 
             return state;
-        }
-
-        /// <summary>
-        /// Executes the initial state with an optional payload.
-        /// </summary>
-        /// /// <param name="payload">Optional payload</param>
-        private void GotoInitialState(params Object[] payload)
-        {
-            if (payload.Length == 0)
-            {
-                this.Payload = null;
-            }
-            else if (payload.Length == 1)
-            {
-                this.Payload = payload[0];
-            }
-            else
-            {
-                this.Payload = payload;
-            }
-
-            // Performs the on entry statements of the new state.
-            this.ExecuteCurrentStateOnEntry();
         }
 
         /// <summary>

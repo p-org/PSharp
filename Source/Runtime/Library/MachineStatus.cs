@@ -14,10 +14,6 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Collections;
-using System.Collections.Generic;
-
 namespace Microsoft.PSharp
 {
     /// <summary>
@@ -26,7 +22,8 @@ namespace Microsoft.PSharp
     internal enum MachineStatus
     {
         None = 0,
-        Active,
+        Running,
+        Waiting,
         Halted
     }
 }

@@ -204,6 +204,7 @@ namespace Microsoft.PSharp
             Runtime.Assert(Runtime.RegisteredMachineTypes.Any(val => val == m),
                 "Machine '{0}' has not been registered with the P# runtime.", m.Name);
             Machine machine = Activator.CreateInstance(m) as Machine;
+            machine.AssignInitialPayload(payload);
             Utilities.Verbose("<CreateLog> Machine {0}({1}) is created.", m, machine.Id);
 
             if (Runtime.Options.FindBugs)
@@ -217,8 +218,8 @@ namespace Microsoft.PSharp
                 {
                     Runtime.BugFinder.NotifyNewTaskStarted(machine);
                 }
-
-                machine.Start(payload);
+                
+                machine.Run();
 
                 if (Runtime.Options.FindBugs)
                 {
@@ -249,6 +250,7 @@ namespace Microsoft.PSharp
             Runtime.Assert(Runtime.RegisteredMachineTypes.Any(val => val == typeof(T)),
                 "Machine '{0}' has not been registered with the P# runtime.", typeof(T).Name);
             Object machine = Activator.CreateInstance(typeof(T));
+            (machine as Machine).AssignInitialPayload(payload);
             Utilities.Verbose("<CreateLog> Machine {0}({1}) is created.", typeof(T),
                 (machine as Machine).Id);
 
@@ -263,8 +265,8 @@ namespace Microsoft.PSharp
                 {
                     Runtime.BugFinder.NotifyNewTaskStarted(machine as Machine);
                 }
-
-                (machine as Machine).Start(payload);
+                
+                (machine as Machine).Run();
 
                 if (Runtime.Options.FindBugs)
                 {
@@ -362,6 +364,7 @@ namespace Microsoft.PSharp
                 }
 
                 target.Enqueue(e);
+                target.Run();
 
                 if (Runtime.Options.FindBugs)
                 {
