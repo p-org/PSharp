@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
 
@@ -339,14 +340,6 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Forces the machine to halt.
-        /// </summary>
-        internal void ForceHalt()
-        {
-            this.Status = MachineStatus.Halted;
-        }
-
-        /// <summary>
         /// Resets the machine ID counter.
         /// </summary>
         internal static void ResetMachineIDCounter()
@@ -664,7 +657,7 @@ namespace Microsoft.PSharp
                 // Handles the returning state.
                 this.AssertReturnStatementValidity(ex.ReturningState);
             }
-            catch (ScheduleCancelledException)
+            catch (TaskCanceledException)
             {
                 this.Status = MachineStatus.Halted;
             }
@@ -697,7 +690,7 @@ namespace Microsoft.PSharp
                 // Handles the returning state.
                 this.AssertReturnStatementValidity(ex.ReturningState);
             }
-            catch (ScheduleCancelledException)
+            catch (TaskCanceledException)
             {
                 this.Status = MachineStatus.Halted;
             }
@@ -731,7 +724,7 @@ namespace Microsoft.PSharp
                 // Handles the returning state.
                 this.AssertReturnStatementValidity(ex.ReturningState);
             }
-            catch (ScheduleCancelledException)
+            catch (TaskCanceledException)
             {
                 this.Status = MachineStatus.Halted;
             }

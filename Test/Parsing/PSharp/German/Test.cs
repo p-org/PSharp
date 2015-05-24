@@ -41,7 +41,6 @@ namespace German
             Runtime.RegisterNewMachine(typeof(Host));
             Runtime.RegisterNewMachine(typeof(Client));
             Runtime.RegisterNewMachine(typeof(CPU));
-            Runtime.Options.Verbose = true;
 
             Runtime.Start();
         }

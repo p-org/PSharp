@@ -32,7 +32,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// <summary>
         /// The bug-finding scheduler.
         /// </summary>
-        private static IScheduler Scheduler;
+        private static ISchedulingStrategy Scheduler;
 
         /// <summary>
         /// Number of found bugs.
@@ -76,14 +76,19 @@ namespace Microsoft.PSharp.DynamicAnalysis
             SCTEngine.PrintGuard = 1;
 
             if (AnalysisContext.Strategy == SchedulingStrategy.Random)
-                SCTEngine.Scheduler = new RandomScheduler(DateTime.Now.Millisecond);
+                SCTEngine.Scheduler = new RandomSchedulingStrategy(DateTime.Now.Millisecond);
             else if (AnalysisContext.Strategy == SchedulingStrategy.DFS)
-                SCTEngine.Scheduler = new DFSScheduler();
+                SCTEngine.Scheduler = new DFSSchedulingStrategy();
 
             Runtime.Options.FindBugs = true;
 
-            Runtime.Options.PrintScheduleInfo = true;
+            Runtime.Options.PrintSchedulingInfo = true;
             Runtime.Options.Verbose = true;
+
+            if (Configuration.Debug)
+            {
+                Runtime.Options.DebugScheduling = true;
+            }
         }
 
         /// <summary>
@@ -102,7 +107,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
                         Console.WriteLine("..... Iteration #{0}", i + 1);
                     }
 
-                    Runtime.BugFinder = new BugFinder(SCTEngine.Scheduler);
+                    Runtime.BugFinder = new Scheduler(SCTEngine.Scheduler);
                     var sw = SCTEngine.RedirectOutput();
 
                     AnalysisContext.EntryPoint.Invoke(null, null);
@@ -115,13 +120,17 @@ namespace Microsoft.PSharp.DynamicAnalysis
                     }
 
                     SCTEngine.Scheduler.Reset();
-                    if (sw != null && !Configuration.FullExploration && SCTEngine.FoundBugs > 0)
+                    if (!Configuration.FullExploration && SCTEngine.FoundBugs > 0)
                     {
-                        var path = Path.GetDirectoryName(AnalysisContext.Assembly.Location) +
+                        if (sw != null)
+                        {
+                            var path = Path.GetDirectoryName(AnalysisContext.Assembly.Location) +
                             Path.DirectorySeparatorChar + Path.GetFileNameWithoutExtension(
                                 AnalysisContext.Assembly.Location) + ".txt";
-                        Console.WriteLine("... Writing {0}", path);
-                        File.WriteAllText(path, sw.ToString());
+                            Console.WriteLine("... Writing {0}", path);
+                            File.WriteAllText(path, sw.ToString());
+                        }
+                        
                         break;
                     }
                 }
@@ -148,7 +157,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
             catch (AggregateException)
             {
                 ErrorReporter.ReportErrorAndExit("Internal systematic testing exception. " +
-                    "Please contact the developers.");
+                    "Please send a bug report to the developers.");
             }
             finally
             {

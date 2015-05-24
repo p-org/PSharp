@@ -38,22 +38,4 @@ namespace Microsoft.PSharp
             this.ReturningState = s;
         }
     }
-
-    /// <summary>
-    /// This exception is thrown whenever the scheduler cancels
-    /// the execution of a machine.
-    /// </summary>
-    internal sealed class ScheduleCancelledException : Exception
-    {
-
-    }
-
-    /// <summary>
-    /// This exception is thrown whenever the scheduler detects
-    /// non-deterministic behaviour.
-    /// </summary>
-    internal sealed class NondeterminismException : Exception
-    {
-
-    }
 }

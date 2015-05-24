@@ -24,8 +24,7 @@ namespace PLinearTopology
             Runtime.RegisterNewMachine(typeof(GodMachine));
             Runtime.RegisterNewMachine(typeof(Clock));
             Runtime.RegisterNewMachine(typeof(PortMachine));
-
-            Runtime.Options.Verbose = true;
+            
             Runtime.Start();
         }
     }

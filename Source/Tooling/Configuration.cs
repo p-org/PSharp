@@ -55,6 +55,11 @@ namespace Microsoft.PSharp.Tooling
         /// </summary>
         public static int Verbose = 1;
 
+        /// <summary>
+        /// Turn debugging on.
+        /// </summary>
+        public static bool Debug;
+
         #endregion
 
         #region static analysis options

@@ -22,8 +22,7 @@ namespace POpenWSN
             Runtime.RegisterNewMachine(typeof(GodMachine));
             Runtime.RegisterNewMachine(typeof(OpenWSN_Mote));
             Runtime.RegisterNewMachine(typeof(SlotTimerMachine));
-
-            Runtime.Options.Verbose = true;
+            
             Runtime.Start();
         }
     }

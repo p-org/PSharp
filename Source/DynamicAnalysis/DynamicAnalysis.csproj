@@ -29,6 +29,12 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>PSharp.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CodeAnalysis, Version=0.7.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -50,9 +56,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AnalysisContext.cs" />
-    <Compile Include="Schedulers\DFSScheduler.cs" />
-    <Compile Include="Schedulers\RandomScheduler.cs" />
-    <Compile Include="SchedulingStrategy.cs" />
+    <Compile Include="SystematicTesting\Schedulers\DFSSchedulingStrategy.cs" />
+    <Compile Include="SystematicTesting\Schedulers\RandomSchedulingStrategy.cs" />
+    <Compile Include="SystematicTesting\SchedulingStrategy.cs" />
     <Compile Include="SCTEngine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -65,6 +71,9 @@
       <Project>{2e330c40-60ea-4a94-8813-9747b93a1795}</Project>
       <Name>Tooling</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="PSharp.snk" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

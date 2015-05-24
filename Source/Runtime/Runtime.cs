@@ -17,7 +17,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.BugFinding;
@@ -70,7 +69,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// The P# bug-finder.
         /// </summary>
-        public static BugFinder BugFinder = null;
+        internal static Scheduler BugFinder = null;
 
         #endregion
 
@@ -203,27 +202,23 @@ namespace Microsoft.PSharp
         {
             Runtime.Assert(Runtime.RegisteredMachineTypes.Any(val => val == m),
                 "Machine '{0}' has not been registered with the P# runtime.", m.Name);
+
             Machine machine = Activator.CreateInstance(m) as Machine;
             machine.AssignInitialPayload(payload);
             Utilities.Verbose("<CreateLog> Machine {0}({1}) is created.", m, machine.Id);
-
-            if (Runtime.Options.FindBugs)
-            {
-                Runtime.BugFinder.NotifyNewTaskCreated(machine);
-            }
 
             Task task = new Task(() =>
             {
                 if (Runtime.Options.FindBugs)
                 {
-                    Runtime.BugFinder.NotifyNewTaskStarted(machine);
+                    Runtime.BugFinder.NotifyTaskStarted(Task.CurrentId);
                 }
                 
                 machine.Run();
 
                 if (Runtime.Options.FindBugs)
                 {
-                    Runtime.BugFinder.NotifyTaskCompleted(machine);
+                    Runtime.BugFinder.NotifyTaskCompleted(Task.CurrentId);
                 }
             });
 
@@ -232,7 +227,17 @@ namespace Microsoft.PSharp
                 Runtime.MachineTasks.Add(task);
             }
 
+            if (Runtime.Options.FindBugs)
+            {
+                Runtime.BugFinder.NotifyNewTaskCreated(task.Id, machine);
+            }
+
             task.Start();
+
+            if (Runtime.Options.FindBugs)
+            {
+                Runtime.BugFinder.WaitForTaskToStart(task.Id);
+            }
 
             return machine;
         }
@@ -249,28 +254,24 @@ namespace Microsoft.PSharp
         {
             Runtime.Assert(Runtime.RegisteredMachineTypes.Any(val => val == typeof(T)),
                 "Machine '{0}' has not been registered with the P# runtime.", typeof(T).Name);
+
             Object machine = Activator.CreateInstance(typeof(T));
             (machine as Machine).AssignInitialPayload(payload);
             Utilities.Verbose("<CreateLog> Machine {0}({1}) is created.", typeof(T),
                 (machine as Machine).Id);
 
-            if (Runtime.Options.FindBugs)
-            {
-                Runtime.BugFinder.NotifyNewTaskCreated(machine as Machine);
-            }
-
             Task task = new Task(() =>
             {
                 if (Runtime.Options.FindBugs)
                 {
-                    Runtime.BugFinder.NotifyNewTaskStarted(machine as Machine);
+                    Runtime.BugFinder.NotifyTaskStarted(Task.CurrentId);
                 }
                 
                 (machine as Machine).Run();
 
                 if (Runtime.Options.FindBugs)
                 {
-                    Runtime.BugFinder.NotifyTaskCompleted(machine as Machine);
+                    Runtime.BugFinder.NotifyTaskCompleted(Task.CurrentId);
                 }
             });
 
@@ -279,11 +280,17 @@ namespace Microsoft.PSharp
                 Runtime.MachineTasks.Add(task);
             }
 
+            if (Runtime.Options.FindBugs)
+            {
+                Runtime.BugFinder.NotifyNewTaskCreated(task.Id, machine as Machine);
+            }
+
             task.Start();
 
             if (Runtime.Options.FindBugs)
             {
-                Runtime.BugFinder.Schedule(creator);
+                Runtime.BugFinder.WaitForTaskToStart(task.Id);
+                Runtime.BugFinder.Schedule(Task.CurrentId);
             }
 
             return (T)machine;
@@ -350,26 +357,28 @@ namespace Microsoft.PSharp
             Runtime.Assert(e != null, "Machine '{0}' received a null event.", target);
             Runtime.Assert(Runtime.RegisteredEventTypes.Any(val => val == e.GetType()),
                 "Event '{0}' has not been registered with the P# runtime.", e);
-
-            if (Runtime.Options.FindBugs)
-            {
-                Runtime.BugFinder.NotifyNewTaskCreated(target);
-            }
-
+            
             target.Enqueue(e);
+
+            if (Runtime.Options.FindBugs &&
+                Runtime.BugFinder.HasEnabledTaskForMachine(target))
+            {
+                Runtime.BugFinder.Schedule(Task.CurrentId);
+                return;
+            }
 
             Task task = new Task(() =>
             {
                 if (Runtime.Options.FindBugs)
                 {
-                    Runtime.BugFinder.NotifyNewTaskStarted(target);
+                    Runtime.BugFinder.NotifyTaskStarted(Task.CurrentId);
                 }
 
                 target.Run();
 
                 if (Runtime.Options.FindBugs)
                 {
-                    Runtime.BugFinder.NotifyTaskCompleted(target);
+                    Runtime.BugFinder.NotifyTaskCompleted(Task.CurrentId);
                 }
             });
 
@@ -377,12 +386,18 @@ namespace Microsoft.PSharp
             {
                 Runtime.MachineTasks.Add(task);
             }
-            
+
+            if (Runtime.Options.FindBugs)
+            {
+                Runtime.BugFinder.NotifyNewTaskCreated(task.Id, target);
+            }
+
             task.Start();
 
             if (Runtime.Options.FindBugs)
             {
-                Runtime.BugFinder.Schedule(sender);
+                Runtime.BugFinder.WaitForTaskToStart(task.Id);
+                Runtime.BugFinder.Schedule(Task.CurrentId);
             }
         }
 
@@ -453,30 +468,34 @@ namespace Microsoft.PSharp
             Runtime.IsRunning = true;
         }
 
-#endregion
+        #endregion
 
-#region runtime options
+        #region runtime options
 
         /// <summary>
         /// Static class implementing options for the P# runtime.
         /// </summary>
-        public static class Options
+        internal static class Options
         {
             /// <summary>
-            /// Run the runtime in bug-finding mode.
+            /// Run the runtime in bugfinding mode.
             /// </summary>
-            public static bool FindBugs = false;
+            internal static bool FindBugs = false;
 
             /// <summary>
-            /// True to print the bug-finder's scheduling info.
-            /// False by default.
+            /// Print the scheduling info for bugfinding.
             /// </summary>
-            public static bool PrintScheduleInfo = false;
+            internal static bool PrintSchedulingInfo = false;
 
             /// <summary>
-            /// True to switch verbose mode on. False by default.
+            /// Print the scheduling info for bugfinding.
             /// </summary>
-            public static bool Verbose = false;
+            internal static bool DebugScheduling = false;
+
+            /// <summary>
+            /// Switch verbose mode on.
+            /// </summary>
+            internal static bool Verbose = false;
         }
 
 #endregion
@@ -537,7 +556,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Disposes resources of the P# runtime.
         /// </summary>
-        public static void Dispose()
+        internal static void Dispose()
         {
             if (!Runtime.IsRunning)
             {

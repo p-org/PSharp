@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="MachineInfo.cs" company="Microsoft">
+// <copyright file="ISchedulingStrategy.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -14,58 +14,44 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-namespace Microsoft.PSharp
+using System.Collections.Generic;
+
+namespace Microsoft.PSharp.BugFinding
 {
     /// <summary>
-    /// Class implementing machine related information for scheduling purposes.
+    /// Interface of a generic scheduling strategy.
     /// </summary>
-    public sealed class MachineInfo
+    public interface ISchedulingStrategy
     {
         /// <summary>
-        /// Machine Id.
+        /// Returns the next task to schedule.
         /// </summary>
-        internal int Id;
+        /// <param name="next">Next</param>
+        /// <param name="tasks">Tasks</param>
+        /// <returns>Boolean value</returns>
+        bool TryGetNext(out TaskInfo next, List<TaskInfo> tasks);
 
         /// <summary>
-        /// Is machine active.
+        /// True if the scheduling has finished.
         /// </summary>
-        internal bool IsActive;
+        /// <returns>Boolean value</returns>
+        bool HasFinished();
 
         /// <summary>
-        /// Number of pending tasks.
+        /// Returns number of scheduling points.
         /// </summary>
-        internal int PendingTasks;
+        /// <returns>Integer value</returns>
+        int GetNumOfSchedulingPoints();
 
         /// <summary>
-        /// Constructor.
+        /// Returns a textual description of the scheduling strategy.
         /// </summary>
-        /// <param name="machine">Machine</param>
-        internal MachineInfo(int id)
-        {
-            this.Id = id;
-            this.IsActive = false;
-            this.PendingTasks = 0;
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (obj == null)
-            {
-                return false;
-            }
-
-            MachineInfo mi = obj as MachineInfo;
-            if (mi == null)
-            {
-                return false;
-            }
-
-            return this.Id.Equals(mi.Id);
-        }
-
-        public override int GetHashCode()
-        {
-            return this.Id.GetHashCode();
-        }
+        /// <returns>String</returns>
+        string GetDescription();
+        
+        /// <summary>
+        /// Resets the scheduling strategy.
+        /// </summary>
+        void Reset();
     }
 }

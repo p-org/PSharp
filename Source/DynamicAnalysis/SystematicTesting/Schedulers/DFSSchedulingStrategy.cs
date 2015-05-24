@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="DFSScheduler.cs" company="Microsoft">
+// <copyright file="DFSSchedulingStrategy.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -23,9 +23,9 @@ using Microsoft.PSharp.BugFinding;
 namespace Microsoft.PSharp.DynamicAnalysis
 {
     /// <summary>
-    /// Class representing a depth-first search scheduler.
+    /// Class representing a depth-first search scheduling strategy.
     /// </summary>
-    public sealed class DFSScheduler : IScheduler
+    public sealed class DFSSchedulingStrategy : ISchedulingStrategy
     {
         /// <summary>
         /// Stack of scheduling choices.
@@ -45,7 +45,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// <summary>
         /// Constructor.
         /// </summary>
-        public DFSScheduler()
+        public DFSSchedulingStrategy()
         {
             this.ScheduleStack = new List<List<SChoice>>();
             this.Index = 0;
@@ -58,7 +58,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// <param name="next">Next</param>
         /// <param name="machines">Machines</param>
         /// <returns>Boolean value</returns>
-        bool IScheduler.TryGetNext(out Machine next, List<Machine> machines)
+        bool ISchedulingStrategy.TryGetNext(out TaskInfo next, List<TaskInfo> tasks)
         {
             SChoice nextChoice = null;
             List<SChoice> scs = null;
@@ -70,9 +70,9 @@ namespace Microsoft.PSharp.DynamicAnalysis
             else
             {
                 scs = new List<SChoice>();
-                foreach (var machine in machines)
+                foreach (var task in tasks)
                 {
-                    scs.Add(new SChoice(machine));
+                    scs.Add(new SChoice(task));
                 }
 
                 this.ScheduleStack.Add(scs);
@@ -92,7 +92,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
                 previousChoice.IsDone = false;
             }
 
-            next = nextChoice.Machine;
+            next = nextChoice.Task;
             nextChoice.Done();
             this.Index++;
 
@@ -102,10 +102,10 @@ namespace Microsoft.PSharp.DynamicAnalysis
         }
 
         /// <summary>
-        /// Returns true if the scheduler has finished.
+        /// Returns true if the scheduling has finished.
         /// </summary>
         /// <returns>Boolean value</returns>
-        bool IScheduler.HasFinished()
+        bool ISchedulingStrategy.HasFinished()
         {
             while (this.ScheduleStack.Count > 0 &&
                 this.ScheduleStack[this.ScheduleStack.Count - 1].All(v => v.IsDone))
@@ -134,24 +134,24 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// Returns number of scheduling points.
         /// </summary>
         /// <returns>Integer value</returns>
-        int IScheduler.GetNumOfSchedulingPoints()
+        int ISchedulingStrategy.GetNumOfSchedulingPoints()
         {
             return this.NumOfSchedulingPoints;
         }
 
         /// <summary>
-        /// Returns a textual description of the scheduler.
+        /// Returns a textual description of the scheduling strategy.
         /// </summary>
         /// <returns>String</returns>
-        string IScheduler.GetDescription()
+        string ISchedulingStrategy.GetDescription()
         {
             return "DFS";
         }
 
         /// <summary>
-        /// Resets the scheduler.
+        /// Resets the scheduling strategy.
         /// </summary>
-        void IScheduler.Reset()
+        void ISchedulingStrategy.Reset()
         {
             // setup stack for next execution
             this.Index = 0;
@@ -169,7 +169,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
                 Console.WriteLine("Index: " + idx);
                 foreach (var sc in this.ScheduleStack[idx])
                 {
-                    Console.Write(sc.Machine.GetType() + " [" + sc.IsDone + "], ");
+                    Console.Write(sc.Task.Id + " [" + sc.IsDone + "], ");
                 }
                 Console.WriteLine();
             }
@@ -182,16 +182,16 @@ namespace Microsoft.PSharp.DynamicAnalysis
     /// </summary>
     internal class SChoice
     {
-        public Machine Machine;
+        public TaskInfo Task;
         public bool IsDone;
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="machine">Machine</param>
-        public SChoice(Machine machine)
+        /// <param name="task">Task</param>
+        public SChoice(TaskInfo task)
         {
-            this.Machine = machine;
+            this.Task = task;
             this.IsDone = false;
         }
 

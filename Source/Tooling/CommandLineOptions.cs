@@ -107,6 +107,10 @@ namespace Microsoft.PSharp.Tooling
 
                     Configuration.Verbose = i;
                 }
+                else if (this.Options[idx].ToLower().Equals("/debug"))
+                {
+                    Configuration.Debug = true;
+                }
 
                 #endregion
 

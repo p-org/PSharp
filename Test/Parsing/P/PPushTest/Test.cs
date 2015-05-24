@@ -14,9 +14,7 @@ namespace PPushTest
 
             Runtime.RegisterNewMachine(typeof(Ping));
             Runtime.RegisterNewMachine(typeof(Pong));
-
-            Runtime.Options.Verbose = true;
-
+            
             Runtime.Start();
         }
     }

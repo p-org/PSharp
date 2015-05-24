@@ -26,6 +26,18 @@ namespace Microsoft.PSharp.IO
             return string.Format(CultureInfo.InvariantCulture, s, args);
         }
 
+        internal static void Write(string s, params object[] args)
+        {
+            string message = Utilities.Format(s, args);
+            Console.Write(message);
+        }
+
+        internal static void WriteLine(string s, params object[] args)
+        {
+            string message = Utilities.Format(s, args);
+            Console.WriteLine(message);
+        }
+
         internal static void ReportError(string s, params object[] args)
         {
             string message = Utilities.Format(s, args);
@@ -43,22 +55,18 @@ namespace Microsoft.PSharp.IO
 
         internal static void WriteSchedule(string s, params object[] args)
         {
-            if (!Runtime.Options.PrintScheduleInfo)
+            if (!Runtime.Options.PrintSchedulingInfo)
                 return;
             string message = Utilities.Format(s, args);
             Console.WriteLine(message);
         }
 
-        internal static void WriteLine(string s, params object[] args)
+        internal static void DebugSchedule(string s, params object[] args)
         {
+            if (!Runtime.Options.DebugScheduling)
+                return;
             string message = Utilities.Format(s, args);
             Console.WriteLine(message);
-        }
-
-        internal static void Write(string s, params object[] args)
-        {
-            string message = Utilities.Format(s, args);
-            Console.Write(message);
         }
     }
 }

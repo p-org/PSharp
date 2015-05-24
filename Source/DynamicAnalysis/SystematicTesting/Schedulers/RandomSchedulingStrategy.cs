@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="RandomScheduler.cs" company="Microsoft">
+// <copyright file="RandomSchedulingStrategy.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -23,9 +23,9 @@ using Microsoft.PSharp.BugFinding;
 namespace Microsoft.PSharp.DynamicAnalysis
 {
     /// <summary>
-    /// Class representing a random delay scheduler.
+    /// Class representing a random delay scheduling strategy.
     /// </summary>
-    public sealed class RandomScheduler : IScheduler
+    public sealed class RandomSchedulingStrategy : ISchedulingStrategy
     {
         /// <summary>
         /// Nondeterminitic seed.
@@ -46,7 +46,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// Constructor.
         /// </summary>
         /// <param name="seed">Seed</param>
-        public RandomScheduler(int seed)
+        public RandomSchedulingStrategy(int seed)
         {
             this.Seed = seed;
             this.Random = new Random(seed);
@@ -59,9 +59,10 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// <param name="next">Next</param>
         /// <param name="machines">Machines</param>
         /// <returns>Boolean value</returns>
-        bool IScheduler.TryGetNext(out Machine next, List<Machine> machines)
+        bool ISchedulingStrategy.TryGetNext(out TaskInfo next, List<TaskInfo> tasks)
         {
-            if (machines.Count == 0)
+            var enabledTasks = tasks.Where(task => task.IsEnabled).ToList();
+            if (enabledTasks.Count == 0)
             {
                 next = null;
                 return false;
@@ -69,16 +70,16 @@ namespace Microsoft.PSharp.DynamicAnalysis
 
             this.NumOfSchedulingPoints++;
 
-            int id = this.Random.Next(machines.Count);
-            next = machines[id];
+            int id = this.Random.Next(enabledTasks.Count);
+            next = enabledTasks[id];
             return true;
         }
 
         /// <summary>
-        /// Returns true if the scheduler has finished.
+        /// Returns true if the scheduling has finished.
         /// </summary>
         /// <returns>Boolean value</returns>
-        bool IScheduler.HasFinished()
+        bool ISchedulingStrategy.HasFinished()
         {
             return false;
         }
@@ -87,24 +88,24 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// Returns number of scheduling points.
         /// </summary>
         /// <returns>Integer value</returns>
-        int IScheduler.GetNumOfSchedulingPoints()
+        int ISchedulingStrategy.GetNumOfSchedulingPoints()
         {
             return this.NumOfSchedulingPoints;
         }
-        
+
         /// <summary>
-        /// Returns a textual description of the scheduler.
+        /// Returns a textual description of the scheduling strategy.
         /// </summary>
         /// <returns>String</returns>
-        string IScheduler.GetDescription()
+        string ISchedulingStrategy.GetDescription()
         {
             return "Random (seed is " + this.Seed + ")";
         }
 
         /// <summary>
-        /// Resets the scheduler.
+        /// Resets the scheduling strategy.
         /// </summary>
-        void IScheduler.Reset()
+        void ISchedulingStrategy.Reset()
         {
             this.NumOfSchedulingPoints = 0;
         }

@@ -34,7 +34,6 @@ namespace PElevator
             Runtime.RegisterNewMachine(typeof(Timer));
 
             Runtime.RegisterNewMonitor(typeof(M));
-            Runtime.Options.Verbose = true;
 
             Runtime.Start();
         }
