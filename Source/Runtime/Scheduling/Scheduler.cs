@@ -48,7 +48,15 @@ namespace Microsoft.PSharp.BugFinding
         /// <summary>
         /// True if a bug was found.
         /// </summary>
-        public bool BugFound
+        internal bool BugFound
+        {
+            get; private set;
+        }
+
+        /// <summary>
+        /// Number of scheduling points.
+        /// </summary>
+        internal int SchedulingPoints
         {
             get; private set;
         }
@@ -67,6 +75,7 @@ namespace Microsoft.PSharp.BugFinding
             this.Tasks = new List<TaskInfo>();
             this.TaskMap = new Dictionary<int, TaskInfo>();
             this.BugFound = false;
+            this.SchedulingPoints = 0;
         }
 
         /// <summary>
@@ -81,11 +90,17 @@ namespace Microsoft.PSharp.BugFinding
             if (!this.Strategy.TryGetNext(out next, this.Tasks))
             {
                 Utilities.WriteSchedule("<ScheduleLog> Schedule explored.");
+                this.KillRemainingTasks();
                 return;
             }
 
             Utilities.WriteSchedule("<ScheduleLog> Schedule task {0} of machine {1}({2}).",
                 next.Id, next.Machine.GetType(), next.Machine.Id);
+
+            if (!taskInfo.IsCompleted)
+            {
+                this.SchedulingPoints++;
+            }
 
             if (taskInfo != next)
             {
@@ -102,7 +117,6 @@ namespace Microsoft.PSharp.BugFinding
                     {
                         return;
                     }
-
                     
                     while (!taskInfo.IsActive)
                     {
@@ -209,20 +223,7 @@ namespace Microsoft.PSharp.BugFinding
         internal void NotifyAssertionFailure()
         {
             this.BugFound = true;
-            foreach (var task in this.Tasks)
-            {
-                task.IsActive = true;
-                task.IsEnabled = false;
-
-                if (!task.IsCompleted)
-                {
-                    lock (task)
-                    {
-                        System.Threading.Monitor.PulseAll(task);
-                    }
-                }
-            }
-
+            this.KillRemainingTasks();
             throw new TaskCanceledException();
         }
 
@@ -251,6 +252,30 @@ namespace Microsoft.PSharp.BugFinding
         {
             var enabledTasks = this.Tasks.Where(task => task.IsEnabled).ToList();
             return enabledTasks.Any(task => task.Machine.Equals(machine));
+        }
+
+        #endregion
+
+        #region private scheduling methods
+
+        /// <summary>
+        /// Kills any remaining tasks at the end of the schedule.
+        /// </summary>
+        private void KillRemainingTasks()
+        {
+            foreach (var task in this.Tasks)
+            {
+                task.IsActive = true;
+                task.IsEnabled = false;
+
+                if (!task.IsCompleted)
+                {
+                    lock (task)
+                    {
+                        System.Threading.Monitor.PulseAll(task);
+                    }
+                }
+            }
         }
 
         #endregion

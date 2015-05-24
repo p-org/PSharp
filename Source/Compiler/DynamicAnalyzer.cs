@@ -13,9 +13,6 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.IO;
-using System.Linq;
-using System.Reflection;
 
 using Microsoft.PSharp.DynamicAnalysis;
 using Microsoft.PSharp.Tooling;

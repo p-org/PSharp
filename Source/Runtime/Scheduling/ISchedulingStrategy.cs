@@ -38,12 +38,6 @@ namespace Microsoft.PSharp.BugFinding
         bool HasFinished();
 
         /// <summary>
-        /// Returns number of scheduling points.
-        /// </summary>
-        /// <returns>Integer value</returns>
-        int GetNumOfSchedulingPoints();
-
-        /// <summary>
         /// Returns a textual description of the scheduling strategy.
         /// </summary>
         /// <returns>String</returns>

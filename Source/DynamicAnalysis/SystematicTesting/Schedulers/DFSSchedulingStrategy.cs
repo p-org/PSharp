@@ -30,7 +30,15 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// <summary>
         /// Stack of scheduling choices.
         /// </summary>
-        internal List<List<SChoice>> ScheduleStack;
+        private List<List<SChoice>> Stack;
+
+        private int MaxStackIndex
+        {
+            get
+            {
+                return this.Stack.Count - 1;
+            }
+        }
 
         /// <summary>
         /// Current index.
@@ -38,18 +46,12 @@ namespace Microsoft.PSharp.DynamicAnalysis
         private int Index;
 
         /// <summary>
-        /// Number of scheduling points.
-        /// </summary>
-        private int NumOfSchedulingPoints;
-
-        /// <summary>
         /// Constructor.
         /// </summary>
         public DFSSchedulingStrategy()
         {
-            this.ScheduleStack = new List<List<SChoice>>();
+            this.Stack = new List<List<SChoice>>();
             this.Index = 0;
-            this.NumOfSchedulingPoints = 0;
         }
 
         /// <summary>
@@ -60,25 +62,27 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// <returns>Boolean value</returns>
         bool ISchedulingStrategy.TryGetNext(out TaskInfo next, List<TaskInfo> tasks)
         {
+            var enabledTasks = tasks.Where(task => task.IsEnabled).ToList();
+
             SChoice nextChoice = null;
             List<SChoice> scs = null;
 
-            if (this.Index < this.ScheduleStack.Count)
+            if (this.Index < this.Stack.Count)
             {
-                scs = this.ScheduleStack[this.Index];
+                scs = this.Stack[this.Index];
             }
             else
             {
                 scs = new List<SChoice>();
-                foreach (var task in tasks)
+                foreach (var task in enabledTasks)
                 {
-                    scs.Add(new SChoice(task));
+                    scs.Add(new SChoice(task.Machine.Id));
                 }
 
-                this.ScheduleStack.Add(scs);
+                this.Stack.Add(scs);
             }
 
-            nextChoice = scs.FirstOrDefault(v => !v.IsDone);
+            nextChoice = scs.FirstOrDefault(val => !val.IsDone);
             if (nextChoice == null)
             {
                 next = null;
@@ -87,16 +91,16 @@ namespace Microsoft.PSharp.DynamicAnalysis
 
             if (this.Index > 0)
             {
-                var previousChoice = this.ScheduleStack[this.Index - 1].
-                    LastOrDefault(v => v.IsDone);
+                var previousChoice = this.Stack[this.Index - 1].
+                    LastOrDefault(val => val.IsDone);
                 previousChoice.IsDone = false;
             }
-
-            next = nextChoice.Task;
-            nextChoice.Done();
+            
+            next = enabledTasks.Find(task => task.Machine.Id == nextChoice.Id);
+            nextChoice.IsDone = true;
             this.Index++;
 
-            //this.PrintSchedule();
+            this.PrintSchedule();
 
             return true;
         }
@@ -107,36 +111,27 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// <returns>Boolean value</returns>
         bool ISchedulingStrategy.HasFinished()
         {
-            while (this.ScheduleStack.Count > 0 &&
-                this.ScheduleStack[this.ScheduleStack.Count - 1].All(v => v.IsDone))
+            while (this.Stack.Count > 0 &&
+                this.Stack[this.Stack.Count - 1].All(val => val.IsDone))
             {
-                this.ScheduleStack.RemoveAt(this.ScheduleStack.Count - 1);
-                if (this.ScheduleStack.Count > 0)
+                this.Stack.RemoveAt(this.Stack.Count - 1);
+                if (this.Stack.Count > 0)
                 {
-                    var previousChoice = this.ScheduleStack[this.ScheduleStack.Count - 1].
-                        FirstOrDefault(v => !v.IsDone);
+                    var previousChoice = this.Stack[this.Stack.Count - 1].
+                        FirstOrDefault(val  => !val.IsDone);
                     if (previousChoice != null)
                     {
-                        previousChoice.Done();
+                        previousChoice.IsDone = true;
                     }
                 }
             }
 
-            if (this.ScheduleStack.Count == 0)
+            if (this.Stack.Count == 0)
             {
                 return true;
             }
 
             return false;
-        }
-
-        /// <summary>
-        /// Returns number of scheduling points.
-        /// </summary>
-        /// <returns>Integer value</returns>
-        int ISchedulingStrategy.GetNumOfSchedulingPoints()
-        {
-            return this.NumOfSchedulingPoints;
         }
 
         /// <summary>
@@ -153,9 +148,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// </summary>
         void ISchedulingStrategy.Reset()
         {
-            // setup stack for next execution
             this.Index = 0;
-            this.NumOfSchedulingPoints = 0;
         }
 
         /// <summary>
@@ -163,44 +156,36 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// </summary>
         private void PrintSchedule()
         {
-            Console.WriteLine("Size: " + this.ScheduleStack.Count);
-            for (int idx = 0; idx < this.ScheduleStack.Count; idx++)
+            Console.WriteLine("Size: " + this.Stack.Count);
+            for (int idx = 0; idx < this.Stack.Count; idx++)
             {
                 Console.WriteLine("Index: " + idx);
-                foreach (var sc in this.ScheduleStack[idx])
+                foreach (var sc in this.Stack[idx])
                 {
-                    Console.Write(sc.Task.Id + " [" + sc.IsDone + "], ");
+                    Console.Write(sc.Id + " [" + sc.IsDone + "], ");
                 }
                 Console.WriteLine();
             }
         }
-    }
-
-    /// <summary>
-    /// A scheduling choice. Contains a referce to a machine and a boolean
-    /// that is true if the choice has been previously explored.
-    /// </summary>
-    internal class SChoice
-    {
-        public TaskInfo Task;
-        public bool IsDone;
 
         /// <summary>
-        /// Constructor.
+        /// A scheduling choice. Contains a reference to a machine id and a
+        /// boolean that is true if the choice has been previously explored.
         /// </summary>
-        /// <param name="task">Task</param>
-        public SChoice(TaskInfo task)
+        private class SChoice
         {
-            this.Task = task;
-            this.IsDone = false;
-        }
+            internal int Id;
+            internal bool IsDone;
 
-        /// <summary>
-        /// Marks the choice as done.
-        /// </summary>
-        public void Done()
-        {
-            this.IsDone = true;
+            /// <summary>
+            /// Constructor.
+            /// </summary>
+            /// <param name="id">Id</param>
+            internal SChoice(int id)
+            {
+                this.Id = id;
+                this.IsDone = false;
+            }
         }
     }
 }

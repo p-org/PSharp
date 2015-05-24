@@ -36,7 +36,6 @@ namespace PingPong
 
         private action SendPing
         {
-		assert(false);
             this.Counter++;
             Console.WriteLine("\nTurns: {0} / 5\n", this.Counter);
             send this.Server, Ping;

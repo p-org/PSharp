@@ -30,14 +30,19 @@ namespace Microsoft.PSharp.DynamicAnalysis
         #region fields
 
         /// <summary>
-        /// The bug-finding scheduler.
+        /// The bug-finding scheduling strategy.
         /// </summary>
-        private static ISchedulingStrategy Scheduler;
+        private static ISchedulingStrategy Strategy;
 
         /// <summary>
         /// Number of found bugs.
         /// </summary>
         private static int FoundBugs;
+
+        /// <summary>
+        /// Number of scheduling points.
+        /// </summary>
+        private static int SchedulingPoints;
 
         /// <summary>
         /// Explored schedules so far.
@@ -72,13 +77,15 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// </summary>
         private static void Setup()
         {
+            SCTEngine.FoundBugs = 0;
+            SCTEngine.SchedulingPoints = 0;
             SCTEngine.ExploredSchedules = 0;
             SCTEngine.PrintGuard = 1;
 
             if (AnalysisContext.Strategy == SchedulingStrategy.Random)
-                SCTEngine.Scheduler = new RandomSchedulingStrategy(DateTime.Now.Millisecond);
+                SCTEngine.Strategy = new RandomSchedulingStrategy(DateTime.Now.Millisecond);
             else if (AnalysisContext.Strategy == SchedulingStrategy.DFS)
-                SCTEngine.Scheduler = new DFSSchedulingStrategy();
+                SCTEngine.Strategy = new DFSSchedulingStrategy();
 
             Runtime.Options.FindBugs = true;
 
@@ -107,19 +114,21 @@ namespace Microsoft.PSharp.DynamicAnalysis
                         Console.WriteLine("..... Iteration #{0}", i + 1);
                     }
 
-                    Runtime.BugFinder = new Scheduler(SCTEngine.Scheduler);
+                    Runtime.BugFinder = new Scheduler(SCTEngine.Strategy);
                     var sw = SCTEngine.RedirectOutput();
 
                     AnalysisContext.EntryPoint.Invoke(null, null);
 
                     SCTEngine.ResetOutput();
+                    
                     SCTEngine.ExploredSchedules++;
+                    SCTEngine.SchedulingPoints = Runtime.BugFinder.SchedulingPoints;
                     if (Runtime.BugFinder.BugFound)
                     {
                         SCTEngine.FoundBugs++;
                     }
 
-                    SCTEngine.Scheduler.Reset();
+                    SCTEngine.Strategy.Reset();
                     if (!Configuration.FullExploration && SCTEngine.FoundBugs > 0)
                     {
                         if (sw != null)
@@ -178,15 +187,34 @@ namespace Microsoft.PSharp.DynamicAnalysis
             if (SCTEngine.ExploredSchedules > 0)
             {
                 Console.WriteLine("... Found {0} % buggy schedules.",
-                (SCTEngine.FoundBugs * 100 / SCTEngine.ExploredSchedules));
+                    (SCTEngine.FoundBugs * 100 / SCTEngine.ExploredSchedules));
+                Console.WriteLine("... Instrumented {0} scheduling point{1} (on last iteration).",
+                    SCTEngine.SchedulingPoints, SCTEngine.SchedulingPoints == 1 ? "" : "s");
             }
-            
+
             Console.WriteLine("... Elapsed {0} sec.", Profiler.Results());
         }
 
         #endregion
 
         #region helper API
+
+        /// <summary>
+        /// Returns true if the engine should print the current iteration.
+        /// </summary>
+        /// <param name="iteration">Iteration</param>
+        /// <returns>Boolean</returns>
+        private static bool ShouldPrintIteration(int iteration)
+        {
+            if (iteration > SCTEngine.PrintGuard * 10)
+            {
+                var count = (iteration.ToString().Length - 1);
+                var guard = "1" + (count > 0 ? String.Concat(Enumerable.Repeat("0", count)) : "");
+                SCTEngine.PrintGuard = int.Parse(guard);
+            }
+
+            return iteration % SCTEngine.PrintGuard == 0;
+        }
 
         /// <summary>
         /// Redirects the console output.
@@ -218,23 +246,6 @@ namespace Microsoft.PSharp.DynamicAnalysis
             var sw = new StreamWriter(Console.OpenStandardOutput());
             sw.AutoFlush = true;
             Console.SetOut(sw);
-        }
-
-        /// <summary>
-        /// Returns true if the engine should print the current iteration.
-        /// </summary>
-        /// <param name="iteration">Iteration</param>
-        /// <returns>Boolean</returns>
-        private static bool ShouldPrintIteration(int iteration)
-        {
-            if (iteration > SCTEngine.PrintGuard * 10)
-            {
-                var count = (iteration.ToString().Length - 1);
-                var guard = "1" + (count > 0 ? String.Concat(Enumerable.Repeat("0", count)) : "");
-                SCTEngine.PrintGuard = int.Parse(guard);
-            }
-
-            return iteration % SCTEngine.PrintGuard == 0;
         }
 
         #endregion

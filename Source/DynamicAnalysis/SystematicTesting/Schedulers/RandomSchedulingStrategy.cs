@@ -38,11 +38,6 @@ namespace Microsoft.PSharp.DynamicAnalysis
         private Random Random;
 
         /// <summary>
-        /// Number of scheduling points.
-        /// </summary>
-        private int NumOfSchedulingPoints;
-
-        /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="seed">Seed</param>
@@ -50,9 +45,8 @@ namespace Microsoft.PSharp.DynamicAnalysis
         {
             this.Seed = seed;
             this.Random = new Random(seed);
-            this.NumOfSchedulingPoints = 0;
         }
-        
+
         /// <summary>
         /// Returns the next machine to schedule.
         /// </summary>
@@ -68,8 +62,6 @@ namespace Microsoft.PSharp.DynamicAnalysis
                 return false;
             }
 
-            this.NumOfSchedulingPoints++;
-
             int id = this.Random.Next(enabledTasks.Count);
             next = enabledTasks[id];
             return true;
@@ -82,15 +74,6 @@ namespace Microsoft.PSharp.DynamicAnalysis
         bool ISchedulingStrategy.HasFinished()
         {
             return false;
-        }
-        
-        /// <summary>
-        /// Returns number of scheduling points.
-        /// </summary>
-        /// <returns>Integer value</returns>
-        int ISchedulingStrategy.GetNumOfSchedulingPoints()
-        {
-            return this.NumOfSchedulingPoints;
         }
 
         /// <summary>
@@ -107,7 +90,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// </summary>
         void ISchedulingStrategy.Reset()
         {
-            this.NumOfSchedulingPoints = 0;
+
         }
     }
 }
