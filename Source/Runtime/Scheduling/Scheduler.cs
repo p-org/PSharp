@@ -19,7 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-using Microsoft.PSharp.IO;
+using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp.BugFinding
 {
@@ -89,12 +89,12 @@ namespace Microsoft.PSharp.BugFinding
             TaskInfo next = null;
             if (!this.Strategy.TryGetNext(out next, this.Tasks))
             {
-                Utilities.WriteSchedule("<ScheduleLog> Schedule explored.");
+                Output.WriteSchedule("<ScheduleLog> Schedule explored.");
                 this.KillRemainingTasks();
                 return;
             }
 
-            Utilities.WriteSchedule("<ScheduleLog> Schedule task {0} of machine {1}({2}).",
+            Output.WriteSchedule("<ScheduleLog> Schedule task {0} of machine {1}({2}).",
                 next.Id, next.Machine.GetType(), next.Machine.Id);
 
             if (!taskInfo.IsCompleted)
@@ -120,10 +120,10 @@ namespace Microsoft.PSharp.BugFinding
                     
                     while (!taskInfo.IsActive)
                     {
-                        Utilities.DebugSchedule("<ScheduleDebug> Sleep task {0} of machine {1}({2}) at schedule.",
+                        Output.Debug("<ScheduleDebug> Sleep task {0} of machine {1}({2}) at schedule.",
                             taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id);
                         System.Threading.Monitor.Wait(taskInfo);
-                        Utilities.DebugSchedule("<ScheduleDebug> Wake up task {0} of machine {1}({2}) at schedule.",
+                        Output.Debug("<ScheduleDebug> Wake up task {0} of machine {1}({2}) at schedule.",
                             taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id);
                     }
 
@@ -144,7 +144,7 @@ namespace Microsoft.PSharp.BugFinding
         {
             var taskInfo = new TaskInfo(id, machine);
 
-            Utilities.DebugSchedule("<ScheduleDebug> Created task {0} for machine {1}({2}).",
+            Output.Debug("<ScheduleDebug> Created task {0} for machine {1}({2}).",
                 taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id);
 
             if (this.Tasks.Count == 0)
@@ -169,7 +169,7 @@ namespace Microsoft.PSharp.BugFinding
 
             var taskInfo = this.TaskMap[(int)id];
 
-            Utilities.DebugSchedule("<ScheduleDebug> Started task {0} of machine {1}({2}).",
+            Output.Debug("<ScheduleDebug> Started task {0} of machine {1}({2}).",
                 taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id);
 
             lock (taskInfo)
@@ -178,10 +178,10 @@ namespace Microsoft.PSharp.BugFinding
                 System.Threading.Monitor.PulseAll(taskInfo);
                 while (!taskInfo.IsActive)
                 {
-                    Utilities.DebugSchedule("<ScheduleDebug> Sleep task {0} of machine {1}({2}).",
+                    Output.Debug("<ScheduleDebug> Sleep task {0} of machine {1}({2}).",
                         taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id);
                     System.Threading.Monitor.Wait(taskInfo);
-                    Utilities.DebugSchedule("<ScheduleDebug> Wake up task {0} of machine {1}({2}).",
+                    Output.Debug("<ScheduleDebug> Wake up task {0} of machine {1}({2}).",
                         taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id);
                 }
 
@@ -205,7 +205,7 @@ namespace Microsoft.PSharp.BugFinding
             
             var taskInfo = this.TaskMap[(int)id];
 
-            Utilities.DebugSchedule("<ScheduleDebug> Completed task {0} of machine {1}({2}).",
+            Output.Debug("<ScheduleDebug> Completed task {0} of machine {1}({2}).",
                 taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id);
 
             taskInfo.IsEnabled = false;
@@ -213,7 +213,7 @@ namespace Microsoft.PSharp.BugFinding
 
             this.Schedule(taskInfo.Id);
 
-            Utilities.DebugSchedule("<ScheduleDebug> Exit task {0} of machine {1}({2}).",
+            Output.Debug("<ScheduleDebug> Exit task {0} of machine {1}({2}).",
                 taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id);
         }
 

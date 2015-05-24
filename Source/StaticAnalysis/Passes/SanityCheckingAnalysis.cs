@@ -62,7 +62,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     if (nestedClass.BaseList == null ||
                         !nestedClass.BaseList.Types.Any(t => t.ToString().Equals("MachineState")))
                     {
-                        ErrorReporter.ReportErrorAndExit("Class '{0}' is not a state of the machine '{1}' " +
+                        ErrorReporter.ReportAndExit("Class '{0}' is not a state of the machine '{1}' " +
                             "and, thus, is not allowed to be declared inside the machine body.",
                             nestedClass.Identifier.ValueText, classDecl.Identifier.ValueText);
                     }

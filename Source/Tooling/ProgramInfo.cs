@@ -70,7 +70,7 @@ namespace Microsoft.PSharp.Tooling
             catch (Exception ex)
             {
                 Console.WriteLine(ex.StackTrace);
-                ErrorReporter.ReportErrorAndExit("Please give a valid solution path.");
+                ErrorReporter.ReportAndExit("Please give a valid solution path.");
             }
 
             ProgramInfo.ProgramUnits = new HashSet<ProgramUnit>();
@@ -89,7 +89,7 @@ namespace Microsoft.PSharp.Tooling
 
                 if (project == null)
                 {
-                    ErrorReporter.ReportErrorAndExit("Please give a valid project name.");
+                    ErrorReporter.ReportAndExit("Please give a valid project name.");
                 }
 
                 ProgramInfo.ProgramUnits.Add(ProgramUnit.Create(project));

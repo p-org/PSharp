@@ -318,7 +318,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="args">Parameters</param>
         private static void ReportDataRaceSource(Log log, string s, params object[] args)
         {
-            string message = ErrorReporter.Format(s, args);
+            string message = Output.Format(s, args);
             ConsoleColor previous = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Red;
             Console.Write("Error: Potential source for data race detected. ");
@@ -353,7 +353,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="args">Parameters</param>
         private static void ReportOwnershipError(Log log, string s, params object[] args)
         {
-            string message = ErrorReporter.Format(s, args);
+            string message = Output.Format(s, args);
             ConsoleColor previous = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Red;
             Console.Write("Error: Potential data race detected. ");
@@ -393,7 +393,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 return;
             }
 
-            string message = ErrorReporter.Format(s, args);
+            string message = Output.Format(s, args);
             ConsoleColor previous = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Red;
             Console.Write("Warning: ");
@@ -415,7 +415,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="args">Parameters</param>
         private static void ReportGenericError(Log log, string s, params object[] args)
         {
-            string message = ErrorReporter.Format(s, args);
+            string message = Output.Format(s, args);
             ConsoleColor previous = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Red;
             Console.Write("Error: ");

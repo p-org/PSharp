@@ -25,10 +25,22 @@ namespace Microsoft.PSharp.Tooling
         #region public API
 
         /// <summary>
+        /// Reports a generic error to the user.
+        /// </summary>
+        /// <param name="s">String</param>
+        /// <param name="args">Parameters</param>
+        public static void Report(string s, params object[] args)
+        {
+            string message = Output.Format(s, args);
+            Console.Write("Error: ");
+            Console.WriteLine(message);
+        }
+
+        /// <summary>
         /// Reports a generic error to the user and exits.
         /// </summary>
         /// <param name="s">String</param>
-        public static void ReportErrorAndExit(string s)
+        public static void ReportAndExit(string s)
         {
             Console.Write("Error: ");
             Console.WriteLine(s);
@@ -40,27 +52,12 @@ namespace Microsoft.PSharp.Tooling
         /// </summary>
         /// <param name="s">String</param>
         /// <param name="args">Parameters</param>
-        public static void ReportErrorAndExit(string s, params object[] args)
+        public static void ReportAndExit(string s, params object[] args)
         {
-            string message = ErrorReporter.Format(s, args);
+            string message = Output.Format(s, args);
             Console.Write("Error: ");
             Console.WriteLine(message);
             Environment.Exit(1);
-        }
-
-        #endregion
-
-        #region protected methods
-
-        /// <summary>
-        /// Formats a string.
-        /// </summary>
-        /// <param name="s">String</param>
-        /// <param name="args">Parameters</param>
-        /// <returns>string</returns>
-        protected static string Format(string s, params object[] args)
-        {
-            return string.Format(CultureInfo.InvariantCulture, s, args);
         }
 
         #endregion

@@ -111,27 +111,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// <returns>Boolean value</returns>
         bool ISchedulingStrategy.HasFinished()
         {
-            while (this.Stack.Count > 0 &&
-                this.Stack[this.Stack.Count - 1].All(val => val.IsDone))
-            {
-                this.Stack.RemoveAt(this.Stack.Count - 1);
-                if (this.Stack.Count > 0)
-                {
-                    var previousChoice = this.Stack[this.Stack.Count - 1].
-                        FirstOrDefault(val  => !val.IsDone);
-                    if (previousChoice != null)
-                    {
-                        previousChoice.IsDone = true;
-                    }
-                }
-            }
-
-            if (this.Stack.Count == 0)
-            {
-                return true;
-            }
-
-            return false;
+            return this.Stack.All(scs => scs.All(val => val.IsDone));
         }
 
         /// <summary>

@@ -18,7 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-using Microsoft.PSharp.IO;
+using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp
 {
@@ -129,7 +129,7 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         protected internal void Raise(Event e)
         {
-            Utilities.Verbose("<RaiseLog> Monitor {0} raised event {1}.", this, e);
+            Output.Verbose("<RaiseLog> Monitor {0} raised event {1}.", this, e);
             this.HandleEvent(e);
         }
 
@@ -211,7 +211,7 @@ namespace Microsoft.PSharp
         {
             if (!this.IsHalted)
             {
-                Utilities.Verbose("<EnqueueLog> Monitor {0} enqueued event {1}.",
+                Output.Verbose("<EnqueueLog> Monitor {0} enqueued event {1}.",
                     this, e.GetType());
 
                 this.Inbox.Add(e);
@@ -247,7 +247,7 @@ namespace Microsoft.PSharp
                     }
 
                     nextEvent = this.Inbox[idx];
-                    Utilities.Verbose("<DequeueLog> Monitor {0} dequeued event {1}.",
+                    Output.Verbose("<DequeueLog> Monitor {0} dequeued event {1}.",
                         this, nextEvent.GetType());
 
                     this.Inbox.RemoveAt(idx);
@@ -287,7 +287,7 @@ namespace Microsoft.PSharp
                     // is halt, then terminate the monitor.
                     if (e.GetType().Equals(typeof(Halt)))
                     {
-                        Utilities.Verbose("<HaltLog> Monitor {0} halted.", this);
+                        Output.Verbose("<HaltLog> Monitor {0} halted.", this);
                         this.IsHalted = true;
                         this.CleanUpResources();
                         return;
@@ -470,7 +470,7 @@ namespace Microsoft.PSharp
             {
                 // Performs the on entry statements of the new state.
                 this.StateStack.Peek().ExecuteEntryFunction();
-                Utilities.Verbose("<StateLog> Monitor {0} entered state {1}.",
+                Output.Verbose("<StateLog> Monitor {0} entered state {1}.",
                     this, this.StateStack.Peek());
             }
             catch (Exception ex)
@@ -486,7 +486,7 @@ namespace Microsoft.PSharp
         /// <param name="onExit">Goto on exit action</param>
         private void ExecuteCurrentStateOnExit(Action onExit)
         {
-            Utilities.Verbose("<ExitLog> Monitor {0} exiting state {1}.",
+            Output.Verbose("<ExitLog> Monitor {0} exiting state {1}.",
                 this, this.StateStack.Peek());
 
             try

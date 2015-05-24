@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="Utilities.cs" company="Microsoft">
+// <copyright file="Output.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -17,9 +17,9 @@
 using System;
 using System.Globalization;
 
-namespace Microsoft.PSharp.IO
+namespace Microsoft.PSharp.Tooling
 {
-    internal static class Utilities
+    internal static class Output
     {
         internal static string Format(string s, params object[] args)
         {
@@ -28,44 +28,37 @@ namespace Microsoft.PSharp.IO
 
         internal static void Write(string s, params object[] args)
         {
-            string message = Utilities.Format(s, args);
+            string message = Output.Format(s, args);
             Console.Write(message);
         }
 
         internal static void WriteLine(string s, params object[] args)
         {
-            string message = Utilities.Format(s, args);
-            Console.WriteLine(message);
-        }
-
-        internal static void ReportError(string s, params object[] args)
-        {
-            string message = Utilities.Format(s, args);
-            Console.Write("Error: ");
+            string message = Output.Format(s, args);
             Console.WriteLine(message);
         }
 
         internal static void Verbose(string s, params object[] args)
         {
-            if (!Runtime.Options.Verbose)
+            if (Configuration.Verbose >= 1)
                 return;
-            string message = Utilities.Format(s, args);
+            string message = Output.Format(s, args);
+            Console.WriteLine(message);
+        }
+
+        internal static void Debug(string s, params object[] args)
+        {
+            if (!Configuration.Debug)
+                return;
+            string message = Output.Format(s, args);
             Console.WriteLine(message);
         }
 
         internal static void WriteSchedule(string s, params object[] args)
         {
-            if (!Runtime.Options.PrintSchedulingInfo)
+            if (!Configuration.PrintSchedulingInfo)
                 return;
-            string message = Utilities.Format(s, args);
-            Console.WriteLine(message);
-        }
-
-        internal static void DebugSchedule(string s, params object[] args)
-        {
-            if (!Runtime.Options.DebugScheduling)
-                return;
-            string message = Utilities.Format(s, args);
+            string message = Output.Format(s, args);
             Console.WriteLine(message);
         }
     }

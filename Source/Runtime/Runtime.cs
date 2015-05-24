@@ -20,7 +20,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.BugFinding;
-using Microsoft.PSharp.IO;
+using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp
 {
@@ -205,7 +205,7 @@ namespace Microsoft.PSharp
 
             Machine machine = Activator.CreateInstance(m) as Machine;
             machine.AssignInitialPayload(payload);
-            Utilities.Verbose("<CreateLog> Machine {0}({1}) is created.", m, machine.Id);
+            Output.Verbose("<CreateLog> Machine {0}({1}) is created.", m, machine.Id);
 
             Task task = new Task(() =>
             {
@@ -257,7 +257,7 @@ namespace Microsoft.PSharp
 
             Object machine = Activator.CreateInstance(typeof(T));
             (machine as Machine).AssignInitialPayload(payload);
-            Utilities.Verbose("<CreateLog> Machine {0}({1}) is created.", typeof(T),
+            Output.Verbose("<CreateLog> Machine {0}({1}) is created.", typeof(T),
                 (machine as Machine).Id);
 
             Task task = new Task(() =>
@@ -316,7 +316,7 @@ namespace Microsoft.PSharp
                 "A monitor of type '{0}' already exists.", m.Name);
 
             Monitor monitor = Activator.CreateInstance(m) as Monitor;
-            Utilities.Verbose("<CreateLog> Monitor {0} is created.", m);
+            Output.Verbose("<CreateLog> Monitor {0} is created.", m);
 
             Runtime.Monitors.Add(monitor);
         }
@@ -341,7 +341,7 @@ namespace Microsoft.PSharp
                 "A monitor of type '{0}' already exists.", typeof(T).Name);
 
             Object monitor = Activator.CreateInstance(typeof(T));
-            Utilities.Verbose("<CreateLog> Monitor {0} is created.", typeof(T));
+            Output.Verbose("<CreateLog> Monitor {0} is created.", typeof(T));
 
             Runtime.Monitors.Add(monitor as Monitor);
         }
@@ -483,16 +483,6 @@ namespace Microsoft.PSharp
             internal static bool FindBugs = false;
 
             /// <summary>
-            /// Print the scheduling info for bugfinding.
-            /// </summary>
-            internal static bool PrintSchedulingInfo = false;
-
-            /// <summary>
-            /// Print the scheduling info for bugfinding.
-            /// </summary>
-            internal static bool DebugScheduling = false;
-
-            /// <summary>
             /// Switch verbose mode on.
             /// </summary>
             internal static bool Verbose = false;
@@ -511,7 +501,7 @@ namespace Microsoft.PSharp
         {
             if (!predicate)
             {
-                Utilities.ReportError("Assertion failure.");
+                ErrorReporter.Report("Assertion failure.");
 
                 if (Runtime.Options.FindBugs)
                 {
@@ -535,8 +525,8 @@ namespace Microsoft.PSharp
         {
             if (!predicate)
             {
-                string message = Utilities.Format(s, args);
-                Utilities.ReportError(message);
+                string message = Output.Format(s, args);
+                ErrorReporter.Report(message);
 
                 if (Runtime.Options.FindBugs)
                 {

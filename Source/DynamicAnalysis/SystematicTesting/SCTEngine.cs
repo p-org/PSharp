@@ -89,13 +89,8 @@ namespace Microsoft.PSharp.DynamicAnalysis
 
             Runtime.Options.FindBugs = true;
 
-            Runtime.Options.PrintSchedulingInfo = true;
+            Configuration.PrintSchedulingInfo = true;
             Runtime.Options.Verbose = true;
-
-            if (Configuration.Debug)
-            {
-                Runtime.Options.DebugScheduling = true;
-            }
         }
 
         /// <summary>
@@ -126,6 +121,11 @@ namespace Microsoft.PSharp.DynamicAnalysis
                     if (Runtime.BugFinder.BugFound)
                     {
                         SCTEngine.FoundBugs++;
+                    }
+
+                    if (SCTEngine.Strategy.HasFinished())
+                    {
+                        break;
                     }
 
                     SCTEngine.Strategy.Reset();
@@ -165,7 +165,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
             }
             catch (AggregateException)
             {
-                ErrorReporter.ReportErrorAndExit("Internal systematic testing exception. " +
+                ErrorReporter.ReportAndExit("Internal systematic testing exception. " +
                     "Please send a bug report to the developers.");
             }
             finally

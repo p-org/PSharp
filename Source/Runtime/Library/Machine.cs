@@ -19,7 +19,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 
-using Microsoft.PSharp.IO;
+using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp
 {
@@ -187,7 +187,7 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         protected internal void Send(Machine m, Event e)
         {
-            Utilities.Verbose("<SendLog> Machine {0}({1}) sent event {2} to machine {3}({4}).",
+            Output.Verbose("<SendLog> Machine {0}({1}) sent event {2} to machine {3}({4}).",
                 this, this.Id, e.GetType(), m, m.Id);
             Runtime.Send(this, m, e);
         }
@@ -208,7 +208,7 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         protected internal void Raise(Event e)
         {
-            Utilities.Verbose("<RaiseLog> Machine {0}({1}) raised event {2}.", this, this.Id, e);
+            Output.Verbose("<RaiseLog> Machine {0}({1}) raised event {2}.", this, this.Id, e);
             this.RaisedEvent = e;
             //this.HandleEvent(e);
         }
@@ -312,7 +312,7 @@ namespace Microsoft.PSharp
             {
                 if (this.Status != MachineStatus.Halted)
                 {
-                    Utilities.Verbose("<EnqueueLog> Machine {0}({1}) enqueued event {2}.",
+                    Output.Verbose("<EnqueueLog> Machine {0}({1}) enqueued event {2}.",
                         this, this.Id, e.GetType());
                     this.Inbox.Add(e);
                 }
@@ -426,7 +426,7 @@ namespace Microsoft.PSharp
                         !this.StateStack.Peek().DeferredEvents.Contains(this.Inbox[idx].GetType()))
                     {
                         nextEvent = this.Inbox[idx];
-                        Utilities.Verbose("<DequeueLog> Machine {0}({1}) dequeued event {2}.",
+                        Output.Verbose("<DequeueLog> Machine {0}({1}) dequeued event {2}.",
                             this, this.Id, nextEvent.GetType());
 
                         this.Inbox.RemoveAt(idx);
@@ -454,7 +454,7 @@ namespace Microsoft.PSharp
                     {
                         lock (this.Inbox)
                         {
-                            Utilities.Verbose("<HaltLog> Machine {0}({1}) halted.", this, this.Id);
+                            Output.Verbose("<HaltLog> Machine {0}({1}) halted.", this, this.Id);
                             this.Status = MachineStatus.Halted;
                             this.CleanUpResources();
                         }
@@ -470,7 +470,7 @@ namespace Microsoft.PSharp
                 // If current state cannot handle the event then pop the state.
                 if (!this.StateStack.Peek().CanHandleEvent(e.GetType()))
                 {
-                    Utilities.Verbose("<ExitLog> Machine {0}({1}) popping state {2}.",
+                    Output.Verbose("<ExitLog> Machine {0}({1}) popping state {2}.",
                         this, this.Id, this.StateStack.Peek());
                     this.StateStack.Pop();
                     continue;
@@ -677,7 +677,7 @@ namespace Microsoft.PSharp
         /// </summary>
         private void ExecuteCurrentStateOnEntry()
         {
-            Utilities.Verbose("<StateLog> Machine {0}({1}) entered state {2}.",
+            Output.Verbose("<StateLog> Machine {0}({1}) entered state {2}.",
                 this, this.Id, this.StateStack.Peek());
 
             try
@@ -707,7 +707,7 @@ namespace Microsoft.PSharp
         /// <param name="onExit">Goto on exit action</param>
         private void ExecuteCurrentStateOnExit(Action onExit)
         {
-            Utilities.Verbose("<ExitLog> Machine {0}({1}) exiting state {2}.",
+            Output.Verbose("<ExitLog> Machine {0}({1}) exiting state {2}.",
                 this, this.Id, this.StateStack.Peek());
 
             try

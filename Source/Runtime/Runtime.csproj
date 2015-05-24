@@ -65,10 +65,15 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Runtime.cs" />
     <Compile Include="Library\MachineState.cs" />
-    <Compile Include="IO\Utilities.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="PSharp.snk" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Tooling\Tooling.csproj">
+      <Project>{2e330c40-60ea-4a94-8813-9747b93a1795}</Project>
+      <Name>Tooling</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

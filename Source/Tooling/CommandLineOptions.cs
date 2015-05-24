@@ -89,7 +89,7 @@ namespace Microsoft.PSharp.Tooling
                     int i = 0;
                     if (!int.TryParse(this.Options[idx].Substring(9), out i))
                     {
-                        ErrorReporter.ReportErrorAndExit("Please give a valid timeout " +
+                        ErrorReporter.ReportAndExit("Please give a valid timeout " +
                             "'/timeout:[x]', where [x] > 0.");
                     }
 
@@ -101,7 +101,7 @@ namespace Microsoft.PSharp.Tooling
                     int i = 1;
                     if (!int.TryParse(this.Options[idx].Substring(3), out i))
                     {
-                        ErrorReporter.ReportErrorAndExit("Please give a valid verbosity level " +
+                        ErrorReporter.ReportAndExit("Please give a valid verbosity level " +
                             "'/v:[x]', where 0 <= [x] <= 2.");
                     }
 
@@ -173,7 +173,7 @@ namespace Microsoft.PSharp.Tooling
                     int i = 1;
                     if (!int.TryParse(this.Options[idx].Substring(3), out i))
                     {
-                        ErrorReporter.ReportErrorAndExit("Please give a valid number of iterations " +
+                        ErrorReporter.ReportAndExit("Please give a valid number of iterations " +
                             "'/i:[x]', where [x] > 0.");
                     }
 
@@ -190,7 +190,7 @@ namespace Microsoft.PSharp.Tooling
 
                 else
                 {
-                    ErrorReporter.ReportErrorAndExit("cannot recognise command line option '" +
+                    ErrorReporter.ReportAndExit("cannot recognise command line option '" +
                         this.Options[idx] + "'.");
                 }
 
@@ -208,14 +208,14 @@ namespace Microsoft.PSharp.Tooling
         {
             if (Configuration.SolutionFilePath.Equals(""))
             {
-                ErrorReporter.ReportErrorAndExit("Please give a valid solution path.");
+                ErrorReporter.ReportAndExit("Please give a valid solution path.");
             }
 
             if (!Configuration.SchedulingStrategy.Equals("") &&
                 !Configuration.SchedulingStrategy.Equals("random") &&
                 !Configuration.SchedulingStrategy.Equals("dfs"))
             {
-                ErrorReporter.ReportErrorAndExit("Please give a valid scheduling strategy " +
+                ErrorReporter.ReportAndExit("Please give a valid scheduling strategy " +
                     "'/sch:[x]', where [x] is 'random' or 'dfs'.");
             }
         }

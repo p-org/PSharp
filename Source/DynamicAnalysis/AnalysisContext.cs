@@ -60,7 +60,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
             }
             catch (FileNotFoundException ex)
             {
-                ErrorReporter.ReportErrorAndExit(ex.Message);
+                ErrorReporter.ReportAndExit(ex.Message);
             }
 
             // Setups the scheduling strategy.
@@ -83,12 +83,12 @@ namespace Microsoft.PSharp.DynamicAnalysis
                 Where(m => m.GetCustomAttributes(typeof(EntryPoint), false).Length > 0).ToList();
             if (entrypoints.Count == 0)
             {
-                ErrorReporter.ReportErrorAndExit("No entry point found to the P# program. " +
+                ErrorReporter.ReportAndExit("No entry point found to the P# program. " +
                     "Use the attribute [EntryPoint] to declare an entry point method.");
             }
             else if (entrypoints.Count > 1)
             {
-                ErrorReporter.ReportErrorAndExit("Only one entry point to the P# program can be declared. " +
+                ErrorReporter.ReportAndExit("Only one entry point to the P# program can be declared. " +
                     "{0} entry points were found instead.", entrypoints.Count);
             }
 

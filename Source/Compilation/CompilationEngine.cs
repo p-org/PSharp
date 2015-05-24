@@ -105,7 +105,7 @@ namespace Microsoft.PSharp.Compilation
             }
             catch (ApplicationException ex)
             {
-                ErrorReporter.ReportErrorAndExit(ex.Message);
+                ErrorReporter.ReportAndExit(ex.Message);
             }
         }
 

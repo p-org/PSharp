@@ -186,7 +186,7 @@ namespace Microsoft.PSharp.Parsing
                 error += "^";
             }
 
-            ErrorReporter.ReportErrorAndExit(error);
+            ErrorReporter.ReportAndExit(error);
         }
 
         #endregion

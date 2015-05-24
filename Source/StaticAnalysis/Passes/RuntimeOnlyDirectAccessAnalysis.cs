@@ -59,12 +59,12 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     if (field.Modifiers.Any(SyntaxKind.PublicKeyword))
                     {
-                        ErrorReporter.ReportErrorAndExit("Field '{0}' of machine '{1}' is declared as " +
+                        ErrorReporter.ReportAndExit("Field '{0}' of machine '{1}' is declared as " +
                             "'public'.", field.Declaration.ToString(), classDecl.Identifier.ValueText);
                     }
                     else if (field.Modifiers.Any(SyntaxKind.InternalKeyword))
                     {
-                        ErrorReporter.ReportErrorAndExit("Field '{0}' of machine '{1}' is declared as " +
+                        ErrorReporter.ReportAndExit("Field '{0}' of machine '{1}' is declared as " +
                             "'internal'.", field.Declaration.ToString(), classDecl.Identifier.ValueText);
                     }
                 }
@@ -84,13 +84,13 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     if (method.Modifiers.Any(SyntaxKind.PublicKeyword))
                     {
-                        ErrorReporter.ReportErrorAndExit("Method '{0}' of machine '{1}' is " +
+                        ErrorReporter.ReportAndExit("Method '{0}' of machine '{1}' is " +
                             "declared as 'public'.", method.Identifier.ValueText,
                             classDecl.Identifier.ValueText);
                     }
                     else if (method.Modifiers.Any(SyntaxKind.InternalKeyword))
                     {
-                        ErrorReporter.ReportErrorAndExit("Method '{0}' of machine '{1}' is " +
+                        ErrorReporter.ReportAndExit("Method '{0}' of machine '{1}' is " +
                             "declared as 'internal'.", method.Identifier.ValueText,
                             classDecl.Identifier.ValueText);
                     }

@@ -138,6 +138,11 @@ namespace Microsoft.PSharp.Tooling
         /// </summary>
         public static bool FullExploration = false;
 
+        /// <summary>
+        /// Print the bugfinding scheduling info.
+        /// </summary>
+        public static bool PrintSchedulingInfo = false;
+
         #endregion
     }
 }
