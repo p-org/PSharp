@@ -14,13 +14,13 @@
 
 using System.Linq;
 
-using Microsoft.PSharp.Tooling;
-
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
+
+using Microsoft.PSharp.Core;
 
 namespace Microsoft.PSharp.StaticAnalysis
 {

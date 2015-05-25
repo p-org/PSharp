@@ -15,11 +15,11 @@
 using System;
 using System.Linq;
 
-using Microsoft.PSharp.Tooling;
-
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+
+using Microsoft.PSharp.Core;
 
 namespace Microsoft.PSharp.Parsing
 {

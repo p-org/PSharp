@@ -19,8 +19,9 @@ using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
+using Microsoft.PSharp.Tooling;
 
-namespace Microsoft.PSharp.Tooling
+namespace Microsoft.PSharp.Core
 {
     /// <summary>
     /// The P# program info.

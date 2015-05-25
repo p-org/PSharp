@@ -18,7 +18,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.PSharp.Tooling
+namespace Microsoft.PSharp.Core
 {
     public class ProgramUnit
     {

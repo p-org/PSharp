@@ -13,6 +13,8 @@
 //-----------------------------------------------------------------------
 
 using System;
+
+using Microsoft.PSharp.Core;
 using Microsoft.PSharp.StaticAnalysis;
 using Microsoft.PSharp.Tooling;
 
