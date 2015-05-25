@@ -109,7 +109,32 @@ namespace Microsoft.PSharp.Tooling
                 }
                 else if (this.Options[idx].ToLower().Equals("/debug"))
                 {
-                    Configuration.Debug = true;
+                    Configuration.Debug = DebugType.All;
+                }
+                else if (this.Options[idx].ToLower().StartsWith("/debug:") &&
+                    this.Options[idx].Length > 7)
+                {
+                    if (this.Options[idx].Substring(7).ToLower().Equals("all"))
+                    {
+                        Configuration.Debug = DebugType.All;
+                    }
+                    else if (this.Options[idx].Substring(7).ToLower().Equals("runtime"))
+                    {
+                        Configuration.Debug = DebugType.Runtime;
+                    }
+                    else if (this.Options[idx].Substring(7).ToLower().Equals("analysis"))
+                    {
+                        Configuration.Debug = DebugType.Analysis;
+                    }
+                    else if (this.Options[idx].Substring(7).ToLower().Equals("testing"))
+                    {
+                        Configuration.Debug = DebugType.Testing;
+                    }
+                    else
+                    {
+                        ErrorReporter.ReportAndExit("Please give a valid debug target '/debug:[x]', " +
+                            "where [x] is 'all', 'runtime', 'analysis' or 'testing'.");
+                    }
                 }
 
                 #endregion

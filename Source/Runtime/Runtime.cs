@@ -67,7 +67,7 @@ namespace Microsoft.PSharp
         private static List<Task> MachineTasks = new List<Task>();
 
         /// <summary>
-        /// The P# bug-finder.
+        /// The P# bugfinder.
         /// </summary>
         internal static Scheduler BugFinder = null;
 
@@ -186,10 +186,10 @@ namespace Microsoft.PSharp
 
             Runtime.Dispose();
         }
-
-#endregion
-
-#region P# runtime internal methods
+        
+        #endregion
+        
+        #region P# runtime internal methods
 
         /// <summary>
         /// Attempts to create a new machine instance of type T with
@@ -205,18 +205,18 @@ namespace Microsoft.PSharp
 
             Machine machine = Activator.CreateInstance(m) as Machine;
             machine.AssignInitialPayload(payload);
-            Output.Verbose("<CreateLog> Machine {0}({1}) is created.", m, machine.Id);
+            Output.Debug(DebugType.Runtime, "<CreateLog> Machine {0}({1}) is created.", m, machine.Id);
 
             Task task = new Task(() =>
             {
-                if (Runtime.Options.FindBugs)
+                if (Runtime.BugFinder != null)
                 {
                     Runtime.BugFinder.NotifyTaskStarted(Task.CurrentId);
                 }
                 
                 machine.Run();
 
-                if (Runtime.Options.FindBugs)
+                if (Runtime.BugFinder != null)
                 {
                     Runtime.BugFinder.NotifyTaskCompleted(Task.CurrentId);
                 }
@@ -227,14 +227,14 @@ namespace Microsoft.PSharp
                 Runtime.MachineTasks.Add(task);
             }
 
-            if (Runtime.Options.FindBugs)
+            if (Runtime.BugFinder != null)
             {
                 Runtime.BugFinder.NotifyNewTaskCreated(task.Id, machine);
             }
 
             task.Start();
 
-            if (Runtime.Options.FindBugs)
+            if (Runtime.BugFinder != null)
             {
                 Runtime.BugFinder.WaitForTaskToStart(task.Id);
             }
@@ -257,19 +257,19 @@ namespace Microsoft.PSharp
 
             Object machine = Activator.CreateInstance(typeof(T));
             (machine as Machine).AssignInitialPayload(payload);
-            Output.Verbose("<CreateLog> Machine {0}({1}) is created.", typeof(T),
+            Output.Debug(DebugType.Runtime, "<CreateLog> Machine {0}({1}) is created.", typeof(T),
                 (machine as Machine).Id);
 
             Task task = new Task(() =>
             {
-                if (Runtime.Options.FindBugs)
+                if (Runtime.BugFinder != null)
                 {
                     Runtime.BugFinder.NotifyTaskStarted(Task.CurrentId);
                 }
                 
                 (machine as Machine).Run();
 
-                if (Runtime.Options.FindBugs)
+                if (Runtime.BugFinder != null)
                 {
                     Runtime.BugFinder.NotifyTaskCompleted(Task.CurrentId);
                 }
@@ -280,14 +280,14 @@ namespace Microsoft.PSharp
                 Runtime.MachineTasks.Add(task);
             }
 
-            if (Runtime.Options.FindBugs)
+            if (Runtime.BugFinder != null)
             {
                 Runtime.BugFinder.NotifyNewTaskCreated(task.Id, machine as Machine);
             }
 
             task.Start();
 
-            if (Runtime.Options.FindBugs)
+            if (Runtime.BugFinder != null)
             {
                 Runtime.BugFinder.WaitForTaskToStart(task.Id);
                 Runtime.BugFinder.Schedule(Task.CurrentId);
@@ -305,7 +305,7 @@ namespace Microsoft.PSharp
         /// <param name="payload">Optional payload</param>
         internal static void TryCreateNewMonitorInstance(Type m, params Object[] payload)
         {
-            if (!Runtime.Options.FindBugs)
+            if (Runtime.BugFinder == null)
             {
                 return;
             }
@@ -316,7 +316,7 @@ namespace Microsoft.PSharp
                 "A monitor of type '{0}' already exists.", m.Name);
 
             Monitor monitor = Activator.CreateInstance(m) as Monitor;
-            Output.Verbose("<CreateLog> Monitor {0} is created.", m);
+            Output.Debug(DebugType.Runtime, "<CreateLog> Monitor {0} is created.", m);
 
             Runtime.Monitors.Add(monitor);
         }
@@ -330,7 +330,7 @@ namespace Microsoft.PSharp
         /// <param name="payload">Optional payload</param>
         internal static void TryCreateNewMonitorInstance<T>(params Object[] payload)
         {
-            if (!Runtime.Options.FindBugs)
+            if (Runtime.BugFinder == null)
             {
                 return;
             }
@@ -341,7 +341,7 @@ namespace Microsoft.PSharp
                 "A monitor of type '{0}' already exists.", typeof(T).Name);
 
             Object monitor = Activator.CreateInstance(typeof(T));
-            Output.Verbose("<CreateLog> Monitor {0} is created.", typeof(T));
+            Output.Debug(DebugType.Runtime, "<CreateLog> Monitor {0} is created.", typeof(T));
 
             Runtime.Monitors.Add(monitor as Monitor);
         }
@@ -360,7 +360,7 @@ namespace Microsoft.PSharp
             
             target.Enqueue(e);
 
-            if (Runtime.Options.FindBugs &&
+            if (Runtime.BugFinder != null &&
                 Runtime.BugFinder.HasEnabledTaskForMachine(target))
             {
                 Runtime.BugFinder.Schedule(Task.CurrentId);
@@ -369,14 +369,14 @@ namespace Microsoft.PSharp
 
             Task task = new Task(() =>
             {
-                if (Runtime.Options.FindBugs)
+                if (Runtime.BugFinder != null)
                 {
                     Runtime.BugFinder.NotifyTaskStarted(Task.CurrentId);
                 }
 
                 target.Run();
 
-                if (Runtime.Options.FindBugs)
+                if (Runtime.BugFinder != null)
                 {
                     Runtime.BugFinder.NotifyTaskCompleted(Task.CurrentId);
                 }
@@ -387,14 +387,14 @@ namespace Microsoft.PSharp
                 Runtime.MachineTasks.Add(task);
             }
 
-            if (Runtime.Options.FindBugs)
+            if (Runtime.BugFinder != null)
             {
                 Runtime.BugFinder.NotifyNewTaskCreated(task.Id, target);
             }
 
             task.Start();
 
-            if (Runtime.Options.FindBugs)
+            if (Runtime.BugFinder != null)
             {
                 Runtime.BugFinder.WaitForTaskToStart(task.Id);
                 Runtime.BugFinder.Schedule(Task.CurrentId);
@@ -408,7 +408,7 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         internal static void Monitor<T>(Event e)
         {
-            if (!Runtime.Options.FindBugs)
+            if (Runtime.BugFinder == null)
             {
                 return;
             }
@@ -447,10 +447,10 @@ namespace Microsoft.PSharp
             Runtime.Assert(result != null, "No machine of type '{0}' was found.", m);
             return result;
         }
-
-#endregion
-
-#region P# runtime private methods
+        
+        #endregion
+        
+        #region P# runtime private methods
 
         /// <summary>
         /// Initializes the P# runtime.
@@ -460,7 +460,7 @@ namespace Microsoft.PSharp
             Runtime.RegisterNewEvent(typeof(Halt));
             Runtime.RegisterNewEvent(typeof(Default));
 
-            if (Runtime.Options.FindBugs)
+            if (Runtime.BugFinder != null)
             {
                 Runtime.Assert(Runtime.BugFinder != null, "Bugfinder is not initialized.");
             }
@@ -469,28 +469,8 @@ namespace Microsoft.PSharp
         }
 
         #endregion
-
-        #region runtime options
-
-        /// <summary>
-        /// Static class implementing options for the P# runtime.
-        /// </summary>
-        internal static class Options
-        {
-            /// <summary>
-            /// Run the runtime in bugfinding mode.
-            /// </summary>
-            internal static bool FindBugs = false;
-
-            /// <summary>
-            /// Switch verbose mode on.
-            /// </summary>
-            internal static bool Verbose = false;
-        }
-
-#endregion
-
-#region error checking
+        
+        #region error checking and reporting
 
         /// <summary>
         /// Checks if the assertion holds, and if not it reports
@@ -503,7 +483,7 @@ namespace Microsoft.PSharp
             {
                 ErrorReporter.Report("Assertion failure.");
 
-                if (Runtime.Options.FindBugs)
+                if (Runtime.BugFinder != null)
                 {
                     Runtime.BugFinder.NotifyAssertionFailure();
                 }
@@ -528,7 +508,7 @@ namespace Microsoft.PSharp
                 string message = Output.Format(s, args);
                 ErrorReporter.Report(message);
 
-                if (Runtime.Options.FindBugs)
+                if (Runtime.BugFinder != null)
                 {
                     Runtime.BugFinder.NotifyAssertionFailure();
                 }
@@ -539,9 +519,9 @@ namespace Microsoft.PSharp
             }
         }
 
-#endregion
+        #endregion
 
-#region cleanup methods
+        #region cleanup methods
 
         /// <summary>
         /// Disposes resources of the P# runtime.
@@ -564,7 +544,7 @@ namespace Microsoft.PSharp
 
             Runtime.IsRunning = false;
         }
-
-#endregion
+        
+        #endregion
     }
 }

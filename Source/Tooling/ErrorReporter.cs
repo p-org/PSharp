@@ -13,7 +13,6 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Globalization;
 
 namespace Microsoft.PSharp.Tooling
 {

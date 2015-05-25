@@ -89,12 +89,12 @@ namespace Microsoft.PSharp.BugFinding
             TaskInfo next = null;
             if (!this.Strategy.TryGetNext(out next, this.Tasks))
             {
-                Output.WriteSchedule("<ScheduleLog> Schedule explored.");
+                Output.Debug(DebugType.Testing, "<ScheduleDebug> Schedule explored.");
                 this.KillRemainingTasks();
                 return;
             }
 
-            Output.WriteSchedule("<ScheduleLog> Schedule task {0} of machine {1}({2}).",
+            Output.Debug(DebugType.Testing, "<ScheduleDebug> Schedule task {0} of machine {1}({2}).",
                 next.Id, next.Machine.GetType(), next.Machine.Id);
 
             if (!taskInfo.IsCompleted)
@@ -120,10 +120,10 @@ namespace Microsoft.PSharp.BugFinding
                     
                     while (!taskInfo.IsActive)
                     {
-                        Output.Debug("<ScheduleDebug> Sleep task {0} of machine {1}({2}) at schedule.",
+                        Output.Debug(DebugType.Testing, "<ScheduleDebug> Sleep task {0} of machine {1}({2}).",
                             taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id);
                         System.Threading.Monitor.Wait(taskInfo);
-                        Output.Debug("<ScheduleDebug> Wake up task {0} of machine {1}({2}) at schedule.",
+                        Output.Debug(DebugType.Testing, "<ScheduleDebug> Wake up task {0} of machine {1}({2}).",
                             taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id);
                     }
 
@@ -144,7 +144,7 @@ namespace Microsoft.PSharp.BugFinding
         {
             var taskInfo = new TaskInfo(id, machine);
 
-            Output.Debug("<ScheduleDebug> Created task {0} for machine {1}({2}).",
+            Output.Debug(DebugType.Testing, "<ScheduleDebug> Created task {0} for machine {1}({2}).",
                 taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id);
 
             if (this.Tasks.Count == 0)
@@ -169,7 +169,7 @@ namespace Microsoft.PSharp.BugFinding
 
             var taskInfo = this.TaskMap[(int)id];
 
-            Output.Debug("<ScheduleDebug> Started task {0} of machine {1}({2}).",
+            Output.Debug(DebugType.Testing, "<ScheduleDebug> Started task {0} of machine {1}({2}).",
                 taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id);
 
             lock (taskInfo)
@@ -178,10 +178,10 @@ namespace Microsoft.PSharp.BugFinding
                 System.Threading.Monitor.PulseAll(taskInfo);
                 while (!taskInfo.IsActive)
                 {
-                    Output.Debug("<ScheduleDebug> Sleep task {0} of machine {1}({2}).",
+                    Output.Debug(DebugType.Testing, "<ScheduleDebug> Sleep task {0} of machine {1}({2}).",
                         taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id);
                     System.Threading.Monitor.Wait(taskInfo);
-                    Output.Debug("<ScheduleDebug> Wake up task {0} of machine {1}({2}).",
+                    Output.Debug(DebugType.Testing, "<ScheduleDebug> Wake up task {0} of machine {1}({2}).",
                         taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id);
                 }
 
@@ -205,7 +205,7 @@ namespace Microsoft.PSharp.BugFinding
             
             var taskInfo = this.TaskMap[(int)id];
 
-            Output.Debug("<ScheduleDebug> Completed task {0} of machine {1}({2}).",
+            Output.Debug(DebugType.Testing, "<ScheduleDebug> Completed task {0} of machine {1}({2}).",
                 taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id);
 
             taskInfo.IsEnabled = false;
@@ -213,7 +213,7 @@ namespace Microsoft.PSharp.BugFinding
 
             this.Schedule(taskInfo.Id);
 
-            Output.Debug("<ScheduleDebug> Exit task {0} of machine {1}({2}).",
+            Output.Debug(DebugType.Testing, "<ScheduleDebug> Exit task {0} of machine {1}({2}).",
                 taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id);
         }
 

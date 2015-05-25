@@ -41,23 +41,22 @@ namespace Microsoft.PSharp.Tooling
         internal static void Verbose(string s, params object[] args)
         {
             if (Configuration.Verbose >= 1)
+            {
                 return;
+            }
+
             string message = Output.Format(s, args);
             Console.WriteLine(message);
         }
 
-        internal static void Debug(string s, params object[] args)
+        internal static void Debug(DebugType type, string s, params object[] args)
         {
-            if (!Configuration.Debug)
+            if (Configuration.Debug != DebugType.All &&
+                Configuration.Debug != type)
+            {
                 return;
-            string message = Output.Format(s, args);
-            Console.WriteLine(message);
-        }
+            }
 
-        internal static void WriteSchedule(string s, params object[] args)
-        {
-            if (!Configuration.PrintSchedulingInfo)
-                return;
             string message = Output.Format(s, args);
             Console.WriteLine(message);
         }

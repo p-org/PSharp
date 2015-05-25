@@ -51,10 +51,11 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CommandLineOptions.cs" />
-    <Compile Include="Configuration.cs" />
+    <Compile Include="Options\CommandLineOptions.cs" />
+    <Compile Include="Options\Configuration.cs" />
     <Compile Include="ErrorReporter.cs" />
     <Compile Include="Exceptions.cs" />
+    <Compile Include="Options\DebugType.cs" />
     <Compile Include="Output.cs" />
     <Compile Include="Profiler.cs" />
     <Compile Include="ProgramInfo.cs" />

@@ -86,11 +86,6 @@ namespace Microsoft.PSharp.DynamicAnalysis
                 SCTEngine.Strategy = new RandomSchedulingStrategy(DateTime.Now.Millisecond);
             else if (AnalysisContext.Strategy == SchedulingStrategy.DFS)
                 SCTEngine.Strategy = new DFSSchedulingStrategy();
-
-            Runtime.Options.FindBugs = true;
-
-            Configuration.PrintSchedulingInfo = true;
-            Runtime.Options.Verbose = true;
         }
 
         /// <summary>
@@ -181,7 +176,8 @@ namespace Microsoft.PSharp.DynamicAnalysis
         {
             Console.WriteLine("... Found {0} bug{1}.", SCTEngine.FoundBugs,
                 SCTEngine.FoundBugs == 1 ? "" : "s");
-            Console.WriteLine("... Explored {0} schedule{1}.", SCTEngine.ExploredSchedules,
+            Console.WriteLine("... Explored {0} {1} schedule{2}.", SCTEngine.ExploredSchedules,
+                SCTEngine.Strategy.HasFinished() ? "(all)" : "",
                 SCTEngine.ExploredSchedules == 1 ? "" : "s");
 
             if (SCTEngine.ExploredSchedules > 0)
