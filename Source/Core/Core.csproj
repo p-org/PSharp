@@ -7,8 +7,8 @@
     <ProjectGuid>{2E330C40-60EA-4A94-8813-9747B93A1795}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Microsoft.PSharp.Tooling</RootNamespace>
-    <AssemblyName>Microsoft.PSharp.Tooling</AssemblyName>
+    <RootNamespace>Microsoft.PSharp.Core</RootNamespace>
+    <AssemblyName>Microsoft.PSharp.Core</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -51,13 +51,13 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Options\CommandLineOptions.cs" />
-    <Compile Include="Options\Configuration.cs" />
-    <Compile Include="ErrorReporter.cs" />
+    <Compile Include="Tooling\CommandLineOptions.cs" />
+    <Compile Include="Tooling\Configuration.cs" />
+    <Compile Include="Tooling\ErrorReporter.cs" />
     <Compile Include="Exceptions.cs" />
-    <Compile Include="Options\DebugType.cs" />
-    <Compile Include="Output.cs" />
-    <Compile Include="Profiler.cs" />
+    <Compile Include="Tooling\DebugType.cs" />
+    <Compile Include="Tooling\Output.cs" />
+    <Compile Include="Tooling\Profiler.cs" />
     <Compile Include="ProgramInfo.cs" />
     <Compile Include="ProgramUnit.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

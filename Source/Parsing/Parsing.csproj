@@ -142,13 +142,13 @@
     <Compile Include="TokenType.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Tooling\Tooling.csproj">
-      <Project>{2e330c40-60ea-4a94-8813-9747b93a1795}</Project>
-      <Name>Tooling</Name>
-    </ProjectReference>
+    <None Include="PSharp.snk" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="PSharp.snk" />
+    <ProjectReference Include="..\Core\Core.csproj">
+      <Project>{2e330c40-60ea-4a94-8813-9747b93a1795}</Project>
+      <Name>Core</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

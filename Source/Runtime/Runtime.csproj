@@ -44,11 +44,11 @@
     <Compile Include="Attributes\EntryPoint.cs" />
     <Compile Include="Attributes\Main.cs" />
     <Compile Include="Attributes\Ghost.cs" />
+    <Compile Include="Collections\Container.cs" />
+    <Compile Include="Collections\Seq.cs" />
     <Compile Include="Scheduling\Scheduler.cs" />
     <Compile Include="Scheduling\ISchedulingStrategy.cs" />
     <Compile Include="Scheduling\TaskInfo.cs" />
-    <Compile Include="Collections\Container.cs" />
-    <Compile Include="Collections\Seq.cs" />
     <Compile Include="Library\ActionBindings.cs" />
     <Compile Include="Library\MonitorState.cs" />
     <Compile Include="Library\Monitor.cs" />
@@ -70,9 +70,9 @@
     <None Include="PSharp.snk" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Tooling\Tooling.csproj">
+    <ProjectReference Include="..\Core\Core.csproj">
       <Project>{2e330c40-60ea-4a94-8813-9747b93a1795}</Project>
-      <Name>Tooling</Name>
+      <Name>Core</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

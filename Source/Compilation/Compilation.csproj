@@ -59,13 +59,13 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Core\Core.csproj">
+      <Project>{2e330c40-60ea-4a94-8813-9747b93a1795}</Project>
+      <Name>Core</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Runtime\Runtime.csproj">
       <Project>{c8064f68-8a8b-4cc6-82af-a6dde5d9bbee}</Project>
       <Name>Runtime</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Tooling\Tooling.csproj">
-      <Project>{2e330c40-60ea-4a94-8813-9747b93a1795}</Project>
-      <Name>Tooling</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

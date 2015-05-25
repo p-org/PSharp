@@ -77,7 +77,8 @@ namespace Microsoft.PSharp.Compilation
             }
 
             // Links the P# runtime.
-            CompilationEngine.LinkRuntime();
+            CompilationEngine.LinkAssembly(typeof(ProgramUnit).Assembly, "Microsoft.PSharp.Core.dll");
+            CompilationEngine.LinkAssembly(typeof(Runtime).Assembly, "Microsoft.PSharp.dll");
         }
 
         #endregion
@@ -110,17 +111,18 @@ namespace Microsoft.PSharp.Compilation
         }
 
         /// <summary>
-        /// Links the P# runtime.
+        /// Links the given P# assembly.
         /// </summary>
-        private static void LinkRuntime()
+        /// <param name="assembly">Assembly</param>
+        /// <param name="dll">Name of dll</param>
+        private static void LinkAssembly(Assembly assembly, string dll)
         {
-            Console.WriteLine("... Linking Microsoft.PSharp.dll");
+            Console.WriteLine("... Linking {0}", dll);
 
             foreach (var outputDir in CompilationEngine.OutputDirectories)
             {
-                var assembly = typeof(Runtime).Assembly;
                 var localFileName = (new System.Uri(assembly.CodeBase)).LocalPath;
-                var fileName = outputDir + Path.DirectorySeparatorChar + "Microsoft.PSharp.dll";
+                var fileName = outputDir + Path.DirectorySeparatorChar + dll;
 
                 File.Delete(fileName);
                 File.Copy(localFileName, fileName);

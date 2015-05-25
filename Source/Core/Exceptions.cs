@@ -14,7 +14,7 @@
 
 using System;
 
-namespace Microsoft.PSharp.Tooling
+namespace Microsoft.PSharp
 {
     /// <summary>
     /// Implements a P# generic exception.
