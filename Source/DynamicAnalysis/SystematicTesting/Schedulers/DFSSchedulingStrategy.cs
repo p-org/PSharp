@@ -63,6 +63,11 @@ namespace Microsoft.PSharp.DynamicAnalysis
         bool ISchedulingStrategy.TryGetNext(out TaskInfo next, List<TaskInfo> tasks)
         {
             var enabledTasks = tasks.Where(task => task.IsEnabled).ToList();
+            if (enabledTasks.Count == 0)
+            {
+                next = null;
+                return false;
+            }
 
             SChoice nextChoice = null;
             List<SChoice> scs = null;
@@ -91,16 +96,13 @@ namespace Microsoft.PSharp.DynamicAnalysis
 
             if (this.Index > 0)
             {
-                var previousChoice = this.Stack[this.Index - 1].
-                    LastOrDefault(val => val.IsDone);
+                var previousChoice = this.Stack[this.Index - 1].Last(val => val.IsDone);
                 previousChoice.IsDone = false;
             }
             
             next = enabledTasks.Find(task => task.Machine.Id == nextChoice.Id);
             nextChoice.IsDone = true;
             this.Index++;
-
-            this.PrintSchedule();
 
             return true;
         }
@@ -129,6 +131,18 @@ namespace Microsoft.PSharp.DynamicAnalysis
         void ISchedulingStrategy.Reset()
         {
             this.Index = 0;
+            for (int idx = this.Stack.Count - 1; idx > 0; idx--)
+            {
+                if (!this.Stack[idx].All(val => val.IsDone))
+                {
+                    break;
+                }
+
+                var previousChoice = this.Stack[idx - 1].First(val => !val.IsDone);
+                previousChoice.IsDone = true;
+
+                this.Stack.RemoveAt(idx);
+            }
         }
 
         /// <summary>

@@ -103,7 +103,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
                     {
                         Console.WriteLine("..... Iteration #{0}", i + 1);
                     }
-
+                    
                     Runtime.BugFinder = new Scheduler(SCTEngine.Strategy);
                     var sw = SCTEngine.RedirectOutput();
 
