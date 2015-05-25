@@ -19,7 +19,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-using Microsoft.PSharp.Core;
+using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp.Parsing
 {

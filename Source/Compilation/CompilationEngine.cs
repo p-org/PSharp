@@ -22,7 +22,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
 
-using Microsoft.PSharp.Core;
 using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp.Compilation
@@ -78,8 +77,8 @@ namespace Microsoft.PSharp.Compilation
             }
 
             // Links the P# runtime.
-            CompilationEngine.LinkAssembly(typeof(ProgramUnit).Assembly, "Microsoft.PSharp.Core.dll");
-            CompilationEngine.LinkAssembly(typeof(Runtime).Assembly, "Microsoft.PSharp.dll");
+            CompilationEngine.LinkAssembly(typeof(Machine).Assembly, "Microsoft.PSharp.dll");
+            CompilationEngine.LinkAssembly(typeof(Runtime).Assembly, "Microsoft.PSharp.Runtime.dll");
         }
 
         #endregion

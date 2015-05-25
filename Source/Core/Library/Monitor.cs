@@ -27,6 +27,15 @@ namespace Microsoft.PSharp
     /// </summary>
     public abstract class Monitor
     {
+        #region static fields
+
+        /// <summary>
+        /// Dispatcher used to communicate with the P# runtime.
+        /// </summary>
+        internal static IDispatcher Dispatcher;
+
+        #endregion
+
         #region fields
 
         /// <summary>
@@ -129,7 +138,8 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         protected internal void Raise(Event e)
         {
-            Output.Debug(DebugType.Runtime, "<RaiseLog> Monitor {0} raised event {1}.", this, e);
+            Output.Debug(DebugType.Runtime, "<RaiseLog> Monitor {0} " +
+                "raised event {1}.", this, e);
             this.HandleEvent(e);
         }
 
@@ -140,7 +150,7 @@ namespace Microsoft.PSharp
         /// <param name="predicate">Predicate</param>
         protected internal void Assert(bool predicate)
         {
-            Runtime.Assert(predicate);
+            Monitor.Dispatcher.Assert(predicate);
         }
 
         /// <summary>
@@ -152,7 +162,7 @@ namespace Microsoft.PSharp
         /// <param name="args">Message arguments</param>
         protected internal void Assert(bool predicate, string s, params object[] args)
         {
-            Runtime.Assert(predicate, s, args);
+            Monitor.Dispatcher.Assert(predicate, s, args);
         }
 
         #endregion
@@ -171,9 +181,9 @@ namespace Microsoft.PSharp
             /// <param name="payload">Optional payload</param>
             public static void CreateMonitor<T>(params Object[] payload)
             {
-                Runtime.Assert(typeof(T).IsSubclassOf(typeof(Monitor)), "Type '{0}' is not " +
-                    "a subclass of Monitor.\n", typeof(T).Name);
-                Runtime.TryCreateNewMonitorInstance<T>(payload);
+                Monitor.Dispatcher.Assert(typeof(T).IsSubclassOf(typeof(Monitor)),
+                    "Type '{0}' is not a subclass of Monitor.\n", typeof(T).Name);
+                Monitor.Dispatcher.TryCreateNewMonitorInstance<T>(payload);
             }
 
             /// <summary>
@@ -183,9 +193,9 @@ namespace Microsoft.PSharp
             /// <param name="payload">Optional payload</param>
             internal static void CreateMonitor(Type m, params Object[] payload)
             {
-                Runtime.Assert(m.IsSubclassOf(typeof(Monitor)), "Type '{0}' is not a " +
-                    "subclass of Monitor.\n", m.Name);
-                Runtime.TryCreateNewMonitorInstance(m, payload);
+                Monitor.Dispatcher.Assert(m.IsSubclassOf(typeof(Monitor)),
+                    "Type '{0}' is not a subclass of Monitor.\n", m.Name);
+                Monitor.Dispatcher.TryCreateNewMonitorInstance(m, payload);
             }
         }
 
@@ -211,8 +221,8 @@ namespace Microsoft.PSharp
         {
             if (!this.IsHalted)
             {
-                Output.Debug(DebugType.Runtime, "<EnqueueLog> Monitor {0} enqueued event {1}.",
-                    this, e.GetType());
+                Output.Debug(DebugType.Runtime, "<EnqueueLog> Monitor {0} " +
+                    "enqueued event {1}.", this, e.GetType());
 
                 this.Inbox.Add(e);
                 Event nextEvent = this.DequeueNextEvent();
@@ -247,8 +257,8 @@ namespace Microsoft.PSharp
                     }
 
                     nextEvent = this.Inbox[idx];
-                    Output.Debug(DebugType.Runtime, "<DequeueLog> Monitor {0} dequeued event {1}.",
-                        this, nextEvent.GetType());
+                    Output.Debug(DebugType.Runtime, "<DequeueLog> Monitor {0} " +
+                        "dequeued event {1}.", this, nextEvent.GetType());
 
                     this.Inbox.RemoveAt(idx);
                     break;
@@ -294,7 +304,7 @@ namespace Microsoft.PSharp
                     }
 
                     // If the event cannot be handled then report an error and exit.
-                    Runtime.Assert(false, "Monitor '{0}' received event '{1}' that cannot be " +
+                    Monitor.Dispatcher.Assert(false, "Monitor '{0}' received event '{1}' that cannot be " +
                         "handled in state '{2}'.\n", this.GetType().Name, e.GetType().Name,
                         this.StateStack.Peek().GetType().Name);
                 }
@@ -354,12 +364,12 @@ namespace Microsoft.PSharp
                     {
                         if (s.IsDefined(typeof(Initial), false))
                         {
-                            Runtime.Assert(initialState == null, "Monitor '{0}' can not have " +
+                            Monitor.Dispatcher.Assert(initialState == null, "Monitor '{0}' can not have " +
                                 "more than one initial states.\n", this.GetType().Name);
                             initialState = s;
                         }
 
-                        Runtime.Assert(s.BaseType == typeof(MonitorState), "State '{0}' is " +
+                        Monitor.Dispatcher.Assert(s.BaseType == typeof(MonitorState), "State '{0}' is " +
                             "not of the correct type.\n", s.Name);
                         this.StateTypes.Add(s);
                     }
@@ -527,9 +537,9 @@ namespace Microsoft.PSharp
         /// </summary>
         private void AssertStateValidity()
         {
-            Runtime.Assert(this.StateTypes.Count > 0, "Monitor '{0}' must " +
+            Monitor.Dispatcher.Assert(this.StateTypes.Count > 0, "Monitor '{0}' must " +
                 "have one or more states.\n", this.GetType().Name);
-            Runtime.Assert(this.StateStack.Peek() != null, "Monitor '{0}' " +
+            Monitor.Dispatcher.Assert(this.StateStack.Peek() != null, "Monitor '{0}' " +
                 "must not have a null current state.\n", this.GetType().Name);
         }
 
@@ -540,7 +550,7 @@ namespace Microsoft.PSharp
         /// <param name="ex">Exception</param>
         private void ReportGenericAssertion(Exception ex)
         {
-            Runtime.Assert(false, "Exception '{0}' was thrown in monitor '{1}'. The stack " +
+            Monitor.Dispatcher.Assert(false, "Exception '{0}' was thrown in monitor '{1}'. The stack " +
                 "trace is:\n{2}\n", ex.GetType(), this.GetType().Name, ex.StackTrace);
         }
 

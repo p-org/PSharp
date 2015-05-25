@@ -35,6 +35,11 @@ namespace Microsoft.PSharp
         /// </summary>
         private static int IdCounter = 0;
 
+        /// <summary>
+        /// Dispatcher used to communicate with the P# runtime.
+        /// </summary>
+        internal static IDispatcher Dispatcher;
+
         #endregion
 
         #region fields
@@ -177,7 +182,7 @@ namespace Microsoft.PSharp
         {
             this.Assert(typeof(T).IsSubclassOf(typeof(Machine)), "Type '{0}' is " +
                 "not a subclass of Machine.", typeof(T).Name);
-            return Runtime.TryCreateNewMachineInstance<T>(this, payload);
+            return Machine.Dispatcher.TryCreateNewMachineInstance<T>(this, payload);
         }
 
         /// <summary>
@@ -187,9 +192,9 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         protected internal void Send(Machine m, Event e)
         {
-            Output.Debug(DebugType.Runtime, "<SendLog> Machine {0}({1}) sent event {2} to machine {3}({4}).",
-                this, this.Id, e.GetType(), m, m.Id);
-            Runtime.Send(this, m, e);
+            Output.Debug(DebugType.Runtime, "<SendLog> Machine {0}({1}) sent event {2} " +
+                "to machine {3}({4}).", this, this.Id, e.GetType(), m, m.Id);
+            Machine.Dispatcher.Send(this, m, e);
         }
 
         /// <summary>
@@ -199,7 +204,7 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         protected internal void Monitor<T>(Event e)
         {
-            Runtime.Monitor<T>(e);
+            Machine.Dispatcher.Monitor<T>(e);
         }
 
         /// <summary>
@@ -208,9 +213,9 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         protected internal void Raise(Event e)
         {
-            Output.Debug(DebugType.Runtime, "<RaiseLog> Machine {0}({1}) raised event {2}.", this, this.Id, e);
+            Output.Debug(DebugType.Runtime, "<RaiseLog> Machine {0}({1}) raised " +
+                "event {2}.", this, this.Id, e);
             this.RaisedEvent = e;
-            //this.HandleEvent(e);
         }
 
         /// <summary>
@@ -228,7 +233,7 @@ namespace Microsoft.PSharp
         /// <param name="predicate">Predicate</param>
         protected internal void Assert(bool predicate)
         {
-            Runtime.Assert(predicate);
+            Machine.Dispatcher.Assert(predicate);
         }
 
         /// <summary>
@@ -240,7 +245,7 @@ namespace Microsoft.PSharp
         /// <param name="args">Message arguments</param>
         protected internal void Assert(bool predicate, string s, params object[] args)
         {
-            Runtime.Assert(predicate, s, args);
+            Machine.Dispatcher.Assert(predicate, s, args);
         }
 
         #endregion
@@ -260,10 +265,9 @@ namespace Microsoft.PSharp
             /// <returns>Machine</returns>
             internal static Machine Create(Type m, params Object[] payload)
             {
-                Runtime.Assert(m.IsSubclassOf(typeof(Machine)), "Type '{0}' is not " +
-                    "a subclass of Machine.", m.Name);
-                var machine = Runtime.TryCreateNewMachineInstance(m, payload);
-                return machine;
+                Machine.Dispatcher.Assert(m.IsSubclassOf(typeof(Machine)),
+                    "Type '{0}' is not a subclass of Machine.", m.Name);
+                return Machine.Dispatcher.TryCreateNewMachineInstance(m, payload);
             }
         }
 
@@ -454,7 +458,8 @@ namespace Microsoft.PSharp
                     {
                         lock (this.Inbox)
                         {
-                            Output.Debug(DebugType.Runtime, "<HaltLog> Machine {0}({1}) halted.", this, this.Id);
+                            Output.Debug(DebugType.Runtime, "<HaltLog> Machine " +
+                                "{0}({1}) halted.", this, this.Id);
                             this.Status = MachineStatus.Halted;
                             this.CleanUpResources();
                         }
@@ -570,7 +575,7 @@ namespace Microsoft.PSharp
             // If push statement was used do the following logic.
             if (withPushStmt)
             {
-                foreach (var e in Runtime.GetRegisteredEventTypes())
+                foreach (var e in Machine.Dispatcher.GetRegisteredEventTypes())
                 {
                     if (!state.CanHandleEvent(e))
                     {

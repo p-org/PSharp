@@ -21,7 +21,7 @@ using System.Threading.Tasks;
 
 using Microsoft.PSharp.Tooling;
 
-namespace Microsoft.PSharp.BugFinding
+namespace Microsoft.PSharp.Scheduling
 {
     /// <summary>
     /// Class implementing the P# bug-finding scheduler.

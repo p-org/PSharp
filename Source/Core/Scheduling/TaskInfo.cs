@@ -14,7 +14,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-namespace Microsoft.PSharp
+namespace Microsoft.PSharp.Scheduling
 {
     /// <summary>
     /// Class implementing task related information for scheduling purposes.

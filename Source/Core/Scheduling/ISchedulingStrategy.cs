@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="Exceptions.cs" company="Microsoft">
+// <copyright file="ISchedulingStrategy.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -14,28 +14,38 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
+using System.Collections.Generic;
 
-namespace Microsoft.PSharp
+namespace Microsoft.PSharp.Scheduling
 {
     /// <summary>
-    /// This exception is thrown whenever the Return() statement
-    /// is executed to pop a state from the call state stack.
+    /// Interface of a generic scheduling strategy.
     /// </summary>
-    internal sealed class ReturnUsedException : Exception
+    public interface ISchedulingStrategy
     {
         /// <summary>
-        /// State from which Return() was used.
+        /// Returns the next task to schedule.
         /// </summary>
-        internal MachineState ReturningState;
+        /// <param name="next">Next</param>
+        /// <param name="tasks">Tasks</param>
+        /// <returns>Boolean value</returns>
+        bool TryGetNext(out TaskInfo next, List<TaskInfo> tasks);
 
         /// <summary>
-        /// Default constructor of the ReturnUsedException class.
+        /// True if the scheduling has finished.
         /// </summary>
-        /// <param name="s">State</param>
-        public ReturnUsedException(MachineState s)
-        {
-            this.ReturningState = s;
-        }
+        /// <returns>Boolean value</returns>
+        bool HasFinished();
+
+        /// <summary>
+        /// Returns a textual description of the scheduling strategy.
+        /// </summary>
+        /// <returns>String</returns>
+        string GetDescription();
+        
+        /// <summary>
+        /// Resets the scheduling strategy.
+        /// </summary>
+        void Reset();
     }
 }

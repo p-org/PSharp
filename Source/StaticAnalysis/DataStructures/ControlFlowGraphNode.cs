@@ -20,7 +20,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 
-using Microsoft.PSharp.Core;
 using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp.StaticAnalysis

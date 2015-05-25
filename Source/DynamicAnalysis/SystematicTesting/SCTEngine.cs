@@ -17,7 +17,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
-using Microsoft.PSharp.BugFinding;
+using Microsoft.PSharp.Scheduling;
 using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp.DynamicAnalysis

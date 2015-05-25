@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Microsoft.PSharp</RootNamespace>
-    <AssemblyName>Microsoft.PSharp</AssemblyName>
+    <AssemblyName>Microsoft.PSharp.Runtime</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -41,30 +41,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Attributes\EntryPoint.cs" />
-    <Compile Include="Attributes\Main.cs" />
-    <Compile Include="Attributes\Ghost.cs" />
-    <Compile Include="Collections\Container.cs" />
-    <Compile Include="Collections\Seq.cs" />
-    <Compile Include="Scheduling\Scheduler.cs" />
-    <Compile Include="Scheduling\ISchedulingStrategy.cs" />
-    <Compile Include="Scheduling\TaskInfo.cs" />
-    <Compile Include="Library\ActionBindings.cs" />
-    <Compile Include="Library\MonitorState.cs" />
-    <Compile Include="Library\Monitor.cs" />
-    <Compile Include="Library\MachineStatus.cs" />
-    <Compile Include="Library\PushStateTransitions.cs" />
-    <Compile Include="Library\GotoStateTransitions.cs" />
-    <Compile Include="Events\Default.cs" />
-    <Compile Include="Events\Halt.cs" />
-    <Compile Include="Events\Event.cs" />
-    <Compile Include="Attributes\Initial.cs" />
-    <Compile Include="Exceptions.cs" />
-    <Compile Include="Library\Machine.cs" />
-    <Compile Include="Library\Havoc.cs" />
+    <Compile Include="Dispatcher.cs" />
+    <Compile Include="Scheduler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Runtime.cs" />
-    <Compile Include="Library\MachineState.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="PSharp.snk" />

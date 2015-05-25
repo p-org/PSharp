@@ -21,7 +21,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-using Microsoft.PSharp.Core;
+using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp.StaticAnalysis
 {
