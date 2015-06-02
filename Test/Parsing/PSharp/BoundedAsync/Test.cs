@@ -22,14 +22,14 @@ namespace BoundedAsync
     {
         static void Main(string[] args)
         {
-            Runtime.RegisterNewEvent(typeof(eUnit));
-            Runtime.RegisterNewEvent(typeof(eReq));
-            Runtime.RegisterNewEvent(typeof(eResp));
-            Runtime.RegisterNewEvent(typeof(eInit));
-            Runtime.RegisterNewEvent(typeof(eMyCount));
+            Test.Execute();
+        }
 
-            Runtime.RegisterNewMachine(typeof(Scheduler));
-            Runtime.RegisterNewMachine(typeof(Process));
+        [EntryPoint]
+        public static void Execute()
+        {
+            Runtime.RegisterMachine(typeof(Scheduler));
+            Runtime.RegisterMachine(typeof(Process));
 
             Runtime.Start();
         }
