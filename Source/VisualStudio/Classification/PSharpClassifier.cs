@@ -207,7 +207,7 @@ namespace Microsoft.PSharp.VisualStudio
 
                 case TokenType.MachineDecl:
                 case TokenType.ModelDecl:
-                case TokenType.MonitorDecl:
+                case TokenType.Monitor:
                 case TokenType.StateDecl:
                 case TokenType.EventDecl:
                 case TokenType.ActionDecl:
@@ -221,7 +221,6 @@ namespace Microsoft.PSharp.VisualStudio
                 case TokenType.GotoState:
                 case TokenType.DeferEvent:
                 case TokenType.IgnoreEvent:
-                case TokenType.ToMachine:
                 case TokenType.Entry:
                 case TokenType.Exit:
 
@@ -249,7 +248,6 @@ namespace Microsoft.PSharp.VisualStudio
                 case TokenType.CreateMachine:
                 case TokenType.SendEvent:
                 case TokenType.RaiseEvent:
-                case TokenType.DeleteMachine:
                 case TokenType.Assert:
                 case TokenType.Assume:
                 case TokenType.Payload:
