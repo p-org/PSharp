@@ -120,7 +120,8 @@ namespace Microsoft.PSharp.Parsing
                 base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
                 if (base.TokenStream.Done ||
-                    base.TokenStream.Peek().Type != TokenType.Identifier)
+                    (base.TokenStream.Peek().Type != TokenType.Identifier &&
+                    base.TokenStream.Peek().Type != TokenType.LeftCurlyBracket))
                 {
                     throw new ParsingException("Expected action identifier.",
                         new List<TokenType>
@@ -129,21 +130,38 @@ namespace Microsoft.PSharp.Parsing
                     });
                 }
 
-                base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit,
-                    TokenType.ActionIdentifier));
-
-                var actionIdentifier = base.TokenStream.Peek();
-                foreach (var eventIdentifier in eventIdentifiers)
+                if (base.TokenStream.Peek().Type == TokenType.LeftCurlyBracket)
                 {
-                    if (!parentNode.AddActionBinding(eventIdentifier, actionIdentifier))
+                    var blockNode = new StatementBlockNode(parentNode.Machine, null);
+                    new StatementBlockVisitor(base.TokenStream).Visit(blockNode);
+
+                    foreach (var eventIdentifier in eventIdentifiers)
                     {
-                        throw new ParsingException("Unexpected action identifier.",
-                            new List<TokenType>());
+                        if (!parentNode.AddActionBinding(eventIdentifier, blockNode))
+                        {
+                            throw new ParsingException("Unexpected action handler.",
+                                new List<TokenType>());
+                        }
                     }
                 }
+                else
+                {
+                    base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit,
+                    TokenType.ActionIdentifier));
 
-                base.TokenStream.Index++;
-                base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                    var actionIdentifier = base.TokenStream.Peek();
+                    foreach (var eventIdentifier in eventIdentifiers)
+                    {
+                        if (!parentNode.AddActionBinding(eventIdentifier, actionIdentifier))
+                        {
+                            throw new ParsingException("Unexpected action handler.",
+                                new List<TokenType>());
+                        }
+                    }
+
+                    base.TokenStream.Index++;
+                    base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                }
 
                 if (base.TokenStream.Done ||
                     base.TokenStream.Peek().Type != TokenType.Semicolon)
@@ -210,7 +228,7 @@ namespace Microsoft.PSharp.Parsing
                     {
                         if (!parentNode.AddGotoStateTransition(eventIdentifier, stateIdentifier, blockNode))
                         {
-                            throw new ParsingException("Unexpected state identifier.",
+                            throw new ParsingException("Unexpected goto state transition.",
                                 new List<TokenType>());
                         }
                     }
@@ -231,7 +249,7 @@ namespace Microsoft.PSharp.Parsing
                     {
                         if (!parentNode.AddGotoStateTransition(eventIdentifier, stateIdentifier))
                         {
-                            throw new ParsingException("Unexpected state identifier.",
+                            throw new ParsingException("Unexpected goto state transition.",
                                 new List<TokenType>());
                         }
                     }
@@ -279,7 +297,7 @@ namespace Microsoft.PSharp.Parsing
                 {
                     if (!parentNode.AddPushStateTransition(eventIdentifier, stateIdentifier))
                     {
-                        throw new ParsingException("Unexpected state identifier.",
+                        throw new ParsingException("Unexpected push state transition.",
                             new List<TokenType>());
                     }
                 }

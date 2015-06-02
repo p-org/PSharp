@@ -98,12 +98,14 @@ namespace Microsoft.PSharp.Parsing
             {
                 if (base.TokenStream.Done ||
                     (base.TokenStream.Peek().Type != TokenType.Identifier &&
+                    base.TokenStream.Peek().Type != TokenType.This &&
                     base.TokenStream.Peek().Type != TokenType.LeftParenthesis))
                 {
                     throw new ParsingException("Expected machine identifier.",
                         new List<TokenType>
                     {
-                            TokenType.Identifier
+                            TokenType.Identifier,
+                            TokenType.This
                     });
                 }
 

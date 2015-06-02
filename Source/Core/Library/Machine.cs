@@ -683,6 +683,9 @@ namespace Microsoft.PSharp
         /// <param name="a">Action</param>
         private void Do(Action a)
         {
+            Output.Debug(DebugType.Runtime, "<ActionLog> Machine {0}({1}) executed " +
+                "action in state {2}.", this, this.Id, this.StateStack.Peek());
+
             try
             {
                 a();

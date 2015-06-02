@@ -530,6 +530,15 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
                 foreach (var binding in state.ActionBindings)
                 {
+                    var actionText = "";
+                    if (state.ActionHandlers.ContainsKey(binding.Key))
+                    {
+                        var action = state.ActionHandlers[binding.Key];
+                        int position = 0;
+                        action.Rewrite(ref position);
+                        actionText = action.GetRewrittenText();
+                    }
+
                     string eventId = "";
                     if (binding.Key.Type == TokenType.HaltEvent)
                     {
@@ -544,8 +553,16 @@ namespace Microsoft.PSharp.Parsing.Syntax
                         eventId = binding.Key.TextUnit.Text;
                     }
 
-                    text += " " + state.Identifier.TextUnit.Text.ToLower() + "Dict.Add(typeof(" +
-                        eventId + "), new Action(" + binding.Value.TextUnit.Text + "));\n";
+                    if (actionText.Length > 0)
+                    {
+                        text += " " + state.Identifier.TextUnit.Text.ToLower() + "Dict.Add(typeof(" +
+                            eventId + "), () => " + actionText + ");\n";
+                    }
+                    else
+                    {
+                        text += " " + state.Identifier.TextUnit.Text.ToLower() + "Dict.Add(typeof(" +
+                            eventId + "), new Action(" + binding.Value.TextUnit.Text + "));\n";
+                    }
                 }
 
                 text += " dict.Add(typeof(" + state.Identifier.TextUnit.Text + "), " +

@@ -86,6 +86,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
         internal Dictionary<Token, StatementBlockNode> TransitionsOnExitActions;
 
         /// <summary>
+        /// Dictionary containing actions handlers.
+        /// </summary>
+        internal Dictionary<Token, StatementBlockNode> ActionHandlers;
+
+        /// <summary>
         /// Set of deferred events.
         /// </summary>
         internal HashSet<Token> DeferredEvents;
@@ -118,6 +123,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
             this.PushStateTransitions = new Dictionary<Token, Token>();
             this.ActionBindings = new Dictionary<Token, Token>();
             this.TransitionsOnExitActions = new Dictionary<Token, StatementBlockNode>();
+            this.ActionHandlers = new Dictionary<Token, StatementBlockNode>();
             this.DeferredEvents = new HashSet<Token>();
             this.IgnoredEvents = new HashSet<Token>();
         }
@@ -168,6 +174,27 @@ namespace Microsoft.PSharp.Parsing.Syntax
             }
 
             this.PushStateTransitions.Add(eventIdentifier, stateIdentifier);
+
+            return true;
+        }
+
+        /// <summary>
+        /// Adds an action binding.
+        /// </summary>
+        /// <param name="eventIdentifier">Token</param>
+        /// <param name="stateIdentifier">Token</param>
+        /// <returns>Boolean value</returns>
+        public bool AddActionBinding(Token eventIdentifier, StatementBlockNode stmtBlock)
+        {
+            if (this.GotoStateTransitions.ContainsKey(eventIdentifier) ||
+                this.PushStateTransitions.ContainsKey(eventIdentifier) ||
+                this.ActionBindings.ContainsKey(eventIdentifier))
+            {
+                return false;
+            }
+
+            this.ActionBindings.Add(eventIdentifier, null);
+            this.ActionHandlers.Add(eventIdentifier, stmtBlock);
 
             return true;
         }
@@ -341,6 +368,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
             foreach (var onExitAction in this.TransitionsOnExitActions)
             {
                 onExitAction.Value.GenerateTextUnit();
+            }
+
+            foreach (var doAction in this.ActionHandlers)
+            {
+                doAction.Value.GenerateTextUnit();
             }
 
             var text = "";
