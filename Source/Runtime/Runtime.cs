@@ -37,16 +37,6 @@ namespace Microsoft.PSharp
         private static HashSet<Type> RegisteredMachineTypes = new HashSet<Type>();
 
         /// <summary>
-        /// Set of registered monitor types.
-        /// </summary>
-        private static HashSet<Type> RegisteredMonitorTypes = new HashSet<Type>();
-
-        /// <summary>
-        /// Set of registered event types.
-        /// </summary>
-        private static HashSet<Type> RegisteredEventTypes = new HashSet<Type>();
-
-        /// <summary>
         /// List of monitors in the program.
         /// </summary>
         private static List<Monitor> Monitors = new List<Monitor>();
@@ -76,25 +66,11 @@ namespace Microsoft.PSharp
         #region P# API methods
 
         /// <summary>
-        /// Register a new event type. Cannot register a new event
-        /// type after the runtime has started running.
-        /// </summary>
-        /// <param name="e">Event</param>
-        public static void RegisterNewEvent(Type e)
-        {
-            Runtime.Assert(Runtime.IsRunning == false, "Cannot register event '{0}'" +
-                "because the P# runtime has already started.", e.Name);
-            Runtime.Assert(e.IsSubclassOf(typeof(Event)), "Type '{0}' is not " +
-                    "a subclass of Event.", e.Name);
-            Runtime.RegisteredEventTypes.Add(e);
-        }
-
-        /// <summary>
-        /// Register a new machine type. Cannot register a new machine
+        /// Registers a machine type. Cannot register a machine
         /// type after the runtime has started running.
         /// </summary>
         /// <param name="m">Machine</param>
-        public static void RegisterNewMachine(Type m)
+        public static void RegisterMachine(Type m)
         {
             Runtime.Assert(Runtime.IsRunning == false, "Cannot register machine '{0}'" +
                 "because the P# runtime has already started.", m.Name);
@@ -110,22 +86,6 @@ namespace Microsoft.PSharp
             }
 
             Runtime.RegisteredMachineTypes.Add(m);
-        }
-
-        /// <summary>
-        /// Register a new monitor type. Cannot register a new monitor
-        /// type after the runtime has started running.
-        /// </summary>
-        /// <param name="m">Machine</param>
-        public static void RegisterNewMonitor(Type m)
-        {
-            Runtime.Assert(Runtime.IsRunning == false, "Cannot register monitor '{0}'" +
-                "because the P# runtime has already started.", m.Name);
-            Runtime.Assert(m.IsSubclassOf(typeof(Monitor)), "Type '{0}' is not " +
-                    "a subclass of Monitor.", m.Name);
-            Runtime.Assert(!m.IsDefined(typeof(Main), false),
-                "Monitor '{0}' cannot be declared as main.", m.Name);
-            Runtime.RegisteredMonitorTypes.Add(m);
         }
 
         /// <summary>
@@ -309,9 +269,7 @@ namespace Microsoft.PSharp
             {
                 return;
             }
-
-            Runtime.Assert(Runtime.RegisteredMonitorTypes.Any(val => val == m),
-                "Monitor '{0}' has not been registered with the P# runtime.", m.Name);
+            
             Runtime.Assert(!Runtime.Monitors.Any(val => val.GetType() == m),
                 "A monitor of type '{0}' already exists.", m.Name);
 
@@ -334,9 +292,7 @@ namespace Microsoft.PSharp
             {
                 return;
             }
-
-            Runtime.Assert(Runtime.RegisteredMonitorTypes.Any(val => val == typeof(T)),
-                "Monitor '{0}' has not been registered with the P# runtime.", typeof(T).Name);
+            
             Runtime.Assert(!Runtime.Monitors.Any(val => val.GetType() == typeof(T)),
                 "A monitor of type '{0}' already exists.", typeof(T).Name);
 
@@ -355,8 +311,6 @@ namespace Microsoft.PSharp
         internal static void Send(Machine sender, Machine target, Event e)
         {
             Runtime.Assert(e != null, "Machine '{0}' received a null event.", target);
-            Runtime.Assert(Runtime.RegisteredEventTypes.Any(val => val == e.GetType()),
-                "Event '{0}' has not been registered with the P# runtime.", e);
             
             target.Enqueue(e);
 
@@ -415,8 +369,6 @@ namespace Microsoft.PSharp
 
             Runtime.Assert(Runtime.Monitors.Any(val => val.GetType() == typeof(T)),
                 "A monitor of type '{0}' does not exist.", typeof(T).Name);
-            Runtime.Assert(Runtime.RegisteredEventTypes.Any(val => val == e.GetType()),
-                "Event '{0}' has not been registered with the P# runtime.", e.GetType().Name);
 
             foreach (var m in Runtime.Monitors)
             {
@@ -425,27 +377,6 @@ namespace Microsoft.PSharp
                     m.Enqueue(e, null);
                 }
             }
-        }
-
-        /// <summary>
-        /// Returns all registered event types.
-        /// </summary>
-        /// <returns>List of event types</returns>
-        internal static List<Type> GetRegisteredEventTypes()
-        {
-            return Runtime.RegisteredEventTypes.ToList();
-        }
-
-        /// <summary>
-        /// Returns the machine type of the given string.
-        /// </summary>
-        /// <param name="m">String</param>
-        /// <returns>Type of the machine</returns>
-        internal static Type GetMachineType(string m)
-        {
-            Type result = Runtime.RegisteredMachineTypes.FirstOrDefault(t => t.Name.Equals(m));
-            Runtime.Assert(result != null, "No machine of type '{0}' was found.", m);
-            return result;
         }
         
         #endregion
@@ -460,9 +391,6 @@ namespace Microsoft.PSharp
             var dispatcher = new Dispatcher();
             Microsoft.PSharp.Machine.Dispatcher = dispatcher;
             Microsoft.PSharp.Monitor.Dispatcher = dispatcher;
-
-            Runtime.RegisterNewEvent(typeof(Halt));
-            Runtime.RegisterNewEvent(typeof(Default));
 
             if (Runtime.BugFinder != null)
             {
@@ -538,8 +466,6 @@ namespace Microsoft.PSharp
             }
 
             Runtime.RegisteredMachineTypes.Clear();
-            Runtime.RegisteredMonitorTypes.Clear();
-            Runtime.RegisteredEventTypes.Clear();
 
             Runtime.Monitors.Clear();
             Runtime.MachineTasks.Clear();

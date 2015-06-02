@@ -8,12 +8,8 @@ namespace PPushTest
     {
         static void Main(string[] args)
         {
-            Runtime.RegisterNewEvent(typeof(eUnit));
-            Runtime.RegisterNewEvent(typeof(ePing));
-            Runtime.RegisterNewEvent(typeof(ePong));
-
-            Runtime.RegisterNewMachine(typeof(Ping));
-            Runtime.RegisterNewMachine(typeof(Pong));
+            Runtime.RegisterMachine(typeof(Ping));
+            Runtime.RegisterMachine(typeof(Pong));
             
             Runtime.Start();
         }

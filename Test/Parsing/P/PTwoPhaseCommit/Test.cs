@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.PSharp;
 
-namespace PingPong
+namespace PTwoPhaseCommit
 {
     public class Test
     {
@@ -14,9 +14,12 @@ namespace PingPong
         [EntryPoint]
         public static void Execute()
         {
-            Runtime.RegisterMachine(typeof(Server));
+            Runtime.RegisterMachine(typeof(Timer));
+            Runtime.RegisterMachine(typeof(Replica));
+            Runtime.RegisterMachine(typeof(Coordinator));
             Runtime.RegisterMachine(typeof(Client));
-            
+            Runtime.RegisterMachine(typeof(TwoPhaseCommit));
+
             Runtime.Start();
         }
     }

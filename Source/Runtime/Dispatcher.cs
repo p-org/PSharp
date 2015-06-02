@@ -118,15 +118,6 @@ namespace Microsoft.PSharp
             Runtime.Assert(predicate, s, args);
         }
 
-        /// <summary>
-        /// Returns all registered event types.
-        /// </summary>
-        /// <returns>List of event types</returns>
-        List<Type> IDispatcher.GetRegisteredEventTypes()
-        {
-            return Runtime.GetRegisteredEventTypes();
-        }
-
         #endregion
     }
 }

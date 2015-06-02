@@ -8,22 +8,9 @@ namespace PLinearTopology
     {
         static void Main(string[] args)
         {
-            Runtime.RegisterNewEvent(typeof(Announce));
-            Runtime.RegisterNewEvent(typeof(Initialise));
-            Runtime.RegisterNewEvent(typeof(PowerUp));
-            Runtime.RegisterNewEvent(typeof(Local));
-            Runtime.RegisterNewEvent(typeof(StateDecisionEvent));
-            Runtime.RegisterNewEvent(typeof(Ack));
-            Runtime.RegisterNewEvent(typeof(ErBest));
-            Runtime.RegisterNewEvent(typeof(UpdateParentGM));
-            Runtime.RegisterNewEvent(typeof(goMaster));
-            Runtime.RegisterNewEvent(typeof(goSlave));
-            Runtime.RegisterNewEvent(typeof(goPassive));
-            Runtime.RegisterNewEvent(typeof(doneStateChange));
-
-            Runtime.RegisterNewMachine(typeof(GodMachine));
-            Runtime.RegisterNewMachine(typeof(Clock));
-            Runtime.RegisterNewMachine(typeof(PortMachine));
+            Runtime.RegisterMachine(typeof(GodMachine));
+            Runtime.RegisterMachine(typeof(Clock));
+            Runtime.RegisterMachine(typeof(PortMachine));
             
             Runtime.Start();
         }

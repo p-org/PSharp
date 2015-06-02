@@ -575,13 +575,13 @@ namespace Microsoft.PSharp
             // If push statement was used do the following logic.
             if (withPushStmt)
             {
-                foreach (var e in Machine.Dispatcher.GetRegisteredEventTypes())
-                {
-                    if (!state.CanHandleEvent(e))
-                    {
-                        state.DeferredEvents.Add(e);
-                    }
-                }
+                //foreach (var e in Machine.Dispatcher.GetRegisteredEventTypes())
+                //{
+                //    if (!state.CanHandleEvent(e))
+                //    {
+                //        state.DeferredEvents.Add(e);
+                //    }
+                //}
             }
             // If the state stack is non-empty, update the data structures
             // with the following logic.

@@ -8,13 +8,8 @@ namespace TypesAndGenerics
     {
         static void Main(string[] args)
         {
-            Runtime.RegisterNewEvent(typeof(Ping));
-            Runtime.RegisterNewEvent(typeof(Pong));
-            Runtime.RegisterNewEvent(typeof(Stop));
-            Runtime.RegisterNewEvent(typeof(Unit));
-
-            Runtime.RegisterNewMachine(typeof(Server));
-            Runtime.RegisterNewMachine(typeof(Client));
+            Runtime.RegisterMachine(typeof(Server));
+            Runtime.RegisterMachine(typeof(Client));
             
             Runtime.Start();
         }

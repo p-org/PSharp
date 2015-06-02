@@ -91,11 +91,5 @@ namespace Microsoft.PSharp
         /// <param name="s">Message</param>
         /// <param name="args">Message arguments</param>
         void Assert(bool predicate, string s, params object[] args);
-
-        /// <summary>
-        /// Returns all registered event types.
-        /// </summary>
-        /// <returns>List of event types</returns>
-        List<Type> GetRegisteredEventTypes();
     }
 }

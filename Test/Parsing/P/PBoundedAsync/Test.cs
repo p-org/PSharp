@@ -14,14 +14,8 @@ namespace PBoundedAsync
         [EntryPoint]
         public static void Execute()
         {
-            Runtime.RegisterNewEvent(typeof(unit));
-            Runtime.RegisterNewEvent(typeof(Req));
-            Runtime.RegisterNewEvent(typeof(Resp));
-            Runtime.RegisterNewEvent(typeof(init));
-            Runtime.RegisterNewEvent(typeof(myCount));
-
-            Runtime.RegisterNewMachine(typeof(Scheduler));
-            Runtime.RegisterNewMachine(typeof(Process));
+            Runtime.RegisterMachine(typeof(Scheduler));
+            Runtime.RegisterMachine(typeof(Process));
 
             Runtime.Start();
         }
