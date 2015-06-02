@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{D3BBA39C-CED1-4372-BF89-9D422046C220}</ProjectGuid>
+    <ProjectGuid>{EED08DA7-945A-4790-A0FB-98E7668DF3AE}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>AlonBug</RootNamespace>
-    <AssemblyName>AlonBug</AssemblyName>
+    <RootNamespace>MaxInstances_3</RootNamespace>
+    <AssemblyName>MaxInstances_3</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

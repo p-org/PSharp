@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{EED08DA7-945A-4790-A0FB-98E7668DF3AE}</ProjectGuid>
+    <ProjectGuid>{A9A7FC8E-2F4C-47A7-8BF6-EF82D4E20751}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>MaxInstances_2</RootNamespace>
