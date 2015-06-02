@@ -93,6 +93,7 @@ namespace Microsoft.PSharp.Parsing
             if (base.TokenStream.Peek().Type == TokenType.Assert ||
                 base.TokenStream.Peek().Type == TokenType.Assume)
             {
+                bool isAssert = true;
                 if (base.TokenStream.Peek().Type == TokenType.Assert)
                 {
                     node.AssertKeyword = base.TokenStream.Peek();
@@ -100,6 +101,7 @@ namespace Microsoft.PSharp.Parsing
                 else
                 {
                     node.AssumeKeyword = base.TokenStream.Peek();
+                    isAssert = false;
                 }
 
                 base.TokenStream.Index++;
@@ -125,7 +127,7 @@ namespace Microsoft.PSharp.Parsing
                     });
                 }
 
-                if (base.TokenStream.Peek().Type == TokenType.Assert)
+                if (isAssert)
                 {
                     node.AssertValue = value;
                 }

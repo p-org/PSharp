@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -333,6 +334,13 @@ namespace Microsoft.PSharp
                     Output.Debug(DebugType.Runtime, "<EnqueueLog> Machine {0}({1}) enqueued event {2}.",
                         this, this.Id, e.GetType());
                     this.Inbox.Add(e);
+
+                    if (e.Assert >= 0)
+                    {
+                        var eventCount = this.Inbox.Count(val => val.GetType().Equals(e.GetType()));
+                        this.Assert(eventCount <= e.Assert, "There are more than {0} instances of {1} " +
+                            "in the input queue of machine '{1}'", e.Assert, e.GetType().Name, this);
+                    }
                 }
             }
         }
