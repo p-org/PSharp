@@ -661,6 +661,11 @@ namespace Microsoft.PSharp
         {
             // The machine performs the on exit statements of the current state.
             this.ExecuteCurrentStateOnExit(onExit);
+            if (this.Status == MachineStatus.Halted)
+            {
+                return;
+            }
+
             this.StateStack.Pop();
             // The machine transitions to the new state.
             MachineState nextState = this.InitializeState(s);
