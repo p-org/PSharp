@@ -14,9 +14,7 @@ namespace Regression
         [EntryPoint]
         public static void Execute()
         {
-            Runtime.RegisterNewEvent(typeof(E));
-
-            Runtime.RegisterNewMachine(typeof(Program));
+            Runtime.RegisterMachine(typeof(Program));
 
             Runtime.Start();
         }
