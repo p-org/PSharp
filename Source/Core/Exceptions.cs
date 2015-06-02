@@ -31,25 +31,4 @@ namespace Microsoft.PSharp
 
         }
     }
-
-    /// <summary>
-    /// This exception is thrown whenever the Return() statement
-    /// is executed to pop a state from the call state stack.
-    /// </summary>
-    internal sealed class ReturnUsedException : Exception
-    {
-        /// <summary>
-        /// State from which Return() was used.
-        /// </summary>
-        internal MachineState ReturningState;
-
-        /// <summary>
-        /// Default constructor of the ReturnUsedException class.
-        /// </summary>
-        /// <param name="s">State</param>
-        public ReturnUsedException(MachineState s)
-        {
-            this.ReturningState = s;
-        }
-    }
 }

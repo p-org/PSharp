@@ -352,6 +352,10 @@ namespace Microsoft.PSharp.Parsing
                     this.Tokens.Add(new Token(unit, TokenType.Return));
                     break;
 
+                case "pop":
+                    this.Tokens.Add(new Token(unit, TokenType.Pop));
+                    break;
+
                 case "lock":
                     this.Tokens.Add(new Token(unit, TokenType.Lock));
                     break;

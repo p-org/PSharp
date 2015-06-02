@@ -224,6 +224,10 @@ namespace Microsoft.PSharp.Parsing
             {
                 new PushStatementVisitor(base.TokenStream).Visit(blockNode);
             }
+            else if (base.TokenStream.Peek().Type == TokenType.Pop)
+            {
+                new PopStatementVisitor(base.TokenStream).Visit(blockNode);
+            }
             else if (base.TokenStream.Peek().Type == TokenType.Assert)
             {
                 new AssertStatementVisitor(base.TokenStream).Visit(blockNode);

@@ -113,6 +113,10 @@ namespace Microsoft.PSharp.Parsing
                     new SendStatementVisitor(base.TokenStream).Visit(node);
                     break;
 
+                case TokenType.Pop:
+                    new PopStatementVisitor(base.TokenStream).Visit(node);
+                    break;
+
                 case TokenType.Assert:
                     new AssertStatementVisitor(base.TokenStream).Visit(node);
                     break;
@@ -214,6 +218,10 @@ namespace Microsoft.PSharp.Parsing
 
                 case TokenType.PushState:
                     new PushStatementVisitor(base.TokenStream).Visit(node);
+                    break;
+
+                case TokenType.Pop:
+                    new PopStatementVisitor(base.TokenStream).Visit(node);
                     break;
 
                 case TokenType.Assert:

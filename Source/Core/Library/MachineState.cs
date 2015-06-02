@@ -216,9 +216,9 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Pops the current state from the push state stack.
         /// </summary>
-        protected void Return()
+        protected void Pop()
         {
-            this.Machine.Return();
+            this.Machine.Pop();
         }
 
         /// <summary>
