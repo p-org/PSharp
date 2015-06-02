@@ -132,6 +132,7 @@ namespace Microsoft.PSharp.Parsing
         Break,
         Continue,
         Return,
+        Pop,
         Lock,
 
         CreateMachine,

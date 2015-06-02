@@ -244,6 +244,8 @@ namespace Microsoft.PSharp.VisualStudio
                 case TokenType.Break:
                 case TokenType.Continue:
                 case TokenType.Return:
+                case TokenType.Pop:
+                case TokenType.Lock:
 
                 case TokenType.CreateMachine:
                 case TokenType.SendEvent:

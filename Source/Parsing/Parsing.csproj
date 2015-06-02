@@ -61,6 +61,7 @@
     <Compile Include="Parsers\BaseParser.cs" />
     <Compile Include="Parsers\PParser.cs" />
     <Compile Include="Parsers\PSharpParser.cs" />
+    <Compile Include="Parsers\Visitors\PopStatementVisitor.cs" />
     <Compile Include="Parsers\Visitors\EventDeclarationVisitor.cs" />
     <Compile Include="Parsers\Visitors\MachineDeclarationVisitor.cs" />
     <Compile Include="Parsers\Visitors\StateDeclarationVisitor.cs" />
@@ -109,6 +110,7 @@
     <Compile Include="Syntax\PTypes\PTupleType.cs" />
     <Compile Include="Syntax\PTypes\PBaseType.cs" />
     <Compile Include="Syntax\PTypes\PType.cs" />
+    <Compile Include="Syntax\Statements\PopStatementNode.cs" />
     <Compile Include="Syntax\Statements\AssertStatementNode.cs" />
     <Compile Include="Syntax\Statements\NewStatementNode.cs" />
     <Compile Include="Syntax\Statements\WhileStatementNode.cs" />

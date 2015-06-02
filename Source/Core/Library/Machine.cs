@@ -219,11 +219,14 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Pops the current state from the push state stack.
+        /// Pops the current state from the state stack.
         /// </summary>
-        protected internal void Return()
+        protected internal void Pop()
         {
-            throw new ReturnUsedException(this.StateStack.Pop());
+            this.StateStack.Pop();
+
+            this.Assert(!(this.StateStack.Count == 0 && this.Trigger != typeof(Halt)),
+                "Stack is empty and trigger is not halt.");
         }
 
         /// <summary>
@@ -657,11 +660,6 @@ namespace Microsoft.PSharp
             {
                 a();
             }
-            catch (ReturnUsedException ex)
-            {
-                // Handles the returning state.
-                this.AssertReturnStatementValidity(ex.ReturningState);
-            }
             catch (TaskCanceledException)
             {
                 this.Status = MachineStatus.Halted;
@@ -689,11 +687,6 @@ namespace Microsoft.PSharp
             {
                 // Performs the on entry statements of the new state.
                 this.StateStack.Peek().ExecuteEntryFunction();
-            }
-            catch (ReturnUsedException ex)
-            {
-                // Handles the returning state.
-                this.AssertReturnStatementValidity(ex.ReturningState);
             }
             catch (TaskCanceledException)
             {
@@ -723,11 +716,6 @@ namespace Microsoft.PSharp
                 {
                     onExit();
                 }
-            }
-            catch (ReturnUsedException ex)
-            {
-                // Handles the returning state.
-                this.AssertReturnStatementValidity(ex.ReturningState);
             }
             catch (TaskCanceledException)
             {
@@ -813,17 +801,6 @@ namespace Microsoft.PSharp
                 "have one or more states.", this.GetType().Name);
             this.Assert(this.StateStack.Peek() != null, "Machine '{0}' " +
                 "must not have a null current state.", this.GetType().Name);
-        }
-
-        /// <summary>
-        /// Checks if the Return() statement was performed properly.
-        /// </summary>
-        /// <param name="returningState">Returnig state</param>
-        private void AssertReturnStatementValidity(MachineState returningState)
-        {
-            this.Assert(this.StateStack.Count > 0, "Machine '{0}' executed a Return() " +
-                "statement while there was only the state '{1}' in the stack.",
-                this.GetType().Name, returningState.GetType().Name);
         }
 
         /// <summary>

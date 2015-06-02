@@ -341,6 +341,10 @@ namespace Microsoft.PSharp.Parsing
                     text = "return";
                     break;
 
+                case TokenType.Pop:
+                    text = "pop";
+                    break;
+
                 case TokenType.CreateMachine:
                     text = "create";
                     break;
