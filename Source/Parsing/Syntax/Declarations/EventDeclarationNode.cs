@@ -51,14 +51,24 @@ namespace Microsoft.PSharp.Parsing.Syntax
         public PTypeNode PayloadType;
 
         /// <summary>
-        /// The assert or assume keyword.
+        /// The assert keyword.
         /// </summary>
-        public Token AssertAssumeKeyword;
+        public Token AssertKeyword;
 
         /// <summary>
-        /// The assert identifier token.
+        /// The assume keyword.
         /// </summary>
-        public Token AssertIdentifier;
+        public Token AssumeKeyword;
+
+        /// <summary>
+        /// The assert value.
+        /// </summary>
+        public int AssertValue;
+
+        /// <summary>
+        /// The assume value.
+        /// </summary>
+        public int AssumeValue;
 
         /// <summary>
         /// The semicolon token.
@@ -113,7 +123,23 @@ namespace Microsoft.PSharp.Parsing.Syntax
             text += "\n";
             text += "{\n";
             text += " public " + this.Identifier.TextUnit.Text + "(params Object[] payload)\n";
-            text += "  : base(payload)\n";
+
+            text += "  : base(";
+
+            if (this.AssertKeyword != null)
+            {
+                text += this.AssertValue + ", -1, ";
+            }
+            else if (this.AssumeKeyword != null)
+            {
+                text += "-1, " + this.AssumeValue + ", ";
+            }
+            else
+            {
+                text += "-1, -1, ";
+            }
+            
+            text += "payload)\n";
             text += " { }\n";
             text += "}\n";
 

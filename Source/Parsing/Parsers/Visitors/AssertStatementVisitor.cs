@@ -64,8 +64,8 @@ namespace Microsoft.PSharp.Parsing
             if (base.TokenStream.IsPSharp)
             {
                 var predicate = new ExpressionNode(parentNode);
-                int counter = 1;
 
+                int counter = 1;
                 while (!base.TokenStream.Done)
                 {
                     if (base.TokenStream.Peek().Type == TokenType.LeftParenthesis)

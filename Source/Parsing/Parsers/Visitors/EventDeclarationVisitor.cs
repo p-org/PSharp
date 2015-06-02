@@ -93,22 +93,46 @@ namespace Microsoft.PSharp.Parsing
             if (base.TokenStream.Peek().Type == TokenType.Assert ||
                 base.TokenStream.Peek().Type == TokenType.Assume)
             {
-                node.AssertAssumeKeyword = base.TokenStream.Peek();
+                if (base.TokenStream.Peek().Type == TokenType.Assert)
+                {
+                    node.AssertKeyword = base.TokenStream.Peek();
+                }
+                else
+                {
+                    node.AssumeKeyword = base.TokenStream.Peek();
+                }
 
                 base.TokenStream.Index++;
                 base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
                 if (base.TokenStream.Done ||
-                base.TokenStream.Peek().Type != TokenType.Identifier)
+                    base.TokenStream.Peek().Type != TokenType.Identifier)
                 {
-                    throw new ParsingException("Expected identifier.",
+                    throw new ParsingException("Expected integer.",
                         new List<TokenType>
                     {
                         TokenType.Identifier
                     });
                 }
 
-                node.AssertIdentifier = base.TokenStream.Peek();
+                int value;
+                if (!int.TryParse(base.TokenStream.Peek().TextUnit.Text, out value))
+                {
+                    throw new ParsingException("Expected integer.",
+                        new List<TokenType>
+                    {
+                        TokenType.Identifier
+                    });
+                }
+
+                if (base.TokenStream.Peek().Type == TokenType.Assert)
+                {
+                    node.AssertValue = value;
+                }
+                else
+                {
+                    node.AssumeValue = value;
+                }
 
                 base.TokenStream.Index++;
                 base.TokenStream.SkipWhiteSpaceAndCommentTokens();

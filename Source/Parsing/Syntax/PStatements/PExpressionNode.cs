@@ -108,13 +108,23 @@ namespace Microsoft.PSharp.Parsing.Syntax
             var start = position;
             var text = "";
 
+            Token firstNonNull = null;
             foreach (var token in this.RewrittenStmtTokens)
             {
+                if (token == null)
+                {
+                    continue;
+                }
+
                 text += token.TextUnit.Text;
+
+                if (firstNonNull == null)
+                {
+                    firstNonNull = token;
+                }
             }
 
-            base.RewrittenTextUnit = new TextUnit(text,
-                this.StmtTokens.First().TextUnit.Line, start);
+            base.RewrittenTextUnit = new TextUnit(text, firstNonNull.TextUnit.Line, start);
             position = base.RewrittenTextUnit.End + 1;
         }
 
@@ -130,18 +140,24 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             var text = "";
 
-            foreach (var tok in this.StmtTokens)
+            Token firstNonNull = null;
+            foreach (var token in this.StmtTokens)
             {
-                if (tok == null)
+                if (token == null)
                 {
                     continue;
                 }
 
-                text += tok.TextUnit.Text;
+                text += token.TextUnit.Text;
+
+                if (firstNonNull == null)
+                {
+                    firstNonNull = token;
+                }
             }
 
-            base.TextUnit = new TextUnit(text, this.StmtTokens.First().TextUnit.Line,
-                this.StmtTokens.First().TextUnit.Start);
+            base.TextUnit = new TextUnit(text, firstNonNull.TextUnit.Line,
+                firstNonNull.TextUnit.Start);
         }
 
         #endregion

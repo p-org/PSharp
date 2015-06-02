@@ -29,19 +29,41 @@ namespace Microsoft.PSharp
         protected internal readonly Object Payload;
 
         /// <summary>
+        /// Specifies that there must not be more than k instances
+        /// of e in the input queue of any machine.
+        /// </summary>
+        protected internal readonly int Assert;
+
+        /// <summary>
+        /// Speciﬁes that during testing, an execution that increases
+        /// the cardinality of e beyond k in some queue must not be
+        /// generated.
+        /// </summary>
+        protected internal readonly int Assume;
+
+        /// <summary>
         /// Default constructor.
         /// </summary>
-        protected Event()
+        /// <param name="assert">Assert</param>
+        /// <param name="assume">Assume</param>
+        protected Event(int assert, int assume)
         {
+            this.Assert = assert;
+            this.Assume = assume;
             this.Payload = null;
         }
 
         /// <summary>
         /// Constructor.
         /// </summary>
+        /// <param name="assert">Assert</param>
+        /// <param name="assume">Assume</param>
         /// <param name="payload">Optional payload</param>
-        protected Event(params Object[] payload)
+        protected Event(int assert, int assume, params Object[] payload)
         {
+            this.Assert = assert;
+            this.Assume = assume;
+
             if (payload.Length == 0)
             {
                 this.Payload = null;

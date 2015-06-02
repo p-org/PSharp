@@ -27,7 +27,7 @@ namespace Microsoft.PSharp
         /// Default constructor.
         /// </summary>
         public Halt()
-            : base()
+            : base(-1, -1)
         {
 
         }
