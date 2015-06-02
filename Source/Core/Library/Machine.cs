@@ -223,10 +223,21 @@ namespace Microsoft.PSharp
         /// </summary>
         protected internal void Pop()
         {
-            this.StateStack.Pop();
+            Output.Debug(DebugType.Runtime, "<ExitLog> Machine {0}({1}) exiting state {2}.",
+                this, this.Id, this.StateStack.Peek());
 
-            this.Assert(!(this.StateStack.Count == 0 && this.Trigger != typeof(Halt)),
-                "Stack is empty and trigger is not halt.");
+            this.StateStack.Pop();
+            
+            if (this.StateStack.Count == 0)
+            {
+                Output.Debug(DebugType.Runtime, "<PopLog> Machine {0}({1}) popped.",
+                    this, this.Id);
+            }
+            else
+            {
+                Output.Debug(DebugType.Runtime, "<PopLog> Machine {0}({1}) popped and " +
+                    "reentered state {2}.", this, this.Id, this.StateStack.Peek());
+            }
         }
 
         /// <summary>
@@ -478,9 +489,22 @@ namespace Microsoft.PSharp
                 // If current state cannot handle the event then pop the state.
                 if (!this.StateStack.Peek().CanHandleEvent(e.GetType()))
                 {
-                    Output.Debug(DebugType.Runtime, "<ExitLog> Machine {0}({1}) popping state {2}.",
+                    Output.Debug(DebugType.Runtime, "<ExitLog> Machine {0}({1}) exiting state {2}.",
                         this, this.Id, this.StateStack.Peek());
+                    
                     this.StateStack.Pop();
+                    if (this.StateStack.Count == 0)
+                    {
+                        Output.Debug(DebugType.Runtime, "<PopLog> Machine {0}({1}) popped with " +
+                            "unhandled event {2}.", this, this.Id, e.GetType().Name);
+                    }
+                    else
+                    {
+                        Output.Debug(DebugType.Runtime, "<PopLog> Machine {0}({1}) popped with " +
+                            "unhandled event {2} and reentered state {3}.",
+                            this, this.Id, e.GetType().Name, this.StateStack.Peek());
+                    }
+                    
                     continue;
                 }
                 
@@ -643,6 +667,9 @@ namespace Microsoft.PSharp
         /// <param name="s">Type of the state</param>
         private void PushState(Type s)
         {
+            Output.Debug(DebugType.Runtime, "<PushLog> Machine {0}({1}) pushed.",
+                this, this.Id);
+
             MachineState nextState = this.InitializeState(s);
             // The machine transitions to the new state.
             this.StateStack.Push(nextState);
