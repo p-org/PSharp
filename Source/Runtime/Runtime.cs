@@ -280,6 +280,7 @@ namespace Microsoft.PSharp
                 "A monitor of type '{0}' already exists.", typeof(T).Name);
 
             Object monitor = Activator.CreateInstance(typeof(T));
+            (monitor as Monitor).AssignInitialPayload(payload);
             Output.Debug(DebugType.Runtime, "<CreateLog> Monitor {0} is created.", typeof(T));
 
             Runtime.Monitors.Add(monitor as Monitor);

@@ -44,11 +44,9 @@ namespace Microsoft.PSharp
         private HashSet<Type> StateTypes;
 
         /// <summary>
-        /// A stack of monitor states. In reality the monitor
-        /// can have only one state, as it does not support a
-        /// push transition.
+        /// The monitor state.
         /// </summary>
-        private Stack<MonitorState> StateStack;
+        private MonitorState State;
 
         /// <summary>
         /// The status of the machine.
@@ -100,8 +98,7 @@ namespace Microsoft.PSharp
         protected Monitor()
         {
             this.Inbox = new List<Event>();
-
-            this.StateStack = new Stack<MonitorState>();
+            
             this.Status = MachineStatus.None;
 
             this.GotoTransitions = this.DefineGotoStateTransitions();
@@ -192,7 +189,7 @@ namespace Microsoft.PSharp
             {
                 this.Status = MachineStatus.Running;
             }
-
+            
             this.RunEventHandler();
 
             if (this.Status != MachineStatus.Halted)
@@ -248,15 +245,12 @@ namespace Microsoft.PSharp
             Event nextEvent = null;
             while (this.Status == MachineStatus.Running)
             {
-                lock (this.Inbox)
-                {
-                    nextEvent = this.GetNextEvent();
-                }
+                nextEvent = this.GetNextEvent();
 
                 // Check if next event to process is null.
                 if (nextEvent == null)
                 {
-                    if (this.StateStack.Peek().HasDefaultHandler())
+                    if (this.State.HasDefaultHandler())
                     {
                         nextEvent = new Default();
                     }
@@ -272,10 +266,6 @@ namespace Microsoft.PSharp
 
                 // Handle next event.
                 this.HandleEvent(nextEvent);
-
-                // Reset trigger and payload.
-                this.Trigger = null;
-                this.Payload = null;
             }
         }
 
@@ -301,23 +291,19 @@ namespace Microsoft.PSharp
                 for (int idx = 0; idx < this.Inbox.Count; idx++)
                 {
                     // Remove an ignored event.
-                    if (this.StateStack.Peek().IgnoredEvents.Contains(this.Inbox[idx].GetType()))
+                    if (this.State.IgnoredEvents.Contains(this.Inbox[idx].GetType()))
                     {
                         this.Inbox.RemoveAt(idx);
                         idx--;
                         continue;
                     }
 
-                    // Dequeue the first event that is not handled by the state.
-                    if (!this.StateStack.Peek().CanHandleEvent(this.Inbox[idx].GetType()))
-                    {
-                        nextEvent = this.Inbox[idx];
-                        Output.Debug(DebugType.Runtime, "<DequeueLog> Monitor '{0}' dequeued event '{1}'.",
-                            this, nextEvent.GetType());
+                    nextEvent = this.Inbox[idx];
+                    Output.Debug(DebugType.Runtime, "<DequeueLog> Monitor '{0}' dequeued event '{1}'.",
+                        this, nextEvent.GetType());
 
-                        this.Inbox.RemoveAt(idx);
-                        break;
-                    }
+                    this.Inbox.RemoveAt(idx);
+                    break;
                 }
             }
 
@@ -332,20 +318,16 @@ namespace Microsoft.PSharp
         {
             while (true)
             {
-                if (this.StateStack.Count == 0)
+                if (this.State == null)
                 {
                     // If the stack of states is empty and the event
                     // is halt, then terminate the monitor.
                     if (e.GetType().Equals(typeof(Halt)))
                     {
-                        lock (this.Inbox)
-                        {
-                            Output.Debug(DebugType.Runtime, "<HaltLog> Monitor " +
+                        Output.Debug(DebugType.Runtime, "<HaltLog> Monitor " +
                                 "'{0}' halted.", this);
-                            this.Status = MachineStatus.Halted;
-                            this.CleanUpResources();
-                        }
-
+                        this.Status = MachineStatus.Halted;
+                        this.CleanUpResources();
                         return;
                     }
 
@@ -355,39 +337,26 @@ namespace Microsoft.PSharp
                 }
 
                 // If current state cannot handle the event then pop the state.
-                if (!this.StateStack.Peek().CanHandleEvent(e.GetType()))
+                if (!this.State.CanHandleEvent(e.GetType()))
                 {
                     Output.Debug(DebugType.Runtime, "<ExitLog> Monitor '{0}' exiting state '{1}'.",
-                        this, this.StateStack.Peek());
-
-                    this.StateStack.Pop();
-                    if (this.StateStack.Count == 0)
-                    {
-                        Output.Debug(DebugType.Runtime, "<PopLog> Monitor '{0}' popped with " +
-                            "unhandled event '{1}'.", this, e.GetType().Name);
-                    }
-                    else
-                    {
-                        Output.Debug(DebugType.Runtime, "<PopLog> Monitor '{0}' popped with " +
-                            "unhandled event '{1}' and reentered state '{2}'.",
-                            this, e.GetType().Name, this.StateStack.Peek());
-                    }
-
+                        this, this.State);
+                    this.State = null;
                     continue;
                 }
 
                 // Checks if the event can trigger a goto state transition.
-                if (this.StateStack.Peek().GotoTransitions.ContainsKey(e.GetType()))
+                if (this.State.GotoTransitions.ContainsKey(e.GetType()))
                 {
-                    var transition = this.StateStack.Peek().GotoTransitions[e.GetType()];
+                    var transition = this.State.GotoTransitions[e.GetType()];
                     Type targetState = transition.Item1;
                     Action onExitAction = transition.Item2;
                     this.GotoState(targetState, onExitAction);
                 }
                 // Checks if the event can trigger an action.
-                else if (this.StateStack.Peek().ActionBindings.ContainsKey(e.GetType()))
+                else if (this.State.ActionBindings.ContainsKey(e.GetType()))
                 {
-                    Action action = this.StateStack.Peek().ActionBindings[e.GetType()];
+                    Action action = this.State.ActionBindings[e.GetType()];
                     this.Do(action);
                 }
 
@@ -429,7 +398,7 @@ namespace Microsoft.PSharp
                 monitorType = monitorType.BaseType;
             }
 
-            this.StateStack.Push(this.InitializeState(initialState));
+            this.State = this.InitializeState(initialState);
         }
 
         /// <summary>
@@ -454,29 +423,6 @@ namespace Microsoft.PSharp
 
             if (ab == null) state.ActionBindings = new ActionBindings();
             else state.ActionBindings = ab;
-            
-            // If the state stack is non-empty, update the data structures
-            // with the following logic.
-            if (this.StateStack.Count > 0)
-            {
-                var lowerState = this.StateStack.Peek();
-
-                foreach (var e in lowerState.IgnoredEvents)
-                {
-                    if (!state.CanHandleEvent(e))
-                    {
-                        state.IgnoredEvents.Add(e);
-                    }
-                }
-
-                foreach (var action in lowerState.ActionBindings)
-                {
-                    if (!state.CanHandleEvent(action.Key))
-                    {
-                        state.ActionBindings.Add(action.Key, action.Value);
-                    }
-                }
-            }
 
             return state;
         }
@@ -494,11 +440,9 @@ namespace Microsoft.PSharp
             {
                 return;
             }
-
-            this.StateStack.Pop();
+            
             // The monitor transitions to the new state.
-            MonitorState nextState = this.InitializeState(s);
-            this.StateStack.Push(nextState);
+            this.State = this.InitializeState(s);
             // The monitor performs the on entry statements of the new state.
             this.ExecuteCurrentStateOnEntry();
         }
@@ -510,7 +454,7 @@ namespace Microsoft.PSharp
         private void Do(Action a)
         {
             Output.Debug(DebugType.Runtime, "<ActionLog> Monitor '{0}' executed " +
-                "action in state '{1}'.", this, this.StateStack.Peek());
+                "action in state '{1}'.", this, this.State);
 
             try
             {
@@ -533,12 +477,12 @@ namespace Microsoft.PSharp
         private void ExecuteCurrentStateOnEntry()
         {
             Output.Debug(DebugType.Runtime, "<StateLog> Monitor '{0}' entering " +
-                "state '{1}'.", this, this.StateStack.Peek());
+                "state '{1}'.", this, this.State);
 
             try
             {
                 // Performs the on entry statements of the new state.
-                this.StateStack.Peek().ExecuteEntryFunction();
+                this.State.ExecuteEntryFunction();
             }
             catch (Exception ex)
             {
@@ -554,12 +498,12 @@ namespace Microsoft.PSharp
         private void ExecuteCurrentStateOnExit(Action onExit)
         {
             Output.Debug(DebugType.Runtime, "<ExitLog> Monitor '{0}' exiting " +
-                "state '{1}'.", this, this.StateStack.Peek());
+                "state '{1}'.", this, this.State);
 
             try
             {
                 // Performs the on exit statements of the current state.
-                this.StateStack.Peek().ExecuteExitFunction();
+                this.State.ExecuteExitFunction();
                 if (onExit != null)
                 {
                     onExit();
@@ -596,7 +540,7 @@ namespace Microsoft.PSharp
         {
             this.Assert(this.StateTypes.Count > 0, "Monitor ''{0}'' must " +
                 "have one or more states.\n", this.GetType().Name);
-            this.Assert(this.StateStack.Peek() != null, "Monitor ''{0}'' " +
+            this.Assert(this.State != null, "Monitor ''{0}'' " +
                 "must not have a null current state.\n", this.GetType().Name);
         }
 

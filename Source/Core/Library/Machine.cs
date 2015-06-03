@@ -422,10 +422,6 @@ namespace Microsoft.PSharp
                 
                 // Handle next event.
                 this.HandleEvent(nextEvent);
-
-                // Reset trigger and payload.
-                this.Trigger = null;
-                this.Payload = null;
             }
         }
 
