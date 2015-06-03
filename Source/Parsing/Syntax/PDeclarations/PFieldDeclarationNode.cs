@@ -93,7 +93,8 @@ namespace Microsoft.PSharp.Parsing.Syntax
             text += this.Identifier.TextUnit.Text;
 
             if (this.TypeNode.Type.Type == PType.Tuple ||
-                this.TypeNode.Type.Type == PType.Seq)
+                this.TypeNode.Type.Type == PType.Seq ||
+                this.TypeNode.Type.Type == PType.Map)
             {
                 text += " = new " + this.TypeNode.GetRewrittenText() + "()";
             }

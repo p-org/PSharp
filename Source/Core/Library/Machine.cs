@@ -858,8 +858,9 @@ namespace Microsoft.PSharp
         /// <param name="ex">Exception</param>
         private void ReportGenericAssertion(Exception ex)
         {
-            this.Assert(false, "Exception '{0}' was thrown in machine '{1}'. The stack " +
-                "trace is:\n{2}", ex.GetType(), this.GetType().Name, ex.StackTrace);
+            this.Assert(false, "Exception '{0}' was thrown in machine '{1}', '{2}':\n   {3}\n" +
+                "The stack trace is:\n{4}",
+                ex.GetType(), this.GetType().Name, ex.Source, ex.Message, ex.StackTrace);
         }
 
         #endregion
