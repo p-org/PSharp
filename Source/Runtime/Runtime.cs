@@ -283,6 +283,8 @@ namespace Microsoft.PSharp
             Output.Debug(DebugType.Runtime, "<CreateLog> Monitor {0} is created.", typeof(T));
 
             Runtime.Monitors.Add(monitor as Monitor);
+
+            (monitor as Monitor).Run();
         }
 
         /// <summary>
@@ -357,7 +359,8 @@ namespace Microsoft.PSharp
             {
                 if (m.GetType() == typeof(T))
                 {
-                    m.Enqueue(e, null);
+                    m.Enqueue(e);
+                    m.Run();
                 }
             }
         }

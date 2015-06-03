@@ -57,11 +57,6 @@ namespace Microsoft.PSharp
         internal GotoStateTransitions GotoTransitions;
 
         /// <summary>
-        /// Dictionary containing all the push state transitions.
-        /// </summary>
-        internal PushStateTransitions PushTransitions;
-
-        /// <summary>
         /// Dictionary containing all the action bindings.
         /// </summary>
         internal ActionBindings ActionBindings;
@@ -109,7 +104,6 @@ namespace Microsoft.PSharp
         internal bool CanHandleEvent(Type e)
         {
             if (this.GotoTransitions.ContainsKey(e) ||
-                this.PushTransitions.ContainsKey(e) ||
                 this.ActionBindings.ContainsKey(e))
             {
                 return true;
@@ -125,7 +119,6 @@ namespace Microsoft.PSharp
         internal bool HasDefaultHandler()
         {
             if (this.GotoTransitions.ContainsKey(typeof(Default)) ||
-                this.PushTransitions.ContainsKey(typeof(Default)) ||
                 this.ActionBindings.ContainsKey(typeof(Default)))
             {
                 return true;

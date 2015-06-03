@@ -297,9 +297,8 @@ namespace Microsoft.PSharp
         #region P# internal methods
 
         /// <summary>
-        /// Runs the machine with an optional payload.
+        /// Runs the machine.
         /// </summary>
-        /// /// <param name="payload">Optional payload</param>
         internal void Run()
         {
             lock (this.Lock)
@@ -729,8 +728,8 @@ namespace Microsoft.PSharp
         /// </summary>
         private void ExecuteCurrentStateOnEntry()
         {
-            Output.Debug(DebugType.Runtime, "<StateLog> Machine {0}({1}) entered state {2}.",
-                this, this.Id, this.StateStack.Peek());
+            Output.Debug(DebugType.Runtime, "<StateLog> Machine {0}({1}) entering " +
+                "state {2}.", this, this.Id, this.StateStack.Peek());
 
             try
             {
@@ -754,8 +753,8 @@ namespace Microsoft.PSharp
         /// <param name="onExit">Goto on exit action</param>
         private void ExecuteCurrentStateOnExit(Action onExit)
         {
-            Output.Debug(DebugType.Runtime, "<ExitLog> Machine {0}({1}) exiting state {2}.",
-                this, this.Id, this.StateStack.Peek());
+            Output.Debug(DebugType.Runtime, "<ExitLog> Machine {0}({1}) exiting " +
+                "state {2}.", this, this.Id, this.StateStack.Peek());
 
             try
             {
@@ -880,7 +879,7 @@ namespace Microsoft.PSharp
 
             this.Trigger = null;
             this.Payload = null;
-    }
+        }
 
         #endregion
     }

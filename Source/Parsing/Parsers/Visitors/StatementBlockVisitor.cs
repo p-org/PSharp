@@ -98,11 +98,11 @@ namespace Microsoft.PSharp.Parsing
                     break;
 
                 case TokenType.New:
-                    new CreateMonitorStatementVisitor(base.TokenStream).Visit(node);
+                    new NewStatementVisitor(base.TokenStream).Visit(node);
                     break;
 
                 case TokenType.CreateMachine:
-                    new CreateStatementVisitor(base.TokenStream).Visit(node);
+                    new CreateMonitorStatementVisitor(base.TokenStream).Visit(node);
                     break;
 
                 case TokenType.RaiseEvent:

@@ -206,7 +206,7 @@ namespace Microsoft.PSharp.Parsing
             }
             else if (base.TokenStream.Peek().Type == TokenType.CreateMachine)
             {
-                new CreateStatementVisitor(base.TokenStream).Visit(blockNode);
+                new CreateMonitorStatementVisitor(base.TokenStream).Visit(blockNode);
             }
             else if (base.TokenStream.Peek().Type == TokenType.RaiseEvent)
             {
@@ -330,7 +330,7 @@ namespace Microsoft.PSharp.Parsing
                 }
                 else if (base.TokenStream.Peek().Type == TokenType.CreateMachine)
                 {
-                    new CreateStatementVisitor(base.TokenStream).Visit(elseBlockNode);
+                    new CreateMonitorStatementVisitor(base.TokenStream).Visit(elseBlockNode);
                 }
                 else if (base.TokenStream.Peek().Type == TokenType.RaiseEvent)
                 {
