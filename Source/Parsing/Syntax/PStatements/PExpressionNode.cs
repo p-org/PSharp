@@ -281,6 +281,75 @@ namespace Microsoft.PSharp.Parsing.Syntax
         }
 
         /// <summary>
+        /// Rewrites the payload keyword.
+        /// </summary>
+        /// param name="position">Position</param>
+        protected void RewritePayload(ref int position)
+        {
+            int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
+            var text = "this.Payload";
+            this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line, position));
+            position += text.Length;
+        }
+
+        /// <summary>
+        /// Rewrites the keys keyword.
+        /// </summary>
+        /// param name="position">Position</param>
+        protected void RewriteKeys(ref int position)
+        {
+            var keysIndex = this.Index;
+
+            this.Index++;
+            this.SkipWhiteSpaceTokens();
+            this.Index++;
+            this.SkipWhiteSpaceTokens();
+
+            var map = new List<Token>();
+            int counter = 1;
+
+            while (this.Index < this.RewrittenStmtTokens.Count)
+            {
+                if (this.RewrittenStmtTokens[this.Index].Type == TokenType.LeftParenthesis)
+                {
+                    counter++;
+                }
+                else if (this.RewrittenStmtTokens[this.Index].Type == TokenType.RightParenthesis)
+                {
+                    counter--;
+                }
+
+                if (counter == 0)
+                {
+                    break;
+                }
+
+                map.Add(this.RewrittenStmtTokens[this.Index]);
+                this.Index++;
+            }
+
+            int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
+            var text = "(";
+
+            foreach (var token in map)
+            {
+                text += token.TextUnit.Text;
+            }
+
+            text += ").Keys";
+
+            while (keysIndex != this.Index)
+            {
+                this.RewrittenStmtTokens.RemoveAt(this.Index);
+                this.Index--;
+            }
+
+            this.RewrittenStmtTokens[keysIndex] = new Token(new TextUnit(text, line, position));
+            position += text.Length;
+            this.Index = keysIndex;
+        }
+
+        /// <summary>
         /// Rewrites the sizeof keyword.
         /// </summary>
         /// param name="position">Position</param>
@@ -382,8 +451,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             int line = this.RewrittenStmtTokens[start].TextUnit.Line;
             var text = "(";
-
-            collection.Reverse();
+            
             foreach (var token in collection)
             {
                 text += token.TextUnit.Text;
@@ -640,243 +708,18 @@ namespace Microsoft.PSharp.Parsing.Syntax
         }
 
         /// <summary>
-        /// Rewrites the insert element at seq.
+        /// Rewrites the insert element at a sequence or a map.
         /// </summary>
         /// <param name="position">Position</param>
-        protected void RewriteInsertElementAtSeq(ref int position)
+        protected void RewriteInsertElementAtCollection(ref int position)
         {
-            var seqIndex = this.Index;
-            if (this.Parent.Machine == null ||
-                !(this.Parent.Machine.FieldDeclarations.Any(val => val.Identifier.TextUnit.Text.
-                Equals(this.RewrittenStmtTokens[this.Index].TextUnit.Text))))
-            {
-                return;
-            }
-
-            var field = this.Parent.Machine.FieldDeclarations.Find(val => val.Identifier.TextUnit.Text.
-                Equals(this.RewrittenStmtTokens[this.Index].TextUnit.Text)) as PFieldDeclarationNode;
-            if (field.TypeNode.Type.Type != PType.Seq)
-            {
-                return;
-            }
-
             this.Index++;
             this.SkipWhiteSpaceTokens();
-            if (this.Index == this.RewrittenStmtTokens.Count ||
-                this.RewrittenStmtTokens[this.Index] == null ||
-                this.RewrittenStmtTokens[this.Index].Type != TokenType.InsertOp)
-            {
-                this.Index = seqIndex;
-                return;
-            }
-
-            this.Index++;
-            this.SkipWhiteSpaceTokens();
-            while (this.Index - 1 > seqIndex)
-            {
-                this.RewrittenStmtTokens.RemoveAt(this.Index - 1);
-                this.Index--;
-            }
 
             int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
-            var text = ".Insert";
+            var text = "Container.Create";
             this.RewrittenStmtTokens.Insert(this.Index, new Token(new TextUnit(text, line, position)));
             position += text.Length;
-            this.Index = seqIndex;
-        }
-
-        /// <summary>
-        /// Rewrites the insert element at map.
-        /// </summary>
-        /// <param name="position">Position</param>
-        protected void RewriteInsertElementAtMap(ref int position)
-        {
-            var mapIndex = this.Index;
-            if (this.Parent.Machine == null ||
-                !(this.Parent.Machine.FieldDeclarations.Any(val => val.Identifier.TextUnit.Text.
-                Equals(this.RewrittenStmtTokens[this.Index].TextUnit.Text))))
-            {
-                return;
-            }
-
-            var field = this.Parent.Machine.FieldDeclarations.Find(val => val.Identifier.TextUnit.Text.
-                Equals(this.RewrittenStmtTokens[this.Index].TextUnit.Text)) as PFieldDeclarationNode;
-            if (field.TypeNode.Type.Type != PType.Map)
-            {
-                return;
-            }
-
-            this.Index++;
-            this.SkipWhiteSpaceTokens();
-            if (this.Index == this.RewrittenStmtTokens.Count ||
-                this.RewrittenStmtTokens[this.Index] == null ||
-                this.RewrittenStmtTokens[this.Index].Type != TokenType.InsertOp)
-            {
-                this.Index = mapIndex;
-                return;
-            }
-
-            this.Index++;
-            this.SkipWhiteSpaceTokens();
-            while (this.Index - 1 > mapIndex)
-            {
-                this.RewrittenStmtTokens.RemoveAt(this.Index - 1);
-                this.Index--;
-            }
-
-            int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
-            var text = ".Add";
-            this.RewrittenStmtTokens.Insert(this.Index, new Token(new TextUnit(text, line, position)));
-            position += text.Length;
-            this.Index = mapIndex;
-        }
-
-        /// <summary>
-        /// Rewrites the remove element of seq.
-        /// </summary>
-        /// <param name="position">Position</param>
-        protected void RewriteRemoveElementOfSeq(ref int position)
-        {
-            var seqIndex = this.Index;
-            if (this.Parent.Machine == null ||
-                !(this.Parent.Machine.FieldDeclarations.Any(val => val.Identifier.TextUnit.Text.
-                Equals(this.RewrittenStmtTokens[this.Index].TextUnit.Text))))
-            {
-                return;
-            }
-
-            var field = this.Parent.Machine.FieldDeclarations.Find(val => val.Identifier.TextUnit.Text.
-                Equals(this.RewrittenStmtTokens[this.Index].TextUnit.Text)) as PFieldDeclarationNode;
-            if (field.TypeNode.Type.Type != PType.Seq)
-            {
-                return;
-            }
-
-            this.Index++;
-            this.SkipWhiteSpaceTokens();
-            if (this.Index == this.RewrittenStmtTokens.Count ||
-                this.RewrittenStmtTokens[this.Index] == null ||
-                this.RewrittenStmtTokens[this.Index].Type != TokenType.RemoveOp)
-            {
-                this.Index = seqIndex;
-                return;
-            }
-
-            this.Index++;
-            this.SkipWhiteSpaceTokens();
-            if (this.Index == this.RewrittenStmtTokens.Count ||
-                this.RewrittenStmtTokens[this.Index] == null)
-            {
-                this.Index = seqIndex;
-                return;
-            }
-
-            var removeIndex = this.RewrittenStmtTokens[this.Index].TextUnit.Text;
-
-            while (this.Index > seqIndex)
-            {
-                this.RewrittenStmtTokens.RemoveAt(this.Index);
-                this.Index--;
-            }
-
-            int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
-            var text = ".RemoveAt(" + removeIndex + ")";
-            this.RewrittenStmtTokens.Insert(this.Index + 1, new Token(new TextUnit(text, line, position)));
-            position += text.Length;
-            this.Index = seqIndex;
-        }
-
-        /// <summary>
-        /// Rewrites the remove element of map
-        /// </summary>
-        /// <param name="position">Position</param>
-        protected void RewriteRemoveElementOfMap(ref int position)
-        {
-            var mapIndex = this.Index;
-            if (this.Parent.Machine == null ||
-                !(this.Parent.Machine.FieldDeclarations.Any(val => val.Identifier.TextUnit.Text.
-                Equals(this.RewrittenStmtTokens[this.Index].TextUnit.Text))))
-            {
-                return;
-            }
-
-            var field = this.Parent.Machine.FieldDeclarations.Find(val => val.Identifier.TextUnit.Text.
-                Equals(this.RewrittenStmtTokens[this.Index].TextUnit.Text)) as PFieldDeclarationNode;
-            if (field.TypeNode.Type.Type != PType.Map)
-            {
-                return;
-            }
-
-            this.Index++;
-            this.SkipWhiteSpaceTokens();
-            if (this.Index == this.RewrittenStmtTokens.Count ||
-                this.RewrittenStmtTokens[this.Index] == null ||
-                this.RewrittenStmtTokens[this.Index].Type != TokenType.RemoveOp)
-            {
-                this.Index = mapIndex;
-                return;
-            }
-
-            this.Index++;
-            this.SkipWhiteSpaceTokens();
-            if (this.Index == this.RewrittenStmtTokens.Count ||
-                this.RewrittenStmtTokens[this.Index] == null)
-            {
-                this.Index = mapIndex;
-                return;
-            }
-
-            Console.WriteLine(this.GetFullText());
-            
-            var removeKey = new List<Token>();
-            while (this.Index < this.RewrittenStmtTokens.Count)
-            {
-                Console.WriteLine(this.RewrittenStmtTokens[this.Index].Type);
-                Console.WriteLine(this.RewrittenStmtTokens[this.Index].TextUnit.Text);
-                if ((this.RewrittenStmtTokens[this.Index].Type == TokenType.Identifier) ||
-                    (this.RewrittenStmtTokens[this.Index].Type == TokenType.None) ||
-                    (this.RewrittenStmtTokens[this.Index].Type == TokenType.LeftSquareBracket) ||
-                    (this.RewrittenStmtTokens[this.Index].Type == TokenType.RightSquareBracket))
-                {
-                    removeKey.Add(this.RewrittenStmtTokens[this.Index]);
-                }
-                else if ((this.RewrittenStmtTokens[this.Index].Type != TokenType.WhiteSpace) &&
-                    (this.RewrittenStmtTokens[this.Index].Type != TokenType.NewLine))
-                {
-                    this.Index--;
-                    break;
-                }
-
-                this.Index++;
-            }
-
-            if (this.Index == this.RewrittenStmtTokens.Count)
-            {
-                this.Index--;
-            }
-            
-            while (this.Index > mapIndex)
-            {
-                this.RewrittenStmtTokens.RemoveAt(this.Index);
-                this.Index--;
-            }
-
-            int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
-            var text = ".Remove(";
-
-            if (!(removeKey.Count == 1 && removeKey[0].Type == TokenType.LeftParenthesis))
-            {
-                foreach (var token in removeKey)
-                {
-                    text += token.TextUnit.Text;
-                }
-
-                text += ")";
-            }
-
-            this.RewrittenStmtTokens.Insert(this.Index + 1, new Token(new TextUnit(text, line, position)));
-            position += text.Length;
-            this.Index = mapIndex;
         }
 
         #endregion
@@ -893,7 +736,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
             {
                 return;
             }
-            
+
             var token = this.RewrittenStmtTokens[this.Index];
             if (token == null)
             {
@@ -915,6 +758,14 @@ namespace Microsoft.PSharp.Parsing.Syntax
             {
                 this.RewriteTrigger(ref position);
             }
+            else if (token.Type == TokenType.Payload)
+            {
+                this.RewritePayload(ref position);
+            }
+            else if (token.Type == TokenType.Keys)
+            {
+                this.RewriteKeys(ref position);
+            }
             else if (token.Type == TokenType.SizeOf)
             {
                 this.RewriteSizeOf(ref position);
@@ -935,12 +786,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
             {
                 this.RewriteNonDeterministicChoice(ref position);
             }
+            else if (token.Type == TokenType.InsertOp)
+            {
+                this.RewriteInsertElementAtCollection(ref position);
+            }
             else if (token.Type == TokenType.Identifier)
             {
-                this.RewriteInsertElementAtSeq(ref position);
-                this.RewriteInsertElementAtMap(ref position);
-                this.RewriteRemoveElementOfSeq(ref position);
-                this.RewriteRemoveElementOfMap(ref position);
                 this.RewriteTupleIndexIdentifier(ref position);
                 this.RewriteMemberIdentifier(ref position);
             }

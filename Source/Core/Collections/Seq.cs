@@ -69,11 +69,33 @@ namespace Microsoft.PSharp.Collections
         /// <summary>
         /// Inserts an element in the sequence at the specified index.
         /// </summary>
+        /// <param name="map">Map</param>
+        /// <param name="kvp">KeyValuePair</param>
+        public static Seq<T> operator +(Seq<T> seq, Container<int, T> kvp)
+        {
+            seq.Insert(kvp.Item1, kvp.Item2);
+            return seq;
+        }
+
+        /// <summary>
+        /// Inserts an element in the sequence at the specified index.
+        /// </summary>
         /// <param name="index">Index</param>
         /// <param name="item">Element</param>
         public void Insert(int index, T item)
         {
             this.Sequence.Insert(index, item);
+        }
+
+        /// <summary>
+        /// Removes the element at the specified index of the sequence.
+        /// </summary>
+        /// <param name="map">Map</param>
+        /// <param name="key">Key</param>
+        public static Seq<T> operator -(Seq<T> seq, int index)
+        {
+            seq.RemoveAt(index);
+            return seq;
         }
 
         /// <summary>

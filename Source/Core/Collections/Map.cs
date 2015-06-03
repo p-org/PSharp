@@ -48,7 +48,7 @@ namespace Microsoft.PSharp.Collections
         }
 
         /// <summary>
-        /// Gets the number of elements actually contained in the sequence.
+        /// Gets the number of elements actually contained in the map.
         /// </summary>
         public int Count
         {
@@ -59,11 +59,48 @@ namespace Microsoft.PSharp.Collections
         }
 
         /// <summary>
+        /// Gets a sequence containing the keys in the map.
+        /// </summary>
+        public Seq<K> Keys
+        {
+            get
+            {
+                var keys = new Seq<K>();
+                keys.Sequence.AddRange(new List<K>(this.Dictionary.Keys));
+                return keys;
+            }
+        }
+
+        /// <summary>
+        /// Gets a sequence containing the values in the map.
+        /// </summary>
+        public Seq<V> Values
+        {
+            get
+            {
+                var values = new Seq<V>();
+                values.Sequence.AddRange(new List<V>(this.Dictionary.Values));
+                return values;
+            }
+        }
+
+        /// <summary>
         /// Default constructor.
         /// </summary>
         public Map()
         {
             this.Dictionary = new Dictionary<K, V>();
+        }
+
+        /// <summary>
+        /// Adds a new key with the specified value in the map.
+        /// </summary>
+        /// <param name="map">Map</param>
+        /// <param name="kvp">KeyValuePair</param>
+        public static Map<K, V> operator +(Map<K, V> map, Container<K, V> kvp)
+        {
+            map.Add(kvp.Item1, kvp.Item2);
+            return map;
         }
 
         /// <summary>
@@ -79,8 +116,19 @@ namespace Microsoft.PSharp.Collections
         /// <summary>
         /// Removes the key from the map.
         /// </summary>
+        /// <param name="map">Map</param>
         /// <param name="key">Key</param>
-        public void RemoveAt(K key)
+        public static Map<K, V> operator -(Map<K, V> map, K key)
+        {
+            map.Remove(key);
+            return map;
+        }
+
+        /// <summary>
+        /// Removes the key from the map.
+        /// </summary>
+        /// <param name="key">Key</param>
+        public void Remove(K key)
         {
             this.Dictionary.Remove(key);
         }

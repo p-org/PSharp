@@ -170,7 +170,7 @@ monitor Liveness {
             nodes = payload as map[machine, bool]; 
         }
         on NODE_DOWN do { 
-            nodes -= payload as map[machine, bool]; 
+            nodes -= payload as machine;
             if (sizeof(nodes) == 0) 
                 raise UNIT;
         };
