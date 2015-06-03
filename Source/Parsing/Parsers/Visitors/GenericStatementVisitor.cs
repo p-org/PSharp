@@ -48,11 +48,18 @@ namespace Microsoft.PSharp.Parsing
                 while (!base.TokenStream.Done &&
                     base.TokenStream.Peek().Type != TokenType.Semicolon)
                 {
-                    if (base.TokenStream.Peek().Type == TokenType.New ||
-                        base.TokenStream.Peek().Type == TokenType.CreateMachine)
+                    if (base.TokenStream.Peek().Type == TokenType.New)
                     {
                         node.Expression = expression;
                         parentNode.Statements.Add(node);
+                        new NewStatementVisitor(base.TokenStream).Visit(parentNode);
+                        return;
+                    }
+                    else if (base.TokenStream.Peek().Type == TokenType.CreateMachine)
+                    {
+                        node.Expression = expression;
+                        parentNode.Statements.Add(node);
+                        new CreateStatementVisitor(base.TokenStream).Visit(parentNode);
                         return;
                     }
 
@@ -73,6 +80,7 @@ namespace Microsoft.PSharp.Parsing
                     {
                         node.Expression = expression;
                         parentNode.Statements.Add(node);
+                        new CreateStatementVisitor(base.TokenStream).Visit(parentNode);
                         return;
                     }
                     else if (base.TokenStream.Peek().Type == TokenType.DefaultEvent)

@@ -167,40 +167,6 @@ namespace Microsoft.PSharp
 
         #endregion
 
-        #region factory methods
-
-        /// <summary>
-        /// Factory class for creating monitors.
-        /// </summary>
-        public static class Factory
-        {
-            /// <summary>
-            /// Creates a new monitor of type T with an optional payload.
-            /// </summary>
-            /// <typeparam name="T">Type of monitor</typeparam>
-            /// <param name="payload">Optional payload</param>
-            public static void CreateMonitor<T>(params Object[] payload)
-            {
-                Monitor.Dispatcher.Assert(typeof(T).IsSubclassOf(typeof(Monitor)),
-                    "Type '{0}' is not a subclass of Monitor.\n", typeof(T).Name);
-                Monitor.Dispatcher.TryCreateNewMonitorInstance<T>(payload);
-            }
-
-            /// <summary>
-            /// Creates a new monitor of type T with an optional payload.
-            /// </summary>
-            /// <param name="m">Type of monitor</param>
-            /// <param name="payload">Optional payload</param>
-            internal static void CreateMonitor(Type m, params Object[] payload)
-            {
-                Monitor.Dispatcher.Assert(m.IsSubclassOf(typeof(Monitor)),
-                    "Type '{0}' is not a subclass of Monitor.\n", m.Name);
-                Monitor.Dispatcher.TryCreateNewMonitorInstance(m, payload);
-            }
-        }
-
-        #endregion
-
         #region P# internal methods
 
         /// <summary>

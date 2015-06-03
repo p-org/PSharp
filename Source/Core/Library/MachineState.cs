@@ -185,6 +185,16 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Creates a new monitor of type T with an optional payload.
+        /// </summary>
+        /// <typeparam name="T">Type of monitor</typeparam>
+        /// <param name="payload">Optional payload</param>
+        protected internal void CreateMonitor<T>(params Object[] payload)
+        {
+            this.Machine.CreateMonitor<T>(payload);
+        }
+
+        /// <summary>
         /// Sends an asynchronous event to a machine.
         /// </summary>
         /// <param name="m">Machine</param>

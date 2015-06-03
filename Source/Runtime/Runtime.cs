@@ -160,6 +160,8 @@ namespace Microsoft.PSharp
         /// <returns>Machine</returns>
         internal static Machine TryCreateNewMachineInstance(Type m, params Object[] payload)
         {
+            Runtime.Assert(m.IsSubclassOf(typeof(Machine)),
+                    "Type '{0}' is not a subclass of Machine.", m.Name);
             Runtime.Assert(Runtime.RegisteredMachineTypes.Any(val => val == m),
                 "Machine '{0}' has not been registered with the P# runtime.", m.Name);
 
@@ -212,6 +214,8 @@ namespace Microsoft.PSharp
         /// <returns>Machine</returns>
         internal static T TryCreateNewMachineInstance<T>(Machine creator, params Object[] payload)
         {
+            Runtime.Assert(typeof(T).IsSubclassOf(typeof(Machine)), "Type '{0}' is " +
+                "not a subclass of Machine.", typeof(T).Name);
             Runtime.Assert(Runtime.RegisteredMachineTypes.Any(val => val == typeof(T)),
                 "Machine '{0}' has not been registered with the P# runtime.", typeof(T).Name);
 
@@ -261,29 +265,6 @@ namespace Microsoft.PSharp
         /// the given payload. There can be only one monitor instance
         /// of each monitor type.
         /// </summary>
-        /// <param name="m">Type of the monitor</param>
-        /// <param name="payload">Optional payload</param>
-        internal static void TryCreateNewMonitorInstance(Type m, params Object[] payload)
-        {
-            if (Runtime.BugFinder == null)
-            {
-                return;
-            }
-            
-            Runtime.Assert(!Runtime.Monitors.Any(val => val.GetType() == m),
-                "A monitor of type '{0}' already exists.", m.Name);
-
-            Monitor monitor = Activator.CreateInstance(m) as Monitor;
-            Output.Debug(DebugType.Runtime, "<CreateLog> Monitor {0} is created.", m);
-
-            Runtime.Monitors.Add(monitor);
-        }
-
-        /// <summary>
-        /// Attempts to create a new monitor instance of type T with
-        /// the given payload. There can be only one monitor instance
-        /// of each monitor type.
-        /// </summary>
         /// <typeparam name="T">Type of the monitor</typeparam>
         /// <param name="payload">Optional payload</param>
         internal static void TryCreateNewMonitorInstance<T>(params Object[] payload)
@@ -292,7 +273,9 @@ namespace Microsoft.PSharp
             {
                 return;
             }
-            
+
+            Runtime.Assert(typeof(T).IsSubclassOf(typeof(Monitor)), "Type '{0}' is not a subclass " +
+                "of Monitor.\n", typeof(T).Name);
             Runtime.Assert(!Runtime.Monitors.Any(val => val.GetType() == typeof(T)),
                 "A monitor of type '{0}' already exists.", typeof(T).Name);
 

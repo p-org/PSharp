@@ -181,9 +181,17 @@ namespace Microsoft.PSharp
         /// <returns>Machine</returns>
         protected internal T Create<T>(params Object[] payload)
         {
-            this.Assert(typeof(T).IsSubclassOf(typeof(Machine)), "Type '{0}' is " +
-                "not a subclass of Machine.", typeof(T).Name);
             return Machine.Dispatcher.TryCreateNewMachineInstance<T>(this, payload);
+        }
+
+        /// <summary>
+        /// Creates a new monitor of type T with an optional payload.
+        /// </summary>
+        /// <typeparam name="T">Type of monitor</typeparam>
+        /// <param name="payload">Optional payload</param>
+        protected internal void CreateMonitor<T>(params Object[] payload)
+        {
+            Machine.Dispatcher.TryCreateNewMonitorInstance<T>(payload);
         }
 
         /// <summary>
@@ -280,8 +288,6 @@ namespace Microsoft.PSharp
             /// <returns>Machine</returns>
             internal static Machine Create(Type m, params Object[] payload)
             {
-                Machine.Dispatcher.Assert(m.IsSubclassOf(typeof(Machine)),
-                    "Type '{0}' is not a subclass of Machine.", m.Name);
                 return Machine.Dispatcher.TryCreateNewMachineInstance(m, payload);
             }
         }

@@ -48,15 +48,6 @@ namespace Microsoft.PSharp
         /// the given payload. There can be only one monitor instance
         /// of each monitor type.
         /// </summary>
-        /// <param name="m">Type of the monitor</param>
-        /// <param name="payload">Optional payload</param>
-        void TryCreateNewMonitorInstance(Type m, params Object[] payload);
-
-        /// <summary>
-        /// Attempts to create a new monitor instance of type T with
-        /// the given payload. There can be only one monitor instance
-        /// of each monitor type.
-        /// </summary>
         /// <typeparam name="T">Type of the monitor</typeparam>
         /// <param name="payload">Optional payload</param>
         void TryCreateNewMonitorInstance<T>(params Object[] payload);
