@@ -336,7 +336,7 @@ namespace Microsoft.PSharp
                         this.GetType().Name, e.GetType().Name);
                 }
 
-                // If current state cannot handle the event then pop the state.
+                // If current state cannot handle the event then null the state.
                 if (!this.State.CanHandleEvent(e.GetType()))
                 {
                     Output.Debug(DebugType.Runtime, "<ExitLog> Monitor '{0}' exiting state '{1}'.",

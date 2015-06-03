@@ -336,8 +336,8 @@ namespace Microsoft.PSharp
             {
                 if (this.Status != MachineStatus.Halted)
                 {
-                    Output.Debug(DebugType.Runtime, "<EnqueueLog> Machine '{0}({1})' enqueued event '{2}'.",
-                        this, this.Id, e.GetType());
+                    Output.Debug(DebugType.Runtime, "<EnqueueLog> Machine '{0}({1})' enqueued " +
+                        "event < ____{2} >.", this, this.Id, e.GetType());
                     this.Inbox.Add(e);
 
                     if (e.Assert >= 0)
@@ -460,8 +460,8 @@ namespace Microsoft.PSharp
                         !this.StateStack.Peek().DeferredEvents.Contains(this.Inbox[idx].GetType()))
                     {
                         nextEvent = this.Inbox[idx];
-                        Output.Debug(DebugType.Runtime, "<DequeueLog> Machine '{0}({1})' dequeued event '{2}'.",
-                            this, this.Id, nextEvent.GetType());
+                        Output.Debug(DebugType.Runtime, "<DequeueLog> Machine '{0}({1})' dequeued " +
+                            "event < ____{2} >.", this, this.Id, nextEvent.GetType());
 
                         this.Inbox.RemoveAt(idx);
                         break;
