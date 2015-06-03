@@ -90,14 +90,23 @@ namespace Microsoft.PSharp.Parsing.Syntax
         {
             var start = position;
 
-            var text = this.DefaultKeyword.TextUnit.Text;
-
-            text += "(";
+            var text = "";
 
             this.TypeNode.Rewrite(ref position);
-            text += this.TypeNode.GetRewrittenText();
-
-            text += ")";
+            if (this.TypeNode.Type.Type == PType.Seq ||
+                this.TypeNode.Type.Type == PType.Map)
+            {
+                text += "new ";
+                text += this.TypeNode.GetRewrittenText();
+                text += "()";
+            }
+            else
+            {
+                text += this.DefaultKeyword.TextUnit.Text;
+                text += "(";
+                text += this.TypeNode.GetRewrittenText();
+                text += ")";
+            }
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 

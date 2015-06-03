@@ -143,8 +143,8 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         protected internal void Raise(Event e)
         {
-            Output.Debug(DebugType.Runtime, "<RaiseLog> Monitor {0} " +
-                "raised event {1}.", this, e);
+            Output.Debug(DebugType.Runtime, "<RaiseLog> Monitor '{0}' " +
+                "raised event '{1}'.", this, e);
             this.HandleEvent(e);
         }
 
@@ -209,7 +209,7 @@ namespace Microsoft.PSharp
         {
             if (this.Status != MachineStatus.Halted)
             {
-                Output.Debug(DebugType.Runtime, "<EnqueueLog> Monitor {0} enqueued event {1}.",
+                Output.Debug(DebugType.Runtime, "<EnqueueLog> Monitor '{0}' enqueued event '{1}'.",
                     this, e.GetType());
                 this.Inbox.Add(e);
             }
@@ -312,7 +312,7 @@ namespace Microsoft.PSharp
                     if (!this.StateStack.Peek().CanHandleEvent(this.Inbox[idx].GetType()))
                     {
                         nextEvent = this.Inbox[idx];
-                        Output.Debug(DebugType.Runtime, "<DequeueLog> Monitor {0} dequeued event {1}.",
+                        Output.Debug(DebugType.Runtime, "<DequeueLog> Monitor '{0}' dequeued event '{1}'.",
                             this, nextEvent.GetType());
 
                         this.Inbox.RemoveAt(idx);
@@ -341,7 +341,7 @@ namespace Microsoft.PSharp
                         lock (this.Inbox)
                         {
                             Output.Debug(DebugType.Runtime, "<HaltLog> Monitor " +
-                                "{0} halted.", this);
+                                "'{0}' halted.", this);
                             this.Status = MachineStatus.Halted;
                             this.CleanUpResources();
                         }
@@ -350,26 +350,26 @@ namespace Microsoft.PSharp
                     }
 
                     // If the event cannot be handled then report an error and exit.
-                    this.Assert(false, "Monitor '{0}' received event '{1}' that cannot be handled.",
+                    this.Assert(false, "Monitor ''{0}'' received event ''{1}'' that cannot be handled.",
                         this.GetType().Name, e.GetType().Name);
                 }
 
                 // If current state cannot handle the event then pop the state.
                 if (!this.StateStack.Peek().CanHandleEvent(e.GetType()))
                 {
-                    Output.Debug(DebugType.Runtime, "<ExitLog> Monitor {0} exiting state {1}.",
+                    Output.Debug(DebugType.Runtime, "<ExitLog> Monitor '{0}' exiting state '{1}'.",
                         this, this.StateStack.Peek());
 
                     this.StateStack.Pop();
                     if (this.StateStack.Count == 0)
                     {
-                        Output.Debug(DebugType.Runtime, "<PopLog> Monitor {0} popped with " +
-                            "unhandled event {1}.", this, e.GetType().Name);
+                        Output.Debug(DebugType.Runtime, "<PopLog> Monitor '{0}' popped with " +
+                            "unhandled event '{1}'.", this, e.GetType().Name);
                     }
                     else
                     {
-                        Output.Debug(DebugType.Runtime, "<PopLog> Monitor {0} popped with " +
-                            "unhandled event {1} and reentered state {2}.",
+                        Output.Debug(DebugType.Runtime, "<PopLog> Monitor '{0}' popped with " +
+                            "unhandled event '{1}' and reentered state '{2}'.",
                             this, e.GetType().Name, this.StateStack.Peek());
                     }
 
@@ -415,12 +415,12 @@ namespace Microsoft.PSharp
                     {
                         if (s.IsDefined(typeof(Initial), false))
                         {
-                            this.Assert(initialState == null, "Monitor '{0}' can not have " +
+                            this.Assert(initialState == null, "Monitor ''{0}'' can not have " +
                                 "more than one initial states.\n", this.GetType().Name);
                             initialState = s;
                         }
 
-                        this.Assert(s.BaseType == typeof(MonitorState), "State '{0}' is " +
+                        this.Assert(s.BaseType == typeof(MonitorState), "State ''{0}'' is " +
                             "not of the correct type.\n", s.Name);
                         this.StateTypes.Add(s);
                     }
@@ -509,8 +509,8 @@ namespace Microsoft.PSharp
         /// <param name="a">Action</param>
         private void Do(Action a)
         {
-            Output.Debug(DebugType.Runtime, "<ActionLog> Monitor {0} executed " +
-                "action in state {1}.", this, this.StateStack.Peek());
+            Output.Debug(DebugType.Runtime, "<ActionLog> Monitor '{0}' executed " +
+                "action in state '{1}'.", this, this.StateStack.Peek());
 
             try
             {
@@ -532,8 +532,8 @@ namespace Microsoft.PSharp
         /// </summary>
         private void ExecuteCurrentStateOnEntry()
         {
-            Output.Debug(DebugType.Runtime, "<StateLog> Monitor {0} entering " +
-                "state {1}.", this, this.StateStack.Peek());
+            Output.Debug(DebugType.Runtime, "<StateLog> Monitor '{0}' entering " +
+                "state '{1}'.", this, this.StateStack.Peek());
 
             try
             {
@@ -553,8 +553,8 @@ namespace Microsoft.PSharp
         /// <param name="onExit">Goto on exit action</param>
         private void ExecuteCurrentStateOnExit(Action onExit)
         {
-            Output.Debug(DebugType.Runtime, "<ExitLog> Monitor {0} exiting " +
-                "state {1}.", this, this.StateStack.Peek());
+            Output.Debug(DebugType.Runtime, "<ExitLog> Monitor '{0}' exiting " +
+                "state '{1}'.", this, this.StateStack.Peek());
 
             try
             {
@@ -594,9 +594,9 @@ namespace Microsoft.PSharp
         /// </summary>
         private void AssertStateValidity()
         {
-            this.Assert(this.StateTypes.Count > 0, "Monitor '{0}' must " +
+            this.Assert(this.StateTypes.Count > 0, "Monitor ''{0}'' must " +
                 "have one or more states.\n", this.GetType().Name);
-            this.Assert(this.StateStack.Peek() != null, "Monitor '{0}' " +
+            this.Assert(this.StateStack.Peek() != null, "Monitor ''{0}'' " +
                 "must not have a null current state.\n", this.GetType().Name);
         }
 
@@ -607,8 +607,9 @@ namespace Microsoft.PSharp
         /// <param name="ex">Exception</param>
         private void ReportGenericAssertion(Exception ex)
         {
-            this.Assert(false, "Exception '{0}' was thrown in monitor '{1}'. The stack " +
-                "trace is:\n{2}\n", ex.GetType(), this.GetType().Name, ex.StackTrace);
+            this.Assert(false, "Exception '{0}' was thrown in monitor '{1}', '{2}':\n   {3}\n" +
+                "The stack trace is:\n{4}",
+                ex.GetType(), this.GetType().Name, ex.Source, ex.Message, ex.StackTrace);
         }
 
         #endregion

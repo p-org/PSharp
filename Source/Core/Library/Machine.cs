@@ -201,8 +201,8 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         protected internal void Send(Machine m, Event e)
         {
-            Output.Debug(DebugType.Runtime, "<SendLog> Machine {0}({1}) sent event {2} " +
-                "to machine {3}({4}).", this, this.Id, e.GetType(), m, m.Id);
+            Output.Debug(DebugType.Runtime, "<SendLog> Machine '{0}({1})' sent event '{2}' " +
+                "to machine '{3}({4})'.", this, this.Id, e.GetType(), m, m.Id);
             Machine.Dispatcher.Send(this, m, e);
         }
 
@@ -222,8 +222,8 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         protected internal void Raise(Event e)
         {
-            Output.Debug(DebugType.Runtime, "<RaiseLog> Machine {0}({1}) raised " +
-                "event {2}.", this, this.Id, e);
+            Output.Debug(DebugType.Runtime, "<RaiseLog> Machine '{0}({1})' raised " +
+                "event '{2}'.", this, this.Id, e);
             this.RaisedEvent = e;
         }
 
@@ -232,20 +232,20 @@ namespace Microsoft.PSharp
         /// </summary>
         protected internal void Pop()
         {
-            Output.Debug(DebugType.Runtime, "<ExitLog> Machine {0}({1}) exiting state {2}.",
+            Output.Debug(DebugType.Runtime, "<ExitLog> Machine '{0}({1})' exiting state '{2}'.",
                 this, this.Id, this.StateStack.Peek());
 
             this.StateStack.Pop();
             
             if (this.StateStack.Count == 0)
             {
-                Output.Debug(DebugType.Runtime, "<PopLog> Machine {0}({1}) popped.",
+                Output.Debug(DebugType.Runtime, "<PopLog> Machine '{0}({1})' popped.",
                     this, this.Id);
             }
             else
             {
-                Output.Debug(DebugType.Runtime, "<PopLog> Machine {0}({1}) popped and " +
-                    "reentered state {2}.", this, this.Id, this.StateStack.Peek());
+                Output.Debug(DebugType.Runtime, "<PopLog> Machine '{0}({1})' popped and " +
+                    "reentered state '{2}'.", this, this.Id, this.StateStack.Peek());
             }
         }
 
@@ -336,15 +336,22 @@ namespace Microsoft.PSharp
             {
                 if (this.Status != MachineStatus.Halted)
                 {
-                    Output.Debug(DebugType.Runtime, "<EnqueueLog> Machine {0}({1}) enqueued event {2}.",
+                    Output.Debug(DebugType.Runtime, "<EnqueueLog> Machine '{0}({1})' enqueued event '{2}'.",
                         this, this.Id, e.GetType());
                     this.Inbox.Add(e);
 
                     if (e.Assert >= 0)
                     {
                         var eventCount = this.Inbox.Count(val => val.GetType().Equals(e.GetType()));
-                        this.Assert(eventCount <= e.Assert, "There are more than {0} instances of {1} " +
+                        this.Assert(eventCount <= e.Assert, "There are more than {0} instances of '{1}' " +
                             "in the input queue of machine '{1}'", e.Assert, e.GetType().Name, this);
+                    }
+
+                    if (e.Assume >= 0)
+                    {
+                        var eventCount = this.Inbox.Count(val => val.GetType().Equals(e.GetType()));
+                        this.Assert(eventCount <= e.Assume, "There are more than {0} instances of '{1}' " +
+                            "in the input queue of machine '{2}'", e.Assume, e.GetType().Name, this);
                     }
                 }
             }
@@ -457,7 +464,7 @@ namespace Microsoft.PSharp
                         !this.StateStack.Peek().DeferredEvents.Contains(this.Inbox[idx].GetType()))
                     {
                         nextEvent = this.Inbox[idx];
-                        Output.Debug(DebugType.Runtime, "<DequeueLog> Machine {0}({1}) dequeued event {2}.",
+                        Output.Debug(DebugType.Runtime, "<DequeueLog> Machine '{0}({1})' dequeued event '{2}'.",
                             this, this.Id, nextEvent.GetType());
 
                         this.Inbox.RemoveAt(idx);
@@ -486,7 +493,7 @@ namespace Microsoft.PSharp
                         lock (this.Inbox)
                         {
                             Output.Debug(DebugType.Runtime, "<HaltLog> Machine " +
-                                "{0}({1}) halted.", this, this.Id);
+                                "'{0}({1})' halted.", this, this.Id);
                             this.Status = MachineStatus.Halted;
                             this.CleanUpResources();
                         }
@@ -502,19 +509,19 @@ namespace Microsoft.PSharp
                 // If current state cannot handle the event then pop the state.
                 if (!this.StateStack.Peek().CanHandleEvent(e.GetType()))
                 {
-                    Output.Debug(DebugType.Runtime, "<ExitLog> Machine {0}({1}) exiting state {2}.",
+                    Output.Debug(DebugType.Runtime, "<ExitLog> Machine '{0}({1})' exiting state '{2}'.",
                         this, this.Id, this.StateStack.Peek());
                     
                     this.StateStack.Pop();
                     if (this.StateStack.Count == 0)
                     {
-                        Output.Debug(DebugType.Runtime, "<PopLog> Machine {0}({1}) popped with " +
-                            "unhandled event {2}.", this, this.Id, e.GetType().Name);
+                        Output.Debug(DebugType.Runtime, "<PopLog> Machine '{0}({1})' popped with " +
+                            "unhandled event '{2}'.", this, this.Id, e.GetType().Name);
                     }
                     else
                     {
-                        Output.Debug(DebugType.Runtime, "<PopLog> Machine {0}({1}) popped with " +
-                            "unhandled event {2} and reentered state {3}.",
+                        Output.Debug(DebugType.Runtime, "<PopLog> Machine '{0}({1})' popped with " +
+                            "unhandled event '{2}' and reentered state '{3}.",
                             this, this.Id, e.GetType().Name, this.StateStack.Peek());
                     }
                     
@@ -685,7 +692,7 @@ namespace Microsoft.PSharp
         /// <param name="s">Type of the state</param>
         private void PushState(Type s)
         {
-            Output.Debug(DebugType.Runtime, "<PushLog> Machine {0}({1}) pushed.",
+            Output.Debug(DebugType.Runtime, "<PushLog> Machine '{0}({1})' pushed.",
                 this, this.Id);
 
             MachineState nextState = this.InitializeState(s);
@@ -701,8 +708,8 @@ namespace Microsoft.PSharp
         /// <param name="a">Action</param>
         private void Do(Action a)
         {
-            Output.Debug(DebugType.Runtime, "<ActionLog> Machine {0}({1}) executed " +
-                "action in state {2}.", this, this.Id, this.StateStack.Peek());
+            Output.Debug(DebugType.Runtime, "<ActionLog> Machine '{0}({1})' executed " +
+                "action in state '{2}'.", this, this.Id, this.StateStack.Peek());
 
             try
             {
@@ -728,8 +735,8 @@ namespace Microsoft.PSharp
         /// </summary>
         private void ExecuteCurrentStateOnEntry()
         {
-            Output.Debug(DebugType.Runtime, "<StateLog> Machine {0}({1}) entering " +
-                "state {2}.", this, this.Id, this.StateStack.Peek());
+            Output.Debug(DebugType.Runtime, "<StateLog> Machine '{0}({1})' entering " +
+                "state '{2}'.", this, this.Id, this.StateStack.Peek());
 
             try
             {
@@ -753,8 +760,8 @@ namespace Microsoft.PSharp
         /// <param name="onExit">Goto on exit action</param>
         private void ExecuteCurrentStateOnExit(Action onExit)
         {
-            Output.Debug(DebugType.Runtime, "<ExitLog> Machine {0}({1}) exiting " +
-                "state {2}.", this, this.Id, this.StateStack.Peek());
+            Output.Debug(DebugType.Runtime, "<ExitLog> Machine '{0}({1})' exiting " +
+                "state '{2}'.", this, this.Id, this.StateStack.Peek());
 
             try
             {

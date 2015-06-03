@@ -85,7 +85,8 @@ namespace Microsoft.PSharp.Parsing.Syntax
             var field = this.Parent.Machine.FieldDeclarations.Find(val => val.Identifier.TextUnit.Text.
                 Equals(this.RewrittenStmtTokens[this.Index].TextUnit.Text)) as PFieldDeclarationNode;
             if (field.TypeNode.Type.Type != PType.Tuple &&
-                field.TypeNode.Type.Type != PType.Seq)
+                field.TypeNode.Type.Type != PType.Seq &&
+                field.TypeNode.Type.Type != PType.Map)
             {
                 return;
             }

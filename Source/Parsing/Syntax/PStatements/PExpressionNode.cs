@@ -479,42 +479,6 @@ namespace Microsoft.PSharp.Parsing.Syntax
         }
 
         /// <summary>
-        /// Rewrites the default keyword.
-        /// </summary>
-        /// param name="position">Position</param>
-        protected void RewriteDefault(ref int position)
-        {
-            this.Index++;
-
-            int counter = 0;
-            while (this.Index < this.RewrittenStmtTokens.Count)
-            {
-                if (this.RewrittenStmtTokens[this.Index] != null &&
-                    this.RewrittenStmtTokens[this.Index].Type == TokenType.LeftParenthesis)
-                {
-                    counter++;
-                }
-                else if (this.RewrittenStmtTokens[this.Index] != null &&
-                    this.RewrittenStmtTokens[this.Index].Type == TokenType.RightParenthesis)
-                {
-                    counter--;
-                }
-                else if (this.RewrittenStmtTokens[this.Index] != null &&
-                    this.RewrittenStmtTokens[this.Index].Type == TokenType.Map)
-                {
-
-                }
-
-                if (counter == 0)
-                {
-                    break;
-                }
-
-                this.Index++;
-            }
-        }
-
-        /// <summary>
         /// Rewrites the tuple assignment.
         /// </summary>
         /// param name="position">Position</param>
@@ -773,10 +737,6 @@ namespace Microsoft.PSharp.Parsing.Syntax
             else if (token.Type == TokenType.In)
             {
                 this.RewriteIn(ref position);
-            }
-            else if (token.Type == TokenType.DefaultEvent)
-            {
-                this.RewriteDefault(ref position);
             }
             else if (token.Type == TokenType.AssignOp)
             {
