@@ -90,8 +90,13 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 return;
             }
 
-            var cloneStr = ".Clone() as " + field.TypeNode.GetRewrittenText();
-            var textUnit = new TextUnit(cloneStr, this.RewrittenStmtTokens[this.Index].TextUnit.Line,
+            var textUnit = new TextUnit("(", this.RewrittenStmtTokens[this.Index].TextUnit.Line,
+                this.RewrittenStmtTokens[this.Index].TextUnit.Start + 1);
+            this.RewrittenStmtTokens.Insert(this.Index, new Token(textUnit));
+            this.Index++;
+
+            var cloneStr = ".Clone() as " + field.TypeNode.GetRewrittenText() + ")";
+            textUnit = new TextUnit(cloneStr, this.RewrittenStmtTokens[this.Index].TextUnit.Line,
                 this.RewrittenStmtTokens[this.Index].TextUnit.Start + cloneStr.Length);
 
             if (this.Index + 1 == this.RewrittenStmtTokens.Count)

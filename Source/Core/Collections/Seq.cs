@@ -86,6 +86,16 @@ namespace Microsoft.PSharp.Collections
         }
 
         /// <summary>
+        /// Determines whether an element is in the sequence.
+        /// </summary>
+        /// <param name="item">Element</param>
+        /// <returns>Boolean</returns>
+        public bool Has(T item)
+        {
+            return this.Sequence.Contains(item);
+        }
+
+        /// <summary>
         /// Clones the sequence.
         /// </summary>
         /// <returns>Clone</returns>

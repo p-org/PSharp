@@ -198,7 +198,17 @@ namespace Microsoft.PSharp.Parsing.Syntax
             }
 
             int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
-            var text = "this.Machine";
+
+            var text = "";
+            if (this.Parent.Machine.IsMonitor)
+            {
+                text += "this.Monitor";
+            }
+            else
+            {
+                text += "this.Machine";
+            }
+
             this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line, position));
             position += text.Length;
         }
@@ -320,6 +330,87 @@ namespace Microsoft.PSharp.Parsing.Syntax
         }
 
         /// <summary>
+        /// Rewrites the in keyword.
+        /// </summary>
+        /// param name="position">Position</param>
+        protected void RewriteIn(ref int position)
+        {
+            var inIndex = this.Index - 1;
+            var start = inIndex;
+
+            var key = new List<Token>();
+            while (inIndex >= 0)
+            {
+                if ((this.RewrittenStmtTokens[inIndex].Type == TokenType.Identifier) ||
+                    (this.RewrittenStmtTokens[inIndex].Type == TokenType.None) ||
+                    (this.RewrittenStmtTokens[inIndex].Type == TokenType.LeftSquareBracket) ||
+                    (this.RewrittenStmtTokens[inIndex].Type == TokenType.RightSquareBracket))
+                {
+                    key.Add(this.RewrittenStmtTokens[inIndex]);
+                    start = inIndex;
+                }
+                else if ((this.RewrittenStmtTokens[inIndex].Type != TokenType.WhiteSpace) &&
+                    (this.RewrittenStmtTokens[inIndex].Type != TokenType.NewLine))
+                {
+                    break;
+                }
+                
+                inIndex--;
+            }
+
+            inIndex = this.Index + 1;
+            var end = inIndex;
+
+            var collection = new List<Token>();
+            while (inIndex < this.RewrittenStmtTokens.Count)
+            {
+                if ((this.RewrittenStmtTokens[inIndex].Type == TokenType.Identifier) ||
+                    (this.RewrittenStmtTokens[inIndex].Type == TokenType.LeftSquareBracket) ||
+                    (this.RewrittenStmtTokens[inIndex].Type == TokenType.RightSquareBracket))
+                {
+                    collection.Add(this.RewrittenStmtTokens[inIndex]);
+                    end = inIndex;
+                }
+                else if ((this.RewrittenStmtTokens[inIndex].Type != TokenType.WhiteSpace) &&
+                    (this.RewrittenStmtTokens[inIndex].Type != TokenType.NewLine))
+                {
+                    break;
+                }
+
+                inIndex++;
+            }
+
+            int line = this.RewrittenStmtTokens[start].TextUnit.Line;
+            var text = "(";
+
+            collection.Reverse();
+            foreach (var token in collection)
+            {
+                text += token.TextUnit.Text;
+            }
+
+            text += ").Has(";
+
+            key.Reverse();
+            foreach (var token in key)
+            {
+                text += token.TextUnit.Text;
+            }
+
+            text += ")";
+
+            while (start != end)
+            {
+                this.RewrittenStmtTokens.RemoveAt(end);
+                end--;
+            }
+
+            this.RewrittenStmtTokens[start] = new Token(new TextUnit(text, line, position));
+            position += text.Length;
+            this.Index = start;
+        }
+
+        /// <summary>
         /// Rewrites the default keyword.
         /// </summary>
         /// param name="position">Position</param>
@@ -436,7 +527,18 @@ namespace Microsoft.PSharp.Parsing.Syntax
             }
 
             int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
-            var text = "(this.Machine as " + this.Parent.Machine.Identifier.TextUnit.Text + ").";
+
+            var text = "(this.";
+            if (this.Parent.Machine.IsMonitor)
+            {
+                text += "Monitor";
+            }
+            else
+            {
+                text += "Machine";
+            }
+
+            text += " as " + this.Parent.Machine.Identifier.TextUnit.Text + ").";
             this.RewrittenStmtTokens.Insert(this.Index, new Token(new TextUnit(text, line, position)));
             position += text.Length;
             this.Index++;
@@ -724,8 +826,35 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 return;
             }
 
-            var removeIndex = this.RewrittenStmtTokens[this.Index].TextUnit.Text;
+            Console.WriteLine(this.GetFullText());
+            
+            var removeKey = new List<Token>();
+            while (this.Index < this.RewrittenStmtTokens.Count)
+            {
+                Console.WriteLine(this.RewrittenStmtTokens[this.Index].Type);
+                Console.WriteLine(this.RewrittenStmtTokens[this.Index].TextUnit.Text);
+                if ((this.RewrittenStmtTokens[this.Index].Type == TokenType.Identifier) ||
+                    (this.RewrittenStmtTokens[this.Index].Type == TokenType.None) ||
+                    (this.RewrittenStmtTokens[this.Index].Type == TokenType.LeftSquareBracket) ||
+                    (this.RewrittenStmtTokens[this.Index].Type == TokenType.RightSquareBracket))
+                {
+                    removeKey.Add(this.RewrittenStmtTokens[this.Index]);
+                }
+                else if ((this.RewrittenStmtTokens[this.Index].Type != TokenType.WhiteSpace) &&
+                    (this.RewrittenStmtTokens[this.Index].Type != TokenType.NewLine))
+                {
+                    this.Index--;
+                    break;
+                }
 
+                this.Index++;
+            }
+
+            if (this.Index == this.RewrittenStmtTokens.Count)
+            {
+                this.Index--;
+            }
+            
             while (this.Index > mapIndex)
             {
                 this.RewrittenStmtTokens.RemoveAt(this.Index);
@@ -733,7 +862,18 @@ namespace Microsoft.PSharp.Parsing.Syntax
             }
 
             int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
-            var text = ".Remove(" + removeIndex + ")";
+            var text = ".Remove(";
+
+            if (!(removeKey.Count == 1 && removeKey[0].Type == TokenType.LeftParenthesis))
+            {
+                foreach (var token in removeKey)
+                {
+                    text += token.TextUnit.Text;
+                }
+
+                text += ")";
+            }
+
             this.RewrittenStmtTokens.Insert(this.Index + 1, new Token(new TextUnit(text, line, position)));
             position += text.Length;
             this.Index = mapIndex;
@@ -778,6 +918,10 @@ namespace Microsoft.PSharp.Parsing.Syntax
             else if (token.Type == TokenType.SizeOf)
             {
                 this.RewriteSizeOf(ref position);
+            }
+            else if (token.Type == TokenType.In)
+            {
+                this.RewriteIn(ref position);
             }
             else if (token.Type == TokenType.DefaultEvent)
             {

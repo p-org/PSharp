@@ -279,7 +279,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
             this.RewriteTypeTokens(ref valueType);
             (mapType as PMapType).ValueType = valueType;
 
-            var leftTextUnit = new TextUnit("Dictionary<", this.RewrittenTypeTokens[mapIdx].TextUnit.Line,
+            var leftTextUnit = new TextUnit("Map<", this.RewrittenTypeTokens[mapIdx].TextUnit.Line,
                 this.RewrittenTypeTokens[mapIdx].TextUnit.Start);
             this.RewrittenTypeTokens[mapIdx] = new Token(leftTextUnit);
 

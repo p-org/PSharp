@@ -71,7 +71,7 @@ namespace Microsoft.PSharp.Collections
         /// </summary>
         /// <param name="key">Key</param>
         /// <param name="value">Value</param>
-        public void Insert(K key, V value)
+        public void Add(K key, V value)
         {
             this.Dictionary.Add(key, value);
         }
@@ -83,6 +83,16 @@ namespace Microsoft.PSharp.Collections
         public void RemoveAt(K key)
         {
             this.Dictionary.Remove(key);
+        }
+
+        /// <summary>
+        /// Determines whether the map contains the specified key.
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <returns>Boolean</returns>
+        public bool Has(K key)
+        {
+            return this.Dictionary.ContainsKey(key);
         }
 
         /// <summary>
