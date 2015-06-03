@@ -56,7 +56,8 @@ namespace Microsoft.PSharp.Parsing
             {
                 if (base.TokenStream.Done ||
                     (base.TokenStream.Peek().Type != TokenType.Identifier &&
-                    base.TokenStream.Peek().Type != TokenType.This))
+                    base.TokenStream.Peek().Type != TokenType.This &&
+                    base.TokenStream.Peek().Type != TokenType.Values))
                 {
                     throw new ParsingException("Expected machine identifier.",
                         new List<TokenType>
@@ -99,6 +100,9 @@ namespace Microsoft.PSharp.Parsing
                 if (base.TokenStream.Done ||
                     (base.TokenStream.Peek().Type != TokenType.Identifier &&
                     base.TokenStream.Peek().Type != TokenType.This &&
+                    base.TokenStream.Peek().Type != TokenType.Payload &&
+                    base.TokenStream.Peek().Type != TokenType.Keys &&
+                    base.TokenStream.Peek().Type != TokenType.Values &&
                     base.TokenStream.Peek().Type != TokenType.LeftParenthesis))
                 {
                     throw new ParsingException("Expected machine identifier.",

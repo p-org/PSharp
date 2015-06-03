@@ -61,9 +61,12 @@
     <Compile Include="Parsers\BaseParser.cs" />
     <Compile Include="Parsers\PParser.cs" />
     <Compile Include="Parsers\PSharpParser.cs" />
+    <Compile Include="Parsers\Visitors\DefaultStatementVisitor.cs" />
+    <Compile Include="Parsers\Visitors\PayloadCollectionVisitor.cs" />
     <Compile Include="Parsers\Visitors\PopStatementVisitor.cs" />
     <Compile Include="Parsers\Visitors\EventDeclarationVisitor.cs" />
     <Compile Include="Parsers\Visitors\MachineDeclarationVisitor.cs" />
+    <Compile Include="Parsers\Visitors\MapTypeIdentifierVisitor.cs" />
     <Compile Include="Parsers\Visitors\StateDeclarationVisitor.cs" />
     <Compile Include="Parsers\Visitors\StateEntryDeclarationVisitor.cs" />
     <Compile Include="Parsers\Visitors\StateExitDeclarationVisitor.cs" />
@@ -106,10 +109,12 @@
     <Compile Include="Syntax\PStatements\PExpressionNode.cs" />
     <Compile Include="Syntax\PStatements\PPayloadReceiveNode.cs" />
     <Compile Include="Syntax\PStatements\PTypeNode.cs" />
+    <Compile Include="Syntax\PTypes\PMapType.cs" />
     <Compile Include="Syntax\PTypes\PSeqType.cs" />
     <Compile Include="Syntax\PTypes\PTupleType.cs" />
     <Compile Include="Syntax\PTypes\PBaseType.cs" />
     <Compile Include="Syntax\PTypes\PType.cs" />
+    <Compile Include="Syntax\Statements\DefaultStatementNode.cs" />
     <Compile Include="Syntax\Statements\PopStatementNode.cs" />
     <Compile Include="Syntax\Statements\AssertStatementNode.cs" />
     <Compile Include="Syntax\Statements\NewStatementNode.cs" />

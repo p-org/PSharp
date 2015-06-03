@@ -75,6 +75,12 @@ namespace Microsoft.PSharp.Parsing
                         parentNode.Statements.Add(node);
                         return;
                     }
+                    else if (base.TokenStream.Peek().Type == TokenType.DefaultEvent)
+                    {
+                        node.Expression = expression;
+                        parentNode.Statements.Add(node);
+                        return;
+                    }
                     else if (base.TokenStream.Peek().Type == TokenType.Payload)
                     {
                         var payloadNode = new PPayloadReceiveNode();

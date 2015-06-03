@@ -38,19 +38,31 @@ namespace Microsoft.PSharp.Parsing
         /// Visits the syntax node.
         /// </summary>
         /// <param name="node">Node</param>
+        /// <param name="iterate">Iterate</param>
         public void Visit(PPayloadSendExpressionNode node)
         {
             if (base.TokenStream.Peek().Type == TokenType.LeftParenthesis)
             {
                 new PayloadTupleVisitor(base.TokenStream).Visit(node);
+
+                base.TokenStream.Index++;
+                base.TokenStream.SkipWhiteSpaceAndCommentTokens();
             }
             else
             {
                 node.StmtTokens.Add(base.TokenStream.Peek());
-            }
 
-            base.TokenStream.Index++;
-            base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                base.TokenStream.Index++;
+                base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                
+                if (base.TokenStream.Peek().Type == TokenType.LeftSquareBracket)
+                {
+                    new PayloadCollectionVisitor(base.TokenStream).Visit(node);
+
+                    base.TokenStream.Index++;
+                    base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                }
+            }
         }
     }
 }

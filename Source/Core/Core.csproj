@@ -56,6 +56,7 @@
     <Compile Include="Attributes\Initial.cs" />
     <Compile Include="Attributes\Main.cs" />
     <Compile Include="Collections\Container.cs" />
+    <Compile Include="Collections\Map.cs" />
     <Compile Include="Collections\Seq.cs" />
     <Compile Include="Events\Default.cs" />
     <Compile Include="Events\Event.cs" />

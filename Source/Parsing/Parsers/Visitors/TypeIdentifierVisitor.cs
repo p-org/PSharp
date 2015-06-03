@@ -69,6 +69,10 @@ namespace Microsoft.PSharp.Parsing
             {
                 new SeqTypeIdentifierVisitor(base.TokenStream).Visit(node);
             }
+            else if (base.TokenStream.Peek().Type == TokenType.Map)
+            {
+                new MapTypeIdentifierVisitor(base.TokenStream).Visit(node);
+            }
             else if (base.TokenStream.Peek().Type == TokenType.LeftParenthesis)
             {
                 new TupleTypeIdentifierVisitor(base.TokenStream).Visit(node);

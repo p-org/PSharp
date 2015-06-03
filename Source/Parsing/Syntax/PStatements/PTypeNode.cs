@@ -163,6 +163,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 type = new PSeqType();
                 this.RewriteSeqTypeTokens(ref type);
             }
+            else if (this.RewrittenTypeTokens[this.Index].Type == TokenType.Map)
+            {
+                type = new PMapType();
+                this.RewriteMapTypeTokens(ref type);
+            }
             else if (this.RewrittenTypeTokens[this.Index].Type == TokenType.LeftParenthesis)
             {
                 type = new PTupleType();
@@ -194,6 +199,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
                     this.RewrittenTypeTokens[this.Index].Type != TokenType.Int &&
                     this.RewrittenTypeTokens[this.Index].Type != TokenType.Bool &&
                     this.RewrittenTypeTokens[this.Index].Type != TokenType.Seq &&
+                    this.RewrittenTypeTokens[this.Index].Type != TokenType.Map &&
                     this.RewrittenTypeTokens[this.Index].Type != TokenType.LeftParenthesis) ||
                     (expectsComma && this.RewrittenTypeTokens[this.Index].Type != TokenType.Comma))
                 {
@@ -204,6 +210,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
                     this.RewrittenTypeTokens[this.Index].Type == TokenType.Int ||
                     this.RewrittenTypeTokens[this.Index].Type == TokenType.Bool ||
                     this.RewrittenTypeTokens[this.Index].Type == TokenType.Seq ||
+                    this.RewrittenTypeTokens[this.Index].Type == TokenType.Map ||
                     this.RewrittenTypeTokens[this.Index].Type == TokenType.LeftParenthesis)
                 {
                     var type = new PBaseType();
@@ -245,6 +252,36 @@ namespace Microsoft.PSharp.Parsing.Syntax
             var leftTextUnit = new TextUnit("Seq<", this.RewrittenTypeTokens[seqIdx].TextUnit.Line,
                 this.RewrittenTypeTokens[seqIdx].TextUnit.Start);
             this.RewrittenTypeTokens[seqIdx] = new Token(leftTextUnit);
+
+            var rightTextUnit = new TextUnit(">", this.RewrittenTypeTokens[this.Index].TextUnit.Line,
+                this.RewrittenTypeTokens[this.Index].TextUnit.Start);
+            this.RewrittenTypeTokens[this.Index] = new Token(rightTextUnit);
+        }
+
+        /// <summary>
+        /// Rewrites a map type.
+        /// </summary>
+        /// <param name="type">PBaseType</param>
+        private void RewriteMapTypeTokens(ref PBaseType mapType)
+        {
+            var mapIdx = this.Index;
+            this.Index++;
+
+            this.RewrittenTypeTokens.RemoveAt(this.Index);
+
+            var keyType = new PBaseType();
+            this.RewriteTypeTokens(ref keyType);
+            (mapType as PMapType).KeyType = keyType;
+
+            this.Index++;
+
+            var valueType = new PBaseType();
+            this.RewriteTypeTokens(ref valueType);
+            (mapType as PMapType).ValueType = valueType;
+
+            var leftTextUnit = new TextUnit("Dictionary<", this.RewrittenTypeTokens[mapIdx].TextUnit.Line,
+                this.RewrittenTypeTokens[mapIdx].TextUnit.Start);
+            this.RewrittenTypeTokens[mapIdx] = new Token(leftTextUnit);
 
             var rightTextUnit = new TextUnit(">", this.RewrittenTypeTokens[this.Index].TextUnit.Line,
                 this.RewrittenTypeTokens[this.Index].TextUnit.Start);

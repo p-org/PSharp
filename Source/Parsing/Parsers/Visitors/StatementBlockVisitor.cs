@@ -176,6 +176,7 @@ namespace Microsoft.PSharp.Parsing
                     TokenType.Continue,
                     TokenType.Return,
                     TokenType.New,
+                    TokenType.DefaultEvent,
                     TokenType.CreateMachine,
                     TokenType.RaiseEvent,
                     TokenType.SendEvent,
@@ -234,6 +235,10 @@ namespace Microsoft.PSharp.Parsing
 
                 case TokenType.WhileLoop:
                     new WhileStatementVisitor(base.TokenStream).Visit(node);
+                    break;
+
+                case TokenType.DefaultEvent:
+                    new DefaultStatementVisitor(base.TokenStream).Visit(node);
                     break;
 
                 case TokenType.Break:

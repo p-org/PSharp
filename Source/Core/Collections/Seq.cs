@@ -33,7 +33,7 @@ namespace Microsoft.PSharp.Collections
         /// <summary>
         /// Performs indexing.
         /// </summary>
-        /// <param name="key">Index</param>
+        /// <param name="index">Index</param>
         /// <returns>Element</returns>
         public T this[int index]
         {
