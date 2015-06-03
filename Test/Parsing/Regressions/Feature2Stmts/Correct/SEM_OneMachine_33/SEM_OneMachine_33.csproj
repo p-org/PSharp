@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{1352120B-457A-4B0A-87F4-594C55F614CB}</ProjectGuid>
+    <ProjectGuid>{D3BBA39C-CED1-4372-BF89-9D422046C220}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>AlonBug</RootNamespace>
-    <AssemblyName>AlonBug</AssemblyName>
+    <RootNamespace>SEM_OneMachine_33</RootNamespace>
+    <AssemblyName>SEM_OneMachine_33</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
