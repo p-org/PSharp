@@ -36,6 +36,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
         public List<Token> RewrittenTypeTokens;
 
         /// <summary>
+        /// The name tokens. Only used for named tuples.
+        /// </summary>
+        public List<Token> NameTokens;
+
+        /// <summary>
         /// The actual type.
         /// </summary>
         internal PBaseType Type;
@@ -57,6 +62,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         {
             this.TypeTokens = new List<Token>();
             this.RewrittenTypeTokens = new List<Token>();
+            this.NameTokens = new List<Token>();
         }
 
         /// <summary>
@@ -168,6 +174,20 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 type = new PMapType();
                 this.RewriteMapTypeTokens(ref type);
             }
+            else if (this.RewrittenTypeTokens[this.Index].Type == TokenType.Any)
+            {
+                var textUnit = new TextUnit("object", this.RewrittenTypeTokens[this.Index].TextUnit.Line,
+                    this.RewrittenTypeTokens[this.Index].TextUnit.Start);
+                this.RewrittenTypeTokens[this.Index] = new Token(textUnit);
+                type.Type = PType.Any;
+            }
+            else if (this.RewrittenTypeTokens[this.Index].Type == TokenType.EventDecl)
+            {
+                var textUnit = new TextUnit("Type", this.RewrittenTypeTokens[this.Index].TextUnit.Line,
+                    this.RewrittenTypeTokens[this.Index].TextUnit.Start);
+                this.RewrittenTypeTokens[this.Index] = new Token(textUnit);
+                type.Type = PType.Event;
+            }
             else if (this.RewrittenTypeTokens[this.Index].Type == TokenType.LeftParenthesis)
             {
                 type = new PTupleType();
@@ -200,6 +220,8 @@ namespace Microsoft.PSharp.Parsing.Syntax
                     this.RewrittenTypeTokens[this.Index].Type != TokenType.Bool &&
                     this.RewrittenTypeTokens[this.Index].Type != TokenType.Seq &&
                     this.RewrittenTypeTokens[this.Index].Type != TokenType.Map &&
+                    this.RewrittenTypeTokens[this.Index].Type != TokenType.Any &&
+                    this.RewrittenTypeTokens[this.Index].Type != TokenType.EventDecl &&
                     this.RewrittenTypeTokens[this.Index].Type != TokenType.LeftParenthesis) ||
                     (expectsComma && this.RewrittenTypeTokens[this.Index].Type != TokenType.Comma))
                 {
@@ -211,6 +233,8 @@ namespace Microsoft.PSharp.Parsing.Syntax
                     this.RewrittenTypeTokens[this.Index].Type == TokenType.Bool ||
                     this.RewrittenTypeTokens[this.Index].Type == TokenType.Seq ||
                     this.RewrittenTypeTokens[this.Index].Type == TokenType.Map ||
+                    this.RewrittenTypeTokens[this.Index].Type == TokenType.Any ||
+                    this.RewrittenTypeTokens[this.Index].Type == TokenType.EventDecl ||
                     this.RewrittenTypeTokens[this.Index].Type == TokenType.LeftParenthesis)
                 {
                     var type = new PBaseType();

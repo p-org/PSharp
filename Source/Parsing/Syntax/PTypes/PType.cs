@@ -25,6 +25,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         Bool,
         Foreign,
         Any,
+        Event,
         Tuple,
         Seq,
         Map

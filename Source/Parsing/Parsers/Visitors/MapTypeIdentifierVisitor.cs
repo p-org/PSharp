@@ -70,6 +70,8 @@ namespace Microsoft.PSharp.Parsing
                     base.TokenStream.Peek().Type != TokenType.Bool &&
                     base.TokenStream.Peek().Type != TokenType.Seq &&
                     base.TokenStream.Peek().Type != TokenType.Map &&
+                    base.TokenStream.Peek().Type != TokenType.Any &&
+                    base.TokenStream.Peek().Type != TokenType.EventDecl &&
                     base.TokenStream.Peek().Type != TokenType.LeftParenthesis) ||
                     (expectsComma && base.TokenStream.Peek().Type != TokenType.Comma))
                 {
@@ -81,6 +83,8 @@ namespace Microsoft.PSharp.Parsing
                     base.TokenStream.Peek().Type == TokenType.Bool ||
                     base.TokenStream.Peek().Type == TokenType.Seq ||
                     base.TokenStream.Peek().Type == TokenType.Map ||
+                    base.TokenStream.Peek().Type == TokenType.Any ||
+                    base.TokenStream.Peek().Type == TokenType.EventDecl ||
                     base.TokenStream.Peek().Type == TokenType.LeftParenthesis)
                 {
                     new TypeIdentifierVisitor(base.TokenStream).Visit(node);

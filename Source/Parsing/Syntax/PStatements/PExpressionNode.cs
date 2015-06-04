@@ -577,6 +577,69 @@ namespace Microsoft.PSharp.Parsing.Syntax
         }
 
         /// <summary>
+        /// Rewrites the cloneable collection in method call.
+        /// </summary>
+        /// <param name="position">Position</param>
+        protected void RewriteCloneableCollectionInMethodCall(ref int position)
+        {
+            if (this.Parent.Machine == null || this.Parent.State == null ||
+                !(this.Parent.Machine.FunctionDeclarations.Any(val => val.Identifier.TextUnit.Text.
+                Equals(this.RewrittenStmtTokens[this.Index].TextUnit.Text))))
+            {
+                return;
+            }
+
+            this.Index++;
+            this.SkipWhiteSpaceTokens();
+
+            int counter = 0;
+            while (this.Index < this.RewrittenStmtTokens.Count)
+            {
+                if (this.RewrittenStmtTokens[this.Index].Type == TokenType.LeftParenthesis)
+                {
+                    counter++;
+                }
+                else if (this.RewrittenStmtTokens[this.Index].Type == TokenType.RightParenthesis)
+                {
+                    counter--;
+                }
+
+                if (counter == 0)
+                {
+                    break;
+                }
+
+                if (this.Parent.Machine.FieldDeclarations.Any(val => val.Identifier.TextUnit.Text.Equals(
+                    this.RewrittenStmtTokens[this.Index].TextUnit.Text)))
+                {
+                    var field = this.Parent.Machine.FieldDeclarations.Find(val =>
+                        val.Identifier.TextUnit.Text.Equals(this.RewrittenStmtTokens[this.Index].
+                        TextUnit.Text)) as PFieldDeclarationNode;
+                    if (field.TypeNode.Type.Type != PType.Tuple &&
+                        field.TypeNode.Type.Type != PType.Seq &&
+                        field.TypeNode.Type.Type != PType.Map)
+                    {
+                        return;
+                    }
+
+                    var textUnit = new TextUnit("(", this.RewrittenStmtTokens[this.Index].TextUnit.Line,
+                        this.RewrittenStmtTokens[this.Index].TextUnit.Start + 1);
+                    this.RewrittenStmtTokens.Insert(this.Index, new Token(textUnit));
+                    this.Index++;
+
+                    this.RewriteMemberIdentifier(ref position);
+
+                    var cloneStr = ".Clone() as " + field.TypeNode.GetRewrittenText() + ")";
+                    textUnit = new TextUnit(cloneStr, this.RewrittenStmtTokens[this.Index].TextUnit.Line,
+                        this.RewrittenStmtTokens[this.Index].TextUnit.Start + cloneStr.Length);
+                    this.RewrittenStmtTokens.Insert(this.Index + 1, new Token(textUnit));
+                }
+
+                this.Index++;
+            }
+        }
+
+        /// <summary>
         /// Rewrites a tuple, recursively.
         /// </summary>
         /// <param name="index">Index</param>
@@ -647,21 +710,207 @@ namespace Microsoft.PSharp.Parsing.Syntax
         }
 
         /// <summary>
+        /// Rewrites the any type.
+        /// </summary>
+        /// <param name="position">Position</param>
+        protected void RewriteAnyType(ref int position)
+        {
+            var start = this.Index;
+
+            if (this.Parent.Machine == null || this.Parent.State == null ||
+                !(this.Parent.Machine.FieldDeclarations.Any(val => val.Identifier.TextUnit.Text.
+                Equals(this.RewrittenStmtTokens[this.Index].TextUnit.Text))))
+            {
+                return;
+            }
+
+            var field = this.Parent.Machine.FieldDeclarations.Find(val =>
+                val.Identifier.TextUnit.Text.Equals(this.RewrittenStmtTokens[this.Index].
+                TextUnit.Text)) as PFieldDeclarationNode;
+            if (field.TypeNode.Type.Type != PType.Any)
+            {
+                return;
+            }
+
+            this.Index++;
+            this.SkipWhiteSpaceTokens();
+
+            if (this.Index < this.RewrittenStmtTokens.Count &&
+                (this.RewrittenStmtTokens[this.Index].Type == TokenType.EqualOp ||
+                this.RewrittenStmtTokens[this.Index].Type == TokenType.NotEqualOp))
+            {
+                var opType = this.RewrittenStmtTokens[this.Index].Type;
+
+                this.Index++;
+                this.SkipWhiteSpaceTokens();
+
+                if (this.Index == 0)
+                {
+                    this.Index = start;
+                    return;
+                }
+
+                int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
+
+                var before = this.Index;
+                this.RewriteTupleIndexIdentifier(ref position);
+                this.RewriteMemberIdentifier(ref position);
+                this.Index = before;
+
+                var otherObject = "";
+                while (this.Index < this.RewrittenStmtTokens.Count)
+                {
+                    otherObject += this.RewrittenStmtTokens[this.Index].TextUnit.Text;
+                    this.Index++;
+                }
+
+                while (this.RewrittenStmtTokens[this.Index - 1].Type != opType)
+                {
+                    this.RewrittenStmtTokens.RemoveAt(this.Index - 1);
+                    this.Index--;
+                }
+
+                var text = "Convert.ChangeType(";
+                this.RewrittenStmtTokens.Insert(start, new Token(new TextUnit(text, line, position)));
+                position += text.Length;
+                start++;
+                this.Index = start;
+
+                this.RewriteMemberIdentifier(ref position);
+                this.Index++;
+                start = this.Index;
+
+                text = ", " + otherObject + ".GetType())";
+                this.RewrittenStmtTokens.Insert(start, new Token(new TextUnit(text, line, position)));
+                position += text.Length;
+
+                text = " " + otherObject;
+                this.RewrittenStmtTokens.Add(new Token(new TextUnit(text, line, position)));
+                position += text.Length;
+
+                start++;
+            }
+
+            this.Index = start;
+        }
+
+        /// <summary>
+        /// Rewrites the event type.
+        /// </summary>
+        /// <param name="position">Position</param>
+        protected void RewriteEventType(ref int position)
+        {
+            var start = this.Index;
+
+            if (this.Parent.Machine == null || this.Parent.State == null ||
+                !(this.Parent.Machine.FieldDeclarations.Any(val => val.Identifier.TextUnit.Text.
+                Equals(this.RewrittenStmtTokens[this.Index].TextUnit.Text))))
+            {
+                return;
+            }
+
+            var field = this.Parent.Machine.FieldDeclarations.Find(val =>
+                val.Identifier.TextUnit.Text.Equals(this.RewrittenStmtTokens[this.Index].
+                TextUnit.Text)) as PFieldDeclarationNode;
+            if (field.TypeNode.Type.Type != PType.Event)
+            {
+                return;
+            }
+
+            this.Index++;
+            this.SkipWhiteSpaceTokens();
+
+            if (this.Index < this.RewrittenStmtTokens.Count &&
+                this.RewrittenStmtTokens[this.Index].Type == TokenType.AssignOp)
+            {
+                this.Index++;
+                this.SkipWhiteSpaceTokens();
+
+                if (this.Index == 0 ||
+                    this.RewrittenStmtTokens[this.Index].Type != TokenType.Identifier)
+                {
+                    this.Index = start;
+                    return;
+                }
+
+                int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
+                var text = "typeof(" + this.RewrittenStmtTokens[this.Index].TextUnit.Text + ")";
+                this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line, position));
+                position += text.Length;
+            }
+            else if (this.Index < this.RewrittenStmtTokens.Count &&
+                (this.RewrittenStmtTokens[this.Index].Type == TokenType.EqualOp ||
+                this.RewrittenStmtTokens[this.Index].Type == TokenType.NotEqualOp))
+            {
+                this.Index++;
+                this.SkipWhiteSpaceTokens();
+
+                if (this.Index == 0 ||
+                    this.RewrittenStmtTokens[this.Index].Type != TokenType.Null)
+                {
+                    this.Index = start;
+                    return;
+                }
+
+                int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
+                var text = "typeof(Default)";
+                this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line, position));
+                position += text.Length;
+            }
+
+            this.Index = start;
+        }
+
+        /// <summary>
         /// Rewrites the tuple index identifier.
         /// </summary>
         /// <param name="position">Position</param>
         protected void RewriteTupleIndexIdentifier(ref int position)
         {
-            int index = -1;
-            if (!int.TryParse(this.RewrittenStmtTokens[this.Index].TextUnit.Text, out index))
+            var start = this.Index;
+
+            if (this.Parent.Machine == null || this.Parent.State == null ||
+                !(this.Parent.Machine.FieldDeclarations.Any(val => val.Identifier.TextUnit.Text.
+                Equals(this.RewrittenStmtTokens[this.Index].TextUnit.Text))))
             {
                 return;
             }
 
-            index++;
-            if (this.Index == 0 ||
-                this.RewrittenStmtTokens[this.Index - 1].Type != TokenType.Dot)
+            var field = this.Parent.Machine.FieldDeclarations.Find(val =>
+                val.Identifier.TextUnit.Text.Equals(this.RewrittenStmtTokens[this.Index].
+                TextUnit.Text)) as PFieldDeclarationNode;
+            if (field.TypeNode.Type.Type != PType.Tuple)
             {
+                return;
+            }
+
+            this.Index++;
+            this.SkipWhiteSpaceTokens();
+
+            if (this.Index == 0 ||
+                this.RewrittenStmtTokens[this.Index].Type != TokenType.Dot)
+            {
+                this.Index = start;
+                return;
+            }
+
+            this.Index++;
+            this.SkipWhiteSpaceTokens();
+
+            int index = -1;
+            if (this.Index < this.RewrittenStmtTokens.Count &&
+                int.TryParse(this.RewrittenStmtTokens[this.Index].TextUnit.Text, out index))
+            {
+                index++;
+            }
+            else if (this.Index < this.RewrittenStmtTokens.Count)
+            {
+                index = field.TypeNode.NameTokens.FindIndex(val => val.TextUnit.Text.Equals(
+                    this.RewrittenStmtTokens[this.Index].TextUnit.Text)) + 1;
+            }
+            else
+            {
+                this.Index = start;
                 return;
             }
 
@@ -669,7 +918,16 @@ namespace Microsoft.PSharp.Parsing.Syntax
             var text = "Item" + index;
             this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line, position));
             position += text.Length;
+
+            this.Index = start;
         }
+
+
+        private void Foo()
+        {
+
+        }
+
 
         /// <summary>
         /// Rewrites the insert element at a sequence or a map.
@@ -684,6 +942,42 @@ namespace Microsoft.PSharp.Parsing.Syntax
             var text = "Container.Create";
             this.RewrittenStmtTokens.Insert(this.Index, new Token(new TextUnit(text, line, position)));
             position += text.Length;
+
+            var start = this.Index;
+
+            this.Index++;
+            this.SkipWhiteSpaceTokens();
+
+            int counter = 0;
+            while (this.Index < this.RewrittenStmtTokens.Count)
+            {
+                if (counter > 0 &&
+                    this.RewrittenStmtTokens[this.Index].Type == TokenType.LeftParenthesis)
+                {
+                    text = "Container.Create";
+                    this.RewrittenStmtTokens.Insert(this.Index, new Token(new TextUnit(text, line, position)));
+                    position += text.Length;
+                    this.Index++;
+                }
+
+                if (this.RewrittenStmtTokens[this.Index].Type == TokenType.LeftParenthesis)
+                {
+                    counter++;
+                }
+                else if (this.RewrittenStmtTokens[this.Index].Type == TokenType.RightParenthesis)
+                {
+                    counter--;
+                }
+
+                if (counter == 0)
+                {
+                    break;
+                }
+
+                this.Index++;
+            }
+
+            this.Index = start;
         }
 
         #endregion
@@ -700,7 +994,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
             {
                 return;
             }
-
+            
             var token = this.RewrittenStmtTokens[this.Index];
             if (token == null)
             {
@@ -752,8 +1046,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
             }
             else if (token.Type == TokenType.Identifier)
             {
+                this.RewriteAnyType(ref position);
+                this.RewriteEventType(ref position);
                 this.RewriteTupleIndexIdentifier(ref position);
                 this.RewriteMemberIdentifier(ref position);
+                this.RewriteCloneableCollectionInMethodCall(ref position);
             }
 
             this.Index++;

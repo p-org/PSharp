@@ -46,6 +46,8 @@ namespace Microsoft.PSharp.Parsing
                     base.TokenStream.Peek().Type != TokenType.Bool &&
                     base.TokenStream.Peek().Type != TokenType.Seq &&
                     base.TokenStream.Peek().Type != TokenType.Map &&
+                    base.TokenStream.Peek().Type != TokenType.Any &&
+                    base.TokenStream.Peek().Type != TokenType.EventDecl &&
                     base.TokenStream.Peek().Type != TokenType.LeftParenthesis))
             {
                 throw new ParsingException("Expected type.",
@@ -55,13 +57,17 @@ namespace Microsoft.PSharp.Parsing
                     TokenType.Int,
                     TokenType.Bool,
                     TokenType.Seq,
-                    TokenType.Map
+                    TokenType.Map,
+                    TokenType.Any,
+                    TokenType.EventDecl
                 });
             }
 
             if (base.TokenStream.Peek().Type == TokenType.MachineDecl ||
                 base.TokenStream.Peek().Type == TokenType.Int ||
-                base.TokenStream.Peek().Type == TokenType.Bool)
+                base.TokenStream.Peek().Type == TokenType.Bool ||
+                base.TokenStream.Peek().Type == TokenType.Any ||
+                base.TokenStream.Peek().Type == TokenType.EventDecl)
             {
                 node.TypeTokens.Add(base.TokenStream.Peek());
             }
@@ -92,6 +98,8 @@ namespace Microsoft.PSharp.Parsing
                 (base.TokenStream.Peek().Type != TokenType.MachineDecl &&
                 base.TokenStream.Peek().Type != TokenType.Int &&
                 base.TokenStream.Peek().Type != TokenType.Bool &&
+                base.TokenStream.Peek().Type != TokenType.Any &&
+                base.TokenStream.Peek().Type != TokenType.EventDecl &&
                 base.TokenStream.Peek().Type != TokenType.Identifier))
             {
                 throw new ParsingException("Expected type identifier.",
@@ -108,18 +116,22 @@ namespace Microsoft.PSharp.Parsing
             while (!base.TokenStream.Done)
             {
                 if (!expectsDot &&
-                    (base.TokenStream.Peek().Type != TokenType.MachineDecl && 
+                    (base.TokenStream.Peek().Type != TokenType.MachineDecl &&
                     base.TokenStream.Peek().Type != TokenType.Int &&
                     base.TokenStream.Peek().Type != TokenType.Bool &&
+                    base.TokenStream.Peek().Type != TokenType.Any &&
+                    base.TokenStream.Peek().Type != TokenType.EventDecl &&
                     base.TokenStream.Peek().Type != TokenType.Identifier) ||
                     (expectsDot && base.TokenStream.Peek().Type != TokenType.Dot))
                 {
                     break;
                 }
 
-                if (base.TokenStream.Peek().Type == TokenType.MachineDecl || 
+                if (base.TokenStream.Peek().Type == TokenType.MachineDecl ||
                     base.TokenStream.Peek().Type == TokenType.Int ||
                     base.TokenStream.Peek().Type == TokenType.Bool ||
+                    base.TokenStream.Peek().Type == TokenType.Any ||
+                    base.TokenStream.Peek().Type == TokenType.EventDecl ||
                     base.TokenStream.Peek().Type == TokenType.Identifier)
                 {
                     expectsDot = true;
@@ -168,6 +180,8 @@ namespace Microsoft.PSharp.Parsing
                         (base.TokenStream.Peek().Type != TokenType.MachineDecl && 
                         base.TokenStream.Peek().Type != TokenType.Int &&
                         base.TokenStream.Peek().Type != TokenType.Bool &&
+                        base.TokenStream.Peek().Type != TokenType.Any &&
+                        base.TokenStream.Peek().Type != TokenType.EventDecl &&
                         base.TokenStream.Peek().Type != TokenType.Identifier &&
                         base.TokenStream.Peek().Type != TokenType.Dot &&
                         base.TokenStream.Peek().Type != TokenType.Comma &&

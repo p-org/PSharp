@@ -51,7 +51,10 @@ namespace Microsoft.PSharp.Parsing
                 base.TokenStream.Peek().Type != TokenType.Bool &&
                 base.TokenStream.Peek().Type != TokenType.Seq &&
                 base.TokenStream.Peek().Type != TokenType.Map &&
-                base.TokenStream.Peek().Type != TokenType.LeftParenthesis))
+                base.TokenStream.Peek().Type != TokenType.Any &&
+                base.TokenStream.Peek().Type != TokenType.EventDecl &&
+                base.TokenStream.Peek().Type != TokenType.LeftParenthesis &&
+                base.TokenStream.Peek().Type != TokenType.Identifier))
             {
                 throw new ParsingException("Expected type.",
                     new List<TokenType>
@@ -60,21 +63,34 @@ namespace Microsoft.PSharp.Parsing
                     TokenType.Int,
                     TokenType.Bool,
                     TokenType.Seq,
-                    TokenType.Map
+                    TokenType.Map,
+                    TokenType.Any,
+                    TokenType.EventDecl
                 });
+            }
+
+            bool isNamed = false;
+            bool expectsName = false;
+            if (base.TokenStream.Peek().Type == TokenType.Identifier)
+            {
+                isNamed = true;
+                expectsName = true;
             }
 
             bool expectsComma = false;
             while (!base.TokenStream.Done &&
                 base.TokenStream.Peek().Type != TokenType.RightParenthesis)
             {
-                if ((!expectsComma &&
+                if ((!expectsComma && !expectsName &&
                     base.TokenStream.Peek().Type != TokenType.MachineDecl &&
                     base.TokenStream.Peek().Type != TokenType.Int &&
                     base.TokenStream.Peek().Type != TokenType.Bool &&
                     base.TokenStream.Peek().Type != TokenType.Seq &&
                     base.TokenStream.Peek().Type != TokenType.Map &&
+                    base.TokenStream.Peek().Type != TokenType.Any &&
+                    base.TokenStream.Peek().Type != TokenType.EventDecl &&
                     base.TokenStream.Peek().Type != TokenType.LeftParenthesis) ||
+                    (expectsName && base.TokenStream.Peek().Type != TokenType.Identifier) ||
                     (expectsComma && base.TokenStream.Peek().Type != TokenType.Comma))
                 {
                     break;
@@ -85,10 +101,34 @@ namespace Microsoft.PSharp.Parsing
                     base.TokenStream.Peek().Type == TokenType.Bool ||
                     base.TokenStream.Peek().Type == TokenType.Seq ||
                     base.TokenStream.Peek().Type == TokenType.Map ||
+                    base.TokenStream.Peek().Type == TokenType.Any ||
+                    base.TokenStream.Peek().Type == TokenType.EventDecl ||
                     base.TokenStream.Peek().Type == TokenType.LeftParenthesis)
                 {
                     new TypeIdentifierVisitor(base.TokenStream).Visit(node);
                     expectsComma = true;
+                }
+                else if (base.TokenStream.Peek().Type == TokenType.Identifier)
+                {
+                    node.NameTokens.Add(base.TokenStream.Peek());
+
+                    base.TokenStream.Index++;
+                    base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+
+                    if (base.TokenStream.Done ||
+                        (base.TokenStream.Peek().Type != TokenType.Colon))
+                    {
+                        throw new ParsingException("Expected \":\".",
+                            new List<TokenType>
+                        {
+                                TokenType.Colon
+                        });
+                    }
+
+                    base.TokenStream.Index++;
+                    base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+
+                    expectsName = false;
                 }
                 else if (base.TokenStream.Peek().Type == TokenType.Comma)
                 {
@@ -98,6 +138,11 @@ namespace Microsoft.PSharp.Parsing
                     base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
                     expectsComma = false;
+
+                    if (isNamed)
+                    {
+                        expectsName = true;
+                    }
                 }
             }
 
