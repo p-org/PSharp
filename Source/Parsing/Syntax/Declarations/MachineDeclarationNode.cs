@@ -145,31 +145,32 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        internal override void Rewrite()
+        /// <param name="program">Program</param>
+        internal override void Rewrite(IPSharpProgram program)
         {
             foreach (var node in this.FieldDeclarations)
             {
-                node.Rewrite();
+                node.Rewrite(program);
             }
 
             foreach (var node in this.StateDeclarations)
             {
-                node.Rewrite();
+                node.Rewrite(program);
             }
 
             foreach (var node in this.ActionDeclarations)
             {
-                node.Rewrite();
+                node.Rewrite(program);
             }
 
             foreach (var node in this.MethodDeclarations)
             {
-                node.Rewrite();
+                node.Rewrite(program);
             }
 
             foreach (var node in this.FunctionDeclarations)
             {
-                node.Rewrite();
+                node.Rewrite(program);
             }
 
             var text = "";
@@ -239,14 +240,14 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 text += node.GetRewrittenText();
             }
 
-            text += this.InstrumentGotoStateTransitions();
+            text += this.InstrumentGotoStateTransitions(program);
 
             if (!this.IsMonitor)
             {
-                text += this.InstrumentPushStateTransitions();
+                text += this.InstrumentPushStateTransitions(program);
             }
 
-            text += this.InstrumentActionsBindings();
+            text += this.InstrumentActionsBindings(program);
 
             text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
 
@@ -357,7 +358,8 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Instruments the goto state transitions.
         /// </summary>
         /// <returns>Text</returns>
-        private string InstrumentGotoStateTransitions()
+        /// <param name="program">Program</param>
+        private string InstrumentGotoStateTransitions(IPSharpProgram program)
         {
             if (!this.StateDeclarations.Any(val => val.GotoStateTransitions.Count > 0))
             {
@@ -382,7 +384,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
                     if (state.TransitionsOnExitActions.ContainsKey(transition.Key))
                     {
                         var onExitAction = state.TransitionsOnExitActions[transition.Key];
-                        onExitAction.Rewrite();
+                        onExitAction.Rewrite(program);
                         onExitText = onExitAction.GetRewrittenText();
                     }
 
@@ -428,7 +430,8 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Instruments the push state transitions.
         /// </summary>
         /// <returns>Text</returns>
-        private string InstrumentPushStateTransitions()
+        /// <param name="program">Program</param>
+        private string InstrumentPushStateTransitions(IPSharpProgram program)
         {
             if (!this.StateDeclarations.Any(val => val.PushStateTransitions.Count > 0))
             {
@@ -453,7 +456,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
                     if (state.TransitionsOnExitActions.ContainsKey(transition.Key))
                     {
                         var onExitAction = state.TransitionsOnExitActions[transition.Key];
-                        onExitAction.Rewrite();
+                        onExitAction.Rewrite(program);
                         onExitText = onExitAction.GetRewrittenText();
                     }
 
@@ -499,7 +502,8 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Instruments the action bindings.
         /// </summary>
         /// <returns>Text</returns>
-        private string InstrumentActionsBindings()
+        /// <param name="program">Program</param>
+        private string InstrumentActionsBindings(IPSharpProgram program)
         {
             if (!this.StateDeclarations.Any(val => val.ActionBindings.Count > 0))
             {
@@ -524,7 +528,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
                     if (state.ActionHandlers.ContainsKey(binding.Key))
                     {
                         var action = state.ActionHandlers[binding.Key];
-                        action.Rewrite();
+                        action.Rewrite(program);
                         actionText = action.GetRewrittenText();
                     }
 

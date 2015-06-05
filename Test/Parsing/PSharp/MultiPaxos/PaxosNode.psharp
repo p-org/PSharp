@@ -1,0 +1,10 @@
+﻿namespace MultiPaxos
+{
+    machine PaxosNode
+    {
+	    start state Init
+		{
+
+		}
+    }
+}

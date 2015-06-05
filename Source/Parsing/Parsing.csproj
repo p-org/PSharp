@@ -61,7 +61,6 @@
     <Compile Include="Parsers\BaseParser.cs" />
     <Compile Include="Parsers\PParser.cs" />
     <Compile Include="Parsers\PSharpParser.cs" />
-    <Compile Include="Parsers\Visitors\CreateMonitorStatementVisitor.cs" />
     <Compile Include="Parsers\Visitors\DefaultStatementVisitor.cs" />
     <Compile Include="Parsers\Visitors\PayloadCollectionVisitor.cs" />
     <Compile Include="Parsers\Visitors\PopStatementVisitor.cs" />
@@ -81,6 +80,7 @@
     <Compile Include="Parsers\Visitors\MethodDeclarationVisitor.cs" />
     <Compile Include="Parsers\Visitors\PushStatementVisitor.cs" />
     <Compile Include="Parsers\Visitors\StatementBlockVisitor.cs" />
+    <Compile Include="Parsers\Visitors\ForeachStatementVisitor.cs" />
     <Compile Include="Parsers\Visitors\WhileStatementVisitor.cs" />
     <Compile Include="Parsers\Visitors\MonitorStatementVisitor.cs" />
     <Compile Include="Parsers\Visitors\AttributeListVisitor.cs" />
@@ -114,11 +114,11 @@
     <Compile Include="Syntax\PTypes\PTupleType.cs" />
     <Compile Include="Syntax\PTypes\PBaseType.cs" />
     <Compile Include="Syntax\PTypes\PType.cs" />
-    <Compile Include="Syntax\Statements\CreateMonitorStatementNode.cs" />
     <Compile Include="Syntax\PStatements\PDefaultStatementNode.cs" />
     <Compile Include="Syntax\Statements\PopStatementNode.cs" />
     <Compile Include="Syntax\Statements\AssertStatementNode.cs" />
     <Compile Include="Syntax\Statements\NewStatementNode.cs" />
+    <Compile Include="Syntax\Statements\ForeachStatementNode.cs" />
     <Compile Include="Syntax\Statements\WhileStatementNode.cs" />
     <Compile Include="Syntax\Statements\SendStatementNode.cs" />
     <Compile Include="Syntax\Statements\RaiseStatementNode.cs" />

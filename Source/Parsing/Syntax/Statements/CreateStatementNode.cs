@@ -86,18 +86,45 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        internal override void Rewrite()
+        /// <param name="program">Program</param>
+        internal override void Rewrite(IPSharpProgram program)
         {
-            var text = "this.Create<";
-
+            var machineId = "";
             foreach (var id in this.MachineIdentifier)
             {
-                text += id.TextUnit.Text;
+                machineId += id.TextUnit.Text;
             }
+
+            var text = "this.";
+
+            bool isMonitor = false;
+            if (program is PSharpProgram)
+            {
+                var psProgram = program as PSharpProgram;
+                isMonitor = psProgram.NamespaceDeclarations.Any(ns => ns.MachineDeclarations.Any(md =>
+                    md.IsMonitor && md.Identifier.TextUnit.Text.Equals(machineId)));
+            }
+            else
+            {
+                var pProgram = program as PProgram;
+                isMonitor = pProgram.MachineDeclarations.Any(md =>
+                    md.IsMonitor && md.Identifier.TextUnit.Text.Equals(machineId));
+            }
+
+            if (isMonitor)
+            {
+                text += "CreateMonitor<";
+            }
+            else
+            {
+                text += "Create<";
+            }
+
+            text += machineId;
 
             text += ">(";
 
-            this.Payload.Rewrite();
+            this.Payload.Rewrite(program);
             text += this.Payload.GetRewrittenText();
 
             text += ")";

@@ -55,7 +55,8 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        internal abstract void Rewrite();
+        /// <param name="program">Program</param>
+        internal abstract void Rewrite(IPSharpProgram program);
 
         /// <summary>
         /// Generates a new text unit.

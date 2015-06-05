@@ -1,0 +1,10 @@
+﻿namespace MultiPaxos
+{
+    machine Client
+    {
+	    start state Init
+		{
+
+		}
+    }
+}

@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{A518B5CB-9B21-4A99-979F-EF545F8E4389}</ProjectGuid>
+    <ProjectGuid>{09823B80-83E7-4340-B4E5-EAC95D28BCD0}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>PingPong</RootNamespace>
-    <AssemblyName>PingPong</AssemblyName>
+    <RootNamespace>MultiPaxos</RootNamespace>
+    <AssemblyName>MultiPaxos</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -43,12 +43,15 @@
   <ItemGroup>
     <Compile Include="Client.psharp" />
     <Compile Include="Events.psharp" />
-    <Compile Include="Server.psharp" />
+    <Compile Include="GodMachine.psharp" />
     <Compile Include="Test.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <Compile Include="PaxosNode.psharp" />
+    <Compile Include="Timer.psharp" />
+    <Compile Include="LeaderElection.psharp" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

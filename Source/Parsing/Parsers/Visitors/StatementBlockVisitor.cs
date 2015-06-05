@@ -102,7 +102,7 @@ namespace Microsoft.PSharp.Parsing
                     break;
 
                 case TokenType.CreateMachine:
-                    new CreateMonitorStatementVisitor(base.TokenStream).Visit(node);
+                    new CreateStatementVisitor(base.TokenStream).Visit(node);
                     break;
 
                 case TokenType.RaiseEvent:
@@ -127,6 +127,10 @@ namespace Microsoft.PSharp.Parsing
 
                 case TokenType.WhileLoop:
                     new WhileStatementVisitor(base.TokenStream).Visit(node);
+                    break;
+
+                case TokenType.ForeachLoop:
+                    new ForeachStatementVisitor(base.TokenStream).Visit(node);
                     break;
 
                 case TokenType.Break:
@@ -202,7 +206,7 @@ namespace Microsoft.PSharp.Parsing
                     break;
 
                 case TokenType.New:
-                    new CreateMonitorStatementVisitor(base.TokenStream).Visit(node);
+                    new CreateStatementVisitor(base.TokenStream).Visit(node);
                     break;
 
                 case TokenType.RaiseEvent:
@@ -235,6 +239,10 @@ namespace Microsoft.PSharp.Parsing
 
                 case TokenType.WhileLoop:
                     new WhileStatementVisitor(base.TokenStream).Visit(node);
+                    break;
+
+                case TokenType.ForeachLoop:
+                    new ForeachStatementVisitor(base.TokenStream).Visit(node);
                     break;
 
                 case TokenType.DefaultEvent:

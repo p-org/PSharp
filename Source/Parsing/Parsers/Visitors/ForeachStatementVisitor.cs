@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="WhileStatementVisitor.cs">
+// <copyright file="ForeachStatementVisitor.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -20,15 +20,15 @@ using Microsoft.PSharp.Parsing.Syntax;
 namespace Microsoft.PSharp.Parsing
 {
     /// <summary>
-    /// The P# while statement parsing visitor.
+    /// The P# foreach statement parsing visitor.
     /// </summary>
-    internal sealed class WhileStatementVisitor : BaseParseVisitor
+    internal sealed class ForeachStatementVisitor : BaseParseVisitor
     {
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="tokenStream">TokenStream</param>
-        internal WhileStatementVisitor(TokenStream tokenStream)
+        internal ForeachStatementVisitor(TokenStream tokenStream)
             : base(tokenStream)
         {
 
@@ -40,8 +40,8 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="parentNode">Node</param>
         internal void Visit(StatementBlockNode parentNode)
         {
-            var node = new WhileStatementNode(parentNode);
-            node.WhileKeyword = base.TokenStream.Peek();
+            var node = new ForeachStatementNode(parentNode);
+            node.ForeachKeyword = base.TokenStream.Peek();
 
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
@@ -61,75 +61,31 @@ namespace Microsoft.PSharp.Parsing
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-            if (base.TokenStream.IsPSharp)
+            var guard = new ExpressionNode(parentNode);
+
+            int counter = 1;
+            while (!base.TokenStream.Done)
             {
-                var guard = new ExpressionNode(parentNode);
-
-                int counter = 1;
-                while (!base.TokenStream.Done)
+                if (base.TokenStream.Peek().Type == TokenType.LeftParenthesis)
                 {
-                    if (base.TokenStream.Peek().Type == TokenType.LeftParenthesis)
-                    {
-                        counter++;
-                    }
-                    else if (base.TokenStream.Peek().Type == TokenType.RightParenthesis)
-                    {
-                        counter--;
-                    }
-
-                    if (counter == 0)
-                    {
-                        break;
-                    }
-
-                    guard.StmtTokens.Add(base.TokenStream.Peek());
-                    base.TokenStream.Index++;
-                    base.TokenStream.SkipCommentTokens();
+                    counter++;
+                }
+                else if (base.TokenStream.Peek().Type == TokenType.RightParenthesis)
+                {
+                    counter--;
                 }
 
-                node.Guard = guard;
-            }
-            else
-            {
-                var guard = new PExpressionNode(parentNode);
-
-                int counter = 1;
-                while (!base.TokenStream.Done)
+                if (counter == 0)
                 {
-                    if (base.TokenStream.Peek().Type == TokenType.Payload)
-                    {
-                        var payloadNode = new PPayloadReceiveNode();
-                        new ReceivedPayloadVisitor(base.TokenStream).Visit(payloadNode);
-                        guard.StmtTokens.Add(null);
-                        guard.Payloads.Add(payloadNode);
-
-                        if (payloadNode.RightParenthesisToken != null)
-                        {
-                            counter--;
-                        }
-                    }
-
-                    if (base.TokenStream.Peek().Type == TokenType.LeftParenthesis)
-                    {
-                        counter++;
-                    }
-                    else if (base.TokenStream.Peek().Type == TokenType.RightParenthesis)
-                    {
-                        counter--;
-                    }
-
-                    if (counter == 0)
-                    {
-                        break;
-                    }
-
-                    guard.StmtTokens.Add(base.TokenStream.Peek());
-                    base.TokenStream.Index++;
-                    base.TokenStream.SkipCommentTokens();
+                    break;
                 }
 
-                node.Guard = guard;
+                guard.StmtTokens.Add(base.TokenStream.Peek());
+                base.TokenStream.Index++;
+                base.TokenStream.SkipCommentTokens();
             }
+
+            node.Guard = guard;
 
             if (base.TokenStream.Done ||
                 base.TokenStream.Peek().Type != TokenType.RightParenthesis)
@@ -146,58 +102,31 @@ namespace Microsoft.PSharp.Parsing
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-            if (base.TokenStream.IsPSharp)
+            if (base.TokenStream.Done ||
+                (base.TokenStream.Peek().Type != TokenType.New &&
+                base.TokenStream.Peek().Type != TokenType.CreateMachine &&
+                base.TokenStream.Peek().Type != TokenType.RaiseEvent &&
+                base.TokenStream.Peek().Type != TokenType.SendEvent &&
+                base.TokenStream.Peek().Type != TokenType.Assert &&
+                base.TokenStream.Peek().Type != TokenType.IfCondition &&
+                base.TokenStream.Peek().Type != TokenType.Break &&
+                base.TokenStream.Peek().Type != TokenType.Continue &&
+                base.TokenStream.Peek().Type != TokenType.Return &&
+                base.TokenStream.Peek().Type != TokenType.This &&
+                base.TokenStream.Peek().Type != TokenType.Base &&
+                base.TokenStream.Peek().Type != TokenType.Var &&
+                base.TokenStream.Peek().Type != TokenType.Int &&
+                base.TokenStream.Peek().Type != TokenType.Bool &&
+                base.TokenStream.Peek().Type != TokenType.Identifier &&
+                base.TokenStream.Peek().Type != TokenType.LeftCurlyBracket))
             {
-                if (base.TokenStream.Done ||
-                    (base.TokenStream.Peek().Type != TokenType.New &&
-                    base.TokenStream.Peek().Type != TokenType.CreateMachine &&
-                    base.TokenStream.Peek().Type != TokenType.RaiseEvent &&
-                    base.TokenStream.Peek().Type != TokenType.SendEvent &&
-                    base.TokenStream.Peek().Type != TokenType.Assert &&
-                    base.TokenStream.Peek().Type != TokenType.IfCondition &&
-                    base.TokenStream.Peek().Type != TokenType.Break &&
-                    base.TokenStream.Peek().Type != TokenType.Continue &&
-                    base.TokenStream.Peek().Type != TokenType.Return &&
-                    base.TokenStream.Peek().Type != TokenType.This &&
-                    base.TokenStream.Peek().Type != TokenType.Base &&
-                    base.TokenStream.Peek().Type != TokenType.Var &&
-                    base.TokenStream.Peek().Type != TokenType.Int &&
-                    base.TokenStream.Peek().Type != TokenType.Bool &&
-                    base.TokenStream.Peek().Type != TokenType.Identifier &&
-                    base.TokenStream.Peek().Type != TokenType.LeftCurlyBracket))
+                throw new ParsingException("Expected \"{\".",
+                    new List<TokenType>
                 {
-                    throw new ParsingException("Expected \"{\".",
-                        new List<TokenType>
-                    {
                             TokenType.LeftCurlyBracket
-                    });
-                }
+                });
             }
-            else
-            {
-                if (base.TokenStream.Done ||
-                    (base.TokenStream.Peek().Type != TokenType.New &&
-                    base.TokenStream.Peek().Type != TokenType.RaiseEvent &&
-                    base.TokenStream.Peek().Type != TokenType.SendEvent &&
-                    base.TokenStream.Peek().Type != TokenType.Monitor &&
-                    base.TokenStream.Peek().Type != TokenType.PushState &&
-                    base.TokenStream.Peek().Type != TokenType.Assert &&
-                    base.TokenStream.Peek().Type != TokenType.IfCondition &&
-                    base.TokenStream.Peek().Type != TokenType.WhileLoop &&
-                    base.TokenStream.Peek().Type != TokenType.Break &&
-                    base.TokenStream.Peek().Type != TokenType.Continue &&
-                    base.TokenStream.Peek().Type != TokenType.Return &&
-                    base.TokenStream.Peek().Type != TokenType.Identifier &&
-                    base.TokenStream.Peek().Type != TokenType.LeftCurlyBracket))
-                {
-                    throw new ParsingException("Expected \"{\".",
-                        new List<TokenType>
-                    {
-                            TokenType.LeftCurlyBracket
-                    });
-                }
-            }
-            
+
             var blockNode = new StatementBlockNode(parentNode.Machine, parentNode.State);
 
             if (base.TokenStream.Peek().Type == TokenType.New)

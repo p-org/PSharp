@@ -70,11 +70,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        internal override void Rewrite()
+        /// <param name="program">Program</param>
+        internal override void Rewrite(IPSharpProgram program)
         {
             var text = "protected override void OnExit()";
 
-            this.StatementBlock.Rewrite();
+            this.StatementBlock.Rewrite(program);
             text += StatementBlock.GetRewrittenText();
 
             base.RewrittenTextUnit = new TextUnit(text, this.ExitKeyword.TextUnit.Line);

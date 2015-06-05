@@ -68,13 +68,13 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             foreach (var node in this.EventDeclarations)
             {
-                node.Rewrite();
+                node.Rewrite(this);
                 this.RewrittenText += node.GetRewrittenText();
             }
 
             foreach (var node in this.MachineDeclarations)
             {
-                node.Rewrite();
+                node.Rewrite(this);
                 this.RewrittenText += node.GetRewrittenText();
             }
 

@@ -1,0 +1,10 @@
+﻿namespace MultiPaxos
+{
+    machine LeaderElection
+    {
+	    start state Init
+		{
+
+		}
+    }
+}

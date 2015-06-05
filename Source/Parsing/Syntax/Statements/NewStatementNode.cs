@@ -86,7 +86,8 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        internal override void Rewrite()
+        /// <param name="program">Program</param>
+        internal override void Rewrite(IPSharpProgram program)
         {
             var text = this.NewKeyword.TextUnit.Text;
             text += " ";
@@ -97,7 +98,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             if (this.Arguments != null)
             {
-                this.Arguments.Rewrite();
+                this.Arguments.Rewrite(program);
                 text += this.Arguments.GetRewrittenText();
             }
 

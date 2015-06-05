@@ -89,7 +89,8 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        internal override void Rewrite()
+        /// <param name="program">Program</param>
+        internal override void Rewrite(IPSharpProgram program)
         {
             if (this.StmtTokens.Count == 0)
             {
@@ -100,7 +101,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
             this.RewrittenStmtTokens = this.StmtTokens.ToList();
             this.PendingPayloads = this.Payloads.ToList();
             this.RunSpecialisedRewrittingPass();
-            this.RewriteNextToken();
+            this.RewriteNextToken(program);
             
             var text = "";
 
@@ -946,7 +947,8 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Rewrites the next token.
         /// </summary>
-        private void RewriteNextToken()
+        /// <param name="program">Program</param>
+        private void RewriteNextToken(IPSharpProgram program)
         {
             if (this.Index == this.RewrittenStmtTokens.Count)
             {
@@ -956,7 +958,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
             var token = this.RewrittenStmtTokens[this.Index];
             if (token == null)
             {
-                this.RewriteReceivedPayload();
+                this.RewriteReceivedPayload(program);
             }
             else if (token.Type == TokenType.MachineDecl)
             {
@@ -1012,19 +1014,20 @@ namespace Microsoft.PSharp.Parsing.Syntax
             }
 
             this.Index++;
-            this.RewriteNextToken();
+            this.RewriteNextToken(program);
         }
 
         /// <summary>
         /// Rewrites the received payload.
         /// </summary>
-        private void RewriteReceivedPayload()
+        /// <param name="program">Program</param>
+        private void RewriteReceivedPayload(IPSharpProgram program)
         {
             var payload = this.PendingPayloads[0];
             this.PendingPayloads.RemoveAt(0);
 
             payload.GenerateTextUnit();
-            payload.Rewrite();
+            payload.Rewrite(program);
             var text = payload.GetRewrittenText();
             var line = payload.TextUnit.Line;
 

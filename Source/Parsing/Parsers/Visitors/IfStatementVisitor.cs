@@ -206,7 +206,7 @@ namespace Microsoft.PSharp.Parsing
             }
             else if (base.TokenStream.Peek().Type == TokenType.CreateMachine)
             {
-                new CreateMonitorStatementVisitor(base.TokenStream).Visit(blockNode);
+                new CreateStatementVisitor(base.TokenStream).Visit(blockNode);
             }
             else if (base.TokenStream.Peek().Type == TokenType.RaiseEvent)
             {
@@ -239,6 +239,10 @@ namespace Microsoft.PSharp.Parsing
             else if (base.TokenStream.Peek().Type == TokenType.WhileLoop)
             {
                 new WhileStatementVisitor(base.TokenStream).Visit(blockNode);
+            }
+            else if (base.TokenStream.Peek().Type == TokenType.ForeachLoop)
+            {
+                new ForeachStatementVisitor(base.TokenStream).Visit(blockNode);
             }
             else if (base.TokenStream.Peek().Type == TokenType.Break ||
                 base.TokenStream.Peek().Type == TokenType.Continue ||
@@ -330,7 +334,7 @@ namespace Microsoft.PSharp.Parsing
                 }
                 else if (base.TokenStream.Peek().Type == TokenType.CreateMachine)
                 {
-                    new CreateMonitorStatementVisitor(base.TokenStream).Visit(elseBlockNode);
+                    new CreateStatementVisitor(base.TokenStream).Visit(elseBlockNode);
                 }
                 else if (base.TokenStream.Peek().Type == TokenType.RaiseEvent)
                 {
@@ -363,6 +367,10 @@ namespace Microsoft.PSharp.Parsing
                 else if (base.TokenStream.Peek().Type == TokenType.WhileLoop)
                 {
                     new WhileStatementVisitor(base.TokenStream).Visit(elseBlockNode);
+                }
+                else if (base.TokenStream.Peek().Type == TokenType.ForeachLoop)
+                {
+                    new ForeachStatementVisitor(base.TokenStream).Visit(elseBlockNode);
                 }
                 else if (base.TokenStream.Peek().Type == TokenType.Break ||
                     base.TokenStream.Peek().Type == TokenType.Continue ||

@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="CreateMonitorStatementNode.cs">
+// <copyright file="ForeachStatementNode.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -19,21 +19,16 @@ using System.Linq;
 namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
-    /// Create monitor statement node.
+    /// Foreach statement node.
     /// </summary>
-    internal sealed class CreateMonitorStatementNode : StatementNode
+    internal sealed class ForeachStatementNode : StatementNode
     {
         #region fields
 
         /// <summary>
-        /// The create monitor keyword.
+        /// The foreach keyword.
         /// </summary>
-        internal Token CreateMonitorKeyword;
-
-        /// <summary>
-        /// The monitor identifier.
-        /// </summary>
-        internal List<Token> MonitorIdentifier;
+        internal Token ForeachKeyword;
 
         /// <summary>
         /// The left parenthesis token.
@@ -41,14 +36,19 @@ namespace Microsoft.PSharp.Parsing.Syntax
         internal Token LeftParenthesisToken;
 
         /// <summary>
-        /// The monitor creation payload.
+        /// The guard predicate.
         /// </summary>
-        internal ExpressionNode Payload;
+        internal ExpressionNode Guard;
 
         /// <summary>
         /// The right parenthesis token.
         /// </summary>
         internal Token RightParenthesisToken;
+
+        /// <summary>
+        /// The statement block.
+        /// </summary>
+        internal StatementBlockNode StatementBlock;
 
         #endregion
 
@@ -58,10 +58,10 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Constructor.
         /// </summary>
         /// <param name="node">Node</param>
-        internal CreateMonitorStatementNode(StatementBlockNode node)
+        internal ForeachStatementNode(StatementBlockNode node)
             : base(node)
         {
-            this.MonitorIdentifier = new List<Token>();
+
         }
 
         /// <summary>
@@ -86,25 +86,24 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        internal override void Rewrite()
+        /// <param name="program">Program</param>
+        internal override void Rewrite(IPSharpProgram program)
         {
-            var text = "this.CreateMonitor<";
+            var text = "";
 
-            foreach (var id in this.MonitorIdentifier)
-            {
-                text += id.TextUnit.Text;
-            }
+            text += this.ForeachKeyword.TextUnit.Text;
 
-            text += ">(";
+            text += this.LeftParenthesisToken.TextUnit.Text;
 
-            this.Payload.Rewrite();
-            text += this.Payload.GetRewrittenText();
+            this.Guard.Rewrite(program);
+            text += this.Guard.GetRewrittenText();
 
-            text += ")";
+            text += this.RightParenthesisToken.TextUnit.Text;
 
-            text += this.SemicolonToken.TextUnit.Text + "\n";
+            this.StatementBlock.Rewrite(program);
+            text += this.StatementBlock.GetRewrittenText();
 
-            base.RewrittenTextUnit = new TextUnit(text, this.CreateMonitorKeyword.TextUnit.Line);
+            base.RewrittenTextUnit = new TextUnit(text, this.ForeachKeyword.TextUnit.Line);
         }
 
         /// <summary>
@@ -112,32 +111,23 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         internal override void GenerateTextUnit()
         {
-            var text = this.CreateMonitorKeyword.TextUnit.Text;
+            this.Guard.GenerateTextUnit();
+            this.StatementBlock.GenerateTextUnit();
+
+            var text = "";
+
+            text += this.ForeachKeyword.TextUnit.Text;
             text += " ";
 
-            foreach (var id in this.MonitorIdentifier)
-            {
-                text += id.TextUnit.Text;
-            }
+            text += this.LeftParenthesisToken.TextUnit.Text;
 
-            if (this.LeftParenthesisToken != null &&
-                this.RightParenthesisToken != null)
-            {
-                text += this.LeftParenthesisToken.TextUnit.Text;
-            }
+            text += this.Guard.GetFullText();
 
-            this.Payload.GenerateTextUnit();
-            text += this.Payload.GetFullText();
+            text += this.RightParenthesisToken.TextUnit.Text;
 
-            if (this.LeftParenthesisToken != null &&
-                this.RightParenthesisToken != null)
-            {
-                text += this.RightParenthesisToken.TextUnit.Text;
-            }
-            
-            text += this.SemicolonToken.TextUnit.Text + "\n";
+            text += this.StatementBlock.GetFullText();
 
-            base.TextUnit = new TextUnit(text, this.CreateMonitorKeyword.TextUnit.Line);
+            base.TextUnit = new TextUnit(text, this.ForeachKeyword.TextUnit.Line);
         }
 
         #endregion
