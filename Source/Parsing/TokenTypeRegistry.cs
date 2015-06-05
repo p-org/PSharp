@@ -209,10 +209,6 @@ namespace Microsoft.PSharp.Parsing
                     text = "event";
                     break;
 
-                case TokenType.ActionDecl:
-                    text = "action";
-                    break;
-
                 case TokenType.FunDecl:
                     text = "fun";
                     break;
@@ -393,8 +389,24 @@ namespace Microsoft.PSharp.Parsing
                     text = "var";
                     break;
 
+                case TokenType.Void:
+                    text = "void";
+                    break;
+
+                case TokenType.Object:
+                    text = "object";
+                    break;
+
                 case TokenType.Int:
                     text = "int";
+                    break;
+
+                case TokenType.Float:
+                    text = "float";
+                    break;
+
+                case TokenType.Double:
+                    text = "double";
                     break;
 
                 case TokenType.Bool:

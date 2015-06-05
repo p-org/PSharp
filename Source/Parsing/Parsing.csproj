@@ -76,7 +76,6 @@
     <Compile Include="Parsers\Visitors\FieldDeclarationVisitor.cs" />
     <Compile Include="Parsers\Visitors\FieldOrMethodDeclarationVisitor.cs" />
     <Compile Include="Parsers\Visitors\FunctionDeclarationVisitor.cs" />
-    <Compile Include="Parsers\Visitors\ActionDeclarationVisitor.cs" />
     <Compile Include="Parsers\Visitors\MethodDeclarationVisitor.cs" />
     <Compile Include="Parsers\Visitors\PushStatementVisitor.cs" />
     <Compile Include="Parsers\Visitors\StatementBlockVisitor.cs" />
@@ -134,7 +133,6 @@
     <Compile Include="Syntax\PSharpProgram.cs" />
     <Compile Include="Syntax\Declarations\FieldDeclarationNode.cs" />
     <Compile Include="Syntax\Declarations\MethodDeclarationNode.cs" />
-    <Compile Include="Syntax\Declarations\ActionDeclarationNode.cs" />
     <Compile Include="Syntax\Statements\StatementBlockNode.cs" />
     <Compile Include="Syntax\Declarations\EntryDeclarationNode.cs" />
     <Compile Include="Syntax\Declarations\StateDeclarationNode.cs" />

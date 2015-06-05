@@ -236,10 +236,6 @@ namespace Microsoft.PSharp.Parsing
                     this.Tokens.Add(new Token(unit, TokenType.EventDecl));
                     break;
 
-                case "action":
-                    this.Tokens.Add(new Token(unit, TokenType.ActionDecl));
-                    break;
-
                 case "main":
                     this.Tokens.Add(new Token(unit, TokenType.MainMachine));
                     break;
@@ -400,8 +396,24 @@ namespace Microsoft.PSharp.Parsing
                     this.Tokens.Add(new Token(unit, TokenType.Var));
                     break;
 
+                case "void":
+                    this.Tokens.Add(new Token(unit, TokenType.Void));
+                    break;
+
+                case "object":
+                    this.Tokens.Add(new Token(unit, TokenType.Object));
+                    break;
+
                 case "int":
                     this.Tokens.Add(new Token(unit, TokenType.Int));
+                    break;
+
+                case "float":
+                    this.Tokens.Add(new Token(unit, TokenType.Float));
+                    break;
+
+                case "double":
+                    this.Tokens.Add(new Token(unit, TokenType.Double));
                     break;
 
                 case "bool":

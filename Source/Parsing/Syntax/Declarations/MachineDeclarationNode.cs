@@ -81,11 +81,6 @@ namespace Microsoft.PSharp.Parsing.Syntax
         internal List<StateDeclarationNode> StateDeclarations;
 
         /// <summary>
-        /// List of action declarations.
-        /// </summary>
-        internal List<ActionDeclarationNode> ActionDeclarations;
-
-        /// <summary>
         /// List of method declarations.
         /// </summary>
         internal List<MethodDeclarationNode> MethodDeclarations;
@@ -118,7 +113,6 @@ namespace Microsoft.PSharp.Parsing.Syntax
             this.BaseNameTokens = new List<Token>();
             this.FieldDeclarations = new List<FieldDeclarationNode>();
             this.StateDeclarations = new List<StateDeclarationNode>();
-            this.ActionDeclarations = new List<ActionDeclarationNode>();
             this.MethodDeclarations = new List<MethodDeclarationNode>();
             this.FunctionDeclarations = new List<PFunctionDeclarationNode>();
         }
@@ -154,11 +148,6 @@ namespace Microsoft.PSharp.Parsing.Syntax
             }
 
             foreach (var node in this.StateDeclarations)
-            {
-                node.Rewrite(program);
-            }
-
-            foreach (var node in this.ActionDeclarations)
             {
                 node.Rewrite(program);
             }
@@ -225,11 +214,6 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 text += node.GetRewrittenText();
             }
 
-            foreach (var node in this.ActionDeclarations)
-            {
-                text += node.GetRewrittenText();
-            }
-
             foreach (var node in this.MethodDeclarations)
             {
                 text += node.GetRewrittenText();
@@ -265,11 +249,6 @@ namespace Microsoft.PSharp.Parsing.Syntax
             }
 
             foreach (var node in this.StateDeclarations)
-            {
-                node.GenerateTextUnit();
-            }
-
-            foreach (var node in this.ActionDeclarations)
             {
                 node.GenerateTextUnit();
             }
@@ -326,11 +305,6 @@ namespace Microsoft.PSharp.Parsing.Syntax
             }
 
             foreach (var node in this.StateDeclarations)
-            {
-                text += node.GetFullText();
-            }
-
-            foreach (var node in this.ActionDeclarations)
             {
                 text += node.GetFullText();
             }

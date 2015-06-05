@@ -94,7 +94,6 @@ namespace Microsoft.PSharp.Parsing
         Monitor,
         StateDecl,
         EventDecl,
-        ActionDecl,
         FunDecl,
 
         MainMachine,
@@ -150,7 +149,11 @@ namespace Microsoft.PSharp.Parsing
         HotState,
 
         Var,
+        Void,
+        Object,
         Int,
+        Float,
+        Double,
         Bool,
         Foreign,
         Any,

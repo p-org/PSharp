@@ -266,8 +266,6 @@ namespace Microsoft.PSharp.Parsing.Syntax
             if (this.Parent.Machine == null || this.Parent.State == null ||
                 !(this.Parent.Machine.FieldDeclarations.Any(val => val.Identifier.TextUnit.Text.
                 Equals(this.RewrittenStmtTokens[this.Index].TextUnit.Text)) ||
-                this.Parent.Machine.ActionDeclarations.Any(val => val.Identifier.TextUnit.Text.
-                Equals(this.RewrittenStmtTokens[this.Index].TextUnit.Text)) ||
                 this.Parent.Machine.MethodDeclarations.Any(val => val.Identifier.TextUnit.Text.
                 Equals(this.RewrittenStmtTokens[this.Index].TextUnit.Text))))
             {

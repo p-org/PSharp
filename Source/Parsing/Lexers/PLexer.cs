@@ -188,9 +188,6 @@ namespace Microsoft.PSharp.Parsing
                     this.Tokens.Add(new Token(unit, TokenType.EventDecl));
                     break;
 
-                case "action":
-                    this.Tokens.Add(new Token(unit, TokenType.ActionDecl));
-                    break;
                 case "fun":
                     this.Tokens.Add(new Token(unit, TokenType.FunDecl));
                     break;

@@ -115,7 +115,10 @@ namespace Microsoft.PSharp.Parsing
                 base.TokenStream.Peek().Type != TokenType.This &&
                 base.TokenStream.Peek().Type != TokenType.Base &&
                 base.TokenStream.Peek().Type != TokenType.Var &&
+                base.TokenStream.Peek().Type != TokenType.Object &&
                 base.TokenStream.Peek().Type != TokenType.Int &&
+                base.TokenStream.Peek().Type != TokenType.Float &&
+                base.TokenStream.Peek().Type != TokenType.Double &&
                 base.TokenStream.Peek().Type != TokenType.Bool &&
                 base.TokenStream.Peek().Type != TokenType.Identifier &&
                 base.TokenStream.Peek().Type != TokenType.LeftCurlyBracket))
@@ -179,7 +182,10 @@ namespace Microsoft.PSharp.Parsing
                 base.TokenStream.Peek().Type == TokenType.This ||
                 base.TokenStream.Peek().Type == TokenType.Base ||
                 base.TokenStream.Peek().Type == TokenType.Var ||
+                base.TokenStream.Peek().Type == TokenType.Object ||
                 base.TokenStream.Peek().Type == TokenType.Int ||
+                base.TokenStream.Peek().Type == TokenType.Float ||
+                base.TokenStream.Peek().Type == TokenType.Double ||
                 base.TokenStream.Peek().Type == TokenType.Bool ||
                 base.TokenStream.Peek().Type == TokenType.Identifier)
             {

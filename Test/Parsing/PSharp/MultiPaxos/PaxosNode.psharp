@@ -2,7 +2,60 @@
 {
     machine PaxosNode
     {
+	    Tuple<int, Machine> CurrentLeader;
+		Machine LeaderElectionService;
+
+		List<Machine> Acceptors;
+
+		int CommitValue;
+		int ProposeVal;
+		int Majority;
+		int RoundNum;
+		int MyRank;
+		int MaxRound;
+		int NextSlotForProposer;
+
+		Machine Timer;
+
+		int LastExecutedSlot;
+
 	    start state Init
+		{
+		    entry
+			{
+			    Acceptors = new List<Machine>();
+
+			    MyRank = (int)payload;
+				CurrentLeader = Tuple.Create(MyRank, this);
+
+				RoundNum = 0;
+				MaxRound = 0;
+
+				Timer = create Timer(this, 10);
+
+				LastExecutedSlot = 0;
+				NextSlotForProposer = 0;
+			}
+
+			defer ping;
+
+			on allNodes do UpdateAcceptors;
+			on local goto PerformOperation;
+		}
+
+		void UpdateAcceptors()
+		{
+			Acceptors = (List<Machine>)payload;
+			Majority = Acceptors.Count/2 + 1;
+			assert(Majority == 2);
+
+			// Also start the leader election service.
+			LeaderElectionService = create LeaderElection(Acceptors, this, MyRank);
+			
+			raise local;
+		}
+
+		state PerformOperation
 		{
 
 		}

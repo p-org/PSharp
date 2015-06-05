@@ -174,7 +174,6 @@ namespace Microsoft.PSharp.Parsing
                     TokenType.Protected,
                     TokenType.StartState,
                     TokenType.StateDecl,
-                    TokenType.ActionDecl,
                     TokenType.LeftSquareBracket,
                     TokenType.RightCurlyBracket
                 });
@@ -209,11 +208,12 @@ namespace Microsoft.PSharp.Parsing
                     base.TokenStream.Index++;
                     break;
 
-                case TokenType.ActionDecl:
-                    new ActionDeclarationVisitor(base.TokenStream).Visit(node, null, null);
-                    base.TokenStream.Index++;
-                    break;
-
+                case TokenType.Void:
+                case TokenType.Object:
+                case TokenType.Int:
+                case TokenType.Float:
+                case TokenType.Double:
+                case TokenType.Bool:
                 case TokenType.Identifier:
                     new FieldOrMethodDeclarationVisitor(base.TokenStream).Visit(node, null, null);
                     base.TokenStream.Index++;
@@ -249,7 +249,7 @@ namespace Microsoft.PSharp.Parsing
 
                 case TokenType.Internal:
                 case TokenType.Public:
-                    throw new ParsingException("Machine fields, states or actions must be private or protected.",
+                    throw new ParsingException("Machine fields, states or functions must be private or protected.",
                         new List<TokenType>());
 
                 default:
@@ -280,13 +280,16 @@ namespace Microsoft.PSharp.Parsing
                 base.TokenStream.Peek().Type != TokenType.Override &&
                 base.TokenStream.Peek().Type != TokenType.StartState &&
                 base.TokenStream.Peek().Type != TokenType.StateDecl &&
-                base.TokenStream.Peek().Type != TokenType.ActionDecl &&
                 base.TokenStream.Peek().Type != TokenType.MachineDecl &&
+                base.TokenStream.Peek().Type != TokenType.Void &&
+                base.TokenStream.Peek().Type != TokenType.Object &&
                 base.TokenStream.Peek().Type != TokenType.Int &&
+                base.TokenStream.Peek().Type != TokenType.Float &&
+                base.TokenStream.Peek().Type != TokenType.Double &&
                 base.TokenStream.Peek().Type != TokenType.Bool &&
                 base.TokenStream.Peek().Type != TokenType.Identifier))
             {
-                throw new ParsingException("Expected state, action, field or method declaration.",
+                throw new ParsingException("Expected state, field or method declaration.",
                     new List<TokenType>
                 {
                     TokenType.Abstract,
@@ -294,9 +297,12 @@ namespace Microsoft.PSharp.Parsing
                     TokenType.Override,
                     TokenType.StartState,
                     TokenType.StateDecl,
-                    TokenType.ActionDecl,
                     TokenType.MachineDecl,
+                    TokenType.Void,
+                    TokenType.Object,
                     TokenType.Int,
+                    TokenType.Float,
+                    TokenType.Double,
                     TokenType.Bool,
                     TokenType.Identifier
                 });
@@ -312,34 +318,30 @@ namespace Microsoft.PSharp.Parsing
                 base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
                 if (base.TokenStream.Done ||
-                    (base.TokenStream.Peek().Type != TokenType.ActionDecl &&
-                    base.TokenStream.Peek().Type != TokenType.MachineDecl &&
+                    (base.TokenStream.Peek().Type != TokenType.MachineDecl &&
+                    base.TokenStream.Peek().Type != TokenType.Void &&
+                    base.TokenStream.Peek().Type != TokenType.Object &&
                     base.TokenStream.Peek().Type != TokenType.Int &&
+                    base.TokenStream.Peek().Type != TokenType.Float &&
+                    base.TokenStream.Peek().Type != TokenType.Double &&
                     base.TokenStream.Peek().Type != TokenType.Bool &&
                     base.TokenStream.Peek().Type != TokenType.Identifier))
                 {
-                    throw new ParsingException("Expected action or method declaration.",
+                    throw new ParsingException("Expected method declaration.",
                         new List<TokenType>
                     {
-                        TokenType.ActionDecl,
                         TokenType.MachineDecl,
+                        TokenType.Void,
+                        TokenType.Object,
                         TokenType.Int,
+                        TokenType.Float,
+                        TokenType.Double,
                         TokenType.Bool,
                         TokenType.Identifier
                     });
                 }
 
-                if (base.TokenStream.Peek().Type == TokenType.ActionDecl)
-                {
-                    new ActionDeclarationVisitor(base.TokenStream).Visit(parentNode, modifier, inheritanceModifier);
-                }
-                else if (base.TokenStream.Peek().Type == TokenType.MachineDecl ||
-                    base.TokenStream.Peek().Type == TokenType.Int ||
-                    base.TokenStream.Peek().Type == TokenType.Bool ||
-                    base.TokenStream.Peek().Type == TokenType.Identifier)
-                {
-                    new FieldOrMethodDeclarationVisitor(base.TokenStream).Visit(parentNode, modifier, inheritanceModifier);
-                }
+                new FieldOrMethodDeclarationVisitor(base.TokenStream).Visit(parentNode, modifier, inheritanceModifier);
             }
             else if (base.TokenStream.Peek().Type == TokenType.StartState)
             {
@@ -349,14 +351,7 @@ namespace Microsoft.PSharp.Parsing
             {
                 new StateDeclarationVisitor(base.TokenStream).Visit(parentNode, false, modifier);
             }
-            else if (base.TokenStream.Peek().Type == TokenType.ActionDecl)
-            {
-                new ActionDeclarationVisitor(base.TokenStream).Visit(parentNode, modifier, null);
-            }
-            else if (base.TokenStream.Peek().Type == TokenType.MachineDecl ||
-                base.TokenStream.Peek().Type == TokenType.Int ||
-                base.TokenStream.Peek().Type == TokenType.Bool ||
-                base.TokenStream.Peek().Type == TokenType.Identifier)
+            else
             {
                 new FieldOrMethodDeclarationVisitor(base.TokenStream).Visit(parentNode, modifier, null);
             }

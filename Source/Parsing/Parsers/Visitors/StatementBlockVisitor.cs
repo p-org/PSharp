@@ -140,7 +140,10 @@ namespace Microsoft.PSharp.Parsing
                 case TokenType.Base:
                 case TokenType.Var:
                 case TokenType.MachineDecl:
+                case TokenType.Object:
                 case TokenType.Int:
+                case TokenType.Float:
+                case TokenType.Double:
                 case TokenType.Bool:
                 case TokenType.Identifier:
                     new GenericStatementVisitor(base.TokenStream).Visit(node);

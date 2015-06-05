@@ -151,11 +151,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             if (initToken != null)
             {
-                base.TextUnit = new TextUnit(text, initToken.TextUnit.Line);
+                base.RewrittenTextUnit = new TextUnit(text, initToken.TextUnit.Line);
             }
             else
             {
-                base.TextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Line);
+                base.RewrittenTextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Line);
             }
         }
 
