@@ -21,7 +21,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
     /// <summary>
     /// P# syntax node.
     /// </summary>
-    public abstract class PSharpSyntaxNode
+    internal abstract class PSharpSyntaxNode
     {
         #region fields
 
@@ -37,30 +37,25 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
         #endregion
 
-        #region public API
+        #region internal API
 
         /// <summary>
         /// Returns the full text.
         /// </summary>
         /// <returns>string</returns>
-        public abstract string GetFullText();
+        internal abstract string GetFullText();
 
         /// <summary>
         /// Returns the rewritten text.
         /// </summary>
         /// <returns>string</returns>
-        public abstract string GetRewrittenText();
-
-        #endregion
-
-        #region internal API
+        internal abstract string GetRewrittenText();
 
         /// <summary>
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        /// <param name="position">Position</param>
-        internal abstract void Rewrite(ref int position);
+        internal abstract void Rewrite();
 
         /// <summary>
         /// Generates a new text unit.

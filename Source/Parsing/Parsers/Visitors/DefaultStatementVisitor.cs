@@ -22,13 +22,13 @@ namespace Microsoft.PSharp.Parsing
     /// <summary>
     /// The P# default statement parsing visitor.
     /// </summary>
-    public sealed class DefaultStatementVisitor : BaseParseVisitor
+    internal sealed class DefaultStatementVisitor : BaseParseVisitor
     {
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="tokenStream">TokenStream</param>
-        public DefaultStatementVisitor(TokenStream tokenStream)
+        internal DefaultStatementVisitor(TokenStream tokenStream)
             : base(tokenStream)
         {
 
@@ -38,9 +38,9 @@ namespace Microsoft.PSharp.Parsing
         /// Visits the syntax node.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        public void Visit(StatementBlockNode parentNode)
+        internal void Visit(StatementBlockNode parentNode)
         {
-            var node = new DefaultStatementNode(parentNode);
+            var node = new PDefaultStatementNode(parentNode);
             node.DefaultKeyword = base.TokenStream.Peek();
 
             base.TokenStream.Index++;
@@ -61,9 +61,9 @@ namespace Microsoft.PSharp.Parsing
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-            var typeNode = new PTypeNode();
-            new TypeIdentifierVisitor(base.TokenStream).Visit(typeNode);
-            node.TypeNode = typeNode;
+            PBaseType type = null;
+            new TypeIdentifierVisitor(base.TokenStream).Visit(ref type);
+            node.Type = type;
 
             if (base.TokenStream.Done ||
                 base.TokenStream.Peek().Type != TokenType.RightParenthesis)

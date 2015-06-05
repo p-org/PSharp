@@ -21,48 +21,48 @@ namespace Microsoft.PSharp.Parsing.Syntax
     /// <summary>
     /// Namespace declaration node.
     /// </summary>
-    public sealed class NamespaceDeclarationNode : PSharpSyntaxNode
+    internal sealed class NamespaceDeclarationNode : PSharpSyntaxNode
     {
         #region fields
 
         /// <summary>
         /// The namespace keyword.
         /// </summary>
-        public Token NamespaceKeyword;
+        internal Token NamespaceKeyword;
 
         /// <summary>
         /// The identifier tokens.
         /// </summary>
-        public List<Token> IdentifierTokens;
+        internal List<Token> IdentifierTokens;
 
         /// <summary>
         /// The left curly bracket token.
         /// </summary>
-        public Token LeftCurlyBracketToken;
+        internal Token LeftCurlyBracketToken;
 
         /// <summary>
         /// List of event declarations.
         /// </summary>
-        public List<EventDeclarationNode> EventDeclarations;
+        internal List<EventDeclarationNode> EventDeclarations;
 
         /// <summary>
         /// List of machine declarations.
         /// </summary>
-        public List<MachineDeclarationNode> MachineDeclarations;
+        internal List<MachineDeclarationNode> MachineDeclarations;
 
         /// <summary>
         /// The right curly bracket token.
         /// </summary>
-        public Token RightCurlyBracketToken;
+        internal Token RightCurlyBracketToken;
 
         #endregion
 
-        #region public API
+        #region internal API
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public NamespaceDeclarationNode()
+        internal NamespaceDeclarationNode()
         {
             this.IdentifierTokens = new List<Token>();
             this.EventDeclarations = new List<EventDeclarationNode>();
@@ -73,7 +73,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Returns the full text.
         /// </summary>
         /// <returns>string</returns>
-        public override string GetFullText()
+        internal override string GetFullText()
         {
             return base.TextUnit.Text;
         }
@@ -82,32 +82,25 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Returns the rewritten text.
         /// </summary>
         /// <returns>string</returns>
-        public override string GetRewrittenText()
+        internal override string GetRewrittenText()
         {
             return base.RewrittenTextUnit.Text;
         }
-
-        #endregion
-
-        #region internal API
 
         /// <summary>
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        /// <param name="position">Position</param>
-        internal override void Rewrite(ref int position)
+        internal override void Rewrite()
         {
-            var start = position;
-
             foreach (var node in this.EventDeclarations)
             {
-                node.Rewrite(ref position);
+                node.Rewrite();
             }
 
             foreach (var node in this.MachineDeclarations)
             {
-                node.Rewrite(ref position);
+                node.Rewrite();
             }
 
             var text = this.NamespaceKeyword.TextUnit.Text;
@@ -132,8 +125,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
 
-            base.RewrittenTextUnit = new TextUnit(text, this.NamespaceKeyword.TextUnit.Line, start);
-            position = base.RewrittenTextUnit.End + 1;
+            base.RewrittenTextUnit = new TextUnit(text, this.NamespaceKeyword.TextUnit.Line);
         }
 
         /// <summary>
@@ -173,8 +165,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, this.NamespaceKeyword.TextUnit.Line,
-                this.NamespaceKeyword.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, this.NamespaceKeyword.TextUnit.Line);
         }
 
         #endregion

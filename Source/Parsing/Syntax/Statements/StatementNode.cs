@@ -21,29 +21,29 @@ namespace Microsoft.PSharp.Parsing.Syntax
     /// <summary>
     /// Abstract statement node.
     /// </summary>
-    public abstract class StatementNode : PSharpSyntaxNode
+    internal abstract class StatementNode : PSharpSyntaxNode
     {
         #region fields
 
         /// <summary>
         /// The block node.
         /// </summary>
-        public readonly StatementBlockNode Parent;
+        internal readonly StatementBlockNode Parent;
 
         /// <summary>
         /// The semicolon token.
         /// </summary>
-        public Token SemicolonToken;
+        internal Token SemicolonToken;
 
         #endregion
 
-        #region public API
+        #region internal API
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="node">Node</param>
-        public StatementNode(StatementBlockNode node)
+        internal StatementNode(StatementBlockNode node)
             : base()
         {
             this.Parent = node;

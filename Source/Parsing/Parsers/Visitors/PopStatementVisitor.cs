@@ -22,13 +22,13 @@ namespace Microsoft.PSharp.Parsing
     /// <summary>
     /// The P# pop statement parsing visitor.
     /// </summary>
-    public sealed class PopStatementVisitor : BaseParseVisitor
+    internal sealed class PopStatementVisitor : BaseParseVisitor
     {
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="tokenStream">TokenStream</param>
-        public PopStatementVisitor(TokenStream tokenStream)
+        internal PopStatementVisitor(TokenStream tokenStream)
             : base(tokenStream)
         {
 
@@ -38,7 +38,7 @@ namespace Microsoft.PSharp.Parsing
         /// Visits the syntax node.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        public void Visit(StatementBlockNode parentNode)
+        internal void Visit(StatementBlockNode parentNode)
         {
             var node = new PopStatementNode(parentNode);
             node.PopKeyword = base.TokenStream.Peek();

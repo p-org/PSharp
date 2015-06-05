@@ -22,13 +22,13 @@ namespace Microsoft.PSharp.Parsing
     /// <summary>
     /// The P# field declaration parsing visitor.
     /// </summary>
-    public sealed class FieldDeclarationVisitor : BaseParseVisitor
+    internal sealed class FieldDeclarationVisitor : BaseParseVisitor
     {
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="tokenStream">TokenStream</param>
-        public FieldDeclarationVisitor(TokenStream tokenStream)
+        internal FieldDeclarationVisitor(TokenStream tokenStream)
             : base(tokenStream)
         {
 
@@ -38,7 +38,7 @@ namespace Microsoft.PSharp.Parsing
         /// Visits the syntax node.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        public void Visit(MachineDeclarationNode parentNode)
+        internal void Visit(MachineDeclarationNode parentNode)
         {
             var nodes = new List<PFieldDeclarationNode>();
             var fieldKeyword = base.TokenStream.Peek();
@@ -112,12 +112,12 @@ namespace Microsoft.PSharp.Parsing
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-            var typeNode = new PTypeNode();
-            new TypeIdentifierVisitor(base.TokenStream).Visit(typeNode);
+            PBaseType type = null;
+            new TypeIdentifierVisitor(base.TokenStream).Visit(ref type);
 
             foreach (var node in nodes)
             {
-                node.TypeNode = typeNode;
+                node.Type = type;
             }
 
             if (base.TokenStream.Done ||

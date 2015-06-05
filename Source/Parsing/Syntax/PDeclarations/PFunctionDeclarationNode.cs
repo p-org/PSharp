@@ -21,79 +21,79 @@ namespace Microsoft.PSharp.Parsing.Syntax
     /// <summary>
     /// Function declaration node.
     /// </summary>
-    public sealed class PFunctionDeclarationNode : PSharpSyntaxNode
+    internal sealed class PFunctionDeclarationNode : PSharpSyntaxNode
     {
         #region fields
 
         /// <summary>
         /// True if the function is a model.
         /// </summary>
-        public bool IsModel;
+        internal bool IsModel;
 
         /// <summary>
         /// The function keyword.
         /// </summary>
-        public Token FunctionKeyword;
+        internal Token FunctionKeyword;
 
         /// <summary>
         /// The identifier token.
         /// </summary>
-        public Token Identifier;
+        internal Token Identifier;
 
         /// <summary>
         /// The left parenthesis token.
         /// </summary>
-        public Token LeftParenthesisToken;
+        internal Token LeftParenthesisToken;
 
         /// <summary>
         /// List of parameter tokens.
         /// </summary>
-        public List<Token> Parameters;
+        internal List<Token> Parameters;
 
         /// <summary>
-        /// List of parameter type nodes.
+        /// List of parameter types.
         /// </summary>
-        public List<PTypeNode> ParameterTypeNodes;
+        internal List<PBaseType> ParameterTypes;
 
         /// <summary>
         /// The right parenthesis token.
         /// </summary>
-        public Token RightParenthesisToken;
+        internal Token RightParenthesisToken;
 
         /// <summary>
         /// The colon token.
         /// </summary>
-        public Token ColonToken;
+        internal Token ColonToken;
 
         /// <summary>
-        /// The return type node.
+        /// The return type.
         /// </summary>
-        public PTypeNode ReturnTypeNode;
+        internal PBaseType ReturnType;
 
         /// <summary>
         /// The statement block.
         /// </summary>
-        public StatementBlockNode StatementBlock;
+        internal StatementBlockNode StatementBlock;
 
         #endregion
 
-        #region public API
+        #region internal API
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public PFunctionDeclarationNode()
+        internal PFunctionDeclarationNode()
             : base()
         {
             this.Parameters = new List<Token>();
-            this.ParameterTypeNodes = new List<PTypeNode>();
+            this.ParameterTypes = new List<PBaseType>();
         }
 
         /// <summary>
         /// Returns the full text.
         /// </summary>
         /// <returns>string</returns>
-        public override string GetFullText()
+        internal override string GetFullText()
         {
             return base.TextUnit.Text;
         }
@@ -102,29 +102,23 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Returns the rewritten text.
         /// </summary>
         /// <returns>string</returns>
-        public override string GetRewrittenText()
+        internal override string GetRewrittenText()
         {
             return base.RewrittenTextUnit.Text;
         }
-
-        #endregion
-
-        #region internal API
 
         /// <summary>
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        /// <param name="position">Position</param>
-        internal override void Rewrite(ref int position)
+        internal override void Rewrite()
         {
-            var start = position;
             var text = "";
 
             if (this.ColonToken != null)
             {
-                this.ReturnTypeNode.Rewrite(ref position);
-                text += this.ReturnTypeNode.GetRewrittenText();
+                this.ReturnType.Rewrite();
+                text += this.ReturnType.GetRewrittenText();
             }
             else
             {
@@ -143,18 +137,17 @@ namespace Microsoft.PSharp.Parsing.Syntax
                     text += ", ";
                 }
 
-                this.ParameterTypeNodes[idx].Rewrite(ref position);
-                text += this.ParameterTypeNodes[idx].GetRewrittenText();
+                this.ParameterTypes[idx].Rewrite();
+                text += this.ParameterTypes[idx].GetRewrittenText();
                 text += " " + this.Parameters[idx].TextUnit.Text;
             }
 
             text += this.RightParenthesisToken.TextUnit.Text;
 
-            this.StatementBlock.Rewrite(ref position);
+            this.StatementBlock.Rewrite();
             text += StatementBlock.GetRewrittenText();
 
-            base.RewrittenTextUnit = new TextUnit(text, this.FunctionKeyword.TextUnit.Line, start);
-            position = base.RewrittenTextUnit.End + 1;
+            base.RewrittenTextUnit = new TextUnit(text, this.FunctionKeyword.TextUnit.Line);
         }
 
         /// <summary>
@@ -179,8 +172,8 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 }
 
                 text += this.Parameters[idx].TextUnit.Text + ":";
-                this.ParameterTypeNodes[idx].GenerateTextUnit();
-                text += this.ParameterTypeNodes[idx].GetFullText();
+                //this.ParameterTypeNodes[idx].GenerateTextUnit();
+                //text += this.ParameterTypeNodes[idx].GetFullText();
             }
 
             text += this.RightParenthesisToken.TextUnit.Text;
@@ -188,15 +181,14 @@ namespace Microsoft.PSharp.Parsing.Syntax
             if (this.ColonToken != null)
             {
                 text += " " + this.ColonToken.TextUnit.Text + " ";
-                this.ReturnTypeNode.GenerateTextUnit();
-                text += this.ReturnTypeNode.GetFullText();
+                //this.ReturnTypeNode.GenerateTextUnit();
+                //text += this.ReturnTypeNode.GetFullText();
             }
 
             this.StatementBlock.GenerateTextUnit();
             text += this.StatementBlock.GetFullText();
 
-            base.TextUnit = new TextUnit(text, this.FunctionKeyword.TextUnit.Line,
-                this.FunctionKeyword.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, this.FunctionKeyword.TextUnit.Line);
         }
 
         #endregion

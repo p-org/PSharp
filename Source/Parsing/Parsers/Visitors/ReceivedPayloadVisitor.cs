@@ -22,13 +22,13 @@ namespace Microsoft.PSharp.Parsing
     /// <summary>
     /// The P# received payload parsing visitor.
     /// </summary>
-    public sealed class ReceivedPayloadVisitor : BaseParseVisitor
+    internal sealed class ReceivedPayloadVisitor : BaseParseVisitor
     {
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="tokenStream">TokenStream</param>
-        public ReceivedPayloadVisitor(TokenStream tokenStream)
+        internal ReceivedPayloadVisitor(TokenStream tokenStream)
             : base(tokenStream)
         {
 
@@ -38,7 +38,7 @@ namespace Microsoft.PSharp.Parsing
         /// Visits the syntax node.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        public void Visit(PPayloadReceiveNode node)
+        internal void Visit(PPayloadReceiveNode node)
         {
             node.PayloadKeyword = base.TokenStream.Peek();
 
@@ -60,9 +60,9 @@ namespace Microsoft.PSharp.Parsing
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-            var typeNode = new PTypeNode();
-            new TypeIdentifierVisitor(base.TokenStream).Visit(typeNode);
-            node.Type = typeNode;
+            PBaseType type = null;
+            new TypeIdentifierVisitor(base.TokenStream).Visit(ref type);
+            node.Type = type;
 
             if (base.TokenStream.Peek().Type == TokenType.RightParenthesis)
             {

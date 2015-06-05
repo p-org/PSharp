@@ -22,7 +22,7 @@ namespace Microsoft.PSharp.Parsing
     /// <summary>
     /// The P# map type identifier parsing visitor.
     /// </summary>
-    public sealed class MapTypeIdentifierVisitor : BaseParseVisitor
+    internal sealed class MapTypeIdentifierVisitor : BaseParseVisitor
     {
         /// <summary>
         /// Constructor.
@@ -37,10 +37,10 @@ namespace Microsoft.PSharp.Parsing
         /// <summary>
         /// Visits the syntax node.
         /// </summary>
-        /// <param name="node">Node</param>
-        public void Visit(PTypeNode node)
+        /// <param name="type">Type</param>
+        public void Visit(ref PMapType type)
         {
-            node.TypeTokens.Add(base.TokenStream.Peek());
+            type.TypeTokens.Add(base.TokenStream.Peek());
 
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
@@ -55,51 +55,77 @@ namespace Microsoft.PSharp.Parsing
                 });
             }
 
-            node.TypeTokens.Add(base.TokenStream.Peek());
+            type.TypeTokens.Add(base.TokenStream.Peek());
 
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-            bool expectsComma = false;
-            while (!base.TokenStream.Done &&
-                base.TokenStream.Peek().Type != TokenType.RightParenthesis)
+            if (base.TokenStream.Done ||
+                (base.TokenStream.Peek().Type != TokenType.MachineDecl &&
+                base.TokenStream.Peek().Type != TokenType.Int &&
+                base.TokenStream.Peek().Type != TokenType.Bool &&
+                base.TokenStream.Peek().Type != TokenType.Seq &&
+                base.TokenStream.Peek().Type != TokenType.Map &&
+                base.TokenStream.Peek().Type != TokenType.Any &&
+                base.TokenStream.Peek().Type != TokenType.EventDecl &&
+                base.TokenStream.Peek().Type != TokenType.LeftParenthesis))
             {
-                if ((!expectsComma &&
-                    base.TokenStream.Peek().Type != TokenType.MachineDecl &&
-                    base.TokenStream.Peek().Type != TokenType.Int &&
-                    base.TokenStream.Peek().Type != TokenType.Bool &&
-                    base.TokenStream.Peek().Type != TokenType.Seq &&
-                    base.TokenStream.Peek().Type != TokenType.Map &&
-                    base.TokenStream.Peek().Type != TokenType.Any &&
-                    base.TokenStream.Peek().Type != TokenType.EventDecl &&
-                    base.TokenStream.Peek().Type != TokenType.LeftParenthesis) ||
-                    (expectsComma && base.TokenStream.Peek().Type != TokenType.Comma))
+                throw new ParsingException("Expected \"[\".",
+                    new List<TokenType>
                 {
-                    break;
-                }
-
-                if (base.TokenStream.Peek().Type == TokenType.MachineDecl ||
-                    base.TokenStream.Peek().Type == TokenType.Int ||
-                    base.TokenStream.Peek().Type == TokenType.Bool ||
-                    base.TokenStream.Peek().Type == TokenType.Seq ||
-                    base.TokenStream.Peek().Type == TokenType.Map ||
-                    base.TokenStream.Peek().Type == TokenType.Any ||
-                    base.TokenStream.Peek().Type == TokenType.EventDecl ||
-                    base.TokenStream.Peek().Type == TokenType.LeftParenthesis)
-                {
-                    new TypeIdentifierVisitor(base.TokenStream).Visit(node);
-                    expectsComma = true;
-                }
-                else if (base.TokenStream.Peek().Type == TokenType.Comma)
-                {
-                    node.TypeTokens.Add(base.TokenStream.Peek());
-
-                    base.TokenStream.Index++;
-                    base.TokenStream.SkipWhiteSpaceAndCommentTokens();
-
-                    expectsComma = false;
-                }
+                    TokenType.MachineDecl,
+                    TokenType.Int,
+                    TokenType.Bool,
+                    TokenType.Seq,
+                    TokenType.Map,
+                    TokenType.Any,
+                    TokenType.EventDecl
+                });
             }
+
+            PBaseType keyType = null;
+            new TypeIdentifierVisitor(base.TokenStream).Visit(ref keyType);
+            type.KeyType = keyType;
+
+            if (base.TokenStream.Done ||
+                base.TokenStream.Peek().Type != TokenType.Comma)
+            {
+                throw new ParsingException("Expected \",\".",
+                    new List<TokenType>
+                {
+                    TokenType.Comma
+                });
+            }
+
+            base.TokenStream.Index++;
+            base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+
+            if (base.TokenStream.Done ||
+                (base.TokenStream.Peek().Type != TokenType.MachineDecl &&
+                base.TokenStream.Peek().Type != TokenType.Int &&
+                base.TokenStream.Peek().Type != TokenType.Bool &&
+                base.TokenStream.Peek().Type != TokenType.Seq &&
+                base.TokenStream.Peek().Type != TokenType.Map &&
+                base.TokenStream.Peek().Type != TokenType.Any &&
+                base.TokenStream.Peek().Type != TokenType.EventDecl &&
+                base.TokenStream.Peek().Type != TokenType.LeftParenthesis))
+            {
+                throw new ParsingException("Expected \"[\".",
+                    new List<TokenType>
+                {
+                    TokenType.MachineDecl,
+                    TokenType.Int,
+                    TokenType.Bool,
+                    TokenType.Seq,
+                    TokenType.Map,
+                    TokenType.Any,
+                    TokenType.EventDecl
+                });
+            }
+
+            PBaseType valueType = null;
+            new TypeIdentifierVisitor(base.TokenStream).Visit(ref valueType);
+            type.ValueType = valueType;
 
             if (base.TokenStream.Done ||
                 base.TokenStream.Peek().Type != TokenType.RightSquareBracket)
@@ -111,7 +137,7 @@ namespace Microsoft.PSharp.Parsing
                 });
             }
 
-            node.TypeTokens.Add(base.TokenStream.Peek());
+            type.TypeTokens.Add(base.TokenStream.Peek());
         }
     }
 }

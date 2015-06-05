@@ -21,88 +21,88 @@ namespace Microsoft.PSharp.Parsing.Syntax
     /// <summary>
     /// Machine declaration node.
     /// </summary>
-    public sealed class MachineDeclarationNode : PSharpSyntaxNode
+    internal sealed class MachineDeclarationNode : PSharpSyntaxNode
     {
         #region fields
 
         /// <summary>
         /// True if the machine is the main machine.
         /// </summary>
-        public readonly bool IsMain;
+        internal readonly bool IsMain;
 
         /// <summary>
         /// True if the machine is a monitor.
         /// </summary>
-        public readonly bool IsMonitor;
+        internal readonly bool IsMonitor;
 
         /// <summary>
         /// The machine keyword.
         /// </summary>
-        public Token MachineKeyword;
+        internal Token MachineKeyword;
 
         /// <summary>
         /// The modifier token.
         /// </summary>
-        public Token Modifier;
+        internal Token Modifier;
 
         /// <summary>
         /// The abstract modifier token.
         /// </summary>
-        public Token AbstractModifier;
+        internal Token AbstractModifier;
 
         /// <summary>
         /// The identifier token.
         /// </summary>
-        public Token Identifier;
+        internal Token Identifier;
 
         /// <summary>
         /// The colon token.
         /// </summary>
-        public Token ColonToken;
+        internal Token ColonToken;
 
         /// <summary>
         /// The base name tokens.
         /// </summary>
-        public List<Token> BaseNameTokens;
+        internal List<Token> BaseNameTokens;
 
         /// <summary>
         /// The left curly bracket token.
         /// </summary>
-        public Token LeftCurlyBracketToken;
+        internal Token LeftCurlyBracketToken;
 
         /// <summary>
         /// List of field declarations.
         /// </summary>
-        public List<FieldDeclarationNode> FieldDeclarations;
+        internal List<FieldDeclarationNode> FieldDeclarations;
 
         /// <summary>
         /// List of state declarations.
         /// </summary>
-        public List<StateDeclarationNode> StateDeclarations;
+        internal List<StateDeclarationNode> StateDeclarations;
 
         /// <summary>
         /// List of action declarations.
         /// </summary>
-        public List<ActionDeclarationNode> ActionDeclarations;
+        internal List<ActionDeclarationNode> ActionDeclarations;
 
         /// <summary>
         /// List of method declarations.
         /// </summary>
-        public List<MethodDeclarationNode> MethodDeclarations;
+        internal List<MethodDeclarationNode> MethodDeclarations;
 
         /// <summary>
         /// List of function declarations.
         /// </summary>
-        public List<PFunctionDeclarationNode> FunctionDeclarations;
+        internal List<PFunctionDeclarationNode> FunctionDeclarations;
 
         /// <summary>
         /// The right curly bracket token.
         /// </summary>
-        public Token RightCurlyBracketToken;
+        internal Token RightCurlyBracketToken;
 
         #endregion
 
-        #region public API
+        #region internal API
 
         /// <summary>
         /// Constructor.
@@ -110,7 +110,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <param name="isPSharp">Is P# machine</param>
         /// <param name="isMain">Is main machine</param>
         /// <param name="isMonitor">Is a monitor</param>
-        public MachineDeclarationNode(bool isMain, bool isMonitor)
+        internal MachineDeclarationNode(bool isMain, bool isMonitor)
             : base()
         {
             this.IsMain = isMain;
@@ -127,7 +127,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Returns the full text.
         /// </summary>
         /// <returns>string</returns>
-        public override string GetFullText()
+        internal override string GetFullText()
         {
             return base.TextUnit.Text;
         }
@@ -136,47 +136,40 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Returns the rewritten text.
         /// </summary>
         /// <returns>string</returns>
-        public override string GetRewrittenText()
+        internal override string GetRewrittenText()
         {
             return base.RewrittenTextUnit.Text;
         }
-
-        #endregion
-
-        #region internal API
 
         /// <summary>
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        /// <param name="position">Position</param>
-        internal override void Rewrite(ref int position)
+        internal override void Rewrite()
         {
-            var start = position;
-
             foreach (var node in this.FieldDeclarations)
             {
-                node.Rewrite(ref position);
+                node.Rewrite();
             }
 
             foreach (var node in this.StateDeclarations)
             {
-                node.Rewrite(ref position);
+                node.Rewrite();
             }
 
             foreach (var node in this.ActionDeclarations)
             {
-                node.Rewrite(ref position);
+                node.Rewrite();
             }
 
             foreach (var node in this.MethodDeclarations)
             {
-                node.Rewrite(ref position);
+                node.Rewrite();
             }
 
             foreach (var node in this.FunctionDeclarations)
             {
-                node.Rewrite(ref position);
+                node.Rewrite();
             }
 
             var text = "";
@@ -257,8 +250,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
 
-            base.RewrittenTextUnit = new TextUnit(text, initToken.TextUnit.Line, start);
-            position = base.RewrittenTextUnit.End + 1;
+            base.RewrittenTextUnit = new TextUnit(text, initToken.TextUnit.Line);
         }
 
         /// <summary>
@@ -354,7 +346,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, initToken.TextUnit.Line, initToken.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, initToken.TextUnit.Line);
         }
 
         #endregion
@@ -390,8 +382,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
                     if (state.TransitionsOnExitActions.ContainsKey(transition.Key))
                     {
                         var onExitAction = state.TransitionsOnExitActions[transition.Key];
-                        int position = 0;
-                        onExitAction.Rewrite(ref position);
+                        onExitAction.Rewrite();
                         onExitText = onExitAction.GetRewrittenText();
                     }
 
@@ -462,8 +453,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
                     if (state.TransitionsOnExitActions.ContainsKey(transition.Key))
                     {
                         var onExitAction = state.TransitionsOnExitActions[transition.Key];
-                        int position = 0;
-                        onExitAction.Rewrite(ref position);
+                        onExitAction.Rewrite();
                         onExitText = onExitAction.GetRewrittenText();
                     }
 
@@ -534,8 +524,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
                     if (state.ActionHandlers.ContainsKey(binding.Key))
                     {
                         var action = state.ActionHandlers[binding.Key];
-                        int position = 0;
-                        action.Rewrite(ref position);
+                        action.Rewrite();
                         actionText = action.GetRewrittenText();
                     }
 

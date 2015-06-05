@@ -21,69 +21,69 @@ namespace Microsoft.PSharp.Parsing.Syntax
     /// <summary>
     /// Event declaration node.
     /// </summary>
-    public sealed class EventDeclarationNode : PSharpSyntaxNode
+    internal sealed class EventDeclarationNode : PSharpSyntaxNode
     {
         #region fields
 
         /// <summary>
         /// The event keyword.
         /// </summary>
-        public Token EventKeyword;
+        internal Token EventKeyword;
 
         /// <summary>
         /// The modifier token.
         /// </summary>
-        public Token Modifier;
+        internal Token Modifier;
 
         /// <summary>
         /// The identifier token.
         /// </summary>
-        public Token Identifier;
+        internal Token Identifier;
 
         /// <summary>
         /// The colon token.
         /// </summary>
-        public Token ColonToken;
+        internal Token ColonToken;
 
         /// <summary>
-        /// The payload type node.
+        /// The payload type.
         /// </summary>
-        public PTypeNode PayloadType;
+        internal PBaseType PayloadType;
 
         /// <summary>
         /// The assert keyword.
         /// </summary>
-        public Token AssertKeyword;
+        internal Token AssertKeyword;
 
         /// <summary>
         /// The assume keyword.
         /// </summary>
-        public Token AssumeKeyword;
+        internal Token AssumeKeyword;
 
         /// <summary>
         /// The assert value.
         /// </summary>
-        public int AssertValue;
+        internal int AssertValue;
 
         /// <summary>
         /// The assume value.
         /// </summary>
-        public int AssumeValue;
+        internal int AssumeValue;
 
         /// <summary>
         /// The semicolon token.
         /// </summary>
-        public Token SemicolonToken;
+        internal Token SemicolonToken;
 
         #endregion
 
-        #region public API
+        #region internal API
 
         /// <summary>
         /// Returns the full text.
         /// </summary>
         /// <returns>string</returns>
-        public override string GetFullText()
+        internal override string GetFullText()
         {
             return base.TextUnit.Text;
         }
@@ -92,21 +92,16 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Returns the rewritten text.
         /// </summary>
         /// <returns>string</returns>
-        public override string GetRewrittenText()
+        internal override string GetRewrittenText()
         {
             return base.RewrittenTextUnit.Text;
         }
-
-        #endregion
-
-        #region internal API
 
         /// <summary>
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        /// <param name="position">Position</param>
-        internal override void Rewrite(ref int position)
+        internal override void Rewrite()
         {
             var text = "";
             var initToken = this.EventKeyword;
@@ -122,7 +117,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += "\n";
             text += "{\n";
-            text += " public " + this.Identifier.TextUnit.Text + "(params Object[] payload)\n";
+            text += " internal " + this.Identifier.TextUnit.Text + "(params Object[] payload)\n";
 
             text += "  : base(";
 
@@ -143,8 +138,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
             text += " { }\n";
             text += "}\n";
 
-            base.RewrittenTextUnit = new TextUnit(text, initToken.TextUnit.Line, position);
-            position = base.RewrittenTextUnit.End + 1;
+            base.RewrittenTextUnit = new TextUnit(text, initToken.TextUnit.Line);
         }
 
         /// <summary>
@@ -167,19 +161,19 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += this.Identifier.TextUnit.Text;
 
-            if (this.ColonToken != null)
-            {
-                text += " ";
-                text += this.ColonToken.TextUnit.Text;
-                text += " ";
+            //if (this.ColonToken != null)
+            //{
+            //    text += " ";
+            //    text += this.ColonToken.TextUnit.Text;
+            //    text += " ";
 
-                this.PayloadType.GenerateTextUnit();
-                text += this.PayloadType.GetFullText();
-            }
+            //    this.PayloadType.GenerateTextUnit();
+            //    text += this.PayloadType.GetFullText();
+            //}
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, initToken.TextUnit.Line, initToken.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, initToken.TextUnit.Line);
         }
 
         #endregion

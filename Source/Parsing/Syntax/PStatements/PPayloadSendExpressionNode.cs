@@ -19,7 +19,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
     /// <summary>
     /// Payload send expression node.
     /// </summary>
-    public sealed class PPayloadSendExpressionNode : PExpressionNode
+    internal sealed class PPayloadSendExpressionNode : PExpressionNode
     {
         #region fields
 
@@ -30,13 +30,13 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
         #endregion
 
-        #region public API
+        #region internal API
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="node">Node</param>
-        public PPayloadSendExpressionNode(StatementBlockNode node)
+        internal PPayloadSendExpressionNode(StatementBlockNode node)
             : base(node)
         {
 
@@ -49,8 +49,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Implements specialised rewritting functionality.
         /// </summary>
-        /// <param name="position">Position</param>
-        protected override void RunSpecialisedRewrittingPass(ref int position)
+        protected override void RunSpecialisedRewrittingPass()
         {
             this.Index = 0;
             if (base.RewrittenStmtTokens[this.Index].Type == TokenType.LeftParenthesis)
@@ -84,21 +83,19 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             var field = this.Parent.Machine.FieldDeclarations.Find(val => val.Identifier.TextUnit.Text.
                 Equals(this.RewrittenStmtTokens[this.Index].TextUnit.Text)) as PFieldDeclarationNode;
-            if (field.TypeNode.Type.Type != PType.Tuple &&
-                field.TypeNode.Type.Type != PType.Seq &&
-                field.TypeNode.Type.Type != PType.Map)
+            if (field.Type.Type != PType.Tuple &&
+                field.Type.Type != PType.Seq &&
+                field.Type.Type != PType.Map)
             {
                 return;
             }
 
-            var textUnit = new TextUnit("(", this.RewrittenStmtTokens[this.Index].TextUnit.Line,
-                this.RewrittenStmtTokens[this.Index].TextUnit.Start + 1);
+            var textUnit = new TextUnit("(", this.RewrittenStmtTokens[this.Index].TextUnit.Line);
             this.RewrittenStmtTokens.Insert(this.Index, new Token(textUnit));
             this.Index++;
 
-            var cloneStr = ".Clone() as " + field.TypeNode.GetRewrittenText() + ")";
-            textUnit = new TextUnit(cloneStr, this.RewrittenStmtTokens[this.Index].TextUnit.Line,
-                this.RewrittenStmtTokens[this.Index].TextUnit.Start + cloneStr.Length);
+            var cloneStr = ".Clone() as " + field.Type.GetRewrittenText() + ")";
+            textUnit = new TextUnit(cloneStr, this.RewrittenStmtTokens[this.Index].TextUnit.Line);
 
             if (this.Index + 1 == this.RewrittenStmtTokens.Count)
             {

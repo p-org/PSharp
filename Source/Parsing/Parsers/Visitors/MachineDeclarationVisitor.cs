@@ -22,13 +22,13 @@ namespace Microsoft.PSharp.Parsing
     /// <summary>
     /// The P# machine declaration parsing visitor.
     /// </summary>
-    public sealed class MachineDeclarationVisitor : BaseParseVisitor
+    internal sealed class MachineDeclarationVisitor : BaseParseVisitor
     {
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="tokenStream">TokenStream</param>
-        public MachineDeclarationVisitor(TokenStream tokenStream)
+        internal MachineDeclarationVisitor(TokenStream tokenStream)
             : base(tokenStream)
         {
 
@@ -43,7 +43,7 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="isMonitor">Is a monitor</param>
         /// <param name="modifier">Modifier</param>
         /// <param name="abstractModifier">Abstract modifier</param>
-        public void Visit(IPSharpProgram program, NamespaceDeclarationNode parentNode, bool isMain,
+        internal void Visit(IPSharpProgram program, NamespaceDeclarationNode parentNode, bool isMain,
             bool isMonitor, Token modifier, Token abstractModifier)
         {
             var node = new MachineDeclarationNode(isMain, isMonitor);

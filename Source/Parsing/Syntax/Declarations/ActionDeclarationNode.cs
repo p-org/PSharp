@@ -21,48 +21,48 @@ namespace Microsoft.PSharp.Parsing.Syntax
     /// <summary>
     /// Action declaration node.
     /// </summary>
-    public sealed class ActionDeclarationNode : PSharpSyntaxNode
+    internal sealed class ActionDeclarationNode : PSharpSyntaxNode
     {
         #region fields
 
         /// <summary>
         /// The action keyword.
         /// </summary>
-        public Token ActionKeyword;
+        internal Token ActionKeyword;
 
         /// <summary>
         /// The modifier token.
         /// </summary>
-        public Token Modifier;
+        internal Token Modifier;
 
         /// <summary>
         /// The inheritance modifier token.
         /// </summary>
-        public Token InheritanceModifier;
+        internal Token InheritanceModifier;
 
         /// <summary>
         /// The identifier token.
         /// </summary>
-        public Token Identifier;
+        internal Token Identifier;
 
         /// <summary>
         /// The semicolon token.
         /// </summary>
-        public Token SemicolonToken;
+        internal Token SemicolonToken;
 
         /// <summary>
         /// The statement block.
         /// </summary>
-        public StatementBlockNode StatementBlock;
+        internal StatementBlockNode StatementBlock;
 
         #endregion
 
-        #region public API
+        #region internal API
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public ActionDeclarationNode()
+        internal ActionDeclarationNode()
             : base()
         {
             
@@ -72,7 +72,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Returns the full text.
         /// </summary>
         /// <returns>string</returns>
-        public override string GetFullText()
+        internal override string GetFullText()
         {
             return base.TextUnit.Text;
         }
@@ -81,27 +81,20 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Returns the rewritten text.
         /// </summary>
         /// <returns>string</returns>
-        public override string GetRewrittenText()
+        internal override string GetRewrittenText()
         {
             return base.RewrittenTextUnit.Text;
         }
-
-        #endregion
-
-        #region internal API
 
         /// <summary>
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        /// <param name="position">Position</param>
-        internal override void Rewrite(ref int position)
+        internal override void Rewrite()
         {
-            var start = position;
-            
             if (this.StatementBlock != null)
             {
-                this.StatementBlock.Rewrite(ref position);
+                this.StatementBlock.Rewrite();
             }
 
             var text = "";
@@ -132,8 +125,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 text += this.SemicolonToken.TextUnit.Text + "\n";
             }
 
-            base.RewrittenTextUnit = new TextUnit(text, initToken.TextUnit.Line, start);
-            position = base.RewrittenTextUnit.End + 1;
+            base.RewrittenTextUnit = new TextUnit(text, initToken.TextUnit.Line);
         }
 
         /// <summary>
@@ -172,13 +164,13 @@ namespace Microsoft.PSharp.Parsing.Syntax
             {
                 text += this.StatementBlock.GetFullText();
 
-                base.TextUnit = new TextUnit(text, initToken.TextUnit.Line, initToken.TextUnit.Start);
+                base.TextUnit = new TextUnit(text, initToken.TextUnit.Line);
             }
             else
             {
                 text += this.SemicolonToken.TextUnit.Text + "\n";
 
-                base.TextUnit = new TextUnit(text, initToken.TextUnit.Line, initToken.TextUnit.Start);
+                base.TextUnit = new TextUnit(text, initToken.TextUnit.Line);
             }
         }
 

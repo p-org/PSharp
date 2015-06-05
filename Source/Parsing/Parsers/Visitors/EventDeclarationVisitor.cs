@@ -22,13 +22,13 @@ namespace Microsoft.PSharp.Parsing
     /// <summary>
     /// The P# event declaration parsing visitor.
     /// </summary>
-    public sealed class EventDeclarationVisitor : BaseParseVisitor
+    internal sealed class EventDeclarationVisitor : BaseParseVisitor
     {
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="tokenStream">TokenStream</param>
-        public EventDeclarationVisitor(TokenStream tokenStream)
+        internal EventDeclarationVisitor(TokenStream tokenStream)
             : base(tokenStream)
         {
 
@@ -40,7 +40,7 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="program">Program</param>
         /// <param name="parentNode">Node</param>
         /// <param name="modifier">Modifier</param>
-        public void Visit(IPSharpProgram program, NamespaceDeclarationNode parentNode, Token modifier)
+        internal void Visit(IPSharpProgram program, NamespaceDeclarationNode parentNode, Token modifier)
         {
             var node = new EventDeclarationNode();
             node.Modifier = modifier;
@@ -159,9 +159,9 @@ namespace Microsoft.PSharp.Parsing
                 base.TokenStream.Index++;
                 base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-                var typeNode = new PTypeNode();
-                new TypeIdentifierVisitor(base.TokenStream).Visit(typeNode);
-                node.PayloadType = typeNode;
+                PBaseType payloadType = null;
+                new TypeIdentifierVisitor(base.TokenStream).Visit(ref payloadType);
+                node.PayloadType = payloadType;
             }
 
             if (base.TokenStream.Done ||

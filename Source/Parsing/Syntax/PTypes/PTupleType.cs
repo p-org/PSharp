@@ -26,7 +26,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// The tuple types.
         /// </summary>
-        public List<PBaseType> TupleTypes;
+        internal List<PBaseType> TupleTypes;
+
+        /// <summary>
+        /// The name tokens. Only used for named tuples.
+        /// </summary>
+        internal List<Token> NameTokens;
 
         #endregion
 
@@ -35,10 +40,39 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor.
         /// </summary>
-        public PTupleType()
+        internal PTupleType()
+            : base(PType.Tuple)
         {
-            base.Type = PType.Tuple;
             this.TupleTypes = new List<PBaseType>();
+            this.NameTokens = new List<Token>();
+        }
+
+        #endregion
+
+        #region protected API
+
+        /// <summary>
+        /// Rewrites a tuple type.
+        /// </summary>
+        /// <returns>Text</returns>
+        protected override string RewriteTypeTokens()
+        {
+            var text = "Container<";
+
+            for (int idx = 0; idx < this.TupleTypes.Count; idx++)
+            {
+                this.TupleTypes[idx].Rewrite();
+                text += this.TupleTypes[idx].GetRewrittenText();
+
+                if (idx < this.TupleTypes.Count - 1)
+                {
+                    text += ",";
+                }
+            }
+
+            text += ">";
+
+            return text;
         }
 
         #endregion

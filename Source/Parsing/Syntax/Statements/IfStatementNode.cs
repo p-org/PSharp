@@ -21,54 +21,54 @@ namespace Microsoft.PSharp.Parsing.Syntax
     /// <summary>
     /// If statement node.
     /// </summary>
-    public sealed class IfStatementNode : StatementNode
+    internal sealed class IfStatementNode : StatementNode
     {
         #region fields
 
         /// <summary>
         /// The if keyword.
         /// </summary>
-        public Token IfKeyword;
+        internal Token IfKeyword;
 
         /// <summary>
         /// The left parenthesis token.
         /// </summary>
-        public Token LeftParenthesisToken;
+        internal Token LeftParenthesisToken;
 
         /// <summary>
         /// The guard predicate.
         /// </summary>
-        public ExpressionNode Guard;
+        internal ExpressionNode Guard;
 
         /// <summary>
         /// The right parenthesis token.
         /// </summary>
-        public Token RightParenthesisToken;
+        internal Token RightParenthesisToken;
 
         /// <summary>
         /// The statement block.
         /// </summary>
-        public StatementBlockNode StatementBlock;
+        internal StatementBlockNode StatementBlock;
 
         /// <summary>
         /// The else keyword.
         /// </summary>
-        public Token ElseKeyword;
+        internal Token ElseKeyword;
 
         /// <summary>
         /// The else statement block.
         /// </summary>
-        public StatementBlockNode ElseStatementBlock;
+        internal StatementBlockNode ElseStatementBlock;
 
         #endregion
 
-        #region public API
+        #region internal API
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="node">Node</param>
-        public IfStatementNode(StatementBlockNode node)
+        internal IfStatementNode(StatementBlockNode node)
             : base(node)
         {
 
@@ -78,7 +78,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Returns the full text.
         /// </summary>
         /// <returns>string</returns>
-        public override string GetFullText()
+        internal override string GetFullText()
         {
             return base.TextUnit.Text;
         }
@@ -87,36 +87,29 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Returns the rewritten text.
         /// </summary>
         /// <returns>string</returns>
-        public override string GetRewrittenText()
+        internal override string GetRewrittenText()
         {
             return base.RewrittenTextUnit.Text;
         }
-
-        #endregion
-
-        #region internal API
 
         /// <summary>
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        /// <param name="position">Position</param>
-        internal override void Rewrite(ref int position)
+        internal override void Rewrite()
         {
-            var start = position;
-            
             var text = "";
 
             text += this.IfKeyword.TextUnit.Text + " ";
 
             text += this.LeftParenthesisToken.TextUnit.Text;
 
-            this.Guard.Rewrite(ref position);
+            this.Guard.Rewrite();
             text += this.Guard.GetRewrittenText();
 
             text += this.RightParenthesisToken.TextUnit.Text;
 
-            this.StatementBlock.Rewrite(ref position);
+            this.StatementBlock.Rewrite();
             text += this.StatementBlock.GetRewrittenText();
 
             if (this.ElseKeyword != null)
@@ -124,13 +117,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 text += this.ElseKeyword.TextUnit.Text + " ";
                 if (this.ElseStatementBlock != null)
                 {
-                    this.ElseStatementBlock.Rewrite(ref position);
+                    this.ElseStatementBlock.Rewrite();
                     text += this.ElseStatementBlock.GetRewrittenText();
                 }
             }
 
-            base.RewrittenTextUnit = new TextUnit(text, this.IfKeyword.TextUnit.Line, start);
-            position = base.RewrittenTextUnit.End + 1;
+            base.RewrittenTextUnit = new TextUnit(text, this.IfKeyword.TextUnit.Line);
         }
 
         /// <summary>
@@ -163,8 +155,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 }
             }
 
-            base.TextUnit = new TextUnit(text, this.IfKeyword.TextUnit.Line,
-                this.IfKeyword.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, this.IfKeyword.TextUnit.Line);
         }
 
         #endregion

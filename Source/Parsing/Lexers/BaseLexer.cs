@@ -75,11 +75,11 @@ namespace Microsoft.PSharp.Parsing
                             continue;
                         }
 
-                        this.TextUnits.Add(new TextUnit(tok, line, position));
+                        this.TextUnits.Add(new TextUnit(tok, line));
                         position += tok.Length;
                     }
 
-                    this.TextUnits.Add(new TextUnit("\n", line, position));
+                    this.TextUnits.Add(new TextUnit("\n", line));
                     position++;
                     line++;
                 }

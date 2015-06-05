@@ -21,44 +21,44 @@ namespace Microsoft.PSharp.Parsing.Syntax
     /// <summary>
     /// Create monitor statement node.
     /// </summary>
-    public sealed class CreateMonitorStatementNode : StatementNode
+    internal sealed class CreateMonitorStatementNode : StatementNode
     {
         #region fields
 
         /// <summary>
         /// The create monitor keyword.
         /// </summary>
-        public Token CreateMonitorKeyword;
+        internal Token CreateMonitorKeyword;
 
         /// <summary>
         /// The monitor identifier.
         /// </summary>
-        public List<Token> MonitorIdentifier;
+        internal List<Token> MonitorIdentifier;
 
         /// <summary>
         /// The left parenthesis token.
         /// </summary>
-        public Token LeftParenthesisToken;
+        internal Token LeftParenthesisToken;
 
         /// <summary>
         /// The monitor creation payload.
         /// </summary>
-        public ExpressionNode Payload;
+        internal ExpressionNode Payload;
 
         /// <summary>
         /// The right parenthesis token.
         /// </summary>
-        public Token RightParenthesisToken;
+        internal Token RightParenthesisToken;
 
         #endregion
 
-        #region public API
+        #region internal API
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="node">Node</param>
-        public CreateMonitorStatementNode(StatementBlockNode node)
+        internal CreateMonitorStatementNode(StatementBlockNode node)
             : base(node)
         {
             this.MonitorIdentifier = new List<Token>();
@@ -68,7 +68,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Returns the full text.
         /// </summary>
         /// <returns>string</returns>
-        public override string GetFullText()
+        internal override string GetFullText()
         {
             return base.TextUnit.Text;
         }
@@ -77,24 +77,17 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Returns the rewritten text.
         /// </summary>
         /// <returns>string</returns>
-        public override string GetRewrittenText()
+        internal override string GetRewrittenText()
         {
             return base.RewrittenTextUnit.Text;
         }
-
-        #endregion
-
-        #region internal API
 
         /// <summary>
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        /// <param name="position">Position</param>
-        internal override void Rewrite(ref int position)
+        internal override void Rewrite()
         {
-            var start = position;
-
             var text = "this.CreateMonitor<";
 
             foreach (var id in this.MonitorIdentifier)
@@ -104,15 +97,14 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += ">(";
 
-            this.Payload.Rewrite(ref position);
+            this.Payload.Rewrite();
             text += this.Payload.GetRewrittenText();
 
             text += ")";
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 
-            base.RewrittenTextUnit = new TextUnit(text, this.CreateMonitorKeyword.TextUnit.Line, start);
-            position = base.RewrittenTextUnit.End + 1;
+            base.RewrittenTextUnit = new TextUnit(text, this.CreateMonitorKeyword.TextUnit.Line);
         }
 
         /// <summary>
@@ -145,8 +137,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
             
             text += this.SemicolonToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, this.CreateMonitorKeyword.TextUnit.Line,
-                this.CreateMonitorKeyword.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, this.CreateMonitorKeyword.TextUnit.Line);
         }
 
         #endregion

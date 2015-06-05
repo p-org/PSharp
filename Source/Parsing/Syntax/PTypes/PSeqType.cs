@@ -24,7 +24,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// The seq type.
         /// </summary>
-        public PBaseType SeqType;
+        internal PBaseType SeqType;
 
         #endregion
 
@@ -33,9 +33,30 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor.
         /// </summary>
-        public PSeqType()
+        internal PSeqType()
+            : base(PType.Seq)
         {
-            base.Type = PType.Seq;
+
+        }
+
+        #endregion
+
+        #region protected API
+
+        /// <summary>
+        /// Rewrites a seq type.
+        /// </summary>
+        /// <returns>Text</returns>
+        protected override string RewriteTypeTokens()
+        {
+            var text = "Seq<";
+
+            this.SeqType.Rewrite();
+            text += this.SeqType.GetRewrittenText();
+
+            text += ">";
+
+            return text;
         }
 
         #endregion

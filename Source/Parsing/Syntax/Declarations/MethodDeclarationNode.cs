@@ -21,63 +21,63 @@ namespace Microsoft.PSharp.Parsing.Syntax
     /// <summary>
     /// Method declaration node.
     /// </summary>
-    public sealed class MethodDeclarationNode : PSharpSyntaxNode
+    internal sealed class MethodDeclarationNode : PSharpSyntaxNode
     {
         #region fields
 
         /// <summary>
         /// The modifier token.
         /// </summary>
-        public Token Modifier;
+        internal Token Modifier;
 
         /// <summary>
         /// The inheritance modifier token.
         /// </summary>
-        public Token InheritanceModifier;
+        internal Token InheritanceModifier;
 
         /// <summary>
         /// The type identifier.
         /// </summary>
-        public Token TypeIdentifier;
+        internal Token TypeIdentifier;
 
         /// <summary>
         /// The identifier token.
         /// </summary>
-        public Token Identifier;
+        internal Token Identifier;
 
         /// <summary>
         /// The left parenthesis token.
         /// </summary>
-        public Token LeftParenthesisToken;
+        internal Token LeftParenthesisToken;
 
         /// <summary>
         /// List of parameter tokens.
         /// </summary>
-        public List<Token> Parameters;
+        internal List<Token> Parameters;
 
         /// <summary>
         /// The right parenthesis token.
         /// </summary>
-        public Token RightParenthesisToken;
+        internal Token RightParenthesisToken;
 
         /// <summary>
         /// The semicolon token.
         /// </summary>
-        public Token SemicolonToken;
+        internal Token SemicolonToken;
 
         /// <summary>
         /// The statement block.
         /// </summary>
-        public StatementBlockNode StatementBlock;
+        internal StatementBlockNode StatementBlock;
 
         #endregion
 
-        #region public API
+        #region internal API
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public MethodDeclarationNode()
+        internal MethodDeclarationNode()
             : base()
         {
             this.Parameters = new List<Token>();
@@ -87,7 +87,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Returns the full text.
         /// </summary>
         /// <returns>string</returns>
-        public override string GetFullText()
+        internal override string GetFullText()
         {
             return base.TextUnit.Text;
         }
@@ -96,23 +96,17 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Returns the rewritten text.
         /// </summary>
         /// <returns>string</returns>
-        public override string GetRewrittenText()
+        internal override string GetRewrittenText()
         {
             return base.RewrittenTextUnit.Text;
         }
-
-        #endregion
-
-        #region internal API
 
         /// <summary>
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        /// <param name="position">Position</param>
-        internal override void Rewrite(ref int position)
+        internal override void Rewrite()
         {
-            var start = position;
             var text = "";
             Token initToken = null;
 
@@ -146,7 +140,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             if (this.StatementBlock != null)
             {
-                this.StatementBlock.Rewrite(ref position);
+                this.StatementBlock.Rewrite();
                 text += StatementBlock.GetRewrittenText();
             }
             else
@@ -156,13 +150,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             if (initToken != null)
             {
-                base.TextUnit = new TextUnit(text, initToken.TextUnit.Line, start);
-                position = base.RewrittenTextUnit.End + 1;
+                base.TextUnit = new TextUnit(text, initToken.TextUnit.Line);
             }
             else
             {
-                base.TextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Line, start);
-                position = base.RewrittenTextUnit.End + 1;
+                base.TextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Line);
             }
         }
 
@@ -209,17 +201,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
                 if (initToken != null)
                 {
-                    int length = this.StatementBlock.TextUnit.End - initToken.TextUnit.Start + 1;
-
-                    base.TextUnit = new TextUnit(text, initToken.TextUnit.Line,
-                        initToken.TextUnit.Start);
+                    base.TextUnit = new TextUnit(text, initToken.TextUnit.Line);
                 }
                 else
                 {
-                    int length = this.StatementBlock.TextUnit.End - this.TypeIdentifier.TextUnit.Start + 1;
-
-                    base.TextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Line,
-                        this.TypeIdentifier.TextUnit.Start);
+                    base.TextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Line);
                 }
             }
             else
@@ -228,12 +214,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
                 if (initToken != null)
                 {
-                    base.TextUnit = new TextUnit(text, initToken.TextUnit.Line, initToken.TextUnit.Start);
+                    base.TextUnit = new TextUnit(text, initToken.TextUnit.Line);
                 }
                 else
                 {
-                    base.TextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Line,
-                        this.TypeIdentifier.TextUnit.Start);
+                    base.TextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Line);
                 }
             }
         }

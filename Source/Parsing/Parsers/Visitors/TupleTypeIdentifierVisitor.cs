@@ -22,7 +22,7 @@ namespace Microsoft.PSharp.Parsing
     /// <summary>
     /// The P# tuple type identifier parsing visitor.
     /// </summary>
-    public sealed class TupleTypeIdentifierVisitor : BaseParseVisitor
+    internal sealed class TupleTypeIdentifierVisitor : BaseParseVisitor
     {
         /// <summary>
         /// Constructor.
@@ -37,10 +37,10 @@ namespace Microsoft.PSharp.Parsing
         /// <summary>
         /// Visits the syntax node
         /// </summary>
-        /// <param name="node">Node</param>
-        public void Visit(PTypeNode node)
+        /// <param name="type">Type</param>
+        public void Visit(ref PTupleType type)
         {
-            node.TypeTokens.Add(base.TokenStream.Peek());
+            type.TypeTokens.Add(base.TokenStream.Peek());
 
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
@@ -105,12 +105,15 @@ namespace Microsoft.PSharp.Parsing
                     base.TokenStream.Peek().Type == TokenType.EventDecl ||
                     base.TokenStream.Peek().Type == TokenType.LeftParenthesis)
                 {
-                    new TypeIdentifierVisitor(base.TokenStream).Visit(node);
+                    PBaseType tupleType = null;
+                    new TypeIdentifierVisitor(base.TokenStream).Visit(ref tupleType);
+                    type.TupleTypes.Add(tupleType);
+
                     expectsComma = true;
                 }
                 else if (base.TokenStream.Peek().Type == TokenType.Identifier)
                 {
-                    node.NameTokens.Add(base.TokenStream.Peek());
+                    type.NameTokens.Add(base.TokenStream.Peek());
 
                     base.TokenStream.Index++;
                     base.TokenStream.SkipWhiteSpaceAndCommentTokens();
@@ -132,7 +135,7 @@ namespace Microsoft.PSharp.Parsing
                 }
                 else if (base.TokenStream.Peek().Type == TokenType.Comma)
                 {
-                    node.TypeTokens.Add(base.TokenStream.Peek());
+                    type.TypeTokens.Add(base.TokenStream.Peek());
 
                     base.TokenStream.Index++;
                     base.TokenStream.SkipWhiteSpaceAndCommentTokens();
@@ -156,7 +159,7 @@ namespace Microsoft.PSharp.Parsing
                 });
             }
 
-            node.TypeTokens.Add(base.TokenStream.Peek());
+            type.TypeTokens.Add(base.TokenStream.Peek());
         }
     }
 }

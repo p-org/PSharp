@@ -22,13 +22,13 @@ namespace Microsoft.PSharp.Parsing
     /// <summary>
     /// The P# state declaration parsing visitor.
     /// </summary>
-    public sealed class StateDeclarationVisitor : BaseParseVisitor
+    internal sealed class StateDeclarationVisitor : BaseParseVisitor
     {
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="tokenStream">TokenStream</param>
-        public StateDeclarationVisitor(TokenStream tokenStream)
+        internal StateDeclarationVisitor(TokenStream tokenStream)
             : base(tokenStream)
         {
 
@@ -40,7 +40,7 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="parentNode">Node</param>
         /// <param name="isInit">Is initial state</param>
         /// <param name="modifier">Modifier</param>
-        public void Visit(MachineDeclarationNode parentNode, bool isInit, Token modifier)
+        internal void Visit(MachineDeclarationNode parentNode, bool isInit, Token modifier)
         {
             var node = new StateDeclarationNode(parentNode, isInit);
             node.Modifier = modifier;

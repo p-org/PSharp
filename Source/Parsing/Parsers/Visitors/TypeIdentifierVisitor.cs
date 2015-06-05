@@ -22,7 +22,7 @@ namespace Microsoft.PSharp.Parsing
     /// <summary>
     /// The P# type identifier parsing visitor.
     /// </summary>
-    public sealed class TypeIdentifierVisitor : BaseParseVisitor
+    internal sealed class TypeIdentifierVisitor : BaseParseVisitor
     {
         /// <summary>
         /// Constructor.
@@ -35,10 +35,10 @@ namespace Microsoft.PSharp.Parsing
         }
 
         /// <summary>
-        /// Visits the syntax node.
+        /// Visits the type.
         /// </summary>
-        /// <param name="node">Node</param>
-        public void Visit(PTypeNode node)
+        /// <param name="type">Type</param>
+        public void Visit(ref PBaseType type)
         {
             if (base.TokenStream.Done ||
                     (base.TokenStream.Peek().Type != TokenType.MachineDecl &&
@@ -63,25 +63,48 @@ namespace Microsoft.PSharp.Parsing
                 });
             }
 
-            if (base.TokenStream.Peek().Type == TokenType.MachineDecl ||
-                base.TokenStream.Peek().Type == TokenType.Int ||
-                base.TokenStream.Peek().Type == TokenType.Bool ||
-                base.TokenStream.Peek().Type == TokenType.Any ||
-                base.TokenStream.Peek().Type == TokenType.EventDecl)
+            if (base.TokenStream.Peek().Type == TokenType.MachineDecl)
             {
-                node.TypeTokens.Add(base.TokenStream.Peek());
+                type = new PBaseType(PType.Machine);
+                type.TypeTokens.Add(base.TokenStream.Peek());
+            }
+            else if (base.TokenStream.Peek().Type == TokenType.Int)
+            {
+                type = new PBaseType(PType.Int);
+                type.TypeTokens.Add(base.TokenStream.Peek());
+            }
+            else if (base.TokenStream.Peek().Type == TokenType.Bool)
+            {
+                type = new PBaseType(PType.Bool);
+                type.TypeTokens.Add(base.TokenStream.Peek());
+            }
+            else if (base.TokenStream.Peek().Type == TokenType.Any)
+            {
+                type = new PBaseType(PType.Any);
+                type.TypeTokens.Add(base.TokenStream.Peek());
+            }
+            else if (base.TokenStream.Peek().Type == TokenType.EventDecl)
+            {
+                type = new PBaseType(PType.Event);
+                type.TypeTokens.Add(base.TokenStream.Peek());
             }
             else if (base.TokenStream.Peek().Type == TokenType.Seq)
             {
-                new SeqTypeIdentifierVisitor(base.TokenStream).Visit(node);
+                var seqType = new PSeqType();
+                new SeqTypeIdentifierVisitor(base.TokenStream).Visit(ref seqType);
+                type = seqType;
             }
             else if (base.TokenStream.Peek().Type == TokenType.Map)
             {
-                new MapTypeIdentifierVisitor(base.TokenStream).Visit(node);
+                var mapType = new PMapType();
+                new MapTypeIdentifierVisitor(base.TokenStream).Visit(ref mapType);
+                type = mapType;
             }
             else if (base.TokenStream.Peek().Type == TokenType.LeftParenthesis)
             {
-                new TupleTypeIdentifierVisitor(base.TokenStream).Visit(node);
+                var tupleType = new PTupleType();
+                new TupleTypeIdentifierVisitor(base.TokenStream).Visit(ref tupleType);
+                type = tupleType;
             }
 
             base.TokenStream.Index++;
@@ -108,8 +131,7 @@ namespace Microsoft.PSharp.Parsing
                     TokenType.Identifier
                 });
             }
-
-            var position = base.TokenStream.Peek().TextUnit.Start;
+            
             var line = base.TokenStream.Peek().TextUnit.Line;
 
             bool expectsDot = false;
@@ -144,12 +166,12 @@ namespace Microsoft.PSharp.Parsing
                 if (textUnit == null)
                 {
                     textUnit = new TextUnit(base.TokenStream.Peek().TextUnit.Text,
-                        line, position);
+                        line);
                 }
                 else
                 {
                     textUnit = new TextUnit(textUnit.Text + base.TokenStream.Peek().TextUnit.Text,
-                        line, position);
+                        line);
                 }
 
                 base.TokenStream.Index++;
@@ -159,7 +181,7 @@ namespace Microsoft.PSharp.Parsing
             if (base.TokenStream.Peek().Type == TokenType.LeftAngleBracket)
             {
                 textUnit = new TextUnit(textUnit.Text + base.TokenStream.Peek().TextUnit.Text,
-                    line, position);
+                    line);
 
                 base.TokenStream.Index++;
                 base.TokenStream.SkipWhiteSpaceAndCommentTokens();
@@ -194,7 +216,7 @@ namespace Microsoft.PSharp.Parsing
                     }
 
                     textUnit = new TextUnit(textUnit.Text + base.TokenStream.Peek().TextUnit.Text,
-                        line, position);
+                        line);
 
                     base.TokenStream.Index++;
                     base.TokenStream.SkipWhiteSpaceAndCommentTokens();
@@ -211,7 +233,7 @@ namespace Microsoft.PSharp.Parsing
                 }
 
                 textUnit = new TextUnit(textUnit.Text + base.TokenStream.Peek().TextUnit.Text,
-                    line, position);
+                    line);
 
                 base.TokenStream.Index++;
                 base.TokenStream.SkipWhiteSpaceAndCommentTokens();

@@ -39,17 +39,21 @@ namespace Microsoft.PSharp.Parsing
 
         #endregion
 
-        #region public API
+        #region internal API
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="filePath">File path</param>
-        public AbstractPSharpProgram(string filePath)
+        internal AbstractPSharpProgram(string filePath)
         {
             this.RewrittenText = "";
             this.FilePath = filePath;
         }
+
+        #endregion
+
+        #region public API
 
         /// <summary>
         /// Rewrites the P# program to the C#-IR.
@@ -84,48 +88,40 @@ namespace Microsoft.PSharp.Parsing
         /// <summary>
         /// Instrument the system library.
         /// </summary>
-        /// <param name="position">Position</param>
         /// <returns>Text</returns>
-        protected string InstrumentSystemLibrary(ref int position)
+        protected string InstrumentSystemLibrary()
         {
             var text = "using System;\n";
-            position += text.Length;
             return text;
         }
 
         /// <summary>
         /// Instrument the system generic collections library.
         /// </summary>
-        /// <param name="position">Position</param>
         /// <returns>Text</returns>
-        protected string InstrumentSystemCollectionsGenericLibrary(ref int position)
+        protected string InstrumentSystemCollectionsGenericLibrary()
         {
             var text = "using System.Collections.Generic;\n";
-            position += text.Length;
             return text;
         }
 
         /// <summary>
         /// Instrument the P# library.
         /// </summary>
-        /// <param name="position">Position</param>
         /// <returns>Text</returns>
-        protected string InstrumentPSharpLibrary(ref int position)
+        protected string InstrumentPSharpLibrary()
         {
             var text = "using Microsoft.PSharp;\n";
-            position += text.Length;
             return text;
         }
 
         /// <summary>
         /// Instrument the P# collections library.
         /// </summary>
-        /// <param name="position">Position</param>
         /// <returns>Text</returns>
-        protected string InstrumentPSharpCollectionsLibrary(ref int position)
+        protected string InstrumentPSharpCollectionsLibrary()
         {
             var text = "using Microsoft.PSharp.Collections;\n";
-            position += text.Length;
             return text;
         }
 

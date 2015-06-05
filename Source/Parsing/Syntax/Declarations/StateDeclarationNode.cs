@@ -21,49 +21,49 @@ namespace Microsoft.PSharp.Parsing.Syntax
     /// <summary>
     /// State declaration node.
     /// </summary>
-    public sealed class StateDeclarationNode : PSharpSyntaxNode
+    internal sealed class StateDeclarationNode : PSharpSyntaxNode
     {
         #region fields
 
         /// <summary>
         /// True if the state is the initial state.
         /// </summary>
-        public readonly bool IsInitial;
+        internal readonly bool IsInitial;
 
         /// <summary>
         /// The machine parent node.
         /// </summary>
-        public readonly MachineDeclarationNode Machine;
+        internal readonly MachineDeclarationNode Machine;
 
         /// <summary>
         /// The state keyword.
         /// </summary>
-        public Token StateKeyword;
+        internal Token StateKeyword;
 
         /// <summary>
         /// The modifier token.
         /// </summary>
-        public Token Modifier;
+        internal Token Modifier;
 
         /// <summary>
         /// The identifier token.
         /// </summary>
-        public Token Identifier;
+        internal Token Identifier;
 
         /// <summary>
         /// The left curly bracket token.
         /// </summary>
-        public Token LeftCurlyBracketToken;
+        internal Token LeftCurlyBracketToken;
 
         /// <summary>
         /// Entry declaration.
         /// </summary>
-        public EntryDeclarationNode EntryDeclaration;
+        internal EntryDeclarationNode EntryDeclaration;
 
         /// <summary>
         /// Exit declaration.
         /// </summary>
-        public ExitDeclarationNode ExitDeclaration;
+        internal ExitDeclarationNode ExitDeclaration;
 
         /// <summary>
         /// Dictionary containing goto state transitions.
@@ -103,18 +103,18 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// The right curly bracket token.
         /// </summary>
-        public Token RightCurlyBracketToken;
+        internal Token RightCurlyBracketToken;
 
         #endregion
 
-        #region public API
+        #region internal API
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="machineNode">PMachineDeclarationNode</param>
         /// <param name="isInit">Is initial state</param>
-        public StateDeclarationNode(MachineDeclarationNode machineNode, bool isInit)
+        internal StateDeclarationNode(MachineDeclarationNode machineNode, bool isInit)
             : base()
         {
             this.IsInitial = isInit;
@@ -135,7 +135,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <param name="stateIdentifier">Token</param>
         /// <param name="stmtBlock">Statement block</param>
         /// <returns>Boolean value</returns>
-        public bool AddGotoStateTransition(Token eventIdentifier, Token stateIdentifier, StatementBlockNode stmtBlock = null)
+        internal bool AddGotoStateTransition(Token eventIdentifier, Token stateIdentifier, StatementBlockNode stmtBlock = null)
         {
             if (this.GotoStateTransitions.ContainsKey(eventIdentifier) ||
                 this.PushStateTransitions.ContainsKey(eventIdentifier) ||
@@ -159,7 +159,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <param name="eventIdentifier">Token</param>
         /// <param name="stateIdentifier">Token</param>
         /// <returns>Boolean value</returns>
-        public bool AddPushStateTransition(Token eventIdentifier, Token stateIdentifier)
+        internal bool AddPushStateTransition(Token eventIdentifier, Token stateIdentifier)
         {
             if (this.Machine.IsMonitor)
             {
@@ -184,7 +184,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <param name="eventIdentifier">Token</param>
         /// <param name="stateIdentifier">Token</param>
         /// <returns>Boolean value</returns>
-        public bool AddActionBinding(Token eventIdentifier, StatementBlockNode stmtBlock)
+        internal bool AddActionBinding(Token eventIdentifier, StatementBlockNode stmtBlock)
         {
             if (this.GotoStateTransitions.ContainsKey(eventIdentifier) ||
                 this.PushStateTransitions.ContainsKey(eventIdentifier) ||
@@ -205,7 +205,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <param name="eventIdentifier">Token</param>
         /// <param name="actionIdentifier">Token</param>
         /// <returns>Boolean value</returns>
-        public bool AddActionBinding(Token eventIdentifier, Token actionIdentifier)
+        internal bool AddActionBinding(Token eventIdentifier, Token actionIdentifier)
         {
             if (this.GotoStateTransitions.ContainsKey(eventIdentifier) ||
                 this.PushStateTransitions.ContainsKey(eventIdentifier) ||
@@ -224,7 +224,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         /// <param name="eventIdentifier">Token</param>
         /// <returns>Boolean value</returns>
-        public bool AddDeferredEvent(Token eventIdentifier)
+        internal bool AddDeferredEvent(Token eventIdentifier)
         {
             if (this.Machine.IsMonitor)
             {
@@ -247,7 +247,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         /// <param name="eventIdentifier">Token</param>
         /// <returns>Boolean value</returns>
-        public bool AddIgnoredEvent(Token eventIdentifier)
+        internal bool AddIgnoredEvent(Token eventIdentifier)
         {
             if (this.DeferredEvents.Contains(eventIdentifier) ||
                 this.IgnoredEvents.Contains(eventIdentifier))
@@ -264,7 +264,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Returns the full text.
         /// </summary>
         /// <returns>string</returns>
-        public override string GetFullText()
+        internal override string GetFullText()
         {
             return base.TextUnit.Text;
         }
@@ -273,32 +273,25 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Returns the rewritten text.
         /// </summary>
         /// <returns>string</returns>
-        public override string GetRewrittenText()
+        internal override string GetRewrittenText()
         {
             return base.RewrittenTextUnit.Text;
         }
-
-        #endregion
-
-        #region internal API
 
         /// <summary>
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        /// <param name="position">Position</param>
-        internal override void Rewrite(ref int position)
+        internal override void Rewrite()
         {
-            var start = position;
-
             if (this.EntryDeclaration != null)
             {
-                this.EntryDeclaration.Rewrite(ref position);
+                this.EntryDeclaration.Rewrite();
             }
 
             if (this.ExitDeclaration != null)
             {
-                this.ExitDeclaration.Rewrite(ref position);
+                this.ExitDeclaration.Rewrite();
             }
 
             var text = "";
@@ -346,8 +339,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
 
-            base.RewrittenTextUnit = new TextUnit(text, initToken.TextUnit.Line, start);
-            position = base.RewrittenTextUnit.End + 1;
+            base.RewrittenTextUnit = new TextUnit(text, initToken.TextUnit.Line);
         }
 
         /// <summary>
@@ -404,7 +396,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, initToken.TextUnit.Line, initToken.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, initToken.TextUnit.Line);
         }
 
         #endregion

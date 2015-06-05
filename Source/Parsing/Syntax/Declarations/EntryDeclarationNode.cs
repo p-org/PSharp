@@ -21,28 +21,28 @@ namespace Microsoft.PSharp.Parsing.Syntax
     /// <summary>
     /// Entry declaration node.
     /// </summary>
-    public sealed class EntryDeclarationNode : PSharpSyntaxNode
+    internal sealed class EntryDeclarationNode : PSharpSyntaxNode
     {
         #region fields
 
         /// <summary>
         /// The entry keyword.
         /// </summary>
-        public Token EntryKeyword;
+        internal Token EntryKeyword;
 
         /// <summary>
         /// The statement block.
         /// </summary>
-        public StatementBlockNode StatementBlock;
+        internal StatementBlockNode StatementBlock;
 
         #endregion
 
-        #region public API
+        #region internal API
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public EntryDeclarationNode()
+        internal EntryDeclarationNode()
             : base()
         {
 
@@ -52,7 +52,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Returns the full text.
         /// </summary>
         /// <returns>string</returns>
-        public override string GetFullText()
+        internal override string GetFullText()
         {
             return base.TextUnit.Text;
         }
@@ -61,32 +61,23 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Returns the rewritten text.
         /// </summary>
         /// <returns>string</returns>
-        public override string GetRewrittenText()
+        internal override string GetRewrittenText()
         {
             return base.RewrittenTextUnit.Text;
         }
-
-
-        #endregion
-
-        #region internal API
 
         /// <summary>
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        /// <param name="position">Position</param>
-        internal override void Rewrite(ref int position)
+        internal override void Rewrite()
         {
-            var start = position;
-            
             var text = "protected override void OnEntry()";
 
-            this.StatementBlock.Rewrite(ref position);
+            this.StatementBlock.Rewrite();
             text += StatementBlock.GetRewrittenText();
 
-            base.RewrittenTextUnit = new TextUnit(text, this.EntryKeyword.TextUnit.Line, start);
-            position = base.RewrittenTextUnit.End + 1;
+            base.RewrittenTextUnit = new TextUnit(text, this.EntryKeyword.TextUnit.Line);
         }
 
         /// <summary>
@@ -99,8 +90,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
             this.StatementBlock.GenerateTextUnit();
             text += this.StatementBlock.GetFullText();
 
-            base.TextUnit = new TextUnit(text, this.EntryKeyword.TextUnit.Line,
-                this.EntryKeyword.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, this.EntryKeyword.TextUnit.Line);
         }
 
         #endregion

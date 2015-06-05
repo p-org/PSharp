@@ -22,7 +22,7 @@ namespace Microsoft.PSharp.Parsing
     /// <summary>
     /// The P# seq type identifier parsing visitor.
     /// </summary>
-    public sealed class SeqTypeIdentifierVisitor : BaseParseVisitor
+    internal sealed class SeqTypeIdentifierVisitor : BaseParseVisitor
     {
         /// <summary>
         /// Constructor.
@@ -37,10 +37,10 @@ namespace Microsoft.PSharp.Parsing
         /// <summary>
         /// Visits the syntax node.
         /// </summary>
-        /// <param name="node">Node</param>
-        public void Visit(PTypeNode node)
+        /// <param name="type">Type</param>
+        public void Visit(ref PSeqType type)
         {
-            node.TypeTokens.Add(base.TokenStream.Peek());
+            type.TypeTokens.Add(base.TokenStream.Peek());
 
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
@@ -55,12 +55,14 @@ namespace Microsoft.PSharp.Parsing
                 });
             }
 
-            node.TypeTokens.Add(base.TokenStream.Peek());
+            type.TypeTokens.Add(base.TokenStream.Peek());
 
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-            new TypeIdentifierVisitor(base.TokenStream).Visit(node);
+            PBaseType seqType = null;
+            new TypeIdentifierVisitor(base.TokenStream).Visit(ref seqType);
+            type.SeqType = seqType;
 
             if (base.TokenStream.Done ||
                 base.TokenStream.Peek().Type != TokenType.RightSquareBracket)
@@ -72,7 +74,7 @@ namespace Microsoft.PSharp.Parsing
                 });
             }
 
-            node.TypeTokens.Add(base.TokenStream.Peek());
+            type.TypeTokens.Add(base.TokenStream.Peek());
         }
     }
 }

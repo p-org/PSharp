@@ -22,13 +22,13 @@ namespace Microsoft.PSharp.Parsing
     /// <summary>
     /// The P# send statement parsing visitor.
     /// </summary>
-    public sealed class SendStatementVisitor : BaseParseVisitor
+    internal sealed class SendStatementVisitor : BaseParseVisitor
     {
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="tokenStream">TokenStream</param>
-        public SendStatementVisitor(TokenStream tokenStream)
+        internal SendStatementVisitor(TokenStream tokenStream)
             : base(tokenStream)
         {
 
@@ -38,7 +38,7 @@ namespace Microsoft.PSharp.Parsing
         /// Visits the syntax node.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        public void Visit(StatementBlockNode parentNode)
+        internal void Visit(StatementBlockNode parentNode)
         {
             if (parentNode.Machine.IsMonitor)
             {

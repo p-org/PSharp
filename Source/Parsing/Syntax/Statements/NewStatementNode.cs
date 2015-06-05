@@ -21,44 +21,44 @@ namespace Microsoft.PSharp.Parsing.Syntax
     /// <summary>
     /// New statement node.
     /// </summary>
-    public sealed class NewStatementNode : StatementNode
+    internal sealed class NewStatementNode : StatementNode
     {
         #region fields
 
         /// <summary>
         /// The new keyword.
         /// </summary>
-        public Token NewKeyword;
+        internal Token NewKeyword;
 
         /// <summary>
         /// The type identifier.
         /// </summary>
-        public Token TypeIdentifier;
+        internal Token TypeIdentifier;
 
         /// <summary>
         /// The left parenthesis token.
         /// </summary>
-        public Token LeftParenthesisToken;
+        internal Token LeftParenthesisToken;
 
         /// <summary>
         /// The constructor arguments.
         /// </summary>
-        public ExpressionNode Arguments;
+        internal ExpressionNode Arguments;
 
         /// <summary>
         /// The right parenthesis token.
         /// </summary>
-        public Token RightParenthesisToken;
+        internal Token RightParenthesisToken;
 
         #endregion
 
-        #region public API
+        #region internal API
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="node">Node</param>
-        public NewStatementNode(StatementBlockNode node)
+        internal NewStatementNode(StatementBlockNode node)
             : base(node)
         {
 
@@ -68,7 +68,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Returns the full text.
         /// </summary>
         /// <returns>string</returns>
-        public override string GetFullText()
+        internal override string GetFullText()
         {
             return base.TextUnit.Text;
         }
@@ -77,24 +77,17 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Returns the rewritten text.
         /// </summary>
         /// <returns>string</returns>
-        public override string GetRewrittenText()
+        internal override string GetRewrittenText()
         {
             return base.RewrittenTextUnit.Text;
         }
-
-        #endregion
-
-        #region internal API
 
         /// <summary>
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        /// <param name="position">Position</param>
-        internal override void Rewrite(ref int position)
+        internal override void Rewrite()
         {
-            var start = position;
-
             var text = this.NewKeyword.TextUnit.Text;
             text += " ";
 
@@ -104,7 +97,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             if (this.Arguments != null)
             {
-                this.Arguments.Rewrite(ref position);
+                this.Arguments.Rewrite();
                 text += this.Arguments.GetRewrittenText();
             }
 
@@ -112,8 +105,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 
-            base.RewrittenTextUnit = new TextUnit(text, this.NewKeyword.TextUnit.Line, start);
-            position = base.RewrittenTextUnit.End + 1;
+            base.RewrittenTextUnit = new TextUnit(text, this.NewKeyword.TextUnit.Line);
         }
 
         /// <summary>
@@ -140,8 +132,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, this.NewKeyword.TextUnit.Line,
-                this.NewKeyword.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, this.NewKeyword.TextUnit.Line);
         }
 
         #endregion

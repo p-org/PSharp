@@ -22,13 +22,13 @@ namespace Microsoft.PSharp.Parsing
     /// <summary>
     /// The P# if statement parsing visitor.
     /// </summary>
-    public sealed class IfStatementVisitor : BaseParseVisitor
+    internal sealed class IfStatementVisitor : BaseParseVisitor
     {
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="tokenStream">TokenStream</param>
-        public IfStatementVisitor(TokenStream tokenStream)
+        internal IfStatementVisitor(TokenStream tokenStream)
             : base(tokenStream)
         {
 
@@ -38,7 +38,7 @@ namespace Microsoft.PSharp.Parsing
         /// Visits the syntax node.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        public void Visit(StatementBlockNode parentNode)
+        internal void Visit(StatementBlockNode parentNode)
         {
             var node = new IfStatementNode(parentNode);
             node.IfKeyword = base.TokenStream.Peek();

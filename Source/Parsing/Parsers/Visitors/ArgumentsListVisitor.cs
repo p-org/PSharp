@@ -22,13 +22,13 @@ namespace Microsoft.PSharp.Parsing
     /// <summary>
     /// The P# argument list parsing visitor.
     /// </summary>
-    public sealed class ArgumentsListVisitor : BaseParseVisitor
+    internal sealed class ArgumentsListVisitor : BaseParseVisitor
     {
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="tokenStream">TokenStream</param>
-        public ArgumentsListVisitor(TokenStream tokenStream)
+        internal ArgumentsListVisitor(TokenStream tokenStream)
             : base(tokenStream)
         {
 
@@ -38,7 +38,7 @@ namespace Microsoft.PSharp.Parsing
         /// Visits the syntax node.
         /// </summary>
         /// <param name="node">Node</param>
-        public void Visit(ExpressionNode node)
+        internal void Visit(ExpressionNode node)
         {
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();

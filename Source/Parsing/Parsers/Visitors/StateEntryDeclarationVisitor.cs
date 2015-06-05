@@ -22,13 +22,13 @@ namespace Microsoft.PSharp.Parsing
     /// <summary>
     /// The P# state entry declaration parsing visitor.
     /// </summary>
-    public sealed class StateEntryDeclarationVisitor : BaseParseVisitor
+    internal sealed class StateEntryDeclarationVisitor : BaseParseVisitor
     {
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="tokenStream">TokenStream</param>
-        public StateEntryDeclarationVisitor(TokenStream tokenStream)
+        internal StateEntryDeclarationVisitor(TokenStream tokenStream)
             : base(tokenStream)
         {
 
@@ -38,7 +38,7 @@ namespace Microsoft.PSharp.Parsing
         /// Visits the syntax node.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        public void Visit(StateDeclarationNode parentNode)
+        internal void Visit(StateDeclarationNode parentNode)
         {
             var node = new EntryDeclarationNode();
             node.EntryKeyword = base.TokenStream.Peek();

@@ -22,13 +22,13 @@ namespace Microsoft.PSharp.Parsing
     /// <summary>
     /// The P# assert statement parsing visitor.
     /// </summary>
-    public sealed class AssertStatementVisitor : BaseParseVisitor
+    internal sealed class AssertStatementVisitor : BaseParseVisitor
     {
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="tokenStream">TokenStream</param>
-        public AssertStatementVisitor(TokenStream tokenStream)
+        internal AssertStatementVisitor(TokenStream tokenStream)
             : base(tokenStream)
         {
 
@@ -38,7 +38,7 @@ namespace Microsoft.PSharp.Parsing
         /// Visits the syntax node.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        public void Visit(StatementBlockNode parentNode)
+        internal void Visit(StatementBlockNode parentNode)
         {
             var node = new AssertStatementNode(parentNode);
             node.AssertKeyword = base.TokenStream.Peek();

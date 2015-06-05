@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="DefaultStatementNode.cs">
+// <copyright file="PDefaultStatementNode.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -21,39 +21,39 @@ namespace Microsoft.PSharp.Parsing.Syntax
     /// <summary>
     /// Default statement node.
     /// </summary>
-    public sealed class DefaultStatementNode : StatementNode
+    internal sealed class PDefaultStatementNode : StatementNode
     {
         #region fields
 
         /// <summary>
         /// The default keyword.
         /// </summary>
-        public Token DefaultKeyword;
+        internal Token DefaultKeyword;
         
         /// <summary>
         /// The left parenthesis token.
         /// </summary>
-        public Token LeftParenthesisToken;
+        internal Token LeftParenthesisToken;
 
         /// <summary>
-        /// The type node.
+        /// The actual type.
         /// </summary>
-        public PTypeNode TypeNode;
+        internal PBaseType Type;
 
         /// <summary>
         /// The right parenthesis token.
         /// </summary>
-        public Token RightParenthesisToken;
+        internal Token RightParenthesisToken;
 
         #endregion
 
-        #region public API
+        #region internal API
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="node">Node</param>
-        public DefaultStatementNode(StatementBlockNode node)
+        internal PDefaultStatementNode(StatementBlockNode node)
             : base(node)
         {
 
@@ -63,7 +63,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Returns the full text.
         /// </summary>
         /// <returns>string</returns>
-        public override string GetFullText()
+        internal override string GetFullText()
         {
             return base.TextUnit.Text;
         }
@@ -72,46 +72,38 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Returns the rewritten text.
         /// </summary>
         /// <returns>string</returns>
-        public override string GetRewrittenText()
+        internal override string GetRewrittenText()
         {
             return base.RewrittenTextUnit.Text;
         }
-
-        #endregion
-
-        #region internal API
 
         /// <summary>
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        /// <param name="position">Position</param>
-        internal override void Rewrite(ref int position)
+        internal override void Rewrite()
         {
-            var start = position;
-
             var text = "";
 
-            this.TypeNode.Rewrite(ref position);
-            if (this.TypeNode.Type.Type == PType.Seq ||
-                this.TypeNode.Type.Type == PType.Map)
+            this.Type.Rewrite();
+            if (this.Type.Type == PType.Seq ||
+                this.Type.Type == PType.Map)
             {
                 text += "new ";
-                text += this.TypeNode.GetRewrittenText();
+                text += this.Type.GetRewrittenText();
                 text += "()";
             }
             else
             {
                 text += this.DefaultKeyword.TextUnit.Text;
                 text += "(";
-                text += this.TypeNode.GetRewrittenText();
+                text += this.Type.GetRewrittenText();
                 text += ")";
             }
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 
-            base.RewrittenTextUnit = new TextUnit(text, this.DefaultKeyword.TextUnit.Line, start);
-            position = base.RewrittenTextUnit.End + 1;
+            base.RewrittenTextUnit = new TextUnit(text, this.DefaultKeyword.TextUnit.Line);
         }
 
         /// <summary>
@@ -123,15 +115,14 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += this.LeftParenthesisToken.TextUnit.Text;
 
-            this.TypeNode.GenerateTextUnit();
-            text += this.TypeNode.GetFullText();
+            //this.TypeNode.GenerateTextUnit();
+            //text += this.TypeNode.GetFullText();
 
             text += this.RightParenthesisToken.TextUnit.Text;
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, this.DefaultKeyword.TextUnit.Line,
-                this.DefaultKeyword.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, this.DefaultKeyword.TextUnit.Line);
         }
 
         #endregion

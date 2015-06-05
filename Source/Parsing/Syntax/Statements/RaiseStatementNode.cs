@@ -21,39 +21,39 @@ namespace Microsoft.PSharp.Parsing.Syntax
     /// <summary>
     /// Raise statement node.
     /// </summary>
-    public sealed class RaiseStatementNode : StatementNode
+    internal sealed class RaiseStatementNode : StatementNode
     {
         #region fields
 
         /// <summary>
         /// The raise keyword.
         /// </summary>
-        public Token RaiseKeyword;
+        internal Token RaiseKeyword;
 
         /// <summary>
         /// The event identifier.
         /// </summary>
-        public Token EventIdentifier;
+        internal Token EventIdentifier;
 
         /// <summary>
         /// The separator token.
         /// </summary>
-        public Token Separator;
+        internal Token Separator;
 
         /// <summary>
         /// The event payload.
         /// </summary>
-        public ExpressionNode Payload;
+        internal ExpressionNode Payload;
 
         #endregion
 
-        #region public API
+        #region internal API
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="node">Node</param>
-        public RaiseStatementNode(StatementBlockNode node)
+        internal RaiseStatementNode(StatementBlockNode node)
             : base(node)
         {
 
@@ -63,7 +63,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Returns the full text.
         /// </summary>
         /// <returns>string</returns>
-        public override string GetFullText()
+        internal override string GetFullText()
         {
             return base.TextUnit.Text;
         }
@@ -72,24 +72,17 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Returns the rewritten text.
         /// </summary>
         /// <returns>string</returns>
-        public override string GetRewrittenText()
+        internal override string GetRewrittenText()
         {
             return base.RewrittenTextUnit.Text;
         }
-
-        #endregion
-
-        #region internal API
 
         /// <summary>
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        /// <param name="position">Position</param>
-        internal override void Rewrite(ref int position)
+        internal override void Rewrite()
         {
-            var start = position;
-
             var text = "{\n";
             text += "this.Raise(new ";
 
@@ -110,7 +103,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             if (this.Separator != null)
             {
-                this.Payload.Rewrite(ref position);
+                this.Payload.Rewrite();
                 text += this.Payload.GetRewrittenText();
             }
 
@@ -121,8 +114,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
             text += "return;\n";
             text += "}\n";
 
-            base.RewrittenTextUnit = new TextUnit(text, this.RaiseKeyword.TextUnit.Line, start);
-            position = base.RewrittenTextUnit.End + 1;
+            base.RewrittenTextUnit = new TextUnit(text, this.RaiseKeyword.TextUnit.Line);
         }
 
         /// <summary>
@@ -145,8 +137,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, this.RaiseKeyword.TextUnit.Line,
-                this.RaiseKeyword.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, this.RaiseKeyword.TextUnit.Line);
         }
 
         #endregion

@@ -22,13 +22,13 @@ namespace Microsoft.PSharp.Parsing
     /// <summary>
     /// The P# function declaration parsing visitor.
     /// </summary>
-    public sealed class FunctionDeclarationVisitor : BaseParseVisitor
+    internal sealed class FunctionDeclarationVisitor : BaseParseVisitor
     {
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="tokenStream">TokenStream</param>
-        public FunctionDeclarationVisitor(TokenStream tokenStream)
+        internal FunctionDeclarationVisitor(TokenStream tokenStream)
             : base(tokenStream)
         {
 
@@ -39,7 +39,7 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         /// <param name="parentNode">Node</param>
         /// <param name="isModel">Is model</param>
-        public void Visit(MachineDeclarationNode parentNode, bool isModel)
+        internal void Visit(MachineDeclarationNode parentNode, bool isModel)
         {
             var node = new PFunctionDeclarationNode();
             node.IsModel = isModel;
@@ -142,9 +142,9 @@ namespace Microsoft.PSharp.Parsing
                     base.TokenStream.Peek().Type == TokenType.Map ||
                     base.TokenStream.Peek().Type == TokenType.LeftParenthesis))
                 {
-                    var typeNode = new PTypeNode();
-                    new TypeIdentifierVisitor(base.TokenStream).Visit(typeNode);
-                    node.ParameterTypeNodes.Add(typeNode);
+                    PBaseType type = null;
+                    new TypeIdentifierVisitor(base.TokenStream).Visit(ref type);
+                    node.ParameterTypes.Add(type);
 
                     expectsType = false;
                     expectsComma = true;
@@ -183,9 +183,9 @@ namespace Microsoft.PSharp.Parsing
                 base.TokenStream.Index++;
                 base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-                var typeNode = new PTypeNode();
-                new TypeIdentifierVisitor(base.TokenStream).Visit(typeNode);
-                node.ReturnTypeNode = typeNode;
+                PBaseType type = null;
+                new TypeIdentifierVisitor(base.TokenStream).Visit(ref type);
+                node.ReturnType = type;
             }
 
             if (base.TokenStream.Peek().Type == TokenType.LeftSquareBracket)

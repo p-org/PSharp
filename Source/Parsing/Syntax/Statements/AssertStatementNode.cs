@@ -21,39 +21,39 @@ namespace Microsoft.PSharp.Parsing.Syntax
     /// <summary>
     /// Assert statement node.
     /// </summary>
-    public sealed class AssertStatementNode : StatementNode
+    internal sealed class AssertStatementNode : StatementNode
     {
         #region fields
 
         /// <summary>
         /// The assert keyword.
         /// </summary>
-        public Token AssertKeyword;
+        internal Token AssertKeyword;
 
         /// <summary>
         /// The left parenthesis token.
         /// </summary>
-        public Token LeftParenthesisToken;
+        internal Token LeftParenthesisToken;
 
         /// <summary>
         /// The assert predicate.
         /// </summary>
-        public ExpressionNode Predicate;
+        internal ExpressionNode Predicate;
 
         /// <summary>
         /// The right parenthesis token.
         /// </summary>
-        public Token RightParenthesisToken;
+        internal Token RightParenthesisToken;
 
         #endregion
 
-        #region public API
+        #region internal API
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="node">Node</param>
-        public AssertStatementNode(StatementBlockNode node)
+        internal AssertStatementNode(StatementBlockNode node)
             : base(node)
         {
 
@@ -63,7 +63,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Returns the full text.
         /// </summary>
         /// <returns>string</returns>
-        public override string GetFullText()
+        internal override string GetFullText()
         {
             return base.TextUnit.Text;
         }
@@ -72,25 +72,18 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Returns the rewritten text.
         /// </summary>
         /// <returns>string</returns>
-        public override string GetRewrittenText()
+        internal override string GetRewrittenText()
         {
             return base.RewrittenTextUnit.Text;
         }
-
-        #endregion
-
-        #region internal API
 
         /// <summary>
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        /// <param name="position">Position</param>
-        internal override void Rewrite(ref int position)
+        internal override void Rewrite()
         {
-            var start = position;
-
-            this.Predicate.Rewrite(ref position);
+            this.Predicate.Rewrite();
 
             var text = "this.Assert";
 
@@ -102,8 +95,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 
-            base.RewrittenTextUnit = new TextUnit(text, this.AssertKeyword.TextUnit.Line, start);
-            position = base.RewrittenTextUnit.End + 1;
+            base.RewrittenTextUnit = new TextUnit(text, this.AssertKeyword.TextUnit.Line);
         }
 
         /// <summary>
@@ -126,8 +118,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, this.AssertKeyword.TextUnit.Line,
-                this.AssertKeyword.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, this.AssertKeyword.TextUnit.Line);
         }
 
         #endregion

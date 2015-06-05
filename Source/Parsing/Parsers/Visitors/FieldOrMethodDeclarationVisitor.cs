@@ -22,13 +22,13 @@ namespace Microsoft.PSharp.Parsing
     /// <summary>
     /// The P# field or method declaration parsing visitor.
     /// </summary>
-    public sealed class FieldOrMethodDeclarationVisitor : BaseParseVisitor
+    internal sealed class FieldOrMethodDeclarationVisitor : BaseParseVisitor
     {
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="tokenStream">TokenStream</param>
-        public FieldOrMethodDeclarationVisitor(TokenStream tokenStream)
+        internal FieldOrMethodDeclarationVisitor(TokenStream tokenStream)
             : base(tokenStream)
         {
 
@@ -40,7 +40,7 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="parentNode">Node</param>
         /// <param name="modifier">Modifier</param>
         /// <param name="inheritanceModifier">Inheritance modifier</param>
-        public void Visit(MachineDeclarationNode parentNode, Token modifier,
+        internal void Visit(MachineDeclarationNode parentNode, Token modifier,
             Token inheritanceModifier)
         {
             TextUnit textUnit = null;

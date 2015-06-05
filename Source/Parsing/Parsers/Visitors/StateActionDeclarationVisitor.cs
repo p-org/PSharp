@@ -22,13 +22,13 @@ namespace Microsoft.PSharp.Parsing
     /// <summary>
     /// The P# action declaration parsing visitor.
     /// </summary>
-    public sealed class StateActionDeclarationVisitor : BaseParseVisitor
+    internal sealed class StateActionDeclarationVisitor : BaseParseVisitor
     {
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="tokenStream">TokenStream</param>
-        public StateActionDeclarationVisitor(TokenStream tokenStream)
+        internal StateActionDeclarationVisitor(TokenStream tokenStream)
             : base(tokenStream)
         {
 
@@ -38,7 +38,7 @@ namespace Microsoft.PSharp.Parsing
         /// Visits the syntax node.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        public void Visit(StateDeclarationNode parentNode)
+        internal void Visit(StateDeclarationNode parentNode)
         {
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();

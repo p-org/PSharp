@@ -28,12 +28,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// List of event declarations.
         /// </summary>
-        public List<EventDeclarationNode> EventDeclarations;
+        internal List<EventDeclarationNode> EventDeclarations;
 
         /// <summary>
         /// List of machine declarations.
         /// </summary>
-        public List<MachineDeclarationNode> MachineDeclarations;
+        internal List<MachineDeclarationNode> MachineDeclarations;
 
         #endregion
 
@@ -57,25 +57,24 @@ namespace Microsoft.PSharp.Parsing.Syntax
         public override string Rewrite()
         {
             this.RewrittenText = "";
-            int position = 0;
 
-            this.RewrittenText += base.InstrumentSystemLibrary(ref position);
-            this.RewrittenText += base.InstrumentSystemCollectionsGenericLibrary(ref position);
-            this.RewrittenText += base.InstrumentPSharpLibrary(ref position);
-            this.RewrittenText += base.InstrumentPSharpCollectionsLibrary(ref position);
+            this.RewrittenText += base.InstrumentSystemLibrary();
+            this.RewrittenText += base.InstrumentSystemCollectionsGenericLibrary();
+            this.RewrittenText += base.InstrumentPSharpLibrary();
+            this.RewrittenText += base.InstrumentPSharpCollectionsLibrary();
 
             this.RewrittenText += "namespace Microsoft.PSharp\n";
             this.RewrittenText += "{\n";
 
             foreach (var node in this.EventDeclarations)
             {
-                node.Rewrite(ref position);
+                node.Rewrite();
                 this.RewrittenText += node.GetRewrittenText();
             }
 
             foreach (var node in this.MachineDeclarations)
             {
-                node.Rewrite(ref position);
+                node.Rewrite();
                 this.RewrittenText += node.GetRewrittenText();
             }
 

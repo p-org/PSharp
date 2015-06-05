@@ -22,13 +22,13 @@ namespace Microsoft.PSharp.Parsing
     /// <summary>
     /// The P# while statement parsing visitor.
     /// </summary>
-    public sealed class WhileStatementVisitor : BaseParseVisitor
+    internal sealed class WhileStatementVisitor : BaseParseVisitor
     {
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="tokenStream">TokenStream</param>
-        public WhileStatementVisitor(TokenStream tokenStream)
+        internal WhileStatementVisitor(TokenStream tokenStream)
             : base(tokenStream)
         {
 
@@ -38,7 +38,7 @@ namespace Microsoft.PSharp.Parsing
         /// Visits the syntax node.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        public void Visit(StatementBlockNode parentNode)
+        internal void Visit(StatementBlockNode parentNode)
         {
             var node = new WhileStatementNode(parentNode);
             node.WhileKeyword = base.TokenStream.Peek();

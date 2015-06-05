@@ -22,13 +22,13 @@ namespace Microsoft.PSharp.Parsing
     /// <summary>
     /// The P# method declaration parsing visitor.
     /// </summary>
-    public sealed class MethodDeclarationVisitor : BaseParseVisitor
+    internal sealed class MethodDeclarationVisitor : BaseParseVisitor
     {
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="tokenStream">TokenStream</param>
-        public MethodDeclarationVisitor(TokenStream tokenStream)
+        internal MethodDeclarationVisitor(TokenStream tokenStream)
             : base(tokenStream)
         {
 
@@ -42,7 +42,7 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="inheritanceModifier">Inheritance modifier</param>
         /// <param name="typeIdentifier">TypeIdentifier</param>
         /// <param name="identifier">Identifier</param>
-        public void Visit(MachineDeclarationNode parentNode, Token modifier,
+        internal void Visit(MachineDeclarationNode parentNode, Token modifier,
             Token inheritanceModifier, Token typeIdentifier, Token identifier)
         {
             var node = new MethodDeclarationNode();

@@ -21,45 +21,45 @@ namespace Microsoft.PSharp.Parsing.Syntax
     /// <summary>
     /// Statement block node.
     /// </summary>
-    public sealed class StatementBlockNode : PSharpSyntaxNode
+    internal sealed class StatementBlockNode : PSharpSyntaxNode
     {
         #region fields
 
         /// <summary>
         /// The machine parent node.
         /// </summary>
-        public readonly MachineDeclarationNode Machine;
+        internal readonly MachineDeclarationNode Machine;
 
         /// <summary>
         /// The state parent node.
         /// </summary>
-        public readonly StateDeclarationNode State;
+        internal readonly StateDeclarationNode State;
 
         /// <summary>
         /// The left curly bracket token.
         /// </summary>
-        public Token LeftCurlyBracketToken;
+        internal Token LeftCurlyBracketToken;
 
         /// <summary>
         /// List of statement nodes.
         /// </summary>
-        public List<StatementNode> Statements;
+        internal List<StatementNode> Statements;
 
         /// <summary>
         /// The right curly bracket token.
         /// </summary>
-        public Token RightCurlyBracketToken;
+        internal Token RightCurlyBracketToken;
 
         #endregion
 
-        #region public API
+        #region internal API
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="machineNode">MachineDeclarationNode</param>
         /// <param name="stateNode">StateDeclarationNode</param>
-        public StatementBlockNode(MachineDeclarationNode machineNode, StateDeclarationNode stateNode)
+        internal StatementBlockNode(MachineDeclarationNode machineNode, StateDeclarationNode stateNode)
         {
             this.Machine = machineNode;
             this.State = stateNode;
@@ -70,7 +70,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Returns the full text.
         /// </summary>
         /// <returns>string</returns>
-        public override string GetFullText()
+        internal override string GetFullText()
         {
             return base.TextUnit.Text;
         }
@@ -79,27 +79,20 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Returns the rewritten text.
         /// </summary>
         /// <returns>string</returns>
-        public override string GetRewrittenText()
+        internal override string GetRewrittenText()
         {
             return base.RewrittenTextUnit.Text;
         }
-
-        #endregion
-
-        #region internal API
 
         /// <summary>
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        /// <param name="position">Position</param>
-        internal override void Rewrite(ref int position)
+        internal override void Rewrite()
         {
-            var start = position;
-
             foreach (var stmt in this.Statements)
             {
-                stmt.Rewrite(ref position);
+                stmt.Rewrite();
             }
 
             var text = "\n";
@@ -124,14 +117,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
             if (this.LeftCurlyBracketToken != null &&
                 this.RightCurlyBracketToken != null)
             {
-                base.RewrittenTextUnit = new TextUnit(text, this.LeftCurlyBracketToken.TextUnit.Line, start);
+                base.RewrittenTextUnit = new TextUnit(text, this.LeftCurlyBracketToken.TextUnit.Line);
             }
             else
             {
-                base.RewrittenTextUnit = new TextUnit(text, this.Statements.First().TextUnit.Line, start);
+                base.RewrittenTextUnit = new TextUnit(text, this.Statements.First().TextUnit.Line);
             }
-
-            position = base.RewrittenTextUnit.End + 1;
         }
 
         /// <summary>
@@ -166,13 +157,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
             if (this.LeftCurlyBracketToken != null &&
                 this.RightCurlyBracketToken != null)
             {
-                base.TextUnit = new TextUnit(text, this.LeftCurlyBracketToken.TextUnit.Line,
-                    this.LeftCurlyBracketToken.TextUnit.Start);
+                base.TextUnit = new TextUnit(text, this.LeftCurlyBracketToken.TextUnit.Line);
             }
             else
             {
-                base.TextUnit = new TextUnit(text, this.Statements.First().TextUnit.Line,
-                    this.Statements.First().TextUnit.Start);
+                base.TextUnit = new TextUnit(text, this.Statements.First().TextUnit.Line);
             }
         }
 

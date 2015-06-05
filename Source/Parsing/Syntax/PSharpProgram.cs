@@ -26,12 +26,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// List of using declarations.
         /// </summary>
-        public List<UsingDeclarationNode> UsingDeclarations;
+        internal List<UsingDeclarationNode> UsingDeclarations;
 
         /// <summary>
         /// List of namespace declarations.
         /// </summary>
-        public List<NamespaceDeclarationNode> NamespaceDeclarations;
+        internal List<NamespaceDeclarationNode> NamespaceDeclarations;
 
         #endregion
 
@@ -55,21 +55,20 @@ namespace Microsoft.PSharp.Parsing.Syntax
         public override string Rewrite()
         {
             this.RewrittenText = "";
-            int position = 0;
 
-            this.RewrittenText += base.InstrumentSystemLibrary(ref position);
-            this.RewrittenText += base.InstrumentSystemCollectionsGenericLibrary(ref position);
-            this.RewrittenText += base.InstrumentPSharpLibrary(ref position);
+            this.RewrittenText += base.InstrumentSystemLibrary();
+            this.RewrittenText += base.InstrumentSystemCollectionsGenericLibrary();
+            this.RewrittenText += base.InstrumentPSharpLibrary();
 
             foreach (var node in this.UsingDeclarations)
             {
-                node.Rewrite(ref position);
+                node.Rewrite();
                 this.RewrittenText += node.GetRewrittenText();
             }
 
             foreach (var node in this.NamespaceDeclarations)
             {
-                node.Rewrite(ref position);
+                node.Rewrite();
                 this.RewrittenText += node.GetRewrittenText();
             }
 

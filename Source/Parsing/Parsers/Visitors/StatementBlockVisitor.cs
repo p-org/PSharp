@@ -22,13 +22,13 @@ namespace Microsoft.PSharp.Parsing
     /// <summary>
     /// The P# statement block parsing visitor.
     /// </summary>
-    public sealed class StatementBlockVisitor : BaseParseVisitor
+    internal sealed class StatementBlockVisitor : BaseParseVisitor
     {
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="tokenStream">TokenStream</param>
-        public StatementBlockVisitor(TokenStream tokenStream)
+        internal StatementBlockVisitor(TokenStream tokenStream)
             : base(tokenStream)
         {
 
@@ -38,7 +38,7 @@ namespace Microsoft.PSharp.Parsing
         /// Visits the syntax node.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        public void Visit(StatementBlockNode node)
+        internal void Visit(StatementBlockNode node)
         {
             node.LeftCurlyBracketToken = base.TokenStream.Peek();
 

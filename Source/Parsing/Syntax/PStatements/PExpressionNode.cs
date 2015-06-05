@@ -21,14 +21,14 @@ namespace Microsoft.PSharp.Parsing.Syntax
     /// <summary>
     /// Expression node.
     /// </summary>
-    public class PExpressionNode : ExpressionNode
+    internal class PExpressionNode : ExpressionNode
     {
         #region fields
 
         /// <summary>
         /// Received payloads.
         /// </summary>
-        public List<PPayloadReceiveNode> Payloads;
+        internal List<PPayloadReceiveNode> Payloads;
 
         /// <summary>
         /// Pending received payloads.
@@ -42,13 +42,13 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
         #endregion
 
-        #region public API
+        #region internal API
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="node">Node</param>
-        public PExpressionNode(StatementBlockNode node)
+        internal PExpressionNode(StatementBlockNode node)
             : base(node)
         {
             this.Payloads = new List<PPayloadReceiveNode>();
@@ -59,7 +59,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Returns the full text.
         /// </summary>
         /// <returns>string</returns>
-        public override string GetFullText()
+        internal override string GetFullText()
         {
             if (this.StmtTokens.Count == 0 ||
                 this.StmtTokens.All(val => val == null))
@@ -74,7 +74,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Returns the rewritten text.
         /// </summary>
         /// <returns>string</returns>
-        public override string GetRewrittenText()
+        internal override string GetRewrittenText()
         {
             if (this.RewrittenStmtTokens.Count == 0 ||
                 this.RewrittenStmtTokens.All(val => val == null))
@@ -85,16 +85,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
             return base.RewrittenTextUnit.Text;
         }
 
-        #endregion
-
-        #region internal API
-
         /// <summary>
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        /// <param name="position">Position</param>
-        internal override void Rewrite(ref int position)
+        internal override void Rewrite()
         {
             if (this.StmtTokens.Count == 0)
             {
@@ -104,10 +99,9 @@ namespace Microsoft.PSharp.Parsing.Syntax
             this.Index = 0;
             this.RewrittenStmtTokens = this.StmtTokens.ToList();
             this.PendingPayloads = this.Payloads.ToList();
-            this.RunSpecialisedRewrittingPass(ref position);
-            this.RewriteNextToken(ref position);
-
-            var start = position;
+            this.RunSpecialisedRewrittingPass();
+            this.RewriteNextToken();
+            
             var text = "";
 
             Token firstNonNull = null;
@@ -131,8 +125,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 return;
             }
 
-            base.RewrittenTextUnit = new TextUnit(text, firstNonNull.TextUnit.Line, start);
-            position = base.RewrittenTextUnit.End + 1;
+            base.RewrittenTextUnit = new TextUnit(text, firstNonNull.TextUnit.Line);
         }
 
         /// <summary>
@@ -168,8 +161,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 return;
             }
 
-            base.TextUnit = new TextUnit(text, firstNonNull.TextUnit.Line,
-                firstNonNull.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, firstNonNull.TextUnit.Line);
         }
 
         #endregion
@@ -180,8 +172,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Can be overriden by child classes to implement specialised
         /// rewritting functionality.
         /// </summary>
-        /// <param name="position">Position</param>
-        protected virtual void RunSpecialisedRewrittingPass(ref int position)
+        protected virtual void RunSpecialisedRewrittingPass()
         {
 
         }
@@ -189,8 +180,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Rewrites the this keyword.
         /// </summary>
-        /// param name="position">Position</param>
-        protected void RewriteThis(ref int position)
+        protected void RewriteThis()
         {
             if (this.Parent.State == null)
             {
@@ -209,34 +199,29 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 text += "this.Machine";
             }
 
-            this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line, position));
-            position += text.Length;
+            this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line));
         }
 
         /// <summary>
         /// Rewrites the null keyword.
         /// </summary>
-        /// param name="position">Position</param>
-        protected void RewriteNull(ref int position)
+        protected void RewriteNull()
         {
             int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
             var text = "default(Machine)";
-            this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line, position));
-            position += text.Length;
+            this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line));
         }
 
         /// <summary>
         /// Rewrites the trigger keyword.
         /// </summary>
-        /// param name="position">Position</param>
-        protected void RewriteTrigger(ref int position)
+        protected void RewriteTrigger()
         {
             int triggerIndex = this.Index;
 
             int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
             var text = "this.Trigger";
-            this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line, position));
-            position += text.Length;
+            this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line));
 
             this.Index++;
             this.SkipWhiteSpaceTokens();
@@ -274,8 +259,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
             text = "typeof(" + this.RewrittenStmtTokens[this.Index].TextUnit.Text + ")";
-            this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line, position));
-            position += 8;
+            this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line));
 
             this.Index = triggerIndex;
         }
@@ -283,20 +267,17 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Rewrites the payload keyword.
         /// </summary>
-        /// param name="position">Position</param>
-        protected void RewritePayload(ref int position)
+        protected void RewritePayload()
         {
             int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
             var text = "this.Payload";
-            this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line, position));
-            position += text.Length;
+            this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line));
         }
 
         /// <summary>
         /// Rewrites the keys keyword.
         /// </summary>
-        /// param name="position">Position</param>
-        protected void RewriteKeys(ref int position)
+        protected void RewriteKeys()
         {
             var keysIndex = this.Index;
 
@@ -344,16 +325,14 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 this.Index--;
             }
 
-            this.RewrittenStmtTokens[keysIndex] = new Token(new TextUnit(text, line, position));
-            position += text.Length;
+            this.RewrittenStmtTokens[keysIndex] = new Token(new TextUnit(text, line));
             this.Index = keysIndex;
         }
 
         /// <summary>
         /// Rewrites the sizeof keyword.
         /// </summary>
-        /// param name="position">Position</param>
-        protected void RewriteSizeOf(ref int position)
+        protected void RewriteSizeOf()
         {
             var sizeOfIndex = this.Index;
 
@@ -393,16 +372,14 @@ namespace Microsoft.PSharp.Parsing.Syntax
             this.RewrittenStmtTokens.RemoveAt(this.Index);
             this.RewrittenStmtTokens.RemoveAt(leftParenIndex);
 
-            this.RewrittenStmtTokens.Insert(this.Index - 1, new Token(new TextUnit(text, line, position)));
-            position += text.Length;
+            this.RewrittenStmtTokens.Insert(this.Index - 1, new Token(new TextUnit(text, line)));
             this.Index = sizeOfIndex - 1;
         }
 
         /// <summary>
         /// Rewrites the in keyword.
         /// </summary>
-        /// param name="position">Position</param>
-        protected void RewriteIn(ref int position)
+        protected void RewriteIn()
         {
             var inIndex = this.Index - 1;
             var start = inIndex;
@@ -473,16 +450,14 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 end--;
             }
 
-            this.RewrittenStmtTokens[start] = new Token(new TextUnit(text, line, position));
-            position += text.Length;
+            this.RewrittenStmtTokens[start] = new Token(new TextUnit(text, line));
             this.Index = start;
         }
 
         /// <summary>
         /// Rewrites the tuple assignment.
         /// </summary>
-        /// param name="position">Position</param>
-        protected void RewriteTupleAssignment(ref int position)
+        protected void RewriteTupleAssignment()
         {
             var assignIndex = this.Index;
 
@@ -546,8 +521,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Rewrites the member identifier.
         /// </summary>
-        /// <param name="position">Position</param>
-        protected void RewriteMemberIdentifier(ref int position)
+        protected void RewriteMemberIdentifier()
         {
             if (this.Parent.Machine == null || this.Parent.State == null ||
                 !(this.Parent.Machine.FieldDeclarations.Any(val => val.Identifier.TextUnit.Text.
@@ -571,16 +545,14 @@ namespace Microsoft.PSharp.Parsing.Syntax
             }
 
             text += " as " + this.Parent.Machine.Identifier.TextUnit.Text + ").";
-            this.RewrittenStmtTokens.Insert(this.Index, new Token(new TextUnit(text, line, position)));
-            position += text.Length;
+            this.RewrittenStmtTokens.Insert(this.Index, new Token(new TextUnit(text, line)));
             this.Index++;
         }
 
         /// <summary>
         /// Rewrites the cloneable collection in method call.
         /// </summary>
-        /// <param name="position">Position</param>
-        protected void RewriteCloneableCollectionInMethodCall(ref int position)
+        protected void RewriteCloneableCollectionInMethodCall()
         {
             if (this.Parent.Machine == null || this.Parent.State == null ||
                 !(this.Parent.Machine.FunctionDeclarations.Any(val => val.Identifier.TextUnit.Text.
@@ -615,23 +587,21 @@ namespace Microsoft.PSharp.Parsing.Syntax
                     var field = this.Parent.Machine.FieldDeclarations.Find(val =>
                         val.Identifier.TextUnit.Text.Equals(this.RewrittenStmtTokens[this.Index].
                         TextUnit.Text)) as PFieldDeclarationNode;
-                    if (field.TypeNode.Type.Type != PType.Tuple &&
-                        field.TypeNode.Type.Type != PType.Seq &&
-                        field.TypeNode.Type.Type != PType.Map)
+                    if (field.Type.Type != PType.Tuple &&
+                        field.Type.Type != PType.Seq &&
+                        field.Type.Type != PType.Map)
                     {
                         return;
                     }
 
-                    var textUnit = new TextUnit("(", this.RewrittenStmtTokens[this.Index].TextUnit.Line,
-                        this.RewrittenStmtTokens[this.Index].TextUnit.Start + 1);
+                    var textUnit = new TextUnit("(", this.RewrittenStmtTokens[this.Index].TextUnit.Line);
                     this.RewrittenStmtTokens.Insert(this.Index, new Token(textUnit));
                     this.Index++;
 
-                    this.RewriteMemberIdentifier(ref position);
+                    this.RewriteMemberIdentifier();
 
-                    var cloneStr = ".Clone() as " + field.TypeNode.GetRewrittenText() + ")";
-                    textUnit = new TextUnit(cloneStr, this.RewrittenStmtTokens[this.Index].TextUnit.Line,
-                        this.RewrittenStmtTokens[this.Index].TextUnit.Start + cloneStr.Length);
+                    var cloneStr = ".Clone() as " + field.Type.GetRewrittenText() + ")";
+                    textUnit = new TextUnit(cloneStr, this.RewrittenStmtTokens[this.Index].TextUnit.Line);
                     this.RewrittenStmtTokens.Insert(this.Index + 1, new Token(textUnit));
                 }
 
@@ -698,8 +668,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
             if (tupleSize > 1)
             {
                 var tupleStr = "Container.Create(";
-                var textUnit = new TextUnit(tupleStr, this.RewrittenStmtTokens[tupleIdx].TextUnit.Line,
-                    this.RewrittenStmtTokens[tupleIdx].TextUnit.Start);
+                var textUnit = new TextUnit(tupleStr, this.RewrittenStmtTokens[tupleIdx].TextUnit.Line);
                 this.RewrittenStmtTokens[tupleIdx] = new Token(textUnit);
             }
             else
@@ -712,8 +681,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Rewrites the any type.
         /// </summary>
-        /// <param name="position">Position</param>
-        protected void RewriteAnyType(ref int position)
+        protected void RewriteAnyType()
         {
             var start = this.Index;
 
@@ -727,7 +695,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
             var field = this.Parent.Machine.FieldDeclarations.Find(val =>
                 val.Identifier.TextUnit.Text.Equals(this.RewrittenStmtTokens[this.Index].
                 TextUnit.Text)) as PFieldDeclarationNode;
-            if (field.TypeNode.Type.Type != PType.Any)
+            if (field.Type.Type != PType.Any)
             {
                 return;
             }
@@ -753,8 +721,8 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
 
                 var before = this.Index;
-                this.RewriteTupleIndexIdentifier(ref position);
-                this.RewriteMemberIdentifier(ref position);
+                this.RewriteTupleIndexIdentifier();
+                this.RewriteMemberIdentifier();
                 this.Index = before;
 
                 var otherObject = "";
@@ -771,22 +739,19 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 }
 
                 var text = "Convert.ChangeType(";
-                this.RewrittenStmtTokens.Insert(start, new Token(new TextUnit(text, line, position)));
-                position += text.Length;
+                this.RewrittenStmtTokens.Insert(start, new Token(new TextUnit(text, line)));
                 start++;
                 this.Index = start;
 
-                this.RewriteMemberIdentifier(ref position);
+                this.RewriteMemberIdentifier();
                 this.Index++;
                 start = this.Index;
 
                 text = ", " + otherObject + ".GetType())";
-                this.RewrittenStmtTokens.Insert(start, new Token(new TextUnit(text, line, position)));
-                position += text.Length;
+                this.RewrittenStmtTokens.Insert(start, new Token(new TextUnit(text, line)));
 
                 text = " " + otherObject;
-                this.RewrittenStmtTokens.Add(new Token(new TextUnit(text, line, position)));
-                position += text.Length;
+                this.RewrittenStmtTokens.Add(new Token(new TextUnit(text, line)));
 
                 start++;
             }
@@ -797,8 +762,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Rewrites the event type.
         /// </summary>
-        /// <param name="position">Position</param>
-        protected void RewriteEventType(ref int position)
+        protected void RewriteEventType()
         {
             var start = this.Index;
 
@@ -812,7 +776,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
             var field = this.Parent.Machine.FieldDeclarations.Find(val =>
                 val.Identifier.TextUnit.Text.Equals(this.RewrittenStmtTokens[this.Index].
                 TextUnit.Text)) as PFieldDeclarationNode;
-            if (field.TypeNode.Type.Type != PType.Event)
+            if (field.Type.Type != PType.Event)
             {
                 return;
             }
@@ -835,8 +799,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
                 int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
                 var text = "typeof(" + this.RewrittenStmtTokens[this.Index].TextUnit.Text + ")";
-                this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line, position));
-                position += text.Length;
+                this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line));
             }
             else if (this.Index < this.RewrittenStmtTokens.Count &&
                 (this.RewrittenStmtTokens[this.Index].Type == TokenType.EqualOp ||
@@ -854,8 +817,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
                 int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
                 var text = "typeof(Default)";
-                this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line, position));
-                position += text.Length;
+                this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line));
             }
 
             this.Index = start;
@@ -864,8 +826,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Rewrites the tuple index identifier.
         /// </summary>
-        /// <param name="position">Position</param>
-        protected void RewriteTupleIndexIdentifier(ref int position)
+        protected void RewriteTupleIndexIdentifier()
         {
             var start = this.Index;
 
@@ -879,7 +840,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
             var field = this.Parent.Machine.FieldDeclarations.Find(val =>
                 val.Identifier.TextUnit.Text.Equals(this.RewrittenStmtTokens[this.Index].
                 TextUnit.Text)) as PFieldDeclarationNode;
-            if (field.TypeNode.Type.Type != PType.Tuple)
+            if (field.Type.Type != PType.Tuple)
             {
                 return;
             }
@@ -903,9 +864,9 @@ namespace Microsoft.PSharp.Parsing.Syntax
             {
                 index++;
             }
-            else if (this.Index < this.RewrittenStmtTokens.Count)
+            else if (this.Index < this.RewrittenStmtTokens.Count && field.Type.Type == PType.Tuple)
             {
-                index = field.TypeNode.NameTokens.FindIndex(val => val.TextUnit.Text.Equals(
+                index = (field.Type as PTupleType).NameTokens.FindIndex(val => val.TextUnit.Text.Equals(
                     this.RewrittenStmtTokens[this.Index].TextUnit.Text)) + 1;
             }
             else
@@ -916,8 +877,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
             var text = "Item" + index;
-            this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line, position));
-            position += text.Length;
+            this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line));
 
             this.Index = start;
         }
@@ -932,16 +892,14 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Rewrites the insert element at a sequence or a map.
         /// </summary>
-        /// <param name="position">Position</param>
-        protected void RewriteInsertElementAtCollection(ref int position)
+        protected void RewriteInsertElementAtCollection()
         {
             this.Index++;
             this.SkipWhiteSpaceTokens();
 
             int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
             var text = "Container.Create";
-            this.RewrittenStmtTokens.Insert(this.Index, new Token(new TextUnit(text, line, position)));
-            position += text.Length;
+            this.RewrittenStmtTokens.Insert(this.Index, new Token(new TextUnit(text, line)));
 
             var start = this.Index;
 
@@ -955,8 +913,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
                     this.RewrittenStmtTokens[this.Index].Type == TokenType.LeftParenthesis)
                 {
                     text = "Container.Create";
-                    this.RewrittenStmtTokens.Insert(this.Index, new Token(new TextUnit(text, line, position)));
-                    position += text.Length;
+                    this.RewrittenStmtTokens.Insert(this.Index, new Token(new TextUnit(text, line)));
                     this.Index++;
                 }
 
@@ -987,8 +944,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Rewrites the next token.
         /// </summary>
-        /// <param name="position">Position</param>
-        private void RewriteNextToken(ref int position)
+        private void RewriteNextToken()
         {
             if (this.Index == this.RewrittenStmtTokens.Count)
             {
@@ -998,81 +954,79 @@ namespace Microsoft.PSharp.Parsing.Syntax
             var token = this.RewrittenStmtTokens[this.Index];
             if (token == null)
             {
-                this.RewriteReceivedPayload(ref position);
+                this.RewriteReceivedPayload();
             }
             else if (token.Type == TokenType.MachineDecl)
             {
-                this.RewriteMachineType(ref position);
+                this.RewriteMachineType();
             }
             else if (token.Type == TokenType.This)
             {
-                this.RewriteThis(ref position);
+                this.RewriteThis();
             }
             else if (token.Type == TokenType.Null)
             {
-                this.RewriteNull(ref position);
+                this.RewriteNull();
             }
             else if (token.Type == TokenType.Trigger)
             {
-                this.RewriteTrigger(ref position);
+                this.RewriteTrigger();
             }
             else if (token.Type == TokenType.Payload)
             {
-                this.RewritePayload(ref position);
+                this.RewritePayload();
             }
             else if (token.Type == TokenType.Keys)
             {
-                this.RewriteKeys(ref position);
+                this.RewriteKeys();
             }
             else if (token.Type == TokenType.SizeOf)
             {
-                this.RewriteSizeOf(ref position);
+                this.RewriteSizeOf();
             }
             else if (token.Type == TokenType.In)
             {
-                this.RewriteIn(ref position);
+                this.RewriteIn();
             }
             else if (token.Type == TokenType.AssignOp)
             {
-                this.RewriteTupleAssignment(ref position);
+                this.RewriteTupleAssignment();
             }
             else if (token.Type == TokenType.NonDeterministic)
             {
-                this.RewriteNonDeterministicChoice(ref position);
+                this.RewriteNonDeterministicChoice();
             }
             else if (token.Type == TokenType.InsertOp)
             {
-                this.RewriteInsertElementAtCollection(ref position);
+                this.RewriteInsertElementAtCollection();
             }
             else if (token.Type == TokenType.Identifier)
             {
-                this.RewriteAnyType(ref position);
-                this.RewriteEventType(ref position);
-                this.RewriteTupleIndexIdentifier(ref position);
-                this.RewriteMemberIdentifier(ref position);
-                this.RewriteCloneableCollectionInMethodCall(ref position);
+                this.RewriteAnyType();
+                this.RewriteEventType();
+                this.RewriteTupleIndexIdentifier();
+                this.RewriteMemberIdentifier();
+                this.RewriteCloneableCollectionInMethodCall();
             }
 
             this.Index++;
-            this.RewriteNextToken(ref position);
+            this.RewriteNextToken();
         }
 
         /// <summary>
         /// Rewrites the received payload.
         /// </summary>
-        /// param name="position">Position</param>
-        private void RewriteReceivedPayload(ref int position)
+        private void RewriteReceivedPayload()
         {
             var payload = this.PendingPayloads[0];
             this.PendingPayloads.RemoveAt(0);
 
             payload.GenerateTextUnit();
-            payload.Rewrite(ref position);
+            payload.Rewrite();
             var text = payload.GetRewrittenText();
             var line = payload.TextUnit.Line;
 
-            this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line, position));
-            position += text.Length;
+            this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line));
         }
 
         /// <summary>

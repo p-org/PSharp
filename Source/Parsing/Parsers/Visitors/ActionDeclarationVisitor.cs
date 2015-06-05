@@ -22,13 +22,13 @@ namespace Microsoft.PSharp.Parsing
     /// <summary>
     /// The P# action declaration parsing visitor.
     /// </summary>
-    public sealed class ActionDeclarationVisitor : BaseParseVisitor
+    internal sealed class ActionDeclarationVisitor : BaseParseVisitor
     {
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="tokenStream">TokenStream</param>
-        public ActionDeclarationVisitor(TokenStream tokenStream)
+        internal ActionDeclarationVisitor(TokenStream tokenStream)
             : base(tokenStream)
         {
 
@@ -40,7 +40,7 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="parentNode">Node</param>
         /// <param name="modifier">Modifier</param>
         /// <param name="inheritanceModifier">Inheritance modifier</param>
-        public void Visit(MachineDeclarationNode parentNode, Token modifier,
+        internal void Visit(MachineDeclarationNode parentNode, Token modifier,
             Token inheritanceModifier)
         {
             var node = new ActionDeclarationNode();

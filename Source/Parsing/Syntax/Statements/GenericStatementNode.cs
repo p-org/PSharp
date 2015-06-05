@@ -21,24 +21,24 @@ namespace Microsoft.PSharp.Parsing.Syntax
     /// <summary>
     /// Generic statement node.
     /// </summary>
-    public sealed class GenericStatementNode : StatementNode
+    internal sealed class GenericStatementNode : StatementNode
     {
         #region fields
 
         /// <summary>
         /// The expression node.
         /// </summary>
-        public ExpressionNode Expression;
+        internal ExpressionNode Expression;
 
         #endregion
 
-        #region public API
+        #region internal API
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="node">Node</param>
-        public GenericStatementNode(StatementBlockNode node)
+        internal GenericStatementNode(StatementBlockNode node)
             : base(node)
         {
 
@@ -48,7 +48,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Returns the full text.
         /// </summary>
         /// <returns>string</returns>
-        public override string GetFullText()
+        internal override string GetFullText()
         {
             return base.TextUnit.Text;
         }
@@ -57,26 +57,20 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Returns the rewritten text.
         /// </summary>
         /// <returns>string</returns>
-        public override string GetRewrittenText()
+        internal override string GetRewrittenText()
         {
             return base.RewrittenTextUnit.Text;
         }
-
-        #endregion
-
-        #region internal API
 
         /// <summary>
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        /// <param name="position">Position</param>
-        internal override void Rewrite(ref int position)
+        internal override void Rewrite()
         {
-            var start = position;
             var text = "";
 
-            this.Expression.Rewrite(ref position);
+            this.Expression.Rewrite();
             text += this.Expression.GetRewrittenText();
 
             if (this.SemicolonToken != null)
@@ -84,8 +78,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 text += this.SemicolonToken.TextUnit.Text + "\n";
             }
 
-            base.RewrittenTextUnit = new TextUnit(text, this.Expression.TextUnit.Line, start);
-            position = base.RewrittenTextUnit.End + 1;
+            base.RewrittenTextUnit = new TextUnit(text, this.Expression.TextUnit.Line);
         }
 
         /// <summary>
@@ -103,8 +96,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 text += this.SemicolonToken.TextUnit.Text + "\n";
             }
 
-            base.TextUnit = new TextUnit(text, this.Expression.TextUnit.Line,
-                this.Expression.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, this.Expression.TextUnit.Line);
         }
 
         #endregion

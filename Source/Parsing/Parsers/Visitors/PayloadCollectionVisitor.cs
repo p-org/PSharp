@@ -22,13 +22,13 @@ namespace Microsoft.PSharp.Parsing
     /// <summary>
     /// The P# payload collection parsing visitor.
     /// </summary>
-    public sealed class PayloadCollectionVisitor : BaseParseVisitor
+    internal sealed class PayloadCollectionVisitor : BaseParseVisitor
     {
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="tokenStream">TokenStream</param>
-        public PayloadCollectionVisitor(TokenStream tokenStream)
+        internal PayloadCollectionVisitor(TokenStream tokenStream)
             : base(tokenStream)
         {
 
@@ -38,7 +38,7 @@ namespace Microsoft.PSharp.Parsing
         /// Visits the syntax node.
         /// </summary>
         /// <param name="node">Node</param>
-        public void Visit(PPayloadSendExpressionNode node)
+        internal void Visit(PPayloadSendExpressionNode node)
         {
             node.StmtTokens.Add(base.TokenStream.Peek());
 

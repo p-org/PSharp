@@ -21,33 +21,33 @@ namespace Microsoft.PSharp.Parsing.Syntax
     /// <summary>
     /// Using declaration node.
     /// </summary>
-    public sealed class UsingDeclarationNode : PSharpSyntaxNode
+    internal sealed class UsingDeclarationNode : PSharpSyntaxNode
     {
         #region fields
 
         /// <summary>
         /// The using keyword.
         /// </summary>
-        public Token UsingKeyword;
+        internal Token UsingKeyword;
 
         /// <summary>
         /// The identifier tokens.
         /// </summary>
-        public List<Token> IdentifierTokens;
+        internal List<Token> IdentifierTokens;
 
         /// <summary>
         /// The semicolon token.
         /// </summary>
-        public Token SemicolonToken;
+        internal Token SemicolonToken;
 
         #endregion
 
-        #region public API
+        #region internal API
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public UsingDeclarationNode()
+        internal UsingDeclarationNode()
         {
             this.IdentifierTokens = new List<Token>();
         }
@@ -56,7 +56,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Returns the full text.
         /// </summary>
         /// <returns>string</returns>
-        public override string GetFullText()
+        internal override string GetFullText()
         {
             return base.TextUnit.Text;
         }
@@ -65,24 +65,18 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Returns the rewritten text.
         /// </summary>
         /// <returns>string</returns>
-        public override string GetRewrittenText()
+        internal override string GetRewrittenText()
         {
             return base.RewrittenTextUnit.Text;
         }
-
-        #endregion
-
-        #region internal API
 
         /// <summary>
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        /// <param name="position">Position</param>
-        internal override void Rewrite(ref int position)
+        internal override void Rewrite()
         {
-            base.RewrittenTextUnit = TextUnit.Clone(base.TextUnit, position);
-            position = base.RewrittenTextUnit.End + 1;
+            base.RewrittenTextUnit = TextUnit.Clone(base.TextUnit);
         }
 
         /// <summary>
@@ -100,8 +94,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, this.UsingKeyword.TextUnit.Line,
-                this.UsingKeyword.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, this.UsingKeyword.TextUnit.Line);
         }
 
         #endregion

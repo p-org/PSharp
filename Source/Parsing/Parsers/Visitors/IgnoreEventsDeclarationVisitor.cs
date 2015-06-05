@@ -22,13 +22,13 @@ namespace Microsoft.PSharp.Parsing
     /// <summary>
     /// The P# ignore events declaration parsing visitor.
     /// </summary>
-    public sealed class IgnoreEventsDeclarationVisitor : BaseParseVisitor
+    internal sealed class IgnoreEventsDeclarationVisitor : BaseParseVisitor
     {
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="tokenStream">TokenStream</param>
-        public IgnoreEventsDeclarationVisitor(TokenStream tokenStream)
+        internal IgnoreEventsDeclarationVisitor(TokenStream tokenStream)
             : base(tokenStream)
         {
 
@@ -38,7 +38,7 @@ namespace Microsoft.PSharp.Parsing
         /// Visits the syntax node.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        public void Visit(StateDeclarationNode parentNode)
+        internal void Visit(StateDeclarationNode parentNode)
         {
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();

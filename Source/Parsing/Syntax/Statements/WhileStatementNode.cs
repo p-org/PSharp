@@ -21,44 +21,44 @@ namespace Microsoft.PSharp.Parsing.Syntax
     /// <summary>
     /// While statement node.
     /// </summary>
-    public sealed class WhileStatementNode : StatementNode
+    internal sealed class WhileStatementNode : StatementNode
     {
         #region fields
 
         /// <summary>
         /// The while keyword.
         /// </summary>
-        public Token WhileKeyword;
+        internal Token WhileKeyword;
 
         /// <summary>
         /// The left parenthesis token.
         /// </summary>
-        public Token LeftParenthesisToken;
+        internal Token LeftParenthesisToken;
 
         /// <summary>
         /// The guard predicate.
         /// </summary>
-        public ExpressionNode Guard;
+        internal ExpressionNode Guard;
 
         /// <summary>
         /// The right parenthesis token.
         /// </summary>
-        public Token RightParenthesisToken;
+        internal Token RightParenthesisToken;
 
         /// <summary>
         /// The statement block.
         /// </summary>
-        public StatementBlockNode StatementBlock;
+        internal StatementBlockNode StatementBlock;
 
         #endregion
 
-        #region public API
+        #region internal API
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="node">Node</param>
-        public WhileStatementNode(StatementBlockNode node)
+        internal WhileStatementNode(StatementBlockNode node)
             : base(node)
         {
 
@@ -68,7 +68,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Returns the full text.
         /// </summary>
         /// <returns>string</returns>
-        public override string GetFullText()
+        internal override string GetFullText()
         {
             return base.TextUnit.Text;
         }
@@ -77,40 +77,32 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Returns the rewritten text.
         /// </summary>
         /// <returns>string</returns>
-        public override string GetRewrittenText()
+        internal override string GetRewrittenText()
         {
             return base.RewrittenTextUnit.Text;
         }
-
-        #endregion
-
-        #region internal API
 
         /// <summary>
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        /// <param name="position">Position</param>
-        internal override void Rewrite(ref int position)
+        internal override void Rewrite()
         {
-            var start = position;
-
             var text = "";
 
             text += this.WhileKeyword.TextUnit.Text;
 
             text += this.LeftParenthesisToken.TextUnit.Text;
 
-            this.Guard.Rewrite(ref position);
+            this.Guard.Rewrite();
             text += this.Guard.GetRewrittenText();
 
             text += this.RightParenthesisToken.TextUnit.Text;
 
-            this.StatementBlock.Rewrite(ref position);
+            this.StatementBlock.Rewrite();
             text += this.StatementBlock.GetRewrittenText();
 
-            base.RewrittenTextUnit = new TextUnit(text, this.WhileKeyword.TextUnit.Line, start);
-            position = base.RewrittenTextUnit.End + 1;
+            base.RewrittenTextUnit = new TextUnit(text, this.WhileKeyword.TextUnit.Line);
         }
 
         /// <summary>
@@ -134,8 +126,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += this.StatementBlock.GetFullText();
 
-            base.TextUnit = new TextUnit(text, this.WhileKeyword.TextUnit.Line,
-                this.WhileKeyword.TextUnit.Start);
+            base.TextUnit = new TextUnit(text, this.WhileKeyword.TextUnit.Line);
         }
 
         #endregion

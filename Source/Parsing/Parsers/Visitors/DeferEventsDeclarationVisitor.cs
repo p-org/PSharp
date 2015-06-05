@@ -22,13 +22,13 @@ namespace Microsoft.PSharp.Parsing
     /// <summary>
     /// The P# defer events declaration parsing visitor.
     /// </summary>
-    public sealed class DeferEventsDeclarationVisitor : BaseParseVisitor
+    internal sealed class DeferEventsDeclarationVisitor : BaseParseVisitor
     {
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="tokenStream">TokenStream</param>
-        public DeferEventsDeclarationVisitor(TokenStream tokenStream)
+        internal DeferEventsDeclarationVisitor(TokenStream tokenStream)
             : base(tokenStream)
         {
 
@@ -38,7 +38,7 @@ namespace Microsoft.PSharp.Parsing
         /// Visits the syntax node.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        public void Visit(StateDeclarationNode parentNode)
+        internal void Visit(StateDeclarationNode parentNode)
         {
             if (parentNode.Machine.IsMonitor)
             {

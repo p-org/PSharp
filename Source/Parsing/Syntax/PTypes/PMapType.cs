@@ -24,23 +24,49 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// The key type.
         /// </summary>
-        public PBaseType KeyType;
+        internal PBaseType KeyType;
 
         /// <summary>
         /// The value type.
         /// </summary>
-        public PBaseType ValueType;
+        internal PBaseType ValueType;
 
         #endregion
 
-        #region public API
+        #region internal API
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public PMapType()
+        internal PMapType()
+            : base(PType.Map)
         {
-            base.Type = PType.Map;
+
+        }
+
+        #endregion
+
+        #region protected API
+
+        /// <summary>
+        /// Rewrites a map type.
+        /// </summary>
+        /// <returns>Text</returns>
+        protected override string RewriteTypeTokens()
+        {
+            var text = "Map<";
+
+            this.KeyType.Rewrite();
+            text += this.KeyType.GetRewrittenText();
+
+            text += ", ";
+
+            this.ValueType.Rewrite();
+            text += this.ValueType.GetRewrittenText();
+
+            text += ">";
+
+            return text;
         }
 
         #endregion
