@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading.Tasks;
 
 using Microsoft.PSharp.Tooling;
 
@@ -460,6 +461,10 @@ namespace Microsoft.PSharp
             {
                 a();
             }
+            catch (TaskCanceledException)
+            {
+                this.Status = MachineStatus.Halted;
+            }
             catch (Exception ex)
             {
                 // Handles generic exception.
@@ -483,6 +488,10 @@ namespace Microsoft.PSharp
             {
                 // Performs the on entry statements of the new state.
                 this.State.ExecuteEntryFunction();
+            }
+            catch (TaskCanceledException)
+            {
+                this.Status = MachineStatus.Halted;
             }
             catch (Exception ex)
             {
@@ -508,6 +517,10 @@ namespace Microsoft.PSharp
                 {
                     onExit();
                 }
+            }
+            catch (TaskCanceledException)
+            {
+                this.Status = MachineStatus.Halted;
             }
             catch (Exception ex)
             {

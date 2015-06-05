@@ -81,6 +81,14 @@
 			// Proposer.
 			on update do CheckIfLeader;
 			on goPropose push ProposeValuePhase1;
+
+			// Acceptor.
+			on prepare do PrepareFun;
+		}
+
+		void PrepareFun()
+		{
+		    
 		}
 
 		Tuple<int, int> GetNextProposal(int maxRound)

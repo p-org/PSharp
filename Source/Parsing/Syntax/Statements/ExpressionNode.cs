@@ -239,7 +239,18 @@ namespace Microsoft.PSharp.Parsing.Syntax
             }
 
             int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
-            var text = "(this.Machine as " + this.Parent.Machine.Identifier.TextUnit.Text + ").";
+            var text = "(this.";
+
+            if (this.Parent.Machine.IsMonitor)
+            {
+                text += "Monitor";
+            }
+            else
+            {
+                text += "Machine";
+            }
+
+            text += " as " + this.Parent.Machine.Identifier.TextUnit.Text + ").";
             this.RewrittenStmtTokens.Insert(this.Index, new Token(new TextUnit(text, line)));
             this.Index++;
         }
