@@ -910,7 +910,9 @@ namespace Microsoft.PSharp.Parsing.Syntax
             while (this.Index < this.RewrittenStmtTokens.Count)
             {
                 if (counter > 0 &&
-                    this.RewrittenStmtTokens[this.Index].Type == TokenType.LeftParenthesis)
+                    this.RewrittenStmtTokens[this.Index].Type == TokenType.LeftParenthesis &&
+                    (this.RewrittenStmtTokens[this.Index - 1].Type == TokenType.LeftParenthesis ||
+                    this.RewrittenStmtTokens[this.Index - 1].Type == TokenType.Comma))
                 {
                     text = "Container.Create";
                     this.RewrittenStmtTokens.Insert(this.Index, new Token(new TextUnit(text, line)));
