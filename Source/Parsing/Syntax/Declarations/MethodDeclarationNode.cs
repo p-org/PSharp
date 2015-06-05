@@ -123,9 +123,14 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += this.LeftParenthesisToken.TextUnit.Text;
 
-            foreach (var param in this.Parameters)
+            for (int idx = 0; idx < this.Parameters.Count; idx++)
             {
-                text += param.TextUnit.Text;
+                text += this.Parameters[idx].TextUnit.Text;
+
+                if (idx < this.Parameters.Count - 1)
+                {
+                    text += " ";
+                }
             }
 
             text += this.RightParenthesisToken.TextUnit.Text;

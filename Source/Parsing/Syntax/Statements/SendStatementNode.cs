@@ -31,19 +31,19 @@ namespace Microsoft.PSharp.Parsing.Syntax
         internal Token SendKeyword;
 
         /// <summary>
-        /// The event identifier.
+        /// The machine identifier.
         /// </summary>
-        internal Token EventIdentifier;
-
+        internal ExpressionNode MachineIdentifier;
+        
         /// <summary>
         /// The machine separator token.
         /// </summary>
         internal Token MachineSeparator;
 
         /// <summary>
-        /// The machine identifier.
+        /// The event identifier.
         /// </summary>
-        internal ExpressionNode MachineIdentifier;
+        internal Token EventIdentifier;
 
         /// <summary>
         /// The event separator token.

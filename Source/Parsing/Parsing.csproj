@@ -105,7 +105,7 @@
     <Compile Include="AbstractPSharpProgram.cs" />
     <Compile Include="Syntax\PProgram.cs" />
     <Compile Include="Syntax\PStatements\PPushStatementNode.cs" />
-    <Compile Include="Syntax\PStatements\PMonitorStatementNode.cs" />
+    <Compile Include="Syntax\Statements\MonitorStatementNode.cs" />
     <Compile Include="Syntax\PStatements\PPayloadSendExpressionNode.cs" />
     <Compile Include="Syntax\PStatements\PExpressionNode.cs" />
     <Compile Include="Syntax\PStatements\PPayloadReceiveNode.cs" />

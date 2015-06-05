@@ -78,6 +78,7 @@ namespace Microsoft.PSharp.Parsing
                     TokenType.CreateMachine,
                     TokenType.RaiseEvent,
                     TokenType.SendEvent,
+                    TokenType.Monitor,
                     TokenType.Assert
                 });
             }
@@ -111,6 +112,10 @@ namespace Microsoft.PSharp.Parsing
 
                 case TokenType.SendEvent:
                     new SendStatementVisitor(base.TokenStream).Visit(node);
+                    break;
+
+                case TokenType.Monitor:
+                    new MonitorStatementVisitor(base.TokenStream).Visit(node);
                     break;
 
                 case TokenType.Pop:

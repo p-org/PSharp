@@ -74,6 +74,18 @@ namespace Microsoft.PSharp.Parsing
                     if (base.TokenStream.Peek().Type != TokenType.Identifier &&
                         base.TokenStream.Peek().Type != TokenType.This &&
                         base.TokenStream.Peek().Type != TokenType.Dot &&
+                        base.TokenStream.Peek().Type != TokenType.PlusOp &&
+                        base.TokenStream.Peek().Type != TokenType.MinusOp &&
+                        base.TokenStream.Peek().Type != TokenType.MulOp &&
+                        base.TokenStream.Peek().Type != TokenType.DivOp &&
+                        base.TokenStream.Peek().Type != TokenType.ModOp &&
+                        base.TokenStream.Peek().Type != TokenType.EqualOp &&
+                        base.TokenStream.Peek().Type != TokenType.NotEqualOp &&
+                        base.TokenStream.Peek().Type != TokenType.GreaterOrEqualOp &&
+                        base.TokenStream.Peek().Type != TokenType.LessOrEqualOp &&
+                        base.TokenStream.Peek().Type != TokenType.LogAndOp &&
+                        base.TokenStream.Peek().Type != TokenType.LogNotOp &&
+                        base.TokenStream.Peek().Type != TokenType.LogOrOp &&
                         base.TokenStream.Peek().Type != TokenType.LeftSquareBracket &&
                         base.TokenStream.Peek().Type != TokenType.RightSquareBracket &&
                         base.TokenStream.Peek().Type != TokenType.NewLine)
@@ -82,8 +94,7 @@ namespace Microsoft.PSharp.Parsing
                             new List<TokenType>
                         {
                                 TokenType.Identifier,
-                                TokenType.This,
-                                TokenType.Dot
+                                TokenType.This
                         });
                     }
 

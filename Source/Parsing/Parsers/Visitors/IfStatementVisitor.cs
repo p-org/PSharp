@@ -153,6 +153,7 @@ namespace Microsoft.PSharp.Parsing
                     base.TokenStream.Peek().Type != TokenType.CreateMachine &&
                     base.TokenStream.Peek().Type != TokenType.RaiseEvent &&
                     base.TokenStream.Peek().Type != TokenType.SendEvent &&
+                    base.TokenStream.Peek().Type != TokenType.Monitor &&
                     base.TokenStream.Peek().Type != TokenType.Assert &&
                     base.TokenStream.Peek().Type != TokenType.IfCondition &&
                     base.TokenStream.Peek().Type != TokenType.Break &&
@@ -286,6 +287,7 @@ namespace Microsoft.PSharp.Parsing
                         base.TokenStream.Peek().Type != TokenType.CreateMachine &&
                         base.TokenStream.Peek().Type != TokenType.RaiseEvent &&
                         base.TokenStream.Peek().Type != TokenType.SendEvent &&
+                        base.TokenStream.Peek().Type != TokenType.Monitor &&
                         base.TokenStream.Peek().Type != TokenType.Assert &&
                         base.TokenStream.Peek().Type != TokenType.IfCondition &&
                         base.TokenStream.Peek().Type != TokenType.Break &&

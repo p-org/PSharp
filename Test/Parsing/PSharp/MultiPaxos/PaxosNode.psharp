@@ -5,18 +5,21 @@
 	    Tuple<int, Machine> CurrentLeader;
 		Machine LeaderElectionService;
 
+		// Proposer.
 		List<Machine> Acceptors;
-
 		int CommitValue;
 		int ProposeVal;
 		int Majority;
 		int RoundNum;
 		int MyRank;
+		Tuple<int, int> NextProposal;
+		Tuple<Tuple<int, int>, int> ReceivedAgree;
 		int MaxRound;
+		int CountAgree;
+		Machine Timer;
 		int NextSlotForProposer;
 
-		Machine Timer;
-
+		// Learner.
 		int LastExecutedSlot;
 
 	    start state Init
@@ -55,9 +58,57 @@
 			raise local;
 		}
 
+		void CheckIfLeader()
+		{
+		    if (CurrentLeader.Item1 == MyRank)
+			{
+			    // The node is the leader.
+				CommitValue = (int)payload[1];
+				ProposeVal = CommitValue;
+				raise goPropose;
+			}
+			else
+			{
+			    // Forward it to the leader.
+				send CurrentLeader.Item2, update (payload);
+			}
+		}
+
 		state PerformOperation
 		{
 		    ignore agree, accepted, timeout;
+
+			// Proposer.
+			on update do CheckIfLeader;
+			on goPropose push ProposeValuePhase1;
+		}
+
+		Tuple<int, int> GetNextProposal(int maxRound)
+		{
+		    return Tuple.Create(maxRound + 1, MyRank);
+		}
+
+		// Proposer.
+
+		state ProposeValuePhase1
+		{
+		    ignore accepted;
+
+		    entry
+			{
+			    CountAgree = 0;
+				NextProposal = GetNextProposal(MaxRound);
+				ReceivedAgree = Tuple.Create(Tuple.Create(-1, -1), -1);
+
+				foreach (var acceptor in Acceptors)
+				{
+			        send acceptor, prepare (Tuple.Create(this, NextSlotForProposer,
+				        Tuple.Create(NextProposal.Item1, MyRank)));
+				}
+
+				monitor ValMachineItyCheck, monitor_proposer_sent (ProposeVal);
+				send Timer, startTimer;
+			}
 		}
     }
 }

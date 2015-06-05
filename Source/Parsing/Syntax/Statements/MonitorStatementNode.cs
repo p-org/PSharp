@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="PMonitorStatementNode.cs">
+// <copyright file="MonitorStatementNode.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -21,7 +21,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
     /// <summary>
     /// Monitor statement node.
     /// </summary>
-    internal sealed class PMonitorStatementNode : StatementNode
+    internal sealed class MonitorStatementNode : StatementNode
     {
         #region fields
 
@@ -31,29 +31,29 @@ namespace Microsoft.PSharp.Parsing.Syntax
         internal Token MonitorKeyword;
 
         /// <summary>
+        /// The monitor identifier.
+        /// </summary>
+        internal ExpressionNode MonitorIdentifier;
+
+        /// <summary>
+        /// The monitor separator token.
+        /// </summary>
+        internal Token MonitorSeparator;
+
+        /// <summary>
         /// The event identifier.
         /// </summary>
         internal Token EventIdentifier;
 
         /// <summary>
-        /// The monitor comma token.
+        /// The event separator token.
         /// </summary>
-        internal Token MonitorComma;
-
-        /// <summary>
-        /// The monitor identifier.
-        /// </summary>
-        internal Token MonitorIdentifier;
-
-        /// <summary>
-        /// The event comma token.
-        /// </summary>
-        internal Token EventComma;
+        internal Token EventSeparator;
 
         /// <summary>
         /// The event payload.
         /// </summary>
-        internal PExpressionNode Payload;
+        internal ExpressionNode Payload;
 
         #endregion
 
@@ -63,7 +63,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Constructor.
         /// </summary>
         /// <param name="node">Node</param>
-        internal PMonitorStatementNode(StatementBlockNode node)
+        internal MonitorStatementNode(StatementBlockNode node)
             : base(node)
         {
 
@@ -87,7 +87,8 @@ namespace Microsoft.PSharp.Parsing.Syntax
         {
             var text = "this.Monitor<";
 
-            text += this.MonitorIdentifier.TextUnit.Text;
+            this.MonitorIdentifier.Rewrite(program);
+            text += this.MonitorIdentifier.GetRewrittenText();
 
             text += ">(new ";
 

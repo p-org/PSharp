@@ -46,26 +46,71 @@ namespace Microsoft.PSharp.Parsing
                     new List<TokenType>());
             }
 
-            var node = new PMonitorStatementNode(parentNode);
+            var node = new MonitorStatementNode(parentNode);
             node.MonitorKeyword = base.TokenStream.Peek();
 
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-            if (base.TokenStream.Done ||
-                base.TokenStream.Peek().Type != TokenType.Identifier)
+            if (base.TokenStream.IsPSharp)
             {
-                throw new ParsingException("Expected monitor identifier.",
-                    new List<TokenType>
+                if (base.TokenStream.Done ||
+                    base.TokenStream.Peek().Type != TokenType.Identifier)
                 {
-                    TokenType.Identifier
-                });
+                    throw new ParsingException("Expected monitor identifier.",
+                        new List<TokenType>
+                    {
+                            TokenType.Identifier
+                    });
+                }
+
+                var monitorIdentifier = new ExpressionNode(parentNode);
+                while (!base.TokenStream.Done &&
+                    base.TokenStream.Peek().Type != TokenType.Comma)
+                {
+                    if (base.TokenStream.Peek().Type != TokenType.Identifier &&
+                        base.TokenStream.Peek().Type != TokenType.Dot &&
+                        base.TokenStream.Peek().Type != TokenType.NewLine)
+                    {
+                        throw new ParsingException("Expected monitor identifier.",
+                            new List<TokenType>
+                        {
+                                TokenType.Identifier
+                        });
+                    }
+
+                    monitorIdentifier.StmtTokens.Add(base.TokenStream.Peek());
+
+                    base.TokenStream.Index++;
+                    base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                }
+
+                node.MonitorIdentifier = monitorIdentifier;
             }
+            else
+            {
+                if (base.TokenStream.Done ||
+                    base.TokenStream.Peek().Type != TokenType.Identifier)
+                {
+                    throw new ParsingException("Expected monitor identifier.",
+                        new List<TokenType>
+                    {
+                            TokenType.Identifier
+                    });
+                }
 
-            node.MonitorIdentifier = base.TokenStream.Peek();
+                var monitorIdentifier = new PExpressionNode(parentNode);
 
-            base.TokenStream.Index++;
-            base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                var payloadNode = new PPayloadReceiveNode();
+                new ReceivedPayloadVisitor(base.TokenStream).Visit(payloadNode);
+                monitorIdentifier.StmtTokens.Add(null);
+                monitorIdentifier.Payloads.Add(payloadNode);
+
+                node.MonitorIdentifier = monitorIdentifier;
+
+                base.TokenStream.Index++;
+                base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+            }
 
             if (base.TokenStream.Done ||
                 base.TokenStream.Peek().Type != TokenType.Comma)
@@ -77,7 +122,7 @@ namespace Microsoft.PSharp.Parsing
                 });
             }
 
-            node.MonitorComma = base.TokenStream.Peek();
+            node.MonitorSeparator = base.TokenStream.Peek();
 
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
@@ -105,28 +150,36 @@ namespace Microsoft.PSharp.Parsing
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-            if (base.TokenStream.Done ||
-                (base.TokenStream.Peek().Type != TokenType.Comma &&
-                base.TokenStream.Peek().Type != TokenType.Semicolon))
+            if (base.TokenStream.IsPSharp)
             {
-                throw new ParsingException("Expected \",\" or \";\".",
-                    new List<TokenType>
+                if (!base.TokenStream.Done &&
+                    base.TokenStream.Peek().Type == TokenType.LeftParenthesis)
                 {
-                    TokenType.Comma,
-                    TokenType.Semicolon
-                });
+                    node.EventSeparator = base.TokenStream.Peek();
+
+                    var payload = new ExpressionNode(parentNode);
+                    new ArgumentsListVisitor(base.TokenStream).Visit(payload);
+
+                    node.Payload = payload;
+
+                    base.TokenStream.Index++;
+                    base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                }
             }
-
-            if (base.TokenStream.Peek().Type == TokenType.Comma)
+            else
             {
-                node.EventComma = base.TokenStream.Peek();
+                if (!base.TokenStream.Done &&
+                    base.TokenStream.Peek().Type == TokenType.Comma)
+                {
+                    node.EventSeparator = base.TokenStream.Peek();
 
-                base.TokenStream.Index++;
-                base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                    base.TokenStream.Index++;
+                    base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-                var payload = new PPayloadSendExpressionNode(parentNode);
-                new PayloadVisitor(base.TokenStream).Visit(payload);
-                node.Payload = payload;
+                    var payload = new PPayloadSendExpressionNode(parentNode);
+                    new PayloadVisitor(base.TokenStream).Visit(payload);
+                    node.Payload = payload;
+                }
             }
 
             if (base.TokenStream.Done ||
