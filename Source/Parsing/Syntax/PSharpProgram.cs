@@ -22,7 +22,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
     public sealed class PSharpProgram : AbstractPSharpProgram
     {
         #region fields
-
+        
         /// <summary>
         /// List of using declarations.
         /// </summary>
@@ -40,9 +40,10 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor.
         /// </summary>
+        /// <param name="project">PSharpProject</param>
         /// <param name="filePath">File path</param>
-        public PSharpProgram(string filePath)
-            : base(filePath)
+        public PSharpProgram(PSharpProject project, string filePath)
+            : base(project, filePath)
         {
             this.UsingDeclarations = new List<UsingDeclarationNode>();
             this.NamespaceDeclarations = new List<NamespaceDeclarationNode>();

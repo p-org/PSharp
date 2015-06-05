@@ -38,10 +38,18 @@ namespace Microsoft.PSharp.Parsing
         protected List<Token> OriginalTokens;
 
         /// <summary>
+        /// A P# project.
+        /// </summary>
+        protected PSharpProject Project;
+
+        /// <summary>
         /// A P# program.
         /// </summary>
         protected IPSharpProgram Program;
 
+        /// <summary>
+        /// The token stream.
+        /// </summary>
         protected TokenStream TokenStream;
 
         /// <summary>
@@ -71,9 +79,11 @@ namespace Microsoft.PSharp.Parsing
         /// <summary>
         /// Constructor.
         /// </summary>
+        /// <param name="project">PSharpProject</param>
         /// <param name="filePath">File path</param>
-        internal BaseParser(string filePath)
+        internal BaseParser(PSharpProject project, string filePath)
         {
+            this.Project = project;
             this.FilePath = filePath;
             this.IsRunningInternally = true;
         }

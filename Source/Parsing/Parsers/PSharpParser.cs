@@ -38,9 +38,10 @@ namespace Microsoft.PSharp.Parsing
         /// <summary>
         /// Constructor.
         /// </summary>
+        /// <param name="project">PSharpProject</param>
         /// <param name="filePath">File path</param>
-        internal PSharpParser(string filePath)
-            : base(filePath)
+        internal PSharpParser(PSharpProject project, string filePath)
+            : base(project, filePath)
         {
 
         }
@@ -56,7 +57,7 @@ namespace Microsoft.PSharp.Parsing
         protected override IPSharpProgram CreateNewProgram()
         {
             base.TokenStream.IsPSharp = true;
-            return new PSharpProgram(base.FilePath);
+            return new PSharpProgram(base.Project, base.FilePath);
         }
 
         /// <summary>
@@ -264,6 +265,8 @@ namespace Microsoft.PSharp.Parsing
                     TokenType.MainMachine,
                     TokenType.EventDecl,
                     TokenType.MachineDecl,
+                    TokenType.ModelDecl,
+                    TokenType.Monitor,
                     TokenType.LeftSquareBracket,
                     TokenType.RightCurlyBracket
                 });
@@ -300,6 +303,16 @@ namespace Microsoft.PSharp.Parsing
 
                 case TokenType.MachineDecl:
                     new MachineDeclarationVisitor(base.TokenStream).Visit(null, node, false, false, null, null);
+                    base.TokenStream.Index++;
+                    break;
+
+                case TokenType.ModelDecl:
+                    new MachineDeclarationVisitor(base.TokenStream).Visit(null, node, false, false, null, null);
+                    base.TokenStream.Index++;
+                    break;
+
+                case TokenType.Monitor:
+                    new MachineDeclarationVisitor(base.TokenStream).Visit(null, node, false, true, null, null);
                     base.TokenStream.Index++;
                     break;
 
@@ -360,7 +373,9 @@ namespace Microsoft.PSharp.Parsing
                 base.TokenStream.Peek().Type != TokenType.Virtual &&
                 base.TokenStream.Peek().Type != TokenType.MainMachine &&
                 base.TokenStream.Peek().Type != TokenType.EventDecl &&
-                base.TokenStream.Peek().Type != TokenType.MachineDecl))
+                base.TokenStream.Peek().Type != TokenType.MachineDecl &&
+                base.TokenStream.Peek().Type != TokenType.ModelDecl &&
+                base.TokenStream.Peek().Type != TokenType.Monitor))
             {
                 throw new ParsingException("Expected event or machine declaration.",
                     new List<TokenType>
@@ -369,7 +384,9 @@ namespace Microsoft.PSharp.Parsing
                     TokenType.Virtual,
                     TokenType.MainMachine,
                     TokenType.EventDecl,
-                    TokenType.MachineDecl
+                    TokenType.MachineDecl,
+                    TokenType.ModelDecl,
+                    TokenType.Monitor
                 });
             }
 
@@ -382,16 +399,21 @@ namespace Microsoft.PSharp.Parsing
                 base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
                 if (base.TokenStream.Done ||
-                    base.TokenStream.Peek().Type != TokenType.MachineDecl)
+                    (base.TokenStream.Peek().Type != TokenType.MachineDecl &&
+                    base.TokenStream.Peek().Type != TokenType.ModelDecl &&
+                    base.TokenStream.Peek().Type != TokenType.Monitor))
                 {
                     throw new ParsingException("Expected machine declaration.",
                         new List<TokenType>
                     {
-                        TokenType.MachineDecl
+                        TokenType.MachineDecl,
+                        TokenType.ModelDecl,
+                        TokenType.Monitor
                     });
                 }
 
-                new MachineDeclarationVisitor(base.TokenStream).Visit(null, parentNode, false, false, modifier, abstractModifier);
+                new MachineDeclarationVisitor(base.TokenStream).Visit(null, parentNode,
+                    false, false, modifier, abstractModifier);
             }
             else if (base.TokenStream.Peek().Type == TokenType.EventDecl)
             {
@@ -403,7 +425,18 @@ namespace Microsoft.PSharp.Parsing
             }
             else if (base.TokenStream.Peek().Type == TokenType.MachineDecl)
             {
-                new MachineDeclarationVisitor(base.TokenStream).Visit(null, parentNode, false, false, modifier, abstractModifier);
+                new MachineDeclarationVisitor(base.TokenStream).Visit(null, parentNode,
+                    false, false, modifier, abstractModifier);
+            }
+            else if (base.TokenStream.Peek().Type == TokenType.ModelDecl)
+            {
+                new MachineDeclarationVisitor(base.TokenStream).Visit(null, parentNode,
+                    false, false, modifier, abstractModifier);
+            }
+            else if (base.TokenStream.Peek().Type == TokenType.Monitor)
+            {
+                new MachineDeclarationVisitor(base.TokenStream).Visit(null, parentNode,
+                    false, true, modifier, abstractModifier);
             }
         }
 
@@ -421,14 +454,18 @@ namespace Microsoft.PSharp.Parsing
             if (base.TokenStream.Done ||
                 (base.TokenStream.Peek().Type != TokenType.Internal &&
                 base.TokenStream.Peek().Type != TokenType.Public &&
-                base.TokenStream.Peek().Type != TokenType.MachineDecl))
+                base.TokenStream.Peek().Type != TokenType.MachineDecl &&
+                base.TokenStream.Peek().Type != TokenType.ModelDecl &&
+                base.TokenStream.Peek().Type != TokenType.Monitor))
             {
                 throw new ParsingException("Expected machine declaration.",
                     new List<TokenType>
                 {
                     TokenType.Internal,
                     TokenType.Public,
-                    TokenType.MachineDecl
+                    TokenType.MachineDecl,
+                    TokenType.ModelDecl,
+                    TokenType.Monitor
                 });
             }
 
@@ -442,12 +479,16 @@ namespace Microsoft.PSharp.Parsing
                 base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
                 if (base.TokenStream.Done ||
-                    (base.TokenStream.Peek().Type != TokenType.MachineDecl))
+                    (base.TokenStream.Peek().Type != TokenType.MachineDecl &&
+                    base.TokenStream.Peek().Type != TokenType.ModelDecl &&
+                    base.TokenStream.Peek().Type != TokenType.Monitor))
                 {
                     throw new ParsingException("Expected machine declaration.",
                         new List<TokenType>
                     {
-                        TokenType.MachineDecl
+                        TokenType.MachineDecl,
+                        TokenType.ModelDecl,
+                        TokenType.Monitor
                     });
                 }
             }
@@ -458,7 +499,18 @@ namespace Microsoft.PSharp.Parsing
             }
             else if (base.TokenStream.Peek().Type == TokenType.MachineDecl)
             {
-                new MachineDeclarationVisitor(base.TokenStream).Visit(null, parentNode, false, false, modifier, abstractModifier);
+                new MachineDeclarationVisitor(base.TokenStream).Visit(null, parentNode,
+                    false, false, modifier, abstractModifier);
+            }
+            else if (base.TokenStream.Peek().Type == TokenType.ModelDecl)
+            {
+                new MachineDeclarationVisitor(base.TokenStream).Visit(null, parentNode,
+                    false, false, modifier, abstractModifier);
+            }
+            else if (base.TokenStream.Peek().Type == TokenType.Monitor)
+            {
+                new MachineDeclarationVisitor(base.TokenStream).Visit(null, parentNode,
+                    false, true, modifier, abstractModifier);
             }
         }
 

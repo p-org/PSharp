@@ -89,11 +89,20 @@ namespace Microsoft.PSharp.Parsing.Syntax
             var text = "this.";
 
             bool isMonitor = false;
+
             if (program is PSharpProgram)
             {
-                var psProgram = program as PSharpProgram;
-                isMonitor = psProgram.NamespaceDeclarations.Any(ns => ns.MachineDeclarations.Any(md =>
-                    md.IsMonitor && md.Identifier.TextUnit.Text.Equals(machineId)));
+                var project = (program as PSharpProgram).Project;
+
+                isMonitor = project.PSharpPrograms.Any(psp => psp.NamespaceDeclarations.Any(
+                    ns => ns.MachineDeclarations.Any(md => md.IsMonitor && md.Identifier.
+                    TextUnit.Text.Equals(machineId))));
+
+                if (!isMonitor)
+                {
+                    isMonitor = project.PPrograms.Any(ns => ns.MachineDeclarations.Any(
+                        md => md.IsMonitor && md.Identifier.TextUnit.Text.Equals(machineId)));
+                }
             }
             else
             {

@@ -42,9 +42,10 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor.
         /// </summary>
+        /// <param name="project">PSharpProject</param>
         /// <param name="filePath">File path</param>
-        public PProgram(string filePath)
-            : base(filePath)
+        public PProgram(PSharpProject project, string filePath)
+            : base(project, filePath)
         {
             this.EventDeclarations = new List<EventDeclarationNode>();
             this.MachineDeclarations = new List<MachineDeclarationNode>();

@@ -57,7 +57,7 @@
 
 		state PerformOperation
 		{
-
+		    ignore agree, accepted, timeout;
 		}
     }
 }

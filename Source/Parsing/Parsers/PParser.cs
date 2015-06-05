@@ -38,9 +38,10 @@ namespace Microsoft.PSharp.Parsing
         /// <summary>
         /// Constructor.
         /// </summary>
+        /// <param name="project">PSharpProject</param>
         /// <param name="filePath">File path</param>
-        internal PParser(string filePath)
-            : base(filePath)
+        internal PParser(PSharpProject project, string filePath)
+            : base(project, filePath)
         {
 
         }
@@ -56,7 +57,7 @@ namespace Microsoft.PSharp.Parsing
         protected override IPSharpProgram CreateNewProgram()
         {
             base.TokenStream.IsPSharp = false;
-            return new PProgram(base.FilePath);
+            return new PProgram(base.Project, base.FilePath);
         }
 
         /// <summary>
@@ -108,13 +109,13 @@ namespace Microsoft.PSharp.Parsing
                     base.TokenStream.Index++;
                     break;
 
-                case TokenType.Monitor:
-                    new MachineDeclarationVisitor(base.TokenStream).Visit(this.Program, null, false, true, null, null);
+                case TokenType.ModelDecl:
+                    new MachineDeclarationVisitor(base.TokenStream).Visit(this.Program, null, false, false, null, null);
                     base.TokenStream.Index++;
                     break;
 
-                case TokenType.ModelDecl:
-                    new MachineDeclarationVisitor(base.TokenStream).Visit(this.Program, null, false, false, null, null);
+                case TokenType.Monitor:
+                    new MachineDeclarationVisitor(base.TokenStream).Visit(this.Program, null, false, true, null, null);
                     base.TokenStream.Index++;
                     break;
 

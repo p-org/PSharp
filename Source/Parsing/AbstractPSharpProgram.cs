@@ -28,6 +28,11 @@ namespace Microsoft.PSharp.Parsing
         #region fields
 
         /// <summary>
+        /// The project that this program belongs to.
+        /// </summary>
+        internal PSharpProject Project;
+
+        /// <summary>
         /// The rewritten text.
         /// </summary>
         protected string RewrittenText;
@@ -44,9 +49,11 @@ namespace Microsoft.PSharp.Parsing
         /// <summary>
         /// Constructor.
         /// </summary>
+        /// <param name="project">PSharpProject</param>
         /// <param name="filePath">File path</param>
-        internal AbstractPSharpProgram(string filePath)
+        internal AbstractPSharpProgram(PSharpProject project, string filePath)
         {
+            this.Project = project;
             this.RewrittenText = "";
             this.FilePath = filePath;
         }

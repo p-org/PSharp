@@ -1,0 +1,10 @@
+﻿namespace MultiPaxos
+{
+    monitor ValMachineItyCheck
+    {
+	    start state Init
+		{
+
+		}
+    }
+}

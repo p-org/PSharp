@@ -2,9 +2,28 @@
 {
     machine Client
     {
+	    List<Machine> Servers;
+
 	    start state Init
 		{
+		    entry
+			{
+			    create ValMachineItyCheck();
 
+				Servers = (List<Machine>)payload;
+
+				raise local;
+			}
+
+			on local goto PumpRequestOne;
+		}
+
+		state PumpRequestOne
+		{
+		    entry
+			{
+			    
+			}
 		}
     }
 }

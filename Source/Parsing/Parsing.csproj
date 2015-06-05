@@ -53,6 +53,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Exceptions.cs" />
+    <Compile Include="PSharpProject.cs" />
     <Compile Include="Lexers\ILexer.cs" />
     <Compile Include="Lexers\BaseLexer.cs" />
     <Compile Include="Lexers\PLexer.cs" />

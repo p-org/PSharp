@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
@@ -28,6 +29,12 @@ namespace Microsoft.PSharp.Parsing
     /// </summary>
     public static class ParsingEngine
     {
+        #region fields
+
+        private static List<PSharpProject> Projects;
+
+        #endregion
+
         #region public API
 
         /// <summary>
@@ -35,74 +42,21 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         public static void Run()
         {
+            ParsingEngine.Projects = new List<PSharpProject>();
+
+            // Parse the projects.
             foreach (var programUnit in ProgramInfo.ProgramUnits)
             {
-                var project = programUnit.GetProject();
-
-                // Performs rewriting.
-                ParsingEngine.RewriteSyntaxTrees(project);
+                var project = new PSharpProject(programUnit.GetProject());
+                project.Parse();
+                ParsingEngine.Projects.Add(project);
             }
-        }
 
-        #endregion
-
-        #region private methods
-
-        /// <summary>
-        /// Rewrites syntax trees to C#.
-        /// </summary>
-        /// <param name="project">Project</param>
-        private static void RewriteSyntaxTrees(Project project)
-        {
-            var compilation = project.GetCompilationAsync().Result;
-
-            foreach (var tree in compilation.SyntaxTrees.ToList())
+            // Rewrite the projects.
+            foreach (var project in ParsingEngine.Projects)
             {
-                if (ProgramInfo.IsPSharpFile(tree))
-                {
-                    ParsingEngine.RewritePSharpSyntaxTree(ref project, tree);
-                }
-                else if (ProgramInfo.IsPFile(tree))
-                {
-                    ParsingEngine.RewritePSyntaxTree(ref project, tree);
-                }
+                project.Rewrite();
             }
-        }
-
-        /// <summary>
-        /// Rewrites a P# syntax tree to C#.
-        /// </summary>
-        /// <param name="project">Project</param>
-        /// <param name="tree">SyntaxTree</param>
-        private static void RewritePSharpSyntaxTree(ref Project project, SyntaxTree tree)
-        {
-            var root = (CompilationUnitSyntax)tree.GetRoot();
-
-            var tokens = new PSharpLexer().Tokenize(root.ToFullString());
-            var program = new PSharpParser(tree.FilePath).ParseTokens(tokens);
-            var rewrittenTree = program.Rewrite();
-
-            var source = SourceText.From(rewrittenTree);
-
-            ProgramInfo.ReplaceSyntaxTree(tree.WithChangedText(source), ref project);
-        }
-
-        /// <summary>
-        /// Rewrites a P syntax tree to C#.
-        /// </summary>
-        /// <param name="project">Project</param>
-        /// <param name="tree">SyntaxTree</param>
-        private static void RewritePSyntaxTree(ref Project project, SyntaxTree tree)
-        {
-            var root = (CompilationUnitSyntax)tree.GetRoot();
-
-            var tokens = new PLexer().Tokenize(root.ToFullString());
-            var program = new PParser(tree.FilePath).ParseTokens(tokens);
-            var rewrittenTree = program.Rewrite();
-
-            var source = SourceText.From(rewrittenTree);
-
-            ProgramInfo.ReplaceSyntaxTree(tree.WithChangedText(source), ref project);
         }
 
         #endregion
