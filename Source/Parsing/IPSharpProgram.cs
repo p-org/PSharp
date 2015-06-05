@@ -26,20 +26,9 @@ namespace Microsoft.PSharp.Parsing
         string Rewrite();
 
         /// <summary>
-        /// Returns the full text of this P# program.
-        /// </summary>
-        /// <returns>Full text</returns>
-        string GetFullText();
-
-        /// <summary>
         /// Returns the rewritten to C#-IR text of this P# program.
         /// </summary>
         /// <returns>Rewritten text</returns>
         string GetRewrittenText();
-
-        /// <summary>
-        /// Generates the text units of this P# program.
-        /// </summary>
-        void GenerateTextUnits();
     }
 }

@@ -84,21 +84,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         }
 
         /// <summary>
-        /// Returns the full text.
-        /// </summary>
-        /// <returns>string</returns>
-        internal override string GetFullText()
-        {
-            return base.TextUnit.Text;
-        }
-
-        /// <summary>
         /// Returns the rewritten text.
         /// </summary>
         /// <returns>string</returns>
         internal override string GetRewrittenText()
         {
-            return base.RewrittenTextUnit.Text;
+            return base.TextUnit.Text;
         }
 
         /// <summary>
@@ -151,76 +142,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             if (initToken != null)
             {
-                base.RewrittenTextUnit = new TextUnit(text, initToken.TextUnit.Line);
+                base.TextUnit = new TextUnit(text, initToken.TextUnit.Line);
             }
             else
             {
-                base.RewrittenTextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Line);
-            }
-        }
-
-        /// <summary>
-        /// Generates a new text unit.
-        /// </summary>
-        internal override void GenerateTextUnit()
-        {
-            var text = "";
-            Token initToken = null;
-
-            if (this.InheritanceModifier != null)
-            {
-                initToken = this.InheritanceModifier;
-                text += this.InheritanceModifier.TextUnit.Text;
-                text += " ";
-            }
-
-            if (this.Modifier != null)
-            {
-                initToken = this.Modifier;
-                text += this.Modifier.TextUnit.Text;
-                text += " ";
-            }
-
-            text += this.TypeIdentifier.TextUnit.Text;
-            text += " ";
-
-            text += this.Identifier.TextUnit.Text;
-
-            text += this.LeftParenthesisToken.TextUnit.Text;
-
-            foreach (var param in this.Parameters)
-            {
-                text += param.TextUnit.Text;
-            }
-
-            text += this.RightParenthesisToken.TextUnit.Text;
-
-            if (this.StatementBlock != null)
-            {
-                this.StatementBlock.GenerateTextUnit();
-                text += this.StatementBlock.GetFullText();
-
-                if (initToken != null)
-                {
-                    base.TextUnit = new TextUnit(text, initToken.TextUnit.Line);
-                }
-                else
-                {
-                    base.TextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Line);
-                }
-            }
-            else
-            {
-                text += this.SemicolonToken.TextUnit.Text + "\n";
-
-                if (initToken != null)
-                {
-                    base.TextUnit = new TextUnit(text, initToken.TextUnit.Line);
-                }
-                else
-                {
-                    base.TextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Line);
-                }
+                base.TextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Line);
             }
         }
 

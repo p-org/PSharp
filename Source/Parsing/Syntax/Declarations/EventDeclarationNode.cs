@@ -80,21 +80,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         #region internal API
 
         /// <summary>
-        /// Returns the full text.
-        /// </summary>
-        /// <returns>string</returns>
-        internal override string GetFullText()
-        {
-            return base.TextUnit.Text;
-        }
-
-        /// <summary>
         /// Returns the rewritten text.
         /// </summary>
         /// <returns>string</returns>
         internal override string GetRewrittenText()
         {
-            return base.RewrittenTextUnit.Text;
+            return base.TextUnit.Text;
         }
 
         /// <summary>
@@ -138,41 +129,6 @@ namespace Microsoft.PSharp.Parsing.Syntax
             text += "payload)\n";
             text += " { }\n";
             text += "}\n";
-
-            base.RewrittenTextUnit = new TextUnit(text, initToken.TextUnit.Line);
-        }
-
-        /// <summary>
-        /// Generates a new text unit.
-        /// </summary>
-        internal override void GenerateTextUnit()
-        {
-            var text = "";
-            var initToken = this.EventKeyword;
-
-            if (this.Modifier != null)
-            {
-                initToken = this.Modifier;
-                text += this.Modifier.TextUnit.Text;
-                text += " ";
-            }
-
-            text += this.EventKeyword.TextUnit.Text;
-            text += " ";
-
-            text += this.Identifier.TextUnit.Text;
-
-            //if (this.ColonToken != null)
-            //{
-            //    text += " ";
-            //    text += this.ColonToken.TextUnit.Text;
-            //    text += " ";
-
-            //    this.PayloadType.GenerateTextUnit();
-            //    text += this.PayloadType.GetFullText();
-            //}
-
-            text += this.SemicolonToken.TextUnit.Text + "\n";
 
             base.TextUnit = new TextUnit(text, initToken.TextUnit.Line);
         }

@@ -71,7 +71,7 @@ namespace BoundedAsync
             ignore eResp, eMyCount;
         }
 
-        private action InitAction
+        private void InitAction()
         {	
 			this.LeftProcess = payload[0] as Machine;
             this.RightProcess = payload[1] as Machine;
@@ -79,7 +79,7 @@ namespace BoundedAsync
             send Scheduler, eReq;
         }
 		
-        private action ConfirmThatInSync
+        private void ConfirmThatInSync()
         {
             var countMsg = (CountMessage)payload;
 			assert(this.CountMessage.Count <= countMsg.Count &&

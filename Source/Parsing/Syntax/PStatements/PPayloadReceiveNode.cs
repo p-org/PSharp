@@ -69,21 +69,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         }
 
         /// <summary>
-        /// Returns the full text.
-        /// </summary>
-        /// <returns>string</returns>
-        internal override string GetFullText()
-        {
-            return base.TextUnit.Text;
-        }
-
-        /// <summary>
         /// Returns the rewritten text.
         /// </summary>
         /// <returns>string</returns>
         internal override string GetRewrittenText()
         {
-            return base.RewrittenTextUnit.Text;
+            return base.TextUnit.Text;
         }
 
         /// <summary>
@@ -109,34 +100,6 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
                     var index = Int32.Parse(this.IndexToken.TextUnit.Text) + 1;
                     text += "Item" + index;
-                }
-            }
-
-            base.RewrittenTextUnit = new TextUnit(text, this.PayloadKeyword.TextUnit.Line);
-        }
-
-        /// <summary>
-        /// Generates a new text unit.
-        /// </summary>
-        internal override void GenerateTextUnit()
-        {
-            var text = this.PayloadKeyword.TextUnit.Text;
-            text += " ";
-
-            text += this.AsKeyword.TextUnit.Text;
-            text += " ";
-
-            //this.Type.GenerateTextUnit();
-            //text += this.Type.GetFullText();
-
-            if (this.RightParenthesisToken != null)
-            {
-                text += this.RightParenthesisToken.TextUnit.Text;
-
-                if (this.DotToken != null)
-                {
-                    text += this.DotToken.TextUnit.Text;
-                    text += this.IndexToken.TextUnit.Text;
                 }
             }
 

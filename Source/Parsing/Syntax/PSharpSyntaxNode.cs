@@ -30,20 +30,9 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         internal TextUnit TextUnit;
 
-        /// <summary>
-        /// The rewritten text unit.
-        /// </summary>
-        internal TextUnit RewrittenTextUnit;
-
         #endregion
 
         #region internal API
-
-        /// <summary>
-        /// Returns the full text.
-        /// </summary>
-        /// <returns>string</returns>
-        internal abstract string GetFullText();
 
         /// <summary>
         /// Returns the rewritten text.
@@ -57,11 +46,6 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         /// <param name="program">Program</param>
         internal abstract void Rewrite(IPSharpProgram program);
-
-        /// <summary>
-        /// Generates a new text unit.
-        /// </summary>
-        internal abstract void GenerateTextUnit();
 
         #endregion
     }

@@ -56,21 +56,6 @@ namespace Microsoft.PSharp.Parsing.Syntax
         }
 
         /// <summary>
-        /// Returns the full text.
-        /// </summary>
-        /// <returns>string</returns>
-        internal override string GetFullText()
-        {
-            if (this.StmtTokens.Count == 0 ||
-                this.StmtTokens.All(val => val == null))
-            {
-                return "";
-            }
-            
-            return base.TextUnit.Text;
-        }
-
-        /// <summary>
         /// Returns the rewritten text.
         /// </summary>
         /// <returns>string</returns>
@@ -82,7 +67,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 return "";
             }
             
-            return base.RewrittenTextUnit.Text;
+            return base.TextUnit.Text;
         }
 
         /// <summary>
@@ -107,42 +92,6 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             Token firstNonNull = null;
             foreach (var token in this.RewrittenStmtTokens)
-            {
-                if (token == null)
-                {
-                    continue;
-                }
-
-                text += token.TextUnit.Text;
-
-                if (firstNonNull == null)
-                {
-                    firstNonNull = token;
-                }
-            }
-
-            if (firstNonNull == null)
-            {
-                return;
-            }
-
-            base.RewrittenTextUnit = new TextUnit(text, firstNonNull.TextUnit.Line);
-        }
-
-        /// <summary>
-        /// Generates a new text unit.
-        /// </summary>
-        internal override void GenerateTextUnit()
-        {
-            if (this.StmtTokens.Count == 0)
-            {
-                return;
-            }
-
-            var text = "";
-
-            Token firstNonNull = null;
-            foreach (var token in this.StmtTokens)
             {
                 if (token == null)
                 {
@@ -1025,8 +974,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         {
             var payload = this.PendingPayloads[0];
             this.PendingPayloads.RemoveAt(0);
-
-            payload.GenerateTextUnit();
+            
             payload.Rewrite(program);
             var text = payload.GetRewrittenText();
             var line = payload.TextUnit.Line;

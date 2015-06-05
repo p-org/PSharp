@@ -83,43 +83,6 @@ namespace Microsoft.PSharp.Parsing.Syntax
             return this.RewrittenText;
         }
 
-        /// <summary>
-        /// Returns the full text of this P# program.
-        /// </summary>
-        /// <returns>Full text</returns>
-        public override string GetFullText()
-        {
-            var text = "";
-
-            foreach (var node in this.EventDeclarations)
-            {
-                text += node.GetFullText();
-            }
-
-            foreach (var node in this.MachineDeclarations)
-            {
-                text += node.GetFullText();
-            }
-
-            return text;
-        }
-
-        /// <summary>
-        /// Generates the text units of this P# program.
-        /// </summary>
-        public override void GenerateTextUnits()
-        {
-            foreach (var node in this.EventDeclarations)
-            {
-                node.GenerateTextUnit();
-            }
-
-            foreach (var node in this.MachineDeclarations)
-            {
-                node.GenerateTextUnit();
-            }
-        }
-
         #endregion
     }
 }

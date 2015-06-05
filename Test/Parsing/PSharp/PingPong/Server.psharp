@@ -28,7 +28,7 @@ namespace PingPong
             on Ping do SendPong;
         }
 
-        action SendPong
+        void SendPong()
         {
             send this.Client, Pong;
         }

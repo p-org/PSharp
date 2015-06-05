@@ -118,21 +118,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         }
 
         /// <summary>
-        /// Returns the full text.
-        /// </summary>
-        /// <returns>string</returns>
-        internal override string GetFullText()
-        {
-            return base.TextUnit.Text;
-        }
-
-        /// <summary>
         /// Returns the rewritten text.
         /// </summary>
         /// <returns>string</returns>
         internal override string GetRewrittenText()
         {
-            return base.RewrittenTextUnit.Text;
+            return base.TextUnit.Text;
         }
 
         /// <summary>
@@ -232,92 +223,6 @@ namespace Microsoft.PSharp.Parsing.Syntax
             }
 
             text += this.InstrumentActionsBindings(program);
-
-            text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
-
-            base.RewrittenTextUnit = new TextUnit(text, initToken.TextUnit.Line);
-        }
-
-        /// <summary>
-        /// Generates a new text unit.
-        /// </summary>
-        internal override void GenerateTextUnit()
-        {
-            foreach (var node in this.FieldDeclarations)
-            {
-                node.GenerateTextUnit();
-            }
-
-            foreach (var node in this.StateDeclarations)
-            {
-                node.GenerateTextUnit();
-            }
-
-            foreach (var node in this.MethodDeclarations)
-            {
-                node.GenerateTextUnit();
-            }
-
-            foreach (var node in this.FunctionDeclarations)
-            {
-                node.GenerateTextUnit();
-            }
-
-            var text = "";
-            var initToken = this.MachineKeyword;
-
-            if (this.AbstractModifier != null)
-            {
-                initToken = this.AbstractModifier;
-                text += this.AbstractModifier.TextUnit.Text;
-                text += " ";
-            }
-
-            if (this.Modifier != null)
-            {
-                initToken = this.Modifier;
-                text += this.Modifier.TextUnit.Text;
-                text += " ";
-            }
-
-            text += this.MachineKeyword.TextUnit.Text;
-            text += " ";
-
-            text += this.Identifier.TextUnit.Text;
-
-            if (this.ColonToken != null)
-            {
-                text += " ";
-                text += this.ColonToken.TextUnit.Text;
-                text += " ";
-
-                foreach (var node in this.BaseNameTokens)
-                {
-                    text += node.TextUnit.Text;
-                }
-            }
-
-            text += "\n" + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
-
-            foreach (var node in this.FieldDeclarations)
-            {
-                text += node.GetFullText();
-            }
-
-            foreach (var node in this.StateDeclarations)
-            {
-                text += node.GetFullText();
-            }
-
-            foreach (var node in this.MethodDeclarations)
-            {
-                text += node.GetFullText();
-            }
-
-            foreach (var node in this.FunctionDeclarations)
-            {
-                text += node.GetFullText();
-            }
 
             text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
 

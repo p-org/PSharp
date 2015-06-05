@@ -34,7 +34,7 @@ namespace PingPong
             on Pong do SendPing;
         }
 
-        private action SendPing
+        private void SendPing()
         {
             this.Counter++;
             Console.WriteLine("\nTurns: {0} / 5\n", this.Counter);

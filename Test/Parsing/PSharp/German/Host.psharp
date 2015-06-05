@@ -129,7 +129,7 @@
 			on unit goto Receive;
         }
 
-		action RecAck
+		void RecAck()
 		{
 		    SharerList.RemoveAt(0);
 			S = SharerList.Count;

@@ -32,12 +32,12 @@ namespace TypesAndGenerics
             on Stop do StopIt;
         }
 
-        action SendPong
+        void SendPong()
         {
             send this.Client, Pong;
         }
 
-        action StopIt
+        void StopIt()
         {
             Console.WriteLine("Server stopped.\n");
             delete;

@@ -261,21 +261,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         }
 
         /// <summary>
-        /// Returns the full text.
-        /// </summary>
-        /// <returns>string</returns>
-        internal override string GetFullText()
-        {
-            return base.TextUnit.Text;
-        }
-
-        /// <summary>
         /// Returns the rewritten text.
         /// </summary>
         /// <returns>string</returns>
         internal override string GetRewrittenText()
         {
-            return base.RewrittenTextUnit.Text;
+            return base.TextUnit.Text;
         }
 
         /// <summary>
@@ -337,63 +328,6 @@ namespace Microsoft.PSharp.Parsing.Syntax
             }
 
             text += this.InstrumentIgnoredEvents();
-
-            text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
-
-            base.RewrittenTextUnit = new TextUnit(text, initToken.TextUnit.Line);
-        }
-
-        /// <summary>
-        /// Generates a new text unit.
-        /// </summary>
-        internal override void GenerateTextUnit()
-        {
-            if (this.EntryDeclaration != null)
-            {
-                this.EntryDeclaration.GenerateTextUnit();
-            }
-
-            if (this.ExitDeclaration != null)
-            {
-                this.ExitDeclaration.GenerateTextUnit();
-            }
-
-            foreach (var onExitAction in this.TransitionsOnExitActions)
-            {
-                onExitAction.Value.GenerateTextUnit();
-            }
-
-            foreach (var doAction in this.ActionHandlers)
-            {
-                doAction.Value.GenerateTextUnit();
-            }
-
-            var text = "";
-            var initToken = this.StateKeyword;
-
-            if (this.Modifier != null)
-            {
-                initToken = this.Modifier;
-                text += this.Modifier.TextUnit.Text;
-                text += " ";
-            }
-
-            text += this.StateKeyword.TextUnit.Text;
-            text += " ";
-
-            text += this.Identifier.TextUnit.Text;
-
-            text += "\n" + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
-
-            if (this.EntryDeclaration != null)
-            {
-                text += this.EntryDeclaration.GetFullText();
-            }
-
-            if (this.ExitDeclaration != null)
-            {
-                text += this.ExitDeclaration.GetFullText();
-            }
 
             text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
 

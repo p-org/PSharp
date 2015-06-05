@@ -62,20 +62,6 @@ namespace Microsoft.PSharp.Parsing.Syntax
         }
 
         /// <summary>
-        /// Returns the full text.
-        /// </summary>
-        /// <returns>string</returns>
-        internal override string GetFullText()
-        {
-            if (this.StmtTokens.Count == 0)
-            {
-                return "";
-            }
-
-            return base.TextUnit.Text;
-        }
-
-        /// <summary>
         /// Returns the rewritten text.
         /// </summary>
         /// <returns>string</returns>
@@ -86,7 +72,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 return "";
             }
 
-            return base.RewrittenTextUnit.Text;
+            return base.TextUnit.Text;
         }
 
         /// <summary>
@@ -110,26 +96,6 @@ namespace Microsoft.PSharp.Parsing.Syntax
             foreach (var token in this.RewrittenStmtTokens)
             {
                 text += token.TextUnit.Text;
-            }
-
-            base.RewrittenTextUnit = new TextUnit(text, this.StmtTokens.First().TextUnit.Line);
-        }
-
-        /// <summary>
-        /// Generates a new text unit.
-        /// </summary>
-        internal override void GenerateTextUnit()
-        {
-            if (this.StmtTokens.Count == 0)
-            {
-                return;
-            }
-
-            var text = "";
-
-            foreach (var tok in this.StmtTokens)
-            {
-                text += tok.TextUnit.Text;
             }
 
             base.TextUnit = new TextUnit(text, this.StmtTokens.First().TextUnit.Line);

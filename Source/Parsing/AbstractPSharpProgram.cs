@@ -62,12 +62,6 @@ namespace Microsoft.PSharp.Parsing
         public abstract string Rewrite();
 
         /// <summary>
-        /// Returns the full text of this P# program.
-        /// </summary>
-        /// <returns>Full text</returns>
-        public abstract string GetFullText();
-
-        /// <summary>
         /// Returns the rewritten to C#-IR text of this P# program.
         /// </summary>
         /// <returns>Rewritten text</returns>
@@ -75,11 +69,6 @@ namespace Microsoft.PSharp.Parsing
         {
             return this.RewrittenText;
         }
-
-        /// <summary>
-        /// Generates the text units of this P# program.
-        /// </summary>
-        public abstract void GenerateTextUnits();
 
         #endregion
 

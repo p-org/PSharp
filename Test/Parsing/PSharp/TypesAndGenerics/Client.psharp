@@ -35,7 +35,7 @@ namespace TypesAndGenerics
             on Stop do StopIt;
         }
 
-        private action SendPing
+        private void SendPing()
         {
             this.Counter++;
             Console.WriteLine("\nTurns: {0} / 5\n", this.Counter);
@@ -43,7 +43,7 @@ namespace TypesAndGenerics
             raise Unit;
         }
 
-        private action StopIt
+        private void StopIt()
         {
             Console.WriteLine("Client stopped.\n");
             delete;

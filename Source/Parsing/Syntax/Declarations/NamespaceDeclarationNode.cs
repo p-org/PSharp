@@ -70,21 +70,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         }
 
         /// <summary>
-        /// Returns the full text.
-        /// </summary>
-        /// <returns>string</returns>
-        internal override string GetFullText()
-        {
-            return base.TextUnit.Text;
-        }
-
-        /// <summary>
         /// Returns the rewritten text.
         /// </summary>
         /// <returns>string</returns>
         internal override string GetRewrittenText()
         {
-            return base.RewrittenTextUnit.Text;
+            return base.TextUnit.Text;
         }
 
         /// <summary>
@@ -122,46 +113,6 @@ namespace Microsoft.PSharp.Parsing.Syntax
             foreach (var node in this.MachineDeclarations)
             {
                 text += node.GetRewrittenText();
-            }
-
-            text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
-
-            base.RewrittenTextUnit = new TextUnit(text, this.NamespaceKeyword.TextUnit.Line);
-        }
-
-        /// <summary>
-        /// Generates a new text unit.
-        /// </summary>
-        internal override void GenerateTextUnit()
-        {
-            foreach (var node in this.EventDeclarations)
-            {
-                node.GenerateTextUnit();
-            }
-
-            foreach (var node in this.MachineDeclarations)
-            {
-                node.GenerateTextUnit();
-            }
-
-            var text = this.NamespaceKeyword.TextUnit.Text;
-            text += " ";
-
-            foreach (var token in this.IdentifierTokens)
-            {
-                text += token.TextUnit.Text;
-            }
-
-            text += "\n" + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
-
-            foreach (var node in this.EventDeclarations)
-            {
-                text += node.GetFullText();
-            }
-
-            foreach (var node in this.MachineDeclarations)
-            {
-                text += node.GetFullText();
             }
 
             text += this.RightCurlyBracketToken.TextUnit.Text + "\n";

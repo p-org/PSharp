@@ -63,23 +63,14 @@ namespace Microsoft.PSharp.Parsing.Syntax
         {
             this.MachineIdentifier = new List<Token>();
         }
-
-        /// <summary>
-        /// Returns the full text.
-        /// </summary>
-        /// <returns>string</returns>
-        internal override string GetFullText()
-        {
-            return base.TextUnit.Text;
-        }
-
+        
         /// <summary>
         /// Returns the rewritten text.
         /// </summary>
         /// <returns>string</returns>
         internal override string GetRewrittenText()
         {
-            return base.RewrittenTextUnit.Text;
+            return base.TextUnit.Text;
         }
 
         /// <summary>
@@ -129,39 +120,6 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += ")";
 
-            text += this.SemicolonToken.TextUnit.Text + "\n";
-
-            base.RewrittenTextUnit = new TextUnit(text, this.CreateKeyword.TextUnit.Line);
-        }
-
-        /// <summary>
-        /// Generates a new text unit.
-        /// </summary>
-        internal override void GenerateTextUnit()
-        {
-            var text = this.CreateKeyword.TextUnit.Text;
-            text += " ";
-
-            foreach (var id in this.MachineIdentifier)
-            {
-                text += id.TextUnit.Text;
-            }
-
-            if (this.LeftParenthesisToken != null &&
-                this.RightParenthesisToken != null)
-            {
-                text += this.LeftParenthesisToken.TextUnit.Text;
-            }
-
-            this.Payload.GenerateTextUnit();
-            text += this.Payload.GetFullText();
-
-            if (this.LeftParenthesisToken != null &&
-                this.RightParenthesisToken != null)
-            {
-                text += this.RightParenthesisToken.TextUnit.Text;
-            }
-            
             text += this.SemicolonToken.TextUnit.Text + "\n";
 
             base.TextUnit = new TextUnit(text, this.CreateKeyword.TextUnit.Line);

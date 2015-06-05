@@ -43,7 +43,7 @@ namespace BoundedAsync
             on eReq do CountReq;
         }
 
-        private action CountReq
+        private void CountReq()
         {
             this.Count++;
 

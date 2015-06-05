@@ -60,21 +60,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         }
 
         /// <summary>
-        /// Returns the full text.
-        /// </summary>
-        /// <returns>string</returns>
-        internal override string GetFullText()
-        {
-            return base.TextUnit.Text;
-        }
-
-        /// <summary>
         /// Returns the rewritten text.
         /// </summary>
         /// <returns>string</returns>
         internal override string GetRewrittenText()
         {
-            return base.RewrittenTextUnit.Text;
+            return base.TextUnit.Text;
         }
 
         /// <summary>
@@ -101,25 +92,6 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 text += this.Type.GetRewrittenText();
                 text += ")";
             }
-
-            text += this.SemicolonToken.TextUnit.Text + "\n";
-
-            base.RewrittenTextUnit = new TextUnit(text, this.DefaultKeyword.TextUnit.Line);
-        }
-
-        /// <summary>
-        /// Generates a new text unit.
-        /// </summary>
-        internal override void GenerateTextUnit()
-        {
-            var text = this.DefaultKeyword.TextUnit.Text;
-
-            text += this.LeftParenthesisToken.TextUnit.Text;
-
-            //this.TypeNode.GenerateTextUnit();
-            //text += this.TypeNode.GetFullText();
-
-            text += this.RightParenthesisToken.TextUnit.Text;
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 

@@ -30,6 +30,6 @@ namespace AbstractPong
 			on Unit do Foo;
 		}
 
-		protected abstract action Foo;
+		protected abstract void Foo();
     }
 }

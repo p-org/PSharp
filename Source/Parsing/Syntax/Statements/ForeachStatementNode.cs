@@ -65,21 +65,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         }
 
         /// <summary>
-        /// Returns the full text.
-        /// </summary>
-        /// <returns>string</returns>
-        internal override string GetFullText()
-        {
-            return base.TextUnit.Text;
-        }
-
-        /// <summary>
         /// Returns the rewritten text.
         /// </summary>
         /// <returns>string</returns>
         internal override string GetRewrittenText()
         {
-            return base.RewrittenTextUnit.Text;
+            return base.TextUnit.Text;
         }
 
         /// <summary>
@@ -102,30 +93,6 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             this.StatementBlock.Rewrite(program);
             text += this.StatementBlock.GetRewrittenText();
-
-            base.RewrittenTextUnit = new TextUnit(text, this.ForeachKeyword.TextUnit.Line);
-        }
-
-        /// <summary>
-        /// Generates a new text unit.
-        /// </summary>
-        internal override void GenerateTextUnit()
-        {
-            this.Guard.GenerateTextUnit();
-            this.StatementBlock.GenerateTextUnit();
-
-            var text = "";
-
-            text += this.ForeachKeyword.TextUnit.Text;
-            text += " ";
-
-            text += this.LeftParenthesisToken.TextUnit.Text;
-
-            text += this.Guard.GetFullText();
-
-            text += this.RightParenthesisToken.TextUnit.Text;
-
-            text += this.StatementBlock.GetFullText();
 
             base.TextUnit = new TextUnit(text, this.ForeachKeyword.TextUnit.Line);
         }

@@ -67,21 +67,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         }
 
         /// <summary>
-        /// Returns the full text.
-        /// </summary>
-        /// <returns>string</returns>
-        internal override string GetFullText()
-        {
-            return base.TextUnit.Text;
-        }
-
-        /// <summary>
         /// Returns the rewritten text.
         /// </summary>
         /// <returns>string</returns>
         internal override string GetRewrittenText()
         {
-            return base.RewrittenTextUnit.Text;
+            return base.TextUnit.Text;
         }
 
         /// <summary>
@@ -107,46 +98,6 @@ namespace Microsoft.PSharp.Parsing.Syntax
             foreach (var stmt in this.Statements)
             {
                 text += stmt.GetRewrittenText();
-            }
-
-            if (this.LeftCurlyBracketToken != null &&
-                this.RightCurlyBracketToken != null)
-            {
-                text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
-            }
-
-            if (this.LeftCurlyBracketToken != null &&
-                this.RightCurlyBracketToken != null)
-            {
-                base.RewrittenTextUnit = new TextUnit(text, this.LeftCurlyBracketToken.TextUnit.Line);
-            }
-            else
-            {
-                base.RewrittenTextUnit = new TextUnit(text, this.Statements.First().TextUnit.Line);
-            }
-        }
-
-        /// <summary>
-        /// Generates a new text unit.
-        /// </summary>
-        internal override void GenerateTextUnit()
-        {
-            foreach (var stmt in this.Statements)
-            {
-                stmt.GenerateTextUnit();
-            }
-
-            var text = "\n";
-
-            if (this.LeftCurlyBracketToken != null &&
-                this.RightCurlyBracketToken != null)
-            {
-                text += this.LeftCurlyBracketToken.TextUnit.Text + "\n";
-            }
-
-            foreach (var stmt in this.Statements)
-            {
-                text += stmt.GetFullText();
             }
 
             if (this.LeftCurlyBracketToken != null &&

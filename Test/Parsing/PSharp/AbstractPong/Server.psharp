@@ -4,7 +4,7 @@ namespace AbstractPong
 {
     internal main machine Server : BaseServer
     {
-		protected override action Foo
+		protected override void Foo()
 		{
 			Text += "world!";
 			Console.WriteLine(Text);

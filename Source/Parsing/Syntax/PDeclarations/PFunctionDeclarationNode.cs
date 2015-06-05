@@ -90,21 +90,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         }
 
         /// <summary>
-        /// Returns the full text.
-        /// </summary>
-        /// <returns>string</returns>
-        internal override string GetFullText()
-        {
-            return base.TextUnit.Text;
-        }
-
-        /// <summary>
         /// Returns the rewritten text.
         /// </summary>
         /// <returns>string</returns>
         internal override string GetRewrittenText()
         {
-            return base.RewrittenTextUnit.Text;
+            return base.TextUnit.Text;
         }
 
         /// <summary>
@@ -147,47 +138,6 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             this.StatementBlock.Rewrite(program);
             text += StatementBlock.GetRewrittenText();
-
-            base.RewrittenTextUnit = new TextUnit(text, this.FunctionKeyword.TextUnit.Line);
-        }
-
-        /// <summary>
-        /// Generates a new text unit.
-        /// </summary>
-        internal override void GenerateTextUnit()
-        {
-            var text = "";
-
-            text += this.FunctionKeyword.TextUnit.Text;
-            text += " ";
-
-            text += this.Identifier.TextUnit.Text;
-
-            text += this.LeftParenthesisToken.TextUnit.Text;
-
-            for (int idx = 0; idx < this.Parameters.Count; idx++)
-            {
-                if (idx > 0)
-                {
-                    text += ", ";
-                }
-
-                text += this.Parameters[idx].TextUnit.Text + ":";
-                //this.ParameterTypeNodes[idx].GenerateTextUnit();
-                //text += this.ParameterTypeNodes[idx].GetFullText();
-            }
-
-            text += this.RightParenthesisToken.TextUnit.Text;
-
-            if (this.ColonToken != null)
-            {
-                text += " " + this.ColonToken.TextUnit.Text + " ";
-                //this.ReturnTypeNode.GenerateTextUnit();
-                //text += this.ReturnTypeNode.GetFullText();
-            }
-
-            this.StatementBlock.GenerateTextUnit();
-            text += this.StatementBlock.GetFullText();
 
             base.TextUnit = new TextUnit(text, this.FunctionKeyword.TextUnit.Line);
         }

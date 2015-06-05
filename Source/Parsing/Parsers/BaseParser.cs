@@ -99,8 +99,7 @@ namespace Microsoft.PSharp.Parsing
                 this.ReportParsingError(ex.Message);
                 this.ExpectedTokenTypes = ex.ExpectedTokenTypes;
             }
-
-            this.Program.GenerateTextUnits();
+            
             return this.Program;
         }
 
