@@ -29,7 +29,7 @@
 			{
 			    GetNewLeader();
 				assert(CurrentLeaderRank <= MyRank);
-				//send ParentServer, newLeader (CurrentLeader, CurrentLeaderRank);
+				send ParentServer, newLeader (CurrentLeader, CurrentLeaderRank);
 			}
 		}
 

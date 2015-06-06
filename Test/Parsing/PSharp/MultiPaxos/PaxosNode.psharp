@@ -244,6 +244,8 @@
 			{
 			    send Timer, cancelTimer;
 		    };
+
+			on timeout goto ProposeValuePhase1;
 		}
 
 		void CountAccepted()
@@ -326,6 +328,8 @@
 				
 			    send Timer, cancelTimer;
 			};
+
+			on timeout goto ProposeValuePhase1;
 		}
 
 		// Learner.

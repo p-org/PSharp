@@ -10,13 +10,13 @@
 			{
 			    PaxosNodes = new List<Machine>();
 
-				var temp = create PaxosNode(3);
+				var temp = create PaxosNode(1);
 				PaxosNodes.Add(temp);
 
 				temp = create PaxosNode(2);
 				PaxosNodes.Add(temp);
 
-				temp = create PaxosNode(1);
+				temp = create PaxosNode(3);
 				PaxosNodes.Add(temp);
 
 				foreach (var node in PaxosNodes)
