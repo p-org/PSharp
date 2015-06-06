@@ -2,7 +2,8 @@
 {
     machine PaxosNode
     {
-	    Tuple<int, Machine> CurrentLeader;
+	    Machine CurrentLeader;
+		int CurrentLeaderRank;
 		Machine LeaderElectionService;
 
 		// Proposer.
@@ -15,11 +16,17 @@
 		Tuple<int, int> NextProposal;
 		Tuple<Tuple<int, int>, int> ReceivedAgree;
 		int MaxRound;
-		int CountAgree;
+		int AcceptCounter;
+		int AgreeCounter;
 		Machine Timer;
 		int NextSlotForProposer;
+		bool CurrCommitOperation;
+
+		// Acceptor.
+		Dictionary<int, Tuple<Tuple<int, int>, int>> AcceptorSlots;
 
 		// Learner.
+		Dictionary<int, Tuple<Tuple<int, int>, int>> LearnerSlots;
 		int LastExecutedSlot;
 
 	    start state Init
@@ -27,12 +34,19 @@
 		    entry
 			{
 			    Acceptors = new List<Machine>();
+				AcceptorSlots = new Dictionary<int, Tuple<Tuple<int, int>, int>>();
+				LearnerSlots = new Dictionary<int, Tuple<Tuple<int, int>, int>>();
+
+				NextProposal = Tuple.Create(0, 0);
+				ReceivedAgree = Tuple.Create(Tuple.Create(0, 0), 0);
 
 			    MyRank = (int)payload;
-				CurrentLeader = Tuple.Create(MyRank, this);
+				CurrentLeader = this;
+				CurrentLeaderRank = MyRank;
 
 				RoundNum = 0;
 				MaxRound = 0;
+				AgreeCounter = 0;
 
 				Timer = create Timer(this, 10);
 
@@ -60,7 +74,7 @@
 
 		void CheckIfLeader()
 		{
-		    if (CurrentLeader.Item1 == MyRank)
+		    if (CurrentLeaderRank == MyRank)
 			{
 			    // The node is the leader.
 				CommitValue = (int)payload[1];
@@ -70,7 +84,7 @@
 			else
 			{
 			    // Forward it to the leader.
-				send CurrentLeader.Item2, update (payload);
+				send CurrentLeader, update (payload);
 			}
 		}
 
@@ -84,11 +98,63 @@
 
 			// Acceptor.
 			on prepare do PrepareFun;
+			on accept do Acceptfun;
+
+			// Learner.
+			on chosen push RunLearner;
+
+			// Leader election.
+			on newLeader do UpdateLeader;
+		}
+
+		void UpdateLeader()
+		{
+		    CurrentLeader = payload[0] as Machine;
+		    CurrentLeaderRank = (int)payload[1];
 		}
 
 		void PrepareFun()
 		{
-		    
+			var proposer = payload[0] as Machine;
+			var slot = (int)payload[1];
+			var proposal = payload[2] as Tuple<int, int>;
+
+			if (!AcceptorSlots.ContainsKey(slot))
+			{
+			    send proposer, agree (slot, Tuple.Create(-1, -1), -1);
+				AcceptorSlots.Add(slot, Tuple.Create(Tuple.Create(proposal.Item1, proposal.Item2), -1));
+			}
+
+			if (LessThan(proposal, AcceptorSlots[slot].Item1))
+			{
+			    send proposer, reject (slot, AcceptorSlots[slot].Item1);
+			}
+			else
+			{
+			    send proposer, agree (slot, proposal, AcceptorSlots[slot].Item2);
+				AcceptorSlots[slot] = Tuple.Create(Tuple.Create(proposal.Item1, proposal.Item2), -1);
+			}
+		}
+
+		void Acceptfun()
+		{
+		    var proposer = payload[0] as Machine;
+		    var slot = (int)payload[1];
+		    var proposal = payload[2] as Tuple<int, int>;
+		    var value = (int)payload[3];
+
+			if (AcceptorSlots.ContainsKey(slot))
+			{
+			    if (!Equal(proposal, AcceptorSlots[slot].Item1))
+				{
+				    send proposer, reject (slot, AcceptorSlots[slot].Item1);
+				}
+				else
+				{
+				    AcceptorSlots[slot] = Tuple.Create(proposal, value);
+					send proposer, accepted (slot, proposal, value);
+				}
+			}
 		}
 
 		Tuple<int, int> GetNextProposal(int maxRound)
@@ -96,7 +162,54 @@
 		    return Tuple.Create(maxRound + 1, MyRank);
 		}
 
+		bool Equal (Tuple<int, int> p1, Tuple<int, int> p2)
+		{
+		    if(p1.Item1 == p2.Item1 && p1.Item2 == p2.Item2)
+			    return true;
+			else
+			    return false;
+		}
+		
+		bool LessThan (Tuple<int, int> p1, Tuple<int, int> p2)
+		{
+		    if (p1.Item1 < p2.Item1)
+			{
+			    return true;
+			}
+			else if (p1.Item1 == p2.Item1)
+			{
+			    if (p1.Item2 < p2.Item2)
+				    return true;
+			    else
+				    return false;
+			}
+			else
+			{
+			    return false;
+			}
+		}
+
 		// Proposer.
+
+		void CountAgree()
+		{
+		    var slot = (int)payload[0];
+		    var proposal = payload[1] as Tuple<int, int>;
+			var value = (int)payload[2];
+
+			if (slot == NextSlotForProposer)
+			{
+			    AgreeCounter++;
+
+				if (LessThan(ReceivedAgree.Item1, proposal))
+				{
+				    ReceivedAgree = Tuple.Create(proposal, value);
+				}
+
+				if (AgreeCounter == Majority)
+				    raise success;
+			}
+		}
 
 		state ProposeValuePhase1
 		{
@@ -104,18 +217,167 @@
 
 		    entry
 			{
-			    CountAgree = 0;
+			    AgreeCounter = 0;
 				NextProposal = GetNextProposal(MaxRound);
 				ReceivedAgree = Tuple.Create(Tuple.Create(-1, -1), -1);
 
 				foreach (var acceptor in Acceptors)
 				{
-			        send acceptor, prepare (Tuple.Create(this, NextSlotForProposer,
-				        Tuple.Create(NextProposal.Item1, MyRank)));
+			        send acceptor, prepare (this, NextSlotForProposer, Tuple.Create(NextProposal.Item1, MyRank));
 				}
 
 				monitor ValMachineItyCheck, monitor_proposer_sent (ProposeVal);
 				send Timer, startTimer;
+			}
+
+			on agree do CountAgree;
+
+			on reject goto ProposeValuePhase1 with {
+			    var round = (payload[1] as Tuple<int, int>).Item1;
+			    if (NextProposal.Item1 <= round)
+				    MaxRound = round;
+				
+			    send Timer, cancelTimer;
+			};
+
+			on success goto ProposeValuePhase2 with
+			{
+			    send Timer, cancelTimer;
+		    };
+		}
+
+		void CountAccepted()
+		{
+		    var slot = (int)payload[0];
+		    var proposal = payload[1] as Tuple<int, int>;
+			var value = (int)payload[2];
+
+			if (slot == NextSlotForProposer)
+			{
+			    if (this.Equal(proposal, NextProposal))
+				{
+				    AcceptCounter++;
+				}
+
+				if (AcceptCounter == Majority)
+				{
+				    raise chosen (payload);
+				}
+			}
+		}
+
+		int GetHighestProposedValue()
+		{
+		    if (ReceivedAgree.Item2 != -1)
+		    {
+			    CurrCommitOperation = false;
+			    return ReceivedAgree.Item2;
+		    }
+		    else
+		    {
+			    CurrCommitOperation = true;
+			    return CommitValue;
+		    }
+		}
+
+		state ProposeValuePhase2
+		{
+		    ignore agree;
+
+			entry
+			{
+			    AcceptCounter = 0;
+				ProposeVal = GetHighestProposedValue();
+
+				// Monitor the monitor on proposal event.
+				monitor BasicPaxosInvariant_P2b, monitor_valueProposed (this, NextSlotForProposer, NextProposal, ProposeVal);
+				monitor ValMachineItyCheck, monitor_proposer_sent (ProposeVal);
+				
+				foreach (var acceptor in Acceptors)
+				{
+			        send acceptor, accept (this, NextSlotForProposer, NextProposal, ProposeVal);
+				}
+
+				send Timer, startTimer;
+			}
+
+			exit
+			{
+			    if (trigger == typeof(chosen))
+				{
+				    // The value is chosen, hence invoke the monitor on chosen event.
+					monitor BasicPaxosInvariant_P2b, monitor_valueChosen (this, NextSlotForProposer, NextProposal, ProposeVal);
+
+					send Timer, cancelTimer;
+
+					monitor ValMachineItyCheck, monitor_proposer_chosen (ProposeVal);
+
+					// Increment the nextSlotForProposer.
+					NextSlotForProposer++;
+				}
+			}
+
+			on accepted do CountAccepted;
+
+			on reject goto ProposeValuePhase1 with {
+			    var round = (payload[1] as Tuple<int, int>).Item1;
+			    if (NextProposal.Item1 <= round)
+				    MaxRound = round;
+				
+			    send Timer, cancelTimer;
+			};
+		}
+
+		// Learner.
+
+		void RunReplicatedMachine()
+		{
+		    while(true)
+			{
+			    if (LearnerSlots.ContainsKey(LastExecutedSlot + 1))
+			    {
+				    // Run the machine.
+				    LastExecutedSlot++;
+			    }
+			    else
+			    {
+				    return;
+			    }
+		    }
+		}
+
+		state RunLearner
+		{
+		    ignore agree, accepted, timeout, prepare, reject, accept;
+
+			defer newLeader;
+
+			entry
+			{
+				var slot = (int)payload[0];
+				var proposal = payload[1] as Tuple<int, int>;
+				var value = (int)payload[2];
+
+				if (!LearnerSlots.ContainsKey(slot))
+				{
+				    LearnerSlots.Add(slot, Tuple.Create(proposal, value));
+				}
+				else
+				{
+				    LearnerSlots[slot] = Tuple.Create(proposal, value);
+				}
+
+				RunReplicatedMachine();
+
+				if (CurrCommitOperation && CommitValue == value)
+				{
+				    pop;
+				}
+				else
+				{
+				    ProposeVal = CommitValue;
+					raise goPropose;
+				}
 			}
 		}
     }

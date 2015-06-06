@@ -151,6 +151,10 @@ namespace Microsoft.PSharp.Parsing.Syntax
             {
                 this.RewriteThis();
             }
+            else if (token.Type == TokenType.Trigger)
+            {
+                this.RewriteTrigger();
+            }
             else if (token.Type == TokenType.NonDeterministic)
             {
                 this.RewriteNonDeterministicChoice();
@@ -223,7 +227,17 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line));
             }
         }
-        
+
+        /// <summary>
+        /// Rewrites the trigger keyword.
+        /// </summary>
+        private void RewriteTrigger()
+        {
+            int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
+            var text = "this.Trigger";
+            this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line));
+        }
+
         /// <summary>
         /// Rewrites the identifier.
         /// </summary>

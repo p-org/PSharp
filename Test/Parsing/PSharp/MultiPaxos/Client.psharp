@@ -22,6 +22,8 @@
 		{
 		    entry
 			{
+			    monitor ValMachineItyCheck, monitor_client_sent (1);
+
 			    if ($)
 				{
 				    send Servers[0], update (0, 1);
@@ -39,6 +41,8 @@
 		{
 		    entry
 			{
+			    monitor ValMachineItyCheck, monitor_client_sent (2);
+
 			    if ($)
 				    send Servers[0], update (0, 2);
 				else

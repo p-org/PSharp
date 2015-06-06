@@ -2,9 +2,59 @@
 {
     machine LeaderElection
     {
+	    List<Machine> Servers;
+		Machine ParentServer;
+		Machine CurrentLeader;
+		int CurrentLeaderRank;
+		int MyRank;
+
 	    start state Init
 		{
+		    entry
+			{
+			    Servers = payload[0] as List<Machine>;
+				ParentServer = payload[1] as Machine;
+				MyRank = (int)payload[2];
+				CurrentLeader = this;
+				CurrentLeaderRank = MyRank;
+				raise local;
+			}
 
+			on local goto SendLeader;
+		}
+
+		state SendLeader
+		{
+		    entry
+			{
+			    GetNewLeader();
+				assert(CurrentLeaderRank <= MyRank);
+				//send ParentServer, newLeader (CurrentLeader, CurrentLeaderRank);
+			}
+		}
+
+		void GetNewLeader()
+		{
+		    /*
+		    for (int idx = 0; idx < Servers.Count; idx++)
+			{
+			    if (idx + 1 < MyRank)
+				{
+					if ($)
+					{
+					    CurrentLeader = Servers[idx];
+						CurrentLeaderRank = idx + 1;
+						return;
+					}
+				}
+			}
+
+			CurrentLeader = ParentServer;
+			CurrentLeaderRank = MyRank;
+			*/
+			
+			CurrentLeader = Servers[0];
+			CurrentLeaderRank = 1;
 		}
     }
 }

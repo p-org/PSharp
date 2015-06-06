@@ -276,8 +276,6 @@ namespace Microsoft.PSharp
 
             Runtime.Assert(typeof(T).IsSubclassOf(typeof(Monitor)), "Type '{0}' is not a subclass " +
                 "of Monitor.\n", typeof(T).Name);
-            Runtime.Assert(!Runtime.Monitors.Any(val => val.GetType() == typeof(T)),
-                "A monitor of type '{0}' already exists.", typeof(T).Name);
 
             Object monitor = Activator.CreateInstance(typeof(T));
             (monitor as Monitor).AssignInitialPayload(payload);
@@ -352,9 +350,6 @@ namespace Microsoft.PSharp
             {
                 return;
             }
-
-            Runtime.Assert(Runtime.Monitors.Any(val => val.GetType() == typeof(T)),
-                "A monitor of type '{0}' does not exist.", typeof(T).Name);
 
             foreach (var m in Runtime.Monitors)
             {
