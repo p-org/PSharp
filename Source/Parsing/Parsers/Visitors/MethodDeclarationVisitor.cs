@@ -42,10 +42,16 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="inheritanceModifier">Inheritance modifier</param>
         /// <param name="typeIdentifier">TypeIdentifier</param>
         /// <param name="identifier">Identifier</param>
-        internal void Visit(MachineDeclarationNode parentNode, Token modifier,
-            Token inheritanceModifier, Token typeIdentifier, Token identifier)
+        /// <param name="isModel">Is model</param>
+        internal void Visit(MachineDeclarationNode parentNode, Token modifier, Token inheritanceModifier,
+            Token typeIdentifier, Token identifier, bool isModel)
         {
-            var node = new MethodDeclarationNode();
+            if (parentNode.IsModel)
+            {
+                isModel = true;
+            }
+
+            var node = new MethodDeclarationNode(isModel);
             node.Modifier = modifier;
             node.InheritanceModifier = inheritanceModifier;
             node.TypeIdentifier = typeIdentifier;
@@ -86,7 +92,7 @@ namespace Microsoft.PSharp.Parsing
 
             if (base.TokenStream.Peek().Type == TokenType.LeftCurlyBracket)
             {
-                var blockNode = new StatementBlockNode(parentNode, null);
+                var blockNode = new StatementBlockNode(parentNode, null, parentNode.IsModel);
                 new StatementBlockVisitor(base.TokenStream).Visit(blockNode);
                 node.StatementBlock = blockNode;
             }

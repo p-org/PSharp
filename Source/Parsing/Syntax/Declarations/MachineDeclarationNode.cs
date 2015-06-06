@@ -104,9 +104,10 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         /// <param name="isPSharp">Is P# machine</param>
         /// <param name="isMain">Is main machine</param>
+        /// <param name="isModel">Is a model</param>
         /// <param name="isMonitor">Is a monitor</param>
-        internal MachineDeclarationNode(bool isMain, bool isMonitor)
-            : base()
+        internal MachineDeclarationNode(bool isMain, bool isModel, bool isMonitor)
+            : base(isModel)
         {
             this.IsMain = isMain;
             this.IsMonitor = isMonitor;
@@ -159,6 +160,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
             if (this.IsMain)
             {
                 text += "[Main]\n";
+            }
+
+            if (base.IsModel)
+            {
+                text += "[Model]\n";
             }
 
             if (this.Modifier != null)

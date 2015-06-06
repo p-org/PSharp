@@ -41,8 +41,12 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="isModel">Is model</param>
         internal void Visit(MachineDeclarationNode parentNode, bool isModel)
         {
-            var node = new PFunctionDeclarationNode();
-            node.IsModel = isModel;
+            if (parentNode.IsModel)
+            {
+                isModel = true;
+            }
+
+            var node = new PFunctionDeclarationNode(isModel);
 
             if (isModel)
             {
@@ -208,7 +212,7 @@ namespace Microsoft.PSharp.Parsing
                 });
             }
 
-            var blockNode = new StatementBlockNode(parentNode, null);
+            var blockNode = new StatementBlockNode(parentNode, null, node.IsModel);
             new StatementBlockVisitor(base.TokenStream).Visit(blockNode);
             node.StatementBlock = blockNode;
 

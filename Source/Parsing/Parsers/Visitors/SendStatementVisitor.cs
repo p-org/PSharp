@@ -131,7 +131,7 @@ namespace Microsoft.PSharp.Parsing
                 {
                     if (base.TokenStream.Peek().Type == TokenType.Payload)
                     {
-                        var payloadNode = new PPayloadReceiveNode();
+                        var payloadNode = new PPayloadReceiveNode(machineIdentifier.IsModel);
                         new ReceivedPayloadVisitor(base.TokenStream).Visit(payloadNode);
                         machineIdentifier.StmtTokens.Add(null);
                         machineIdentifier.Payloads.Add(payloadNode);

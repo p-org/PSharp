@@ -63,6 +63,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Constructor.
         /// </summary>
         internal NamespaceDeclarationNode()
+            : base(false)
         {
             this.IdentifierTokens = new List<Token>();
             this.EventDeclarations = new List<EventDeclarationNode>();

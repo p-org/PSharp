@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using Microsoft.PSharp.Parsing.Syntax;
 
@@ -82,9 +83,24 @@ namespace Microsoft.PSharp.Parsing
                         break;
                     }
 
+                    if (base.TokenStream.Peek().Type == TokenType.NonDeterministic &&
+                        !parentNode.IsModel)
+                    {
+                        throw new ParsingException("Can only use the nondeterministic \"$\" " +
+                            "in a model machine or method.",
+                            new List<TokenType>());
+                    }
+
                     guard.StmtTokens.Add(base.TokenStream.Peek());
                     base.TokenStream.Index++;
                     base.TokenStream.SkipCommentTokens();
+                }
+
+                if (guard.StmtTokens.Any(tok => tok.Type == TokenType.NonDeterministic) &&
+                    guard.StmtTokens.Count > 1)
+                {
+                    throw new ParsingException("Unexpected guard expression.",
+                        new List<TokenType>());
                 }
 
                 node.Guard = guard;
@@ -98,7 +114,7 @@ namespace Microsoft.PSharp.Parsing
                 {
                     if (base.TokenStream.Peek().Type == TokenType.Payload)
                     {
-                        var payloadNode = new PPayloadReceiveNode();
+                        var payloadNode = new PPayloadReceiveNode(guard.IsModel);
                         new ReceivedPayloadVisitor(base.TokenStream).Visit(payloadNode);
                         guard.StmtTokens.Add(null);
                         guard.Payloads.Add(payloadNode);
@@ -202,7 +218,8 @@ namespace Microsoft.PSharp.Parsing
                 }
             }
             
-            var blockNode = new StatementBlockNode(parentNode.Machine, parentNode.State);
+            var blockNode = new StatementBlockNode(parentNode.Machine,
+                parentNode.State, parentNode.IsModel);
 
             if (base.TokenStream.Peek().Type == TokenType.New)
             {
@@ -337,7 +354,8 @@ namespace Microsoft.PSharp.Parsing
                     }
                 }
 
-                var elseBlockNode = new StatementBlockNode(parentNode.Machine, parentNode.State);
+                var elseBlockNode = new StatementBlockNode(parentNode.Machine,
+                    parentNode.State, parentNode.IsModel);
 
                 if (base.TokenStream.Peek().Type == TokenType.New)
                 {

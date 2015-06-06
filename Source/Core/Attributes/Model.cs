@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="Ghost.cs" company="Microsoft">
+// <copyright file="Model.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -23,5 +23,5 @@ namespace Microsoft.PSharp
     /// not be used for code generation, but only for
     /// testing purposes.
     /// </summary>
-    public sealed class Ghost : Attribute { }
+    public sealed class Model : Attribute { }
 }

@@ -26,9 +26,27 @@ namespace Microsoft.PSharp.Parsing.Syntax
         #region fields
 
         /// <summary>
+        /// True if the node is a model.
+        /// </summary>
+        internal readonly bool IsModel;
+
+        /// <summary>
         /// The text unit.
         /// </summary>
         internal TextUnit TextUnit;
+
+        #endregion
+
+        #region protected API
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="isModel">Is a model</param>
+        protected PSharpSyntaxNode(bool isModel)
+        {
+            this.IsModel = isModel;
+        }
 
         #endregion
 

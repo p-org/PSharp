@@ -114,8 +114,9 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         /// <param name="machineNode">PMachineDeclarationNode</param>
         /// <param name="isInit">Is initial state</param>
-        internal StateDeclarationNode(MachineDeclarationNode machineNode, bool isInit)
-            : base()
+        /// <param name="isModel">Is a model</param>
+        internal StateDeclarationNode(MachineDeclarationNode machineNode, bool isInit, bool isModel)
+            : base(isModel)
         {
             this.IsInitial = isInit;
             this.Machine = machineNode;

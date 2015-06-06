@@ -80,6 +80,12 @@ namespace Microsoft.PSharp.Parsing
                     break;
                 }
 
+                if (base.TokenStream.Peek().Type == TokenType.NonDeterministic)
+                {
+                    throw new ParsingException("Can only use the nondeterministic \"$\" " +
+                        "keyword as the guard of an if statement.", new List<TokenType>());
+                }
+
                 guard.StmtTokens.Add(base.TokenStream.Peek());
                 base.TokenStream.Index++;
                 base.TokenStream.SkipCommentTokens();
@@ -131,7 +137,7 @@ namespace Microsoft.PSharp.Parsing
                 });
             }
 
-            var blockNode = new StatementBlockNode(parentNode.Machine, parentNode.State);
+            var blockNode = new StatementBlockNode(parentNode.Machine, parentNode.State, parentNode.IsModel);
 
             if (base.TokenStream.Peek().Type == TokenType.New)
             {

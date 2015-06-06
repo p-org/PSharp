@@ -105,17 +105,20 @@ namespace Microsoft.PSharp.Parsing
                     break;
 
                 case TokenType.MachineDecl:
-                    new MachineDeclarationVisitor(base.TokenStream).Visit(this.Program, null, false, false, null, null);
+                    new MachineDeclarationVisitor(base.TokenStream).Visit(this.Program,
+                        null, false, false, false, null, null);
                     base.TokenStream.Index++;
                     break;
 
                 case TokenType.ModelDecl:
-                    new MachineDeclarationVisitor(base.TokenStream).Visit(this.Program, null, false, false, null, null);
+                    new MachineDeclarationVisitor(base.TokenStream).Visit(this.Program,
+                        null, false, true, false, null, null);
                     base.TokenStream.Index++;
                     break;
 
                 case TokenType.Monitor:
-                    new MachineDeclarationVisitor(base.TokenStream).Visit(this.Program, null, false, true, null, null);
+                    new MachineDeclarationVisitor(base.TokenStream).Visit(this.Program,
+                        null, false, false, true, null, null);
                     base.TokenStream.Index++;
                     break;
 
@@ -150,8 +153,17 @@ namespace Microsoft.PSharp.Parsing
                     TokenType.ModelDecl
                 });
             }
-            
-            new MachineDeclarationVisitor(base.TokenStream).Visit(this.Program, null, true, false, null, null);
+
+            if (base.TokenStream.Peek().Type == TokenType.MachineDecl)
+            {
+                new MachineDeclarationVisitor(base.TokenStream).Visit(this.Program, null,
+                    true, false, false, null, null);
+            }
+            else if (base.TokenStream.Peek().Type == TokenType.ModelDecl)
+            {
+                new MachineDeclarationVisitor(base.TokenStream).Visit(this.Program, null,
+                    true, true, false, null, null);
+            }
         }
 
         #endregion

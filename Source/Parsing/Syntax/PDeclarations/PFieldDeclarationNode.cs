@@ -48,8 +48,9 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Constructor
         /// </summary>
         /// <param name="machineNode">PMachineDeclarationNode</param>
-        internal PFieldDeclarationNode(MachineDeclarationNode machineNode)
-            : base(machineNode)
+        /// <param name="isModel">Is a model</param>
+        internal PFieldDeclarationNode(MachineDeclarationNode machineNode, bool isModel)
+            : base(machineNode, isModel)
         {
 
         }

@@ -40,8 +40,9 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="parentNode">Node</param>
         /// <param name="modifier">Modifier</param>
         /// <param name="inheritanceModifier">Inheritance modifier</param>
+        /// <param name="isModel">Is model</param>
         internal void Visit(MachineDeclarationNode parentNode, Token modifier,
-            Token inheritanceModifier)
+            Token inheritanceModifier, bool isModel)
         {
             TextUnit textUnit = null;
             new TypeIdentifierVisitor(base.TokenStream).Visit(ref textUnit);
@@ -76,8 +77,8 @@ namespace Microsoft.PSharp.Parsing
 
             if (base.TokenStream.Peek().Type == TokenType.LeftParenthesis)
             {
-                new MethodDeclarationVisitor(base.TokenStream).Visit(
-                    parentNode, modifier, inheritanceModifier, typeIdentifier, identifierToken);
+                new MethodDeclarationVisitor(base.TokenStream).Visit(parentNode, modifier,
+                    inheritanceModifier, typeIdentifier, identifierToken, isModel);
             }
             else if (base.TokenStream.Peek().Type == TokenType.Semicolon)
             {
@@ -88,7 +89,7 @@ namespace Microsoft.PSharp.Parsing
                         new List<TokenType>());
                 }
 
-                var node = new FieldDeclarationNode(parentNode);
+                var node = new FieldDeclarationNode(parentNode, parentNode.IsModel);
                 node.Modifier = modifier;
                 node.TypeIdentifier = typeIdentifier;
                 node.Identifier = identifierToken;

@@ -40,7 +40,7 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="parentNode">Node</param>
         internal void Visit(StateDeclarationNode parentNode)
         {
-            var node = new EntryDeclarationNode();
+            var node = new EntryDeclarationNode(parentNode.IsModel);
             node.EntryKeyword = base.TokenStream.Peek();
 
             base.TokenStream.Index++;
@@ -56,7 +56,7 @@ namespace Microsoft.PSharp.Parsing
                 });
             }
 
-            var blockNode = new StatementBlockNode(parentNode.Machine, parentNode);
+            var blockNode = new StatementBlockNode(parentNode.Machine, parentNode, node.IsModel);
             new StatementBlockVisitor(base.TokenStream).Visit(blockNode);
             node.StatementBlock = blockNode;
 

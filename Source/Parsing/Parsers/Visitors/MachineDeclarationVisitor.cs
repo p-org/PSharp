@@ -40,13 +40,14 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="program">Program</param>
         /// <param name="parentNode">Node</param>
         /// <param name="isMain">Is main machine</param>
+        /// <param name="isModel">Is a model</param>
         /// <param name="isMonitor">Is a monitor</param>
         /// <param name="modifier">Modifier</param>
         /// <param name="abstractModifier">Abstract modifier</param>
         internal void Visit(IPSharpProgram program, NamespaceDeclarationNode parentNode, bool isMain,
-            bool isMonitor, Token modifier, Token abstractModifier)
+            bool isModel, bool isMonitor, Token modifier, Token abstractModifier)
         {
-            var node = new MachineDeclarationNode(isMain, isMonitor);
+            var node = new MachineDeclarationNode(isMain, isModel, isMonitor);
             node.Modifier = modifier;
             node.AbstractModifier = abstractModifier;
             node.MachineKeyword = base.TokenStream.Peek();
@@ -174,6 +175,7 @@ namespace Microsoft.PSharp.Parsing
                     TokenType.Protected,
                     TokenType.StartState,
                     TokenType.StateDecl,
+                    TokenType.ModelDecl,
                     TokenType.LeftSquareBracket,
                     TokenType.RightCurlyBracket
                 });
@@ -208,6 +210,11 @@ namespace Microsoft.PSharp.Parsing
                     base.TokenStream.Index++;
                     break;
 
+                case TokenType.ModelDecl:
+                    new FieldOrMethodDeclarationVisitor(base.TokenStream).Visit(node, null, null, true);
+                    base.TokenStream.Index++;
+                    break;
+
                 case TokenType.Void:
                 case TokenType.Object:
                 case TokenType.Int:
@@ -215,7 +222,7 @@ namespace Microsoft.PSharp.Parsing
                 case TokenType.Double:
                 case TokenType.Bool:
                 case TokenType.Identifier:
-                    new FieldOrMethodDeclarationVisitor(base.TokenStream).Visit(node, null, null);
+                    new FieldOrMethodDeclarationVisitor(base.TokenStream).Visit(node, null, null, false);
                     base.TokenStream.Index++;
                     break;
 
@@ -281,6 +288,7 @@ namespace Microsoft.PSharp.Parsing
                 base.TokenStream.Peek().Type != TokenType.StartState &&
                 base.TokenStream.Peek().Type != TokenType.StateDecl &&
                 base.TokenStream.Peek().Type != TokenType.MachineDecl &&
+                base.TokenStream.Peek().Type != TokenType.ModelDecl &&
                 base.TokenStream.Peek().Type != TokenType.Void &&
                 base.TokenStream.Peek().Type != TokenType.Object &&
                 base.TokenStream.Peek().Type != TokenType.Int &&
@@ -298,6 +306,7 @@ namespace Microsoft.PSharp.Parsing
                     TokenType.StartState,
                     TokenType.StateDecl,
                     TokenType.MachineDecl,
+                    TokenType.ModelDecl,
                     TokenType.Void,
                     TokenType.Object,
                     TokenType.Int,
@@ -308,11 +317,51 @@ namespace Microsoft.PSharp.Parsing
                 });
             }
 
+            var isModel = false;
+            if (base.TokenStream.Peek().Type == TokenType.ModelDecl)
+            {
+                isModel = true;
+
+                base.TokenStream.Index++;
+                base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+
+                if (base.TokenStream.Done ||
+                    (base.TokenStream.Peek().Type != TokenType.Abstract &&
+                    base.TokenStream.Peek().Type != TokenType.Virtual &&
+                    base.TokenStream.Peek().Type != TokenType.Override && 
+                    base.TokenStream.Peek().Type != TokenType.MachineDecl &&
+                    base.TokenStream.Peek().Type != TokenType.Void &&
+                    base.TokenStream.Peek().Type != TokenType.Object &&
+                    base.TokenStream.Peek().Type != TokenType.Int &&
+                    base.TokenStream.Peek().Type != TokenType.Float &&
+                    base.TokenStream.Peek().Type != TokenType.Double &&
+                    base.TokenStream.Peek().Type != TokenType.Bool &&
+                    base.TokenStream.Peek().Type != TokenType.Identifier))
+                {
+                    throw new ParsingException("Expected method declaration.",
+                        new List<TokenType>
+                    {
+                        TokenType.Abstract,
+                        TokenType.Virtual,
+                        TokenType.Override,
+                        TokenType.MachineDecl,
+                        TokenType.Void,
+                        TokenType.Object,
+                        TokenType.Int,
+                        TokenType.Float,
+                        TokenType.Double,
+                        TokenType.Bool,
+                        TokenType.Identifier
+                    });
+                }
+            }
+
+            Token inheritanceModifier = null;
             if (base.TokenStream.Peek().Type == TokenType.Abstract ||
                 base.TokenStream.Peek().Type == TokenType.Virtual ||
                 base.TokenStream.Peek().Type == TokenType.Override)
             {
-                var inheritanceModifier = base.TokenStream.Peek();
+                inheritanceModifier = base.TokenStream.Peek();
 
                 base.TokenStream.Index++;
                 base.TokenStream.SkipWhiteSpaceAndCommentTokens();
@@ -340,10 +389,9 @@ namespace Microsoft.PSharp.Parsing
                         TokenType.Identifier
                     });
                 }
-
-                new FieldOrMethodDeclarationVisitor(base.TokenStream).Visit(parentNode, modifier, inheritanceModifier);
             }
-            else if (base.TokenStream.Peek().Type == TokenType.StartState)
+
+            if (base.TokenStream.Peek().Type == TokenType.StartState)
             {
                 this.VisitStartStateModifier(parentNode, modifier);
             }
@@ -353,7 +401,8 @@ namespace Microsoft.PSharp.Parsing
             }
             else
             {
-                new FieldOrMethodDeclarationVisitor(base.TokenStream).Visit(parentNode, modifier, null);
+                new FieldOrMethodDeclarationVisitor(base.TokenStream).Visit(parentNode,
+                    modifier, inheritanceModifier, isModel);
             }
         }
 

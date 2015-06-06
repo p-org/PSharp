@@ -101,7 +101,7 @@ namespace Microsoft.PSharp.Parsing
 
                 var monitorIdentifier = new PExpressionNode(parentNode);
 
-                var payloadNode = new PPayloadReceiveNode();
+                var payloadNode = new PPayloadReceiveNode(monitorIdentifier.IsModel);
                 new ReceivedPayloadVisitor(base.TokenStream).Visit(payloadNode);
                 monitorIdentifier.StmtTokens.Add(null);
                 monitorIdentifier.Payloads.Add(payloadNode);

@@ -42,8 +42,9 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor.
         /// </summary>
-        internal EntryDeclarationNode()
-            : base()
+        /// <param name="isModel">Is a model</param>
+        internal EntryDeclarationNode(bool isModel)
+            : base(isModel)
         {
 
         }

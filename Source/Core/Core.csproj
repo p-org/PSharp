@@ -52,7 +52,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Attributes\EntryPoint.cs" />
-    <Compile Include="Attributes\Ghost.cs" />
+    <Compile Include="Attributes\Model.cs" />
     <Compile Include="Attributes\Initial.cs" />
     <Compile Include="Attributes\Main.cs" />
     <Compile Include="Collections\Container.cs" />

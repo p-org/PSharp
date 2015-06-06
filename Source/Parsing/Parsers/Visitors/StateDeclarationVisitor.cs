@@ -42,7 +42,7 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="modifier">Modifier</param>
         internal void Visit(MachineDeclarationNode parentNode, bool isInit, Token modifier)
         {
-            var node = new StateDeclarationNode(parentNode, isInit);
+            var node = new StateDeclarationNode(parentNode, isInit, parentNode.IsModel);
             node.Modifier = modifier;
             node.StateKeyword = base.TokenStream.Peek();
 

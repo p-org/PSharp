@@ -62,8 +62,9 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor.
         /// </summary>
-        internal PPayloadReceiveNode()
-            : base()
+        /// <param name="isModel">Is a model</param>
+        internal PPayloadReceiveNode(bool isModel)
+            : base(isModel)
         {
 
         }

@@ -26,11 +26,6 @@ namespace Microsoft.PSharp.Parsing.Syntax
         #region fields
 
         /// <summary>
-        /// True if the function is a model.
-        /// </summary>
-        internal bool IsModel;
-
-        /// <summary>
         /// The function keyword.
         /// </summary>
         internal Token FunctionKeyword;
@@ -82,8 +77,9 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor.
         /// </summary>
-        internal PFunctionDeclarationNode()
-            : base()
+        /// <param name="isModel">Is a model</param>
+        internal PFunctionDeclarationNode(bool isModel)
+            : base(isModel)
         {
             this.Parameters = new List<Token>();
             this.ParameterTypes = new List<PBaseType>();
@@ -106,6 +102,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
         internal override void Rewrite(IPSharpProgram program)
         {
             var text = "";
+
+            if (base.IsModel)
+            {
+                text += "[Model]\n";
+            }
 
             if (this.ColonToken != null)
             {

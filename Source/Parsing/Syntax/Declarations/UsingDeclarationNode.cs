@@ -48,6 +48,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Constructor.
         /// </summary>
         internal UsingDeclarationNode()
+            : base(false)
         {
             this.IdentifierTokens = new List<Token>();
         }

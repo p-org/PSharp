@@ -80,6 +80,15 @@ namespace Microsoft.PSharp.Parsing.Syntax
         #region internal API
 
         /// <summary>
+        /// Constructor.
+        /// </summary>
+        internal EventDeclarationNode()
+            : base(false)
+        {
+
+        }
+
+        /// <summary>
         /// Returns the rewritten text.
         /// </summary>
         /// <returns>string</returns>

@@ -132,7 +132,7 @@ namespace Microsoft.PSharp.Parsing
 
                 if (base.TokenStream.Peek().Type == TokenType.LeftCurlyBracket)
                 {
-                    var blockNode = new StatementBlockNode(parentNode.Machine, null);
+                    var blockNode = new StatementBlockNode(parentNode.Machine, null, parentNode.IsModel);
                     new StatementBlockVisitor(base.TokenStream).Visit(blockNode);
 
                     foreach (var eventIdentifier in eventIdentifiers)
@@ -221,7 +221,7 @@ namespace Microsoft.PSharp.Parsing
                         });
                     }
 
-                    var blockNode = new StatementBlockNode(parentNode.Machine, null);
+                    var blockNode = new StatementBlockNode(parentNode.Machine, null, parentNode.IsModel);
                     new StatementBlockVisitor(base.TokenStream).Visit(blockNode);
 
                     foreach (var eventIdentifier in eventIdentifiers)

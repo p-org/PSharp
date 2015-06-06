@@ -44,7 +44,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         /// <param name="node">Node</param>
         internal StatementNode(StatementBlockNode node)
-            : base()
+            : base(node.IsModel)
         {
             this.Parent = node;
         }

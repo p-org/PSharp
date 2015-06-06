@@ -59,7 +59,10 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         /// <param name="machineNode">MachineDeclarationNode</param>
         /// <param name="stateNode">StateDeclarationNode</param>
-        internal StatementBlockNode(MachineDeclarationNode machineNode, StateDeclarationNode stateNode)
+        /// <param name="isModel">Is a model</param>
+        internal StatementBlockNode(MachineDeclarationNode machineNode,
+            StateDeclarationNode stateNode, bool isModel)
+            : base(isModel)
         {
             this.Machine = machineNode;
             this.State = stateNode;

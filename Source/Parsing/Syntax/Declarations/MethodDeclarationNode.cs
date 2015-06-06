@@ -77,8 +77,9 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor.
         /// </summary>
-        internal MethodDeclarationNode()
-            : base()
+        /// <param name="isModel">Is a model</param>
+        internal MethodDeclarationNode(bool isModel)
+            : base(isModel)
         {
             this.Parameters = new List<Token>();
         }
@@ -101,6 +102,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
         {
             var text = "";
             Token initToken = null;
+
+            if (base.IsModel)
+            {
+                text += "[Model]\n";
+            }
 
             if (this.Modifier != null)
             {
