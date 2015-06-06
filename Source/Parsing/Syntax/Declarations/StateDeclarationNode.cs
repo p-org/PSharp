@@ -41,9 +41,9 @@ namespace Microsoft.PSharp.Parsing.Syntax
         internal Token StateKeyword;
 
         /// <summary>
-        /// The modifier token.
+        /// The access modifier.
         /// </summary>
-        internal Token Modifier;
+        internal AccessModifier AccessModifier;
 
         /// <summary>
         /// The identifier token.
@@ -288,18 +288,19 @@ namespace Microsoft.PSharp.Parsing.Syntax
             }
 
             var text = "";
-            var initToken = this.StateKeyword;
 
             if (this.IsInitial)
             {
                 text += "[Initial]\n";
             }
 
-            if (this.Modifier != null)
+            if (this.AccessModifier == AccessModifier.Protected)
             {
-                initToken = this.Modifier;
-                text += this.Modifier.TextUnit.Text;
-                text += " ";
+                text += "protected ";
+            }
+            else if (this.AccessModifier == AccessModifier.Private)
+            {
+                text += "private ";
             }
 
             if (!this.Machine.IsMonitor)
@@ -332,7 +333,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, initToken.TextUnit.Line);
+            base.TextUnit = new TextUnit(text, this.StateKeyword.TextUnit.Line);
         }
 
         #endregion

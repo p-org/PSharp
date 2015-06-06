@@ -41,14 +41,14 @@ namespace Microsoft.PSharp.Parsing.Syntax
         internal Token MachineKeyword;
 
         /// <summary>
-        /// The modifier token.
+        /// The access modifier.
         /// </summary>
-        internal Token Modifier;
+        internal AccessModifier AccessModifier;
 
         /// <summary>
-        /// The abstract modifier token.
+        /// The inheritance modifier.
         /// </summary>
-        internal Token AbstractModifier;
+        internal InheritanceModifier InheritanceModifier;
 
         /// <summary>
         /// The identifier token.
@@ -155,7 +155,6 @@ namespace Microsoft.PSharp.Parsing.Syntax
             }
 
             var text = "";
-            var initToken = this.MachineKeyword;
 
             if (this.IsMain)
             {
@@ -167,18 +166,18 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 text += "[Model]\n";
             }
 
-            if (this.Modifier != null)
+            if (this.AccessModifier == AccessModifier.Public)
             {
-                initToken = this.Modifier;
-                text += this.Modifier.TextUnit.Text;
-                text += " ";
+                text += "public ";
+            }
+            else if (this.AccessModifier == AccessModifier.Internal)
+            {
+                text += "internal ";
             }
 
-            if (this.AbstractModifier != null)
+            if (this.InheritanceModifier == InheritanceModifier.Abstract)
             {
-                initToken = this.AbstractModifier;
-                text += this.AbstractModifier.TextUnit.Text;
-                text += " ";
+                text += "abstract ";
             }
 
             text += "class " + this.Identifier.TextUnit.Text + " : ";
@@ -232,7 +231,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, initToken.TextUnit.Line);
+            base.TextUnit = new TextUnit(text, this.MachineKeyword.TextUnit.Line);
         }
 
         #endregion

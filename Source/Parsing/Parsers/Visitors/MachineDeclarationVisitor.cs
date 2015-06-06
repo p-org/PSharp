@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using Microsoft.PSharp.Parsing.Syntax;
 
@@ -42,14 +43,14 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="isMain">Is main machine</param>
         /// <param name="isModel">Is a model</param>
         /// <param name="isMonitor">Is a monitor</param>
-        /// <param name="modifier">Modifier</param>
-        /// <param name="abstractModifier">Abstract modifier</param>
+        /// <param name="accMod">Access modifier</param>
+        /// <param name="inhMod">Inheritance modifier</param>
         internal void Visit(IPSharpProgram program, NamespaceDeclarationNode parentNode, bool isMain,
-            bool isModel, bool isMonitor, Token modifier, Token abstractModifier)
+            bool isModel, bool isMonitor, AccessModifier accMod, InheritanceModifier inhMod)
         {
             var node = new MachineDeclarationNode(isMain, isModel, isMonitor);
-            node.Modifier = modifier;
-            node.AbstractModifier = abstractModifier;
+            node.AccessModifier = accMod;
+            node.InheritanceModifier = inhMod;
             node.MachineKeyword = base.TokenStream.Peek();
 
             base.TokenStream.Index++;
@@ -158,6 +159,24 @@ namespace Microsoft.PSharp.Parsing
                 this.VisitNextPIntraMachineDeclaration(node);
                 (program as PProgram).MachineDeclarations.Add(node);
             }
+
+            if (node.StateDeclarations.Count == 0)
+            {
+                throw new ParsingException("A machine must declare at least one state.",
+                    new List<TokenType>());
+            }
+
+            var initialStates = node.StateDeclarations.FindAll(s => s.IsInitial);
+            if (initialStates.Count == 0)
+            {
+                throw new ParsingException("A machine must declare a start state.",
+                    new List<TokenType>());
+            }
+            else if (initialStates.Count > 1)
+            {
+                throw new ParsingException("A machine can declare only a single start state.",
+                    new List<TokenType>());
+            }
         }
 
         /// <summary>
@@ -201,20 +220,8 @@ namespace Microsoft.PSharp.Parsing
                     break;
 
                 case TokenType.StartState:
-                    this.VisitStartStateModifier(node, null);
-                    base.TokenStream.Index++;
-                    break;
-
                 case TokenType.StateDecl:
-                    new StateDeclarationVisitor(base.TokenStream).Visit(node, false, null);
-                    base.TokenStream.Index++;
-                    break;
-
                 case TokenType.ModelDecl:
-                    new FieldOrMethodDeclarationVisitor(base.TokenStream).Visit(node, null, null, true);
-                    base.TokenStream.Index++;
-                    break;
-
                 case TokenType.Void:
                 case TokenType.Object:
                 case TokenType.Int:
@@ -222,19 +229,11 @@ namespace Microsoft.PSharp.Parsing
                 case TokenType.Double:
                 case TokenType.Bool:
                 case TokenType.Identifier:
-                    new FieldOrMethodDeclarationVisitor(base.TokenStream).Visit(node, null, null, false);
-                    base.TokenStream.Index++;
-                    break;
-
                 case TokenType.Private:
                 case TokenType.Protected:
-                    this.VisitMachineLevelAccessModifier(node);
-                    base.TokenStream.Index++;
-                    break;
-
-                case TokenType.Abstract:
-                case TokenType.Virtual:
-                    this.VisitMachineLevelAbstractModifier(node);
+                case TokenType.Internal:
+                case TokenType.Public:
+                    this.VisitMachineLevelDeclaration(node);
                     base.TokenStream.Index++;
                     break;
 
@@ -254,11 +253,6 @@ namespace Microsoft.PSharp.Parsing
                     base.TokenStream.Index++;
                     break;
 
-                case TokenType.Internal:
-                case TokenType.Public:
-                    throw new ParsingException("Machine fields, states or functions must be private or protected.",
-                        new List<TokenType>());
-
                 default:
                     throw new ParsingException("Unexpected token.",
                         new List<TokenType>());
@@ -271,24 +265,99 @@ namespace Microsoft.PSharp.Parsing
         }
 
         /// <summary>
-        /// Visits a machine level access modifier.
+        /// Visits a machine level declaration.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        private void VisitMachineLevelAccessModifier(MachineDeclarationNode parentNode)
+        private void VisitMachineLevelDeclaration(MachineDeclarationNode parentNode)
         {
-            var modifier = base.TokenStream.Peek();
+            AccessModifier am = AccessModifier.None;
+            InheritanceModifier im = InheritanceModifier.None;
+            bool isStart = false;
+            bool isModel = false;
 
-            base.TokenStream.Index++;
-            base.TokenStream.SkipWhiteSpaceAndCommentTokens();
-
-            if (base.TokenStream.Done ||
-                (base.TokenStream.Peek().Type != TokenType.Abstract &&
-                base.TokenStream.Peek().Type != TokenType.Virtual &&
-                base.TokenStream.Peek().Type != TokenType.Override &&
-                base.TokenStream.Peek().Type != TokenType.StartState &&
+            while (!base.TokenStream.Done &&
                 base.TokenStream.Peek().Type != TokenType.StateDecl &&
                 base.TokenStream.Peek().Type != TokenType.MachineDecl &&
-                base.TokenStream.Peek().Type != TokenType.ModelDecl &&
+                base.TokenStream.Peek().Type != TokenType.Void &&
+                base.TokenStream.Peek().Type != TokenType.Object &&
+                base.TokenStream.Peek().Type != TokenType.Int &&
+                base.TokenStream.Peek().Type != TokenType.Float &&
+                base.TokenStream.Peek().Type != TokenType.Double &&
+                base.TokenStream.Peek().Type != TokenType.Bool &&
+                base.TokenStream.Peek().Type != TokenType.Identifier)
+            {
+                if (am != AccessModifier.None &&
+                    (base.TokenStream.Peek().Type == TokenType.Public ||
+                    base.TokenStream.Peek().Type == TokenType.Private ||
+                    base.TokenStream.Peek().Type == TokenType.Protected ||
+                    base.TokenStream.Peek().Type == TokenType.Internal))
+                {
+                    throw new ParsingException("More than one protection modifier.",
+                        new List<TokenType>());
+                }
+                else if (im != InheritanceModifier.None &&
+                    base.TokenStream.Peek().Type == TokenType.Abstract)
+                {
+                    throw new ParsingException("Duplicate abstract modifier.",
+                        new List<TokenType>());
+                }
+                else if (isStart &&
+                    base.TokenStream.Peek().Type == TokenType.StartState)
+                {
+                    throw new ParsingException("Duplicate start state modifier.",
+                        new List<TokenType>());
+                }
+                else if (isModel &&
+                    base.TokenStream.Peek().Type == TokenType.ModelDecl)
+                {
+                    throw new ParsingException("Duplicate model method modifier.",
+                        new List<TokenType>());
+                }
+
+                if (base.TokenStream.Peek().Type == TokenType.Public)
+                {
+                    am = AccessModifier.Public;
+                }
+                else if (base.TokenStream.Peek().Type == TokenType.Private)
+                {
+                    am = AccessModifier.Private;
+                }
+                else if (base.TokenStream.Peek().Type == TokenType.Protected)
+                {
+                    am = AccessModifier.Protected;
+                }
+                else if (base.TokenStream.Peek().Type == TokenType.Internal)
+                {
+                    am = AccessModifier.Internal;
+                }
+                else if (base.TokenStream.Peek().Type == TokenType.Abstract)
+                {
+                    im = InheritanceModifier.Abstract;
+                }
+                else if (base.TokenStream.Peek().Type == TokenType.Virtual)
+                {
+                    im = InheritanceModifier.Virtual;
+                }
+                else if (base.TokenStream.Peek().Type == TokenType.Override)
+                {
+                    im = InheritanceModifier.Override;
+                }
+                else if (base.TokenStream.Peek().Type == TokenType.StartState)
+                {
+                    isStart = true;
+                }
+                else if (base.TokenStream.Peek().Type == TokenType.ModelDecl)
+                {
+                    isModel = true;
+                }
+
+                base.TokenStream.Index++;
+                base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+            }
+
+            if (base.TokenStream.Done ||
+                (base.TokenStream.Peek().Type != TokenType.StateDecl &&
+                base.TokenStream.Peek().Type != TokenType.MachineDecl &&
                 base.TokenStream.Peek().Type != TokenType.Void &&
                 base.TokenStream.Peek().Type != TokenType.Object &&
                 base.TokenStream.Peek().Type != TokenType.Int &&
@@ -297,16 +366,11 @@ namespace Microsoft.PSharp.Parsing
                 base.TokenStream.Peek().Type != TokenType.Bool &&
                 base.TokenStream.Peek().Type != TokenType.Identifier))
             {
-                throw new ParsingException("Expected state, field or method declaration.",
+                throw new ParsingException("Expected state or method declaration.",
                     new List<TokenType>
                 {
-                    TokenType.Abstract,
-                    TokenType.Virtual,
-                    TokenType.Override,
-                    TokenType.StartState,
                     TokenType.StateDecl,
                     TokenType.MachineDecl,
-                    TokenType.ModelDecl,
                     TokenType.Void,
                     TokenType.Object,
                     TokenType.Int,
@@ -316,106 +380,60 @@ namespace Microsoft.PSharp.Parsing
                     TokenType.Identifier
                 });
             }
-
-            var isModel = false;
-            if (base.TokenStream.Peek().Type == TokenType.ModelDecl)
+            
+            if (base.TokenStream.Peek().Type == TokenType.StateDecl)
             {
-                isModel = true;
-
-                base.TokenStream.Index++;
-                base.TokenStream.SkipWhiteSpaceAndCommentTokens();
-
-                if (base.TokenStream.Done ||
-                    (base.TokenStream.Peek().Type != TokenType.Abstract &&
-                    base.TokenStream.Peek().Type != TokenType.Virtual &&
-                    base.TokenStream.Peek().Type != TokenType.Override && 
-                    base.TokenStream.Peek().Type != TokenType.MachineDecl &&
-                    base.TokenStream.Peek().Type != TokenType.Void &&
-                    base.TokenStream.Peek().Type != TokenType.Object &&
-                    base.TokenStream.Peek().Type != TokenType.Int &&
-                    base.TokenStream.Peek().Type != TokenType.Float &&
-                    base.TokenStream.Peek().Type != TokenType.Double &&
-                    base.TokenStream.Peek().Type != TokenType.Bool &&
-                    base.TokenStream.Peek().Type != TokenType.Identifier))
+                if (am == AccessModifier.Public)
                 {
-                    throw new ParsingException("Expected method declaration.",
-                        new List<TokenType>
-                    {
-                        TokenType.Abstract,
-                        TokenType.Virtual,
-                        TokenType.Override,
-                        TokenType.MachineDecl,
-                        TokenType.Void,
-                        TokenType.Object,
-                        TokenType.Int,
-                        TokenType.Float,
-                        TokenType.Double,
-                        TokenType.Bool,
-                        TokenType.Identifier
-                    });
+                    throw new ParsingException("A state cannot be public.",
+                        new List<TokenType>());
                 }
-            }
-
-            Token inheritanceModifier = null;
-            if (base.TokenStream.Peek().Type == TokenType.Abstract ||
-                base.TokenStream.Peek().Type == TokenType.Virtual ||
-                base.TokenStream.Peek().Type == TokenType.Override)
-            {
-                inheritanceModifier = base.TokenStream.Peek();
-
-                base.TokenStream.Index++;
-                base.TokenStream.SkipWhiteSpaceAndCommentTokens();
-
-                if (base.TokenStream.Done ||
-                    (base.TokenStream.Peek().Type != TokenType.MachineDecl &&
-                    base.TokenStream.Peek().Type != TokenType.Void &&
-                    base.TokenStream.Peek().Type != TokenType.Object &&
-                    base.TokenStream.Peek().Type != TokenType.Int &&
-                    base.TokenStream.Peek().Type != TokenType.Float &&
-                    base.TokenStream.Peek().Type != TokenType.Double &&
-                    base.TokenStream.Peek().Type != TokenType.Bool &&
-                    base.TokenStream.Peek().Type != TokenType.Identifier))
+                else if (am == AccessModifier.Internal)
                 {
-                    throw new ParsingException("Expected method declaration.",
-                        new List<TokenType>
-                    {
-                        TokenType.MachineDecl,
-                        TokenType.Void,
-                        TokenType.Object,
-                        TokenType.Int,
-                        TokenType.Float,
-                        TokenType.Double,
-                        TokenType.Bool,
-                        TokenType.Identifier
-                    });
+                    throw new ParsingException("A state cannot be internal.",
+                        new List<TokenType>());
                 }
-            }
 
-            if (base.TokenStream.Peek().Type == TokenType.StartState)
-            {
-                this.VisitStartStateModifier(parentNode, modifier);
-            }
-            else if (base.TokenStream.Peek().Type == TokenType.StateDecl)
-            {
-                new StateDeclarationVisitor(base.TokenStream).Visit(parentNode, false, modifier);
+                if (im == InheritanceModifier.Abstract)
+                {
+                    throw new ParsingException("A state cannot be abstract.",
+                        new List<TokenType>());
+                }
+                else if (im == InheritanceModifier.Virtual)
+                {
+                    throw new ParsingException("A state cannot be virtual.",
+                        new List<TokenType>());
+                }
+                else if (im == InheritanceModifier.Override)
+                {
+                    throw new ParsingException("A state cannot be overriden.",
+                        new List<TokenType>());
+                }
+
+                if (isModel)
+                {
+                    throw new ParsingException("A state cannot be a model.",
+                        new List<TokenType>());
+                }
+
+                new StateDeclarationVisitor(base.TokenStream).Visit(parentNode, isStart, am);
             }
             else
             {
+                if (am == AccessModifier.Public)
+                {
+                    throw new ParsingException("A field or method cannot be public.",
+                        new List<TokenType>());
+                }
+                else if (am == AccessModifier.Internal)
+                {
+                    throw new ParsingException("A field or method cannot be internal.",
+                        new List<TokenType>());
+                }
+
                 new FieldOrMethodDeclarationVisitor(base.TokenStream).Visit(parentNode,
-                    modifier, inheritanceModifier, isModel);
+                    isModel, am, im);
             }
-        }
-
-        /// <summary>
-        /// Visits a machine level abstract modifier.
-        /// </summary>
-        /// <param name="parentNode">Node</param>
-        private void VisitMachineLevelAbstractModifier(MachineDeclarationNode parentNode)
-        {
-            var abstractModifier = base.TokenStream.Peek();
-
-            base.TokenStream.Index++;
-            base.TokenStream.SkipWhiteSpaceAndCommentTokens();
         }
 
         /// <summary>
@@ -456,12 +474,12 @@ namespace Microsoft.PSharp.Parsing
                     break;
 
                 case TokenType.StartState:
-                    this.VisitStartStateModifier(node, null);
+                    this.VisitStartStateModifier(node);
                     base.TokenStream.Index++;
                     break;
 
                 case TokenType.StateDecl:
-                    new StateDeclarationVisitor(base.TokenStream).Visit(node, false, null);
+                    new StateDeclarationVisitor(base.TokenStream).Visit(node, false, AccessModifier.None);
                     base.TokenStream.Index++;
                     break;
 
@@ -509,8 +527,7 @@ namespace Microsoft.PSharp.Parsing
         /// Visits a start state modifier.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        /// <param name="modifier">Modifier</param>
-        private void VisitStartStateModifier(MachineDeclarationNode parentNode, Token modifier)
+        private void VisitStartStateModifier(MachineDeclarationNode parentNode)
         {
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
@@ -544,7 +561,7 @@ namespace Microsoft.PSharp.Parsing
                 }
             }
 
-            new StateDeclarationVisitor(base.TokenStream).Visit(parentNode, true, modifier);
+            new StateDeclarationVisitor(base.TokenStream).Visit(parentNode, true, AccessModifier.None);
         }
     }
 }

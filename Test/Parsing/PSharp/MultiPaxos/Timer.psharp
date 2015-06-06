@@ -1,6 +1,6 @@
 ﻿namespace MultiPaxos
 {
-    machine Timer
+    model Timer
     {
 	    Machine Target;
 		

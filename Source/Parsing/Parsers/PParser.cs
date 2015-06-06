@@ -95,7 +95,8 @@ namespace Microsoft.PSharp.Parsing
                     break;
 
                 case TokenType.EventDecl:
-                    new EventDeclarationVisitor(base.TokenStream).Visit(this.Program, null, null);
+                    new EventDeclarationVisitor(base.TokenStream).Visit(this.Program, null,
+                        AccessModifier.None);
                     base.TokenStream.Index++;
                     break;
 
@@ -105,20 +106,20 @@ namespace Microsoft.PSharp.Parsing
                     break;
 
                 case TokenType.MachineDecl:
-                    new MachineDeclarationVisitor(base.TokenStream).Visit(this.Program,
-                        null, false, false, false, null, null);
+                    new MachineDeclarationVisitor(base.TokenStream).Visit(this.Program, null, false,
+                        false, false, AccessModifier.None, InheritanceModifier.None);
                     base.TokenStream.Index++;
                     break;
 
                 case TokenType.ModelDecl:
-                    new MachineDeclarationVisitor(base.TokenStream).Visit(this.Program,
-                        null, false, true, false, null, null);
+                    new MachineDeclarationVisitor(base.TokenStream).Visit(this.Program, null, false,
+                        true, false, AccessModifier.None, InheritanceModifier.None);
                     base.TokenStream.Index++;
                     break;
 
                 case TokenType.Monitor:
-                    new MachineDeclarationVisitor(base.TokenStream).Visit(this.Program,
-                        null, false, false, true, null, null);
+                    new MachineDeclarationVisitor(base.TokenStream).Visit(this.Program, null, false,
+                        false, true, AccessModifier.None, InheritanceModifier.None);
                     base.TokenStream.Index++;
                     break;
 
@@ -157,12 +158,12 @@ namespace Microsoft.PSharp.Parsing
             if (base.TokenStream.Peek().Type == TokenType.MachineDecl)
             {
                 new MachineDeclarationVisitor(base.TokenStream).Visit(this.Program, null,
-                    true, false, false, null, null);
+                    true, false, false, AccessModifier.None, InheritanceModifier.None);
             }
             else if (base.TokenStream.Peek().Type == TokenType.ModelDecl)
             {
                 new MachineDeclarationVisitor(base.TokenStream).Visit(this.Program, null,
-                    true, true, false, null, null);
+                    true, true, false, AccessModifier.None, InheritanceModifier.None);
             }
         }
 

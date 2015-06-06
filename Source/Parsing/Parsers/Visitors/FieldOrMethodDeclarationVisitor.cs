@@ -38,11 +38,11 @@ namespace Microsoft.PSharp.Parsing
         /// Visits the syntax node.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        /// <param name="modifier">Modifier</param>
-        /// <param name="inheritanceModifier">Inheritance modifier</param>
         /// <param name="isModel">Is model</param>
-        internal void Visit(MachineDeclarationNode parentNode, Token modifier,
-            Token inheritanceModifier, bool isModel)
+        /// <param name="accMod">Access modifier</param>
+        /// <param name="inhMod">Inheritance modifier</param>
+        internal void Visit(MachineDeclarationNode parentNode, bool isModel, AccessModifier accMod,
+            InheritanceModifier inhMod)
         {
             TextUnit textUnit = null;
             new TypeIdentifierVisitor(base.TokenStream).Visit(ref textUnit);
@@ -77,20 +77,35 @@ namespace Microsoft.PSharp.Parsing
 
             if (base.TokenStream.Peek().Type == TokenType.LeftParenthesis)
             {
-                new MethodDeclarationVisitor(base.TokenStream).Visit(parentNode, modifier,
-                    inheritanceModifier, typeIdentifier, identifierToken, isModel);
+                new MethodDeclarationVisitor(base.TokenStream).Visit(parentNode, typeIdentifier,
+                    identifierToken, isModel, accMod, inhMod);
             }
             else if (base.TokenStream.Peek().Type == TokenType.Semicolon)
             {
-                if (inheritanceModifier != null)
+                if (inhMod == InheritanceModifier.Abstract)
                 {
-                    throw new ParsingException("A field declaration cannot " +
-                        "have the abstract, virtual or override modifier.",
+                    throw new ParsingException("A field cannot be abstract.",
+                        new List<TokenType>());
+                }
+                else if (inhMod == InheritanceModifier.Virtual)
+                {
+                    throw new ParsingException("A field cannot be virtual.",
+                        new List<TokenType>());
+                }
+                else if (inhMod == InheritanceModifier.Override)
+                {
+                    throw new ParsingException("A field cannot be overriden.",
+                        new List<TokenType>());
+                }
+
+                if (isModel)
+                {
+                    throw new ParsingException("A field cannot be a model.",
                         new List<TokenType>());
                 }
 
                 var node = new FieldDeclarationNode(parentNode, parentNode.IsModel);
-                node.Modifier = modifier;
+                node.AccessModifier = accMod;
                 node.TypeIdentifier = typeIdentifier;
                 node.Identifier = identifierToken;
                 node.SemicolonToken = base.TokenStream.Peek();

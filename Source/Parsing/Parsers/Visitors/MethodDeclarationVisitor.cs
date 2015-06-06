@@ -38,13 +38,13 @@ namespace Microsoft.PSharp.Parsing
         /// Visits the syntax node.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        /// <param name="modifier">Modifier</param>
-        /// <param name="inheritanceModifier">Inheritance modifier</param>
-        /// <param name="typeIdentifier">TypeIdentifier</param>
+        /// <param name="typeIdentifier">Type identifier</param>
         /// <param name="identifier">Identifier</param>
         /// <param name="isModel">Is model</param>
-        internal void Visit(MachineDeclarationNode parentNode, Token modifier, Token inheritanceModifier,
-            Token typeIdentifier, Token identifier, bool isModel)
+        /// <param name="accMod">Access modifier</param>
+        /// <param name="inhMod">Inheritance modifier</param>
+        internal void Visit(MachineDeclarationNode parentNode, Token typeIdentifier, Token identifier,
+            bool isModel, AccessModifier accMod, InheritanceModifier inhMod)
         {
             if (parentNode.IsModel)
             {
@@ -52,8 +52,8 @@ namespace Microsoft.PSharp.Parsing
             }
 
             var node = new MethodDeclarationNode(isModel);
-            node.Modifier = modifier;
-            node.InheritanceModifier = inheritanceModifier;
+            node.AccessModifier = accMod;
+            node.InheritanceModifier = inhMod;
             node.TypeIdentifier = typeIdentifier;
             node.Identifier = identifier;
 

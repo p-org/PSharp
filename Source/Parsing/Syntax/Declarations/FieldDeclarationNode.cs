@@ -31,9 +31,9 @@ namespace Microsoft.PSharp.Parsing.Syntax
         protected MachineDeclarationNode Machine;
 
         /// <summary>
-        /// The modifier token.
+        /// The access modifier.
         /// </summary>
-        internal Token Modifier;
+        internal AccessModifier AccessModifier;
 
         /// <summary>
         /// The type identifier.
@@ -83,10 +83,13 @@ namespace Microsoft.PSharp.Parsing.Syntax
         {
             var text = "";
 
-            if (this.Modifier != null)
+            if (this.AccessModifier == AccessModifier.Protected)
             {
-                text += this.Modifier.TextUnit.Text;
-                text += " ";
+                text += "protected ";
+            }
+            else
+            {
+                text += "private ";
             }
 
             text += this.TypeIdentifier.TextUnit.Text;
@@ -96,14 +99,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 
-            if (this.Modifier != null)
-            {
-                base.TextUnit = new TextUnit(text, this.Modifier.TextUnit.Line);
-            }
-            else
-            {
-                base.TextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Line);
-            }
+            base.TextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Line);
         }
 
         #endregion

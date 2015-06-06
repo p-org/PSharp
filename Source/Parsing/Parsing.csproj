@@ -103,6 +103,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="IPSharpProgram.cs" />
     <Compile Include="AbstractPSharpProgram.cs" />
+    <Compile Include="Syntax\Modifiers\InheritanceModifier.cs" />
+    <Compile Include="Syntax\Modifiers\AccessModifier.cs" />
     <Compile Include="Syntax\PProgram.cs" />
     <Compile Include="Syntax\PStatements\PPushStatementNode.cs" />
     <Compile Include="Syntax\Statements\MonitorStatementNode.cs" />

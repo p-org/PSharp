@@ -292,42 +292,15 @@ namespace Microsoft.PSharp.Parsing
                     break;
 
                 case TokenType.EventDecl:
-                    new EventDeclarationVisitor(base.TokenStream).Visit(null, node, null);
-                    base.TokenStream.Index++;
-                    break;
-
-                case TokenType.MainMachine:
-                    this.VisitMainMachineModifier(node, null);
-                    base.TokenStream.Index++;
-                    break;
-
                 case TokenType.MachineDecl:
-                    new MachineDeclarationVisitor(base.TokenStream).Visit(null,
-                        node, false, false, false, null, null);
-                    base.TokenStream.Index++;
-                    break;
-
                 case TokenType.ModelDecl:
-                    new MachineDeclarationVisitor(base.TokenStream).Visit(null,
-                        node, false, true, false, null, null);
-                    base.TokenStream.Index++;
-                    break;
-
                 case TokenType.Monitor:
-                    new MachineDeclarationVisitor(base.TokenStream).Visit(null,
-                        node, false, false, true, null, null);
-                    base.TokenStream.Index++;
-                    break;
-
+                case TokenType.MainMachine:
                 case TokenType.Internal:
                 case TokenType.Public:
-                    this.VisitTopLevelAccessModifier(node);
-                    base.TokenStream.Index++;
-                    break;
-
                 case TokenType.Abstract:
                 case TokenType.Virtual:
-                    this.VisitTopLevelAbstractModifier(node);
+                    this.VisitEventOrMachineDeclaration(node);
                     base.TokenStream.Index++;
                     break;
 
@@ -361,30 +334,82 @@ namespace Microsoft.PSharp.Parsing
         }
 
         /// <summary>
-        /// Visits a top level access modifier.
+        /// Visits an event or machine declaration.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        private void VisitTopLevelAccessModifier(NamespaceDeclarationNode parentNode)
+        private void VisitEventOrMachineDeclaration(NamespaceDeclarationNode parentNode)
         {
-            var modifier = base.TokenStream.Peek();
+            AccessModifier am = AccessModifier.None;
+            InheritanceModifier im = InheritanceModifier.None;
+            bool isMain = false;
 
-            base.TokenStream.Index++;
-            base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+            while (!base.TokenStream.Done &&
+                base.TokenStream.Peek().Type != TokenType.EventDecl &&
+                base.TokenStream.Peek().Type != TokenType.MachineDecl &&
+                base.TokenStream.Peek().Type != TokenType.ModelDecl &&
+                base.TokenStream.Peek().Type != TokenType.Monitor)
+            {
+                if (am != AccessModifier.None &&
+                    (base.TokenStream.Peek().Type == TokenType.Public ||
+                    base.TokenStream.Peek().Type == TokenType.Private ||
+                    base.TokenStream.Peek().Type == TokenType.Protected ||
+                    base.TokenStream.Peek().Type == TokenType.Internal))
+                {
+                    throw new ParsingException("More than one protection modifier.",
+                        new List<TokenType>());
+                }
+                else if (im != InheritanceModifier.None &&
+                    base.TokenStream.Peek().Type == TokenType.Abstract)
+                {
+                    throw new ParsingException("Duplicate abstract modifier.",
+                        new List<TokenType>());
+                }
+                else if (isMain &&
+                    base.TokenStream.Peek().Type == TokenType.MainMachine)
+                {
+                    throw new ParsingException("Duplicate main machine modifier.",
+                        new List<TokenType>());
+                }
+
+                if (base.TokenStream.Peek().Type == TokenType.Public)
+                {
+                    am = AccessModifier.Public;
+                }
+                else if (base.TokenStream.Peek().Type == TokenType.Private)
+                {
+                    am = AccessModifier.Private;
+                }
+                else if (base.TokenStream.Peek().Type == TokenType.Protected)
+                {
+                    am = AccessModifier.Protected;
+                }
+                else if (base.TokenStream.Peek().Type == TokenType.Internal)
+                {
+                    am = AccessModifier.Internal;
+                }
+                else if (base.TokenStream.Peek().Type == TokenType.Abstract)
+                {
+                    im = InheritanceModifier.Abstract;
+                }
+                else if (base.TokenStream.Peek().Type == TokenType.MainMachine)
+                {
+                    isMain = true;
+                }
+
+                base.TokenStream.Index++;
+                base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+            }
 
             if (base.TokenStream.Done ||
-                (base.TokenStream.Peek().Type != TokenType.Abstract &&
-                base.TokenStream.Peek().Type != TokenType.Virtual &&
-                base.TokenStream.Peek().Type != TokenType.MainMachine &&
+                (base.TokenStream.Peek().Type != TokenType.MainMachine &&
                 base.TokenStream.Peek().Type != TokenType.EventDecl &&
                 base.TokenStream.Peek().Type != TokenType.MachineDecl &&
                 base.TokenStream.Peek().Type != TokenType.ModelDecl &&
                 base.TokenStream.Peek().Type != TokenType.Monitor))
             {
-                throw new ParsingException("Expected event or machine declaration.",
+                throw new ParsingException("Expected event, machine, model or monitor declaration.",
                     new List<TokenType>
                 {
-                    TokenType.Abstract,
-                    TokenType.Virtual,
                     TokenType.MainMachine,
                     TokenType.EventDecl,
                     TokenType.MachineDecl,
@@ -393,159 +418,79 @@ namespace Microsoft.PSharp.Parsing
                 });
             }
 
-            Token abstractModifier = null;
-            if (base.TokenStream.Peek().Type == TokenType.Abstract)
-            {
-                abstractModifier = base.TokenStream.Peek();
-
-                base.TokenStream.Index++;
-                base.TokenStream.SkipWhiteSpaceAndCommentTokens();
-
-                if (base.TokenStream.Done ||
-                    (base.TokenStream.Peek().Type != TokenType.MachineDecl &&
-                    base.TokenStream.Peek().Type != TokenType.ModelDecl &&
-                    base.TokenStream.Peek().Type != TokenType.Monitor))
-                {
-                    throw new ParsingException("Expected machine declaration.",
-                        new List<TokenType>
-                    {
-                        TokenType.MachineDecl,
-                        TokenType.ModelDecl,
-                        TokenType.Monitor
-                    });
-                }
-            }
-
             if (base.TokenStream.Peek().Type == TokenType.EventDecl)
             {
-                new EventDeclarationVisitor(base.TokenStream).Visit(null, parentNode, modifier);
+                if (am == AccessModifier.Private)
+                {
+                    throw new ParsingException("An event cannot be private.",
+                        new List<TokenType>());
+                }
+                else if (am == AccessModifier.Protected)
+                {
+                    throw new ParsingException("An event cannot be protected.",
+                        new List<TokenType>());
+                }
+
+                if (im == InheritanceModifier.Abstract)
+                {
+                    throw new ParsingException("An event cannot be abstract.",
+                        new List<TokenType>());
+                }
+
+                if (isMain)
+                {
+                    throw new ParsingException("An event cannot be main.",
+                        new List<TokenType>());
+                }
+
+                new EventDeclarationVisitor(base.TokenStream).Visit(null, parentNode, am);
             }
-            else if (base.TokenStream.Peek().Type == TokenType.MainMachine)
+            else if (base.TokenStream.Peek().Type == TokenType.MachineDecl ||
+                base.TokenStream.Peek().Type == TokenType.ModelDecl)
             {
-                this.VisitMainMachineModifier(parentNode, modifier);
-            }
-            else if (base.TokenStream.Peek().Type == TokenType.MachineDecl)
-            {
-                new MachineDeclarationVisitor(base.TokenStream).Visit(null, parentNode,
-                    false, false, false, modifier, abstractModifier);
-            }
-            else if (base.TokenStream.Peek().Type == TokenType.ModelDecl)
-            {
-                new MachineDeclarationVisitor(base.TokenStream).Visit(null, parentNode,
-                    false, true, false, modifier, abstractModifier);
+                if (am == AccessModifier.Private)
+                {
+                    throw new ParsingException("A machine cannot be private.",
+                        new List<TokenType>());
+                }
+                else if (am == AccessModifier.Protected)
+                {
+                    throw new ParsingException("A machine cannot be protected.",
+                        new List<TokenType>());
+                }
+
+                if (base.TokenStream.Peek().Type == TokenType.MachineDecl)
+                {
+                    new MachineDeclarationVisitor(base.TokenStream).Visit(null, parentNode,
+                        isMain, false, false, am, im);
+                }
+                else if (base.TokenStream.Peek().Type == TokenType.ModelDecl)
+                {
+                    new MachineDeclarationVisitor(base.TokenStream).Visit(null, parentNode,
+                        isMain, true, false, am, im);
+                }
             }
             else if (base.TokenStream.Peek().Type == TokenType.Monitor)
             {
-                new MachineDeclarationVisitor(base.TokenStream).Visit(null, parentNode,
-                    false, false, true, modifier, abstractModifier);
-            }
-        }
-
-        /// <summary>
-        /// Visits a top level abstract modifier.
-        /// </summary>
-        /// <param name="parentNode">Node</param>
-        private void VisitTopLevelAbstractModifier(NamespaceDeclarationNode parentNode)
-        {
-            var abstractModifier = base.TokenStream.Peek();
-
-            base.TokenStream.Index++;
-            base.TokenStream.SkipWhiteSpaceAndCommentTokens();
-
-            if (base.TokenStream.Done ||
-                (base.TokenStream.Peek().Type != TokenType.Internal &&
-                base.TokenStream.Peek().Type != TokenType.Public &&
-                base.TokenStream.Peek().Type != TokenType.MachineDecl &&
-                base.TokenStream.Peek().Type != TokenType.ModelDecl &&
-                base.TokenStream.Peek().Type != TokenType.Monitor))
-            {
-                throw new ParsingException("Expected machine declaration.",
-                    new List<TokenType>
+                if (am == AccessModifier.Private)
                 {
-                    TokenType.Internal,
-                    TokenType.Public,
-                    TokenType.MachineDecl,
-                    TokenType.ModelDecl,
-                    TokenType.Monitor
-                });
-            }
-
-            Token modifier = null;
-            if (base.TokenStream.Peek().Type == TokenType.Internal ||
-                base.TokenStream.Peek().Type == TokenType.Public)
-            {
-                modifier = base.TokenStream.Peek();
-
-                base.TokenStream.Index++;
-                base.TokenStream.SkipWhiteSpaceAndCommentTokens();
-
-                if (base.TokenStream.Done ||
-                    (base.TokenStream.Peek().Type != TokenType.MachineDecl &&
-                    base.TokenStream.Peek().Type != TokenType.ModelDecl &&
-                    base.TokenStream.Peek().Type != TokenType.Monitor))
-                {
-                    throw new ParsingException("Expected machine declaration.",
-                        new List<TokenType>
-                    {
-                        TokenType.MachineDecl,
-                        TokenType.ModelDecl,
-                        TokenType.Monitor
-                    });
+                    throw new ParsingException("A monitor cannot be private.",
+                        new List<TokenType>());
                 }
-            }
-
-            if (base.TokenStream.Peek().Type == TokenType.EventDecl)
-            {
-                new EventDeclarationVisitor(base.TokenStream).Visit(null, parentNode, modifier);
-            }
-            else if (base.TokenStream.Peek().Type == TokenType.MachineDecl)
-            {
-                new MachineDeclarationVisitor(base.TokenStream).Visit(null, parentNode,
-                    false, false, false, modifier, abstractModifier);
-            }
-            else if (base.TokenStream.Peek().Type == TokenType.ModelDecl)
-            {
-                new MachineDeclarationVisitor(base.TokenStream).Visit(null, parentNode,
-                    false, true, false, modifier, abstractModifier);
-            }
-            else if (base.TokenStream.Peek().Type == TokenType.Monitor)
-            {
-                new MachineDeclarationVisitor(base.TokenStream).Visit(null, parentNode,
-                    false, false, true, modifier, abstractModifier);
-            }
-        }
-
-        /// <summary>
-        /// Visits a main machine modifier.
-        /// </summary>
-        /// <param name="parentNode">Node</param>
-        /// <param name="modifier">Modifier</param>
-        private void VisitMainMachineModifier(NamespaceDeclarationNode parentNode, Token modifier)
-        {
-            base.TokenStream.Index++;
-            base.TokenStream.SkipWhiteSpaceAndCommentTokens();
-
-            if (base.TokenStream.Done ||
-                (base.TokenStream.Peek().Type != TokenType.MachineDecl &&
-                base.TokenStream.Peek().Type != TokenType.ModelDecl))
-            {
-                throw new ParsingException("Expected machine declaration.",
-                    new List<TokenType>
+                else if (am == AccessModifier.Protected)
                 {
-                    TokenType.MachineDecl,
-                    TokenType.ModelDecl
-                });
-            }
+                    throw new ParsingException("A monitor cannot be protected.",
+                        new List<TokenType>());
+                }
 
-            if (base.TokenStream.Peek().Type == TokenType.MachineDecl)
-            {
+                if (isMain)
+                {
+                    throw new ParsingException("A monitor cannot be main.",
+                        new List<TokenType>());
+                }
+
                 new MachineDeclarationVisitor(base.TokenStream).Visit(null, parentNode,
-                    true, false, false, modifier, null);
-            }
-            else if (base.TokenStream.Peek().Type == TokenType.ModelDecl)
-            {
-                new MachineDeclarationVisitor(base.TokenStream).Visit(null, parentNode,
-                    true, true, false, modifier, null);
+                    false, false, true, am, im);
             }
         }
 

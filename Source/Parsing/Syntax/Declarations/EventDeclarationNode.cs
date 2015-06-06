@@ -31,9 +31,9 @@ namespace Microsoft.PSharp.Parsing.Syntax
         internal Token EventKeyword;
 
         /// <summary>
-        /// The modifier token.
+        /// The access modifier.
         /// </summary>
-        internal Token Modifier;
+        internal AccessModifier AccessModifier;
 
         /// <summary>
         /// The identifier token.
@@ -105,13 +105,14 @@ namespace Microsoft.PSharp.Parsing.Syntax
         internal override void Rewrite(IPSharpProgram program)
         {
             var text = "";
-            var initToken = this.EventKeyword;
 
-            if (this.Modifier != null)
+            if (this.AccessModifier == AccessModifier.Public)
             {
-                initToken = this.Modifier;
-                text += this.Modifier.TextUnit.Text;
-                text += " ";
+                text += "public ";
+            }
+            else if (this.AccessModifier == AccessModifier.Internal)
+            {
+                text += "internal ";
             }
 
             text += "class " + this.Identifier.TextUnit.Text + " : Event";
@@ -139,7 +140,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
             text += " { }\n";
             text += "}\n";
 
-            base.TextUnit = new TextUnit(text, initToken.TextUnit.Line);
+            base.TextUnit = new TextUnit(text, this.EventKeyword.TextUnit.Line);
         }
 
         #endregion

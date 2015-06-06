@@ -33,7 +33,7 @@
 			}
 		}
 
-		void GetNewLeader()
+		model void GetNewLeader()
 		{
 		    /*
 		    for (int idx = 0; idx < Servers.Count; idx++)

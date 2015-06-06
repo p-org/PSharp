@@ -38,12 +38,12 @@ namespace Microsoft.PSharp.Parsing
         /// Visits the syntax node.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        /// <param name="isInit">Is initial state</param>
-        /// <param name="modifier">Modifier</param>
-        internal void Visit(MachineDeclarationNode parentNode, bool isInit, Token modifier)
+        /// <param name="isStart">Is start state</param>
+        /// <param name="accMod">Access modifier</param>
+        internal void Visit(MachineDeclarationNode parentNode, bool isStart, AccessModifier accMod)
         {
-            var node = new StateDeclarationNode(parentNode, isInit, parentNode.IsModel);
-            node.Modifier = modifier;
+            var node = new StateDeclarationNode(parentNode, isStart, parentNode.IsModel);
+            node.AccessModifier = accMod;
             node.StateKeyword = base.TokenStream.Peek();
 
             base.TokenStream.Index++;

@@ -26,14 +26,14 @@ namespace Microsoft.PSharp.Parsing.Syntax
         #region fields
 
         /// <summary>
-        /// The modifier token.
+        /// The access modifier.
         /// </summary>
-        internal Token Modifier;
+        internal AccessModifier AccessModifier;
 
         /// <summary>
-        /// The inheritance modifier token.
+        /// The inheritance modifier.
         /// </summary>
-        internal Token InheritanceModifier;
+        internal InheritanceModifier InheritanceModifier;
 
         /// <summary>
         /// The type identifier.
@@ -101,25 +101,32 @@ namespace Microsoft.PSharp.Parsing.Syntax
         internal override void Rewrite(IPSharpProgram program)
         {
             var text = "";
-            Token initToken = null;
 
             if (base.IsModel)
             {
                 text += "[Model]\n";
             }
 
-            if (this.Modifier != null)
+            if (this.AccessModifier == AccessModifier.Protected)
             {
-                initToken = this.Modifier;
-                text += this.Modifier.TextUnit.Text;
-                text += " ";
+                text += "protected ";
+            }
+            else
+            {
+                text += "private ";
             }
 
-            if (this.InheritanceModifier != null)
+            if (this.InheritanceModifier == InheritanceModifier.Abstract)
             {
-                initToken = this.InheritanceModifier;
-                text += this.InheritanceModifier.TextUnit.Text;
-                text += " ";
+                text += "abstract ";
+            }
+            else if (this.InheritanceModifier == InheritanceModifier.Virtual)
+            {
+                text += "virtual ";
+            }
+            else if (this.InheritanceModifier == InheritanceModifier.Override)
+            {
+                text += "override ";
             }
 
             text += this.TypeIdentifier.TextUnit.Text;
@@ -151,14 +158,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 text += this.SemicolonToken.TextUnit.Text + "\n";
             }
 
-            if (initToken != null)
-            {
-                base.TextUnit = new TextUnit(text, initToken.TextUnit.Line);
-            }
-            else
-            {
-                base.TextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Line);
-            }
+            base.TextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Line);
         }
 
         #endregion

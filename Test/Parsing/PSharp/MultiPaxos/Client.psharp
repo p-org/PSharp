@@ -1,6 +1,6 @@
 ﻿namespace MultiPaxos
 {
-    machine Client
+    model Client
     {
 	    List<Machine> Servers;
 
