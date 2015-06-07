@@ -41,7 +41,7 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="parentNode">Node</param>
         internal void Visit(StatementBlockNode parentNode)
         {
-            var node = new IfStatementNode(parentNode);
+            var node = new IfStatementNode(base.TokenStream.Program, parentNode);
             node.IfKeyword = base.TokenStream.Peek();
 
             base.TokenStream.Index++;
@@ -62,9 +62,9 @@ namespace Microsoft.PSharp.Parsing
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-            if (base.TokenStream.IsPSharp)
+            if (base.TokenStream.Program is PSharpProgram)
             {
-                var guard = new ExpressionNode(parentNode);
+                var guard = new ExpressionNode(base.TokenStream.Program, parentNode);
 
                 int counter = 1;
                 while (!base.TokenStream.Done)
@@ -107,14 +107,14 @@ namespace Microsoft.PSharp.Parsing
             }
             else
             {
-                var guard = new PExpressionNode(parentNode);
+                var guard = new PExpressionNode(base.TokenStream.Program, parentNode);
 
                 int counter = 1;
                 while (!base.TokenStream.Done)
                 {
                     if (base.TokenStream.Peek().Type == TokenType.Payload)
                     {
-                        var payloadNode = new PPayloadReceiveNode(guard.IsModel);
+                        var payloadNode = new PPayloadReceiveNode(base.TokenStream.Program, guard.IsModel);
                         new ReceivedPayloadVisitor(base.TokenStream).Visit(payloadNode);
                         guard.StmtTokens.Add(null);
                         guard.Payloads.Add(payloadNode);
@@ -162,7 +162,7 @@ namespace Microsoft.PSharp.Parsing
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-            if (base.TokenStream.IsPSharp)
+            if (base.TokenStream.Program is PSharpProgram)
             {
                 if (base.TokenStream.Done ||
                     (base.TokenStream.Peek().Type != TokenType.New &&
@@ -218,8 +218,8 @@ namespace Microsoft.PSharp.Parsing
                 }
             }
             
-            var blockNode = new StatementBlockNode(parentNode.Machine,
-                parentNode.State, parentNode.IsModel);
+            var blockNode = new StatementBlockNode(base.TokenStream.Program,
+                parentNode.Machine, parentNode.State, parentNode.IsModel);
 
             if (base.TokenStream.Peek().Type == TokenType.New)
             {
@@ -297,7 +297,7 @@ namespace Microsoft.PSharp.Parsing
                 base.TokenStream.Index++;
                 base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-                if (base.TokenStream.IsPSharp)
+                if (base.TokenStream.Program is PSharpProgram)
                 {
                     if (base.TokenStream.Done ||
                         (base.TokenStream.Peek().Type != TokenType.New &&
@@ -354,8 +354,8 @@ namespace Microsoft.PSharp.Parsing
                     }
                 }
 
-                var elseBlockNode = new StatementBlockNode(parentNode.Machine,
-                    parentNode.State, parentNode.IsModel);
+                var elseBlockNode = new StatementBlockNode(base.TokenStream.Program,
+                    parentNode.Machine, parentNode.State, parentNode.IsModel);
 
                 if (base.TokenStream.Peek().Type == TokenType.New)
                 {

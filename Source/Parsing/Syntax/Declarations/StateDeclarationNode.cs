@@ -112,11 +112,13 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor.
         /// </summary>
+        /// <param name="program">Program</param>
         /// <param name="machineNode">PMachineDeclarationNode</param>
         /// <param name="isInit">Is initial state</param>
         /// <param name="isModel">Is a model</param>
-        internal StateDeclarationNode(MachineDeclarationNode machineNode, bool isInit, bool isModel)
-            : base(isModel)
+        internal StateDeclarationNode(IPSharpProgram program, MachineDeclarationNode machineNode,
+            bool isInit, bool isModel)
+            : base(program, isModel)
         {
             this.IsInitial = isInit;
             this.Machine = machineNode;
@@ -136,7 +138,8 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <param name="stateIdentifier">Token</param>
         /// <param name="stmtBlock">Statement block</param>
         /// <returns>Boolean value</returns>
-        internal bool AddGotoStateTransition(Token eventIdentifier, Token stateIdentifier, StatementBlockNode stmtBlock = null)
+        internal bool AddGotoStateTransition(Token eventIdentifier, Token stateIdentifier,
+            StatementBlockNode stmtBlock = null)
         {
             if (this.GotoStateTransitions.ContainsKey(eventIdentifier) ||
                 this.PushStateTransitions.ContainsKey(eventIdentifier) ||
@@ -262,31 +265,58 @@ namespace Microsoft.PSharp.Parsing.Syntax
         }
 
         /// <summary>
-        /// Returns the rewritten text.
-        /// </summary>
-        /// <returns>string</returns>
-        internal override string GetRewrittenText()
-        {
-            return base.TextUnit.Text;
-        }
-
-        /// <summary>
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
         /// <param name="program">Program</param>
-        internal override void Rewrite(IPSharpProgram program)
+        internal override void Rewrite()
         {
             if (this.EntryDeclaration != null)
             {
-                this.EntryDeclaration.Rewrite(program);
+                this.EntryDeclaration.Rewrite();
             }
 
             if (this.ExitDeclaration != null)
             {
-                this.ExitDeclaration.Rewrite(program);
+                this.ExitDeclaration.Rewrite();
             }
 
+            var text = this.GetRewrittenStateDeclaration();
+
+            base.TextUnit = new TextUnit(text, this.StateKeyword.TextUnit.Line);
+        }
+
+        /// <summary>
+        /// Rewrites the syntax node declaration to the intermediate C#
+        /// representation using any given program models.
+        /// </summary>
+        internal override void Model()
+        {
+            if (this.EntryDeclaration != null)
+            {
+                this.EntryDeclaration.Model();
+            }
+
+            if (this.ExitDeclaration != null)
+            {
+                this.ExitDeclaration.Model();
+            }
+
+            var text = this.GetRewrittenStateDeclaration();
+
+            base.TextUnit = new TextUnit(text, this.StateKeyword.TextUnit.Line);
+        }
+
+        #endregion
+
+        #region private API
+
+        /// <summary>
+        /// Returns the rewritten state declaration.
+        /// </summary>
+        /// <returns>Text</returns>
+        private string GetRewrittenStateDeclaration()
+        {
             var text = "";
 
             if (this.IsInitial)
@@ -316,12 +346,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             if (this.EntryDeclaration != null)
             {
-                text += this.EntryDeclaration.GetRewrittenText();
+                text += this.EntryDeclaration.TextUnit.Text;
             }
 
             if (this.ExitDeclaration != null)
             {
-                text += this.ExitDeclaration.GetRewrittenText();
+                text += this.ExitDeclaration.TextUnit.Text;
             }
 
             if (!this.Machine.IsMonitor)
@@ -333,12 +363,8 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, this.StateKeyword.TextUnit.Line);
+            return text;
         }
-
-        #endregion
-
-        #region private API
 
         /// <summary>
         /// Instruments the deferred events.

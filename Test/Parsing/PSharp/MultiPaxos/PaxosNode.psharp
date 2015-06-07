@@ -226,7 +226,7 @@
 			        send acceptor, prepare (this, NextSlotForProposer, Tuple.Create(NextProposal.Item1, MyRank));
 				}
 
-				monitor ValMachineItyCheck, monitor_proposer_sent (ProposeVal);
+				monitor ValMachineCheck, monitor_proposer_sent (ProposeVal);
 				send Timer, startTimer;
 			}
 
@@ -293,7 +293,7 @@
 
 				// Monitor the monitor on proposal event.
 				monitor BasicPaxosInvariant_P2b, monitor_valueProposed (this, NextSlotForProposer, NextProposal, ProposeVal);
-				monitor ValMachineItyCheck, monitor_proposer_sent (ProposeVal);
+				monitor ValMachineCheck, monitor_proposer_sent (ProposeVal);
 				
 				foreach (var acceptor in Acceptors)
 				{
@@ -312,7 +312,7 @@
 
 					send Timer, cancelTimer;
 
-					monitor ValMachineItyCheck, monitor_proposer_chosen (ProposeVal);
+					monitor ValMachineCheck, monitor_proposer_chosen (ProposeVal);
 
 					// Increment the nextSlotForProposer.
 					NextSlotForProposer++;

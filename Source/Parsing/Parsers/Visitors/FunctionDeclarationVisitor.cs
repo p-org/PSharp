@@ -46,7 +46,7 @@ namespace Microsoft.PSharp.Parsing
                 isModel = true;
             }
 
-            var node = new PFunctionDeclarationNode(isModel);
+            var node = new PFunctionDeclarationNode(base.TokenStream.Program, isModel);
 
             if (isModel)
             {
@@ -212,7 +212,8 @@ namespace Microsoft.PSharp.Parsing
                 });
             }
 
-            var blockNode = new StatementBlockNode(parentNode, null, node.IsModel);
+            var blockNode = new StatementBlockNode(base.TokenStream.Program, parentNode,
+                null, node.IsModel);
             new StatementBlockVisitor(base.TokenStream).Visit(blockNode);
             node.StatementBlock = blockNode;
 

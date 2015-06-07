@@ -35,9 +35,10 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor.
         /// </summary>
+        /// <param name="program">Program</param>
         /// <param name="node">Node</param>
-        internal PPayloadSendExpressionNode(StatementBlockNode node)
-            : base(node)
+        internal PPayloadSendExpressionNode(IPSharpProgram program, StatementBlockNode node)
+            : base(program, node)
         {
 
         }

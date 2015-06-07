@@ -62,20 +62,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor.
         /// </summary>
+        /// <param name="program">Program</param>
         /// <param name="node">Node</param>
-        internal MonitorStatementNode(StatementBlockNode node)
-            : base(node)
+        internal MonitorStatementNode(IPSharpProgram program, StatementBlockNode node)
+            : base(program, node)
         {
 
-        }
-
-        /// <summary>
-        /// Returns the rewritten text.
-        /// </summary>
-        /// <returns>string</returns>
-        internal override string GetRewrittenText()
-        {
-            return base.TextUnit.Text;
         }
 
         /// <summary>
@@ -83,12 +75,42 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// representation.
         /// </summary>
         /// <param name="program">Program</param>
-        internal override void Rewrite(IPSharpProgram program)
+        internal override void Rewrite()
+        {
+            base.TextUnit = new TextUnit("", 0);
+        }
+
+        /// <summary>
+        /// Rewrites the syntax node declaration to the intermediate C#
+        /// representation using any given program models.
+        /// </summary>
+        internal override void Model()
+        {
+            this.MonitorIdentifier.Model();
+
+            if (this.Payload != null)
+            {
+                this.Payload.Model();
+            }
+
+            var text = this.GetRewrittenMonitorStatement();
+
+            base.TextUnit = new TextUnit(text, this.MonitorKeyword.TextUnit.Line);
+        }
+
+        #endregion
+
+        #region private API
+
+        /// <summary>
+        /// Returns the rewritten monitor statement.
+        /// </summary>
+        /// <returns>Text</returns>
+        private string GetRewrittenMonitorStatement()
         {
             var text = "this.Monitor<";
 
-            this.MonitorIdentifier.Rewrite(program);
-            text += this.MonitorIdentifier.GetRewrittenText();
+            text += this.MonitorIdentifier.TextUnit.Text;
 
             text += ">(new ";
 
@@ -109,15 +131,14 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             if (this.Payload != null)
             {
-                this.Payload.Rewrite(program);
-                text += this.Payload.GetRewrittenText();
+                text += this.Payload.TextUnit.Text;
             }
 
             text += "))";
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, this.MonitorKeyword.TextUnit.Line);
+            return text;
         }
 
         #endregion

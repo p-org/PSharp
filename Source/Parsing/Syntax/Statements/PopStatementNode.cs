@@ -37,20 +37,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor.
         /// </summary>
+        /// <param name="program">Program</param>
         /// <param name="node">Node</param>
-        internal PopStatementNode(StatementBlockNode node)
-            : base(node)
+        internal PopStatementNode(IPSharpProgram program, StatementBlockNode node)
+            : base(program, node)
         {
 
-        }
-
-        /// <summary>
-        /// Returns the rewritten text.
-        /// </summary>
-        /// <returns>string</returns>
-        internal override string GetRewrittenText()
-        {
-            return base.TextUnit.Text;
         }
 
         /// <summary>
@@ -58,7 +50,31 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// representation.
         /// </summary>
         /// <param name="program">Program</param>
-        internal override void Rewrite(IPSharpProgram program)
+        internal override void Rewrite()
+        {
+            var text = this.GetRewrittenPopStatement();
+            base.TextUnit = new TextUnit(text, this.PopKeyword.TextUnit.Line);
+        }
+
+        /// <summary>
+        /// Rewrites the syntax node declaration to the intermediate C#
+        /// representation using any given program models.
+        /// </summary>
+        internal override void Model()
+        {
+            var text = this.GetRewrittenPopStatement();
+            base.TextUnit = new TextUnit(text, this.PopKeyword.TextUnit.Line);
+        }
+
+        #endregion
+
+        #region private API
+
+        /// <summary>
+        /// Returns the rewritten pop statement.
+        /// </summary>
+        /// <returns>Text</returns>
+        private string GetRewrittenPopStatement()
         {
             var text = "{\n";
             text += "this.Pop()";
@@ -68,7 +84,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
             text += "return;\n";
             text += "}\n";
 
-            base.TextUnit = new TextUnit(text, this.PopKeyword.TextUnit.Line);
+            return text;
         }
 
         #endregion

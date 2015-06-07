@@ -37,20 +37,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor.
         /// </summary>
+        /// <param name="program">Program</param>
         /// <param name="node">Node</param>
-        internal GenericStatementNode(StatementBlockNode node)
-            : base(node)
+        internal GenericStatementNode(IPSharpProgram program, StatementBlockNode node)
+            : base(program, node)
         {
 
-        }
-
-        /// <summary>
-        /// Returns the rewritten text.
-        /// </summary>
-        /// <returns>string</returns>
-        internal override string GetRewrittenText()
-        {
-            return base.TextUnit.Text;
         }
 
         /// <summary>
@@ -58,19 +50,48 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// representation.
         /// </summary>
         /// <param name="program">Program</param>
-        internal override void Rewrite(IPSharpProgram program)
+        internal override void Rewrite()
+        {
+            this.Expression.Rewrite();
+
+            var text = this.GetRewrittenGenericStatement();
+
+            base.TextUnit = new TextUnit(text, this.Expression.TextUnit.Line);
+        }
+
+        /// <summary>
+        /// Rewrites the syntax node declaration to the intermediate C#
+        /// representation using any given program models.
+        /// </summary>
+        internal override void Model()
+        {
+            this.Expression.Model();
+
+            var text = this.GetRewrittenGenericStatement();
+
+            base.TextUnit = new TextUnit(text, this.Expression.TextUnit.Line);
+        }
+
+        #endregion
+
+        #region private API
+
+        /// <summary>
+        /// Returns the rewritten generic statement.
+        /// </summary>
+        /// <returns>Text</returns>
+        private string GetRewrittenGenericStatement()
         {
             var text = "";
 
-            this.Expression.Rewrite(program);
-            text += this.Expression.GetRewrittenText();
+            text += this.Expression.TextUnit.Text;
 
             if (this.SemicolonToken != null)
             {
                 text += this.SemicolonToken.TextUnit.Text + "\n";
             }
 
-            base.TextUnit = new TextUnit(text, this.Expression.TextUnit.Line);
+            return text;
         }
 
         #endregion

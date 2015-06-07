@@ -42,9 +42,10 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor.
         /// </summary>
+        /// <param name="program">Program</param>
         /// <param name="node">Node</param>
-        internal StatementNode(StatementBlockNode node)
-            : base(node.IsModel)
+        internal StatementNode(IPSharpProgram program, StatementBlockNode node)
+            : base(program, node.IsModel)
         {
             this.Parent = node;
         }

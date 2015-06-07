@@ -46,7 +46,7 @@ namespace Microsoft.PSharp.Parsing
                         new List<TokenType>());
             }
 
-            var node = new PPushStatementNode(parentNode);
+            var node = new PPushStatementNode(base.TokenStream.Program, parentNode);
             node.PushKeyword = base.TokenStream.Peek();
 
             base.TokenStream.Index++;

@@ -42,20 +42,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor.
         /// </summary>
+        /// <param name="program">Program</param>
         /// <param name="node">Node</param>
-        internal PPushStatementNode(StatementBlockNode node)
-            : base(node)
+        internal PPushStatementNode(IPSharpProgram program, StatementBlockNode node)
+            : base(program, node)
         {
 
-        }
-
-        /// <summary>
-        /// Returns the rewritten text.
-        /// </summary>
-        /// <returns>string</returns>
-        internal override string GetRewrittenText()
-        {
-            return base.TextUnit.Text;
         }
 
         /// <summary>
@@ -63,7 +55,31 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// representation.
         /// </summary>
         /// <param name="program">Program</param>
-        internal override void Rewrite(IPSharpProgram program)
+        internal override void Rewrite()
+        {
+            var text = this.GetRewrittenPushStatement();
+            base.TextUnit = new TextUnit(text, this.PushKeyword.TextUnit.Line);
+        }
+
+        /// <summary>
+        /// Rewrites the syntax node declaration to the intermediate C#
+        /// representation using any given program models.
+        /// </summary>
+        internal override void Model()
+        {
+            var text = this.GetRewrittenPushStatement();
+            base.TextUnit = new TextUnit(text, this.PushKeyword.TextUnit.Line);
+        }
+
+        #endregion
+
+        #region private API
+
+        /// <summary>
+        /// Returns the rewritten push statement.
+        /// </summary>
+        /// <returns>Text</returns>
+        private string GetRewrittenPushStatement()
         {
             var text = "this.Push(";
 
@@ -73,7 +89,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, this.PushKeyword.TextUnit.Line);
+            return text;
         }
 
         #endregion

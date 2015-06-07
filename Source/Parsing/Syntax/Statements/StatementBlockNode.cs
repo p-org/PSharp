@@ -57,12 +57,13 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor.
         /// </summary>
+        /// <param name="program">Program</param>
         /// <param name="machineNode">MachineDeclarationNode</param>
         /// <param name="stateNode">StateDeclarationNode</param>
         /// <param name="isModel">Is a model</param>
-        internal StatementBlockNode(MachineDeclarationNode machineNode,
+        internal StatementBlockNode(IPSharpProgram program, MachineDeclarationNode machineNode,
             StateDeclarationNode stateNode, bool isModel)
-            : base(isModel)
+            : base(program, isModel)
         {
             this.Machine = machineNode;
             this.State = stateNode;
@@ -70,26 +71,48 @@ namespace Microsoft.PSharp.Parsing.Syntax
         }
 
         /// <summary>
-        /// Returns the rewritten text.
-        /// </summary>
-        /// <returns>string</returns>
-        internal override string GetRewrittenText()
-        {
-            return base.TextUnit.Text;
-        }
-
-        /// <summary>
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
         /// <param name="program">Program</param>
-        internal override void Rewrite(IPSharpProgram program)
+        internal override void Rewrite()
         {
             foreach (var stmt in this.Statements)
             {
-                stmt.Rewrite(program);
+                stmt.Rewrite();
             }
 
+            var text = this.GetRewrittenStatementBlock();
+
+            base.TextUnit = new TextUnit(text, this.Statements.First().TextUnit.Line);
+        }
+
+        /// <summary>
+        /// Rewrites the syntax node declaration to the intermediate C#
+        /// representation using any given program models.
+        /// </summary>
+        internal override void Model()
+        {
+            foreach (var stmt in this.Statements)
+            {
+                stmt.Model();
+            }
+
+            var text = this.GetRewrittenStatementBlock();
+
+            base.TextUnit = new TextUnit(text, this.Statements.First().TextUnit.Line);
+        }
+
+        #endregion
+
+        #region private API
+
+        /// <summary>
+        /// Returns the rewritten statement block.
+        /// </summary>
+        /// <returns>Text</returns>
+        private string GetRewrittenStatementBlock()
+        {
             var text = "\n";
 
             if (this.LeftCurlyBracketToken != null &&
@@ -100,7 +123,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             foreach (var stmt in this.Statements)
             {
-                text += stmt.GetRewrittenText();
+                text += stmt.TextUnit.Text;
             }
 
             if (this.LeftCurlyBracketToken != null &&
@@ -109,15 +132,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
             }
 
-            if (this.LeftCurlyBracketToken != null &&
-                this.RightCurlyBracketToken != null)
-            {
-                base.TextUnit = new TextUnit(text, this.LeftCurlyBracketToken.TextUnit.Line);
-            }
-            else
-            {
-                base.TextUnit = new TextUnit(text, this.Statements.First().TextUnit.Line);
-            }
+            return text;
         }
 
         #endregion

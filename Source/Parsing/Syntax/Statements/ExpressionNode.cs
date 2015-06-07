@@ -52,9 +52,10 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor.
         /// </summary>
+        /// <param name="program">Program</param>
         /// <param name="node">Node</param>
-        internal ExpressionNode(StatementBlockNode node)
-            : base(node.IsModel)
+        internal ExpressionNode(IPSharpProgram program, StatementBlockNode node)
+            : base(program, node.IsModel)
         {
             this.Parent = node;
             this.StmtTokens = new List<Token>();
@@ -62,28 +63,15 @@ namespace Microsoft.PSharp.Parsing.Syntax
         }
 
         /// <summary>
-        /// Returns the rewritten text.
-        /// </summary>
-        /// <returns>string</returns>
-        internal override string GetRewrittenText()
-        {
-            if (this.StmtTokens.Count == 0)
-            {
-                return "";
-            }
-
-            return base.TextUnit.Text;
-        }
-
-        /// <summary>
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
         /// <param name="program">Program</param>
-        internal override void Rewrite(IPSharpProgram program)
+        internal override void Rewrite()
         {
             if (this.StmtTokens.Count == 0)
             {
+                base.TextUnit = new TextUnit("", 0);
                 return;
             }
 
@@ -99,6 +87,15 @@ namespace Microsoft.PSharp.Parsing.Syntax
             }
 
             base.TextUnit = new TextUnit(text, this.StmtTokens.First().TextUnit.Line);
+        }
+
+        /// <summary>
+        /// Rewrites the syntax node declaration to the intermediate C#
+        /// representation using any given program models.
+        /// </summary>
+        internal override void Model()
+        {
+            this.Rewrite();
         }
 
         #endregion

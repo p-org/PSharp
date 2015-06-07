@@ -56,7 +56,8 @@ namespace Microsoft.PSharp.Parsing
                 });
             }
 
-            nodes.Add(new PFieldDeclarationNode(parentNode, parentNode.IsModel));
+            nodes.Add(new PFieldDeclarationNode(base.TokenStream.Program, parentNode,
+                parentNode.IsModel));
             nodes[nodes.Count - 1].FieldKeyword = fieldKeyword;
             nodes[nodes.Count - 1].Identifier = base.TokenStream.Peek();
 
@@ -76,7 +77,8 @@ namespace Microsoft.PSharp.Parsing
 
                 if (base.TokenStream.Peek().Type == TokenType.Identifier)
                 {
-                    nodes.Add(new PFieldDeclarationNode(parentNode, parentNode.IsModel));
+                    nodes.Add(new PFieldDeclarationNode(base.TokenStream.Program, parentNode,
+                        parentNode.IsModel));
                     nodes[nodes.Count - 1].FieldKeyword = fieldKeyword;
                     nodes[nodes.Count - 1].Identifier = base.TokenStream.Peek();
 

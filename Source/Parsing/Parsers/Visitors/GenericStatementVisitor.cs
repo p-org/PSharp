@@ -40,11 +40,11 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="parentNode">Node</param>
         internal void Visit(StatementBlockNode parentNode)
         {
-            var node = new GenericStatementNode(parentNode);
+            var node = new GenericStatementNode(base.TokenStream.Program, parentNode);
 
-            if (base.TokenStream.IsPSharp)
+            if (base.TokenStream.Program is PSharpProgram)
             {
-                var expression = new ExpressionNode(parentNode);
+                var expression = new ExpressionNode(base.TokenStream.Program, parentNode);
                 while (!base.TokenStream.Done &&
                     base.TokenStream.Peek().Type != TokenType.Semicolon)
                 {
@@ -78,7 +78,7 @@ namespace Microsoft.PSharp.Parsing
             }
             else
             {
-                var expression = new PExpressionNode(parentNode);
+                var expression = new PExpressionNode(base.TokenStream.Program, parentNode);
                 while (!base.TokenStream.Done &&
                     base.TokenStream.Peek().Type != TokenType.Semicolon)
                 {
@@ -97,7 +97,7 @@ namespace Microsoft.PSharp.Parsing
                     }
                     else if (base.TokenStream.Peek().Type == TokenType.Payload)
                     {
-                        var payloadNode = new PPayloadReceiveNode(expression.IsModel);
+                        var payloadNode = new PPayloadReceiveNode(base.TokenStream.Program, expression.IsModel);
                         new ReceivedPayloadVisitor(base.TokenStream).Visit(payloadNode);
                         expression.StmtTokens.Add(null);
                         expression.Payloads.Add(payloadNode);

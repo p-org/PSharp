@@ -62,41 +62,103 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor.
         /// </summary>
-        internal NamespaceDeclarationNode()
-            : base(false)
+        /// <param name="program">Program</param>
+        internal NamespaceDeclarationNode(IPSharpProgram program)
+            : base(program, false)
         {
             this.IdentifierTokens = new List<Token>();
             this.EventDeclarations = new List<EventDeclarationNode>();
             this.MachineDeclarations = new List<MachineDeclarationNode>();
         }
-
-        /// <summary>
-        /// Returns the rewritten text.
-        /// </summary>
-        /// <returns>string</returns>
-        internal override string GetRewrittenText()
-        {
-            return base.TextUnit.Text;
-        }
-
+        
         /// <summary>
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        /// <param name="program">Program</param>
-        internal override void Rewrite(IPSharpProgram program)
+        internal override void Rewrite()
         {
             foreach (var node in this.EventDeclarations)
             {
-                node.Rewrite(program);
+                node.Rewrite();
+            }
+            
+            foreach (var node in this.MachineDeclarations)
+            {
+                node.Rewrite();
+            }
+            
+            var text = this.GetRewrittenNamespaceDeclaration();
+
+            var realMachines = this.MachineDeclarations.FindAll(m => !m.IsModel && !m.IsMonitor);
+
+            foreach (var node in realMachines)
+            {
+                text += node.TextUnit.Text;
+            }
+
+            text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
+
+            base.TextUnit = new TextUnit(text, this.NamespaceKeyword.TextUnit.Line);
+        }
+
+        /// <summary>
+        /// Rewrites the syntax node declaration to the intermediate C#
+        /// representation using any given program models.
+        /// </summary>
+        internal override void Model()
+        {
+            foreach (var node in this.EventDeclarations)
+            {
+                node.Model();
             }
 
             foreach (var node in this.MachineDeclarations)
             {
-                node.Rewrite(program);
+                node.Model();
             }
 
+            var text = this.GetRewrittenNamespaceDeclaration();
+
+            var realMachines = this.MachineDeclarations.FindAll(m => !m.IsModel && !m.IsMonitor);
+            var modelMachines = this.MachineDeclarations.FindAll(m => m.IsModel);
+            var monitors = this.MachineDeclarations.FindAll(m => m.IsMonitor);
+
+            foreach (var node in realMachines)
+            {
+                if (!modelMachines.Any(m => m.Identifier.TextUnit.Text.Equals(
+                    node.Identifier.TextUnit.Text)))
+                {
+                    text += node.TextUnit.Text;
+                }
+            }
+
+            foreach (var node in modelMachines)
+            {
+                text += node.TextUnit.Text;
+            }
+
+            foreach (var node in monitors)
+            {
+                text += node.TextUnit.Text;
+            }
+
+            text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
+
+            base.TextUnit = new TextUnit(text, this.NamespaceKeyword.TextUnit.Line);
+        }
+
+        #endregion
+
+        #region private API
+
+        /// <summary>
+        /// Returns the rewritten namespace declaration.
+        /// </summary>
+        /// <returns>Text</returns>
+        private string GetRewrittenNamespaceDeclaration()
+        {
             var text = this.NamespaceKeyword.TextUnit.Text;
+
             text += " ";
 
             foreach (var token in this.IdentifierTokens)
@@ -108,17 +170,10 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             foreach (var node in this.EventDeclarations)
             {
-                text += node.GetRewrittenText();
+                text += node.TextUnit.Text;
             }
 
-            foreach (var node in this.MachineDeclarations)
-            {
-                text += node.GetRewrittenText();
-            }
-
-            text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
-
-            base.TextUnit = new TextUnit(text, this.NamespaceKeyword.TextUnit.Line);
+            return text;
         }
 
         #endregion

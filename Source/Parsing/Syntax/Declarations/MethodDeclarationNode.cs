@@ -77,20 +77,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor.
         /// </summary>
+        /// <param name="program">Program</param>
         /// <param name="isModel">Is a model</param>
-        internal MethodDeclarationNode(bool isModel)
-            : base(isModel)
+        internal MethodDeclarationNode(IPSharpProgram program, bool isModel)
+            : base(program, isModel)
         {
             this.Parameters = new List<Token>();
-        }
-
-        /// <summary>
-        /// Returns the rewritten text.
-        /// </summary>
-        /// <returns>string</returns>
-        internal override string GetRewrittenText()
-        {
-            return base.TextUnit.Text;
         }
 
         /// <summary>
@@ -98,7 +90,37 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// representation.
         /// </summary>
         /// <param name="program">Program</param>
-        internal override void Rewrite(IPSharpProgram program)
+        internal override void Rewrite()
+        {
+            if (this.IsModel)
+            {
+                base.TextUnit = new TextUnit("", 0);
+                return;
+            }
+
+            var text = this.GetRewrittenMethodDeclaration();
+            base.TextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Line);
+        }
+
+        /// <summary>
+        /// Rewrites the syntax node declaration to the intermediate C#
+        /// representation using any given program models.
+        /// </summary>
+        internal override void Model()
+        {
+            var text = this.GetRewrittenMethodDeclaration();
+            base.TextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Line);
+        }
+
+        #endregion
+
+        #region private API
+
+        /// <summary>
+        /// Returns the rewritten method declaration.
+        /// </summary>
+        /// <returns>Text</returns>
+        private string GetRewrittenMethodDeclaration()
         {
             var text = "";
 
@@ -150,15 +172,15 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             if (this.StatementBlock != null)
             {
-                this.StatementBlock.Rewrite(program);
-                text += StatementBlock.GetRewrittenText();
+                this.StatementBlock.Rewrite();
+                text += StatementBlock.TextUnit.Text;
             }
             else
             {
                 text += this.SemicolonToken.TextUnit.Text + "\n";
             }
 
-            base.TextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Line);
+            return text;
         }
 
         #endregion

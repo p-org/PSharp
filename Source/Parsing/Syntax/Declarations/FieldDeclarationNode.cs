@@ -57,21 +57,13 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor
         /// </summary>
+        /// <param name="program">Program</param>
         /// <param name="machineNode">MachineDeclarationNode</param>
         /// <param name="isModel">Is a model</param>
-        internal FieldDeclarationNode(MachineDeclarationNode machineNode, bool isModel)
-            : base(isModel)
+        internal FieldDeclarationNode(IPSharpProgram program, MachineDeclarationNode machineNode, bool isModel)
+            : base(program, isModel)
         {
             this.Machine = machineNode;
-        }
-
-        /// <summary>
-        /// Returns the rewritten text.
-        /// </summary>
-        /// <returns>string</returns>
-        internal override string GetRewrittenText()
-        {
-            return base.TextUnit.Text;
         }
 
         /// <summary>
@@ -79,7 +71,31 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// representation.
         /// </summary>
         /// <param name="program">Program</param>
-        internal override void Rewrite(IPSharpProgram program)
+        internal override void Rewrite()
+        {
+            var text = this.GetRewrittenFieldDeclaration();
+            base.TextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Line);
+        }
+
+        /// <summary>
+        /// Rewrites the syntax node declaration to the intermediate C#
+        /// representation using any given program models.
+        /// </summary>
+        internal override void Model()
+        {
+            var text = this.GetRewrittenFieldDeclaration();
+            base.TextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Line);
+        }
+
+        #endregion
+
+        #region private API
+
+        /// <summary>
+        /// Returns the rewritten field declaration.
+        /// </summary>
+        /// <returns>Text</returns>
+        private string GetRewrittenFieldDeclaration()
         {
             var text = "";
 
@@ -99,7 +115,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Line);
+            return text;
         }
 
         #endregion

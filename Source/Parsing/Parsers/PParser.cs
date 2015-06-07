@@ -56,8 +56,9 @@ namespace Microsoft.PSharp.Parsing
         /// <returns>P# program</returns>
         protected override IPSharpProgram CreateNewProgram()
         {
-            base.TokenStream.IsPSharp = false;
-            return new PProgram(base.Project, base.FilePath);
+            var program = new PProgram(base.Project, base.FilePath);
+            base.TokenStream.Program = program;
+            return program;
         }
 
         /// <summary>

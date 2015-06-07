@@ -8,7 +8,7 @@
 		{
 		    entry
 			{
-			    create ValMachineItyCheck();
+			    create ValMachineCheck();
 
 				Servers = (List<Machine>)payload;
 
@@ -22,7 +22,7 @@
 		{
 		    entry
 			{
-			    monitor ValMachineItyCheck, monitor_client_sent (1);
+			    monitor ValMachineCheck, monitor_client_sent (1);
 
 			    if ($)
 				{
@@ -41,7 +41,7 @@
 		{
 		    entry
 			{
-			    monitor ValMachineItyCheck, monitor_client_sent (2);
+			    monitor ValMachineCheck, monitor_client_sent (2);
 
 			    if ($)
 				    send Servers[0], update (0, 2);
@@ -50,6 +50,39 @@
 				    send Servers[Servers.Count - 1], update (0, 2);
 				}
 
+				raise response;
+			}
+
+			on response goto Done;
+		}
+
+		state Done
+		{
+
+		}
+    }
+
+	machine Client
+    {
+	    List<Machine> Servers;
+
+	    start state Init
+		{
+		    entry
+			{
+				Servers = (List<Machine>)payload;
+
+				raise local;
+			}
+
+			on local goto PumpRequest;
+		}
+
+		state PumpRequest
+		{
+		    entry
+			{
+			    send Servers[0], update (0, 1);
 				raise response;
 			}
 

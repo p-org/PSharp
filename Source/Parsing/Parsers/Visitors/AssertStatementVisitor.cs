@@ -40,7 +40,7 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="parentNode">Node</param>
         internal void Visit(StatementBlockNode parentNode)
         {
-            var node = new AssertStatementNode(parentNode);
+            var node = new AssertStatementNode(base.TokenStream.Program, parentNode);
             node.AssertKeyword = base.TokenStream.Peek();
 
             base.TokenStream.Index++;
@@ -61,9 +61,9 @@ namespace Microsoft.PSharp.Parsing
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-            if (base.TokenStream.IsPSharp)
+            if (base.TokenStream.Program is PSharpProgram)
             {
-                var predicate = new ExpressionNode(parentNode);
+                var predicate = new ExpressionNode(base.TokenStream.Program, parentNode);
 
                 int counter = 1;
                 while (!base.TokenStream.Done)
@@ -97,7 +97,7 @@ namespace Microsoft.PSharp.Parsing
             }
             else
             {
-                var predicate = new PExpressionNode(parentNode);
+                var predicate = new PExpressionNode(base.TokenStream.Program, parentNode);
 
                 int counter = 1;
                 while (!base.TokenStream.Done)
@@ -112,7 +112,7 @@ namespace Microsoft.PSharp.Parsing
                     }
                     else if (base.TokenStream.Peek().Type == TokenType.Payload)
                     {
-                        var payloadNode = new PPayloadReceiveNode(predicate.IsModel);
+                        var payloadNode = new PPayloadReceiveNode(base.TokenStream.Program, predicate.IsModel);
                         new ReceivedPayloadVisitor(base.TokenStream).Visit(payloadNode);
                         predicate.StmtTokens.Add(null);
                         predicate.Payloads.Add(payloadNode);

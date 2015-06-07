@@ -45,7 +45,7 @@ namespace Microsoft.PSharp.Parsing
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-            if (base.TokenStream.IsPSharp)
+            if (base.TokenStream.Program is PSharpProgram)
             {
                 this.VisitNextPSharpStatement(node);
             }

@@ -52,20 +52,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor.
         /// </summary>
+        /// <param name="program">Program</param>
         /// <param name="node">Node</param>
-        internal AssertStatementNode(StatementBlockNode node)
-            : base(node)
+        internal AssertStatementNode(IPSharpProgram program, StatementBlockNode node)
+            : base(program, node)
         {
 
-        }
-
-        /// <summary>
-        /// Returns the rewritten text.
-        /// </summary>
-        /// <returns>string</returns>
-        internal override string GetRewrittenText()
-        {
-            return base.TextUnit.Text;
         }
 
         /// <summary>
@@ -73,21 +65,49 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// representation.
         /// </summary>
         /// <param name="program">Program</param>
-        internal override void Rewrite(IPSharpProgram program)
+        internal override void Rewrite()
         {
-            this.Predicate.Rewrite(program);
+            this.Predicate.Rewrite();
 
+            var text = this.GetRewrittenAssertStatement();
+
+            base.TextUnit = new TextUnit(text, this.AssertKeyword.TextUnit.Line);
+        }
+
+        /// <summary>
+        /// Rewrites the syntax node declaration to the intermediate C#
+        /// representation using any given program models.
+        /// </summary>
+        internal override void Model()
+        {
+            this.Predicate.Model();
+
+            var text = this.GetRewrittenAssertStatement();
+
+            base.TextUnit = new TextUnit(text, this.AssertKeyword.TextUnit.Line);
+        }
+
+        #endregion
+
+        #region private API
+
+        /// <summary>
+        /// Returns the rewritten assert statement.
+        /// </summary>
+        /// <returns>Text</returns>
+        private string GetRewrittenAssertStatement()
+        {
             var text = "this.Assert";
 
             text += this.LeftParenthesisToken.TextUnit.Text;
 
-            text += this.Predicate.GetRewrittenText();
+            text += this.Predicate.TextUnit.Text;
 
             text += this.RightParenthesisToken.TextUnit.Text;
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, this.AssertKeyword.TextUnit.Line);
+            return text;
         }
 
         #endregion

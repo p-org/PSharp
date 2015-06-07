@@ -47,27 +47,13 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor.
         /// </summary>
+        /// <param name="program">Program</param>
         /// <param name="node">Node</param>
-        internal PExpressionNode(StatementBlockNode node)
-            : base(node)
+        internal PExpressionNode(IPSharpProgram program, StatementBlockNode node)
+            : base(program, node)
         {
             this.Payloads = new List<PPayloadReceiveNode>();
             this.PendingPayloads = new List<PPayloadReceiveNode>();
-        }
-
-        /// <summary>
-        /// Returns the rewritten text.
-        /// </summary>
-        /// <returns>string</returns>
-        internal override string GetRewrittenText()
-        {
-            if (this.RewrittenStmtTokens.Count == 0 ||
-                this.RewrittenStmtTokens.All(val => val == null))
-            {
-                return "";
-            }
-            
-            return base.TextUnit.Text;
         }
 
         /// <summary>
@@ -75,10 +61,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// representation.
         /// </summary>
         /// <param name="program">Program</param>
-        internal override void Rewrite(IPSharpProgram program)
+        internal override void Rewrite()
         {
             if (this.StmtTokens.Count == 0)
             {
+                base.TextUnit = new TextUnit("", 0);
                 return;
             }
             
@@ -86,8 +73,14 @@ namespace Microsoft.PSharp.Parsing.Syntax
             this.RewrittenStmtTokens = this.StmtTokens.ToList();
             this.PendingPayloads = this.Payloads.ToList();
             this.RunSpecialisedRewrittingPass();
-            this.RewriteNextToken(program);
-            
+            this.RewriteNextToken();
+
+            if (this.RewrittenStmtTokens.All(val => val == null))
+            {
+                base.TextUnit = new TextUnit("", 0);
+                return;
+            }
+
             var text = "";
 
             Token firstNonNull = null;
@@ -112,6 +105,15 @@ namespace Microsoft.PSharp.Parsing.Syntax
             }
 
             base.TextUnit = new TextUnit(text, firstNonNull.TextUnit.Line);
+        }
+
+        /// <summary>
+        /// Rewrites the syntax node declaration to the intermediate C#
+        /// representation using any given program models.
+        /// </summary>
+        internal override void Model()
+        {
+            this.Rewrite();
         }
 
         #endregion
@@ -896,8 +898,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Rewrites the next token.
         /// </summary>
-        /// <param name="program">Program</param>
-        private void RewriteNextToken(IPSharpProgram program)
+        private void RewriteNextToken()
         {
             if (this.Index == this.RewrittenStmtTokens.Count)
             {
@@ -907,7 +908,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
             var token = this.RewrittenStmtTokens[this.Index];
             if (token == null)
             {
-                this.RewriteReceivedPayload(program);
+                this.RewriteReceivedPayload();
             }
             else if (token.Type == TokenType.MachineDecl)
             {
@@ -963,20 +964,19 @@ namespace Microsoft.PSharp.Parsing.Syntax
             }
 
             this.Index++;
-            this.RewriteNextToken(program);
+            this.RewriteNextToken();
         }
 
         /// <summary>
         /// Rewrites the received payload.
         /// </summary>
-        /// <param name="program">Program</param>
-        private void RewriteReceivedPayload(IPSharpProgram program)
+        private void RewriteReceivedPayload()
         {
             var payload = this.PendingPayloads[0];
             this.PendingPayloads.RemoveAt(0);
             
-            payload.Rewrite(program);
-            var text = payload.GetRewrittenText();
+            payload.Rewrite();
+            var text = payload.TextUnit.Text;
             var line = payload.TextUnit.Line;
 
             this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line));

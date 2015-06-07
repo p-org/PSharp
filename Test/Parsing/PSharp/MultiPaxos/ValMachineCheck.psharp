@@ -1,6 +1,6 @@
 ﻿namespace MultiPaxos
 {
-    monitor ValMachineItyCheck
+    monitor ValMachineCheck
     {
 	    Dictionary<int, int> ClientSet;
 		Dictionary<int, int> ProposedSet;

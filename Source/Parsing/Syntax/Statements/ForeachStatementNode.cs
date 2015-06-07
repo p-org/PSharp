@@ -57,20 +57,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor.
         /// </summary>
+        /// <param name="program">Program</param>
         /// <param name="node">Node</param>
-        internal ForeachStatementNode(StatementBlockNode node)
-            : base(node)
+        internal ForeachStatementNode(IPSharpProgram program, StatementBlockNode node)
+            : base(program, node)
         {
 
-        }
-
-        /// <summary>
-        /// Returns the rewritten text.
-        /// </summary>
-        /// <returns>string</returns>
-        internal override string GetRewrittenText()
-        {
-            return base.TextUnit.Text;
         }
 
         /// <summary>
@@ -78,7 +70,39 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// representation.
         /// </summary>
         /// <param name="program">Program</param>
-        internal override void Rewrite(IPSharpProgram program)
+        internal override void Rewrite()
+        {
+            this.Guard.Rewrite();
+            this.StatementBlock.Rewrite();
+
+            var text = this.GetRewrittenForeachStatement();
+
+            base.TextUnit = new TextUnit(text, this.ForeachKeyword.TextUnit.Line);
+        }
+
+        /// <summary>
+        /// Rewrites the syntax node declaration to the intermediate C#
+        /// representation using any given program models.
+        /// </summary>
+        internal override void Model()
+        {
+            this.Guard.Model();
+            this.StatementBlock.Model();
+
+            var text = this.GetRewrittenForeachStatement();
+
+            base.TextUnit = new TextUnit(text, this.ForeachKeyword.TextUnit.Line);
+        }
+
+        #endregion
+
+        #region private API
+
+        /// <summary>
+        /// Returns the rewritten foreach statement.
+        /// </summary>
+        /// <returns>Text</returns>
+        private string GetRewrittenForeachStatement()
         {
             var text = "";
 
@@ -86,15 +110,13 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += this.LeftParenthesisToken.TextUnit.Text;
 
-            this.Guard.Rewrite(program);
-            text += this.Guard.GetRewrittenText();
+            text += this.Guard.TextUnit.Text;
 
             text += this.RightParenthesisToken.TextUnit.Text;
 
-            this.StatementBlock.Rewrite(program);
-            text += this.StatementBlock.GetRewrittenText();
+            text += this.StatementBlock.TextUnit.Text;
 
-            base.TextUnit = new TextUnit(text, this.ForeachKeyword.TextUnit.Line);
+            return text;
         }
 
         #endregion

@@ -35,7 +35,18 @@ namespace Microsoft.PSharp.Parsing
         /// <summary>
         /// The rewritten text.
         /// </summary>
-        protected string RewrittenText;
+        internal protected string RewrittenText
+        {
+            get; protected set;
+        }
+
+        /// <summary>
+        /// The model text.
+        /// </summary>
+        internal protected string ModelText
+        {
+            get; protected set;
+        }
 
         /// <summary>
         /// File path of the P# program.
@@ -55,6 +66,7 @@ namespace Microsoft.PSharp.Parsing
         {
             this.Project = project;
             this.RewrittenText = "";
+            this.ModelText = "";
             this.FilePath = filePath;
         }
 
@@ -69,13 +81,10 @@ namespace Microsoft.PSharp.Parsing
         public abstract string Rewrite();
 
         /// <summary>
-        /// Returns the rewritten to C#-IR text of this P# program.
+        /// Models the P# program to the C#-IR.
         /// </summary>
-        /// <returns>Rewritten text</returns>
-        public string GetRewrittenText()
-        {
-            return this.RewrittenText;
-        }
+        /// <returns>Modeled text</returns>
+        public abstract string Model();
 
         #endregion
 

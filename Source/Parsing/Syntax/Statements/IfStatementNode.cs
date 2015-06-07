@@ -67,20 +67,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor.
         /// </summary>
+        /// <param name="program">Program</param>
         /// <param name="node">Node</param>
-        internal IfStatementNode(StatementBlockNode node)
-            : base(node)
+        internal IfStatementNode(IPSharpProgram program, StatementBlockNode node)
+            : base(program, node)
         {
 
-        }
-
-        /// <summary>
-        /// Returns the rewritten text.
-        /// </summary>
-        /// <returns>string</returns>
-        internal override string GetRewrittenText()
-        {
-            return base.TextUnit.Text;
         }
 
         /// <summary>
@@ -88,7 +80,51 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// representation.
         /// </summary>
         /// <param name="program">Program</param>
-        internal override void Rewrite(IPSharpProgram program)
+        internal override void Rewrite()
+        {
+            this.Guard.Rewrite();
+            this.StatementBlock.Rewrite();
+
+            if (this.ElseKeyword != null &&
+                this.ElseStatementBlock != null)
+            {
+                this.ElseStatementBlock.Rewrite();
+            }
+
+            var text = this.GetRewrittenIfStatement();
+
+            base.TextUnit = new TextUnit(text, this.IfKeyword.TextUnit.Line);
+        }
+
+        /// <summary>
+        /// Rewrites the syntax node declaration to the intermediate C#
+        /// representation using any given program models.
+        /// </summary>
+        internal override void Model()
+        {
+            this.Guard.Model();
+            this.StatementBlock.Model();
+
+            if (this.ElseKeyword != null &&
+                this.ElseStatementBlock != null)
+            {
+                this.ElseStatementBlock.Model();
+            }
+
+            var text = this.GetRewrittenIfStatement();
+
+            base.TextUnit = new TextUnit(text, this.IfKeyword.TextUnit.Line);
+        }
+
+        #endregion
+
+        #region private API
+
+        /// <summary>
+        /// Returns the rewritten if statement.
+        /// </summary>
+        /// <returns>Text</returns>
+        private string GetRewrittenIfStatement()
         {
             var text = "";
 
@@ -96,25 +132,22 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             text += this.LeftParenthesisToken.TextUnit.Text;
 
-            this.Guard.Rewrite(program);
-            text += this.Guard.GetRewrittenText();
+            text += this.Guard.TextUnit.Text;
 
             text += this.RightParenthesisToken.TextUnit.Text;
 
-            this.StatementBlock.Rewrite(program);
-            text += this.StatementBlock.GetRewrittenText();
+            text += this.StatementBlock.TextUnit.Text;
 
             if (this.ElseKeyword != null)
             {
                 text += this.ElseKeyword.TextUnit.Text + " ";
                 if (this.ElseStatementBlock != null)
                 {
-                    this.ElseStatementBlock.Rewrite(program);
-                    text += this.ElseStatementBlock.GetRewrittenText();
+                    text += this.ElseStatementBlock.TextUnit.Text;
                 }
             }
 
-            base.TextUnit = new TextUnit(text, this.IfKeyword.TextUnit.Line);
+            return text;
         }
 
         #endregion

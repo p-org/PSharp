@@ -42,7 +42,7 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="accMod">Access modifier</param>
         internal void Visit(IPSharpProgram program, NamespaceDeclarationNode parentNode, AccessModifier accMod)
         {
-            var node = new EventDeclarationNode();
+            var node = new EventDeclarationNode(base.TokenStream.Program);
             node.AccessModifier = accMod;
             node.EventKeyword = base.TokenStream.Peek();
 
@@ -176,7 +176,7 @@ namespace Microsoft.PSharp.Parsing
 
             node.SemicolonToken = base.TokenStream.Peek();
 
-            if (base.TokenStream.IsPSharp)
+            if (base.TokenStream.Program is PSharpProgram)
             {
                 parentNode.EventDeclarations.Add(node);
             }

@@ -40,7 +40,7 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="parentNode">Node</param>
         internal void Visit(StatementBlockNode parentNode)
         {
-            var node = new RaiseStatementNode(parentNode);
+            var node = new RaiseStatementNode(base.TokenStream.Program, parentNode);
             node.RaiseKeyword = base.TokenStream.Peek();
 
             base.TokenStream.Index++;
@@ -69,7 +69,7 @@ namespace Microsoft.PSharp.Parsing
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
             
-            if (base.TokenStream.IsPSharp)
+            if (base.TokenStream.Program is PSharpProgram)
             {
                 if (base.TokenStream.Done ||
                     (base.TokenStream.Peek().Type != TokenType.LeftParenthesis &&
@@ -87,7 +87,7 @@ namespace Microsoft.PSharp.Parsing
                 {
                     node.Separator = base.TokenStream.Peek();
 
-                    var payload = new ExpressionNode(parentNode);
+                    var payload = new ExpressionNode(base.TokenStream.Program, parentNode);
                     new ArgumentsListVisitor(base.TokenStream).Visit(payload);
 
                     node.Payload = payload;
@@ -117,7 +117,7 @@ namespace Microsoft.PSharp.Parsing
                     base.TokenStream.Index++;
                     base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-                    var payload = new PPayloadSendExpressionNode(parentNode);
+                    var payload = new PPayloadSendExpressionNode(base.TokenStream.Program, parentNode);
                     new PayloadVisitor(base.TokenStream).Visit(payload);
                     node.Payload = payload;
                 }

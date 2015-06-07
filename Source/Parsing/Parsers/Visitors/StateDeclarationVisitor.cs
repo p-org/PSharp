@@ -42,7 +42,8 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="accMod">Access modifier</param>
         internal void Visit(MachineDeclarationNode parentNode, bool isStart, AccessModifier accMod)
         {
-            var node = new StateDeclarationNode(parentNode, isStart, parentNode.IsModel);
+            var node = new StateDeclarationNode(base.TokenStream.Program, parentNode,
+                isStart, parentNode.IsModel);
             node.AccessModifier = accMod;
             node.StateKeyword = base.TokenStream.Peek();
 
@@ -86,7 +87,7 @@ namespace Microsoft.PSharp.Parsing
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-            if (base.TokenStream.IsPSharp)
+            if (base.TokenStream.Program is PSharpProgram)
             {
                 this.VisitNextPSharpIntraStateDeclaration(node);
             }

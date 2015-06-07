@@ -57,20 +57,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor.
         /// </summary>
+        /// <param name="program">Program</param>
         /// <param name="node">Node</param>
-        internal NewStatementNode(StatementBlockNode node)
-            : base(node)
+        internal NewStatementNode(IPSharpProgram program, StatementBlockNode node)
+            : base(program, node)
         {
 
-        }
-
-        /// <summary>
-        /// Returns the rewritten text.
-        /// </summary>
-        /// <returns>string</returns>
-        internal override string GetRewrittenText()
-        {
-            return base.TextUnit.Text;
         }
 
         /// <summary>
@@ -78,7 +70,43 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// representation.
         /// </summary>
         /// <param name="program">Program</param>
-        internal override void Rewrite(IPSharpProgram program)
+        internal override void Rewrite()
+        {
+            if (this.Arguments != null)
+            {
+                this.Arguments.Rewrite();
+            }
+
+            var text = this.GetRewrittenNewStatement();
+
+            base.TextUnit = new TextUnit(text, this.NewKeyword.TextUnit.Line);
+        }
+
+        /// <summary>
+        /// Rewrites the syntax node declaration to the intermediate C#
+        /// representation using any given program models.
+        /// </summary>
+        internal override void Model()
+        {
+            if (this.Arguments != null)
+            {
+                this.Arguments.Model();
+            }
+
+            var text = this.GetRewrittenNewStatement();
+
+            base.TextUnit = new TextUnit(text, this.NewKeyword.TextUnit.Line);
+        }
+
+        #endregion
+
+        #region private API
+
+        /// <summary>
+        /// Returns the rewritten new statement.
+        /// </summary>
+        /// <returns>Text</returns>
+        private string GetRewrittenNewStatement()
         {
             var text = this.NewKeyword.TextUnit.Text;
             text += " ";
@@ -89,15 +117,14 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             if (this.Arguments != null)
             {
-                this.Arguments.Rewrite(program);
-                text += this.Arguments.GetRewrittenText();
+                text += this.Arguments.TextUnit.Text;
             }
 
             text += ")";
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, this.NewKeyword.TextUnit.Line);
+            return text;
         }
 
         #endregion

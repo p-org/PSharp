@@ -26,9 +26,9 @@ namespace Microsoft.PSharp.Parsing
         string Rewrite();
 
         /// <summary>
-        /// Returns the rewritten to C#-IR text of this P# program.
+        /// Models the P# program to the C#-IR.
         /// </summary>
-        /// <returns>Rewritten text</returns>
-        string GetRewrittenText();
+        /// <returns>Modeled text</returns>
+        string Model();
     }
 }

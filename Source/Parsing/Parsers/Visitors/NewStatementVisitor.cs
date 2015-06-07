@@ -40,7 +40,7 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="parentNode">Node</param>
         internal void Visit(StatementBlockNode parentNode)
         {
-            var node = new NewStatementNode(parentNode);
+            var node = new NewStatementNode(base.TokenStream.Program, parentNode);
             node.NewKeyword = base.TokenStream.Peek();
 
             base.TokenStream.Index++;
@@ -75,7 +75,7 @@ namespace Microsoft.PSharp.Parsing
             {
                 node.LeftParenthesisToken = base.TokenStream.Peek();
 
-                var arguments = new ExpressionNode(parentNode);
+                var arguments = new ExpressionNode(base.TokenStream.Program, parentNode);
                 new ArgumentsListVisitor(base.TokenStream).Visit(arguments);
 
                 node.Arguments = arguments;

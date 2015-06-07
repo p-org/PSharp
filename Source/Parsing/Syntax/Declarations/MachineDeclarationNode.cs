@@ -102,12 +102,13 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor.
         /// </summary>
+        /// <param name="program">Program</param>
         /// <param name="isPSharp">Is P# machine</param>
         /// <param name="isMain">Is main machine</param>
         /// <param name="isModel">Is a model</param>
         /// <param name="isMonitor">Is a monitor</param>
-        internal MachineDeclarationNode(bool isMain, bool isModel, bool isMonitor)
-            : base(isModel)
+        internal MachineDeclarationNode(IPSharpProgram program, bool isMain, bool isModel, bool isMonitor)
+            : base(program, isModel)
         {
             this.IsMain = isMain;
             this.IsMonitor = isMonitor;
@@ -119,41 +120,152 @@ namespace Microsoft.PSharp.Parsing.Syntax
         }
 
         /// <summary>
-        /// Returns the rewritten text.
-        /// </summary>
-        /// <returns>string</returns>
-        internal override string GetRewrittenText()
-        {
-            return base.TextUnit.Text;
-        }
-
-        /// <summary>
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
         /// <param name="program">Program</param>
-        internal override void Rewrite(IPSharpProgram program)
+        internal override void Rewrite()
         {
-            foreach (var node in this.FieldDeclarations)
+            if (this.IsModel || this.IsMonitor)
             {
-                node.Rewrite(program);
+                base.TextUnit = new TextUnit("", 0);
+                return;
             }
 
+            foreach (var node in this.FieldDeclarations)
+            {
+                node.Rewrite();
+            }
+            
             foreach (var node in this.StateDeclarations)
             {
-                node.Rewrite(program);
+                node.Rewrite();
             }
 
             foreach (var node in this.MethodDeclarations)
             {
-                node.Rewrite(program);
+                node.Rewrite();
             }
 
             foreach (var node in this.FunctionDeclarations)
             {
-                node.Rewrite(program);
+                node.Rewrite();
             }
 
+            var text = this.GetRewrittenMachineDeclaration();
+
+            var realMethods = this.MethodDeclarations.FindAll(m => !m.IsModel);
+            var realFuctions = this.FunctionDeclarations.FindAll(m => !m.IsModel);
+
+            foreach (var node in realMethods)
+            {
+                text += node.TextUnit.Text;
+            }
+
+            foreach (var node in realFuctions)
+            {
+                text += node.TextUnit.Text;
+            }
+
+            text += this.InstrumentGotoStateTransitions();
+
+            if (!this.IsMonitor)
+            {
+                text += this.InstrumentPushStateTransitions();
+            }
+
+            text += this.InstrumentActionsBindings();
+
+            text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
+
+            base.TextUnit = new TextUnit(text, this.MachineKeyword.TextUnit.Line);
+        }
+
+        /// <summary>
+        /// Rewrites the syntax node declaration to the intermediate C#
+        /// representation using any given program models.
+        /// </summary>
+        internal override void Model()
+        {
+            foreach (var node in this.FieldDeclarations)
+            {
+                node.Model();
+            }
+
+            foreach (var node in this.StateDeclarations)
+            {
+                node.Model();
+            }
+
+            foreach (var node in this.MethodDeclarations)
+            {
+                node.Model();
+            }
+
+            foreach (var node in this.FunctionDeclarations)
+            {
+                node.Model();
+            }
+
+            var text = this.GetRewrittenMachineDeclaration();
+
+            var realMethods = this.MethodDeclarations.FindAll(m => !m.IsModel);
+            var realFuctions = this.FunctionDeclarations.FindAll(m => !m.IsModel);
+            var modelMethods = this.MethodDeclarations.FindAll(m => m.IsModel);
+            var modelFunctions = this.FunctionDeclarations.FindAll(m => m.IsModel);
+
+            foreach (var node in realMethods)
+            {
+                if (!modelMethods.Any(m => m.Identifier.TextUnit.Text.Equals(
+                    node.Identifier.TextUnit.Text)))
+                {
+                    text += node.TextUnit.Text;
+                }
+            }
+
+            foreach (var node in realFuctions)
+            {
+                if (!modelFunctions.Any(m => m.Identifier.TextUnit.Text.Equals(
+                    node.Identifier.TextUnit.Text)))
+                {
+                    text += node.TextUnit.Text;
+                }
+            }
+
+            foreach (var node in modelMethods)
+            {
+                text += node.TextUnit.Text;
+            }
+
+            foreach (var node in modelFunctions)
+            {
+                text += node.TextUnit.Text;
+            }
+
+            text += this.InstrumentGotoStateTransitions();
+
+            if (!this.IsMonitor)
+            {
+                text += this.InstrumentPushStateTransitions();
+            }
+
+            text += this.InstrumentActionsBindings();
+
+            text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
+            
+            base.TextUnit = new TextUnit(text, this.MachineKeyword.TextUnit.Line);
+        }
+
+        #endregion
+
+        #region private API
+
+        /// <summary>
+        /// Returns the rewritten machine declaration.
+        /// </summary>
+        /// <returns>Text</returns>
+        private string GetRewrittenMachineDeclaration()
+        {
             var text = "";
 
             if (this.IsMain)
@@ -202,48 +314,22 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             foreach (var node in this.FieldDeclarations)
             {
-                text += node.GetRewrittenText();
+                text += node.TextUnit.Text;
             }
 
             foreach (var node in this.StateDeclarations)
             {
-                text += node.GetRewrittenText();
+                text += node.TextUnit.Text;
             }
 
-            foreach (var node in this.MethodDeclarations)
-            {
-                text += node.GetRewrittenText();
-            }
-
-            foreach (var node in this.FunctionDeclarations)
-            {
-                text += node.GetRewrittenText();
-            }
-
-            text += this.InstrumentGotoStateTransitions(program);
-
-            if (!this.IsMonitor)
-            {
-                text += this.InstrumentPushStateTransitions(program);
-            }
-
-            text += this.InstrumentActionsBindings(program);
-
-            text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
-
-            base.TextUnit = new TextUnit(text, this.MachineKeyword.TextUnit.Line);
+            return text;
         }
-
-        #endregion
-
-        #region private API
 
         /// <summary>
         /// Instruments the goto state transitions.
         /// </summary>
         /// <returns>Text</returns>
-        /// <param name="program">Program</param>
-        private string InstrumentGotoStateTransitions(IPSharpProgram program)
+        private string InstrumentGotoStateTransitions()
         {
             if (!this.StateDeclarations.Any(val => val.GotoStateTransitions.Count > 0))
             {
@@ -268,8 +354,8 @@ namespace Microsoft.PSharp.Parsing.Syntax
                     if (state.TransitionsOnExitActions.ContainsKey(transition.Key))
                     {
                         var onExitAction = state.TransitionsOnExitActions[transition.Key];
-                        onExitAction.Rewrite(program);
-                        onExitText = onExitAction.GetRewrittenText();
+                        onExitAction.Rewrite();
+                        onExitText = onExitAction.TextUnit.Text;
                     }
 
                     string eventId = "";
@@ -314,8 +400,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Instruments the push state transitions.
         /// </summary>
         /// <returns>Text</returns>
-        /// <param name="program">Program</param>
-        private string InstrumentPushStateTransitions(IPSharpProgram program)
+        private string InstrumentPushStateTransitions()
         {
             if (!this.StateDeclarations.Any(val => val.PushStateTransitions.Count > 0))
             {
@@ -340,8 +425,8 @@ namespace Microsoft.PSharp.Parsing.Syntax
                     if (state.TransitionsOnExitActions.ContainsKey(transition.Key))
                     {
                         var onExitAction = state.TransitionsOnExitActions[transition.Key];
-                        onExitAction.Rewrite(program);
-                        onExitText = onExitAction.GetRewrittenText();
+                        onExitAction.Rewrite();
+                        onExitText = onExitAction.TextUnit.Text;
                     }
 
                     string eventId = "";
@@ -386,8 +471,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Instruments the action bindings.
         /// </summary>
         /// <returns>Text</returns>
-        /// <param name="program">Program</param>
-        private string InstrumentActionsBindings(IPSharpProgram program)
+        private string InstrumentActionsBindings()
         {
             if (!this.StateDeclarations.Any(val => val.ActionBindings.Count > 0))
             {
@@ -412,8 +496,8 @@ namespace Microsoft.PSharp.Parsing.Syntax
                     if (state.ActionHandlers.ContainsKey(binding.Key))
                     {
                         var action = state.ActionHandlers[binding.Key];
-                        action.Rewrite(program);
-                        actionText = action.GetRewrittenText();
+                        action.Rewrite();
+                        actionText = action.TextUnit.Text;
                     }
 
                     string eventId = "";

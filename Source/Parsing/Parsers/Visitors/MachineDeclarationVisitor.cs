@@ -48,7 +48,7 @@ namespace Microsoft.PSharp.Parsing
         internal void Visit(IPSharpProgram program, NamespaceDeclarationNode parentNode, bool isMain,
             bool isModel, bool isMonitor, AccessModifier accMod, InheritanceModifier inhMod)
         {
-            var node = new MachineDeclarationNode(isMain, isModel, isMonitor);
+            var node = new MachineDeclarationNode(base.TokenStream.Program, isMain, isModel, isMonitor);
             node.AccessModifier = accMod;
             node.InheritanceModifier = inhMod;
             node.MachineKeyword = base.TokenStream.Peek();
@@ -75,7 +75,7 @@ namespace Microsoft.PSharp.Parsing
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-            if (base.TokenStream.IsPSharp)
+            if (base.TokenStream.Program is PSharpProgram)
             {
                 if (base.TokenStream.Done ||
                     (base.TokenStream.Peek().Type != TokenType.Colon &&
@@ -149,7 +149,7 @@ namespace Microsoft.PSharp.Parsing
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-            if (base.TokenStream.IsPSharp)
+            if (base.TokenStream.Program is PSharpProgram)
             {
                 this.VisitNextPSharpIntraMachineDeclaration(node);
                 parentNode.MachineDeclarations.Add(node);

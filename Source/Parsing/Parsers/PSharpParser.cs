@@ -56,8 +56,9 @@ namespace Microsoft.PSharp.Parsing
         /// <returns>P# program</returns>
         protected override IPSharpProgram CreateNewProgram()
         {
-            base.TokenStream.IsPSharp = true;
-            return new PSharpProgram(base.Project, base.FilePath);
+            var program = new PSharpProgram(base.Project, base.FilePath);
+            base.TokenStream.Program = program;
+            return program;
         }
 
         /// <summary>
@@ -129,7 +130,7 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         private void VisitUsingDeclaration()
         {
-            var node = new UsingDeclarationNode();
+            var node = new UsingDeclarationNode(base.TokenStream.Program);
             node.UsingKeyword = base.TokenStream.Peek();
 
             base.TokenStream.Index++;
@@ -188,7 +189,7 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         private void VisitNamespaceDeclaration()
         {
-            var node = new NamespaceDeclarationNode();
+            var node = new NamespaceDeclarationNode(base.TokenStream.Program);
             node.NamespaceKeyword = base.TokenStream.Peek();
 
             base.TokenStream.Index++;

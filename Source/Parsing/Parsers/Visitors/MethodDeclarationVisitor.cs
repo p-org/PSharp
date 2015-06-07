@@ -51,7 +51,7 @@ namespace Microsoft.PSharp.Parsing
                 isModel = true;
             }
 
-            var node = new MethodDeclarationNode(isModel);
+            var node = new MethodDeclarationNode(base.TokenStream.Program, isModel);
             node.AccessModifier = accMod;
             node.InheritanceModifier = inhMod;
             node.TypeIdentifier = typeIdentifier;
@@ -92,7 +92,8 @@ namespace Microsoft.PSharp.Parsing
 
             if (base.TokenStream.Peek().Type == TokenType.LeftCurlyBracket)
             {
-                var blockNode = new StatementBlockNode(parentNode, null, parentNode.IsModel);
+                var blockNode = new StatementBlockNode(base.TokenStream.Program, parentNode,
+                    null, parentNode.IsModel);
                 new StatementBlockVisitor(base.TokenStream).Visit(blockNode);
                 node.StatementBlock = blockNode;
             }

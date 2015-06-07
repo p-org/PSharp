@@ -57,20 +57,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor.
         /// </summary>
+        /// <param name="program">Program</param>
         /// <param name="node">Node</param>
-        internal CreateStatementNode(StatementBlockNode node)
-            : base(node)
+        internal CreateStatementNode(IPSharpProgram program, StatementBlockNode node)
+            : base(program, node)
         {
             this.MachineIdentifier = new List<Token>();
-        }
-        
-        /// <summary>
-        /// Returns the rewritten text.
-        /// </summary>
-        /// <returns>string</returns>
-        internal override string GetRewrittenText()
-        {
-            return base.TextUnit.Text;
         }
 
         /// <summary>
@@ -78,38 +70,53 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// representation.
         /// </summary>
         /// <param name="program">Program</param>
-        internal override void Rewrite(IPSharpProgram program)
+        internal override void Rewrite()
         {
-            var machineId = "";
-            foreach (var id in this.MachineIdentifier)
+            var machineId = this.GetMachineName();
+            var isMonitor = this.IsMonitor(machineId);
+
+            if (isMonitor)
             {
-                machineId += id.TextUnit.Text;
+                base.TextUnit = new TextUnit("", 0);
+                return;
             }
 
+            this.Payload.Rewrite();
+
+            var text = this.GetRewrittenCreateStatement(machineId, isMonitor);
+
+            base.TextUnit = new TextUnit(text, this.CreateKeyword.TextUnit.Line);
+        }
+
+        /// <summary>
+        /// Rewrites the syntax node declaration to the intermediate C#
+        /// representation using any given program models.
+        /// </summary>
+        internal override void Model()
+        {
+            var machineId = this.GetMachineName();
+            var isMonitor = this.IsMonitor(machineId);
+
+            this.Payload.Model();
+
+            var text = this.GetRewrittenCreateStatement(machineId, isMonitor);
+
+            base.TextUnit = new TextUnit(text, this.CreateKeyword.TextUnit.Line);
+        }
+
+        #endregion
+
+        #region private API
+
+        /// <summary>
+        /// Returns the rewritten create statement.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <param name="isMonitor">Is monitor</param>
+        /// <returns>Text</returns>
+        private string GetRewrittenCreateStatement(string machine, bool isMonitor)
+        {
             var text = "this.";
-
-            bool isMonitor = false;
-
-            if (program is PSharpProgram)
-            {
-                var project = (program as PSharpProgram).Project;
-
-                isMonitor = project.PSharpPrograms.Any(psp => psp.NamespaceDeclarations.Any(
-                    ns => ns.MachineDeclarations.Any(md => md.IsMonitor && md.Identifier.
-                    TextUnit.Text.Equals(machineId))));
-
-                if (!isMonitor)
-                {
-                    isMonitor = project.PPrograms.Any(ns => ns.MachineDeclarations.Any(
-                        md => md.IsMonitor && md.Identifier.TextUnit.Text.Equals(machineId)));
-                }
-            }
-            else
-            {
-                var pProgram = program as PProgram;
-                isMonitor = pProgram.MachineDeclarations.Any(md =>
-                    md.IsMonitor && md.Identifier.TextUnit.Text.Equals(machineId));
-            }
 
             if (isMonitor)
             {
@@ -120,18 +127,65 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 text += "Create<";
             }
 
-            text += machineId;
+            text += machine;
 
             text += ">(";
 
-            this.Payload.Rewrite(program);
-            text += this.Payload.GetRewrittenText();
+            text += this.Payload.TextUnit.Text;
 
             text += ")";
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, this.CreateKeyword.TextUnit.Line);
+            return text;
+        }
+
+        /// <summary>
+        /// Returns the machine name.
+        /// </summary>
+        /// <returns>Text</returns>
+        private string GetMachineName()
+        {
+            var text = "";
+
+            foreach (var id in this.MachineIdentifier)
+            {
+                text += id.TextUnit.Text;
+            }
+
+            return text;
+        }
+
+        /// <summary>
+        /// True if the given machine is a monitor.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <returns>Boolean</returns>
+        private bool IsMonitor(string machine)
+        {
+            bool isMonitor = false;
+            if (this.Program is PSharpProgram)
+            {
+                var project = (this.Program as PSharpProgram).Project;
+
+                isMonitor = project.PSharpPrograms.Any(psp => psp.NamespaceDeclarations.Any(
+                    ns => ns.MachineDeclarations.Any(md => md.IsMonitor && md.Identifier.
+                    TextUnit.Text.Equals(machine))));
+
+                if (!isMonitor)
+                {
+                    isMonitor = project.PPrograms.Any(ns => ns.MachineDeclarations.Any(
+                        md => md.IsMonitor && md.Identifier.TextUnit.Text.Equals(machine)));
+                }
+            }
+            else
+            {
+                var pProgram = this.Program as PProgram;
+                isMonitor = pProgram.MachineDeclarations.Any(md =>
+                    md.IsMonitor && md.Identifier.TextUnit.Text.Equals(machine));
+            }
+
+            return isMonitor;
         }
 
         #endregion

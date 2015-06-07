@@ -40,7 +40,7 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="parentNode">Node</param>
         internal void Visit(StatementBlockNode parentNode)
         {
-            var node = new ForeachStatementNode(parentNode);
+            var node = new ForeachStatementNode(base.TokenStream.Program, parentNode);
             node.ForeachKeyword = base.TokenStream.Peek();
 
             base.TokenStream.Index++;
@@ -61,7 +61,7 @@ namespace Microsoft.PSharp.Parsing
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-            var guard = new ExpressionNode(parentNode);
+            var guard = new ExpressionNode(base.TokenStream.Program, parentNode);
 
             int counter = 1;
             while (!base.TokenStream.Done)
@@ -137,7 +137,8 @@ namespace Microsoft.PSharp.Parsing
                 });
             }
 
-            var blockNode = new StatementBlockNode(parentNode.Machine, parentNode.State, parentNode.IsModel);
+            var blockNode = new StatementBlockNode(base.TokenStream.Program,
+                parentNode.Machine, parentNode.State, parentNode.IsModel);
 
             if (base.TokenStream.Peek().Type == TokenType.New)
             {

@@ -140,7 +140,17 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="tree">SyntaxTree</param>
         private void RewriteProgram(IPSharpProgram program, SyntaxTree tree)
         {
-            var rewrittenTree = program.Rewrite();
+            string rewrittenTree = null;
+
+            if (Configuration.RunStaticAnalysis || Configuration.RunDynamicAnalysis)
+            {
+                rewrittenTree = program.Model();
+            }
+            else
+            {
+                rewrittenTree = program.Rewrite();
+            }
+
             var source = SourceText.From(rewrittenTree);
 
             var project = this.Project;

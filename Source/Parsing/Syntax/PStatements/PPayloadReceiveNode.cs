@@ -62,20 +62,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor.
         /// </summary>
+        /// <param name="program">Program</param>
         /// <param name="isModel">Is a model</param>
-        internal PPayloadReceiveNode(bool isModel)
-            : base(isModel)
+        internal PPayloadReceiveNode(IPSharpProgram program, bool isModel)
+            : base(program, isModel)
         {
 
-        }
-
-        /// <summary>
-        /// Returns the rewritten text.
-        /// </summary>
-        /// <returns>string</returns>
-        internal override string GetRewrittenText()
-        {
-            return base.TextUnit.Text;
         }
 
         /// <summary>
@@ -83,14 +75,38 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// representation.
         /// </summary>
         /// <param name="program">Program</param>
-        internal override void Rewrite(IPSharpProgram program)
+        internal override void Rewrite()
+        {
+            var text = this.GetRewrittenPayloadReceive();
+            base.TextUnit = new TextUnit(text, this.PayloadKeyword.TextUnit.Line);
+        }
+
+        /// <summary>
+        /// Rewrites the syntax node declaration to the intermediate C#
+        /// representation using any given program models.
+        /// </summary>
+        internal override void Model()
+        {
+            var text = this.GetRewrittenPayloadReceive();
+            base.TextUnit = new TextUnit(text, this.PayloadKeyword.TextUnit.Line);
+        }
+
+        #endregion
+
+        #region private API
+
+        /// <summary>
+        /// Returns the rewritten monitor statement.
+        /// </summary>
+        /// <returns>Text</returns>
+        private string GetRewrittenPayloadReceive()
         {
             var text = "";
 
             this.Type.Rewrite();
             text += "(" + this.Type.GetRewrittenText() + ")";
             text += "this.Payload";
-            
+
             if (this.RightParenthesisToken != null)
             {
                 text += this.RightParenthesisToken.TextUnit.Text;
@@ -104,7 +120,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 }
             }
 
-            base.TextUnit = new TextUnit(text, this.PayloadKeyword.TextUnit.Line);
+            return text;
         }
 
         #endregion

@@ -65,9 +65,9 @@ namespace Microsoft.PSharp.Parsing
         internal string CurrentState;
 
         /// <summary>
-        /// True if this is a P# stream. False if a P stream.
+        /// The program this token stream belongs to.
         /// </summary>
-        internal bool IsPSharp;
+        internal IPSharpProgram Program;
 
         #endregion
 
@@ -76,6 +76,7 @@ namespace Microsoft.PSharp.Parsing
         /// <summary>
         /// Constructor.
         /// </summary>
+        /// <param name="program">Program</param>
         /// <param name="tokens">List of tokens</param>
         public TokenStream(List<Token> tokens)
         {

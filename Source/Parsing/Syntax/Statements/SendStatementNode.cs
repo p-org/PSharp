@@ -62,20 +62,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor.
         /// </summary>
+        /// <param name="program">Program</param>
         /// <param name="node">Node</param>
-        internal SendStatementNode(StatementBlockNode node)
-            : base(node)
+        internal SendStatementNode(IPSharpProgram program, StatementBlockNode node)
+            : base(program, node)
         {
 
-        }
-
-        /// <summary>
-        /// Returns the rewritten text.
-        /// </summary>
-        /// <returns>string</returns>
-        internal override string GetRewrittenText()
-        {
-            return base.TextUnit.Text;
         }
 
         /// <summary>
@@ -83,12 +75,51 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// representation.
         /// </summary>
         /// <param name="program">Program</param>
-        internal override void Rewrite(IPSharpProgram program)
+        internal override void Rewrite()
+        {
+            this.MachineIdentifier.Rewrite();
+
+            if (this.Payload != null)
+            {
+                this.Payload.Rewrite();
+            }
+
+            var text = this.GetRewrittenSendStatement();
+
+            base.TextUnit = new TextUnit(text, this.SendKeyword.TextUnit.Line);
+        }
+
+        /// <summary>
+        /// Rewrites the syntax node declaration to the intermediate C#
+        /// representation using any given program models.
+        /// </summary>
+        internal override void Model()
+        {
+            this.MachineIdentifier.Model();
+
+            if (this.Payload != null)
+            {
+                this.Payload.Model();
+            }
+
+            var text = this.GetRewrittenSendStatement();
+
+            base.TextUnit = new TextUnit(text, this.SendKeyword.TextUnit.Line);
+        }
+
+        #endregion
+
+        #region private API
+
+        /// <summary>
+        /// Returns the rewritten send statement.
+        /// </summary>
+        /// <returns>Text</returns>
+        private string GetRewrittenSendStatement()
         {
             var text = "this.Send(";
 
-            this.MachineIdentifier.Rewrite(program);
-            text += this.MachineIdentifier.GetRewrittenText();
+            text += this.MachineIdentifier.TextUnit.Text;
 
             text += ", new ";
 
@@ -109,15 +140,14 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             if (this.Payload != null)
             {
-                this.Payload.Rewrite(program);
-                text += this.Payload.GetRewrittenText();
+                text += this.Payload.TextUnit.Text;
             }
 
             text += "))";
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 
-            base.TextUnit = new TextUnit(text, this.SendKeyword.TextUnit.Line);
+            return text;
         }
 
         #endregion

@@ -82,27 +82,42 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor.
         /// </summary>
-        internal EventDeclarationNode()
-            : base(false)
+        /// <param name="program">Program</param>
+        internal EventDeclarationNode(IPSharpProgram program)
+            : base(program, false)
         {
 
-        }
-
-        /// <summary>
-        /// Returns the rewritten text.
-        /// </summary>
-        /// <returns>string</returns>
-        internal override string GetRewrittenText()
-        {
-            return base.TextUnit.Text;
         }
 
         /// <summary>
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        /// <param name="program">Program</param>
-        internal override void Rewrite(IPSharpProgram program)
+        internal override void Rewrite()
+        {
+            var text = this.GetRewrittenEventDeclaration();
+            base.TextUnit = new TextUnit(text, this.EventKeyword.TextUnit.Line);
+        }
+
+        /// <summary>
+        /// Rewrites the syntax node declaration to the intermediate C#
+        /// representation using any given program models.
+        /// </summary>
+        internal override void Model()
+        {
+            var text = this.GetRewrittenEventDeclaration();
+            base.TextUnit = new TextUnit(text, this.EventKeyword.TextUnit.Line);
+        }
+
+        #endregion
+
+        #region private API
+
+        /// <summary>
+        /// Returns the rewritten event declaration.
+        /// </summary>
+        /// <returns>Text</returns>
+        private string GetRewrittenEventDeclaration()
         {
             var text = "";
 
@@ -135,12 +150,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
             {
                 text += "-1, -1, ";
             }
-            
+
             text += "payload)\n";
             text += " { }\n";
             text += "}\n";
 
-            base.TextUnit = new TextUnit(text, this.EventKeyword.TextUnit.Line);
+            return text;
         }
 
         #endregion

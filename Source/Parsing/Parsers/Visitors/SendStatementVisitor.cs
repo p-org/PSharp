@@ -46,13 +46,13 @@ namespace Microsoft.PSharp.Parsing
                     new List<TokenType>());
             }
 
-            var node = new SendStatementNode(parentNode);
+            var node = new SendStatementNode(base.TokenStream.Program, parentNode);
             node.SendKeyword = base.TokenStream.Peek();
 
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-            if (base.TokenStream.IsPSharp)
+            if (base.TokenStream.Program is PSharpProgram)
             {
                 if (base.TokenStream.Done ||
                     (base.TokenStream.Peek().Type != TokenType.Identifier &&
@@ -67,7 +67,7 @@ namespace Microsoft.PSharp.Parsing
                     });
                 }
 
-                var machineIdentifier = new ExpressionNode(parentNode);
+                var machineIdentifier = new ExpressionNode(base.TokenStream.Program, parentNode);
                 while (!base.TokenStream.Done &&
                     base.TokenStream.Peek().Type != TokenType.Comma)
                 {
@@ -124,14 +124,15 @@ namespace Microsoft.PSharp.Parsing
                     });
                 }
 
-                var machineIdentifier = new PExpressionNode(parentNode);
+                var machineIdentifier = new PExpressionNode(base.TokenStream.Program, parentNode);
 
                 while (!base.TokenStream.Done &&
                     base.TokenStream.Peek().Type != TokenType.Comma)
                 {
                     if (base.TokenStream.Peek().Type == TokenType.Payload)
                     {
-                        var payloadNode = new PPayloadReceiveNode(machineIdentifier.IsModel);
+                        var payloadNode = new PPayloadReceiveNode(base.TokenStream.Program,
+                            machineIdentifier.IsModel);
                         new ReceivedPayloadVisitor(base.TokenStream).Visit(payloadNode);
                         machineIdentifier.StmtTokens.Add(null);
                         machineIdentifier.Payloads.Add(payloadNode);
@@ -186,14 +187,14 @@ namespace Microsoft.PSharp.Parsing
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-            if (base.TokenStream.IsPSharp)
+            if (base.TokenStream.Program is PSharpProgram)
             {
                 if (!base.TokenStream.Done &&
                     base.TokenStream.Peek().Type == TokenType.LeftParenthesis)
                 {
                     node.EventSeparator = base.TokenStream.Peek();
 
-                    var payload = new ExpressionNode(parentNode);
+                    var payload = new ExpressionNode(base.TokenStream.Program, parentNode);
                     new ArgumentsListVisitor(base.TokenStream).Visit(payload);
 
                     node.Payload = payload;
@@ -212,7 +213,7 @@ namespace Microsoft.PSharp.Parsing
                     base.TokenStream.Index++;
                     base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-                    var payload = new PPayloadSendExpressionNode(parentNode);
+                    var payload = new PPayloadSendExpressionNode(base.TokenStream.Program, parentNode);
                     new PayloadVisitor(base.TokenStream).Visit(payload);
                     node.Payload = payload;
                 }

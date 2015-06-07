@@ -12,10 +12,6 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
@@ -26,6 +22,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
         #region fields
 
         /// <summary>
+        /// The program this node belongs to.
+        /// </summary>
+        protected IPSharpProgram Program;
+
+        /// <summary>
         /// True if the node is a model.
         /// </summary>
         internal readonly bool IsModel;
@@ -33,7 +34,10 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// The text unit.
         /// </summary>
-        internal TextUnit TextUnit;
+        internal protected TextUnit TextUnit
+        {
+            get; protected set;
+        }
 
         #endregion
 
@@ -42,9 +46,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor.
         /// </summary>
+        /// <param name="program">Program</param>
         /// <param name="isModel">Is a model</param>
-        protected PSharpSyntaxNode(bool isModel)
+        protected PSharpSyntaxNode(IPSharpProgram program, bool isModel)
         {
+            this.Program = program;
             this.IsModel = isModel;
         }
 
@@ -53,17 +59,16 @@ namespace Microsoft.PSharp.Parsing.Syntax
         #region internal API
 
         /// <summary>
-        /// Returns the rewritten text.
-        /// </summary>
-        /// <returns>string</returns>
-        internal abstract string GetRewrittenText();
-
-        /// <summary>
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        /// <param name="program">Program</param>
-        internal abstract void Rewrite(IPSharpProgram program);
+        internal abstract void Rewrite();
+
+        /// <summary>
+        /// Rewrites the syntax node declaration to the intermediate C#
+        /// representation using any given program models.
+        /// </summary>
+        internal abstract void Model();
 
         #endregion
     }

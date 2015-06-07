@@ -52,20 +52,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Constructor.
         /// </summary>
+        /// <param name="program">Program</param>
         /// <param name="node">Node</param>
-        internal RaiseStatementNode(StatementBlockNode node)
-            : base(node)
+        internal RaiseStatementNode(IPSharpProgram program, StatementBlockNode node)
+            : base(program, node)
         {
 
-        }
-
-        /// <summary>
-        /// Returns the rewritten text.
-        /// </summary>
-        /// <returns>string</returns>
-        internal override string GetRewrittenText()
-        {
-            return base.TextUnit.Text;
         }
 
         /// <summary>
@@ -73,7 +65,43 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// representation.
         /// </summary>
         /// <param name="program">Program</param>
-        internal override void Rewrite(IPSharpProgram program)
+        internal override void Rewrite()
+        {
+            if (this.Separator != null)
+            {
+                this.Payload.Rewrite();
+            }
+
+            var text = this.GetRewrittenRaiseStatement();
+
+            base.TextUnit = new TextUnit(text, this.RaiseKeyword.TextUnit.Line);
+        }
+
+        /// <summary>
+        /// Rewrites the syntax node declaration to the intermediate C#
+        /// representation using any given program models.
+        /// </summary>
+        internal override void Model()
+        {
+            if (this.Separator != null)
+            {
+                this.Payload.Model();
+            }
+
+            var text = this.GetRewrittenRaiseStatement();
+
+            base.TextUnit = new TextUnit(text, this.RaiseKeyword.TextUnit.Line);
+        }
+
+        #endregion
+
+        #region private API
+
+        /// <summary>
+        /// Returns the rewritten raise statement.
+        /// </summary>
+        /// <returns>Text</returns>
+        private string GetRewrittenRaiseStatement()
         {
             var text = "{\n";
             text += "this.Raise(new ";
@@ -95,8 +123,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             if (this.Separator != null)
             {
-                this.Payload.Rewrite(program);
-                text += this.Payload.GetRewrittenText();
+                text += this.Payload.TextUnit.Text;
             }
 
             text += "))";
@@ -106,7 +133,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
             text += "return;\n";
             text += "}\n";
 
-            base.TextUnit = new TextUnit(text, this.RaiseKeyword.TextUnit.Line);
+            return text;
         }
 
         #endregion

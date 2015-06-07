@@ -104,7 +104,8 @@ namespace Microsoft.PSharp.Parsing
                         new List<TokenType>());
                 }
 
-                var node = new FieldDeclarationNode(parentNode, parentNode.IsModel);
+                var node = new FieldDeclarationNode(base.TokenStream.Program, parentNode,
+                    parentNode.IsModel);
                 node.AccessModifier = accMod;
                 node.TypeIdentifier = typeIdentifier;
                 node.Identifier = identifierToken;

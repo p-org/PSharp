@@ -69,19 +69,52 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             foreach (var node in this.EventDeclarations)
             {
-                node.Rewrite(this);
-                this.RewrittenText += node.GetRewrittenText();
+                node.Rewrite();
+                this.RewrittenText += node.TextUnit.Text;
             }
 
             foreach (var node in this.MachineDeclarations)
             {
-                node.Rewrite(this);
-                this.RewrittenText += node.GetRewrittenText();
+                node.Rewrite();
+                this.RewrittenText += node.TextUnit.Text;
             }
 
             this.RewrittenText += "}\n";
 
             return this.RewrittenText;
+        }
+
+        /// <summary>
+        /// Models the P# program to the C#-IR.
+        /// </summary>
+        /// <returns>Model text</returns>
+        public override string Model()
+        {
+            this.ModelText = "";
+
+            this.ModelText += base.InstrumentSystemLibrary();
+            this.ModelText += base.InstrumentSystemCollectionsGenericLibrary();
+            this.ModelText += base.InstrumentPSharpLibrary();
+            this.ModelText += base.InstrumentPSharpCollectionsLibrary();
+
+            this.ModelText += "namespace Microsoft.PSharp\n";
+            this.ModelText += "{\n";
+
+            foreach (var node in this.EventDeclarations)
+            {
+                node.Model();
+                this.ModelText += node.TextUnit.Text;
+            }
+
+            foreach (var node in this.MachineDeclarations)
+            {
+                node.Model();
+                this.ModelText += node.TextUnit.Text;
+            }
+
+            this.ModelText += "}\n";
+
+            return this.ModelText;
         }
 
         #endregion

@@ -52,7 +52,7 @@
     <Compile Include="PaxosNode.psharp" />
     <Compile Include="Timer.psharp" />
     <Compile Include="LeaderElection.psharp" />
-    <Compile Include="ValMachineItyCheck.psharp" />
+    <Compile Include="ValMachineCheck.psharp" />
     <Compile Include="BasicPaxosInvariant_P2b.psharp" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
