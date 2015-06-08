@@ -14,10 +14,8 @@ namespace PBoundedAsync
         [EntryPoint]
         public static void Execute()
         {
-            Runtime.RegisterMachine(typeof(Scheduler));
-            Runtime.RegisterMachine(typeof(Process));
-
-            Runtime.Start();
+            Runtime.CreateMachine<Scheduler>();
+            Runtime.WaitMachines();
         }
     }
 }

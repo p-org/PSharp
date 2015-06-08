@@ -22,11 +22,8 @@ namespace German
     {
         static void Main(string[] args)
         {
-            Runtime.RegisterMachine(typeof(Host));
-            Runtime.RegisterMachine(typeof(Client));
-            Runtime.RegisterMachine(typeof(CPU));
-
-            Runtime.Start();
+            Runtime.CreateMachine<Host>();
+            Runtime.WaitMachines();
         }
     }
 }

@@ -8,11 +8,8 @@ namespace PLinearTopology
     {
         static void Main(string[] args)
         {
-            Runtime.RegisterMachine(typeof(GodMachine));
-            Runtime.RegisterMachine(typeof(Clock));
-            Runtime.RegisterMachine(typeof(PortMachine));
-            
-            Runtime.Start();
+            Runtime.CreateMachine<GodMachine>();
+            Runtime.WaitMachines();
         }
     }
 }

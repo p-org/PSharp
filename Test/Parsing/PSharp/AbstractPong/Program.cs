@@ -8,9 +8,8 @@ namespace AbstractPong
     {
         static void Main(string[] args)
         {
-            Runtime.RegisterMachine(typeof(Server));
-
-            Runtime.Start();
+            Runtime.CreateMachine<Server>();
+            Runtime.WaitMachines();
         }
     }
 }

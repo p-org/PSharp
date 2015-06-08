@@ -8,10 +8,8 @@ namespace TypesAndGenerics
     {
         static void Main(string[] args)
         {
-            Runtime.RegisterMachine(typeof(Server));
-            Runtime.RegisterMachine(typeof(Client));
-            
-            Runtime.Start();
+            Runtime.CreateMachine<Server>();
+            Runtime.WaitMachines();
         }
     }
 }

@@ -8,12 +8,8 @@ namespace PElevator
     {
         static void Main(string[] args)
         {
-            Runtime.RegisterMachine(typeof(Elevator));
-            Runtime.RegisterMachine(typeof(User));
-            Runtime.RegisterMachine(typeof(Door));
-            Runtime.RegisterMachine(typeof(Timer));
-
-            Runtime.Start();
+            Runtime.CreateMachine<User>();
+            Runtime.WaitMachines();
         }
     }
 }

@@ -182,7 +182,7 @@ namespace Microsoft.PSharp
         /// <returns>Machine</returns>
         protected internal T Create<T>(params Object[] payload)
         {
-            return Machine.Dispatcher.TryCreateNewMachineInstance<T>(this, payload);
+            return Machine.Dispatcher.TryCreateMachine<T>(payload);
         }
 
         /// <summary>
@@ -192,7 +192,7 @@ namespace Microsoft.PSharp
         /// <param name="payload">Optional payload</param>
         protected internal void CreateMonitor<T>(params Object[] payload)
         {
-            Machine.Dispatcher.TryCreateNewMonitorInstance<T>(payload);
+            Machine.Dispatcher.TryCreateMonitor<T>(payload);
         }
 
         /// <summary>
@@ -204,7 +204,7 @@ namespace Microsoft.PSharp
         {
             Output.Debug(DebugType.Runtime, "<SendLog> Machine '{0}({1})' sent event '{2}' " +
                 "to machine '{3}({4})'.", this, this.Id, e.GetType(), m, m.Id);
-            Machine.Dispatcher.Send(this, m, e);
+            Machine.Dispatcher.Send(m, e);
         }
 
         /// <summary>
@@ -281,27 +281,6 @@ namespace Microsoft.PSharp
         protected internal void Assert(bool predicate, string s, params object[] args)
         {
             Machine.Dispatcher.Assert(predicate, s, args);
-        }
-
-        #endregion
-
-        #region factory methods
-
-        /// <summary>
-        /// Factory class for creating machines internally.
-        /// </summary>
-        internal static class Factory
-        {
-            /// <summary>
-            /// Creates a new machine of type T with an optional payload.
-            /// </summary>
-            /// <param name="m">Type of machine</param>
-            /// <param name="payload">Optional payload</param>
-            /// <returns>Machine</returns>
-            internal static Machine Create(Type m, params Object[] payload)
-            {
-                return Machine.Dispatcher.TryCreateNewMachineInstance(m, payload);
-            }
         }
 
         #endregion

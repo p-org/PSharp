@@ -14,13 +14,8 @@ namespace MultiPaxos
         [EntryPoint]
         public static void Execute()
         {
-            Runtime.RegisterMachine(typeof(GodMachine));
-            Runtime.RegisterMachine(typeof(PaxosNode));
-            Runtime.RegisterMachine(typeof(LeaderElection));
-            Runtime.RegisterMachine(typeof(Client));
-            Runtime.RegisterMachine(typeof(Timer));
-
-            Runtime.Start();
+            Runtime.CreateMachine<GodMachine>();
+            Runtime.WaitMachines();
         }
     }
 }

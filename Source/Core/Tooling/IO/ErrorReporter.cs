@@ -36,6 +36,18 @@ namespace Microsoft.PSharp.Tooling
         }
 
         /// <summary>
+        /// Reports a generic warning to the user.
+        /// </summary>
+        /// <param name="s">String</param>
+        /// <param name="args">Parameters</param>
+        public static void ReportWarning(string s, params object[] args)
+        {
+            string message = Output.Format(s, args);
+            Console.Write("Warning: ");
+            Console.WriteLine(message);
+        }
+
+        /// <summary>
         /// Reports a generic error to the user and exits.
         /// </summary>
         /// <param name="s">String</param>

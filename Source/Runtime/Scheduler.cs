@@ -84,6 +84,11 @@ namespace Microsoft.PSharp.Scheduling
         /// <param name="id">TaskId</param>
         internal void Schedule(int? id)
         {
+            if (id == null || !this.TaskMap.ContainsKey((int)id))
+            {
+                return;
+            }
+
             var taskInfo = this.TaskMap[(int)id];
 
             TaskInfo next = null;

@@ -14,9 +14,8 @@ namespace Regression
         [EntryPoint]
         public static void Execute()
         {
-            Runtime.RegisterMachine(typeof(PING));
-
-            Runtime.Start();
+            Runtime.CreateMachine<PING>();
+            Runtime.WaitMachines();
         }
     }
 }

@@ -30,11 +30,11 @@ namespace Microsoft.PSharp
     public static class Runtime
     {
         #region fields
-
+        
         /// <summary>
-        /// Set of registered state machine types.
+        /// List of machine tasks.
         /// </summary>
-        private static HashSet<Type> RegisteredMachineTypes = new HashSet<Type>();
+        private static List<Task> MachineTasks = new List<Task>();
 
         /// <summary>
         /// List of monitors in the program.
@@ -52,67 +52,58 @@ namespace Microsoft.PSharp
         private static bool IsRunning = false;
 
         /// <summary>
-        /// List of machine tasks.
-        /// </summary>
-        private static List<Task> MachineTasks = new List<Task>();
-
-        /// <summary>
         /// The P# bugfinder.
         /// </summary>
         internal static Scheduler BugFinder = null;
 
         #endregion
 
-        #region P# API methods
+        #region public API
 
         /// <summary>
-        /// Registers a machine type. Cannot register a machine
-        /// type after the runtime has started running.
+        /// Creates a new machine of type T with the given payload.
         /// </summary>
-        /// <param name="m">Machine</param>
-        public static void RegisterMachine(Type m)
+        /// <typeparam name="T">Type of the machine</typeparam>
+        /// <param name="payload">Optional payload</param>
+        /// <returns>Machine</returns>
+        public static T CreateMachine<T>(params Object[] payload)
         {
-            Runtime.Assert(Runtime.IsRunning == false, "Cannot register machine '{0}'" +
-                "because the P# runtime has already started.", m.Name);
-            Runtime.Assert(m.IsSubclassOf(typeof(Machine)), "Type '{0}' is not " +
-                    "a subclass of Machine.", m.Name);
-
-            if (m.IsDefined(typeof(Main), false))
+            lock (Runtime.Lock)
             {
-                Runtime.Assert(!Runtime.RegisteredMachineTypes.Any(val =>
-                    val.IsDefined(typeof(Main), false)),
-                    "Machine '{0}' cannot be declared as main. A main machine already " +
-                    "exists.", m.Name);
+                if (!Runtime.IsRunning)
+                {
+                    Runtime.Initialize();
+                }
+                else if (Runtime.BugFinder != null)
+                {
+                    ErrorReporter.ReportAndExit("Cannot create new machines (other than " +
+                        "main) from foreign code during systematic testing.");
+                }
+            }
+            
+            return Runtime.TryCreateMachine<T>(payload);
+        }
+
+        /// <summary>
+        /// Sends an asynchronous event to a machine.
+        /// </summary>
+        /// <param name="target">Target machine</param>
+        /// <param name="e">Event</param>
+        public static void SendEvent(Machine target, Event e)
+        {
+            if (Runtime.BugFinder != null)
+            {
+                ErrorReporter.ReportAndExit("Cannot send events from foreign " +
+                    "code during systematic testing.");
             }
 
-            Runtime.RegisteredMachineTypes.Add(m);
+            Runtime.Send(target, e);
         }
 
         /// <summary>
-        /// Starts the P# runtime by invoking the main machine. The
-        /// main machine is constructed with an optional payload.
+        /// Waits until all P# machines have finished execution.
         /// </summary>
-        /// <param name="payload">Optional payload</param>
-        public static void Start(params Object[] payload)
-        {
-            Runtime.Initialize();
-
-            Runtime.Assert(Runtime.RegisteredMachineTypes.Any(val =>
-                    val.IsDefined(typeof(Main), false)),
-                    "No main machine is registered.");
-
-            // Start the main machine.
-            Type mainMachine = Runtime.RegisteredMachineTypes.First(val =>
-                val.IsDefined(typeof(Main), false));
-            Machine.Factory.Create(mainMachine, payload);
-
-            Runtime.Wait();
-        }
-
-        /// <summary>
-        /// Waits until the P# runtime has finished.
-        /// </summary>
-        public static void Wait()
+        public static void WaitMachines()
         {
             Task[] taskArray = null;
 
@@ -144,80 +135,23 @@ namespace Microsoft.PSharp
                 }
             }
 
-            Runtime.Dispose();
+            Runtime.IsRunning = false;
         }
-        
+
         #endregion
-        
-        #region P# runtime internal methods
+
+        #region internal API
 
         /// <summary>
-        /// Attempts to create a new machine instance of type T with
-        /// the given payload.
-        /// </summary>
-        /// <param name="m">Type of the machine</param>
-        /// <param name="payload">Optional payload</param>
-        /// <returns>Machine</returns>
-        internal static Machine TryCreateNewMachineInstance(Type m, params Object[] payload)
-        {
-            Runtime.Assert(m.IsSubclassOf(typeof(Machine)),
-                    "Type '{0}' is not a subclass of Machine.", m.Name);
-            Runtime.Assert(Runtime.RegisteredMachineTypes.Any(val => val == m),
-                "Machine '{0}' has not been registered with the P# runtime.", m.Name);
-
-            Machine machine = Activator.CreateInstance(m) as Machine;
-            machine.AssignInitialPayload(payload);
-            Output.Debug(DebugType.Runtime, "<CreateLog> Machine {0}({1}) is created.", m, machine.Id);
-
-            Task task = new Task(() =>
-            {
-                if (Runtime.BugFinder != null)
-                {
-                    Runtime.BugFinder.NotifyTaskStarted(Task.CurrentId);
-                }
-                
-                machine.Run();
-
-                if (Runtime.BugFinder != null)
-                {
-                    Runtime.BugFinder.NotifyTaskCompleted(Task.CurrentId);
-                }
-            });
-
-            lock (Runtime.Lock)
-            {
-                Runtime.MachineTasks.Add(task);
-            }
-
-            if (Runtime.BugFinder != null)
-            {
-                Runtime.BugFinder.NotifyNewTaskCreated(task.Id, machine);
-            }
-
-            task.Start();
-
-            if (Runtime.BugFinder != null)
-            {
-                Runtime.BugFinder.WaitForTaskToStart(task.Id);
-            }
-
-            return machine;
-        }
-
-        /// <summary>
-        /// Attempts to create a new machine instance of type T with
-        /// the given payload.
+        /// Tries to create a new machine of type T with the given payload.
         /// </summary>
         /// <typeparam name="T">Type of the machine</typeparam>
-        /// <param name="creator">Creator machine</param>
         /// <param name="payload">Optional payload</param>
         /// <returns>Machine</returns>
-        internal static T TryCreateNewMachineInstance<T>(Machine creator, params Object[] payload)
+        internal static T TryCreateMachine<T>(params Object[] payload)
         {
             Runtime.Assert(typeof(T).IsSubclassOf(typeof(Machine)), "Type '{0}' is " +
                 "not a subclass of Machine.", typeof(T).Name);
-            Runtime.Assert(Runtime.RegisteredMachineTypes.Any(val => val == typeof(T)),
-                "Machine '{0}' has not been registered with the P# runtime.", typeof(T).Name);
 
             Object machine = Activator.CreateInstance(typeof(T));
             (machine as Machine).AssignInitialPayload(payload);
@@ -230,7 +164,7 @@ namespace Microsoft.PSharp
                 {
                     Runtime.BugFinder.NotifyTaskStarted(Task.CurrentId);
                 }
-                
+
                 (machine as Machine).Run();
 
                 if (Runtime.BugFinder != null)
@@ -261,13 +195,11 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Attempts to create a new monitor instance of type T with
-        /// the given payload. There can be only one monitor instance
-        /// of each monitor type.
+        /// Tries to create a new monitor of type T with the given payload.
         /// </summary>
         /// <typeparam name="T">Type of the monitor</typeparam>
         /// <param name="payload">Optional payload</param>
-        internal static void TryCreateNewMonitorInstance<T>(params Object[] payload)
+        internal static void TryCreateMonitor<T>(params Object[] payload)
         {
             if (Runtime.BugFinder == null)
             {
@@ -287,12 +219,11 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Attempts to send (i.e. enqueue) an asynchronous event to a machine.
+        /// Sends an asynchronous event to a machine.
         /// </summary>
-        /// <param name="sender">Sender machine</param>
         /// <param name="target">Target machine</param>
         /// <param name="e">Event</param>
-        internal static void Send(Machine sender, Machine target, Event e)
+        internal static void Send(Machine target, Event e)
         {
             Runtime.Assert(e != null, "Machine '{0}' received a null event.", target);
             
@@ -363,21 +294,21 @@ namespace Microsoft.PSharp
         
         #endregion
         
-        #region P# runtime private methods
+        #region private API
 
         /// <summary>
         /// Initializes the P# runtime.
         /// </summary>
         private static void Initialize()
         {
+            Runtime.MachineTasks = new List<Task>();
+            Runtime.Monitors = new List<Monitor>();
+
+            Machine.ResetMachineIDCounter();
+
             var dispatcher = new Dispatcher();
             Microsoft.PSharp.Machine.Dispatcher = dispatcher;
             Microsoft.PSharp.Monitor.Dispatcher = dispatcher;
-
-            if (Runtime.BugFinder != null)
-            {
-                Runtime.Assert(Runtime.BugFinder != null, "Bugfinder is not initialized.");
-            }
 
             Runtime.IsRunning = true;
         }
@@ -433,30 +364,6 @@ namespace Microsoft.PSharp
             }
         }
 
-        #endregion
-
-        #region cleanup methods
-
-        /// <summary>
-        /// Disposes resources of the P# runtime.
-        /// </summary>
-        internal static void Dispose()
-        {
-            if (!Runtime.IsRunning)
-            {
-                return;
-            }
-
-            Runtime.RegisteredMachineTypes.Clear();
-
-            Runtime.Monitors.Clear();
-            Runtime.MachineTasks.Clear();
-
-            Machine.ResetMachineIDCounter();
-
-            Runtime.IsRunning = false;
-        }
-        
         #endregion
     }
 }

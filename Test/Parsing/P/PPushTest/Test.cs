@@ -8,10 +8,8 @@ namespace PPushTest
     {
         static void Main(string[] args)
         {
-            Runtime.RegisterMachine(typeof(Ping));
-            Runtime.RegisterMachine(typeof(Pong));
-            
-            Runtime.Start();
+            Runtime.CreateMachine<Ping>();
+            Runtime.WaitMachines();
         }
     }
 }

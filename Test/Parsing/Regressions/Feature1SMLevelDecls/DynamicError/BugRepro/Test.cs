@@ -14,12 +14,8 @@ namespace Regression
         [EntryPoint]
         public static void Execute()
         {
-            Runtime.RegisterMachine(typeof(Driver));
-            Runtime.RegisterMachine(typeof(FailureDetector));
-            Runtime.RegisterMachine(typeof(Node));
-            Runtime.RegisterMachine(typeof(Timer));
-
-            Runtime.Start();
+            Runtime.CreateMachine<Driver>();
+            Runtime.WaitMachines();
         }
     }
 }

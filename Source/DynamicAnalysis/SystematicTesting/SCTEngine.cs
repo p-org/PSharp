@@ -148,10 +148,6 @@ namespace Microsoft.PSharp.DynamicAnalysis
                 if (Configuration.AnalysisTimeout > 0)
                 {
                     task.Wait(Configuration.AnalysisTimeout * 1000);
-                    if (!task.IsCompleted)
-                    {
-                        Runtime.Dispose();
-                    }
                 }
                 else
                 {

@@ -14,11 +14,8 @@ namespace POpenWSN
         [EntryPoint]
         public static void Execute()
         {
-            Runtime.RegisterMachine(typeof(GodMachine));
-            Runtime.RegisterMachine(typeof(OpenWSN_Mote));
-            Runtime.RegisterMachine(typeof(SlotTimerMachine));
-
-            Runtime.Start();
+            Runtime.CreateMachine<GodMachine>();
+            Runtime.WaitMachines();
         }
     }
 }

@@ -14,10 +14,8 @@ namespace PingPong
         [EntryPoint]
         public static void Execute()
         {
-            Runtime.RegisterMachine(typeof(Server));
-            Runtime.RegisterMachine(typeof(Client));
-            
-            Runtime.Start();
+            Runtime.CreateMachine<Server>();
+            Runtime.WaitMachines();
         }
     }
 }

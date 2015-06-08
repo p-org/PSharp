@@ -27,51 +27,34 @@ namespace Microsoft.PSharp
         #region API methods
 
         /// <summary>
-        /// Attempts to create a new machine instance of type T with
-        /// the given payload.
-        /// </summary>
-        /// <param name="m">Type of the machine</param>
-        /// <param name="payload">Optional payload</param>
-        /// <returns>Machine</returns>
-        Machine IDispatcher.TryCreateNewMachineInstance(Type m, params Object[] payload)
-        {
-            return Runtime.TryCreateNewMachineInstance(m, payload);
-        }
-
-        /// <summary>
-        /// Attempts to create a new machine instance of type T with
-        /// the given payload.
+        /// Tries to create a new machine of type T with the given payload.
         /// </summary>
         /// <typeparam name="T">Type of the machine</typeparam>
-        /// <param name="creator">Creator machine</param>
         /// <param name="payload">Optional payload</param>
         /// <returns>Machine</returns>
-        T IDispatcher.TryCreateNewMachineInstance<T>(Machine creator, params Object[] payload)
+        T IDispatcher.TryCreateMachine<T>(params Object[] payload)
         {
-            return Runtime.TryCreateNewMachineInstance<T>(creator, payload);
+            return Runtime.TryCreateMachine<T>(payload);
         }
 
         /// <summary>
-        /// Attempts to create a new monitor instance of type T with
-        /// the given payload. There can be only one monitor instance
-        /// of each monitor type.
+        /// Tries to create a new monitor of type T with the given payload.
         /// </summary>
         /// <typeparam name="T">Type of the monitor</typeparam>
         /// <param name="payload">Optional payload</param>
-        void IDispatcher.TryCreateNewMonitorInstance<T>(params Object[] payload)
+        void IDispatcher.TryCreateMonitor<T>(params Object[] payload)
         {
-            Runtime.TryCreateNewMonitorInstance<T>(payload);
+            Runtime.TryCreateMonitor<T>(payload);
         }
 
         /// <summary>
-        /// Attempts to send (i.e. enqueue) an asynchronous event to a machine.
+        /// Sends an asynchronous event to a machine.
         /// </summary>
-        /// <param name="sender">Sender machine</param>
         /// <param name="target">Target machine</param>
         /// <param name="e">Event</param>
-        void IDispatcher.Send(Machine sender, Machine target, Event e)
+        void IDispatcher.Send(Machine target, Event e)
         {
-            Runtime.Send(sender, target, e);
+            Runtime.Send(target, e);
         }
 
         /// <summary>

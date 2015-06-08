@@ -25,40 +25,26 @@ namespace Microsoft.PSharp
     internal interface IDispatcher
     {
         /// <summary>
-        /// Attempts to create a new machine instance of type T with
-        /// the given payload.
-        /// </summary>
-        /// <param name="m">Type of the machine</param>
-        /// <param name="payload">Optional payload</param>
-        /// <returns>Machine</returns>
-        Machine TryCreateNewMachineInstance(Type m, params Object[] payload);
-
-        /// <summary>
-        /// Attempts to create a new machine instance of type T with
-        /// the given payload.
+        /// Tries to create a new machine of type T with the given payload.
         /// </summary>
         /// <typeparam name="T">Type of the machine</typeparam>
-        /// <param name="creator">Creator machine</param>
         /// <param name="payload">Optional payload</param>
         /// <returns>Machine</returns>
-        T TryCreateNewMachineInstance<T>(Machine creator, params Object[] payload);
+        T TryCreateMachine<T>(params Object[] payload);
 
         /// <summary>
-        /// Attempts to create a new monitor instance of type T with
-        /// the given payload. There can be only one monitor instance
-        /// of each monitor type.
+        /// Tries to create a new monitor of type T with the given payload.
         /// </summary>
         /// <typeparam name="T">Type of the monitor</typeparam>
         /// <param name="payload">Optional payload</param>
-        void TryCreateNewMonitorInstance<T>(params Object[] payload);
+        void TryCreateMonitor<T>(params Object[] payload);
 
         /// <summary>
-        /// Attempts to send (i.e. enqueue) an asynchronous event to a machine.
+        /// Sends an asynchronous event to a machine.
         /// </summary>
-        /// <param name="sender">Sender machine</param>
         /// <param name="target">Target machine</param>
         /// <param name="e">Event</param>
-        void Send(Machine sender, Machine target, Event e);
+        void Send(Machine target, Event e);
 
         /// <summary>
         /// Invokes the specified monitor with the given event.
