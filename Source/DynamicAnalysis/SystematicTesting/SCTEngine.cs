@@ -113,6 +113,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
                     
                     SCTEngine.ExploredSchedules++;
                     SCTEngine.SchedulingPoints = Runtime.BugFinder.SchedulingPoints;
+
                     if (Runtime.BugFinder.BugFound)
                     {
                         SCTEngine.FoundBugs++;
@@ -182,6 +183,11 @@ namespace Microsoft.PSharp.DynamicAnalysis
                     (SCTEngine.FoundBugs * 100 / SCTEngine.ExploredSchedules));
                 Console.WriteLine("... Instrumented {0} scheduling point{1} (on last iteration).",
                     SCTEngine.SchedulingPoints, SCTEngine.SchedulingPoints == 1 ? "" : "s");
+            }
+
+            if (Configuration.DepthBound > 0)
+            {
+                Console.WriteLine("... Used depth bound of {0}.", Configuration.DepthBound);
             }
 
             Console.WriteLine("... Elapsed {0} sec.", Profiler.Results());

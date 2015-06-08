@@ -92,7 +92,9 @@ namespace Microsoft.PSharp.Scheduling
             var taskInfo = this.TaskMap[(int)id];
 
             TaskInfo next = null;
-            if (!this.Strategy.TryGetNext(out next, this.Tasks))
+            if (!this.Strategy.TryGetNext(out next, this.Tasks) ||
+                (Configuration.DepthBound > 0 &&
+                this.SchedulingPoints == Configuration.DepthBound))
             {
                 Output.Debug(DebugType.Testing, "<ScheduleDebug> Schedule explored.");
                 this.KillRemainingTasks();

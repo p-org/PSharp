@@ -87,7 +87,8 @@ namespace Microsoft.PSharp.Tooling
                     this.Options[idx].Length > 9)
                 {
                     int i = 0;
-                    if (!int.TryParse(this.Options[idx].Substring(9), out i))
+                    if (!int.TryParse(this.Options[idx].Substring(9), out i) &&
+                        i > 0)
                     {
                         ErrorReporter.ReportAndExit("Please give a valid timeout " +
                             "'/timeout:[x]', where [x] > 0.");
@@ -98,8 +99,9 @@ namespace Microsoft.PSharp.Tooling
                 else if (this.Options[idx].ToLower().StartsWith("/v:") &&
                     this.Options[idx].Length > 3)
                 {
-                    int i = 1;
-                    if (!int.TryParse(this.Options[idx].Substring(3), out i))
+                    int i = 0;
+                    if (!int.TryParse(this.Options[idx].Substring(3), out i) &&
+                        i >= 0 && i <= 2)
                     {
                         ErrorReporter.ReportAndExit("Please give a valid verbosity level " +
                             "'/v:[x]', where 0 <= [x] <= 2.");
@@ -195,8 +197,9 @@ namespace Microsoft.PSharp.Tooling
                 else if (this.Options[idx].ToLower().StartsWith("/i:") &&
                     this.Options[idx].Length > 3)
                 {
-                    int i = 1;
-                    if (!int.TryParse(this.Options[idx].Substring(3), out i))
+                    int i = 0;
+                    if (!int.TryParse(this.Options[idx].Substring(3), out i) &&
+                        i > 0)
                     {
                         ErrorReporter.ReportAndExit("Please give a valid number of iterations " +
                             "'/i:[x]', where [x] > 0.");
@@ -207,6 +210,19 @@ namespace Microsoft.PSharp.Tooling
                 else if (this.Options[idx].ToLower().Equals("/explore"))
                 {
                     Configuration.FullExploration = true;
+                }
+                else if (this.Options[idx].ToLower().StartsWith("/db:") &&
+                    this.Options[idx].Length > 4)
+                {
+                    int i = 0;
+                    if (!int.TryParse(this.Options[idx].Substring(4), out i) &&
+                        i > 0)
+                    {
+                        ErrorReporter.ReportAndExit("Please give a valid exploration depth " +
+                            "bound '/i:[x]', where [x] > 0.");
+                    }
+
+                    Configuration.DepthBound = i;
                 }
 
                 #endregion

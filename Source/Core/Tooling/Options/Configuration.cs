@@ -134,9 +134,14 @@ namespace Microsoft.PSharp.Tooling
         internal static int SchedulingIterations = 1;
 
         /// <summary>
-        /// Fully explore schedules.
+        /// Systematic tester does not stop when it finds a bug.
         /// </summary>
         internal static bool FullExploration = false;
+
+        /// <summary>
+        /// Depth bound.
+        /// </summary>
+        internal static int DepthBound = 0;
 
         #endregion
     }
