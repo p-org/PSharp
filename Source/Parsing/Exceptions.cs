@@ -22,6 +22,9 @@ namespace Microsoft.PSharp.Parsing
     /// </summary>
     internal class ParsingException : Exception
     {
+        /// <summary>
+        /// The expected tokens.
+        /// </summary>
         internal List<TokenType> ExpectedTokenTypes;
 
         /// <summary>
@@ -43,6 +46,22 @@ namespace Microsoft.PSharp.Parsing
             : base(message)
         {
             this.ExpectedTokenTypes = expectedTokensTypes;
+        }
+    }
+
+    /// <summary>
+    /// Implements a rewriting exception.
+    /// </summary>
+    internal class RewritingException : Exception
+    {
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="message">Message</param>
+        public RewritingException(string message)
+            : base(message)
+        {
+
         }
     }
 }

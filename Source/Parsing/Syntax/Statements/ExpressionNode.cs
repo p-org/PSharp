@@ -107,7 +107,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         protected void RewriteMachineType()
         {
-            var textUnit = new TextUnit("Machine", this.RewrittenStmtTokens[this.Index].TextUnit.Line);
+            var textUnit = new TextUnit("MachineId", this.RewrittenStmtTokens[this.Index].TextUnit.Line);
             this.RewrittenStmtTokens[this.Index] = new Token(textUnit, this.RewrittenStmtTokens[this.Index].Type);
         }
 
@@ -202,11 +202,6 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         private void RewriteThis()
         {
-            if (this.Parent.State == null)
-            {
-                return;
-            }
-
             var removeIdx = this.Index + 1;
             this.SkipWhiteSpaceTokens();
 
@@ -220,7 +215,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
             else
             {
                 int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
-                var text = "this.Machine";
+                var text = "this.Id";
                 this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line));
             }
         }

@@ -44,13 +44,14 @@
     <Compile Include="Client.psharp" />
     <Compile Include="Events.psharp" />
     <Compile Include="GodMachine.psharp" />
+    <Compile Include="Timer.cs" />
     <Compile Include="Test.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <Compile Include="PaxosNode.psharp" />
-    <Compile Include="Timer.psharp" />
+    <Compile Include="NondetTimer.psharp" />
     <Compile Include="LeaderElection.psharp" />
     <Compile Include="ValMachineCheck.psharp" />
     <Compile Include="BasicPaxosInvariant_P2b.psharp" />

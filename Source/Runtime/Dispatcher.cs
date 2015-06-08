@@ -31,8 +31,8 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <typeparam name="T">Type of the machine</typeparam>
         /// <param name="payload">Optional payload</param>
-        /// <returns>Machine</returns>
-        T IDispatcher.TryCreateMachine<T>(params Object[] payload)
+        /// <returns>Machine id</returns>
+        MachineId IDispatcher.TryCreateMachine<T>(params Object[] payload)
         {
             return Runtime.TryCreateMachine<T>(payload);
         }
@@ -50,11 +50,11 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Sends an asynchronous event to a machine.
         /// </summary>
-        /// <param name="target">Target machine</param>
+        /// <param name="mid">Machine id</param>
         /// <param name="e">Event</param>
-        void IDispatcher.Send(Machine target, Event e)
+        void IDispatcher.Send(MachineId mid, Event e)
         {
-            Runtime.Send(target, e);
+            Runtime.Send(mid, e);
         }
 
         /// <summary>

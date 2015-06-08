@@ -50,6 +50,16 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         internal Token RightParenthesisToken;
 
+        /// <summary>
+        /// The for keyword.
+        /// </summary>
+        internal Token ForKeyword;
+
+        /// <summary>
+        /// The real machine identifier.
+        /// </summary>
+        internal List<Token> RealMachineIdentifier;
+
         #endregion
 
         #region internal API
@@ -63,6 +73,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
             : base(program, node)
         {
             this.MachineIdentifier = new List<Token>();
+            this.RealMachineIdentifier = new List<Token>();
         }
 
         /// <summary>
@@ -72,11 +83,32 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <param name="program">Program</param>
         internal override void Rewrite()
         {
-            var machineId = this.GetMachineName();
+            var machineId = "";
+
+            if (this.ForKeyword != null)
+            {
+                foreach (var id in this.RealMachineIdentifier)
+                {
+                    machineId += id.TextUnit.Text;
+                }
+            }
+            else
+            {
+                foreach (var id in this.MachineIdentifier)
+                {
+                    machineId += id.TextUnit.Text;
+                }
+            }
+            
             var isMonitor = this.IsMonitor(machineId);
 
             if (isMonitor)
             {
+                if (this.ForKeyword != null)
+                {
+                    throw new RewritingException("A monitor cannot model a real machine.");
+                }
+
                 base.TextUnit = new TextUnit("", 0);
                 return;
             }
@@ -94,8 +126,18 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         internal override void Model()
         {
-            var machineId = this.GetMachineName();
+            var machineId = "";
+            foreach (var id in this.MachineIdentifier)
+            {
+                machineId += id.TextUnit.Text;
+            }
+
             var isMonitor = this.IsMonitor(machineId);
+
+            if (isMonitor && this.ForKeyword != null)
+            {
+                throw new RewritingException("A monitor cannot model a real machine.");
+            }
 
             this.Payload.Model();
 
@@ -136,22 +178,6 @@ namespace Microsoft.PSharp.Parsing.Syntax
             text += ")";
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
-
-            return text;
-        }
-
-        /// <summary>
-        /// Returns the machine name.
-        /// </summary>
-        /// <returns>Text</returns>
-        private string GetMachineName()
-        {
-            var text = "";
-
-            foreach (var id in this.MachineIdentifier)
-            {
-                text += id.TextUnit.Text;
-            }
 
             return text;
         }

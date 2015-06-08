@@ -27,6 +27,14 @@ namespace Microsoft.PSharp
         #region fields
 
         /// <summary>
+        /// Unique machine ID.
+        /// </summary>
+        public MachineId Id
+        {
+            get { return this.Machine.Id; }
+        }
+
+        /// <summary>
         /// Handle to the machine that owns this state instance.
         /// </summary>
         protected internal Machine Machine;
@@ -178,8 +186,8 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <typeparam name="T">Type of machine</typeparam>
         /// <param name="payload">Optional payload</param>
-        /// <returns>Machine</returns>
-        protected internal T Create<T>(params Object[] payload)
+        /// <returns>Machine id</returns>
+        protected internal MachineId Create<T>(params Object[] payload)
         {
             return this.Machine.Create<T>(payload);
         }
@@ -197,11 +205,11 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Sends an asynchronous event to a machine.
         /// </summary>
-        /// <param name="m">Machine</param>
+        /// <param name="mid">Machine id</param>
         /// <param name="e">Event</param>
-        protected void Send(Machine m, Event e)
+        protected void Send(MachineId mid, Event e)
         {
-            this.Machine.Send(m, e);
+            this.Machine.Send(mid, e);
         }
 
         /// <summary>

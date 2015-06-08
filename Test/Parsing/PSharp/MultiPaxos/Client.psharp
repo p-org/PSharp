@@ -2,7 +2,7 @@
 {
     model Client
     {
-	    List<Machine> Servers;
+	    List<machine> Servers;
 
 	    start state Init
 		{
@@ -10,7 +10,7 @@
 			{
 			    create ValMachineCheck();
 
-				Servers = (List<Machine>)payload;
+				Servers = (List<machine>)payload;
 
 				raise local;
 			}
@@ -64,13 +64,13 @@
 
 	machine Client
     {
-	    List<Machine> Servers;
+	    List<machine> Servers;
 
 	    start state Init
 		{
 		    entry
 			{
-				Servers = (List<Machine>)payload;
+				Servers = (List<machine>)payload;
 
 				raise local;
 			}

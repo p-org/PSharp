@@ -125,6 +125,74 @@ namespace Microsoft.PSharp.Parsing
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
             if (base.TokenStream.Done ||
+                (base.TokenStream.Peek().Type != TokenType.ForLoop &&
+                base.TokenStream.Peek().Type != TokenType.Semicolon))
+            {
+                throw new ParsingException("Expected \"for\" or \";\".",
+                    new List<TokenType>
+                {
+                    TokenType.ForLoop,
+                    TokenType.Semicolon
+                });
+            }
+
+            if (base.TokenStream.Peek().Type == TokenType.ForLoop)
+            {
+                node.ForKeyword = base.TokenStream.Peek();
+
+                base.TokenStream.Index++;
+                base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+
+                if (base.TokenStream.Done ||
+                    base.TokenStream.Peek().Type != TokenType.Identifier)
+                {
+                    throw new ParsingException("Expected machine identifier.",
+                        new List<TokenType>
+                    {
+                        TokenType.Identifier
+                    });
+                }
+
+                if (base.TokenStream.Program is PSharpProgram)
+                {
+                    while (!base.TokenStream.Done &&
+                        base.TokenStream.Peek().Type != TokenType.LeftParenthesis &&
+                        base.TokenStream.Peek().Type != TokenType.Semicolon)
+                    {
+                        if (base.TokenStream.Peek().Type != TokenType.Identifier &&
+                            base.TokenStream.Peek().Type != TokenType.Dot &&
+                            base.TokenStream.Peek().Type != TokenType.NewLine)
+                        {
+                            throw new ParsingException("Expected machine identifier.",
+                                new List<TokenType>
+                            {
+                                TokenType.Identifier,
+                                TokenType.Dot
+                            });
+                        }
+
+                        if (base.TokenStream.Peek().Type == TokenType.Identifier)
+                        {
+                            base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit,
+                                TokenType.MachineIdentifier));
+                        }
+
+                        node.RealMachineIdentifier.Add(base.TokenStream.Peek());
+
+                        base.TokenStream.Index++;
+                        base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                    }
+                }
+                else
+                {
+                    node.RealMachineIdentifier.Add(base.TokenStream.Peek());
+
+                    base.TokenStream.Index++;
+                    base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                }
+            }
+
+            if (base.TokenStream.Done ||
                 base.TokenStream.Peek().Type != TokenType.Semicolon)
             {
                 throw new ParsingException("Expected \";\".",

@@ -65,6 +65,8 @@ namespace Microsoft.PSharp.Parsing
 
             if (base.TokenStream.Peek().Type == TokenType.MachineDecl)
             {
+                base.TokenStream.Swap(new Token(new TextUnit("MachineId", base.TokenStream.
+                    Peek().TextUnit.Line), TokenType.MachineDecl));
                 type = new PBaseType(PType.Machine);
                 type.TypeTokens.Add(base.TokenStream.Peek());
             }
@@ -169,6 +171,12 @@ namespace Microsoft.PSharp.Parsing
                     expectsDot = false;
                 }
 
+                if (base.TokenStream.Peek().Type == TokenType.MachineDecl)
+                {
+                    base.TokenStream.Swap(new Token(new TextUnit("MachineId", base.TokenStream.
+                        Peek().TextUnit.Line), TokenType.MachineDecl));
+                }
+
                 if (textUnit == null)
                 {
                     textUnit = new TextUnit(base.TokenStream.Peek().TextUnit.Text,
@@ -221,6 +229,12 @@ namespace Microsoft.PSharp.Parsing
                         base.TokenStream.Peek().Type != TokenType.RightAngleBracket))
                     {
                         break;
+                    }
+
+                    if (base.TokenStream.Peek().Type == TokenType.MachineDecl)
+                    {
+                        base.TokenStream.Swap(new Token(new TextUnit("MachineId", base.TokenStream.
+                            Peek().TextUnit.Line), TokenType.MachineDecl));
                     }
 
                     textUnit = new TextUnit(textUnit.Text + base.TokenStream.Peek().TextUnit.Text,

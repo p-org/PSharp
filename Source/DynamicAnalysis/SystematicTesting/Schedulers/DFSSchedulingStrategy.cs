@@ -81,7 +81,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
                 scs = new List<SChoice>();
                 foreach (var task in enabledTasks)
                 {
-                    scs.Add(new SChoice(task.Machine.Id));
+                    scs.Add(new SChoice(task.Machine.Id.Value));
                 }
 
                 this.Stack.Add(scs);
@@ -100,7 +100,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
                 previousChoice.IsDone = false;
             }
             
-            next = enabledTasks.Find(task => task.Machine.Id == nextChoice.Id);
+            next = enabledTasks.Find(task => task.Machine.Id.Value == nextChoice.Id);
             nextChoice.IsDone = true;
             this.Index++;
 

@@ -2,13 +2,13 @@
 {
     main machine GodMachine
     {
-	    List<Machine> PaxosNodes;
+	    List<machine> PaxosNodes;
 
 		start state Init
 		{
 		    entry
 			{
-			    PaxosNodes = new List<Machine>();
+			    PaxosNodes = new List<machine>();
 
 				var temp = create PaxosNode(1);
 				PaxosNodes.Add(temp);

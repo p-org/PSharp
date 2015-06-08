@@ -2,12 +2,12 @@
 {
     machine PaxosNode
     {
-	    Machine CurrentLeader;
+	    machine CurrentLeader;
 		int CurrentLeaderRank;
-		Machine LeaderElectionService;
+		machine LeaderElectionService;
 
 		// Proposer.
-		List<Machine> Acceptors;
+		List<machine> Acceptors;
 		int CommitValue;
 		int ProposeVal;
 		int Majority;
@@ -18,7 +18,7 @@
 		int MaxRound;
 		int AcceptCounter;
 		int AgreeCounter;
-		Machine Timer;
+		machine Timer;
 		int NextSlotForProposer;
 		bool CurrCommitOperation;
 
@@ -33,7 +33,7 @@
 		{
 		    entry
 			{
-			    Acceptors = new List<Machine>();
+			    Acceptors = new List<machine>();
 				AcceptorSlots = new Dictionary<int, Tuple<Tuple<int, int>, int>>();
 				LearnerSlots = new Dictionary<int, Tuple<Tuple<int, int>, int>>();
 
@@ -48,7 +48,7 @@
 				MaxRound = 0;
 				AgreeCounter = 0;
 
-				Timer = create Timer(this, 10);
+				Timer = create NondetTimer(this, 10) for Timer;
 
 				LastExecutedSlot = 0;
 				NextSlotForProposer = 0;
@@ -62,7 +62,7 @@
 
 		void UpdateAcceptors()
 		{
-			Acceptors = (List<Machine>)payload;
+			Acceptors = (List<machine>)payload;
 			Majority = Acceptors.Count/2 + 1;
 			assert(Majority == 2);
 
@@ -109,13 +109,13 @@
 
 		void UpdateLeader()
 		{
-		    CurrentLeader = payload[0] as Machine;
+		    CurrentLeader = payload[0] as machine;
 		    CurrentLeaderRank = (int)payload[1];
 		}
 
 		void PrepareFun()
 		{
-			var proposer = payload[0] as Machine;
+			var proposer = payload[0] as machine;
 			var slot = (int)payload[1];
 			var proposal = payload[2] as Tuple<int, int>;
 
@@ -138,7 +138,7 @@
 
 		void Acceptfun()
 		{
-		    var proposer = payload[0] as Machine;
+		    var proposer = payload[0] as machine;
 		    var slot = (int)payload[1];
 		    var proposal = payload[2] as Tuple<int, int>;
 		    var value = (int)payload[3];

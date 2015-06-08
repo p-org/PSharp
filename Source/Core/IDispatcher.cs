@@ -29,8 +29,8 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <typeparam name="T">Type of the machine</typeparam>
         /// <param name="payload">Optional payload</param>
-        /// <returns>Machine</returns>
-        T TryCreateMachine<T>(params Object[] payload);
+        /// <returns>Machine id</returns>
+        MachineId TryCreateMachine<T>(params Object[] payload);
 
         /// <summary>
         /// Tries to create a new monitor of type T with the given payload.
@@ -42,9 +42,9 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Sends an asynchronous event to a machine.
         /// </summary>
-        /// <param name="target">Target machine</param>
+        /// <param name="mid">Machine id</param>
         /// <param name="e">Event</param>
-        void Send(Machine target, Event e);
+        void Send(MachineId mid, Event e);
 
         /// <summary>
         /// Invokes the specified monitor with the given event.

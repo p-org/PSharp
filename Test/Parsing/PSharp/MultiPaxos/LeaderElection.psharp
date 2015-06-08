@@ -2,9 +2,9 @@
 {
     machine LeaderElection
     {
-	    List<Machine> Servers;
-		Machine ParentServer;
-		Machine CurrentLeader;
+	    List<machine> Servers;
+		machine ParentServer;
+		machine CurrentLeader;
 		int CurrentLeaderRank;
 		int MyRank;
 
@@ -12,8 +12,8 @@
 		{
 		    entry
 			{
-			    Servers = payload[0] as List<Machine>;
-				ParentServer = payload[1] as Machine;
+			    Servers = payload[0] as List<machine>;
+				ParentServer = payload[1] as machine;
 				MyRank = (int)payload[2];
 				CurrentLeader = this;
 				CurrentLeaderRank = MyRank;

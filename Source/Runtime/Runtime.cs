@@ -65,9 +65,10 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <typeparam name="T">Type of the machine</typeparam>
         /// <param name="payload">Optional payload</param>
-        /// <returns>Machine</returns>
-        public static T CreateMachine<T>(params Object[] payload)
+        /// <returns>Machine id</returns>
+        public static MachineId CreateMachine<T>(params Object[] payload)
         {
+            Configuration.Debug = DebugType.Runtime;
             lock (Runtime.Lock)
             {
                 if (!Runtime.IsRunning)
@@ -87,9 +88,9 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Sends an asynchronous event to a machine.
         /// </summary>
-        /// <param name="target">Target machine</param>
+        /// <param name="target">Target machine id</param>
         /// <param name="e">Event</param>
-        public static void SendEvent(Machine target, Event e)
+        public static void SendEvent(MachineId target, Event e)
         {
             if (Runtime.BugFinder != null)
             {
@@ -147,51 +148,78 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <typeparam name="T">Type of the machine</typeparam>
         /// <param name="payload">Optional payload</param>
-        /// <returns>Machine</returns>
-        internal static T TryCreateMachine<T>(params Object[] payload)
+        /// <returns>Machine id</returns>
+        internal static MachineId TryCreateMachine<T>(params Object[] payload)
         {
-            Runtime.Assert(typeof(T).IsSubclassOf(typeof(Machine)), "Type '{0}' is " +
-                "not a subclass of Machine.", typeof(T).Name);
-
-            Object machine = Activator.CreateInstance(typeof(T));
-            (machine as Machine).AssignInitialPayload(payload);
-            Output.Debug(DebugType.Runtime, "<CreateLog> Machine {0}({1}) is created.", typeof(T),
-                (machine as Machine).Id);
-
-            Task task = new Task(() =>
+            object initPayload = null;
+            if (payload.Length > 1)
             {
-                if (Runtime.BugFinder != null)
+                initPayload = payload;
+            }
+            else if (payload.Length == 1)
+            {
+                initPayload = payload[0];
+            }
+
+            if (typeof(T).IsSubclassOf(typeof(Machine)))
+            {
+                Object machine = Activator.CreateInstance(typeof(T));
+                (machine as Machine).AssignInitialPayload(initPayload);
+                Output.Debug(DebugType.Runtime, "<CreateLog> Machine {0}({1}) is created.",
+                    typeof(T), (machine as Machine).Id);
+
+                Task task = new Task(() =>
                 {
-                    Runtime.BugFinder.NotifyTaskStarted(Task.CurrentId);
+                    if (Runtime.BugFinder != null)
+                    {
+                        Runtime.BugFinder.NotifyTaskStarted(Task.CurrentId);
+                    }
+
+                    (machine as Machine).Run();
+
+                    if (Runtime.BugFinder != null)
+                    {
+                        Runtime.BugFinder.NotifyTaskCompleted(Task.CurrentId);
+                    }
+                });
+
+                lock (Runtime.Lock)
+                {
+                    Runtime.MachineTasks.Add(task);
                 }
 
-                (machine as Machine).Run();
+                if (Runtime.BugFinder != null)
+                {
+                    Runtime.BugFinder.NotifyNewTaskCreated(task.Id, machine as Machine);
+                }
+
+                task.Start();
 
                 if (Runtime.BugFinder != null)
                 {
-                    Runtime.BugFinder.NotifyTaskCompleted(Task.CurrentId);
+                    Runtime.BugFinder.WaitForTaskToStart(task.Id);
+                    Runtime.BugFinder.Schedule(Task.CurrentId);
                 }
-            });
 
-            lock (Runtime.Lock)
-            {
-                Runtime.MachineTasks.Add(task);
+                return (machine as Machine).Id;
             }
-
-            if (Runtime.BugFinder != null)
+            else if (typeof(T).GetInterfaces().Contains(typeof(ISendable)))
             {
-                Runtime.BugFinder.NotifyNewTaskCreated(task.Id, machine as Machine);
+                Object machine = Activator.CreateInstance(typeof(T));
+                var mid = new MachineId(machine);
+                (machine as ISendable).Create(mid, initPayload);
+
+                Output.Debug(DebugType.Runtime, "<CreateLog> Machine {0}({1}) is created.",
+                    typeof(T), mid.Value);
+
+                return mid;
             }
-
-            task.Start();
-
-            if (Runtime.BugFinder != null)
+            else
             {
-                Runtime.BugFinder.WaitForTaskToStart(task.Id);
-                Runtime.BugFinder.Schedule(Task.CurrentId);
+                ErrorReporter.ReportAndExit("Type '{0}' is not a machine or a class" +
+                    "implementing the ISendable interface.", typeof(T).Name);
+                return null;
             }
-
-            return (T)machine;
         }
 
         /// <summary>
@@ -221,52 +249,77 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Sends an asynchronous event to a machine.
         /// </summary>
-        /// <param name="target">Target machine</param>
+        /// <param name="mid">Machine id</param>
         /// <param name="e">Event</param>
-        internal static void Send(Machine target, Event e)
+        internal static void Send(MachineId mid, Event e)
         {
-            Runtime.Assert(e != null, "Machine '{0}' received a null event.", target);
-            
-            target.Enqueue(e);
-
-            if (Runtime.BugFinder != null &&
-                Runtime.BugFinder.HasEnabledTaskForMachine(target))
+            if (mid == null)
             {
-                Runtime.BugFinder.Schedule(Task.CurrentId);
+                ErrorReporter.ReportAndExit("Cannot send to a null machine.");
+            }
+            else if (e == null)
+            {
+                ErrorReporter.ReportAndExit("Cannot send a null event.");
+            }
+            
+            if (mid.Machine is Machine)
+            {
+                var target = mid.Machine as Machine;
+                target.Enqueue(e);
+
+                if (Runtime.BugFinder != null &&
+                    Runtime.BugFinder.HasEnabledTaskForMachine(target))
+                {
+                    Runtime.BugFinder.Schedule(Task.CurrentId);
+                    return;
+                }
+
+                Task task = new Task(() =>
+                {
+                    if (Runtime.BugFinder != null)
+                    {
+                        Runtime.BugFinder.NotifyTaskStarted(Task.CurrentId);
+                    }
+
+                    target.Run();
+
+                    if (Runtime.BugFinder != null)
+                    {
+                        Runtime.BugFinder.NotifyTaskCompleted(Task.CurrentId);
+                    }
+                });
+
+                lock (Runtime.Lock)
+                {
+                    Runtime.MachineTasks.Add(task);
+                }
+
+                if (Runtime.BugFinder != null)
+                {
+                    Runtime.BugFinder.NotifyNewTaskCreated(task.Id, target);
+                }
+
+                task.Start();
+
+                if (Runtime.BugFinder != null)
+                {
+                    Runtime.BugFinder.WaitForTaskToStart(task.Id);
+                    Runtime.BugFinder.Schedule(Task.CurrentId);
+                }
+            }
+            else if (mid.Machine is ISendable)
+            {
+                Output.Debug(DebugType.Runtime, "<SendLog> Event '{0}' was sent to machine " +
+                    "'{1}({2})' from foreign code.", e.GetType(), mid.Machine, mid.Value);
+
+                var target = mid.Machine as ISendable;
+                target.Send(e);
                 return;
             }
-
-            Task task = new Task(() =>
+            else
             {
-                if (Runtime.BugFinder != null)
-                {
-                    Runtime.BugFinder.NotifyTaskStarted(Task.CurrentId);
-                }
-
-                target.Run();
-
-                if (Runtime.BugFinder != null)
-                {
-                    Runtime.BugFinder.NotifyTaskCompleted(Task.CurrentId);
-                }
-            });
-
-            lock (Runtime.Lock)
-            {
-                Runtime.MachineTasks.Add(task);
-            }
-
-            if (Runtime.BugFinder != null)
-            {
-                Runtime.BugFinder.NotifyNewTaskCreated(task.Id, target);
-            }
-
-            task.Start();
-
-            if (Runtime.BugFinder != null)
-            {
-                Runtime.BugFinder.WaitForTaskToStart(task.Id);
-                Runtime.BugFinder.Schedule(Task.CurrentId);
+                ErrorReporter.ReportAndExit("Can only send to a machine or " +
+                    "a class implementing the ISendable interface.");
             }
         }
 
@@ -304,7 +357,7 @@ namespace Microsoft.PSharp
             Runtime.MachineTasks = new List<Task>();
             Runtime.Monitors = new List<Monitor>();
 
-            Machine.ResetMachineIDCounter();
+            MachineId.ResetMachineIDCounter();
 
             var dispatcher = new Dispatcher();
             Microsoft.PSharp.Machine.Dispatcher = dispatcher;

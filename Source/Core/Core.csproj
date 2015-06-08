@@ -64,6 +64,8 @@
     <Compile Include="IDispatcher.cs" />
     <Compile Include="Library\ActionBindings.cs" />
     <Compile Include="Library\GotoStateTransitions.cs" />
+    <Compile Include="Library\ISendable.cs" />
+    <Compile Include="Library\MachineId.cs" />
     <Compile Include="Scheduling\Nondeterministic.cs" />
     <Compile Include="Library\Machine.cs" />
     <Compile Include="Library\MachineState.cs" />
