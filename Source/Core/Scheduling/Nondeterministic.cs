@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="Havoc.cs" company="Microsoft">
+// <copyright file="Nondeterministic.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -15,48 +15,35 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.Security.Cryptography;
 
-namespace Microsoft.PSharp
+namespace Microsoft.PSharp.Scheduling
 {
     /// <summary>
     /// Static class implementing nondeterministic values.
     /// </summary>
-    public static class Havoc
+    internal static class Nondeterministic
     {
         /// <summary>
-        /// Nondeterministic boolean value.
+        /// Nondeterministic boolean choice.
         /// </summary>
-        public static bool Boolean
+        internal static bool Choice
         {
             get
             {
-                return Havoc.GetBoolean();
+                return Nondeterministic.GetBoolean();
             }
-        }
-
-        /// <summary>
-        /// Nondeterministic integer value. The return
-        /// value v is equal or greater than 0 and lower
-        /// than the given ceiling.
-        /// </summary>
-        /// <param name="ceiling">Ceiling</param>
-        /// <returns>int</returns>
-        public static int Integer(int ceiling)
-        {
-            return Havoc.UnsignedInteger(ceiling);
         }
 
         /// <summary>
         /// Returns a nondeterministic boolean value.
         /// </summary>
         /// <returns>bool</returns>
-        internal static bool GetBoolean()
+        private static bool GetBoolean()
         {
             bool result = false;
 
-            if (Havoc.UnsignedInteger(2) == 1)
+            if (Nondeterministic.UnsignedInteger(2) == 1)
                 result = true;
 
             return result;
@@ -69,7 +56,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="ceiling">Ceiling</param>
         /// <returns>int</returns>
-        internal static int UnsignedInteger(int ceiling)
+        private static int UnsignedInteger(int ceiling)
         {
             RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider();
 
@@ -91,27 +78,6 @@ namespace Microsoft.PSharp
             } while (bc - val + (ceiling - 1) < 0);
 
             return val;
-        }
-
-        internal static List<int> List(int size)
-        {
-            List<int> result = new List<int>(size);
-            HashSet<int> set = new HashSet<int>(result);
-
-            for (int idx = 0; idx < size; idx++)
-            {
-                int value;
-
-                do
-                {
-                    value = Havoc.UnsignedInteger(size);
-                }
-                while (!set.Add(value));
-
-                result.Add(value);
-            }
-
-            return result;
         }
     }
 }

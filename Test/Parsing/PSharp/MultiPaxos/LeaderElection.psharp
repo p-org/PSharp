@@ -48,11 +48,14 @@
 					}
 				}
 			}
+			*/
 
 			CurrentLeader = ParentServer;
 			CurrentLeaderRank = MyRank;
-			*/
-			
+		}
+
+		void GetNewLeader()
+		{
 			CurrentLeader = Servers[0];
 			CurrentLeaderRank = 1;
 		}

@@ -232,6 +232,16 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Returns a nondeterministic boolean choice, that can be controlled
+        /// during analysis or testing. Can only be used by a model.
+        /// </summary>
+        /// <returns>Boolean</returns>
+        protected internal bool Nondet()
+        {
+            return this.Machine.Nondet();
+        }
+
+        /// <summary>
         /// Checks if the assertion holds, and if not it reports
         /// an error and exits.
         /// </summary>

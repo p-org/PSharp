@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 
+using Microsoft.PSharp.Scheduling;
 using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp
@@ -144,6 +145,17 @@ namespace Microsoft.PSharp
             Output.Debug(DebugType.Runtime, "<RaiseLog> Monitor '{0}' " +
                 "raised event '{1}'.", this, e);
             this.HandleEvent(e);
+        }
+
+        /// <summary>
+        /// Returns a nondeterministic boolean choice, that can be controlled
+        /// during analysis or testing.
+        /// </summary>
+        /// <returns>Boolean</returns>
+        protected internal bool Nondet()
+        {
+            var choice = Nondeterministic.Choice;
+            return choice;
         }
 
         /// <summary>

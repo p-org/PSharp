@@ -117,7 +117,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         protected void RewriteNonDeterministicChoice()
         {
             int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
-            var text = "Microsoft.PSharp.Havoc.Boolean";
+            var text = "this.Nondet()";
             this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line));
         }
 

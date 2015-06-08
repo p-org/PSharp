@@ -20,6 +20,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
+using Microsoft.PSharp.Scheduling;
 using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp
@@ -247,6 +248,17 @@ namespace Microsoft.PSharp
                 Output.Debug(DebugType.Runtime, "<PopLog> Machine '{0}({1})' popped and " +
                     "reentered state '{2}'.", this, this.Id, this.StateStack.Peek());
             }
+        }
+
+        /// <summary>
+        /// Returns a nondeterministic boolean choice, that can be controlled
+        /// during analysis or testing. Can only be used by a model.
+        /// </summary>
+        /// <returns>Boolean</returns>
+        protected internal bool Nondet()
+        {
+            var choice = Nondeterministic.Choice;
+            return choice;
         }
 
         /// <summary>
