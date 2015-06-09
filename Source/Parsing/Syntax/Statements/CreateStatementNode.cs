@@ -172,7 +172,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
             text += machine;
 
             text += ">(";
-
+            
             text += this.Payload.TextUnit.Text;
 
             text += ")";

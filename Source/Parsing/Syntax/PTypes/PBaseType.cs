@@ -98,7 +98,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             if (this.Type == PType.Machine)
             {
-                text += "Machine";
+                text += "MachineId";
             }
             else if (this.Type == PType.Any)
             {

@@ -134,11 +134,6 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         protected void RewriteThis()
         {
-            if (this.Parent.State == null)
-            {
-                return;
-            }
-
             int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
 
             var text = "";
@@ -148,7 +143,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
             }
             else
             {
-                text += "this.Machine";
+                text += "this.Id";
             }
 
             this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line));

@@ -52,18 +52,18 @@ namespace Microsoft.PSharp.Parsing
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
+            if (base.TokenStream.Done ||
+                base.TokenStream.Peek().Type != TokenType.Identifier)
+            {
+                throw new ParsingException("Expected monitor identifier.",
+                    new List<TokenType>
+                {
+                    TokenType.Identifier
+                });
+            }
+
             if (base.TokenStream.Program is PSharpProgram)
             {
-                if (base.TokenStream.Done ||
-                    base.TokenStream.Peek().Type != TokenType.Identifier)
-                {
-                    throw new ParsingException("Expected monitor identifier.",
-                        new List<TokenType>
-                    {
-                            TokenType.Identifier
-                    });
-                }
-
                 var monitorIdentifier = new ExpressionNode(base.TokenStream.Program, parentNode);
                 while (!base.TokenStream.Done &&
                     base.TokenStream.Peek().Type != TokenType.Comma)
@@ -89,27 +89,29 @@ namespace Microsoft.PSharp.Parsing
             }
             else
             {
-                if (base.TokenStream.Done ||
-                    base.TokenStream.Peek().Type != TokenType.Identifier)
-                {
-                    throw new ParsingException("Expected monitor identifier.",
-                        new List<TokenType>
-                    {
-                            TokenType.Identifier
-                    });
-                }
-
                 var monitorIdentifier = new PExpressionNode(base.TokenStream.Program, parentNode);
 
-                var payloadNode = new PPayloadReceiveNode(base.TokenStream.Program, monitorIdentifier.IsModel);
-                new ReceivedPayloadVisitor(base.TokenStream).Visit(payloadNode);
-                monitorIdentifier.StmtTokens.Add(null);
-                monitorIdentifier.Payloads.Add(payloadNode);
+                while (!base.TokenStream.Done &&
+                    base.TokenStream.Peek().Type != TokenType.Comma)
+                {
+                    if (base.TokenStream.Peek().Type == TokenType.Payload)
+                    {
+                        var payloadNode = new PPayloadReceiveNode(base.TokenStream.Program,
+                            monitorIdentifier.IsModel);
+                        new ReceivedPayloadVisitor(base.TokenStream).Visit(payloadNode);
+                        monitorIdentifier.StmtTokens.Add(null);
+                        monitorIdentifier.Payloads.Add(payloadNode);
+                    }
+                    else
+                    {
+                        monitorIdentifier.StmtTokens.Add(base.TokenStream.Peek());
+
+                        base.TokenStream.Index++;
+                        base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                    }
+                }
 
                 node.MonitorIdentifier = monitorIdentifier;
-
-                base.TokenStream.Index++;
-                base.TokenStream.SkipWhiteSpaceAndCommentTokens();
             }
 
             if (base.TokenStream.Done ||

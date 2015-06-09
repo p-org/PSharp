@@ -93,7 +93,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// </summary>
         private static void FindBugs()
         {
-            Console.WriteLine("... SCT using '{0}'", AnalysisContext.Strategy);
+            Console.WriteLine("... Using '{0}' strategy", AnalysisContext.Strategy);
 
             Task task = new Task(() =>
             {
