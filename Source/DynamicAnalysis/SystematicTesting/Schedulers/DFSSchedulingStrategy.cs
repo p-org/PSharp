@@ -108,14 +108,20 @@ namespace Microsoft.PSharp.DynamicAnalysis
             nextChoice.IsDone = true;
             this.SchIndex++;
 
+            if (next == null)
+            {
+                return false;
+            }
+
             return true;
         }
 
         /// <summary>
         /// Returns the next choice.
         /// </summary>
+        /// <param name="next">Next</param>
         /// <returns>Boolean value</returns>
-        bool ISchedulingStrategy.GetNextChoice()
+        bool ISchedulingStrategy.GetNextChoice(out bool next)
         {
             NondetChoice nextChoice = null;
             List<NondetChoice> ncs = null;
@@ -134,17 +140,23 @@ namespace Microsoft.PSharp.DynamicAnalysis
             }
 
             nextChoice = ncs.FirstOrDefault(val => !val.IsDone);
+            if (nextChoice == null)
+            {
+                next = false;
+                return false;
+            }
 
             if (this.NondetIndex > 0)
             {
                 var previousChoice = this.NondetStack[this.NondetIndex - 1].Last(val => val.IsDone);
                 previousChoice.IsDone = false;
             }
-            
+
+            next = nextChoice.Value;
             nextChoice.IsDone = true;
             this.NondetIndex++;
 
-            return nextChoice.Value;
+            return true;
         }
 
         /// <summary>

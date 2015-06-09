@@ -70,16 +70,17 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// <summary>
         /// Returns the next choice.
         /// </summary>
+        /// <param name="next">Next</param>
         /// <returns>Boolean value</returns>
-        bool ISchedulingStrategy.GetNextChoice()
+        bool ISchedulingStrategy.GetNextChoice(out bool next)
         {
-            bool choice = false;
+            next = false;
             if (this.Random.Next(2) == 1)
             {
-                choice = true;
+                next = true;
             }
 
-            return choice;
+            return true;
         }
 
         /// <summary>

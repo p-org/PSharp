@@ -67,7 +67,7 @@ namespace Microsoft.PSharp
         /// <returns>Machine id</returns>
         public static MachineId CreateMachine<T>(params Object[] payload)
         {
-            Configuration.Debug = DebugType.Runtime;
+            Configuration.Debug = DebugType.All;
             lock (Runtime.Lock)
             {
                 if (!Runtime.IsRunning)

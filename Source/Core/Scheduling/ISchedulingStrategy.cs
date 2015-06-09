@@ -34,8 +34,9 @@ namespace Microsoft.PSharp.Scheduling
         /// <summary>
         /// Returns the next choice.
         /// </summary>
+        /// <param name="next">Next</param>
         /// <returns>Boolean value</returns>
-        bool GetNextChoice();
+        bool GetNextChoice(out bool next);
 
         /// <summary>
         /// True if the scheduling has finished.
