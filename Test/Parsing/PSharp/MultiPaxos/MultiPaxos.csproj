@@ -44,7 +44,7 @@
     <Compile Include="Client.psharp" />
     <Compile Include="Events.psharp" />
     <Compile Include="GodMachine.psharp" />
-    <Compile Include="Timer.cs" />
+    <Compile Include="Timer.psharp" />
     <Compile Include="Test.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

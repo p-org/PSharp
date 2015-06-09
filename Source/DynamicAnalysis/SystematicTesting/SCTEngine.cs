@@ -108,6 +108,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
                     var sw = SCTEngine.RedirectOutput();
 
                     AnalysisContext.EntryPoint.Invoke(null, null);
+                    Runtime.WaitMachines();
 
                     SCTEngine.ResetOutput();
                     

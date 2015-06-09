@@ -9,13 +9,13 @@ namespace PBoundedAsync
         static void Main(string[] args)
         {
             Test.Execute();
+            Console.ReadLine();
         }
 
         [EntryPoint]
         public static void Execute()
         {
             Runtime.CreateMachine<Scheduler>();
-            Runtime.WaitMachines();
         }
     }
 }

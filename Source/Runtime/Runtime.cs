@@ -16,7 +16,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.Scheduling;
@@ -101,44 +100,6 @@ namespace Microsoft.PSharp
             Runtime.Send(target, e);
         }
 
-        /// <summary>
-        /// Waits until all P# machines have finished execution.
-        /// </summary>
-        public static void WaitMachines()
-        {
-            Task[] taskArray = null;
-
-            while (Runtime.IsRunning)
-            {
-                lock (Runtime.Lock)
-                {
-                    taskArray = Runtime.MachineTasks.ToArray();
-                }
-                
-                try
-                {
-                    Task.WaitAll(taskArray);
-                }
-                catch (AggregateException)
-                {
-                    break;
-                }
-
-                bool moreTasksExist = false;
-                lock (Runtime.Lock)
-                {
-                    moreTasksExist = taskArray.Length != Runtime.MachineTasks.Count;
-                }
-
-                if (!moreTasksExist)
-                {
-                    break;
-                }
-            }
-
-            Runtime.IsRunning = false;
-        }
-
         #endregion
 
         #region internal API
@@ -151,22 +112,15 @@ namespace Microsoft.PSharp
         /// <returns>Machine id</returns>
         internal static MachineId TryCreateMachine<T>(params Object[] payload)
         {
-            object initPayload = null;
-            if (payload.Length > 1)
-            {
-                initPayload = payload;
-            }
-            else if (payload.Length == 1)
-            {
-                initPayload = payload[0];
-            }
-
             if (typeof(T).IsSubclassOf(typeof(Machine)))
             {
                 Object machine = Activator.CreateInstance(typeof(T));
-                (machine as Machine).AssignInitialPayload(initPayload);
+
+                var mid = (machine as Machine).Id;
+                mid.Machine.AssignInitialPayload(payload);
+
                 Output.Debug(DebugType.Runtime, "<CreateLog> Machine {0}({1}) is created.",
-                    typeof(T), (machine as Machine).Id);
+                    typeof(T), mid.Value);
 
                 Task task = new Task(() =>
                 {
@@ -175,7 +129,7 @@ namespace Microsoft.PSharp
                         Runtime.BugFinder.NotifyTaskStarted(Task.CurrentId);
                     }
 
-                    (machine as Machine).Run();
+                    mid.Machine.Run();
 
                     if (Runtime.BugFinder != null)
                     {
@@ -201,23 +155,11 @@ namespace Microsoft.PSharp
                     Runtime.BugFinder.Schedule(Task.CurrentId);
                 }
 
-                return (machine as Machine).Id;
-            }
-            else if (typeof(T).GetInterfaces().Contains(typeof(ISendable)))
-            {
-                Object machine = Activator.CreateInstance(typeof(T));
-                var mid = new MachineId(machine);
-                (machine as ISendable).Create(mid, initPayload);
-
-                Output.Debug(DebugType.Runtime, "<CreateLog> Machine {0}({1}) is created.",
-                    typeof(T), mid.Value);
-
                 return mid;
             }
             else
             {
-                ErrorReporter.ReportAndExit("Type '{0}' is not a machine or a class" +
-                    "implementing the ISendable interface.", typeof(T).Name);
+                ErrorReporter.ReportAndExit("Type '{0}' is not a machine.", typeof(T).Name);
                 return null;
             }
         }
@@ -264,11 +206,10 @@ namespace Microsoft.PSharp
             
             if (mid.Machine is Machine)
             {
-                var target = mid.Machine as Machine;
-                target.Enqueue(e);
+                mid.Machine.Enqueue(e);
 
                 if (Runtime.BugFinder != null &&
-                    Runtime.BugFinder.HasEnabledTaskForMachine(target))
+                    Runtime.BugFinder.HasEnabledTaskForMachine(mid.Machine))
                 {
                     Runtime.BugFinder.Schedule(Task.CurrentId);
                     return;
@@ -281,7 +222,7 @@ namespace Microsoft.PSharp
                         Runtime.BugFinder.NotifyTaskStarted(Task.CurrentId);
                     }
 
-                    target.Run();
+                    mid.Machine.Run();
 
                     if (Runtime.BugFinder != null)
                     {
@@ -296,7 +237,7 @@ namespace Microsoft.PSharp
 
                 if (Runtime.BugFinder != null)
                 {
-                    Runtime.BugFinder.NotifyNewTaskCreated(task.Id, target);
+                    Runtime.BugFinder.NotifyNewTaskCreated(task.Id, mid.Machine);
                 }
 
                 task.Start();
@@ -307,19 +248,9 @@ namespace Microsoft.PSharp
                     Runtime.BugFinder.Schedule(Task.CurrentId);
                 }
             }
-            else if (mid.Machine is ISendable)
-            {
-                Output.Debug(DebugType.Runtime, "<SendLog> Event '{0}' was sent to machine " +
-                    "'{1}({2})' from foreign code.", e.GetType(), mid.Machine, mid.Value);
-
-                var target = mid.Machine as ISendable;
-                target.Send(e);
-                return;
-            }
             else
             {
-                ErrorReporter.ReportAndExit("Can only send to a machine or " +
-                    "a class implementing the ISendable interface.");
+                ErrorReporter.ReportAndExit("Can only send to a machine.");
             }
         }
 
@@ -344,9 +275,47 @@ namespace Microsoft.PSharp
                 }
             }
         }
-        
+
+        /// <summary>
+        /// Waits until all P# machines have finished execution.
+        /// </summary>
+        internal static void WaitMachines()
+        {
+            Task[] taskArray = null;
+
+            while (Runtime.IsRunning)
+            {
+                lock (Runtime.Lock)
+                {
+                    taskArray = Runtime.MachineTasks.ToArray();
+                }
+
+                try
+                {
+                    Task.WaitAll(taskArray);
+                }
+                catch (AggregateException)
+                {
+                    break;
+                }
+
+                bool moreTasksExist = false;
+                lock (Runtime.Lock)
+                {
+                    moreTasksExist = taskArray.Length != Runtime.MachineTasks.Count;
+                }
+
+                if (!moreTasksExist)
+                {
+                    break;
+                }
+            }
+
+            Runtime.IsRunning = false;
+        }
+
         #endregion
-        
+
         #region private API
 
         /// <summary>

@@ -8,8 +8,14 @@ namespace PPushTest
     {
         static void Main(string[] args)
         {
+            Test.Execute();
+            Console.ReadLine();
+        }
+
+        [EntryPoint]
+        public static void Execute()
+        {
             Runtime.CreateMachine<Ping>();
-            Runtime.WaitMachines();
         }
     }
 }

@@ -347,9 +347,19 @@ namespace Microsoft.PSharp
         /// Assigns the optional initial payload.
         /// </summary>
         /// <param name="payload">Optional payload</param>
-        internal void AssignInitialPayload(object payload)
+        internal void AssignInitialPayload(params Object[] payload)
         {
-            this.Payload = payload;
+            object initPayload = null;
+            if (payload.Length > 1)
+            {
+                initPayload = payload;
+            }
+            else if (payload.Length == 1)
+            {
+                initPayload = payload[0];
+            }
+
+            this.Payload = initPayload;
         }
 
         #endregion

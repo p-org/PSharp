@@ -8,8 +8,14 @@ namespace TypesAndGenerics
     {
         static void Main(string[] args)
         {
+            Test.Execute();
+            Console.ReadLine();
+        }
+
+        [EntryPoint]
+        public static void Execute()
+        {
             Runtime.CreateMachine<Server>();
-            Runtime.WaitMachines();
         }
     }
 }

@@ -33,9 +33,9 @@ namespace Microsoft.PSharp
         #region fields
 
         /// <summary>
-        /// Handler to the machine object.
+        /// Handler to the machine.
         /// </summary>
-        internal readonly Object Machine;
+        internal readonly Machine Machine;
 
         /// <summary>
         /// Id value.
@@ -58,8 +58,8 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="machine">Machine object</param>
-        internal MachineId(Object machine)
+        /// <param name="machine">Machine</param>
+        internal MachineId(Machine machine)
         {
             this.Machine = machine;
             this.Value = MachineId.IdCounter++;

@@ -22,8 +22,14 @@ namespace German
     {
         static void Main(string[] args)
         {
+            Test.Execute();
+            Console.ReadLine();
+        }
+
+        [EntryPoint]
+        public static void Execute()
+        {
             Runtime.CreateMachine<Host>();
-            Runtime.WaitMachines();
         }
     }
 }
