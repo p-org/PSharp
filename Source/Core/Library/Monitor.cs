@@ -154,8 +154,7 @@ namespace Microsoft.PSharp
         /// <returns>Boolean</returns>
         protected internal bool Nondet()
         {
-            var choice = Nondeterministic.Choice;
-            return choice;
+            return Machine.Dispatcher.Nondet();
         }
 
         /// <summary>

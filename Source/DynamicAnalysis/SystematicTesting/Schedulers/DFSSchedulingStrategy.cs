@@ -30,28 +30,32 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// <summary>
         /// Stack of scheduling choices.
         /// </summary>
-        private List<List<SChoice>> Stack;
-
-        private int MaxStackIndex
-        {
-            get
-            {
-                return this.Stack.Count - 1;
-            }
-        }
+        private List<List<SChoice>> ScheduleStack;
 
         /// <summary>
-        /// Current index.
+        /// Stack of nondeterministic choices.
         /// </summary>
-        private int Index;
+        private List<List<NondetChoice>> NondetStack;
+
+        /// <summary>
+        /// Current schedule index.
+        /// </summary>
+        private int SchIndex;
+
+        /// <summary>
+        /// Current nondeterministic index.
+        /// </summary>
+        private int NondetIndex;
 
         /// <summary>
         /// Constructor.
         /// </summary>
         public DFSSchedulingStrategy()
         {
-            this.Stack = new List<List<SChoice>>();
-            this.Index = 0;
+            this.ScheduleStack = new List<List<SChoice>>();
+            this.NondetStack = new List<List<NondetChoice>>();
+            this.SchIndex = 0;
+            this.NondetIndex = 0;
         }
 
         /// <summary>
@@ -72,9 +76,9 @@ namespace Microsoft.PSharp.DynamicAnalysis
             SChoice nextChoice = null;
             List<SChoice> scs = null;
 
-            if (this.Index < this.Stack.Count)
+            if (this.SchIndex < this.ScheduleStack.Count)
             {
-                scs = this.Stack[this.Index];
+                scs = this.ScheduleStack[this.SchIndex];
             }
             else
             {
@@ -84,7 +88,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
                     scs.Add(new SChoice(task.Machine.Id.Value));
                 }
 
-                this.Stack.Add(scs);
+                this.ScheduleStack.Add(scs);
             }
 
             nextChoice = scs.FirstOrDefault(val => !val.IsDone);
@@ -94,17 +98,53 @@ namespace Microsoft.PSharp.DynamicAnalysis
                 return false;
             }
 
-            if (this.Index > 0)
+            if (this.SchIndex > 0)
             {
-                var previousChoice = this.Stack[this.Index - 1].Last(val => val.IsDone);
+                var previousChoice = this.ScheduleStack[this.SchIndex - 1].Last(val => val.IsDone);
                 previousChoice.IsDone = false;
             }
             
             next = enabledTasks.Find(task => task.Machine.Id.Value == nextChoice.Id);
             nextChoice.IsDone = true;
-            this.Index++;
+            this.SchIndex++;
 
             return true;
+        }
+
+        /// <summary>
+        /// Returns the next choice.
+        /// </summary>
+        /// <returns>Boolean value</returns>
+        bool ISchedulingStrategy.GetNextChoice()
+        {
+            NondetChoice nextChoice = null;
+            List<NondetChoice> ncs = null;
+
+            if (this.NondetIndex < this.NondetStack.Count)
+            {
+                ncs = this.NondetStack[this.NondetIndex];
+            }
+            else
+            {
+                ncs = new List<NondetChoice>();
+                ncs.Add(new NondetChoice(false));
+                ncs.Add(new NondetChoice(true));
+
+                this.NondetStack.Add(ncs);
+            }
+
+            nextChoice = ncs.FirstOrDefault(val => !val.IsDone);
+
+            if (this.NondetIndex > 0)
+            {
+                var previousChoice = this.NondetStack[this.NondetIndex - 1].Last(val => val.IsDone);
+                previousChoice.IsDone = false;
+            }
+            
+            nextChoice.IsDone = true;
+            this.NondetIndex++;
+
+            return nextChoice.Value;
         }
 
         /// <summary>
@@ -113,7 +153,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// <returns>Boolean value</returns>
         bool ISchedulingStrategy.HasFinished()
         {
-            return this.Stack.All(scs => scs.All(val => val.IsDone));
+            return this.ScheduleStack.All(scs => scs.All(val => val.IsDone));
         }
 
         /// <summary>
@@ -130,18 +170,51 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// </summary>
         void ISchedulingStrategy.Reset()
         {
-            this.Index = 0;
-            for (int idx = this.Stack.Count - 1; idx > 0; idx--)
+            //this.PrintSchedule();
+            this.SchIndex = 0;
+            this.NondetIndex = 0;
+
+            for (int idx = this.NondetStack.Count - 1; idx > 0; idx--)
             {
-                if (!this.Stack[idx].All(val => val.IsDone))
+                if (!this.NondetStack[idx].All(val => val.IsDone))
                 {
                     break;
                 }
 
-                var previousChoice = this.Stack[idx - 1].First(val => !val.IsDone);
+                var previousChoice = this.NondetStack[idx - 1].First(val => !val.IsDone);
                 previousChoice.IsDone = true;
 
-                this.Stack.RemoveAt(idx);
+                this.NondetStack.RemoveAt(idx);
+            }
+
+            if (this.NondetStack.Count > 0 &&
+                this.NondetStack.All(ns => ns.All(nsc => nsc.IsDone)))
+            {
+                this.NondetStack.Clear();
+            }
+
+            if (this.NondetStack.Count == 0)
+            {
+                for (int idx = this.ScheduleStack.Count - 1; idx > 0; idx--)
+                {
+                    if (!this.ScheduleStack[idx].All(val => val.IsDone))
+                    {
+                        break;
+                    }
+
+                    var previousChoice = this.ScheduleStack[idx - 1].First(val => !val.IsDone);
+                    previousChoice.IsDone = true;
+
+                    this.ScheduleStack.RemoveAt(idx);
+                }
+            }
+            else
+            {
+                var previousChoice = this.ScheduleStack.Last().LastOrDefault(val => val.IsDone);
+                if (previousChoice != null)
+                {
+                    previousChoice.IsDone = false;
+                }
             }
         }
 
@@ -150,21 +223,35 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// </summary>
         private void PrintSchedule()
         {
-            Console.WriteLine("Size: " + this.Stack.Count);
-            for (int idx = 0; idx < this.Stack.Count; idx++)
+            Console.WriteLine("*******************");
+            Console.WriteLine("Schedule stack size: " + this.ScheduleStack.Count);
+            for (int idx = 0; idx < this.ScheduleStack.Count; idx++)
             {
                 Console.WriteLine("Index: " + idx);
-                foreach (var sc in this.Stack[idx])
+                foreach (var sc in this.ScheduleStack[idx])
                 {
                     Console.Write(sc.Id + " [" + sc.IsDone + "], ");
                 }
                 Console.WriteLine();
             }
+
+            Console.WriteLine("*******************");
+            Console.WriteLine("Nondet stack size: " + this.NondetStack.Count);
+            for (int idx = 0; idx < this.NondetStack.Count; idx++)
+            {
+                Console.WriteLine("Index: " + idx);
+                foreach (var nc in this.NondetStack[idx])
+                {
+                    Console.Write(nc.Value + " [" + nc.IsDone + "], ");
+                }
+                Console.WriteLine();
+            }
+            Console.WriteLine("*******************");
         }
 
         /// <summary>
-        /// A scheduling choice. Contains a reference to a machine id and a
-        /// boolean that is true if the choice has been previously explored.
+        /// A scheduling choice. Contains a machine id and a boolean that is
+        /// true if the choice has been previously explored.
         /// </summary>
         private class SChoice
         {
@@ -178,6 +265,27 @@ namespace Microsoft.PSharp.DynamicAnalysis
             internal SChoice(int id)
             {
                 this.Id = id;
+                this.IsDone = false;
+            }
+        }
+
+        /// <summary>
+        /// A nondeterministic choice. Contains a boolean value that
+        /// corresponds to the choice and a boolean that is true if
+        /// the choice has been previously explored.
+        /// </summary>
+        private class NondetChoice
+        {
+            internal bool Value;
+            internal bool IsDone;
+
+            /// <summary>
+            /// Constructor.
+            /// </summary>
+            /// <param name="value">Value</param>
+            internal NondetChoice(bool value)
+            {
+                this.Value = value;
                 this.IsDone = false;
             }
         }

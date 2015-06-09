@@ -92,9 +92,8 @@ namespace Microsoft.PSharp.Scheduling
             var taskInfo = this.TaskMap[(int)id];
 
             TaskInfo next = null;
-            if (!this.Strategy.TryGetNext(out next, this.Tasks) ||
-                (Configuration.DepthBound > 0 &&
-                this.SchedulingPoints == Configuration.DepthBound))
+            if ((Configuration.DepthBound > 0 && this.SchedulingPoints == Configuration.DepthBound) ||
+                !this.Strategy.TryGetNext(out next, this.Tasks))
             {
                 Output.Debug(DebugType.Testing, "<ScheduleDebug> Schedule explored.");
                 this.KillRemainingTasks();
@@ -140,6 +139,15 @@ namespace Microsoft.PSharp.Scheduling
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Returns the next nondeterministic choice.
+        /// </summary>
+        /// <returns>Boolean value</returns>
+        internal bool GetNextNondeterministicChoice()
+        {
+            return this.Strategy.GetNextChoice();
         }
 
         /// <summary>

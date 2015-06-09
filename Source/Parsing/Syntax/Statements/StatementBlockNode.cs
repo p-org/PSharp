@@ -84,7 +84,14 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             var text = this.GetRewrittenStatementBlock();
 
-            base.TextUnit = new TextUnit(text, this.Statements.First().TextUnit.Line);
+            if (this.LeftCurlyBracketToken != null)
+            {
+                base.TextUnit = new TextUnit(text, this.LeftCurlyBracketToken.TextUnit.Line);
+            }
+            else
+            {
+                base.TextUnit = new TextUnit(text, this.Statements.First().TextUnit.Line);
+            }
         }
 
         /// <summary>
@@ -100,7 +107,14 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             var text = this.GetRewrittenStatementBlock();
 
-            base.TextUnit = new TextUnit(text, this.Statements.First().TextUnit.Line);
+            if (this.LeftCurlyBracketToken != null)
+            {
+                base.TextUnit = new TextUnit(text, this.LeftCurlyBracketToken.TextUnit.Line);
+            }
+            else
+            {
+                base.TextUnit = new TextUnit(text, this.Statements.First().TextUnit.Line);
+            }
         }
 
         #endregion

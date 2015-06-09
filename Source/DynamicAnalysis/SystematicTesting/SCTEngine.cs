@@ -83,9 +83,14 @@ namespace Microsoft.PSharp.DynamicAnalysis
             SCTEngine.PrintGuard = 1;
 
             if (AnalysisContext.Strategy == SchedulingStrategy.Random)
+            {
                 SCTEngine.Strategy = new RandomSchedulingStrategy(DateTime.Now.Millisecond);
+            }
             else if (AnalysisContext.Strategy == SchedulingStrategy.DFS)
+            {
                 SCTEngine.Strategy = new DFSSchedulingStrategy();
+                Configuration.FullExploration = false;
+            }
         }
 
         /// <summary>

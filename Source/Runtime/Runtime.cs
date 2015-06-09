@@ -277,6 +277,16 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Returns a nondeterministic boolean choice, that can be
+        /// controlled during analysis or testing.
+        /// </summary>
+        /// <returns>Boolean</returns>
+        internal static bool Nondet()
+        {
+            return Runtime.BugFinder.GetNextNondeterministicChoice();
+        }
+
+        /// <summary>
         /// Waits until all P# machines have finished execution.
         /// </summary>
         internal static void WaitMachines()

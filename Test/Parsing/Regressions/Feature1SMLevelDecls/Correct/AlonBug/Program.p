@@ -13,7 +13,7 @@ main machine Program {
     }
 
     state Call {
-           entry { 
+           entry {
              if (i == 3) {
                     pop; 
             }

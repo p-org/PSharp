@@ -32,6 +32,12 @@ namespace Microsoft.PSharp.Scheduling
         bool TryGetNext(out TaskInfo next, List<TaskInfo> tasks);
 
         /// <summary>
+        /// Returns the next choice.
+        /// </summary>
+        /// <returns>Boolean value</returns>
+        bool GetNextChoice();
+
+        /// <summary>
         /// True if the scheduling has finished.
         /// </summary>
         /// <returns>Boolean value</returns>

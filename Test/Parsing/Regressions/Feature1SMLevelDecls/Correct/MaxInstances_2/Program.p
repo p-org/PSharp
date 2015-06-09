@@ -10,7 +10,7 @@ main machine RealMachine {
    start state Real_Init {
         on E2 do Action1;
        entry {
-            ghost_machine = new GhostMachine(this);  
+            ghost_machine = new GhostMachine(this);
            raise unit;   
        }
        
