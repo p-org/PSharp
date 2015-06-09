@@ -283,7 +283,22 @@ namespace Microsoft.PSharp
         /// <returns>Boolean</returns>
         internal static bool Nondet()
         {
-            return Runtime.BugFinder.GetNextNondeterministicChoice();
+            if (Runtime.BugFinder != null)
+            {
+                return Runtime.BugFinder.GetNextNondeterministicChoice();
+            }
+            else
+            {
+                var random = new Random(DateTime.Now.Millisecond);
+
+                bool result = false;
+                if (random.Next(2) == 1)
+                {
+                    result = true;
+                }
+
+                return result;
+            }
         }
 
         /// <summary>
