@@ -14,33 +14,35 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
-
-using Microsoft.PSharp.Scheduling;
-using Microsoft.PSharp.Tooling;
+using System.Runtime.Serialization;
 
 namespace Microsoft.PSharp
 {
     /// <summary>
     /// Unique machine id.
     /// </summary>
+    [DataContract]
     public sealed class MachineId
     {
         #region fields
 
         /// <summary>
-        /// Handler to the machine.
-        /// </summary>
-        internal readonly Machine Machine;
-
-        /// <summary>
         /// Id value.
         /// </summary>
+        [DataMember]
         internal readonly int Value;
+
+        /// <summary>
+        /// Ip address.
+        /// </summary>
+        [DataMember]
+        internal string IpAddress;
+
+        /// <summary>
+        /// Port.
+        /// </summary>
+        [DataMember]
+        internal string Port;
 
         #endregion
 
@@ -58,11 +60,11 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="machine">Machine</param>
-        internal MachineId(Machine machine)
+        internal MachineId()
         {
-            this.Machine = machine;
             this.Value = MachineId.IdCounter++;
+            this.IpAddress = "";
+            this.Port = "";
         }
 
         /// <summary>

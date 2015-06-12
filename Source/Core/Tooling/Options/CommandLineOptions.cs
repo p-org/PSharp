@@ -20,7 +20,7 @@ namespace Microsoft.PSharp.Tooling
     {
         #region fields
 
-        private string[] Options;
+        protected string[] Options;
 
         #endregion
 
@@ -36,10 +36,9 @@ namespace Microsoft.PSharp.Tooling
         }
 
         /// <summary>
-        /// Parses the command line options and assigns values to
-        /// the global options for the analyser.
+        /// Parses the command line options.
         /// </summary>
-        public void Parse()
+        public virtual void Parse()
         {
             for (int idx = 0; idx < this.Options.Length; idx++)
             {
@@ -137,6 +136,15 @@ namespace Microsoft.PSharp.Tooling
                         ErrorReporter.ReportAndExit("Please give a valid debug target '/debug:[x]', " +
                             "where [x] is 'all', 'runtime', 'analysis' or 'testing'.");
                     }
+                }
+
+                #endregion
+
+                #region compilation options
+
+                else if (this.Options[idx].ToLower().Equals("/distributed"))
+                {
+                    Configuration.CompileForDistribution = true;
                 }
 
                 #endregion

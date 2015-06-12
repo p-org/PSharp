@@ -14,13 +14,14 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
+using System.Runtime.Serialization;
 
 namespace Microsoft.PSharp
 {
     /// <summary>
     /// The default event.
     /// </summary>
+    [DataContract]
     public sealed class Default : Event
     {
         /// <summary>

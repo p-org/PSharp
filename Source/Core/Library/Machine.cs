@@ -116,7 +116,7 @@ namespace Microsoft.PSharp
         /// </summary>
         protected Machine()
         {
-            this.Id = new MachineId(this);
+            this.Id = new MachineId();
             this.Lock = new Object();
 
             this.Inbox = new List<Event>();
@@ -170,24 +170,24 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Creates a new machine of type T with an optional payload.
+        /// Creates a new machine of the given type with an optional payload.
         /// </summary>
-        /// <typeparam name="MachineId">Type of machine</typeparam>
+        /// <param name="type">Type of the machine</param>
         /// <param name="payload">Optional payload</param>
         /// <returns>Machine id</returns>
-        protected internal MachineId Create<T>(params Object[] payload)
+        protected internal MachineId Create(Type type, params Object[] payload)
         {
-            return Machine.Dispatcher.TryCreateMachine<T>(payload);
+            return Machine.Dispatcher.TryCreateMachine(type, payload);
         }
 
         /// <summary>
-        /// Creates a new monitor of type T with an optional payload.
+        /// Creates a new monitor of the given type with an optional payload.
         /// </summary>
-        /// <typeparam name="T">Type of monitor</typeparam>
+        /// <param name="type">Type of the monitor</param>
         /// <param name="payload">Optional payload</param>
-        protected internal void CreateMonitor<T>(params Object[] payload)
+        protected internal void CreateMonitor(Type type, params Object[] payload)
         {
-            Machine.Dispatcher.TryCreateMonitor<T>(payload);
+            Machine.Dispatcher.TryCreateMonitor(type, payload);
         }
 
         /// <summary>
@@ -198,7 +198,7 @@ namespace Microsoft.PSharp
         protected internal void Send(MachineId mid, Event e)
         {
             Output.Debug(DebugType.Runtime, "<SendLog> Machine '{0}({1})' sent event '{2}' " +
-                "to machine '{3}({4})'.", this, this.Id.Value, e.GetType(), mid.Machine, mid.Value);
+                "to machine with id '{3}'.", this, this.Id.Value, e.GetType(), mid.Value);
             Machine.Dispatcher.Send(mid, e);
         }
 
@@ -483,7 +483,7 @@ namespace Microsoft.PSharp
                 {
                     Output.Debug(DebugType.Runtime, "<ExitLog> Machine '{0}({1})' exiting state '{2}'.",
                         this, this.Id.Value, this.StateStack.Peek());
-                    
+
                     this.StateStack.Pop();
                     if (this.StateStack.Count == 0)
                     {
@@ -499,7 +499,7 @@ namespace Microsoft.PSharp
                     
                     continue;
                 }
-                
+
                 // Checks if the event can trigger a goto state transition.
                 if (this.StateStack.Peek().GotoTransitions.ContainsKey(e.GetType()))
                 {

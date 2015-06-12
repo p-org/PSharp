@@ -16,6 +16,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Microsoft.PSharp.Tooling;
+
 namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
@@ -120,6 +122,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
         private string GetRewrittenEventDeclaration()
         {
             var text = "";
+
+            if (Configuration.CompileForDistribution)
+            {
+                text += "[System.Runtime.Serialization.DataContract]\n";
+            }
 
             if (this.AccessModifier == AccessModifier.Public)
             {

@@ -1,0 +1,10 @@
+﻿namespace DistributedPingPong
+{
+    #region Events
+
+    event Ping;
+    event Pong;
+    event Unit;
+
+    #endregion
+}

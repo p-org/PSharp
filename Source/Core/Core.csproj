@@ -49,6 +49,7 @@
       <HintPath>..\..\Packages\Microsoft.CodeAnalysis.Workspaces.Common.0.7.4080704-beta\lib\net45\Microsoft.CodeAnalysis.Workspaces.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Runtime.Serialization" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Attributes\EntryPoint.cs" />

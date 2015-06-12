@@ -62,6 +62,15 @@ namespace Microsoft.PSharp.Tooling
 
         #endregion
 
+        #region compilation options
+
+        /// <summary>
+        /// Compiles the program using the distributed runtime.
+        /// </summary>
+        internal static bool CompileForDistribution = false;
+
+        #endregion
+
         #region static analysis options
 
         /// <summary>
@@ -142,6 +151,26 @@ namespace Microsoft.PSharp.Tooling
         /// Depth bound.
         /// </summary>
         internal static int DepthBound = 0;
+
+        #endregion
+
+        #region remote options
+
+        /// <summary>
+        /// Number of containers.
+        /// </summary>
+        internal static int NumberOfContainers = 1;
+
+        /// <summary>
+        /// The unique container id.
+        /// </summary>
+        internal static int ContainerId = 0;
+
+        /// <summary>
+        /// The path to the P# application to run in a
+        /// distributed setting.
+        /// </summary>
+        internal static string ApplicationFilePath = "";
 
         #endregion
     }

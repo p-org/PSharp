@@ -33,12 +33,17 @@ namespace Microsoft.PSharp
         /// <summary>
         /// List of machine tasks.
         /// </summary>
-        private static List<Task> MachineTasks = new List<Task>();
+        private static List<Task> MachineTasks;
+
+        /// <summary>
+        /// A map from unique machine ids to machines.
+        /// </summary>
+        internal static Dictionary<int, Machine> MachineMap;
 
         /// <summary>
         /// List of monitors in the program.
         /// </summary>
-        private static List<Monitor> Monitors = new List<Monitor>();
+        private static List<Monitor> Monitors;
 
         /// <summary>
         /// Lock used by the runtime.
@@ -60,12 +65,12 @@ namespace Microsoft.PSharp
         #region public API
 
         /// <summary>
-        /// Creates a new machine of type T with the given payload.
+        /// Creates a new machine of the given type with an optional payload.
         /// </summary>
-        /// <typeparam name="T">Type of the machine</typeparam>
+        /// <param name="type">Type of the machine</param>
         /// <param name="payload">Optional payload</param>
         /// <returns>Machine id</returns>
-        public static MachineId CreateMachine<T>(params Object[] payload)
+        public static MachineId CreateMachine(Type type, params Object[] payload)
         {
             Configuration.Debug = DebugType.All;
             lock (Runtime.Lock)
@@ -81,7 +86,7 @@ namespace Microsoft.PSharp
                 }
             }
             
-            return Runtime.TryCreateMachine<T>(payload);
+            return Runtime.TryCreateMachine(type, payload);
         }
 
         /// <summary>
@@ -105,23 +110,24 @@ namespace Microsoft.PSharp
         #region internal API
 
         /// <summary>
-        /// Tries to create a new machine of type T with the given payload.
+        /// Tries to create a new machine of the given type with an optional payload.
         /// </summary>
-        /// <typeparam name="T">Type of the machine</typeparam>
+        /// <param name="type">Type of the machine</param>
         /// <param name="payload">Optional payload</param>
         /// <returns>Machine id</returns>
-        internal static MachineId TryCreateMachine<T>(params Object[] payload)
+        internal static MachineId TryCreateMachine(Type type, params Object[] payload)
         {
-            if (typeof(T).IsSubclassOf(typeof(Machine)))
+            if (type.IsSubclassOf(typeof(Machine)))
             {
-                Object machine = Activator.CreateInstance(typeof(T));
+                Object machine = Activator.CreateInstance(type);
+                (machine as Machine).AssignInitialPayload(payload);
 
                 var mid = (machine as Machine).Id;
-                mid.Machine.AssignInitialPayload(payload);
-
+                Runtime.MachineMap.Add(mid.Value, machine as Machine);
+                
                 Output.Debug(DebugType.Runtime, "<CreateLog> Machine {0}({1}) is created.",
-                    typeof(T), mid.Value);
-
+                    type.Name, mid.Value);
+                
                 Task task = new Task(() =>
                 {
                     if (Runtime.BugFinder != null)
@@ -129,7 +135,7 @@ namespace Microsoft.PSharp
                         Runtime.BugFinder.NotifyTaskStarted(Task.CurrentId);
                     }
 
-                    mid.Machine.Run();
+                    (machine as Machine).Run();
 
                     if (Runtime.BugFinder != null)
                     {
@@ -159,29 +165,29 @@ namespace Microsoft.PSharp
             }
             else
             {
-                ErrorReporter.ReportAndExit("Type '{0}' is not a machine.", typeof(T).Name);
+                ErrorReporter.ReportAndExit("Type '{0}' is not a machine.", type.Name);
                 return null;
             }
         }
 
         /// <summary>
-        /// Tries to create a new monitor of type T with the given payload.
+        /// Tries to create a new monitor of the given type with an optional payload.
         /// </summary>
-        /// <typeparam name="T">Type of the monitor</typeparam>
+        /// <param name="type">Type of the monitor</param>
         /// <param name="payload">Optional payload</param>
-        internal static void TryCreateMonitor<T>(params Object[] payload)
+        internal static void TryCreateMonitor(Type type, params Object[] payload)
         {
             if (Runtime.BugFinder == null)
             {
                 return;
             }
 
-            Runtime.Assert(typeof(T).IsSubclassOf(typeof(Monitor)), "Type '{0}' is not a subclass " +
-                "of Monitor.\n", typeof(T).Name);
+            Runtime.Assert(type.IsSubclassOf(typeof(Monitor)), "Type '{0}' is not a subclass " +
+                "of Monitor.\n", type.Name);
 
-            Object monitor = Activator.CreateInstance(typeof(T));
+            Object monitor = Activator.CreateInstance(type);
             (monitor as Monitor).AssignInitialPayload(payload);
-            Output.Debug(DebugType.Runtime, "<CreateLog> Monitor {0} is created.", typeof(T));
+            Output.Debug(DebugType.Runtime, "<CreateLog> Monitor {0} is created.", type.Name);
 
             Runtime.Monitors.Add(monitor as Monitor);
 
@@ -203,54 +209,48 @@ namespace Microsoft.PSharp
             {
                 ErrorReporter.ReportAndExit("Cannot send a null event.");
             }
-            
-            if (mid.Machine is Machine)
+
+            var machine = Runtime.MachineMap[mid.Value];
+            machine.Enqueue(e);
+
+            if (Runtime.BugFinder != null &&
+                Runtime.BugFinder.HasEnabledTaskForMachine(machine))
             {
-                mid.Machine.Enqueue(e);
-
-                if (Runtime.BugFinder != null &&
-                    Runtime.BugFinder.HasEnabledTaskForMachine(mid.Machine))
-                {
-                    Runtime.BugFinder.Schedule(Task.CurrentId);
-                    return;
-                }
-
-                Task task = new Task(() =>
-                {
-                    if (Runtime.BugFinder != null)
-                    {
-                        Runtime.BugFinder.NotifyTaskStarted(Task.CurrentId);
-                    }
-
-                    mid.Machine.Run();
-
-                    if (Runtime.BugFinder != null)
-                    {
-                        Runtime.BugFinder.NotifyTaskCompleted(Task.CurrentId);
-                    }
-                });
-
-                lock (Runtime.Lock)
-                {
-                    Runtime.MachineTasks.Add(task);
-                }
-
-                if (Runtime.BugFinder != null)
-                {
-                    Runtime.BugFinder.NotifyNewTaskCreated(task.Id, mid.Machine);
-                }
-
-                task.Start();
-
-                if (Runtime.BugFinder != null)
-                {
-                    Runtime.BugFinder.WaitForTaskToStart(task.Id);
-                    Runtime.BugFinder.Schedule(Task.CurrentId);
-                }
+                Runtime.BugFinder.Schedule(Task.CurrentId);
+                return;
             }
-            else
+
+            Task task = new Task(() =>
             {
-                ErrorReporter.ReportAndExit("Can only send to a machine.");
+                if (Runtime.BugFinder != null)
+                {
+                    Runtime.BugFinder.NotifyTaskStarted(Task.CurrentId);
+                }
+
+                machine.Run();
+
+                if (Runtime.BugFinder != null)
+                {
+                    Runtime.BugFinder.NotifyTaskCompleted(Task.CurrentId);
+                }
+            });
+
+            lock (Runtime.Lock)
+            {
+                Runtime.MachineTasks.Add(task);
+            }
+
+            if (Runtime.BugFinder != null)
+            {
+                Runtime.BugFinder.NotifyNewTaskCreated(task.Id, machine);
+            }
+
+            task.Start();
+
+            if (Runtime.BugFinder != null)
+            {
+                Runtime.BugFinder.WaitForTaskToStart(task.Id);
+                Runtime.BugFinder.Schedule(Task.CurrentId);
             }
         }
 
@@ -349,6 +349,7 @@ namespace Microsoft.PSharp
         private static void Initialize()
         {
             Runtime.MachineTasks = new List<Task>();
+            Runtime.MachineMap = new Dictionary<int, Machine>();
             Runtime.Monitors = new List<Monitor>();
 
             MachineId.ResetMachineIDCounter();

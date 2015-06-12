@@ -1,17 +1,15 @@
-﻿using System;
-
-namespace PingPong
+﻿namespace PingPong
 {
     internal machine Client
     {
-        private Machine Server;
+        private machine Server;
         private int Counter;
 
         private start state Init
         {
             entry
             {
-                this.Server = (Machine)payload;
+                this.Server = (machine)payload;
                 this.Counter = 0;
                 raise Unit;
             }

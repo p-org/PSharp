@@ -68,7 +68,7 @@
       <Name>Core</Name>
     </ProjectReference>
     <ProjectReference Include="..\Runtime\Runtime.csproj">
-      <Project>{c8064f68-8a8b-4cc6-82af-a6dde5d9bbee}</Project>
+      <Project>{62445d0b-c2c6-42c9-ba73-35895e6eeb67}</Project>
       <Name>Runtime</Name>
     </ProjectReference>
   </ItemGroup>

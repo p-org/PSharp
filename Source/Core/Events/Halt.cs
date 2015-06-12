@@ -14,13 +14,14 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
+using System.Runtime.Serialization;
 
 namespace Microsoft.PSharp
 {
     /// <summary>
     /// The halt event.
     /// </summary>
+    [DataContract]
     public sealed class Halt : Event
     {
         /// <summary>
@@ -29,7 +30,7 @@ namespace Microsoft.PSharp
         public Halt()
             : base(-1, -1)
         {
-
+            
         }
     }
 }

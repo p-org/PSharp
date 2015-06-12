@@ -52,8 +52,10 @@ namespace Microsoft.PSharp.Compilation
             {
                 foreach (var projectId in projectDependencyGraph.GetTopologicallySortedProjects())
                 {
+                    var project = ProgramInfo.Solution.GetProject(projectId);
+
                     // Compiles the project.
-                    CompilationEngine.CompileProject(ProgramInfo.Solution.GetProject(projectId));
+                    CompilationEngine.CompileProject(project);
                 }
             }
             else
@@ -78,7 +80,17 @@ namespace Microsoft.PSharp.Compilation
 
             // Links the P# runtime.
             CompilationEngine.LinkAssembly(typeof(Machine).Assembly, "Microsoft.PSharp.dll");
-            CompilationEngine.LinkAssembly(typeof(Runtime).Assembly, "Microsoft.PSharp.Runtime.dll");
+
+            if (Configuration.CompileForDistribution)
+            {
+                CompilationEngine.LinkAssembly(typeof(DistributedRuntime).Assembly,
+                    "Microsoft.PSharp.DistributedRuntime.dll");
+            }
+            else
+            {
+                CompilationEngine.LinkAssembly(typeof(Runtime).Assembly,
+                    "Microsoft.PSharp.Runtime.dll");
+            }
         }
 
         #endregion
@@ -95,13 +107,21 @@ namespace Microsoft.PSharp.Compilation
 
             try
             {
-                CompilationEngine.ToFile(compilation, project.CompilationOptions.OutputKind, project.OutputFilePath);
-
                 if (Configuration.RunDynamicAnalysis)
                 {
                     var dll = CompilationEngine.ToFile(compilation, OutputKind.DynamicallyLinkedLibrary,
                         project.OutputFilePath);
                     Configuration.AssembliesToBeAnalyzed.Add(dll);
+                }
+                else if (Configuration.CompileForDistribution)
+                {
+                    CompilationEngine.ToFile(compilation, OutputKind.DynamicallyLinkedLibrary,
+                        project.OutputFilePath);
+                }
+                else
+                {
+                    CompilationEngine.ToFile(compilation, project.CompilationOptions.OutputKind,
+                        project.OutputFilePath);
                 }
             }
             catch (ApplicationException ex)

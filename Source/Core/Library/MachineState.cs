@@ -182,24 +182,24 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Creates a new machine of type T with an optional payload.
+        /// Creates a new machine of the given type with an optional payload.
         /// </summary>
-        /// <typeparam name="T">Type of machine</typeparam>
+        /// <param name="type">Type of the machine</param>
         /// <param name="payload">Optional payload</param>
         /// <returns>Machine id</returns>
-        protected internal MachineId Create<T>(params Object[] payload)
+        protected internal MachineId Create(Type type, params Object[] payload)
         {
-            return this.Machine.Create<T>(payload);
+            return this.Machine.Create(type, payload);
         }
 
         /// <summary>
-        /// Creates a new monitor of type T with an optional payload.
+        /// Creates a new monitor of the given type with an optional payload.
         /// </summary>
-        /// <typeparam name="T">Type of monitor</typeparam>
+        /// <param name="type">Type of the monitor</param>
         /// <param name="payload">Optional payload</param>
-        protected internal void CreateMonitor<T>(params Object[] payload)
+        protected internal void CreateMonitor(Type type, params Object[] payload)
         {
-            this.Machine.CreateMonitor<T>(payload);
+            this.Machine.CreateMonitor(type, payload);
         }
 
         /// <summary>

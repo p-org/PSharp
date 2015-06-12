@@ -27,24 +27,24 @@ namespace Microsoft.PSharp
         #region API methods
 
         /// <summary>
-        /// Tries to create a new machine of type T with the given payload.
+        /// Tries to create a new machine of the given type with an optional payload.
         /// </summary>
-        /// <typeparam name="T">Type of the machine</typeparam>
+        /// <param name="type">Type of the machine</param>
         /// <param name="payload">Optional payload</param>
         /// <returns>Machine id</returns>
-        MachineId IDispatcher.TryCreateMachine<T>(params Object[] payload)
+        MachineId IDispatcher.TryCreateMachine(Type type, params Object[] payload)
         {
-            return Runtime.TryCreateMachine<T>(payload);
+            return Runtime.TryCreateMachine(type, payload);
         }
 
         /// <summary>
-        /// Tries to create a new monitor of type T with the given payload.
+        /// Tries to create a new monitor of the given type with an optional payload.
         /// </summary>
-        /// <typeparam name="T">Type of the monitor</typeparam>
+        /// <param name="type">Type of the machine</param>
         /// <param name="payload">Optional payload</param>
-        void IDispatcher.TryCreateMonitor<T>(params Object[] payload)
+        void IDispatcher.TryCreateMonitor(Type type, params Object[] payload)
         {
-            Runtime.TryCreateMonitor<T>(payload);
+            Runtime.TryCreateMonitor(type, payload);
         }
 
         /// <summary>

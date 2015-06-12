@@ -15,23 +15,30 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 namespace Microsoft.PSharp
 {
     /// <summary>
     /// Abstract class representing an event.
     /// </summary>
+    [DataContract]
     public abstract class Event
     {
+        #region fields
+
         /// <summary>
         /// Payload of the event.
         /// </summary>
+        [DataMember]
         protected internal readonly Object Payload;
 
         /// <summary>
         /// Specifies that there must not be more than k instances
         /// of e in the input queue of any machine.
         /// </summary>
+        [DataMember]
         protected internal readonly int Assert;
 
         /// <summary>
@@ -39,7 +46,12 @@ namespace Microsoft.PSharp
         /// the cardinality of e beyond k in some queue must not be
         /// generated.
         /// </summary>
+        [DataMember]
         protected internal readonly int Assume;
+
+        #endregion
+
+        #region API
 
         /// <summary>
         /// Default constructor.
@@ -77,5 +89,7 @@ namespace Microsoft.PSharp
                 this.Payload = payload;
             }
         }
+
+        #endregion
     }
 }

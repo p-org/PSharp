@@ -162,18 +162,23 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             if (isMonitor)
             {
-                text += "CreateMonitor<";
+                text += "CreateMonitor";
             }
             else
             {
-                text += "Create<";
+                text += "Create";
             }
 
-            text += machine;
-
-            text += ">(";
+            text += "(typeof(" + machine + ")";
             
-            text += this.Payload.TextUnit.Text;
+            if (this.Payload.TextUnit.Text.Equals(""))
+            {
+                text += this.Payload.TextUnit.Text;
+            }
+            else
+            {
+                text += ", " + this.Payload.TextUnit.Text;
+            }
 
             text += ")";
 
