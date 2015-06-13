@@ -1,0 +1,89 @@
+﻿using System;
+
+namespace BoundedAsync
+{
+    internal machine Process
+    {
+        private machine Scheduler;
+        private machine LeftProcess;
+        private machine RightProcess;
+
+        private CountMessage CountMessage;
+
+        private start state _Init
+        {
+            entry
+            {	
+                this.Scheduler = (machine)payload;
+                raise eUnit;
+            }
+
+            on eUnit goto Init;
+        }
+		
+        private state Init
+        {
+            entry
+            {
+                this.CountMessage = new CountMessage(0);
+            }
+
+            on eMyCount goto Init;
+            on eResp goto SendCount;
+
+            on eInit do InitAction;
+        }
+
+        private state SendCount
+        {
+            entry
+            {
+                this.CountMessage.Count = this.CountMessage.Count + 1;
+
+                Console.WriteLine("Process: Count: {0}", this.CountMessage.Count);
+
+                var msg1 = this.CountMessage;
+                var msg2 = new CountMessage(this.CountMessage.Count);
+
+                send LeftProcess, eMyCount ( msg1 );
+                send RightProcess, eMyCount ( msg2 );
+                send Scheduler, eReq;
+
+                if (this.CountMessage.Count > 10)
+                {
+                    raise eUnit;
+                }
+            }
+
+            on eUnit goto Done;
+            on eResp goto SendCount;
+
+            on eMyCount do ConfirmThatInSync;
+        }
+
+        private state Done
+        {
+            entry
+            {
+                Console.WriteLine("Process: Done");
+            }
+
+            ignore eResp, eMyCount;
+        }
+
+        private void InitAction()
+        {	
+			this.LeftProcess = payload[0] as machine;
+            this.RightProcess = payload[1] as machine;
+
+            send Scheduler, eReq;
+        }
+		
+        private void ConfirmThatInSync()
+        {
+            var countMsg = (CountMessage)payload;
+			assert(this.CountMessage.Count <= countMsg.Count &&
+			  this.CountMessage.Count >= countMsg.Count - 1);
+        }
+    }
+}
