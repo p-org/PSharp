@@ -62,7 +62,7 @@
       <Project>{2e330c40-60ea-4a94-8813-9747b93a1795}</Project>
       <Name>Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\DistributedRuntime\DistributedRuntime.csproj">
+    <ProjectReference Include="..\..\Runtimes\DistributedRuntime\DistributedRuntime.csproj">
       <Project>{5a2c1fe7-fdc2-4447-ba40-a77ba63cc6fd}</Project>
       <Name>DistributedRuntime</Name>
     </ProjectReference>

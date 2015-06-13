@@ -1,14 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{6CF10554-1535-4FE0-A949-EEA5025D8604}</ProjectGuid>
+    <ProjectGuid>{62445D0B-C2C6-42C9-BA73-35895E6EEB67}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Microsoft.PSharp.DynamicAnalysis</RootNamespace>
-    <AssemblyName>Microsoft.PSharp.DynamicAnalysis</AssemblyName>
+    <RootNamespace>Microsoft.PSharp</RootNamespace>
+    <AssemblyName>Microsoft.PSharp.Runtime</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -17,7 +17,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\Binaries\Debug\</OutputPath>
+    <OutputPath>..\..\..\Binaries\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -25,7 +25,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\Binaries\Release\</OutputPath>
+    <OutputPath>..\..\..\Binaries\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -38,27 +38,22 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AnalysisContext.cs" />
-    <Compile Include="SystematicTesting\Schedulers\DFSSchedulingStrategy.cs" />
-    <Compile Include="SystematicTesting\Schedulers\RandomSchedulingStrategy.cs" />
-    <Compile Include="SystematicTesting\SchedulingStrategy.cs" />
-    <Compile Include="SystematicTesting\SCTEngine.cs" />
+    <Compile Include="Dispatcher.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Core\Core.csproj">
-      <Project>{2e330c40-60ea-4a94-8813-9747b93a1795}</Project>
-      <Name>Core</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Runtimes\BugFindingRuntime\BugFindingRuntime.csproj">
-      <Project>{0e43e150-7d5a-46b5-b394-727df8b7f104}</Project>
-      <Name>BugFindingRuntime</Name>
-    </ProjectReference>
+    <Compile Include="Runtime.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="PSharp.snk" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\Core.csproj">
+      <Project>{2e330c40-60ea-4a94-8813-9747b93a1795}</Project>
+      <Name>Core</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

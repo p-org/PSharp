@@ -26,7 +26,7 @@ namespace Microsoft.PSharp
     /// <summary>
     /// Static class implementing the P# runtime.
     /// </summary>
-    public static class Runtime
+    public static class BugFindingRuntime
     {
         #region fields
         
@@ -72,21 +72,20 @@ namespace Microsoft.PSharp
         /// <returns>Machine id</returns>
         public static MachineId CreateMachine(Type type, params Object[] payload)
         {
-            Configuration.Debug = DebugType.All;
-            lock (Runtime.Lock)
+            lock (BugFindingRuntime.Lock)
             {
-                if (!Runtime.IsRunning)
+                if (!BugFindingRuntime.IsRunning)
                 {
-                    Runtime.Initialize();
+                    BugFindingRuntime.Initialize();
                 }
-                else if (Runtime.BugFinder != null)
+                else if (BugFindingRuntime.BugFinder != null)
                 {
                     ErrorReporter.ReportAndExit("Cannot create new machines (other than " +
                         "main) from foreign code during systematic testing.");
                 }
             }
             
-            return Runtime.TryCreateMachine(type, payload);
+            return BugFindingRuntime.TryCreateMachine(type, payload);
         }
 
         /// <summary>
@@ -96,13 +95,13 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         public static void SendEvent(MachineId target, Event e)
         {
-            if (Runtime.BugFinder != null)
+            if (BugFindingRuntime.BugFinder != null)
             {
                 ErrorReporter.ReportAndExit("Cannot send events from foreign " +
                     "code during systematic testing.");
             }
 
-            Runtime.Send(target, e);
+            BugFindingRuntime.Send(target, e);
         }
 
         #endregion
@@ -123,42 +122,42 @@ namespace Microsoft.PSharp
                 (machine as Machine).AssignInitialPayload(payload);
 
                 var mid = (machine as Machine).Id;
-                Runtime.MachineMap.Add(mid.Value, machine as Machine);
+                BugFindingRuntime.MachineMap.Add(mid.Value, machine as Machine);
                 
                 Output.Debug(DebugType.Runtime, "<CreateLog> Machine {0}({1}) is created.",
                     type.Name, mid.Value);
                 
                 Task task = new Task(() =>
                 {
-                    if (Runtime.BugFinder != null)
+                    if (BugFindingRuntime.BugFinder != null)
                     {
-                        Runtime.BugFinder.NotifyTaskStarted(Task.CurrentId);
+                        BugFindingRuntime.BugFinder.NotifyTaskStarted(Task.CurrentId);
                     }
 
                     (machine as Machine).Run();
 
-                    if (Runtime.BugFinder != null)
+                    if (BugFindingRuntime.BugFinder != null)
                     {
-                        Runtime.BugFinder.NotifyTaskCompleted(Task.CurrentId);
+                        BugFindingRuntime.BugFinder.NotifyTaskCompleted(Task.CurrentId);
                     }
                 });
 
-                lock (Runtime.Lock)
+                lock (BugFindingRuntime.Lock)
                 {
-                    Runtime.MachineTasks.Add(task);
+                    BugFindingRuntime.MachineTasks.Add(task);
                 }
 
-                if (Runtime.BugFinder != null)
+                if (BugFindingRuntime.BugFinder != null)
                 {
-                    Runtime.BugFinder.NotifyNewTaskCreated(task.Id, machine as Machine);
+                    BugFindingRuntime.BugFinder.NotifyNewTaskCreated(task.Id, machine as Machine);
                 }
 
                 task.Start();
 
-                if (Runtime.BugFinder != null)
+                if (BugFindingRuntime.BugFinder != null)
                 {
-                    Runtime.BugFinder.WaitForTaskToStart(task.Id);
-                    Runtime.BugFinder.Schedule(Task.CurrentId);
+                    BugFindingRuntime.BugFinder.WaitForTaskToStart(task.Id);
+                    BugFindingRuntime.BugFinder.Schedule(Task.CurrentId);
                 }
 
                 return mid;
@@ -177,19 +176,19 @@ namespace Microsoft.PSharp
         /// <param name="payload">Optional payload</param>
         internal static void TryCreateMonitor(Type type, params Object[] payload)
         {
-            if (Runtime.BugFinder == null)
+            if (BugFindingRuntime.BugFinder == null)
             {
                 return;
             }
 
-            Runtime.Assert(type.IsSubclassOf(typeof(Monitor)), "Type '{0}' is not a subclass " +
+            BugFindingRuntime.Assert(type.IsSubclassOf(typeof(Monitor)), "Type '{0}' is not a subclass " +
                 "of Monitor.\n", type.Name);
 
             Object monitor = Activator.CreateInstance(type);
             (monitor as Monitor).AssignInitialPayload(payload);
             Output.Debug(DebugType.Runtime, "<CreateLog> Monitor {0} is created.", type.Name);
 
-            Runtime.Monitors.Add(monitor as Monitor);
+            BugFindingRuntime.Monitors.Add(monitor as Monitor);
 
             (monitor as Monitor).Run();
         }
@@ -210,47 +209,47 @@ namespace Microsoft.PSharp
                 ErrorReporter.ReportAndExit("Cannot send a null event.");
             }
 
-            var machine = Runtime.MachineMap[mid.Value];
+            var machine = BugFindingRuntime.MachineMap[mid.Value];
             machine.Enqueue(e);
 
-            if (Runtime.BugFinder != null &&
-                Runtime.BugFinder.HasEnabledTaskForMachine(machine))
+            if (BugFindingRuntime.BugFinder != null &&
+                BugFindingRuntime.BugFinder.HasEnabledTaskForMachine(machine))
             {
-                Runtime.BugFinder.Schedule(Task.CurrentId);
+                BugFindingRuntime.BugFinder.Schedule(Task.CurrentId);
                 return;
             }
 
             Task task = new Task(() =>
             {
-                if (Runtime.BugFinder != null)
+                if (BugFindingRuntime.BugFinder != null)
                 {
-                    Runtime.BugFinder.NotifyTaskStarted(Task.CurrentId);
+                    BugFindingRuntime.BugFinder.NotifyTaskStarted(Task.CurrentId);
                 }
 
                 machine.Run();
 
-                if (Runtime.BugFinder != null)
+                if (BugFindingRuntime.BugFinder != null)
                 {
-                    Runtime.BugFinder.NotifyTaskCompleted(Task.CurrentId);
+                    BugFindingRuntime.BugFinder.NotifyTaskCompleted(Task.CurrentId);
                 }
             });
 
-            lock (Runtime.Lock)
+            lock (BugFindingRuntime.Lock)
             {
-                Runtime.MachineTasks.Add(task);
+                BugFindingRuntime.MachineTasks.Add(task);
             }
 
-            if (Runtime.BugFinder != null)
+            if (BugFindingRuntime.BugFinder != null)
             {
-                Runtime.BugFinder.NotifyNewTaskCreated(task.Id, machine);
+                BugFindingRuntime.BugFinder.NotifyNewTaskCreated(task.Id, machine);
             }
 
             task.Start();
 
-            if (Runtime.BugFinder != null)
+            if (BugFindingRuntime.BugFinder != null)
             {
-                Runtime.BugFinder.WaitForTaskToStart(task.Id);
-                Runtime.BugFinder.Schedule(Task.CurrentId);
+                BugFindingRuntime.BugFinder.WaitForTaskToStart(task.Id);
+                BugFindingRuntime.BugFinder.Schedule(Task.CurrentId);
             }
         }
 
@@ -261,12 +260,12 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         internal static void Monitor<T>(Event e)
         {
-            if (Runtime.BugFinder == null)
+            if (BugFindingRuntime.BugFinder == null)
             {
                 return;
             }
 
-            foreach (var m in Runtime.Monitors)
+            foreach (var m in BugFindingRuntime.Monitors)
             {
                 if (m.GetType() == typeof(T))
                 {
@@ -283,9 +282,9 @@ namespace Microsoft.PSharp
         /// <returns>Boolean</returns>
         internal static bool Nondet()
         {
-            if (Runtime.BugFinder != null)
+            if (BugFindingRuntime.BugFinder != null)
             {
-                return Runtime.BugFinder.GetNextNondeterministicChoice();
+                return BugFindingRuntime.BugFinder.GetNextNondeterministicChoice();
             }
             else
             {
@@ -308,11 +307,11 @@ namespace Microsoft.PSharp
         {
             Task[] taskArray = null;
 
-            while (Runtime.IsRunning)
+            while (BugFindingRuntime.IsRunning)
             {
-                lock (Runtime.Lock)
+                lock (BugFindingRuntime.Lock)
                 {
-                    taskArray = Runtime.MachineTasks.ToArray();
+                    taskArray = BugFindingRuntime.MachineTasks.ToArray();
                 }
 
                 try
@@ -325,9 +324,9 @@ namespace Microsoft.PSharp
                 }
 
                 bool moreTasksExist = false;
-                lock (Runtime.Lock)
+                lock (BugFindingRuntime.Lock)
                 {
-                    moreTasksExist = taskArray.Length != Runtime.MachineTasks.Count;
+                    moreTasksExist = taskArray.Length != BugFindingRuntime.MachineTasks.Count;
                 }
 
                 if (!moreTasksExist)
@@ -336,7 +335,7 @@ namespace Microsoft.PSharp
                 }
             }
 
-            Runtime.IsRunning = false;
+            BugFindingRuntime.IsRunning = false;
         }
 
         #endregion
@@ -348,9 +347,9 @@ namespace Microsoft.PSharp
         /// </summary>
         private static void Initialize()
         {
-            Runtime.MachineTasks = new List<Task>();
-            Runtime.MachineMap = new Dictionary<int, Machine>();
-            Runtime.Monitors = new List<Monitor>();
+            BugFindingRuntime.MachineTasks = new List<Task>();
+            BugFindingRuntime.MachineMap = new Dictionary<int, Machine>();
+            BugFindingRuntime.Monitors = new List<Monitor>();
 
             MachineId.ResetMachineIDCounter();
 
@@ -358,7 +357,7 @@ namespace Microsoft.PSharp
             Microsoft.PSharp.Machine.Dispatcher = dispatcher;
             Microsoft.PSharp.Monitor.Dispatcher = dispatcher;
 
-            Runtime.IsRunning = true;
+            BugFindingRuntime.IsRunning = true;
         }
 
         #endregion
@@ -376,9 +375,9 @@ namespace Microsoft.PSharp
             {
                 ErrorReporter.Report("Assertion failure.");
 
-                if (Runtime.BugFinder != null)
+                if (BugFindingRuntime.BugFinder != null)
                 {
-                    Runtime.BugFinder.NotifyAssertionFailure();
+                    BugFindingRuntime.BugFinder.NotifyAssertionFailure();
                 }
                 else
                 {
@@ -401,9 +400,9 @@ namespace Microsoft.PSharp
                 string message = Output.Format(s, args);
                 ErrorReporter.Report(message);
 
-                if (Runtime.BugFinder != null)
+                if (BugFindingRuntime.BugFinder != null)
                 {
-                    Runtime.BugFinder.NotifyAssertionFailure();
+                    BugFindingRuntime.BugFinder.NotifyAssertionFailure();
                 }
                 else
                 {

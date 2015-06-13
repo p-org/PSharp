@@ -32,7 +32,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.PSharp">
+    <Reference Include="Microsoft.PSharp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=c4566cf0a7f74012, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\Binaries\Release\Microsoft.PSharp.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.PSharp.Runtime">

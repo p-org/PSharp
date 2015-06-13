@@ -86,6 +86,11 @@ namespace Microsoft.PSharp.Compilation
                 CompilationEngine.LinkAssembly(typeof(DistributedRuntime).Assembly,
                     "Microsoft.PSharp.DistributedRuntime.dll");
             }
+            else if (Configuration.RunStaticAnalysis || Configuration.RunDynamicAnalysis)
+            {
+                CompilationEngine.LinkAssembly(typeof(BugFindingRuntime).Assembly,
+                    "Microsoft.PSharp.BugFindingRuntime.dll");
+            }
             else
             {
                 CompilationEngine.LinkAssembly(typeof(Runtime).Assembly,
@@ -103,6 +108,14 @@ namespace Microsoft.PSharp.Compilation
         /// <param name="project">Project</param>
         private static void CompileProject(Project project)
         {
+            var psharpBugFindingRuntimeDll = typeof(BugFindingRuntime).Assembly.Location;
+            if ((Configuration.RunStaticAnalysis || Configuration.RunDynamicAnalysis) &&
+                project.MetadataReferences.Any(val => !val.Display.Equals(psharpBugFindingRuntimeDll)))
+            {
+                project = project.AddMetadataReference(MetadataReference.CreateFromFile(
+                    psharpBugFindingRuntimeDll));
+            }
+
             var compilation = project.GetCompilationAsync().Result;
 
             try
