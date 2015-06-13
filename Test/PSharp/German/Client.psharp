@@ -2,7 +2,7 @@
 {
     internal machine Client
     {
-	    private Machine Host;
+	    private machine Host;
 		private bool Pending;
 
         start state Init

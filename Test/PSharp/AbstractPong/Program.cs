@@ -8,7 +8,7 @@ namespace AbstractPong
     {
         static void Main(string[] args)
         {
-            Test.Execute();
+            Program.Execute();
             Console.ReadLine();
         }
 

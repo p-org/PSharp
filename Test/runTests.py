@@ -39,8 +39,8 @@ tests = [
 		  'SEM_OneMachine_35',
 
 		  # Feature3Exprs
-		  'ExprOperatorsAsserts',
-		  'ShortCircuitEval'
+		  #'ExprOperatorsAsserts',
+		  #'ShortCircuitEval'
         ]
 
 class Options:

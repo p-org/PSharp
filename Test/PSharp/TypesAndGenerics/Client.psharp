@@ -2,14 +2,14 @@
 {
     internal machine Client
     {
-        private Machine Server;
+        private machine Server;
         private int Counter;
 
         private start state Init
         {
             entry
             {
-                this.Server = (Machine)payload;
+                this.Server = (machine)payload;
                 this.Counter = 0;
                 raise Unit;
             }
@@ -44,7 +44,7 @@
         private void StopIt()
         {
             Console.WriteLine("Client stopped.\n");
-            delete;
+            raise halt;
         }
     }
 }

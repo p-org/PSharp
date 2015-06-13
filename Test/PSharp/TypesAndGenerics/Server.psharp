@@ -2,8 +2,8 @@
 {
     main machine Server
     {	
-        Client Client;
-		System.Collections.Generic.List<Tuple<int[], bool>> Field;
+        machine Client;
+		List<Tuple<int[], bool>> Field;
 
         start state Init
         {
@@ -37,7 +37,7 @@
         void StopIt()
         {
             Console.WriteLine("Server stopped.\n");
-            delete;
+            raise halt;
         }
     }
 }

@@ -6,7 +6,7 @@
 		{
 			Text += "world!";
 			Console.WriteLine(Text);
-			delete;
+			raise halt;
 		}
     }
 }

@@ -2,10 +2,10 @@
 {
     internal main machine Host
     {
-        private Machine CurrentClient;
-        private Tuple<Machine, Machine, Machine> Clients;
-        private Machine CurrentCPU;
-		private List<Machine> SharerList;
+        private machine CurrentClient;
+        private Tuple<machine, machine, machine> Clients;
+        private machine CurrentCPU;
+		private List<machine> SharerList;
 
 		private bool IsCurrReqExcl;
 		private bool IsExclGranted;
@@ -26,7 +26,7 @@
 				this.CurrentClient = null;
 				this.CurrentCPU = create CPU (this.Clients);
 
-				this.SharerList = new List<Machine>();
+				this.SharerList = new List<machine>();
 				assert(this.SharerList.Count == 0);
 
                 raise unit;

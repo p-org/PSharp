@@ -2,7 +2,7 @@
 {
     internal model CPU
     {
-	    private Tuple<Machine, Machine, Machine> Cache;
+	    private Tuple<machine, machine, machine> Cache;
 
         start state Init
         {
