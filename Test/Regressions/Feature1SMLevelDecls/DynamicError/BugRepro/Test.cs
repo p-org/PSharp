@@ -15,7 +15,7 @@ namespace Regression
         [EntryPoint]
         public static void Execute()
         {
-            Runtime.CreateMachine<Driver>();
+            Runtime.CreateMachine(typeof(Driver));
         }
     }
 }

@@ -15,7 +15,7 @@ namespace PPushTest
         [EntryPoint]
         public static void Execute()
         {
-            Runtime.CreateMachine<Ping>();
+            Runtime.CreateMachine(typeof(Ping));
         }
     }
 }

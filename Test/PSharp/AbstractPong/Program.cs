@@ -15,7 +15,7 @@ namespace AbstractPong
         [EntryPoint]
         public static void Execute()
         {
-            Runtime.CreateMachine<Server>();
+            Runtime.CreateMachine(typeof(Server));
         }
     }
 }

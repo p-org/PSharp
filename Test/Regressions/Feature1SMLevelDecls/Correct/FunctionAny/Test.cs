@@ -15,7 +15,7 @@ namespace Regression
         [EntryPoint]
         public static void Execute()
         {
-            Runtime.CreateMachine<TestMachine>();
+            Runtime.CreateMachine(typeof(TestMachine));
         }
     }
 }

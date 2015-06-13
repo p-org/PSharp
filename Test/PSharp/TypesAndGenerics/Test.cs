@@ -15,7 +15,7 @@ namespace TypesAndGenerics
         [EntryPoint]
         public static void Execute()
         {
-            Runtime.CreateMachine<Server>();
+            Runtime.CreateMachine(typeof(Server));
         }
     }
 }

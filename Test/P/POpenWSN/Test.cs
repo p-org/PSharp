@@ -15,7 +15,7 @@ namespace POpenWSN
         [EntryPoint]
         public static void Execute()
         {
-            Runtime.CreateMachine<GodMachine>();
+            Runtime.CreateMachine(typeof(GodMachine));
         }
     }
 }
