@@ -10,8 +10,6 @@ tests = [
           'PBoundedAsync',
 		  'PElevator',
 		  'PGerman',
-		  'PLinearTopology',
-		  'POpenWSN',
 		  'PPushTest',
 
 		  # P# benchmarks

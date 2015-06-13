@@ -23,6 +23,7 @@ namespace Microsoft.PSharp.Tooling
     {
         None = 0,
         All,
+        Parsing,
         Runtime,
         Analysis,
         Testing
