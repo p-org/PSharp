@@ -41,12 +41,8 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="isModel">Is model</param>
         internal void Visit(MachineDeclarationNode parentNode, bool isModel)
         {
-            if (parentNode.IsModel)
-            {
-                isModel = true;
-            }
-
-            var node = new PFunctionDeclarationNode(base.TokenStream.Program, isModel);
+            var node = new PFunctionDeclarationNode(base.TokenStream.Program,
+                parentNode.IsModel || isModel);
 
             if (isModel)
             {
