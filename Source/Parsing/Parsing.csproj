@@ -53,6 +53,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Exceptions.cs" />
+    <Compile Include="Parsers\Visitors\ForStatementVisitor.cs" />
     <Compile Include="PSharpProject.cs" />
     <Compile Include="Lexers\ILexer.cs" />
     <Compile Include="Lexers\BaseLexer.cs" />
@@ -121,6 +122,7 @@
     <Compile Include="Syntax\Statements\AssertStatementNode.cs" />
     <Compile Include="Syntax\Statements\NewStatementNode.cs" />
     <Compile Include="Syntax\Statements\ForeachStatementNode.cs" />
+    <Compile Include="Syntax\Statements\ForStatementNode.cs" />
     <Compile Include="Syntax\Statements\WhileStatementNode.cs" />
     <Compile Include="Syntax\Statements\SendStatementNode.cs" />
     <Compile Include="Syntax\Statements\RaiseStatementNode.cs" />

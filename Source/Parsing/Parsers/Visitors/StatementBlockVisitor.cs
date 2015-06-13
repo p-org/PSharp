@@ -69,8 +69,9 @@ namespace Microsoft.PSharp.Parsing
                     TokenType.IfCondition,
                     TokenType.DoLoop,
                     TokenType.ForLoop,
-                    TokenType.ForeachLoop,
                     TokenType.WhileLoop,
+                    TokenType.ForLoop,
+                    TokenType.ForeachLoop,
                     TokenType.Break,
                     TokenType.Continue,
                     TokenType.Return,
@@ -132,6 +133,10 @@ namespace Microsoft.PSharp.Parsing
 
                 case TokenType.WhileLoop:
                     new WhileStatementVisitor(base.TokenStream).Visit(node);
+                    break;
+
+                case TokenType.ForLoop:
+                    new ForStatementVisitor(base.TokenStream).Visit(node);
                     break;
 
                 case TokenType.ForeachLoop:
