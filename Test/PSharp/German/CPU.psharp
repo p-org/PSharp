@@ -1,6 +1,6 @@
 ﻿namespace German
 {
-    internal machine CPU
+    internal model CPU
     {
 	    private Tuple<Machine, Machine, Machine> Cache;
 

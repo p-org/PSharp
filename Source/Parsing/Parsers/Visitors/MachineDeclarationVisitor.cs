@@ -160,14 +160,14 @@ namespace Microsoft.PSharp.Parsing
                 (program as PProgram).MachineDeclarations.Add(node);
             }
 
-            if (node.StateDeclarations.Count == 0)
+            if (node.StateDeclarations.Count == 0 && node.BaseNameTokens.Count == 0)
             {
                 throw new ParsingException("A machine must declare at least one state.",
                     new List<TokenType>());
             }
 
             var initialStates = node.StateDeclarations.FindAll(s => s.IsInitial);
-            if (initialStates.Count == 0)
+            if (initialStates.Count == 0 && node.BaseNameTokens.Count == 0)
             {
                 throw new ParsingException("A machine must declare a start state.",
                     new List<TokenType>());
