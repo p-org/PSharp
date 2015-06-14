@@ -28,11 +28,6 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         protected override void TokenizeNext()
         {
-            if (this.Index == this.TextUnits.Count)
-            {
-                return;
-            }
-
             var unit = this.TextUnits[this.Index];
             switch (unit.Text)
             {
@@ -390,7 +385,6 @@ namespace Microsoft.PSharp.Parsing
             }
 
             this.Index++;
-            this.TokenizeNext();
         }
 
         /// <summary>

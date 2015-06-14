@@ -148,9 +148,9 @@ namespace Microsoft.PSharp.Tooling
         internal static bool FullExploration = false;
 
         /// <summary>
-        /// Depth bound.
+        /// Depth bound. By default it is 1000.
         /// </summary>
-        internal static int DepthBound = 0;
+        internal static int DepthBound = 1000;
 
         #endregion
 

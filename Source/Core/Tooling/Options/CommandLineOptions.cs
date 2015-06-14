@@ -224,10 +224,10 @@ namespace Microsoft.PSharp.Tooling
                 {
                     int i = 0;
                     if (!int.TryParse(this.Options[idx].Substring(4), out i) &&
-                        i > 0)
+                        i >= 0)
                     {
                         ErrorReporter.ReportAndExit("Please give a valid exploration depth " +
-                            "bound '/i:[x]', where [x] > 0.");
+                            "bound '/i:[x]', where [x] >= 0.");
                     }
 
                     Configuration.DepthBound = i;
