@@ -119,7 +119,6 @@ namespace Microsoft.PSharp
             if (type.IsSubclassOf(typeof(Machine)))
             {
                 Object machine = Activator.CreateInstance(type);
-                (machine as Machine).AssignInitialPayload(payload);
 
                 var mid = (machine as Machine).Id;
                 Runtime.MachineMap.Add(mid.Value, machine as Machine);
@@ -134,7 +133,9 @@ namespace Microsoft.PSharp
                         Runtime.BugFinder.NotifyTaskStarted(Task.CurrentId);
                     }
 
-                    (machine as Machine).Run();
+                    (machine as Machine).AssignInitialPayload(payload);
+                    (machine as Machine).GotoInitialState();
+                    (machine as Machine).RunEventHandler();
 
                     if (Runtime.BugFinder != null)
                     {
@@ -185,12 +186,14 @@ namespace Microsoft.PSharp
                 "of Monitor.\n", type.Name);
 
             Object monitor = Activator.CreateInstance(type);
-            (monitor as Monitor).AssignInitialPayload(payload);
+            
             Output.Debug(DebugType.Runtime, "<CreateLog> Monitor {0} is created.", type.Name);
 
             Runtime.Monitors.Add(monitor as Monitor);
 
-            (monitor as Monitor).Run();
+            (monitor as Monitor).AssignInitialPayload(payload);
+            (monitor as Monitor).GotoInitialState();
+            (monitor as Monitor).RunEventHandler();
         }
 
         /// <summary>
@@ -226,7 +229,7 @@ namespace Microsoft.PSharp
                     Runtime.BugFinder.NotifyTaskStarted(Task.CurrentId);
                 }
 
-                machine.Run();
+                machine.RunEventHandler();
 
                 if (Runtime.BugFinder != null)
                 {
@@ -270,7 +273,7 @@ namespace Microsoft.PSharp
                 if (m.GetType() == typeof(T))
                 {
                     m.Enqueue(e);
-                    m.Run();
+                    m.RunEventHandler();
                 }
             }
         }

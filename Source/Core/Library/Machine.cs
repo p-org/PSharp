@@ -294,68 +294,7 @@ namespace Microsoft.PSharp
         #region P# internal methods
 
         /// <summary>
-        /// Runs the machine.
-        /// </summary>
-        internal void Run()
-        {
-            lock (this.Lock)
-            {
-                if (this.Status == MachineStatus.Halted)
-                {
-                    return;
-                }
-                else if (this.Status == MachineStatus.None)
-                {
-                    this.Status = MachineStatus.Running;
-                    this.ExecuteCurrentStateOnEntry();
-                }
-                else if (this.Status == MachineStatus.Waiting)
-                {
-                    this.Status = MachineStatus.Running;
-                }
-
-                this.RunEventHandler();
-
-                if (this.Status != MachineStatus.Halted)
-                {
-                    this.Status = MachineStatus.Waiting;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Enqueues an event.
-        /// </summary>
-        /// <param name="e">Event</param>
-        internal void Enqueue(Event e)
-        {
-            lock (this.Inbox)
-            {
-                if (this.Status != MachineStatus.Halted)
-                {
-                    Output.Debug(DebugType.Runtime, "<EnqueueLog> Machine '{0}({1})' enqueued " +
-                        "event < ____{2} >.", this, this.Id.Value, e.GetType());
-                    this.Inbox.Add(e);
-
-                    if (e.Assert >= 0)
-                    {
-                        var eventCount = this.Inbox.Count(val => val.GetType().Equals(e.GetType()));
-                        this.Assert(eventCount <= e.Assert, "There are more than {0} instances of '{1}' " +
-                            "in the input queue of machine '{1}'", e.Assert, e.GetType().Name, this);
-                    }
-
-                    if (e.Assume >= 0)
-                    {
-                        var eventCount = this.Inbox.Count(val => val.GetType().Equals(e.GetType()));
-                        this.Assert(eventCount <= e.Assume, "There are more than {0} instances of '{1}' " +
-                            "in the input queue of machine '{2}'", e.Assume, e.GetType().Name, this);
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Assigns the optional initial payload.
+        /// Initializes the machine with an optional payload
         /// </summary>
         /// <param name="payload">Optional payload</param>
         internal void AssignInitialPayload(params Object[] payload)
@@ -373,45 +312,109 @@ namespace Microsoft.PSharp
             this.Payload = initPayload;
         }
 
-        #endregion
+        /// <summary>
+        /// Transitions to the initial state and executes the
+        /// entry action, if there is any.
+        /// </summary>
+        internal void GotoInitialState()
+        {
+            this.ExecuteCurrentStateOnEntry();
+        }
 
-        #region private machine methods
+        /// <summary>
+        /// Enqueues an event.
+        /// </summary>
+        /// <param name="e">Event</param>
+        internal void Enqueue(Event e)
+        {
+            lock (this.Inbox)
+            {
+                if (this.Status == MachineStatus.Halted)
+                {
+                    return;
+                }
+
+                Output.Debug(DebugType.Runtime, "<EnqueueLog> Machine '{0}({1})' enqueued " +
+                        "event < ____{2} >.", this, this.Id.Value, e.GetType());
+
+                this.Inbox.Add(e);
+
+                if (e.Assert >= 0)
+                {
+                    var eventCount = this.Inbox.Count(val => val.GetType().Equals(e.GetType()));
+                    this.Assert(eventCount <= e.Assert, "There are more than {0} instances of '{1}' " +
+                        "in the input queue of machine '{1}'", e.Assert, e.GetType().Name, this);
+                }
+
+                if (e.Assume >= 0)
+                {
+                    var eventCount = this.Inbox.Count(val => val.GetType().Equals(e.GetType()));
+                    this.Assert(eventCount <= e.Assume, "There are more than {0} instances of '{1}' " +
+                        "in the input queue of machine '{2}'", e.Assume, e.GetType().Name, this);
+                }
+            }
+        }
 
         /// <summary>
         /// Runs the event handler. The handlers terminates if there
         /// is no next event to process or if the machine is halted.
         /// </summary>
-        private void RunEventHandler()
+        internal void RunEventHandler()
         {
-            Event nextEvent = null;
-            while (this.Status == MachineStatus.Running)
+            lock (this.Lock)
             {
-                lock (this.Inbox)
+                if (this.Status == MachineStatus.Halted)
                 {
-                    nextEvent = this.GetNextEvent();
+                    return;
+                }
+                else if (this.Status == MachineStatus.None)
+                {
+                    this.Status = MachineStatus.Running;
+                }
+                else if (this.Status == MachineStatus.Waiting)
+                {
+                    this.Status = MachineStatus.Running;
                 }
 
-                // Check if next event to process is null.
-                if (nextEvent == null)
+                Event nextEvent = null;
+                while (this.Status == MachineStatus.Running)
                 {
-                    if (this.StateStack.Peek().HasDefaultHandler())
+                    lock (this.Inbox)
                     {
-                        nextEvent = new Default();
+                        nextEvent = this.GetNextEvent();
                     }
-                    else
+
+                    // Check if next event to process is null.
+                    if (nextEvent == null)
                     {
-                        break;
+                        if (this.StateStack.Peek().HasDefaultHandler())
+                        {
+                            nextEvent = new Default();
+                        }
+                        else
+                        {
+                            break;
+                        }
                     }
+
+                    // Assign trigger and payload.
+                    this.Trigger = nextEvent.GetType();
+                    this.Payload = nextEvent.Payload;
+
+                    // Handle next event.
+                    this.HandleEvent(nextEvent);
                 }
 
-                // Assign trigger and payload.
-                this.Trigger = nextEvent.GetType();
-                this.Payload = nextEvent.Payload;
-                
-                // Handle next event.
-                this.HandleEvent(nextEvent);
+                if (this.Status != MachineStatus.Halted)
+                {
+                    this.Status = MachineStatus.Waiting;
+                }
             }
         }
+
+        #endregion
+
+        #region private machine methods
 
         /// <summary>
         /// Gets the next available event. It gives priority to raised events,

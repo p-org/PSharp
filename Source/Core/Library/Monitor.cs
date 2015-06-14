@@ -184,30 +184,31 @@ namespace Microsoft.PSharp
         #region P# internal methods
 
         /// <summary>
-        /// Runs the monitor.
+        /// Initializes the machine with an optional payload
         /// </summary>
-        internal void Run()
+        /// <param name="payload">Optional payload</param>
+        internal void AssignInitialPayload(params Object[] payload)
         {
-            if (this.Status == MachineStatus.Halted)
+            object initPayload = null;
+            if (payload.Length > 1)
             {
-                return;
+                initPayload = payload;
             }
-            else if (this.Status == MachineStatus.None)
+            else if (payload.Length == 1)
             {
-                this.Status = MachineStatus.Running;
-                this.ExecuteCurrentStateOnEntry();
+                initPayload = payload[0];
             }
-            else if (this.Status == MachineStatus.Waiting)
-            {
-                this.Status = MachineStatus.Running;
-            }
-            
-            this.RunEventHandler();
 
-            if (this.Status != MachineStatus.Halted)
-            {
-                this.Status = MachineStatus.Waiting;
-            }
+            this.Payload = initPayload;
+        }
+
+        /// <summary>
+        /// Transitions to the initial state and executes the
+        /// entry action, if there is any.
+        /// </summary>
+        internal void GotoInitialState()
+        {
+            this.ExecuteCurrentStateOnEntry();
         }
 
         /// <summary>
@@ -225,35 +226,24 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Assigns the optional initial payload.
-        /// </summary>
-        /// <param name="payload">Optional payload</param>
-        internal void AssignInitialPayload(params Object[] payload)
-        {
-            if (payload.Length == 0)
-            {
-                this.Payload = null;
-            }
-            else if (payload.Length == 1)
-            {
-                this.Payload = payload[0];
-            }
-            else
-            {
-                this.Payload = payload;
-            }
-        }
-
-        #endregion
-
-        #region private monitor methods
-
-        /// <summary>
         /// Runs the event handler. The handlers terminates if there
         /// is no next event to process or if the machine is halted.
         /// </summary>
-        private void RunEventHandler()
+        internal void RunEventHandler()
         {
+            if (this.Status == MachineStatus.Halted)
+            {
+                return;
+            }
+            else if (this.Status == MachineStatus.None)
+            {
+                this.Status = MachineStatus.Running;
+            }
+            else if (this.Status == MachineStatus.Waiting)
+            {
+                this.Status = MachineStatus.Running;
+            }
+
             Event nextEvent = null;
             while (this.Status == MachineStatus.Running)
             {
@@ -279,7 +269,16 @@ namespace Microsoft.PSharp
                 // Handle next event.
                 this.HandleEvent(nextEvent);
             }
+
+            if (this.Status != MachineStatus.Halted)
+            {
+                this.Status = MachineStatus.Waiting;
+            }
         }
+
+        #endregion
+
+        #region private monitor methods
 
         /// <summary>
         /// Gets the next available event. It gives priority to raised events,

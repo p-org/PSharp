@@ -126,7 +126,6 @@ namespace Microsoft.PSharp
             if (type.IsSubclassOf(typeof(Machine)))
             {
                 Object machine = Activator.CreateInstance(type);
-                (machine as Machine).AssignInitialPayload(payload);
 
                 var mid = (machine as Machine).Id;
                 mid.IpAddress = Runtime.IpAddress;
@@ -139,7 +138,9 @@ namespace Microsoft.PSharp
                 
                 Task task = new Task(() =>
                 {
-                    (machine as Machine).Run();
+                    (machine as Machine).AssignInitialPayload(payload);
+                    (machine as Machine).GotoInitialState();
+                    (machine as Machine).RunEventHandler();
                 });
 
                 task.Start();
@@ -184,7 +185,7 @@ namespace Microsoft.PSharp
 
             Task task = new Task(() =>
             {
-                machine.Run();
+                machine.RunEventHandler();
             });
 
             task.Start();
