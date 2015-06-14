@@ -15,7 +15,6 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 
 namespace Microsoft.PSharp
 {
@@ -47,14 +46,7 @@ namespace Microsoft.PSharp
         /// <returns>Machine id</returns>
         MachineId IDispatcher.TryCreateMachine(Type type, bool isRemote, params Object[] payload)
         {
-            if (isRemote)
-            {
-                return Runtime.TryCreateMachine(type, payload);
-            }
-            else
-            {
-                return Runtime.TryCreateMachine(type, payload);
-            }
+            return Runtime.TryCreateMachine(type, payload);
         }
 
         /// <summary>
