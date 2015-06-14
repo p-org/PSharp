@@ -62,9 +62,14 @@ namespace Microsoft.PSharp
         private Stack<MachineState> StateStack;
 
         /// <summary>
-        /// The status of the machine.
+        /// Is machine running.
         /// </summary>
-        private MachineStatus Status;
+        private bool IsRunning;
+
+        /// <summary>
+        /// Is machine halted.
+        /// </summary>
+        private bool IsHalted;
 
         /// <summary>
         /// Collection of all possible goto state transitions.
@@ -119,9 +124,10 @@ namespace Microsoft.PSharp
             this.Lock = new Object();
 
             this.Inbox = new List<Event>();
-
             this.StateStack = new Stack<MachineState>();
-            this.Status = MachineStatus.None;
+
+            this.IsRunning = true;
+            this.IsHalted = false;
 
             this.GotoTransitions = this.DefineGotoStateTransitions();
             this.PushTransitions = this.DefinePushStateTransitions();
@@ -329,7 +335,7 @@ namespace Microsoft.PSharp
         {
             lock (this.Inbox)
             {
-                if (this.Status == MachineStatus.Halted)
+                if (this.IsHalted)
                 {
                     return;
                 }
@@ -363,21 +369,17 @@ namespace Microsoft.PSharp
         {
             lock (this.Lock)
             {
-                if (this.Status == MachineStatus.Halted)
+                if (this.IsHalted)
                 {
                     return;
                 }
-                else if (this.Status == MachineStatus.None)
+                else if (!this.IsRunning)
                 {
-                    this.Status = MachineStatus.Running;
-                }
-                else if (this.Status == MachineStatus.Waiting)
-                {
-                    this.Status = MachineStatus.Running;
+                    this.IsRunning = true;
                 }
 
                 Event nextEvent = null;
-                while (this.Status == MachineStatus.Running)
+                while (this.IsRunning && !this.IsHalted)
                 {
                     lock (this.Inbox)
                     {
@@ -405,10 +407,7 @@ namespace Microsoft.PSharp
                     this.HandleEvent(nextEvent);
                 }
 
-                if (this.Status != MachineStatus.Halted)
-                {
-                    this.Status = MachineStatus.Waiting;
-                }
+                this.IsRunning = false;
             }
         }
 
@@ -481,7 +480,7 @@ namespace Microsoft.PSharp
                         {
                             Output.Debug(DebugType.Runtime, "<HaltLog> Machine " +
                                 "'{0}({1})' halted.", this, this.Id.Value);
-                            this.Status = MachineStatus.Halted;
+                            this.IsHalted = true;
                             this.CleanUpResources();
                         }
                         
@@ -660,7 +659,7 @@ namespace Microsoft.PSharp
         {
             // The machine performs the on exit statements of the current state.
             this.ExecuteCurrentStateOnExit(onExit);
-            if (this.Status == MachineStatus.Halted)
+            if (this.IsHalted)
             {
                 return;
             }
@@ -704,7 +703,7 @@ namespace Microsoft.PSharp
             }
             catch (TaskCanceledException)
             {
-                this.Status = MachineStatus.Halted;
+                this.IsHalted = true;
             }
             catch (Exception ex)
             {
@@ -732,7 +731,7 @@ namespace Microsoft.PSharp
             }
             catch (TaskCanceledException)
             {
-                this.Status = MachineStatus.Halted;
+                this.IsHalted = true;
             }
             catch (Exception ex)
             {
@@ -761,7 +760,7 @@ namespace Microsoft.PSharp
             }
             catch (TaskCanceledException)
             {
-                this.Status = MachineStatus.Halted;
+                this.IsHalted = true;
             }
             catch (Exception ex)
             {

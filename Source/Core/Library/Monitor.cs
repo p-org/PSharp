@@ -51,9 +51,14 @@ namespace Microsoft.PSharp
         private MonitorState State;
 
         /// <summary>
-        /// The status of the machine.
+        /// Is monitor running.
         /// </summary>
-        private MachineStatus Status;
+        private bool IsRunning;
+
+        /// <summary>
+        /// Is monitor halted.
+        /// </summary>
+        private bool IsHalted;
 
         /// <summary>
         /// Collection of all possible goto state transitions.
@@ -100,8 +105,9 @@ namespace Microsoft.PSharp
         protected Monitor()
         {
             this.Inbox = new List<Event>();
-            
-            this.Status = MachineStatus.None;
+
+            this.IsRunning = true;
+            this.IsHalted = false;
 
             this.GotoTransitions = this.DefineGotoStateTransitions();
             this.ActionBindings = this.DefineActionBindings();
@@ -217,12 +223,15 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         internal void Enqueue(Event e)
         {
-            if (this.Status != MachineStatus.Halted)
+            if (this.IsHalted)
             {
-                Output.Debug(DebugType.Runtime, "<EnqueueLog> Monitor '{0}' enqueued event '{1}'.",
-                    this, e.GetType());
-                this.Inbox.Add(e);
+                return;
             }
+
+            Output.Debug(DebugType.Runtime, "<EnqueueLog> Monitor '{0}' enqueued event '{1}'.",
+                    this, e.GetType());
+
+            this.Inbox.Add(e);
         }
 
         /// <summary>
@@ -231,21 +240,17 @@ namespace Microsoft.PSharp
         /// </summary>
         internal void RunEventHandler()
         {
-            if (this.Status == MachineStatus.Halted)
+            if (this.IsHalted)
             {
                 return;
             }
-            else if (this.Status == MachineStatus.None)
+            else if (!this.IsRunning)
             {
-                this.Status = MachineStatus.Running;
-            }
-            else if (this.Status == MachineStatus.Waiting)
-            {
-                this.Status = MachineStatus.Running;
+                this.IsRunning = true;
             }
 
             Event nextEvent = null;
-            while (this.Status == MachineStatus.Running)
+            while (this.IsRunning && !this.IsHalted)
             {
                 nextEvent = this.GetNextEvent();
 
@@ -270,10 +275,7 @@ namespace Microsoft.PSharp
                 this.HandleEvent(nextEvent);
             }
 
-            if (this.Status != MachineStatus.Halted)
-            {
-                this.Status = MachineStatus.Waiting;
-            }
+            this.IsRunning = false;
         }
 
         #endregion
@@ -337,7 +339,7 @@ namespace Microsoft.PSharp
                     {
                         Output.Debug(DebugType.Runtime, "<HaltLog> Monitor " +
                                 "'{0}' halted.", this);
-                        this.Status = MachineStatus.Halted;
+                        this.IsHalted = true;
                         this.CleanUpResources();
                         return;
                     }
@@ -447,7 +449,7 @@ namespace Microsoft.PSharp
         {
             // The monitor performs the on exit statements of the current state.
             this.ExecuteCurrentStateOnExit(onExit);
-            if (this.Status == MachineStatus.Halted)
+            if (this.IsHalted)
             {
                 return;
             }
@@ -473,7 +475,7 @@ namespace Microsoft.PSharp
             }
             catch (TaskCanceledException)
             {
-                this.Status = MachineStatus.Halted;
+                this.IsHalted = true;
             }
             catch (Exception ex)
             {
@@ -501,7 +503,7 @@ namespace Microsoft.PSharp
             }
             catch (TaskCanceledException)
             {
-                this.Status = MachineStatus.Halted;
+                this.IsHalted = true;
             }
             catch (Exception ex)
             {
@@ -530,7 +532,7 @@ namespace Microsoft.PSharp
             }
             catch (TaskCanceledException)
             {
-                this.Status = MachineStatus.Halted;
+                this.IsHalted = true;
             }
             catch (Exception ex)
             {
