@@ -42,7 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Dispatcher.cs" />
+    <Compile Include="BugFindingDispatcher.cs" />
     <Compile Include="Scheduler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Runtime.cs" />

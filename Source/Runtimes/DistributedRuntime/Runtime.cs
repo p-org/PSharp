@@ -27,7 +27,7 @@ namespace Microsoft.PSharp
     /// <summary>
     /// Static class implementing the P# distributed runtime.
     /// </summary>
-    public static class DistributedRuntime
+    public static class Runtime
     {
         #region fields
 
@@ -68,7 +68,7 @@ namespace Microsoft.PSharp
         /// <returns>Machine id</returns>
         public static MachineId CreateMachine(Type type, params Object[] payload)
         {
-            return DistributedRuntime.TryCreateMachine(type, payload);
+            return Runtime.TryCreateMachine(type, payload);
         }
 
         /// <summary>
@@ -78,7 +78,7 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         public static void SendEvent(MachineId target, Event e)
         {
-            DistributedRuntime.Send(target, e);
+            Runtime.Send(target, e);
         }
 
         #endregion
@@ -89,12 +89,11 @@ namespace Microsoft.PSharp
         /// Initializes the P# runtime.
         internal static void Initialize()
         {
-            Configuration.Debug = DebugType.All;
-            DistributedRuntime.MachineMap = new Dictionary<int, Machine>();
+            Runtime.MachineMap = new Dictionary<int, Machine>();
             
             MachineId.ResetMachineIDCounter();
 
-            var dispatcher = new Dispatcher();
+            var dispatcher = new RemoteDispatcher();
             Microsoft.PSharp.Machine.Dispatcher = dispatcher;
             Microsoft.PSharp.Monitor.Dispatcher = dispatcher;
         }
@@ -108,7 +107,7 @@ namespace Microsoft.PSharp
         /// <returns>Machine id</returns>
         internal static MachineId TryCreateMachineRemotely(Type type, params Object[] payload)
         {
-            return DistributedRuntime.Channel.CreateMachine(type.FullName, payload);
+            return Runtime.Channel.CreateMachine(type.FullName, payload);
         }
 
         /// <summary>
@@ -126,10 +125,10 @@ namespace Microsoft.PSharp
                 (machine as Machine).AssignInitialPayload(payload);
 
                 var mid = (machine as Machine).Id;
-                mid.IpAddress = DistributedRuntime.IpAddress;
-                mid.Port = DistributedRuntime.Port;
+                mid.IpAddress = Runtime.IpAddress;
+                mid.Port = Runtime.Port;
 
-                DistributedRuntime.MachineMap.Add(mid.Value, machine as Machine);
+                Runtime.MachineMap.Add(mid.Value, machine as Machine);
 
                 Output.Debug(DebugType.Runtime, "<CreateLog> Machine {0}({1}) is created.",
                     type.Name, mid.Value);
@@ -169,7 +168,7 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         internal static void SendRemotely(MachineId mid, Event e)
         {
-            DistributedRuntime.Channel.SendEvent(mid, e);
+            Runtime.Channel.SendEvent(mid, e);
         }
 
         /// <summary>
@@ -188,7 +187,7 @@ namespace Microsoft.PSharp
                 ErrorReporter.ReportAndExit("Cannot send a null event.");
             }
 
-            var machine = DistributedRuntime.MachineMap[mid.Value];
+            var machine = Runtime.MachineMap[mid.Value];
             machine.Enqueue(e);
 
             Task task = new Task(() =>

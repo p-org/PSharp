@@ -15,7 +15,7 @@ namespace DistributedPingPong
         [EntryPoint]
         public static void Execute()
         {
-            DistributedRuntime.CreateMachine(typeof(Server));
+            Runtime.CreateMachine(typeof(Server));
         }
     }
 }

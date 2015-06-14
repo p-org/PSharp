@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="Dispatcher.cs" company="Microsoft">
+// <copyright file="RemoteDispatcher.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -22,7 +22,7 @@ namespace Microsoft.PSharp
     /// <summary>
     /// Class implementing the P# dispatcher.
     /// </summary>
-    sealed class Dispatcher : IDispatcher
+    sealed class RemoteDispatcher : IDispatcher
     {
         #region API methods
 
@@ -34,7 +34,7 @@ namespace Microsoft.PSharp
         /// <returns>Machine id</returns>
         MachineId IDispatcher.TryCreateMachine(Type type, params Object[] payload)
         {
-            return BugFindingRuntime.TryCreateMachine(type, payload);
+            return Runtime.TryCreateMachineRemotely(type, payload);
         }
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace Microsoft.PSharp
         /// <param name="payload">Optional payload</param>
         void IDispatcher.TryCreateMonitor(Type type, params Object[] payload)
         {
-            BugFindingRuntime.TryCreateMonitor(type, payload);
+            Runtime.TryCreateMonitor(type, payload);
         }
 
         /// <summary>
@@ -54,7 +54,7 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         void IDispatcher.Send(MachineId mid, Event e)
         {
-            BugFindingRuntime.Send(mid, e);
+            Runtime.SendRemotely(mid, e);
         }
 
         /// <summary>
@@ -64,7 +64,7 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         void IDispatcher.Monitor<T>(Event e)
         {
-            BugFindingRuntime.Monitor<T>(e);
+            Runtime.Monitor<T>(e);
         }
 
         /// <summary>
@@ -74,7 +74,7 @@ namespace Microsoft.PSharp
         /// <returns>Boolean</returns>
         bool IDispatcher.Nondet()
         {
-            return BugFindingRuntime.Nondet();
+            return Runtime.Nondet();
         }
 
         /// <summary>
@@ -84,7 +84,7 @@ namespace Microsoft.PSharp
         /// <param name="predicate">Predicate</param>
         void IDispatcher.Assert(bool predicate)
         {
-            BugFindingRuntime.Assert(predicate);
+            Runtime.Assert(predicate);
         }
 
         /// <summary>
@@ -96,7 +96,7 @@ namespace Microsoft.PSharp
         /// <param name="args">Message arguments</param>
         void IDispatcher.Assert(bool predicate, string s, params object[] args)
         {
-            BugFindingRuntime.Assert(predicate, s, args);
+            Runtime.Assert(predicate, s, args);
         }
 
         #endregion

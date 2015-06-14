@@ -48,7 +48,7 @@
   <ItemGroup>
     <Compile Include="Communication\IManagerService.cs" />
     <Compile Include="Communication\IContainerService.cs" />
-    <Compile Include="Dispatcher.cs" />
+    <Compile Include="RemoteDispatcher.cs" />
     <Compile Include="Communication\KnownTypesProvider.cs" />
     <Compile Include="Communication\IRemoteCommunication.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

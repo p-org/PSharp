@@ -83,17 +83,17 @@ namespace Microsoft.PSharp.Compilation
 
             if (Configuration.CompileForDistribution)
             {
-                CompilationEngine.LinkAssembly(typeof(DistributedRuntime).Assembly,
+                CompilationEngine.LinkAssembly(typeof(RemoteDispatcher).Assembly,
                     "Microsoft.PSharp.DistributedRuntime.dll");
             }
             else if (Configuration.RunStaticAnalysis || Configuration.RunDynamicAnalysis)
             {
-                CompilationEngine.LinkAssembly(typeof(BugFindingRuntime).Assembly,
+                CompilationEngine.LinkAssembly(typeof(BugFindingDispatcher).Assembly,
                     "Microsoft.PSharp.BugFindingRuntime.dll");
             }
             else
             {
-                CompilationEngine.LinkAssembly(typeof(Runtime).Assembly,
+                CompilationEngine.LinkAssembly(typeof(Dispatcher).Assembly,
                     "Microsoft.PSharp.Runtime.dll");
             }
         }
@@ -108,12 +108,32 @@ namespace Microsoft.PSharp.Compilation
         /// <param name="project">Project</param>
         private static void CompileProject(Project project)
         {
-            var psharpBugFindingRuntimeDll = typeof(BugFindingRuntime).Assembly.Location;
+            var runtimeDllPath = typeof(Dispatcher).Assembly.Location;
+            var bugFindingRuntimeDllPath = typeof(BugFindingDispatcher).Assembly.Location;
+            var distributedRuntimeDllPath = typeof(RemoteDispatcher).Assembly.Location;
+
+            var runtimeDll = project.MetadataReferences.FirstOrDefault(val => val.Display.EndsWith(
+                Path.DirectorySeparatorChar + "Microsoft.PSharp.Runtime.dll"));
+
+            if (runtimeDll != null && (Configuration.RunStaticAnalysis ||
+                Configuration.RunDynamicAnalysis || Configuration.CompileForDistribution))
+            {
+                project = project.RemoveMetadataReference(runtimeDll);
+            }
+
             if ((Configuration.RunStaticAnalysis || Configuration.RunDynamicAnalysis) &&
-                project.MetadataReferences.Any(val => !val.Display.Equals(psharpBugFindingRuntimeDll)))
+                !project.MetadataReferences.Any(val => val.Display.EndsWith(
+                Path.DirectorySeparatorChar + "Microsoft.PSharp.BugFindingRuntime.dll")))
             {
                 project = project.AddMetadataReference(MetadataReference.CreateFromFile(
-                    psharpBugFindingRuntimeDll));
+                    bugFindingRuntimeDllPath));
+            }
+            else if (Configuration.CompileForDistribution &&
+                !project.MetadataReferences.Any(val => val.Display.EndsWith(
+                Path.DirectorySeparatorChar + "Microsoft.PSharp.DistributedRuntime.dll")))
+            {
+                project = project.AddMetadataReference(MetadataReference.CreateFromFile(
+                    distributedRuntimeDllPath));
             }
 
             var compilation = project.GetCompilationAsync().Result;
