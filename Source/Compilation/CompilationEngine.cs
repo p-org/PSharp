@@ -81,12 +81,7 @@ namespace Microsoft.PSharp.Compilation
             // Links the P# runtime.
             CompilationEngine.LinkAssembly(typeof(Machine).Assembly, "Microsoft.PSharp.dll");
 
-            if (Configuration.CompileForDistribution)
-            {
-                CompilationEngine.LinkAssembly(typeof(RemoteDispatcher).Assembly,
-                    "Microsoft.PSharp.DistributedRuntime.dll");
-            }
-            else if (Configuration.RunStaticAnalysis || Configuration.RunDynamicAnalysis)
+            if (Configuration.RunStaticAnalysis || Configuration.RunDynamicAnalysis)
             {
                 CompilationEngine.LinkAssembly(typeof(BugFindingDispatcher).Assembly,
                     "Microsoft.PSharp.BugFindingRuntime.dll");
@@ -110,13 +105,12 @@ namespace Microsoft.PSharp.Compilation
         {
             var runtimeDllPath = typeof(Dispatcher).Assembly.Location;
             var bugFindingRuntimeDllPath = typeof(BugFindingDispatcher).Assembly.Location;
-            var distributedRuntimeDllPath = typeof(RemoteDispatcher).Assembly.Location;
 
             var runtimeDll = project.MetadataReferences.FirstOrDefault(val => val.Display.EndsWith(
                 Path.DirectorySeparatorChar + "Microsoft.PSharp.Runtime.dll"));
 
             if (runtimeDll != null && (Configuration.RunStaticAnalysis ||
-                Configuration.RunDynamicAnalysis || Configuration.CompileForDistribution))
+                Configuration.RunDynamicAnalysis))
             {
                 project = project.RemoveMetadataReference(runtimeDll);
             }
@@ -127,13 +121,6 @@ namespace Microsoft.PSharp.Compilation
             {
                 project = project.AddMetadataReference(MetadataReference.CreateFromFile(
                     bugFindingRuntimeDllPath));
-            }
-            else if (Configuration.CompileForDistribution &&
-                !project.MetadataReferences.Any(val => val.Display.EndsWith(
-                Path.DirectorySeparatorChar + "Microsoft.PSharp.DistributedRuntime.dll")))
-            {
-                project = project.AddMetadataReference(MetadataReference.CreateFromFile(
-                    distributedRuntimeDllPath));
             }
 
             var compilation = project.GetCompilationAsync().Result;

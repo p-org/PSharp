@@ -16,8 +16,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Threading.Tasks;
 
+using Microsoft.PSharp.Remote;
 using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp
@@ -28,11 +30,6 @@ namespace Microsoft.PSharp
     public static class Runtime
     {
         #region fields
-        
-        /// <summary>
-        /// List of machine tasks.
-        /// </summary>
-        private static List<Task> MachineTasks;
 
         /// <summary>
         /// A map from unique machine ids to machines.
@@ -40,23 +37,45 @@ namespace Microsoft.PSharp
         internal static Dictionary<int, Machine> MachineMap;
 
         /// <summary>
-        /// List of monitors in the program.
+        /// Ip address.
         /// </summary>
-        private static List<Monitor> Monitors;
+        internal static string IpAddress;
 
         /// <summary>
-        /// Lock used by the runtime.
+        /// Port.
         /// </summary>
-        private static Object Lock = new Object();
+        internal static string Port;
 
         /// <summary>
-        /// True if runtime is running. False otherwise.
+        /// The application assembly.
         /// </summary>
-        private static bool IsRunning = false;
+        internal static Assembly AppAssembly;
+
+        /// <summary>
+        /// Channel for remote communication.
+        /// </summary>
+        internal static IRemoteCommunication Channel;
 
         #endregion
 
         #region public API
+
+        /// <summary>
+        /// Static constructor.
+        /// </summary>
+        static Runtime()
+        {
+            Runtime.MachineMap = new Dictionary<int, Machine>();
+
+            MachineId.ResetMachineIDCounter();
+
+            var dispatcher = new Dispatcher();
+            Microsoft.PSharp.Machine.Dispatcher = dispatcher;
+            Microsoft.PSharp.Monitor.Dispatcher = dispatcher;
+
+            Runtime.IpAddress = "";
+            Runtime.Port = "";
+        }
 
         /// <summary>
         /// Creates a new machine of the given type with an optional payload.
@@ -67,14 +86,6 @@ namespace Microsoft.PSharp
         public static MachineId CreateMachine(Type type, params Object[] payload)
         {
             Configuration.Debug = DebugType.All;
-            lock (Runtime.Lock)
-            {
-                if (!Runtime.IsRunning)
-                {
-                    Runtime.Initialize();
-                }
-            }
-            
             return Runtime.TryCreateMachine(type, payload);
         }
 
@@ -93,6 +104,18 @@ namespace Microsoft.PSharp
         #region internal API
 
         /// <summary>
+        /// Tries to create a new remote machine of the given type
+        /// with an optional payload.
+        /// </summary>
+        /// <param name="type">Type of the machine</param>
+        /// <param name="payload">Optional payload</param>
+        /// <returns>Machine id</returns>
+        internal static MachineId TryCreateMachineRemotely(Type type, params Object[] payload)
+        {
+            return Runtime.Channel.CreateMachine(type.FullName, payload);
+        }
+
+        /// <summary>
         /// Tries to create a new machine of the given type with an optional payload.
         /// </summary>
         /// <param name="type">Type of the machine</param>
@@ -106,6 +129,9 @@ namespace Microsoft.PSharp
                 (machine as Machine).AssignInitialPayload(payload);
 
                 var mid = (machine as Machine).Id;
+                mid.IpAddress = Runtime.IpAddress;
+                mid.Port = Runtime.Port;
+
                 Runtime.MachineMap.Add(mid.Value, machine as Machine);
                 
                 Output.Debug(DebugType.Runtime, "<CreateLog> Machine {0}({1}) is created.",
@@ -115,11 +141,6 @@ namespace Microsoft.PSharp
                 {
                     (machine as Machine).Run();
                 });
-
-                lock (Runtime.Lock)
-                {
-                    Runtime.MachineTasks.Add(task);
-                }
 
                 task.Start();
 
@@ -133,14 +154,13 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Tries to create a new monitor of the given type with an optional payload.
+        /// Sends an asynchronous event to a remote machine.
         /// </summary>
-        /// <param name="type">Type of the monitor</param>
-        /// <param name="payload">Optional payload</param>
-        internal static void TryCreateMonitor(Type type, params Object[] payload)
+        /// <param name="mid">Machine id</param>
+        /// <param name="e">Event</param>
+        internal static void SendRemotely(MachineId mid, Event e)
         {
-            // the shared memory runtime does not implement monitors.
-            return;
+            Runtime.Channel.SendEvent(mid, e);
         }
 
         /// <summary>
@@ -167,12 +187,19 @@ namespace Microsoft.PSharp
                 machine.Run();
             });
 
-            lock (Runtime.Lock)
-            {
-                Runtime.MachineTasks.Add(task);
-            }
-
             task.Start();
+        }
+
+
+        /// <summary>
+        /// Tries to create a new monitor of the given type with an optional payload.
+        /// </summary>
+        /// <param name="type">Type of the monitor</param>
+        /// <param name="payload">Optional payload</param>
+        internal static void TryCreateMonitor(Type type, params Object[] payload)
+        {
+            // the shared memory runtime does not implement monitors.
+            return;
         }
 
         /// <summary>
@@ -203,67 +230,7 @@ namespace Microsoft.PSharp
 
             return result;
         }
-
-        /// <summary>
-        /// Waits until all P# machines have finished execution.
-        /// </summary>
-        internal static void WaitMachines()
-        {
-            Task[] taskArray = null;
-
-            while (Runtime.IsRunning)
-            {
-                lock (Runtime.Lock)
-                {
-                    taskArray = Runtime.MachineTasks.ToArray();
-                }
-
-                try
-                {
-                    Task.WaitAll(taskArray);
-                }
-                catch (AggregateException)
-                {
-                    break;
-                }
-
-                bool moreTasksExist = false;
-                lock (Runtime.Lock)
-                {
-                    moreTasksExist = taskArray.Length != Runtime.MachineTasks.Count;
-                }
-
-                if (!moreTasksExist)
-                {
-                    break;
-                }
-            }
-
-            Runtime.IsRunning = false;
-        }
-
-        #endregion
-
-        #region private API
-
-        /// <summary>
-        /// Initializes the P# runtime.
-        /// </summary>
-        private static void Initialize()
-        {
-            Runtime.MachineTasks = new List<Task>();
-            Runtime.MachineMap = new Dictionary<int, Machine>();
-            Runtime.Monitors = new List<Monitor>();
-
-            MachineId.ResetMachineIDCounter();
-
-            var dispatcher = new Dispatcher();
-            Microsoft.PSharp.Machine.Dispatcher = dispatcher;
-            Microsoft.PSharp.Monitor.Dispatcher = dispatcher;
-
-            Runtime.IsRunning = true;
-        }
-
+        
         #endregion
         
         #region error checking and reporting

@@ -17,6 +17,8 @@
 using System;
 using System.Collections.Generic;
 
+using Microsoft.PSharp.Tooling;
+
 namespace Microsoft.PSharp
 {
     /// <summary>
@@ -38,13 +40,23 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Tries to create a new monitor of the given type with an optional payload.
+        /// Tries to create a new local or remote machine of the given type
+        /// with an optional payload.
         /// </summary>
         /// <param name="type">Type of the machine</param>
+        /// <param name="isRemote">Create in another node</param>
         /// <param name="payload">Optional payload</param>
-        void IDispatcher.TryCreateMonitor(Type type, params Object[] payload)
+        /// <returns>Machine id</returns>
+        MachineId IDispatcher.TryCreateMachine(Type type, bool isRemote, params Object[] payload)
         {
-            Runtime.TryCreateMonitor(type, payload);
+            if (isRemote)
+            {
+                return Runtime.TryCreateMachineRemotely(type, payload);
+            }
+            else
+            {
+                return Runtime.TryCreateMachine(type, payload);
+            }
         }
 
         /// <summary>
@@ -54,7 +66,24 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         void IDispatcher.Send(MachineId mid, Event e)
         {
-            Runtime.Send(mid, e);
+            if (mid.IpAddress.Length > 0)
+            {
+                Runtime.SendRemotely(mid, e);
+            }
+            else
+            {
+                Runtime.Send(mid, e);
+            }
+        }
+
+        /// <summary>
+        /// Tries to create a new monitor of the given type with an optional payload.
+        /// </summary>
+        /// <param name="type">Type of the machine</param>
+        /// <param name="payload">Optional payload</param>
+        void IDispatcher.TryCreateMonitor(Type type, params Object[] payload)
+        {
+            Runtime.TryCreateMonitor(type, payload);
         }
 
         /// <summary>

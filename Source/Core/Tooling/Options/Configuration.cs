@@ -65,7 +65,7 @@ namespace Microsoft.PSharp.Tooling
         #region compilation options
 
         /// <summary>
-        /// Compiles the program using the distributed runtime.
+        /// Uses the distributed runtime.
         /// </summary>
         internal static bool CompileForDistribution = false;
 

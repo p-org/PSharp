@@ -68,10 +68,6 @@
       <Project>{0e43e150-7d5a-46b5-b394-727df8b7f104}</Project>
       <Name>BugFindingRuntime</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Runtimes\DistributedRuntime\DistributedRuntime.csproj">
-      <Project>{5a2c1fe7-fdc2-4447-ba40-a77ba63cc6fd}</Project>
-      <Name>DistributedRuntime</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Runtimes\Runtime\Runtime.csproj">
       <Project>{62445d0b-c2c6-42c9-ba73-35895e6eeb67}</Project>
       <Name>Runtime</Name>

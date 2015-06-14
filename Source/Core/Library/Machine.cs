@@ -174,9 +174,22 @@ namespace Microsoft.PSharp
         /// <param name="type">Type of the machine</param>
         /// <param name="payload">Optional payload</param>
         /// <returns>Machine id</returns>
-        protected internal MachineId Create(Type type, params Object[] payload)
+        protected internal MachineId CreateMachine(Type type, params Object[] payload)
         {
             return Machine.Dispatcher.TryCreateMachine(type, payload);
+        }
+
+        /// <summary>
+        /// Tries to create a new local or remote machine of the given type
+        /// with an optional payload.
+        /// </summary>
+        /// <param name="type">Type of the machine</param>
+        /// <param name="isRemote">Create in another node</param>
+        /// <param name="payload">Optional payload</param>
+        /// <returns>Machine id</returns>
+        protected internal MachineId CreateMachine(Type type, bool isRemote, params Object[] payload)
+        {
+            return Machine.Dispatcher.TryCreateMachine(type, isRemote, payload);
         }
 
         /// <summary>

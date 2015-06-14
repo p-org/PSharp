@@ -226,10 +226,10 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             if (((create.Expression is MemberAccessExpressionSyntax) &&
                 !(create.Expression as MemberAccessExpressionSyntax).
-                Name.Identifier.ValueText.Equals("Create")) ||
+                Name.Identifier.ValueText.Equals("CreateMachine")) ||
                 ((create.Expression is IdentifierNameSyntax) &&
                 !(create.Expression as IdentifierNameSyntax).
-                Identifier.ValueText.Equals("Create")))
+                Identifier.ValueText.Equals("CreateMachine")))
             {
                 return;
             }
@@ -301,7 +301,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 var callStmt = call.Expression as MemberAccessExpressionSyntax;
                 if (callStmt.Name.Identifier.ValueText.Equals("Send") ||
-                    callStmt.Name.Identifier.ValueText.Equals("Create"))
+                    callStmt.Name.Identifier.ValueText.Equals("CreateMachine"))
                 {
                     return;
                 }
@@ -310,7 +310,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 var callStmt = call.Expression as IdentifierNameSyntax;
                 if (callStmt.Identifier.ValueText.Equals("Send") ||
-                    callStmt.Identifier.ValueText.Equals("Create"))
+                    callStmt.Identifier.ValueText.Equals("CreateMachine"))
                 {
                     return;
                 }
@@ -1348,7 +1348,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
             else if ((opSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.Machine") ||
                 opSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.MachineState")) &&
-                (opSymbol.Name.Equals("Create") || opSymbol.Name.Equals("CreateMonitor")))
+                (opSymbol.Name.Equals("CreateMachine") || opSymbol.Name.Equals("CreateMonitor")))
             {
                 if (operation.ArgumentList.Arguments.Count == 0)
                 {

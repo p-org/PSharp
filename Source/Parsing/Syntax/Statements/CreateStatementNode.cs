@@ -16,6 +16,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Microsoft.PSharp.Tooling;
+
 namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
@@ -166,16 +168,17 @@ namespace Microsoft.PSharp.Parsing.Syntax
             }
             else
             {
-                text += "Create";
+                text += "CreateMachine";
             }
 
             text += "(typeof(" + machine + ")";
-            
-            if (this.Payload.TextUnit.Text.Equals(""))
+
+            if (Configuration.CompileForDistribution)
             {
-                text += this.Payload.TextUnit.Text;
+                text += ", true";
             }
-            else
+            
+            if (!this.Payload.TextUnit.Text.Equals(""))
             {
                 text += ", " + this.Payload.TextUnit.Text;
             }

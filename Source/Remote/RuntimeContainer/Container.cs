@@ -209,7 +209,6 @@ namespace Microsoft.PSharp.Remote
                 Runtime.Channel = channel;
             }
 
-            Runtime.Initialize();
             Container.NotifyManagerInitialization();
         }
 
