@@ -46,11 +46,6 @@ namespace Microsoft.PSharp
         public readonly MachineId Id;
 
         /// <summary>
-        /// Lock used by the machine.
-        /// </summary>
-        private Object Lock;
-
-        /// <summary>
         /// Set of all possible states types.
         /// </summary>
         private HashSet<Type> StateTypes;
@@ -121,7 +116,6 @@ namespace Microsoft.PSharp
         protected Machine()
         {
             this.Id = new MachineId();
-            this.Lock = new Object();
 
             this.Inbox = new List<Event>();
             this.StateStack = new Stack<MachineState>();
@@ -331,7 +325,8 @@ namespace Microsoft.PSharp
         /// Enqueues an event.
         /// </summary>
         /// <param name="e">Event</param>
-        internal void Enqueue(Event e)
+        /// <param name="runHandler">Run the handler</param>
+        internal void Enqueue(Event e, ref bool runHandler)
         {
             lock (this.Inbox)
             {
@@ -358,6 +353,12 @@ namespace Microsoft.PSharp
                     this.Assert(eventCount <= e.Assume, "There are more than {0} instances of '{1}' " +
                         "in the input queue of machine '{2}'", e.Assume, e.GetType().Name, this);
                 }
+
+                if (!this.IsRunning)
+                {
+                    this.IsRunning = true;
+                    runHandler = true;
+                }
             }
         }
 
@@ -367,24 +368,17 @@ namespace Microsoft.PSharp
         /// </summary>
         internal void RunEventHandler()
         {
-            lock (this.Lock)
+            if (this.IsHalted)
             {
-                if (this.IsHalted)
-                {
-                    return;
-                }
-                else if (!this.IsRunning)
-                {
-                    this.IsRunning = true;
-                }
+                return;
+            }
 
-                Event nextEvent = null;
-                while (this.IsRunning && !this.IsHalted)
+            Event nextEvent = null;
+            while (!this.IsHalted)
+            {
+                lock (this.Inbox)
                 {
-                    lock (this.Inbox)
-                    {
-                        nextEvent = this.GetNextEvent();
-                    }
+                    nextEvent = this.GetNextEvent();
 
                     // Check if next event to process is null.
                     if (nextEvent == null)
@@ -395,19 +389,18 @@ namespace Microsoft.PSharp
                         }
                         else
                         {
+                            this.IsRunning = false;
                             break;
                         }
                     }
-
-                    // Assign trigger and payload.
-                    this.Trigger = nextEvent.GetType();
-                    this.Payload = nextEvent.Payload;
-
-                    // Handle next event.
-                    this.HandleEvent(nextEvent);
                 }
 
-                this.IsRunning = false;
+                // Assign trigger and payload.
+                this.Trigger = nextEvent.GetType();
+                this.Payload = nextEvent.Payload;
+
+                // Handle next event.
+                this.HandleEvent(nextEvent);
             }
         }
 

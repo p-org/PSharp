@@ -181,7 +181,14 @@ namespace Microsoft.PSharp
             }
 
             var machine = Runtime.MachineMap[mid.Value];
-            machine.Enqueue(e);
+
+            var runHandler = false;
+            machine.Enqueue(e, ref runHandler);
+
+            if (!runHandler)
+            {
+                return;
+            }
 
             Task task = new Task(() =>
             {

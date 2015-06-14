@@ -250,7 +250,7 @@ namespace Microsoft.PSharp
             }
 
             Event nextEvent = null;
-            while (this.IsRunning && !this.IsHalted)
+            while (!this.IsHalted)
             {
                 nextEvent = this.GetNextEvent();
 
@@ -263,6 +263,7 @@ namespace Microsoft.PSharp
                     }
                     else
                     {
+                        this.IsRunning = false;
                         break;
                     }
                 }
@@ -274,8 +275,6 @@ namespace Microsoft.PSharp
                 // Handle next event.
                 this.HandleEvent(nextEvent);
             }
-
-            this.IsRunning = false;
         }
 
         #endregion
