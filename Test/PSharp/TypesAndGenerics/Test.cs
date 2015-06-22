@@ -15,7 +15,7 @@ namespace TypesAndGenerics
         [EntryPoint]
         public static void Execute()
         {
-            Runtime.CreateMachine(typeof(Server));
+            PSharpRuntime.CreateMachine(typeof(Server));
         }
     }
 }

@@ -15,7 +15,7 @@ namespace PBoundedAsync
         [EntryPoint]
         public static void Execute()
         {
-            Runtime.CreateMachine(typeof(Scheduler));
+            PSharpRuntime.CreateMachine(typeof(Scheduler));
         }
     }
 }

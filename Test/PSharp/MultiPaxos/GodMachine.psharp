@@ -1,6 +1,6 @@
 ﻿namespace MultiPaxos
 {
-    main machine GodMachine
+    machine GodMachine
     {
 	    List<machine> PaxosNodes;
 

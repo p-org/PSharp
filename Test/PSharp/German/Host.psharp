@@ -1,6 +1,6 @@
 ﻿namespace German
 {
-    internal main machine Host
+    internal machine Host
     {
         private machine CurrentClient;
         private Tuple<machine, machine, machine> Clients;

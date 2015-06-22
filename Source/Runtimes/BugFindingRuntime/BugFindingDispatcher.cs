@@ -33,7 +33,7 @@ namespace Microsoft.PSharp
         /// <returns>Machine id</returns>
         MachineId IDispatcher.TryCreateMachine(Type type, params Object[] payload)
         {
-            return Runtime.TryCreateMachine(type, payload);
+            return PSharpRuntime.TryCreateMachine(type, payload);
         }
 
         /// <summary>
@@ -46,7 +46,7 @@ namespace Microsoft.PSharp
         /// <returns>Machine id</returns>
         MachineId IDispatcher.TryCreateMachine(Type type, bool isRemote, params Object[] payload)
         {
-            return Runtime.TryCreateMachine(type, payload);
+            return PSharpRuntime.TryCreateMachine(type, payload);
         }
 
         /// <summary>
@@ -56,7 +56,7 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         void IDispatcher.Send(MachineId mid, Event e)
         {
-            Runtime.Send(mid, e);
+            PSharpRuntime.Send(mid, e);
         }
 
         /// <summary>
@@ -66,7 +66,7 @@ namespace Microsoft.PSharp
         /// <param name="payload">Optional payload</param>
         void IDispatcher.TryCreateMonitor(Type type, params Object[] payload)
         {
-            Runtime.TryCreateMonitor(type, payload);
+            PSharpRuntime.TryCreateMonitor(type, payload);
         }
 
         /// <summary>
@@ -76,7 +76,7 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         void IDispatcher.Monitor<T>(Event e)
         {
-            Runtime.Monitor<T>(e);
+            PSharpRuntime.Monitor<T>(e);
         }
 
         /// <summary>
@@ -86,7 +86,7 @@ namespace Microsoft.PSharp
         /// <returns>Boolean</returns>
         bool IDispatcher.Nondet()
         {
-            return Runtime.Nondet();
+            return PSharpRuntime.Nondet();
         }
 
         /// <summary>
@@ -96,7 +96,7 @@ namespace Microsoft.PSharp
         /// <param name="predicate">Predicate</param>
         void IDispatcher.Assert(bool predicate)
         {
-            Runtime.Assert(predicate);
+            PSharpRuntime.Assert(predicate);
         }
 
         /// <summary>
@@ -108,7 +108,7 @@ namespace Microsoft.PSharp
         /// <param name="args">Message arguments</param>
         void IDispatcher.Assert(bool predicate, string s, params object[] args)
         {
-            Runtime.Assert(predicate, s, args);
+            PSharpRuntime.Assert(predicate, s, args);
         }
 
         #endregion

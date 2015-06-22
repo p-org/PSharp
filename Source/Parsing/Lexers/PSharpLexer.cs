@@ -231,10 +231,6 @@ namespace Microsoft.PSharp.Parsing
                     this.Tokens.Add(new Token(unit, TokenType.EventDecl));
                     break;
 
-                case "main":
-                    this.Tokens.Add(new Token(unit, TokenType.MainMachine));
-                    break;
-
                 case "start":
                     this.Tokens.Add(new Token(unit, TokenType.StartState));
                     break;
@@ -446,7 +442,7 @@ namespace Microsoft.PSharp.Parsing
                 @"{|}|\(|\)|\[|\]|" +
                 @"\busing\b|\bnamespace\b|\bclass\b|\bstruct\b|" +
                 @"\bmachine\b|\bmodel\b|\bmonitor\b|\bstate\b|\bevent\b|\baction\b|" +
-                @"\bmain\b|\bstart\b|" +
+                @"\bstart\b|" +
                 @"\bdefer\b|\bignore\b|\bentry\b|\bexit\b|" +
                 @"\bcreate\b|\braise\b|\bsend\b|" +
                 @"\bon\b|\bdo\b|\bgoto\b|\bpush\b|\bwith\b|" +

@@ -15,7 +15,7 @@ namespace PElevator
         [EntryPoint]
         public static void Execute()
         {
-            Runtime.CreateMachine(typeof(User));
+            PSharpRuntime.CreateMachine(typeof(User));
         }
     }
 }

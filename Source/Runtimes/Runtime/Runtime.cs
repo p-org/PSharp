@@ -27,7 +27,7 @@ namespace Microsoft.PSharp
     /// <summary>
     /// Static class implementing the P# runtime.
     /// </summary>
-    public static class Runtime
+    public static class PSharpRuntime
     {
         #region fields
 
@@ -63,9 +63,9 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Static constructor.
         /// </summary>
-        static Runtime()
+        static PSharpRuntime()
         {
-            Runtime.MachineMap = new Dictionary<int, Machine>();
+            PSharpRuntime.MachineMap = new Dictionary<int, Machine>();
 
             MachineId.ResetMachineIDCounter();
 
@@ -73,8 +73,8 @@ namespace Microsoft.PSharp
             Microsoft.PSharp.Machine.Dispatcher = dispatcher;
             Microsoft.PSharp.Monitor.Dispatcher = dispatcher;
 
-            Runtime.IpAddress = "";
-            Runtime.Port = "";
+            PSharpRuntime.IpAddress = "";
+            PSharpRuntime.Port = "";
         }
 
         /// <summary>
@@ -86,7 +86,7 @@ namespace Microsoft.PSharp
         public static MachineId CreateMachine(Type type, params Object[] payload)
         {
             Configuration.Debug = DebugType.All;
-            return Runtime.TryCreateMachine(type, payload);
+            return PSharpRuntime.TryCreateMachine(type, payload);
         }
 
         /// <summary>
@@ -96,7 +96,7 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         public static void SendEvent(MachineId target, Event e)
         {
-            Runtime.Send(target, e);
+            PSharpRuntime.Send(target, e);
         }
 
         #endregion
@@ -112,7 +112,7 @@ namespace Microsoft.PSharp
         /// <returns>Machine id</returns>
         internal static MachineId TryCreateMachineRemotely(Type type, params Object[] payload)
         {
-            return Runtime.Channel.CreateMachine(type.FullName, payload);
+            return PSharpRuntime.Channel.CreateMachine(type.FullName, payload);
         }
 
         /// <summary>
@@ -128,10 +128,10 @@ namespace Microsoft.PSharp
                 Object machine = Activator.CreateInstance(type);
 
                 var mid = (machine as Machine).Id;
-                mid.IpAddress = Runtime.IpAddress;
-                mid.Port = Runtime.Port;
+                mid.IpAddress = PSharpRuntime.IpAddress;
+                mid.Port = PSharpRuntime.Port;
 
-                Runtime.MachineMap.Add(mid.Value, machine as Machine);
+                PSharpRuntime.MachineMap.Add(mid.Value, machine as Machine);
                 
                 Output.Debug(DebugType.Runtime, "<CreateLog> Machine {0}({1}) is created.",
                     type.Name, mid.Value);
@@ -161,7 +161,7 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         internal static void SendRemotely(MachineId mid, Event e)
         {
-            Runtime.Channel.SendEvent(mid, e);
+            PSharpRuntime.Channel.SendEvent(mid, e);
         }
 
         /// <summary>
@@ -180,7 +180,7 @@ namespace Microsoft.PSharp
                 ErrorReporter.ReportAndExit("Cannot send a null event.");
             }
 
-            var machine = Runtime.MachineMap[mid.Value];
+            var machine = PSharpRuntime.MachineMap[mid.Value];
 
             var runHandler = false;
             machine.Enqueue(e, ref runHandler);

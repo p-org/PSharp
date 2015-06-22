@@ -29,7 +29,7 @@ namespace BoundedAsync
         [EntryPoint]
         public static void Execute()
         {
-            Runtime.CreateMachine(typeof(Scheduler));
+            PSharpRuntime.CreateMachine(typeof(Scheduler));
         }
     }
 }

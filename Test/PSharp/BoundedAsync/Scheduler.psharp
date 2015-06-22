@@ -1,6 +1,6 @@
 ﻿namespace BoundedAsync
 {
-    internal main machine Scheduler
+    internal machine Scheduler
     {
         private machine Process1;
         private machine Process2;

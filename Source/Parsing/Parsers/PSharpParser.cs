@@ -108,7 +108,6 @@ namespace Microsoft.PSharp.Parsing
                 case TokenType.Abstract:
                 case TokenType.Virtual:
                 case TokenType.EventDecl:
-                case TokenType.MainMachine:
                 case TokenType.MachineDecl:
                     this.ReportParsingError("Must be declared inside a namespace.");
                     break;
@@ -263,7 +262,6 @@ namespace Microsoft.PSharp.Parsing
                     TokenType.Public,
                     TokenType.Abstract,
                     TokenType.Virtual,
-                    TokenType.MainMachine,
                     TokenType.EventDecl,
                     TokenType.MachineDecl,
                     TokenType.ModelDecl,
@@ -296,7 +294,6 @@ namespace Microsoft.PSharp.Parsing
                 case TokenType.MachineDecl:
                 case TokenType.ModelDecl:
                 case TokenType.Monitor:
-                case TokenType.MainMachine:
                 case TokenType.Internal:
                 case TokenType.Public:
                 case TokenType.Abstract:
@@ -342,7 +339,6 @@ namespace Microsoft.PSharp.Parsing
         {
             AccessModifier am = AccessModifier.None;
             InheritanceModifier im = InheritanceModifier.None;
-            bool isMain = false;
 
             while (!base.TokenStream.Done &&
                 base.TokenStream.Peek().Type != TokenType.EventDecl &&
@@ -363,12 +359,6 @@ namespace Microsoft.PSharp.Parsing
                     base.TokenStream.Peek().Type == TokenType.Abstract)
                 {
                     throw new ParsingException("Duplicate abstract modifier.",
-                        new List<TokenType>());
-                }
-                else if (isMain &&
-                    base.TokenStream.Peek().Type == TokenType.MainMachine)
-                {
-                    throw new ParsingException("Duplicate main machine modifier.",
                         new List<TokenType>());
                 }
 
@@ -392,18 +382,13 @@ namespace Microsoft.PSharp.Parsing
                 {
                     im = InheritanceModifier.Abstract;
                 }
-                else if (base.TokenStream.Peek().Type == TokenType.MainMachine)
-                {
-                    isMain = true;
-                }
 
                 base.TokenStream.Index++;
                 base.TokenStream.SkipWhiteSpaceAndCommentTokens();
             }
 
             if (base.TokenStream.Done ||
-                (base.TokenStream.Peek().Type != TokenType.MainMachine &&
-                base.TokenStream.Peek().Type != TokenType.EventDecl &&
+                (base.TokenStream.Peek().Type != TokenType.EventDecl &&
                 base.TokenStream.Peek().Type != TokenType.MachineDecl &&
                 base.TokenStream.Peek().Type != TokenType.ModelDecl &&
                 base.TokenStream.Peek().Type != TokenType.Monitor))
@@ -411,7 +396,6 @@ namespace Microsoft.PSharp.Parsing
                 throw new ParsingException("Expected event, machine, model or monitor declaration.",
                     new List<TokenType>
                 {
-                    TokenType.MainMachine,
                     TokenType.EventDecl,
                     TokenType.MachineDecl,
                     TokenType.ModelDecl,
@@ -438,12 +422,6 @@ namespace Microsoft.PSharp.Parsing
                         new List<TokenType>());
                 }
 
-                if (isMain)
-                {
-                    throw new ParsingException("An event cannot be main.",
-                        new List<TokenType>());
-                }
-
                 new EventDeclarationVisitor(base.TokenStream).Visit(null, parentNode, am);
             }
             else if (base.TokenStream.Peek().Type == TokenType.MachineDecl ||
@@ -463,12 +441,12 @@ namespace Microsoft.PSharp.Parsing
                 if (base.TokenStream.Peek().Type == TokenType.MachineDecl)
                 {
                     new MachineDeclarationVisitor(base.TokenStream).Visit(null, parentNode,
-                        isMain, false, false, am, im);
+                        false, false, false, am, im);
                 }
                 else if (base.TokenStream.Peek().Type == TokenType.ModelDecl)
                 {
                     new MachineDeclarationVisitor(base.TokenStream).Visit(null, parentNode,
-                        isMain, true, false, am, im);
+                        false, true, false, am, im);
                 }
             }
             else if (base.TokenStream.Peek().Type == TokenType.Monitor)
@@ -481,12 +459,6 @@ namespace Microsoft.PSharp.Parsing
                 else if (am == AccessModifier.Protected)
                 {
                     throw new ParsingException("A monitor cannot be protected.",
-                        new List<TokenType>());
-                }
-
-                if (isMain)
-                {
-                    throw new ParsingException("A monitor cannot be main.",
                         new List<TokenType>());
                 }
 

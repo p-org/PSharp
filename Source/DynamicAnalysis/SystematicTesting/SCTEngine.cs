@@ -109,18 +109,18 @@ namespace Microsoft.PSharp.DynamicAnalysis
                         Console.WriteLine("..... Iteration #{0}", i + 1);
                     }
 
-                    Runtime.BugFinder = new Scheduler(SCTEngine.Strategy);
+                    PSharpRuntime.BugFinder = new Scheduler(SCTEngine.Strategy);
                     var sw = SCTEngine.RedirectOutput();
 
                     AnalysisContext.EntryPoint.Invoke(null, null);
-                    Runtime.WaitMachines();
+                    PSharpRuntime.WaitMachines();
 
                     SCTEngine.ResetOutput();
                     
                     SCTEngine.ExploredSchedules++;
-                    SCTEngine.SchedulingPoints = Runtime.BugFinder.SchedulingPoints;
+                    SCTEngine.SchedulingPoints = PSharpRuntime.BugFinder.SchedulingPoints;
 
-                    if (Runtime.BugFinder.BugFound)
+                    if (PSharpRuntime.BugFinder.BugFound)
                     {
                         SCTEngine.FoundBugs++;
                     }

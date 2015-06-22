@@ -95,7 +95,7 @@ namespace Microsoft.PSharp.Remote
             {
                 Output.WriteLine("... Starting P# runtime");
 
-                var entry = Container.FindEntryPoint(Runtime.AppAssembly);
+                var entry = Container.FindEntryPoint(PSharpRuntime.AppAssembly);
                 entry.Invoke(null, null);
             });
         }
@@ -120,7 +120,7 @@ namespace Microsoft.PSharp.Remote
                 ErrorReporter.ReportAndExit(ex.Message);
             }
 
-            Runtime.AppAssembly = applicationAssembly;
+            PSharpRuntime.AppAssembly = applicationAssembly;
         }
 
         /// <summary>
@@ -128,7 +128,7 @@ namespace Microsoft.PSharp.Remote
         /// </summary>
         private static void RegisterSerializableTypes()
         {
-            var eventTypes = from type in Runtime.AppAssembly.GetTypes()
+            var eventTypes = from type in PSharpRuntime.AppAssembly.GetTypes()
                              where type.IsSubclassOf(typeof(Event))
                              select type;
             KnownTypesProvider.KnownTypes.AddRange(eventTypes);
@@ -181,32 +181,32 @@ namespace Microsoft.PSharp.Remote
         /// <returns>Process</returns>
         private static void InitializeDistributedRuntime()
         {
-            Runtime.IpAddress = "localhost";
-            Runtime.Port = "8000";
+            PSharpRuntime.IpAddress = "localhost";
+            PSharpRuntime.Port = "8000";
 
             //var channels = new Dictionary<string, IRemoteCommunication>();
 
             if (Configuration.ContainerId == 0)
             {
-                Uri address = new Uri("http://" + Runtime.IpAddress + ":" +
-                    Runtime.Port + "/request/" + 1 + "/");
+                Uri address = new Uri("http://" + PSharpRuntime.IpAddress + ":" +
+                    PSharpRuntime.Port + "/request/" + 1 + "/");
 
                 var binding = new WSHttpBinding();
                 var endpoint = new EndpointAddress(address);
 
                 var channel = ChannelFactory<IRemoteCommunication>.CreateChannel(binding, endpoint);
-                Runtime.Channel = channel;
+                PSharpRuntime.Channel = channel;
             }
             else
             {
-                Uri address = new Uri("http://" + Runtime.IpAddress + ":" +
-                    Runtime.Port + "/request/" + 0 + "/");
+                Uri address = new Uri("http://" + PSharpRuntime.IpAddress + ":" +
+                    PSharpRuntime.Port + "/request/" + 0 + "/");
 
                 var binding = new WSHttpBinding();
                 var endpoint = new EndpointAddress(address);
 
                 var channel = ChannelFactory<IRemoteCommunication>.CreateChannel(binding, endpoint);
-                Runtime.Channel = channel;
+                PSharpRuntime.Channel = channel;
             }
 
             Container.NotifyManagerInitialization();

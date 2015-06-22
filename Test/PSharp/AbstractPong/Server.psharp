@@ -1,6 +1,6 @@
 ﻿namespace AbstractPong
 {
-    internal main machine Server : BaseServer
+    internal machine Server : BaseServer
     {
 		protected override void Foo()
 		{
