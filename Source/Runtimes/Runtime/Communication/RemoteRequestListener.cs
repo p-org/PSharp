@@ -35,8 +35,8 @@ namespace Microsoft.PSharp.Remote
         MachineId IRemoteCommunication.CreateMachine(string type, params Object[] payload)
         {
             Console.WriteLine("Received request to create machine of type {0}", type);
-            var resolvedType = Runtime.AppAssembly.GetType(type);
-            return Runtime.CreateMachine(resolvedType, payload);
+            var resolvedType = PSharpRuntime.AppAssembly.GetType(type);
+            return PSharpRuntime.CreateMachine(resolvedType, payload);
         }
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace Microsoft.PSharp.Remote
         void IRemoteCommunication.SendEvent(MachineId target, Event e)
         {
             Console.WriteLine("Received sent event {0}", e.GetType());
-            Runtime.SendEvent(target, e);
+            PSharpRuntime.SendEvent(target, e);
         }
     }
 }

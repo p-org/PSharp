@@ -15,7 +15,7 @@ namespace PGerman
         [EntryPoint]
         public static void Execute()
         {
-            Runtime.CreateMachine(typeof(Host));
+            PSharpRuntime.CreateMachine(typeof(Host));
         }
     }
 }
