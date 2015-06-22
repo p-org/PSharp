@@ -281,7 +281,6 @@ namespace Microsoft.PSharp.Parsing
                 base.TokenStream.Peek().Type != TokenType.MachineDecl &&
                 base.TokenStream.Peek().Type != TokenType.Void &&
                 base.TokenStream.Peek().Type != TokenType.Object &&
-                base.TokenStream.Peek().Type != TokenType.MachineDecl &&
                 base.TokenStream.Peek().Type != TokenType.Int &&
                 base.TokenStream.Peek().Type != TokenType.Float &&
                 base.TokenStream.Peek().Type != TokenType.Double &&

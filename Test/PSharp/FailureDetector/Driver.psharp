@@ -1,0 +1,41 @@
+﻿namespace FailureDetector
+{
+    model Driver
+    {
+        machine FailureDetector;
+		List<machine> NodeSeq;
+		Dictionary<machine, bool> NodeMap;
+
+        start state Init
+        {
+            entry
+            {
+			    this.NodeSeq = new List<machine>();
+				this.NodeMap = new Dictionary<machine, bool>();
+				this.Initialize();
+				create Safety ();
+                this.FailureDetector = create FailureDetector ( this.NodeSeq );
+				send this.FailureDetector, RegisterClient ( this );
+				this.Fail();
+            }
+        }
+
+		void Initialize()
+		{
+		    for (int i = 0; i < 2; i++)
+			{
+			    var node = create Node ();
+				this.NodeSeq.Add(node);
+				this.NodeMap.Add(node, true);
+			}
+		}
+
+		void Fail()
+		{
+		    for (int i = 0; i < 2; i++)
+			{
+			    send this.NodeSeq[i], halt;
+			}
+		}
+    }
+}

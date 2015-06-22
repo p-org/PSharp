@@ -1,0 +1,33 @@
+﻿namespace FailureDetector
+{
+    monitor Safety
+    {
+	    Dictionary<machine, int> Pending;
+
+        start state Init
+        {
+		    entry
+			{
+			    this.Pending = new Dictionary<machine, int>();
+			}
+
+			on MPing do
+			{
+			    if (!this.Pending.ContainsKey((machine)payload))
+				{
+				    this.Pending[(machine)payload] = 0;
+				}
+
+				this.Pending[(machine)payload] = this.Pending[(machine)payload] + 1;
+				assert (this.Pending[(machine)payload] <= 3);
+			};
+
+			on MPong do
+			{
+			    assert (this.Pending.ContainsKey((machine)payload));
+				assert (this.Pending[(machine)payload] > 0);
+				this.Pending[(machine)payload] = this.Pending[(machine)payload] - 1;
+			};
+        }
+    }
+}

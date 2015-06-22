@@ -1,0 +1,21 @@
+﻿namespace FailureDetector
+{
+    #region Events
+
+    event Start;
+    event Cancel;
+    event Timeout;
+	event CancelSuccess;
+	event CancelFailure;
+	event Unit;
+	event Ping;
+	event Pong;
+	event RegisterClient;
+	event UnregisterClient;
+	event RoundDone;
+	event TimerCancelled;
+	event MPing;
+	event MPong;
+
+    #endregion
+}

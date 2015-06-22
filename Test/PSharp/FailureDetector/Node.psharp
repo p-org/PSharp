@@ -1,0 +1,14 @@
+﻿namespace FailureDetector
+{
+    machine Node
+    {
+        start state WaitPing
+        {
+			on Ping do
+			{
+			    monitor Safety, MPong ( this );
+				send (machine)payload, Pong ( this );
+			};
+        }
+    }
+}

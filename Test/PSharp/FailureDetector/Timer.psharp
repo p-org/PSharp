@@ -1,0 +1,51 @@
+﻿namespace FailureDetector
+{
+    model Timer
+    {
+        machine Client;
+
+        start state Init
+        {
+            entry
+            {
+                this.Client = (machine)payload;
+                raise Unit;
+            }
+
+            on Unit goto WaitForReq;
+        }
+
+        state WaitForReq
+        {
+            on Cancel goto WaitForReq with
+            {
+                send this.Client, CancelFailure ( this );
+            };
+
+            on Start goto WaitForCancel;
+        }
+
+        state WaitForCancel
+        {
+		    ignore Start;
+
+            on Cancel goto WaitForReq with
+            {
+			    if ($)
+				{
+				    send this.Client, CancelSuccess ( this );
+				}
+				else
+				{
+				    send this.Client, CancelFailure ( this );
+					send this.Client, Timeout ( this );
+				}
+            };
+
+            on default goto WaitForReq with
+            {
+                send this.Client, Timeout ( this );
+            };
+        }
+    }
+}
