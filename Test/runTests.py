@@ -17,6 +17,7 @@ tests = [
 		  'BoundedAsync',
 		  'German',
 		  'MultiPaxos',
+		  'FailureDetector',
 		  'PingPong',
 		  'TypesAndGenerics',
 
