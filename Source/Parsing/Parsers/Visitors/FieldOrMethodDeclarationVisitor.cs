@@ -41,8 +41,9 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="isModel">Is model</param>
         /// <param name="accMod">Access modifier</param>
         /// <param name="inhMod">Inheritance modifier</param>
+        /// <param name="isAsync">Is async</param>
         internal void Visit(MachineDeclarationNode parentNode, bool isModel, AccessModifier accMod,
-            InheritanceModifier inhMod)
+            InheritanceModifier inhMod, bool isAsync)
         {
             TextUnit textUnit = null;
             new TypeIdentifierVisitor(base.TokenStream).Visit(ref textUnit);
@@ -78,7 +79,7 @@ namespace Microsoft.PSharp.Parsing
             if (base.TokenStream.Peek().Type == TokenType.LeftParenthesis)
             {
                 new MethodDeclarationVisitor(base.TokenStream).Visit(parentNode, typeIdentifier,
-                    identifierToken, isModel, accMod, inhMod);
+                    identifierToken, isModel, accMod, inhMod, isAsync);
             }
             else if (base.TokenStream.Peek().Type == TokenType.Semicolon)
             {
@@ -101,6 +102,12 @@ namespace Microsoft.PSharp.Parsing
                 if (isModel)
                 {
                     throw new ParsingException("A field cannot be a model.",
+                        new List<TokenType>());
+                }
+
+                if (isAsync)
+                {
+                    throw new ParsingException("A field cannot be async.",
                         new List<TokenType>());
                 }
 

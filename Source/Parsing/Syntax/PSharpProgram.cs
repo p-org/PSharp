@@ -59,6 +59,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             this.RewrittenText += base.InstrumentSystemLibrary();
             this.RewrittenText += base.InstrumentSystemCollectionsGenericLibrary();
+            this.RewrittenText += base.InstrumentSystemThreadingLibrary();
             this.RewrittenText += base.InstrumentPSharpLibrary();
 
             foreach (var node in this.UsingDeclarations)

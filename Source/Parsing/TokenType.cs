@@ -134,6 +134,9 @@ namespace Microsoft.PSharp.Parsing
         Pop,
         Lock,
 
+        Async,
+        Await,
+
         CreateMachine,
         SendEvent,
         RaiseEvent,

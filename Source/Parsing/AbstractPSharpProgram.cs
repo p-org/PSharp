@@ -111,6 +111,16 @@ namespace Microsoft.PSharp.Parsing
         }
 
         /// <summary>
+        /// Instrument the system threading library.
+        /// </summary>
+        /// <returns>Text</returns>
+        protected string InstrumentSystemThreadingLibrary()
+        {
+            var text = "using System.Threading.Tasks;\n";
+            return text;
+        }
+
+        /// <summary>
         /// Instrument the P# library.
         /// </summary>
         /// <returns>Text</returns>

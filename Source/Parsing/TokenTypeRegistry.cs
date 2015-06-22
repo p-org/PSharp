@@ -341,6 +341,18 @@ namespace Microsoft.PSharp.Parsing
                     text = "pop";
                     break;
 
+                case TokenType.Lock:
+                    text = "lock";
+                    break;
+
+                case TokenType.Async:
+                    text = "async";
+                    break;
+
+                case TokenType.Await:
+                    text = "await";
+                    break;
+
                 case TokenType.CreateMachine:
                     text = "create";
                     break;

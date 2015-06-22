@@ -234,6 +234,7 @@ namespace Microsoft.PSharp.Parsing
                 case TokenType.Protected:
                 case TokenType.Internal:
                 case TokenType.Public:
+                case TokenType.Async:
                     this.VisitMachineLevelDeclaration(node);
                     base.TokenStream.Index++;
                     break;
@@ -275,6 +276,7 @@ namespace Microsoft.PSharp.Parsing
             InheritanceModifier im = InheritanceModifier.None;
             bool isStart = false;
             bool isModel = false;
+            bool isAsync = false;
 
             while (!base.TokenStream.Done &&
                 base.TokenStream.Peek().Type != TokenType.StateDecl &&
@@ -314,6 +316,12 @@ namespace Microsoft.PSharp.Parsing
                     throw new ParsingException("Duplicate model method modifier.",
                         new List<TokenType>());
                 }
+                else if (isAsync &&
+                    base.TokenStream.Peek().Type == TokenType.Async)
+                {
+                    throw new ParsingException("Duplicate async method modifier.",
+                        new List<TokenType>());
+                }
 
                 if (base.TokenStream.Peek().Type == TokenType.Public)
                 {
@@ -350,6 +358,10 @@ namespace Microsoft.PSharp.Parsing
                 else if (base.TokenStream.Peek().Type == TokenType.ModelDecl)
                 {
                     isModel = true;
+                }
+                else if (base.TokenStream.Peek().Type == TokenType.Async)
+                {
+                    isAsync = true;
                 }
 
                 base.TokenStream.Index++;
@@ -417,6 +429,12 @@ namespace Microsoft.PSharp.Parsing
                         new List<TokenType>());
                 }
 
+                if (isAsync)
+                {
+                    throw new ParsingException("A state cannot be async.",
+                        new List<TokenType>());
+                }
+
                 new StateDeclarationVisitor(base.TokenStream).Visit(parentNode, isStart, am);
             }
             else
@@ -433,7 +451,7 @@ namespace Microsoft.PSharp.Parsing
                 }
 
                 new FieldOrMethodDeclarationVisitor(base.TokenStream).Visit(parentNode,
-                    isModel, am, im);
+                    isModel, am, im, isAsync);
             }
         }
 

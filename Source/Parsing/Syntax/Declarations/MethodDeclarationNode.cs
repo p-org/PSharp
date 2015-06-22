@@ -36,6 +36,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
         internal InheritanceModifier InheritanceModifier;
 
         /// <summary>
+        /// Is the method async.
+        /// </summary>
+        internal bool IsAsync;
+
+        /// <summary>
         /// The type identifier.
         /// </summary>
         internal Token TypeIdentifier;
@@ -136,6 +141,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
             else
             {
                 text += "private ";
+            }
+
+            if (this.IsAsync)
+            {
+                text += "async ";
             }
 
             if (this.InheritanceModifier == InheritanceModifier.Abstract)

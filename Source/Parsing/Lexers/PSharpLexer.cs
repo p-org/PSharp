@@ -347,6 +347,14 @@ namespace Microsoft.PSharp.Parsing
                     this.Tokens.Add(new Token(unit, TokenType.Lock));
                     break;
 
+                case "async":
+                    this.Tokens.Add(new Token(unit, TokenType.Async));
+                    break;
+
+                case "await":
+                    this.Tokens.Add(new Token(unit, TokenType.Await));
+                    break;
+
                 case "create":
                     this.Tokens.Add(new Token(unit, TokenType.CreateMachine));
                     break;
@@ -448,6 +456,7 @@ namespace Microsoft.PSharp.Parsing
                 @"\bon\b|\bdo\b|\bgoto\b|\bpush\b|\bwith\b|" +
                 @"\bprivate\b|\bprotected\b|\binternal\b|\bpublic\b|" +
                 @"\babstract\b|\bvirtual\b|\boverride\b|" +
+                @"\basync\b|bawait\b|" +
                 @"\bvar\b|" +
                 @"\bnew\b|\bin\b|\bas\b" +
                 @"|\s+)";
