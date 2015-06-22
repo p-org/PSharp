@@ -851,4 +851,4 @@ that the bound k refers to the total number of events in the input queue of M.
 
 ~ End Grammar
 
-[workflow]: images/workflow.png "workflow" { width=auto max-width=60% }
+[workflow]: images/workflow.pdf "workflow" { width=auto max-width=90% }
