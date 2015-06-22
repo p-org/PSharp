@@ -1,6 +1,6 @@
 ﻿namespace TypesAndGenerics
 {
-    main machine Server
+    machine Server
     {	
         machine Client;
 		List<Tuple<int[], bool>> Field;

@@ -1,6 +1,6 @@
 ﻿namespace PingPong
 {
-    main machine Server
+    machine Server
     {	
         machine Client;
 
