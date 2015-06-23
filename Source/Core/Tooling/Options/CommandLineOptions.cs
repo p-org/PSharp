@@ -44,35 +44,24 @@ namespace Microsoft.PSharp.Tooling
             {
                 #region core options
 
-                if (this.Options[idx].ToLower().StartsWith("/s:") &&
+                if (this.Options[idx].ToLower().Equals("/?"))
+                {
+                    this.ShowHelpAndExit();
+                }
+                else if (this.Options[idx].ToLower().StartsWith("/s:") &&
                     this.Options[idx].Length > 3)
                 {
                     Configuration.SolutionFilePath = this.Options[idx].Substring(3);
-                }
-                else if (this.Options[idx].ToLower().StartsWith("/solution:") &&
-                    this.Options[idx].Length > 10)
-                {
-                    Configuration.SolutionFilePath = this.Options[idx].Substring(10);
-                }
-                else if (this.Options[idx].ToLower().StartsWith("/o:") &&
-                    this.Options[idx].Length > 3)
-                {
-                    Configuration.OutputFilePath = this.Options[idx].Substring(3);
-                }
-                else if (this.Options[idx].ToLower().StartsWith("/output:") &&
-                    this.Options[idx].Length > 8)
-                {
-                    Configuration.OutputFilePath = this.Options[idx].Substring(8);
                 }
                 else if (this.Options[idx].ToLower().StartsWith("/p:") &&
                     this.Options[idx].Length > 3)
                 {
                     Configuration.ProjectName = this.Options[idx].Substring(3);
                 }
-                else if (this.Options[idx].ToLower().StartsWith("/project:") &&
-                    this.Options[idx].Length > 9)
+                else if (this.Options[idx].ToLower().StartsWith("/o:") &&
+                    this.Options[idx].Length > 3)
                 {
-                    Configuration.ProjectName = this.Options[idx].Substring(9);
+                    Configuration.OutputFilePath = this.Options[idx].Substring(3);
                 }
                 else if (this.Options[idx].ToLower().Equals("/noparsing"))
                 {
@@ -253,6 +242,9 @@ namespace Microsoft.PSharp.Tooling
 
         #region private methods
 
+        /// <summary>
+        /// Checks for parsing errors.
+        /// </summary>
         private void CheckForParsingErrors()
         {
             if (Configuration.SolutionFilePath.Equals(""))
@@ -267,6 +259,42 @@ namespace Microsoft.PSharp.Tooling
                 ErrorReporter.ReportAndExit("Please give a valid scheduling strategy " +
                     "'/sch:[x]', where [x] is 'random' or 'dfs'.");
             }
+        }
+
+        /// <summary>
+        /// Shows help and exits.
+        /// </summary>
+        private void ShowHelpAndExit()
+        {
+            string help = "\n";
+
+            help += "--------------";
+            help += "\nBasic options:";
+            help += "\n--------------";
+            help += "\n  /?\t\t Show this help menu";
+            help += "\n  /s:\t\t Path to a P# solution";
+            help += "\n  /p:\t\t Path to a project of a P# solution";
+            help += "\n  /o:\t\t Path for output files";
+            help += "\n  /timeout:\t Timeout for the tool";
+            help += "\n  /v:\t\t Enable verbose mode (values from 0 to 2)";
+            help += "\n  /debug\t Enable debugging";
+
+            help += "\n\n--------------------";
+            help += "\nCompilation options:";
+            help += "\n--------------------";
+            help += "\n  /ditributed\t Compile the P# program using the distributed runtime";
+
+            help += "\n\n---------------------------";
+            help += "\nSystematic testing options:";
+            help += "\n---------------------------";
+            help += "\n  /test\t\t Enable the systematic testing mode to find bugs";
+            help += "\n  /i:\t\t Number of schedules to explore for bugs";
+            help += "\n  /db:\t\t The depth bound (by default is 1000)";
+
+            help += "\n";
+
+            Output.WriteLine(help);
+            Environment.Exit(1);
         }
 
         #endregion
