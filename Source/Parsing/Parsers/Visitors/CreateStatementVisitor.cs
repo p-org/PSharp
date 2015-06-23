@@ -125,20 +125,20 @@ namespace Microsoft.PSharp.Parsing
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
             if (base.TokenStream.Done ||
-                (base.TokenStream.Peek().Type != TokenType.ForLoop &&
+                (base.TokenStream.Peek().Type != TokenType.Models &&
                 base.TokenStream.Peek().Type != TokenType.Semicolon))
             {
-                throw new ParsingException("Expected \"for\" or \";\".",
+                throw new ParsingException("Expected \"models\" or \";\".",
                     new List<TokenType>
                 {
-                    TokenType.ForLoop,
+                    TokenType.Models,
                     TokenType.Semicolon
                 });
             }
 
-            if (base.TokenStream.Peek().Type == TokenType.ForLoop)
+            if (base.TokenStream.Peek().Type == TokenType.Models)
             {
-                node.ForKeyword = base.TokenStream.Peek();
+                node.ModelsKeyword = base.TokenStream.Peek();
 
                 base.TokenStream.Index++;
                 base.TokenStream.SkipWhiteSpaceAndCommentTokens();

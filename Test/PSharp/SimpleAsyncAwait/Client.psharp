@@ -1,0 +1,43 @@
+﻿namespace SimpleAsyncAwait
+{
+    internal machine Client
+    {
+        private machine Server;
+        private int Counter;
+
+        private start state Init
+        {
+            entry
+            {
+                this.Server = (machine)payload;
+                this.Counter = 0;
+                raise Unit;
+            }
+
+            on Unit goto Playing;
+        }
+
+        private state Playing
+        {
+            entry
+            {
+                if (this.Counter == 5)
+                {
+					raise halt;
+                }
+            }
+
+            on Unit goto Playing;
+
+            on Pong do SendPing;
+        }
+
+        private void SendPing()
+        {
+            this.Counter++;
+            Console.WriteLine("\nTurns: {0} / 5\n", this.Counter);
+            send this.Server, Ping;
+            raise Unit;
+        }
+    }
+}

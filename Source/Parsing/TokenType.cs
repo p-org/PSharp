@@ -140,6 +140,7 @@ namespace Microsoft.PSharp.Parsing
         CreateMachine,
         SendEvent,
         RaiseEvent,
+        Models,
         Assert,
         Assume,
         Payload,

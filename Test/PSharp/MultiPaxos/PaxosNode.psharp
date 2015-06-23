@@ -48,7 +48,7 @@
 				MaxRound = 0;
 				AgreeCounter = 0;
 
-				Timer = create NondetTimer(this, 10) for Timer;
+				Timer = create NondetTimer(this, 10) models Timer;
 
 				LastExecutedSlot = 0;
 				NextSlotForProposer = 0;

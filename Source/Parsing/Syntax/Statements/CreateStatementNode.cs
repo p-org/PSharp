@@ -53,9 +53,9 @@ namespace Microsoft.PSharp.Parsing.Syntax
         internal Token RightParenthesisToken;
 
         /// <summary>
-        /// The for keyword.
+        /// The models keyword.
         /// </summary>
-        internal Token ForKeyword;
+        internal Token ModelsKeyword;
 
         /// <summary>
         /// The real machine identifier.
@@ -87,7 +87,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         {
             var machineId = "";
 
-            if (this.ForKeyword != null)
+            if (this.ModelsKeyword != null)
             {
                 foreach (var id in this.RealMachineIdentifier)
                 {
@@ -106,7 +106,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             if (isMonitor)
             {
-                if (this.ForKeyword != null)
+                if (this.ModelsKeyword != null)
                 {
                     throw new RewritingException("A monitor cannot model a real machine.");
                 }
@@ -136,7 +136,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             var isMonitor = this.IsMonitor(machineId);
 
-            if (isMonitor && this.ForKeyword != null)
+            if (isMonitor && this.ModelsKeyword != null)
             {
                 throw new RewritingException("A monitor cannot model a real machine.");
             }

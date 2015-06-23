@@ -1,0 +1,48 @@
+﻿namespace SimpleAsyncAwait
+{
+    machine Server
+    {	
+        machine Client;
+		bool Check;
+
+        start state Init
+        {
+            entry
+            {
+                this.Client = create Client ( this );
+				this.Check = true;
+				var task = this.EditCheckAsync();
+				Console.WriteLine("Test: " + this.Check);
+                raise Unit;
+            }
+
+            on Unit goto Playing;
+        }
+		
+        state Playing
+        {
+            entry
+            {
+			    assert (this.Check);
+				this.Check = true;
+                send this.Client, Pong;
+            }
+
+            on Unit do SendPong;
+            on Ping do SendPong;
+        }
+
+        void SendPong()
+        {
+            send this.Client, Pong;
+        }
+
+		async Task<bool> EditCheckAsync()
+		{
+		    await Task.Delay(1);
+			this.Check = false;
+			Console.WriteLine("Check: " + this.Check);
+			return true;
+		}
+    }
+}

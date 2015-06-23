@@ -73,7 +73,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DistributedPingPong", "Dist
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FailureDetector", "PSharp\FailureDetector\FailureDetector.csproj", "{E662E48A-94E6-4826-9738-95B8C4B21C7C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PingPong", "PSharp\PingPong\PingPong.csproj", "{F66F3853-D4F2-48D8-8E28-01CBF3C08BE7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleAsyncAwait", "PSharp\SimpleAsyncAwait\SimpleAsyncAwait.csproj", "{F66F3853-D4F2-48D8-8E28-01CBF3C08BE7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PingPong", "PSharp\PingPong\PingPong.csproj", "{67DAB066-7416-42BC-B733-63FAE08F2E9B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -181,6 +183,10 @@ Global
 		{F66F3853-D4F2-48D8-8E28-01CBF3C08BE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F66F3853-D4F2-48D8-8E28-01CBF3C08BE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F66F3853-D4F2-48D8-8E28-01CBF3C08BE7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{67DAB066-7416-42BC-B733-63FAE08F2E9B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{67DAB066-7416-42BC-B733-63FAE08F2E9B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{67DAB066-7416-42BC-B733-63FAE08F2E9B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{67DAB066-7416-42BC-B733-63FAE08F2E9B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -218,5 +224,6 @@ Global
 		{A518B5CB-9B21-4A99-979F-EF545F8E4389} = {40136624-581F-476F-9CA6-099A32ECA107}
 		{E662E48A-94E6-4826-9738-95B8C4B21C7C} = {20E53419-703B-4C14-A484-AE2697DCE959}
 		{F66F3853-D4F2-48D8-8E28-01CBF3C08BE7} = {20E53419-703B-4C14-A484-AE2697DCE959}
+		{67DAB066-7416-42BC-B733-63FAE08F2E9B} = {20E53419-703B-4C14-A484-AE2697DCE959}
 	EndGlobalSection
 EndGlobal
