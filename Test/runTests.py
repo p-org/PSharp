@@ -54,7 +54,7 @@ def crunchTests():
 	
     for test in tests:
 	  print("Compiling benchmark " + test)
-	  tool = subprocess.Popen([Options.ToolPath, "/s:" + Options.Solution, "/p:" + test],
+	  tool = subprocess.Popen([Options.ToolPath, "/s:" + Options.Solution, "/p:" + test, "/test"],
         stdout=subprocess.PIPE, shell=True)
 	  out, err = tool.communicate()
 	  
