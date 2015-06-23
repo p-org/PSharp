@@ -87,6 +87,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             this.ModelText += base.InstrumentSystemLibrary();
             this.ModelText += base.InstrumentSystemCollectionsGenericLibrary();
+            this.ModelText += base.InstrumentSystemThreadingLibrary();
             this.ModelText += base.InstrumentPSharpLibrary();
 
             foreach (var node in this.UsingDeclarations)
