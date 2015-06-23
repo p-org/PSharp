@@ -210,7 +210,6 @@ namespace Microsoft.PSharp.VisualStudio
                 case TokenType.Monitor:
                 case TokenType.StateDecl:
                 case TokenType.EventDecl:
-                case TokenType.ActionDecl:
                 case TokenType.FunDecl:
 
                 case TokenType.MainMachine:
@@ -219,6 +218,8 @@ namespace Microsoft.PSharp.VisualStudio
                 case TokenType.OnAction:
                 case TokenType.DoAction:
                 case TokenType.GotoState:
+                case TokenType.PushState:
+                case TokenType.WithExit:
                 case TokenType.DeferEvent:
                 case TokenType.IgnoreEvent:
                 case TokenType.Entry:
@@ -234,6 +235,8 @@ namespace Microsoft.PSharp.VisualStudio
                 case TokenType.SizeOf:
                 case TokenType.In:
                 case TokenType.As:
+                case TokenType.Keys:
+                case TokenType.Values:
 
                 case TokenType.IfCondition:
                 case TokenType.ElseCondition:
@@ -247,19 +250,35 @@ namespace Microsoft.PSharp.VisualStudio
                 case TokenType.Pop:
                 case TokenType.Lock:
 
+                case TokenType.Async:
+                case TokenType.Await:
+
                 case TokenType.CreateMachine:
                 case TokenType.SendEvent:
                 case TokenType.RaiseEvent:
+                case TokenType.Models:
                 case TokenType.Assert:
                 case TokenType.Assume:
                 case TokenType.Payload:
+                case TokenType.Trigger:
 
                 case TokenType.HaltEvent:
                 case TokenType.DefaultEvent:
 
+                case TokenType.ColdState:
+                case TokenType.HotState:
+
                 case TokenType.Var:
+                case TokenType.Void:
+                case TokenType.Object:
                 case TokenType.Int:
+                case TokenType.Float:
+                case TokenType.Double:
                 case TokenType.Bool:
+                case TokenType.Foreign:
+                case TokenType.Any:
+                case TokenType.Seq:
+                case TokenType.Map:
                     classification = "PSharp.Keyword";
                     break;
 

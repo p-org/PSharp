@@ -99,11 +99,6 @@ namespace Microsoft.PSharp.VisualStudio
                             tokens[idx] = new Token(tokens[idx].TextUnit, TokenType.EventIdentifier);
                             break;
                         }
-                        else if (tokens[pre].Type == TokenType.ActionDecl)
-                        {
-                            tokens[idx] = new Token(tokens[idx].TextUnit, TokenType.ActionIdentifier);
-                            break;
-                        }
                         else if (tokens[pre].Type != TokenType.WhiteSpace)
                         {
                             break;
