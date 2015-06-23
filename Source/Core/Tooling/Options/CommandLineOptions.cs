@@ -46,7 +46,8 @@ namespace Microsoft.PSharp.Tooling
 
                 if (this.Options[idx].ToLower().Equals("/?"))
                 {
-                    this.ShowHelpAndExit();
+                    this.ShowHelp();
+                    Environment.Exit(1);
                 }
                 else if (this.Options[idx].ToLower().StartsWith("/s:") &&
                     this.Options[idx].Length > 3)
@@ -228,6 +229,7 @@ namespace Microsoft.PSharp.Tooling
 
                 else
                 {
+                    this.ShowHelp();
                     ErrorReporter.ReportAndExit("cannot recognise command line option '" +
                         this.Options[idx] + "'.");
                 }
@@ -262,9 +264,9 @@ namespace Microsoft.PSharp.Tooling
         }
 
         /// <summary>
-        /// Shows help and exits.
+        /// Shows help.
         /// </summary>
-        private void ShowHelpAndExit()
+        private void ShowHelp()
         {
             string help = "\n";
 
@@ -294,7 +296,6 @@ namespace Microsoft.PSharp.Tooling
             help += "\n";
 
             Output.WriteLine(help);
-            Environment.Exit(1);
         }
 
         #endregion
