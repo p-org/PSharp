@@ -12,18 +12,22 @@ P# extends the C# language with state machines, states, state transitions and ac
 The P# compiler can be used to parse a program, statically analyse it for data races and finally compile it to an executable. To invoke the compiler use the following command:
 
 ```
-.\PSharpCompiler.exe /s:${PROJECT_PATH}\${SOLUTION_NAME}.sln
+.\PSharpCompiler.exe /s:${SOLUTION_PATH}\${SOLUTION_NAME}.sln
 ```
 
-Where ${PROJECT\_PATH} is the path to your P# project and ${SOLUTION\_NAME} is the name of your P# solution.
+Where ${SOLUTION\_PATH} is the path to your P# solution and ${SOLUTION\_NAME} is the name of your P# solution.
 
-To specify an output path destination use the option ```/o:${OUTPUT\_PATH}```.
+To specify an output path destination use the option `/o:${OUTPUT\_PATH}`.
+
+To compile only a specific project in the solution use the option `/p:${PROJECT_NAME}`.
 
 ## Options
 
-To statically analyze the program for data races use the option ```/analyze```.
+To see various available command line options use the option `/?`.
 
-To systematically test the program for bugs (i.e. assertion failures and exceptions) use the option ```/test```. You can optionally give the number of testing iterations to perform using ```/i:value```.
+To statically analyze the program for data races use the option `/analyze`.
+
+To systematically test the program for bugs (i.e. assertion failures and exceptions) use the option `/test`. You can optionally give the number of testing iterations to perform using `/i:value`.
 
 ## Publications
 - **Asynchronous Programming, Analysis and Testing with State Machines**. Pantazis Deligiannis, Alastair F. Donaldson, Jeroen Ketema, Akash Lal and Paul Thomson. In the *36th ACM SIGPLAN Conference on Programming Language Design and Implementation* (PLDI'15), 2015.
