@@ -61,81 +61,37 @@ namespace Microsoft.PSharp.Parsing
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-            if (base.TokenStream.Program is PSharpProgram)
+            var iterator = new ExpressionNode(base.TokenStream.Program, parentNode);
+
+            int counter = 1;
+            while (!base.TokenStream.Done)
             {
-                var iterator = new ExpressionNode(base.TokenStream.Program, parentNode);
-
-                int counter = 1;
-                while (!base.TokenStream.Done)
+                if (base.TokenStream.Peek().Type == TokenType.LeftParenthesis)
                 {
-                    if (base.TokenStream.Peek().Type == TokenType.LeftParenthesis)
-                    {
-                        counter++;
-                    }
-                    else if (base.TokenStream.Peek().Type == TokenType.RightParenthesis)
-                    {
-                        counter--;
-                    }
-
-                    if (counter == 0)
-                    {
-                        break;
-                    }
-
-                    if (base.TokenStream.Peek().Type == TokenType.NonDeterministic)
-                    {
-                        throw new ParsingException("Can only use the nondeterministic \"$\" " +
-                            "keyword as the guard of an if statement.", new List<TokenType>());
-                    }
-
-                    iterator.StmtTokens.Add(base.TokenStream.Peek());
-                    base.TokenStream.Index++;
-                    base.TokenStream.SkipCommentTokens();
+                    counter++;
+                }
+                else if (base.TokenStream.Peek().Type == TokenType.RightParenthesis)
+                {
+                    counter--;
                 }
 
-                node.Iterator = iterator;
-            }
-            else
-            {
-                var iterator = new PExpressionNode(base.TokenStream.Program, parentNode);
-
-                int counter = 1;
-                while (!base.TokenStream.Done)
+                if (counter == 0)
                 {
-                    if (base.TokenStream.Peek().Type == TokenType.Payload)
-                    {
-                        var payloadNode = new PPayloadReceiveNode(base.TokenStream.Program, iterator.IsModel);
-                        new ReceivedPayloadVisitor(base.TokenStream).Visit(payloadNode);
-                        iterator.StmtTokens.Add(null);
-                        iterator.Payloads.Add(payloadNode);
-
-                        if (payloadNode.RightParenthesisToken != null)
-                        {
-                            counter--;
-                        }
-                    }
-
-                    if (base.TokenStream.Peek().Type == TokenType.LeftParenthesis)
-                    {
-                        counter++;
-                    }
-                    else if (base.TokenStream.Peek().Type == TokenType.RightParenthesis)
-                    {
-                        counter--;
-                    }
-
-                    if (counter == 0)
-                    {
-                        break;
-                    }
-
-                    iterator.StmtTokens.Add(base.TokenStream.Peek());
-                    base.TokenStream.Index++;
-                    base.TokenStream.SkipCommentTokens();
+                    break;
                 }
 
-                node.Iterator = iterator;
+                if (base.TokenStream.Peek().Type == TokenType.NonDeterministic)
+                {
+                    throw new ParsingException("Can only use the nondeterministic \"$\" " +
+                        "keyword as the guard of an if statement.", new List<TokenType>());
+                }
+
+                iterator.StmtTokens.Add(base.TokenStream.Peek());
+                base.TokenStream.Index++;
+                base.TokenStream.SkipCommentTokens();
             }
+
+            node.Iterator = iterator;
 
             if (base.TokenStream.Done ||
                 base.TokenStream.Peek().Type != TokenType.RightParenthesis)
@@ -175,6 +131,7 @@ namespace Microsoft.PSharp.Parsing
                 base.TokenStream.Peek().Type != TokenType.Double &&
                 base.TokenStream.Peek().Type != TokenType.Bool &&
                 base.TokenStream.Peek().Type != TokenType.Identifier &&
+                base.TokenStream.Peek().Type != TokenType.Await &&
                 base.TokenStream.Peek().Type != TokenType.LeftCurlyBracket))
             {
                 throw new ParsingException("Expected \"{\".",
@@ -246,7 +203,8 @@ namespace Microsoft.PSharp.Parsing
                 base.TokenStream.Peek().Type == TokenType.Float ||
                 base.TokenStream.Peek().Type == TokenType.Double ||
                 base.TokenStream.Peek().Type == TokenType.Bool ||
-                base.TokenStream.Peek().Type == TokenType.Identifier)
+                base.TokenStream.Peek().Type == TokenType.Identifier ||
+                base.TokenStream.Peek().Type == TokenType.Await)
             {
                 new GenericStatementVisitor(base.TokenStream).Visit(blockNode);
             }

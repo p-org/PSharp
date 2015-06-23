@@ -156,6 +156,7 @@ namespace Microsoft.PSharp.Parsing
                 case TokenType.Double:
                 case TokenType.Bool:
                 case TokenType.Identifier:
+                case TokenType.Await:
                     new GenericStatementVisitor(base.TokenStream).Visit(node);
                     break;
 

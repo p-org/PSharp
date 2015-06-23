@@ -177,6 +177,7 @@ namespace Microsoft.PSharp.Parsing
                     base.TokenStream.Peek().Type != TokenType.Double &&
                     base.TokenStream.Peek().Type != TokenType.Bool &&
                     base.TokenStream.Peek().Type != TokenType.Identifier &&
+                    base.TokenStream.Peek().Type != TokenType.Await &&
                     base.TokenStream.Peek().Type != TokenType.LeftCurlyBracket))
                 {
                     throw new ParsingException("Expected \"{\".",
@@ -273,7 +274,8 @@ namespace Microsoft.PSharp.Parsing
                 base.TokenStream.Peek().Type == TokenType.Float ||
                 base.TokenStream.Peek().Type == TokenType.Double ||
                 base.TokenStream.Peek().Type == TokenType.Bool ||
-                base.TokenStream.Peek().Type == TokenType.Identifier)
+                base.TokenStream.Peek().Type == TokenType.Identifier ||
+                base.TokenStream.Peek().Type == TokenType.Await)
             {
                 new GenericStatementVisitor(base.TokenStream).Visit(blockNode);
             }
