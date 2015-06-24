@@ -180,6 +180,8 @@ namespace Microsoft.PSharp.VisualStudio
                 case TokenType.LessOrEqualOp:
                 case TokenType.GreaterOrEqualOp:
 
+                case TokenType.LambdaOp:
+
                 case TokenType.PlusOp:
                 case TokenType.MinusOp:
                 case TokenType.MulOp:

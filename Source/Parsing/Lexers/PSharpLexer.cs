@@ -131,6 +131,10 @@ namespace Microsoft.PSharp.Parsing
                     this.Tokens.Add(new Token(unit, TokenType.GreaterOrEqualOp));
                     break;
 
+                case "=>":
+                    this.Tokens.Add(new Token(unit, TokenType.LambdaOp));
+                    break;
+
                 case "+":
                     this.Tokens.Add(new Token(unit, TokenType.PlusOp));
                     break;

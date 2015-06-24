@@ -63,6 +63,8 @@ namespace Microsoft.PSharp.Parsing
         LessOrEqualOp,
         GreaterOrEqualOp,
 
+        LambdaOp,
+
         PlusOp,
         MinusOp,
         MulOp,

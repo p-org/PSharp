@@ -109,6 +109,10 @@ namespace Microsoft.PSharp.Parsing
                     text = ">=";
                     break;
 
+                case TokenType.LambdaOp:
+                    text = "=>";
+                    break;
+
                 case TokenType.PlusOp:
                     text = "+";
                     break;
