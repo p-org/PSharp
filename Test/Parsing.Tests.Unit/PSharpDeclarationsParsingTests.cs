@@ -167,8 +167,12 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "using Microsoft.PSharp;\n" +
                 "namespace Foo\n" +
                 "{\n" +
-                "class M : Machine {\n" +
-                "class S : State { }\n" +
+                "class M : Machine\n" +
+                "{\n" +
+                "[Initial]\n" +
+                "class S : MachineState\n" +
+                "{\n" +
+                "}\n" +
                 "}\n" +
                 "}\n";
 
