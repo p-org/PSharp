@@ -334,5 +334,115 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
             Assert.AreEqual(parser.GetParsingErrorLog(),
                 "Expected \"{\".");
         }
+
+        [TestMethod]
+        public void TestOnEventGotoStateDeclarationWithoutSemicolon()
+        {
+            var test = "" +
+                "namespace Foo {" +
+                "machine M {" +
+                "start state S1" +
+                "{" +
+                "on e goto S2" +
+                "}" +
+                "}" +
+                "}";
+
+            var parser = new PSharpParser();
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual(parser.GetParsingErrorLog(),
+                "Expected \";\".");
+        }
+
+        [TestMethod]
+        public void TestOnEventGotoStateDeclarationWithoutState()
+        {
+            var test = "" +
+                "namespace Foo {" +
+                "machine M {" +
+                "start state S1" +
+                "{" +
+                "on e goto;" +
+                "}" +
+                "}" +
+                "}";
+
+            var parser = new PSharpParser();
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual(parser.GetParsingErrorLog(),
+                "Expected state identifier.");
+        }
+
+        [TestMethod]
+        public void TestOnEventDoActionDeclarationWithoutSemicolon()
+        {
+            var test = "" +
+                "namespace Foo {" +
+                "machine M {" +
+                "start state S1" +
+                "{" +
+                "on e do Bar" +
+                "}" +
+                "}" +
+                "}";
+
+            var parser = new PSharpParser();
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual(parser.GetParsingErrorLog(),
+                "Expected \";\".");
+        }
+
+        [TestMethod]
+        public void TestOnEventGotoStateDeclarationWithoutAction()
+        {
+            var test = "" +
+                "namespace Foo {" +
+                "machine M {" +
+                "start state S1" +
+                "{" +
+                "on e do;" +
+                "}" +
+                "}" +
+                "}";
+
+            var parser = new PSharpParser();
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual(parser.GetParsingErrorLog(),
+                "Expected action identifier.");
+        }
+
+        [TestMethod]
+        public void TestOnEventDeclarationWithoutHandler()
+        {
+            var test = "" +
+                "namespace Foo {" +
+                "machine M {" +
+                "start state S1" +
+                "{" +
+                "on e;" +
+                "}" +
+                "}" +
+                "}";
+
+            var parser = new PSharpParser();
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual(parser.GetParsingErrorLog(),
+                "Expected \"do\", \"goto\" or \"push\".");
+        }
     }
 }

@@ -136,6 +136,9 @@ namespace Microsoft.PSharp.Parsing
                         parentNode.Machine, null, parentNode.IsModel);
                     new BlockSyntaxVisitor(base.TokenStream).Visit(blockNode);
 
+                    base.TokenStream.Index++;
+                    base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+
                     foreach (var eventIdentifier in eventIdentifiers)
                     {
                         if (!parentNode.AddActionBinding(eventIdentifier, blockNode))
@@ -225,6 +228,9 @@ namespace Microsoft.PSharp.Parsing
                     var blockNode = new BlockSyntax(base.TokenStream.Program, parentNode.Machine,
                         null, parentNode.IsModel);
                     new BlockSyntaxVisitor(base.TokenStream).Visit(blockNode);
+
+                    base.TokenStream.Index++;
+                    base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
                     foreach (var eventIdentifier in eventIdentifiers)
                     {

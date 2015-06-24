@@ -339,7 +339,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
             var test = "" +
                 "namespace Foo {" +
                 "machine M {" +
-                "start state S" +
+                "start state S1" +
                 "{" +
                 "on e goto S2;" +
                 "}" +
@@ -359,7 +359,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "class M : Machine\n" +
                 "{\n" +
                 "[Initial]\n" +
-                "class S : MachineState\n" +
+                "class S1 : MachineState\n" +
                 "{\n" +
                 "}\n" +
                 "\n" +
@@ -368,9 +368,314 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "{\n" +
                 " var dict = new System.Collections.Generic.Dictionary<Type, GotoStateTransitions>();\n" +
                 "\n" +
-                " var sDict = new GotoStateTransitions();\n" +
-                " sDict.Add(typeof(e), typeof(S2));\n" +
-                " dict.Add(typeof(S), sDict);\n" +
+                " var s1Dict = new GotoStateTransitions();\n" +
+                " s1Dict.Add(typeof(e), typeof(S2));\n" +
+                " dict.Add(typeof(S1), s1Dict);\n" +
+                "\n" +
+                " return dict;\n" +
+                "}\n" +
+                "}\n" +
+                "}\n";
+
+            Assert.AreEqual(expected, output);
+        }
+
+        [TestMethod]
+        public void TestOnEventGotoStateDeclaration2()
+        {
+            var test = "" +
+                "namespace Foo {" +
+                "machine M {" +
+                "start state S1" +
+                "{" +
+                "on e1 goto S2;" +
+                "on e2 goto S3;" +
+                "}" +
+                "}" +
+                "}";
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = new PSharpParser().ParseTokens(tokens);
+
+            var output = program.Rewrite();
+            var expected = "using System;\n" +
+                "using System.Collections.Generic;\n" +
+                "using System.Threading.Tasks;\n" +
+                "using Microsoft.PSharp;\n" +
+                "namespace Foo\n" +
+                "{\n" +
+                "class M : Machine\n" +
+                "{\n" +
+                "[Initial]\n" +
+                "class S1 : MachineState\n" +
+                "{\n" +
+                "}\n" +
+                "\n" +
+                "protected override System.Collections.Generic.Dictionary<" +
+                "Type, GotoStateTransitions> DefineGotoStateTransitions()\n" +
+                "{\n" +
+                " var dict = new System.Collections.Generic.Dictionary<Type, GotoStateTransitions>();\n" +
+                "\n" +
+                " var s1Dict = new GotoStateTransitions();\n" +
+                " s1Dict.Add(typeof(e1), typeof(S2));\n" +
+                " s1Dict.Add(typeof(e2), typeof(S3));\n" +
+                " dict.Add(typeof(S1), s1Dict);\n" +
+                "\n" +
+                " return dict;\n" +
+                "}\n" +
+                "}\n" +
+                "}\n";
+
+            Assert.AreEqual(expected, output);
+        }
+
+        [TestMethod]
+        public void TestOnEventGotoStateDeclarationWithBody()
+        {
+            var test = "" +
+                "namespace Foo {" +
+                "machine M {" +
+                "start state S1" +
+                "{" +
+                "on e goto S2 with {};" +
+                "}" +
+                "}" +
+                "}";
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = new PSharpParser().ParseTokens(tokens);
+
+            var output = program.Rewrite();
+            var expected = "using System;\n" +
+                "using System.Collections.Generic;\n" +
+                "using System.Threading.Tasks;\n" +
+                "using Microsoft.PSharp;\n" +
+                "namespace Foo\n" +
+                "{\n" +
+                "class M : Machine\n" +
+                "{\n" +
+                "[Initial]\n" +
+                "class S1 : MachineState\n" +
+                "{\n" +
+                "}\n" +
+                "\n" +
+                "protected override System.Collections.Generic.Dictionary<" +
+                "Type, GotoStateTransitions> DefineGotoStateTransitions()\n" +
+                "{\n" +
+                " var dict = new System.Collections.Generic.Dictionary<Type, GotoStateTransitions>();\n" +
+                "\n" +
+                " var s1Dict = new GotoStateTransitions();\n" +
+                " s1Dict.Add(typeof(e), typeof(S2), () => \n" +
+                "{\n" +
+                "}\n" +
+                ");\n" +
+                " dict.Add(typeof(S1), s1Dict);\n" +
+                "\n" +
+                " return dict;\n" +
+                "}\n" +
+                "}\n" +
+                "}\n";
+
+            Assert.AreEqual(expected, output);
+        }
+
+        [TestMethod]
+        public void TestOnEventDoActionDeclaration()
+        {
+            var test = "" +
+                "namespace Foo {" +
+                "machine M {" +
+                "start state S1" +
+                "{" +
+                "on e do Bar;" +
+                "}" +
+                "}" +
+                "}";
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = new PSharpParser().ParseTokens(tokens);
+
+            var output = program.Rewrite();
+            var expected = "using System;\n" +
+                "using System.Collections.Generic;\n" +
+                "using System.Threading.Tasks;\n" +
+                "using Microsoft.PSharp;\n" +
+                "namespace Foo\n" +
+                "{\n" +
+                "class M : Machine\n" +
+                "{\n" +
+                "[Initial]\n" +
+                "class S1 : MachineState\n" +
+                "{\n" +
+                "}\n" +
+                "\n" +
+                "protected override System.Collections.Generic.Dictionary<" +
+                "Type, ActionBindings> DefineActionBindings()\n" +
+                "{\n" +
+                " var dict = new System.Collections.Generic.Dictionary<Type, ActionBindings>();\n" +
+                "\n" +
+                " var s1Dict = new ActionBindings();\n" +
+                " s1Dict.Add(typeof(e), new Action(Bar));\n" +
+                " dict.Add(typeof(S1), s1Dict);\n" +
+                "\n" +
+                " return dict;\n" +
+                "}\n" +
+                "}\n" +
+                "}\n";
+
+            Assert.AreEqual(expected, output);
+        }
+
+        [TestMethod]
+        public void TestOnEventDoActionDeclaration2()
+        {
+            var test = "" +
+                "namespace Foo {" +
+                "machine M {" +
+                "start state S1" +
+                "{" +
+                "on e1 do Bar;" +
+                "on e2 do Baz;" +
+                "}" +
+                "}" +
+                "}";
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = new PSharpParser().ParseTokens(tokens);
+
+            var output = program.Rewrite();
+            var expected = "using System;\n" +
+                "using System.Collections.Generic;\n" +
+                "using System.Threading.Tasks;\n" +
+                "using Microsoft.PSharp;\n" +
+                "namespace Foo\n" +
+                "{\n" +
+                "class M : Machine\n" +
+                "{\n" +
+                "[Initial]\n" +
+                "class S1 : MachineState\n" +
+                "{\n" +
+                "}\n" +
+                "\n" +
+                "protected override System.Collections.Generic.Dictionary<" +
+                "Type, ActionBindings> DefineActionBindings()\n" +
+                "{\n" +
+                " var dict = new System.Collections.Generic.Dictionary<Type, ActionBindings>();\n" +
+                "\n" +
+                " var s1Dict = new ActionBindings();\n" +
+                " s1Dict.Add(typeof(e1), new Action(Bar));\n" +
+                " s1Dict.Add(typeof(e2), new Action(Baz));\n" +
+                " dict.Add(typeof(S1), s1Dict);\n" +
+                "\n" +
+                " return dict;\n" +
+                "}\n" +
+                "}\n" +
+                "}\n";
+
+            Assert.AreEqual(expected, output);
+        }
+
+        [TestMethod]
+        public void TestOnEventDoActionDeclarationWithBody()
+        {
+            var test = "" +
+                "namespace Foo {" +
+                "machine M {" +
+                "start state S1" +
+                "{" +
+                "on e do {};" +
+                "}" +
+                "}" +
+                "}";
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = new PSharpParser().ParseTokens(tokens);
+
+            var output = program.Rewrite();
+            var expected = "using System;\n" +
+                "using System.Collections.Generic;\n" +
+                "using System.Threading.Tasks;\n" +
+                "using Microsoft.PSharp;\n" +
+                "namespace Foo\n" +
+                "{\n" +
+                "class M : Machine\n" +
+                "{\n" +
+                "[Initial]\n" +
+                "class S1 : MachineState\n" +
+                "{\n" +
+                "}\n" +
+                "\n" +
+                "protected override System.Collections.Generic.Dictionary<" +
+                "Type, ActionBindings> DefineActionBindings()\n" +
+                "{\n" +
+                " var dict = new System.Collections.Generic.Dictionary<Type, ActionBindings>();\n" +
+                "\n" +
+                " var s1Dict = new ActionBindings();\n" +
+                " s1Dict.Add(typeof(e), () => \n" +
+                "{\n" +
+                "}\n" +
+                ");\n" +
+                " dict.Add(typeof(S1), s1Dict);\n" +
+                "\n" +
+                " return dict;\n" +
+                "}\n" +
+                "}\n" +
+                "}\n";
+
+            Assert.AreEqual(expected, output);
+        }
+
+        [TestMethod]
+        public void TestOnEventGotoStateAndDoActionDeclaration()
+        {
+            var test = "" +
+                "namespace Foo {" +
+                "machine M {" +
+                "start state S1" +
+                "{" +
+                "on e goto S2;" +
+                "on e do Bar;" +
+                "}" +
+                "}" +
+                "}";
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = new PSharpParser().ParseTokens(tokens);
+
+            var output = program.Rewrite();
+            var expected = "using System;\n" +
+                "using System.Collections.Generic;\n" +
+                "using System.Threading.Tasks;\n" +
+                "using Microsoft.PSharp;\n" +
+                "namespace Foo\n" +
+                "{\n" +
+                "class M : Machine\n" +
+                "{\n" +
+                "[Initial]\n" +
+                "class S1 : MachineState\n" +
+                "{\n" +
+                "}\n" +
+                "\n" +
+                "protected override System.Collections.Generic.Dictionary<" +
+                "Type, GotoStateTransitions> DefineGotoStateTransitions()\n" +
+                "{\n" +
+                " var dict = new System.Collections.Generic.Dictionary<Type, GotoStateTransitions>();\n" +
+                "\n" +
+                " var s1Dict = new GotoStateTransitions();\n" +
+                " s1Dict.Add(typeof(e), typeof(S2));\n" +
+                " dict.Add(typeof(S1), s1Dict);\n" +
+                "\n" +
+                " return dict;\n" +
+                "}\n" +
+                "\n" +
+                "protected override System.Collections.Generic.Dictionary<" +
+                "Type, ActionBindings> DefineActionBindings()\n" +
+                "{\n" +
+                " var dict = new System.Collections.Generic.Dictionary<Type, ActionBindings>();\n" +
+                "\n" +
+                " var s1Dict = new ActionBindings();\n" +
+                " s1Dict.Add(typeof(e), new Action(Bar));\n" +
+                " dict.Add(typeof(S1), s1Dict);\n" +
                 "\n" +
                 " return dict;\n" +
                 "}\n" +
