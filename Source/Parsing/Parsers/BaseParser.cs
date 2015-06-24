@@ -110,7 +110,7 @@ namespace Microsoft.PSharp.Parsing
 
             try
             {
-                this.ParseNextToken();
+                this.ParseTokens();
             }
             catch (ParsingException ex)
             {
@@ -151,9 +151,9 @@ namespace Microsoft.PSharp.Parsing
         protected abstract IPSharpProgram CreateNewProgram();
 
         /// <summary>
-        /// Parses the next available token.
+        /// Parses the tokens.
         /// </summary>
-        protected abstract void ParseNextToken();
+        protected abstract void ParseTokens();
 
         /// <summary>
         /// Reports a parsing error. Only works if the parser is

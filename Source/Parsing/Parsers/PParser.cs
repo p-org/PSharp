@@ -62,74 +62,72 @@ namespace Microsoft.PSharp.Parsing
         }
 
         /// <summary>
-        /// Parses the next available token.
+        /// Parses the tokens.
         /// </summary>
-        protected override void ParseNextToken()
+        protected override void ParseTokens()
         {
-            if (base.TokenStream.Done)
+            while (!base.TokenStream.Done)
             {
-                throw new ParsingException(new List<TokenType>
+                var token = base.TokenStream.Peek();
+                switch (token.Type)
                 {
-                    TokenType.MainMachine,
-                    TokenType.EventDecl,
-                    TokenType.MachineDecl,
-                    TokenType.ModelDecl,
-                    TokenType.Monitor
-                });
+                    case TokenType.WhiteSpace:
+                    case TokenType.Comment:
+                    case TokenType.NewLine:
+                        base.TokenStream.Index++;
+                        break;
+
+                    case TokenType.CommentLine:
+                        base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                        break;
+
+                    case TokenType.CommentStart:
+                        base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                        break;
+
+                    case TokenType.EventDecl:
+                        new EventDeclarationVisitor(base.TokenStream).Visit(this.Program, null,
+                            AccessModifier.None);
+                        base.TokenStream.Index++;
+                        break;
+
+                    case TokenType.MainMachine:
+                        this.VisitMainMachineModifier();
+                        base.TokenStream.Index++;
+                        break;
+
+                    case TokenType.MachineDecl:
+                        new MachineDeclarationVisitor(base.TokenStream).Visit(this.Program, null, false,
+                            false, false, AccessModifier.None, InheritanceModifier.None);
+                        base.TokenStream.Index++;
+                        break;
+
+                    case TokenType.ModelDecl:
+                        new MachineDeclarationVisitor(base.TokenStream).Visit(this.Program, null, false,
+                            true, false, AccessModifier.None, InheritanceModifier.None);
+                        base.TokenStream.Index++;
+                        break;
+
+                    case TokenType.Monitor:
+                        new MachineDeclarationVisitor(base.TokenStream).Visit(this.Program, null, false,
+                            false, true, AccessModifier.None, InheritanceModifier.None);
+                        base.TokenStream.Index++;
+                        break;
+
+                    default:
+                        throw new ParsingException("Unexpected token.",
+                            new List<TokenType>());
+                }
             }
 
-            var token = base.TokenStream.Peek();
-            switch (token.Type)
+            throw new ParsingException(new List<TokenType>
             {
-                case TokenType.WhiteSpace:
-                case TokenType.Comment:
-                case TokenType.NewLine:
-                    base.TokenStream.Index++;
-                    break;
-
-                case TokenType.CommentLine:
-                    base.TokenStream.SkipWhiteSpaceAndCommentTokens();
-                    break;
-
-                case TokenType.CommentStart:
-                    base.TokenStream.SkipWhiteSpaceAndCommentTokens();
-                    break;
-
-                case TokenType.EventDecl:
-                    new EventDeclarationVisitor(base.TokenStream).Visit(this.Program, null,
-                        AccessModifier.None);
-                    base.TokenStream.Index++;
-                    break;
-
-                case TokenType.MainMachine:
-                    this.VisitMainMachineModifier();
-                    base.TokenStream.Index++;
-                    break;
-
-                case TokenType.MachineDecl:
-                    new MachineDeclarationVisitor(base.TokenStream).Visit(this.Program, null, false,
-                        false, false, AccessModifier.None, InheritanceModifier.None);
-                    base.TokenStream.Index++;
-                    break;
-
-                case TokenType.ModelDecl:
-                    new MachineDeclarationVisitor(base.TokenStream).Visit(this.Program, null, false,
-                        true, false, AccessModifier.None, InheritanceModifier.None);
-                    base.TokenStream.Index++;
-                    break;
-
-                case TokenType.Monitor:
-                    new MachineDeclarationVisitor(base.TokenStream).Visit(this.Program, null, false,
-                        false, true, AccessModifier.None, InheritanceModifier.None);
-                    base.TokenStream.Index++;
-                    break;
-
-                default:
-                    throw new ParsingException("Unexpected token.",
-                        new List<TokenType>());
-            }
-
-            this.ParseNextToken();
+                TokenType.MainMachine,
+                TokenType.EventDecl,
+                TokenType.MachineDecl,
+                TokenType.ModelDecl,
+                TokenType.Monitor
+            });
         }
 
         #endregion

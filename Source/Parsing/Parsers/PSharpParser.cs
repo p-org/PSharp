@@ -62,62 +62,60 @@ namespace Microsoft.PSharp.Parsing
         }
 
         /// <summary>
-        /// Parses the next available token.
+        /// Parses the tokens.
         /// </summary>
-        protected override void ParseNextToken()
+        protected override void ParseTokens()
         {
-            if (base.TokenStream.Done)
+            while (!base.TokenStream.Done)
             {
-                throw new ParsingException(new List<TokenType>
+                var token = base.TokenStream.Peek();
+                switch (token.Type)
                 {
-                    TokenType.Using,
-                    TokenType.NamespaceDecl
-                });
+                    case TokenType.WhiteSpace:
+                    case TokenType.Comment:
+                    case TokenType.NewLine:
+                        base.TokenStream.Index++;
+                        break;
+
+                    case TokenType.CommentLine:
+                    case TokenType.Region:
+                        base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                        break;
+
+                    case TokenType.CommentStart:
+                        base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                        break;
+
+                    case TokenType.Using:
+                        this.VisitUsingDeclaration();
+                        base.TokenStream.Index++;
+                        break;
+
+                    case TokenType.NamespaceDecl:
+                        this.VisitNamespaceDeclaration();
+                        base.TokenStream.Index++;
+                        break;
+
+                    case TokenType.Internal:
+                    case TokenType.Public:
+                    case TokenType.Abstract:
+                    case TokenType.Virtual:
+                    case TokenType.EventDecl:
+                    case TokenType.MachineDecl:
+                        throw new ParsingException("Must be declared inside a namespace.",
+                            new List<TokenType>());
+
+                    default:
+                        throw new ParsingException("Unexpected token.",
+                            new List<TokenType>());
+                }
             }
 
-            var token = base.TokenStream.Peek();
-            switch (token.Type)
+            throw new ParsingException(new List<TokenType>
             {
-                case TokenType.WhiteSpace:
-                case TokenType.Comment:
-                case TokenType.NewLine:
-                    base.TokenStream.Index++;
-                    break;
-
-                case TokenType.CommentLine:
-                case TokenType.Region:
-                    base.TokenStream.SkipWhiteSpaceAndCommentTokens();
-                    break;
-
-                case TokenType.CommentStart:
-                    base.TokenStream.SkipWhiteSpaceAndCommentTokens();
-                    break;
-
-                case TokenType.Using:
-                    this.VisitUsingDeclaration();
-                    base.TokenStream.Index++;
-                    break;
-
-                case TokenType.NamespaceDecl:
-                    this.VisitNamespaceDeclaration();
-                    base.TokenStream.Index++;
-                    break;
-
-                case TokenType.Internal:
-                case TokenType.Public:
-                case TokenType.Abstract:
-                case TokenType.Virtual:
-                case TokenType.EventDecl:
-                case TokenType.MachineDecl:
-                    throw new ParsingException("Must be declared inside a namespace.",
-                        new List<TokenType>());
-
-                default:
-                    throw new ParsingException("Unexpected token.",
-                        new List<TokenType>());
-            }
-
-            this.ParseNextToken();
+                TokenType.Using,
+                TokenType.NamespaceDecl
+            });
         }
 
         #endregion

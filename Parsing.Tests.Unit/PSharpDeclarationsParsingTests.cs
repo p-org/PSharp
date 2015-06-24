@@ -22,7 +22,26 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
     public class PSharpDeclarationsParsingTests
     {
         [TestMethod]
-        public void TestNamespaceDeclarationSyntaxParsing()
+        public void TestUsingDeclaration()
+        {
+            var test = "";
+            test += "using System.Text;";
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = new PSharpParser().ParseTokens(tokens);
+
+            var output = program.Rewrite();
+            var expected = "using System;\n" +
+                "using System.Collections.Generic;\n" +
+                "using System.Threading.Tasks;\n" +
+                "using Microsoft.PSharp;\n" +
+                "using System.Text;\n";
+
+            Assert.AreEqual(expected, output);
+        }
+
+        [TestMethod]
+        public void TestNamespaceDeclaration()
         {
             var test = "";
             test += "namespace Foo { }";
@@ -39,11 +58,54 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "{\n" +
                 "}\n";
 
-            Assert.AreEqual(output, expected);
+            Assert.AreEqual(expected, output);
         }
 
         [TestMethod]
-        public void TestEventDeclarationSyntaxParsing()
+        public void TestNamespaceDeclaration2()
+        {
+            var test = "";
+            test += "namespace Foo { }";
+            test += "namespace Bar { }";
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = new PSharpParser().ParseTokens(tokens);
+
+            var output = program.Rewrite();
+            var expected = "using System;\n" +
+                "using System.Collections.Generic;\n" +
+                "using System.Threading.Tasks;\n" +
+                "using Microsoft.PSharp;\n" +
+                "namespace Foo\n" +
+                "{\n" +
+                "}\n";
+
+            Assert.AreEqual(expected, output);
+        }
+
+        [TestMethod]
+        public void TestNamespaceDeclarationCompact()
+        {
+            var test = "";
+            test += "namespace Foo{}";
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = new PSharpParser().ParseTokens(tokens);
+
+            var output = program.Rewrite();
+            var expected = "using System;\n" +
+                "using System.Collections.Generic;\n" +
+                "using System.Threading.Tasks;\n" +
+                "using Microsoft.PSharp;\n" +
+                "namespace Foo\n" +
+                "{\n" +
+                "}\n";
+
+            Assert.AreEqual(expected, output);
+        }
+
+        [TestMethod]
+        public void TestEventDeclaration()
         {
             var test = "";
             test += "namespace Foo {";
@@ -82,7 +144,35 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "}\n" +
                 "}\n";
 
-            Assert.AreEqual(output, expected);
+            Assert.AreEqual(expected, output);
+        }
+
+        [TestMethod]
+        public void TestMachineDeclaration()
+        {
+            var test = "";
+            test += "namespace Foo {";
+            test += "machine M {";
+            test += "start state S { }";
+            test += "}";
+            test += "}";
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = new PSharpParser().ParseTokens(tokens);
+
+            var output = program.Rewrite();
+            var expected = "using System;\n" +
+                "using System.Collections.Generic;\n" +
+                "using System.Threading.Tasks;\n" +
+                "using Microsoft.PSharp;\n" +
+                "namespace Foo\n" +
+                "{\n" +
+                "class M : Machine {\n" +
+                "class S : State { }\n" +
+                "}\n" +
+                "}\n";
+
+            Assert.AreEqual(expected, output);
         }
     }
 }

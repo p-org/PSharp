@@ -61,138 +61,135 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="node">Node</param>
         private void VisitNextPSharpStatement(BlockSyntax node)
         {
-            if (base.TokenStream.Done)
-            {
-                throw new ParsingException("Expected \"}\".",
-                    new List<TokenType>
-                {
-                    TokenType.IfCondition,
-                    TokenType.DoLoop,
-                    TokenType.ForLoop,
-                    TokenType.WhileLoop,
-                    TokenType.ForLoop,
-                    TokenType.ForeachLoop,
-                    TokenType.Break,
-                    TokenType.Continue,
-                    TokenType.Return,
-                    TokenType.New,
-                    TokenType.CreateMachine,
-                    TokenType.RaiseEvent,
-                    TokenType.SendEvent,
-                    TokenType.Monitor,
-                    TokenType.Assert,
-                    TokenType.Lock
-                });
-            }
-
             bool fixpoint = false;
-            var token = base.TokenStream.Peek();
-            switch (token.Type)
+            while (!fixpoint)
             {
-                case TokenType.WhiteSpace:
-                case TokenType.Comment:
-                case TokenType.NewLine:
-                    base.TokenStream.Index++;
-                    break;
+                var token = base.TokenStream.Peek();
+                switch (token.Type)
+                {
+                    case TokenType.WhiteSpace:
+                    case TokenType.Comment:
+                    case TokenType.NewLine:
+                        base.TokenStream.Index++;
+                        break;
 
-                case TokenType.CommentLine:
-                case TokenType.Region:
-                    base.TokenStream.SkipWhiteSpaceAndCommentTokens();
-                    break;
+                    case TokenType.CommentLine:
+                    case TokenType.Region:
+                        base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                        break;
 
-                case TokenType.New:
-                    new NewStatementVisitor(base.TokenStream).Visit(node);
-                    break;
+                    case TokenType.New:
+                        new NewStatementVisitor(base.TokenStream).Visit(node);
+                        break;
 
-                case TokenType.CreateMachine:
-                    new CreateStatementVisitor(base.TokenStream).Visit(node);
-                    break;
+                    case TokenType.CreateMachine:
+                        new CreateStatementVisitor(base.TokenStream).Visit(node);
+                        break;
 
-                case TokenType.RaiseEvent:
-                    new RaiseStatementVisitor(base.TokenStream).Visit(node);
-                    break;
+                    case TokenType.RaiseEvent:
+                        new RaiseStatementVisitor(base.TokenStream).Visit(node);
+                        break;
 
-                case TokenType.SendEvent:
-                    new SendStatementVisitor(base.TokenStream).Visit(node);
-                    break;
+                    case TokenType.SendEvent:
+                        new SendStatementVisitor(base.TokenStream).Visit(node);
+                        break;
 
-                case TokenType.Monitor:
-                    new MonitorStatementVisitor(base.TokenStream).Visit(node);
-                    break;
+                    case TokenType.Monitor:
+                        new MonitorStatementVisitor(base.TokenStream).Visit(node);
+                        break;
 
-                case TokenType.Pop:
-                    new PopStatementVisitor(base.TokenStream).Visit(node);
-                    break;
+                    case TokenType.Pop:
+                        new PopStatementVisitor(base.TokenStream).Visit(node);
+                        break;
 
-                case TokenType.Assert:
-                    new AssertStatementVisitor(base.TokenStream).Visit(node);
-                    break;
+                    case TokenType.Assert:
+                        new AssertStatementVisitor(base.TokenStream).Visit(node);
+                        break;
 
-                case TokenType.IfCondition:
-                    new IfStatementVisitor(base.TokenStream).Visit(node);
-                    break;
+                    case TokenType.IfCondition:
+                        new IfStatementVisitor(base.TokenStream).Visit(node);
+                        break;
 
-                case TokenType.WhileLoop:
-                    new WhileStatementVisitor(base.TokenStream).Visit(node);
-                    break;
+                    case TokenType.WhileLoop:
+                        new WhileStatementVisitor(base.TokenStream).Visit(node);
+                        break;
 
-                case TokenType.ForLoop:
-                    new ForStatementVisitor(base.TokenStream).Visit(node);
-                    break;
+                    case TokenType.ForLoop:
+                        new ForStatementVisitor(base.TokenStream).Visit(node);
+                        break;
 
-                case TokenType.ForeachLoop:
-                    new ForeachStatementVisitor(base.TokenStream).Visit(node);
-                    break;
+                    case TokenType.ForeachLoop:
+                        new ForeachStatementVisitor(base.TokenStream).Visit(node);
+                        break;
 
-                case TokenType.Lock:
-                    new LockStatementVisitor(base.TokenStream).Visit(node);
-                    break;
+                    case TokenType.Lock:
+                        new LockStatementVisitor(base.TokenStream).Visit(node);
+                        break;
 
-                case TokenType.Try:
-                    new TryStatementVisitor(base.TokenStream).Visit(node);
-                    break;
+                    case TokenType.Try:
+                        new TryStatementVisitor(base.TokenStream).Visit(node);
+                        break;
 
-                case TokenType.Break:
-                case TokenType.Continue:
-                case TokenType.Return:
-                case TokenType.This:
-                case TokenType.Base:
-                case TokenType.Var:
-                case TokenType.MachineDecl:
-                case TokenType.Object:
-                case TokenType.String:
-                case TokenType.Sbyte:
-                case TokenType.Byte:
-                case TokenType.Short:
-                case TokenType.Ushort:
-                case TokenType.Int:
-                case TokenType.Uint:
-                case TokenType.Long:
-                case TokenType.Ulong:
-                case TokenType.Char:
-                case TokenType.Bool:
-                case TokenType.Decimal:
-                case TokenType.Float:
-                case TokenType.Double:
-                case TokenType.Identifier:
-                case TokenType.Await:
-                    new GenericStatementVisitor(base.TokenStream).Visit(node);
-                    break;
+                    case TokenType.Break:
+                    case TokenType.Continue:
+                    case TokenType.Return:
+                    case TokenType.This:
+                    case TokenType.Base:
+                    case TokenType.Var:
+                    case TokenType.MachineDecl:
+                    case TokenType.Object:
+                    case TokenType.String:
+                    case TokenType.Sbyte:
+                    case TokenType.Byte:
+                    case TokenType.Short:
+                    case TokenType.Ushort:
+                    case TokenType.Int:
+                    case TokenType.Uint:
+                    case TokenType.Long:
+                    case TokenType.Ulong:
+                    case TokenType.Char:
+                    case TokenType.Bool:
+                    case TokenType.Decimal:
+                    case TokenType.Float:
+                    case TokenType.Double:
+                    case TokenType.Identifier:
+                    case TokenType.Await:
+                        new GenericStatementVisitor(base.TokenStream).Visit(node);
+                        break;
 
-                case TokenType.RightCurlyBracket:
-                    node.CloseBraceToken = base.TokenStream.Peek();
-                    fixpoint = true;
-                    base.TokenStream.Index++;
-                    break;
+                    case TokenType.RightCurlyBracket:
+                        node.CloseBraceToken = base.TokenStream.Peek();
+                        fixpoint = true;
+                        break;
 
-                default:
-                    throw new ParsingException("Unexpected token.",
-                        new List<TokenType>());
-            }
+                    default:
+                        throw new ParsingException("Unexpected token.",
+                            new List<TokenType>());
+                }
 
-            if (!fixpoint)
-            {
-                this.VisitNextPSharpStatement(node);
+                if (base.TokenStream.Done)
+                {
+                    throw new ParsingException("Expected \"}\".",
+                        new List<TokenType>
+                    {
+                        TokenType.IfCondition,
+                        TokenType.DoLoop,
+                        TokenType.ForLoop,
+                        TokenType.WhileLoop,
+                        TokenType.ForLoop,
+                        TokenType.ForeachLoop,
+                        TokenType.Break,
+                        TokenType.Continue,
+                        TokenType.Return,
+                        TokenType.New,
+                        TokenType.CreateMachine,
+                        TokenType.RaiseEvent,
+                        TokenType.SendEvent,
+                        TokenType.Monitor,
+                        TokenType.Assert,
+                        TokenType.Lock
+                    });
+                }
             }
         }
 
@@ -202,103 +199,100 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="node">Node</param>
         private void VisitNextPStatement(BlockSyntax node)
         {
-            if (base.TokenStream.Done)
-            {
-                throw new ParsingException("Expected \"}\".",
-                    new List<TokenType>
-                {
-                    TokenType.IfCondition,
-                    TokenType.WhileLoop,
-                    TokenType.Break,
-                    TokenType.Continue,
-                    TokenType.Return,
-                    TokenType.New,
-                    TokenType.DefaultEvent,
-                    TokenType.CreateMachine,
-                    TokenType.RaiseEvent,
-                    TokenType.SendEvent,
-                    TokenType.Monitor,
-                    TokenType.PushState,
-                    TokenType.Assert
-                });
-            }
-
             bool fixpoint = false;
-            var token = base.TokenStream.Peek();
-            switch (token.Type)
+            while (!fixpoint)
             {
-                case TokenType.WhiteSpace:
-                case TokenType.Comment:
-                case TokenType.NewLine:
-                    base.TokenStream.Index++;
-                    break;
+                var token = base.TokenStream.Peek();
+                switch (token.Type)
+                {
+                    case TokenType.WhiteSpace:
+                    case TokenType.Comment:
+                    case TokenType.NewLine:
+                        base.TokenStream.Index++;
+                        break;
 
-                case TokenType.CommentLine:
-                case TokenType.Region:
-                    base.TokenStream.SkipWhiteSpaceAndCommentTokens();
-                    break;
+                    case TokenType.CommentLine:
+                    case TokenType.Region:
+                        base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                        break;
 
-                case TokenType.New:
-                    new CreateStatementVisitor(base.TokenStream).Visit(node);
-                    break;
+                    case TokenType.New:
+                        new CreateStatementVisitor(base.TokenStream).Visit(node);
+                        break;
 
-                case TokenType.RaiseEvent:
-                    new RaiseStatementVisitor(base.TokenStream).Visit(node);
-                    break;
+                    case TokenType.RaiseEvent:
+                        new RaiseStatementVisitor(base.TokenStream).Visit(node);
+                        break;
 
-                case TokenType.SendEvent:
-                    new SendStatementVisitor(base.TokenStream).Visit(node);
-                    break;
+                    case TokenType.SendEvent:
+                        new SendStatementVisitor(base.TokenStream).Visit(node);
+                        break;
 
-                case TokenType.Monitor:
-                    new MonitorStatementVisitor(base.TokenStream).Visit(node);
-                    break;
+                    case TokenType.Monitor:
+                        new MonitorStatementVisitor(base.TokenStream).Visit(node);
+                        break;
 
-                case TokenType.PushState:
-                    new PushStatementVisitor(base.TokenStream).Visit(node);
-                    break;
+                    case TokenType.PushState:
+                        new PushStatementVisitor(base.TokenStream).Visit(node);
+                        break;
 
-                case TokenType.Pop:
-                    new PopStatementVisitor(base.TokenStream).Visit(node);
-                    break;
+                    case TokenType.Pop:
+                        new PopStatementVisitor(base.TokenStream).Visit(node);
+                        break;
 
-                case TokenType.Assert:
-                    new AssertStatementVisitor(base.TokenStream).Visit(node);
-                    break;
+                    case TokenType.Assert:
+                        new AssertStatementVisitor(base.TokenStream).Visit(node);
+                        break;
 
-                case TokenType.IfCondition:
-                    new IfStatementVisitor(base.TokenStream).Visit(node);
-                    break;
+                    case TokenType.IfCondition:
+                        new IfStatementVisitor(base.TokenStream).Visit(node);
+                        break;
 
-                case TokenType.WhileLoop:
-                    new WhileStatementVisitor(base.TokenStream).Visit(node);
-                    break;
+                    case TokenType.WhileLoop:
+                        new WhileStatementVisitor(base.TokenStream).Visit(node);
+                        break;
 
-                case TokenType.DefaultEvent:
-                    new DefaultStatementVisitor(base.TokenStream).Visit(node);
-                    break;
+                    case TokenType.DefaultEvent:
+                        new DefaultStatementVisitor(base.TokenStream).Visit(node);
+                        break;
 
-                case TokenType.Break:
-                case TokenType.Continue:
-                case TokenType.Return:
-                case TokenType.Identifier:
-                    new GenericStatementVisitor(base.TokenStream).Visit(node);
-                    break;
+                    case TokenType.Break:
+                    case TokenType.Continue:
+                    case TokenType.Return:
+                    case TokenType.Identifier:
+                        new GenericStatementVisitor(base.TokenStream).Visit(node);
+                        break;
 
-                case TokenType.RightCurlyBracket:
-                    node.CloseBraceToken = base.TokenStream.Peek();
-                    fixpoint = true;
-                    base.TokenStream.Index++;
-                    break;
+                    case TokenType.RightCurlyBracket:
+                        node.CloseBraceToken = base.TokenStream.Peek();
+                        fixpoint = true;
+                        break;
 
-                default:
-                    throw new ParsingException("Unexpected token.",
-                        new List<TokenType>());
-            }
+                    default:
+                        throw new ParsingException("Unexpected token.",
+                            new List<TokenType>());
+                }
 
-            if (!fixpoint)
-            {
-                this.VisitNextPStatement(node);
+                if (base.TokenStream.Done)
+                {
+                    throw new ParsingException("Expected \"}\".",
+                        new List<TokenType>
+                    {
+                        TokenType.IfCondition,
+                        TokenType.WhileLoop,
+                        TokenType.Break,
+                        TokenType.Continue,
+                        TokenType.Return,
+                        TokenType.New,
+                        TokenType.DefaultEvent,
+                        TokenType.CreateMachine,
+                        TokenType.RaiseEvent,
+                        TokenType.SendEvent,
+                        TokenType.Monitor,
+                        TokenType.PushState,
+                        TokenType.Assert
+                    });
+                }
             }
         }
     }
