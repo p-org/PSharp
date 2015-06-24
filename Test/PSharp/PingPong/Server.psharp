@@ -1,8 +1,34 @@
 ﻿namespace PingPong
 {
     machine Server
-    {	
-		state S1 { }
-		state S2 { }
+    {
+        machine Client;
+
+        start state Init
+        {
+            entry
+            {
+                this.Client = create Client ( this );
+                raise Unit;
+            }
+
+            on Unit goto Playing;
+        }
+		
+        state Playing
+        {
+            entry
+            {
+                send this.Client, Pong;
+            }
+
+            on Unit do SendPong;
+            on Ping do SendPong;
+        }
+
+        void SendPong()
+        {
+            send this.Client, Pong;
+        }
     }
 }
