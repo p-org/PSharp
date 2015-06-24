@@ -684,5 +684,175 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
 
             Assert.AreEqual(expected, output);
         }
+
+        [TestMethod]
+        public void TestIgnoreEventDeclaration()
+        {
+            var test = "" +
+                "namespace Foo {" +
+                "machine M {" +
+                "start state S" +
+                "{" +
+                "ignore e;" +
+                "}" +
+                "}" +
+                "}";
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = new PSharpParser().ParseTokens(tokens);
+
+            var output = program.Rewrite();
+            var expected = "using System;\n" +
+                "using System.Collections.Generic;\n" +
+                "using System.Threading.Tasks;\n" +
+                "using Microsoft.PSharp;\n" +
+                "namespace Foo\n" +
+                "{\n" +
+                "class M : Machine\n" +
+                "{\n" +
+                "[Initial]\n" +
+                "class S : MachineState\n" +
+                "{\n" +
+                "\n protected override System.Collections.Generic.HashSet<Type> DefineIgnoredEvents()\n" +
+                " {\n" +
+                "  return new System.Collections.Generic.HashSet<Type>\n" +
+                "  {\n" +
+                "   typeof(e)\n" + 
+                "  };\n" +
+                " }\n" +
+                "}\n" +
+                "}\n" +
+                "}\n";
+
+            Assert.AreEqual(expected, output);
+        }
+
+        [TestMethod]
+        public void TestIgnoreEventDeclaration2()
+        {
+            var test = "" +
+                "namespace Foo {" +
+                "machine M {" +
+                "start state S" +
+                "{" +
+                "ignore e1, e2;" +
+                "}" +
+                "}" +
+                "}";
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = new PSharpParser().ParseTokens(tokens);
+
+            var output = program.Rewrite();
+            var expected = "using System;\n" +
+                "using System.Collections.Generic;\n" +
+                "using System.Threading.Tasks;\n" +
+                "using Microsoft.PSharp;\n" +
+                "namespace Foo\n" +
+                "{\n" +
+                "class M : Machine\n" +
+                "{\n" +
+                "[Initial]\n" +
+                "class S : MachineState\n" +
+                "{\n" +
+                "\n protected override System.Collections.Generic.HashSet<Type> DefineIgnoredEvents()\n" +
+                " {\n" +
+                "  return new System.Collections.Generic.HashSet<Type>\n" +
+                "  {\n" +
+                "   typeof(e1),\n" +
+                "   typeof(e2)\n" +
+                "  };\n" +
+                " }\n" +
+                "}\n" +
+                "}\n" +
+                "}\n";
+
+            Assert.AreEqual(expected, output);
+        }
+
+        [TestMethod]
+        public void TestDeferEventDeclaration()
+        {
+            var test = "" +
+                "namespace Foo {" +
+                "machine M {" +
+                "start state S" +
+                "{" +
+                "defer e;" +
+                "}" +
+                "}" +
+                "}";
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = new PSharpParser().ParseTokens(tokens);
+
+            var output = program.Rewrite();
+            var expected = "using System;\n" +
+                "using System.Collections.Generic;\n" +
+                "using System.Threading.Tasks;\n" +
+                "using Microsoft.PSharp;\n" +
+                "namespace Foo\n" +
+                "{\n" +
+                "class M : Machine\n" +
+                "{\n" +
+                "[Initial]\n" +
+                "class S : MachineState\n" +
+                "{\n" +
+                "\n protected override System.Collections.Generic.HashSet<Type> DefineDeferredEvents()\n" +
+                " {\n" +
+                "  return new System.Collections.Generic.HashSet<Type>\n" +
+                "  {\n" +
+                "   typeof(e)\n" +
+                "  };\n" +
+                " }\n" +
+                "}\n" +
+                "}\n" +
+                "}\n";
+
+            Assert.AreEqual(expected, output);
+        }
+
+        [TestMethod]
+        public void TestDeferEventDeclaration2()
+        {
+            var test = "" +
+                "namespace Foo {" +
+                "machine M {" +
+                "start state S" +
+                "{" +
+                "defer e1,e2;" +
+                "}" +
+                "}" +
+                "}";
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = new PSharpParser().ParseTokens(tokens);
+
+            var output = program.Rewrite();
+            var expected = "using System;\n" +
+                "using System.Collections.Generic;\n" +
+                "using System.Threading.Tasks;\n" +
+                "using Microsoft.PSharp;\n" +
+                "namespace Foo\n" +
+                "{\n" +
+                "class M : Machine\n" +
+                "{\n" +
+                "[Initial]\n" +
+                "class S : MachineState\n" +
+                "{\n" +
+                "\n protected override System.Collections.Generic.HashSet<Type> DefineDeferredEvents()\n" +
+                " {\n" +
+                "  return new System.Collections.Generic.HashSet<Type>\n" +
+                "  {\n" +
+                "   typeof(e1),\n" +
+                "   typeof(e2)\n" +
+                "  };\n" +
+                " }\n" +
+                "}\n" +
+                "}\n" +
+                "}\n";
+
+            Assert.AreEqual(expected, output);
+        }
     }
 }

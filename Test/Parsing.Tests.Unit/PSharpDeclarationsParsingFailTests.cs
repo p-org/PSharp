@@ -402,7 +402,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
         }
 
         [TestMethod]
-        public void TestOnEventGotoStateDeclarationWithoutAction()
+        public void TestOnEventDoActionDeclarationWithoutAction()
         {
             var test = "" +
                 "namespace Foo {" +
@@ -443,6 +443,50 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
 
             Assert.AreEqual(parser.GetParsingErrorLog(),
                 "Expected \"do\", \"goto\" or \"push\".");
+        }
+
+        [TestMethod]
+        public void TestIgnoreEventDeclarationWithoutComma()
+        {
+            var test = "" +
+                "namespace Foo {" +
+                "machine M {" +
+                "start state S" +
+                "{" +
+                "ignore e1 e2;" +
+                "}" +
+                "}" +
+                "}";
+
+            var parser = new PSharpParser();
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual(parser.GetParsingErrorLog(),
+                "Expected \",\".");
+        }
+
+        [TestMethod]
+        public void TestDeferEventDeclarationWithoutComma()
+        {
+            var test = "" +
+                "namespace Foo {" +
+                "machine M {" +
+                "start state S" +
+                "{" +
+                "defer e1 e2;" +
+                "}" +
+                "}" +
+                "}";
+
+            var parser = new PSharpParser();
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual(parser.GetParsingErrorLog(),
+                "Expected \",\".");
         }
     }
 }
