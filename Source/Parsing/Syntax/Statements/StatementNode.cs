@@ -28,7 +28,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// The block node.
         /// </summary>
-        internal readonly StatementBlockNode Parent;
+        internal readonly BlockSyntax Parent;
 
         /// <summary>
         /// The semicolon token.
@@ -44,7 +44,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         /// <param name="program">Program</param>
         /// <param name="node">Node</param>
-        internal StatementNode(IPSharpProgram program, StatementBlockNode node)
+        internal StatementNode(IPSharpProgram program, BlockSyntax node)
             : base(program, node.IsModel)
         {
             this.Parent = node;

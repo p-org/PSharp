@@ -48,7 +48,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// The statement block.
         /// </summary>
-        internal StatementBlockNode StatementBlock;
+        internal BlockSyntax StatementBlock;
 
         /// <summary>
         /// The else keyword.
@@ -58,7 +58,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// The else statement block.
         /// </summary>
-        internal StatementBlockNode ElseStatementBlock;
+        internal BlockSyntax ElseStatementBlock;
 
         #endregion
 
@@ -69,7 +69,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         /// <param name="program">Program</param>
         /// <param name="node">Node</param>
-        internal IfStatementNode(IPSharpProgram program, StatementBlockNode node)
+        internal IfStatementNode(IPSharpProgram program, BlockSyntax node)
             : base(program, node)
         {
 

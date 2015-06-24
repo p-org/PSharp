@@ -33,7 +33,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// The statement block.
         /// </summary>
-        internal StatementBlockNode StatementBlock;
+        internal BlockSyntax StatementBlock;
 
         /// <summary>
         /// The catch keywords.
@@ -58,7 +58,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// The catch statement blocks.
         /// </summary>
-        internal List<StatementBlockNode> CatchStatementBlocks;
+        internal List<BlockSyntax> CatchStatementBlocks;
 
         /// <summary>
         /// The finally keyword.
@@ -68,7 +68,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// The finally statement block.
         /// </summary>
-        internal StatementBlockNode FinallyStatementBlock;
+        internal BlockSyntax FinallyStatementBlock;
 
         #endregion
 
@@ -79,11 +79,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         /// <param name="program">Program</param>
         /// <param name="node">Node</param>
-        internal TryStatementNode(IPSharpProgram program, StatementBlockNode node)
+        internal TryStatementNode(IPSharpProgram program, BlockSyntax node)
             : base(program, node)
         {
             this.CatchKeywords = new List<Token>();
-            this.CatchStatementBlocks = new List<StatementBlockNode>();
+            this.CatchStatementBlocks = new List<BlockSyntax>();
             this.CatchLeftParenthesisTokens = new List<Token>();
             this.CatchExpressions = new List<ExpressionNode>();
             this.CatchRightParenthesisTokens = new List<Token>();

@@ -68,7 +68,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// The statement block.
         /// </summary>
-        internal StatementBlockNode StatementBlock;
+        internal BlockSyntax StatementBlock;
 
         #endregion
 

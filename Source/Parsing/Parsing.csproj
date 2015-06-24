@@ -82,7 +82,7 @@
     <Compile Include="Parsers\Visitors\Declarations\FunctionDeclarationVisitor.cs" />
     <Compile Include="Parsers\Visitors\Declarations\MethodDeclarationVisitor.cs" />
     <Compile Include="Parsers\Visitors\Statements\PushStatementVisitor.cs" />
-    <Compile Include="Parsers\Visitors\StatementBlockVisitor.cs" />
+    <Compile Include="Parsers\Visitors\Blocks\BlockSyntaxVisitor.cs" />
     <Compile Include="Parsers\Visitors\Statements\ForeachStatementVisitor.cs" />
     <Compile Include="Parsers\Visitors\Statements\WhileStatementVisitor.cs" />
     <Compile Include="Parsers\Visitors\Statements\MonitorStatementVisitor.cs" />
@@ -142,7 +142,7 @@
     <Compile Include="Syntax\PSharpProgram.cs" />
     <Compile Include="Syntax\Declarations\FieldDeclarationNode.cs" />
     <Compile Include="Syntax\Declarations\MethodDeclarationNode.cs" />
-    <Compile Include="Syntax\Statements\StatementBlockNode.cs" />
+    <Compile Include="Syntax\Blocks\BlockSyntax.cs" />
     <Compile Include="Syntax\Declarations\EntryDeclarationNode.cs" />
     <Compile Include="Syntax\Declarations\StateDeclarationNode.cs" />
     <Compile Include="Syntax\Declarations\EventDeclarationNode.cs" />

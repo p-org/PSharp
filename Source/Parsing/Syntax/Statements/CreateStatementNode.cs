@@ -71,7 +71,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         /// <param name="program">Program</param>
         /// <param name="node">Node</param>
-        internal CreateStatementNode(IPSharpProgram program, StatementBlockNode node)
+        internal CreateStatementNode(IPSharpProgram program, BlockSyntax node)
             : base(program, node)
         {
             this.MachineIdentifier = new List<Token>();
@@ -201,15 +201,17 @@ namespace Microsoft.PSharp.Parsing.Syntax
             if (this.Program is PSharpProgram)
             {
                 var project = (this.Program as PSharpProgram).Project;
-
-                isMonitor = project.PSharpPrograms.Any(psp => psp.NamespaceDeclarations.Any(
-                    ns => ns.MachineDeclarations.Any(md => md.IsMonitor && md.Identifier.
-                    TextUnit.Text.Equals(machine))));
-
-                if (!isMonitor)
+                if (project != null)
                 {
-                    isMonitor = project.PPrograms.Any(ns => ns.MachineDeclarations.Any(
-                        md => md.IsMonitor && md.Identifier.TextUnit.Text.Equals(machine)));
+                    isMonitor = project.PSharpPrograms.Any(psp => psp.NamespaceDeclarations.Any(
+                        ns => ns.MachineDeclarations.Any(md => md.IsMonitor && md.Identifier.
+                        TextUnit.Text.Equals(machine))));
+
+                    if (!isMonitor)
+                    {
+                        isMonitor = project.PPrograms.Any(ns => ns.MachineDeclarations.Any(
+                            md => md.IsMonitor && md.Identifier.TextUnit.Text.Equals(machine)));
+                    }
                 }
             }
             else

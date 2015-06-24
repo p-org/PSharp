@@ -38,7 +38,7 @@ namespace Microsoft.PSharp.Parsing
         /// Visits the syntax node.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        internal void Visit(StatementBlockNode parentNode)
+        internal void Visit(BlockSyntax parentNode)
         {
             var node = new ForeachStatementNode(base.TokenStream.Program, parentNode);
             node.ForeachKeyword = base.TokenStream.Peek();
@@ -152,7 +152,7 @@ namespace Microsoft.PSharp.Parsing
                 });
             }
 
-            var blockNode = new StatementBlockNode(base.TokenStream.Program,
+            var blockNode = new BlockSyntax(base.TokenStream.Program,
                 parentNode.Machine, parentNode.State, parentNode.IsModel);
 
             if (base.TokenStream.Peek().Type == TokenType.New)
@@ -239,7 +239,7 @@ namespace Microsoft.PSharp.Parsing
             }
             else if (base.TokenStream.Peek().Type == TokenType.LeftCurlyBracket)
             {
-                new StatementBlockVisitor(base.TokenStream).Visit(blockNode);
+                new BlockSyntaxVisitor(base.TokenStream).Visit(blockNode);
             }
 
             node.StatementBlock = blockNode;

@@ -39,7 +39,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         /// <param name="program">Program</param>
         /// <param name="node">Node</param>
-        internal GenericStatementNode(IPSharpProgram program, StatementBlockNode node)
+        internal GenericStatementNode(IPSharpProgram program, BlockSyntax node)
             : base(program, node)
         {
 

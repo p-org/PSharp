@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="StatementBlockVisitor.cs">
+// <copyright file="BlockSyntaxVisitor.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -20,15 +20,15 @@ using Microsoft.PSharp.Parsing.Syntax;
 namespace Microsoft.PSharp.Parsing
 {
     /// <summary>
-    /// The P# statement block parsing visitor.
+    /// The P# block syntax parsing visitor.
     /// </summary>
-    internal sealed class StatementBlockVisitor : BaseParseVisitor
+    internal sealed class BlockSyntaxVisitor : BaseParseVisitor
     {
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="tokenStream">TokenStream</param>
-        internal StatementBlockVisitor(TokenStream tokenStream)
+        internal BlockSyntaxVisitor(TokenStream tokenStream)
             : base(tokenStream)
         {
 
@@ -38,9 +38,9 @@ namespace Microsoft.PSharp.Parsing
         /// Visits the syntax node.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        internal void Visit(StatementBlockNode node)
+        internal void Visit(BlockSyntax node)
         {
-            node.LeftCurlyBracketToken = base.TokenStream.Peek();
+            node.OpenBraceToken = base.TokenStream.Peek();
 
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
@@ -59,7 +59,7 @@ namespace Microsoft.PSharp.Parsing
         /// Visits the next statement.
         /// </summary>
         /// <param name="node">Node</param>
-        private void VisitNextPSharpStatement(StatementBlockNode node)
+        private void VisitNextPSharpStatement(BlockSyntax node)
         {
             if (base.TokenStream.Done)
             {
@@ -180,7 +180,7 @@ namespace Microsoft.PSharp.Parsing
                     break;
 
                 case TokenType.RightCurlyBracket:
-                    node.RightCurlyBracketToken = base.TokenStream.Peek();
+                    node.CloseBraceToken = base.TokenStream.Peek();
                     fixpoint = true;
                     base.TokenStream.Index++;
                     break;
@@ -200,7 +200,7 @@ namespace Microsoft.PSharp.Parsing
         /// Visits the next statement.
         /// </summary>
         /// <param name="node">Node</param>
-        private void VisitNextPStatement(StatementBlockNode node)
+        private void VisitNextPStatement(BlockSyntax node)
         {
             if (base.TokenStream.Done)
             {
@@ -286,7 +286,7 @@ namespace Microsoft.PSharp.Parsing
                     break;
 
                 case TokenType.RightCurlyBracket:
-                    node.RightCurlyBracketToken = base.TokenStream.Peek();
+                    node.CloseBraceToken = base.TokenStream.Peek();
                     fixpoint = true;
                     base.TokenStream.Index++;
                     break;

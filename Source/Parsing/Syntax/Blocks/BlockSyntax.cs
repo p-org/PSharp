@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="StatementBlockNode.cs">
+// <copyright file="BlockSyntax.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -19,9 +19,9 @@ using System.Linq;
 namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
-    /// Statement block node.
+    /// Block syntax node.
     /// </summary>
-    internal sealed class StatementBlockNode : PSharpSyntaxNode
+    internal sealed class BlockSyntax : PSharpSyntaxNode
     {
         #region fields
 
@@ -36,9 +36,9 @@ namespace Microsoft.PSharp.Parsing.Syntax
         internal readonly StateDeclarationNode State;
 
         /// <summary>
-        /// The left curly bracket token.
+        /// The open brace token.
         /// </summary>
-        internal Token LeftCurlyBracketToken;
+        internal Token OpenBraceToken;
 
         /// <summary>
         /// List of statement nodes.
@@ -46,9 +46,9 @@ namespace Microsoft.PSharp.Parsing.Syntax
         internal List<StatementNode> Statements;
 
         /// <summary>
-        /// The right curly bracket token.
+        /// The close brace token.
         /// </summary>
-        internal Token RightCurlyBracketToken;
+        internal Token CloseBraceToken;
 
         #endregion
 
@@ -61,7 +61,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <param name="machineNode">MachineDeclarationNode</param>
         /// <param name="stateNode">StateDeclarationNode</param>
         /// <param name="isModel">Is a model</param>
-        internal StatementBlockNode(IPSharpProgram program, MachineDeclarationNode machineNode,
+        internal BlockSyntax(IPSharpProgram program, MachineDeclarationNode machineNode,
             StateDeclarationNode stateNode, bool isModel)
             : base(program, isModel)
         {
@@ -84,9 +84,9 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             var text = this.GetRewrittenStatementBlock();
 
-            if (this.LeftCurlyBracketToken != null)
+            if (this.OpenBraceToken != null)
             {
-                base.TextUnit = new TextUnit(text, this.LeftCurlyBracketToken.TextUnit.Line);
+                base.TextUnit = new TextUnit(text, this.OpenBraceToken.TextUnit.Line);
             }
             else
             {
@@ -107,9 +107,9 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             var text = this.GetRewrittenStatementBlock();
 
-            if (this.LeftCurlyBracketToken != null)
+            if (this.OpenBraceToken != null)
             {
-                base.TextUnit = new TextUnit(text, this.LeftCurlyBracketToken.TextUnit.Line);
+                base.TextUnit = new TextUnit(text, this.OpenBraceToken.TextUnit.Line);
             }
             else
             {
@@ -129,10 +129,10 @@ namespace Microsoft.PSharp.Parsing.Syntax
         {
             var text = "\n";
 
-            if (this.LeftCurlyBracketToken != null &&
-                this.RightCurlyBracketToken != null)
+            if (this.OpenBraceToken != null &&
+                this.CloseBraceToken != null)
             {
-                text += this.LeftCurlyBracketToken.TextUnit.Text + "\n";
+                text += this.OpenBraceToken.TextUnit.Text + "\n";
             }
 
             foreach (var stmt in this.Statements)
@@ -140,10 +140,10 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 text += stmt.TextUnit.Text;
             }
 
-            if (this.LeftCurlyBracketToken != null &&
-                this.RightCurlyBracketToken != null)
+            if (this.OpenBraceToken != null &&
+                this.CloseBraceToken != null)
             {
-                text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
+                text += this.CloseBraceToken.TextUnit.Text + "\n";
             }
 
             return text;

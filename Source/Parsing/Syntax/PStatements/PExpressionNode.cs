@@ -49,7 +49,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         /// <param name="program">Program</param>
         /// <param name="node">Node</param>
-        internal PExpressionNode(IPSharpProgram program, StatementBlockNode node)
+        internal PExpressionNode(IPSharpProgram program, BlockSyntax node)
             : base(program, node)
         {
             this.Payloads = new List<PPayloadReceiveNode>();

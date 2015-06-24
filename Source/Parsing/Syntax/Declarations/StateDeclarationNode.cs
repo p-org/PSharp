@@ -83,12 +83,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Dictionary containing transitions on exit actions.
         /// </summary>
-        internal Dictionary<Token, StatementBlockNode> TransitionsOnExitActions;
+        internal Dictionary<Token, BlockSyntax> TransitionsOnExitActions;
 
         /// <summary>
         /// Dictionary containing actions handlers.
         /// </summary>
-        internal Dictionary<Token, StatementBlockNode> ActionHandlers;
+        internal Dictionary<Token, BlockSyntax> ActionHandlers;
 
         /// <summary>
         /// Set of deferred events.
@@ -125,8 +125,8 @@ namespace Microsoft.PSharp.Parsing.Syntax
             this.GotoStateTransitions = new Dictionary<Token, Token>();
             this.PushStateTransitions = new Dictionary<Token, Token>();
             this.ActionBindings = new Dictionary<Token, Token>();
-            this.TransitionsOnExitActions = new Dictionary<Token, StatementBlockNode>();
-            this.ActionHandlers = new Dictionary<Token, StatementBlockNode>();
+            this.TransitionsOnExitActions = new Dictionary<Token, BlockSyntax>();
+            this.ActionHandlers = new Dictionary<Token, BlockSyntax>();
             this.DeferredEvents = new HashSet<Token>();
             this.IgnoredEvents = new HashSet<Token>();
         }
@@ -139,7 +139,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <param name="stmtBlock">Statement block</param>
         /// <returns>Boolean value</returns>
         internal bool AddGotoStateTransition(Token eventIdentifier, Token stateIdentifier,
-            StatementBlockNode stmtBlock = null)
+            BlockSyntax stmtBlock = null)
         {
             if (this.GotoStateTransitions.ContainsKey(eventIdentifier) ||
                 this.PushStateTransitions.ContainsKey(eventIdentifier) ||
@@ -188,7 +188,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <param name="eventIdentifier">Token</param>
         /// <param name="stateIdentifier">Token</param>
         /// <returns>Boolean value</returns>
-        internal bool AddActionBinding(Token eventIdentifier, StatementBlockNode stmtBlock)
+        internal bool AddActionBinding(Token eventIdentifier, BlockSyntax stmtBlock)
         {
             if (this.GotoStateTransitions.ContainsKey(eventIdentifier) ||
                 this.PushStateTransitions.ContainsKey(eventIdentifier) ||

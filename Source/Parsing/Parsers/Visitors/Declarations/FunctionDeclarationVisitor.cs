@@ -208,9 +208,9 @@ namespace Microsoft.PSharp.Parsing
                 });
             }
 
-            var blockNode = new StatementBlockNode(base.TokenStream.Program, parentNode,
+            var blockNode = new BlockSyntax(base.TokenStream.Program, parentNode,
                 null, node.IsModel);
-            new StatementBlockVisitor(base.TokenStream).Visit(blockNode);
+            new BlockSyntaxVisitor(base.TokenStream).Visit(blockNode);
             node.StatementBlock = blockNode;
 
             parentNode.FunctionDeclarations.Add(node);

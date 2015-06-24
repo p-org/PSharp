@@ -54,7 +54,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         /// <param name="program">Program</param>
         /// <param name="node">Node</param>
-        internal PDefaultStatementNode(IPSharpProgram program, StatementBlockNode node)
+        internal PDefaultStatementNode(IPSharpProgram program, BlockSyntax node)
             : base(program, node)
         {
 

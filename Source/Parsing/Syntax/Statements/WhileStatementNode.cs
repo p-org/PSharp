@@ -48,7 +48,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// The statement block.
         /// </summary>
-        internal StatementBlockNode StatementBlock;
+        internal BlockSyntax StatementBlock;
 
         #endregion
 
@@ -59,7 +59,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         /// <param name="program">Program</param>
         /// <param name="node">Node</param>
-        internal WhileStatementNode(IPSharpProgram program, StatementBlockNode node)
+        internal WhileStatementNode(IPSharpProgram program, BlockSyntax node)
             : base(program, node)
         {
 
