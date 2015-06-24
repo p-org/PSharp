@@ -58,6 +58,11 @@ namespace Microsoft.PSharp.Parsing
         protected List<TokenType> ExpectedTokenTypes;
 
         /// <summary>
+        /// The parsing error log, if any.
+        /// </summary>
+        protected string ParsingErrorLog;
+
+        /// <summary>
         /// True if the parser is running internally and not from
         /// visual studio or another external tool.
         /// Else false.
@@ -73,6 +78,7 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         public BaseParser()
         {
+            this.ParsingErrorLog = "";
             this.IsRunningInternally = false;
         }
 
@@ -85,6 +91,7 @@ namespace Microsoft.PSharp.Parsing
         {
             this.Project = project;
             this.FilePath = filePath;
+            this.ParsingErrorLog = "";
             this.IsRunningInternally = true;
         }
 
@@ -99,6 +106,7 @@ namespace Microsoft.PSharp.Parsing
             this.TokenStream = new TokenStream(tokens);
             this.Program = this.CreateNewProgram();
             this.ExpectedTokenTypes = new List<TokenType>();
+            this.ParsingErrorLog = "";
 
             try
             {
@@ -106,7 +114,8 @@ namespace Microsoft.PSharp.Parsing
             }
             catch (ParsingException ex)
             {
-                this.ReportParsingError(ex.Message);
+                this.ParsingErrorLog = ex.Message;
+                this.ReportParsingError();
                 this.ExpectedTokenTypes = ex.ExpectedTokenTypes;
             }
             
@@ -120,6 +129,15 @@ namespace Microsoft.PSharp.Parsing
         public List<TokenType> GetExpectedTokenTypes()
         {
             return this.ExpectedTokenTypes;
+        }
+
+        /// <summary>
+        /// Returns the parsing error log.
+        /// </summary>
+        /// <returns>Parsing error log</returns>
+        public string GetParsingErrorLog()
+        {
+            return this.ParsingErrorLog;
         }
 
         #endregion
@@ -141,10 +159,9 @@ namespace Microsoft.PSharp.Parsing
         /// Reports a parsing error. Only works if the parser is
         /// running internally.
         /// </summary>
-        /// <param name="error">Error</param>
-        protected void ReportParsingError(string error)
+        protected void ReportParsingError()
         {
-            if (!this.IsRunningInternally || error.Length == 0)
+            if (!this.IsRunningInternally || this.ParsingErrorLog.Length == 0)
             {
                 return;
             }
@@ -160,7 +177,7 @@ namespace Microsoft.PSharp.Parsing
             var errorLine = this.OriginalTokens.Where(
                 val => val.TextUnit.Line == errorToken.TextUnit.Line).ToList();
 
-            error += "\nIn " + this.FilePath + " (line " + errorToken.TextUnit.Line + "):\n";
+            this.ParsingErrorLog += "\nIn " + this.FilePath + " (line " + errorToken.TextUnit.Line + "):\n";
 
             int nonWhiteIndex = 0;
             for (int idx = 0; idx < errorLine.Count; idx++)
@@ -174,28 +191,28 @@ namespace Microsoft.PSharp.Parsing
 
             for (int idx = nonWhiteIndex; idx < errorLine.Count; idx++)
             {
-                error += errorLine[idx].TextUnit.Text;
+                this.ParsingErrorLog += errorLine[idx].TextUnit.Text;
             }
 
             for (int idx = nonWhiteIndex; idx < errorLine.Count; idx++)
             {
                 if (errorLine[idx].Equals(errorToken) && errorIndex == this.TokenStream.Index)
                 {
-                    error += new StringBuilder().Append('~', errorLine[idx].TextUnit.Text.Length);
+                    this.ParsingErrorLog += new StringBuilder().Append('~', errorLine[idx].TextUnit.Text.Length);
                     break;
                 }
                 else
                 {
-                    error += new StringBuilder().Append(' ', errorLine[idx].TextUnit.Text.Length);
+                    this.ParsingErrorLog += new StringBuilder().Append(' ', errorLine[idx].TextUnit.Text.Length);
                 }
             }
 
             if (errorIndex != this.TokenStream.Index)
             {
-                error += "^";
+                this.ParsingErrorLog += "^";
             }
 
-            ErrorReporter.ReportAndExit(error);
+            ErrorReporter.ReportAndExit(this.ParsingErrorLog);
         }
 
         #endregion

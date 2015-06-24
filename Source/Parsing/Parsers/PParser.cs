@@ -125,8 +125,8 @@ namespace Microsoft.PSharp.Parsing
                     break;
 
                 default:
-                    this.ReportParsingError("Unexpected token.");
-                    break;
+                    throw new ParsingException("Unexpected token.",
+                        new List<TokenType>());
             }
 
             this.ParseNextToken();

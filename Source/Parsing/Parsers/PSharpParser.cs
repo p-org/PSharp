@@ -109,12 +109,12 @@ namespace Microsoft.PSharp.Parsing
                 case TokenType.Virtual:
                 case TokenType.EventDecl:
                 case TokenType.MachineDecl:
-                    this.ReportParsingError("Must be declared inside a namespace.");
-                    break;
+                    throw new ParsingException("Must be declared inside a namespace.",
+                        new List<TokenType>());
 
                 default:
-                    this.ReportParsingError("Unexpected token.");
-                    break;
+                    throw new ParsingException("Unexpected token.",
+                        new List<TokenType>());
             }
 
             this.ParseNextToken();
@@ -317,12 +317,12 @@ namespace Microsoft.PSharp.Parsing
 
                 case TokenType.Private:
                 case TokenType.Protected:
-                    this.ReportParsingError("Event and machine declarations must be internal or public.");
-                    break;
+                    throw new ParsingException("Event and machine declarations must be internal or public.",
+                        new List<TokenType>());
 
                 default:
-                    this.ReportParsingError("Unexpected token.");
-                    break;
+                    throw new ParsingException("Unexpected token.",
+                        new List<TokenType>());
             }
 
             if (!fixpoint)

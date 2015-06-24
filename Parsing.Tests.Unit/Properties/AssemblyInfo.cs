@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Microsoft.PSharp.Parsing")]
+[assembly: AssemblyTitle("Microsoft.PSharp.Parsing.Tests.Unit")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Microsoft.PSharp.Parsing")]
+[assembly: AssemblyProduct("Microsoft.PSharp.Parsing.Tests.Unit")]
 [assembly: AssemblyCopyright("Copyright ©  2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("14e9df49-1284-425c-a8b3-49ba437ca6af")]
+[assembly: Guid("d388cb45-f077-4278-b174-796a8c9bf927")]
 
 // Version information for an assembly consists of the following four values:
 //
@@ -34,16 +34,3 @@ using System.Runtime.InteropServices;
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
-
-[assembly: InternalsVisibleTo("Microsoft.PSharp.VisualStudio,PublicKey=" +
-    "0024000004800000940000000602000000240000525341310004000001000100d7971281941569" +
-    "53fd8af100ac5ecaf1d96fab578562b91133663d6ccbf0b313d037a830a20d7af1ce02a6641d71" +
-    "d7bc9fd67a08d3fa122120a469158da22a652af4508571ac9b16c6a05d2b3b6d7004ac76be85c3" +
-    "ca3d55f6ae823cd287a2810243f2bd6be5f4ba7b016c80da954371e591b10c97b0938f721c7149" +
-    "3bc97f9e")]
-[assembly: InternalsVisibleTo("Microsoft.PSharp.Parsing.Tests.Unit,PublicKey=" +
-    "0024000004800000940000000602000000240000525341310004000001000100d7971281941569" +
-    "53fd8af100ac5ecaf1d96fab578562b91133663d6ccbf0b313d037a830a20d7af1ce02a6641d71" +
-    "d7bc9fd67a08d3fa122120a469158da22a652af4508571ac9b16c6a05d2b3b6d7004ac76be85c3" +
-    "ca3d55f6ae823cd287a2810243f2bd6be5f4ba7b016c80da954371e591b10c97b0938f721c7149" +
-    "3bc97f9e")]
