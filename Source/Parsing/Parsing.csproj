@@ -53,6 +53,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Exceptions.cs" />
+    <Compile Include="Parsers\Visitors\LockStatementVisitor.cs" />
     <Compile Include="Parsers\Visitors\ForStatementVisitor.cs" />
     <Compile Include="PSharpProject.cs" />
     <Compile Include="Lexers\ILexer.cs" />
@@ -108,6 +109,7 @@
     <Compile Include="Syntax\Modifiers\AccessModifier.cs" />
     <Compile Include="Syntax\PProgram.cs" />
     <Compile Include="Syntax\PStatements\PPushStatementNode.cs" />
+    <Compile Include="Syntax\Statements\LockStatementNode.cs" />
     <Compile Include="Syntax\Statements\MonitorStatementNode.cs" />
     <Compile Include="Syntax\PStatements\PPayloadSendExpressionNode.cs" />
     <Compile Include="Syntax\PStatements\PExpressionNode.cs" />

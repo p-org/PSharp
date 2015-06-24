@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="ForeachStatementVisitor.cs">
+// <copyright file="LockStatementVisitor.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -20,15 +20,15 @@ using Microsoft.PSharp.Parsing.Syntax;
 namespace Microsoft.PSharp.Parsing
 {
     /// <summary>
-    /// The P# foreach statement parsing visitor.
+    /// The P# lock statement parsing visitor.
     /// </summary>
-    internal sealed class ForeachStatementVisitor : BaseParseVisitor
+    internal sealed class LockStatementVisitor : BaseParseVisitor
     {
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="tokenStream">TokenStream</param>
-        internal ForeachStatementVisitor(TokenStream tokenStream)
+        internal LockStatementVisitor(TokenStream tokenStream)
             : base(tokenStream)
         {
 
@@ -40,8 +40,8 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="parentNode">Node</param>
         internal void Visit(StatementBlockNode parentNode)
         {
-            var node = new ForeachStatementNode(base.TokenStream.Program, parentNode);
-            node.ForeachKeyword = base.TokenStream.Peek();
+            var node = new LockStatementNode(base.TokenStream.Program, parentNode);
+            node.LockKeyword = base.TokenStream.Peek();
 
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
@@ -61,7 +61,7 @@ namespace Microsoft.PSharp.Parsing
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-            var guard = new ExpressionNode(base.TokenStream.Program, parentNode);
+            var expr = new ExpressionNode(base.TokenStream.Program, parentNode);
 
             int counter = 1;
             while (!base.TokenStream.Done)
@@ -86,12 +86,12 @@ namespace Microsoft.PSharp.Parsing
                         "keyword as the guard of an if statement.", new List<TokenType>());
                 }
 
-                guard.StmtTokens.Add(base.TokenStream.Peek());
+                expr.StmtTokens.Add(base.TokenStream.Peek());
                 base.TokenStream.Index++;
                 base.TokenStream.SkipCommentTokens();
             }
 
-            node.Guard = guard;
+            node.Lock = expr;
 
             if (base.TokenStream.Done ||
                 base.TokenStream.Peek().Type != TokenType.RightParenthesis)

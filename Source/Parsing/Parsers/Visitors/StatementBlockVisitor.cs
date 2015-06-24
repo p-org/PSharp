@@ -80,7 +80,8 @@ namespace Microsoft.PSharp.Parsing
                     TokenType.RaiseEvent,
                     TokenType.SendEvent,
                     TokenType.Monitor,
-                    TokenType.Assert
+                    TokenType.Assert,
+                    TokenType.Lock
                 });
             }
 
@@ -141,6 +142,10 @@ namespace Microsoft.PSharp.Parsing
 
                 case TokenType.ForeachLoop:
                     new ForeachStatementVisitor(base.TokenStream).Visit(node);
+                    break;
+
+                case TokenType.Lock:
+                    new LockStatementVisitor(base.TokenStream).Visit(node);
                     break;
 
                 case TokenType.Break:
@@ -263,10 +268,6 @@ namespace Microsoft.PSharp.Parsing
 
                 case TokenType.WhileLoop:
                     new WhileStatementVisitor(base.TokenStream).Visit(node);
-                    break;
-
-                case TokenType.ForeachLoop:
-                    new ForeachStatementVisitor(base.TokenStream).Visit(node);
                     break;
 
                 case TokenType.DefaultEvent:

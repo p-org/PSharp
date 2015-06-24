@@ -175,6 +175,7 @@ namespace Microsoft.PSharp.Parsing
                     base.TokenStream.Peek().Type != TokenType.WhileLoop &&
                     base.TokenStream.Peek().Type != TokenType.ForLoop &&
                     base.TokenStream.Peek().Type != TokenType.ForeachLoop &&
+                    base.TokenStream.Peek().Type != TokenType.Lock &&
                     base.TokenStream.Peek().Type != TokenType.Break &&
                     base.TokenStream.Peek().Type != TokenType.Continue &&
                     base.TokenStream.Peek().Type != TokenType.Return &&
@@ -277,11 +278,15 @@ namespace Microsoft.PSharp.Parsing
             }
             else if (base.TokenStream.Peek().Type == TokenType.ForLoop)
             {
-                new ForeachStatementVisitor(base.TokenStream).Visit(blockNode);
+                new ForStatementVisitor(base.TokenStream).Visit(blockNode);
             }
             else if (base.TokenStream.Peek().Type == TokenType.ForeachLoop)
             {
                 new ForeachStatementVisitor(base.TokenStream).Visit(blockNode);
+            }
+            else if (base.TokenStream.Peek().Type == TokenType.Lock)
+            {
+                new LockStatementVisitor(base.TokenStream).Visit(blockNode);
             }
             else if (base.TokenStream.Peek().Type == TokenType.Break ||
                 base.TokenStream.Peek().Type == TokenType.Continue ||
@@ -339,6 +344,7 @@ namespace Microsoft.PSharp.Parsing
                         base.TokenStream.Peek().Type != TokenType.WhileLoop &&
                         base.TokenStream.Peek().Type != TokenType.ForLoop &&
                         base.TokenStream.Peek().Type != TokenType.ForeachLoop &&
+                        base.TokenStream.Peek().Type != TokenType.Lock &&
                         base.TokenStream.Peek().Type != TokenType.Break &&
                         base.TokenStream.Peek().Type != TokenType.Continue &&
                         base.TokenStream.Peek().Type != TokenType.Return &&
@@ -447,6 +453,10 @@ namespace Microsoft.PSharp.Parsing
                 else if (base.TokenStream.Peek().Type == TokenType.ForeachLoop)
                 {
                     new ForeachStatementVisitor(base.TokenStream).Visit(elseBlockNode);
+                }
+                else if (base.TokenStream.Peek().Type == TokenType.Lock)
+                {
+                    new LockStatementVisitor(base.TokenStream).Visit(elseBlockNode);
                 }
                 else if (base.TokenStream.Peek().Type == TokenType.Break ||
                     base.TokenStream.Peek().Type == TokenType.Continue ||
