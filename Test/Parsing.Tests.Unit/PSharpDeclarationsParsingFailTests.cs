@@ -21,6 +21,8 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
     [TestClass]
     public class PSharpDeclarationsParsingFailTests
     {
+        #region using declarations
+
         [TestMethod]
         public void TestIncorrectUsingDeclaration()
         {
@@ -51,6 +53,10 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "Expected identifier.");
         }
 
+        #endregion
+
+        #region namespace declarations
+
         [TestMethod]
         public void TestUnexpectedTokenWithoutNamespace()
         {
@@ -80,6 +86,10 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
             Assert.AreEqual(parser.GetParsingErrorLog(),
                 "Expected namespace identifier.");
         }
+
+        #endregion
+
+        #region event declarations
 
         [TestMethod]
         public void TestProtectedEventDeclaration()
@@ -129,6 +139,10 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
             Assert.AreEqual(parser.GetParsingErrorLog(),
                 "Must be declared inside a namespace.");
         }
+
+        #endregion
+
+        #region machine declarations
 
         [TestMethod]
         public void TestMachineDeclarationWithoutState()
@@ -266,6 +280,10 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
             Assert.AreEqual(parser.GetParsingErrorLog(),
                 "A machine can declare only a single start state.");
         }
+
+        #endregion
+
+        #region state declarations
 
         [TestMethod]
         public void TestStateDeclarationWithMoreThanOneEntry()
@@ -488,5 +506,51 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
             Assert.AreEqual(parser.GetParsingErrorLog(),
                 "Expected \",\".");
         }
+
+        #endregion
+
+        #region field declarations
+
+        [TestMethod]
+        public void TestPublicFieldDeclaration()
+        {
+            var test = "" +
+                "namespace Foo {" +
+                "machine M {" +
+                "public int k;" +
+                "start state S { }" +
+                "}" +
+                "}";
+
+            var parser = new PSharpParser();
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual(parser.GetParsingErrorLog(),
+                "A field or method cannot be public.");
+        }
+
+        [TestMethod]
+        public void TestInternalFieldDeclaration()
+        {
+            var test = "" +
+                "namespace Foo {" +
+                "machine M {" +
+                "internal int k;" +
+                "start state S { }" +
+                "}" +
+                "}";
+
+            var parser = new PSharpParser();
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual(parser.GetParsingErrorLog(),
+                "A field or method cannot be internal.");
+        }
+
+        #endregion
     }
 }

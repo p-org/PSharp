@@ -21,6 +21,8 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
     [TestClass]
     public class PSharpDeclarationsParsingTests
     {
+        #region using declarations
+
         [TestMethod]
         public void TestUsingDeclaration()
         {
@@ -39,6 +41,10 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
 
             Assert.AreEqual(expected, output);
         }
+
+        #endregion
+
+        #region namespace declarations
 
         [TestMethod]
         public void TestNamespaceDeclaration()
@@ -104,6 +110,10 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
             Assert.AreEqual(expected, output);
         }
 
+        #endregion
+
+        #region event declarations
+
         [TestMethod]
         public void TestEventDeclaration()
         {
@@ -147,6 +157,10 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
             Assert.AreEqual(expected, output);
         }
 
+        #endregion
+
+        #region machine declarations
+
         [TestMethod]
         public void TestMachineDeclaration()
         {
@@ -178,6 +192,10 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
 
             Assert.AreEqual(expected, output);
         }
+
+        #endregion
+
+        #region state declarations
 
         [TestMethod]
         public void TestStateDeclaration()
@@ -854,5 +872,79 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
 
             Assert.AreEqual(expected, output);
         }
+
+        #endregion
+
+        #region field declarations
+
+        [TestMethod]
+        public void TestFieldDeclaration()
+        {
+            var test = "" +
+                "namespace Foo {" +
+                "machine M {" +
+                "int k;" +
+                "start state S { }" +
+                "}" +
+                "}";
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = new PSharpParser().ParseTokens(tokens);
+
+            var output = program.Rewrite();
+            var expected = "using System;\n" +
+                "using System.Collections.Generic;\n" +
+                "using System.Threading.Tasks;\n" +
+                "using Microsoft.PSharp;\n" +
+                "namespace Foo\n" +
+                "{\n" +
+                "class M : Machine\n" +
+                "{\n" +
+                "private int k;\n" +
+                "[Initial]\n" +
+                "class S : MachineState\n" +
+                "{\n" +
+                "}\n" +
+                "}\n" +
+                "}\n";
+
+            Assert.AreEqual(expected, output);
+        }
+
+        [TestMethod]
+        public void TestMachineFieldDeclaration()
+        {
+            var test = "" +
+                "namespace Foo {" +
+                "machine M {" +
+                "machine k;" +
+                "start state S { }" +
+                "}" +
+                "}";
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = new PSharpParser().ParseTokens(tokens);
+
+            var output = program.Rewrite();
+            var expected = "using System;\n" +
+                "using System.Collections.Generic;\n" +
+                "using System.Threading.Tasks;\n" +
+                "using Microsoft.PSharp;\n" +
+                "namespace Foo\n" +
+                "{\n" +
+                "class M : Machine\n" +
+                "{\n" +
+                "private MachineId k;\n" +
+                "[Initial]\n" +
+                "class S : MachineState\n" +
+                "{\n" +
+                "}\n" +
+                "}\n" +
+                "}\n";
+
+            Assert.AreEqual(expected, output);
+        }
+
+        #endregion
     }
 }
