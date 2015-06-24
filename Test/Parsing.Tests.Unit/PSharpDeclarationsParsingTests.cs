@@ -878,7 +878,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
         #region field declarations
 
         [TestMethod]
-        public void TestFieldDeclaration()
+        public void TestIntFieldDeclaration()
         {
             var test = "" +
                 "namespace Foo {" +
@@ -937,6 +937,80 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "private MachineId k;\n" +
                 "[Initial]\n" +
                 "class S : MachineState\n" +
+                "{\n" +
+                "}\n" +
+                "}\n" +
+                "}\n";
+
+            Assert.AreEqual(expected, output);
+        }
+
+        [TestMethod]
+        public void TestListFieldDeclaration()
+        {
+            var test = "" +
+                "namespace Foo {" +
+                "machine M {" +
+                "List<int> k;" +
+                "start state S { }" +
+                "}" +
+                "}";
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = new PSharpParser().ParseTokens(tokens);
+
+            var output = program.Rewrite();
+            var expected = "using System;\n" +
+                "using System.Collections.Generic;\n" +
+                "using System.Threading.Tasks;\n" +
+                "using Microsoft.PSharp;\n" +
+                "namespace Foo\n" +
+                "{\n" +
+                "class M : Machine\n" +
+                "{\n" +
+                "private List<int> k;\n" +
+                "[Initial]\n" +
+                "class S : MachineState\n" +
+                "{\n" +
+                "}\n" +
+                "}\n" +
+                "}\n";
+
+            Assert.AreEqual(expected, output);
+        }
+
+        #endregion
+
+        #region method declarations
+
+        [TestMethod]
+        public void TestVoidMethodDeclaration()
+        {
+            var test = "" +
+                "namespace Foo {" +
+                "machine M {" +
+                "start state S { }" +
+                "void Bar() { }" +
+                "}" +
+                "}";
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = new PSharpParser().ParseTokens(tokens);
+
+            var output = program.Rewrite();
+            var expected = "using System;\n" +
+                "using System.Collections.Generic;\n" +
+                "using System.Threading.Tasks;\n" +
+                "using Microsoft.PSharp;\n" +
+                "namespace Foo\n" +
+                "{\n" +
+                "class M : Machine\n" +
+                "{\n" +
+                "[Initial]\n" +
+                "class S : MachineState\n" +
+                "{\n" +
+                "}\n" +
+                "private void Bar()\n" +
                 "{\n" +
                 "}\n" +
                 "}\n" +
