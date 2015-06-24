@@ -5,6 +5,7 @@ P# is a new language for high-reliability asynchronous .NET programming, *co-des
 ## Build instructions
 1. Get Visual Studio 2015 Preview (required for Microsoft Roslyn).
 2. Clone this project and compile using VS2015.
+3. Get the [Visual Studio 2015 SDK](https://www.microsoft.com/en-us/download/details.aspx?id=46850) to be able to compile the P# visual studio extension (syntax highlighting).
 
 ## How to use
 P# extends the C# language with state machines, states, state transitions and actions bindings. In P#, state machines are first class citizens and live in their own separate tasks. The only way they can communicate with each other is by explicitly sending and implicitly receiving events. As P# is based on C#, almost any valid C# code can be used in a P# method body (threading and code reflection APIs are not allowed).
