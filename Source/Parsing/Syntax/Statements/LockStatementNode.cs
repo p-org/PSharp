@@ -75,7 +75,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
             this.Lock.Rewrite();
             this.StatementBlock.Rewrite();
 
-            var text = this.GetRewrittenForeachStatement();
+            var text = this.GetRewrittenLockStatement();
 
             base.TextUnit = new TextUnit(text, this.LockKeyword.TextUnit.Line);
         }
@@ -89,7 +89,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
             this.Lock.Model();
             this.StatementBlock.Model();
 
-            var text = this.GetRewrittenForeachStatement();
+            var text = this.GetRewrittenLockStatement();
 
             base.TextUnit = new TextUnit(text, this.LockKeyword.TextUnit.Line);
         }
@@ -99,10 +99,10 @@ namespace Microsoft.PSharp.Parsing.Syntax
         #region private API
 
         /// <summary>
-        /// Returns the rewritten foreach statement.
+        /// Returns the rewritten lock statement.
         /// </summary>
         /// <returns>Text</returns>
-        private string GetRewrittenForeachStatement()
+        private string GetRewrittenLockStatement()
         {
             var text = "";
 

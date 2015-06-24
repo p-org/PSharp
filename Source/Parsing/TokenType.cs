@@ -108,6 +108,9 @@ namespace Microsoft.PSharp.Parsing
         Continue,
         Return,
         Lock,
+        Try,
+        Catch,
+        Finally,
 
         Async,
         Await,

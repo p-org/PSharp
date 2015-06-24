@@ -347,6 +347,18 @@ namespace Microsoft.PSharp.Parsing
                     this.Tokens.Add(new Token(unit, TokenType.Lock));
                     break;
 
+                case "try":
+                    this.Tokens.Add(new Token(unit, TokenType.Try));
+                    break;
+
+                case "catch":
+                    this.Tokens.Add(new Token(unit, TokenType.Catch));
+                    break;
+
+                case "finally":
+                    this.Tokens.Add(new Token(unit, TokenType.Finally));
+                    break;
+
                 case "async":
                     this.Tokens.Add(new Token(unit, TokenType.Async));
                     break;
@@ -500,6 +512,7 @@ namespace Microsoft.PSharp.Parsing
                 @"\bon\b|\bdo\b|\bgoto\b|\bpush\b|\bwith\b|" +
                 @"\bprivate\b|\bprotected\b|\binternal\b|\bpublic\b|" +
                 @"\babstract\b|\bvirtual\b|\boverride\b|" +
+                @"\block\b|\btry\b|\bcatch\b|" +
                 @"\basync\b|bawait\b|" +
                 @"\bvar\b|" +
                 @"\bnew\b|\bin\b|\bas\b" +

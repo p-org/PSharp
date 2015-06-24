@@ -288,6 +288,10 @@ namespace Microsoft.PSharp.Parsing
             {
                 new LockStatementVisitor(base.TokenStream).Visit(blockNode);
             }
+            else if (base.TokenStream.Peek().Type == TokenType.Try)
+            {
+                new TryStatementVisitor(base.TokenStream).Visit(blockNode);
+            }
             else if (base.TokenStream.Peek().Type == TokenType.Break ||
                 base.TokenStream.Peek().Type == TokenType.Continue ||
                 base.TokenStream.Peek().Type == TokenType.Return ||
@@ -457,6 +461,10 @@ namespace Microsoft.PSharp.Parsing
                 else if (base.TokenStream.Peek().Type == TokenType.Lock)
                 {
                     new LockStatementVisitor(base.TokenStream).Visit(elseBlockNode);
+                }
+                else if (base.TokenStream.Peek().Type == TokenType.Try)
+                {
+                    new TryStatementVisitor(base.TokenStream).Visit(blockNode);
                 }
                 else if (base.TokenStream.Peek().Type == TokenType.Break ||
                     base.TokenStream.Peek().Type == TokenType.Continue ||

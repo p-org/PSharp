@@ -249,6 +249,9 @@ namespace Microsoft.PSharp.VisualStudio
                 case TokenType.Return:
                 case TokenType.Pop:
                 case TokenType.Lock:
+                case TokenType.Try:
+                case TokenType.Catch:
+                case TokenType.Finally:
 
                 case TokenType.Async:
                 case TokenType.Await:

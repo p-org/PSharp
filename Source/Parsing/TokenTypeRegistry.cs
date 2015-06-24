@@ -345,6 +345,18 @@ namespace Microsoft.PSharp.Parsing
                     text = "lock";
                     break;
 
+                case TokenType.Try:
+                    text = "try";
+                    break;
+
+                case TokenType.Catch:
+                    text = "catch";
+                    break;
+
+                case TokenType.Finally:
+                    text = "finally";
+                    break;
+
                 case TokenType.Async:
                     text = "async";
                     break;

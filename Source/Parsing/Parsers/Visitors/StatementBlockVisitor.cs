@@ -148,6 +148,10 @@ namespace Microsoft.PSharp.Parsing
                     new LockStatementVisitor(base.TokenStream).Visit(node);
                     break;
 
+                case TokenType.Try:
+                    new TryStatementVisitor(base.TokenStream).Visit(node);
+                    break;
+
                 case TokenType.Break:
                 case TokenType.Continue:
                 case TokenType.Return:
