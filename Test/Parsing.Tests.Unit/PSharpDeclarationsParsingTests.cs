@@ -917,7 +917,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
             var test = "" +
                 "namespace Foo {" +
                 "machine M {" +
-                "machine k;" +
+                "machine N;" +
                 "start state S { }" +
                 "}" +
                 "}";
@@ -934,7 +934,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "{\n" +
                 "class M : Machine\n" +
                 "{\n" +
-                "private MachineId k;\n" +
+                "private MachineId N;\n" +
                 "[Initial]\n" +
                 "class S : MachineState\n" +
                 "{\n" +

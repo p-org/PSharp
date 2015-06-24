@@ -551,6 +551,66 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "A field or method cannot be internal.");
         }
 
+        [TestMethod]
+        public void TestIntFieldDeclarationWithoutSemicolon()
+        {
+            var test = "" +
+                "namespace Foo {" +
+                "machine M {" +
+                "int k" +
+                "start state S { }" +
+                "}" +
+                "}";
+
+            var parser = new PSharpParser();
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual(parser.GetParsingErrorLog(),
+                "Expected \"(\" or \";\".");
+        }
+
+        [TestMethod]
+        public void TestMachineFieldDeclarationWithoutSemicolon()
+        {
+            var test = "" +
+                "namespace Foo {" +
+                "machine M {" +
+                "machine N" +
+                "start state S { }" +
+                "}" +
+                "}";
+
+            var parser = new PSharpParser();
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual(parser.GetParsingErrorLog(),
+                "Expected \"(\" or \";\".");
+        }
+
+        [TestMethod]
+        public void TestPrivateMachineFieldDeclarationWithoutSemicolon()
+        {
+            var test = "" +
+                "namespace Foo {" +
+                "machine M {" +
+                "private machine N" +
+                "start state S { }" +
+                "}" +
+                "}";
+
+            var parser = new PSharpParser();
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual(parser.GetParsingErrorLog(),
+                "Expected \"(\" or \";\".");
+        }
+
         #endregion
     }
 }
