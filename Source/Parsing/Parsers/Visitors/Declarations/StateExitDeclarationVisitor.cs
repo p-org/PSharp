@@ -40,6 +40,12 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="parentNode">Node</param>
         internal void Visit(StateDeclarationNode parentNode)
         {
+            if (parentNode.ExitDeclaration != null)
+            {
+                throw new ParsingException("Duplicate exit declaration.",
+                    new List<TokenType>());
+            }
+
             var node = new ExitDeclarationNode(base.TokenStream.Program, parentNode.IsModel);
             node.ExitKeyword = base.TokenStream.Peek();
 

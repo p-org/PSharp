@@ -24,8 +24,8 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
         [TestMethod]
         public void TestIncorrectUsingDeclaration()
         {
-            var test = "";
-            test += "using System.Text";
+            var test = "" +
+                "using System.Text";
 
             var parser = new PSharpParser();
 
@@ -39,8 +39,8 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
         [TestMethod]
         public void TestUsingDeclarationWithoutIdentifier()
         {
-            var test = "";
-            test += "using;";
+            var test = "" +
+                "using;";
 
             var parser = new PSharpParser();
 
@@ -54,8 +54,8 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
         [TestMethod]
         public void TestUnexpectedTokenWithoutNamespace()
         {
-            var test = "";
-            test += "private";
+            var test = "" +
+                "private";
 
             var parser = new PSharpParser();
 
@@ -69,8 +69,8 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
         [TestMethod]
         public void TestNamespaceDeclarationWithoutIdentifier()
         {
-            var test = "";
-            test += "namespace { }";
+            var test = "" +
+                "namespace { }";
 
             var parser = new PSharpParser();
 
@@ -84,10 +84,10 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
         [TestMethod]
         public void TestProtectedEventDeclaration()
         {
-            var test = "";
-            test += "namespace Foo {";
-            test += "protected event e;";
-            test += "}";
+            var test = "" +
+                "namespace Foo {" +
+                "protected event e;" +
+                "}";
 
             var parser = new PSharpParser();
 
@@ -101,10 +101,10 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
         [TestMethod]
         public void TestPrivateEventDeclaration()
         {
-            var test = "";
-            test += "namespace Foo {";
-            test += "private event e;";
-            test += "}";
+            var test = "" +
+                "namespace Foo {" +
+                "private event e;" +
+                "}";
 
             var parser = new PSharpParser();
 
@@ -118,8 +118,8 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
         [TestMethod]
         public void TestEventDeclarationWithoutNamespace()
         {
-            var test = "";
-            test += "event e;";
+            var test = "" +
+                "event e;";
 
             var parser = new PSharpParser();
 
@@ -133,11 +133,11 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
         [TestMethod]
         public void TestMachineDeclarationWithoutState()
         {
-            var test = "";
-            test += "namespace Foo {";
-            test += "machine M {";
-            test += "}";
-            test += "}";
+            var test = "" +
+                "namespace Foo {" +
+                "machine M {" +
+                "}" +
+                "}";
 
             var parser = new PSharpParser();
 
@@ -149,14 +149,52 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
         }
 
         [TestMethod]
+        public void TestMachineDeclarationWithoutIdentifier()
+        {
+            var test = "" +
+                "namespace Foo {" +
+                "machine{}" +
+                "}";
+
+            var parser = new PSharpParser();
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual(parser.GetParsingErrorLog(),
+                "Expected machine identifier.");
+        }
+
+        [TestMethod]
+        public void TestMachineDeclarationWithTwoBodies()
+        {
+            var test = "" +
+                "namespace Foo {" +
+                "machine M {" +
+                "start state S { }" +
+                "}" +
+                "{" +
+                "}" +
+                "}";
+
+            var parser = new PSharpParser();
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual(parser.GetParsingErrorLog(),
+                "Unexpected token.");
+        }
+
+        [TestMethod]
         public void TestMachineDeclarationWithoutStartState()
         {
-            var test = "";
-            test += "namespace Foo {";
-            test += "machine M {";
-            test += "state S { }";
-            test += "}";
-            test += "}";
+            var test = "" +
+                "namespace Foo {" +
+                "machine M {" +
+                "state S { }" +
+                "}" +
+                "}";
 
             var parser = new PSharpParser();
 
@@ -170,13 +208,13 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
         [TestMethod]
         public void TestMachineDeclarationWithoutStartState2()
         {
-            var test = "";
-            test += "namespace Foo {";
-            test += "machine M {";
-            test += "state S1 { }";
-            test += "state S2 { }";
-            test += "}";
-            test += "}";
+            var test = "" +
+                "namespace Foo {" +
+                "machine M {" +
+                "state S1 { }" +
+                "state S2 { }" +
+                "}" +
+                "}";
 
             var parser = new PSharpParser();
 
@@ -190,14 +228,14 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
         [TestMethod]
         public void TestMachineDeclarationWithoutStartState3()
         {
-            var test = "";
-            test += "namespace Foo {";
-            test += "machine M {";
-            test += "state S1 { }\n";
-            test += "state S2 { }\n\n";
-            test += "state S3 { }\n";
-            test += "}";
-            test += "}";
+            var test = "" +
+                "namespace Foo {" +
+                "machine M {" +
+                "state S1 { }\n" +
+                "state S2 { }\n\n" +
+                "state S3 { }\n" +
+                "}" +
+                "}";
 
             var parser = new PSharpParser();
 
@@ -211,14 +249,14 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
         [TestMethod]
         public void TestMachineDeclarationWithMoreThanOneStartState()
         {
-            var test = "";
-            test += "namespace Foo {";
-            test += "machine M {";
-            test += "start state S1 { }";
-            test += "start state S2 { }\n\n";
-            test += "start state S3 { }";
-            test += "}";
-            test += "}";
+            var test = "" +
+                "namespace Foo {" +
+                "machine M {" +
+                "start state S1 { }" +
+                "start state S2 { }\n\n" +
+                "start state S3 { }" +
+                "}" +
+                "}";
 
             var parser = new PSharpParser();
 
@@ -227,6 +265,74 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
 
             Assert.AreEqual(parser.GetParsingErrorLog(),
                 "A machine can declare only a single start state.");
+        }
+
+        [TestMethod]
+        public void TestStateDeclarationWithMoreThanOneEntry()
+        {
+            var test = "" +
+                "namespace Foo {" +
+                "machine M {" +
+                "start state S" +
+                "{\n" +
+                "entry {}" +
+                "entry{}" +
+                "}" +
+                "}" +
+                "}";
+
+            var parser = new PSharpParser();
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual(parser.GetParsingErrorLog(),
+                "Duplicate entry declaration.");
+        }
+
+        [TestMethod]
+        public void TestStateDeclarationWithMoreThanOneExit()
+        {
+            var test = "" +
+                "namespace Foo {" +
+                "machine M {" +
+                "start state S" +
+                "{\n" +
+                "exit{}" +
+                "exit {}" +
+                "}" +
+                "}" +
+                "}";
+
+            var parser = new PSharpParser();
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual(parser.GetParsingErrorLog(),
+                "Duplicate exit declaration.");
+        }
+
+        [TestMethod]
+        public void TestEntryDeclarationWithUnexpectedIdentifier()
+        {
+            var test = "" +
+                "namespace Foo {" +
+                "machine M {" +
+                "start state S" +
+                "{\n" +
+                "entry Bar {}\n" +
+                "}" +
+                "}" +
+                "}";
+
+            var parser = new PSharpParser();
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual(parser.GetParsingErrorLog(),
+                "Expected \"{\".");
         }
     }
 }

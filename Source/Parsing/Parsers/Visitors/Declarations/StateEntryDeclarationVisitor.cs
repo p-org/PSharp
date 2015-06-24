@@ -40,6 +40,12 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="parentNode">Node</param>
         internal void Visit(StateDeclarationNode parentNode)
         {
+            if (parentNode.EntryDeclaration != null)
+            {
+                throw new ParsingException("Duplicate entry declaration.",
+                    new List<TokenType>());
+            }
+
             var node = new EntryDeclarationNode(base.TokenStream.Program, parentNode.IsModel);
             node.EntryKeyword = base.TokenStream.Peek();
 
