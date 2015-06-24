@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="SendStatementNode.cs">
+// <copyright file="AssertStatement.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -19,41 +19,31 @@ using System.Linq;
 namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
-    /// Send statement node.
+    /// Assert statement syntax node.
     /// </summary>
-    internal sealed class SendStatementNode : StatementNode
+    internal sealed class AssertStatement : Statement
     {
         #region fields
 
         /// <summary>
-        /// The send keyword.
+        /// The assert keyword.
         /// </summary>
-        internal Token SendKeyword;
+        internal Token AssertKeyword;
 
         /// <summary>
-        /// The machine identifier.
+        /// The left parenthesis token.
         /// </summary>
-        internal ExpressionNode MachineIdentifier;
-        
-        /// <summary>
-        /// The machine separator token.
-        /// </summary>
-        internal Token MachineSeparator;
+        internal Token LeftParenthesisToken;
 
         /// <summary>
-        /// The event identifier.
+        /// The assert predicate.
         /// </summary>
-        internal Token EventIdentifier;
+        internal ExpressionNode Predicate;
 
         /// <summary>
-        /// The event separator token.
+        /// The right parenthesis token.
         /// </summary>
-        internal Token EventSeparator;
-
-        /// <summary>
-        /// The event payload.
-        /// </summary>
-        internal ExpressionNode Payload;
+        internal Token RightParenthesisToken;
 
         #endregion
 
@@ -64,7 +54,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         /// <param name="program">Program</param>
         /// <param name="node">Node</param>
-        internal SendStatementNode(IPSharpProgram program, BlockSyntax node)
+        internal AssertStatement(IPSharpProgram program, BlockSyntax node)
             : base(program, node)
         {
 
@@ -77,16 +67,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <param name="program">Program</param>
         internal override void Rewrite()
         {
-            this.MachineIdentifier.Rewrite();
+            this.Predicate.Rewrite();
 
-            if (this.Payload != null)
-            {
-                this.Payload.Rewrite();
-            }
+            var text = this.GetRewrittenAssertStatement();
 
-            var text = this.GetRewrittenSendStatement();
-
-            base.TextUnit = new TextUnit(text, this.SendKeyword.TextUnit.Line);
+            base.TextUnit = new TextUnit(text, this.AssertKeyword.TextUnit.Line);
         }
 
         /// <summary>
@@ -95,16 +80,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         internal override void Model()
         {
-            this.MachineIdentifier.Model();
+            this.Predicate.Model();
 
-            if (this.Payload != null)
-            {
-                this.Payload.Model();
-            }
+            var text = this.GetRewrittenAssertStatement();
 
-            var text = this.GetRewrittenSendStatement();
-
-            base.TextUnit = new TextUnit(text, this.SendKeyword.TextUnit.Line);
+            base.TextUnit = new TextUnit(text, this.AssertKeyword.TextUnit.Line);
         }
 
         #endregion
@@ -112,38 +92,18 @@ namespace Microsoft.PSharp.Parsing.Syntax
         #region private API
 
         /// <summary>
-        /// Returns the rewritten send statement.
+        /// Returns the rewritten assert statement.
         /// </summary>
         /// <returns>Text</returns>
-        private string GetRewrittenSendStatement()
+        private string GetRewrittenAssertStatement()
         {
-            var text = "this.Send(";
+            var text = "this.Assert";
 
-            text += this.MachineIdentifier.TextUnit.Text;
+            text += this.LeftParenthesisToken.TextUnit.Text;
 
-            text += ", new ";
+            text += this.Predicate.TextUnit.Text;
 
-            if (this.EventIdentifier.Type == TokenType.HaltEvent)
-            {
-                text += "Microsoft.PSharp.Halt";
-            }
-            else if (this.EventIdentifier.Type == TokenType.DefaultEvent)
-            {
-                text += "Microsoft.PSharp.Default";
-            }
-            else
-            {
-                text += this.EventIdentifier.TextUnit.Text;
-            }
-
-            text += "(";
-
-            if (this.Payload != null)
-            {
-                text += this.Payload.TextUnit.Text;
-            }
-
-            text += "))";
+            text += this.RightParenthesisToken.TextUnit.Text;
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 

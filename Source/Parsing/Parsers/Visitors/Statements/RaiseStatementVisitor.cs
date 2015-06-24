@@ -40,7 +40,7 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="parentNode">Node</param>
         internal void Visit(BlockSyntax parentNode)
         {
-            var node = new RaiseStatementNode(base.TokenStream.Program, parentNode);
+            var node = new RaiseStatement(base.TokenStream.Program, parentNode);
             node.RaiseKeyword = base.TokenStream.Peek();
 
             base.TokenStream.Index++;

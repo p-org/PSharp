@@ -43,7 +43,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// List of statement nodes.
         /// </summary>
-        internal List<StatementNode> Statements;
+        internal List<Statement> Statements;
 
         /// <summary>
         /// The close brace token.
@@ -67,7 +67,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         {
             this.Machine = machineNode;
             this.State = stateNode;
-            this.Statements = new List<StatementNode>();
+            this.Statements = new List<Statement>();
         }
 
         /// <summary>

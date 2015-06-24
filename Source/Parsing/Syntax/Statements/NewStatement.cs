@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="ForStatementNode.cs">
+// <copyright file="NewStatement.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -19,16 +19,21 @@ using System.Linq;
 namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
-    /// For statement node.
+    /// New statement syntax node.
     /// </summary>
-    internal sealed class ForStatementNode : StatementNode
+    internal sealed class NewStatement : Statement
     {
         #region fields
 
         /// <summary>
-        /// The for keyword.
+        /// The new keyword.
         /// </summary>
-        internal Token ForKeyword;
+        internal Token NewKeyword;
+
+        /// <summary>
+        /// The type identifier.
+        /// </summary>
+        internal Token TypeIdentifier;
 
         /// <summary>
         /// The left parenthesis token.
@@ -36,19 +41,14 @@ namespace Microsoft.PSharp.Parsing.Syntax
         internal Token LeftParenthesisToken;
 
         /// <summary>
-        /// The iterator.
+        /// The constructor arguments.
         /// </summary>
-        internal ExpressionNode Iterator;
+        internal ExpressionNode Arguments;
 
         /// <summary>
         /// The right parenthesis token.
         /// </summary>
         internal Token RightParenthesisToken;
-
-        /// <summary>
-        /// The statement block.
-        /// </summary>
-        internal BlockSyntax StatementBlock;
 
         #endregion
 
@@ -59,7 +59,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         /// <param name="program">Program</param>
         /// <param name="node">Node</param>
-        internal ForStatementNode(IPSharpProgram program, BlockSyntax node)
+        internal NewStatement(IPSharpProgram program, BlockSyntax node)
             : base(program, node)
         {
 
@@ -72,12 +72,14 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <param name="program">Program</param>
         internal override void Rewrite()
         {
-            this.Iterator.Rewrite();
-            this.StatementBlock.Rewrite();
+            if (this.Arguments != null)
+            {
+                this.Arguments.Rewrite();
+            }
 
-            var text = this.GetRewrittenWhileStatement();
+            var text = this.GetRewrittenNewStatement();
 
-            base.TextUnit = new TextUnit(text, this.ForKeyword.TextUnit.Line);
+            base.TextUnit = new TextUnit(text, this.NewKeyword.TextUnit.Line);
         }
 
         /// <summary>
@@ -86,12 +88,14 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         internal override void Model()
         {
-            this.Iterator.Model();
-            this.StatementBlock.Model();
+            if (this.Arguments != null)
+            {
+                this.Arguments.Model();
+            }
 
-            var text = this.GetRewrittenWhileStatement();
+            var text = this.GetRewrittenNewStatement();
 
-            base.TextUnit = new TextUnit(text, this.ForKeyword.TextUnit.Line);
+            base.TextUnit = new TextUnit(text, this.NewKeyword.TextUnit.Line);
         }
 
         #endregion
@@ -99,22 +103,26 @@ namespace Microsoft.PSharp.Parsing.Syntax
         #region private API
 
         /// <summary>
-        /// Returns the rewritten while statement.
+        /// Returns the rewritten new statement.
         /// </summary>
         /// <returns>Text</returns>
-        private string GetRewrittenWhileStatement()
+        private string GetRewrittenNewStatement()
         {
-            var text = "";
+            var text = this.NewKeyword.TextUnit.Text;
+            text += " ";
 
-            text += this.ForKeyword.TextUnit.Text;
+            text += this.TypeIdentifier.TextUnit.Text;
 
-            text += this.LeftParenthesisToken.TextUnit.Text;
+            text += "(";
 
-            text += this.Iterator.TextUnit.Text;
+            if (this.Arguments != null)
+            {
+                text += this.Arguments.TextUnit.Text;
+            }
 
-            text += this.RightParenthesisToken.TextUnit.Text;
+            text += ")";
 
-            text += this.StatementBlock.TextUnit.Text;
+            text += this.SemicolonToken.TextUnit.Text + "\n";
 
             return text;
         }

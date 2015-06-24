@@ -198,5 +198,149 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
         }
 
         #endregion
+
+        #region while statements
+
+        [TestMethod]
+        public void TestWhileStatement()
+        {
+            var test = "" +
+                "namespace Foo {" +
+                "machine M {" +
+                "start state S { }" +
+                "void Bar()" +
+                "{" +
+                "while (true)" +
+                "{" +
+                "}" +
+                "}" +
+                "}" +
+                "}";
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = new PSharpParser().ParseTokens(tokens);
+
+            var output = program.Rewrite();
+            var expected = "using System;\n" +
+                "using System.Collections.Generic;\n" +
+                "using System.Threading.Tasks;\n" +
+                "using Microsoft.PSharp;\n" +
+                "namespace Foo\n" +
+                "{\n" +
+                "class M : Machine\n" +
+                "{\n" +
+                "[Initial]\n" +
+                "class S : MachineState\n" +
+                "{\n" +
+                "}\n" +
+                "private void Bar()\n" +
+                "{\n" +
+                "while (true)\n" +
+                "{\n" +
+                "}\n" +
+                "}\n" +
+                "}\n" +
+                "}\n";
+
+            Assert.AreEqual(expected, output);
+        }
+
+        #endregion
+
+        #region break statements
+
+        [TestMethod]
+        public void TestBreakStatement()
+        {
+            var test = "" +
+                "namespace Foo {" +
+                "machine M {" +
+                "start state S { }" +
+                "void Bar()" +
+                "{" +
+                "while (true)" +
+                "{break;}" +
+                "}" +
+                "}" +
+                "}";
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = new PSharpParser().ParseTokens(tokens);
+
+            var output = program.Rewrite();
+            var expected = "using System;\n" +
+                "using System.Collections.Generic;\n" +
+                "using System.Threading.Tasks;\n" +
+                "using Microsoft.PSharp;\n" +
+                "namespace Foo\n" +
+                "{\n" +
+                "class M : Machine\n" +
+                "{\n" +
+                "[Initial]\n" +
+                "class S : MachineState\n" +
+                "{\n" +
+                "}\n" +
+                "private void Bar()\n" +
+                "{\n" +
+                "while (true)\n" +
+                "{\n" +
+                "break;\n" +
+                "}\n" +
+                "}\n" +
+                "}\n" +
+                "}\n";
+
+            Assert.AreEqual(expected, output);
+        }
+
+        #endregion
+
+        #region continue statements
+
+        [TestMethod]
+        public void TestContinueStatement()
+        {
+            var test = "" +
+                "namespace Foo {" +
+                "machine M {" +
+                "start state S { }" +
+                "void Bar()" +
+                "{" +
+                "while (true)" +
+                "{continue;}" +
+                "}" +
+                "}" +
+                "}";
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = new PSharpParser().ParseTokens(tokens);
+
+            var output = program.Rewrite();
+            var expected = "using System;\n" +
+                "using System.Collections.Generic;\n" +
+                "using System.Threading.Tasks;\n" +
+                "using Microsoft.PSharp;\n" +
+                "namespace Foo\n" +
+                "{\n" +
+                "class M : Machine\n" +
+                "{\n" +
+                "[Initial]\n" +
+                "class S : MachineState\n" +
+                "{\n" +
+                "}\n" +
+                "private void Bar()\n" +
+                "{\n" +
+                "while (true)\n" +
+                "{\n" +
+                "continue;\n" +
+                "}\n" +
+                "}\n" +
+                "}\n" +
+                "}\n";
+
+            Assert.AreEqual(expected, output);
+        }
+
+        #endregion
     }
 }

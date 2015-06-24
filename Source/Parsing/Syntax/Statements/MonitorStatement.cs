@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="MonitorStatementNode.cs">
+// <copyright file="MonitorStatement.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -19,9 +19,9 @@ using System.Linq;
 namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
-    /// Monitor statement node.
+    /// Monitor statement syntax node.
     /// </summary>
-    internal sealed class MonitorStatementNode : StatementNode
+    internal sealed class MonitorStatement : Statement
     {
         #region fields
 
@@ -64,7 +64,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         /// <param name="program">Program</param>
         /// <param name="node">Node</param>
-        internal MonitorStatementNode(IPSharpProgram program, BlockSyntax node)
+        internal MonitorStatement(IPSharpProgram program, BlockSyntax node)
             : base(program, node)
         {
 

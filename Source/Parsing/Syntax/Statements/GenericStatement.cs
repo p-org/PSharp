@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="RaiseStatementNode.cs">
+// <copyright file="GenericStatement.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -19,31 +19,16 @@ using System.Linq;
 namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
-    /// Raise statement node.
+    /// Generic statement syntax node.
     /// </summary>
-    internal sealed class RaiseStatementNode : StatementNode
+    internal sealed class GenericStatement : Statement
     {
         #region fields
 
         /// <summary>
-        /// The raise keyword.
+        /// The expression node.
         /// </summary>
-        internal Token RaiseKeyword;
-
-        /// <summary>
-        /// The event identifier.
-        /// </summary>
-        internal Token EventIdentifier;
-
-        /// <summary>
-        /// The separator token.
-        /// </summary>
-        internal Token Separator;
-
-        /// <summary>
-        /// The event payload.
-        /// </summary>
-        internal ExpressionNode Payload;
+        internal ExpressionNode Expression;
 
         #endregion
 
@@ -54,7 +39,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         /// <param name="program">Program</param>
         /// <param name="node">Node</param>
-        internal RaiseStatementNode(IPSharpProgram program, BlockSyntax node)
+        internal GenericStatement(IPSharpProgram program, BlockSyntax node)
             : base(program, node)
         {
 
@@ -67,14 +52,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <param name="program">Program</param>
         internal override void Rewrite()
         {
-            if (this.Separator != null)
-            {
-                this.Payload.Rewrite();
-            }
+            this.Expression.Rewrite();
 
-            var text = this.GetRewrittenRaiseStatement();
+            var text = this.GetRewrittenGenericStatement();
 
-            base.TextUnit = new TextUnit(text, this.RaiseKeyword.TextUnit.Line);
+            base.TextUnit = new TextUnit(text, this.Expression.TextUnit.Line);
         }
 
         /// <summary>
@@ -83,14 +65,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         internal override void Model()
         {
-            if (this.Separator != null)
-            {
-                this.Payload.Model();
-            }
+            this.Expression.Model();
 
-            var text = this.GetRewrittenRaiseStatement();
+            var text = this.GetRewrittenGenericStatement();
 
-            base.TextUnit = new TextUnit(text, this.RaiseKeyword.TextUnit.Line);
+            base.TextUnit = new TextUnit(text, this.Expression.TextUnit.Line);
         }
 
         #endregion
@@ -98,40 +77,19 @@ namespace Microsoft.PSharp.Parsing.Syntax
         #region private API
 
         /// <summary>
-        /// Returns the rewritten raise statement.
+        /// Returns the rewritten generic statement.
         /// </summary>
         /// <returns>Text</returns>
-        private string GetRewrittenRaiseStatement()
+        private string GetRewrittenGenericStatement()
         {
-            var text = "{\n";
-            text += "this.Raise(new ";
+            var text = "";
 
-            if (this.EventIdentifier.Type == TokenType.HaltEvent)
+            text += this.Expression.TextUnit.Text;
+
+            if (this.SemicolonToken != null)
             {
-                text += "Microsoft.PSharp.Halt";
+                text += this.SemicolonToken.TextUnit.Text + "\n";
             }
-            else if (this.EventIdentifier.Type == TokenType.DefaultEvent)
-            {
-                text += "Microsoft.PSharp.Default";
-            }
-            else
-            {
-                text += this.EventIdentifier.TextUnit.Text;
-            }
-
-            text += "(";
-
-            if (this.Separator != null)
-            {
-                text += this.Payload.TextUnit.Text;
-            }
-
-            text += "))";
-
-            text += this.SemicolonToken.TextUnit.Text + "\n";
-
-            text += "return;\n";
-            text += "}\n";
 
             return text;
         }

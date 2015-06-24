@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="NewStatementNode.cs">
+// <copyright file="PPushStatement.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -19,36 +19,21 @@ using System.Linq;
 namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
-    /// New statement node.
+    /// Push statement syntax node.
     /// </summary>
-    internal sealed class NewStatementNode : StatementNode
+    internal sealed class PPushStatement : Statement
     {
         #region fields
 
         /// <summary>
-        /// The new keyword.
+        /// The push keyword.
         /// </summary>
-        internal Token NewKeyword;
+        internal Token PushKeyword;
 
         /// <summary>
-        /// The type identifier.
+        /// The state token.
         /// </summary>
-        internal Token TypeIdentifier;
-
-        /// <summary>
-        /// The left parenthesis token.
-        /// </summary>
-        internal Token LeftParenthesisToken;
-
-        /// <summary>
-        /// The constructor arguments.
-        /// </summary>
-        internal ExpressionNode Arguments;
-
-        /// <summary>
-        /// The right parenthesis token.
-        /// </summary>
-        internal Token RightParenthesisToken;
+        internal Token StateToken;
 
         #endregion
 
@@ -59,7 +44,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         /// <param name="program">Program</param>
         /// <param name="node">Node</param>
-        internal NewStatementNode(IPSharpProgram program, BlockSyntax node)
+        internal PPushStatement(IPSharpProgram program, BlockSyntax node)
             : base(program, node)
         {
 
@@ -72,14 +57,8 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <param name="program">Program</param>
         internal override void Rewrite()
         {
-            if (this.Arguments != null)
-            {
-                this.Arguments.Rewrite();
-            }
-
-            var text = this.GetRewrittenNewStatement();
-
-            base.TextUnit = new TextUnit(text, this.NewKeyword.TextUnit.Line);
+            var text = this.GetRewrittenPushStatement();
+            base.TextUnit = new TextUnit(text, this.PushKeyword.TextUnit.Line);
         }
 
         /// <summary>
@@ -88,14 +67,8 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         internal override void Model()
         {
-            if (this.Arguments != null)
-            {
-                this.Arguments.Model();
-            }
-
-            var text = this.GetRewrittenNewStatement();
-
-            base.TextUnit = new TextUnit(text, this.NewKeyword.TextUnit.Line);
+            var text = this.GetRewrittenPushStatement();
+            base.TextUnit = new TextUnit(text, this.PushKeyword.TextUnit.Line);
         }
 
         #endregion
@@ -103,22 +76,14 @@ namespace Microsoft.PSharp.Parsing.Syntax
         #region private API
 
         /// <summary>
-        /// Returns the rewritten new statement.
+        /// Returns the rewritten push statement.
         /// </summary>
         /// <returns>Text</returns>
-        private string GetRewrittenNewStatement()
+        private string GetRewrittenPushStatement()
         {
-            var text = this.NewKeyword.TextUnit.Text;
-            text += " ";
+            var text = "this.Push(";
 
-            text += this.TypeIdentifier.TextUnit.Text;
-
-            text += "(";
-
-            if (this.Arguments != null)
-            {
-                text += this.Arguments.TextUnit.Text;
-            }
+            text += "typeof(" + this.StateToken.TextUnit.Text + ")";
 
             text += ")";
 

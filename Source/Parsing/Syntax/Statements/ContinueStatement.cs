@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="ForeachStatementNode.cs">
+// <copyright file="ContinueStatement.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,43 +12,19 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
-    /// Foreach statement node.
+    /// Continue statement syntax node.
     /// </summary>
-    internal sealed class ForeachStatementNode : StatementNode
+    internal sealed class ContinueStatement : Statement
     {
         #region fields
 
         /// <summary>
-        /// The foreach keyword.
+        /// The continue keyword.
         /// </summary>
-        internal Token ForeachKeyword;
-
-        /// <summary>
-        /// The left parenthesis token.
-        /// </summary>
-        internal Token LeftParenthesisToken;
-
-        /// <summary>
-        /// The guard predicate.
-        /// </summary>
-        internal ExpressionNode Guard;
-
-        /// <summary>
-        /// The right parenthesis token.
-        /// </summary>
-        internal Token RightParenthesisToken;
-
-        /// <summary>
-        /// The statement block.
-        /// </summary>
-        internal BlockSyntax StatementBlock;
+        internal Token ContinueKeyword;
 
         #endregion
 
@@ -59,7 +35,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         /// <param name="program">Program</param>
         /// <param name="node">Node</param>
-        internal ForeachStatementNode(IPSharpProgram program, BlockSyntax node)
+        internal ContinueStatement(IPSharpProgram program, BlockSyntax node)
             : base(program, node)
         {
 
@@ -72,12 +48,9 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <param name="program">Program</param>
         internal override void Rewrite()
         {
-            this.Guard.Rewrite();
-            this.StatementBlock.Rewrite();
+            var text = this.GetRewrittenAssertStatement();
 
-            var text = this.GetRewrittenForeachStatement();
-
-            base.TextUnit = new TextUnit(text, this.ForeachKeyword.TextUnit.Line);
+            base.TextUnit = new TextUnit(text, this.ContinueKeyword.TextUnit.Line);
         }
 
         /// <summary>
@@ -86,12 +59,9 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         internal override void Model()
         {
-            this.Guard.Model();
-            this.StatementBlock.Model();
+            var text = this.GetRewrittenAssertStatement();
 
-            var text = this.GetRewrittenForeachStatement();
-
-            base.TextUnit = new TextUnit(text, this.ForeachKeyword.TextUnit.Line);
+            base.TextUnit = new TextUnit(text, this.ContinueKeyword.TextUnit.Line);
         }
 
         #endregion
@@ -99,22 +69,13 @@ namespace Microsoft.PSharp.Parsing.Syntax
         #region private API
 
         /// <summary>
-        /// Returns the rewritten foreach statement.
+        /// Returns the rewritten assert statement.
         /// </summary>
         /// <returns>Text</returns>
-        private string GetRewrittenForeachStatement()
+        private string GetRewrittenAssertStatement()
         {
-            var text = "";
-
-            text += this.ForeachKeyword.TextUnit.Text;
-
-            text += this.LeftParenthesisToken.TextUnit.Text;
-
-            text += this.Guard.TextUnit.Text;
-
-            text += this.RightParenthesisToken.TextUnit.Text;
-
-            text += this.StatementBlock.TextUnit.Text;
+            var text = "continue";
+            text += this.SemicolonToken.TextUnit.Text + "\n";
 
             return text;
         }

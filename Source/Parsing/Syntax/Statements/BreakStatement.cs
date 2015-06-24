@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="PopStatementNode.cs">
+// <copyright file="BreakStatement.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,23 +12,19 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
-    /// Pop statement node.
+    /// Break statement syntax node.
     /// </summary>
-    internal sealed class PopStatementNode : StatementNode
+    internal sealed class BreakStatement : Statement
     {
         #region fields
 
         /// <summary>
-        /// The pop keyword.
+        /// The break keyword.
         /// </summary>
-        internal Token PopKeyword;
+        internal Token BreakKeyword;
 
         #endregion
 
@@ -39,7 +35,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         /// <param name="program">Program</param>
         /// <param name="node">Node</param>
-        internal PopStatementNode(IPSharpProgram program, BlockSyntax node)
+        internal BreakStatement(IPSharpProgram program, BlockSyntax node)
             : base(program, node)
         {
 
@@ -52,8 +48,9 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <param name="program">Program</param>
         internal override void Rewrite()
         {
-            var text = this.GetRewrittenPopStatement();
-            base.TextUnit = new TextUnit(text, this.PopKeyword.TextUnit.Line);
+            var text = this.GetRewrittenAssertStatement();
+
+            base.TextUnit = new TextUnit(text, this.BreakKeyword.TextUnit.Line);
         }
 
         /// <summary>
@@ -62,8 +59,9 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         internal override void Model()
         {
-            var text = this.GetRewrittenPopStatement();
-            base.TextUnit = new TextUnit(text, this.PopKeyword.TextUnit.Line);
+            var text = this.GetRewrittenAssertStatement();
+
+            base.TextUnit = new TextUnit(text, this.BreakKeyword.TextUnit.Line);
         }
 
         #endregion
@@ -71,18 +69,13 @@ namespace Microsoft.PSharp.Parsing.Syntax
         #region private API
 
         /// <summary>
-        /// Returns the rewritten pop statement.
+        /// Returns the rewritten assert statement.
         /// </summary>
         /// <returns>Text</returns>
-        private string GetRewrittenPopStatement()
+        private string GetRewrittenAssertStatement()
         {
-            var text = "{\n";
-            text += "this.Pop()";
-
+            var text = "break";
             text += this.SemicolonToken.TextUnit.Text + "\n";
-
-            text += "return;\n";
-            text += "}\n";
 
             return text;
         }

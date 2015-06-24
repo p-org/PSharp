@@ -40,7 +40,7 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="parentNode">Node</param>
         internal void Visit(BlockSyntax parentNode)
         {
-            var node = new WhileStatementNode(base.TokenStream.Program, parentNode);
+            var node = new WhileStatement(base.TokenStream.Program, parentNode);
             node.WhileKeyword = base.TokenStream.Peek();
 
             base.TokenStream.Index++;
@@ -91,6 +91,11 @@ namespace Microsoft.PSharp.Parsing
                     guard.StmtTokens.Add(base.TokenStream.Peek());
                     base.TokenStream.Index++;
                     base.TokenStream.SkipCommentTokens();
+                }
+
+                if (guard.StmtTokens.Count == 0)
+                {
+                    throw new ParsingException("Expected an expression.", new List<TokenType>());
                 }
 
                 node.Guard = guard;
@@ -257,6 +262,14 @@ namespace Microsoft.PSharp.Parsing
             else if (base.TokenStream.Peek().Type == TokenType.Assert)
             {
                 new AssertStatementVisitor(base.TokenStream).Visit(blockNode);
+            }
+            else if (base.TokenStream.Peek().Type == TokenType.Break)
+            {
+                new BreakStatementVisitor(base.TokenStream).Visit(blockNode);
+            }
+            else if (base.TokenStream.Peek().Type == TokenType.Continue)
+            {
+                new ContinueStatementVisitor(base.TokenStream).Visit(blockNode);
             }
             else if (base.TokenStream.Peek().Type == TokenType.IfCondition)
             {

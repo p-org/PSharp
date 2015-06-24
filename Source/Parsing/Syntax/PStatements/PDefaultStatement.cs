@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="AssertStatementNode.cs">
+// <copyright file="PDefaultStatement.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -19,26 +19,26 @@ using System.Linq;
 namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
-    /// Assert statement node.
+    /// Default statement syntax node.
     /// </summary>
-    internal sealed class AssertStatementNode : StatementNode
+    internal sealed class PDefaultStatement : Statement
     {
         #region fields
 
         /// <summary>
-        /// The assert keyword.
+        /// The default keyword.
         /// </summary>
-        internal Token AssertKeyword;
-
+        internal Token DefaultKeyword;
+        
         /// <summary>
         /// The left parenthesis token.
         /// </summary>
         internal Token LeftParenthesisToken;
 
         /// <summary>
-        /// The assert predicate.
+        /// The actual type.
         /// </summary>
-        internal ExpressionNode Predicate;
+        internal PBaseType Type;
 
         /// <summary>
         /// The right parenthesis token.
@@ -54,7 +54,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         /// <param name="program">Program</param>
         /// <param name="node">Node</param>
-        internal AssertStatementNode(IPSharpProgram program, BlockSyntax node)
+        internal PDefaultStatement(IPSharpProgram program, BlockSyntax node)
             : base(program, node)
         {
 
@@ -67,11 +67,8 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <param name="program">Program</param>
         internal override void Rewrite()
         {
-            this.Predicate.Rewrite();
-
-            var text = this.GetRewrittenAssertStatement();
-
-            base.TextUnit = new TextUnit(text, this.AssertKeyword.TextUnit.Line);
+            var text = this.GetRewrittenDefaultStatement();
+            base.TextUnit = new TextUnit(text, this.DefaultKeyword.TextUnit.Line);
         }
 
         /// <summary>
@@ -80,11 +77,8 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         internal override void Model()
         {
-            this.Predicate.Model();
-
-            var text = this.GetRewrittenAssertStatement();
-
-            base.TextUnit = new TextUnit(text, this.AssertKeyword.TextUnit.Line);
+            var text = this.GetRewrittenDefaultStatement();
+            base.TextUnit = new TextUnit(text, this.DefaultKeyword.TextUnit.Line);
         }
 
         #endregion
@@ -92,18 +86,28 @@ namespace Microsoft.PSharp.Parsing.Syntax
         #region private API
 
         /// <summary>
-        /// Returns the rewritten assert statement.
+        /// Returns the rewritten default statement.
         /// </summary>
         /// <returns>Text</returns>
-        private string GetRewrittenAssertStatement()
+        private string GetRewrittenDefaultStatement()
         {
-            var text = "this.Assert";
+            var text = "";
 
-            text += this.LeftParenthesisToken.TextUnit.Text;
-
-            text += this.Predicate.TextUnit.Text;
-
-            text += this.RightParenthesisToken.TextUnit.Text;
+            this.Type.Rewrite();
+            if (this.Type.Type == PType.Seq ||
+                this.Type.Type == PType.Map)
+            {
+                text += "new ";
+                text += this.Type.GetRewrittenText();
+                text += "()";
+            }
+            else
+            {
+                text += this.DefaultKeyword.TextUnit.Text;
+                text += "(";
+                text += this.Type.GetRewrittenText();
+                text += ")";
+            }
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 

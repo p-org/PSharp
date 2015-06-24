@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="PDefaultStatementNode.cs">
+// <copyright file="SendStatement.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -19,31 +19,41 @@ using System.Linq;
 namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
-    /// Default statement node.
+    /// Send statement syntax node.
     /// </summary>
-    internal sealed class PDefaultStatementNode : StatementNode
+    internal sealed class SendStatement : Statement
     {
         #region fields
 
         /// <summary>
-        /// The default keyword.
+        /// The send keyword.
         /// </summary>
-        internal Token DefaultKeyword;
+        internal Token SendKeyword;
+
+        /// <summary>
+        /// The machine identifier.
+        /// </summary>
+        internal ExpressionNode MachineIdentifier;
         
         /// <summary>
-        /// The left parenthesis token.
+        /// The machine separator token.
         /// </summary>
-        internal Token LeftParenthesisToken;
+        internal Token MachineSeparator;
 
         /// <summary>
-        /// The actual type.
+        /// The event identifier.
         /// </summary>
-        internal PBaseType Type;
+        internal Token EventIdentifier;
 
         /// <summary>
-        /// The right parenthesis token.
+        /// The event separator token.
         /// </summary>
-        internal Token RightParenthesisToken;
+        internal Token EventSeparator;
+
+        /// <summary>
+        /// The event payload.
+        /// </summary>
+        internal ExpressionNode Payload;
 
         #endregion
 
@@ -54,7 +64,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         /// <param name="program">Program</param>
         /// <param name="node">Node</param>
-        internal PDefaultStatementNode(IPSharpProgram program, BlockSyntax node)
+        internal SendStatement(IPSharpProgram program, BlockSyntax node)
             : base(program, node)
         {
 
@@ -67,8 +77,16 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <param name="program">Program</param>
         internal override void Rewrite()
         {
-            var text = this.GetRewrittenDefaultStatement();
-            base.TextUnit = new TextUnit(text, this.DefaultKeyword.TextUnit.Line);
+            this.MachineIdentifier.Rewrite();
+
+            if (this.Payload != null)
+            {
+                this.Payload.Rewrite();
+            }
+
+            var text = this.GetRewrittenSendStatement();
+
+            base.TextUnit = new TextUnit(text, this.SendKeyword.TextUnit.Line);
         }
 
         /// <summary>
@@ -77,8 +95,16 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         internal override void Model()
         {
-            var text = this.GetRewrittenDefaultStatement();
-            base.TextUnit = new TextUnit(text, this.DefaultKeyword.TextUnit.Line);
+            this.MachineIdentifier.Model();
+
+            if (this.Payload != null)
+            {
+                this.Payload.Model();
+            }
+
+            var text = this.GetRewrittenSendStatement();
+
+            base.TextUnit = new TextUnit(text, this.SendKeyword.TextUnit.Line);
         }
 
         #endregion
@@ -86,28 +112,38 @@ namespace Microsoft.PSharp.Parsing.Syntax
         #region private API
 
         /// <summary>
-        /// Returns the rewritten default statement.
+        /// Returns the rewritten send statement.
         /// </summary>
         /// <returns>Text</returns>
-        private string GetRewrittenDefaultStatement()
+        private string GetRewrittenSendStatement()
         {
-            var text = "";
+            var text = "this.Send(";
 
-            this.Type.Rewrite();
-            if (this.Type.Type == PType.Seq ||
-                this.Type.Type == PType.Map)
+            text += this.MachineIdentifier.TextUnit.Text;
+
+            text += ", new ";
+
+            if (this.EventIdentifier.Type == TokenType.HaltEvent)
             {
-                text += "new ";
-                text += this.Type.GetRewrittenText();
-                text += "()";
+                text += "Microsoft.PSharp.Halt";
+            }
+            else if (this.EventIdentifier.Type == TokenType.DefaultEvent)
+            {
+                text += "Microsoft.PSharp.Default";
             }
             else
             {
-                text += this.DefaultKeyword.TextUnit.Text;
-                text += "(";
-                text += this.Type.GetRewrittenText();
-                text += ")";
+                text += this.EventIdentifier.TextUnit.Text;
             }
+
+            text += "(";
+
+            if (this.Payload != null)
+            {
+                text += this.Payload.TextUnit.Text;
+            }
+
+            text += "))";
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
 

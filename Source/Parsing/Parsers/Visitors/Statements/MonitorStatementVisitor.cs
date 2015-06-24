@@ -46,7 +46,7 @@ namespace Microsoft.PSharp.Parsing
                     new List<TokenType>());
             }
 
-            var node = new MonitorStatementNode(base.TokenStream.Program, parentNode);
+            var node = new MonitorStatement(base.TokenStream.Program, parentNode);
             node.MonitorKeyword = base.TokenStream.Peek();
 
             base.TokenStream.Index++;

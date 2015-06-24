@@ -27,7 +27,7 @@ main machine PING {
     fun Func1(i: int, j: int) : int {
         if (j == 1) {     
             i = i + 1;       //i: 2
-        };
+        }
         if (j == 2) {
             assert(i == 3);  
             i = i + 1;

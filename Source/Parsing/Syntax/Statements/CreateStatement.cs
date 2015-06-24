@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="CreateStatementNode.cs">
+// <copyright file="CreateStatement.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -21,9 +21,9 @@ using Microsoft.PSharp.Tooling;
 namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
-    /// Create statement node.
+    /// Create statement syntax node.
     /// </summary>
-    internal sealed class CreateStatementNode : StatementNode
+    internal sealed class CreateStatement : Statement
     {
         #region fields
 
@@ -71,7 +71,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         /// <param name="program">Program</param>
         /// <param name="node">Node</param>
-        internal CreateStatementNode(IPSharpProgram program, BlockSyntax node)
+        internal CreateStatement(IPSharpProgram program, BlockSyntax node)
             : base(program, node)
         {
             this.MachineIdentifier = new List<Token>();

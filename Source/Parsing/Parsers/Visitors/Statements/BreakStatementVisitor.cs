@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="DefaultStatementVisitor.cs">
+// <copyright file="BreakStatementVisitor.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -20,15 +20,15 @@ using Microsoft.PSharp.Parsing.Syntax;
 namespace Microsoft.PSharp.Parsing
 {
     /// <summary>
-    /// The P# default statement parsing visitor.
+    /// The P# break statement parsing visitor.
     /// </summary>
-    internal sealed class DefaultStatementVisitor : BaseParseVisitor
+    internal sealed class BreakStatementVisitor : BaseParseVisitor
     {
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="tokenStream">TokenStream</param>
-        internal DefaultStatementVisitor(TokenStream tokenStream)
+        internal BreakStatementVisitor(TokenStream tokenStream)
             : base(tokenStream)
         {
 
@@ -40,52 +40,25 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="parentNode">Node</param>
         internal void Visit(BlockSyntax parentNode)
         {
-            var node = new PDefaultStatement(base.TokenStream.Program, parentNode);
-            node.DefaultKeyword = base.TokenStream.Peek();
+            var node = new BreakStatement(base.TokenStream.Program, parentNode);
+            node.BreakKeyword = base.TokenStream.Peek();
 
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
             if (base.TokenStream.Done ||
-                base.TokenStream.Peek().Type != TokenType.LeftParenthesis)
+                base.TokenStream.Peek().Type != TokenType.Semicolon)
             {
-                throw new ParsingException("Expected \"(\".",
+                throw new ParsingException("Expected \";\".",
                     new List<TokenType>
                 {
-                    TokenType.LeftParenthesis
+                    TokenType.Semicolon
                 });
             }
 
-            node.LeftParenthesisToken = base.TokenStream.Peek();
-
+            node.SemicolonToken = base.TokenStream.Peek();
+            parentNode.Statements.Add(node);
             base.TokenStream.Index++;
-            base.TokenStream.SkipWhiteSpaceAndCommentTokens();
-
-            PBaseType type = null;
-            new TypeIdentifierVisitor(base.TokenStream).Visit(ref type);
-            node.Type = type;
-
-            if (base.TokenStream.Done ||
-                base.TokenStream.Peek().Type != TokenType.RightParenthesis)
-            {
-                throw new ParsingException("Expected \")\".",
-                    new List<TokenType>
-                {
-                    TokenType.RightParenthesis
-                });
-            }
-
-            node.RightParenthesisToken = base.TokenStream.Peek();
-
-            base.TokenStream.Index++;
-            base.TokenStream.SkipWhiteSpaceAndCommentTokens();
-
-            if (base.TokenStream.Peek().Type == TokenType.Semicolon)
-            {
-                node.SemicolonToken = base.TokenStream.Peek();
-                parentNode.Statements.Add(node);
-                base.TokenStream.Index++;
-            }
         }
     }
 }

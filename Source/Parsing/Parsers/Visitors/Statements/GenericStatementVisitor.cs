@@ -40,7 +40,7 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="parentNode">Node</param>
         internal void Visit(BlockSyntax parentNode)
         {
-            var node = new GenericStatementNode(base.TokenStream.Program, parentNode);
+            var node = new GenericStatement(base.TokenStream.Program, parentNode);
 
             if (base.TokenStream.Program is PSharpProgram)
             {

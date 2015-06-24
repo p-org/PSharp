@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="GenericStatementNode.cs">
+// <copyright file="ForStatement.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -19,16 +19,36 @@ using System.Linq;
 namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
-    /// Generic statement node.
+    /// For statement syntax node.
     /// </summary>
-    internal sealed class GenericStatementNode : StatementNode
+    internal sealed class ForStatement : Statement
     {
         #region fields
 
         /// <summary>
-        /// The expression node.
+        /// The for keyword.
         /// </summary>
-        internal ExpressionNode Expression;
+        internal Token ForKeyword;
+
+        /// <summary>
+        /// The left parenthesis token.
+        /// </summary>
+        internal Token LeftParenthesisToken;
+
+        /// <summary>
+        /// The iterator.
+        /// </summary>
+        internal ExpressionNode Iterator;
+
+        /// <summary>
+        /// The right parenthesis token.
+        /// </summary>
+        internal Token RightParenthesisToken;
+
+        /// <summary>
+        /// The statement block.
+        /// </summary>
+        internal BlockSyntax StatementBlock;
 
         #endregion
 
@@ -39,7 +59,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         /// <param name="program">Program</param>
         /// <param name="node">Node</param>
-        internal GenericStatementNode(IPSharpProgram program, BlockSyntax node)
+        internal ForStatement(IPSharpProgram program, BlockSyntax node)
             : base(program, node)
         {
 
@@ -52,11 +72,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <param name="program">Program</param>
         internal override void Rewrite()
         {
-            this.Expression.Rewrite();
+            this.Iterator.Rewrite();
+            this.StatementBlock.Rewrite();
 
-            var text = this.GetRewrittenGenericStatement();
+            var text = this.GetRewrittenWhileStatement();
 
-            base.TextUnit = new TextUnit(text, this.Expression.TextUnit.Line);
+            base.TextUnit = new TextUnit(text, this.ForKeyword.TextUnit.Line);
         }
 
         /// <summary>
@@ -65,11 +86,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         internal override void Model()
         {
-            this.Expression.Model();
+            this.Iterator.Model();
+            this.StatementBlock.Model();
 
-            var text = this.GetRewrittenGenericStatement();
+            var text = this.GetRewrittenWhileStatement();
 
-            base.TextUnit = new TextUnit(text, this.Expression.TextUnit.Line);
+            base.TextUnit = new TextUnit(text, this.ForKeyword.TextUnit.Line);
         }
 
         #endregion
@@ -77,19 +99,22 @@ namespace Microsoft.PSharp.Parsing.Syntax
         #region private API
 
         /// <summary>
-        /// Returns the rewritten generic statement.
+        /// Returns the rewritten while statement.
         /// </summary>
         /// <returns>Text</returns>
-        private string GetRewrittenGenericStatement()
+        private string GetRewrittenWhileStatement()
         {
             var text = "";
 
-            text += this.Expression.TextUnit.Text;
+            text += this.ForKeyword.TextUnit.Text + " ";
 
-            if (this.SemicolonToken != null)
-            {
-                text += this.SemicolonToken.TextUnit.Text + "\n";
-            }
+            text += this.LeftParenthesisToken.TextUnit.Text;
+
+            text += this.Iterator.TextUnit.Text;
+
+            text += this.RightParenthesisToken.TextUnit.Text;
+
+            text += this.StatementBlock.TextUnit.Text;
 
             return text;
         }

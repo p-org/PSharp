@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="PPushStatementNode.cs">
+// <copyright file="RaiseStatement.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -19,21 +19,31 @@ using System.Linq;
 namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
-    /// Push statement node.
+    /// Raise statement syntax node.
     /// </summary>
-    internal sealed class PPushStatementNode : StatementNode
+    internal sealed class RaiseStatement : Statement
     {
         #region fields
 
         /// <summary>
-        /// The push keyword.
+        /// The raise keyword.
         /// </summary>
-        internal Token PushKeyword;
+        internal Token RaiseKeyword;
 
         /// <summary>
-        /// The state token.
+        /// The event identifier.
         /// </summary>
-        internal Token StateToken;
+        internal Token EventIdentifier;
+
+        /// <summary>
+        /// The separator token.
+        /// </summary>
+        internal Token Separator;
+
+        /// <summary>
+        /// The event payload.
+        /// </summary>
+        internal ExpressionNode Payload;
 
         #endregion
 
@@ -44,7 +54,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         /// <param name="program">Program</param>
         /// <param name="node">Node</param>
-        internal PPushStatementNode(IPSharpProgram program, BlockSyntax node)
+        internal RaiseStatement(IPSharpProgram program, BlockSyntax node)
             : base(program, node)
         {
 
@@ -57,8 +67,14 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <param name="program">Program</param>
         internal override void Rewrite()
         {
-            var text = this.GetRewrittenPushStatement();
-            base.TextUnit = new TextUnit(text, this.PushKeyword.TextUnit.Line);
+            if (this.Separator != null)
+            {
+                this.Payload.Rewrite();
+            }
+
+            var text = this.GetRewrittenRaiseStatement();
+
+            base.TextUnit = new TextUnit(text, this.RaiseKeyword.TextUnit.Line);
         }
 
         /// <summary>
@@ -67,8 +83,14 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         internal override void Model()
         {
-            var text = this.GetRewrittenPushStatement();
-            base.TextUnit = new TextUnit(text, this.PushKeyword.TextUnit.Line);
+            if (this.Separator != null)
+            {
+                this.Payload.Model();
+            }
+
+            var text = this.GetRewrittenRaiseStatement();
+
+            base.TextUnit = new TextUnit(text, this.RaiseKeyword.TextUnit.Line);
         }
 
         #endregion
@@ -76,18 +98,40 @@ namespace Microsoft.PSharp.Parsing.Syntax
         #region private API
 
         /// <summary>
-        /// Returns the rewritten push statement.
+        /// Returns the rewritten raise statement.
         /// </summary>
         /// <returns>Text</returns>
-        private string GetRewrittenPushStatement()
+        private string GetRewrittenRaiseStatement()
         {
-            var text = "this.Push(";
+            var text = "{\n";
+            text += "this.Raise(new ";
 
-            text += "typeof(" + this.StateToken.TextUnit.Text + ")";
+            if (this.EventIdentifier.Type == TokenType.HaltEvent)
+            {
+                text += "Microsoft.PSharp.Halt";
+            }
+            else if (this.EventIdentifier.Type == TokenType.DefaultEvent)
+            {
+                text += "Microsoft.PSharp.Default";
+            }
+            else
+            {
+                text += this.EventIdentifier.TextUnit.Text;
+            }
 
-            text += ")";
+            text += "(";
+
+            if (this.Separator != null)
+            {
+                text += this.Payload.TextUnit.Text;
+            }
+
+            text += "))";
 
             text += this.SemicolonToken.TextUnit.Text + "\n";
+
+            text += "return;\n";
+            text += "}\n";
 
             return text;
         }

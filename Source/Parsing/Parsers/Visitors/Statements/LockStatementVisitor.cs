@@ -40,7 +40,7 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="parentNode">Node</param>
         internal void Visit(BlockSyntax parentNode)
         {
-            var node = new LockStatementNode(base.TokenStream.Program, parentNode);
+            var node = new LockStatement(base.TokenStream.Program, parentNode);
             node.LockKeyword = base.TokenStream.Peek();
 
             base.TokenStream.Index++;
@@ -186,6 +186,14 @@ namespace Microsoft.PSharp.Parsing
             else if (base.TokenStream.Peek().Type == TokenType.Assert)
             {
                 new AssertStatementVisitor(base.TokenStream).Visit(blockNode);
+            }
+            else if (base.TokenStream.Peek().Type == TokenType.Break)
+            {
+                new BreakStatementVisitor(base.TokenStream).Visit(blockNode);
+            }
+            else if (base.TokenStream.Peek().Type == TokenType.Continue)
+            {
+                new ContinueStatementVisitor(base.TokenStream).Visit(blockNode);
             }
             else if (base.TokenStream.Peek().Type == TokenType.IfCondition)
             {

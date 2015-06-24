@@ -76,5 +76,111 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
         }
 
         #endregion
+
+        #region while statements
+
+        [TestMethod]
+        public void TestWhileStatementWithoutGuard()
+        {
+            var test = "" +
+                "namespace Foo {" +
+                "machine M {" +
+                "start state S { }" +
+                "void Bar()" +
+                "{" +
+                "while {}" +
+                "}" +
+                "}" +
+                "}";
+
+            var parser = new PSharpParser();
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual(parser.GetParsingErrorLog(),
+                "Expected \"(\".");
+        }
+
+        [TestMethod]
+        public void TestWhileStatementWithEmptyGuard()
+        {
+            var test = "" +
+                "namespace Foo {" +
+                "machine M {" +
+                "start state S { }" +
+                "void Bar()" +
+                "{" +
+                "while () {}" +
+                "}" +
+                "}" +
+                "}";
+
+            var parser = new PSharpParser();
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual(parser.GetParsingErrorLog(),
+                "Expected an expression.");
+        }
+
+        #endregion
+
+        #region break statements
+
+        [TestMethod]
+        public void TestBreakStatementWithoutSemicolon()
+        {
+            var test = "" +
+                "namespace Foo {" +
+                "machine M {" +
+                "start state S { }" +
+                "void Bar()" +
+                "{" +
+                "while (true)" +
+                "{break}" +
+                "}" +
+                "}" +
+                "}";
+
+            var parser = new PSharpParser();
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual(parser.GetParsingErrorLog(),
+                "Expected \";\".");
+        }
+
+        #endregion
+
+        #region continue statements
+
+        [TestMethod]
+        public void TestContinueStatementWithoutSemicolon()
+        {
+            var test = "" +
+                "namespace Foo {" +
+                "machine M {" +
+                "start state S { }" +
+                "void Bar()" +
+                "{" +
+                "while (true)" +
+                "{continue}" +
+                "}" +
+                "}" +
+                "}";
+
+            var parser = new PSharpParser();
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual(parser.GetParsingErrorLog(),
+                "Expected \";\".");
+        }
+
+        #endregion
     }
 }

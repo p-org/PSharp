@@ -106,6 +106,14 @@ namespace Microsoft.PSharp.Parsing
                         new AssertStatementVisitor(base.TokenStream).Visit(node);
                         break;
 
+                    case TokenType.Break:
+                        new BreakStatementVisitor(base.TokenStream).Visit(node);
+                        break;
+
+                    case TokenType.Continue:
+                        new ContinueStatementVisitor(base.TokenStream).Visit(node);
+                        break;
+
                     case TokenType.IfCondition:
                         new IfStatementVisitor(base.TokenStream).Visit(node);
                         break;
@@ -129,9 +137,7 @@ namespace Microsoft.PSharp.Parsing
                     case TokenType.Try:
                         new TryStatementVisitor(base.TokenStream).Visit(node);
                         break;
-
-                    case TokenType.Break:
-                    case TokenType.Continue:
+                        
                     case TokenType.Return:
                     case TokenType.This:
                     case TokenType.Base:
@@ -244,6 +250,14 @@ namespace Microsoft.PSharp.Parsing
                         new AssertStatementVisitor(base.TokenStream).Visit(node);
                         break;
 
+                    case TokenType.Break:
+                        new BreakStatementVisitor(base.TokenStream).Visit(node);
+                        break;
+
+                    case TokenType.Continue:
+                        new ContinueStatementVisitor(base.TokenStream).Visit(node);
+                        break;
+
                     case TokenType.IfCondition:
                         new IfStatementVisitor(base.TokenStream).Visit(node);
                         break;
@@ -255,9 +269,7 @@ namespace Microsoft.PSharp.Parsing
                     case TokenType.DefaultEvent:
                         new DefaultStatementVisitor(base.TokenStream).Visit(node);
                         break;
-
-                    case TokenType.Break:
-                    case TokenType.Continue:
+                        
                     case TokenType.Return:
                     case TokenType.Identifier:
                         new GenericStatementVisitor(base.TokenStream).Visit(node);

@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="LockStatementNode.cs">
+// <copyright file="IfStatement.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -19,16 +19,16 @@ using System.Linq;
 namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
-    /// Lock statement node.
+    /// If statement syntax node.
     /// </summary>
-    internal sealed class LockStatementNode : StatementNode
+    internal sealed class IfStatement : Statement
     {
         #region fields
 
         /// <summary>
-        /// The lock keyword.
+        /// The if keyword.
         /// </summary>
-        internal Token LockKeyword;
+        internal Token IfKeyword;
 
         /// <summary>
         /// The left parenthesis token.
@@ -36,9 +36,9 @@ namespace Microsoft.PSharp.Parsing.Syntax
         internal Token LeftParenthesisToken;
 
         /// <summary>
-        /// The lock.
+        /// The guard predicate.
         /// </summary>
-        internal ExpressionNode Lock;
+        internal ExpressionNode Guard;
 
         /// <summary>
         /// The right parenthesis token.
@@ -50,6 +50,16 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         internal BlockSyntax StatementBlock;
 
+        /// <summary>
+        /// The else keyword.
+        /// </summary>
+        internal Token ElseKeyword;
+
+        /// <summary>
+        /// The else statement block.
+        /// </summary>
+        internal BlockSyntax ElseStatementBlock;
+
         #endregion
 
         #region internal API
@@ -59,7 +69,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         /// <param name="program">Program</param>
         /// <param name="node">Node</param>
-        internal LockStatementNode(IPSharpProgram program, BlockSyntax node)
+        internal IfStatement(IPSharpProgram program, BlockSyntax node)
             : base(program, node)
         {
 
@@ -72,12 +82,18 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <param name="program">Program</param>
         internal override void Rewrite()
         {
-            this.Lock.Rewrite();
+            this.Guard.Rewrite();
             this.StatementBlock.Rewrite();
 
-            var text = this.GetRewrittenLockStatement();
+            if (this.ElseKeyword != null &&
+                this.ElseStatementBlock != null)
+            {
+                this.ElseStatementBlock.Rewrite();
+            }
 
-            base.TextUnit = new TextUnit(text, this.LockKeyword.TextUnit.Line);
+            var text = this.GetRewrittenIfStatement();
+
+            base.TextUnit = new TextUnit(text, this.IfKeyword.TextUnit.Line);
         }
 
         /// <summary>
@@ -86,12 +102,18 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         internal override void Model()
         {
-            this.Lock.Model();
+            this.Guard.Model();
             this.StatementBlock.Model();
 
-            var text = this.GetRewrittenLockStatement();
+            if (this.ElseKeyword != null &&
+                this.ElseStatementBlock != null)
+            {
+                this.ElseStatementBlock.Model();
+            }
 
-            base.TextUnit = new TextUnit(text, this.LockKeyword.TextUnit.Line);
+            var text = this.GetRewrittenIfStatement();
+
+            base.TextUnit = new TextUnit(text, this.IfKeyword.TextUnit.Line);
         }
 
         #endregion
@@ -99,22 +121,31 @@ namespace Microsoft.PSharp.Parsing.Syntax
         #region private API
 
         /// <summary>
-        /// Returns the rewritten lock statement.
+        /// Returns the rewritten if statement.
         /// </summary>
         /// <returns>Text</returns>
-        private string GetRewrittenLockStatement()
+        private string GetRewrittenIfStatement()
         {
             var text = "";
 
-            text += this.LockKeyword.TextUnit.Text;
+            text += this.IfKeyword.TextUnit.Text + " ";
 
             text += this.LeftParenthesisToken.TextUnit.Text;
 
-            text += this.Lock.TextUnit.Text;
+            text += this.Guard.TextUnit.Text;
 
             text += this.RightParenthesisToken.TextUnit.Text;
 
             text += this.StatementBlock.TextUnit.Text;
+
+            if (this.ElseKeyword != null)
+            {
+                text += this.ElseKeyword.TextUnit.Text + " ";
+                if (this.ElseStatementBlock != null)
+                {
+                    text += this.ElseStatementBlock.TextUnit.Text;
+                }
+            }
 
             return text;
         }

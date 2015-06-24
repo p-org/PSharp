@@ -40,7 +40,7 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="parentNode">Node</param>
         internal void Visit(BlockSyntax parentNode)
         {
-            var node = new AssertStatementNode(base.TokenStream.Program, parentNode);
+            var node = new AssertStatement(base.TokenStream.Program, parentNode);
             node.AssertKeyword = base.TokenStream.Peek();
 
             base.TokenStream.Index++;

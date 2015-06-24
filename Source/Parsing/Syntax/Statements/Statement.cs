@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="StatementNode.cs">
+// <copyright file="Statement.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -19,9 +19,9 @@ using System.Linq;
 namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
-    /// Abstract statement node.
+    /// Abstract statement syntax node.
     /// </summary>
-    internal abstract class StatementNode : PSharpSyntaxNode
+    internal abstract class Statement : PSharpSyntaxNode
     {
         #region fields
 
@@ -44,7 +44,7 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         /// <param name="program">Program</param>
         /// <param name="node">Node</param>
-        internal StatementNode(IPSharpProgram program, BlockSyntax node)
+        internal Statement(IPSharpProgram program, BlockSyntax node)
             : base(program, node.IsModel)
         {
             this.Parent = node;
