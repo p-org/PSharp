@@ -43,21 +43,6 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
         }
 
         [TestMethod]
-        public void TestUnexpectedTokenWithoutNamespaceParsingFail()
-        {
-            var test = "";
-            test += "private";
-
-            var parser = new PSharpParser();
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("Unexpected token.",
-                parser.GetParsingErrorLog());
-        }
-
-        [TestMethod]
         public void TestEventDeclarationSyntaxParsing()
         {
             var test = "";
@@ -98,55 +83,6 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "}\n";
 
             Assert.AreEqual(output, expected);
-        }
-
-        [TestMethod]
-        public void TestProtectedEventDeclarationSyntaxParsingFail()
-        {
-            var test = "";
-            test += "namespace Foo {";
-            test += "protected event e;";
-            test += "}";
-
-            var parser = new PSharpParser();
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("Event and machine declarations must be internal or public.",
-                parser.GetParsingErrorLog());
-        }
-
-        [TestMethod]
-        public void TestPrivateEventDeclarationSyntaxParsingFail()
-        {
-            var test = "";
-            test += "namespace Foo {";
-            test += "private event e;";
-            test += "}";
-
-            var parser = new PSharpParser();
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("Event and machine declarations must be internal or public.",
-                parser.GetParsingErrorLog());
-        }
-
-        [TestMethod]
-        public void TestEventWithoutNamespaceParsingFail()
-        {
-            var test = "";
-            test += "event e;";
-
-            var parser = new PSharpParser();
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual("Must be declared inside a namespace.",
-                parser.GetParsingErrorLog());
         }
     }
 }
