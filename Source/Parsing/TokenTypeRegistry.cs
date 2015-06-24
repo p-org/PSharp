@@ -409,8 +409,52 @@ namespace Microsoft.PSharp.Parsing
                     text = "object";
                     break;
 
+                case TokenType.String:
+                    text = "string";
+                    break;
+
+                case TokenType.Sbyte:
+                    text = "sbyte";
+                    break;
+
+                case TokenType.Byte:
+                    text = "byte";
+                    break;
+
+                case TokenType.Short:
+                    text = "short";
+                    break;
+
+                case TokenType.Ushort:
+                    text = "ushort";
+                    break;
+
                 case TokenType.Int:
                     text = "int";
+                    break;
+
+                case TokenType.Uint:
+                    text = "uint";
+                    break;
+
+                case TokenType.Long:
+                    text = "long";
+                    break;
+
+                case TokenType.Ulong:
+                    text = "ulong";
+                    break;
+
+                case TokenType.Char:
+                    text = "char";
+                    break;
+
+                case TokenType.Bool:
+                    text = "bool";
+                    break;
+
+                case TokenType.Decimal:
+                    text = "decimal";
                     break;
 
                 case TokenType.Float:
@@ -419,10 +463,6 @@ namespace Microsoft.PSharp.Parsing
 
                 case TokenType.Double:
                     text = "double";
-                    break;
-
-                case TokenType.Bool:
-                    text = "bool";
                     break;
 
                 case TokenType.Foreign:

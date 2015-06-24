@@ -407,8 +407,52 @@ namespace Microsoft.PSharp.Parsing
                     this.Tokens.Add(new Token(unit, TokenType.Object));
                     break;
 
+                case "string":
+                    this.Tokens.Add(new Token(unit, TokenType.String));
+                    break;
+
+                case "sbyte":
+                    this.Tokens.Add(new Token(unit, TokenType.Sbyte));
+                    break;
+
+                case "byte":
+                    this.Tokens.Add(new Token(unit, TokenType.Byte));
+                    break;
+
+                case "short":
+                    this.Tokens.Add(new Token(unit, TokenType.Short));
+                    break;
+
+                case "ushort":
+                    this.Tokens.Add(new Token(unit, TokenType.Ushort));
+                    break;
+
                 case "int":
                     this.Tokens.Add(new Token(unit, TokenType.Int));
+                    break;
+
+                case "uint":
+                    this.Tokens.Add(new Token(unit, TokenType.Uint));
+                    break;
+
+                case "long":
+                    this.Tokens.Add(new Token(unit, TokenType.Long));
+                    break;
+
+                case "ulong":
+                    this.Tokens.Add(new Token(unit, TokenType.Ulong));
+                    break;
+                    
+                case "char":
+                    this.Tokens.Add(new Token(unit, TokenType.Char));
+                    break;
+
+                case "bool":
+                    this.Tokens.Add(new Token(unit, TokenType.Bool));
+                    break;
+
+                case "decimal":
+                    this.Tokens.Add(new Token(unit, TokenType.Decimal));
                     break;
 
                 case "float":
@@ -417,10 +461,6 @@ namespace Microsoft.PSharp.Parsing
 
                 case "double":
                     this.Tokens.Add(new Token(unit, TokenType.Double));
-                    break;
-
-                case "bool":
-                    this.Tokens.Add(new Token(unit, TokenType.Bool));
                     break;
 
                 default:

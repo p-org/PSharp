@@ -182,10 +182,20 @@ namespace Microsoft.PSharp.Parsing
                     base.TokenStream.Peek().Type != TokenType.Base &&
                     base.TokenStream.Peek().Type != TokenType.Var &&
                     base.TokenStream.Peek().Type != TokenType.Object &&
+                    base.TokenStream.Peek().Type != TokenType.String &&
+                    base.TokenStream.Peek().Type != TokenType.Sbyte &&
+                    base.TokenStream.Peek().Type != TokenType.Byte &&
+                    base.TokenStream.Peek().Type != TokenType.Short &&
+                    base.TokenStream.Peek().Type != TokenType.Ushort &&
                     base.TokenStream.Peek().Type != TokenType.Int &&
+                    base.TokenStream.Peek().Type != TokenType.Uint &&
+                    base.TokenStream.Peek().Type != TokenType.Long &&
+                    base.TokenStream.Peek().Type != TokenType.Ulong &&
+                    base.TokenStream.Peek().Type != TokenType.Char &&
+                    base.TokenStream.Peek().Type != TokenType.Bool &&
+                    base.TokenStream.Peek().Type != TokenType.Decimal &&
                     base.TokenStream.Peek().Type != TokenType.Float &&
                     base.TokenStream.Peek().Type != TokenType.Double &&
-                    base.TokenStream.Peek().Type != TokenType.Bool &&
                     base.TokenStream.Peek().Type != TokenType.Identifier &&
                     base.TokenStream.Peek().Type != TokenType.Await &&
                     base.TokenStream.Peek().Type != TokenType.LeftCurlyBracket))
@@ -280,10 +290,20 @@ namespace Microsoft.PSharp.Parsing
                 base.TokenStream.Peek().Type == TokenType.Base ||
                 base.TokenStream.Peek().Type == TokenType.Var ||
                 base.TokenStream.Peek().Type == TokenType.Object ||
+                base.TokenStream.Peek().Type == TokenType.String ||
+                base.TokenStream.Peek().Type == TokenType.Sbyte ||
+                base.TokenStream.Peek().Type == TokenType.Byte ||
+                base.TokenStream.Peek().Type == TokenType.Short ||
+                base.TokenStream.Peek().Type == TokenType.Ushort ||
                 base.TokenStream.Peek().Type == TokenType.Int ||
+                base.TokenStream.Peek().Type == TokenType.Uint ||
+                base.TokenStream.Peek().Type == TokenType.Long ||
+                base.TokenStream.Peek().Type == TokenType.Ulong ||
+                base.TokenStream.Peek().Type == TokenType.Char ||
+                base.TokenStream.Peek().Type == TokenType.Bool ||
+                base.TokenStream.Peek().Type == TokenType.Decimal ||
                 base.TokenStream.Peek().Type == TokenType.Float ||
                 base.TokenStream.Peek().Type == TokenType.Double ||
-                base.TokenStream.Peek().Type == TokenType.Bool ||
                 base.TokenStream.Peek().Type == TokenType.Identifier ||
                 base.TokenStream.Peek().Type == TokenType.Await)
             {
@@ -326,10 +346,20 @@ namespace Microsoft.PSharp.Parsing
                         base.TokenStream.Peek().Type != TokenType.Base &&
                         base.TokenStream.Peek().Type != TokenType.Var &&
                         base.TokenStream.Peek().Type != TokenType.Object &&
+                        base.TokenStream.Peek().Type != TokenType.String &&
+                        base.TokenStream.Peek().Type != TokenType.Sbyte &&
+                        base.TokenStream.Peek().Type != TokenType.Byte &&
+                        base.TokenStream.Peek().Type != TokenType.Short &&
+                        base.TokenStream.Peek().Type != TokenType.Ushort &&
                         base.TokenStream.Peek().Type != TokenType.Int &&
+                        base.TokenStream.Peek().Type != TokenType.Uint &&
+                        base.TokenStream.Peek().Type != TokenType.Long &&
+                        base.TokenStream.Peek().Type != TokenType.Ulong &&
+                        base.TokenStream.Peek().Type != TokenType.Char &&
+                        base.TokenStream.Peek().Type != TokenType.Bool &&
+                        base.TokenStream.Peek().Type != TokenType.Decimal &&
                         base.TokenStream.Peek().Type != TokenType.Float &&
                         base.TokenStream.Peek().Type != TokenType.Double &&
-                        base.TokenStream.Peek().Type != TokenType.Bool &&
                         base.TokenStream.Peek().Type != TokenType.Identifier &&
                         base.TokenStream.Peek().Type != TokenType.Await &&
                         base.TokenStream.Peek().Type != TokenType.LeftCurlyBracket))
@@ -425,10 +455,20 @@ namespace Microsoft.PSharp.Parsing
                     base.TokenStream.Peek().Type == TokenType.Base ||
                     base.TokenStream.Peek().Type == TokenType.Var ||
                     base.TokenStream.Peek().Type == TokenType.Object ||
+                    base.TokenStream.Peek().Type == TokenType.String ||
+                    base.TokenStream.Peek().Type == TokenType.Sbyte ||
+                    base.TokenStream.Peek().Type == TokenType.Byte ||
+                    base.TokenStream.Peek().Type == TokenType.Short ||
+                    base.TokenStream.Peek().Type == TokenType.Ushort ||
                     base.TokenStream.Peek().Type == TokenType.Int ||
+                    base.TokenStream.Peek().Type == TokenType.Uint ||
+                    base.TokenStream.Peek().Type == TokenType.Long ||
+                    base.TokenStream.Peek().Type == TokenType.Ulong ||
+                    base.TokenStream.Peek().Type == TokenType.Char ||
+                    base.TokenStream.Peek().Type == TokenType.Bool ||
+                    base.TokenStream.Peek().Type == TokenType.Decimal ||
                     base.TokenStream.Peek().Type == TokenType.Float ||
                     base.TokenStream.Peek().Type == TokenType.Double ||
-                    base.TokenStream.Peek().Type == TokenType.Bool ||
                     base.TokenStream.Peek().Type == TokenType.Identifier ||
                     base.TokenStream.Peek().Type == TokenType.Await)
                 {

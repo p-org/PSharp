@@ -24,17 +24,16 @@ namespace Microsoft.PSharp.Parsing
         NewLine,
         WhiteSpace,
 
+        #region comments
+
         Comment,
         CommentLine,
         CommentStart,
         CommentEnd,
         Region,
 
-        EventIdentifier,
-        MachineIdentifier,
-        StateIdentifier,
-        ActionIdentifier,
-        TypeIdentifier,
+        #endregion
+
         Identifier,
 
         LeftCurlyBracket,
@@ -74,7 +73,7 @@ namespace Microsoft.PSharp.Parsing
         LogAndOp,
         LogOrOp,
 
-        NonDeterministic,
+        #region C#-specific tokens
 
         Private,
         Protected,
@@ -89,26 +88,6 @@ namespace Microsoft.PSharp.Parsing
         StructDecl,
         Using,
 
-        MachineDecl,
-        ModelDecl,
-        Monitor,
-        StateDecl,
-        EventDecl,
-        FunDecl,
-
-        MainMachine,
-        StartState,
-
-        OnAction,
-        DoAction,
-        GotoState,
-        PushState,
-        WithExit,
-        DeferEvent,
-        IgnoreEvent,
-        Entry,
-        Exit,
-
         This,
         Base,
         New,
@@ -116,11 +95,8 @@ namespace Microsoft.PSharp.Parsing
         True,
         False,
 
-        SizeOf,
         In,
         As,
-        Keys,
-        Values,
 
         IfCondition,
         ElseCondition,
@@ -131,11 +107,45 @@ namespace Microsoft.PSharp.Parsing
         Break,
         Continue,
         Return,
-        Pop,
         Lock,
 
         Async,
         Await,
+
+        Var,
+        Void,
+        Object,
+        String,
+        Sbyte,
+        Byte,
+        Short,
+        Ushort,
+        Int,
+        Uint,
+        Long,
+        Ulong,
+        Char,
+        Bool,
+        Decimal,
+        Float,
+        Double,
+
+        #endregion
+
+        #region P#-specific tokens
+
+        MachineDecl,
+        ModelDecl,
+        Monitor,
+        StateDecl,
+        EventDecl,
+        StartState,
+
+        EventIdentifier,
+        MachineIdentifier,
+        StateIdentifier,
+        ActionIdentifier,
+        TypeIdentifier,
 
         CreateMachine,
         SendEvent,
@@ -143,25 +153,46 @@ namespace Microsoft.PSharp.Parsing
         Models,
         Assert,
         Assume,
+        Pop,
+        
+        OnAction,
+        DoAction,
+        GotoState,
+        PushState,
+        WithExit,
+        DeferEvent,
+        IgnoreEvent,
+        Entry,
+        Exit,
+
         Payload,
         Trigger,
 
         HaltEvent,
         DefaultEvent,
 
+        NonDeterministic,
+
+        #endregion
+
+        #region P-specific tokens
+
+        FunDecl,
+
+        MainMachine,
+
+        SizeOf,
+        Keys,
+        Values,
+
         ColdState,
         HotState,
 
-        Var,
-        Void,
-        Object,
-        Int,
-        Float,
-        Double,
-        Bool,
         Foreign,
         Any,
         Seq,
         Map
+            
+        #endregion
     }
 }

@@ -223,12 +223,22 @@ namespace Microsoft.PSharp.Parsing
                 case TokenType.StateDecl:
                 case TokenType.ModelDecl:
                 case TokenType.Void:
-                case TokenType.Object:
                 case TokenType.MachineDecl:
+                case TokenType.Object:
+                case TokenType.String:
+                case TokenType.Sbyte:
+                case TokenType.Byte:
+                case TokenType.Short:
+                case TokenType.Ushort:
                 case TokenType.Int:
+                case TokenType.Uint:
+                case TokenType.Long:
+                case TokenType.Ulong:
+                case TokenType.Char:
+                case TokenType.Bool:
+                case TokenType.Decimal:
                 case TokenType.Float:
                 case TokenType.Double:
-                case TokenType.Bool:
                 case TokenType.Identifier:
                 case TokenType.Private:
                 case TokenType.Protected:
@@ -283,10 +293,20 @@ namespace Microsoft.PSharp.Parsing
                 base.TokenStream.Peek().Type != TokenType.MachineDecl &&
                 base.TokenStream.Peek().Type != TokenType.Void &&
                 base.TokenStream.Peek().Type != TokenType.Object &&
+                base.TokenStream.Peek().Type != TokenType.String &&
+                base.TokenStream.Peek().Type != TokenType.Sbyte &&
+                base.TokenStream.Peek().Type != TokenType.Byte &&
+                base.TokenStream.Peek().Type != TokenType.Short &&
+                base.TokenStream.Peek().Type != TokenType.Ushort &&
                 base.TokenStream.Peek().Type != TokenType.Int &&
+                base.TokenStream.Peek().Type != TokenType.Uint &&
+                base.TokenStream.Peek().Type != TokenType.Long &&
+                base.TokenStream.Peek().Type != TokenType.Ulong &&
+                base.TokenStream.Peek().Type != TokenType.Char &&
+                base.TokenStream.Peek().Type != TokenType.Bool &&
+                base.TokenStream.Peek().Type != TokenType.Decimal &&
                 base.TokenStream.Peek().Type != TokenType.Float &&
                 base.TokenStream.Peek().Type != TokenType.Double &&
-                base.TokenStream.Peek().Type != TokenType.Bool &&
                 base.TokenStream.Peek().Type != TokenType.Identifier)
             {
                 if (am != AccessModifier.None &&
@@ -373,10 +393,20 @@ namespace Microsoft.PSharp.Parsing
                 base.TokenStream.Peek().Type != TokenType.MachineDecl &&
                 base.TokenStream.Peek().Type != TokenType.Void &&
                 base.TokenStream.Peek().Type != TokenType.Object &&
+                base.TokenStream.Peek().Type != TokenType.String &&
+                base.TokenStream.Peek().Type != TokenType.Sbyte &&
+                base.TokenStream.Peek().Type != TokenType.Byte &&
+                base.TokenStream.Peek().Type != TokenType.Short &&
+                base.TokenStream.Peek().Type != TokenType.Ushort &&
                 base.TokenStream.Peek().Type != TokenType.Int &&
+                base.TokenStream.Peek().Type != TokenType.Uint &&
+                base.TokenStream.Peek().Type != TokenType.Long &&
+                base.TokenStream.Peek().Type != TokenType.Ulong &&
+                base.TokenStream.Peek().Type != TokenType.Char &&
+                base.TokenStream.Peek().Type != TokenType.Bool &&
+                base.TokenStream.Peek().Type != TokenType.Decimal &&
                 base.TokenStream.Peek().Type != TokenType.Float &&
                 base.TokenStream.Peek().Type != TokenType.Double &&
-                base.TokenStream.Peek().Type != TokenType.Bool &&
                 base.TokenStream.Peek().Type != TokenType.Identifier))
             {
                 throw new ParsingException("Expected state or method declaration.",
@@ -386,10 +416,20 @@ namespace Microsoft.PSharp.Parsing
                     TokenType.MachineDecl,
                     TokenType.Void,
                     TokenType.Object,
+                    TokenType.String,
+                    TokenType.Sbyte,
+                    TokenType.Byte,
+                    TokenType.Short,
+                    TokenType.Ushort,
                     TokenType.Int,
+                    TokenType.Uint,
+                    TokenType.Long,
+                    TokenType.Ulong,
+                    TokenType.Char,
+                    TokenType.Bool,
+                    TokenType.Decimal,
                     TokenType.Float,
                     TokenType.Double,
-                    TokenType.Bool,
                     TokenType.Identifier
                 });
             }
