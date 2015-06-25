@@ -136,7 +136,7 @@
     <Compile Include="Syntax\Statements\RaiseStatement.cs" />
     <Compile Include="Syntax\Statements\IfStatement.cs" />
     <Compile Include="Syntax\Statements\CreateStatement.cs" />
-    <Compile Include="Syntax\Statements\ExpressionNode.cs" />
+    <Compile Include="Syntax\Expressions\ExpressionNode.cs" />
     <Compile Include="Syntax\Statements\GenericStatement.cs" />
     <Compile Include="Syntax\Statements\Statement.cs" />
     <Compile Include="Syntax\PDeclarations\PFunctionDeclarationNode.cs" />
