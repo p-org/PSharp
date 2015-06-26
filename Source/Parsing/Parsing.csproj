@@ -89,6 +89,7 @@
     <Compile Include="ParsingEngine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rewriters\Expressions\FieldAccessRewriter.cs" />
+    <Compile Include="Rewriters\Expressions\NondeterministicChoiceRewriter.cs" />
     <Compile Include="Rewriters\Expressions\ThisRewriter.cs" />
     <Compile Include="Rewriters\Statements\PopRewriter.cs" />
     <Compile Include="Rewriters\Statements\AssertRewriter.cs" />

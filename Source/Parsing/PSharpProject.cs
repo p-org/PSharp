@@ -238,6 +238,7 @@ namespace Microsoft.PSharp.Parsing
             tree = new PayloadRewriter(this).Rewrite(tree);
             tree = new FieldAccessRewriter(this).Rewrite(tree);
             tree = new ThisRewriter(this).Rewrite(tree);
+            tree = new NondeterministicChoiceRewriter(this).Rewrite(tree);
 
             return tree;
         }
