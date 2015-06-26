@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="PayloadRewriter.cs">
+// <copyright file="FieldAccessRewriter.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -23,9 +23,9 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
-    /// The payload expression rewriter.
+    /// The field access expression rewriter.
     /// </summary>
-    internal sealed class PayloadRewriter : PSharpRewriter
+    internal sealed class FieldAccessRewriter : PSharpRewriter
     {
         #region public API
 
@@ -33,21 +33,20 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Constructor.
         /// </summary>
         /// <param name="project">PSharpProject</param>
-        internal PayloadRewriter(PSharpProject project)
+        internal FieldAccessRewriter(PSharpProject project)
             : base(project)
         {
 
         }
 
         /// <summary>
-        /// Rewrites the syntax tree with payload expressions.
+        /// Rewrites the syntax tree with field access expressions.
         /// </summary>
         /// <param name="tree">SyntaxTree</param>
         /// <returns>SyntaxTree</returns>
         internal SyntaxTree Rewrite(SyntaxTree tree)
         {
             var expressions = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().
-                Where(val => val.Identifier.ValueText.Equals("payload")).
                 ToList();
 
             if (expressions.Count == 0)
@@ -67,25 +66,31 @@ namespace Microsoft.PSharp.Parsing.Syntax
         #region private API
 
         /// <summary>
-        /// Rewrites the expression with a payload expression.
+        /// Rewrites the expression with a field access expression.
         /// </summary>
         /// <param name="node">IdentifierNameSyntax</param>
         /// <returns>SyntaxNode</returns>
         private SyntaxNode RewriteExpression(IdentifierNameSyntax node)
         {
-            var text = "";
+            SyntaxNode rewritten = node;
 
-            if (node.Parent is ElementAccessExpressionSyntax)
+            if (!(rewritten.Parent is MemberAccessExpressionSyntax) &&
+                !(rewritten.Parent is ObjectCreationExpressionSyntax) &&
+                !(rewritten.Parent is TypeOfExpressionSyntax) &&
+                base.IsInStateScope(rewritten) &&
+                (base.IsMachineField(rewritten) || base.IsMachineMethod(rewritten)))
             {
-                text = "((object[])this.Payload)";
-            }
-            else
-            {
-                text = "this.Payload";
-            }
+                MachineDeclaration machine = null;
+                if (!this.TryGetParentMachine(node, out machine))
+                {
+                    return rewritten;
+                }
+                
+                var text = "this." + node.ToString();
 
-            var rewritten = SyntaxFactory.ParseExpression(text);
-            rewritten = rewritten.WithTriviaFrom(node);
+                rewritten = SyntaxFactory.ParseExpression(text);
+                rewritten = rewritten.WithTriviaFrom(node);
+            }
 
             return rewritten;
         }

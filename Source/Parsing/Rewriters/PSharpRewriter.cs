@@ -100,27 +100,74 @@ namespace Microsoft.PSharp.Parsing
         }
 
         /// <summary>
+        /// True if the given syntax node is a machine field.
+        /// </summary>
+        /// <param name="node">SyntaxNode</param>
+        /// <returns>Boolean value</returns>
+        protected bool IsMachineField(SyntaxNode node)
+        {
+            var result = false;
+
+            MachineDeclaration machine = null;
+            if (!this.TryGetParentMachine(node, out machine))
+            {
+                return result;
+            }
+
+            result = machine.FieldDeclarations.
+                Any(s => s.Identifier.TextUnit.Text.Equals(node.ToString()));
+
+            return result;
+        }
+
+        /// <summary>
+        /// True if the given syntax node is a machine method.
+        /// </summary>
+        /// <param name="node">SyntaxNode</param>
+        /// <returns>Boolean value</returns>
+        protected bool IsMachineMethod(SyntaxNode node)
+        {
+            var result = false;
+
+            MachineDeclaration machine = null;
+            if (!this.TryGetParentMachine(node, out machine))
+            {
+                return result;
+            }
+
+            result = machine.MethodDeclarations.
+                Any(s => s.Identifier.TextUnit.Text.Equals(node.ToString()));
+
+            if (!result)
+            {
+                result = machine.FieldDeclarations.
+                    Any(s => s.Identifier.TextUnit.Text.Equals(node.ToString()));
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Tries to return the parent machine identifier, if any.
         /// </summary>
         /// <param name="node">SyntaxNode</param>
-        /// <param name="identifier">Machine identifier</param>
+        /// <param name="machine">MachineDeclaration</param>
         /// <returns>Boolean value</returns>
-        protected bool TryGetParentMachine(SyntaxNode node, out string identifier)
+        protected bool TryGetParentMachine(SyntaxNode node, out MachineDeclaration machine)
         {
             var result = false;
-            identifier = "";
+            machine = null;
 
             var ancestors = node.Ancestors().OfType<ClassDeclarationSyntax>().ToList();
             foreach (var ancestor in ancestors)
             {
-                var machine = this.Project.PSharpPrograms.
+                machine = this.Project.PSharpPrograms.
                     SelectMany(p => p.NamespaceDeclarations).
                     SelectMany(n => n.MachineDeclarations).
                     FirstOrDefault(s => s.Identifier.TextUnit.Text.Equals(ancestor.Identifier.ValueText));
 
                 if (machine != null)
                 {
-                    identifier = machine.Identifier.TextUnit.Text;
                     result = true;
                     break;
                 }

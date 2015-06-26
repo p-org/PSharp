@@ -81,15 +81,18 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 rewritten = SyntaxFactory.ParseExpression(text);
                 rewritten = rewritten.WithTriviaFrom(node);
             }
-            else if (base.IsInStateScope(rewritten))
+            else if (rewritten.Parent is MemberAccessExpressionSyntax &&
+                base.IsInStateScope(rewritten) &&
+                (base.IsMachineField((rewritten.Parent as MemberAccessExpressionSyntax).Name) ||
+                base.IsMachineMethod((rewritten.Parent as MemberAccessExpressionSyntax).Name)))
             {
-                string machineIdentifier = "";
-                if (!base.TryGetParentMachine(rewritten, out machineIdentifier))
+                MachineDeclaration machine = null;
+                if (!base.TryGetParentMachine(rewritten, out machine))
                 {
                     return rewritten;
                 }
 
-                var text = "(this.Machine as " + machineIdentifier + ")";
+                var text = "(this.Machine as " + machine.Identifier.TextUnit.Text + ")";
 
                 rewritten = SyntaxFactory.ParseExpression(text);
                 rewritten = rewritten.WithTriviaFrom(node);

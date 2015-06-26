@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace PingPong
+﻿namespace PingPong
 {
     machine Server
     {

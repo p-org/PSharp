@@ -97,6 +97,7 @@ namespace Microsoft.PSharp
         /// <param name="payload">Optional payload</param>
         public static void SendEvent(MachineId target, Event e, params Object[] payload)
         {
+            e.AssignPayload(payload);
             PSharpRuntime.Send(target, e);
         }
 

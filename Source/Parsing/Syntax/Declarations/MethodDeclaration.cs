@@ -187,8 +187,10 @@ namespace Microsoft.PSharp.Parsing.Syntax
             }
             else
             {
-                text += this.SemicolonToken.TextUnit.Text + "\n";
+                text += this.SemicolonToken.TextUnit.Text;
             }
+
+            text += "\n\n";
 
             return text;
         }

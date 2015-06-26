@@ -1,4 +1,6 @@
-﻿namespace TypesAndGenerics
+﻿using System.Collections.Generic;
+
+namespace TypesAndGenerics
 {
     machine Server
     {	
@@ -9,9 +11,9 @@
         {
             entry
             {
-                this.Client = create Client ( this );
+                this.Client = create(Client, this);
 				this.Field = new List<Tuple<int[], bool>>();
-                raise Unit;
+                raise(Unit);
             }
 
             on Unit goto Playing;
@@ -21,7 +23,7 @@
         {
             entry
             {
-                send this.Client, Pong;
+                send(this.Client, Pong);
             }
 
             on Unit do SendPong;
@@ -31,13 +33,13 @@
 
         void SendPong()
         {
-            send this.Client, Pong;
+            send(this.Client, Pong);
         }
 
         void StopIt()
         {
             Console.WriteLine("Server stopped.\n");
-            raise halt;
+            raise(halt);
         }
     }
 }

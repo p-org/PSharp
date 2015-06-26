@@ -13,7 +13,7 @@
             entry
             {	
                 this.Scheduler = (machine)payload;
-                raise eUnit;
+                raise(eUnit);
             }
 
             on eUnit goto Init;
@@ -43,13 +43,13 @@
                 var msg1 = this.CountMessage;
                 var msg2 = new CountMessage(this.CountMessage.Count);
 
-                send LeftProcess, eMyCount ( msg1 );
-                send RightProcess, eMyCount ( msg2 );
-                send Scheduler, eReq;
+                send(LeftProcess, eMyCount, msg1);
+                send(RightProcess, eMyCount, msg2);
+                send(Scheduler, eReq);
 
                 if (this.CountMessage.Count > 10)
                 {
-                    raise eUnit;
+                    raise(eUnit);
                 }
             }
 
@@ -74,7 +74,7 @@
 			this.LeftProcess = payload[0] as machine;
             this.RightProcess = payload[1] as machine;
 
-            send Scheduler, eReq;
+            send(Scheduler, eReq);
         }
 		
         private void ConfirmThatInSync()

@@ -236,6 +236,7 @@ namespace Microsoft.PSharp.Parsing
         private SyntaxTree RewriteExpressions(SyntaxTree tree)
         {
             tree = new PayloadRewriter(this).Rewrite(tree);
+            tree = new FieldAccessRewriter(this).Rewrite(tree);
             tree = new ThisRewriter(this).Rewrite(tree);
 
             return tree;
@@ -261,6 +262,8 @@ namespace Microsoft.PSharp.Parsing
                 var psharpColletionsLib = this.CreateLibrary("Microsoft.PSharp.Collections");
                 list.Add(psharpColletionsLib);
             }
+
+            list.AddRange(tree.GetCompilationUnitRoot().Usings);
 
             var root = tree.GetCompilationUnitRoot().WithUsings(SyntaxFactory.List(list));
 
