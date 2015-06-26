@@ -163,7 +163,7 @@ namespace Microsoft.PSharp.Tooling
             var lines = System.Text.RegularExpressions.Regex.Split(root.ToFullString(), "\r\n|\r|\n");
             for (int idx = 0; idx < lines.Length; idx++)
             {
-                Console.WriteLine(idx + 1 + " " + lines[idx]);
+                Output.Print(idx + 1 + " " + lines[idx]);
             }
         }
 

@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="BlockSyntax.cs">
+// <copyright file="EntryDeclaration.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -16,44 +16,24 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
-
-using Microsoft.PSharp.Tooling;
-
 namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
-    /// Block syntax node.
+    /// Entry declaration syntax node.
     /// </summary>
-    internal sealed class BlockSyntax : PSharpSyntaxNode
+    internal sealed class EntryDeclaration : PSharpSyntaxNode
     {
         #region fields
 
         /// <summary>
-        /// The machine parent node.
+        /// The entry keyword.
         /// </summary>
-        internal readonly MachineDeclaration Machine;
-
-        /// <summary>
-        /// The state parent node.
-        /// </summary>
-        internal readonly StateDeclaration State;
+        internal Token EntryKeyword;
 
         /// <summary>
         /// The statement block.
         /// </summary>
-        internal SyntaxTree Block;
-
-        /// <summary>
-        /// The open brace token.
-        /// </summary>
-        internal Token OpenBraceToken;
-
-        /// <summary>
-        /// The close brace token.
-        /// </summary>
-        internal Token CloseBraceToken;
+        internal BlockSyntax StatementBlock;
 
         #endregion
 
@@ -63,15 +43,11 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Constructor.
         /// </summary>
         /// <param name="program">Program</param>
-        /// <param name="machineNode">MachineDeclarationNode</param>
-        /// <param name="stateNode">StateDeclarationNode</param>
         /// <param name="isModel">Is a model</param>
-        internal BlockSyntax(IPSharpProgram program, MachineDeclaration machineNode,
-            StateDeclaration stateNode, bool isModel)
+        internal EntryDeclaration(IPSharpProgram program, bool isModel)
             : base(program, isModel)
         {
-            this.Machine = machineNode;
-            this.State = stateNode;
+
         }
 
         /// <summary>
@@ -81,8 +57,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <param name="program">Program</param>
         internal override void Rewrite()
         {
-            var text = this.Block.ToString();
-            base.TextUnit = new TextUnit(text, this.OpenBraceToken.TextUnit.Line);
+            this.StatementBlock.Rewrite();
+
+            var text = "protected override void OnEntry()";
+            text += StatementBlock.TextUnit.Text;
+
+            base.TextUnit = new TextUnit(text, this.EntryKeyword.TextUnit.Line);
         }
 
         /// <summary>
@@ -91,8 +71,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         internal override void Model()
         {
-            var text = this.Block.ToString();
-            base.TextUnit = new TextUnit(text, this.OpenBraceToken.TextUnit.Line);
+            this.StatementBlock.Model();
+
+            var text = "protected override void OnEntry()";
+            text += StatementBlock.TextUnit.Text;
+
+            base.TextUnit = new TextUnit(text, this.EntryKeyword.TextUnit.Line);
         }
 
         #endregion

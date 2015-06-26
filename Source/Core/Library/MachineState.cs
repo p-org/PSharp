@@ -220,9 +220,10 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="mid">Machine id</param>
         /// <param name="e">Event</param>
-        protected void Send(MachineId mid, Event e)
+        /// <param name="payload">Optional payload</param>
+        protected void Send(MachineId mid, Event e, params Object[] payload)
         {
-            this.Machine.Send(mid, e);
+            this.Machine.Send(mid, e, payload);
         }
 
         /// <summary>
@@ -239,9 +240,10 @@ namespace Microsoft.PSharp
         /// Raises an event internally and returns from the execution context.
         /// </summary>
         /// <param name="e">Event</param>
-        protected void Raise(Event e)
+        /// <param name="payload">Optional payload</param>
+        protected void Raise(Event e, params Object[] payload)
         {
-            this.Machine.Raise(e);
+            this.Machine.Raise(e, payload);
         }
 
         /// <summary>

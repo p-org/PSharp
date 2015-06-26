@@ -207,8 +207,10 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="m">Machine id</param>
         /// <param name="e">Event</param>
-        protected internal void Send(MachineId mid, Event e)
+        /// <param name="payload">Optional payload</param>
+        protected internal void Send(MachineId mid, Event e, params Object[] payload)
         {
+            e.AssignPayload(payload);
             Output.Debug(DebugType.Runtime, "<SendLog> Machine '{0}({1})' sent event '{2}' " +
                 "to machine with id '{3}'.", this, this.Id.Value, e.GetType(), mid.Value);
             Machine.Dispatcher.Send(mid, e);
@@ -228,8 +230,10 @@ namespace Microsoft.PSharp
         /// Raises an event internally and returns from the execution context.
         /// </summary>
         /// <param name="e">Event</param>
-        protected internal void Raise(Event e)
+        /// <param name="payload">Optional payload</param>
+        protected internal void Raise(Event e, params Object[] payload)
         {
+            e.AssignPayload(payload);
             Output.Debug(DebugType.Runtime, "<RaiseLog> Machine '{0}({1})' raised " +
                 "event '{2}'.", this, this.Id.Value, e);
             this.RaisedEvent = e;

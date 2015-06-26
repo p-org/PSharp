@@ -26,12 +26,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// List of using declarations.
         /// </summary>
-        internal List<UsingDeclarationNode> UsingDeclarations;
+        internal List<UsingDeclaration> UsingDeclarations;
 
         /// <summary>
         /// List of namespace declarations.
         /// </summary>
-        internal List<NamespaceDeclarationNode> NamespaceDeclarations;
+        internal List<NamespaceDeclaration> NamespaceDeclarations;
 
         #endregion
 
@@ -45,8 +45,8 @@ namespace Microsoft.PSharp.Parsing.Syntax
         public PSharpProgram(PSharpProject project, string filePath)
             : base(project, filePath)
         {
-            this.UsingDeclarations = new List<UsingDeclarationNode>();
-            this.NamespaceDeclarations = new List<NamespaceDeclarationNode>();
+            this.UsingDeclarations = new List<UsingDeclaration>();
+            this.NamespaceDeclarations = new List<NamespaceDeclaration>();
         }
 
         /// <summary>
@@ -56,11 +56,6 @@ namespace Microsoft.PSharp.Parsing.Syntax
         public override string Rewrite()
         {
             this.RewrittenText = "";
-
-            this.RewrittenText += base.InstrumentSystemLibrary();
-            this.RewrittenText += base.InstrumentSystemCollectionsGenericLibrary();
-            this.RewrittenText += base.InstrumentSystemThreadingLibrary();
-            this.RewrittenText += base.InstrumentPSharpLibrary();
 
             foreach (var node in this.UsingDeclarations)
             {
@@ -84,11 +79,6 @@ namespace Microsoft.PSharp.Parsing.Syntax
         public override string Model()
         {
             this.ModelText = "";
-
-            this.ModelText += base.InstrumentSystemLibrary();
-            this.ModelText += base.InstrumentSystemCollectionsGenericLibrary();
-            this.ModelText += base.InstrumentSystemThreadingLibrary();
-            this.ModelText += base.InstrumentPSharpLibrary();
 
             foreach (var node in this.UsingDeclarations)
             {

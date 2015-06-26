@@ -40,9 +40,9 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="parentNode">Node</param>
         /// <param name="isStart">Is start state</param>
         /// <param name="accMod">Access modifier</param>
-        internal void Visit(MachineDeclarationNode parentNode, bool isStart, AccessModifier accMod)
+        internal void Visit(MachineDeclaration parentNode, bool isStart, AccessModifier accMod)
         {
-            var node = new StateDeclarationNode(base.TokenStream.Program, parentNode,
+            var node = new StateDeclaration(base.TokenStream.Program, parentNode,
                 isStart, parentNode.IsModel);
             node.AccessModifier = accMod;
             node.StateKeyword = base.TokenStream.Peek();
@@ -103,7 +103,7 @@ namespace Microsoft.PSharp.Parsing
         /// Visits the next intra-state declration.
         /// </summary>
         /// <param name="node">Node</param>
-        private void VisitNextPSharpIntraStateDeclaration(StateDeclarationNode node)
+        private void VisitNextPSharpIntraStateDeclaration(StateDeclaration node)
         {
             bool fixpoint = false;
             while (!fixpoint)
@@ -204,7 +204,7 @@ namespace Microsoft.PSharp.Parsing
         /// Visits the next intra-state declration.
         /// </summary>
         /// <param name="node">Node</param>
-        private void VisitNextPIntraStateDeclaration(StateDeclarationNode node)
+        private void VisitNextPIntraStateDeclaration(StateDeclaration node)
         {
             bool fixpoint = false;
             while (!fixpoint)

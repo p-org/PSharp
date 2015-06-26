@@ -42,7 +42,7 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="accMod">Access modifier</param>
         /// <param name="inhMod">Inheritance modifier</param>
         /// <param name="isAsync">Is async</param>
-        internal void Visit(MachineDeclarationNode parentNode, bool isModel, AccessModifier accMod,
+        internal void Visit(MachineDeclaration parentNode, bool isModel, AccessModifier accMod,
             InheritanceModifier inhMod, bool isAsync)
         {
             TextUnit textUnit = null;
@@ -111,7 +111,7 @@ namespace Microsoft.PSharp.Parsing
                         new List<TokenType>());
                 }
 
-                var node = new FieldDeclarationNode(base.TokenStream.Program, parentNode,
+                var node = new FieldDeclaration(base.TokenStream.Program, parentNode,
                     parentNode.IsModel);
                 node.AccessModifier = accMod;
                 node.TypeIdentifier = typeIdentifier;

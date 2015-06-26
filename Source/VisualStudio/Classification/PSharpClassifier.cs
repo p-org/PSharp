@@ -260,6 +260,7 @@ namespace Microsoft.PSharp.VisualStudio
 
                 case TokenType.CreateMachine:
                 case TokenType.SendEvent:
+                case TokenType.ToMachine:
                 case TokenType.RaiseEvent:
                 case TokenType.Models:
                 case TokenType.Assert:

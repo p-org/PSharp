@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="BlockSyntax.cs">
+// <copyright file="PFieldDeclaration.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -16,63 +16,50 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
-
-using Microsoft.PSharp.Tooling;
-
 namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
-    /// Block syntax node.
+    /// Field declaration syntax node.
     /// </summary>
-    internal sealed class BlockSyntax : PSharpSyntaxNode
+    internal sealed class PFieldDeclaration : FieldDeclaration
     {
         #region fields
 
         /// <summary>
-        /// The machine parent node.
+        /// The field keyword.
         /// </summary>
-        internal readonly MachineDeclaration Machine;
+        internal Token FieldKeyword;
 
         /// <summary>
-        /// The state parent node.
+        /// The colon token.
         /// </summary>
-        internal readonly StateDeclaration State;
+        internal Token ColonToken;
 
         /// <summary>
-        /// The statement block.
+        /// The actual type.
         /// </summary>
-        internal SyntaxTree Block;
-
-        /// <summary>
-        /// The open brace token.
-        /// </summary>
-        internal Token OpenBraceToken;
-
-        /// <summary>
-        /// The close brace token.
-        /// </summary>
-        internal Token CloseBraceToken;
+        internal PBaseType Type;
 
         #endregion
 
         #region internal API
 
         /// <summary>
-        /// Constructor.
+        /// Constructor
         /// </summary>
         /// <param name="program">Program</param>
-        /// <param name="machineNode">MachineDeclarationNode</param>
-        /// <param name="stateNode">StateDeclarationNode</param>
+        /// <param name="machineNode">PMachineDeclarationNode</param>
         /// <param name="isModel">Is a model</param>
-        internal BlockSyntax(IPSharpProgram program, MachineDeclaration machineNode,
-            StateDeclaration stateNode, bool isModel)
-            : base(program, isModel)
+        internal PFieldDeclaration(IPSharpProgram program, MachineDeclaration machineNode,
+            bool isModel)
+            : base(program, machineNode, isModel)
         {
-            this.Machine = machineNode;
-            this.State = stateNode;
+
         }
+
+        #endregion
+
+        #region internal API
 
         /// <summary>
         /// Rewrites the syntax node declaration to the intermediate C#
@@ -81,8 +68,8 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <param name="program">Program</param>
         internal override void Rewrite()
         {
-            var text = this.Block.ToString();
-            base.TextUnit = new TextUnit(text, this.OpenBraceToken.TextUnit.Line);
+            var text = this.GetRewrittenFieldDeclaration();
+            base.TextUnit = new TextUnit(text, this.FieldKeyword.TextUnit.Line);
         }
 
         /// <summary>
@@ -91,8 +78,37 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         internal override void Model()
         {
-            var text = this.Block.ToString();
-            base.TextUnit = new TextUnit(text, this.OpenBraceToken.TextUnit.Line);
+            var text = this.GetRewrittenFieldDeclaration();
+            base.TextUnit = new TextUnit(text, this.FieldKeyword.TextUnit.Line);
+        }
+
+        #endregion
+
+        #region private API
+
+        /// <summary>
+        /// Returns the rewritten method declaration.
+        /// </summary>
+        /// <returns>Text</returns>
+        private string GetRewrittenFieldDeclaration()
+        {
+            var text = "";
+
+            this.Type.Rewrite();
+            text += this.Type.GetRewrittenText();
+
+            text += " ";
+            text += this.Identifier.TextUnit.Text;
+
+            if (this.Type.Type == PType.Tuple ||
+                this.Type.Type == PType.Seq ||
+                this.Type.Type == PType.Map)
+            {
+                text += " = new " + this.Type.GetRewrittenText() + "()";
+            }
+
+            text += this.SemicolonToken.TextUnit.Text + "\n";
+            return text;
         }
 
         #endregion

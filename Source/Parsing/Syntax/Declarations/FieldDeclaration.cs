@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="BlockSyntax.cs">
+// <copyright file="FieldDeclaration.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -16,62 +16,54 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
-
-using Microsoft.PSharp.Tooling;
-
 namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
-    /// Block syntax node.
+    /// Field declaration syntax node.
     /// </summary>
-    internal sealed class BlockSyntax : PSharpSyntaxNode
+    internal class FieldDeclaration : PSharpSyntaxNode
     {
         #region fields
 
         /// <summary>
         /// The machine parent node.
         /// </summary>
-        internal readonly MachineDeclaration Machine;
+        protected MachineDeclaration Machine;
 
         /// <summary>
-        /// The state parent node.
+        /// The access modifier.
         /// </summary>
-        internal readonly StateDeclaration State;
+        internal AccessModifier AccessModifier;
 
         /// <summary>
-        /// The statement block.
+        /// The type identifier.
         /// </summary>
-        internal SyntaxTree Block;
+        internal Token TypeIdentifier;
 
         /// <summary>
-        /// The open brace token.
+        /// The identifier token.
         /// </summary>
-        internal Token OpenBraceToken;
+        internal Token Identifier;
 
         /// <summary>
-        /// The close brace token.
+        /// The semicolon token.
         /// </summary>
-        internal Token CloseBraceToken;
+        internal Token SemicolonToken;
 
         #endregion
 
         #region internal API
 
         /// <summary>
-        /// Constructor.
+        /// Constructor
         /// </summary>
         /// <param name="program">Program</param>
         /// <param name="machineNode">MachineDeclarationNode</param>
-        /// <param name="stateNode">StateDeclarationNode</param>
         /// <param name="isModel">Is a model</param>
-        internal BlockSyntax(IPSharpProgram program, MachineDeclaration machineNode,
-            StateDeclaration stateNode, bool isModel)
+        internal FieldDeclaration(IPSharpProgram program, MachineDeclaration machineNode, bool isModel)
             : base(program, isModel)
         {
             this.Machine = machineNode;
-            this.State = stateNode;
         }
 
         /// <summary>
@@ -81,8 +73,8 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <param name="program">Program</param>
         internal override void Rewrite()
         {
-            var text = this.Block.ToString();
-            base.TextUnit = new TextUnit(text, this.OpenBraceToken.TextUnit.Line);
+            var text = this.GetRewrittenFieldDeclaration();
+            base.TextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Line);
         }
 
         /// <summary>
@@ -91,8 +83,39 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         internal override void Model()
         {
-            var text = this.Block.ToString();
-            base.TextUnit = new TextUnit(text, this.OpenBraceToken.TextUnit.Line);
+            var text = this.GetRewrittenFieldDeclaration();
+            base.TextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Line);
+        }
+
+        #endregion
+
+        #region private API
+
+        /// <summary>
+        /// Returns the rewritten field declaration.
+        /// </summary>
+        /// <returns>Text</returns>
+        private string GetRewrittenFieldDeclaration()
+        {
+            var text = "";
+
+            if (this.AccessModifier == AccessModifier.Protected)
+            {
+                text += "protected ";
+            }
+            else
+            {
+                text += "private ";
+            }
+
+            text += this.TypeIdentifier.TextUnit.Text;
+            text += " ";
+
+            text += this.Identifier.TextUnit.Text;
+
+            text += this.SemicolonToken.TextUnit.Text + "\n";
+
+            return text;
         }
 
         #endregion

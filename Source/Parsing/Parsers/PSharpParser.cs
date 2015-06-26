@@ -127,7 +127,7 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         private void VisitUsingDeclaration()
         {
-            var node = new UsingDeclarationNode(base.TokenStream.Program);
+            var node = new UsingDeclaration(base.TokenStream.Program);
             node.UsingKeyword = base.TokenStream.Peek();
 
             base.TokenStream.Index++;
@@ -186,7 +186,7 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         private void VisitNamespaceDeclaration()
         {
-            var node = new NamespaceDeclarationNode(base.TokenStream.Program);
+            var node = new NamespaceDeclaration(base.TokenStream.Program);
             node.NamespaceKeyword = base.TokenStream.Peek();
 
             base.TokenStream.Index++;
@@ -249,7 +249,7 @@ namespace Microsoft.PSharp.Parsing
         /// Visits the next intra-namespace declration.
         /// </summary>
         /// <param name="node">Node</param>
-        private void VisitNextIntraNamespaceDeclaration(NamespaceDeclarationNode node)
+        private void VisitNextIntraNamespaceDeclaration(NamespaceDeclaration node)
         {
             if (base.TokenStream.Done)
             {
@@ -333,7 +333,7 @@ namespace Microsoft.PSharp.Parsing
         /// Visits an event or machine declaration.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        private void VisitEventOrMachineDeclaration(NamespaceDeclarationNode parentNode)
+        private void VisitEventOrMachineDeclaration(NamespaceDeclaration parentNode)
         {
             AccessModifier am = AccessModifier.None;
             InheritanceModifier im = InheritanceModifier.None;

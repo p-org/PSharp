@@ -32,7 +32,7 @@ namespace Microsoft.PSharp
         /// Payload of the event.
         /// </summary>
         [DataMember]
-        protected internal readonly Object Payload;
+        internal Object Payload;
 
         /// <summary>
         /// Specifies that there must not be more than k instances
@@ -66,16 +66,11 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Constructor.
+        /// Assigns a payload to the event.
         /// </summary>
-        /// <param name="assert">Assert</param>
-        /// <param name="assume">Assume</param>
-        /// <param name="payload">Optional payload</param>
-        protected Event(int assert, int assume, params Object[] payload)
+        /// <param name="payload">Payload</param>
+        internal void AssignPayload(params Object[] payload)
         {
-            this.Assert = assert;
-            this.Assume = assume;
-
             if (payload.Length == 0)
             {
                 this.Payload = null;

@@ -28,12 +28,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// List of event declarations.
         /// </summary>
-        internal List<EventDeclarationNode> EventDeclarations;
+        internal List<EventDeclaration> EventDeclarations;
 
         /// <summary>
         /// List of machine declarations.
         /// </summary>
-        internal List<MachineDeclarationNode> MachineDeclarations;
+        internal List<MachineDeclaration> MachineDeclarations;
 
         #endregion
 
@@ -47,8 +47,8 @@ namespace Microsoft.PSharp.Parsing.Syntax
         public PProgram(PSharpProject project, string filePath)
             : base(project, filePath)
         {
-            this.EventDeclarations = new List<EventDeclarationNode>();
-            this.MachineDeclarations = new List<MachineDeclarationNode>();
+            this.EventDeclarations = new List<EventDeclaration>();
+            this.MachineDeclarations = new List<MachineDeclaration>();
         }
 
         /// <summary>
@@ -58,11 +58,6 @@ namespace Microsoft.PSharp.Parsing.Syntax
         public override string Rewrite()
         {
             this.RewrittenText = "";
-
-            this.RewrittenText += base.InstrumentSystemLibrary();
-            this.RewrittenText += base.InstrumentSystemCollectionsGenericLibrary();
-            this.RewrittenText += base.InstrumentPSharpLibrary();
-            this.RewrittenText += base.InstrumentPSharpCollectionsLibrary();
 
             this.RewrittenText += "namespace Microsoft.PSharp\n";
             this.RewrittenText += "{\n";
@@ -91,11 +86,6 @@ namespace Microsoft.PSharp.Parsing.Syntax
         public override string Model()
         {
             this.ModelText = "";
-
-            this.ModelText += base.InstrumentSystemLibrary();
-            this.ModelText += base.InstrumentSystemCollectionsGenericLibrary();
-            this.ModelText += base.InstrumentPSharpLibrary();
-            this.ModelText += base.InstrumentPSharpCollectionsLibrary();
 
             this.ModelText += "namespace Microsoft.PSharp\n";
             this.ModelText += "{\n";
