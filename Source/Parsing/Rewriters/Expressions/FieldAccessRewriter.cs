@@ -74,18 +74,27 @@ namespace Microsoft.PSharp.Parsing.Syntax
         {
             SyntaxNode rewritten = node;
 
+            if (!base.IsInStateScope(rewritten) ||
+                !(base.IsMachineField(rewritten) || base.IsMachineMethod(rewritten)))
+            {
+                return rewritten;
+            }
+
             if (!(rewritten.Parent is MemberAccessExpressionSyntax) &&
                 !(rewritten.Parent is ObjectCreationExpressionSyntax) &&
-                !(rewritten.Parent is TypeOfExpressionSyntax) &&
-                base.IsInStateScope(rewritten) &&
-                (base.IsMachineField(rewritten) || base.IsMachineMethod(rewritten)))
+                !(rewritten.Parent is TypeOfExpressionSyntax))
             {
-                MachineDeclaration machine = null;
-                if (!this.TryGetParentMachine(node, out machine))
-                {
-                    return rewritten;
-                }
-                
+                var text = "this." + node.ToString();
+
+                rewritten = SyntaxFactory.ParseExpression(text);
+                rewritten = rewritten.WithTriviaFrom(node);
+            }
+
+            if ((rewritten.Parent is MemberAccessExpressionSyntax) &&
+                (rewritten.Parent as MemberAccessExpressionSyntax).Expression is IdentifierNameSyntax &&
+                ((rewritten.Parent as MemberAccessExpressionSyntax).Expression as IdentifierNameSyntax).
+                IsEquivalentTo(node))
+            {
                 var text = "this." + node.ToString();
 
                 rewritten = SyntaxFactory.ParseExpression(text);
