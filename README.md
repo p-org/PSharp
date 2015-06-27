@@ -31,4 +31,4 @@ To statically analyze the program for data races use the option `/analyze`.
 To systematically test the program for bugs (i.e. assertion failures and exceptions) use the option `/test`. You can optionally give the number of testing iterations to perform using `/i:value`.
 
 ## Publications
-- **Asynchronous Programming, Analysis and Testing with State Machines**. Pantazis Deligiannis, Alastair F. Donaldson, Jeroen Ketema, Akash Lal and Paul Thomson. *ACM SIGPLAN Conference on Programming Language Design and Implementation* (PLDI), 2015.
+- **[Asynchronous Programming, Analysis and Testing with State Machines](https://dl.acm.org/citation.cfm?id=2737996)**. Pantazis Deligiannis, Alastair F. Donaldson, Jeroen Ketema, Akash Lal and Paul Thomson. In the *ACM SIGPLAN Conference on Programming Language Design and Implementation* (PLDI), 2015.
