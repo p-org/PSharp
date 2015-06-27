@@ -111,7 +111,7 @@ namespace Microsoft.PSharp
         #region machine constructors
 
         /// <summary>
-        /// Constructor of the Machine class.
+        /// Constructor.
         /// </summary>
         protected Machine()
         {

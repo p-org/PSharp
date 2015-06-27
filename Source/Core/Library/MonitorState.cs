@@ -71,6 +71,11 @@ namespace Microsoft.PSharp
         #region P# internal methods
 
         /// <summary>
+        /// Constructor.
+        /// </summary>
+        protected MonitorState() { }
+
+        /// <summary>
         /// Initializes the state.
         /// </summary>
         internal void InitializeState()

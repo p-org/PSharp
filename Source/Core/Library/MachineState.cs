@@ -89,6 +89,11 @@ namespace Microsoft.PSharp
         #region P# internal methods
 
         /// <summary>
+        /// Constructor.
+        /// </summary>
+        protected MachineState() { }
+
+        /// <summary>
         /// Initializes the state.
         /// </summary>
         internal void InitializeState()

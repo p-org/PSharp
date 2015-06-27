@@ -100,7 +100,7 @@ namespace Microsoft.PSharp
         #region monitor constructors
 
         /// <summary>
-        /// Constructor of the MOnitor class.
+        /// Constructor.
         /// </summary>
         protected Monitor()
         {
