@@ -14,7 +14,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
+
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+
+using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp.Parsing.Syntax
 {
@@ -43,68 +48,82 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Constructor.
         /// </summary>
         /// <param name="project">PSharpProject</param>
-        /// <param name="filePath">File path</param>
-        public PProgram(PSharpProject project, string filePath)
-            : base(project, filePath)
+        /// <param name="filePath">SyntaxTree</param>
+        public PProgram(PSharpProject project, SyntaxTree tree)
+            : base(project, tree)
         {
             this.EventDeclarations = new List<EventDeclaration>();
             this.MachineDeclarations = new List<MachineDeclaration>();
         }
 
         /// <summary>
-        /// Rewrites the P# program to the C#-IR.
+        /// Rewrites the P program to the C#-IR.
         /// </summary>
-        /// <returns>Rewritten text</returns>
-        public override string Rewrite()
+        public override void Rewrite()
         {
-            this.RewrittenText = "";
-
-            this.RewrittenText += "namespace Microsoft.PSharp\n";
-            this.RewrittenText += "{\n";
-
-            foreach (var node in this.EventDeclarations)
+            var text = "";
+            if (Configuration.RunStaticAnalysis || Configuration.RunDynamicAnalysis)
             {
-                node.Rewrite();
-                this.RewrittenText += node.TextUnit.Text;
+                foreach (var node in this.EventDeclarations)
+                {
+                    node.Model();
+                    text += node.TextUnit.Text;
+                }
+
+                foreach (var node in this.MachineDeclarations)
+                {
+                    node.Model();
+                    text += node.TextUnit.Text;
+                }
+            }
+            else
+            {
+                foreach (var node in this.EventDeclarations)
+                {
+                    node.Rewrite();
+                    text += node.TextUnit.Text;
+                }
+
+                foreach (var node in this.MachineDeclarations)
+                {
+                    node.Rewrite();
+                    text += node.TextUnit.Text;
+                }
             }
 
-            foreach (var node in this.MachineDeclarations)
-            {
-                node.Rewrite();
-                this.RewrittenText += node.TextUnit.Text;
-            }
+            base.UpdateSyntaxTree(text);
 
-            this.RewrittenText += "}\n";
+            base.RewriteTypes();
+            base.RewriteStatements();
+            base.RewriteExpressions();
 
-            return this.RewrittenText;
+            this.InsertLibraries();
         }
 
+        #endregion
+
+        #region protected API
+
         /// <summary>
-        /// Models the P# program to the C#-IR.
+        /// Inserts the P# libraries.
         /// </summary>
-        /// <returns>Model text</returns>
-        public override string Model()
+        protected override void InsertLibraries()
         {
-            this.ModelText = "";
+            var list = new List<UsingDirectiveSyntax>();
 
-            this.ModelText += "namespace Microsoft.PSharp\n";
-            this.ModelText += "{\n";
+            var systemLib = base.CreateLibrary("System");
+            var psharpLib = base.CreateLibrary("Microsoft.PSharp");
+            var psharpColletionsLib = base.CreateLibrary("Microsoft.PSharp.Collections");
 
-            foreach (var node in this.EventDeclarations)
-            {
-                node.Model();
-                this.ModelText += node.TextUnit.Text;
-            }
+            list.Add(systemLib);
+            list.Add(psharpLib);
+            list.Add(psharpColletionsLib);
 
-            foreach (var node in this.MachineDeclarations)
-            {
-                node.Model();
-                this.ModelText += node.TextUnit.Text;
-            }
+            list.AddRange(base.SyntaxTree.GetCompilationUnitRoot().Usings);
 
-            this.ModelText += "}\n";
+            var root = base.SyntaxTree.GetCompilationUnitRoot().WithUsings(SyntaxFactory.List(list));
 
-            return this.ModelText;
+            base.UpdateSyntaxTree(root.SyntaxTree.ToString());
         }
 
         #endregion

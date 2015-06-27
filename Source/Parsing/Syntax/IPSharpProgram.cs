@@ -12,6 +12,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using Microsoft.CodeAnalysis;
+
 namespace Microsoft.PSharp.Parsing
 {
     /// <summary>
@@ -22,13 +24,12 @@ namespace Microsoft.PSharp.Parsing
         /// <summary>
         /// Rewrites the P# program to the C#-IR.
         /// </summary>
-        /// <returns>Rewritten text</returns>
-        string Rewrite();
+        void Rewrite();
 
         /// <summary>
-        /// Models the P# program to the C#-IR.
+        /// Rewrites the P# program to the C#-IR.
         /// </summary>
-        /// <returns>Modeled text</returns>
-        string Model();
+        /// <returns>SyntaxTree</returns>
+        SyntaxTree GetSyntaxTree();
     }
 }

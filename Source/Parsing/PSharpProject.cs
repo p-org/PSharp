@@ -12,13 +12,12 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 using Microsoft.PSharp.Parsing.Syntax;
 using Microsoft.PSharp.Tooling;
@@ -138,7 +137,7 @@ namespace Microsoft.PSharp.Parsing
             var root = (CompilationUnitSyntax)tree.GetRoot();
 
             var tokens = new PSharpLexer().Tokenize(root.ToFullString());
-            var program = new PSharpParser(this, tree.FilePath).ParseTokens(tokens);
+            var program = new PSharpParser(this, tree).ParseTokens(tokens);
 
             this.PSharpPrograms.Add(program as PSharpProgram);
             this.ProgramMap.Add(program, tree);
@@ -153,7 +152,7 @@ namespace Microsoft.PSharp.Parsing
             var root = (CompilationUnitSyntax)tree.GetRoot();
 
             var tokens = new PLexer().Tokenize(root.ToFullString());
-            var program = new PParser(this, tree.FilePath).ParseTokens(tokens);
+            var program = new PParser(this, tree).ParseTokens(tokens);
 
             this.PPrograms.Add(program as PProgram);
             this.ProgramMap.Add(program, tree);
@@ -166,143 +165,11 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="tree">SyntaxTree</param>
         private void RewriteProgram(IPSharpProgram program, SyntaxTree tree)
         {
-            tree = this.RewriteDeclarations(program, tree);
-            tree = this.RewriteTypes(tree);
-            tree = this.RewriteStatements(tree);
-            tree = this.RewriteExpressions(tree);
-
-            tree = this.InsertLibraries(tree);
+            program.Rewrite();
 
             var project = this.Project;
-            ProgramInfo.ReplaceSyntaxTree(tree, ref project);
+            ProgramInfo.ReplaceSyntaxTree(program.GetSyntaxTree(), ref project);
             this.Project = project;
-        }
-
-        /// <summary>
-        /// Rewrites the P# declarations to C#.
-        /// </summary>
-        /// <param name="program">Program</param>
-        /// <param name="tree">SyntaxTree</param>
-        /// <returns>SyntaxTree</returns>
-        private SyntaxTree RewriteDeclarations(IPSharpProgram program, SyntaxTree tree)
-        {
-            string text = null;
-            if (Configuration.RunStaticAnalysis || Configuration.RunDynamicAnalysis)
-            {
-                text = program.Model();
-            }
-            else
-            {
-                text = program.Rewrite();
-            }
-
-            return this.UpdateSyntaxTree(tree, text);
-        }
-
-        /// <summary>
-        /// Rewrites the P# types to C#.
-        /// </summary>
-        /// <param name="tree">SyntaxTree</param>
-        /// <returns>SyntaxTree</returns>
-        private SyntaxTree RewriteTypes(SyntaxTree tree)
-        {
-            tree = new MachineTypeRewriter(this).Rewrite(tree);
-            tree = new HaltEventRewriter(this).Rewrite(tree);
-
-            return tree;
-        }
-
-        /// <summary>
-        /// Rewrites the P# statements to C#.
-        /// </summary>
-        /// <param name="tree">SyntaxTree</param>
-        /// <returns>SyntaxTree</returns>
-        private SyntaxTree RewriteStatements(SyntaxTree tree)
-        {
-            tree = new CreateMachineRewriter(this).Rewrite(tree);
-            tree = new SendRewriter(this).Rewrite(tree);
-            tree = new MonitorRewriter(this).Rewrite(tree);
-            tree = new RaiseRewriter(this).Rewrite(tree);
-            tree = new PopRewriter(this).Rewrite(tree);
-            tree = new AssertRewriter(this).Rewrite(tree);
-            
-            return tree;
-        }
-
-        /// <summary>
-        /// Rewrites the P# expressions to C#.
-        /// </summary>
-        /// <param name="tree">SyntaxTree</param>
-        /// <returns>SyntaxTree</returns>
-        private SyntaxTree RewriteExpressions(SyntaxTree tree)
-        {
-            tree = new PayloadRewriter(this).Rewrite(tree);
-            tree = new TriggerRewriter(this).Rewrite(tree);
-            tree = new FieldAccessRewriter(this).Rewrite(tree);
-            tree = new ThisRewriter(this).Rewrite(tree);
-            tree = new NondeterministicChoiceRewriter(this).Rewrite(tree);
-
-            return tree;
-        }
-
-        /// <summary>
-        /// Inserts the P# libraries.
-        /// </summary>
-        /// <param name="tree">SyntaxTree</param>
-        /// <returns>SyntaxTree</returns>
-        private SyntaxTree InsertLibraries(SyntaxTree tree)
-        {
-            var list = new List<UsingDirectiveSyntax>();
-
-            var systemLib = this.CreateLibrary("System");
-            var psharpLib = this.CreateLibrary("Microsoft.PSharp");
-
-            list.Add(systemLib);
-            list.Add(psharpLib);
-
-            if (ProgramInfo.IsPFile(tree))
-            {
-                var psharpColletionsLib = this.CreateLibrary("Microsoft.PSharp.Collections");
-                list.Add(psharpColletionsLib);
-            }
-
-            list.AddRange(tree.GetCompilationUnitRoot().Usings);
-
-            var root = tree.GetCompilationUnitRoot().WithUsings(SyntaxFactory.List(list));
-
-            return this.UpdateSyntaxTree(tree, root.SyntaxTree.ToString());
-        }
-
-        /// <summary>
-        /// Creates a new library using syntax node.
-        /// </summary>
-        /// <param name="name">Library name</param>
-        /// <returns>UsingDirectiveSyntax</returns>
-        private UsingDirectiveSyntax CreateLibrary(string name)
-        {
-            var leading = SyntaxFactory.TriviaList(SyntaxFactory.Whitespace(" "));
-            var trailing = SyntaxFactory.TriviaList(SyntaxFactory.Whitespace(""));
-
-            var identifier = SyntaxFactory.Identifier(leading, name, trailing);
-            var identifierName = SyntaxFactory.IdentifierName(identifier);
-
-            var usingDirective = SyntaxFactory.UsingDirective(identifierName);
-            usingDirective = usingDirective.WithSemicolonToken(usingDirective.SemicolonToken.
-                WithTrailingTrivia(SyntaxFactory.TriviaList(SyntaxFactory.Whitespace("\n"))));
-
-            return usingDirective;
-        }
-
-        /// <summary>
-        /// Updates the syntax tree.
-        /// </summary>
-        /// <param name="tree">SyntaxTree</param>
-        /// <param name="text">Text</param>
-        /// <returns>SyntaxTree</returns>
-        private SyntaxTree UpdateSyntaxTree(SyntaxTree tree, string text)
-        {
-            var source = SourceText.From(text);
-            return tree.WithChangedText(source);
         }
 
         #endregion

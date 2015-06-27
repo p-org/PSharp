@@ -17,8 +17,13 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.PSharp.Parsing
+using Microsoft.PSharp.Tooling;
+
+namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
     /// An abstract P# program.
@@ -33,20 +38,9 @@ namespace Microsoft.PSharp.Parsing
         internal PSharpProject Project;
 
         /// <summary>
-        /// The rewritten text.
+        /// The syntax tree.
         /// </summary>
-        internal protected string RewrittenText
-        {
-            get; protected set;
-        }
-
-        /// <summary>
-        /// The model text.
-        /// </summary>
-        internal protected string ModelText
-        {
-            get; protected set;
-        }
+        protected SyntaxTree SyntaxTree;
 
         /// <summary>
         /// File path of the P# program.
@@ -61,13 +55,11 @@ namespace Microsoft.PSharp.Parsing
         /// Constructor.
         /// </summary>
         /// <param name="project">PSharpProject</param>
-        /// <param name="filePath">File path</param>
-        internal AbstractPSharpProgram(PSharpProject project, string filePath)
+        /// <param name="tree">SyntaxTree</param>
+        internal AbstractPSharpProgram(PSharpProject project, SyntaxTree tree)
         {
             this.Project = project;
-            this.RewrittenText = "";
-            this.ModelText = "";
-            this.FilePath = filePath;
+            this.SyntaxTree = tree;
         }
 
         #endregion
@@ -77,14 +69,89 @@ namespace Microsoft.PSharp.Parsing
         /// <summary>
         /// Rewrites the P# program to the C#-IR.
         /// </summary>
-        /// <returns>Rewritten text</returns>
-        public abstract string Rewrite();
+        public abstract void Rewrite();
 
         /// <summary>
-        /// Models the P# program to the C#-IR.
+        /// Rewrites the P# program to the C#-IR.
         /// </summary>
-        /// <returns>Modeled text</returns>
-        public abstract string Model();
+        /// <returns>SyntaxTree</returns>
+        public SyntaxTree GetSyntaxTree()
+        {
+            return this.SyntaxTree;
+        }
+
+        #endregion
+
+        #region protected API
+
+        /// <summary>
+        /// Rewrites the P# types to C#.
+        /// </summary>
+        protected void RewriteTypes()
+        {
+            this.SyntaxTree = new MachineTypeRewriter(this.Project).Rewrite(this.SyntaxTree);
+            this.SyntaxTree = new HaltEventRewriter(this.Project).Rewrite(this.SyntaxTree);
+        }
+
+        /// <summary>
+        /// Rewrites the P# statements to C#.
+        /// </summary>
+        protected void RewriteStatements()
+        {
+            this.SyntaxTree = new CreateMachineRewriter(this.Project).Rewrite(this.SyntaxTree);
+            this.SyntaxTree = new SendRewriter(this.Project).Rewrite(this.SyntaxTree);
+            this.SyntaxTree = new MonitorRewriter(this.Project).Rewrite(this.SyntaxTree);
+            this.SyntaxTree = new RaiseRewriter(this.Project).Rewrite(this.SyntaxTree);
+            this.SyntaxTree = new PopRewriter(this.Project).Rewrite(this.SyntaxTree);
+            this.SyntaxTree = new AssertRewriter(this.Project).Rewrite(this.SyntaxTree);
+        }
+
+        /// <summary>
+        /// Rewrites the P# expressions to C#.
+        /// </summary>
+        protected void RewriteExpressions()
+        {
+            this.SyntaxTree = new PayloadRewriter(this.Project).Rewrite(this.SyntaxTree);
+            this.SyntaxTree = new TriggerRewriter(this.Project).Rewrite(this.SyntaxTree);
+            this.SyntaxTree = new FieldAccessRewriter(this.Project).Rewrite(this.SyntaxTree);
+            this.SyntaxTree = new ThisRewriter(this.Project).Rewrite(this.SyntaxTree);
+            this.SyntaxTree = new NondeterministicChoiceRewriter(this.Project).Rewrite(this.SyntaxTree);
+        }
+
+        /// <summary>
+        /// Inserts the P# libraries.
+        /// </summary>
+        protected abstract void InsertLibraries();
+
+        /// <summary>
+        /// Creates a new library using syntax node.
+        /// </summary>
+        /// <param name="name">Library name</param>
+        /// <returns>UsingDirectiveSyntax</returns>
+        protected UsingDirectiveSyntax CreateLibrary(string name)
+        {
+            var leading = SyntaxFactory.TriviaList(SyntaxFactory.Whitespace(" "));
+            var trailing = SyntaxFactory.TriviaList(SyntaxFactory.Whitespace(""));
+
+            var identifier = SyntaxFactory.Identifier(leading, name, trailing);
+            var identifierName = SyntaxFactory.IdentifierName(identifier);
+
+            var usingDirective = SyntaxFactory.UsingDirective(identifierName);
+            usingDirective = usingDirective.WithSemicolonToken(usingDirective.SemicolonToken.
+                WithTrailingTrivia(SyntaxFactory.TriviaList(SyntaxFactory.Whitespace("\n"))));
+
+            return usingDirective;
+        }
+
+        /// <summary>
+        /// Updates the syntax tree.
+        /// </summary>
+        /// <param name="text">Text</param>
+        protected void UpdateSyntaxTree(string text)
+        {
+            var source = SourceText.From(text);
+            this.SyntaxTree = this.SyntaxTree.WithChangedText(source);
+        }
 
         #endregion
     }

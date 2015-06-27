@@ -12,7 +12,14 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
+
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+
+using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp.Parsing.Syntax
 {
@@ -41,9 +48,9 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Constructor.
         /// </summary>
         /// <param name="project">PSharpProject</param>
-        /// <param name="filePath">File path</param>
-        public PSharpProgram(PSharpProject project, string filePath)
-            : base(project, filePath)
+        /// <param name="tree">SyntaxTree</param>
+        public PSharpProgram(PSharpProject project, SyntaxTree tree)
+            : base(project, tree)
         {
             this.UsingDeclarations = new List<UsingDeclaration>();
             this.NamespaceDeclarations = new List<NamespaceDeclaration>();
@@ -52,47 +59,69 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Rewrites the P# program to the C#-IR.
         /// </summary>
-        /// <returns>Rewritten text</returns>
-        public override string Rewrite()
+        public override void Rewrite()
         {
-            this.RewrittenText = "";
-
-            foreach (var node in this.UsingDeclarations)
+            var text = "";
+            if (Configuration.RunStaticAnalysis || Configuration.RunDynamicAnalysis)
             {
-                node.Rewrite();
-                this.RewrittenText += node.TextUnit.Text;
+                foreach (var node in this.UsingDeclarations)
+                {
+                    node.Model();
+                    text += node.TextUnit.Text;
+                }
+
+                foreach (var node in this.NamespaceDeclarations)
+                {
+                    node.Model();
+                    text += node.TextUnit.Text;
+                }
+            }
+            else
+            {
+                foreach (var node in this.UsingDeclarations)
+                {
+                    node.Rewrite();
+                    text += node.TextUnit.Text;
+                }
+
+                foreach (var node in this.NamespaceDeclarations)
+                {
+                    node.Rewrite();
+                    text += node.TextUnit.Text;
+                }
             }
 
-            foreach (var node in this.NamespaceDeclarations)
-            {
-                node.Rewrite();
-                this.RewrittenText += node.TextUnit.Text;
-            }
+            base.UpdateSyntaxTree(text);
 
-            return this.RewrittenText;
+            base.RewriteTypes();
+            base.RewriteStatements();
+            base.RewriteExpressions();
+
+            this.InsertLibraries();
         }
 
+        #endregion
+
+        #region protected API
+
         /// <summary>
-        /// Models the P# program to the C#-IR.
+        /// Inserts the P# libraries.
         /// </summary>
-        /// <returns>Model text</returns>
-        public override string Model()
+        protected override void InsertLibraries()
         {
-            this.ModelText = "";
+            var list = new List<UsingDirectiveSyntax>();
 
-            foreach (var node in this.UsingDeclarations)
-            {
-                node.Model();
-                this.ModelText += node.TextUnit.Text;
-            }
+            var systemLib = base.CreateLibrary("System");
+            var psharpLib = base.CreateLibrary("Microsoft.PSharp");
 
-            foreach (var node in this.NamespaceDeclarations)
-            {
-                node.Model();
-                this.ModelText += node.TextUnit.Text;
-            }
+            list.Add(systemLib);
+            list.Add(psharpLib);
 
-            return this.ModelText;
+            list.AddRange(base.SyntaxTree.GetCompilationUnitRoot().Usings);
+
+            var root = base.SyntaxTree.GetCompilationUnitRoot().WithUsings(SyntaxFactory.List(list));
+
+            this.UpdateSyntaxTree(root.SyntaxTree.ToString());
         }
 
         #endregion

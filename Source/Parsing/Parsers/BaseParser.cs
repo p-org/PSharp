@@ -16,6 +16,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+using Microsoft.CodeAnalysis;
+
 using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp.Parsing
@@ -28,9 +30,9 @@ namespace Microsoft.PSharp.Parsing
         #region fields
 
         /// <summary>
-        /// File path of syntax tree currently parsed.
+        /// Syntax tree currently parsed.
         /// </summary>
-        protected string FilePath;
+        protected SyntaxTree SyntaxTree;
 
         /// <summary>
         /// List of original tokens.
@@ -86,11 +88,11 @@ namespace Microsoft.PSharp.Parsing
         /// Constructor.
         /// </summary>
         /// <param name="project">PSharpProject</param>
-        /// <param name="filePath">File path</param>
-        internal BaseParser(PSharpProject project, string filePath)
+        /// <param name="tree">SyntaxTree</param>
+        internal BaseParser(PSharpProject project, SyntaxTree tree)
         {
             this.Project = project;
-            this.FilePath = filePath;
+            this.SyntaxTree = tree;
             this.ParsingErrorLog = "";
             this.IsRunningInternally = true;
         }
@@ -177,7 +179,7 @@ namespace Microsoft.PSharp.Parsing
             var errorLine = this.OriginalTokens.Where(
                 val => val.TextUnit.Line == errorToken.TextUnit.Line).ToList();
 
-            this.ParsingErrorLog += "\nIn " + this.FilePath + " (line " + errorToken.TextUnit.Line + "):\n";
+            this.ParsingErrorLog += "\nIn " + this.SyntaxTree.FilePath + " (line " + errorToken.TextUnit.Line + "):\n";
 
             int nonWhiteIndex = 0;
             for (int idx = 0; idx < errorLine.Count; idx++)
