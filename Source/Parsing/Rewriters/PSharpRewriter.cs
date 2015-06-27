@@ -148,6 +148,28 @@ namespace Microsoft.PSharp.Parsing
         }
 
         /// <summary>
+        /// True if the machine is a monitor.
+        /// </summary>
+        /// <param name="machineIdentifier">MachineIdentifier</param>
+        /// <returns>Boolean value</returns>
+        protected bool IsMonitor(string machineIdentifier)
+        {
+            var result = false;
+
+            var machine = this.Project.PSharpPrograms.
+                SelectMany(p => p.NamespaceDeclarations).
+                SelectMany(n => n.MachineDeclarations).
+                FirstOrDefault(s => s.Identifier.TextUnit.Text.Equals(machineIdentifier));
+
+            if (machine.IsMonitor)
+            {
+                result = true;
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Tries to return the parent machine identifier, if any.
         /// </summary>
         /// <param name="node">SyntaxNode</param>

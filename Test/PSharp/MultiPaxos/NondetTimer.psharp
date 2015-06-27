@@ -12,7 +12,7 @@
 			{
 			    Target = payload[0] as machine;
 				TimeoutValue = (int)payload[1];
-				raise local;
+				raise(local);
 			}
 
 			on local goto Loop;
@@ -32,8 +32,8 @@
 			{
 			    if ($)
 				{
-				    //send Target, timeout (this);
-				    raise local;
+				    //send(Target, timeout, this);
+				    raise(local);
 			    }
 			}
 

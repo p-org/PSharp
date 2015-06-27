@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="ThisRewriter.cs">
+// <copyright file="TriggerRewriter.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -23,9 +23,9 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
-    /// The this expression rewriter.
+    /// The trigger expression rewriter.
     /// </summary>
-    internal sealed class ThisRewriter : PSharpRewriter
+    internal sealed class TriggerRewriter : PSharpRewriter
     {
         #region public API
 
@@ -33,20 +33,21 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Constructor.
         /// </summary>
         /// <param name="project">PSharpProject</param>
-        internal ThisRewriter(PSharpProject project)
+        internal TriggerRewriter(PSharpProject project)
             : base(project)
         {
 
         }
 
         /// <summary>
-        /// Rewrites the syntax tree with this expressions.
+        /// Rewrites the syntax tree with trigger expressions.
         /// </summary>
         /// <param name="tree">SyntaxTree</param>
         /// <returns>SyntaxTree</returns>
         internal SyntaxTree Rewrite(SyntaxTree tree)
         {
-            var expressions = tree.GetRoot().DescendantNodes().OfType<ThisExpressionSyntax>().
+            var expressions = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().
+                Where(val => val.Identifier.ValueText.Equals("trigger")).
                 ToList();
 
             if (expressions.Count == 0)
@@ -66,51 +67,15 @@ namespace Microsoft.PSharp.Parsing.Syntax
         #region private API
 
         /// <summary>
-        /// Rewrites the expression with a this expression.
+        /// Rewrites the expression with a trigger expression.
         /// </summary>
-        /// <param name="node">ThisExpressionSyntax</param>
+        /// <param name="node">IdentifierNameSyntax</param>
         /// <returns>SyntaxNode</returns>
-        private SyntaxNode RewriteExpression(ThisExpressionSyntax node)
+        private SyntaxNode RewriteExpression(IdentifierNameSyntax node)
         {
-            SyntaxNode rewritten = node;
-
-            MachineDeclaration machine = null;
-            if (!base.TryGetParentMachine(rewritten, out machine))
-            {
-                return rewritten;
-            }
-
-            var isMonitor = base.IsMonitor(machine.Identifier.TextUnit.Text);
-            if (!isMonitor && (rewritten.Parent is ArgumentSyntax ||
-                (rewritten.Parent is AssignmentExpressionSyntax &&
-                (rewritten.Parent as AssignmentExpressionSyntax).Right.IsEquivalentTo(node))))
-            {
-                var text = "this.Id";
-
-                rewritten = SyntaxFactory.ParseExpression(text);
-                rewritten = rewritten.WithTriviaFrom(node);
-            }
-            else if (rewritten.Parent is MemberAccessExpressionSyntax &&
-                base.IsInStateScope(rewritten) &&
-                (base.IsMachineField((rewritten.Parent as MemberAccessExpressionSyntax).Name) ||
-                base.IsMachineMethod((rewritten.Parent as MemberAccessExpressionSyntax).Name)))
-            {
-                var text = "(";
-
-                if (isMonitor)
-                {
-                    text += "this.Monitor";
-                }
-                else
-                {
-                    text += "this.Machine";
-                }
-
-                text += " as " + machine.Identifier.TextUnit.Text + ")";
-
-                rewritten = SyntaxFactory.ParseExpression(text);
-                rewritten = rewritten.WithTriviaFrom(node);
-            }
+            var text = "this.Trigger";
+            var rewritten = SyntaxFactory.ParseExpression(text);
+            rewritten = rewritten.WithTriviaFrom(node);
 
             return rewritten;
         }

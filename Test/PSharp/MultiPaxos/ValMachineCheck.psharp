@@ -1,4 +1,6 @@
-﻿namespace MultiPaxos
+﻿using System.Collections.Generic;
+
+namespace MultiPaxos
 {
     monitor ValMachineCheck
     {
@@ -11,7 +13,7 @@
 			{
 			    ClientSet = new Dictionary<int, int>();
 				ProposedSet = new Dictionary<int, int>();
-				raise local;
+				raise(local);
 			}
 
 			on local goto Wait;

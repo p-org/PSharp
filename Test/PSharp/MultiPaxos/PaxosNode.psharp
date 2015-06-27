@@ -1,4 +1,6 @@
-﻿namespace MultiPaxos
+﻿using System.Collections.Generic;
+
+namespace MultiPaxos
 {
     machine PaxosNode
     {
@@ -11,7 +13,6 @@
 		int CommitValue;
 		int ProposeVal;
 		int Majority;
-		int RoundNum;
 		int MyRank;
 		Tuple<int, int> NextProposal;
 		Tuple<Tuple<int, int>, int> ReceivedAgree;
@@ -44,11 +45,10 @@
 				CurrentLeader = this;
 				CurrentLeaderRank = MyRank;
 
-				RoundNum = 0;
 				MaxRound = 0;
 				AgreeCounter = 0;
 
-				Timer = create NondetTimer(this, 10) models Timer;
+				Timer = create(NondetTimer, this, 10) models Timer;
 
 				LastExecutedSlot = 0;
 				NextSlotForProposer = 0;
@@ -67,9 +67,9 @@
 			assert(Majority == 2);
 
 			// Also start the leader election service.
-			LeaderElectionService = create LeaderElection(Acceptors, this, MyRank);
+			LeaderElectionService = create(LeaderElection, Acceptors, this, MyRank);
 			
-			raise local;
+			raise(local);
 		}
 
 		void CheckIfLeader()
@@ -79,12 +79,12 @@
 			    // The node is the leader.
 				CommitValue = (int)payload[1];
 				ProposeVal = CommitValue;
-				raise goPropose;
+				raise(goPropose);
 			}
 			else
 			{
 			    // Forward it to the leader.
-				send CurrentLeader, update (payload);
+				send(CurrentLeader, update, payload);
 			}
 		}
 
@@ -121,17 +121,17 @@
 
 			if (!AcceptorSlots.ContainsKey(slot))
 			{
-			    send proposer, agree (slot, Tuple.Create(-1, -1), -1);
+			    send(proposer, agree, slot, Tuple.Create(-1, -1), -1);
 				AcceptorSlots.Add(slot, Tuple.Create(Tuple.Create(proposal.Item1, proposal.Item2), -1));
 			}
 
 			if (LessThan(proposal, AcceptorSlots[slot].Item1))
 			{
-			    send proposer, reject (slot, AcceptorSlots[slot].Item1);
+			    send(proposer, reject, slot, AcceptorSlots[slot].Item1);
 			}
 			else
 			{
-			    send proposer, agree (slot, proposal, AcceptorSlots[slot].Item2);
+			    send(proposer, agree, slot, proposal, AcceptorSlots[slot].Item2);
 				AcceptorSlots[slot] = Tuple.Create(Tuple.Create(proposal.Item1, proposal.Item2), -1);
 			}
 		}
@@ -147,12 +147,12 @@
 			{
 			    if (!Equal(proposal, AcceptorSlots[slot].Item1))
 				{
-				    send proposer, reject (slot, AcceptorSlots[slot].Item1);
+				    send(proposer, reject, slot, AcceptorSlots[slot].Item1);
 				}
 				else
 				{
 				    AcceptorSlots[slot] = Tuple.Create(proposal, value);
-					send proposer, accepted (slot, proposal, value);
+					send(proposer, accepted, slot, proposal, value);
 				}
 			}
 		}
@@ -164,7 +164,7 @@
 
 		bool Equal (Tuple<int, int> p1, Tuple<int, int> p2)
 		{
-		    if(p1.Item1 == p2.Item1 && p1.Item2 == p2.Item2)
+		    if (p1.Item1 == p2.Item1 && p1.Item2 == p2.Item2)
 			    return true;
 			else
 			    return false;
@@ -207,7 +207,7 @@
 				}
 
 				if (AgreeCounter == Majority)
-				    raise success;
+				    raise(success);
 			}
 		}
 
@@ -223,11 +223,11 @@
 
 				foreach (var acceptor in Acceptors)
 				{
-			        send acceptor, prepare (this, NextSlotForProposer, Tuple.Create(NextProposal.Item1, MyRank));
+			        send(acceptor, prepare, this, NextSlotForProposer, Tuple.Create(NextProposal.Item1, MyRank));
 				}
 
-				monitor ValMachineCheck, monitor_proposer_sent (ProposeVal);
-				send Timer, startTimer;
+				monitor<ValMachineCheck>(monitor_proposer_sent, ProposeVal);
+				send(Timer, startTimer);
 			}
 
 			on agree do CountAgree;
@@ -237,12 +237,12 @@
 			    if (NextProposal.Item1 <= round)
 				    MaxRound = round;
 				
-			    send Timer, cancelTimer;
+			    send(Timer, cancelTimer);
 			};
 
 			on success goto ProposeValuePhase2 with
 			{
-			    send Timer, cancelTimer;
+			    send(Timer, cancelTimer);
 		    };
 
 			on timeout goto ProposeValuePhase1;
@@ -263,7 +263,7 @@
 
 				if (AcceptCounter == Majority)
 				{
-				    raise chosen (payload);
+				    raise(chosen, payload);
 				}
 			}
 		}
@@ -292,15 +292,15 @@
 				ProposeVal = GetHighestProposedValue();
 
 				// Monitor the monitor on proposal event.
-				monitor BasicPaxosInvariant_P2b, monitor_valueProposed (this, NextSlotForProposer, NextProposal, ProposeVal);
-				monitor ValMachineCheck, monitor_proposer_sent (ProposeVal);
+				monitor<BasicPaxosInvariant_P2b>(monitor_valueProposed, this, NextSlotForProposer, NextProposal, ProposeVal);
+				monitor<ValMachineCheck>(monitor_proposer_sent, ProposeVal);
 				
 				foreach (var acceptor in Acceptors)
 				{
-			        send acceptor, accept (this, NextSlotForProposer, NextProposal, ProposeVal);
+			        send(acceptor, accept, this, NextSlotForProposer, NextProposal, ProposeVal);
 				}
 
-				send Timer, startTimer;
+				send(Timer, startTimer);
 			}
 
 			exit
@@ -308,11 +308,11 @@
 			    if (trigger == typeof(chosen))
 				{
 				    // The value is chosen, hence invoke the monitor on chosen event.
-					monitor BasicPaxosInvariant_P2b, monitor_valueChosen (this, NextSlotForProposer, NextProposal, ProposeVal);
+					monitor<BasicPaxosInvariant_P2b>(monitor_valueChosen, this, NextSlotForProposer, NextProposal, ProposeVal);
 
-					send Timer, cancelTimer;
+					send(Timer, cancelTimer);
 
-					monitor ValMachineCheck, monitor_proposer_chosen (ProposeVal);
+					monitor<ValMachineCheck>(monitor_proposer_chosen, ProposeVal);
 
 					// Increment the nextSlotForProposer.
 					NextSlotForProposer++;
@@ -326,7 +326,7 @@
 			    if (NextProposal.Item1 <= round)
 				    MaxRound = round;
 				
-			    send Timer, cancelTimer;
+			    send(Timer, cancelTimer);
 			};
 
 			on timeout goto ProposeValuePhase1;
@@ -336,7 +336,7 @@
 
 		void RunReplicatedMachine()
 		{
-		    while(true)
+		    while (true)
 			{
 			    if (LearnerSlots.ContainsKey(LastExecutedSlot + 1))
 			    {
@@ -380,7 +380,7 @@
 				else
 				{
 				    ProposeVal = CommitValue;
-					raise goPropose;
+					raise(goPropose);
 				}
 			}
 		}

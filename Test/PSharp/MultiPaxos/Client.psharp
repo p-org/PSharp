@@ -1,6 +1,8 @@
-﻿namespace MultiPaxos
+﻿using System.Collections.Generic;
+
+namespace MultiPaxos
 {
-    model Client
+    model TestClient
     {
 	    List<machine> Servers;
 
@@ -8,11 +10,11 @@
 		{
 		    entry
 			{
-			    create ValMachineCheck();
+			    create(ValMachineCheck);
 
 				Servers = (List<machine>)payload;
 
-				raise local;
+				raise(local);
 			}
 
 			on local goto PumpRequestOne;
@@ -22,16 +24,16 @@
 		{
 		    entry
 			{
-			    monitor ValMachineCheck, monitor_client_sent (1);
+			    monitor<ValMachineCheck>(monitor_client_sent, 1);
 
 			    if ($)
 				{
-				    send Servers[0], update (0, 1);
+				    send(Servers[0], update, 0, 1);
 				}
 				else
-				    send Servers[Servers.Count - 1], update (0, 1);
+				    send(Servers[Servers.Count - 1], update, 0, 1);
 
-				raise response;
+				raise(response);
 			}
 
 			on response goto PumpRequestTwo;
@@ -41,16 +43,16 @@
 		{
 		    entry
 			{
-			    monitor ValMachineCheck, monitor_client_sent (2);
+			    monitor<ValMachineCheck>(monitor_client_sent, 2);
 
 			    if ($)
-				    send Servers[0], update (0, 2);
+				    send(Servers[0], update, 0, 2);
 				else
 				{
-				    send Servers[Servers.Count - 1], update (0, 2);
+				    send(Servers[Servers.Count - 1], update, 0, 2);
 				}
 
-				raise response;
+				raise(response);
 			}
 
 			on response goto Done;
@@ -72,7 +74,7 @@
 			{
 				Servers = (List<machine>)payload;
 
-				raise local;
+				raise(local);
 			}
 
 			on local goto PumpRequest;
@@ -82,8 +84,8 @@
 		{
 		    entry
 			{
-			    send Servers[0], update (0, 1);
-				raise response;
+			    send(Servers[0], update, 0, 1);
+				raise(response);
 			}
 
 			on response goto Done;

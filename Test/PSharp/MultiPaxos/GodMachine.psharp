@@ -1,4 +1,6 @@
-﻿namespace MultiPaxos
+﻿using System.Collections.Generic;
+
+namespace MultiPaxos
 {
     machine GodMachine
     {
@@ -10,21 +12,21 @@
 			{
 			    PaxosNodes = new List<machine>();
 
-				var temp = create PaxosNode(1);
+				var temp = create(PaxosNode, 1);
 				PaxosNodes.Add(temp);
 
-				temp = create PaxosNode(2);
+				temp = create(PaxosNode, 2);
 				PaxosNodes.Add(temp);
 
-				temp = create PaxosNode(3);
+				temp = create(PaxosNode, 3);
 				PaxosNodes.Add(temp);
 
 				foreach (var node in PaxosNodes)
 				{
-				    send node, allNodes (PaxosNodes);
+				    send(node, allNodes, PaxosNodes);
 				}
 
-				create Client(PaxosNodes);
+				create(TestClient, PaxosNodes) models Client;
 			}
 		}
     }

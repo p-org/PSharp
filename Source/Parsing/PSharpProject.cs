@@ -221,6 +221,7 @@ namespace Microsoft.PSharp.Parsing
         {
             tree = new CreateMachineRewriter(this).Rewrite(tree);
             tree = new SendRewriter(this).Rewrite(tree);
+            tree = new MonitorRewriter(this).Rewrite(tree);
             tree = new RaiseRewriter(this).Rewrite(tree);
             tree = new PopRewriter(this).Rewrite(tree);
             tree = new AssertRewriter(this).Rewrite(tree);
@@ -236,6 +237,7 @@ namespace Microsoft.PSharp.Parsing
         private SyntaxTree RewriteExpressions(SyntaxTree tree)
         {
             tree = new PayloadRewriter(this).Rewrite(tree);
+            tree = new TriggerRewriter(this).Rewrite(tree);
             tree = new FieldAccessRewriter(this).Rewrite(tree);
             tree = new ThisRewriter(this).Rewrite(tree);
             tree = new NondeterministicChoiceRewriter(this).Rewrite(tree);

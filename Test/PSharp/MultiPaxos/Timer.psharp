@@ -12,7 +12,7 @@
 			{
 			    Target = payload[0] as machine;
 				TimeoutValue = (int)payload[1];
-				raise local;
+				raise(local);
 			}
 
 			on local goto Loop;
@@ -30,7 +30,7 @@
 
 		    entry
 			{
-			    send Target, timeout (this);
+			    send(Target, timeout, this);
 			}
 
 			on local goto Loop;

@@ -231,9 +231,10 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <typeparam name="T">Type of the monitor</typeparam>
         /// <param name="e">Event</param>
-        protected internal void Monitor<T>(Event e)
+        /// <param name="payload">Optional payload</param>
+        protected internal void Monitor<T>(Event e, params Object[] payload)
         {
-            this.Machine.Monitor<T>(e);
+            this.Machine.Monitor<T>(e, payload);
         }
 
         /// <summary>

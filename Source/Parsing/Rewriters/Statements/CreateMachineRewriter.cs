@@ -20,6 +20,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Microsoft.PSharp.Tooling;
+
 namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
@@ -27,6 +29,20 @@ namespace Microsoft.PSharp.Parsing.Syntax
     /// </summary>
     internal sealed class CreateMachineRewriter : PSharpRewriter
     {
+        #region fields
+
+        /// <summary>
+        /// Nodes to be replaced.
+        /// </summary>
+        private List<SyntaxNode> ToReplace;
+
+        /// <summary>
+        /// Nodes to be removed.
+        /// </summary>
+        private List<SyntaxNode> ToRemove;
+
+        #endregion
+
         #region public API
 
         /// <summary>
@@ -36,7 +52,8 @@ namespace Microsoft.PSharp.Parsing.Syntax
         internal CreateMachineRewriter(PSharpProject project)
             : base(project)
         {
-
+            this.ToReplace = new List<SyntaxNode>();
+            this.ToRemove = new List<SyntaxNode>();
         }
 
         /// <summary>
@@ -60,6 +77,16 @@ namespace Microsoft.PSharp.Parsing.Syntax
                 nodes: statements,
                 computeReplacementNode: (node, rewritten) => this.RewriteStatement(rewritten));
 
+            var models = root.DescendantNodes().
+                Where(val => val is LocalDeclarationStatementSyntax).
+                Where(val => this.ToReplace.Any(n => n.IsEquivalentTo(val)));
+
+            root = root.ReplaceNodes(
+                nodes: models,
+                computeReplacementNode: (node, rewritten) => SyntaxFactory.ParseStatement(";"));
+
+            root = root.RemoveNodes(this.ToRemove, SyntaxRemoveOptions.KeepNoTrivia);
+
             return base.UpdateSyntaxTree(tree, root.ToString());
         }
 
@@ -75,13 +102,67 @@ namespace Microsoft.PSharp.Parsing.Syntax
         private SyntaxNode RewriteStatement(InvocationExpressionSyntax node)
         {
             var arguments = new List<ArgumentSyntax>(node.ArgumentList.Arguments);
+            var machineIdentifier = arguments[0].ToString();
+
+            SyntaxNode models = null;
+
+            var parent = node.FirstAncestorOrSelf<ExpressionStatementSyntax>();
+            if (parent != null)
+            {
+                models = base.GetNextStatement(parent);
+                if (models != null &&
+                    (models is LocalDeclarationStatementSyntax) &&
+                    (models as LocalDeclarationStatementSyntax).Declaration.
+                    Type.ToString().Equals("models"))
+                {
+                    if (!Configuration.RunStaticAnalysis &&
+                        !Configuration.RunDynamicAnalysis)
+                    {
+                        machineIdentifier = (models as LocalDeclarationStatementSyntax).
+                            Declaration.Variables[0].Identifier.ValueText;
+                    }
+                }
+                else
+                {
+                    models = null;
+                }
+            }
+
             arguments[0] = SyntaxFactory.Argument(SyntaxFactory.TypeOfExpression(
-                SyntaxFactory.IdentifierName(arguments[0].ToString())));
+                SyntaxFactory.IdentifierName(machineIdentifier)));
+
+            var text = "";
+            if (base.IsMonitor(machineIdentifier))
+            {
+                if (!Configuration.RunStaticAnalysis &&
+                    !Configuration.RunDynamicAnalysis)
+                {
+                    this.ToRemove.Add(node);
+                    if (models != null)
+                    {
+                        this.ToRemove.Add(models);
+                    }
+
+                    return node;
+                }
+
+                text += "this.CreateMonitor";
+            }
+            else
+            {
+                text += "this.CreateMachine";
+            }
 
             var rewritten = node.
                 WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments))).
-                WithExpression(SyntaxFactory.IdentifierName("this.CreateMachine")).
+                WithExpression(SyntaxFactory.IdentifierName(text)).
                 WithTriviaFrom(node);
+
+            if (models != null)
+            {
+                node = node.WithoutTrailingTrivia();
+                this.ToReplace.Add(models);
+            }
 
             return rewritten;
         }

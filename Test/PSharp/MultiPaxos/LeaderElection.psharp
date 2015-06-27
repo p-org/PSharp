@@ -1,4 +1,6 @@
-﻿namespace MultiPaxos
+﻿using System.Collections.Generic;
+
+namespace MultiPaxos
 {
     machine LeaderElection
     {
@@ -17,7 +19,7 @@
 				MyRank = (int)payload[2];
 				CurrentLeader = this;
 				CurrentLeaderRank = MyRank;
-				raise local;
+				raise(local);
 			}
 
 			on local goto SendLeader;
@@ -29,7 +31,7 @@
 			{
 			    GetNewLeader();
 				assert(CurrentLeaderRank <= MyRank);
-				send ParentServer, newLeader (CurrentLeader, CurrentLeaderRank);
+				send(ParentServer, newLeader, CurrentLeader, CurrentLeaderRank);
 			}
 		}
 
