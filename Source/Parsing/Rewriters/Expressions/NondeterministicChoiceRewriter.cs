@@ -46,8 +46,9 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <returns>SyntaxTree</returns>
         internal SyntaxTree Rewrite(SyntaxTree tree)
         {
-            var expressions = tree.GetRoot().DescendantNodes().OfType<IfStatementSyntax>().
-                Where(val => val.Condition.ToString().Equals("")).
+            var expressions = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().
+                Where(val => val.Kind() == SyntaxKind.PointerIndirectionExpression).
+                Where(val => val.Parent is IfStatementSyntax).
                 ToList();
 
             if (expressions.Count == 0)
@@ -69,22 +70,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// Rewrites the expression with a nondetermnistic choice expression.
         /// </summary>
-        /// <param name="node">IfStatementSyntax</param>
+        /// <param name="node">PrefixUnaryExpressionSyntax</param>
         /// <returns>SyntaxNode</returns>
-        private SyntaxNode RewriteExpression(IfStatementSyntax node)
+        private SyntaxNode RewriteExpression(PrefixUnaryExpressionSyntax node)
         {
-            var trivia = node.GetTrailingTrivia().Where(val => !val.ToString().Trim().Equals("")).ToList();
-            if (trivia.Count != 2 ||
-                !trivia[0].ToString().Equals("$") ||
-                !trivia[1].ToString().Equals(")"))
-            {
-                return node;
-            }
-
             var text = "this.Nondet()";
-            var rewritten = node.WithCondition(SyntaxFactory.ParseExpression(text));
-            rewritten = rewritten.WithTrailingTrivia(SyntaxFactory.EndOfLine(")\n"));
-
+            var rewritten = SyntaxFactory.ParseExpression(text);
             return rewritten;
         }
 

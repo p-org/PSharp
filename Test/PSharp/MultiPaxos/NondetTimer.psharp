@@ -30,7 +30,7 @@
 
 		    entry
 			{
-			    if ($)
+			    if (*)
 				{
 				    //send(Target, timeout, this);
 				    raise(local);

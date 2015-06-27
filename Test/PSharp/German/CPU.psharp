@@ -22,23 +22,23 @@ namespace German
         {
             entry
             {
-			    if ($)
+			    if (*)
 				{
-				    if ($)
+				    if (*)
 			            send(Cache.Item1, ask_share);
 				    else
 						send(Cache.Item1, ask_excl);
 			    }
-			    else if ($)
+			    else if (*)
 			    {
-				    if ($)
+				    if (*)
 			            send(Cache.Item2, ask_share);
 				    else
 						send(Cache.Item2, ask_excl);
 			    }
 			    else
 			    {
-				    if ($)
+				    if (*)
 			            send(Cache.Item3, ask_share);
 				    else
 						send(Cache.Item3, ask_excl);

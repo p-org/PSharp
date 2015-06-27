@@ -1,4 +1,6 @@
-﻿namespace FailureDetector
+﻿using System.Collections.Generic;
+
+namespace FailureDetector
 {
     model Driver
     {
@@ -13,9 +15,9 @@
 			    this.NodeSeq = new List<machine>();
 				this.NodeMap = new Dictionary<machine, bool>();
 				this.Initialize();
-				create Safety ();
-                this.FailureDetector = create FailureDetector ( this.NodeSeq );
-				send this.FailureDetector, RegisterClient ( this );
+				create(Safety);
+                this.FailureDetector = create(FailureDetector, this.NodeSeq);
+				send(this.FailureDetector, RegisterClient, this);
 				this.Fail();
             }
         }
@@ -24,7 +26,7 @@
 		{
 		    for (int i = 0; i < 2; i++)
 			{
-			    var node = create Node ();
+			    var node = create(Node);
 				this.NodeSeq.Add(node);
 				this.NodeMap.Add(node, true);
 			}
@@ -34,7 +36,7 @@
 		{
 		    for (int i = 0; i < 2; i++)
 			{
-			    send this.NodeSeq[i], halt;
+			    send(this.NodeSeq[i], halt);
 			}
 		}
     }

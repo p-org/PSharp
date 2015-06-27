@@ -1,4 +1,6 @@
-﻿namespace FailureDetector
+﻿using System.Collections.Generic;
+
+namespace FailureDetector
 {
     monitor Safety
     {
@@ -19,13 +21,13 @@
 				}
 
 				this.Pending[(machine)payload] = this.Pending[(machine)payload] + 1;
-				assert (this.Pending[(machine)payload] <= 3);
+				assert(this.Pending[(machine)payload] <= 3, "1");
 			};
 
 			on MPong do
 			{
-			    assert (this.Pending.ContainsKey((machine)payload));
-				assert (this.Pending[(machine)payload] > 0);
+			    assert(this.Pending.ContainsKey((machine)payload), "2");
+				assert(this.Pending[(machine)payload] > 0, "3");
 				this.Pending[(machine)payload] = this.Pending[(machine)payload] - 1;
 			};
         }

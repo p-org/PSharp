@@ -1,4 +1,6 @@
-﻿namespace FailureDetector
+﻿using System.Collections.Generic;
+
+namespace FailureDetector
 {
     machine FailureDetector
     {
@@ -19,8 +21,8 @@
 				this.Responses = new Dictionary<machine, bool>();
                 this.Nodes = payload as List<machine>;
 				this.InitializeAliveSet();
-				this.Timer = create Timer ( this );
-                raise Unit;
+				this.Timer = create(Timer, this);
+                raise(Unit);
             }
 
 			on RegisterClient do
@@ -44,7 +46,7 @@
 		    entry
 			{
 			    this.SendPings();
-				send this.Timer, Start ( 100 );
+				send(this.Timer, Start, 100);
 			}
 
 			on Pong do
@@ -54,8 +56,8 @@
 				    this.Responses[(machine)payload] = true;
 					if (this.Responses.Count == this.Alive.Count)
 					{
-					    send this.Timer, Cancel;
-						raise TimerCancelled;
+					    send(this.Timer, Cancel);
+						raise(TimerCancelled);
 					}
 				}
 			};
@@ -67,12 +69,12 @@
 			    this.Attempts++;
 				if (this.Responses.Count < this.Alive.Count && this.Attempts < 2)
 				{
-				    raise Unit;
+				    raise(Unit);
 				}
 				else
 				{
 				    this.CheckAliveSet();
-					raise RoundDone;
+					raise(RoundDone);
 				}
 			};
 
@@ -86,7 +88,7 @@
 
 			on CancelSuccess do
 			{
-			    raise RoundDone;
+			    raise(RoundDone);
 			};
 
 			on CancelFailure do
@@ -101,7 +103,7 @@
 			{
 			    this.Attempts = 0;
 				this.Responses.Clear();
-				send this.Timer, Start ( 1000 );
+				send(this.Timer, Start, 1000);
 			}
 
 			on Timeout goto SendPing;
@@ -123,8 +125,8 @@
 			{
 			    if (this.Alive.ContainsKey(node) && !this.Responses.ContainsKey(node))
 				{
-				    monitor Safety, MPing ( node );
-					send node, Ping ( this );
+				    monitor<Safety>(MPing, node);
+					send(node, Ping, this);
 				}
 			}
 		}

@@ -6,8 +6,8 @@
         {
 			on Ping do
 			{
-			    monitor Safety, MPong ( this );
-				send (machine)payload, Pong ( this );
+			    monitor<Safety>(MPong, this);
+				send((machine)payload, Pong, this);
 			};
         }
     }
