@@ -29,26 +29,29 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
         {
             var test = "" +
                 "namespace Foo {" +
+                "machine N {" +
+                "start state S" +
+                "{" +
+                "}" +
+                "}" +
                 "machine M {" +
                 "machine N;" +
                 "start state S" +
                 "{" +
                 "entry" +
                 "{" +
-                "N = create N ();" +
+                "N = create(N);" +
                 "}" +
                 "}" +
                 "}" +
                 "}";
 
             var tokens = new PSharpLexer().Tokenize(test);
-            var program = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test)).
+            var program = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false).
                 ParseTokens(tokens);
             program.Rewrite();
 
             var expected = "using System;" +
-                "using System.Collections.Generic;" +
-                "using System.Threading.Tasks;" +
                 "using Microsoft.PSharp;" +
                 "namespace Foo" +
                 "{" +
@@ -87,13 +90,11 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "}";
 
             var tokens = new PSharpLexer().Tokenize(test);
-            var program = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test)).
+            var program = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false).
                 ParseTokens(tokens);
             program.Rewrite();
 
             var expected = "using System;" +
-                "using System.Collections.Generic;" +
-                "using System.Threading.Tasks;" +
                 "using Microsoft.PSharp;" +
                 "namespace Foo" +
                 "{" +
@@ -131,13 +132,11 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "}";
 
             var tokens = new PSharpLexer().Tokenize(test);
-            var program = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test)).
+            var program = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false).
                 ParseTokens(tokens);
             program.Rewrite();
 
             var expected = "using System;" +
-                "using System.Collections.Generic;" +
-                "using System.Threading.Tasks;" +
                 "using Microsoft.PSharp;" +
                 "namespace Foo" +
                 "{" +
@@ -175,13 +174,11 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "}";
 
             var tokens = new PSharpLexer().Tokenize(test);
-            var program = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test)).
+            var program = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false).
                 ParseTokens(tokens);
             program.Rewrite();
 
             var expected = "using System;" +
-                "using System.Collections.Generic;" +
-                "using System.Threading.Tasks;" +
                 "using Microsoft.PSharp;" +
                 "namespace Foo" +
                 "{" +
@@ -223,13 +220,11 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "}";
 
             var tokens = new PSharpLexer().Tokenize(test);
-            var program = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test)).
+            var program = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false).
                 ParseTokens(tokens);
             program.Rewrite();
 
             var expected = "using System;" +
-                "using System.Collections.Generic;" +
-                "using System.Threading.Tasks;" +
                 "using Microsoft.PSharp;" +
                 "namespace Foo" +
                 "{" +
@@ -271,7 +266,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "}";
 
             var tokens = new PSharpLexer().Tokenize(test);
-            var program = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test)).
+            var program = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false).
                 ParseTokens(tokens);
             program.Rewrite();
 
@@ -318,7 +313,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "}";
 
             var tokens = new PSharpLexer().Tokenize(test);
-            var program = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test)).
+            var program = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false).
                 ParseTokens(tokens);
             program.Rewrite();
 

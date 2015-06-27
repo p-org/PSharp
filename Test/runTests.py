@@ -22,7 +22,7 @@ tests = [
 		  'TypesAndGenerics',
 
 		  # P# distributed benchmarks
-		  'DistributedPingPong',
+		  #'DistributedPingPong',
 
 		  # Regressions
 		  # Feature1SMLevelDecls
@@ -50,7 +50,7 @@ class Options:
 
 def crunchTests():
     Options.ToolPath = os.path.join('..', 'Binaries', 'Release', 'PSharpCompiler.exe')
-    Options.Solution = "Test.sln"
+    Options.Solution = "PSharp.sln"
 	
     for test in tests:
 	  print("Compiling benchmark " + test)

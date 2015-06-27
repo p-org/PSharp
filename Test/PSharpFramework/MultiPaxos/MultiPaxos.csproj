@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{25D12E62-1FBF-48ED-B677-6B0C20908894}</ProjectGuid>
+    <ProjectGuid>{09823B80-83E7-4340-B4E5-EAC95D28BCD0}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>PingPong</RootNamespace>
-    <AssemblyName>PingPong</AssemblyName>
+    <RootNamespace>MultiPaxos</RootNamespace>
+    <AssemblyName>MultiPaxos</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -32,7 +32,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.PSharp">
+    <Reference Include="Microsoft.PSharp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=c4566cf0a7f74012, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\Binaries\Release\Microsoft.PSharp.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.PSharp.Runtime">
@@ -43,12 +44,18 @@
   <ItemGroup>
     <Compile Include="Client.psharp" />
     <Compile Include="Events.psharp" />
-    <Compile Include="Server.psharp" />
+    <Compile Include="GodMachine.psharp" />
+    <Compile Include="Timer.psharp" />
     <Compile Include="Test.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <Compile Include="PaxosNode.psharp" />
+    <Compile Include="NondetTimer.psharp" />
+    <Compile Include="LeaderElection.psharp" />
+    <Compile Include="ValMachineCheck.psharp" />
+    <Compile Include="BasicPaxosInvariant_P2b.psharp" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

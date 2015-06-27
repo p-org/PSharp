@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="Main.cs" company="Microsoft">
+// <copyright file="OnEventDoAction.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -19,8 +19,31 @@ using System;
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Attribute for declaring that the machine is the first to be
-    /// invoked when the runtime starts.
+    /// Attribute for declaring what action a machine should perform
+    /// when it receives an event in a given state.
     /// </summary>
-    public sealed class Main : Attribute { }
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+    public sealed class OnEventDoAction : Attribute
+    {
+        /// <summary>
+        /// Event type.
+        /// </summary>
+        private Type Event;
+
+        /// <summary>
+        /// Action name.
+        /// </summary>
+        private string Action;
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="eventType">Event type</param>
+        /// <param name="actionName">Action name</param>
+        public OnEventDoAction(Type eventType, string actionName)
+        {
+            this.Event = eventType;
+            this.Action = actionName;
+        }
+    }
 }

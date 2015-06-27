@@ -41,7 +41,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "}" +
                 "}";
 
-            var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test));
+            var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
@@ -67,119 +67,13 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "}" +
                 "}";
 
-            var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test));
+            var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
             Assert.AreEqual(parser.GetParsingErrorLog(),
                 "Expected machine identifier.");
-        }
-
-        #endregion
-
-        #region while statements
-
-        [TestMethod, Timeout(3000)]
-        public void TestWhileStatementWithoutGuard()
-        {
-            var test = "" +
-                "namespace Foo {" +
-                "machine M {" +
-                "start state S { }" +
-                "void Bar()" +
-                "{" +
-                "while {}" +
-                "}" +
-                "}" +
-                "}";
-
-            var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test));
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual(parser.GetParsingErrorLog(),
-                "Expected \"(\".");
-        }
-
-        [TestMethod, Timeout(3000)]
-        public void TestWhileStatementWithEmptyGuard()
-        {
-            var test = "" +
-                "namespace Foo {" +
-                "machine M {" +
-                "start state S { }" +
-                "void Bar()" +
-                "{" +
-                "while () {}" +
-                "}" +
-                "}" +
-                "}";
-
-            var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test));
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual(parser.GetParsingErrorLog(),
-                "Expected an expression.");
-        }
-
-        #endregion
-
-        #region break statements
-
-        [TestMethod, Timeout(3000)]
-        public void TestBreakStatementWithoutSemicolon()
-        {
-            var test = "" +
-                "namespace Foo {" +
-                "machine M {" +
-                "start state S { }" +
-                "void Bar()" +
-                "{" +
-                "while (true)" +
-                "{break}" +
-                "}" +
-                "}" +
-                "}";
-
-            var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test));
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual(parser.GetParsingErrorLog(),
-                "Expected \";\".");
-        }
-
-        #endregion
-
-        #region continue statements
-
-        [TestMethod, Timeout(3000)]
-        public void TestContinueStatementWithoutSemicolon()
-        {
-            var test = "" +
-                "namespace Foo {" +
-                "machine M {" +
-                "start state S { }" +
-                "void Bar()" +
-                "{" +
-                "while (true)" +
-                "{continue}" +
-                "}" +
-                "}" +
-                "}";
-
-            var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test));
-
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = parser.ParseTokens(tokens);
-
-            Assert.AreEqual(parser.GetParsingErrorLog(),
-                "Expected \";\".");
         }
 
         #endregion

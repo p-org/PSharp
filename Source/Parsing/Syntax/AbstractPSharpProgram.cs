@@ -21,8 +21,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-using Microsoft.PSharp.Tooling;
-
 namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>

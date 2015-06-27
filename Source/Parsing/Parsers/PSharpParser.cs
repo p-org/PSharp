@@ -42,8 +42,9 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         /// <param name="project">PSharpProject</param>
         /// <param name="tree">SyntaxTree</param>
-        internal PSharpParser(PSharpProject project, SyntaxTree tree)
-            : base(project, tree)
+        /// <param name="exitAtError">Exits at error</param>
+        internal PSharpParser(PSharpProject project, SyntaxTree tree, bool exitAtError = true)
+            : base(project, tree, exitAtError)
         {
 
         }

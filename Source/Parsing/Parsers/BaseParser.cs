@@ -89,12 +89,13 @@ namespace Microsoft.PSharp.Parsing
         /// </summary>
         /// <param name="project">PSharpProject</param>
         /// <param name="tree">SyntaxTree</param>
-        internal BaseParser(PSharpProject project, SyntaxTree tree)
+        /// <param name="exitAtError">Exits at error</param>
+        internal BaseParser(PSharpProject project, SyntaxTree tree, bool exitAtError)
         {
             this.Project = project;
             this.SyntaxTree = tree;
             this.ParsingErrorLog = "";
-            this.IsRunningInternally = true;
+            this.IsRunningInternally = exitAtError;
         }
 
         /// <summary>

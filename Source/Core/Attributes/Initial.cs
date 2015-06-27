@@ -22,5 +22,6 @@ namespace Microsoft.PSharp
     /// Attribute for declaring that a state of a machine
     /// is the initial one.
     /// </summary>
+    [AttributeUsage(AttributeTargets.Class)]
     public sealed class Initial : Attribute { }
 }
