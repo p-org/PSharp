@@ -24,7 +24,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
     {
         #region using declarations
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestIncorrectUsingDeclaration()
         {
             var test = "" +
@@ -39,7 +39,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "Expected \";\".");
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestUsingDeclarationWithoutIdentifier()
         {
             var test = "" +
@@ -58,7 +58,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
 
         #region namespace declarations
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestUnexpectedTokenWithoutNamespace()
         {
             var test = "" +
@@ -73,7 +73,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "Unexpected token.");
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestNamespaceDeclarationWithoutIdentifier()
         {
             var test = "" +
@@ -92,7 +92,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
 
         #region event declarations
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestProtectedEventDeclaration()
         {
             var test = "" +
@@ -109,7 +109,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "Event and machine declarations must be internal or public.");
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestPrivateEventDeclaration()
         {
             var test = "" +
@@ -126,7 +126,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "Event and machine declarations must be internal or public.");
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestEventDeclarationWithoutNamespace()
         {
             var test = "" +
@@ -145,7 +145,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
 
         #region machine declarations
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestMachineDeclarationWithoutState()
         {
             var test = "" +
@@ -163,7 +163,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "A machine must declare at least one state.");
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestMachineDeclarationWithoutIdentifier()
         {
             var test = "" +
@@ -180,7 +180,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "Expected machine identifier.");
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestMachineDeclarationWithTwoBodies()
         {
             var test = "" +
@@ -201,7 +201,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "Unexpected token.");
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestMachineDeclarationWithoutStartState()
         {
             var test = "" +
@@ -220,7 +220,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "A machine must declare a start state.");
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestMachineDeclarationWithoutStartState2()
         {
             var test = "" +
@@ -240,7 +240,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "A machine must declare a start state.");
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestMachineDeclarationWithoutStartState3()
         {
             var test = "" +
@@ -261,7 +261,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "A machine must declare a start state.");
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestMachineDeclarationWithMoreThanOneStartState()
         {
             var test = "" +
@@ -286,7 +286,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
 
         #region state declarations
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestStateDeclarationWithMoreThanOneEntry()
         {
             var test = "" +
@@ -309,7 +309,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "Duplicate entry declaration.");
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestStateDeclarationWithMoreThanOneExit()
         {
             var test = "" +
@@ -332,7 +332,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "Duplicate exit declaration.");
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestEntryDeclarationWithUnexpectedIdentifier()
         {
             var test = "" +
@@ -354,7 +354,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "Expected \"{\".");
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestOnEventGotoStateDeclarationWithoutSemicolon()
         {
             var test = "" +
@@ -376,7 +376,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "Expected \";\".");
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestOnEventGotoStateDeclarationWithoutState()
         {
             var test = "" +
@@ -398,7 +398,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "Expected state identifier.");
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestOnEventDoActionDeclarationWithoutSemicolon()
         {
             var test = "" +
@@ -420,7 +420,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "Expected \";\".");
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestOnEventDoActionDeclarationWithoutAction()
         {
             var test = "" +
@@ -442,7 +442,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "Expected action identifier.");
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestOnEventDeclarationWithoutHandler()
         {
             var test = "" +
@@ -464,7 +464,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "Expected \"do\", \"goto\" or \"push\".");
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestIgnoreEventDeclarationWithoutComma()
         {
             var test = "" +
@@ -486,7 +486,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "Expected \",\".");
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestDeferEventDeclarationWithoutComma()
         {
             var test = "" +
@@ -512,7 +512,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
 
         #region field declarations
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestPublicFieldDeclaration()
         {
             var test = "" +
@@ -532,7 +532,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "A field or method cannot be public.");
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestInternalFieldDeclaration()
         {
             var test = "" +
@@ -552,7 +552,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "A field or method cannot be internal.");
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestIntFieldDeclarationWithoutSemicolon()
         {
             var test = "" +
@@ -572,7 +572,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "Expected \"(\" or \";\".");
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestMachineFieldDeclarationWithoutSemicolon()
         {
             var test = "" +
@@ -592,7 +592,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "Expected \"(\" or \";\".");
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestPrivateMachineFieldDeclarationWithoutSemicolon()
         {
             var test = "" +

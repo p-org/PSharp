@@ -24,7 +24,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
     {
         #region using declarations
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestUsingDeclaration()
         {
             var test = "";
@@ -46,7 +46,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
 
         #region namespace declarations
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestNamespaceDeclaration()
         {
             var test = "" +
@@ -66,7 +66,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
             Assert.AreEqual(expected, program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestNamespaceDeclaration2()
         {
             var test = "" +
@@ -87,7 +87,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
             Assert.AreEqual(expected, program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestNamespaceDeclarationCompact()
         {
             var test = "" +
@@ -111,7 +111,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
 
         #region event declarations
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestEventDeclaration()
         {
             var test = "" +
@@ -157,7 +157,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
 
         #region machine declarations
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestMachineDeclaration()
         {
             var test = "" +
@@ -192,7 +192,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
 
         #region state declarations
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestStateDeclaration()
         {
             var test = "" +
@@ -227,7 +227,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
             Assert.AreEqual(expected, program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestEntryDeclaration()
         {
             var test = "" +
@@ -261,7 +261,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
             Assert.AreEqual(expected, program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestExitDeclaration()
         {
             var test = "" +
@@ -295,7 +295,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
             Assert.AreEqual(expected, program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestEntryAndExitDeclaration()
         {
             var test = "" +
@@ -336,7 +336,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
             Assert.AreEqual(expected, program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestOnEventGotoStateDeclaration()
         {
             var test = "" +
@@ -382,7 +382,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
             Assert.AreEqual(expected, program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestOnEventGotoStateDeclaration2()
         {
             var test = "" +
@@ -430,7 +430,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
             Assert.AreEqual(expected, program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestOnEventGotoStateDeclarationWithBody()
         {
             var test = "" +
@@ -479,7 +479,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
             Assert.AreEqual(expected, program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestOnEventDoActionDeclaration()
         {
             var test = "" +
@@ -525,7 +525,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
             Assert.AreEqual(expected, program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestOnEventDoActionDeclaration2()
         {
             var test = "" +
@@ -573,7 +573,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
             Assert.AreEqual(expected, program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestOnEventDoActionDeclarationWithBody()
         {
             var test = "" +
@@ -622,7 +622,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
             Assert.AreEqual(expected, program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestOnEventGotoStateAndDoActionDeclaration()
         {
             var test = "" +
@@ -681,7 +681,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
             Assert.AreEqual(expected, program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestIgnoreEventDeclaration()
         {
             var test = "" +
@@ -722,7 +722,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
             Assert.AreEqual(expected, program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestIgnoreEventDeclaration2()
         {
             var test = "" +
@@ -764,7 +764,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
             Assert.AreEqual(expected, program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestDeferEventDeclaration()
         {
             var test = "" +
@@ -805,7 +805,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
             Assert.AreEqual(expected, program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestDeferEventDeclaration2()
         {
             var test = "" +
@@ -851,7 +851,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
 
         #region field declarations
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestIntFieldDeclaration()
         {
             var test = "" +
@@ -884,7 +884,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
             Assert.AreEqual(expected, program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestMachineFieldDeclaration()
         {
             var test = "" +
@@ -917,7 +917,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
             Assert.AreEqual(expected, program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestListFieldDeclaration()
         {
             var test = "" +
@@ -954,7 +954,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
 
         #region method declarations
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestVoidMethodDeclaration()
         {
             var test = "" +

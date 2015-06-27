@@ -24,7 +24,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
     {
         #region create statements
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestCreateStatementInState()
         {
             var test = "" +
@@ -69,7 +69,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
             Assert.AreEqual(expected, program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestCreateStatementInStateUsingThis()
         {
             var test = "" +
@@ -114,7 +114,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
             Assert.AreEqual(expected, program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestCreateStatementInStateInLocalScope()
         {
             var test = "" +
@@ -157,7 +157,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
             Assert.AreEqual(expected, program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestCreateStatementInStateInLocalScope2()
         {
             var test = "" +
@@ -206,7 +206,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
 
         #region while statements
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestWhileStatement()
         {
             var test = "" +
@@ -255,7 +255,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
 
         #region break statements
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestBreakStatement()
         {
             var test = "" +
@@ -302,7 +302,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
 
         #region continue statements
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestContinueStatement()
         {
             var test = "" +
@@ -323,8 +323,6 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
             program.Rewrite();
 
             var expected = "using System;" +
-                "using System.Collections.Generic;" +
-                "using System.Threading.Tasks;" +
                 "using Microsoft.PSharp;" +
                 "namespace Foo" +
                 "{" +

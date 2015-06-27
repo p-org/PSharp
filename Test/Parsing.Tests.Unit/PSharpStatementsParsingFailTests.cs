@@ -24,7 +24,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
     {
         #region create statements
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestCreateStatementInStateWithoutBrackets()
         {
             var test = "" +
@@ -50,7 +50,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "Expected \"(\".");
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestCreateStatementInStateWithoutIdentifier()
         {
             var test = "" +
@@ -80,7 +80,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
 
         #region while statements
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestWhileStatementWithoutGuard()
         {
             var test = "" +
@@ -103,7 +103,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "Expected \"(\".");
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestWhileStatementWithEmptyGuard()
         {
             var test = "" +
@@ -130,7 +130,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
 
         #region break statements
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestBreakStatementWithoutSemicolon()
         {
             var test = "" +
@@ -158,7 +158,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
 
         #region continue statements
 
-        [TestMethod]
+        [TestMethod, Timeout(3000)]
         public void TestContinueStatementWithoutSemicolon()
         {
             var test = "" +
