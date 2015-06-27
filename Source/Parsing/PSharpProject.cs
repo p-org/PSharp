@@ -53,7 +53,17 @@ namespace Microsoft.PSharp.Parsing
 
         #endregion
 
-        #region public API
+        #region API
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        public PSharpProject()
+        {
+            this.PSharpPrograms = new List<PSharpProgram>();
+            this.PPrograms = new List<PProgram>();
+            this.ProgramMap = new Dictionary<IPSharpProgram, SyntaxTree>();
+        }
 
         /// <summary>
         /// Constructor.
@@ -97,10 +107,6 @@ namespace Microsoft.PSharp.Parsing
                 this.RewriteProgram(kvp.Key, kvp.Value);
             }
         }
-
-        #endregion
-
-        #region internal API
 
         /// <summary>
         /// Is the identifier a machine type.

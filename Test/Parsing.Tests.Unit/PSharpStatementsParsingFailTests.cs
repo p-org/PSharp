@@ -14,6 +14,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Microsoft.PSharp.Parsing.Tests.Unit
@@ -40,7 +41,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "}" +
                 "}";
 
-            var parser = new PSharpParser();
+            var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test));
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
@@ -66,7 +67,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "}" +
                 "}";
 
-            var parser = new PSharpParser();
+            var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test));
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
@@ -93,7 +94,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "}" +
                 "}";
 
-            var parser = new PSharpParser();
+            var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test));
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
@@ -116,7 +117,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "}" +
                 "}";
 
-            var parser = new PSharpParser();
+            var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test));
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
@@ -144,7 +145,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "}" +
                 "}";
 
-            var parser = new PSharpParser();
+            var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test));
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
@@ -172,7 +173,7 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "}" +
                 "}";
 
-            var parser = new PSharpParser();
+            var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test));
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);

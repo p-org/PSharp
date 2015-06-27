@@ -14,6 +14,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Microsoft.PSharp.Parsing.Tests.Unit
@@ -31,8 +32,8 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "machine M {" +
                 "machine N;" +
                 "start state S" +
-                "{\n" +
-                "entry\n" +
+                "{" +
+                "entry" +
                 "{" +
                 "N = create N ();" +
                 "}" +
@@ -41,30 +42,31 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "}";
 
             var tokens = new PSharpLexer().Tokenize(test);
-            var program = new PSharpParser().ParseTokens(tokens);
+            var program = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test)).
+                ParseTokens(tokens);
+            program.Rewrite();
 
-            var output = program.Rewrite();
-            var expected = "using System;\n" +
-                "using System.Collections.Generic;\n" +
-                "using System.Threading.Tasks;\n" +
-                "using Microsoft.PSharp;\n" +
-                "namespace Foo\n" +
-                "{\n" +
-                "class M : Machine\n" +
-                "{\n" +
-                "private MachineId N;\n" +
-                "[Initial]\n" +
-                "class S : MachineState\n" +
-                "{\n" +
-                "protected override void OnEntry()\n" +
-                "{\n" +
-                "(this.Machine as M).N = this.CreateMachine(typeof(N));\n" +
-                "}\n" +
-                "}\n" +
-                "}\n" +
-                "}\n";
+            var expected = "using System;" +
+                "using System.Collections.Generic;" +
+                "using System.Threading.Tasks;" +
+                "using Microsoft.PSharp;" +
+                "namespace Foo" +
+                "{" +
+                "class M : Machine" +
+                "{" +
+                "private MachineId N;" +
+                "[Initial]" +
+                "class S : MachineState" +
+                "{" +
+                "protected override void OnEntry()" +
+                "{" +
+                "(this.Machine as M).N = this.CreateMachine(typeof(N));" +
+                "}" +
+                "}" +
+                "}" +
+                "}";
 
-            Assert.AreEqual(expected, output);
+            Assert.AreEqual(expected, program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
         }
 
         [TestMethod]
@@ -75,8 +77,8 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "machine M {" +
                 "machine N;" +
                 "start state S" +
-                "{\n" +
-                "entry\n" +
+                "{" +
+                "entry" +
                 "{" +
                 "this.N = create N ();" +
                 "}" +
@@ -85,30 +87,31 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "}";
 
             var tokens = new PSharpLexer().Tokenize(test);
-            var program = new PSharpParser().ParseTokens(tokens);
+            var program = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test)).
+                ParseTokens(tokens);
+            program.Rewrite();
 
-            var output = program.Rewrite();
-            var expected = "using System;\n" +
-                "using System.Collections.Generic;\n" +
-                "using System.Threading.Tasks;\n" +
-                "using Microsoft.PSharp;\n" +
-                "namespace Foo\n" +
-                "{\n" +
-                "class M : Machine\n" +
-                "{\n" +
-                "private MachineId N;\n" +
-                "[Initial]\n" +
-                "class S : MachineState\n" +
-                "{\n" +
-                "protected override void OnEntry()\n" +
-                "{\n" +
-                "(this.Machine as M).N = this.CreateMachine(typeof(N));\n" +
-                "}\n" +
-                "}\n" +
-                "}\n" +
-                "}\n";
+            var expected = "using System;" +
+                "using System.Collections.Generic;" +
+                "using System.Threading.Tasks;" +
+                "using Microsoft.PSharp;" +
+                "namespace Foo" +
+                "{" +
+                "class M : Machine" +
+                "{" +
+                "private MachineId N;" +
+                "[Initial]" +
+                "class S : MachineState" +
+                "{" +
+                "protected override void OnEntry()" +
+                "{" +
+                "(this.Machine as M).N = this.CreateMachine(typeof(N));" +
+                "}" +
+                "}" +
+                "}" +
+                "}";
 
-            Assert.AreEqual(expected, output);
+            Assert.AreEqual(expected, program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
         }
 
         [TestMethod]
@@ -118,8 +121,8 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "namespace Foo {" +
                 "machine M {" +
                 "start state S" +
-                "{\n" +
-                "entry\n" +
+                "{" +
+                "entry" +
                 "{" +
                 "machine n = create N ();" +
                 "}" +
@@ -128,29 +131,30 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "}";
 
             var tokens = new PSharpLexer().Tokenize(test);
-            var program = new PSharpParser().ParseTokens(tokens);
+            var program = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test)).
+                ParseTokens(tokens);
+            program.Rewrite();
 
-            var output = program.Rewrite();
-            var expected = "using System;\n" +
-                "using System.Collections.Generic;\n" +
-                "using System.Threading.Tasks;\n" +
-                "using Microsoft.PSharp;\n" +
-                "namespace Foo\n" +
-                "{\n" +
-                "class M : Machine\n" +
-                "{\n" +
-                "[Initial]\n" +
-                "class S : MachineState\n" +
-                "{\n" +
-                "protected override void OnEntry()\n" +
-                "{\n" +
-                "MachineId n = this.CreateMachine(typeof(N));\n" +
-                "}\n" +
-                "}\n" +
-                "}\n" +
-                "}\n";
+            var expected = "using System;" +
+                "using System.Collections.Generic;" +
+                "using System.Threading.Tasks;" +
+                "using Microsoft.PSharp;" +
+                "namespace Foo" +
+                "{" +
+                "class M : Machine" +
+                "{" +
+                "[Initial]" +
+                "class S : MachineState" +
+                "{" +
+                "protected override void OnEntry()" +
+                "{" +
+                "MachineId n = this.CreateMachine(typeof(N));" +
+                "}" +
+                "}" +
+                "}" +
+                "}";
 
-            Assert.AreEqual(expected, output);
+            Assert.AreEqual(expected, program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
         }
 
         [TestMethod]
@@ -160,8 +164,8 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "namespace Foo {" +
                 "machine M {" +
                 "start state S" +
-                "{\n" +
-                "entry\n" +
+                "{" +
+                "entry" +
                 "{" +
                 "machine n = null;" +
                 "n = create N ();" +
@@ -171,30 +175,31 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "}";
 
             var tokens = new PSharpLexer().Tokenize(test);
-            var program = new PSharpParser().ParseTokens(tokens);
+            var program = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test)).
+                ParseTokens(tokens);
+            program.Rewrite();
 
-            var output = program.Rewrite();
-            var expected = "using System;\n" +
-                "using System.Collections.Generic;\n" +
-                "using System.Threading.Tasks;\n" +
-                "using Microsoft.PSharp;\n" +
-                "namespace Foo\n" +
-                "{\n" +
-                "class M : Machine\n" +
-                "{\n" +
-                "[Initial]\n" +
-                "class S : MachineState\n" +
-                "{\n" +
-                "protected override void OnEntry()\n" +
-                "{\n" +
-                "MachineId n = null;\n" +
-                "n = this.CreateMachine(typeof(N));\n" +
-                "}\n" +
-                "}\n" +
-                "}\n" +
-                "}\n";
+            var expected = "using System;" +
+                "using System.Collections.Generic;" +
+                "using System.Threading.Tasks;" +
+                "using Microsoft.PSharp;" +
+                "namespace Foo" +
+                "{" +
+                "class M : Machine" +
+                "{" +
+                "[Initial]" +
+                "class S : MachineState" +
+                "{" +
+                "protected override void OnEntry()" +
+                "{" +
+                "MachineId n = null;" +
+                "n = this.CreateMachine(typeof(N));" +
+                "}" +
+                "}" +
+                "}" +
+                "}";
 
-            Assert.AreEqual(expected, output);
+            Assert.AreEqual(expected, program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
         }
 
         #endregion
@@ -218,31 +223,32 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "}";
 
             var tokens = new PSharpLexer().Tokenize(test);
-            var program = new PSharpParser().ParseTokens(tokens);
+            var program = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test)).
+                ParseTokens(tokens);
+            program.Rewrite();
 
-            var output = program.Rewrite();
-            var expected = "using System;\n" +
-                "using System.Collections.Generic;\n" +
-                "using System.Threading.Tasks;\n" +
-                "using Microsoft.PSharp;\n" +
-                "namespace Foo\n" +
-                "{\n" +
-                "class M : Machine\n" +
-                "{\n" +
-                "[Initial]\n" +
-                "class S : MachineState\n" +
-                "{\n" +
-                "}\n" +
-                "private void Bar()\n" +
-                "{\n" +
-                "while (true)\n" +
-                "{\n" +
-                "}\n" +
-                "}\n" +
-                "}\n" +
-                "}\n";
+            var expected = "using System;" +
+                "using System.Collections.Generic;" +
+                "using System.Threading.Tasks;" +
+                "using Microsoft.PSharp;" +
+                "namespace Foo" +
+                "{" +
+                "class M : Machine" +
+                "{" +
+                "[Initial]" +
+                "class S : MachineState" +
+                "{" +
+                "}" +
+                "private void Bar()" +
+                "{" +
+                "while (true)" +
+                "{" +
+                "}" +
+                "}" +
+                "}" +
+                "}";
 
-            Assert.AreEqual(expected, output);
+            Assert.AreEqual(expected, program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
         }
 
         #endregion
@@ -265,32 +271,31 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "}";
 
             var tokens = new PSharpLexer().Tokenize(test);
-            var program = new PSharpParser().ParseTokens(tokens);
+            var program = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test)).
+                ParseTokens(tokens);
+            program.Rewrite();
 
-            var output = program.Rewrite();
-            var expected = "using System;\n" +
-                "using System.Collections.Generic;\n" +
-                "using System.Threading.Tasks;\n" +
-                "using Microsoft.PSharp;\n" +
-                "namespace Foo\n" +
-                "{\n" +
-                "class M : Machine\n" +
-                "{\n" +
-                "[Initial]\n" +
-                "class S : MachineState\n" +
-                "{\n" +
-                "}\n" +
-                "private void Bar()\n" +
-                "{\n" +
-                "while (true)\n" +
-                "{\n" +
-                "break;\n" +
-                "}\n" +
-                "}\n" +
-                "}\n" +
-                "}\n";
+            var expected = "using System;" +
+                "using Microsoft.PSharp;" +
+                "namespace Foo" +
+                "{" +
+                "class M : Machine" +
+                "{" +
+                "[Initial]" +
+                "class S : MachineState" +
+                "{" +
+                "}" +
+                "private void Bar()" +
+                "{" +
+                "while (true)" +
+                "{" +
+                "break;" +
+                "}" +
+                "}" +
+                "}" +
+                "}";
 
-            Assert.AreEqual(expected, output);
+            Assert.AreEqual(expected, program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
         }
 
         #endregion
@@ -313,32 +318,33 @@ namespace Microsoft.PSharp.Parsing.Tests.Unit
                 "}";
 
             var tokens = new PSharpLexer().Tokenize(test);
-            var program = new PSharpParser().ParseTokens(tokens);
+            var program = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test)).
+                ParseTokens(tokens);
+            program.Rewrite();
 
-            var output = program.Rewrite();
-            var expected = "using System;\n" +
-                "using System.Collections.Generic;\n" +
-                "using System.Threading.Tasks;\n" +
-                "using Microsoft.PSharp;\n" +
-                "namespace Foo\n" +
-                "{\n" +
-                "class M : Machine\n" +
-                "{\n" +
-                "[Initial]\n" +
-                "class S : MachineState\n" +
-                "{\n" +
-                "}\n" +
-                "private void Bar()\n" +
-                "{\n" +
-                "while (true)\n" +
-                "{\n" +
-                "continue;\n" +
-                "}\n" +
-                "}\n" +
-                "}\n" +
-                "}\n";
+            var expected = "using System;" +
+                "using System.Collections.Generic;" +
+                "using System.Threading.Tasks;" +
+                "using Microsoft.PSharp;" +
+                "namespace Foo" +
+                "{" +
+                "class M : Machine" +
+                "{" +
+                "[Initial]" +
+                "class S : MachineState" +
+                "{" +
+                "}" +
+                "private void Bar()" +
+                "{" +
+                "while (true)" +
+                "{" +
+                "continue;" +
+                "}" +
+                "}" +
+                "}" +
+                "}";
 
-            Assert.AreEqual(expected, output);
+            Assert.AreEqual(expected, program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
         }
 
         #endregion
