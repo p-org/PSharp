@@ -27,7 +27,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 
-using Microsoft.PSharp.Parsing;
+using Microsoft.PSharp.LanguageServices.Parsing;
 
 namespace Microsoft.PSharp.VisualStudio
 {

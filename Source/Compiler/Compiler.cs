@@ -13,7 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System;
-using Microsoft.PSharp.Compilation;
+using Microsoft.PSharp.LanguageServices.Compilation;
 using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp

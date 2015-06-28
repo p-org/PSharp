@@ -93,21 +93,17 @@ namespace Microsoft.PSharp.Parsing.Syntax
 
             base.UpdateSyntaxTree(text);
 
-            base.RewriteTypes();
-            base.RewriteStatements();
-            base.RewriteExpressions();
-
             this.InsertLibraries();
         }
 
         #endregion
 
-        #region protected API
+        #region private API
 
         /// <summary>
         /// Inserts the P# libraries.
         /// </summary>
-        protected override void InsertLibraries()
+        private void InsertLibraries()
         {
             var list = new List<UsingDirectiveSyntax>();
 

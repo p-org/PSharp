@@ -128,9 +128,11 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Parsing\Parsing.csproj">
-      <Project>{14e9df49-1284-425c-a8b3-49ba437ca6af}</Project>
-      <Name>Parsing</Name>
+    <ProjectReference Include="..\LanguageServices\LanguageServices.csproj">
+      <Project>{06ccbe95-2e41-4188-bb97-aee702c1bd25}</Project>
+      <Name>LanguageServices</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

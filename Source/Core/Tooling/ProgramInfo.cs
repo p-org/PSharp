@@ -149,6 +149,17 @@ namespace Microsoft.PSharp.Tooling
             return ext.Equals(".p") ? true : false;
         }
 
+        /// <summary>
+        /// True if the syntax tree belongs to a C# program, else false.
+        /// </summary>
+        /// <param name="tree">SyntaxTree</param>
+        /// <returns>Boolean value</returns>
+        public static bool IsCSharpFile(SyntaxTree tree)
+        {
+            var ext = Path.GetExtension(tree.FilePath);
+            return ext.Equals(".cs") ? true : false;
+        }
+
         #endregion
 
         #region private API

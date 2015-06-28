@@ -8,8 +8,7 @@ namespace PingPong
         MachineId Client;
 
 		[Initial]
-        [OnEntry("InitOnEntry")]
-        [OnExit("InitOnExit")]
+        [OnEntry(nameof(InitOnEntry))]
         [OnEventGotoState(typeof(Unit), typeof(Playing))]
         [OnEventGotoState(typeof(Unit), typeof(Playing))]
         [DeferEvents(typeof(Unit))]
@@ -23,8 +22,8 @@ namespace PingPong
             this.Raise(new Unit());
         }
 
-		[OnEventDoAction(typeof(Unit), "SendPong")]
-        [OnEventDoAction(typeof(Ping), "SendPong")]
+		[OnEventDoAction(typeof(Unit), nameof(SendPong))]
+        [OnEventDoAction(typeof(Ping), nameof(SendPong))]
         class Playing : MachineState
         {
             protected override void OnEntry()

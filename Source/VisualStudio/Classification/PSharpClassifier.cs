@@ -19,7 +19,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Tagging;
 
-using Microsoft.PSharp.Parsing;
+using Microsoft.PSharp.LanguageServices.Parsing;
 
 namespace Microsoft.PSharp.VisualStudio
 {

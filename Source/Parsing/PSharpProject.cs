@@ -94,6 +94,10 @@ namespace Microsoft.PSharp.Parsing
                 {
                     this.ParsePSyntaxTree(tree);
                 }
+                else if (ProgramInfo.IsCSharpFile(tree))
+                {
+                    this.ParseCSharpSyntaxTree(tree);
+                }
             }
         }
 
@@ -161,6 +165,22 @@ namespace Microsoft.PSharp.Parsing
             var program = new PParser(this, tree).ParseTokens(tokens);
 
             this.PPrograms.Add(program as PProgram);
+            this.ProgramMap.Add(program, tree);
+        }
+
+        /// <summary>
+        /// Parses a C# syntax tree to C#.
+        /// th
+        /// </summary>
+        /// <param name="tree">SyntaxTree</param>
+        private void ParseCSharpSyntaxTree(SyntaxTree tree)
+        {
+            var root = (CompilationUnitSyntax)tree.GetRoot();
+
+            var tokens = new PSharpLexer().Tokenize(root.ToFullString());
+            var program = new PSharpParser(this, tree).ParseTokens(tokens);
+
+            this.PSharpPrograms.Add(program as PSharpProgram);
             this.ProgramMap.Add(program, tree);
         }
 

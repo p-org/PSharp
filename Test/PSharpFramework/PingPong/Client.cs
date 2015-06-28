@@ -9,6 +9,7 @@ namespace PingPong
         private int Counter;
 
         [Initial]
+        [OnEventGotoState(typeof(Unit), typeof(Playing))]
         class Init : MachineState
         {
             protected override void OnEntry()
@@ -17,10 +18,10 @@ namespace PingPong
                 (this.Machine as Client).Counter = 0;
                 this.Raise(new Unit());
             }
-
-            //on Unit goto Playing;
         }
 
+        [OnEventGotoState(typeof(Unit), typeof(Playing))]
+        [OnEventDoAction(typeof(Pong), nameof(SendPing))]
         class Playing : MachineState
         {
             protected override void OnEntry()
@@ -30,9 +31,6 @@ namespace PingPong
                     this.Raise(new Halt());
                 }
             }
-
-            //on Unit goto Playing;
-            //on Pong do SendPing;
         }
 
         private void SendPing()

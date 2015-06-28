@@ -83,45 +83,6 @@ namespace Microsoft.PSharp.Parsing.Syntax
         #region protected API
 
         /// <summary>
-        /// Rewrites the P# types to C#.
-        /// </summary>
-        protected void RewriteTypes()
-        {
-            this.SyntaxTree = new MachineTypeRewriter(this.Project).Rewrite(this.SyntaxTree);
-            this.SyntaxTree = new HaltEventRewriter(this.Project).Rewrite(this.SyntaxTree);
-        }
-
-        /// <summary>
-        /// Rewrites the P# statements to C#.
-        /// </summary>
-        protected void RewriteStatements()
-        {
-            this.SyntaxTree = new CreateMachineRewriter(this.Project).Rewrite(this.SyntaxTree);
-            this.SyntaxTree = new SendRewriter(this.Project).Rewrite(this.SyntaxTree);
-            this.SyntaxTree = new MonitorRewriter(this.Project).Rewrite(this.SyntaxTree);
-            this.SyntaxTree = new RaiseRewriter(this.Project).Rewrite(this.SyntaxTree);
-            this.SyntaxTree = new PopRewriter(this.Project).Rewrite(this.SyntaxTree);
-            this.SyntaxTree = new AssertRewriter(this.Project).Rewrite(this.SyntaxTree);
-        }
-
-        /// <summary>
-        /// Rewrites the P# expressions to C#.
-        /// </summary>
-        protected void RewriteExpressions()
-        {
-            this.SyntaxTree = new PayloadRewriter(this.Project).Rewrite(this.SyntaxTree);
-            this.SyntaxTree = new TriggerRewriter(this.Project).Rewrite(this.SyntaxTree);
-            this.SyntaxTree = new FieldAccessRewriter(this.Project).Rewrite(this.SyntaxTree);
-            this.SyntaxTree = new ThisRewriter(this.Project).Rewrite(this.SyntaxTree);
-            this.SyntaxTree = new NondeterministicChoiceRewriter(this.Project).Rewrite(this.SyntaxTree);
-        }
-
-        /// <summary>
-        /// Inserts the P# libraries.
-        /// </summary>
-        protected abstract void InsertLibraries();
-
-        /// <summary>
         /// Creates a new library using syntax node.
         /// </summary>
         /// <param name="name">Library name</param>
