@@ -23,7 +23,7 @@ using Microsoft.CodeAnalysis.Text;
 
 using Microsoft.PSharp.LanguageServices.Syntax;
 
-namespace Microsoft.PSharp.LanguageServices.Rewriting
+namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 {
     /// <summary>
     /// An abstract P# program rewriter.

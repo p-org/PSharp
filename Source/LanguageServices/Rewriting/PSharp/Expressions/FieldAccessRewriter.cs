@@ -20,7 +20,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.PSharp.LanguageServices.Rewriting
+namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 {
     /// <summary>
     /// The field access expression rewriter.

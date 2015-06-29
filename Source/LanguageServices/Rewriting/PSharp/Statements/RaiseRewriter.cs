@@ -20,22 +20,13 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.PSharp.LanguageServices.Rewriting
+namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 {
     /// <summary>
     /// The raise statement rewriter.
     /// </summary>
     internal sealed class RaiseRewriter : PSharpRewriter
     {
-        #region fields
-
-        /// <summary>
-        /// The rewritten raise statements.
-        /// </summary>
-        private List<ExpressionStatementSyntax> RaiseStmts;
-
-        #endregion
-
         #region public API
 
         /// <summary>
@@ -45,7 +36,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting
         internal RaiseRewriter(PSharpProject project)
             : base(project)
         {
-            this.RaiseStmts = new List<ExpressionStatementSyntax>();
+
         }
 
         /// <summary>
@@ -71,14 +62,6 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting
                 nodes: statements,
                 computeReplacementNode: (node, rewritten) => this.RewriteStatement(rewritten));
 
-            var raiseStmts = root.DescendantNodes().OfType<ExpressionStatementSyntax>().
-                Where(val => this.RaiseStmts.Any(v => SyntaxFactory.AreEquivalent(v, val))).ToList();
-
-            foreach (var stmt in raiseStmts)
-            {
-                root = root.InsertNodesAfter(stmt, new List<SyntaxNode> { this.CreateReturnStatement() });
-            }
-
             return base.UpdateSyntaxTree(tree, root.ToString());
         }
 
@@ -101,26 +84,13 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting
             invocation = invocation.WithArgumentList(SyntaxFactory.ArgumentList(
                 SyntaxFactory.SeparatedList(arguments)));
             
-            var rewritten = node.
-                WithExpression(invocation.WithExpression(SyntaxFactory.IdentifierName("this.Raise")))
-                .WithTriviaFrom(node);
-
-            this.RaiseStmts.Add(rewritten);
-
-            rewritten = rewritten.WithoutTrailingTrivia();
+            var text = "{ " +
+                node.WithExpression(invocation.WithExpression(SyntaxFactory.IdentifierName("this.Raise"))).ToString() +
+                "return; }";
+            var rewritten = SyntaxFactory.ParseStatement(text);
+            rewritten = rewritten.WithTriviaFrom(node);
 
             return rewritten;
-        }
-
-        /// <summary>
-        /// Creates a return statement.
-        /// </summary>
-        /// <returns>StatementSyntax</returns>
-        private StatementSyntax CreateReturnStatement()
-        {
-            var returnStmt = SyntaxFactory.ParseStatement("return;");
-            returnStmt = returnStmt.WithTrailingTrivia(SyntaxFactory.EndOfLine("\n"));
-            return returnStmt;
         }
 
         #endregion

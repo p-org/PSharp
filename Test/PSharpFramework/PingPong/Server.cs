@@ -14,7 +14,7 @@ namespace PingPong
 
 		void InitOnEntry()
         {
-            this.Client = this.CreateMachine(typeof(Client), this.Id);
+            this.Client = this.CreateMachine(typeof(Client), this);
             this.Raise(new Unit());
         }
 

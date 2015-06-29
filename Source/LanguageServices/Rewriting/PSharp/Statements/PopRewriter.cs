@@ -20,22 +20,13 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.PSharp.LanguageServices.Rewriting
+namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 {
     /// <summary>
     /// The pop statement rewriter.
     /// </summary>
     internal sealed class PopRewriter : PSharpRewriter
     {
-        #region fields
-
-        /// <summary>
-        /// The rewritten pop statements.
-        /// </summary>
-        private List<StatementSyntax> PopStmts;
-
-        #endregion
-
         #region public API
 
         /// <summary>
@@ -45,7 +36,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting
         internal PopRewriter(PSharpProject project)
             : base(project)
         {
-            this.PopStmts = new List<StatementSyntax>();
+
         }
 
         /// <summary>
@@ -69,14 +60,6 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting
                 nodes: statements,
                 computeReplacementNode: (node, rewritten) => this.RewriteStatement(rewritten));
 
-            var popStmts = root.DescendantNodes().OfType<StatementSyntax>().
-                Where(val => this.PopStmts.Any(v => SyntaxFactory.AreEquivalent(v, val))).ToList();
-
-            foreach (var stmt in popStmts)
-            {
-                root = root.InsertNodesAfter(stmt, new List<SyntaxNode> { this.CreateReturnStatement() });
-            }
-
             return base.UpdateSyntaxTree(tree, root.ToString());
         }
 
@@ -91,26 +74,12 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting
         /// <returns>SyntaxNode</returns>
         private SyntaxNode RewriteStatement(ExpressionStatementSyntax node)
         {
-            var text = "this.Pop();";
+            var text = "{ this.Pop();return; }";
 
             var rewritten = SyntaxFactory.ParseStatement(text);
             rewritten = rewritten.WithTriviaFrom(node);
-            this.PopStmts.Add(rewritten);
-
-            rewritten = rewritten.WithoutTrailingTrivia();
 
             return rewritten;
-        }
-
-        /// <summary>
-        /// Creates a return statement.
-        /// </summary>
-        /// <returns>StatementSyntax</returns>
-        private StatementSyntax CreateReturnStatement()
-        {
-            var returnStmt = SyntaxFactory.ParseStatement("return;");
-            returnStmt = returnStmt.WithTrailingTrivia(SyntaxFactory.EndOfLine("\n"));
-            return returnStmt;
         }
 
         #endregion

@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Microsoft.PSharp.LanguageServices.Rewriting.CSharp;
 using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp.LanguageServices
@@ -61,7 +62,7 @@ namespace Microsoft.PSharp.LanguageServices
         /// </summary>
         public override void Rewrite()
         {
-
+            this.RewriteStatements();
         }
 
         #endregion
@@ -69,11 +70,12 @@ namespace Microsoft.PSharp.LanguageServices
         #region private API
 
         /// <summary>
-        /// Rewrites the P# declarations to C#.
+        /// Rewrites the P# statements to C#.
         /// </summary>
-        private void RewriteDeclarations()
+        private void RewriteStatements()
         {
-            //this.SyntaxTree = new MachineTypeRewriter(this.Project).Rewrite(this.SyntaxTree);
+            this.SyntaxTree = new RaiseRewriter(this.Project).Rewrite(this.SyntaxTree);
+            this.SyntaxTree = new PopRewriter(this.Project).Rewrite(this.SyntaxTree);
         }
 
         #endregion

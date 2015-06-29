@@ -22,7 +22,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Microsoft.PSharp.LanguageServices.Syntax;
 
-namespace Microsoft.PSharp.LanguageServices.Rewriting
+namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 {
     /// <summary>
     /// The this expression rewriter.

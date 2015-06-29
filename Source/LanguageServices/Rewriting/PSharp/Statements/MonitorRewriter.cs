@@ -22,7 +22,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Microsoft.PSharp.Tooling;
 
-namespace Microsoft.PSharp.LanguageServices.Rewriting
+namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 {
     /// <summary>
     /// The monitor statement rewriter.

@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="TriggerRewriter.cs">
+// <copyright file="PopRewriter.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -20,12 +20,12 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
+namespace Microsoft.PSharp.LanguageServices.Rewriting.CSharp
 {
     /// <summary>
-    /// The trigger expression rewriter.
+    /// The pop statement rewriter.
     /// </summary>
-    internal sealed class TriggerRewriter : PSharpRewriter
+    internal sealed class PopRewriter : CSharpRewriter
     {
         #region public API
 
@@ -33,31 +33,44 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// Constructor.
         /// </summary>
         /// <param name="project">PSharpProject</param>
-        internal TriggerRewriter(PSharpProject project)
+        internal PopRewriter(PSharpProject project)
             : base(project)
         {
 
         }
 
         /// <summary>
-        /// Rewrites the syntax tree with trigger expressions.
+        /// Rewrites the syntax tree with pop statements.
         /// </summary>
         /// <param name="tree">SyntaxTree</param>
         /// <returns>SyntaxTree</returns>
         internal SyntaxTree Rewrite(SyntaxTree tree)
         {
-            var expressions = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().
-                Where(val => val.Identifier.ValueText.Equals("trigger")).
+            var stmts1 = tree.GetRoot().DescendantNodes().OfType<ExpressionStatementSyntax>().
+                Where(val => val.Expression is InvocationExpressionSyntax).
+                Where(val => (val.Expression as InvocationExpressionSyntax).Expression is IdentifierNameSyntax).
+                Where(val => ((val.Expression as InvocationExpressionSyntax).Expression as IdentifierNameSyntax).
+                    Identifier.ValueText.Equals("Pop")).
                 ToList();
 
-            if (expressions.Count == 0)
+            var stmts2 = tree.GetRoot().DescendantNodes().OfType<ExpressionStatementSyntax>().
+                Where(val => val.Expression is InvocationExpressionSyntax).
+                Where(val => (val.Expression as InvocationExpressionSyntax).Expression is MemberAccessExpressionSyntax).
+                Where(val => ((val.Expression as InvocationExpressionSyntax).Expression as MemberAccessExpressionSyntax).
+                    Name.Identifier.ValueText.Equals("Pop")).
+                ToList();
+
+            var statements = stmts1;
+            statements.AddRange(stmts2);
+
+            if (statements.Count == 0)
             {
                 return tree;
             }
 
             var root = tree.GetRoot().ReplaceNodes(
-                nodes: expressions,
-                computeReplacementNode: (node, rewritten) => this.RewriteExpression(rewritten));
+                nodes: statements,
+                computeReplacementNode: (node, rewritten) => this.RewriteStatement(rewritten));
 
             return base.UpdateSyntaxTree(tree, root.ToString());
         }
@@ -67,14 +80,14 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         #region private API
 
         /// <summary>
-        /// Rewrites the expression with a trigger expression.
+        /// Rewrites the pop statement.
         /// </summary>
-        /// <param name="node">IdentifierNameSyntax</param>
+        /// <param name="node">ExpressionStatementSyntax</param>
         /// <returns>SyntaxNode</returns>
-        private SyntaxNode RewriteExpression(IdentifierNameSyntax node)
+        private SyntaxNode RewriteStatement(ExpressionStatementSyntax node)
         {
-            var text = "this.Trigger";
-            var rewritten = SyntaxFactory.ParseExpression(text);
+            var text = "{ " + node.ToString() + "return; }";
+            var rewritten = SyntaxFactory.ParseStatement(text);
             rewritten = rewritten.WithTriviaFrom(node);
 
             return rewritten;
