@@ -1,4 +1,6 @@
-﻿namespace German
+﻿using System.Collections.Generic;
+
+namespace German
 {
     internal machine Host
     {
@@ -17,19 +19,19 @@
         {
             entry
             {	
-			    machine client1 = create Client (this, false);
-				machine client2 = create Client (this, false);
-				machine client3 = create Client (this, false);
+			    machine client1 = create(Client, this, false);
+				machine client2 = create(Client, this, false);
+				machine client3 = create(Client, this, false);
 
                 this.Clients = Tuple.Create(client1, client2, client3);
 
 				this.CurrentClient = null;
-				this.CurrentCPU = create CPU (this.Clients);
+				this.CurrentCPU = create(CPU, this.Clients);
 
 				this.SharerList = new List<machine>();
 				assert(this.SharerList.Count == 0);
 
-                raise unit;
+                raise(unit);
             }
 
             on unit goto Receive;
@@ -50,7 +52,7 @@
 			    CurrentClient = payload as machine;
 				IsCurrReqExcl = false;
 
-				raise unit;
+				raise(unit);
             }
 
 			on unit goto ProcessReq;
@@ -63,7 +65,7 @@
 			    CurrentClient = payload as machine;
 				IsCurrReqExcl = true;
 
-				raise unit;
+				raise(unit);
             }
 
 			on unit goto ProcessReq;
@@ -75,10 +77,10 @@
             {
 				if (IsCurrReqExcl || IsExclGranted)
 			    {
-				    raise need_invalidate;
+				    raise(need_invalidate);
 			    }
 			    else
-				    raise grant;
+				    raise(grant);
             }
 
 			on need_invalidate goto Inv;
@@ -92,10 +94,10 @@
 			    I = 0;
 			    S = SharerList.Count;
 			    if (S == 0)
-				    raise grant;
+				    raise(grant);
 			    while (I < S)
 			    {
-				    send SharerList[I], invalidate;
+				    send(SharerList[I], invalidate);
 				    I = I + 1;
 			    }
             }
@@ -114,16 +116,16 @@
 			    if (IsCurrReqExcl)
 			    {
 				    IsExclGranted = true;
-				    send CurrentClient, grant_excl;
+				    send(CurrentClient, grant_excl);
 			    }
 			    else
 			    {
-				    send CurrentClient, grant_share;
+				    send(CurrentClient, grant_share);
 			    }
 
 			    SharerList.Insert(0, CurrentClient);
 			    
-				raise unit;
+				raise(unit);
             }
 
 			on unit goto Receive;
@@ -134,7 +136,7 @@
 		    SharerList.RemoveAt(0);
 			S = SharerList.Count;
 		    if (S == 0)
-			    raise grant;
+			    raise(grant);
 	    }
     }
 }

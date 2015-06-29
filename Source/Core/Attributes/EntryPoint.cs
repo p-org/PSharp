@@ -22,5 +22,6 @@ namespace Microsoft.PSharp
     /// Attribute for declaring the entry point to the P# program.
     /// This is only used during systematic concurrency testing.
     /// </summary>
+    [AttributeUsage(AttributeTargets.Method)]
     public sealed class EntryPoint : Attribute { }
 }

@@ -16,6 +16,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Text;
+
+using Microsoft.PSharp.Tooling;
+
 namespace Microsoft.PSharp.Parsing.Syntax
 {
     /// <summary>
@@ -28,22 +33,22 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// The machine parent node.
         /// </summary>
-        internal readonly MachineDeclarationNode Machine;
+        internal readonly MachineDeclaration Machine;
 
         /// <summary>
         /// The state parent node.
         /// </summary>
-        internal readonly StateDeclarationNode State;
+        internal readonly StateDeclaration State;
+
+        /// <summary>
+        /// The statement block.
+        /// </summary>
+        internal SyntaxTree Block;
 
         /// <summary>
         /// The open brace token.
         /// </summary>
         internal Token OpenBraceToken;
-
-        /// <summary>
-        /// List of statement nodes.
-        /// </summary>
-        internal List<Statement> Statements;
 
         /// <summary>
         /// The close brace token.
@@ -61,13 +66,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <param name="machineNode">MachineDeclarationNode</param>
         /// <param name="stateNode">StateDeclarationNode</param>
         /// <param name="isModel">Is a model</param>
-        internal BlockSyntax(IPSharpProgram program, MachineDeclarationNode machineNode,
-            StateDeclarationNode stateNode, bool isModel)
+        internal BlockSyntax(IPSharpProgram program, MachineDeclaration machineNode,
+            StateDeclaration stateNode, bool isModel)
             : base(program, isModel)
         {
             this.Machine = machineNode;
             this.State = stateNode;
-            this.Statements = new List<Statement>();
         }
 
         /// <summary>
@@ -77,21 +81,8 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <param name="program">Program</param>
         internal override void Rewrite()
         {
-            foreach (var stmt in this.Statements)
-            {
-                stmt.Rewrite();
-            }
-
-            var text = this.GetRewrittenStatementBlock();
-
-            if (this.OpenBraceToken != null)
-            {
-                base.TextUnit = new TextUnit(text, this.OpenBraceToken.TextUnit.Line);
-            }
-            else
-            {
-                base.TextUnit = new TextUnit(text, this.Statements.First().TextUnit.Line);
-            }
+            var text = this.Block.ToString();
+            base.TextUnit = new TextUnit(text, this.OpenBraceToken.TextUnit.Line);
         }
 
         /// <summary>
@@ -100,53 +91,8 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// </summary>
         internal override void Model()
         {
-            foreach (var stmt in this.Statements)
-            {
-                stmt.Model();
-            }
-
-            var text = this.GetRewrittenStatementBlock();
-
-            if (this.OpenBraceToken != null)
-            {
-                base.TextUnit = new TextUnit(text, this.OpenBraceToken.TextUnit.Line);
-            }
-            else
-            {
-                base.TextUnit = new TextUnit(text, this.Statements.First().TextUnit.Line);
-            }
-        }
-
-        #endregion
-
-        #region private API
-
-        /// <summary>
-        /// Returns the rewritten statement block.
-        /// </summary>
-        /// <returns>Text</returns>
-        private string GetRewrittenStatementBlock()
-        {
-            var text = "\n";
-
-            if (this.OpenBraceToken != null &&
-                this.CloseBraceToken != null)
-            {
-                text += this.OpenBraceToken.TextUnit.Text + "\n";
-            }
-
-            foreach (var stmt in this.Statements)
-            {
-                text += stmt.TextUnit.Text;
-            }
-
-            if (this.OpenBraceToken != null &&
-                this.CloseBraceToken != null)
-            {
-                text += this.CloseBraceToken.TextUnit.Text + "\n";
-            }
-
-            return text;
+            var text = this.Block.ToString();
+            base.TextUnit = new TextUnit(text, this.OpenBraceToken.TextUnit.Line);
         }
 
         #endregion

@@ -11,17 +11,17 @@
         {
             entry
             {
-                Process1 = create Process ( this );
-                Process2 = create Process ( this );
-                Process3 = create Process ( this );
+                Process1 = create(Process, this);
+                Process2 = create(Process, this);
+                Process3 = create(Process, this);
 
-                send Process1, eInit ( Process3, Process2 );
-                send Process2, eInit ( Process3, Process1 );
-                send Process3, eInit ( Process1, Process2 );
+                send(Process1, eInit, Process3, Process2);
+                send(Process2, eInit, Process3, Process1);
+                send(Process3, eInit, Process1, Process2);
 
                 Count = 0;
 
-                raise eUnit;
+                raise(eUnit);
             }
 
             on eUnit goto Sync;
@@ -31,9 +31,9 @@
         {
             exit
             {
-                send Process1, eResp;
-                send Process2, eResp;
-                send Process3, eResp;
+                send(Process1, eResp);
+                send(Process2, eResp);
+                send(Process3, eResp);
             }
 
             on eResp goto Sync;
@@ -48,7 +48,7 @@
             if (this.Count == 3)
             {
                 this.Count = 0;
-                raise eResp;
+                raise(eResp);
             }
         }
     }

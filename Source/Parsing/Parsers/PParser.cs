@@ -15,6 +15,8 @@
 using System;
 using System.Collections.Generic;
 
+using Microsoft.CodeAnalysis;
+
 using Microsoft.PSharp.Parsing.Syntax;
 
 namespace Microsoft.PSharp.Parsing
@@ -39,9 +41,10 @@ namespace Microsoft.PSharp.Parsing
         /// Constructor.
         /// </summary>
         /// <param name="project">PSharpProject</param>
-        /// <param name="filePath">File path</param>
-        internal PParser(PSharpProject project, string filePath)
-            : base(project, filePath)
+        /// <param name="tree">SyntaxTree</param>
+        /// <param name="exitAtError">Exits at error</param>
+        internal PParser(PSharpProject project, SyntaxTree tree, bool exitAtError = true)
+            : base(project, tree, exitAtError)
         {
 
         }
@@ -56,7 +59,7 @@ namespace Microsoft.PSharp.Parsing
         /// <returns>P# program</returns>
         protected override IPSharpProgram CreateNewProgram()
         {
-            var program = new PProgram(base.Project, base.FilePath);
+            var program = new PProgram(base.Project, base.SyntaxTree);
             base.TokenStream.Program = program;
             return program;
         }

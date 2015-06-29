@@ -24,6 +24,7 @@ namespace Microsoft.PSharp.Tooling
         None = 0,
         All,
         Parsing,
+        Rewriting,
         Runtime,
         Analysis,
         Testing

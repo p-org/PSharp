@@ -45,10 +45,10 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="isMonitor">Is a monitor</param>
         /// <param name="accMod">Access modifier</param>
         /// <param name="inhMod">Inheritance modifier</param>
-        internal void Visit(IPSharpProgram program, NamespaceDeclarationNode parentNode, bool isMain,
+        internal void Visit(IPSharpProgram program, NamespaceDeclaration parentNode, bool isMain,
             bool isModel, bool isMonitor, AccessModifier accMod, InheritanceModifier inhMod)
         {
-            var node = new MachineDeclarationNode(base.TokenStream.Program, isMain, isModel, isMonitor);
+            var node = new MachineDeclaration(base.TokenStream.Program, isMain, isModel, isMonitor);
             node.AccessModifier = accMod;
             node.InheritanceModifier = inhMod;
             node.MachineKeyword = base.TokenStream.Peek();
@@ -183,7 +183,7 @@ namespace Microsoft.PSharp.Parsing
         /// Visits the next intra-machine declration.
         /// </summary>
         /// <param name="node">Node</param>
-        private void VisitNextPSharpIntraMachineDeclaration(MachineDeclarationNode node)
+        private void VisitNextPSharpIntraMachineDeclaration(MachineDeclaration node)
         {
             bool fixpoint = false;
             while (!fixpoint)
@@ -277,7 +277,7 @@ namespace Microsoft.PSharp.Parsing
         /// Visits a machine level declaration.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        private void VisitMachineLevelDeclaration(MachineDeclarationNode parentNode)
+        private void VisitMachineLevelDeclaration(MachineDeclaration parentNode)
         {
             AccessModifier am = AccessModifier.None;
             InheritanceModifier im = InheritanceModifier.None;
@@ -496,7 +496,7 @@ namespace Microsoft.PSharp.Parsing
         /// Visits the next intra-machine declration.
         /// </summary>
         /// <param name="node">Node</param>
-        private void VisitNextPIntraMachineDeclaration(MachineDeclarationNode node)
+        private void VisitNextPIntraMachineDeclaration(MachineDeclaration node)
         {
             bool fixpoint = false;
             while (!fixpoint)
@@ -580,7 +580,7 @@ namespace Microsoft.PSharp.Parsing
         /// Visits a start state modifier.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        private void VisitStartStateModifier(MachineDeclarationNode parentNode)
+        private void VisitStartStateModifier(MachineDeclaration parentNode)
         {
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();

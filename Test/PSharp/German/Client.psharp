@@ -12,7 +12,7 @@
 			    Host = payload[0] as machine;
 				Pending = (bool)payload[1];
 
-				raise unit;
+				raise(unit);
             }
 
 			on unit goto Invalid;
@@ -31,10 +31,10 @@
 		{
 		    entry
 			{
-			    send Host, req_share ( this );
+			    send(Host, req_share, this);
 				Pending = true;
 
-				raise unit;
+				raise(unit);
 		    }
 			
 			on unit goto InvalidWait;
@@ -44,10 +44,10 @@
 		{
 		    entry
 			{
-			    send Host, req_excl ( this );
+			    send(Host, req_excl, this);
 				Pending = true;
 
-				raise unit;
+				raise(unit);
 		    }
 			
 			on unit goto InvalidWait;
@@ -66,10 +66,10 @@
 		{
 		    entry
 			{
-			    send Host, req_excl ( this );
+			    send(Host, req_excl, this);
 				Pending = true;
 
-				raise unit;
+				raise(unit);
 		    }
 			
 			on unit goto SharingWait;
@@ -116,14 +116,14 @@
 		{
 		    entry
 			{
-			    send Host, invalidate_ack;
+			    send(Host, invalidate_ack);
 
 			    if (Pending)
 			    {
-				    raise wait;
+				    raise(wait);
 			    }
 			    else
-				    raise normal;
+				    raise(normal);
 		    }
 			
 			on wait goto InvalidWait;

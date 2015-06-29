@@ -1,0 +1,34 @@
+﻿namespace MultiPaxos
+{
+    #region Events
+
+    event prepare;
+    event accept;
+    event agree;
+	event reject;
+	event accepted;
+	event local;
+	event success;
+	event allNodes;
+	event goPropose;
+	event chosen;
+	event update;
+
+	event monitor_valueChosen;
+	event monitor_valueProposed;
+
+	event monitor_client_sent;
+	event monitor_proposer_sent;
+	event monitor_proposer_chosen;
+
+	event ping;
+	event newLeader;
+	event timeout;
+	event startTimer;
+	event cancelTimer;
+	event cancelTimerSuccess;
+
+	event response;
+
+    #endregion
+}

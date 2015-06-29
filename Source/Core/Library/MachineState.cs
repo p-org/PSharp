@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace Microsoft.PSharp
 {
@@ -37,7 +38,10 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Handle to the machine that owns this state instance.
         /// </summary>
-        protected internal Machine Machine;
+        protected internal Machine Machine
+        {
+            get; internal set;
+        }
 
         /// <summary>
         /// Handle to the latest received event type.
@@ -60,6 +64,16 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// The entry action, if the OnEntry is not overriden.
+        /// </summary>
+        internal Action EntryAction;
+
+        /// <summary>
+        /// The exit action, if the OnExit is not overriden.
+        /// </summary>
+        internal Action ExitAction;
+
+        /// <summary>
         /// Dictionary containing all the goto state transitions.
         /// </summary>
         internal GotoStateTransitions GotoTransitions;
@@ -75,26 +89,105 @@ namespace Microsoft.PSharp
         internal ActionBindings ActionBindings;
 
         /// <summary>
-        /// Set of deferred event types.
-        /// </summary>
-        internal HashSet<Type> DeferredEvents;
-
-        /// <summary>
         /// Set of ignored event types.
         /// </summary>
         internal HashSet<Type> IgnoredEvents;
+
+        /// <summary>
+        /// Set of deferred event types.
+        /// </summary>
+        internal HashSet<Type> DeferredEvents;
 
         #endregion
 
         #region P# internal methods
 
         /// <summary>
+        /// Constructor.
+        /// </summary>
+        protected MachineState() { }
+
+        /// <summary>
         /// Initializes the state.
         /// </summary>
-        internal void InitializeState()
+        /// <param name="machine">Machine</param>
+        internal void InitializeState(Machine machine)
         {
-            this.DeferredEvents = this.DefineDeferredEvents();
-            this.IgnoredEvents = this.DefineIgnoredEvents();
+            this.Machine = machine;
+
+            this.GotoTransitions = new GotoStateTransitions();
+            this.PushTransitions = new PushStateTransitions();
+            this.ActionBindings = new ActionBindings();
+
+            this.IgnoredEvents = new HashSet<Type>();
+            this.DeferredEvents = new HashSet<Type>();
+
+            var entryAttribute = this.GetType().GetCustomAttribute(typeof(OnEntry), false) as OnEntry;
+            var exitAttribute = this.GetType().GetCustomAttribute(typeof(OnExit), false) as OnExit;
+
+            if (entryAttribute != null)
+            {
+                var method = this.Machine.GetType().GetMethod(entryAttribute.Action,
+                    BindingFlags.NonPublic | BindingFlags.Instance);
+                var action = (Action)Delegate.CreateDelegate(typeof(Action), this.Machine, method);
+                this.EntryAction = action;
+            }
+
+            if (exitAttribute != null)
+            {
+                var method = this.Machine.GetType().GetMethod(exitAttribute.Action,
+                    BindingFlags.NonPublic | BindingFlags.Instance);
+                var action = (Action)Delegate.CreateDelegate(typeof(Action), this.Machine, method);
+                this.ExitAction = action;
+            }
+
+            var gotoAttributes = this.GetType().GetCustomAttributes(typeof(OnEventGotoState), false)
+                as OnEventGotoState[];
+            var pushAttributes = this.GetType().GetCustomAttributes(typeof(OnEventPushState), false)
+                as OnEventPushState[];
+            var doAttributes = this.GetType().GetCustomAttributes(typeof(OnEventDoAction), false)
+                as OnEventDoAction[];
+
+            foreach (var attr in gotoAttributes)
+            {
+                if (attr.Action == null)
+                {
+                    this.GotoTransitions.Add(attr.Event, attr.State);
+                }
+                else
+                {
+                    var method = this.Machine.GetType().GetMethod(attr.Action,
+                        BindingFlags.NonPublic | BindingFlags.Instance);
+                    var action = (Action)Delegate.CreateDelegate(typeof(Action), this.Machine, method);
+                    this.GotoTransitions.Add(attr.Event, attr.State, action);
+                }
+            }
+
+            foreach (var attr in pushAttributes)
+            {
+                this.PushTransitions.Add(attr.Event, attr.State);
+            }
+
+            foreach (var attr in doAttributes)
+            {
+                var method = this.Machine.GetType().GetMethod(attr.Action,
+                    BindingFlags.NonPublic | BindingFlags.Instance);
+                var action = (Action)Delegate.CreateDelegate(typeof(Action), this.Machine, method);
+                this.ActionBindings.Add(attr.Event, action);
+            }
+
+            var ignoreEventsAttribute = this.GetType().GetCustomAttribute(typeof(IgnoreEvents), false) as IgnoreEvents;
+            var deferEventsAttribute = this.GetType().GetCustomAttribute(typeof(DeferEvents), false) as DeferEvents;
+
+            if (ignoreEventsAttribute != null)
+            {
+                this.IgnoredEvents.UnionWith(ignoreEventsAttribute.Events);
+            }
+
+            if (deferEventsAttribute != null)
+            {
+                this.IgnoredEvents.UnionWith(deferEventsAttribute.Events);
+            }
         }
 
         /// <summary>
@@ -102,7 +195,14 @@ namespace Microsoft.PSharp
         /// </summary>
         internal void ExecuteEntryFunction()
         {
-            this.OnEntry();
+            if (this.EntryAction != null)
+            {
+                this.EntryAction();
+            }
+            else
+            {
+                this.OnEntry();
+            }
         }
 
         /// <summary>
@@ -110,43 +210,14 @@ namespace Microsoft.PSharp
         /// </summary>
         internal void ExecuteExitFunction()
         {
-            this.OnExit();
-        }
-
-        /// <summary>
-        /// Checks if the state can handle the given event type. An event
-        /// can be handled if it is deferred, or leads to a transition or
-        /// action binding. Ignored events have been removed.
-        /// </summary>
-        /// <param name="e">Event type</param>
-        /// <returns>Boolean value</returns>
-        internal bool CanHandleEvent(Type e)
-        {
-            if (this.DeferredEvents.Contains(e) ||
-                this.GotoTransitions.ContainsKey(e) ||
-                this.PushTransitions.ContainsKey(e) ||
-                this.ActionBindings.ContainsKey(e))
+            if (this.ExitAction != null)
             {
-                return true;
+                this.ExitAction();
             }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Checks if the state has a default handler.
-        /// </summary>
-        /// <returns></returns>
-        internal bool HasDefaultHandler()
-        {
-            if (this.GotoTransitions.ContainsKey(typeof(Default)) ||
-                this.PushTransitions.ContainsKey(typeof(Default)) ||
-                this.ActionBindings.ContainsKey(typeof(Default)))
+            else
             {
-                return true;
+                this.OnExit();
             }
-
-            return false;
         }
 
         #endregion
@@ -162,24 +233,6 @@ namespace Microsoft.PSharp
         /// Method to be executed when exiting the state.
         /// </summary>
         protected virtual void OnExit() { }
-
-        /// <summary>
-        /// Defines all event types that are deferred by this state.
-        /// </summary>
-        /// <returns>Set of event types</returns>
-        protected virtual HashSet<Type> DefineDeferredEvents()
-        {
-            return new HashSet<Type>();
-        }
-
-        /// <summary>
-        /// Defines all event types that are ignored by this state.
-        /// </summary>
-        /// <returns>Set of event types</returns>
-        protected virtual HashSet<Type> DefineIgnoredEvents()
-        {
-            return new HashSet<Type>();
-        }
 
         /// <summary>
         /// Creates a new machine of the given type with an optional payload.
@@ -220,9 +273,10 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="mid">Machine id</param>
         /// <param name="e">Event</param>
-        protected void Send(MachineId mid, Event e)
+        /// <param name="payload">Optional payload</param>
+        protected void Send(MachineId mid, Event e, params Object[] payload)
         {
-            this.Machine.Send(mid, e);
+            this.Machine.Send(mid, e, payload);
         }
 
         /// <summary>
@@ -230,18 +284,20 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <typeparam name="T">Type of the monitor</typeparam>
         /// <param name="e">Event</param>
-        protected internal void Monitor<T>(Event e)
+        /// <param name="payload">Optional payload</param>
+        protected internal void Monitor<T>(Event e, params Object[] payload)
         {
-            this.Machine.Monitor<T>(e);
+            this.Machine.Monitor<T>(e, payload);
         }
 
         /// <summary>
         /// Raises an event internally and returns from the execution context.
         /// </summary>
         /// <param name="e">Event</param>
-        protected void Raise(Event e)
+        /// <param name="payload">Optional payload</param>
+        protected void Raise(Event e, params Object[] payload)
         {
-            this.Machine.Raise(e);
+            this.Machine.Raise(e, payload);
         }
 
         /// <summary>

@@ -76,10 +76,16 @@
     <Reference Include="System.Runtime.Serialization" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Attributes\IgnoreEvents.cs" />
     <Compile Include="Attributes\EntryPoint.cs" />
+    <Compile Include="Attributes\DeferEvents.cs" />
+    <Compile Include="Attributes\OnEventPushState.cs" />
+    <Compile Include="Attributes\OnExit.cs" />
+    <Compile Include="Attributes\OnEntry.cs" />
+    <Compile Include="Attributes\OnEventDoAction.cs" />
+    <Compile Include="Attributes\OnEventGotoState.cs" />
     <Compile Include="Attributes\Model.cs" />
     <Compile Include="Attributes\Initial.cs" />
-    <Compile Include="Attributes\Main.cs" />
     <Compile Include="Collections\Container.cs" />
     <Compile Include="Collections\Map.cs" />
     <Compile Include="Collections\Seq.cs" />

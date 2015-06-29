@@ -26,6 +26,11 @@ namespace Microsoft.PSharp.Tooling
             return string.Format(CultureInfo.InvariantCulture, s, args);
         }
 
+        internal static void Print(string s)
+        {
+            Console.WriteLine(s);
+        }
+
         internal static void Write(string s, params object[] args)
         {
             string message = Output.Format(s, args);

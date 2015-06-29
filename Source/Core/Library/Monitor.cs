@@ -16,10 +16,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
-using Microsoft.PSharp.Scheduling;
 using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp
@@ -46,9 +46,29 @@ namespace Microsoft.PSharp
         private HashSet<Type> StateTypes;
 
         /// <summary>
+        /// Set of all available states.
+        /// </summary>
+        private HashSet<MonitorState> States;
+
+        /// <summary>
         /// The monitor state.
         /// </summary>
         private MonitorState State;
+
+        /// <summary>
+        /// Dictionary containing all the current goto state transitions.
+        /// </summary>
+        private GotoStateTransitions GotoTransitions;
+
+        /// <summary>
+        /// Dictionary containing all the current action bindings.
+        /// </summary>
+        private ActionBindings ActionBindings;
+
+        /// <summary>
+        /// Set of currently ignored event types.
+        /// </summary>
+        private HashSet<Type> IgnoredEvents;
 
         /// <summary>
         /// Is monitor running.
@@ -59,16 +79,6 @@ namespace Microsoft.PSharp
         /// Is monitor halted.
         /// </summary>
         private bool IsHalted;
-
-        /// <summary>
-        /// Collection of all possible goto state transitions.
-        /// </summary>
-        private Dictionary<Type, GotoStateTransitions> GotoTransitions;
-
-        /// <summary>
-        /// Collection of all possible action bindings.
-        /// </summary>
-        private Dictionary<Type, ActionBindings> ActionBindings;
 
         /// <summary>
         /// Inbox of the monitor. Incoming events are queued here.
@@ -100,7 +110,7 @@ namespace Microsoft.PSharp
         #region monitor constructors
 
         /// <summary>
-        /// Constructor of the MOnitor class.
+        /// Constructor.
         /// </summary>
         protected Monitor()
         {
@@ -109,9 +119,6 @@ namespace Microsoft.PSharp
             this.IsRunning = true;
             this.IsHalted = false;
 
-            this.GotoTransitions = this.DefineGotoStateTransitions();
-            this.ActionBindings = this.DefineActionBindings();
-
             this.InitializeStateInformation();
             this.AssertStateValidity();
         }
@@ -119,28 +126,6 @@ namespace Microsoft.PSharp
         #endregion
 
         #region P# API methods
-
-        /// <summary>
-        /// Defines all possible goto state transitions for each state.
-        /// It must return a dictionary where a key represents
-        /// a state and a value represents the state's transitions.
-        /// </summary>
-        /// <returns>Dictionary<Type, StateTransitions></returns>
-        protected virtual Dictionary<Type, GotoStateTransitions> DefineGotoStateTransitions()
-        {
-            return new Dictionary<Type, GotoStateTransitions>();
-        }
-
-        /// <summary>
-        /// Defines all possible action bindings for each state.
-        /// It must return a dictionary where a key represents
-        /// a state and a value represents the state's action bindings.
-        /// </summary>
-        /// <returns>Dictionary<Type, ActionBindings></returns>
-        protected virtual Dictionary<Type, ActionBindings> DefineActionBindings()
-        {
-            return new Dictionary<Type, ActionBindings>();
-        }
 
         /// <summary>
         /// Raises an event internally and returns from the execution context.
@@ -257,7 +242,7 @@ namespace Microsoft.PSharp
                 // Check if next event to process is null.
                 if (nextEvent == null)
                 {
-                    if (this.State.HasDefaultHandler())
+                    if (this.HasDefaultHandler())
                     {
                         nextEvent = new Default();
                     }
@@ -303,7 +288,7 @@ namespace Microsoft.PSharp
                 for (int idx = 0; idx < this.Inbox.Count; idx++)
                 {
                     // Remove an ignored event.
-                    if (this.State.IgnoredEvents.Contains(this.Inbox[idx].GetType()))
+                    if (this.IgnoredEvents.Contains(this.Inbox[idx].GetType()))
                     {
                         this.Inbox.RemoveAt(idx);
                         idx--;
@@ -349,7 +334,7 @@ namespace Microsoft.PSharp
                 }
 
                 // If current state cannot handle the event then null the state.
-                if (!this.State.CanHandleEvent(e.GetType()))
+                if (!this.CanHandleEvent(e.GetType()))
                 {
                     Output.Debug(DebugType.Runtime, "<ExitLog> Monitor '{0}' exiting state '{1}'.",
                         this, this.State);
@@ -358,17 +343,17 @@ namespace Microsoft.PSharp
                 }
 
                 // Checks if the event can trigger a goto state transition.
-                if (this.State.GotoTransitions.ContainsKey(e.GetType()))
+                if (this.GotoTransitions.ContainsKey(e.GetType()))
                 {
-                    var transition = this.State.GotoTransitions[e.GetType()];
+                    var transition = this.GotoTransitions[e.GetType()];
                     Type targetState = transition.Item1;
                     Action onExitAction = transition.Item2;
                     this.GotoState(targetState, onExitAction);
                 }
                 // Checks if the event can trigger an action.
-                else if (this.State.ActionBindings.ContainsKey(e.GetType()))
+                else if (this.ActionBindings.ContainsKey(e.GetType()))
                 {
-                    Action action = this.State.ActionBindings[e.GetType()];
+                    Action action = this.ActionBindings[e.GetType()];
                     this.Do(action);
                 }
 
@@ -377,14 +362,48 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Checks if the state can handle the given event type. An event
+        /// can be handled if it is deferred, or leads to a transition or
+        /// action binding. Ignored events have been removed.
+        /// </summary>
+        /// <param name="e">Event type</param>
+        /// <returns>Boolean value</returns>
+        private bool CanHandleEvent(Type e)
+        {
+            if (this.GotoTransitions.ContainsKey(e) ||
+                this.ActionBindings.ContainsKey(e))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Checks if the state has a default handler.
+        /// </summary>
+        /// <returns></returns>
+        private bool HasDefaultHandler()
+        {
+            if (this.GotoTransitions.ContainsKey(typeof(Default)) ||
+                this.ActionBindings.ContainsKey(typeof(Default)))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Initializes information about the states of the monitor.
         /// </summary>
         private void InitializeStateInformation()
         {
             this.StateTypes = new HashSet<Type>();
+            this.States = new HashSet<MonitorState>();
 
             Type monitorType = this.GetType();
-            Type initialState = null;
+            Type initialStateType = null;
 
             while (monitorType != typeof(Monitor))
             {
@@ -396,9 +415,9 @@ namespace Microsoft.PSharp
                     {
                         if (s.IsDefined(typeof(Initial), false))
                         {
-                            this.Assert(initialState == null, "Monitor ''{0}'' can not have " +
+                            this.Assert(initialStateType == null, "Monitor ''{0}'' can not have " +
                                 "more than one initial states.\n", this.GetType().Name);
-                            initialState = s;
+                            initialStateType = s;
                         }
 
                         this.Assert(s.BaseType == typeof(MonitorState), "State ''{0}'' is " +
@@ -410,33 +429,27 @@ namespace Microsoft.PSharp
                 monitorType = monitorType.BaseType;
             }
 
-            this.State = this.InitializeState(initialState);
+            foreach (var type in this.StateTypes)
+            {
+                MonitorState state = Activator.CreateInstance(type) as MonitorState;
+                state.InitializeState(this);
+                this.States.Add(state);
+            }
+
+            var initialState = this.States.First(val => val.GetType().Equals(initialStateType));
+            this.ConfigureStateTransitions(initialState);
+            this.State = initialState;
         }
 
         /// <summary>
-        /// Initializes a state of the given type.
+        /// Configures the state transitions of the monitor.
         /// </summary>
-        /// <param name="s">Type of the state</param>
-        /// <returns>State</returns>
-        private MonitorState InitializeState(Type s)
+        /// <param name="state">State</param>
+        private void ConfigureStateTransitions(MonitorState state)
         {
-            MonitorState state = Activator.CreateInstance(s) as MonitorState;
-            state.InitializeState();
-            state.Monitor = this;
-
-            GotoStateTransitions sst = null;
-            ActionBindings ab = null;
-
-            this.GotoTransitions.TryGetValue(s, out sst);
-            this.ActionBindings.TryGetValue(s, out ab);
-
-            if (sst == null) state.GotoTransitions = new GotoStateTransitions();
-            else state.GotoTransitions = sst;
-
-            if (ab == null) state.ActionBindings = new ActionBindings();
-            else state.ActionBindings = ab;
-
-            return state;
+            this.GotoTransitions = state.GotoTransitions;
+            this.ActionBindings = state.ActionBindings;
+            this.IgnoredEvents = state.IgnoredEvents;
         }
 
         /// <summary>
@@ -452,9 +465,13 @@ namespace Microsoft.PSharp
             {
                 return;
             }
+
+            var nextState = this.States.First(val => val.GetType().Equals(s));
+            this.ConfigureStateTransitions(nextState);
             
             // The monitor transitions to the new state.
-            this.State = this.InitializeState(s);
+            this.State = nextState;
+
             // The monitor performs the on entry statements of the new state.
             this.ExecuteCurrentStateOnEntry();
         }
@@ -590,8 +607,6 @@ namespace Microsoft.PSharp
         private void CleanUpResources()
         {
             this.StateTypes.Clear();
-            this.GotoTransitions.Clear();
-            this.ActionBindings.Clear();
             this.Inbox.Clear();
 
             this.Trigger = null;

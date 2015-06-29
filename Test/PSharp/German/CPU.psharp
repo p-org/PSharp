@@ -1,4 +1,6 @@
-﻿namespace German
+﻿using System.Collections.Generic;
+
+namespace German
 {
     internal model CPU
     {
@@ -10,7 +12,7 @@
             {
 			    Cache = payload as Tuple<machine, machine, machine>;
 
-				raise unit;
+				raise(unit);
             }
 
 			on unit goto MakeReq;
@@ -20,29 +22,29 @@
         {
             entry
             {
-			    if ($)
+			    if (*)
 				{
-				    if ($)
-			            send Cache.Item1, ask_share;
+				    if (*)
+			            send(Cache.Item1, ask_share);
 				    else
-						send Cache.Item1, ask_excl;
+						send(Cache.Item1, ask_excl);
 			    }
-			    else if ($)
+			    else if (*)
 			    {
-				    if ($)
-			            send Cache.Item2, ask_share;
+				    if (*)
+			            send(Cache.Item2, ask_share);
 				    else
-						send Cache.Item2, ask_excl;
+						send(Cache.Item2, ask_excl);
 			    }
 			    else
 			    {
-				    if ($)
-			            send Cache.Item3, ask_share;
+				    if (*)
+			            send(Cache.Item3, ask_share);
 				    else
-						send Cache.Item3, ask_excl;
+						send(Cache.Item3, ask_excl);
 			    }
 
-				raise unit;
+				raise(unit);
             }
 
 			on unit goto MakeReq;

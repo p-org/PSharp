@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace Microsoft.PSharp
 {
@@ -52,6 +53,16 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// The entry action, if the OnEntry is not overriden.
+        /// </summary>
+        internal Action EntryAction;
+
+        /// <summary>
+        /// The exit action, if the OnExit is not overriden.
+        /// </summary>
+        internal Action ExitAction;
+
+        /// <summary>
         /// Dictionary containing all the goto state transitions.
         /// </summary>
         internal GotoStateTransitions GotoTransitions;
@@ -71,11 +82,75 @@ namespace Microsoft.PSharp
         #region P# internal methods
 
         /// <summary>
-        /// Initializes the state.
+        /// Constructor.
         /// </summary>
-        internal void InitializeState()
+        protected MonitorState() { }
+
+        /// <summary>
+        /// Initializes the state.
+        /// <param name="monitor">Monitor</param>
+        internal void InitializeState(Monitor monitor)
         {
-            this.IgnoredEvents = this.DefineIgnoredEvents();
+            this.Monitor = monitor;
+
+            this.GotoTransitions = new GotoStateTransitions();
+            this.ActionBindings = new ActionBindings();
+
+            this.IgnoredEvents = new HashSet<Type>();
+
+            var entryAttribute = this.GetType().GetCustomAttribute(typeof(OnEntry), false) as OnEntry;
+            var exitAttribute = this.GetType().GetCustomAttribute(typeof(OnExit), false) as OnExit;
+
+            if (entryAttribute != null)
+            {
+                var method = this.Monitor.GetType().GetMethod(entryAttribute.Action,
+                    BindingFlags.NonPublic | BindingFlags.Instance);
+                var action = (Action)Delegate.CreateDelegate(typeof(Action), this.Monitor, method);
+                this.EntryAction = action;
+            }
+
+            if (exitAttribute != null)
+            {
+                var method = this.Monitor.GetType().GetMethod(exitAttribute.Action,
+                    BindingFlags.NonPublic | BindingFlags.Instance);
+                var action = (Action)Delegate.CreateDelegate(typeof(Action), this.Monitor, method);
+                this.ExitAction = action;
+            }
+
+            var gotoAttributes = this.GetType().GetCustomAttributes(typeof(OnEventGotoState), false)
+                as OnEventGotoState[];
+            var doAttributes = this.GetType().GetCustomAttributes(typeof(OnEventDoAction), false)
+                as OnEventDoAction[];
+
+            foreach (var attr in gotoAttributes)
+            {
+                if (attr.Action == null)
+                {
+                    this.GotoTransitions.Add(attr.Event, attr.State);
+                }
+                else
+                {
+                    var method = this.Monitor.GetType().GetMethod(attr.Action,
+                        BindingFlags.NonPublic | BindingFlags.Instance);
+                    var action = (Action)Delegate.CreateDelegate(typeof(Action), this.Monitor, method);
+                    this.GotoTransitions.Add(attr.Event, attr.State, action);
+                }
+            }
+
+            foreach (var attr in doAttributes)
+            {
+                var method = this.Monitor.GetType().GetMethod(attr.Action,
+                    BindingFlags.NonPublic | BindingFlags.Instance);
+                var action = (Action)Delegate.CreateDelegate(typeof(Action), this.Monitor, method);
+                this.ActionBindings.Add(attr.Event, action);
+            }
+
+            var ignoreEventsAttribute = this.GetType().GetCustomAttribute(typeof(IgnoreEvents), false) as IgnoreEvents;
+
+            if (ignoreEventsAttribute != null)
+            {
+                this.IgnoredEvents.UnionWith(ignoreEventsAttribute.Events);
+            }
         }
 
         /// <summary>
@@ -83,7 +158,14 @@ namespace Microsoft.PSharp
         /// </summary>
         internal void ExecuteEntryFunction()
         {
-            this.OnEntry();
+            if (this.EntryAction != null)
+            {
+                this.EntryAction();
+            }
+            else
+            {
+                this.OnEntry();
+            }
         }
 
         /// <summary>
@@ -91,40 +173,14 @@ namespace Microsoft.PSharp
         /// </summary>
         internal void ExecuteExitFunction()
         {
-            this.OnExit();
-        }
-
-        /// <summary>
-        /// Checks if the state can handle the given event type. An event
-        /// can be handled if it is deferred, or leads to a transition or
-        /// action binding. Ignored events have been removed.
-        /// </summary>
-        /// <param name="e">Event type</param>
-        /// <returns>Boolean value</returns>
-        internal bool CanHandleEvent(Type e)
-        {
-            if (this.GotoTransitions.ContainsKey(e) ||
-                this.ActionBindings.ContainsKey(e))
+            if (this.ExitAction != null)
             {
-                return true;
+                this.ExitAction();
             }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Checks if the state has a default handler.
-        /// </summary>
-        /// <returns></returns>
-        internal bool HasDefaultHandler()
-        {
-            if (this.GotoTransitions.ContainsKey(typeof(Default)) ||
-                this.ActionBindings.ContainsKey(typeof(Default)))
+            else
             {
-                return true;
+                this.OnExit();
             }
-
-            return false;
         }
 
         #endregion
@@ -140,24 +196,6 @@ namespace Microsoft.PSharp
         /// Method to be executed when exiting the state.
         /// </summary>
         protected virtual void OnExit() { }
-
-        /// <summary>
-        /// Defines all event types that are deferred by this state.
-        /// </summary>
-        /// <returns>Set of event types</returns>
-        protected virtual HashSet<Type> DefineDeferredEvents()
-        {
-            return new HashSet<Type>();
-        }
-
-        /// <summary>
-        /// Defines all event types that are ignored by this state.
-        /// </summary>
-        /// <returns>Set of event types</returns>
-        protected virtual HashSet<Type> DefineIgnoredEvents()
-        {
-            return new HashSet<Type>();
-        }
 
         /// <summary>
         /// Raises an event internally and returns from the execution context.

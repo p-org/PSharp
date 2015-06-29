@@ -93,7 +93,8 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="target">Target machine id</param>
         /// <param name="e">Event</param>
-        public static void SendEvent(MachineId target, Event e)
+        /// <param name="payload">Optional payload</param>
+        public static void SendEvent(MachineId target, Event e, params Object[] payload)
         {
             if (PSharpRuntime.BugFinder != null)
             {
@@ -101,6 +102,7 @@ namespace Microsoft.PSharp
                     "code during systematic testing.");
             }
 
+            e.AssignPayload(payload);
             PSharpRuntime.Send(target, e);
         }
 

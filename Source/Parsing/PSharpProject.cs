@@ -12,12 +12,12 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 using Microsoft.PSharp.Parsing.Syntax;
 using Microsoft.PSharp.Tooling;
@@ -53,7 +53,17 @@ namespace Microsoft.PSharp.Parsing
 
         #endregion
 
-        #region public API
+        #region API
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        public PSharpProject()
+        {
+            this.PSharpPrograms = new List<PSharpProgram>();
+            this.PPrograms = new List<PProgram>();
+            this.ProgramMap = new Dictionary<IPSharpProgram, SyntaxTree>();
+        }
 
         /// <summary>
         /// Constructor.
@@ -84,6 +94,10 @@ namespace Microsoft.PSharp.Parsing
                 {
                     this.ParsePSyntaxTree(tree);
                 }
+                else if (ProgramInfo.IsCSharpFile(tree))
+                {
+                    this.ParseCSharpSyntaxTree(tree);
+                }
             }
         }
 
@@ -96,6 +110,27 @@ namespace Microsoft.PSharp.Parsing
             {
                 this.RewriteProgram(kvp.Key, kvp.Value);
             }
+        }
+
+        /// <summary>
+        /// Is the identifier a machine type.
+        /// </summary>
+        /// <param name="identifier">IdentifierNameSyntax</param>
+        /// <returns>Boolean value</returns>
+        internal bool IsMachineType(SyntaxToken identifier)
+        {
+            var result = false;
+
+            result = this.PSharpPrograms.Any(p => p.NamespaceDeclarations.Any(n => n.MachineDeclarations.Any(
+                    m => m.Identifier.TextUnit.Text.Equals(identifier.ValueText))));
+
+            if (!result)
+            {
+                result = this.PPrograms.Any(p => p.MachineDeclarations.Any(
+                    m => m.Identifier.TextUnit.Text.Equals(identifier.ValueText)));
+            }
+
+            return result;
         }
 
         #endregion
@@ -112,7 +147,7 @@ namespace Microsoft.PSharp.Parsing
             var root = (CompilationUnitSyntax)tree.GetRoot();
 
             var tokens = new PSharpLexer().Tokenize(root.ToFullString());
-            var program = new PSharpParser(this, tree.FilePath).ParseTokens(tokens);
+            var program = new PSharpParser(this, tree).ParseTokens(tokens);
 
             this.PSharpPrograms.Add(program as PSharpProgram);
             this.ProgramMap.Add(program, tree);
@@ -127,9 +162,25 @@ namespace Microsoft.PSharp.Parsing
             var root = (CompilationUnitSyntax)tree.GetRoot();
 
             var tokens = new PLexer().Tokenize(root.ToFullString());
-            var program = new PParser(this, tree.FilePath).ParseTokens(tokens);
+            var program = new PParser(this, tree).ParseTokens(tokens);
 
             this.PPrograms.Add(program as PProgram);
+            this.ProgramMap.Add(program, tree);
+        }
+
+        /// <summary>
+        /// Parses a C# syntax tree to C#.
+        /// th
+        /// </summary>
+        /// <param name="tree">SyntaxTree</param>
+        private void ParseCSharpSyntaxTree(SyntaxTree tree)
+        {
+            var root = (CompilationUnitSyntax)tree.GetRoot();
+
+            var tokens = new PSharpLexer().Tokenize(root.ToFullString());
+            var program = new PSharpParser(this, tree).ParseTokens(tokens);
+
+            this.PSharpPrograms.Add(program as PSharpProgram);
             this.ProgramMap.Add(program, tree);
         }
 
@@ -140,21 +191,10 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="tree">SyntaxTree</param>
         private void RewriteProgram(IPSharpProgram program, SyntaxTree tree)
         {
-            string rewrittenTree = null;
-
-            if (Configuration.RunStaticAnalysis || Configuration.RunDynamicAnalysis)
-            {
-                rewrittenTree = program.Model();
-            }
-            else
-            {
-                rewrittenTree = program.Rewrite();
-            }
-
-            var source = SourceText.From(rewrittenTree);
+            program.Rewrite();
 
             var project = this.Project;
-            ProgramInfo.ReplaceSyntaxTree(tree.WithChangedText(source), ref project);
+            ProgramInfo.ReplaceSyntaxTree(program.GetSyntaxTree(), ref project);
             this.Project = project;
         }
 

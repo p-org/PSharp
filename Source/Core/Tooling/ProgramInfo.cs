@@ -139,6 +139,17 @@ namespace Microsoft.PSharp.Tooling
         }
 
         /// <summary>
+        /// True if the syntax tree belongs to a C# program, else false.
+        /// </summary>
+        /// <param name="tree">SyntaxTree</param>
+        /// <returns>Boolean value</returns>
+        public static bool IsCSharpFile(SyntaxTree tree)
+        {
+            var ext = Path.GetExtension(tree.FilePath);
+            return ext.Equals(".cs") ? true : false;
+        }
+
+        /// <summary>
         /// True if the syntax tree belongs to a P program, else false.
         /// </summary>
         /// <param name="tree">SyntaxTree</param>
@@ -148,7 +159,7 @@ namespace Microsoft.PSharp.Tooling
             var ext = Path.GetExtension(tree.FilePath);
             return ext.Equals(".p") ? true : false;
         }
-
+        
         #endregion
 
         #region private API
@@ -163,7 +174,7 @@ namespace Microsoft.PSharp.Tooling
             var lines = System.Text.RegularExpressions.Regex.Split(root.ToFullString(), "\r\n|\r|\n");
             for (int idx = 0; idx < lines.Length; idx++)
             {
-                Console.WriteLine(idx + 1 + " " + lines[idx]);
+                Output.Print(idx + 1 + " " + lines[idx]);
             }
         }
 

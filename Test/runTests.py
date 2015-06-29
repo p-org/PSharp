@@ -7,10 +7,10 @@ import sys
 
 tests = [
           # P benchmarks
-          'PBoundedAsync',
-		  'PElevator',
-		  'PGerman',
-		  'PPushTest',
+          #'PBoundedAsync',
+		  #'PElevator',
+		  #'PGerman',
+		  #'PPushTest',
 
 		  # P# benchmarks
 		  'AbstractPong',
@@ -22,22 +22,22 @@ tests = [
 		  'TypesAndGenerics',
 
 		  # P# distributed benchmarks
-		  'DistributedPingPong',
+		  #'DistributedPingPong',
 
 		  # Regressions
 		  # Feature1SMLevelDecls
-		  'AlonBug',
-		  'BugRepro1',
-		  'MaxInstances_2',
-		  'MaxInstances_3',
-		  'AlonBug_Fails',
-		  'BugRepro',
-		  'MaxInstances_1',
+		  #'AlonBug',
+		  #'BugRepro1',
+		  #'MaxInstances_2',
+		  #'MaxInstances_3',
+		  #'AlonBug_Fails',
+		  #'BugRepro',
+		  #'MaxInstances_1',
 
 		  # Feature2Stmts
-		  'SEM_OneMachine_33',
-		  'SEM_OneMachine_34',
-		  'SEM_OneMachine_35',
+		  #'SEM_OneMachine_33',
+		  #'SEM_OneMachine_34',
+		  #'SEM_OneMachine_35',
 
 		  # Feature3Exprs
 		  #'ExprOperatorsAsserts',
@@ -50,7 +50,7 @@ class Options:
 
 def crunchTests():
     Options.ToolPath = os.path.join('..', 'Binaries', 'Release', 'PSharpCompiler.exe')
-    Options.Solution = "Test.sln"
+    Options.Solution = "PSharp.sln"
 	
     for test in tests:
 	  print("Compiling benchmark " + test)

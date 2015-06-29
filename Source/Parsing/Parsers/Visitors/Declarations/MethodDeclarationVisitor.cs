@@ -44,7 +44,7 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="accMod">Access modifier</param>
         /// <param name="inhMod">Inheritance modifier</param>
         /// <param name="isAsync">Is async</param>
-        internal void Visit(MachineDeclarationNode parentNode, Token typeIdentifier, Token identifier,
+        internal void Visit(MachineDeclaration parentNode, Token typeIdentifier, Token identifier,
             bool isModel, AccessModifier accMod, InheritanceModifier inhMod, bool isAsync)
         {
             if (parentNode.IsModel)
@@ -52,7 +52,7 @@ namespace Microsoft.PSharp.Parsing
                 isModel = true;
             }
 
-            var node = new MethodDeclarationNode(base.TokenStream.Program, isModel);
+            var node = new MethodDeclaration(base.TokenStream.Program, isModel);
             node.AccessModifier = accMod;
             node.InheritanceModifier = inhMod;
             node.TypeIdentifier = typeIdentifier;

@@ -51,10 +51,40 @@ namespace Microsoft.PSharp
         private HashSet<Type> StateTypes;
 
         /// <summary>
+        /// Set of all available states.
+        /// </summary>
+        private HashSet<MachineState> States;
+
+        /// <summary>
         /// A stack of machine states. The state on the top of
         /// the stack represents the current state.
         /// </summary>
         private Stack<MachineState> StateStack;
+
+        /// <summary>
+        /// Dictionary containing all the current goto state transitions.
+        /// </summary>
+        internal GotoStateTransitions GotoTransitions;
+
+        /// <summary>
+        /// Dictionary containing all the current push state transitions.
+        /// </summary>
+        internal PushStateTransitions PushTransitions;
+
+        /// <summary>
+        /// Dictionary containing all the current action bindings.
+        /// </summary>
+        internal ActionBindings ActionBindings;
+
+        /// <summary>
+        /// Set of currently ignored event types.
+        /// </summary>
+        internal HashSet<Type> IgnoredEvents;
+
+        /// <summary>
+        /// Set of currently deferred event types.
+        /// </summary>
+        internal HashSet<Type> DeferredEvents;
 
         /// <summary>
         /// Is machine running.
@@ -65,21 +95,6 @@ namespace Microsoft.PSharp
         /// Is machine halted.
         /// </summary>
         private bool IsHalted;
-
-        /// <summary>
-        /// Collection of all possible goto state transitions.
-        /// </summary>
-        private Dictionary<Type, GotoStateTransitions> GotoTransitions;
-
-        /// <summary>
-        /// Collection of all possible push state transitions.
-        /// </summary>
-        private Dictionary<Type, PushStateTransitions> PushTransitions;
-
-        /// <summary>
-        /// Collection of all possible action bindings.
-        /// </summary>
-        private Dictionary<Type, ActionBindings> ActionBindings;
 
         /// <summary>
         /// Inbox of the state machine. Incoming events are queued here.
@@ -111,7 +126,7 @@ namespace Microsoft.PSharp
         #region machine constructors
 
         /// <summary>
-        /// Constructor of the Machine class.
+        /// Constructor.
         /// </summary>
         protected Machine()
         {
@@ -123,10 +138,6 @@ namespace Microsoft.PSharp
             this.IsRunning = true;
             this.IsHalted = false;
 
-            this.GotoTransitions = this.DefineGotoStateTransitions();
-            this.PushTransitions = this.DefinePushStateTransitions();
-            this.ActionBindings = this.DefineActionBindings();
-
             this.InitializeStateInformation();
             this.AssertStateValidity();
         }
@@ -134,39 +145,6 @@ namespace Microsoft.PSharp
         #endregion
 
         #region P# API methods
-
-        /// <summary>
-        /// Defines all possible goto state transitions for each state.
-        /// It must return a dictionary where a key represents
-        /// a state and a value represents the state's transitions.
-        /// </summary>
-        /// <returns>Dictionary<Type, StateTransitions></returns>
-        protected virtual Dictionary<Type, GotoStateTransitions> DefineGotoStateTransitions()
-        {
-            return new Dictionary<Type, GotoStateTransitions>();
-        }
-
-        /// <summary>
-        /// Defines all possible push state transitions for each state.
-        /// It must return a dictionary where a key represents
-        /// a state and a value represents the state's transitions.
-        /// </summary>
-        /// <returns>Dictionary<Type, StateTransitions></returns>
-        protected virtual Dictionary<Type, PushStateTransitions> DefinePushStateTransitions()
-        {
-            return new Dictionary<Type, PushStateTransitions>();
-        }
-
-        /// <summary>
-        /// Defines all possible action bindings for each state.
-        /// It must return a dictionary where a key represents
-        /// a state and a value represents the state's action bindings.
-        /// </summary>
-        /// <returns>Dictionary<Type, ActionBindings></returns>
-        protected virtual Dictionary<Type, ActionBindings> DefineActionBindings()
-        {
-            return new Dictionary<Type, ActionBindings>();
-        }
 
         /// <summary>
         /// Creates a new machine of the given type with an optional payload.
@@ -193,6 +171,46 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Creates a new model of the given real machine with an optional payload.
+        /// </summary>
+        /// <param name="model">Type of the model machine</param>
+        /// <param name="real">Type of the real machine</param>
+        /// <param name="payload">Optional payload</param>
+        /// <returns>Machine id</returns>
+        protected internal MachineId CreateModelForMachine(Type model, Type real, params Object[] payload)
+        {
+            if (Configuration.RunDynamicAnalysis)
+            {
+                return Machine.Dispatcher.TryCreateMachine(model, payload);
+            }
+            else
+            {
+                return Machine.Dispatcher.TryCreateMachine(real, payload);
+            }
+        }
+
+        /// <summary>
+        /// Tries to create a new local or remote model of the given real machine
+        /// with an optional payload.
+        /// </summary>
+        /// <param name="model">Type of the model machine</param>
+        /// <param name="real">Type of the real machine</param>
+        /// <param name="isRemote">Create in another node</param>
+        /// <param name="payload">Optional payload</param>
+        /// <returns>Machine id</returns>
+        protected internal MachineId CreateModelForMachine(Type model, Type real, bool isRemote, params Object[] payload)
+        {
+            if (Configuration.RunDynamicAnalysis)
+            {
+                return Machine.Dispatcher.TryCreateMachine(model, isRemote, payload);
+            }
+            else
+            {
+                return Machine.Dispatcher.TryCreateMachine(real, isRemote, payload);
+            }
+        }
+
+        /// <summary>
         /// Creates a new monitor of the given type with an optional payload.
         /// </summary>
         /// <param name="type">Type of the monitor</param>
@@ -207,8 +225,10 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="m">Machine id</param>
         /// <param name="e">Event</param>
-        protected internal void Send(MachineId mid, Event e)
+        /// <param name="payload">Optional payload</param>
+        protected internal void Send(MachineId mid, Event e, params Object[] payload)
         {
+            e.AssignPayload(payload);
             Output.Debug(DebugType.Runtime, "<SendLog> Machine '{0}({1})' sent event '{2}' " +
                 "to machine with id '{3}'.", this, this.Id.Value, e.GetType(), mid.Value);
             Machine.Dispatcher.Send(mid, e);
@@ -219,8 +239,10 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <typeparam name="T">Type of the monitor</typeparam>
         /// <param name="e">Event</param>
-        protected internal void Monitor<T>(Event e)
+        /// <param name="payload">Optional payload</param>
+        protected internal void Monitor<T>(Event e, params Object[] payload)
         {
+            e.AssignPayload(payload);
             Machine.Dispatcher.Monitor<T>(e);
         }
 
@@ -228,8 +250,10 @@ namespace Microsoft.PSharp
         /// Raises an event internally and returns from the execution context.
         /// </summary>
         /// <param name="e">Event</param>
-        protected internal void Raise(Event e)
+        /// <param name="payload">Optional payload</param>
+        protected internal void Raise(Event e, params Object[] payload)
         {
+            e.AssignPayload(payload);
             Output.Debug(DebugType.Runtime, "<RaiseLog> Machine '{0}({1})' raised " +
                 "event '{2}'.", this, this.Id.Value, e);
             this.RaisedEvent = e;
@@ -254,6 +278,7 @@ namespace Microsoft.PSharp
             {
                 Output.Debug(DebugType.Runtime, "<PopLog> Machine '{0}({1})' popped and " +
                     "reentered state '{2}'.", this, this.Id.Value, this.StateStack.Peek());
+                this.ConfigureStateTransitions(this.StateStack.Peek());
             }
         }
 
@@ -383,7 +408,7 @@ namespace Microsoft.PSharp
                     // Check if next event to process is null.
                     if (nextEvent == null)
                     {
-                        if (this.StateStack.Peek().HasDefaultHandler())
+                        if (this.HasDefaultHandler())
                         {
                             nextEvent = new Default();
                         }
@@ -430,7 +455,7 @@ namespace Microsoft.PSharp
                 for (int idx = 0; idx < this.Inbox.Count; idx++)
                 {
                     // Remove an ignored event.
-                    if (this.StateStack.Peek().IgnoredEvents.Contains(this.Inbox[idx].GetType()))
+                    if (this.IgnoredEvents.Contains(this.Inbox[idx].GetType()))
                     {
                         this.Inbox.RemoveAt(idx);
                         idx--;
@@ -439,8 +464,8 @@ namespace Microsoft.PSharp
 
                     // Dequeue the first event that is not handled by the state,
                     // or is not deferred.
-                    if (!this.StateStack.Peek().CanHandleEvent(this.Inbox[idx].GetType()) ||
-                        !this.StateStack.Peek().DeferredEvents.Contains(this.Inbox[idx].GetType()))
+                    if (!this.CanHandleEvent(this.Inbox[idx].GetType()) ||
+                        !this.DeferredEvents.Contains(this.Inbox[idx].GetType()))
                     {
                         nextEvent = this.Inbox[idx];
                         Output.Debug(DebugType.Runtime, "<DequeueLog> Machine '{0}({1})' dequeued " +
@@ -486,12 +511,13 @@ namespace Microsoft.PSharp
                 }
 
                 // If current state cannot handle the event then pop the state.
-                if (!this.StateStack.Peek().CanHandleEvent(e.GetType()))
+                if (!this.CanHandleEvent(e.GetType()))
                 {
                     Output.Debug(DebugType.Runtime, "<ExitLog> Machine '{0}({1})' exiting state '{2}'.",
                         this, this.Id.Value, this.StateStack.Peek());
 
                     this.StateStack.Pop();
+
                     if (this.StateStack.Count == 0)
                     {
                         Output.Debug(DebugType.Runtime, "<PopLog> Machine '{0}({1})' popped with " +
@@ -502,29 +528,30 @@ namespace Microsoft.PSharp
                         Output.Debug(DebugType.Runtime, "<PopLog> Machine '{0}({1})' popped with " +
                             "unhandled event '{2}' and reentered state '{3}.",
                             this, this.Id.Value, e.GetType().Name, this.StateStack.Peek());
+                        this.ConfigureStateTransitions(this.StateStack.Peek());
                     }
                     
                     continue;
                 }
 
                 // Checks if the event can trigger a goto state transition.
-                if (this.StateStack.Peek().GotoTransitions.ContainsKey(e.GetType()))
+                if (this.GotoTransitions.ContainsKey(e.GetType()))
                 {
-                    var transition = this.StateStack.Peek().GotoTransitions[e.GetType()];
+                    var transition = this.GotoTransitions[e.GetType()];
                     Type targetState = transition.Item1;
                     Action onExitAction = transition.Item2;
                     this.GotoState(targetState, onExitAction);
                 }
                 // Checks if the event can trigger a push state transition.
-                else if (this.StateStack.Peek().PushTransitions.ContainsKey(e.GetType()))
+                else if (this.PushTransitions.ContainsKey(e.GetType()))
                 {
-                    Type targetState = this.StateStack.Peek().PushTransitions[e.GetType()];
+                    Type targetState = this.PushTransitions[e.GetType()];
                     this.PushState(targetState);
                 }
                 // Checks if the event can trigger an action.
-                else if (this.StateStack.Peek().ActionBindings.ContainsKey(e.GetType()))
+                else if (this.ActionBindings.ContainsKey(e.GetType()))
                 {
-                    Action action = this.StateStack.Peek().ActionBindings[e.GetType()];
+                    Action action = this.ActionBindings[e.GetType()];
                     this.Do(action);
                 }
 
@@ -533,14 +560,51 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Checks if the machine can handle the given event type. An event
+        /// can be handled if it is deferred, or leads to a transition or
+        /// action binding. Ignored events have been removed.
+        /// </summary>
+        /// <param name="e">Event type</param>
+        /// <returns>Boolean value</returns>
+        private bool CanHandleEvent(Type e)
+        {
+            if (this.DeferredEvents.Contains(e) ||
+                this.GotoTransitions.ContainsKey(e) ||
+                this.PushTransitions.ContainsKey(e) ||
+                this.ActionBindings.ContainsKey(e))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Checks if the machine has a default handler.
+        /// </summary>
+        /// <returns></returns>
+        private bool HasDefaultHandler()
+        {
+            if (this.GotoTransitions.ContainsKey(typeof(Default)) ||
+                this.PushTransitions.ContainsKey(typeof(Default)) ||
+                this.ActionBindings.ContainsKey(typeof(Default)))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Initializes information about the states of the machine.
         /// </summary>
         private void InitializeStateInformation()
         {
             this.StateTypes = new HashSet<Type>();
+            this.States = new HashSet<MachineState>();
 
             Type machineType = this.GetType();
-            Type initialState = null;
+            Type initialStateType = null;
 
             while (machineType != typeof(Machine))
             {
@@ -552,9 +616,9 @@ namespace Microsoft.PSharp
                     {
                         if (s.IsDefined(typeof(Initial), false))
                         {
-                            this.Assert(initialState == null, "Machine '{0}' can not have " +
+                            this.Assert(initialStateType == null, "Machine '{0}' can not have " +
                                 "more than one initial states.", this.GetType().Name);
-                            initialState = s;
+                            initialStateType = s;
                         }
 
                         this.Assert(s.BaseType == typeof(MachineState), "State '{0}' is " +
@@ -566,81 +630,60 @@ namespace Microsoft.PSharp
                 machineType = machineType.BaseType;
             }
 
-            this.StateStack.Push(this.InitializeState(initialState));
-        }
-
-        /// <summary>
-        /// Initializes a state of the given type.
-        /// </summary>
-        /// <param name="s">Type of the state</param>
-        /// <param name="withPushStmt">Was push stmt used?</param>
-        /// <returns>State</returns>
-        private MachineState InitializeState(Type s, bool withPushStmt = false)
-        {
-            MachineState state = Activator.CreateInstance(s) as MachineState;
-            state.InitializeState();
-            state.Machine = this;
-
-            GotoStateTransitions sst = null;
-            PushStateTransitions cst = null;
-            ActionBindings ab = null;
-
-            this.GotoTransitions.TryGetValue(s, out sst);
-            this.PushTransitions.TryGetValue(s, out cst);
-            this.ActionBindings.TryGetValue(s, out ab);
-
-            if (sst == null) state.GotoTransitions = new GotoStateTransitions();
-            else state.GotoTransitions = sst;
-
-            if (cst == null) state.PushTransitions = new PushStateTransitions();
-            else state.PushTransitions = cst;
-
-            if (ab == null) state.ActionBindings = new ActionBindings();
-            else state.ActionBindings = ab;
-
-            // If push statement was used do the following logic.
-            if (withPushStmt)
+            foreach (var type in this.StateTypes)
             {
-                //foreach (var e in Machine.Dispatcher.GetRegisteredEventTypes())
-                //{
-                //    if (!state.CanHandleEvent(e))
-                //    {
-                //        state.DeferredEvents.Add(e);
-                //    }
-                //}
+                MachineState state = Activator.CreateInstance(type) as MachineState;
+                state.InitializeState(this);
+                this.States.Add(state);
             }
+
+            var initialState = this.States.First(val => val.GetType().Equals(initialStateType));
+            this.ConfigureStateTransitions(initialState);
+            this.StateStack.Push(initialState);
+        }
+        
+        /// <summary>
+        /// Configures the state transitions of the machine.
+        /// </summary>
+        /// <param name="state">State</param>
+        private void ConfigureStateTransitions(MachineState state)
+        {
+            this.GotoTransitions = state.GotoTransitions;
+            this.PushTransitions = state.PushTransitions;
+            this.ActionBindings = state.ActionBindings;
+            this.IgnoredEvents = state.IgnoredEvents;
+            this.DeferredEvents = state.DeferredEvents;
+
             // If the state stack is non-empty, update the data structures
             // with the following logic.
-            else if (this.StateStack.Count > 0)
+            if (this.StateStack.Count > 0)
             {
                 var lowerState = this.StateStack.Peek();
 
                 foreach (var e in lowerState.DeferredEvents)
                 {
-                    if (!state.CanHandleEvent(e))
+                    if (!this.CanHandleEvent(e))
                     {
-                        state.DeferredEvents.Add(e);
+                        this.DeferredEvents.Add(e);
                     }
                 }
 
                 foreach (var e in lowerState.IgnoredEvents)
                 {
-                    if (!state.CanHandleEvent(e))
+                    if (!this.CanHandleEvent(e))
                     {
-                        state.IgnoredEvents.Add(e);
+                        this.IgnoredEvents.Add(e);
                     }
                 }
 
                 foreach (var action in lowerState.ActionBindings)
                 {
-                    if (!state.CanHandleEvent(action.Key))
+                    if (!this.CanHandleEvent(action.Key))
                     {
-                        state.ActionBindings.Add(action.Key, action.Value);
+                        this.ActionBindings.Add(action.Key, action.Value);
                     }
                 }
             }
-
-            return state;
         }
 
         /// <summary>
@@ -658,9 +701,13 @@ namespace Microsoft.PSharp
             }
 
             this.StateStack.Pop();
+            
+            var nextState = this.States.First(val => val.GetType().Equals(s));
+            this.ConfigureStateTransitions(nextState);
+
             // The machine transitions to the new state.
-            MachineState nextState = this.InitializeState(s);
             this.StateStack.Push(nextState);
+
             // The machine performs the on entry statements of the new state.
             this.ExecuteCurrentStateOnEntry();
         }
@@ -674,9 +721,12 @@ namespace Microsoft.PSharp
             Output.Debug(DebugType.Runtime, "<PushLog> Machine '{0}({1})' pushed.",
                 this, this.Id.Value);
 
-            MachineState nextState = this.InitializeState(s);
+            var nextState = this.States.First(val => val.GetType().Equals(s));
+            this.ConfigureStateTransitions(nextState);
+
             // The machine transitions to the new state.
             this.StateStack.Push(nextState);
+
             // The machine performs the on entry statements of the new state.
             this.ExecuteCurrentStateOnEntry();
         }
@@ -859,9 +909,6 @@ namespace Microsoft.PSharp
         private void CleanUpResources()
         {
             this.StateTypes.Clear();
-            this.GotoTransitions.Clear();
-            this.PushTransitions.Clear();
-            this.ActionBindings.Clear();
             this.Inbox.Clear();
 
             this.Trigger = null;

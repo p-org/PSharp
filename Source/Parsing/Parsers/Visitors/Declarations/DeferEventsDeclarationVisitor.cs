@@ -38,7 +38,7 @@ namespace Microsoft.PSharp.Parsing
         /// Visits the syntax node.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        internal void Visit(StateDeclarationNode parentNode)
+        internal void Visit(StateDeclaration parentNode)
         {
             if (parentNode.Machine.IsMonitor)
             {

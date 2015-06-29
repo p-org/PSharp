@@ -379,6 +379,10 @@ namespace Microsoft.PSharp.Parsing
                     this.Tokens.Add(new Token(unit, TokenType.SendEvent));
                     break;
 
+                case "to":
+                    this.Tokens.Add(new Token(unit, TokenType.ToMachine));
+                    break;
+
                 case "raise":
                     this.Tokens.Add(new Token(unit, TokenType.RaiseEvent));
                     break;
@@ -512,7 +516,7 @@ namespace Microsoft.PSharp.Parsing
                 @"\bmachine\b|\bmodel\b|\bmonitor\b|\bstate\b|\bevent\b|\baction\b|" +
                 @"\bstart\b|" +
                 @"\bdefer\b|\bignore\b|\bentry\b|\bexit\b|" +
-                @"\bcreate\b|\braise\b|\bsend\b|\bmodels\b|" +
+                @"\bcreate\b|\braise\b|\bsend\b|\bto\b|\bmodels\b|" +
                 @"\bon\b|\bdo\b|\bgoto\b|\bpush\b|\bwith\b|" +
                 @"\bprivate\b|\bprotected\b|\binternal\b|\bpublic\b|" +
                 @"\babstract\b|\bvirtual\b|\boverride\b|" +

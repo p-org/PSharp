@@ -14,7 +14,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
+
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+
+using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp.Parsing.Syntax
 {
@@ -28,12 +33,12 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// <summary>
         /// List of event declarations.
         /// </summary>
-        internal List<EventDeclarationNode> EventDeclarations;
+        internal List<EventDeclaration> EventDeclarations;
 
         /// <summary>
         /// List of machine declarations.
         /// </summary>
-        internal List<MachineDeclarationNode> MachineDeclarations;
+        internal List<MachineDeclaration> MachineDeclarations;
 
         #endregion
 
@@ -43,78 +48,78 @@ namespace Microsoft.PSharp.Parsing.Syntax
         /// Constructor.
         /// </summary>
         /// <param name="project">PSharpProject</param>
-        /// <param name="filePath">File path</param>
-        public PProgram(PSharpProject project, string filePath)
-            : base(project, filePath)
+        /// <param name="filePath">SyntaxTree</param>
+        public PProgram(PSharpProject project, SyntaxTree tree)
+            : base(project, tree)
         {
-            this.EventDeclarations = new List<EventDeclarationNode>();
-            this.MachineDeclarations = new List<MachineDeclarationNode>();
+            this.EventDeclarations = new List<EventDeclaration>();
+            this.MachineDeclarations = new List<MachineDeclaration>();
         }
 
         /// <summary>
-        /// Rewrites the P# program to the C#-IR.
+        /// Rewrites the P program to the C#-IR.
         /// </summary>
-        /// <returns>Rewritten text</returns>
-        public override string Rewrite()
+        public override void Rewrite()
         {
-            this.RewrittenText = "";
-
-            this.RewrittenText += base.InstrumentSystemLibrary();
-            this.RewrittenText += base.InstrumentSystemCollectionsGenericLibrary();
-            this.RewrittenText += base.InstrumentPSharpLibrary();
-            this.RewrittenText += base.InstrumentPSharpCollectionsLibrary();
-
-            this.RewrittenText += "namespace Microsoft.PSharp\n";
-            this.RewrittenText += "{\n";
-
-            foreach (var node in this.EventDeclarations)
+            var text = "";
+            if (Configuration.RunStaticAnalysis || Configuration.RunDynamicAnalysis)
             {
-                node.Rewrite();
-                this.RewrittenText += node.TextUnit.Text;
+                foreach (var node in this.EventDeclarations)
+                {
+                    node.Model();
+                    text += node.TextUnit.Text;
+                }
+
+                foreach (var node in this.MachineDeclarations)
+                {
+                    node.Model();
+                    text += node.TextUnit.Text;
+                }
+            }
+            else
+            {
+                foreach (var node in this.EventDeclarations)
+                {
+                    node.Rewrite();
+                    text += node.TextUnit.Text;
+                }
+
+                foreach (var node in this.MachineDeclarations)
+                {
+                    node.Rewrite();
+                    text += node.TextUnit.Text;
+                }
             }
 
-            foreach (var node in this.MachineDeclarations)
-            {
-                node.Rewrite();
-                this.RewrittenText += node.TextUnit.Text;
-            }
+            base.UpdateSyntaxTree(text);
 
-            this.RewrittenText += "}\n";
-
-            return this.RewrittenText;
+            this.InsertLibraries();
         }
 
+        #endregion
+
+        #region private API
+
         /// <summary>
-        /// Models the P# program to the C#-IR.
+        /// Inserts the P# libraries.
         /// </summary>
-        /// <returns>Model text</returns>
-        public override string Model()
+        private void InsertLibraries()
         {
-            this.ModelText = "";
+            var list = new List<UsingDirectiveSyntax>();
 
-            this.ModelText += base.InstrumentSystemLibrary();
-            this.ModelText += base.InstrumentSystemCollectionsGenericLibrary();
-            this.ModelText += base.InstrumentPSharpLibrary();
-            this.ModelText += base.InstrumentPSharpCollectionsLibrary();
+            var systemLib = base.CreateLibrary("System");
+            var psharpLib = base.CreateLibrary("Microsoft.PSharp");
+            var psharpColletionsLib = base.CreateLibrary("Microsoft.PSharp.Collections");
 
-            this.ModelText += "namespace Microsoft.PSharp\n";
-            this.ModelText += "{\n";
+            list.Add(systemLib);
+            list.Add(psharpLib);
+            list.Add(psharpColletionsLib);
 
-            foreach (var node in this.EventDeclarations)
-            {
-                node.Model();
-                this.ModelText += node.TextUnit.Text;
-            }
+            list.AddRange(base.SyntaxTree.GetCompilationUnitRoot().Usings);
 
-            foreach (var node in this.MachineDeclarations)
-            {
-                node.Model();
-                this.ModelText += node.TextUnit.Text;
-            }
+            var root = base.SyntaxTree.GetCompilationUnitRoot().WithUsings(SyntaxFactory.List(list));
 
-            this.ModelText += "}\n";
-
-            return this.ModelText;
+            base.UpdateSyntaxTree(root.SyntaxTree.ToString());
         }
 
         #endregion

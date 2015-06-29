@@ -1,4 +1,6 @@
-﻿namespace SimpleAsyncAwait
+﻿using System.Threading.Tasks;
+
+namespace SimpleAsyncAwait
 {
     machine Server
     {	
@@ -9,11 +11,11 @@
         {
             entry
             {
-                this.Client = create Client ( this );
+                this.Client = create(Client, this);
 				this.Check = true;
 				var task = this.EditCheckAsync();
 				Console.WriteLine("Test: " + this.Check);
-                raise Unit;
+                raise(Unit);
             }
 
             on Unit goto Playing;
@@ -23,9 +25,9 @@
         {
             entry
             {
-			    assert (this.Check);
+			    assert(this.Check);
 				this.Check = true;
-                send this.Client, Pong;
+                send(this.Client, Pong);
             }
 
             on Unit do SendPong;
@@ -34,7 +36,7 @@
 
         void SendPong()
         {
-            send this.Client, Pong;
+            send(this.Client, Pong);
         }
 
 		async Task<bool> EditCheckAsync()

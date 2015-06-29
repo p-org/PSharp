@@ -38,9 +38,9 @@ namespace Microsoft.PSharp.Parsing
         /// Visits the syntax node.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        internal void Visit(MachineDeclarationNode parentNode)
+        internal void Visit(MachineDeclaration parentNode)
         {
-            var nodes = new List<PFieldDeclarationNode>();
+            var nodes = new List<PFieldDeclaration>();
             var fieldKeyword = base.TokenStream.Peek();
 
             base.TokenStream.Index++;
@@ -56,7 +56,7 @@ namespace Microsoft.PSharp.Parsing
                 });
             }
 
-            nodes.Add(new PFieldDeclarationNode(base.TokenStream.Program, parentNode,
+            nodes.Add(new PFieldDeclaration(base.TokenStream.Program, parentNode,
                 parentNode.IsModel));
             nodes[nodes.Count - 1].FieldKeyword = fieldKeyword;
             nodes[nodes.Count - 1].Identifier = base.TokenStream.Peek();
@@ -77,7 +77,7 @@ namespace Microsoft.PSharp.Parsing
 
                 if (base.TokenStream.Peek().Type == TokenType.Identifier)
                 {
-                    nodes.Add(new PFieldDeclarationNode(base.TokenStream.Program, parentNode,
+                    nodes.Add(new PFieldDeclaration(base.TokenStream.Program, parentNode,
                         parentNode.IsModel));
                     nodes[nodes.Count - 1].FieldKeyword = fieldKeyword;
                     nodes[nodes.Count - 1].Identifier = base.TokenStream.Peek();

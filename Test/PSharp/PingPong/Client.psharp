@@ -11,7 +11,7 @@
             {
                 this.Server = (machine)payload;
                 this.Counter = 0;
-                raise Unit;
+                raise(Unit);
             }
 
             on Unit goto Playing;
@@ -23,12 +23,11 @@
             {
                 if (this.Counter == 5)
                 {
-					raise halt;
+					raise(halt);
                 }
             }
 
             on Unit goto Playing;
-
             on Pong do SendPing;
         }
 
@@ -36,8 +35,8 @@
         {
             this.Counter++;
             Console.WriteLine("\nTurns: {0} / 5\n", this.Counter);
-            send this.Server, Ping;
-            raise Unit;
+			send(this.Server, Ping);
+            raise(Unit);
         }
     }
 }

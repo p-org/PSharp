@@ -40,9 +40,9 @@ namespace Microsoft.PSharp.Parsing
         /// <param name="program">Program</param>
         /// <param name="parentNode">Node</param>
         /// <param name="accMod">Access modifier</param>
-        internal void Visit(IPSharpProgram program, NamespaceDeclarationNode parentNode, AccessModifier accMod)
+        internal void Visit(IPSharpProgram program, NamespaceDeclaration parentNode, AccessModifier accMod)
         {
-            var node = new EventDeclarationNode(base.TokenStream.Program);
+            var node = new EventDeclaration(base.TokenStream.Program);
             node.AccessModifier = accMod;
             node.EventKeyword = base.TokenStream.Peek();
 

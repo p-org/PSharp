@@ -38,7 +38,7 @@ namespace Microsoft.PSharp.Parsing
         /// Visits the syntax node.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        internal void Visit(StateDeclarationNode parentNode)
+        internal void Visit(StateDeclaration parentNode)
         {
             if (parentNode.ExitDeclaration != null)
             {
@@ -46,7 +46,7 @@ namespace Microsoft.PSharp.Parsing
                     new List<TokenType>());
             }
 
-            var node = new ExitDeclarationNode(base.TokenStream.Program, parentNode.IsModel);
+            var node = new ExitDeclaration(base.TokenStream.Program, parentNode.IsModel);
             node.ExitKeyword = base.TokenStream.Peek();
 
             base.TokenStream.Index++;
