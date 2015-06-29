@@ -79,6 +79,7 @@
     <Compile Include="Attributes\IgnoreEvents.cs" />
     <Compile Include="Attributes\EntryPoint.cs" />
     <Compile Include="Attributes\DeferEvents.cs" />
+    <Compile Include="Attributes\OnEventPushState.cs" />
     <Compile Include="Attributes\OnExit.cs" />
     <Compile Include="Attributes\OnEntry.cs" />
     <Compile Include="Attributes\OnEventDoAction.cs" />

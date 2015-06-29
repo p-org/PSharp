@@ -28,7 +28,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Event types.
         /// </summary>
-        private Type[] Events;
+        internal Type[] Events;
 
         /// <summary>
         /// Constructor.

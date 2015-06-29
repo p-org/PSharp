@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.PSharp;
 
 namespace PingPong
@@ -10,15 +11,18 @@ namespace PingPong
 		[Initial]
         [OnEntry(nameof(InitOnEntry))]
         [OnEventGotoState(typeof(Unit), typeof(Playing))]
-        [OnEventGotoState(typeof(Unit), typeof(Playing))]
         [DeferEvents(typeof(Unit))]
         [IgnoreEvents(typeof(Unit), typeof(Ping))]
-        class Init : MachineState { }
+        class Init : MachineState {
+            protected override void OnEntry()
+            {
+                (this.Machine as Server).InitOnEntry();
+            }
+        }
 
 		void InitOnEntry()
         {
-            new Client();
-            this.Client = this.CreateMachine(typeof(Client), this).Models(typeof(Client));
+            this.Client = this.CreateMachine(typeof(Client), this.Id).Models(typeof(Client));
             this.Raise(new Unit());
         }
 

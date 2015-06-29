@@ -579,45 +579,59 @@ namespace Microsoft.PSharp
         /// Initializes a state of the given type.
         /// </summary>
         /// <param name="s">Type of the state</param>
-        /// <param name="withPushStmt">Was push stmt used?</param>
         /// <returns>State</returns>
-        private MachineState InitializeState(Type s, bool withPushStmt = false)
+        private MachineState InitializeState(Type s)
         {
             MachineState state = Activator.CreateInstance(s) as MachineState;
             state.InitializeState();
             state.Machine = this;
 
-            GotoStateTransitions sst = null;
-            PushStateTransitions cst = null;
-            ActionBindings ab = null;
+            GotoStateTransitions sst = new GotoStateTransitions();
+            PushStateTransitions pst = new PushStateTransitions();
+            ActionBindings ab = new ActionBindings();
 
-            this.GotoTransitions.TryGetValue(s, out sst);
-            this.PushTransitions.TryGetValue(s, out cst);
-            this.ActionBindings.TryGetValue(s, out ab);
+            var gotoAttributes = s.GetCustomAttributes(typeof(OnEventGotoState), false)
+                as OnEventGotoState[];
+            var pushAttributes = s.GetCustomAttributes(typeof(OnEventPushState), false)
+                as OnEventPushState[];
+            var doAttributes = s.GetCustomAttributes(typeof(OnEventDoAction), false)
+                as OnEventDoAction[];
 
-            if (sst == null) state.GotoTransitions = new GotoStateTransitions();
-            else state.GotoTransitions = sst;
-
-            if (cst == null) state.PushTransitions = new PushStateTransitions();
-            else state.PushTransitions = cst;
-
-            if (ab == null) state.ActionBindings = new ActionBindings();
-            else state.ActionBindings = ab;
-
-            // If push statement was used do the following logic.
-            if (withPushStmt)
+            foreach (var attr in gotoAttributes)
             {
-                //foreach (var e in Machine.Dispatcher.GetRegisteredEventTypes())
-                //{
-                //    if (!state.CanHandleEvent(e))
-                //    {
-                //        state.DeferredEvents.Add(e);
-                //    }
-                //}
+                if (attr.Action == null)
+                {
+                    sst.Add(attr.Event, attr.State);
+                }
+                else
+                {
+                    var method = this.GetType().GetMethod(attr.Action,
+                        BindingFlags.NonPublic | BindingFlags.Instance);
+                    var action = (Action)Delegate.CreateDelegate(typeof(Action), this, method);
+                    sst.Add(attr.Event, attr.State, action);
+                }
             }
+
+            foreach (var attr in pushAttributes)
+            {
+                pst.Add(attr.Event, attr.State);
+            }
+
+            foreach (var attr in doAttributes)
+            {
+                var method = this.GetType().GetMethod(attr.Action,
+                    BindingFlags.NonPublic | BindingFlags.Instance);
+                var action = (Action)Delegate.CreateDelegate(typeof(Action), this, method);
+                ab.Add(attr.Event, action);
+            }
+
+            state.GotoTransitions = sst;
+            state.PushTransitions = pst;
+            state.ActionBindings = ab;
+            
             // If the state stack is non-empty, update the data structures
             // with the following logic.
-            else if (this.StateStack.Count > 0)
+            if (this.StateStack.Count > 0)
             {
                 var lowerState = this.StateStack.Peek();
 

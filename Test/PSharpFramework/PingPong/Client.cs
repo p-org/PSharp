@@ -3,7 +3,7 @@ using Microsoft.PSharp;
 
 namespace PingPong
 {
-    internal class Client : Server
+    internal class Client : Machine
     {
         private MachineId Server;
         private int Counter;

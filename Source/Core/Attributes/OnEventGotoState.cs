@@ -28,17 +28,17 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Event type.
         /// </summary>
-        private Type Event;
+        internal Type Event;
 
         /// <summary>
         /// State type.
         /// </summary>
-        private Type State;
+        internal Type State;
 
         /// <summary>
         /// Action name.
         /// </summary>
-        private string Action;
+        internal string Action;
 
         /// <summary>
         /// Constructor.

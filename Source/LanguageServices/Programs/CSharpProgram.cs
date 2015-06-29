@@ -68,6 +68,13 @@ namespace Microsoft.PSharp.LanguageServices
 
         #region private API
 
+        /// <summary>
+        /// Rewrites the P# declarations to C#.
+        /// </summary>
+        private void RewriteDeclarations()
+        {
+            //this.SyntaxTree = new MachineTypeRewriter(this.Project).Rewrite(this.SyntaxTree);
+        }
 
         #endregion
     }

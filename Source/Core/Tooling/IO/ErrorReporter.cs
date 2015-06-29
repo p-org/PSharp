@@ -26,11 +26,9 @@ namespace Microsoft.PSharp.Tooling
         /// <summary>
         /// Reports a generic error to the user.
         /// </summary>
-        /// <param name="s">String</param>
-        /// <param name="args">Parameters</param>
-        public static void Report(string s, params object[] args)
+        /// <param name="message">Message</param>
+        public static void Report(string message)
         {
-            string message = Output.Format(s, args);
             Console.Write("Error: ");
             Console.WriteLine(message);
         }
@@ -38,11 +36,9 @@ namespace Microsoft.PSharp.Tooling
         /// <summary>
         /// Reports a generic warning to the user.
         /// </summary>
-        /// <param name="s">String</param>
-        /// <param name="args">Parameters</param>
-        public static void ReportWarning(string s, params object[] args)
+        /// <param name="message">Message</param>
+        public static void ReportWarning(string message)
         {
-            string message = Output.Format(s, args);
             Console.Write("Warning: ");
             Console.WriteLine(message);
         }
@@ -67,6 +63,18 @@ namespace Microsoft.PSharp.Tooling
         {
             string message = Output.Format(s, args);
             Console.Write("Error: ");
+            Console.WriteLine(message);
+            Environment.Exit(1);
+        }
+
+        /// <summary>
+        /// Reports a generic message to the user and exits.
+        /// </summary>
+        /// <param name="s">String</param>
+        /// <param name="args">Parameters</param>
+        public static void WriteLineAndExit(string s, params object[] args)
+        {
+            string message = Output.Format(s, args);
             Console.WriteLine(message);
             Environment.Exit(1);
         }

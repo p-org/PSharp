@@ -28,7 +28,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Action name.
         /// </summary>
-        private string Action;
+        internal string Action;
 
         /// <summary>
         /// Constructor.
