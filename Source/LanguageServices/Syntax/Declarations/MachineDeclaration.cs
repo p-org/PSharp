@@ -169,6 +169,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 text += node.TextUnit.Text;
             }
 
+            text += this.GetRewrittenWithActions();
+
             text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
 
             base.TextUnit = new TextUnit(text, this.MachineKeyword.TextUnit.Line);
@@ -307,7 +309,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             {
                 text += node.TextUnit.Text;
             }
-
+            
             return text;
         }
 

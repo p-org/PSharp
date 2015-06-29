@@ -135,19 +135,19 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 "class e1 : Event" +
                 "{" +
                 " internal e1()" +
-                "  : base(-1, -1)" +
+                "  : base()" +
                 " { }" +
                 "}" +
                 "internal class e2 : Event" +
                 "{" +
                 " internal e2()" +
-                "  : base(-1, -1)" +
+                "  : base()" +
                 " { }" +
                 "}" +
                 "public class e3 : Event" +
                 "{" +
                 " internal e3()" +
-                "  : base(-1, -1)" +
+                "  : base()" +
                 " { }" +
                 "}" +
                 "}";
@@ -363,20 +363,9 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 "class M : Machine" +
                 "{" +
                 "[Initial]" +
+                "[OnEventGotoState(typeof(e), typeof(S2))]" +
                 "class S1 : MachineState" +
                 "{" +
-                "}" +
-                "" +
-                "protected override System.Collections.Generic.Dictionary<" +
-                "Type, GotoStateTransitions> DefineGotoStateTransitions()" +
-                "{" +
-                " var dict = new System.Collections.Generic.Dictionary<Type, GotoStateTransitions>();" +
-                "" +
-                " var s1Dict = new GotoStateTransitions();" +
-                " s1Dict.Add(typeof(e), typeof(S2));" +
-                " dict.Add(typeof(S1), s1Dict);" +
-                "" +
-                " return dict;" +
                 "}" +
                 "}" +
                 "}";
@@ -410,21 +399,10 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 "class M : Machine" +
                 "{" +
                 "[Initial]" +
+                "[OnEventGotoState(typeof(e1), typeof(S2))]" +
+                "[OnEventGotoState(typeof(e2), typeof(S3))]" +
                 "class S1 : MachineState" +
                 "{" +
-                "}" +
-                "" +
-                "protected override System.Collections.Generic.Dictionary<" +
-                "Type, GotoStateTransitions> DefineGotoStateTransitions()" +
-                "{" +
-                " var dict = new System.Collections.Generic.Dictionary<Type, GotoStateTransitions>();" +
-                "" +
-                " var s1Dict = new GotoStateTransitions();" +
-                " s1Dict.Add(typeof(e1), typeof(S2));" +
-                " s1Dict.Add(typeof(e2), typeof(S3));" +
-                " dict.Add(typeof(S1), s1Dict);" +
-                "" +
-                " return dict;" +
                 "}" +
                 "}" +
                 "}";
@@ -457,23 +435,12 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 "class M : Machine" +
                 "{" +
                 "[Initial]" +
+                "[OnEventGotoState(typeof(e), typeof(S2), nameof(psharp_S1_e_action))]" +
                 "class S1 : MachineState" +
                 "{" +
                 "}" +
-                "" +
-                "protected override System.Collections.Generic.Dictionary<" +
-                "Type, GotoStateTransitions> DefineGotoStateTransitions()" +
+                "void psharp_S1_e_action()" +
                 "{" +
-                " var dict = new System.Collections.Generic.Dictionary<Type, GotoStateTransitions>();" +
-                "" +
-                " var s1Dict = new GotoStateTransitions();" +
-                " s1Dict.Add(typeof(e), typeof(S2), () => " +
-                "{" +
-                "}" +
-                ");" +
-                " dict.Add(typeof(S1), s1Dict);" +
-                "" +
-                " return dict;" +
                 "}" +
                 "}" +
                 "}";
@@ -506,20 +473,9 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 "class M : Machine" +
                 "{" +
                 "[Initial]" +
+                "[OnEventDoAction(typeof(e), nameof(Bar))]" +
                 "class S1 : MachineState" +
                 "{" +
-                "}" +
-                "" +
-                "protected override System.Collections.Generic.Dictionary<" +
-                "Type, ActionBindings> DefineActionBindings()" +
-                "{" +
-                " var dict = new System.Collections.Generic.Dictionary<Type, ActionBindings>();" +
-                "" +
-                " var s1Dict = new ActionBindings();" +
-                " s1Dict.Add(typeof(e), new Action(Bar));" +
-                " dict.Add(typeof(S1), s1Dict);" +
-                "" +
-                " return dict;" +
                 "}" +
                 "}" +
                 "}";
@@ -553,21 +509,10 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 "class M : Machine" +
                 "{" +
                 "[Initial]" +
+                "[OnEventDoAction(typeof(e1), nameof(Bar))]" +
+                "[OnEventDoAction(typeof(e2), nameof(Baz))]" +
                 "class S1 : MachineState" +
                 "{" +
-                "}" +
-                "" +
-                "protected override System.Collections.Generic.Dictionary<" +
-                "Type, ActionBindings> DefineActionBindings()" +
-                "{" +
-                " var dict = new System.Collections.Generic.Dictionary<Type, ActionBindings>();" +
-                "" +
-                " var s1Dict = new ActionBindings();" +
-                " s1Dict.Add(typeof(e1), new Action(Bar));" +
-                " s1Dict.Add(typeof(e2), new Action(Baz));" +
-                " dict.Add(typeof(S1), s1Dict);" +
-                "" +
-                " return dict;" +
                 "}" +
                 "}" +
                 "}";
@@ -600,23 +545,12 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 "class M : Machine" +
                 "{" +
                 "[Initial]" +
+                "[OnEventDoAction(typeof(e), nameof(psharp_S1_e_action))]" +
                 "class S1 : MachineState" +
                 "{" +
                 "}" +
-                "" +
-                "protected override System.Collections.Generic.Dictionary<" +
-                "Type, ActionBindings> DefineActionBindings()" +
+                "void psharp_S1_e_action()" +
                 "{" +
-                " var dict = new System.Collections.Generic.Dictionary<Type, ActionBindings>();" +
-                "" +
-                " var s1Dict = new ActionBindings();" +
-                " s1Dict.Add(typeof(e), () => " +
-                "{" +
-                "}" +
-                ");" +
-                " dict.Add(typeof(S1), s1Dict);" +
-                "" +
-                " return dict;" +
                 "}" +
                 "}" +
                 "}";
@@ -632,8 +566,8 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 "machine M {" +
                 "start state S1" +
                 "{" +
-                "on e goto S2;" +
-                "on e do Bar;" +
+                "on e1 goto S2;" +
+                "on e2 do Bar;" +
                 "}" +
                 "}" +
                 "}";
@@ -650,32 +584,10 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 "class M : Machine" +
                 "{" +
                 "[Initial]" +
+                "[OnEventGotoState(typeof(e1), typeof(S2))]" +
+                "[OnEventDoAction(typeof(e2), nameof(Bar))]" +
                 "class S1 : MachineState" +
                 "{" +
-                "}" +
-                "" +
-                "protected override System.Collections.Generic.Dictionary<" +
-                "Type, GotoStateTransitions> DefineGotoStateTransitions()" +
-                "{" +
-                " var dict = new System.Collections.Generic.Dictionary<Type, GotoStateTransitions>();" +
-                "" +
-                " var s1Dict = new GotoStateTransitions();" +
-                " s1Dict.Add(typeof(e), typeof(S2));" +
-                " dict.Add(typeof(S1), s1Dict);" +
-                "" +
-                " return dict;" +
-                "}" +
-                "" +
-                "protected override System.Collections.Generic.Dictionary<" +
-                "Type, ActionBindings> DefineActionBindings()" +
-                "{" +
-                " var dict = new System.Collections.Generic.Dictionary<Type, ActionBindings>();" +
-                "" +
-                " var s1Dict = new ActionBindings();" +
-                " s1Dict.Add(typeof(e), new Action(Bar));" +
-                " dict.Add(typeof(S1), s1Dict);" +
-                "" +
-                " return dict;" +
                 "}" +
                 "}" +
                 "}";
@@ -708,15 +620,9 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 "class M : Machine" +
                 "{" +
                 "[Initial]" +
+                "[IgnoreEvents(typeof(e))]" +
                 "class S : MachineState" +
                 "{" +
-                " protected override System.Collections.Generic.HashSet<Type> DefineIgnoredEvents()" +
-                " {" +
-                "  return new System.Collections.Generic.HashSet<Type>" +
-                "  {" +
-                "   typeof(e)" + 
-                "  };" +
-                " }" +
                 "}" +
                 "}" +
                 "}";
@@ -749,16 +655,9 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 "class M : Machine" +
                 "{" +
                 "[Initial]" +
+                "[IgnoreEvents(typeof(e1), typeof(e2))]" +
                 "class S : MachineState" +
                 "{" +
-                " protected override System.Collections.Generic.HashSet<Type> DefineIgnoredEvents()" +
-                " {" +
-                "  return new System.Collections.Generic.HashSet<Type>" +
-                "  {" +
-                "   typeof(e1)," +
-                "   typeof(e2)" +
-                "  };" +
-                " }" +
                 "}" +
                 "}" +
                 "}";
@@ -791,15 +690,9 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 "class M : Machine" +
                 "{" +
                 "[Initial]" +
+                "[DeferEvents(typeof(e))]" +
                 "class S : MachineState" +
                 "{" +
-                " protected override System.Collections.Generic.HashSet<Type> DefineDeferredEvents()" +
-                " {" +
-                "  return new System.Collections.Generic.HashSet<Type>" +
-                "  {" +
-                "   typeof(e)" +
-                "  };" +
-                " }" +
                 "}" +
                 "}" +
                 "}";
@@ -832,16 +725,9 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 "class M : Machine" +
                 "{" +
                 "[Initial]" +
+                "[DeferEvents(typeof(e1), typeof(e2))]" +
                 "class S : MachineState" +
                 "{" +
-                " protected override System.Collections.Generic.HashSet<Type> DefineDeferredEvents()" +
-                " {" +
-                "  return new System.Collections.Generic.HashSet<Type>" +
-                "  {" +
-                "   typeof(e1)," +
-                "   typeof(e2)" +
-                "  };" +
-                " }" +
                 "}" +
                 "}" +
                 "}";

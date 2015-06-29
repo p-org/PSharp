@@ -220,42 +220,6 @@ namespace Microsoft.PSharp
             }
         }
 
-        /// <summary>
-        /// Checks if the state can handle the given event type. An event
-        /// can be handled if it is deferred, or leads to a transition or
-        /// action binding. Ignored events have been removed.
-        /// </summary>
-        /// <param name="e">Event type</param>
-        /// <returns>Boolean value</returns>
-        internal bool CanHandleEvent(Type e)
-        {
-            if (this.DeferredEvents.Contains(e) ||
-                this.GotoTransitions.ContainsKey(e) ||
-                this.PushTransitions.ContainsKey(e) ||
-                this.ActionBindings.ContainsKey(e))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Checks if the state has a default handler.
-        /// </summary>
-        /// <returns></returns>
-        internal bool HasDefaultHandler()
-        {
-            if (this.GotoTransitions.ContainsKey(typeof(Default)) ||
-                this.PushTransitions.ContainsKey(typeof(Default)) ||
-                this.ActionBindings.ContainsKey(typeof(Default)))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
         #endregion
 
         #region P# API methods
