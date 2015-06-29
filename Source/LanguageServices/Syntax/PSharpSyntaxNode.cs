@@ -12,7 +12,9 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
+using Microsoft.PSharp.LanguageServices.Parsing;
+
+namespace Microsoft.PSharp.LanguageServices.Syntax
 {
     /// <summary>
     /// P# syntax node.

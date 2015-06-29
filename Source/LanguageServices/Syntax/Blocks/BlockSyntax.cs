@@ -17,11 +17,10 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 
-using Microsoft.PSharp.Tooling;
+using Microsoft.PSharp.LanguageServices.Parsing;
 
-namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
+namespace Microsoft.PSharp.LanguageServices.Syntax
 {
     /// <summary>
     /// Block syntax node.

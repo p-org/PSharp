@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Microsoft.PSharp.LanguageServices;
 using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp.StaticAnalysis
@@ -131,7 +132,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 // Iterate the class declerations only if they are machines.
                 foreach (var classDecl in root.DescendantNodes().OfType<ClassDeclarationSyntax>())
                 {
-                    if (AnalysisContext.IsMachine(classDecl))
+                    if (Querying.IsMachine(AnalysisContext.Compilation, classDecl))
                     {
                         AnalysisContext.Machines.Add(classDecl);
                     }
@@ -209,57 +210,6 @@ namespace Microsoft.PSharp.StaticAnalysis
 
                 AnalysisContext.MachineActions.Add(machine, actionNames);
             }
-        }
-
-        /// <summary>
-        /// Returns true if the given class declaration is a P# machine.
-        /// </summary>
-        /// <param name="classDecl">Class declaration</param>
-        /// <returns>Boolean value</returns>
-        private static bool IsMachine(ClassDeclarationSyntax classDecl)
-        {
-            if (classDecl.BaseList == null ||
-                classDecl.BaseList.Types.Any(t => t.ToString().Equals("Event")) ||
-                classDecl.BaseList.Types.Any(t => t.ToString().Equals("MachineState")))
-            {
-                return false;
-            }
-            else if (!classDecl.BaseList.Types.Any(t => t.ToString().Equals("Machine")))
-            {
-                foreach (var tree in AnalysisContext.Compilation.SyntaxTrees)
-                {
-                    var model = AnalysisContext.Compilation.GetSemanticModel(tree);
-                    foreach (var type in classDecl.BaseList.Types)
-                    {
-                        ITypeSymbol typeSymbol = null;
-                        try
-                        {
-                            typeSymbol = model.GetTypeInfo(type).Type;
-                        }
-                        catch
-                        {
-                            continue;
-                        }
-
-                        if (typeSymbol.DeclaringSyntaxReferences.Count() == 0)
-                        {
-                            break;
-                        }
-
-                        var parentClass = typeSymbol.DeclaringSyntaxReferences.First()
-                            .GetSyntax() as ClassDeclarationSyntax;
-                        if (parentClass != null && parentClass is ClassDeclarationSyntax &&
-                            AnalysisContext.IsMachine(parentClass))
-                        {
-                            return true;
-                        }
-                    }
-                }
-
-                return false;
-            }
-
-            return true;
         }
 
         /// <summary>

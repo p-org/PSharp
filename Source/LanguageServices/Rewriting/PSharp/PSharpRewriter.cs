@@ -21,7 +21,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-using Microsoft.PSharp.LanguageServices.Parsing.Syntax;
+using Microsoft.PSharp.LanguageServices.Syntax;
 
 namespace Microsoft.PSharp.LanguageServices.Rewriting
 {

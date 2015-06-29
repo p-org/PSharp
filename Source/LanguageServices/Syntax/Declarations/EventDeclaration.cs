@@ -16,9 +16,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Microsoft.PSharp.LanguageServices.Parsing;
 using Microsoft.PSharp.Tooling;
 
-namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
+namespace Microsoft.PSharp.LanguageServices.Syntax
 {
     /// <summary>
     /// Event declaration syntax node.

@@ -14,7 +14,9 @@
 
 using System.Linq;
 
-namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
+using Microsoft.PSharp.LanguageServices.Parsing;
+
+namespace Microsoft.PSharp.LanguageServices.Syntax
 {
     /// <summary>
     /// Payload send expression node.

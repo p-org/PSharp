@@ -28,6 +28,20 @@ namespace Microsoft.PSharp.LanguageServices
     /// </summary>
     public sealed class CSharpProgram : AbstractPSharpProgram
     {
+        #region fields
+
+        /// <summary>
+        /// List of event identifiers.
+        /// </summary>
+        internal List<ClassDeclarationSyntax> EventIdentifiers;
+
+        /// <summary>
+        /// List of machine identifiers.
+        /// </summary>
+        internal List<ClassDeclarationSyntax> MachineIdentifiers;
+
+        #endregion
+
         #region public API
 
         /// <summary>
@@ -38,7 +52,8 @@ namespace Microsoft.PSharp.LanguageServices
         public CSharpProgram(PSharpProject project, SyntaxTree tree)
             : base(project, tree)
         {
-
+            this.EventIdentifiers = new List<ClassDeclarationSyntax>();
+            this.MachineIdentifiers = new List<ClassDeclarationSyntax>();
         }
 
         /// <summary>

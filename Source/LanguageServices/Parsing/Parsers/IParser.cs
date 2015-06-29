@@ -13,7 +13,6 @@
 //-----------------------------------------------------------------------
 
 using System.Collections.Generic;
-using Microsoft.PSharp.LanguageServices.Parsing.Syntax;
 
 namespace Microsoft.PSharp.LanguageServices.Parsing
 {

@@ -14,7 +14,9 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
+using Microsoft.PSharp.LanguageServices.Parsing;
+
+namespace Microsoft.PSharp.LanguageServices.Syntax
 {
     /// <summary>
     /// Tuple type.

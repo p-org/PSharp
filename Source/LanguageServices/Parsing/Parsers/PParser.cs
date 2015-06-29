@@ -18,13 +18,14 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 
 using Microsoft.PSharp.LanguageServices.Parsing.Syntax;
+using Microsoft.PSharp.LanguageServices.Syntax;
 
 namespace Microsoft.PSharp.LanguageServices.Parsing
 {
     /// <summary>
     /// The P parser.
     /// </summary>
-    public sealed class PParser : BaseParser
+    public sealed class PParser : TokenParser
     {
         #region public API
 

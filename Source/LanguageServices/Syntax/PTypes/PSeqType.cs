@@ -12,7 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
+namespace Microsoft.PSharp.LanguageServices.Syntax
 {
     /// <summary>
     /// Seq type.
