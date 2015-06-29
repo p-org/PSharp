@@ -154,10 +154,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             {
                 text += "-1, " + this.AssumeValue;
             }
-            else
-            {
-                text += "-1, -1";
-            }
 
             text += ")\n";
             text += " { }\n";

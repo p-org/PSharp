@@ -67,21 +67,6 @@ namespace Microsoft.PSharp
         private bool IsHalted;
 
         /// <summary>
-        /// Collection of all possible goto state transitions.
-        /// </summary>
-        private Dictionary<Type, GotoStateTransitions> GotoTransitions;
-
-        /// <summary>
-        /// Collection of all possible push state transitions.
-        /// </summary>
-        private Dictionary<Type, PushStateTransitions> PushTransitions;
-
-        /// <summary>
-        /// Collection of all possible action bindings.
-        /// </summary>
-        private Dictionary<Type, ActionBindings> ActionBindings;
-
-        /// <summary>
         /// Inbox of the state machine. Incoming events are queued here.
         /// Events are dequeued to be processed.
         /// </summary>
@@ -123,10 +108,6 @@ namespace Microsoft.PSharp
             this.IsRunning = true;
             this.IsHalted = false;
 
-            this.GotoTransitions = this.DefineGotoStateTransitions();
-            this.PushTransitions = this.DefinePushStateTransitions();
-            this.ActionBindings = this.DefineActionBindings();
-
             this.InitializeStateInformation();
             this.AssertStateValidity();
         }
@@ -134,39 +115,6 @@ namespace Microsoft.PSharp
         #endregion
 
         #region P# API methods
-
-        /// <summary>
-        /// Defines all possible goto state transitions for each state.
-        /// It must return a dictionary where a key represents
-        /// a state and a value represents the state's transitions.
-        /// </summary>
-        /// <returns>Dictionary<Type, StateTransitions></returns>
-        protected virtual Dictionary<Type, GotoStateTransitions> DefineGotoStateTransitions()
-        {
-            return new Dictionary<Type, GotoStateTransitions>();
-        }
-
-        /// <summary>
-        /// Defines all possible push state transitions for each state.
-        /// It must return a dictionary where a key represents
-        /// a state and a value represents the state's transitions.
-        /// </summary>
-        /// <returns>Dictionary<Type, StateTransitions></returns>
-        protected virtual Dictionary<Type, PushStateTransitions> DefinePushStateTransitions()
-        {
-            return new Dictionary<Type, PushStateTransitions>();
-        }
-
-        /// <summary>
-        /// Defines all possible action bindings for each state.
-        /// It must return a dictionary where a key represents
-        /// a state and a value represents the state's action bindings.
-        /// </summary>
-        /// <returns>Dictionary<Type, ActionBindings></returns>
-        protected virtual Dictionary<Type, ActionBindings> DefineActionBindings()
-        {
-            return new Dictionary<Type, ActionBindings>();
-        }
 
         /// <summary>
         /// Creates a new machine of the given type with an optional payload.
@@ -190,6 +138,46 @@ namespace Microsoft.PSharp
         protected internal MachineId CreateMachine(Type type, bool isRemote, params Object[] payload)
         {
             return Machine.Dispatcher.TryCreateMachine(type, isRemote, payload);
+        }
+
+        /// <summary>
+        /// Creates a new model of the given real machine with an optional payload.
+        /// </summary>
+        /// <param name="model">Type of the model machine</param>
+        /// <param name="real">Type of the real machine</param>
+        /// <param name="payload">Optional payload</param>
+        /// <returns>Machine id</returns>
+        protected internal MachineId CreateModelForMachine(Type model, Type real, params Object[] payload)
+        {
+            if (Configuration.RunDynamicAnalysis)
+            {
+                return Machine.Dispatcher.TryCreateMachine(model, payload);
+            }
+            else
+            {
+                return Machine.Dispatcher.TryCreateMachine(real, payload);
+            }
+        }
+
+        /// <summary>
+        /// Tries to create a new local or remote model of the given real machine
+        /// with an optional payload.
+        /// </summary>
+        /// <param name="model">Type of the model machine</param>
+        /// <param name="real">Type of the real machine</param>
+        /// <param name="isRemote">Create in another node</param>
+        /// <param name="payload">Optional payload</param>
+        /// <returns>Machine id</returns>
+        protected internal MachineId CreateModelForMachine(Type model, Type real, bool isRemote, params Object[] payload)
+        {
+            if (Configuration.RunDynamicAnalysis)
+            {
+                return Machine.Dispatcher.TryCreateMachine(model, isRemote, payload);
+            }
+            else
+            {
+                return Machine.Dispatcher.TryCreateMachine(real, isRemote, payload);
+            }
         }
 
         /// <summary>
@@ -583,52 +571,8 @@ namespace Microsoft.PSharp
         private MachineState InitializeState(Type s)
         {
             MachineState state = Activator.CreateInstance(s) as MachineState;
-            state.InitializeState();
-            state.Machine = this;
+            state.InitializeState(this);
 
-            GotoStateTransitions sst = new GotoStateTransitions();
-            PushStateTransitions pst = new PushStateTransitions();
-            ActionBindings ab = new ActionBindings();
-
-            var gotoAttributes = s.GetCustomAttributes(typeof(OnEventGotoState), false)
-                as OnEventGotoState[];
-            var pushAttributes = s.GetCustomAttributes(typeof(OnEventPushState), false)
-                as OnEventPushState[];
-            var doAttributes = s.GetCustomAttributes(typeof(OnEventDoAction), false)
-                as OnEventDoAction[];
-
-            foreach (var attr in gotoAttributes)
-            {
-                if (attr.Action == null)
-                {
-                    sst.Add(attr.Event, attr.State);
-                }
-                else
-                {
-                    var method = this.GetType().GetMethod(attr.Action,
-                        BindingFlags.NonPublic | BindingFlags.Instance);
-                    var action = (Action)Delegate.CreateDelegate(typeof(Action), this, method);
-                    sst.Add(attr.Event, attr.State, action);
-                }
-            }
-
-            foreach (var attr in pushAttributes)
-            {
-                pst.Add(attr.Event, attr.State);
-            }
-
-            foreach (var attr in doAttributes)
-            {
-                var method = this.GetType().GetMethod(attr.Action,
-                    BindingFlags.NonPublic | BindingFlags.Instance);
-                var action = (Action)Delegate.CreateDelegate(typeof(Action), this, method);
-                ab.Add(attr.Event, action);
-            }
-
-            state.GotoTransitions = sst;
-            state.PushTransitions = pst;
-            state.ActionBindings = ab;
-            
             // If the state stack is non-empty, update the data structures
             // with the following logic.
             if (this.StateStack.Count > 0)
@@ -879,9 +823,6 @@ namespace Microsoft.PSharp
         private void CleanUpResources()
         {
             this.StateTypes.Clear();
-            this.GotoTransitions.Clear();
-            this.PushTransitions.Clear();
-            this.ActionBindings.Clear();
             this.Inbox.Clear();
 
             this.Trigger = null;

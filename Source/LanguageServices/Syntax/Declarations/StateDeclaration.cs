@@ -326,6 +326,13 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 text += "[Initial]\n";
             }
 
+            text += this.InstrumentGotoStateTransitions();
+            text += this.InstrumentPushStateTransitions();
+            text += this.InstrumentActionsBindings();
+
+            text += this.InstrumentIgnoredEvents();
+            text += this.InstrumentDeferredEvents();
+
             if (this.AccessModifier == AccessModifier.Protected)
             {
                 text += "protected ";
@@ -356,63 +363,147 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 text += this.ExitDeclaration.TextUnit.Text;
             }
 
-            if (!this.Machine.IsMonitor)
-            {
-                text += this.InstrumentDeferredEvents();
-            }
-
-            text += this.InstrumentIgnoredEvents();
-
             text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
 
             return text;
         }
 
         /// <summary>
-        /// Instruments the deferred events.
+        /// Instruments the goto state transitions.
         /// </summary>
         /// <returns>Text</returns>
-        private string InstrumentDeferredEvents()
+        private string InstrumentGotoStateTransitions()
         {
-            if (this.DeferredEvents.Count == 0)
+            if (this.GotoStateTransitions.Count == 0)
             {
                 return "";
             }
 
-            var text = "\n";
-            text += " protected override System.Collections.Generic.HashSet<Type> DefineDeferredEvents()\n";
-            text += " {\n";
-            text += "  return new System.Collections.Generic.HashSet<Type>\n";
-            text += "  {\n";
+            var text = "";
 
-            var eventIds = this.DeferredEvents.ToList();
-            for (int idx = 0; idx < eventIds.Count; idx++)
+            foreach (var transition in this.GotoStateTransitions)
             {
-                if (eventIds[idx].Type == TokenType.HaltEvent)
+                var onExitName = "";
+                if (this.TransitionsOnExitActions.ContainsKey(transition.Key))
                 {
-                    text += "   typeof(Microsoft.PSharp.Halt)";
-                }
-                else if (eventIds[idx].Type == TokenType.DefaultEvent)
-                {
-                    text += "   typeof(Microsoft.PSharp.Default)";
-                }
-                else
-                {
-                    text += "   typeof(" + eventIds[idx].TextUnit.Text + ")";
+                    onExitName = "psharp_" + this.Identifier.TextUnit.Text + "_" +
+                        transition.Key.TextUnit.Text + "_action";
                 }
 
-                if (idx < eventIds.Count - 1)
+                text += "[OnEventGotoState(";
+
+                if (transition.Key.Type == TokenType.HaltEvent)
                 {
-                    text += ",\n";
+                    text += "typeof(Microsoft.PSharp.Halt)";
+                }
+                else if (transition.Key.Type == TokenType.DefaultEvent)
+                {
+                    text += "typeof(Microsoft.PSharp.Default)";
                 }
                 else
                 {
-                    text += "\n";
+                    text += "typeof(" + transition.Key.TextUnit.Text + ")";
                 }
+
+                text += ", typeof(" + transition.Value.TextUnit.Text + ")";
+
+                if (onExitName.Length > 0)
+                {
+                    text += ", nameof(" + onExitName + ")";
+                }
+
+                text += ")]\n";
             }
 
-            text += "  };\n";
-            text += " }\n";
+            return text;
+        }
+
+        /// <summary>
+        /// Instruments the push state transitions.
+        /// </summary>
+        /// <returns>Text</returns>
+        private string InstrumentPushStateTransitions()
+        {
+            if (this.PushStateTransitions.Count == 0)
+            {
+                return "";
+            }
+
+            var text = "";
+
+            foreach (var transition in this.PushStateTransitions)
+            {
+                text += "[OnEventPushState(";
+
+                if (transition.Key.Type == TokenType.HaltEvent)
+                {
+                    text += "typeof(Microsoft.PSharp.Halt)";
+                }
+                else if (transition.Key.Type == TokenType.DefaultEvent)
+                {
+                    text += "typeof(Microsoft.PSharp.Default)";
+                }
+                else
+                {
+                    text += "typeof(" + transition.Key.TextUnit.Text + ")";
+                }
+
+                text += ", typeof(" + transition.Value.TextUnit.Text + ")";
+
+                text += ")]\n";
+            }
+
+            return text;
+        }
+
+        /// <summary>
+        /// Instruments the action bindings.
+        /// </summary>
+        /// <returns>Text</returns>
+        private string InstrumentActionsBindings()
+        {
+            if (this.ActionBindings.Count == 0)
+            {
+                return "";
+            }
+
+            var text = "";
+
+            foreach (var binding in this.ActionBindings)
+            {
+                var actionName = "";
+                if (this.ActionHandlers.ContainsKey(binding.Key))
+                {
+                    actionName = "psharp_" + this.Identifier.TextUnit.Text + "_" +
+                        binding.Key.TextUnit.Text + "_action";
+                }
+
+                text += "[OnEventDoAction(";
+
+                if (binding.Key.Type == TokenType.HaltEvent)
+                {
+                    text += "typeof(Microsoft.PSharp.Halt)";
+                }
+                else if (binding.Key.Type == TokenType.DefaultEvent)
+                {
+                    text += "typeof(Microsoft.PSharp.Default)";
+                }
+                else
+                {
+                    text += "typeof(" + binding.Key.TextUnit.Text + ")";
+                }
+
+                if (actionName.Length > 0)
+                {
+                    text += ", nameof(" + actionName + ")";
+                }
+                else
+                {
+                    text += ", nameof(" + binding.Value.TextUnit.Text + ")";
+                }
+
+                text += ")]\n";
+            }
 
             return text;
         }
@@ -428,40 +519,71 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 return "";
             }
 
-            var text = "\n";
-            text += " protected override System.Collections.Generic.HashSet<Type> DefineIgnoredEvents()\n";
-            text += " {\n";
-            text += "  return new System.Collections.Generic.HashSet<Type>\n";
-            text += "  {\n";
+            var text = "[IgnoreEvents(";
 
             var eventIds = this.IgnoredEvents.ToList();
             for (int idx = 0; idx < eventIds.Count; idx++)
             {
                 if (eventIds[idx].Type == TokenType.HaltEvent)
                 {
-                    text += "   typeof(Microsoft.PSharp.Halt)";
+                    text += "typeof(Microsoft.PSharp.Halt)";
                 }
                 else if (eventIds[idx].Type == TokenType.DefaultEvent)
                 {
-                    text += "   typeof(Microsoft.PSharp.Default)";
+                    text += "typeof(Microsoft.PSharp.Default)";
                 }
                 else
                 {
-                    text += "   typeof(" + eventIds[idx].TextUnit.Text + ")";
+                    text += "typeof(" + eventIds[idx].TextUnit.Text + ")";
                 }
 
                 if (idx < eventIds.Count - 1)
                 {
-                    text += ",\n";
-                }
-                else
-                {
-                    text += "\n";
+                    text += ", ";
                 }
             }
 
-            text += "  };\n";
-            text += " }\n";
+            text += ")]\n";
+
+            return text;
+        }
+
+        /// <summary>
+        /// Instruments the deferred events.
+        /// </summary>
+        /// <returns>Text</returns>
+        private string InstrumentDeferredEvents()
+        {
+            if (this.Machine.IsMonitor || this.DeferredEvents.Count == 0)
+            {
+                return "";
+            }
+
+            var text = "[DeferEvents(";
+
+            var eventIds = this.DeferredEvents.ToList();
+            for (int idx = 0; idx < eventIds.Count; idx++)
+            {
+                if (eventIds[idx].Type == TokenType.HaltEvent)
+                {
+                    text += "typeof(Microsoft.PSharp.Halt)";
+                }
+                else if (eventIds[idx].Type == TokenType.DefaultEvent)
+                {
+                    text += "typeof(Microsoft.PSharp.Default)";
+                }
+                else
+                {
+                    text += "typeof(" + eventIds[idx].TextUnit.Text + ")";
+                }
+
+                if (idx < eventIds.Count - 1)
+                {
+                    text += ", ";
+                }
+            }
+
+            text += ")]\n";
 
             return text;
         }

@@ -47,7 +47,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// The error log.
         /// </summary>
-        protected List<string> ErrorLog;
+        protected string ErrorLog;
 
         #endregion
 
@@ -59,7 +59,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         public TokenParser()
             : base()
         {
-            this.ErrorLog = new List<string>();
+            this.ErrorLog = "";
         }
 
         /// <summary>
@@ -71,7 +71,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         internal TokenParser(PSharpProject project, SyntaxTree tree, bool exitAtError)
             : base(project, tree, exitAtError)
         {
-            this.ErrorLog = new List<string>();
+            this.ErrorLog = "";
         }
 
         /// <summary>
@@ -85,7 +85,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             this.TokenStream = new TokenStream(tokens);
             this.Program = this.CreateNewProgram();
             this.ExpectedTokenTypes = new List<TokenType>();
-            this.ErrorLog = new List<string>();
 
             try
             {
@@ -93,7 +92,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             }
             catch (ParsingException ex)
             {
-                this.ErrorLog.Add(ex.Message);
+                this.ErrorLog = ex.Message;
                 this.ReportParsingError();
                 this.ExpectedTokenTypes = ex.ExpectedTokenTypes;
             }
@@ -114,7 +113,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// Returns the parsing error log.
         /// </summary>
         /// <returns>Parsing error log</returns>
-        public List<string> GetParsingErrorLog()
+        public string GetParsingErrorLog()
         {
             return this.ErrorLog;
         }
@@ -134,7 +133,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// </summary>
         protected void ReportParsingError()
         {
-            if (!this.IsRunningInternally || this.ErrorLog.Count == 0)
+            if (!this.IsRunningInternally || this.ErrorLog.Length == 0)
             {
                 return;
             }
@@ -150,7 +149,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             var errorLine = this.OriginalTokens.Where(
                 val => val.TextUnit.Line == errorToken.TextUnit.Line).ToList();
 
-            this.ErrorLog[0] += "\nIn " + this.SyntaxTree.FilePath + " (line " + errorToken.TextUnit.Line + "):\n";
+            this.ErrorLog += "\nIn " + this.SyntaxTree.FilePath + " (line " + errorToken.TextUnit.Line + "):\n";
 
             int nonWhiteIndex = 0;
             for (int idx = 0; idx < errorLine.Count; idx++)
@@ -164,28 +163,28 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
 
             for (int idx = nonWhiteIndex; idx < errorLine.Count; idx++)
             {
-                this.ErrorLog[0] += errorLine[idx].TextUnit.Text;
+                this.ErrorLog += errorLine[idx].TextUnit.Text;
             }
 
             for (int idx = nonWhiteIndex; idx < errorLine.Count; idx++)
             {
                 if (errorLine[idx].Equals(errorToken) && errorIndex == this.TokenStream.Index)
                 {
-                    this.ErrorLog[0] += new StringBuilder().Append('~', errorLine[idx].TextUnit.Text.Length);
+                    this.ErrorLog += new StringBuilder().Append('~', errorLine[idx].TextUnit.Text.Length);
                     break;
                 }
                 else
                 {
-                    this.ErrorLog[0] += new StringBuilder().Append(' ', errorLine[idx].TextUnit.Text.Length);
+                    this.ErrorLog += new StringBuilder().Append(' ', errorLine[idx].TextUnit.Text.Length);
                 }
             }
 
             if (errorIndex != this.TokenStream.Index)
             {
-                this.ErrorLog[0] += "^";
+                this.ErrorLog += "^";
             }
 
-            ErrorReporter.ReportAndExit(this.ErrorLog[0]);
+            ErrorReporter.ReportAndExit(this.ErrorLog);
         }
 
         #endregion

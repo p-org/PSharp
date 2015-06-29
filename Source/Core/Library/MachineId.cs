@@ -77,20 +77,5 @@ namespace Microsoft.PSharp
         }
 
         #endregion
-
-        #region public API
-
-        /// <summary>
-        /// Models the given machine.
-        /// </summary>
-        /// <param name="type">Type of the machine</param>
-        /// <returns>Machine id</returns>
-        public MachineId Models(Type type)
-        {
-            // Only used for rewriting purposes.
-            return this;
-        }
-
-        #endregion
     }
 }

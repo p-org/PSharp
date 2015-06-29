@@ -61,16 +61,6 @@ namespace Microsoft.PSharp
         private bool IsHalted;
 
         /// <summary>
-        /// Collection of all possible goto state transitions.
-        /// </summary>
-        private Dictionary<Type, GotoStateTransitions> GotoTransitions;
-
-        /// <summary>
-        /// Collection of all possible action bindings.
-        /// </summary>
-        private Dictionary<Type, ActionBindings> ActionBindings;
-
-        /// <summary>
         /// Inbox of the monitor. Incoming events are queued here.
         /// Events are dequeued to be processed.
         /// </summary>
@@ -109,9 +99,6 @@ namespace Microsoft.PSharp
             this.IsRunning = true;
             this.IsHalted = false;
 
-            this.GotoTransitions = this.DefineGotoStateTransitions();
-            this.ActionBindings = this.DefineActionBindings();
-
             this.InitializeStateInformation();
             this.AssertStateValidity();
         }
@@ -119,28 +106,6 @@ namespace Microsoft.PSharp
         #endregion
 
         #region P# API methods
-
-        /// <summary>
-        /// Defines all possible goto state transitions for each state.
-        /// It must return a dictionary where a key represents
-        /// a state and a value represents the state's transitions.
-        /// </summary>
-        /// <returns>Dictionary<Type, StateTransitions></returns>
-        protected virtual Dictionary<Type, GotoStateTransitions> DefineGotoStateTransitions()
-        {
-            return new Dictionary<Type, GotoStateTransitions>();
-        }
-
-        /// <summary>
-        /// Defines all possible action bindings for each state.
-        /// It must return a dictionary where a key represents
-        /// a state and a value represents the state's action bindings.
-        /// </summary>
-        /// <returns>Dictionary<Type, ActionBindings></returns>
-        protected virtual Dictionary<Type, ActionBindings> DefineActionBindings()
-        {
-            return new Dictionary<Type, ActionBindings>();
-        }
 
         /// <summary>
         /// Raises an event internally and returns from the execution context.
@@ -421,21 +386,8 @@ namespace Microsoft.PSharp
         private MonitorState InitializeState(Type s)
         {
             MonitorState state = Activator.CreateInstance(s) as MonitorState;
-            state.InitializeState();
-            state.Monitor = this;
-
-            GotoStateTransitions sst = null;
-            ActionBindings ab = null;
-
-            this.GotoTransitions.TryGetValue(s, out sst);
-            this.ActionBindings.TryGetValue(s, out ab);
-
-            if (sst == null) state.GotoTransitions = new GotoStateTransitions();
-            else state.GotoTransitions = sst;
-
-            if (ab == null) state.ActionBindings = new ActionBindings();
-            else state.ActionBindings = ab;
-
+            state.InitializeState(this);
+            
             return state;
         }
 
@@ -590,8 +542,6 @@ namespace Microsoft.PSharp
         private void CleanUpResources()
         {
             this.StateTypes.Clear();
-            this.GotoTransitions.Clear();
-            this.ActionBindings.Clear();
             this.Inbox.Clear();
 
             this.Trigger = null;

@@ -169,15 +169,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 text += node.TextUnit.Text;
             }
 
-            text += this.InstrumentGotoStateTransitions();
-
-            if (!this.IsMonitor)
-            {
-                text += this.InstrumentPushStateTransitions();
-            }
-
-            text += this.InstrumentActionsBindings();
-
             text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
 
             base.TextUnit = new TextUnit(text, this.MachineKeyword.TextUnit.Line);
@@ -244,14 +235,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 text += node.TextUnit.Text;
             }
 
-            text += this.InstrumentGotoStateTransitions();
-
-            if (!this.IsMonitor)
-            {
-                text += this.InstrumentPushStateTransitions();
-            }
-
-            text += this.InstrumentActionsBindings();
+            text += this.GetRewrittenWithActions();
 
             text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
             
@@ -328,213 +312,35 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         }
 
         /// <summary>
-        /// Instruments the goto state transitions.
+        /// Returns the rewritten with actions.
         /// </summary>
-        /// <returns>Text</returns>
-        private string InstrumentGotoStateTransitions()
+        private string GetRewrittenWithActions()
         {
-            if (!this.StateDeclarations.Any(val => val.GotoStateTransitions.Count > 0))
-            {
-                return "";
-            }
-
-            var text = "\n";
-            text += "protected override System.Collections.Generic.Dictionary<Type, " +
-                "GotoStateTransitions> DefineGotoStateTransitions()\n";
-            text += "{\n";
-            text += " var dict = new System.Collections.Generic.Dictionary<Type, " +
-                "GotoStateTransitions>();\n";
-            text += "\n";
+            var text = "";
 
             foreach (var state in this.StateDeclarations)
             {
-                text += " var " + state.Identifier.TextUnit.Text.ToLower() + "Dict = new GotoStateTransitions();\n";
-
-                foreach (var transition in state.GotoStateTransitions)
+                foreach (var withAction in state.TransitionsOnExitActions)
                 {
-                    var onExitText = "";
-                    if (state.TransitionsOnExitActions.ContainsKey(transition.Key))
-                    {
-                        var onExitAction = state.TransitionsOnExitActions[transition.Key];
-                        onExitAction.Rewrite();
-                        onExitText = onExitAction.TextUnit.Text;
-                    }
-
-                    string eventId = "";
-                    if (transition.Key.Type == TokenType.HaltEvent)
-                    {
-                        eventId = "Microsoft.PSharp.Halt";
-                    }
-                    else if (transition.Key.Type == TokenType.DefaultEvent)
-                    {
-                        eventId = "Microsoft.PSharp.Default";
-                    }
-                    else
-                    {
-                        eventId = transition.Key.TextUnit.Text;
-                    }
-
-                    if (onExitText.Length > 0)
-                    {
-                        text += " " + state.Identifier.TextUnit.Text.ToLower() + "Dict.Add(typeof(" +
-                            eventId + "), typeof(" + transition.Value.TextUnit.Text + "), () => " +
-                            onExitText + ");\n";
-                    }
-                    else
-                    {
-                        text += " " + state.Identifier.TextUnit.Text.ToLower() + "Dict.Add(typeof(" +
-                            eventId + "), typeof(" + transition.Value.TextUnit.Text + "));\n";
-                    }
+                    var onExitAction = withAction.Value;
+                    onExitAction.Rewrite();
+                    text += "void psharp_" + state.Identifier.TextUnit.Text + "_" +
+                        withAction.Key.TextUnit.Text + "_action()";
+                    text += onExitAction.TextUnit.Text;
                 }
-
-                text += " dict.Add(typeof(" + state.Identifier.TextUnit.Text + "), " +
-                    state.Identifier.TextUnit.Text.ToLower() + "Dict);\n";
-                text += "\n";
             }
-
-            text += " return dict;\n";
-            text += "}\n";
-
-            return text;
-        }
-
-        /// <summary>
-        /// Instruments the push state transitions.
-        /// </summary>
-        /// <returns>Text</returns>
-        private string InstrumentPushStateTransitions()
-        {
-            if (!this.StateDeclarations.Any(val => val.PushStateTransitions.Count > 0))
-            {
-                return "";
-            }
-
-            var text = "\n";
-            text += "protected override System.Collections.Generic.Dictionary<Type, " +
-                "PushStateTransitions> DefinePushStateTransitions()\n";
-            text += "{\n";
-            text += " var dict = new System.Collections.Generic.Dictionary<Type, " +
-                "PushStateTransitions>();\n";
-            text += "\n";
 
             foreach (var state in this.StateDeclarations)
             {
-                text += " var " + state.Identifier.TextUnit.Text.ToLower() + "Dict = new PushStateTransitions();\n";
-
-                foreach (var transition in state.PushStateTransitions)
+                foreach (var withAction in state.ActionHandlers)
                 {
-                    var onExitText = "";
-                    if (state.TransitionsOnExitActions.ContainsKey(transition.Key))
-                    {
-                        var onExitAction = state.TransitionsOnExitActions[transition.Key];
-                        onExitAction.Rewrite();
-                        onExitText = onExitAction.TextUnit.Text;
-                    }
-
-                    string eventId = "";
-                    if (transition.Key.Type == TokenType.HaltEvent)
-                    {
-                        eventId = "Microsoft.PSharp.Halt";
-                    }
-                    else if (transition.Key.Type == TokenType.DefaultEvent)
-                    {
-                        eventId = "Microsoft.PSharp.Default";
-                    }
-                    else
-                    {
-                        eventId = transition.Key.TextUnit.Text;
-                    }
-
-                    if (onExitText.Length > 0)
-                    {
-                        text += " " + state.Identifier.TextUnit.Text.ToLower() + "Dict.Add(typeof(" +
-                            eventId + "), typeof(" + transition.Value.TextUnit.Text + "), () => " +
-                            onExitText + ");\n";
-                    }
-                    else
-                    {
-                        text += " " + state.Identifier.TextUnit.Text.ToLower() + "Dict.Add(typeof(" +
-                            eventId + "), typeof(" + transition.Value.TextUnit.Text + "));\n";
-                    }
+                    var onExitAction = withAction.Value;
+                    onExitAction.Rewrite();
+                    text += "void psharp_" + state.Identifier.TextUnit.Text + "_" +
+                        withAction.Key.TextUnit.Text + "_action()";
+                    text += onExitAction.TextUnit.Text;
                 }
-
-                text += " dict.Add(typeof(" + state.Identifier.TextUnit.Text + "), " +
-                    state.Identifier.TextUnit.Text.ToLower() + "Dict);\n";
-                text += "\n";
             }
-
-            text += " return dict;\n";
-            text += "}\n";
-
-            return text;
-        }
-
-        /// <summary>
-        /// Instruments the action bindings.
-        /// </summary>
-        /// <returns>Text</returns>
-        private string InstrumentActionsBindings()
-        {
-            if (!this.StateDeclarations.Any(val => val.ActionBindings.Count > 0))
-            {
-                return "";
-            }
-
-            var text = "\n";
-            text += "protected override System.Collections.Generic.Dictionary<Type, " +
-                "ActionBindings> DefineActionBindings()\n";
-            text += "{\n";
-            text += " var dict = new System.Collections.Generic.Dictionary<Type, " +
-                "ActionBindings>();\n";
-            text += "\n";
-
-            foreach (var state in this.StateDeclarations)
-            {
-                text += " var " + state.Identifier.TextUnit.Text.ToLower() + "Dict = new ActionBindings();\n";
-
-                foreach (var binding in state.ActionBindings)
-                {
-                    var actionText = "";
-                    if (state.ActionHandlers.ContainsKey(binding.Key))
-                    {
-                        var action = state.ActionHandlers[binding.Key];
-                        action.Rewrite();
-                        actionText = action.TextUnit.Text;
-                    }
-
-                    string eventId = "";
-                    if (binding.Key.Type == TokenType.HaltEvent)
-                    {
-                        eventId = "Microsoft.PSharp.Halt";
-                    }
-                    else if (binding.Key.Type == TokenType.DefaultEvent)
-                    {
-                        eventId = "Microsoft.PSharp.Default";
-                    }
-                    else
-                    {
-                        eventId = binding.Key.TextUnit.Text;
-                    }
-
-                    if (actionText.Length > 0)
-                    {
-                        text += " " + state.Identifier.TextUnit.Text.ToLower() + "Dict.Add(typeof(" +
-                            eventId + "), () => " + actionText + ");\n";
-                    }
-                    else
-                    {
-                        text += " " + state.Identifier.TextUnit.Text.ToLower() + "Dict.Add(typeof(" +
-                            eventId + "), new Action(" + binding.Value.TextUnit.Text + "));\n";
-                    }
-                }
-
-                text += " dict.Add(typeof(" + state.Identifier.TextUnit.Text + "), " +
-                    state.Identifier.TextUnit.Text.ToLower() + "Dict);\n";
-                text += "\n";
-            }
-
-            text += " return dict;\n";
-            text += "}\n";
 
             return text;
         }

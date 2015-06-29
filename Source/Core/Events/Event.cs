@@ -54,7 +54,17 @@ namespace Microsoft.PSharp
         #region API
 
         /// <summary>
-        /// Default constructor.
+        /// Constructor.
+        /// </summary>
+        protected Event()
+        {
+            this.Assert = -1;
+            this.Assume = -1;
+            this.Payload = null;
+        }
+
+        /// <summary>
+        /// Constructor.
         /// </summary>
         /// <param name="assert">Assert</param>
         /// <param name="assume">Assume</param>

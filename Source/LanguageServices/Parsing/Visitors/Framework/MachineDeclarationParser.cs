@@ -20,8 +20,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-using Microsoft.PSharp.Tooling;
-
 namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 {
     /// <summary>

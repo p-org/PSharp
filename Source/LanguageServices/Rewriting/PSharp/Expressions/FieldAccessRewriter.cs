@@ -80,6 +80,19 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting
                 return rewritten;
             }
 
+            if (rewritten.Parent is ArgumentSyntax &&
+                rewritten.Parent.Parent is ArgumentListSyntax &&
+                rewritten.Parent.Parent.Parent is InvocationExpressionSyntax)
+            {
+                var invocation = rewritten.Parent.Parent.Parent as InvocationExpressionSyntax;
+                if (invocation.Expression is IdentifierNameSyntax &&
+                    (invocation.Expression as IdentifierNameSyntax).Identifier.ValueText.Equals("nameof") &&
+                    invocation.ArgumentList.Arguments.Count == 1)
+                {
+                    return rewritten;
+                }
+            }
+
             if (!(rewritten.Parent is MemberAccessExpressionSyntax) &&
                 !(rewritten.Parent is ObjectCreationExpressionSyntax) &&
                 !(rewritten.Parent is TypeOfExpressionSyntax))
