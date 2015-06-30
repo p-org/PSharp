@@ -722,7 +722,7 @@ namespace PingPong {
   class Server : Machine {
     MachineId Client;
     
-    [Initial]
+    [Start]
     [OnEntry(nameof(InitOnEntry))]
     [OnEventGotoState(typeof(Unit), typeof(Playing))]
     class Init : MachineState { }
@@ -749,7 +749,7 @@ namespace PingPong {
     MachineId Server;
     int Counter;
     
-    [Initial]
+    [Start]
     [OnEventGotoState(typeof(Unit), typeof(Playing))]
     class Init : MachineState {
       protected override void OnEntry() {
@@ -790,7 +790,7 @@ First import the `Microsoft.PSharp` library. To declare a new P# machine, create
 C# `class` that inherits from the type `Machine` (provided by the P# library). To create
 a new state, create a new `class` that inherits from the type `MachineState`. This state
 class must be nested inside a machine class. The start state can be declared using the
-`[Initial]` attribute.
+`[Start]` attribute.
 
 To declare a state transition, use the `[OnEventGotoState(...)]` attribute, where the
 first argument to the attribute is the type of the received event and the second argument
