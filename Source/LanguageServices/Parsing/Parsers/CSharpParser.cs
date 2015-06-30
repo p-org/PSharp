@@ -77,6 +77,15 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             return this.Program;
         }
 
+        /// <summary>
+        /// Returns the parsing error log.
+        /// </summary>
+        /// <returns>Parsing error log</returns>
+        public List<Tuple<SyntaxToken, string>> GetParsingErrorLog()
+        {
+            return this.ErrorLog;
+        }
+
         #endregion
 
         #region protected API

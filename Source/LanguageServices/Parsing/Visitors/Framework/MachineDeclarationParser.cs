@@ -59,7 +59,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
                 this.CheckForPublicMethods(machine);
                 this.CheckForInternalMethods(machine);
 
+                this.CheckForAtLeastOneState(machine, compilation);
                 this.CheckForNonStateClasses(machine, compilation);
+                this.CheckForStructs(machine);
                 this.CheckForStartState(machine, compilation);
             }
         }
@@ -137,21 +139,55 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         }
 
         /// <summary>
+        /// Checks that at least one state is declared inside the machine.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <param name="compilation">Compilation</param>
+        private void CheckForAtLeastOneState(ClassDeclarationSyntax machine, CodeAnalysis.Compilation compilation)
+        {
+            var states = machine.DescendantNodes().OfType<ClassDeclarationSyntax>().
+                Where(val => Querying.IsMachineState(compilation, val)).
+                ToList();
+
+            if (states.Count == 0)
+            {
+                base.ErrorLog.Add(Tuple.Create(machine.Identifier, "A machine must declare at least one state."));
+            }
+        }
+
+        /// <summary>
         /// Checks that no non-state classes are declared inside the machine.
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="compilation">Compilation</param>
         private void CheckForNonStateClasses(ClassDeclarationSyntax machine, CodeAnalysis.Compilation compilation)
         {
-            var stateIdentifiers = machine.DescendantNodes().OfType<ClassDeclarationSyntax>().
+            var classIdentifiers = machine.DescendantNodes().OfType<ClassDeclarationSyntax>().
                 Where(val => !Querying.IsMachineState(compilation, val)).
                 Select(val => val.Identifier).
                 ToList();
 
-            foreach (var identifier in stateIdentifiers)
+            foreach (var identifier in classIdentifiers)
             {
                 base.ErrorLog.Add(Tuple.Create(identifier,
                     "A non-state class cannot be declared inside a machine."));
+            }
+        }
+
+        /// <summary>
+        /// Checks that no structs are declared inside the machine.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        private void CheckForStructs(ClassDeclarationSyntax machine)
+        {
+            var structIdentifiers = machine.DescendantNodes().OfType<StructDeclarationSyntax>().
+                Select(val => val.Identifier).
+                ToList();
+
+            foreach (var identifier in structIdentifiers)
+            {
+                base.ErrorLog.Add(Tuple.Create(identifier,
+                    "A struct cannot be declared inside a machine."));
             }
         }
 

@@ -56,6 +56,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
             {
                 this.CheckForFields(state);
                 this.CheckForMethods(state);
+                this.CheckForClasses(state);
+                this.CheckForStructs(state);
             }
         }
 
@@ -64,7 +66,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         #region private API
 
         /// <summary>
-        /// Checks that the state is not declaring fields.
+        /// Checks that no fields are declared inside the state.
         /// </summary>
         /// <param name="state">State</param>
         private void CheckForFields(ClassDeclarationSyntax state)
@@ -80,7 +82,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         }
 
         /// <summary>
-        /// Checks that the state is not declaring methods (beside the P# API ones).
+        /// Checks that no methods are declared inside the machine (beside the P# API ones).
         /// </summary>
         /// <param name="state">State</param>
         private void CheckForMethods(ClassDeclarationSyntax state)
@@ -93,6 +95,38 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
             {
                 base.ErrorLog.Add(Tuple.Create(state.Identifier,
                     "A state cannot declare methods (besides the P# API ones)."));
+            }
+        }
+
+        /// <summary>
+        /// Checks that no classes are declared inside the state.
+        /// </summary>
+        /// <param name="state">State</param>
+        private void CheckForClasses(ClassDeclarationSyntax state)
+        {
+            var classes = state.DescendantNodes().OfType<ClassDeclarationSyntax>().
+                ToList();
+
+            if (classes.Count > 0)
+            {
+                base.ErrorLog.Add(Tuple.Create(state.Identifier,
+                    "A state cannot declare classes."));
+            }
+        }
+
+        /// <summary>
+        /// Checks that no structs are declared inside the state.
+        /// </summary>
+        /// <param name="state">State</param>
+        private void CheckForStructs(ClassDeclarationSyntax state)
+        {
+            var structs = state.DescendantNodes().OfType<StructDeclarationSyntax>().
+                ToList();
+
+            if (structs.Count > 0)
+            {
+                base.ErrorLog.Add(Tuple.Create(state.Identifier,
+                    "A state cannot declare structs."));
             }
         }
 
