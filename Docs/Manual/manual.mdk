@@ -76,8 +76,8 @@ namespace PingPong {
 
     start state Init {
       entry {
-        this.client = create Client ( this );
-        raise Unit;
+        this.client = create(Client, this);
+        raise(Unit);
       }
 
       on Unit goto Playing;
@@ -85,7 +85,7 @@ namespace PingPong {
 
     state Playing {
       entry {
-        send this.client, Pong;
+        send(this.client, Pong);
       }
 
       on Unit do SendPong;
@@ -93,7 +93,7 @@ namespace PingPong {
     }
 
     void SendPong() {
-      send this.client, Pong;
+      send(this.client, Pong);
     }
   }
 
@@ -105,7 +105,7 @@ namespace PingPong {
       entry {
         this.server = (machine)payload;
         this.counter = 0;
-        raise Unit;
+        raise(Unit);
       }
 
       on Unit goto Playing;
@@ -114,8 +114,8 @@ namespace PingPong {
     state Playing {
       entry {
         if (this.counter = 5) {
-          send this.server, halt;
-          raise halt;
+          send(this.server, halt);
+          raise(halt);
         }
       }
 
@@ -123,8 +123,8 @@ namespace PingPong {
       
       on Pong do {
         this.counter++;
-        send this.server, Ping;
-        raise Unit;
+        send(this.server, Ping);
+        raise(Unit);
       };
     }
   }
@@ -153,7 +153,7 @@ above example) denotes an action that is executed when the state exits.
 A P# action (e.g. `entry` `exit` and `SendPong`), is a block of arbitrary P# and
 C# statements. As an example, the `entry` action in the state `Init` of `Server`
 contains two statements.
-The first statement, `this.client = create Client ( this )`, creates a new instance
+The first statement, `this.client = create(Client, this)`, creates a new instance
 of the `Client` machine and stores a reference to this instance in the field `client`.
 Note that P# allows the use of all the primitive types that C# provides (e.g. `int`
 and `bool`) and also introduces the `machine` type, which is a reference to a
@@ -276,7 +276,7 @@ namespace FailureDetector {
     start state Init {
       entry {
         this.client = (machine)payload;
-        raise Unit; // goto handler of Unit
+        raise(Unit); // goto handler of Unit
       }
         
       on Unit goto WaitForReq;
@@ -284,7 +284,7 @@ namespace FailureDetector {
 
     state WaitForReq {
       on Cancel goto WaitForReq with {
-        send this.client, CancelFailure ( this );
+        send(this.client, CancelFailure, this);
       };
       
       on Start goto WaitForCancel;
@@ -294,16 +294,16 @@ namespace FailureDetector {
       ignore Start;
       
       on Cancel goto WaitForReq with {
-        if ($) {
-          send this.client, CancelSuccess ( this );
+        if (*) {
+          send(this.client, CancelSuccess, this);
         } else {
-          send this.client, CancelFailure ( this );
-          send this.client, Timeout ( this );
+          send(this.client, CancelFailure, this);
+          send(this.client, Timeout, this);
         }
       };
       
       on default goto WaitForReq with {
-	      send this.client, Timeout ( this );
+        send(this.client, Timeout, this);
       };
     }
   }
@@ -329,7 +329,7 @@ further action.
 The response to a `Cancel` event involves the use of nondeterminism to model the
 race condition between the arrival of a `Cancel` event from the client and the
 elapse of the timer. This nondeterminism is indicated by an `if` statement guarded
-by the keyword `$`, which returns a nondeterminitic boolean choice.
+by the keyword `*`, which returns a nondeterminitic boolean choice.
 The then-branch models the case when the `Cancel` event arrives before the timer
 elapses; in this case, `CancelSuccess` is sent back to the client.
 The else-branch models the case when the timer fires before the `Cancel` event
@@ -348,19 +348,20 @@ A machine can be used to model another machine for systematic testing, using the
 the following special create statement:
 
 ```
-create Foo () models Bar;
+create(Foo) models Bar;
 ```
 
 In this case, the `Foo` machine is used to model the Bar machine. During systematic testing,
 the `Foo` machine will be created, whereas during real execution, the `Bar` machine will be
 created.
 
-Likewise, a method can model another method for systematic testing. The concept behind this
-is similar to how a machine can model another machine. The following special call statement
-can be used:
+Likewise, a method can model another method for systematic testing. To achieve this, create
+a method that has the same name and parameters as the method to be modeled, and use the
+modifier `model` as follows:
 
 ```
-Foo() for Bar;
+void Foo() { }       // real method
+model void Foo() { } // model method
 ```
 
 In this case, the `Foo` method will be called instead of the `Bar` method during systematic
@@ -404,8 +405,8 @@ namespace FailureDetector {
         this.responses = new Dictionary<machine, bool>();
         this.nodes = payload as List<machine>;
         this.InitializealiveSet();
-        this.timer = create Timer ( this );
-        raise Unit;
+        this.timer = create(Timer, this);
+        raise(Unit);
       }
       
       on RegisterClient do {
@@ -425,7 +426,7 @@ namespace FailureDetector {
     {
       entry {
         this.SendPings(); // send Ping events to machines that have not responded
-        send this.timer, Start ( 100 ); // start timer for intra-round duration
+        send(this.timer, Start, 100); // start timer for intra-round duration
       }
       
       on Pong do {
@@ -435,8 +436,8 @@ namespace FailureDetector {
           this.responses[(machine)payload] = true;
           if (this.responses.Count == this.alive.Count) {
             // status of alive nodes has not changed
-            send this.timer, Cancel;
-            raise TimerCancelled;
+            send(this.timer, Cancel);
+            raise(TimerCancelled);
           }
         }
       };
@@ -448,10 +449,10 @@ namespace FailureDetector {
         this.attempts++;
         // maximum number of attempts per round == 2
         if (this.responses.Count < this.alive.Count && this.attempts < 2) {
-          raise Unit; // try again by re-entering SendPing
+          raise(Unit); // try again by re-entering SendPing
         } else {
           this.CheckaliveSet();
-          raise RoundDone;
+          raise(RoundDone);
         }
       };
       
@@ -463,7 +464,7 @@ namespace FailureDetector {
       defer Timeout, Pong;
       
       on CancelSuccess do {
-        raise RoundDone;
+        raise(RoundDone);
       };
       
       on CancelFailure do {
@@ -476,7 +477,7 @@ namespace FailureDetector {
         // prepare for the next round
         this.attempts = 0;
         this.responses.Clear();
-        send this.timer, Start ( 1000 ); // start timer for inter-round duration
+        send(this.timer, Start, 1000); // start timer for inter-round duration
       }
       
       on Timeout goto SendPing;
@@ -492,8 +493,8 @@ namespace FailureDetector {
     void SendPings() {
       foreach (var node in this.nodes) {
         if (this.alive.ContainsKey(node) && !this.responses.ContainsKey(node)) {
-          monitor Safety, MPing ( node );
-          send node, Ping ( this );
+          monitor<Safety>(MPing, node);
+          send(node, Ping, this);
         }
       }
     }
@@ -573,14 +574,11 @@ Therefore, in the state `WaitForCancelResponse`, the events `RegisterClient` and
 ```
 // Node.psharp
 namespace FailureDetector {
-  machine Node
-  {
-    start state WaitPing
-    {
-      on Ping do
-      {
-        monitor Safety, MPong ( this );
-        send (machine)payload, Pong ( this );
+  machine Node {
+    start state WaitPing {
+      on Ping do {
+        monitor<Safety>(MPong, this);
+        send((machine)payload, Pong, this);
       };
     }
   }
@@ -605,12 +603,12 @@ namespace FailureDetector {
         }
         
         this.Pending[(machine)payload] = this.Pending[(machine)payload] + 1;
-        assert (this.Pending[(machine)payload] <= 3);
+        assert(this.Pending[(machine)payload] <= 3);
       };
       
       on MPong do {
-        assert (this.Pending.ContainsKey((machine)payload));
-        assert (this.Pending[(machine)payload] > 0);
+        assert(this.Pending.ContainsKey((machine)payload));
+        assert(this.Pending[(machine)payload] > 0);
         this.Pending[(machine)payload] = this.Pending[(machine)payload] - 1;
       };
     }
@@ -621,7 +619,7 @@ namespace FailureDetector {
 P# also allows programmers to write *assertions* that express invariants on the local
 state of a machine. This can be achieved using the `assert` statement.
 However, it is often useful to be able to write assertions about state across
-machines in a program. P# provides *monitors* that enable writting such specifications.
+machines in a program. P# provides *monitors* that enable writing such specifications.
 Consider the problem of specifying that the difference in the number of `Ping`
 events sent to any machine can never be three more than the number of `Pong` events
 sent by it.
@@ -629,7 +627,7 @@ This specification can be encoded using the monitor machine `Safety`. This monit
 maintains the difference between the number of `Ping` and `Pong` events per machine
 in a C# dictionary and asserts that this number can be at most three.
 The failure detection protocol communicates with this monitor by sending it `MPing`
-and `MPong` events using a statement such as `monitor Safety, MPong ( this )`.
+and `MPong` events using a statement such as `monitor<Safety>(MPong, this)`.
 
 ## Test driver machine
 
@@ -654,16 +652,16 @@ namespace FailureDetector {
         this.NodeSeq = new List<machine>();
         this.NodeMap = new Dictionary<machine, bool>();
         this.Initialize();
-        create Safety ();
-        this.FailureDetector = create FailureDetector ( this.NodeSeq );
-        send this.FailureDetector, RegisterClient ( this );
+        create(Safety);
+        this.FailureDetector = create(FailureDetector, this.NodeSeq);
+        send(this.FailureDetector, RegisterClient, this);
         this.Fail();
       }
     }
     
     void Initialize() {
       for (int i = 0; i < 2; i++) {
-        var node = create Node ();
+        var node = create(Node);
         this.NodeSeq.Add(node);
         this.NodeMap.Add(node, true);
       }
@@ -671,7 +669,7 @@ namespace FailureDetector {
     
     void Fail() {
       for (int i = 0; i < 2; i++) {
-        send this.NodeSeq[i], halt;
+        send(this.NodeSeq[i], halt);
       }
     }
   }
@@ -704,6 +702,110 @@ machine immediately after creating them, these send actions may be arbitrarily
 *delayed* if a nondeterministic scheduler chooses to execute the other machines 
 in the program instead. The P# systematic tester has the capability to enumerate
 such behaviors to explore *tricky* interleavings between event handlers.
+
+## Using the P# framework APIs
+
+The P# framework enables the developers to directly develop P# programs in native C#
+without the need of writing in the high-level P# language presented earlier in the
+examples. The positive of this approach is that it allows full integration with VS,
+but comes at the cost of more verbosity. The above PingPong program can be developed
+using the P# framework APIs as follows:
+
+```
+using Microsoft.PSharp;
+
+namespace PingPong {
+  class Unit : Event { }
+  class Ping : Event { }
+  class Pong : Event { }
+  
+  class Server : Machine {
+    MachineId Client;
+    
+    [Initial]
+    [OnEntry(nameof(InitOnEntry))]
+    [OnEventGotoState(typeof(Unit), typeof(Playing))]
+    class Init : MachineState { }
+    
+    void InitOnEntry() {
+      this.Client = this.CreateMachine(typeof(Client), this);
+      this.Raise(new Unit());
+    }
+    
+    [OnEventDoAction(typeof(Unit), nameof(SendPong))]
+    [OnEventDoAction(typeof(Ping), nameof(SendPong))]
+    class Playing : MachineState {
+      protected override void OnEntry() {
+        this.Send((this.Machine as Server).Client, new Pong());
+      }
+    }
+    
+    void SendPong() {
+      this.Send(this.Client, new Pong());
+    }
+  }
+  
+  class Client : Machine {
+    MachineId Server;
+    int Counter;
+    
+    [Initial]
+    [OnEventGotoState(typeof(Unit), typeof(Playing))]
+    class Init : MachineState {
+      protected override void OnEntry() {
+        (this.Machine as Client).Server = (MachineId)this.Payload;
+        (this.Machine as Client).Counter = 0;
+        this.Raise(new Unit());
+      }
+    }
+    
+    [OnEventGotoState(typeof(Unit), typeof(Playing))]
+    [OnEventDoAction(typeof(Pong), nameof(SendPing))]
+    class Playing : MachineState {
+      protected override void OnEntry() {
+        if ((this.Machine as Client).Counter == 5) {
+          this.Raise(new Halt());
+        }
+      }
+    }
+    
+    void SendPing() {
+      this.Counter++;
+      Console.WriteLine("\nTurns: {0} / 5\n", this.Counter);
+      this.Send(this.Server, new Ping());
+      this.Raise(new Unit());
+    }
+  }
+  
+  public class Program {
+    static void Main(string[] args) {
+      PSharpRuntime.CreateMachine(typeof(Server));
+      Console.ReadLine();
+    }
+  }
+}
+```
+
+First import the `Microsoft.PSharp` library. To declare a new P# machine, create a new
+C# `class` that inherits from the type `Machine` (provided by the P# library). To create
+a new state, create a new `class` that inherits from the type `MachineState`. This state
+class must be nested inside a machine class. The start state can be declared using the
+`[Initial]` attribute.
+
+To declare a state transition, use the `[OnEventGotoState(...)]` attribute, where the
+first argument to the attribute is the type of the received event and the second argument
+is the type of the target state. You can pass an optional third argument, `nameof(...)`
+(or simply a `string`), which denotes the name of the method that you want to be executed
+after exiting the state. To declare an action handler, use the `[OnEventDoAction(...)]`
+attribute, where the first argument to the attribute is the type of the received event and
+the second argument is the name of the action to be executed. For a push transition, use
+the `[OnEventPushState(...)]` attribute.
+
+To declare an ignored event, use the `[IgnoreEvents(...)]` attribute, which takes a
+variable number of parameters, all of which are `typeof(...)`, denoting the type of the
+event to be ignored. Similar for deferring events, use the `[DeferEvents(...)]` attribute.
+
+All P# statements are exposed as method calls of the `Machine` and `MachineState` classes.
 
 # Tools { #sec-tools }
 
@@ -837,16 +939,16 @@ that the bound k refers to the total number of events in the input queue of M.
 |-------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 {.grammar-table}
 
-|------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
-|P# Statements                                                                                                                                                                              ||
-|Syntax                                    | Description                                                                                                                                     |
-+:-----------------------------------------|:---{vertical-align=top width=60%}---------------------------------------------------------------------------------------------------------------+
-|`create` M` (`v1`,` ...`,` vn`)``;`       | Creates a new instance of a machine or monitor with type M, and with payload set to (v1, ..., vn).                                              |
-|`raise` ev \[(v1`,` ...`,` vn) ]`;`       | Causes immediate handling of event expression ev (and sets payload to (v1, ..., vn)).                                                           |
-|`send` dst`,` ev \[(v1`,` ...`,` vn) ]`;` | Sends to machine expression dst event expression ev (with payload to (v1, ..., vn)).                                                            |
-|`pop``;`                                  | Pops this state from the state stack and returns to the parent state. Fails if the state stack is empty and the trigger is not the `halt` event.|
-|`assert` v`;`                             | Fails if the expression v does not evaluate to `true`.                                                                                          |
-|------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
+|-------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
+|P# Statements                                                                                                                                                                                     ||
+|Syntax                                           | Description                                                                                                                                     |
++:------------------------------------------------|:---{vertical-align=top width=60%}---------------------------------------------------------------------------------------------------------------+
+|`create` ( M `,` \[ v1`,` ...`,` vn ] )`;`       | Creates a new instance of a machine or monitor with type M, and with payload set to (v1, ..., vn).                                              |
+|`raise `( ev `,` \[ v1`,` ...`,` vn ] )`;`       | Causes immediate handling of event expression ev (and sets payload to (v1, ..., vn)).                                                           |
+|`send `( dst`,` ev `,` \[ v1`,` ...`,` vn ] )`;` | Sends to machine expression dst event expression ev (with payload to (v1, ..., vn)).                                                            |
+|`pop``;`                                         | Pops this state from the state stack and returns to the parent state. Fails if the state stack is empty and the trigger is not the `halt` event.|
+|`assert` v`;`                                    | Fails if the expression v does not evaluate to `true`.                                                                                          |
+|-------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
 {.grammar-table}
 
 ~ End Grammar

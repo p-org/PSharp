@@ -14,13 +14,15 @@
 
   "keywords": [
     "include","main","start",
-    "new","create","assert","send","monitor","raise","halt","default","typeof",
+    "new","create","assert","send","monitor","raise","models",
+    "halt","default","typeof","nameof",
     "while","for","foreach","if","else","break","continue","return",
     "this","null","trigger","payload","pop",
     "public","protected","private","internal",
     "static","virtual","abstract","override",
     "true","false",
-    "namespace","class","event","machine","model","action","state",
+    "using","namespace","class","struct",
+    "event","machine","model","action","state",
     "entry","exit","defer","ignore",
     "goto","push","on","do","with","in","as"
   ],
