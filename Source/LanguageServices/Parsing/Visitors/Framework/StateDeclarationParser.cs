@@ -34,7 +34,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// </summary>
         /// <param name="project">PSharpProject</param>
         /// <param name="errorLog">Error log</param>
-        internal StateDeclarationParser(PSharpProject project, Dictionary<SyntaxToken, string> errorLog)
+        internal StateDeclarationParser(PSharpProject project, List<Tuple<SyntaxToken, string>> errorLog)
             : base(project, errorLog)
         {
 
@@ -48,16 +48,14 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         {
             var compilation = base.Project.Project.GetCompilationAsync().Result;
 
-            var machines = tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().
-                Where(val => Querying.IsMachine(compilation, val)).
+            var states = tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().
+                Where(val => Querying.IsMachineState(compilation, val)).
                 ToList();
 
-            foreach (var machine in machines)
+            foreach (var state in states)
             {
-                this.CheckNonPublicFields(machine);
-                this.CheckNonInternalFields(machine);
-                this.CheckNonPublicMethods(machine);
-                this.CheckNonInternalMethods(machine);
+                this.CheckForFields(state);
+                this.CheckForMethods(state);
             }
         }
 
@@ -66,70 +64,35 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         #region private API
 
         /// <summary>
-        /// Checks that machine fields are non-public.
+        /// Checks that the state is not declaring fields.
         /// </summary>
-        /// <param name="machine"></param>
-        private void CheckNonPublicFields(ClassDeclarationSyntax machine)
+        /// <param name="state">State</param>
+        private void CheckForFields(ClassDeclarationSyntax state)
         {
-            var modifiers = machine.DescendantNodes().OfType<FieldDeclarationSyntax>().
-                Where(val => val.Modifiers.Any(SyntaxKind.PublicKeyword)).
-                Select(val => val.Modifiers.First(tok => tok.Kind() == SyntaxKind.PublicKeyword)).
+            var fields = state.DescendantNodes().OfType<FieldDeclarationSyntax>().
                 ToList();
 
-            foreach (var modifier in modifiers)
+            if (fields.Count > 0)
             {
-                base.ErrorLog.Add(modifier, "A machine field cannot be public.");
+                base.ErrorLog.Add(Tuple.Create(state.Identifier,
+                    "A state cannot declare fields."));
             }
         }
 
         /// <summary>
-        /// Checks that machine fields are non-public.
+        /// Checks that the state is not declaring methods (beside the P# API ones).
         /// </summary>
-        /// <param name="machine"></param>
-        private void CheckNonInternalFields(ClassDeclarationSyntax machine)
+        /// <param name="state">State</param>
+        private void CheckForMethods(ClassDeclarationSyntax state)
         {
-            var modifiers = machine.DescendantNodes().OfType<FieldDeclarationSyntax>().
-                Where(val => val.Modifiers.Any(SyntaxKind.InternalKeyword)).
-                Select(val => val.Modifiers.First(tok => tok.Kind() == SyntaxKind.InternalKeyword)).
+            var methods = state.DescendantNodes().OfType<MethodDeclarationSyntax>().
+                Where(val => !val.Modifiers.Any(SyntaxKind.OverrideKeyword)).
                 ToList();
 
-            foreach (var modifier in modifiers)
+            if (methods.Count > 0)
             {
-                base.ErrorLog.Add(modifier, "A machine field cannot be internal.");
-            }
-        }
-
-        /// <summary>
-        /// Checks that machine methods are non-public.
-        /// </summary>
-        /// <param name="machine"></param>
-        private void CheckNonPublicMethods(ClassDeclarationSyntax machine)
-        {
-            var modifiers = machine.DescendantNodes().OfType<MethodDeclarationSyntax>().
-                Where(val => val.Modifiers.Any(SyntaxKind.PublicKeyword)).
-                Select(val => val.Modifiers.First(tok => tok.Kind() == SyntaxKind.PublicKeyword)).
-                ToList();
-
-            foreach (var modifier in modifiers)
-            {
-                base.ErrorLog.Add(modifier, "A machine method cannot be public.");
-            }
-        }
-
-        /// <summary>
-        /// Checks that machine methods are non-public.
-        /// </summary>
-        /// <param name="machine"></param>
-        private void CheckNonInternalMethods(ClassDeclarationSyntax machine)
-        {
-            var modifiers = machine.DescendantNodes().OfType<MethodDeclarationSyntax>().
-                Where(val => val.Modifiers.Any(SyntaxKind.InternalKeyword)).
-                Select(val => val.Modifiers.First(tok => tok.Kind() == SyntaxKind.InternalKeyword)).
-                ToList();
-
-            foreach (var modifier in modifiers)
-            {
-                base.ErrorLog.Add(modifier, "A machine method cannot be internal.");
+                base.ErrorLog.Add(Tuple.Create(state.Identifier,
+                    "A state cannot declare methods (besides the P# API ones)."));
             }
         }
 

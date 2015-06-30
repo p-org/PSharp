@@ -33,7 +33,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// The error log.
         /// </summary>
-        private Dictionary<SyntaxToken, string> ErrorLog;
+        private List<Tuple<SyntaxToken, string>> ErrorLog;
 
         #endregion
 
@@ -45,7 +45,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         public CSharpParser()
             : base()
         {
-            this.ErrorLog = new Dictionary<SyntaxToken, string>();
+            this.ErrorLog = new List<Tuple<SyntaxToken, string>>();
         }
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         internal CSharpParser(PSharpProject project, SyntaxTree tree, bool exitAtError = true)
             : base(project, tree, exitAtError)
         {
-            this.ErrorLog = new Dictionary<SyntaxToken, string>();
+            this.ErrorLog = new List<Tuple<SyntaxToken, string>>();
         }
 
         /// <summary>
@@ -116,8 +116,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
 
             foreach (var error in this.ErrorLog)
             {
-                var report = error.Value;
-                var errorLine = base.SyntaxTree.GetLineSpan(error.Key.Span).StartLinePosition.Line + 1;
+                var report = error.Item2;
+                var errorLine = base.SyntaxTree.GetLineSpan(error.Item1.Span).StartLinePosition.Line + 1;
                 
                 var root = base.SyntaxTree.GetRoot();
                 var lines = System.Text.RegularExpressions.Regex.Split(root.ToFullString(), "\r\n|\r|\n");

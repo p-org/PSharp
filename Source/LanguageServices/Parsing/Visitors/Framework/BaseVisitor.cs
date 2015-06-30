@@ -40,7 +40,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// <summary>
         /// The error log.
         /// </summary>
-        protected Dictionary<SyntaxToken, string> ErrorLog;
+        protected List<Tuple<SyntaxToken, string>> ErrorLog;
 
         #endregion
 
@@ -51,7 +51,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// </summary>
         /// <param name="project">PSharpProject</param>
         /// <param name="errorLog">Error log</param>
-        protected BaseVisitor(PSharpProject project, Dictionary<SyntaxToken, string> errorLog)
+        protected BaseVisitor(PSharpProject project, List<Tuple<SyntaxToken, string>> errorLog)
         {
             this.Project = project;
             this.ErrorLog = errorLog;

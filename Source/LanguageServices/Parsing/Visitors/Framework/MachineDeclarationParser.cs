@@ -34,7 +34,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// </summary>
         /// <param name="project">PSharpProject</param>
         /// <param name="errorLog">Error log</param>
-        internal MachineDeclarationParser(PSharpProject project, Dictionary<SyntaxToken, string> errorLog)
+        internal MachineDeclarationParser(PSharpProject project, List<Tuple<SyntaxToken, string>> errorLog)
             : base(project, errorLog)
         {
 
@@ -81,7 +81,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
             foreach (var modifier in modifiers)
             {
-                base.ErrorLog.Add(modifier, "A machine field cannot be public.");
+                base.ErrorLog.Add(Tuple.Create(modifier, "A machine field cannot be public."));
             }
         }
 
@@ -98,7 +98,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
             foreach (var modifier in modifiers)
             {
-                base.ErrorLog.Add(modifier, "A machine field cannot be internal.");
+                base.ErrorLog.Add(Tuple.Create(modifier, "A machine field cannot be internal."));
             }
         }
 
@@ -115,7 +115,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
             foreach (var modifier in modifiers)
             {
-                base.ErrorLog.Add(modifier, "A machine method cannot be public.");
+                base.ErrorLog.Add(Tuple.Create(modifier, "A machine method cannot be public."));
             }
         }
 
@@ -132,7 +132,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
             foreach (var modifier in modifiers)
             {
-                base.ErrorLog.Add(modifier, "A machine method cannot be internal.");
+                base.ErrorLog.Add(Tuple.Create(modifier, "A machine method cannot be internal."));
             }
         }
 
@@ -150,7 +150,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
             foreach (var identifier in stateIdentifiers)
             {
-                base.ErrorLog.Add(identifier, "A non-state class cannot be declared inside a machine.");
+                base.ErrorLog.Add(Tuple.Create(identifier,
+                    "A non-state class cannot be declared inside a machine."));
             }
         }
 
@@ -172,11 +173,11 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
             if (stateAttributes.Count == 0)
             {
-                base.ErrorLog.Add(machine.Identifier, "A machine must declare one start state.");
+                base.ErrorLog.Add(Tuple.Create(machine.Identifier, "A machine must declare one start state."));
             }
             else if (stateAttributes.Count > 1)
             {
-                base.ErrorLog.Add(machine.Identifier, "A machine must declare only one start state.");
+                base.ErrorLog.Add(Tuple.Create(machine.Identifier, "A machine must declare only one start state."));
             }
         }
 
