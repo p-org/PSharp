@@ -8,7 +8,7 @@ namespace PingPong
         private MachineId Server;
         private int Counter;
 
-        [Initial]
+        [Start]
         [OnEventGotoState(typeof(Unit), typeof(Playing))]
         class Init : MachineState
         {

@@ -28,9 +28,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         #region fields
 
         /// <summary>
-        /// True if the state is the initial state.
+        /// True if the state is the start state.
         /// </summary>
-        internal readonly bool IsInitial;
+        internal readonly bool IsStart;
 
         /// <summary>
         /// The machine parent node.
@@ -116,13 +116,13 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         /// <param name="program">Program</param>
         /// <param name="machineNode">PMachineDeclarationNode</param>
-        /// <param name="isInit">Is initial state</param>
+        /// <param name="isStart">Is start state</param>
         /// <param name="isModel">Is a model</param>
         internal StateDeclaration(IPSharpProgram program, MachineDeclaration machineNode,
-            bool isInit, bool isModel)
+            bool isStart, bool isModel)
             : base(program, isModel)
         {
-            this.IsInitial = isInit;
+            this.IsStart = isStart;
             this.Machine = machineNode;
             this.GotoStateTransitions = new Dictionary<Token, Token>();
             this.PushStateTransitions = new Dictionary<Token, Token>();
@@ -321,9 +321,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         {
             var text = "";
 
-            if (this.IsInitial)
+            if (this.IsStart)
             {
-                text += "[Initial]\n";
+                text += "[Start]\n";
             }
 
             text += this.InstrumentGotoStateTransitions();

@@ -100,6 +100,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         private void ParseSyntaxTree()
         {
             new MachineDeclarationParser(base.Project, this.ErrorLog).Parse(base.SyntaxTree);
+            new StateDeclarationParser(base.Project, this.ErrorLog).Parse(base.SyntaxTree);
         }
 
         /// <summary>

@@ -85,7 +85,8 @@ namespace Microsoft.PSharp
         /// <returns>Machine id</returns>
         public static MachineId CreateMachine(Type type, params Object[] payload)
         {
-            Configuration.Debug = DebugType.All;
+            // TODO: remove
+            Configuration.Debug.Contains(DebugType.All);
             return PSharpRuntime.TryCreateMachine(type, payload);
         }
 
@@ -141,7 +142,7 @@ namespace Microsoft.PSharp
                 Task task = new Task(() =>
                 {
                     (machine as Machine).AssignInitialPayload(payload);
-                    (machine as Machine).GotoInitialState();
+                    (machine as Machine).GotoStartState();
                     (machine as Machine).RunEventHandler();
                 });
 

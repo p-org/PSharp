@@ -100,26 +100,26 @@ namespace Microsoft.PSharp.Tooling
                 }
                 else if (this.Options[idx].ToLower().Equals("/debug"))
                 {
-                    Configuration.Debug = DebugType.All;
+                    Configuration.Debug.Add(DebugType.All);
                 }
                 else if (this.Options[idx].ToLower().StartsWith("/debug:") &&
                     this.Options[idx].Length > 7)
                 {
                     if (this.Options[idx].Substring(7).ToLower().Equals("all"))
                     {
-                        Configuration.Debug = DebugType.All;
+                        Configuration.Debug.Add(DebugType.All);
                     }
                     else if (this.Options[idx].Substring(7).ToLower().Equals("runtime"))
                     {
-                        Configuration.Debug = DebugType.Runtime;
+                        Configuration.Debug.Add(DebugType.Runtime);
                     }
                     else if (this.Options[idx].Substring(7).ToLower().Equals("analysis"))
                     {
-                        Configuration.Debug = DebugType.Analysis;
+                        Configuration.Debug.Add(DebugType.Analysis);
                     }
                     else if (this.Options[idx].Substring(7).ToLower().Equals("testing"))
                     {
-                        Configuration.Debug = DebugType.Testing;
+                        Configuration.Debug.Add(DebugType.Testing);
                     }
                     else
                     {

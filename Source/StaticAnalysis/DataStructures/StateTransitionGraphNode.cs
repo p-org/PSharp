@@ -70,10 +70,10 @@ namespace Microsoft.PSharp.StaticAnalysis
         internal HashSet<StateTransitionGraphNode> ISuccessors;
 
         /// <summary>
-        /// True if the node represents the initial state.
+        /// True if the node represents the start state.
         /// False by default.
         /// </summary>
-        internal bool IsInitialNode;
+        internal bool IsStartNode;
 
         /// <summary>
         /// A counter for creating unique IDs.
@@ -96,7 +96,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             this.Actions = new HashSet<MethodSummary>();
             this.IPredecessors = new HashSet<StateTransitionGraphNode>();
             this.ISuccessors = new HashSet<StateTransitionGraphNode>();
-            this.IsInitialNode = false;
+            this.IsStartNode = false;
         }
 
         /// <summary>

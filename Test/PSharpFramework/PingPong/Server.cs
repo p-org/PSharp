@@ -7,14 +7,14 @@ namespace PingPong
     {
         MachineId Client;
 
-		[Initial]
+		[Start]
         [OnEntry(nameof(InitOnEntry))]
         [OnEventGotoState(typeof(Unit), typeof(Playing))]
         class Init : MachineState { }
 
 		void InitOnEntry()
         {
-            this.Client = this.CreateMachine(typeof(Client), this);
+            this.Client = this.CreateMachine(typeof(Client), this.Id);
             this.Raise(new Unit());
         }
 
