@@ -53,6 +53,11 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// A guard for printing info.
         /// </summary>
         private static int PrintGuard;
+
+        /// <summary>
+        /// Has switched runtime debugging on.
+        /// </summary>
+        private static bool SwitchedRuntimeDebuggingOn;
         
         #endregion
 
@@ -66,6 +71,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
             SCTEngine.Setup();
             SCTEngine.FindBugs();
             SCTEngine.Report();
+            SCTEngine.Cleanup();
         }
 
         #endregion
@@ -90,6 +96,17 @@ namespace Microsoft.PSharp.DynamicAnalysis
             {
                 SCTEngine.Strategy = new DFSSchedulingStrategy();
                 Configuration.FullExploration = false;
+            }
+
+            if (!Configuration.Debug.Contains(DebugType.All) &&
+                !Configuration.Debug.Contains(DebugType.Runtime))
+            {
+                Configuration.Debug.Add(DebugType.Runtime);
+                SCTEngine.SwitchedRuntimeDebuggingOn = true;
+            }
+            else
+            {
+                SCTEngine.SwitchedRuntimeDebuggingOn = false;
             }
         }
 
@@ -197,6 +214,18 @@ namespace Microsoft.PSharp.DynamicAnalysis
             }
 
             Console.WriteLine("... Elapsed {0} sec.", Profiler.Results());
+        }
+
+        /// <summary>
+        /// Cleanups the systematic concurrency testing engine.
+        /// </summary>
+        private static void Cleanup()
+        {
+            if (SCTEngine.SwitchedRuntimeDebuggingOn)
+            {
+                Configuration.Debug.Remove(DebugType.Runtime);
+                SCTEngine.SwitchedRuntimeDebuggingOn = false;
+            }
         }
 
         #endregion

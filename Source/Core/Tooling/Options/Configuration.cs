@@ -23,42 +23,42 @@ namespace Microsoft.PSharp.Tooling
         /// <summary>
         /// The path to the solution file.
         /// </summary>
-        internal static string SolutionFilePath = "";
+        internal static string SolutionFilePath;
 
         /// <summary>
         /// The output path.
         /// </summary>
-        internal static string OutputFilePath = "";
+        internal static string OutputFilePath;
 
         /// <summary>
         /// The name of the project to analyse.
         /// </summary>
-        internal static string ProjectName = "";
+        internal static string ProjectName;
 
         /// <summary>
         /// Skip the parsing stage of the compiler.
         /// </summary>
-        internal static bool NoParsing = false;
+        internal static bool NoParsing;
 
         /// <summary>
         /// Skip the compilation stage of the compiler.
         /// </summary>
-        internal static bool NoCompilation = false;
+        internal static bool NoCompilation;
 
         /// <summary>
         /// Analysis timeout.
         /// </summary>
-        internal static int AnalysisTimeout = 0;
+        internal static int AnalysisTimeout;
 
         /// <summary>
         /// Verbosity level.
         /// </summary>
-        internal static int Verbose = 1;
+        internal static int Verbose;
 
         /// <summary>
-        /// Turn debugging for the specified component on.
+        /// Turn debugging for the specified components on.
         /// </summary>
-        internal static DebugType Debug = DebugType.None;
+        internal static HashSet<DebugType> Debug;
 
         #endregion
 
@@ -67,7 +67,7 @@ namespace Microsoft.PSharp.Tooling
         /// <summary>
         /// Uses the distributed runtime.
         /// </summary>
-        internal static bool CompileForDistribution = false;
+        internal static bool CompileForDistribution;
 
         #endregion
 
@@ -76,47 +76,47 @@ namespace Microsoft.PSharp.Tooling
         /// <summary>
         /// Run the static analysis stage of the compiler.
         /// </summary>
-        internal static bool RunStaticAnalysis = false;
+        internal static bool RunStaticAnalysis;
 
         /// <summary>
         /// Report warnings if true.
         /// </summary>
-        internal static bool ShowWarnings = false;
+        internal static bool ShowWarnings;
 
         /// <summary>
         /// Reports gives up information.
         /// </summary>
-        internal static bool ShowGivesUpInformation = false;
+        internal static bool ShowGivesUpInformation;
 
         /// <summary>
         /// Reports program statistics.
         /// </summary>
-        internal static bool ShowProgramStatistics = false;
+        internal static bool ShowProgramStatistics;
 
         /// <summary>
         /// Reports runtime results for the whole execution.
         /// </summary>
-        internal static bool ShowRuntimeResults = false;
+        internal static bool ShowRuntimeResults;
 
         /// <summary>
         /// Reports runtime results for the dataflow analysis.
         /// </summary>
-        internal static bool ShowDFARuntimeResults = false;
+        internal static bool ShowDFARuntimeResults;
 
         /// <summary>
         /// Reports runtime results for the respects ownership analysis.
         /// </summary>
-        internal static bool ShowROARuntimeResults = false;
+        internal static bool ShowROARuntimeResults;
 
         /// <summary>
         /// Perform the state transition analysis.
         /// </summary>
-        internal static bool DoStateTransitionAnalysis = true;
+        internal static bool DoStateTransitionAnalysis;
 
         /// <summary>
         /// Analyse exception handling.
         /// </summary>
-        internal static bool AnalyzeExceptionHandling = false;
+        internal static bool AnalyzeExceptionHandling;
 
         #endregion
 
@@ -125,32 +125,32 @@ namespace Microsoft.PSharp.Tooling
         /// <summary>
         /// Run the dynamic analysis of the compiler.
         /// </summary>
-        internal static bool RunDynamicAnalysis = false;
+        internal static bool RunDynamicAnalysis;
 
         /// <summary>
         /// The name of the assemblies to be analyzed for bugs.
         /// </summary>
-        internal static List<string> AssembliesToBeAnalyzed = new List<string>();
+        internal static List<string> AssembliesToBeAnalyzed;
 
         /// <summary>
         /// Scheduling strategy to use with the dynamic analyzer.
         /// </summary>
-        internal static string SchedulingStrategy = "";
+        internal static string SchedulingStrategy;
 
         /// <summary>
         /// Number of scheduling iterations.
         /// </summary>
-        internal static int SchedulingIterations = 1;
+        internal static int SchedulingIterations;
 
         /// <summary>
         /// Systematic tester does not stop when it finds a bug.
         /// </summary>
-        internal static bool FullExploration = false;
+        internal static bool FullExploration;
 
         /// <summary>
         /// Depth bound. By default it is 1000.
         /// </summary>
-        internal static int DepthBound = 1000;
+        internal static int DepthBound;
 
         #endregion
 
@@ -159,18 +159,60 @@ namespace Microsoft.PSharp.Tooling
         /// <summary>
         /// Number of containers.
         /// </summary>
-        internal static int NumberOfContainers = 1;
+        internal static int NumberOfContainers;
 
         /// <summary>
         /// The unique container id.
         /// </summary>
-        internal static int ContainerId = 0;
+        internal static int ContainerId;
 
         /// <summary>
         /// The path to the P# application to run in a
         /// distributed setting.
         /// </summary>
-        internal static string ApplicationFilePath = "";
+        internal static string ApplicationFilePath;
+
+        #endregion
+
+        #region constructor
+
+        /// <summary>
+        /// Static constructor.
+        /// </summary>
+        static Configuration()
+        {
+            Configuration.SolutionFilePath = "";
+            Configuration.OutputFilePath = "";
+            Configuration.ProjectName = "";
+            Configuration.NoParsing = false;
+            Configuration.NoCompilation = false;
+            Configuration.AnalysisTimeout = 0;
+            Configuration.Verbose = 1;
+            Configuration.Debug = new HashSet<DebugType>();
+
+            Configuration.CompileForDistribution = false;
+
+            Configuration.RunStaticAnalysis = false;
+            Configuration.ShowWarnings = false;
+            Configuration.ShowGivesUpInformation = false;
+            Configuration.ShowProgramStatistics = false;
+            Configuration.ShowRuntimeResults = false;
+            Configuration.ShowDFARuntimeResults = false;
+            Configuration.ShowROARuntimeResults = false;
+            Configuration.DoStateTransitionAnalysis = true;
+            Configuration.AnalyzeExceptionHandling = false;
+
+            Configuration.RunDynamicAnalysis = false;
+            Configuration.AssembliesToBeAnalyzed = new List<string>();
+            Configuration.SchedulingStrategy = "";
+            Configuration.SchedulingIterations = 1;
+            Configuration.FullExploration = false;
+            Configuration.DepthBound = 1000;
+
+            Configuration.NumberOfContainers = 1;
+            Configuration.ContainerId = 0;
+            Configuration.ApplicationFilePath = "";
+        }
 
         #endregion
     }

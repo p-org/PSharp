@@ -120,8 +120,8 @@ namespace Microsoft.PSharp.Tooling
             ProgramInfo.Solution = project.Solution;
             ProgramInfo.Workspace = project.Solution.Workspace;
 
-            if (Configuration.Debug == DebugType.Parsing ||
-                Configuration.Debug == DebugType.All)
+            if (Configuration.Debug.Contains(DebugType.Parsing) ||
+                Configuration.Debug.Contains(DebugType.All))
             {
                 ProgramInfo.PrintSyntaxTree(tree);
             }
