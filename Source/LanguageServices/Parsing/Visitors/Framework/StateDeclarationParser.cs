@@ -58,6 +58,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
                 this.CheckForMethods(state);
                 this.CheckForClasses(state);
                 this.CheckForStructs(state);
+
+                this.CheckForDuplicateOnEntry(state, compilation);
+                this.CheckForDuplicateOnExit(state, compilation);
             }
         }
 
@@ -127,6 +130,56 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
             {
                 base.ErrorLog.Add(Tuple.Create(state.Identifier,
                     "A state cannot declare structs."));
+            }
+        }
+
+        /// <summary>
+        /// Checks that a state does not have a duplicate entry action.
+        /// </summary>
+        /// <param name="state">State</param>
+        /// <param name="compilation">Compilation</param>
+        private void CheckForDuplicateOnEntry(ClassDeclarationSyntax state, CodeAnalysis.Compilation compilation)
+        {
+            var model = compilation.GetSemanticModel(state.SyntaxTree);
+
+            var onEntryAttribute = state.AttributeLists.
+                SelectMany(val => val.Attributes).
+                Where(val => model.GetTypeInfo(val).Type.ToDisplayString().Equals("Microsoft.PSharp.OnEntry")).
+                FirstOrDefault();
+
+            var onEntryMethod = state.DescendantNodes().OfType<MethodDeclarationSyntax>().
+                Where(val => val.Modifiers.Any(SyntaxKind.OverrideKeyword)).
+                Where(val => val.Identifier.ValueText.Equals("OnEntry")).
+                FirstOrDefault();
+
+            if (onEntryAttribute != null && onEntryMethod != null)
+            {
+                base.ErrorLog.Add(Tuple.Create(state.Identifier, "A state cannot have two entry actions."));
+            }
+        }
+
+        /// <summary>
+        /// Checks that a state does not have a duplicate exit action.
+        /// </summary>
+        /// <param name="state">State</param>
+        /// <param name="compilation">Compilation</param>
+        private void CheckForDuplicateOnExit(ClassDeclarationSyntax state, CodeAnalysis.Compilation compilation)
+        {
+            var model = compilation.GetSemanticModel(state.SyntaxTree);
+
+            var onExitAttribute = state.AttributeLists.
+                SelectMany(val => val.Attributes).
+                Where(val => model.GetTypeInfo(val).Type.ToDisplayString().Equals("Microsoft.PSharp.OnExit")).
+                FirstOrDefault();
+
+            var onExitMethod = state.DescendantNodes().OfType<MethodDeclarationSyntax>().
+                Where(val => val.Modifiers.Any(SyntaxKind.OverrideKeyword)).
+                Where(val => val.Identifier.ValueText.Equals("OnExit")).
+                FirstOrDefault();
+
+            if (onExitAttribute != null && onExitMethod != null)
+            {
+                base.ErrorLog.Add(Tuple.Create(state.Identifier, "A state cannot have two exit actions."));
             }
         }
 
