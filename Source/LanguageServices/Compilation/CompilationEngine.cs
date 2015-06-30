@@ -131,7 +131,11 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
                 {
                     var dll = CompilationEngine.ToFile(compilation, OutputKind.DynamicallyLinkedLibrary,
                         project.OutputFilePath);
-                    Configuration.AssembliesToBeAnalyzed.Add(dll);
+
+                    if (Configuration.ProjectName.Equals(project.Name))
+                    {
+                        Configuration.AssembliesToBeAnalyzed.Add(dll);
+                    }
                 }
                 else if (Configuration.CompileForDistribution)
                 {

@@ -58,6 +58,8 @@ namespace Microsoft.PSharp.Tooling
         /// </summary>
         public static void Initialize()
         {
+            ProgramInfo.CheckForCommandLineOptionErrors();
+
             // Create a new workspace.
             ProgramInfo.Workspace = MSBuildWorkspace.Create();
 
@@ -159,10 +161,22 @@ namespace Microsoft.PSharp.Tooling
             var ext = Path.GetExtension(tree.FilePath);
             return ext.Equals(".p") ? true : false;
         }
-        
+
         #endregion
 
         #region private API
+
+        /// <summary>
+        /// Checks and report any command line option errors.
+        /// </summary>
+        private static void CheckForCommandLineOptionErrors()
+        {
+            if (Configuration.ProjectName.Equals("") && Configuration.RunDynamicAnalysis)
+            {
+                ErrorReporter.ReportAndExit("Please give the name of the project to test (using either " +
+                    "'/p:[x]' or /test:[x], where [x] is the name of the project).");
+            }
+        }
 
         /// <summary>
         /// Print the syntax tree for debug.
