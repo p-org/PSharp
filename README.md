@@ -1,6 +1,11 @@
 P#
 ====================
-P# is a new language for high-reliability asynchronous .NET programming, *co-designed* with a static data race analysis and testing infrastructure. The co-design aspect of P# allows us to combine language design, analysis and testing in a unique way: the state-machine structure of a P# program enables us to create a more precise and scalable static analysis; while the race-freedom guarantees, provided by our analysis, contribute to the feasibility of systematically exploring a P# program to find bugs (e.g. assertion failures and unhandled exceptions).
+**P#** is an **actor-based** programming language for developing **highly-reliable asynchronous software**, such as web-services and distributed systems. P# has four key capabilities:
+
+- Enables the development of efficient asynchronous applications using an **event-driven**, actor-based programming model. Because **all the asynchrony is explicitly exposed** at specific communication points in a P# program, the user does not need to explicity create and manage tasks; the P# runtime is instead responsible for handling all the underlying concurrency.
+- Allows the environment to be **modelled** via language constructs. The compiler can then automatically substitute real code with modelled, and **systematically test** the compiled executable to discover bugs (such as assertion failures and uncaught exceptions).
+- Provides strong **data race freedom** guarantees. The compiler is able to perform a **scalable static data race analysis** on the source code that can detect all potential data races in a program (based on certain assumptions, such as no use of non-P# threading or reflection).
+- Fully interoperates with C#: the developer can **write any C# code** inside a P# program. P# is basically an extension of C#, build on top of the Roslyn and .NET frameworks, which not only makes P# easy to learn comparing with a completely new language, but also allows **easy integration with existing code**.
 
 ## Build instructions
 1. Get Visual Studio 2015 Preview (required for Microsoft Roslyn).
