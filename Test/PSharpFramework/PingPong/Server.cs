@@ -7,7 +7,7 @@ namespace PingPong
     {
         MachineId Client;
 
-		[Initial]
+		[Start]
         [OnEntry(nameof(InitOnEntry))]
         [OnEventGotoState(typeof(Unit), typeof(Playing))]
         class Init : MachineState { }

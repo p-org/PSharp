@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="Initial.cs" company="Microsoft">
+// <copyright file="Start.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -20,8 +20,8 @@ namespace Microsoft.PSharp
 {
     /// <summary>
     /// Attribute for declaring that a state of a machine
-    /// is the initial one.
+    /// is the start one.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
-    public sealed class Initial : Attribute { }
+    public sealed class Start : Attribute { }
 }

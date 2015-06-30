@@ -166,13 +166,13 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     new List<TokenType>());
             }
 
-            var initialStates = node.StateDeclarations.FindAll(s => s.IsInitial);
-            if (initialStates.Count == 0 && node.BaseNameTokens.Count == 0)
+            var startStates = node.StateDeclarations.FindAll(s => s.IsStart);
+            if (startStates.Count == 0 && node.BaseNameTokens.Count == 0)
             {
                 throw new ParsingException("A machine must declare a start state.",
                     new List<TokenType>());
             }
-            else if (initialStates.Count > 1)
+            else if (startStates.Count > 1)
             {
                 throw new ParsingException("A machine can declare only a single start state.",
                     new List<TokenType>());

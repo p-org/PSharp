@@ -60,7 +60,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 "class M : Machine" +
                 "{" +
                 "private MachineId N;" +
-                "[Initial]" +
+                "[Start]" +
                 "class S : MachineState" +
                 "{" +
                 "protected override void OnEntry()" +
@@ -103,7 +103,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 "class M : Machine" +
                 "{" +
                 "private MachineId N;" +
-                "[Initial]" +
+                "[Start]" +
                 "class S : MachineState" +
                 "{" +
                 "protected override void OnEntry()" +
@@ -144,7 +144,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 "{" +
                 "class M : Machine" +
                 "{" +
-                "[Initial]" +
+                "[Start]" +
                 "class S : MachineState" +
                 "{" +
                 "protected override void OnEntry()" +
@@ -186,7 +186,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 "{" +
                 "class M : Machine" +
                 "{" +
-                "[Initial]" +
+                "[Start]" +
                 "class S : MachineState" +
                 "{" +
                 "protected override void OnEntry()" +
@@ -232,7 +232,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 "{" +
                 "class M : Machine" +
                 "{" +
-                "[Initial]" +
+                "[Start]" +
                 "class S : MachineState" +
                 "{" +
                 "}" +
@@ -278,7 +278,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 "{" +
                 "class M : Machine" +
                 "{" +
-                "[Initial]" +
+                "[Start]" +
                 "class S : MachineState" +
                 "{" +
                 "}" +
@@ -325,7 +325,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 "{" +
                 "class M : Machine" +
                 "{" +
-                "[Initial]" +
+                "[Start]" +
                 "class S : MachineState" +
                 "{" +
                 "}" +

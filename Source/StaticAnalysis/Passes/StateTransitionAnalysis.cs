@@ -86,7 +86,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     foreach (var attribute in attributeList.Attributes)
                     {
-                        if (attribute.Name.ToString().Equals("Initial"))
+                        if (attribute.Name.ToString().Equals("Start"))
                         {
                             initState = state.Key;
                         }
@@ -100,7 +100,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             var initNode = new StateTransitionGraphNode(initState, machine);
-            initNode.IsInitialNode = true;
+            initNode.IsStartNode = true;
             initNode.Construct(stateTransitions, actionBindings);
 
             AnalysisContext.StateTransitionGraphs.Add(machine, initNode);

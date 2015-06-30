@@ -142,7 +142,7 @@ namespace Microsoft.PSharp
                 Task task = new Task(() =>
                 {
                     (machine as Machine).AssignInitialPayload(payload);
-                    (machine as Machine).GotoInitialState();
+                    (machine as Machine).GotoStartState();
                     (machine as Machine).RunEventHandler();
                 });
 

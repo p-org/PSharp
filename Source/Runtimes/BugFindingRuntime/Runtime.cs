@@ -136,7 +136,7 @@ namespace Microsoft.PSharp
                     }
 
                     (machine as Machine).AssignInitialPayload(payload);
-                    (machine as Machine).GotoInitialState();
+                    (machine as Machine).GotoStartState();
                     (machine as Machine).RunEventHandler();
 
                     if (PSharpRuntime.BugFinder != null)
@@ -194,7 +194,7 @@ namespace Microsoft.PSharp
             PSharpRuntime.Monitors.Add(monitor as Monitor);
 
             (monitor as Monitor).AssignInitialPayload(payload);
-            (monitor as Monitor).GotoInitialState();
+            (monitor as Monitor).GotoStartState();
             (monitor as Monitor).RunEventHandler();
         }
 

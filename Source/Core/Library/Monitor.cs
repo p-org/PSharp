@@ -194,10 +194,10 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Transitions to the initial state and executes the
+        /// Transitions to the start state and executes the
         /// entry action, if there is any.
         /// </summary>
-        internal void GotoInitialState()
+        internal void GotoStartState()
         {
             this.ExecuteCurrentStateOnEntry();
         }
@@ -413,10 +413,10 @@ namespace Microsoft.PSharp
                 {
                     if (s.IsClass && s.IsSubclassOf(typeof(MonitorState)))
                     {
-                        if (s.IsDefined(typeof(Initial), false))
+                        if (s.IsDefined(typeof(Start), false))
                         {
                             this.Assert(initialStateType == null, "Monitor ''{0}'' can not have " +
-                                "more than one initial states.\n", this.GetType().Name);
+                                "more than one start states.\n", this.GetType().Name);
                             initialStateType = s;
                         }
 

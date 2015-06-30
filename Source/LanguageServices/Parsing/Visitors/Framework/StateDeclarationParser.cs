@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="MachineDeclarationParser.cs">
+// <copyright file="StateDeclarationParser.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -23,9 +23,9 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 {
     /// <summary>
-    /// The P# machine declaration parsing visitor.
+    /// The P# state declaration parsing visitor.
     /// </summary>
-    internal sealed class MachineDeclarationParser : BaseVisitor
+    internal sealed class StateDeclarationParser : BaseVisitor
     {
         #region public API
 
@@ -34,7 +34,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// </summary>
         /// <param name="project">PSharpProject</param>
         /// <param name="errorLog">Error log</param>
-        internal MachineDeclarationParser(PSharpProject project, Dictionary<SyntaxToken, string> errorLog)
+        internal StateDeclarationParser(PSharpProject project, Dictionary<SyntaxToken, string> errorLog)
             : base(project, errorLog)
         {
 
@@ -54,13 +54,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
             foreach (var machine in machines)
             {
-                this.CheckForPublicFields(machine);
-                this.CheckForInternalFields(machine);
-                this.CheckForPublicMethods(machine);
-                this.CheckForInternalMethods(machine);
-
-                this.CheckForNonStateClasses(machine, compilation);
-                this.CheckForStartState(machine, compilation);
+                this.CheckNonPublicFields(machine);
+                this.CheckNonInternalFields(machine);
+                this.CheckNonPublicMethods(machine);
+                this.CheckNonInternalMethods(machine);
             }
         }
 
@@ -71,8 +68,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// <summary>
         /// Checks that machine fields are non-public.
         /// </summary>
-        /// <param name="machine">Machine</param>
-        private void CheckForPublicFields(ClassDeclarationSyntax machine)
+        /// <param name="machine"></param>
+        private void CheckNonPublicFields(ClassDeclarationSyntax machine)
         {
             var modifiers = machine.DescendantNodes().OfType<FieldDeclarationSyntax>().
                 Where(val => val.Modifiers.Any(SyntaxKind.PublicKeyword)).
@@ -86,10 +83,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         }
 
         /// <summary>
-        /// Checks that machine fields are non-internal.
+        /// Checks that machine fields are non-public.
         /// </summary>
-        /// <param name="machine">Machine</param>
-        private void CheckForInternalFields(ClassDeclarationSyntax machine)
+        /// <param name="machine"></param>
+        private void CheckNonInternalFields(ClassDeclarationSyntax machine)
         {
             var modifiers = machine.DescendantNodes().OfType<FieldDeclarationSyntax>().
                 Where(val => val.Modifiers.Any(SyntaxKind.InternalKeyword)).
@@ -105,8 +102,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// <summary>
         /// Checks that machine methods are non-public.
         /// </summary>
-        /// <param name="machine">Machine</param>
-        private void CheckForPublicMethods(ClassDeclarationSyntax machine)
+        /// <param name="machine"></param>
+        private void CheckNonPublicMethods(ClassDeclarationSyntax machine)
         {
             var modifiers = machine.DescendantNodes().OfType<MethodDeclarationSyntax>().
                 Where(val => val.Modifiers.Any(SyntaxKind.PublicKeyword)).
@@ -120,10 +117,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         }
 
         /// <summary>
-        /// Checks that machine methods are non-internal.
+        /// Checks that machine methods are non-public.
         /// </summary>
-        /// <param name="machine">Machine</param>
-        private void CheckForInternalMethods(ClassDeclarationSyntax machine)
+        /// <param name="machine"></param>
+        private void CheckNonInternalMethods(ClassDeclarationSyntax machine)
         {
             var modifiers = machine.DescendantNodes().OfType<MethodDeclarationSyntax>().
                 Where(val => val.Modifiers.Any(SyntaxKind.InternalKeyword)).
@@ -133,50 +130,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
             foreach (var modifier in modifiers)
             {
                 base.ErrorLog.Add(modifier, "A machine method cannot be internal.");
-            }
-        }
-
-        /// <summary>
-        /// Checks that no non-state classes are declared inside the machine.
-        /// </summary>
-        /// <param name="machine">Machine</param>
-        /// <param name="compilation">Compilation</param>
-        private void CheckForNonStateClasses(ClassDeclarationSyntax machine, CodeAnalysis.Compilation compilation)
-        {
-            var stateIdentifiers = machine.DescendantNodes().OfType<ClassDeclarationSyntax>().
-                Where(val => !Querying.IsMachineState(compilation, val)).
-                Select(val => val.Identifier).
-                ToList();
-
-            foreach (var identifier in stateIdentifiers)
-            {
-                base.ErrorLog.Add(identifier, "A non-state class cannot be declared inside a machine.");
-            }
-        }
-
-        /// <summary>
-        /// Checks that a machine has an start state.
-        /// </summary>
-        /// <param name="machine">Machine</param>
-        /// <param name="compilation">Compilation</param>
-        private void CheckForStartState(ClassDeclarationSyntax machine, CodeAnalysis.Compilation compilation)
-        {
-            var model = compilation.GetSemanticModel(machine.SyntaxTree);
-            
-            var stateAttributes = machine.DescendantNodes().OfType<ClassDeclarationSyntax>().
-                Where(val => Querying.IsMachineState(compilation, val)).
-                SelectMany(val => val.AttributeLists).
-                SelectMany(val => val.Attributes).
-                Where(val => model.GetTypeInfo(val).Type.ToDisplayString().Equals("Microsoft.PSharp.Start")).
-                ToList();
-
-            if (stateAttributes.Count == 0)
-            {
-                base.ErrorLog.Add(machine.Identifier, "A machine must declare one start state.");
-            }
-            else if (stateAttributes.Count > 1)
-            {
-                base.ErrorLog.Add(machine.Identifier, "A machine must declare only one start state.");
             }
         }
 
