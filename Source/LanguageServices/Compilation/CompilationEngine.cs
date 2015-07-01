@@ -196,9 +196,20 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
                 assemblyFileName = compilation.AssemblyName + ".dll";
             }
 
+            var compilationOptions = new CSharpCompilationOptions(outputKind, compilation.Options.ModuleName,
+                compilation.Options.MainTypeName, compilation.Options.ScriptClassName, null,
+                compilation.Options.OptimizationLevel, compilation.Options.CheckOverflow, false,
+                compilation.Options.CryptoKeyContainer, compilation.Options.CryptoKeyFile,
+                compilation.Options.CryptoPublicKey, compilation.Options.DelaySign,
+                Platform.AnyCpu, compilation.Options.GeneralDiagnosticOption,
+                compilation.Options.WarningLevel, compilation.Options.SpecificDiagnosticOptions,
+                compilation.Options.ConcurrentBuild, compilation.Options.XmlReferenceResolver,
+                compilation.Options.SourceReferenceResolver, compilation.Options.MetadataReferenceResolver,
+                compilation.Options.AssemblyIdentityComparer, compilation.Options.StrongNameProvider);
+
             var targetCompilation = CSharpCompilation.Create(assemblyFileName, compilation.SyntaxTrees,
-                compilation.References, new CSharpCompilationOptions(outputKind));
-            
+                compilation.References, compilationOptions);
+
             string fileName = null;
             if (!Configuration.OutputFilePath.Equals(""))
             {
