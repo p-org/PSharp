@@ -11,7 +11,8 @@ An **actor-based** programming language for developing **highly-reliable asynchr
 ## Build instructions
 1. Get Visual Studio 2015 Preview (required for Microsoft Roslyn).
 2. Clone this project and compile using VS2015.
-3. Get the [Visual Studio 2015 SDK](https://www.microsoft.com/en-us/download/details.aspx?id=46850) to be able to compile the P# visual studio extension (syntax highlighting).
+
+Optional: Get the [Visual Studio 2015 SDK](https://www.microsoft.com/en-us/download/details.aspx?id=46850) to be able to compile the P# visual studio extension (syntax highlighting).
 
 ## How to use
 A good way to start is by reading the [manual](https://cdn.rawgit.com/p-org/PSharp/master/Docs/Manual/out/manual.pdf).
