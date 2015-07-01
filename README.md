@@ -1,9 +1,8 @@
 P#
 ====================
-**P#** is an **actor-based** programming language for developing **highly-reliable asynchronous software**, such as web-services and distributed systems.
+An **actor-based** programming language for developing **highly-reliable asynchronous software**, such as web-services and distributed systems.
 
-The language has **four key capabilities**:
-
+## Features
 - Enables the development of efficient asynchronous applications using an **event-driven**, actor-based programming model. Because **all the asynchrony is explicitly exposed** at specific communication points in a P# program, the user does not need to explicitly create and manage tasks; the P# runtime is instead responsible for handling all the underlying concurrency.
 - Allows the environment to be **modeled** via language constructs. The compiler can then automatically substitute real code with modeled, and **systematically test** the compiled executable to discover bugs (such as assertion failures and uncaught exceptions).
 - Provides strong **data race freedom** guarantees. The compiler is able to perform a **scalable static data race analysis** on the source code that can detect all potential data races in a program (based on certain assumptions, such as no use of non-P# threading or reflection).
