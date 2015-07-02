@@ -170,7 +170,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         {
             var projectPath = CompilationEngine.OutputDirectoryMap[project.AssemblyName];
 
-            foreach (var projectId in graph.GetProjectsThatThisProjectDirectlyDependsOn(project.Id))
+            foreach (var projectId in graph.GetProjectsThatThisProjectTransitivelyDependsOn(project.Id))
             {
                 var requiredProject = ProgramInfo.Solution.GetProject(projectId);
                 var assemblyPath = CompilationEngine.ProjectAssemblyPathMap[requiredProject.AssemblyName];
