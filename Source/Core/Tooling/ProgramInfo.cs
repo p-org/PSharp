@@ -32,7 +32,7 @@ namespace Microsoft.PSharp.Tooling
         /// <summary>
         /// The solution of the P# program.
         /// </summary>
-        public static Solution Solution = null;
+        public static Solution Solution;
 
         /// <summary>
         /// True if program info has been initialized.
@@ -61,7 +61,7 @@ namespace Microsoft.PSharp.Tooling
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.StackTrace);
+                Output.Print(ex.StackTrace);
                 ErrorReporter.ReportAndExit("Please give a valid solution path.");
             }
 

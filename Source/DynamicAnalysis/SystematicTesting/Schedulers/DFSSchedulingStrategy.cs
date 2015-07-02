@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.PSharp.Scheduling;
+using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp.DynamicAnalysis
 {
@@ -235,30 +236,30 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// </summary>
         private void PrintSchedule()
         {
-            Console.WriteLine("*******************");
-            Console.WriteLine("Schedule stack size: " + this.ScheduleStack.Count);
+            Output.Print("*******************");
+            Output.Print("Schedule stack size: " + this.ScheduleStack.Count);
             for (int idx = 0; idx < this.ScheduleStack.Count; idx++)
             {
-                Console.WriteLine("Index: " + idx);
+                Output.Print("Index: " + idx);
                 foreach (var sc in this.ScheduleStack[idx])
                 {
                     Console.Write(sc.Id + " [" + sc.IsDone + "], ");
                 }
-                Console.WriteLine();
+                Output.Print("");
             }
 
-            Console.WriteLine("*******************");
-            Console.WriteLine("Nondet stack size: " + this.NondetStack.Count);
+            Output.Print("*******************");
+            Output.Print("Nondet stack size: " + this.NondetStack.Count);
             for (int idx = 0; idx < this.NondetStack.Count; idx++)
             {
-                Console.WriteLine("Index: " + idx);
+                Output.Print("Index: " + idx);
                 foreach (var nc in this.NondetStack[idx])
                 {
                     Console.Write(nc.Value + " [" + nc.IsDone + "], ");
                 }
-                Console.WriteLine();
+                Output.Print("");
             }
-            Console.WriteLine("*******************");
+            Output.Print("*******************");
         }
 
         /// <summary>

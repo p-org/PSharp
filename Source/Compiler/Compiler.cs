@@ -33,7 +33,7 @@ namespace Microsoft.PSharp
                 return;
             }
 
-            Console.WriteLine(". Compiling");
+            Output.Print(". Compiling");
 
             // Runs the P# compilation engine.
             CompilationEngine.Run();

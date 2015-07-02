@@ -858,24 +858,24 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             if (this.IsGivesUpNode)
             {
-                Console.WriteLine("printing [GivesUp] node {0}:", this.Id);
+                Output.Print("printing [GivesUp] node {0}:", this.Id);
             }
             else if (this.IsJumpNode)
             {
-                Console.WriteLine("printing [Jump] node {0}:", this.Id);
+                Output.Print("printing [Jump] node {0}:", this.Id);
             }
             else if (this.IsLoopHeadNode)
             {
-                Console.WriteLine("printing [LoopHead] node {0}:", this.Id);
+                Output.Print("printing [LoopHead] node {0}:", this.Id);
             }
             else
             {
-                Console.WriteLine("printing node {0}:", this.Id);
+                Output.Print("printing node {0}:", this.Id);
             }
 
             foreach (var node in this.SyntaxNodes)
             {
-                Console.WriteLine(" > syntax node: " + node);
+                Output.Print(" > syntax node: " + node);
             }
 
             foreach (var node in this.ISuccessors)
@@ -905,7 +905,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 Console.Write(" " + node.Id);
             }
 
-            Console.WriteLine();
+            Output.Print("");
             foreach (var node in this.ISuccessors)
             {
                 node.DebugPrintPredecessors(visited);
@@ -933,7 +933,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 Console.Write(" " + node.Id);
             }
 
-            Console.WriteLine();
+            Output.Print("");
             foreach (var node in this.ISuccessors)
             {
                 node.DebugPrintSuccessors(visited);

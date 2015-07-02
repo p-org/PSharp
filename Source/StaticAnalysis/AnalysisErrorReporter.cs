@@ -59,18 +59,18 @@ namespace Microsoft.PSharp.StaticAnalysis
             if ((AnalysisErrorReporter.ErrorCount > 0 || AnalysisErrorReporter.WarningCount > 0) &&
                 Configuration.ShowWarnings)
             {
-                Console.WriteLine("... Static analysis detected '{0}' {1} and reported '{2}' {3}",
+                Output.Print("... Static analysis detected '{0}' {1} and reported '{2}' {3}",
                     AnalysisErrorReporter.ErrorCount, errorStr,
                     AnalysisErrorReporter.WarningCount, warningStr);
             }
             else if (AnalysisErrorReporter.ErrorCount > 0)
             {
-                Console.WriteLine("... Static analysis detected '{0}' {1}",
+                Output.Print("... Static analysis detected '{0}' {1}",
                     AnalysisErrorReporter.ErrorCount, errorStr);
             }
             else
             {
-                Console.WriteLine("... No static analysis errors detected (but absolutely no warranty provided)");
+                Output.Print("... No static analysis errors detected (but absolutely no warranty provided)");
             }
         }
         
@@ -323,22 +323,22 @@ namespace Microsoft.PSharp.StaticAnalysis
             Console.ForegroundColor = ConsoleColor.Red;
             Console.Write("Error: Potential source for data race detected. ");
             Console.ForegroundColor = previous;
-            Console.WriteLine(message);
+            Output.Print(message);
 
             for (int idx = log.ErrorTrace.Count - 1; idx >= 0; idx--)
             {
                 if (idx == 0)
                 {
-                    Console.WriteLine("   --- Point of sending the payload ---");
+                    Output.Print("   --- Point of sending the payload ---");
                     Console.Write("   at '{0}' ", log.ErrorTrace[idx].Item1);
                     Console.Write("in {0}:", log.ErrorTrace[idx].Item2);
-                    Console.WriteLine("line {0}", log.ErrorTrace[idx].Item3);
+                    Output.Print("line {0}", log.ErrorTrace[idx].Item3);
                 }
                 else
                 {
                     Console.Write("   at '{0}' ", log.ErrorTrace[idx].Item1);
                     Console.Write("in {0}:", log.ErrorTrace[idx].Item2);
-                    Console.WriteLine("line {0}", log.ErrorTrace[idx].Item3);
+                    Output.Print("line {0}", log.ErrorTrace[idx].Item3);
                 }
             }
 
@@ -358,22 +358,22 @@ namespace Microsoft.PSharp.StaticAnalysis
             Console.ForegroundColor = ConsoleColor.Red;
             Console.Write("Error: Potential data race detected. ");
             Console.ForegroundColor = previous;
-            Console.WriteLine(message);
+            Output.Print(message);
 
             for (int idx = log.ErrorTrace.Count - 1; idx >= 0; idx--)
             {
                 if (idx == 0)
                 {
-                    Console.WriteLine("   --- Source of giving up ownership ---");
+                    Output.Print("   --- Source of giving up ownership ---");
                     Console.Write("   at '{0}' ", log.ErrorTrace[idx].Item1);
                     Console.Write("in {0}:", log.ErrorTrace[idx].Item2);
-                    Console.WriteLine("line {0}", log.ErrorTrace[idx].Item3);
+                    Output.Print("line {0}", log.ErrorTrace[idx].Item3);
                 }
                 else
                 {
                     Console.Write("   at '{0}' ", log.ErrorTrace[idx].Item1);
                     Console.Write("in {0}:", log.ErrorTrace[idx].Item2);
-                    Console.WriteLine("line {0}", log.ErrorTrace[idx].Item3);
+                    Output.Print("line {0}", log.ErrorTrace[idx].Item3);
                 }
             }
 
@@ -398,11 +398,11 @@ namespace Microsoft.PSharp.StaticAnalysis
             Console.ForegroundColor = ConsoleColor.Red;
             Console.Write("Warning: ");
             Console.ForegroundColor = previous;
-            Console.WriteLine(message);
+            Output.Print(message);
 
             Console.Write("   at '{0}' ", log.ErrorTrace[log.ErrorTrace.Count - 1].Item1);
             Console.Write("in {0}:", log.ErrorTrace[log.ErrorTrace.Count - 1].Item2);
-            Console.WriteLine("line {0}", log.ErrorTrace[log.ErrorTrace.Count - 1].Item3);
+            Output.Print("line {0}", log.ErrorTrace[log.ErrorTrace.Count - 1].Item3);
 
             AnalysisErrorReporter.WarningCount++;
         }
@@ -420,13 +420,13 @@ namespace Microsoft.PSharp.StaticAnalysis
             Console.ForegroundColor = ConsoleColor.Red;
             Console.Write("Error: ");
             Console.ForegroundColor = previous;
-            Console.WriteLine(message);
+            Output.Print(message);
 
             for (int idx = log.ErrorTrace.Count - 1; idx >= 0; idx--)
             {
                 Console.Write("   at '{0}' ", log.ErrorTrace[idx].Item1);
                 Console.Write("in {0}:", log.ErrorTrace[idx].Item2);
-                Console.WriteLine("line {0}", log.ErrorTrace[idx].Item3);
+                Output.Print("line {0}", log.ErrorTrace[idx].Item3);
             }
 
             AnalysisErrorReporter.ErrorCount++;

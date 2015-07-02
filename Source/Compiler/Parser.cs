@@ -33,7 +33,7 @@ namespace Microsoft.PSharp
                 return;
             }
 
-            Console.WriteLine(". Parsing");
+            Output.Print(". Parsing");
 
             // Runs the P# parsing engine.
             ParsingEngine.Run();

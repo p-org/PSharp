@@ -46,7 +46,7 @@ namespace Microsoft.PSharp
             // Run the dynamic analyser.
             DynamicAnalyzer.Run();
 
-            Console.WriteLine(". Done");
+            Output.Print(". Done");
         }
 
         /// <summary>

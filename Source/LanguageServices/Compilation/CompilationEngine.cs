@@ -63,7 +63,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
                 {
                     var project = ProgramInfo.Solution.GetProject(projectId);
                     CompilationEngine.CompileProject(project);
-                    CompilationEngine.LinkSolutionToProject(project, graph);
+                    CompilationEngine.LinkSolutionAssembliesToProject(project, graph);
                 }
             }
             else
@@ -81,13 +81,14 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
 
                     var project = ProgramInfo.Solution.GetProject(projectId);
                     CompilationEngine.CompileProject(project);
-                    CompilationEngine.LinkSolutionToProject(project, graph);
+                    CompilationEngine.LinkSolutionAssembliesToProject(project, graph);
                 }
             }
 
-            // Links the P# runtime.
+            // Links the P# core library.
             CompilationEngine.LinkAssembly(typeof(Machine).Assembly, "Microsoft.PSharp.dll");
 
+            // Links the P# runtime.
             if (Configuration.RunStaticAnalysis || Configuration.RunDynamicAnalysis)
             {
                 CompilationEngine.LinkAssembly(typeof(BugFindingDispatcher).Assembly,
@@ -161,48 +162,9 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
             }
         }
 
-        /// <summary>
-        /// Links the solution projects to the given P# project.
-        /// </summary>
-        /// <param name="project">Project</param>
-        /// <param name="graph">ProjectDependencyGraph</param>
-        private static void LinkSolutionToProject(Project project, ProjectDependencyGraph graph)
-        {
-            var projectPath = CompilationEngine.OutputDirectoryMap[project.AssemblyName];
-
-            foreach (var projectId in graph.GetProjectsThatThisProjectTransitivelyDependsOn(project.Id))
-            {
-                var requiredProject = ProgramInfo.Solution.GetProject(projectId);
-                var assemblyPath = CompilationEngine.ProjectAssemblyPathMap[requiredProject.AssemblyName];
-                var fileName = projectPath + Path.DirectorySeparatorChar + requiredProject.AssemblyName + ".dll";
-
-                File.Delete(fileName);
-                File.Copy(assemblyPath, fileName);
-            }
-        }
-
-        /// <summary>
-        /// Links the given P# assembly.
-        /// </summary>
-        /// <param name="assembly">Assembly</param>
-        /// <param name="dll">Name of dll</param>
-        private static void LinkAssembly(Assembly assembly, string dll)
-        {
-            Console.WriteLine("... Linking {0}", dll);
-
-            foreach (var outputDir in CompilationEngine.OutputDirectoryMap.Values)
-            {
-                var localFileName = (new System.Uri(assembly.CodeBase)).LocalPath;
-                var fileName = outputDir + Path.DirectorySeparatorChar + dll;
-
-                File.Delete(fileName);
-                File.Copy(localFileName, fileName);
-            }
-        }
-
         #endregion
 
-        #region helper methods
+        #region compilation methods
 
         /// <summary>
         /// Compiles the given compilation to a file.
@@ -237,13 +199,16 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
 
             CompilationEngine.ProjectAssemblyPathMap.Add(compilation.AssemblyName, fileName);
 
+            // Link external references.
+            CompilationEngine.LinkExternalAssembliesToProject(compilation);
+
             EmitResult emitResult = null;
             using (var outputFile = new FileStream(fileName, FileMode.Create, FileAccess.Write))
             {
                 emitResult = compilation.Emit(outputFile);
                 if (emitResult.Success)
                 {
-                    Console.WriteLine("... Writing " + fileName);
+                    Output.Print("... Writing " + fileName);
                     return fileName;
                 }
             }
@@ -283,6 +248,64 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
 
             var message = string.Join("\r\n", emitResult.Diagnostics);
             throw new ApplicationException(message);
+        }
+
+        #endregion
+
+        #region linking methods
+
+        /// <summary>
+        /// Links the solution project assemblies to the given P# project.
+        /// </summary>
+        /// <param name="project">Project</param>
+        /// <param name="graph">ProjectDependencyGraph</param>
+        private static void LinkSolutionAssembliesToProject(Project project, ProjectDependencyGraph graph)
+        {
+            var projectPath = CompilationEngine.OutputDirectoryMap[project.AssemblyName];
+
+            foreach (var projectId in graph.GetProjectsThatThisProjectTransitivelyDependsOn(project.Id))
+            {
+                var requiredProject = ProgramInfo.Solution.GetProject(projectId);
+                var assemblyPath = CompilationEngine.ProjectAssemblyPathMap[requiredProject.AssemblyName];
+                var fileName = projectPath + Path.DirectorySeparatorChar + requiredProject.AssemblyName + ".dll";
+
+                File.Delete(fileName);
+                File.Copy(assemblyPath, fileName);
+            }
+        }
+
+        /// <summary>
+        /// Links the external references to the given P# compilation.
+        /// </summary>
+        /// <param name="compilation">Compilation</param>
+        private static void LinkExternalAssembliesToProject(CodeAnalysis.Compilation compilation)
+        {
+            //foreach (var reference in compilation.ExternalReferences)
+            //{
+            //    if (!(reference is PortableExecutableReference))
+            //    {
+            //        continue;
+            //    }
+            //}
+        }
+
+        /// <summary>
+        /// Links the given P# assembly.
+        /// </summary>
+        /// <param name="assembly">Assembly</param>
+        /// <param name="dll">Name of dll</param>
+        private static void LinkAssembly(Assembly assembly, string dll)
+        {
+            Output.Print("... Linking {0}", dll);
+
+            foreach (var outputDir in CompilationEngine.OutputDirectoryMap.Values)
+            {
+                var localFileName = (new System.Uri(assembly.CodeBase)).LocalPath;
+                var fileName = outputDir + Path.DirectorySeparatorChar + dll;
+
+                File.Delete(fileName);
+                File.Copy(localFileName, fileName);
+            }
         }
 
         #endregion

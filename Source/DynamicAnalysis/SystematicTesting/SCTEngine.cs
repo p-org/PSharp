@@ -115,7 +115,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// </summary>
         private static void FindBugs()
         {
-            Console.WriteLine("... Using '{0}' strategy", AnalysisContext.Strategy);
+            Output.Print("... Using '{0}' strategy", AnalysisContext.Strategy);
 
             Task task = new Task(() =>
             {
@@ -123,7 +123,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
                 {
                     if (SCTEngine.ShouldPrintIteration(i + 1))
                     {
-                        Console.WriteLine("..... Iteration #{0}", i + 1);
+                        Output.Print("..... Iteration #{0}", i + 1);
                     }
 
                     PSharpRuntime.BugFinder = new Scheduler(SCTEngine.Strategy);
@@ -155,7 +155,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
                             var path = Path.GetDirectoryName(AnalysisContext.Assembly.Location) +
                             Path.DirectorySeparatorChar + Path.GetFileNameWithoutExtension(
                                 AnalysisContext.Assembly.Location) + ".txt";
-                            Console.WriteLine("... Writing {0}", path);
+                            Output.Print("... Writing {0}", path);
                             File.WriteAllText(path, sw.ToString());
                         }
                         
@@ -194,26 +194,26 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// </summary>
         private static void Report()
         {
-            Console.WriteLine("... Found {0} bug{1}.", SCTEngine.FoundBugs,
+            Output.Print("... Found {0} bug{1}.", SCTEngine.FoundBugs,
                 SCTEngine.FoundBugs == 1 ? "" : "s");
-            Console.WriteLine("... Explored {0} {1} schedule{2}.", SCTEngine.ExploredSchedules,
+            Output.Print("... Explored {0} {1} schedule{2}.", SCTEngine.ExploredSchedules,
                 SCTEngine.Strategy.HasFinished() ? "(all)" : "",
                 SCTEngine.ExploredSchedules == 1 ? "" : "s");
 
             if (SCTEngine.ExploredSchedules > 0)
             {
-                Console.WriteLine("... Found {0} % buggy schedules.",
+                Output.Print("... Found {0} % buggy schedules.",
                     (SCTEngine.FoundBugs * 100 / SCTEngine.ExploredSchedules));
-                Console.WriteLine("... Instrumented {0} scheduling point{1} (on last iteration).",
+                Output.Print("... Instrumented {0} scheduling point{1} (on last iteration).",
                     SCTEngine.SchedulingPoints, SCTEngine.SchedulingPoints == 1 ? "" : "s");
             }
 
             if (Configuration.DepthBound > 0)
             {
-                Console.WriteLine("... Used depth bound of {0}.", Configuration.DepthBound);
+                Output.Print("... Used depth bound of {0}.", Configuration.DepthBound);
             }
 
-            Console.WriteLine("... Elapsed {0} sec.", Profiler.Results());
+            Output.Print("... Elapsed {0} sec.", Profiler.Results());
         }
 
         /// <summary>
