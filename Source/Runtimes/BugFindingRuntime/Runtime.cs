@@ -78,11 +78,6 @@ namespace Microsoft.PSharp
                 {
                     PSharpRuntime.Initialize();
                 }
-                else if (PSharpRuntime.BugFinder != null)
-                {
-                    ErrorReporter.ReportAndExit("Cannot create new machines (other than " +
-                        "main) from foreign code during systematic testing.");
-                }
             }
             
             return PSharpRuntime.TryCreateMachine(type, payload);
@@ -96,12 +91,6 @@ namespace Microsoft.PSharp
         /// <param name="payload">Optional payload</param>
         public static void SendEvent(MachineId target, Event e, params Object[] payload)
         {
-            if (PSharpRuntime.BugFinder != null)
-            {
-                ErrorReporter.ReportAndExit("Cannot send events from foreign " +
-                    "code during systematic testing.");
-            }
-
             e.AssignPayload(payload);
             PSharpRuntime.Send(target, e);
         }
