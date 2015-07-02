@@ -79,8 +79,23 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// </summary>
         private static void FindEntryPoint()
         {
-            var entrypoints = AnalysisContext.Assembly.GetTypes().SelectMany(t => t.GetMethods()).
-                Where(m => m.GetCustomAttributes(typeof(EntryPoint), false).Length > 0).ToList();
+            List<MethodInfo> entrypoints = null;
+
+            try
+            {
+                entrypoints = AnalysisContext.Assembly.GetTypes().SelectMany(t => t.GetMethods()).
+                    Where(m => m.GetCustomAttributes(typeof(EntryPoint), false).Length > 0).ToList();
+            }
+            catch (ReflectionTypeLoadException ex)
+            {
+                foreach (var le in ex.LoaderExceptions)
+                {
+                    ErrorReporter.Report(le.Message);
+                }
+
+                ErrorReporter.ReportAndExit("Failed to load assembly '{0}'", AnalysisContext.Assembly.FullName);
+            }
+
             if (entrypoints.Count == 0)
             {
                 ErrorReporter.ReportAndExit("No entry point found to the P# program. " +
