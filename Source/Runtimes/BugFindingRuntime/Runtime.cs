@@ -58,7 +58,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// The P# bugfinder.
         /// </summary>
-        internal static Scheduler BugFinder = null;
+        internal static Scheduler BugFinder;
 
         #endregion
 
@@ -119,19 +119,13 @@ namespace Microsoft.PSharp
                 
                 Task task = new Task(() =>
                 {
-                    if (PSharpRuntime.BugFinder != null)
-                    {
-                        PSharpRuntime.BugFinder.NotifyTaskStarted(Task.CurrentId);
-                    }
+                    PSharpRuntime.BugFinder.NotifyTaskStarted(Task.CurrentId);
 
                     (machine as Machine).AssignInitialPayload(payload);
                     (machine as Machine).GotoStartState();
                     (machine as Machine).RunEventHandler();
 
-                    if (PSharpRuntime.BugFinder != null)
-                    {
-                        PSharpRuntime.BugFinder.NotifyTaskCompleted(Task.CurrentId);
-                    }
+                    PSharpRuntime.BugFinder.NotifyTaskCompleted(Task.CurrentId);
                 });
 
                 lock (PSharpRuntime.Lock)
@@ -139,18 +133,12 @@ namespace Microsoft.PSharp
                     PSharpRuntime.MachineTasks.Add(task);
                 }
 
-                if (PSharpRuntime.BugFinder != null)
-                {
-                    PSharpRuntime.BugFinder.NotifyNewTaskCreated(task.Id, machine as Machine);
-                }
+                PSharpRuntime.BugFinder.NotifyNewTaskCreated(task.Id, machine as Machine);
 
                 task.Start();
 
-                if (PSharpRuntime.BugFinder != null)
-                {
-                    PSharpRuntime.BugFinder.WaitForTaskToStart(task.Id);
-                    PSharpRuntime.BugFinder.Schedule(Task.CurrentId);
-                }
+                PSharpRuntime.BugFinder.WaitForTaskToStart(task.Id);
+                PSharpRuntime.BugFinder.Schedule(Task.CurrentId);
 
                 return mid;
             }
@@ -168,11 +156,6 @@ namespace Microsoft.PSharp
         /// <param name="payload">Optional payload</param>
         internal static void TryCreateMonitor(Type type, params Object[] payload)
         {
-            if (PSharpRuntime.BugFinder == null)
-            {
-                return;
-            }
-
             PSharpRuntime.Assert(type.IsSubclassOf(typeof(Monitor)), "Type '{0}' is not a subclass " +
                 "of Monitor.\n", type.Name);
 
@@ -210,29 +193,17 @@ namespace Microsoft.PSharp
 
             if (!runHandler)
             {
-                return;
-            }
-
-            if (PSharpRuntime.BugFinder != null &&
-                PSharpRuntime.BugFinder.HasEnabledTaskForMachine(machine))
-            {
                 PSharpRuntime.BugFinder.Schedule(Task.CurrentId);
                 return;
             }
 
             Task task = new Task(() =>
             {
-                if (PSharpRuntime.BugFinder != null)
-                {
-                    PSharpRuntime.BugFinder.NotifyTaskStarted(Task.CurrentId);
-                }
+                PSharpRuntime.BugFinder.NotifyTaskStarted(Task.CurrentId);
 
                 machine.RunEventHandler();
 
-                if (PSharpRuntime.BugFinder != null)
-                {
-                    PSharpRuntime.BugFinder.NotifyTaskCompleted(Task.CurrentId);
-                }
+                PSharpRuntime.BugFinder.NotifyTaskCompleted(Task.CurrentId);
             });
 
             lock (PSharpRuntime.Lock)
@@ -240,18 +211,12 @@ namespace Microsoft.PSharp
                 PSharpRuntime.MachineTasks.Add(task);
             }
 
-            if (PSharpRuntime.BugFinder != null)
-            {
-                PSharpRuntime.BugFinder.NotifyNewTaskCreated(task.Id, machine);
-            }
+            PSharpRuntime.BugFinder.NotifyNewTaskCreated(task.Id, machine);
 
             task.Start();
 
-            if (PSharpRuntime.BugFinder != null)
-            {
-                PSharpRuntime.BugFinder.WaitForTaskToStart(task.Id);
-                PSharpRuntime.BugFinder.Schedule(Task.CurrentId);
-            }
+            PSharpRuntime.BugFinder.WaitForTaskToStart(task.Id);
+            PSharpRuntime.BugFinder.Schedule(Task.CurrentId);
         }
 
         /// <summary>
@@ -261,11 +226,6 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         internal static void Monitor<T>(Event e)
         {
-            if (PSharpRuntime.BugFinder == null)
-            {
-                return;
-            }
-
             foreach (var m in PSharpRuntime.Monitors)
             {
                 if (m.GetType() == typeof(T))
@@ -283,22 +243,7 @@ namespace Microsoft.PSharp
         /// <returns>Boolean</returns>
         internal static bool Nondet()
         {
-            if (PSharpRuntime.BugFinder != null)
-            {
-                return PSharpRuntime.BugFinder.GetNextNondeterministicChoice();
-            }
-            else
-            {
-                var random = new Random(DateTime.Now.Millisecond);
-
-                bool result = false;
-                if (random.Next(2) == 1)
-                {
-                    result = true;
-                }
-
-                return result;
-            }
+            return PSharpRuntime.BugFinder.GetNextNondeterministicChoice();
         }
 
         /// <summary>
@@ -375,15 +320,7 @@ namespace Microsoft.PSharp
             if (!predicate)
             {
                 ErrorReporter.Report("Assertion failure.");
-
-                if (PSharpRuntime.BugFinder != null)
-                {
-                    PSharpRuntime.BugFinder.NotifyAssertionFailure();
-                }
-                else
-                {
-                    Environment.Exit(1);
-                }
+                PSharpRuntime.BugFinder.NotifyAssertionFailure();
             }
         }
 
@@ -400,15 +337,7 @@ namespace Microsoft.PSharp
             {
                 string message = Output.Format(s, args);
                 ErrorReporter.Report(message);
-
-                if (PSharpRuntime.BugFinder != null)
-                {
-                    PSharpRuntime.BugFinder.NotifyAssertionFailure();
-                }
-                else
-                {
-                    Environment.Exit(1);
-                }
+                PSharpRuntime.BugFinder.NotifyAssertionFailure();
             }
         }
 
