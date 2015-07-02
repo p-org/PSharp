@@ -20,6 +20,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Microsoft.PSharp.Tooling;
+
 namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 {
     /// <summary>
@@ -46,7 +48,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// <param name="tree">SyntaxTree</param>
         internal void Parse(SyntaxTree tree)
         {
-            var compilation = base.Project.Project.GetCompilationAsync().Result;
+            var project = ProgramInfo.GetProjectWithName(base.Project.Name);
+            var compilation = project.GetCompilationAsync().Result;
 
             var states = tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().
                 Where(val => Querying.IsMachineState(compilation, val)).

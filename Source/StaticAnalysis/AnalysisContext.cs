@@ -70,11 +70,9 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Create a new P# static analysis context from the given program unit.
         /// </summary>
-        /// <param name="programUnit">ProgramUnit</param>
-        public static void Create(ProgramUnit programUnit)
+        /// <param name="project">Project</param>
+        public static void Create(Project project)
         {
-            var project = programUnit.GetProject();
-
             AnalysisContext.Compilation = project.GetCompilationAsync().Result;
 
             AnalysisContext.Machines = new List<ClassDeclarationSyntax>();

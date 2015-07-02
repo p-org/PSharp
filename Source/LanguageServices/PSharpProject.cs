@@ -32,9 +32,9 @@ namespace Microsoft.PSharp.LanguageServices
         #region fields
 
         /// <summary>
-        /// The P# project.
+        /// The P# project name.
         /// </summary>
-        internal Project Project;
+        internal string Name;
 
         /// <summary>
         /// List of P# programs in the project.
@@ -74,10 +74,10 @@ namespace Microsoft.PSharp.LanguageServices
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="project">Project</param>
-        public PSharpProject(Project project)
+        /// <param name="projectName">Project name</param>
+        public PSharpProject(string projectName)
         {
-            this.Project = project;
+            this.Name = projectName;
 
             this.PSharpPrograms = new List<PSharpProgram>();
             this.CSharpPrograms = new List<CSharpProgram>();
@@ -90,7 +90,8 @@ namespace Microsoft.PSharp.LanguageServices
         /// </summary>
         public void Parse()
         {
-            var compilation = this.Project.GetCompilationAsync().Result;
+            var project = ProgramInfo.GetProjectWithName(this.Name);
+            var compilation = project.GetCompilationAsync().Result;
 
             foreach (var tree in compilation.SyntaxTrees.ToList())
             {
@@ -200,9 +201,8 @@ namespace Microsoft.PSharp.LanguageServices
         {
             program.Rewrite();
 
-            var project = this.Project;
-            ProgramInfo.ReplaceSyntaxTree(program.GetSyntaxTree(), ref project);
-            this.Project = project;
+            var project = ProgramInfo.GetProjectWithName(this.Name);
+            ProgramInfo.ReplaceSyntaxTree(program.GetSyntaxTree(), project);
         }
 
         #endregion

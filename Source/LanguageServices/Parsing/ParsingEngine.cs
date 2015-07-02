@@ -29,9 +29,12 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
     /// </summary>
     public static class ParsingEngine
     {
-        #region fields
+        #region public API
 
-        private static List<PSharpProject> Projects;
+        /// <summary>
+        /// List of P# projects.
+        /// </summary>
+        private static List<PSharpProject> PSharpProjects;
 
         #endregion
 
@@ -42,20 +45,44 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// </summary>
         public static void Run()
         {
-            ParsingEngine.Projects = new List<PSharpProject>();
-
+            ParsingEngine.PSharpProjects = new List<PSharpProject>();
+            
             // Parse the projects.
-            foreach (var programUnit in ProgramInfo.ProgramUnits)
+            if (Configuration.ProjectName.Equals(""))
             {
-                var project = new PSharpProject(programUnit.GetProject());
-                project.Parse();
-                ParsingEngine.Projects.Add(project);
+                foreach (var project in ProgramInfo.Solution.Projects)
+                {
+                    var psharpProject = new PSharpProject(project.Name);
+                    psharpProject.Parse();
+                    ParsingEngine.PSharpProjects.Add(psharpProject);
+                }
+            }
+            else
+            {
+                // Find the project specified by the user.
+                var targetProject = ProgramInfo.Solution.Projects.Where(
+                    p => p.Name.Equals(Configuration.ProjectName)).FirstOrDefault();
+
+                var projectDependencyGraph = ProgramInfo.Solution.GetProjectDependencyGraph();
+                var projectDependencies = projectDependencyGraph.GetProjectsThatThisProjectTransitivelyDependsOn(targetProject.Id);
+
+                foreach (var project in ProgramInfo.Solution.Projects)
+                {
+                    if (!projectDependencies.Contains(project.Id) && !project.Id.Equals(targetProject.Id))
+                    {
+                        continue;
+                    }
+
+                    var psharpProject = new PSharpProject(project.Name);
+                    psharpProject.Parse();
+                    ParsingEngine.PSharpProjects.Add(psharpProject);
+                }
             }
 
             // Rewrite the projects.
-            foreach (var project in ParsingEngine.Projects)
+            for (int idx = 0; idx < ParsingEngine.PSharpProjects.Count; idx++)
             {
-                project.Rewrite();
+                ParsingEngine.PSharpProjects[idx].Rewrite();
             }
         }
 

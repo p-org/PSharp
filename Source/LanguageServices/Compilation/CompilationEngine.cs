@@ -53,28 +53,26 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
                 foreach (var projectId in projectDependencyGraph.GetTopologicallySortedProjects())
                 {
                     var project = ProgramInfo.Solution.GetProject(projectId);
-
-                    // Compiles the project.
                     CompilationEngine.CompileProject(project);
                 }
             }
             else
             {
                 // Find the project specified by the user.
-                var project = ProgramInfo.Solution.Projects.Where(
+                var targetProject = ProgramInfo.Solution.Projects.Where(
                     p => p.Name.Equals(Configuration.ProjectName)).FirstOrDefault();
 
-                var projectDependencies = projectDependencyGraph.GetProjectsThatThisProjectTransitivelyDependsOn(project.Id);
+                var projectDependencies = projectDependencyGraph.GetProjectsThatThisProjectTransitivelyDependsOn(targetProject.Id);
 
                 foreach (var projectId in projectDependencyGraph.GetTopologicallySortedProjects())
                 {
-                    if (!projectDependencies.Contains(projectId) && !projectId.Equals(project.Id))
+                    if (!projectDependencies.Contains(projectId) && !projectId.Equals(targetProject.Id))
                     {
                         continue;
                     }
 
-                    // Compiles the project.
-                    CompilationEngine.CompileProject(ProgramInfo.Solution.GetProject(projectId));
+                    var project = ProgramInfo.Solution.GetProject(projectId);
+                    CompilationEngine.CompileProject(project);
                 }
             }
 

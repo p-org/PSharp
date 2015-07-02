@@ -30,19 +30,9 @@ namespace Microsoft.PSharp.Tooling
         #region fields
 
         /// <summary>
-        /// The workspace of the P# program.
-        /// </summary>
-        public static Workspace Workspace = null;
-
-        /// <summary>
         /// The solution of the P# program.
         /// </summary>
         public static Solution Solution = null;
-
-        /// <summary>
-        /// Collection of the program units in the P# program.
-        /// </summary>
-        public static HashSet<ProgramUnit> ProgramUnits = null;
 
         /// <summary>
         /// True if program info has been initialized.
@@ -61,12 +51,12 @@ namespace Microsoft.PSharp.Tooling
             ProgramInfo.CheckForCommandLineOptionErrors();
 
             // Create a new workspace.
-            ProgramInfo.Workspace = MSBuildWorkspace.Create();
+            var workspace = MSBuildWorkspace.Create();
 
             try
             {
                 // Populate the workspace with the user defined solution.
-                ProgramInfo.Solution = (ProgramInfo.Workspace as MSBuildWorkspace).OpenSolutionAsync(
+                ProgramInfo.Solution = (workspace as MSBuildWorkspace).OpenSolutionAsync(
                     @"" + Configuration.SolutionFilePath + "").Result;
             }
             catch (Exception ex)
@@ -75,29 +65,28 @@ namespace Microsoft.PSharp.Tooling
                 ErrorReporter.ReportAndExit("Please give a valid solution path.");
             }
 
-            ProgramInfo.ProgramUnits = new HashSet<ProgramUnit>();
-            if (Configuration.ProjectName.Equals(""))
-            {
-                foreach (var project in ProgramInfo.Solution.Projects)
-                {
-                    ProgramInfo.ProgramUnits.Add(ProgramUnit.Create(project));
-                }
-            }
-            else
+            if (!Configuration.ProjectName.Equals(""))
             {
                 // Find the project specified by the user.
-                var project = ProgramInfo.Solution.Projects.Where(
-                    p => p.Name.Equals(Configuration.ProjectName)).FirstOrDefault();
-
+                var project = ProgramInfo.GetProjectWithName(Configuration.ProjectName);
                 if (project == null)
                 {
                     ErrorReporter.ReportAndExit("Please give a valid project name.");
                 }
-
-                ProgramInfo.ProgramUnits.Add(ProgramUnit.Create(project));
             }
 
             ProgramInfo.HasInitialized = true;
+        }
+
+        /// <summary>
+        /// Returns the project with the given name.
+        /// </summary>
+        /// <param name="name">Project name</param>
+        /// <returns>Project</returns>
+        public static Project GetProjectWithName(string name)
+        {
+            var project = ProgramInfo.Solution.Projects.Where(p => p.Name.Equals(name)).FirstOrDefault();
+            return project;
         }
 
         /// <summary>
@@ -105,7 +94,7 @@ namespace Microsoft.PSharp.Tooling
         /// </summary>
         /// <param name="tree">SyntaxTree</param>
         /// <param name="project">Project</param>
-        public static void ReplaceSyntaxTree(SyntaxTree tree, ref Project project)
+        public static void ReplaceSyntaxTree(SyntaxTree tree, Project project)
         {
             if (!ProgramInfo.HasInitialized)
             {
@@ -114,13 +103,9 @@ namespace Microsoft.PSharp.Tooling
 
             var doc = project.Documents.First(val => val.FilePath.Equals(tree.FilePath));
             doc = doc.WithSyntaxRoot(tree.GetRoot());
-
-            var textTask = doc.GetTextAsync();
-            project = project.RemoveDocument(doc.Id);
-            project = project.AddDocument(doc.Name, textTask.Result, doc.Folders).Project;
+            project = doc.Project;
 
             ProgramInfo.Solution = project.Solution;
-            ProgramInfo.Workspace = project.Solution.Workspace;
 
             if (Configuration.Debug.Contains(DebugType.Parsing) ||
                 Configuration.Debug.Contains(DebugType.All))

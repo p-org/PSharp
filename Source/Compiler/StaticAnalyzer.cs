@@ -14,6 +14,8 @@
 
 using System;
 
+using Microsoft.CodeAnalysis;
+
 using Microsoft.PSharp.StaticAnalysis;
 using Microsoft.PSharp.Tooling;
 
@@ -34,10 +36,10 @@ namespace Microsoft.PSharp
                 return;
             }
 
-            foreach (var programUnit in ProgramInfo.ProgramUnits)
+            foreach (var project in ProgramInfo.Solution.Projects)
             {
-                Console.WriteLine(". Analyzing " + programUnit.Name);
-                StaticAnalyzer.AnalyseProgramUnit(programUnit);
+                Console.WriteLine(". Analyzing " + project.Name);
+                StaticAnalyzer.AnalyseProgramUnit(project);
             }
 
             // Prints error statistics and profiling results.
@@ -51,10 +53,10 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Analyse the given P# program unit.
+        /// Analyse the given P# project.
         /// </summary>
-        /// <param name="programUnit">ProgramUnit</param>
-        private static void AnalyseProgramUnit(ProgramUnit programUnit)
+        /// <param name="project">Project</param>
+        private static void AnalyseProgramUnit(Project project)
         {
             // Starts profiling the analysis.
             if (Configuration.ShowRuntimeResults)
@@ -63,7 +65,7 @@ namespace Microsoft.PSharp
             }
 
             // Create a P# analysis context.
-            AnalysisContext.Create(programUnit);
+            AnalysisContext.Create(project);
 
             // Runs an analysis that performs an initial sanity checking
             // to see if machine code behaves as it should.
