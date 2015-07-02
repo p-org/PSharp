@@ -703,7 +703,7 @@ machine immediately after creating them, these send actions may be arbitrarily
 in the program instead. The P# systematic tester has the capability to enumerate
 such behaviors to explore *tricky* interleavings between event handlers.
 
-## Using the P# framework APIs
+## Using the P# framework APIs  { #sec-framework-apis }
 
 The P# framework enables the developers to directly develop P# programs in native C#
 without the need of writing in the high-level P# language presented earlier in the
@@ -835,8 +835,10 @@ The P# compiler can be invoked on a P# solution with the following command:
 .\PSharpCompiler.exe /s:${SOLUTION_PATH}\${SOLUTION_NAME}.sln
 ```
 
-To build only a single specific project from a given solution use the `/p:${PROJECT_NAME}` command
-line option.
+Where `${SOLUTION_PATH}` is the path to the solution directory and `${SOLUTION_NAME}` is
+the solution name. To build only a single specific project from a given solution (and all
+the projects it depends on) use the `/p:${PROJECT_NAME}` command line option, where
+`${PROJECT_NAME}` is the name of the project.
 
 ## Execution { #sec-execution }
 
@@ -857,7 +859,27 @@ schedule and systematically explores event handling interleavings to discover bu
 P# program.
 
 To switch to bug-finding mode the command-line option `/test` must be given when invoking
-the P# compiler.
+the P# compiler. When using the bug-finding mode, a specific project must be selected for
+testing. To do this, use either the `/p:${PROJECT_NAME}` option or use
+`/test:${PROJECT_NAME}`.
+
+The entry point of a P# test is declared using the `[EntryPoint]` attribute. For example,
+in the P# program of Section [#sec-framework-apis], you should add the following method
+to systematically test it:
+
+```
+public class Program {
+  static void Main(string[] args) {
+    Program.Execute();
+    Console.ReadLine();
+  }
+  
+  [EntryPoint]
+  public static void Execute() {
+    PSharpRuntime.CreateMachine(typeof(Server));
+  }
+}
+```
 
 By default, the systematic tester will explore a single iteration using an exploration
 depth bound of 1000. This depth bound is the maximum number of scheduling steps that
