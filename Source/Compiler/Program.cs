@@ -57,7 +57,7 @@ namespace Microsoft.PSharp
         static void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs args)
         {
             var ex = (Exception)args.ExceptionObject;
-            ErrorReporter.ReportAndExit("tool failed with {0}.", ex.GetType().ToString());
+            ErrorReporter.ReportAndExit("internal failure: {0}.", ex.GetType().ToString());
         }
     }
 }
