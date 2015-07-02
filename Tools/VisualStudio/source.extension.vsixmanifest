@@ -15,6 +15,6 @@
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%|" />
     <Asset Type="Microsoft.VisualStudio.ProjectTemplate" d:Source="File" d:TargetPath="ProjectTemplates\PSharpConsoleApplication.zip" />
     <Asset Type="Microsoft.VisualStudio.ItemTemplate" d:Source="File" d:TargetPath="ItemTemplates\Machine.zip" />
-    <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="LanguageServices" Path="|LanguageServices|" AssemblyName="|LanguageServices;AssemblyName|" />
+    <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" Path="|LanguageServices|" AssemblyName="|LanguageServices;AssemblyName|" d:ProjectName="LanguageServices" />
   </Assets>
 </PackageManifest>
