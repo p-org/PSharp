@@ -33,7 +33,15 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
     {
         #region fields
 
-        private static HashSet<string> OutputDirectories = null;
+        /// <summary>
+        /// Map from project assembly names to assembly paths.
+        /// </summary>
+        private static Dictionary<string, string> ProjectAssemblyPathMap;
+
+        /// <summary>
+        /// Map from project names to output directories.
+        /// </summary>
+        private static Dictionary<string, string> OutputDirectoryMap;
 
         #endregion
 
@@ -44,27 +52,27 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// </summary>
         public static void Run()
         {
-            CompilationEngine.OutputDirectories = new HashSet<string>();
+            CompilationEngine.ProjectAssemblyPathMap = new Dictionary<string, string>();
+            CompilationEngine.OutputDirectoryMap = new Dictionary<string, string>();
 
-            var projectDependencyGraph = ProgramInfo.Solution.GetProjectDependencyGraph();
+            var graph = ProgramInfo.Solution.GetProjectDependencyGraph();
 
             if (Configuration.ProjectName.Equals(""))
             {
-                foreach (var projectId in projectDependencyGraph.GetTopologicallySortedProjects())
+                foreach (var projectId in graph.GetTopologicallySortedProjects())
                 {
                     var project = ProgramInfo.Solution.GetProject(projectId);
                     CompilationEngine.CompileProject(project);
+                    CompilationEngine.LinkSolutionToProject(project, graph);
                 }
             }
             else
             {
                 // Find the project specified by the user.
-                var targetProject = ProgramInfo.Solution.Projects.Where(
-                    p => p.Name.Equals(Configuration.ProjectName)).FirstOrDefault();
+                var targetProject = ProgramInfo.GetProjectWithName(Configuration.ProjectName);
+                var projectDependencies = graph.GetProjectsThatThisProjectTransitivelyDependsOn(targetProject.Id);
 
-                var projectDependencies = projectDependencyGraph.GetProjectsThatThisProjectTransitivelyDependsOn(targetProject.Id);
-
-                foreach (var projectId in projectDependencyGraph.GetTopologicallySortedProjects())
+                foreach (var projectId in graph.GetTopologicallySortedProjects())
                 {
                     if (!projectDependencies.Contains(projectId) && !projectId.Equals(targetProject.Id))
                     {
@@ -73,6 +81,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
 
                     var project = ProgramInfo.Solution.GetProject(projectId);
                     CompilationEngine.CompileProject(project);
+                    CompilationEngine.LinkSolutionToProject(project, graph);
                 }
             }
 
@@ -153,6 +162,26 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         }
 
         /// <summary>
+        /// Links the solution projects to the given P# project.
+        /// </summary>
+        /// <param name="project">Project</param>
+        /// <param name="graph">ProjectDependencyGraph</param>
+        private static void LinkSolutionToProject(Project project, ProjectDependencyGraph graph)
+        {
+            var projectPath = CompilationEngine.OutputDirectoryMap[project.AssemblyName];
+
+            foreach (var projectId in graph.GetProjectsThatThisProjectDirectlyDependsOn(project.Id))
+            {
+                var requiredProject = ProgramInfo.Solution.GetProject(projectId);
+                var assemblyPath = CompilationEngine.ProjectAssemblyPathMap[requiredProject.AssemblyName];
+                var fileName = projectPath + Path.DirectorySeparatorChar + requiredProject.AssemblyName + ".dll";
+
+                File.Delete(fileName);
+                File.Copy(assemblyPath, fileName);
+            }
+        }
+
+        /// <summary>
         /// Links the given P# assembly.
         /// </summary>
         /// <param name="assembly">Assembly</param>
@@ -161,7 +190,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         {
             Console.WriteLine("... Linking {0}", dll);
 
-            foreach (var outputDir in CompilationEngine.OutputDirectories)
+            foreach (var outputDir in CompilationEngine.OutputDirectoryMap.Values)
             {
                 var localFileName = (new System.Uri(assembly.CodeBase)).LocalPath;
                 var fileName = outputDir + Path.DirectorySeparatorChar + dll;
@@ -212,13 +241,15 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
             if (!Configuration.OutputFilePath.Equals(""))
             {
                 fileName = Configuration.OutputFilePath + Path.DirectorySeparatorChar + assemblyFileName;
-                CompilationEngine.OutputDirectories.Add(Configuration.OutputFilePath);
+                CompilationEngine.OutputDirectoryMap.Add(compilation.AssemblyName, Configuration.OutputFilePath);
             }
             else
             {
                 fileName = Path.GetDirectoryName(outputPath) + Path.DirectorySeparatorChar + assemblyFileName;
-                CompilationEngine.OutputDirectories.Add(Path.GetDirectoryName(outputPath));
+                CompilationEngine.OutputDirectoryMap.Add(compilation.AssemblyName, Path.GetDirectoryName(outputPath));
             }
+
+            CompilationEngine.ProjectAssemblyPathMap.Add(compilation.AssemblyName, fileName);
 
             EmitResult emitResult = null;
             using (var outputFile = new FileStream(fileName, FileMode.Create, FileAccess.Write))
