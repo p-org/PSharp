@@ -27,6 +27,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Microsoft.PSharp.LanguageServices;
 using Microsoft.PSharp.LanguageServices.Parsing;
+using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp.DynamicAnalysis.Tests.Unit
 {
@@ -120,6 +121,10 @@ namespace PSharpSendInterleavingTest
             var assembly = this.GetAssembly(program.GetSyntaxTree());
 
             AnalysisContext.Create(assembly);
+
+            Configuration.Verbose = 2;
+            Configuration.SchedulingIterations = 100;
+
             SCTEngine.Setup();
             SCTEngine.Run();
 
@@ -142,7 +147,7 @@ namespace PSharpSendInterleavingTest
             var references = new MetadataReference[]
             {
                 MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
-                //MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(Machine).Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(BugFindingDispatcher).Assembly.Location)
             };
