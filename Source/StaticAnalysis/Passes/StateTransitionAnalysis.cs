@@ -86,7 +86,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     foreach (var attribute in attributeList.Attributes)
                     {
-                        if (attribute.Name.ToString().Equals("Start"))
+                        if (attribute.Name.ToString().Equals("Microsoft.PSharp.Start"))
                         {
                             initState = state.Key;
                         }

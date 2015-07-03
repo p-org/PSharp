@@ -180,7 +180,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 "{" +
                 "class M : Machine" +
                 "{" +
-                "[Start]" +
+                "[Microsoft.PSharp.Start]" +
                 "class S : MachineState" +
                 "{" +
                 "}" +
@@ -216,7 +216,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 "{" +
                 "class M : Machine" +
                 "{" +
-                "[Start]" +
+                "[Microsoft.PSharp.Start]" +
                 "class S1 : MachineState" +
                 "{" +
                 "}" +
@@ -253,7 +253,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 "{" +
                 "class M : Machine" +
                 "{" +
-                "[Start]" +
+                "[Microsoft.PSharp.Start]" +
                 "class S : MachineState" +
                 "{" +
                 "protected override void OnEntry(){}}" +
@@ -287,7 +287,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 "{" +
                 "class M : Machine" +
                 "{" +
-                "[Start]" +
+                "[Microsoft.PSharp.Start]" +
                 "class S : MachineState" +
                 "{" +
                 "protected override void OnExit(){}}" +
@@ -322,7 +322,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 "{" +
                 "class M : Machine" +
                 "{" +
-                "[Start]" +
+                "[Microsoft.PSharp.Start]" +
                 "class S : MachineState" +
                 "{" +
                 "protected override void OnEntry()" +
@@ -362,7 +362,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 "{" +
                 "class M : Machine" +
                 "{" +
-                "[Start]" +
+                "[Microsoft.PSharp.Start]" +
                 "[OnEventGotoState(typeof(e), typeof(S2))]" +
                 "class S1 : MachineState" +
                 "{" +
@@ -398,7 +398,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 "{" +
                 "class M : Machine" +
                 "{" +
-                "[Start]" +
+                "[Microsoft.PSharp.Start]" +
                 "[OnEventGotoState(typeof(e1), typeof(S2))]" +
                 "[OnEventGotoState(typeof(e2), typeof(S3))]" +
                 "class S1 : MachineState" +
@@ -434,7 +434,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 "{" +
                 "class M : Machine" +
                 "{" +
-                "[Start]" +
+                "[Microsoft.PSharp.Start]" +
                 "[OnEventGotoState(typeof(e), typeof(S2), nameof(psharp_S1_e_action))]" +
                 "class S1 : MachineState" +
                 "{" +
@@ -472,7 +472,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 "{" +
                 "class M : Machine" +
                 "{" +
-                "[Start]" +
+                "[Microsoft.PSharp.Start]" +
                 "[OnEventDoAction(typeof(e), nameof(Bar))]" +
                 "class S1 : MachineState" +
                 "{" +
@@ -508,7 +508,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 "{" +
                 "class M : Machine" +
                 "{" +
-                "[Start]" +
+                "[Microsoft.PSharp.Start]" +
                 "[OnEventDoAction(typeof(e1), nameof(Bar))]" +
                 "[OnEventDoAction(typeof(e2), nameof(Baz))]" +
                 "class S1 : MachineState" +
@@ -544,7 +544,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 "{" +
                 "class M : Machine" +
                 "{" +
-                "[Start]" +
+                "[Microsoft.PSharp.Start]" +
                 "[OnEventDoAction(typeof(e), nameof(psharp_S1_e_action))]" +
                 "class S1 : MachineState" +
                 "{" +
@@ -583,7 +583,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 "{" +
                 "class M : Machine" +
                 "{" +
-                "[Start]" +
+                "[Microsoft.PSharp.Start]" +
                 "[OnEventGotoState(typeof(e1), typeof(S2))]" +
                 "[OnEventDoAction(typeof(e2), nameof(Bar))]" +
                 "class S1 : MachineState" +
@@ -619,7 +619,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 "{" +
                 "class M : Machine" +
                 "{" +
-                "[Start]" +
+                "[Microsoft.PSharp.Start]" +
                 "[IgnoreEvents(typeof(e))]" +
                 "class S : MachineState" +
                 "{" +
@@ -654,7 +654,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 "{" +
                 "class M : Machine" +
                 "{" +
-                "[Start]" +
+                "[Microsoft.PSharp.Start]" +
                 "[IgnoreEvents(typeof(e1), typeof(e2))]" +
                 "class S : MachineState" +
                 "{" +
@@ -689,7 +689,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 "{" +
                 "class M : Machine" +
                 "{" +
-                "[Start]" +
+                "[Microsoft.PSharp.Start]" +
                 "[DeferEvents(typeof(e))]" +
                 "class S : MachineState" +
                 "{" +
@@ -724,7 +724,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 "{" +
                 "class M : Machine" +
                 "{" +
-                "[Start]" +
+                "[Microsoft.PSharp.Start]" +
                 "[DeferEvents(typeof(e1), typeof(e2))]" +
                 "class S : MachineState" +
                 "{" +
@@ -762,7 +762,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 "class M : Machine" +
                 "{" +
                 "private int k;" +
-                "[Start]" +
+                "[Microsoft.PSharp.Start]" +
                 "class S : MachineState" +
                 "{" +
                 "}" +
@@ -795,7 +795,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 "class M : Machine" +
                 "{" +
                 "private MachineId N;" +
-                "[Start]" +
+                "[Microsoft.PSharp.Start]" +
                 "class S : MachineState" +
                 "{" +
                 "}" +
@@ -828,7 +828,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 "class M : Machine" +
                 "{" +
                 "private List<int> k;" +
-                "[Start]" +
+                "[Microsoft.PSharp.Start]" +
                 "class S : MachineState" +
                 "{" +
                 "}" +
@@ -864,7 +864,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 "{" +
                 "class M : Machine" +
                 "{" +
-                "[Start]" +
+                "[Microsoft.PSharp.Start]" +
                 "class S : MachineState" +
                 "{" +
                 "}" +

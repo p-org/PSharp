@@ -323,7 +323,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             if (this.IsStart)
             {
-                text += "[Start]\n";
+                text += "[Microsoft.PSharp.Start]\n";
             }
 
             text += this.InstrumentGotoStateTransitions();

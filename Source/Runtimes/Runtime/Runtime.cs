@@ -209,7 +209,7 @@ namespace Microsoft.PSharp
         /// <param name="payload">Optional payload</param>
         internal static void TryCreateMonitor(Type type, params Object[] payload)
         {
-            // the shared memory runtime does not implement monitors.
+            // the execution runtime does not implement monitors.
             return;
         }
 
@@ -220,7 +220,7 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         internal static void Monitor<T>(Event e)
         {
-            // the shared memory runtime does not implement monitors.
+            // the execution runtime does not implement monitors.
             return;
         }
 
