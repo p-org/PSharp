@@ -50,8 +50,9 @@ namespace Microsoft.PSharp
             // Create a P# analysis context.
             AnalysisContext.Create(dll);
 
-            // Runs a systematic testing scheduler to find bugs in
-            // the P# program.
+            // Invokes the systematic testing engine to find bugs
+            // in the P# program.
+            SCTEngine.Setup();
             SCTEngine.Run();
         }
     }

@@ -3,11 +3,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{8B3F338F-2D75-4618-A1E2-4E8622FA6EDA}</ProjectGuid>
+    <ProjectGuid>{D388CB45-F077-4278-B174-796A8C9BF927}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Microsoft.PSharp.LanguageServices.Tests.Unit</RootNamespace>
-    <AssemblyName>Microsoft.PSharp.LanguageServices.Tests.Unit</AssemblyName>
+    <RootNamespace>Microsoft.PSharp.DynamicAnalysis.Tests.Unit</RootNamespace>
+    <AssemblyName>Microsoft.PSharp.DynamicAnalysis.Tests.Unit</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -56,6 +56,10 @@
       <HintPath>..\..\Roslyn\Microsoft.CodeAnalysis.Workspaces.Desktop.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Collections.Immutable, Version=1.1.33.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Roslyn\System.Collections.Immutable.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <Choose>
     <When Condition="('$(VisualStudioVersion)' == '10.0' or '$(VisualStudioVersion)' == '') and '$(TargetFrameworkVersion)' == 'v3.5'">
@@ -70,10 +74,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="PSharpStatementsParsingFailTests.cs" />
-    <Compile Include="PSharpDeclarationsParsingFailTests.cs" />
-    <Compile Include="PSharpStatementsParsingTests.cs" />
-    <Compile Include="PSharpDeclarationsParsingTests.cs" />
+    <Compile Include="SendInterleavingsTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -84,9 +85,17 @@
       <Project>{2e330c40-60ea-4a94-8813-9747b93a1795}</Project>
       <Name>Core</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Source\DynamicAnalysis\DynamicAnalysis.csproj">
+      <Project>{6cf10554-1535-4fe0-a949-eea5025d8604}</Project>
+      <Name>DynamicAnalysis</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Source\LanguageServices\LanguageServices.csproj">
       <Project>{06ccbe95-2e41-4188-bb97-aee702c1bd25}</Project>
       <Name>LanguageServices</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Source\Runtimes\BugFindingRuntime\BugFindingRuntime.csproj">
+      <Project>{0e43e150-7d5a-46b5-b394-727df8b7f104}</Project>
+      <Name>BugFindingRuntime</Name>
     </ProjectReference>
   </ItemGroup>
   <Choose>

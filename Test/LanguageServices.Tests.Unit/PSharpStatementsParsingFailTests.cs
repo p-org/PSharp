@@ -29,53 +29,53 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
         [TestMethod, Timeout(3000)]
         public void TestCreateStatementInStateWithoutBrackets()
         {
-            var test = "" +
-                "namespace Foo {" +
-                "machine M {" +
-                "machine N;" +
-                "start state S" +
-                "{\n" +
-                "entry\n" +
-                "{" +
-                "N = create N;" +
-                "}" +
-                "}" +
-                "}" +
-                "}";
+            var test = @"
+namespace Foo {
+machine M {
+machine N;
+start state S
+{
+entry
+{
+N = create N;
+}
+}
+}
+}";
 
             var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual(parser.GetParsingErrorLog(),
-                "Expected \"(\".");
+            Assert.AreEqual("Expected \"(\".",
+                parser.GetParsingErrorLog());
         }
 
         [TestMethod, Timeout(3000)]
         public void TestCreateStatementInStateWithoutIdentifier()
         {
-            var test = "" +
-                "namespace Foo {" +
-                "machine M {" +
-                "machine N;" +
-                "start state S" +
-                "{\n" +
-                "entry\n" +
-                "{" +
-                "N = create;" +
-                "}" +
-                "}" +
-                "}" +
-                "}";
+            var test = @"
+namespace Foo {
+machine M {
+machine N;
+start state S
+{
+entry
+{
+N = create;
+}
+}
+}
+}";
 
             var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual(parser.GetParsingErrorLog(),
-                "Expected machine identifier.");
+            Assert.AreEqual("Expected machine identifier.",
+                parser.GetParsingErrorLog());
         }
 
         #endregion

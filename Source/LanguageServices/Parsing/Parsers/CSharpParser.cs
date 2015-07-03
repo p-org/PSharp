@@ -35,6 +35,11 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// </summary>
         private List<Tuple<SyntaxToken, string>> ErrorLog;
 
+        /// <summary>
+        /// Skips error checking.
+        /// </summary>
+        private bool SkipErrorChecking;
+
         #endregion
 
         #region public API
@@ -46,6 +51,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             : base()
         {
             this.ErrorLog = new List<Tuple<SyntaxToken, string>>();
+            this.SkipErrorChecking = false;
         }
 
         /// <summary>
@@ -53,11 +59,24 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// </summary>
         /// <param name="project">PSharpProject</param>
         /// <param name="tree">SyntaxTree</param>
-        /// <param name="exitAtError">Exits at error</param>
-        internal CSharpParser(PSharpProject project, SyntaxTree tree, bool exitAtError = true)
-            : base(project, tree, exitAtError)
+        internal CSharpParser(PSharpProject project, SyntaxTree tree)
+            : base(project, tree, true)
         {
             this.ErrorLog = new List<Tuple<SyntaxToken, string>>();
+            this.SkipErrorChecking = false;
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="project">PSharpProject</param>
+        /// <param name="tree">SyntaxTree</param>
+        /// <param name="skipErrorChecking">Skips error checking</param>
+        internal CSharpParser(PSharpProject project, SyntaxTree tree, bool skipErrorChecking)
+            : base(project, tree, false)
+        {
+            this.ErrorLog = new List<Tuple<SyntaxToken, string>>();
+            this.SkipErrorChecking = skipErrorChecking;
         }
 
         /// <summary>
@@ -67,7 +86,11 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         public IPSharpProgram Parse()
         {
             this.Program = this.CreateNewProgram();
-            this.ParseSyntaxTree();
+
+            if (!this.SkipErrorChecking)
+            {
+                this.ParseSyntaxTree();
+            }
 
             if (this.ErrorLog.Count > 0)
             {
@@ -108,8 +131,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// </summary>
         private void ParseSyntaxTree()
         {
-            new MachineDeclarationParser(base.Project, this.ErrorLog).Parse(base.SyntaxTree);
-            new StateDeclarationParser(base.Project, this.ErrorLog).Parse(base.SyntaxTree);
+            new MachineDeclarationParser(base.Project, this.ErrorLog).
+                Parse(base.SyntaxTree);
+            new StateDeclarationParser(base.Project, this.ErrorLog).
+                Parse(base.SyntaxTree);
         }
 
         /// <summary>

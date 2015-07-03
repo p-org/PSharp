@@ -24,7 +24,7 @@ namespace Microsoft.PSharp
     /// <summary>
     /// Class implementing the P# dispatcher.
     /// </summary>
-    sealed class Dispatcher : IDispatcher
+    internal sealed class Dispatcher : IDispatcher
     {
         #region API methods
 

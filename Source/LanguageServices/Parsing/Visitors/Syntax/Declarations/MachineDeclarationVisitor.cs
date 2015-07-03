@@ -252,7 +252,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         break;
 
                     default:
-                        throw new ParsingException("Unexpected token.",
+                        throw new ParsingException("Unexpected token '" + base.TokenStream.Peek().TextUnit.Text + "'.",
                             new List<TokenType>());
                 }
 

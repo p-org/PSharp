@@ -35,11 +35,6 @@ namespace Microsoft.PSharp.DynamicAnalysis
         private static ISchedulingStrategy Strategy;
 
         /// <summary>
-        /// Number of found bugs.
-        /// </summary>
-        private static int FoundBugs;
-
-        /// <summary>
         /// Number of scheduling points.
         /// </summary>
         private static int SchedulingPoints;
@@ -58,32 +53,22 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// Has switched runtime debugging on.
         /// </summary>
         private static bool SwitchedRuntimeDebuggingOn;
-        
+
+        /// <summary>
+        /// Number of found bugs.
+        /// </summary>
+        public static int NumOfFoundBugs { get; private set; }
+
         #endregion
 
         #region public API
 
         /// <summary>
-        /// Runs the P# compilation engine.
+        /// Setups the P# systematic testing engine.
         /// </summary>
-        public static void Run()
+        public static void Setup()
         {
-            SCTEngine.Setup();
-            SCTEngine.FindBugs();
-            SCTEngine.Report();
-            SCTEngine.Cleanup();
-        }
-
-        #endregion
-
-        #region private API
-
-        /// <summary>
-        /// Setups the runtime for systematic concurrency testing.
-        /// </summary>
-        private static void Setup()
-        {
-            SCTEngine.FoundBugs = 0;
+            SCTEngine.NumOfFoundBugs = 0;
             SCTEngine.SchedulingPoints = 0;
             SCTEngine.ExploredSchedules = 0;
             SCTEngine.PrintGuard = 1;
@@ -109,6 +94,20 @@ namespace Microsoft.PSharp.DynamicAnalysis
                 SCTEngine.SwitchedRuntimeDebuggingOn = false;
             }
         }
+
+        /// <summary>
+        /// Runs the P# systematic testing engine.
+        /// </summary>
+        public static void Run()
+        {
+            SCTEngine.FindBugs();
+            SCTEngine.Report();
+            SCTEngine.Cleanup();
+        }
+
+        #endregion
+
+        #region private API
 
         /// <summary>
         /// Explores the P# program for bugs.
@@ -147,7 +146,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
 
                     if (PSharpRuntime.BugFinder.BugFound)
                     {
-                        SCTEngine.FoundBugs++;
+                        SCTEngine.NumOfFoundBugs++;
                     }
 
                     if (SCTEngine.Strategy.HasFinished())
@@ -156,7 +155,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
                     }
 
                     SCTEngine.Strategy.Reset();
-                    if (!Configuration.FullExploration && SCTEngine.FoundBugs > 0)
+                    if (!Configuration.FullExploration && SCTEngine.NumOfFoundBugs > 0)
                     {
                         if (sw != null)
                         {
@@ -207,8 +206,8 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// </summary>
         private static void Report()
         {
-            Output.Print("... Found {0} bug{1}.", SCTEngine.FoundBugs,
-                SCTEngine.FoundBugs == 1 ? "" : "s");
+            Output.Print("... Found {0} bug{1}.", SCTEngine.NumOfFoundBugs,
+                SCTEngine.NumOfFoundBugs == 1 ? "" : "s");
             Output.Print("... Explored {0} {1} schedule{2}.", SCTEngine.ExploredSchedules,
                 SCTEngine.Strategy.HasFinished() ? "(all)" : "",
                 SCTEngine.ExploredSchedules == 1 ? "" : "s");
@@ -216,7 +215,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
             if (SCTEngine.ExploredSchedules > 0)
             {
                 Output.Print("... Found {0} % buggy schedules.",
-                    (SCTEngine.FoundBugs * 100 / SCTEngine.ExploredSchedules));
+                    (SCTEngine.NumOfFoundBugs * 100 / SCTEngine.ExploredSchedules));
                 Output.Print("... Instrumented {0} scheduling point{1} (on last iteration).",
                     SCTEngine.SchedulingPoints, SCTEngine.SchedulingPoints == 1 ? "" : "s");
             }

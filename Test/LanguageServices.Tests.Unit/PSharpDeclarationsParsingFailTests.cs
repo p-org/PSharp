@@ -29,31 +29,29 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
         [TestMethod, Timeout(3000)]
         public void TestIncorrectUsingDeclaration()
         {
-            var test = "" +
-                "using System.Text";
+            var test = "using System.Text";
 
             var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual(parser.GetParsingErrorLog(),
-                "Expected \";\".");
+            Assert.AreEqual("Expected \";\".",
+                parser.GetParsingErrorLog());
         }
 
         [TestMethod, Timeout(3000)]
         public void TestUsingDeclarationWithoutIdentifier()
         {
-            var test = "" +
-                "using;";
+            var test = "using;";
 
             var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual(parser.GetParsingErrorLog(),
-                "Expected identifier.");
+            Assert.AreEqual("Expected identifier.",
+                parser.GetParsingErrorLog());
         }
 
         #endregion
@@ -63,31 +61,29 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
         [TestMethod, Timeout(3000)]
         public void TestUnexpectedTokenWithoutNamespace()
         {
-            var test = "" +
-                "private";
+            var test = "private";
 
             var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual(parser.GetParsingErrorLog(),
-                "Unexpected token.");
+            Assert.AreEqual("Unexpected token.",
+                parser.GetParsingErrorLog());
         }
 
         [TestMethod, Timeout(3000)]
         public void TestNamespaceDeclarationWithoutIdentifier()
         {
-            var test = "" +
-                "namespace { }";
+            var test = "namespace { }";
 
             var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual(parser.GetParsingErrorLog(),
-                "Expected namespace identifier.");
+            Assert.AreEqual("Expected namespace identifier.",
+                parser.GetParsingErrorLog());
         }
 
         #endregion
@@ -97,27 +93,27 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
         [TestMethod, Timeout(3000)]
         public void TestProtectedEventDeclaration()
         {
-            var test = "" +
-                "namespace Foo {" +
-                "protected event e;" +
-                "}";
+            var test = @"
+namespace Foo {
+protected event e;
+}";
 
             var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual(parser.GetParsingErrorLog(),
-                "Event and machine declarations must be internal or public.");
+            Assert.AreEqual("Event and machine declarations must be internal or public.",
+                parser.GetParsingErrorLog());
         }
 
         [TestMethod, Timeout(3000)]
         public void TestPrivateEventDeclaration()
         {
-            var test = "" +
-                "namespace Foo {" +
-                "private event e;" +
-                "}";
+            var test = @"
+namespace Foo {
+private event e;
+}";
 
             var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false);
 
@@ -131,16 +127,15 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
         [TestMethod, Timeout(3000)]
         public void TestEventDeclarationWithoutNamespace()
         {
-            var test = "" +
-                "event e;";
+            var test = "event e;";
 
             var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual(parser.GetParsingErrorLog(),
-                "Must be declared inside a namespace.");
+            Assert.AreEqual("Must be declared inside a namespace.",
+                parser.GetParsingErrorLog());
         }
 
         #endregion
@@ -150,76 +145,76 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
         [TestMethod, Timeout(3000)]
         public void TestMachineDeclarationWithoutState()
         {
-            var test = "" +
-                "namespace Foo {" +
-                "machine M {" +
-                "}" +
-                "}";
+            var test = @"
+namespace Foo {
+machine M {
+}
+}";
 
             var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual(parser.GetParsingErrorLog(),
-                "A machine must declare at least one state.");
+            Assert.AreEqual("A machine must declare at least one state.",
+                parser.GetParsingErrorLog());
         }
 
         [TestMethod, Timeout(3000)]
         public void TestMachineDeclarationWithoutIdentifier()
         {
-            var test = "" +
-                "namespace Foo {" +
-                "machine{}" +
-                "}";
+            var test = @"
+namespace Foo {
+machine{}
+}";
 
             var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual(parser.GetParsingErrorLog(),
-                "Expected machine identifier.");
+            Assert.AreEqual("Expected machine identifier.",
+                parser.GetParsingErrorLog());
         }
 
         [TestMethod, Timeout(3000)]
         public void TestMachineDeclarationWithTwoBodies()
         {
-            var test = "" +
-                "namespace Foo {" +
-                "machine M {" +
-                "start state S { }" +
-                "}" +
-                "{" +
-                "}" +
-                "}";
+            var test = @"
+namespace Foo {
+machine M {
+start state S { }
+}
+{
+}
+}";
 
             var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual(parser.GetParsingErrorLog(),
-                "Unexpected token.");
+            Assert.AreEqual("Unexpected token.",
+                parser.GetParsingErrorLog());
         }
 
         [TestMethod, Timeout(3000)]
         public void TestMachineDeclarationWithoutStartState()
         {
-            var test = "" +
-                "namespace Foo {" +
-                "machine M {" +
-                "state S { }" +
-                "}" +
-                "}";
+            var test = @"
+namespace Foo {
+machine M {
+state S { }
+}
+}";
 
             var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual(parser.GetParsingErrorLog(),
-                "A machine must declare a start state.");
+            Assert.AreEqual("A machine must declare a start state.",
+                parser.GetParsingErrorLog());
         }
 
         [TestMethod, Timeout(3000)]
@@ -238,50 +233,52 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual(parser.GetParsingErrorLog(),
-                "A machine must declare a start state.");
+            Assert.AreEqual("A machine must declare a start state.",
+                parser.GetParsingErrorLog());
         }
 
         [TestMethod, Timeout(3000)]
         public void TestMachineDeclarationWithoutStartState3()
         {
-            var test = "" +
-                "namespace Foo {" +
-                "machine M {" +
-                "state S1 { }\n" +
-                "state S2 { }\n\n" +
-                "state S3 { }\n" +
-                "}" +
-                "}";
+            var test = @"
+namespace Foo {
+machine M {
+state S1 { }
+state S2 {}
+
+state S3 { }
+}
+}";
 
             var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual(parser.GetParsingErrorLog(),
-                "A machine must declare a start state.");
+            Assert.AreEqual("A machine must declare a start state.",
+                parser.GetParsingErrorLog());
         }
 
         [TestMethod, Timeout(3000)]
         public void TestMachineDeclarationWithMoreThanOneStartState()
         {
-            var test = "" +
-                "namespace Foo {" +
-                "machine M {" +
-                "start state S1 { }" +
-                "start state S2 { }\n\n" +
-                "start state S3 { }" +
-                "}" +
-                "}";
+            var test = @"
+namespace Foo {
+machine M {
+start state S1 {}
+start state S2 { }
+
+start state S3 { }
+}
+}";
 
             var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual(parser.GetParsingErrorLog(),
-                "A machine can declare only a single start state.");
+            Assert.AreEqual("A machine can declare only a single start state.",
+                parser.GetParsingErrorLog());
         }
 
         #endregion
@@ -291,223 +288,223 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
         [TestMethod, Timeout(3000)]
         public void TestStateDeclarationWithMoreThanOneEntry()
         {
-            var test = "" +
-                "namespace Foo {" +
-                "machine M {" +
-                "start state S" +
-                "{\n" +
-                "entry {}" +
-                "entry{}" +
-                "}" +
-                "}" +
-                "}";
+            var test = @"
+namespace Foo {
+machine M {
+start state S
+{
+entry {}
+entry{}
+}
+}
+}";
 
             var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual(parser.GetParsingErrorLog(),
-                "Duplicate entry declaration.");
+            Assert.AreEqual("Duplicate entry declaration.",
+                parser.GetParsingErrorLog());
         }
 
         [TestMethod, Timeout(3000)]
         public void TestStateDeclarationWithMoreThanOneExit()
         {
-            var test = "" +
-                "namespace Foo {" +
-                "machine M {" +
-                "start state S" +
-                "{\n" +
-                "exit{}" +
-                "exit {}" +
-                "}" +
-                "}" +
-                "}";
+            var test = @"
+namespace Foo {
+machine M {
+start state S
+{
+exit{}
+exit {}
+}
+}
+}";
 
             var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual(parser.GetParsingErrorLog(),
-                "Duplicate exit declaration.");
+            Assert.AreEqual("Duplicate exit declaration.",
+                parser.GetParsingErrorLog());
         }
 
         [TestMethod, Timeout(3000)]
         public void TestEntryDeclarationWithUnexpectedIdentifier()
         {
-            var test = "" +
-                "namespace Foo {" +
-                "machine M {" +
-                "start state S" +
-                "{\n" +
-                "entry Bar {}\n" +
-                "}" +
-                "}" +
-                "}";
+            var test = @"
+namespace Foo {
+machine M {
+start state S
+{
+entry Bar {}
+}
+}
+}";
 
             var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual(parser.GetParsingErrorLog(),
-                "Expected \"{\".");
+            Assert.AreEqual("Expected \"{\".",
+                parser.GetParsingErrorLog());
         }
 
         [TestMethod, Timeout(3000)]
         public void TestOnEventGotoStateDeclarationWithoutSemicolon()
         {
-            var test = "" +
-                "namespace Foo {" +
-                "machine M {" +
-                "start state S1" +
-                "{" +
-                "on e goto S2" +
-                "}" +
-                "}" +
-                "}";
+            var test = @"
+namespace Foo {
+machine M {
+start state S1
+{
+on e goto S2
+}
+}
+}";
 
             var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual(parser.GetParsingErrorLog(),
-                "Expected \";\".");
+            Assert.AreEqual("Expected \";\".",
+                parser.GetParsingErrorLog());
         }
 
         [TestMethod, Timeout(3000)]
         public void TestOnEventGotoStateDeclarationWithoutState()
         {
-            var test = "" +
-                "namespace Foo {" +
-                "machine M {" +
-                "start state S1" +
-                "{" +
-                "on e goto;" +
-                "}" +
-                "}" +
-                "}";
+            var test = @"
+namespace Foo {
+machine M {
+start state S1
+{
+on e goto;
+}
+}
+}";
 
             var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual(parser.GetParsingErrorLog(),
-                "Expected state identifier.");
+            Assert.AreEqual("Expected state identifier.",
+                parser.GetParsingErrorLog());
         }
 
         [TestMethod, Timeout(3000)]
         public void TestOnEventDoActionDeclarationWithoutSemicolon()
         {
-            var test = "" +
-                "namespace Foo {" +
-                "machine M {" +
-                "start state S1" +
-                "{" +
-                "on e do Bar" +
-                "}" +
-                "}" +
-                "}";
+            var test = @"
+namespace Foo {
+machine M {
+start state S1
+{
+on e do Bar
+}
+}
+}";
 
             var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual(parser.GetParsingErrorLog(),
-                "Expected \";\".");
+            Assert.AreEqual("Expected \";\".",
+                parser.GetParsingErrorLog());
         }
 
         [TestMethod, Timeout(3000)]
         public void TestOnEventDoActionDeclarationWithoutAction()
         {
-            var test = "" +
-                "namespace Foo {" +
-                "machine M {" +
-                "start state S1" +
-                "{" +
-                "on e do;" +
-                "}" +
-                "}" +
-                "}";
+            var test = @"
+namespace Foo {
+machine M {
+start state S1
+{
+on e do;
+}
+}
+}";
 
             var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual(parser.GetParsingErrorLog(),
-                "Expected action identifier.");
+            Assert.AreEqual("Expected action identifier.",
+                parser.GetParsingErrorLog());
         }
 
         [TestMethod, Timeout(3000)]
         public void TestOnEventDeclarationWithoutHandler()
         {
-            var test = "" +
-                "namespace Foo {" +
-                "machine M {" +
-                "start state S1" +
-                "{" +
-                "on e;" +
-                "}" +
-                "}" +
-                "}";
+            var test = @"
+namespace Foo {
+machine M {
+start state S1
+{
+on e;
+}
+}
+}";
 
             var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual(parser.GetParsingErrorLog(),
-                "Expected \"do\", \"goto\" or \"push\".");
+            Assert.AreEqual("Expected \"do\", \"goto\" or \"push\".",
+                parser.GetParsingErrorLog());
         }
 
         [TestMethod, Timeout(3000)]
         public void TestIgnoreEventDeclarationWithoutComma()
         {
-            var test = "" +
-                "namespace Foo {" +
-                "machine M {" +
-                "start state S" +
-                "{" +
-                "ignore e1 e2;" +
-                "}" +
-                "}" +
-                "}";
+            var test = @"
+namespace Foo {
+machine M {
+start state S
+{
+ignore e1 e2;
+}
+}
+}";
 
             var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual(parser.GetParsingErrorLog(),
-                "Expected \",\".");
+            Assert.AreEqual("Expected \",\".",
+                parser.GetParsingErrorLog());
         }
 
         [TestMethod, Timeout(3000)]
         public void TestDeferEventDeclarationWithoutComma()
         {
-            var test = "" +
-                "namespace Foo {" +
-                "machine M {" +
-                "start state S" +
-                "{" +
-                "defer e1 e2;" +
-                "}" +
-                "}" +
-                "}";
+            var test = @"
+namespace Foo {
+machine M {
+start state S
+{
+defer e1 e2;
+}
+}
+}";
 
             var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual(parser.GetParsingErrorLog(),
-                "Expected \",\".");
+            Assert.AreEqual("Expected \",\".",
+                parser.GetParsingErrorLog());
         }
 
         #endregion
@@ -517,101 +514,101 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
         [TestMethod, Timeout(3000)]
         public void TestPublicFieldDeclaration()
         {
-            var test = "" +
-                "namespace Foo {" +
-                "machine M {" +
-                "public int k;" +
-                "start state S { }" +
-                "}" +
-                "}";
+            var test = @"
+namespace Foo {
+machine M {
+public int k;
+start state S { }
+}
+}";
 
             var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual(parser.GetParsingErrorLog(),
-                "A field or method cannot be public.");
+            Assert.AreEqual("A field or method cannot be public.",
+                parser.GetParsingErrorLog());
         }
 
         [TestMethod, Timeout(3000)]
         public void TestInternalFieldDeclaration()
         {
-            var test = "" +
-                "namespace Foo {" +
-                "machine M {" +
-                "internal int k;" +
-                "start state S { }" +
-                "}" +
-                "}";
+            var test = @"
+namespace Foo {
+machine M {
+internal int k;
+start state S { }
+}
+}";
 
             var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual(parser.GetParsingErrorLog(),
-                "A field or method cannot be internal.");
+            Assert.AreEqual("A field or method cannot be internal.",
+                parser.GetParsingErrorLog());
         }
 
         [TestMethod, Timeout(3000)]
         public void TestIntFieldDeclarationWithoutSemicolon()
         {
-            var test = "" +
-                "namespace Foo {" +
-                "machine M {" +
-                "int k" +
-                "start state S { }" +
-                "}" +
-                "}";
+            var test = @"
+namespace Foo {
+machine M {
+int k
+start state S { }
+}
+}";
 
             var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual(parser.GetParsingErrorLog(),
-                "Expected \"(\" or \";\".");
+            Assert.AreEqual("Expected \"(\" or \";\".",
+                parser.GetParsingErrorLog());
         }
 
         [TestMethod, Timeout(3000)]
         public void TestMachineFieldDeclarationWithoutSemicolon()
         {
-            var test = "" +
-                "namespace Foo {" +
-                "machine M {" +
-                "machine N" +
-                "start state S { }" +
-                "}" +
-                "}";
+            var test = @"
+namespace Foo {
+machine M {
+machine N
+start state S { }
+}
+}";
 
             var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual(parser.GetParsingErrorLog(),
-                "Expected \"(\" or \";\".");
+            Assert.AreEqual("Expected \"(\" or \";\".",
+                parser.GetParsingErrorLog());
         }
 
         [TestMethod, Timeout(3000)]
         public void TestPrivateMachineFieldDeclarationWithoutSemicolon()
         {
-            var test = "" +
-                "namespace Foo {" +
-                "machine M {" +
-                "private machine N" +
-                "start state S { }" +
-                "}" +
-                "}";
+            var test = @"
+namespace Foo {
+machine M {
+private machine N
+start state S { }
+}
+}";
 
             var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual(parser.GetParsingErrorLog(),
-                "Expected \"(\" or \";\".");
+            Assert.AreEqual("Expected \"(\" or \";\".",
+                parser.GetParsingErrorLog());
         }
 
         #endregion

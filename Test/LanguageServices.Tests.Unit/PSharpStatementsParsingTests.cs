@@ -14,6 +14,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -29,176 +31,184 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
         [TestMethod, Timeout(3000)]
         public void TestCreateStatementInState()
         {
-            var test = "" +
-                "namespace Foo {" +
-                "machine N {" +
-                "start state S" +
-                "{" +
-                "}" +
-                "}" +
-                "machine M {" +
-                "machine N;" +
-                "start state S" +
-                "{" +
-                "entry" +
-                "{" +
-                "N = create(N);" +
-                "}" +
-                "}" +
-                "}" +
-                "}";
+            var test = @"
+namespace Foo {
+machine N {
+start state S
+{
+}
+}
+machine M {
+machine N;
+start state S
+{
+entry
+{
+N = create(N);
+}
+}
+}
+}";
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false).
                 ParseTokens(tokens);
             program.Rewrite();
 
-            var expected = "using System;" +
-                "using Microsoft.PSharp;" +
-                "namespace Foo" +
-                "{" +
-                "class M : Machine" +
-                "{" +
-                "private MachineId N;" +
-                "[Microsoft.PSharp.Start]" +
-                "class S : MachineState" +
-                "{" +
-                "protected override void OnEntry()" +
-                "{" +
-                "(this.Machine as M).N = this.CreateMachine(typeof(N));" +
-                "}" +
-                "}" +
-                "}" +
-                "}";
+            var expected = @"
+using System;
+using Microsoft.PSharp;
+namespace Foo
+{
+class M : Machine
+{
+private MachineId N;
+[Microsoft.PSharp.Start]
+class S : MachineState
+{
+protected override void OnEntry()
+{
+(this.Machine as M).N = this.CreateMachine(typeof(N));
+}
+}
+}
+}";
 
-            Assert.AreEqual(expected, program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
+                program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
         }
 
         [TestMethod, Timeout(3000)]
         public void TestCreateStatementInStateUsingThis()
         {
-            var test = "" +
-                "namespace Foo {" +
-                "machine M {" +
-                "machine N;" +
-                "start state S" +
-                "{" +
-                "entry" +
-                "{" +
-                "this.N = create N ();" +
-                "}" +
-                "}" +
-                "}" +
-                "}";
+            var test = @"
+namespace Foo {
+machine M {
+machine N;
+start state S
+{
+entry
+{
+this.N = create N ();
+}
+}
+}
+}";
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false).
                 ParseTokens(tokens);
             program.Rewrite();
 
-            var expected = "using System;" +
-                "using Microsoft.PSharp;" +
-                "namespace Foo" +
-                "{" +
-                "class M : Machine" +
-                "{" +
-                "private MachineId N;" +
-                "[Microsoft.PSharp.Start]" +
-                "class S : MachineState" +
-                "{" +
-                "protected override void OnEntry()" +
-                "{" +
-                "(this.Machine as M).N = this.CreateMachine(typeof(N));" +
-                "}" +
-                "}" +
-                "}" +
-                "}";
+            var expected = @"
+using System;
+using Microsoft.PSharp;
+namespace Foo
+{
+class M : Machine
+{
+private MachineId N;
+[Microsoft.PSharp.Start]
+class S : MachineState
+{
+protected override void OnEntry()
+{
+(this.Machine as M).N = this.CreateMachine(typeof(N));
+}
+}
+}
+}";
 
-            Assert.AreEqual(expected, program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
+                program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
         }
 
         [TestMethod, Timeout(3000)]
         public void TestCreateStatementInStateInLocalScope()
         {
-            var test = "" +
-                "namespace Foo {" +
-                "machine M {" +
-                "start state S" +
-                "{" +
-                "entry" +
-                "{" +
-                "machine n = create N ();" +
-                "}" +
-                "}" +
-                "}" +
-                "}";
+            var test = @"
+namespace Foo {
+machine M {
+start state S
+{
+entry
+{
+machine n = create N ();
+}
+}
+}
+}";
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false).
                 ParseTokens(tokens);
             program.Rewrite();
 
-            var expected = "using System;" +
-                "using Microsoft.PSharp;" +
-                "namespace Foo" +
-                "{" +
-                "class M : Machine" +
-                "{" +
-                "[Microsoft.PSharp.Start]" +
-                "class S : MachineState" +
-                "{" +
-                "protected override void OnEntry()" +
-                "{" +
-                "MachineId n = this.CreateMachine(typeof(N));" +
-                "}" +
-                "}" +
-                "}" +
-                "}";
+            var expected = @"
+using System;
+using Microsoft.PSharp;
+namespace Foo
+{
+class M : Machine
+{
+[Microsoft.PSharp.Start]
+class S : MachineState
+{
+protected override void OnEntry()
+{
+MachineId n = this.CreateMachine(typeof(N));
+}
+}
+}
+}";
 
-            Assert.AreEqual(expected, program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
+                program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
         }
 
         [TestMethod, Timeout(3000)]
         public void TestCreateStatementInStateInLocalScope2()
         {
-            var test = "" +
-                "namespace Foo {" +
-                "machine M {" +
-                "start state S" +
-                "{" +
-                "entry" +
-                "{" +
-                "machine n = null;" +
-                "n = create N ();" +
-                "}" +
-                "}" +
-                "}" +
-                "}";
+            var test = @"
+namespace Foo {
+machine M {
+start state S
+{
+entry
+{
+machine n = null;
+n = create N ();
+}
+}
+}
+}";
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false).
                 ParseTokens(tokens);
             program.Rewrite();
 
-            var expected = "using System;" +
-                "using Microsoft.PSharp;" +
-                "namespace Foo" +
-                "{" +
-                "class M : Machine" +
-                "{" +
-                "[Microsoft.PSharp.Start]" +
-                "class S : MachineState" +
-                "{" +
-                "protected override void OnEntry()" +
-                "{" +
-                "MachineId n = null;" +
-                "n = this.CreateMachine(typeof(N));" +
-                "}" +
-                "}" +
-                "}" +
-                "}";
+            var expected = @"
+using System;
+using Microsoft.PSharp;
+namespace Foo
+{
+class M : Machine
+{
+[Microsoft.PSharp.Start]
+class S : MachineState
+{
+protected override void OnEntry()
+{
+MachineId n = null;
+n = this.CreateMachine(typeof(N));
+}
+}
+}
+}";
 
-            Assert.AreEqual(expected, program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
+                program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
         }
 
         #endregion
@@ -208,44 +218,46 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
         [TestMethod, Timeout(3000)]
         public void TestWhileStatement()
         {
-            var test = "" +
-                "namespace Foo {" +
-                "machine M {" +
-                "start state S { }" +
-                "void Bar()" +
-                "{" +
-                "while (true)" +
-                "{" +
-                "}" +
-                "}" +
-                "}" +
-                "}";
+            var test = @"
+namespace Foo {
+machine M {
+start state S { }
+void Bar()
+{
+while (true)
+{
+}
+}
+}
+}";
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false).
                 ParseTokens(tokens);
             program.Rewrite();
 
-            var expected = "using System;" +
-                "using Microsoft.PSharp;" +
-                "namespace Foo" +
-                "{" +
-                "class M : Machine" +
-                "{" +
-                "[Microsoft.PSharp.Start]" +
-                "class S : MachineState" +
-                "{" +
-                "}" +
-                "private void Bar()" +
-                "{" +
-                "while (true)" +
-                "{" +
-                "}" +
-                "}" +
-                "}" +
-                "}";
+            var expected = @"
+using System;
+using Microsoft.PSharp;
+namespace Foo
+{
+class M : Machine
+{
+[Microsoft.PSharp.Start]
+class S : MachineState
+{
+}
+private void Bar()
+{
+while (true)
+{
+}
+}
+}
+}";
 
-            Assert.AreEqual(expected, program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
+                program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
         }
 
         #endregion
@@ -255,44 +267,45 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
         [TestMethod, Timeout(3000)]
         public void TestBreakStatement()
         {
-            var test = "" +
-                "namespace Foo {" +
-                "machine M {" +
-                "start state S { }" +
-                "void Bar()" +
-                "{" +
-                "while (true)" +
-                "{break;}" +
-                "}" +
-                "}" +
-                "}";
+            var test = @"
+namespace Foo {
+machine M {
+start state S { }
+void Bar()
+{
+while (true)
+{break;}
+}
+}
+}";
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false).
                 ParseTokens(tokens);
             program.Rewrite();
 
-            var expected = "using System;" +
-                "using Microsoft.PSharp;" +
-                "namespace Foo" +
-                "{" +
-                "class M : Machine" +
-                "{" +
-                "[Microsoft.PSharp.Start]" +
-                "class S : MachineState" +
-                "{" +
-                "}" +
-                "private void Bar()" +
-                "{" +
-                "while (true)" +
-                "{" +
-                "break;" +
-                "}" +
-                "}" +
-                "}" +
-                "}";
+            var expected = @"using System;
+using Microsoft.PSharp;
+namespace Foo
+{
+class M : Machine
+{
+[Microsoft.PSharp.Start]
+class S : MachineState
+{
+}
+private void Bar()
+{
+while (true)
+{
+break;
+}
+}
+}
+}";
 
-            Assert.AreEqual(expected, program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
+                program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
         }
 
         #endregion
@@ -302,44 +315,46 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
         [TestMethod, Timeout(3000)]
         public void TestContinueStatement()
         {
-            var test = "" +
-                "namespace Foo {" +
-                "machine M {" +
-                "start state S { }" +
-                "void Bar()" +
-                "{" +
-                "while (true)" +
-                "{continue;}" +
-                "}" +
-                "}" +
-                "}";
+            var test = @"
+namespace Foo {
+machine M {
+start state S { }
+void Bar()
+{
+while (true)
+{continue;}
+}
+}
+}";
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false).
                 ParseTokens(tokens);
             program.Rewrite();
 
-            var expected = "using System;" +
-                "using Microsoft.PSharp;" +
-                "namespace Foo" +
-                "{" +
-                "class M : Machine" +
-                "{" +
-                "[Microsoft.PSharp.Start]" +
-                "class S : MachineState" +
-                "{" +
-                "}" +
-                "private void Bar()" +
-                "{" +
-                "while (true)" +
-                "{" +
-                "continue;" +
-                "}" +
-                "}" +
-                "}" +
-                "}";
+            var expected = @"
+using System;
+using Microsoft.PSharp;
+namespace Foo
+{
+class M : Machine
+{
+[Microsoft.PSharp.Start]
+class S : MachineState
+{
+}
+private void Bar()
+{
+while (true)
+{
+continue;
+}
+}
+}
+}";
 
-            Assert.AreEqual(expected, program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
+                program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
         }
 
         #endregion

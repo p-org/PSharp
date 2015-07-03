@@ -63,16 +63,55 @@ namespace Microsoft.PSharp.DynamicAnalysis
                 ErrorReporter.ReportAndExit(ex.Message);
             }
 
-            // Setups the scheduling strategy.
-            AnalysisContext.SetupSchedulingStrategy();
-            
-            // Finds the entry point to the P# program.
-            AnalysisContext.FindEntryPoint();
+            AnalysisContext.Setup();
+        }
+
+        /// <summary>
+        /// Create a new P# dynamic analysis context from the given assembly.
+        /// </summary>
+        /// <param name="assemblyName">Assembly name</param>
+        public static void Create(Assembly assembly)
+        {
+            try
+            {
+                AnalysisContext.Assembly = assembly;
+            }
+            catch (FileNotFoundException ex)
+            {
+                ErrorReporter.ReportAndExit(ex.Message);
+            }
+
+            AnalysisContext.Setup();
         }
 
         #endregion
 
         #region private methods
+
+        /// <summary>
+        /// Setups the analysis context.
+        /// </summary>
+        private static void Setup()
+        {
+            AnalysisContext.SetupSchedulingStrategy();
+            AnalysisContext.FindEntryPoint();
+        }
+
+        /// <summary>
+        /// Setups the scheduling strategy.
+        /// </summary>
+        private static void SetupSchedulingStrategy()
+        {
+            if (Configuration.SchedulingStrategy.Equals("") ||
+                Configuration.SchedulingStrategy.Equals("random"))
+            {
+                AnalysisContext.Strategy = SchedulingStrategy.Random;
+            }
+            else if (Configuration.SchedulingStrategy.Equals("dfs"))
+            {
+                AnalysisContext.Strategy = SchedulingStrategy.DFS;
+            }
+        }
 
         /// <summary>
         /// Finds the entry point to the P# program.
@@ -108,22 +147,6 @@ namespace Microsoft.PSharp.DynamicAnalysis
             }
 
             AnalysisContext.EntryPoint = entrypoints[0];
-        }
-
-        /// <summary>
-        /// Setups the scheduling strategy.
-        /// </summary>
-        private static void SetupSchedulingStrategy()
-        {
-            if (Configuration.SchedulingStrategy.Equals("") ||
-                Configuration.SchedulingStrategy.Equals("random"))
-            {
-                AnalysisContext.Strategy = SchedulingStrategy.Random;
-            }
-            else if (Configuration.SchedulingStrategy.Equals("dfs"))
-            {
-                AnalysisContext.Strategy = SchedulingStrategy.DFS;
-            }
         }
 
         #endregion
