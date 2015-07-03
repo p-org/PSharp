@@ -28,31 +28,6 @@ namespace Microsoft.PSharp
         #region fields
 
         /// <summary>
-        /// Handle to the monitor that owns this state instance.
-        /// </summary>
-        protected internal Monitor Monitor;
-
-        /// <summary>
-        /// Handle to the latest received event type.
-        /// If there was no event received yet the returned
-        /// value is null.
-        /// </summary>
-        protected Type Trigger
-        {
-            get { return this.Monitor.Trigger; }
-        }
-
-        /// <summary>
-        /// Handle to the payload of the last received event.
-        /// If the last received event does not have a payload,
-        /// a null value is returned.
-        /// </summary>
-        protected Object Payload
-        {
-            get { return this.Monitor.Payload; }
-        }
-
-        /// <summary>
         /// The entry action, if the OnEntry is not overriden.
         /// </summary>
         internal Action EntryAction;
@@ -76,6 +51,38 @@ namespace Microsoft.PSharp
         /// Set of ignored event types.
         /// </summary>
         internal HashSet<Type> IgnoredEvents;
+
+        /// <summary>
+        /// Handle to the monitor that owns this state instance.
+        /// </summary>
+        protected Monitor Monitor { get; private set; }
+
+        /// <summary>
+        /// Gets the raised event. If no event has been raised this will
+        /// return null.
+        /// </summary>
+        protected Event RaisedEvent
+        {
+            get { return this.Monitor.RaisedEvent; }
+        }
+
+        /// <summary>
+        /// Gets the latest received payload. If no payload has been
+        /// received this will return null.
+        /// </summary>
+        protected Type Trigger
+        {
+            get { return this.Monitor.Trigger; }
+        }
+
+        /// <summary>
+        /// Gets the latest received payload. If no payload has been
+        /// received this will return null.
+        /// </summary>
+        protected Object Payload
+        {
+            get { return this.Monitor.Payload; }
+        }
 
         #endregion
 

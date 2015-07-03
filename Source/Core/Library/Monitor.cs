@@ -87,23 +87,22 @@ namespace Microsoft.PSharp
         private List<Event> Inbox;
 
         /// <summary>
-        /// A raised event. Null if there is no event raised.
+        /// Gets the raised event. If no event has been raised this will
+        /// return null.
         /// </summary>
-        private Event RaisedEvent;
+        protected internal Event RaisedEvent { get; private set; }
 
         /// <summary>
-        /// Handle to the latest received event type.
-        /// If there was no event received yet the returned
-        /// value is null.
+        /// Gets the latest receiveed event type. If no event has been
+        /// received this will return null.
         /// </summary>
-        protected internal Type Trigger;
+        protected internal Type Trigger { get; private set; }
 
         /// <summary>
-        /// Handle to the payload of the last received event.
-        /// If the last received event does not have a payload,
-        /// a null value is returned.
+        /// Gets the latest received payload. If no payload has been
+        /// received this will return null.
         /// </summary>
-        protected internal Object Payload;
+        protected internal Object Payload { get; private set; }
 
         #endregion
 

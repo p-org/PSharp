@@ -28,42 +28,6 @@ namespace Microsoft.PSharp
         #region fields
 
         /// <summary>
-        /// Unique machine ID.
-        /// </summary>
-        public MachineId Id
-        {
-            get { return this.Machine.Id; }
-        }
-
-        /// <summary>
-        /// Handle to the machine that owns this state instance.
-        /// </summary>
-        protected internal Machine Machine
-        {
-            get; internal set;
-        }
-
-        /// <summary>
-        /// Handle to the latest received event type.
-        /// If there was no event received yet the returned
-        /// value is null.
-        /// </summary>
-        protected Type Trigger
-        {
-            get { return this.Machine.Trigger; }
-        }
-
-        /// <summary>
-        /// Handle to the payload of the last received event.
-        /// If the last received event does not have a payload,
-        /// a null value is returned.
-        /// </summary>
-        protected Object Payload
-        {
-            get { return this.Machine.Payload; }
-        }
-
-        /// <summary>
         /// The entry action, if the OnEntry is not overriden.
         /// </summary>
         internal Action EntryAction;
@@ -97,6 +61,47 @@ namespace Microsoft.PSharp
         /// Set of deferred event types.
         /// </summary>
         internal HashSet<Type> DeferredEvents;
+
+        /// <summary>
+        /// Unique machine ID.
+        /// </summary>
+        protected MachineId Id
+        {
+            get { return this.Machine.Id; }
+        }
+
+        /// <summary>
+        /// Handle to the machine that owns this state instance.
+        /// </summary>
+        protected Machine Machine { get; private set; }
+
+        /// <summary>
+        /// Gets the raised event. If no event has been raised this will
+        /// return null.
+        /// </summary>
+        protected Event RaisedEvent
+        {
+            get { return this.Machine.RaisedEvent; }
+        }
+
+        /// <summary>
+        /// Gets the latest received payload. If no payload has been
+        /// received this will return null.
+        /// </summary>
+        protected Type Trigger
+        {
+            get { return this.Machine.Trigger; }
+        }
+
+        /// <summary>
+        /// Handle to the payload of the last received event.
+        /// If the last received event does not have a payload,
+        /// a null value is returned.
+        /// </summary>
+        protected Object Payload
+        {
+            get { return this.Machine.Payload; }
+        }
 
         #endregion
 
