@@ -127,12 +127,20 @@ namespace Microsoft.PSharp.DynamicAnalysis
                     }
 
                     PSharpRuntime.BugFinder = new Scheduler(SCTEngine.Strategy);
-                    var sw = SCTEngine.RedirectOutput();
+
+                    StringWriter sw = null;
+                    if (Configuration.Verbose < 2)
+                    {
+                        sw = SCTEngine.RedirectOutput();
+                    }
 
                     AnalysisContext.EntryPoint.Invoke(null, null);
                     PSharpRuntime.WaitMachines();
 
-                    SCTEngine.ResetOutput();
+                    if (Configuration.Verbose < 2)
+                    {
+                        SCTEngine.ResetOutput();
+                    }
                     
                     SCTEngine.ExploredSchedules++;
                     SCTEngine.SchedulingPoints = PSharpRuntime.BugFinder.SchedulingPoints;
@@ -180,6 +188,11 @@ namespace Microsoft.PSharp.DynamicAnalysis
             }
             catch (AggregateException)
             {
+                if (Configuration.Verbose < 2)
+                {
+                    SCTEngine.ResetOutput();
+                }
+
                 ErrorReporter.ReportAndExit("Internal systematic testing exception. " +
                     "Please send a bug report to the developers.");
             }
@@ -255,14 +268,8 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// <returns>StringWriter</returns>
         private static StringWriter RedirectOutput()
         {
-            if (Configuration.Verbose == 2)
-            {
-                return null;
-            }
-
             var sw = new StringWriter();
             Console.SetOut(sw);
-
             return sw;
         }
 
@@ -271,11 +278,6 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// </summary>
         private static void ResetOutput()
         {
-            if (Configuration.Verbose == 2)
-            {
-                return;
-            }
-
             var sw = new StreamWriter(Console.OpenStandardOutput());
             sw.AutoFlush = true;
             Console.SetOut(sw);
