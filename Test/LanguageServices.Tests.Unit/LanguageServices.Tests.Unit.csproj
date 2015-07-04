@@ -70,10 +70,19 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="StatementTests\PSharpStatementsParsingFailTests.cs" />
-    <Compile Include="DeclarationTests\PSharpDeclarationsParsingFailTests.cs" />
-    <Compile Include="StatementTests\PSharpStatementsParsingTests.cs" />
-    <Compile Include="DeclarationTests\PSharpDeclarationsParsingTests.cs" />
+    <Compile Include="Declarations\Correct\FieldTests.cs" />
+    <Compile Include="Declarations\Correct\MethodTests.cs" />
+    <Compile Include="Declarations\Correct\StateTests.cs" />
+    <Compile Include="Declarations\Correct\MachineTests.cs" />
+    <Compile Include="Declarations\Correct\EventTests.cs" />
+    <Compile Include="Declarations\Correct\NamespaceTests.cs" />
+    <Compile Include="Declarations\Correct\UsingTests.cs" />
+    <Compile Include="Declarations\StaticError\NamespaceFailTests.cs" />
+    <Compile Include="Declarations\StaticError\EventFailTests.cs" />
+    <Compile Include="Declarations\StaticError\MachineFailTests.cs" />
+    <Compile Include="Declarations\StaticError\FieldFailTests.cs" />
+    <Compile Include="Declarations\StaticError\StateFailTests.cs" />
+    <Compile Include="Declarations\StaticError\UsingFailTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -89,6 +98,7 @@
       <Name>LanguageServices</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
       <ItemGroup>

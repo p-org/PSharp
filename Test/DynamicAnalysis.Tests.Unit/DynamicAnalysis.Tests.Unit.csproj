@@ -73,10 +73,10 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="MachineLevelDeclarationTests\BugRepro1Test.cs" />
-    <Compile Include="MachineLevelDeclarationTests\AlonBugTest.cs" />
-    <Compile Include="MachineLevelDeclarationTests\AlonBugFailTest.cs" />
-    <Compile Include="SendTests\SendInterleavingsFailTest.cs" />
+    <Compile Include="Feature1SMLevelDecls\Correct\BugRepro1Test.cs" />
+    <Compile Include="Feature1SMLevelDecls\Correct\AlonBugTest.cs" />
+    <Compile Include="Feature1SMLevelDecls\DynamicError\AlonBugFailTest.cs" />
+    <Compile Include="Integration\SendInterleavingsFailTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

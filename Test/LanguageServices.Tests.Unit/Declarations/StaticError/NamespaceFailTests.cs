@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="PSharpStatementsParsingFailTests.cs" company="Microsoft">
+// <copyright file="NamespaceFailTests.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -22,62 +22,34 @@ using Microsoft.PSharp.LanguageServices.Parsing;
 namespace Microsoft.PSharp.LanguageServices.Tests.Unit
 {
     [TestClass]
-    public class PSharpStatementsParsingFailTests
+    public class NamespaceFailTests
     {
-        #region create statements
-
         [TestMethod, Timeout(3000)]
-        public void TestCreateStatementInStateWithoutBrackets()
+        public void TestUnexpectedTokenWithoutNamespace()
         {
-            var test = @"
-namespace Foo {
-machine M {
-machine N;
-start state S
-{
-entry
-{
-N = create N;
-}
-}
-}
-}";
+            var test = "private";
 
             var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual("Expected \"(\".",
+            Assert.AreEqual("Unexpected token.",
                 parser.GetParsingErrorLog());
         }
 
         [TestMethod, Timeout(3000)]
-        public void TestCreateStatementInStateWithoutIdentifier()
+        public void TestNamespaceDeclarationWithoutIdentifier()
         {
-            var test = @"
-namespace Foo {
-machine M {
-machine N;
-start state S
-{
-entry
-{
-N = create;
-}
-}
-}
-}";
+            var test = "namespace { }";
 
             var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual("Expected machine identifier.",
+            Assert.AreEqual("Expected namespace identifier.",
                 parser.GetParsingErrorLog());
         }
-
-        #endregion
     }
 }
