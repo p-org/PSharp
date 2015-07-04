@@ -153,6 +153,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         TypeIdentifier,
 
         CreateMachine,
+        CreateRemoteMachine,
         SendEvent,
         ToMachine,
         RaiseEvent,

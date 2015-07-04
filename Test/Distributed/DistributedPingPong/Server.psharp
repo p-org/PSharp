@@ -8,8 +8,8 @@
         {
             entry
             {
-                this.Client = create Client ( this );
-                raise Unit;
+                this.Client = remote(Client, this);
+                raise(Unit);
             }
 
             on Unit goto Playing;
@@ -19,7 +19,7 @@
         {
             entry
             {
-                send this.Client, Pong;
+                send(this.Client, Pong);
             }
 
             on Unit do SendPong;
@@ -28,7 +28,7 @@
 
         void SendPong()
         {
-            send this.Client, Pong;
+            send(this.Client, Pong);
         }
     }
 }

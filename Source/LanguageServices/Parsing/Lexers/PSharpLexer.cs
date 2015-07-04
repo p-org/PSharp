@@ -375,6 +375,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     this.Tokens.Add(new Token(unit, TokenType.CreateMachine));
                     break;
 
+                case "remote":
+                    this.Tokens.Add(new Token(unit, TokenType.CreateRemoteMachine));
+                    break;
+
                 case "send":
                     this.Tokens.Add(new Token(unit, TokenType.SendEvent));
                     break;

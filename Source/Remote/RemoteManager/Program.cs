@@ -27,8 +27,6 @@ namespace Microsoft.PSharp.Remote
 
         static void Main(string[] args)
         {
-            Output.WriteLine(". Setting up");
-
             // Parses the command line options.
             new RemoteManagerCommandLineOptions(args).Parse();
             

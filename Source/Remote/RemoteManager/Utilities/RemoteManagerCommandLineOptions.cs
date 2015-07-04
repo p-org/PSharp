@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.IO;
 
 using Microsoft.PSharp.Tooling;
 
@@ -85,6 +86,12 @@ namespace Microsoft.PSharp.Remote
             if (Configuration.ApplicationFilePath.Equals(""))
             {
                 ErrorReporter.ReportAndExit("Please give a valid P# application path.");
+            }
+
+            if (!Path.GetExtension(Configuration.ApplicationFilePath).Equals(".dll"))
+            {
+                ErrorReporter.ReportAndExit("The application must be a `dll` file compiled " +
+                    "using the P# compiler with the option `/distributed`.");
             }
         }
 

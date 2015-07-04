@@ -121,6 +121,7 @@ namespace Microsoft.PSharp.LanguageServices
         private void RewriteStatements()
         {
             this.SyntaxTree = new CreateMachineRewriter(this.Project).Rewrite(this.SyntaxTree);
+            this.SyntaxTree = new CreateRemoteMachineRewriter(this.Project).Rewrite(this.SyntaxTree);
             this.SyntaxTree = new SendRewriter(this.Project).Rewrite(this.SyntaxTree);
             this.SyntaxTree = new MonitorRewriter(this.Project).Rewrite(this.SyntaxTree);
             this.SyntaxTree = new RaiseRewriter(this.Project).Rewrite(this.SyntaxTree);

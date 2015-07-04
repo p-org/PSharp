@@ -110,6 +110,7 @@
     <Compile Include="Rewriting\PSharp\Expressions\TriggerRewriter.cs" />
     <Compile Include="Rewriting\PSharp\PSharpRewriter.cs" />
     <Compile Include="Rewriting\PSharp\Statements\AssertRewriter.cs" />
+    <Compile Include="Rewriting\PSharp\Statements\CreateRemoteMachineRewriter.cs" />
     <Compile Include="Rewriting\PSharp\Statements\CreateMachineRewriter.cs" />
     <Compile Include="Rewriting\PSharp\Statements\MonitorRewriter.cs" />
     <Compile Include="Rewriting\PSharp\Statements\PopRewriter.cs" />

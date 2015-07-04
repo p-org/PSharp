@@ -33,14 +33,12 @@ namespace Microsoft.PSharp
         MachineId TryCreateMachine(Type type, params Object[] payload);
 
         /// <summary>
-        /// Tries to create a new local or remote machine of the given type
-        /// with an optional payload.
+        /// Tries to create a new remote machine of the given type with an optional payload.
         /// </summary>
         /// <param name="type">Type of the machine</param>
-        /// <param name="isRemote">Create in another node</param>
         /// <param name="payload">Optional payload</param>
         /// <returns>Machine id</returns>
-        MachineId TryCreateMachine(Type type, bool isRemote, params Object[] payload);
+        MachineId TryCreateRemoteMachine(Type type, params Object[] payload);
 
         /// <summary>
         /// Sends an asynchronous event to a machine.

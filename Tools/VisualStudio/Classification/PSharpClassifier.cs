@@ -259,6 +259,7 @@ namespace Microsoft.PSharp.VisualStudio
                 case TokenType.Await:
 
                 case TokenType.CreateMachine:
+                case TokenType.CreateRemoteMachine:
                 case TokenType.SendEvent:
                 case TokenType.ToMachine:
                 case TokenType.RaiseEvent:

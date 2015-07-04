@@ -40,23 +40,14 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Tries to create a new local or remote machine of the given type
-        /// with an optional payload.
+        /// Tries to create a new remote machine of the given type with an optional payload.
         /// </summary>
         /// <param name="type">Type of the machine</param>
-        /// <param name="isRemote">Create in another node</param>
         /// <param name="payload">Optional payload</param>
         /// <returns>Machine id</returns>
-        MachineId IDispatcher.TryCreateMachine(Type type, bool isRemote, params Object[] payload)
+        MachineId IDispatcher.TryCreateRemoteMachine(Type type, params Object[] payload)
         {
-            if (isRemote)
-            {
-                return PSharpRuntime.TryCreateMachineRemotely(type, payload);
-            }
-            else
-            {
-                return PSharpRuntime.TryCreateMachine(type, payload);
-            }
+            return PSharpRuntime.TryCreateMachineRemotely(type, payload);
         }
 
         /// <summary>

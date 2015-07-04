@@ -373,6 +373,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     text = "create";
                     break;
 
+                case TokenType.CreateRemoteMachine:
+                    text = "remote";
+                    break;
+
                 case TokenType.SendEvent:
                     text = "send";
                     break;
