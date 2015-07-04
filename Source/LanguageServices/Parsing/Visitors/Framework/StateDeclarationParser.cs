@@ -52,7 +52,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
             var compilation = project.GetCompilationAsync().Result;
 
             var states = tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().
-                Where(val => Querying.IsMachineState(compilation, val)).
+                Where(val => Querying.IsMachineState(compilation, val) ||
+                    Querying.IsMonitorState(compilation, val)).
                 ToList();
 
             foreach (var state in states)

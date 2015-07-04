@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="MachineDeclarationParser.cs">
+// <copyright file="MonitorDeclarationParser.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -25,9 +25,9 @@ using Microsoft.PSharp.Tooling;
 namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 {
     /// <summary>
-    /// The P# machine declaration parsing visitor.
+    /// The P# monitor declaration parsing visitor.
     /// </summary>
-    internal sealed class MachineDeclarationParser : BaseMachineVisitor
+    internal sealed class MonitorDeclarationParser : BaseMachineVisitor
     {
         #region public API
 
@@ -36,7 +36,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// </summary>
         /// <param name="project">PSharpProject</param>
         /// <param name="errorLog">Error log</param>
-        internal MachineDeclarationParser(PSharpProject project, List<Tuple<SyntaxToken, string>> errorLog)
+        internal MonitorDeclarationParser(PSharpProject project, List<Tuple<SyntaxToken, string>> errorLog)
             : base(project, errorLog)
         {
 
@@ -54,7 +54,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// <returns>Boolean value</returns>
         protected override bool IsThisMachineType(CodeAnalysis.Compilation compilation, ClassDeclarationSyntax classDecl)
         {
-            return Querying.IsMachine(compilation, classDecl);
+            return Querying.IsMonitor(compilation, classDecl);
         }
 
         /// <summary>
@@ -63,7 +63,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// <returns>Text</returns>
         protected override string GetTypeOfMachine()
         {
-            return "Machine";
+            return "Monitor";
         }
 
         #endregion

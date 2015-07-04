@@ -68,6 +68,8 @@
     <Compile Include="Parsing\Parsers\PParser.cs" />
     <Compile Include="Parsing\Parsers\CSharpParser.cs" />
     <Compile Include="Parsing\Parsers\PSharpParser.cs" />
+    <Compile Include="Parsing\Visitors\Framework\BaseMachineVisitor.cs" />
+    <Compile Include="Parsing\Visitors\Framework\MonitorDeclarationParser.cs" />
     <Compile Include="Parsing\Visitors\Framework\StateDeclarationParser.cs" />
     <Compile Include="Parsing\Visitors\Framework\MachineDeclarationParser.cs" />
     <Compile Include="Parsing\Visitors\Framework\BaseVisitor.cs" />
