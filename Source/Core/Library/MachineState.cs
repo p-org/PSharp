@@ -76,15 +76,6 @@ namespace Microsoft.PSharp
         protected Machine Machine { get; private set; }
 
         /// <summary>
-        /// Gets the raised event. If no event has been raised this will
-        /// return null.
-        /// </summary>
-        protected Event RaisedEvent
-        {
-            get { return this.Machine.RaisedEvent; }
-        }
-
-        /// <summary>
         /// Gets the latest received payload. If no payload has been
         /// received this will return null.
         /// </summary>

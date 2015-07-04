@@ -106,7 +106,7 @@ namespace Microsoft.PSharp
         /// Gets the raised event. If no event has been raised this will
         /// return null.
         /// </summary>
-        protected internal Event RaisedEvent { get; private set; }
+        private Event RaisedEvent;
 
         /// <summary>
         /// Gets the latest receiveed event type. If no event has been
