@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="SEMOneMachine34Test.cs" company="Microsoft">
+// <copyright file="SEMTwoMachines2Test.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -28,83 +28,96 @@ using Microsoft.PSharp.Tooling;
 namespace Microsoft.PSharp.DynamicAnalysis.Tests.Unit
 {
     [TestClass]
-    public class SEMOneMachine34Test : BasePSharpTest
+    public class SEMTwoMachines2Test : BasePSharpTest
     {
+        /// <summary>
+        /// Tests that an event sent to a machine after it received the
+        /// "halt" event is ignored by the halted machine.
+        /// </summary>
         [TestMethod]
-        public void TestSEMOneMachine34()
+        public void TestEventSentAfterSentHalt()
         {
             var test = @"
 using System;
-using System.Collections.Generic;
 using Microsoft.PSharp;
 
 namespace SystematicTesting
 {
-    class E1 : Event { }
-    class E2 : Event { }
-    class E3 : Event { }
-    class E4 : Event { }
+    class Ping : Event {
+        public Ping() : base(1, -1) { }
+    }
 
-    class MachOS : Machine
+    class Pong : Event {
+        public Pong() : base(1, -1) { }
+    }
+
+    class Success : Event { }
+    class PingIgnored : Event { }
+    class PongHalted : Event { }
+
+    class PING : Machine
     {
-        int Int;
-        bool Bool;
-        MachineId mach;
-        Dictionary<int, int> m;
-        List<bool> s;
+        MachineId PongId;
+        int Count;
 
         [Start]
         [OnEntry(nameof(EntryInit))]
-        [OnEventDoAction(typeof(E1), nameof(Foo1))]
-        [OnEventDoAction(typeof(E2), nameof(Foo2))]
-        [OnEventDoAction(typeof(E3), nameof(Foo3))]
-        [OnEventDoAction(typeof(E4), nameof(Foo4))]
+        [OnEventGotoState(typeof(Success), typeof(SendPing))]
         class Init : MachineState { }
 
         void EntryInit()
         {
-            m = new Dictionary<int, int>();
-            s = new List<bool>();
-            m.Add(0, 1);
-            m.Add(1, 2);
-			s.Add(true);
-			s.Add(false);
-			s.Add(true);
-			this.Send(this.Id, new E1(), Tuple.Create(1, true));
-			this.Send(this.Id, new E2(), 0, false);
-            this.Send(this.Id, new E3(), 1);
-			this.Send(this.Id, new E4(), Tuple.Create(m, s));
-
+            PongId = this.CreateMachine(typeof(PONG));
+            this.Raise(new Success());
         }
 
-        void Foo1()
+        [OnEntry(nameof(EntrySendPing))]
+        [OnEventGotoState(typeof(Success), typeof(WaitPong))]
+        class SendPing : MachineState { }
+
+        void EntrySendPing()
         {
-            Int = (int)(this.Payload as Tuple<int, bool>).Item1;
-            this.Assert(Int == 1);
-            Bool = (bool)(this.Payload as Tuple<int, bool>).Item2;
-            this.Assert(Bool == true);
+            Count = Count + 1;
+            if (Count == 1)
+            {
+                this.Send(PongId, new Ping(), this.Id);
+            }
+            // halt PONG after one exchange
+            if (Count == 2)
+            {
+                //this.Send(PongId, new Halt());
+                this.Send(PongId, new PingIgnored());
+            }
+
+            this.Raise(new Success());
         }
 
-        void Foo2()
+        [OnEventGotoState(typeof(Pong), typeof(SendPing))]
+        class WaitPong : MachineState { }
+
+        class Done : MachineState { }
+    }
+
+    class PONG : Machine
+    {
+        [Start]
+        [OnEventGotoState(typeof(Ping), typeof(SendPong))]
+        [OnEventDoAction(typeof(PingIgnored), nameof(Action1))]
+        class WaitPing : MachineState { }
+
+        void Action1()
         {
-            Int = (int)(this.Payload as object[])[0];
-            this.Assert(Int == 0);
-            Bool = (bool)(this.Payload as object[])[1];
-            this.Assert(Bool == false);
+            this.Assert(false); // reachable
         }
 
-        void Foo3()
-        {
-            Int = (int)this.Payload;
-            this.Assert(Int == 1);
-        }
+        [OnEntry(nameof(EntrySendPong))]
+        [OnEventGotoState(typeof(Success), typeof(WaitPing))]
+        class SendPong : MachineState { }
 
-        void Foo4()
+        void EntrySendPong()
         {
-            Int = ((this.Payload as Tuple<Dictionary<int, int>, List<bool>>).Item1 as Dictionary<int, int>)[0];
-            this.Assert(Int == 1);
-            Bool = ((this.Payload as Tuple<Dictionary<int, int>, List<bool>>).Item2 as List<bool>)[2];
-            this.Assert(Bool == true);
+            this.Send(this.Payload as MachineId, new Pong());
+            this.Raise(new Success());
         }
     }
 
@@ -119,7 +132,7 @@ namespace SystematicTesting
         [EntryPoint]
         public static void Execute()
         {
-            PSharpRuntime.CreateMachine(typeof(MachOS));
+            PSharpRuntime.CreateMachine(typeof(PING));
         }
     }
 }";
@@ -129,7 +142,6 @@ namespace SystematicTesting
             program.Rewrite();
 
             Configuration.Verbose = 2;
-            Configuration.SchedulingIterations = 100;
             Configuration.SchedulingStrategy = "dfs";
 
             var assembly = base.GetAssembly(program.GetSyntaxTree());
@@ -138,7 +150,7 @@ namespace SystematicTesting
             SCTEngine.Setup();
             SCTEngine.Run();
 
-            Assert.AreEqual(0, SCTEngine.NumOfFoundBugs);
+            Assert.AreEqual(1, SCTEngine.NumOfFoundBugs);
         }
     }
 }

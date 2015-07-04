@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="BugRepro1Test.cs" company="Microsoft">
+// <copyright file="SEMTwoMachines4Test.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -28,10 +28,15 @@ using Microsoft.PSharp.Tooling;
 namespace Microsoft.PSharp.DynamicAnalysis.Tests.Unit
 {
     [TestClass]
-    public class BugRepro1Test : BasePSharpTest
+    public class SEMTwoMachines4Test : BasePSharpTest
     {
+        /// <summary>
+        /// Tests that an event sent to a machine after it received the
+        /// "halt" event is ignored by the halted machine.
+        /// Case when "halt" is explicitly handled.
+        /// </summary>
         [TestMethod]
-        public void TestBugRepro1()
+        public void TestEventSentAfterSentHaltHandled()
         {
             var test = @"
 using System;
@@ -43,65 +48,80 @@ namespace SystematicTesting
         public Ping() : base(1, -1) { }
     }
 
+    class Pong : Event {
+        public Pong() : base(1, -1) { }
+    }
+
     class Success : Event { }
+    class PingIgnored : Event { }
 
     class PING : Machine
     {
-        int x;
-        int y;
+        MachineId PongId;
+        int Count;
 
         [Start]
-        [OnEntry(nameof(EntryPingInit))]
-        [OnEventDoAction(typeof(Success), nameof(SuccessAction))]
-        [OnEventDoAction(typeof(Ping), nameof(PingAction))]
-        class PingInit : MachineState { }
+        [OnEntry(nameof(EntryInit))]
+        [OnEventGotoState(typeof(Success), typeof(SendPing))]
+        class Init : MachineState { }
 
-        void EntryPingInit()
+        void EntryInit()
         {
+            PongId = this.CreateMachine(typeof(PONG));
             this.Raise(new Success());
         }
 
-        void SuccessAction()
-        {
-            x = Func1(1, 1);
-            this.Assert(x == 2);
-            y = Func2(x); // x == 2
-        }
+        [OnEntry(nameof(EntrySendPing))]
+        [OnEventGotoState(typeof(Success), typeof(WaitPong))]
+        class SendPing : MachineState { }
 
-        void PingAction()
+        void EntrySendPing()
         {
-            this.Assert(x == 4); 
-            x = x + 1;
-            this.Assert(x == 5);
-        }
-
-        // i: value passed; j: identifies caller (1: Success handler;  2: Func2)
-        int Func1(int i, int j)
-        {
-            if (j == 1)
-            {     
-                i = i + 1; // i: 2
-            }
-
-            if (j == 2)
+            Count = Count + 1;
+            if (Count == 1)
             {
-                this.Assert(i == 3);  
-                i = i + 1;
-                this.Assert(i == 4);
-                this.Send(this.Id, new Ping(), i);
-                this.Assert(i == 4);
+                this.Send(PongId, new Ping(), this.Id);
+            }
+            // halt PONG after one exchange
+            if (Count == 2)
+            {
+                this.Send(PongId, new Halt());
+                this.Send(PongId, new PingIgnored());
             }
 
-	    	return i;
+            this.Raise(new Success());
         }
 
-        int Func2(int v)
+        [OnEventGotoState(typeof(Pong), typeof(SendPing))]
+        class WaitPong : MachineState { }
+
+        class Done : MachineState { }
+    }
+
+    class PONG : Machine
+    {
+        [Start]
+        [OnEventGotoState(typeof(Ping), typeof(SendPong))]
+        [OnEventGotoState(typeof(Halt), typeof(PongHalt))]
+        class WaitPing : MachineState { }
+
+        [OnEntry(nameof(EntrySendPong))]
+        [OnEventGotoState(typeof(Success), typeof(WaitPing))]
+        class SendPong : MachineState { }
+
+        void EntrySendPong()
         {
-            v = v + 1;       
-            this.Assert(v == 3);
-            x = Func1(v, 2);
-            this.Assert( x == 4);
-	    	return v;
+            this.Send(this.Payload as MachineId, new Pong());
+            this.Raise(new Success());
+        }
+
+        [OnEventDoAction(typeof(PingIgnored), nameof(Action1))]
+        [IgnoreEvents(typeof(Ping))]
+        class PongHalt : MachineState { }
+
+        void Action1()
+        {
+            this.Assert(false); // reachable
         }
     }
 
@@ -126,6 +146,7 @@ namespace SystematicTesting
             program.Rewrite();
 
             Configuration.Verbose = 2;
+            Configuration.SchedulingStrategy = "dfs";
 
             var assembly = base.GetAssembly(program.GetSyntaxTree());
             AnalysisContext.Create(assembly);
@@ -133,7 +154,7 @@ namespace SystematicTesting
             SCTEngine.Setup();
             SCTEngine.Run();
 
-            Assert.AreEqual(0, SCTEngine.NumOfFoundBugs);
+            Assert.AreEqual(1, SCTEngine.NumOfFoundBugs);
         }
     }
 }

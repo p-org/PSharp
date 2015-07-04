@@ -35,11 +35,6 @@ namespace Microsoft.PSharp.DynamicAnalysis
         private static ISchedulingStrategy Strategy;
 
         /// <summary>
-        /// Number of scheduling points.
-        /// </summary>
-        private static int SchedulingPoints;
-
-        /// <summary>
         /// Explored schedules so far.
         /// </summary>
         private static int ExploredSchedules;
@@ -59,6 +54,11 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// </summary>
         public static int NumOfFoundBugs { get; private set; }
 
+        /// <summary>
+        /// Explored depth of scheduling decisions.
+        /// </summary>
+        public static int ExploredDepth { get; private set; }
+
         #endregion
 
         #region public API
@@ -69,7 +69,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
         public static void Setup()
         {
             SCTEngine.NumOfFoundBugs = 0;
-            SCTEngine.SchedulingPoints = 0;
+            SCTEngine.ExploredDepth = 0;
             SCTEngine.ExploredSchedules = 0;
             SCTEngine.PrintGuard = 1;
 
@@ -142,7 +142,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
                     }
                     
                     SCTEngine.ExploredSchedules++;
-                    SCTEngine.SchedulingPoints = PSharpRuntime.BugFinder.SchedulingPoints;
+                    SCTEngine.ExploredDepth = PSharpRuntime.BugFinder.SchedulingPoints;
 
                     if (PSharpRuntime.BugFinder.BugFound)
                     {
@@ -217,7 +217,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
                 Output.Print("... Found {0} % buggy schedules.",
                     (SCTEngine.NumOfFoundBugs * 100 / SCTEngine.ExploredSchedules));
                 Output.Print("... Instrumented {0} scheduling point{1} (on last iteration).",
-                    SCTEngine.SchedulingPoints, SCTEngine.SchedulingPoints == 1 ? "" : "s");
+                    SCTEngine.ExploredDepth, SCTEngine.ExploredDepth == 1 ? "" : "s");
             }
 
             if (Configuration.DepthBound > 0)

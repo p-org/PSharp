@@ -109,7 +109,7 @@ namespace Microsoft.PSharp
         private Event RaisedEvent;
 
         /// <summary>
-        /// Gets the latest receiveed event type. If no event has been
+        /// Gets the latest received event type. If no event has been
         /// received this will return null.
         /// </summary>
         protected internal Type Trigger { get; private set; }

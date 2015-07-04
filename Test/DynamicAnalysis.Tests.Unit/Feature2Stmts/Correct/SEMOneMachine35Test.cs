@@ -17,10 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.IO;
-using System.Reflection;
 
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -31,10 +28,8 @@ using Microsoft.PSharp.Tooling;
 namespace Microsoft.PSharp.DynamicAnalysis.Tests.Unit
 {
     [TestClass]
-    public class SEMOneMachine35Test
+    public class SEMOneMachine35Test : BasePSharpTest
     {
-        #region tests
-
         [TestMethod]
         public void TestSEMOneMachine35()
         {
@@ -174,7 +169,7 @@ namespace SystematicTesting
 
             Configuration.Verbose = 2;
 
-            var assembly = this.GetAssembly(program.GetSyntaxTree());
+            var assembly = base.GetAssembly(program.GetSyntaxTree());
             AnalysisContext.Create(assembly);
 
             SCTEngine.Setup();
@@ -182,45 +177,5 @@ namespace SystematicTesting
 
             Assert.AreEqual(0, SCTEngine.NumOfFoundBugs);
         }
-
-        #endregion
-
-        #region helper methods
-
-        /// <summary>
-        /// Get assembly from the given text.
-        /// </summary>
-        /// <param name="tree">SyntaxTree</param>
-        /// <returns>Assembly</returns>
-        private Assembly GetAssembly(SyntaxTree tree)
-        {
-            Assembly assembly = null;
-            
-            var references = new MetadataReference[]
-            {
-                MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(Machine).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(BugFindingDispatcher).Assembly.Location)
-            };
-
-            var compilation = CSharpCompilation.Create(
-                "PSharpTestAssembly", new[] { tree }, references,
-                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-
-            using (var ms = new MemoryStream())
-            {
-                var result = compilation.Emit(ms);
-                if (result.Success)
-                {
-                    ms.Seek(0, SeekOrigin.Begin);
-                    assembly = Assembly.Load(ms.ToArray());
-                }
-            }
-
-            return assembly;
-        }
-
-        #endregion
     }
 }

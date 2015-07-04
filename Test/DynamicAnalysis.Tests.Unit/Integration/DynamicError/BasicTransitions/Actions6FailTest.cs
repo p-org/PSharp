@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="MaxInstances2Test.cs" company="Microsoft">
+// <copyright file="Actions6FailTest.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -27,11 +27,14 @@ using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp.DynamicAnalysis.Tests.Unit
 {
+    /// <summary>
+    /// Tests that payload works correctly with a push transition.
+    /// </summary>
     [TestClass]
-    public class MaxInstances2Test : BasePSharpTest
+    public class Actions6FailTest : BasePSharpTest
     {
         [TestMethod]
-        public void TestMaxInstances2()
+        public void TestActions6Fail()
         {
             var test = @"
 using System;
@@ -48,29 +51,31 @@ namespace SystematicTesting
     }
 
     class E3 : Event {
-        public E3() : base(-1, -1) { }
+        public E3() : base(1, -1) { }
     }
 
-    class E4 : Event { }
+    class E4 : Event {
+        public E4() : base(1, -1) { }
+    }
 
     class Unit : Event {
         public Unit() : base(1, -1) { }
     }
 
-    class RealMachine : Machine
+    class Real : Machine
     {
         MachineId GhostMachine;
 
         [Start]
         [OnEntry(nameof(EntryInit))]
-        [OnEventPushState(typeof(Unit), typeof(S1))]
         [OnEventGotoState(typeof(E4), typeof(S2))]
+        [OnEventPushState(typeof(Unit), typeof(S1))]
         [OnEventDoAction(typeof(E2), nameof(Action1))]
         class Init : MachineState { }
 
         void EntryInit()
         {
-            GhostMachine = this.CreateMachine(typeof(GhostMachine), this.Id);
+            GhostMachine = this.CreateMachine(typeof(Ghost), this.Id);
             this.Raise(new Unit());
         }
 
@@ -83,46 +88,37 @@ namespace SystematicTesting
         }
 
         [OnEntry(nameof(EntryS2))]
-        [OnEventGotoState(typeof(Unit), typeof(S3))]
         class S2 : MachineState { }
 
         void EntryS2()
         {
-            this.Raise(new Unit());
+            // this assert is reachable
+            this.Assert(false);
         }
-
-        [OnEventGotoState(typeof(E4), typeof(S3))]
-        class S3 : MachineState { }
 
         void Action1()
         {
-            this.Assert((int)this.Payload == 100);
-            this.Send(GhostMachine, new E3());
+            this.Assert((int)this.Payload == 100); // this assert passes
             this.Send(GhostMachine, new E3());
         }
     }
 
-    class GhostMachine : Machine
+    class Ghost : Machine
     {
         MachineId RealMachine;
 
         [Start]
         [OnEntry(nameof(EntryInit))]
-        [OnEventGotoState(typeof(Unit), typeof(GhostInit))]
+        [OnEventGotoState(typeof(E1), typeof(S1))]
         class Init : MachineState { }
 
         void EntryInit()
         {
             RealMachine = this.Payload as MachineId;
-            this.Raise(new Unit());
         }
-
-        [OnEventGotoState(typeof(E1), typeof(S1))]
-        class GhostInit : MachineState { }
 
         [OnEntry(nameof(EntryS1))]
         [OnEventGotoState(typeof(E3), typeof(S2))]
-        [IgnoreEvents(typeof(E1))]
         class S1 : MachineState { }
 
         void EntryS1()
@@ -131,13 +127,10 @@ namespace SystematicTesting
         }
 
         [OnEntry(nameof(EntryS2))]
-        [OnEventGotoState(typeof(E3), typeof(GhostInit))]
         class S2 : MachineState { }
 
         void EntryS2()
         {
-            this.Send(RealMachine, new E4());
-            this.Send(RealMachine, new E4());
             this.Send(RealMachine, new E4());
         }
     }
@@ -153,7 +146,7 @@ namespace SystematicTesting
         [EntryPoint]
         public static void Execute()
         {
-            PSharpRuntime.CreateMachine(typeof(RealMachine));
+            PSharpRuntime.CreateMachine(typeof(Real));
         }
     }
 }";
@@ -162,7 +155,7 @@ namespace SystematicTesting
             var program = parser.Parse();
             program.Rewrite();
 
-            Configuration.SchedulingIterations = 257;
+            Configuration.Verbose = 2;
             Configuration.SchedulingStrategy = "dfs";
 
             var assembly = base.GetAssembly(program.GetSyntaxTree());
@@ -171,7 +164,8 @@ namespace SystematicTesting
             SCTEngine.Setup();
             SCTEngine.Run();
 
-            Assert.AreEqual(0, SCTEngine.NumOfFoundBugs);
+            Assert.AreEqual(1, SCTEngine.NumOfFoundBugs);
+            Assert.AreEqual(5, SCTEngine.ExploredDepth);
         }
     }
 }

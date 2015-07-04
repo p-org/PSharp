@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="MaxInstances2Test.cs" company="Microsoft">
+// <copyright file="Actions1FailTest.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -28,10 +28,13 @@ using Microsoft.PSharp.Tooling;
 namespace Microsoft.PSharp.DynamicAnalysis.Tests.Unit
 {
     [TestClass]
-    public class MaxInstances2Test : BasePSharpTest
+    public class Actions1FailTest : BasePSharpTest
     {
+        /// <summary>
+        /// Tests basic semantics of actions and goto transitions.
+        /// </summary>
         [TestMethod]
-        public void TestMaxInstances2()
+        public void TestActions1Fail()
         {
             var test = @"
 using System;
@@ -48,98 +51,91 @@ namespace SystematicTesting
     }
 
     class E3 : Event {
-        public E3() : base(-1, -1) { }
+        public E3() : base(1, -1) { }
     }
 
-    class E4 : Event { }
+    class E4 : Event {
+        public E4() : base(1, -1) { }
+    }
 
     class Unit : Event {
         public Unit() : base(1, -1) { }
     }
 
-    class RealMachine : Machine
+    class Real : Machine
     {
         MachineId GhostMachine;
+        bool test;
 
         [Start]
         [OnEntry(nameof(EntryInit))]
-        [OnEventPushState(typeof(Unit), typeof(S1))]
-        [OnEventGotoState(typeof(E4), typeof(S2))]
-        [OnEventDoAction(typeof(E2), nameof(Action1))]
+        [OnExit(nameof(ExitInit))]
+        [OnEventGotoState(typeof(E2), typeof(S1))] // exit actions are performed before transition to S1
+        [OnEventDoAction(typeof(E4), nameof(Action1))] // E4, E3 have no effect on reachability of assert(false)
         class Init : MachineState { }
 
         void EntryInit()
         {
-            GhostMachine = this.CreateMachine(typeof(GhostMachine), this.Id);
-            this.Raise(new Unit());
+            GhostMachine = this.CreateMachine(typeof(Ghost), this.Id);
+            this.Send(GhostMachine, new E1());
+        }
+
+        void ExitInit()
+        {
+            test = true;
         }
 
         [OnEntry(nameof(EntryS1))]
+        [OnEventGotoState(typeof(Unit), typeof(S2))]
         class S1 : MachineState { }
 
         void EntryS1()
         {
-            this.Send(GhostMachine, new E1());
+            this.Assert(test == true); // holds
+            this.Raise(new Unit());
         }
 
         [OnEntry(nameof(EntryS2))]
-        [OnEventGotoState(typeof(Unit), typeof(S3))]
         class S2 : MachineState { }
 
         void EntryS2()
         {
-            this.Raise(new Unit());
+            // this assert is reachable: Real -E1-> Ghost -E2-> Real;
+            // then Real_S1 (assert holds), Real_S2 (assert fails)
+            this.Assert(false);
         }
-
-        [OnEventGotoState(typeof(E4), typeof(S3))]
-        class S3 : MachineState { }
 
         void Action1()
         {
-            this.Assert((int)this.Payload == 100);
-            this.Send(GhostMachine, new E3());
             this.Send(GhostMachine, new E3());
         }
     }
 
-    class GhostMachine : Machine
+    class Ghost : Machine
     {
         MachineId RealMachine;
 
         [Start]
         [OnEntry(nameof(EntryInit))]
-        [OnEventGotoState(typeof(Unit), typeof(GhostInit))]
+        [OnEventGotoState(typeof(E1), typeof(S1))]
         class Init : MachineState { }
 
         void EntryInit()
         {
             RealMachine = this.Payload as MachineId;
-            this.Raise(new Unit());
         }
-
-        [OnEventGotoState(typeof(E1), typeof(S1))]
-        class GhostInit : MachineState { }
 
         [OnEntry(nameof(EntryS1))]
         [OnEventGotoState(typeof(E3), typeof(S2))]
-        [IgnoreEvents(typeof(E1))]
         class S1 : MachineState { }
 
         void EntryS1()
         {
-            this.Send(RealMachine, new E2(), 100);
+            this.Send(RealMachine, new E4());
+            this.Send(RealMachine, new E2());
         }
 
-        [OnEntry(nameof(EntryS2))]
-        [OnEventGotoState(typeof(E3), typeof(GhostInit))]
         class S2 : MachineState { }
-
-        void EntryS2()
-        {
-            this.Send(RealMachine, new E4());
-            this.Send(RealMachine, new E4());
-            this.Send(RealMachine, new E4());
-        }
     }
 
     public static class TestProgram
@@ -153,7 +149,7 @@ namespace SystematicTesting
         [EntryPoint]
         public static void Execute()
         {
-            PSharpRuntime.CreateMachine(typeof(RealMachine));
+            PSharpRuntime.CreateMachine(typeof(Real));
         }
     }
 }";
@@ -162,7 +158,7 @@ namespace SystematicTesting
             var program = parser.Parse();
             program.Rewrite();
 
-            Configuration.SchedulingIterations = 257;
+            Configuration.Verbose = 2;
             Configuration.SchedulingStrategy = "dfs";
 
             var assembly = base.GetAssembly(program.GetSyntaxTree());
@@ -171,7 +167,7 @@ namespace SystematicTesting
             SCTEngine.Setup();
             SCTEngine.Run();
 
-            Assert.AreEqual(0, SCTEngine.NumOfFoundBugs);
+            Assert.AreEqual(1, SCTEngine.NumOfFoundBugs);
         }
     }
 }

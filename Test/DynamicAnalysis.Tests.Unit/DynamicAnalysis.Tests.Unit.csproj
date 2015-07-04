@@ -73,6 +73,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="BasePSharpTest.cs" />
     <Compile Include="Feature1SMLevelDecls\Correct\MaxInstances2Test.cs" />
     <Compile Include="Feature1SMLevelDecls\Correct\MethodCallTest.cs" />
     <Compile Include="Feature1SMLevelDecls\Correct\BugRepro1Test.cs" />
@@ -82,7 +83,16 @@
     <Compile Include="Feature2Stmts\Correct\SEMOneMachine35Test.cs" />
     <Compile Include="Feature2Stmts\Correct\SEMOneMachine34Test.cs" />
     <Compile Include="Feature2Stmts\Correct\SEMOneMachine33Test.cs" />
-    <Compile Include="Integration\SendInterleavingsFailTest.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine5Test.cs" />
+    <Compile Include="Integration\DynamicError\TwoMachines\SEMTwoMachines4Test.cs" />
+    <Compile Include="Integration\DynamicError\TwoMachines\SEMTwoMachines2Test.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine3Test.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine1Test.cs" />
+    <Compile Include="Integration\DynamicError\Advanced\BangaloreToRedmondTest.cs" />
+    <Compile Include="Integration\DynamicError\BasicTransitions\Actions6FailTest.cs" />
+    <Compile Include="Integration\DynamicError\BasicTransitions\Actions5FailTest.cs" />
+    <Compile Include="Integration\DynamicError\BasicTransitions\Actions1FailTest.cs" />
+    <Compile Include="Integration\DynamicError\Advanced\SendInterleavingsTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -105,6 +115,9 @@
       <Project>{0e43e150-7d5a-46b5-b394-727df8b7f104}</Project>
       <Name>BugFindingRuntime</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Integration\Correct\" />
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
