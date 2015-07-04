@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="SendInterleavingsTest.cs" company="Microsoft">
+// <copyright file="MethodCallTest.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -31,69 +31,37 @@ using Microsoft.PSharp.Tooling;
 namespace Microsoft.PSharp.DynamicAnalysis.Tests.Unit
 {
     [TestClass]
-    public class SendInterleavingsFailTest
+    public class MethodCallTest
     {
         #region tests
 
         [TestMethod]
-        public void TestSendInterleavingsAssertionFailure()
+        public void TestMethodCall()
         {
             var test = @"
 using System;
 using Microsoft.PSharp;
 
-namespace PSharpSendInterleavingTest
+namespace MethodCall
 {
-    class Event1 : Event { }
-    class Event2 : Event { }
+    class E : Event { }
 
-    class Receiver : Machine
+    class Program : Machine
     {
+        int x;
+
         [Start]
-        [OnEntry(nameof(Initialize))]
-        [OnEventDoAction(typeof(Event1), nameof(OnEvent1))]
-        [OnEventDoAction(typeof(Event2), nameof(OnEvent2))]
+        [OnEntry(nameof(EntryInit))]
         class Init : MachineState { }
 
-        int count1 = 0;
-        void Initialize()
+        void EntryInit()
         {
-            CreateMachine(typeof(Sender1), this.Id);
-            CreateMachine(typeof(Sender2), this.Id);
+            this.Foo(1, 3, x);
         }
 
-        void OnEvent1()
+        int Foo(int x, int y, int z)
         {
-            count1++;
-        }
-        void OnEvent2()
-        {
-            Assert(count1 != 1);
-        }
-    }
-
-    class Sender1 : Machine
-    {
-        [Start]
-        [OnEntry(nameof(Run))]
-        class State : MachineState { }
-
-        void Run()
-        {
-            Send((MachineId)Payload, new Event1());
-            Send((MachineId)Payload, new Event1());
-        }
-    }
-
-    class Sender2 : Machine
-    {
-        [Start]
-        [OnEntry(nameof(Run))]
-        class State : MachineState { }
-
-        void Run()
-        {
-            Send((MachineId)Payload, new Event2());
+            return 0;
         }
     }
 
@@ -108,7 +76,7 @@ namespace PSharpSendInterleavingTest
         [EntryPoint]
         public static void Execute()
         {
-            PSharpRuntime.CreateMachine(typeof(Receiver));
+            PSharpRuntime.CreateMachine(typeof(Program));
         }
     }
 }";
@@ -116,9 +84,8 @@ namespace PSharpSendInterleavingTest
             var parser = new CSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), true);
             var program = parser.Parse();
             program.Rewrite();
-            
-            Configuration.SchedulingIterations = 19;
-            Configuration.SchedulingStrategy = "dfs";
+
+            Configuration.Verbose = 2;
 
             var assembly = this.GetAssembly(program.GetSyntaxTree());
             AnalysisContext.Create(assembly);
@@ -126,7 +93,7 @@ namespace PSharpSendInterleavingTest
             SCTEngine.Setup();
             SCTEngine.Run();
 
-            Assert.AreEqual(1, SCTEngine.NumOfFoundBugs);
+            Assert.AreEqual(0, SCTEngine.NumOfFoundBugs);
         }
 
         #endregion

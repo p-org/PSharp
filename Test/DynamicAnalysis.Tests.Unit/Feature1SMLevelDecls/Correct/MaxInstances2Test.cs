@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="SendInterleavingsTest.cs" company="Microsoft">
+// <copyright file="MaxInstances2Test.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -31,69 +31,119 @@ using Microsoft.PSharp.Tooling;
 namespace Microsoft.PSharp.DynamicAnalysis.Tests.Unit
 {
     [TestClass]
-    public class SendInterleavingsFailTest
+    public class MaxInstances2Test
     {
         #region tests
 
         [TestMethod]
-        public void TestSendInterleavingsAssertionFailure()
+        public void TestMaxInstances2()
         {
             var test = @"
 using System;
 using Microsoft.PSharp;
 
-namespace PSharpSendInterleavingTest
+namespace AlonBug
 {
-    class Event1 : Event { }
-    class Event2 : Event { }
+    class E1 : Event {
+        public E1() : base(1, -1) { }
+    }
 
-    class Receiver : Machine
+    class E2 : Event {
+        public E2() : base(1, -1) { }
+    }
+
+    class E3 : Event {
+        public E3() : base(-1, -1) { }
+    }
+
+    class E4 : Event { }
+
+    class Unit : Event {
+        public Unit() : base(1, -1) { }
+    }
+
+    class RealMachine : Machine
     {
+        MachineId GhostMachine;
+
         [Start]
-        [OnEntry(nameof(Initialize))]
-        [OnEventDoAction(typeof(Event1), nameof(OnEvent1))]
-        [OnEventDoAction(typeof(Event2), nameof(OnEvent2))]
+        [OnEntry(nameof(EntryInit))]
+        [OnEventPushState(typeof(Unit), typeof(S1))]
+        [OnEventGotoState(typeof(E4), typeof(S2))]
+        [OnEventDoAction(typeof(E2), nameof(Action1))]
         class Init : MachineState { }
 
-        int count1 = 0;
-        void Initialize()
+        void EntryInit()
         {
-            CreateMachine(typeof(Sender1), this.Id);
-            CreateMachine(typeof(Sender2), this.Id);
+            GhostMachine = this.CreateMachine(typeof(GhostMachine), this.Id);
+            this.Raise(new Unit());
         }
 
-        void OnEvent1()
+        [OnEntry(nameof(EntryS1))]
+        class S1 : MachineState { }
+
+        void EntryS1()
         {
-            count1++;
+            this.Send(GhostMachine, new E1());
         }
-        void OnEvent2()
+
+        [OnEntry(nameof(EntryS2))]
+        [OnEventGotoState(typeof(Unit), typeof(S3))]
+        class S2 : MachineState { }
+
+        void EntryS2()
         {
-            Assert(count1 != 1);
+            this.Raise(new Unit());
+        }
+
+        [OnEventGotoState(typeof(E4), typeof(S3))]
+        class S3 : MachineState { }
+
+        void Action1()
+        {
+            this.Assert((int)this.Payload == 100);
+            this.Send(GhostMachine, new E3());
+            this.Send(GhostMachine, new E3());
         }
     }
 
-    class Sender1 : Machine
+    class GhostMachine : Machine
     {
-        [Start]
-        [OnEntry(nameof(Run))]
-        class State : MachineState { }
+        MachineId RealMachine;
 
-        void Run()
+        [Start]
+        [OnEntry(nameof(EntryInit))]
+        [OnEventGotoState(typeof(Unit), typeof(GhostInit))]
+        class Init : MachineState { }
+
+        void EntryInit()
         {
-            Send((MachineId)Payload, new Event1());
-            Send((MachineId)Payload, new Event1());
+            RealMachine = this.Payload as MachineId;
+            this.Raise(new Unit());
         }
-    }
 
-    class Sender2 : Machine
-    {
-        [Start]
-        [OnEntry(nameof(Run))]
-        class State : MachineState { }
+        [OnEventGotoState(typeof(E1), typeof(S1))]
+        class GhostInit : MachineState { }
 
-        void Run()
+        [OnEntry(nameof(EntryS1))]
+        [OnEventGotoState(typeof(E3), typeof(S2))]
+        [IgnoreEvents(typeof(E1))]
+        class S1 : MachineState { }
+
+        void EntryS1()
         {
-            Send((MachineId)Payload, new Event2());
+            this.Send(RealMachine, new E2(), 100);
+        }
+
+        [OnEntry(nameof(EntryS2))]
+        [OnEventGotoState(typeof(E3), typeof(GhostInit))]
+        class S2 : MachineState { }
+
+        void EntryS2()
+        {
+            this.Send(RealMachine, new E4());
+            this.Send(RealMachine, new E4());
+            this.Send(RealMachine, new E4());
         }
     }
 
@@ -108,7 +158,7 @@ namespace PSharpSendInterleavingTest
         [EntryPoint]
         public static void Execute()
         {
-            PSharpRuntime.CreateMachine(typeof(Receiver));
+            PSharpRuntime.CreateMachine(typeof(RealMachine));
         }
     }
 }";
@@ -116,8 +166,8 @@ namespace PSharpSendInterleavingTest
             var parser = new CSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), true);
             var program = parser.Parse();
             program.Rewrite();
-            
-            Configuration.SchedulingIterations = 19;
+
+            Configuration.SchedulingIterations = 257;
             Configuration.SchedulingStrategy = "dfs";
 
             var assembly = this.GetAssembly(program.GetSyntaxTree());
@@ -126,7 +176,7 @@ namespace PSharpSendInterleavingTest
             SCTEngine.Setup();
             SCTEngine.Run();
 
-            Assert.AreEqual(1, SCTEngine.NumOfFoundBugs);
+            Assert.AreEqual(0, SCTEngine.NumOfFoundBugs);
         }
 
         #endregion

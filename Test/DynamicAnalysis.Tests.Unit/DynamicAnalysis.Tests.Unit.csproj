@@ -73,9 +73,12 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="Feature1SMLevelDecls\Correct\MaxInstances2Test.cs" />
+    <Compile Include="Feature1SMLevelDecls\Correct\MethodCallTest.cs" />
     <Compile Include="Feature1SMLevelDecls\Correct\BugRepro1Test.cs" />
     <Compile Include="Feature1SMLevelDecls\Correct\AlonBugTest.cs" />
     <Compile Include="Feature1SMLevelDecls\DynamicError\AlonBugFailTest.cs" />
+    <Compile Include="Feature1SMLevelDecls\DynamicError\MaxInstances1FailTest.cs" />
     <Compile Include="Integration\SendInterleavingsFailTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
