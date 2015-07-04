@@ -42,7 +42,7 @@ namespace Microsoft.PSharp.DynamicAnalysis.Tests.Unit
 using System;
 using Microsoft.PSharp;
 
-namespace BugRepro1
+namespace SystematicTesting
 {
     class Ping : Event {
         public Ping() : base(1, -1) { }

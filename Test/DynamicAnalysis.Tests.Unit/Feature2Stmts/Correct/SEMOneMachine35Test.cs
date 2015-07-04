@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="SendInterleavingsTest.cs" company="Microsoft">
+// <copyright file="SEMOneMachine35Test.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -31,69 +31,124 @@ using Microsoft.PSharp.Tooling;
 namespace Microsoft.PSharp.DynamicAnalysis.Tests.Unit
 {
     [TestClass]
-    public class SendInterleavingsFailTest
+    public class SEMOneMachine35Test
     {
         #region tests
 
         [TestMethod]
-        public void TestSendInterleavingsAssertionFailure()
+        public void TestSEMOneMachine35()
         {
             var test = @"
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.PSharp;
 
 namespace SystematicTesting
 {
-    class Event1 : Event { }
-    class Event2 : Event { }
-
-    class Receiver : Machine
+    class Entry : Machine
     {
+        List<int> rev;
+        List<int> sorted;
+        int i;
+        int t;
+        int s;
+        bool swapped;
+        bool b;
+
         [Start]
-        [OnEntry(nameof(Initialize))]
-        [OnEventDoAction(typeof(Event1), nameof(OnEvent1))]
-        [OnEventDoAction(typeof(Event2), nameof(OnEvent2))]
+        [OnEntry(nameof(EntryInit))]
         class Init : MachineState { }
 
-        int count1 = 0;
-        void Initialize()
+        void EntryInit()
         {
-            CreateMachine(typeof(Sender1), this.Id);
-            CreateMachine(typeof(Sender2), this.Id);
+            rev = new List<int>();
+            sorted = new List<int>();
+
+            i = 0;
+            while (i < 10)
+            {
+                rev.Insert(0, i);
+                sorted.Add(i);
+                i = i + 1;
+            }
+
+            this.Assert(rev.Count == 10);
+
+            // Assert that simply reversing the list produces a sorted list
+            sorted = Reverse(rev);
+            this.Assert(sorted.Count == 10);
+            b = IsSorted(sorted);
+            this.Assert(b);
+            b = IsSorted(rev);
+            this.Assert(!b);
+
+            // Assert that BubbleSort returns the sorted list 
+            sorted = BubbleSort(rev);
+            this.Assert(sorted.Count == 10);
+            b = IsSorted(sorted);
+            this.Assert(b);
+            b = IsSorted(rev);
+            this.Assert(!b);
         }
 
-        void OnEvent1()
+        List<int> Reverse(List<int> l)
         {
-            count1++;
+            var result = l.ToList();
+
+            i = 0;
+            s = result.Count;
+            while (i < s)
+            {
+                t = result[i];
+                result.RemoveAt(i);
+                result.Insert(0, t);
+                i = i + 1;
+            }
+
+            return result;
         }
-        void OnEvent2()
+
+        List<int> BubbleSort(List<int> l)
         {
-            Assert(count1 != 1);
+            var result = l.ToList();
+
+            swapped = true;
+            while (swapped)
+            {
+                i = 0;
+                swapped = false;
+                while (i < result.Count - 1)
+                {
+                    if (result[i] > result[i + 1])
+                    {
+                        t = result[i];
+                        result[i] = result[i + 1];
+                        result[i + 1] = t;
+                        swapped = true;
+                    }
+
+                    i = i + 1;
+                }
+            }
+
+            return result;
         }
-    }
 
-    class Sender1 : Machine
-    {
-        [Start]
-        [OnEntry(nameof(Run))]
-        class State : MachineState { }
-
-        void Run()
+        bool IsSorted(List<int> l)
         {
-            Send((MachineId)Payload, new Event1());
-            Send((MachineId)Payload, new Event1());
-        }
-    }
+            i = 0;
+            while (i < l.Count - 1)
+            {
+                if (l[i] > l[i + 1])
+                {
+                    return false;
+                }
 
-    class Sender2 : Machine
-    {
-        [Start]
-        [OnEntry(nameof(Run))]
-        class State : MachineState { }
+                i = i + 1;
+            }
 
-        void Run()
-        {
-            Send((MachineId)Payload, new Event2());
+            return true;
         }
     }
 
@@ -108,7 +163,7 @@ namespace SystematicTesting
         [EntryPoint]
         public static void Execute()
         {
-            PSharpRuntime.CreateMachine(typeof(Receiver));
+            PSharpRuntime.CreateMachine(typeof(Entry));
         }
     }
 }";
@@ -116,9 +171,8 @@ namespace SystematicTesting
             var parser = new CSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), true);
             var program = parser.Parse();
             program.Rewrite();
-            
-            Configuration.SchedulingIterations = 19;
-            Configuration.SchedulingStrategy = "dfs";
+
+            Configuration.Verbose = 2;
 
             var assembly = this.GetAssembly(program.GetSyntaxTree());
             AnalysisContext.Create(assembly);
@@ -126,7 +180,7 @@ namespace SystematicTesting
             SCTEngine.Setup();
             SCTEngine.Run();
 
-            Assert.AreEqual(1, SCTEngine.NumOfFoundBugs);
+            Assert.AreEqual(0, SCTEngine.NumOfFoundBugs);
         }
 
         #endregion

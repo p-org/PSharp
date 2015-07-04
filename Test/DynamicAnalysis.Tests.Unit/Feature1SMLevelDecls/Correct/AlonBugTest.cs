@@ -42,7 +42,7 @@ namespace Microsoft.PSharp.DynamicAnalysis.Tests.Unit
 using System;
 using Microsoft.PSharp;
 
-namespace AlonBug
+namespace SystematicTesting
 {
     class E : Event { }
 

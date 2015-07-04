@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="SendInterleavingsTest.cs" company="Microsoft">
+// <copyright file="SEMOneMachine34Test.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -31,69 +31,85 @@ using Microsoft.PSharp.Tooling;
 namespace Microsoft.PSharp.DynamicAnalysis.Tests.Unit
 {
     [TestClass]
-    public class SendInterleavingsFailTest
+    public class SEMOneMachine34Test
     {
         #region tests
 
         [TestMethod]
-        public void TestSendInterleavingsAssertionFailure()
+        public void TestSEMOneMachine34()
         {
             var test = @"
 using System;
+using System.Collections.Generic;
 using Microsoft.PSharp;
 
 namespace SystematicTesting
 {
-    class Event1 : Event { }
-    class Event2 : Event { }
+    class E1 : Event { }
+    class E2 : Event { }
+    class E3 : Event { }
+    class E4 : Event { }
 
-    class Receiver : Machine
+    class MachOS : Machine
     {
+        int Int;
+        bool Bool;
+        MachineId mach;
+        Dictionary<int, int> m;
+        List<bool> s;
+
         [Start]
-        [OnEntry(nameof(Initialize))]
-        [OnEventDoAction(typeof(Event1), nameof(OnEvent1))]
-        [OnEventDoAction(typeof(Event2), nameof(OnEvent2))]
+        [OnEntry(nameof(EntryInit))]
+        [OnEventDoAction(typeof(E1), nameof(Foo1))]
+        [OnEventDoAction(typeof(E2), nameof(Foo2))]
+        [OnEventDoAction(typeof(E3), nameof(Foo3))]
+        [OnEventDoAction(typeof(E4), nameof(Foo4))]
         class Init : MachineState { }
 
-        int count1 = 0;
-        void Initialize()
+        void EntryInit()
         {
-            CreateMachine(typeof(Sender1), this.Id);
-            CreateMachine(typeof(Sender2), this.Id);
+            m = new Dictionary<int, int>();
+            s = new List<bool>();
+            m.Add(0, 1);
+            m.Add(1, 2);
+			s.Add(true);
+			s.Add(false);
+			s.Add(true);
+			this.Send(this.Id, new E1(), Tuple.Create(1, true));
+			this.Send(this.Id, new E2(), 0, false);
+            this.Send(this.Id, new E3(), 1);
+			this.Send(this.Id, new E4(), Tuple.Create(m, s));
+
         }
 
-        void OnEvent1()
+        void Foo1()
         {
-            count1++;
+            Int = (int)(this.Payload as Tuple<int, bool>).Item1;
+            this.Assert(Int == 1);
+            Bool = (bool)(this.Payload as Tuple<int, bool>).Item2;
+            this.Assert(Bool == true);
         }
-        void OnEvent2()
+
+        void Foo2()
         {
-            Assert(count1 != 1);
+            Int = (int)(this.Payload as object[])[0];
+            this.Assert(Int == 0);
+            Bool = (bool)(this.Payload as object[])[1];
+            this.Assert(Bool == false);
         }
-    }
 
-    class Sender1 : Machine
-    {
-        [Start]
-        [OnEntry(nameof(Run))]
-        class State : MachineState { }
-
-        void Run()
+        void Foo3()
         {
-            Send((MachineId)Payload, new Event1());
-            Send((MachineId)Payload, new Event1());
+            Int = (int)this.Payload;
+            this.Assert(Int == 1);
         }
-    }
 
-    class Sender2 : Machine
-    {
-        [Start]
-        [OnEntry(nameof(Run))]
-        class State : MachineState { }
-
-        void Run()
+        void Foo4()
         {
-            Send((MachineId)Payload, new Event2());
+            Int = ((this.Payload as Tuple<Dictionary<int, int>, List<bool>>).Item1 as Dictionary<int, int>)[0];
+            this.Assert(Int == 1);
+            Bool = ((this.Payload as Tuple<Dictionary<int, int>, List<bool>>).Item2 as List<bool>)[2];
+            this.Assert(Bool == true);
         }
     }
 
@@ -108,7 +124,7 @@ namespace SystematicTesting
         [EntryPoint]
         public static void Execute()
         {
-            PSharpRuntime.CreateMachine(typeof(Receiver));
+            PSharpRuntime.CreateMachine(typeof(MachOS));
         }
     }
 }";
@@ -116,8 +132,9 @@ namespace SystematicTesting
             var parser = new CSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), true);
             var program = parser.Parse();
             program.Rewrite();
-            
-            Configuration.SchedulingIterations = 19;
+
+            Configuration.Verbose = 2;
+            Configuration.SchedulingIterations = 100;
             Configuration.SchedulingStrategy = "dfs";
 
             var assembly = this.GetAssembly(program.GetSyntaxTree());
@@ -126,7 +143,7 @@ namespace SystematicTesting
             SCTEngine.Setup();
             SCTEngine.Run();
 
-            Assert.AreEqual(1, SCTEngine.NumOfFoundBugs);
+            Assert.AreEqual(0, SCTEngine.NumOfFoundBugs);
         }
 
         #endregion

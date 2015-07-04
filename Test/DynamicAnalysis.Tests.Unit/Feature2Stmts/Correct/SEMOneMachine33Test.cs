@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="SendInterleavingsTest.cs" company="Microsoft">
+// <copyright file="SEMOneMachine33Test.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -31,69 +31,80 @@ using Microsoft.PSharp.Tooling;
 namespace Microsoft.PSharp.DynamicAnalysis.Tests.Unit
 {
     [TestClass]
-    public class SendInterleavingsFailTest
+    public class SEMOneMachine33Test
     {
         #region tests
 
         [TestMethod]
-        public void TestSendInterleavingsAssertionFailure()
+        public void TestSEMOneMachine33()
         {
             var test = @"
 using System;
+using System.Collections.Generic;
 using Microsoft.PSharp;
 
 namespace SystematicTesting
 {
-    class Event1 : Event { }
-    class Event2 : Event { }
+    class Unit : Event { }
+    class SeqPayload : Event { }
 
-    class Receiver : Machine
+    class Entry : Machine
     {
+        List<int> l;
+        int i;
+        MachineId mac;
+        Tuple<List<int>, int> t;
+
         [Start]
-        [OnEntry(nameof(Initialize))]
-        [OnEventDoAction(typeof(Event1), nameof(OnEvent1))]
-        [OnEventDoAction(typeof(Event2), nameof(OnEvent2))]
+        [OnEntry(nameof(EntryInit))]
         class Init : MachineState { }
 
-        int count1 = 0;
-        void Initialize()
+        void EntryInit()
         {
-            CreateMachine(typeof(Sender1), this.Id);
-            CreateMachine(typeof(Sender2), this.Id);
-        }
-
-        void OnEvent1()
-        {
-            count1++;
-        }
-        void OnEvent2()
-        {
-            Assert(count1 != 1);
+            l = new List<int>();
+			l.Insert(0, 12);
+			l.Insert(0, 23);
+			l.Insert(0, 12);
+			l.Insert(0, 23);
+			l.Insert(0, 12);
+			l.Insert(0, 23);
+			mac = this.CreateMachine(typeof(Tester), l, 1);
+			this.Send(mac, new SeqPayload(), l);
         }
     }
 
-    class Sender1 : Machine
+    class Tester : Machine
     {
-        [Start]
-        [OnEntry(nameof(Run))]
-        class State : MachineState { }
+        List<int> ii;
+        List<int> rec;
+        int i;
 
-        void Run()
+        [Start]
+        [OnEntry(nameof(EntryInit))]
+        [OnEventGotoState(typeof(SeqPayload), typeof(TestItNow))]
+        class Init : MachineState { }
+
+        void EntryInit()
         {
-            Send((MachineId)Payload, new Event1());
-            Send((MachineId)Payload, new Event1());
+            ii = new List<int>();
+            rec = new List<int>();
+            ii = (this.Payload as object[])[0] as List<int>;
+            this.Assert(((this.Payload as object[])[0] as List<int>)[0] == 23);
+            this.Assert((int)(this.Payload as object[])[1] == 1);
         }
-    }
 
-    class Sender2 : Machine
-    {
-        [Start]
-        [OnEntry(nameof(Run))]
-        class State : MachineState { }
+        [OnEntry(nameof(EntryTestItNow))]
+        class TestItNow : MachineState { }
 
-        void Run()
+        void EntryTestItNow()
         {
-            Send((MachineId)Payload, new Event2());
+            rec = this.Payload as List<int>;
+			i = rec.Count - 1;
+			while (i >= 0)
+			{
+				this.Assert(rec[i] == ii[i]);
+				i = i - 1;
+			}
         }
     }
 
@@ -108,7 +119,7 @@ namespace SystematicTesting
         [EntryPoint]
         public static void Execute()
         {
-            PSharpRuntime.CreateMachine(typeof(Receiver));
+            PSharpRuntime.CreateMachine(typeof(Entry));
         }
     }
 }";
@@ -116,8 +127,9 @@ namespace SystematicTesting
             var parser = new CSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), true);
             var program = parser.Parse();
             program.Rewrite();
-            
-            Configuration.SchedulingIterations = 19;
+
+            Configuration.Verbose = 2;
+            Configuration.SchedulingIterations = 5;
             Configuration.SchedulingStrategy = "dfs";
 
             var assembly = this.GetAssembly(program.GetSyntaxTree());
@@ -126,7 +138,7 @@ namespace SystematicTesting
             SCTEngine.Setup();
             SCTEngine.Run();
 
-            Assert.AreEqual(1, SCTEngine.NumOfFoundBugs);
+            Assert.AreEqual(0, SCTEngine.NumOfFoundBugs);
         }
 
         #endregion
