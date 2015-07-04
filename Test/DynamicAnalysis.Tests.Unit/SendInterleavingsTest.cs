@@ -118,12 +118,12 @@ namespace PSharpSendInterleavingTest
             var program = parser.Parse();
             program.Rewrite();
 
-            var assembly = this.GetAssembly(program.GetSyntaxTree());
-
-            AnalysisContext.Create(assembly);
-
             Configuration.Verbose = 2;
-            Configuration.SchedulingIterations = 100;
+            Configuration.SchedulingIterations = 19;
+            Configuration.SchedulingStrategy = "dfs";
+
+            var assembly = this.GetAssembly(program.GetSyntaxTree());
+            AnalysisContext.Create(assembly);
 
             SCTEngine.Setup();
             SCTEngine.Run();
