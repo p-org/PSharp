@@ -73,7 +73,10 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="SendInterleavingsTest.cs" />
+    <Compile Include="MachineLevelDeclarationTests\BugRepro1Test.cs" />
+    <Compile Include="MachineLevelDeclarationTests\AlonBugTest.cs" />
+    <Compile Include="MachineLevelDeclarationTests\AlonBugFailTest.cs" />
+    <Compile Include="SendTests\SendInterleavingsFailTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

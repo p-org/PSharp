@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="SendInterleavingsTest.cs" company="Microsoft">
+// <copyright file="AlonBugTest.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -22,7 +22,6 @@ using System.Reflection;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Emit;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Microsoft.PSharp.LanguageServices;
@@ -32,69 +31,58 @@ using Microsoft.PSharp.Tooling;
 namespace Microsoft.PSharp.DynamicAnalysis.Tests.Unit
 {
     [TestClass]
-    public class SendInterleavingsTest
+    public class AlonBugTest
     {
         #region tests
 
         [TestMethod]
-        public void TestSendInterleavings()
+        public void TestAlonBug()
         {
             var test = @"
 using System;
 using Microsoft.PSharp;
 
-namespace PSharpSendInterleavingTest
+namespace AlonBug
 {
-    class Event1 : Event { }
-    class Event2 : Event { }
+    class E : Event { }
 
-    class Receiver : Machine
+    class Program : Machine
     {
+        int i;
+
         [Start]
-        [OnEntry(nameof(Initialize))]
-        [OnEventDoAction(typeof(Event1), nameof(OnEvent1))]
-        [OnEventDoAction(typeof(Event2), nameof(OnEvent2))]
+        [OnEntry(nameof(EntryInit))]
+        [OnExit(nameof(ExitInit))]
+        [OnEventPushState(typeof(E), typeof(Call))] // Exit does not execute.
         class Init : MachineState { }
 
-        int count1 = 0;
-        void Initialize()
+        void EntryInit()
         {
-            CreateMachine(typeof(Sender1), this.Id);
-            CreateMachine(typeof(Sender2), this.Id);
+            i = 0;
+            this.Raise(new E());
         }
 
-        void OnEvent1()
+        void ExitInit()
         {
-            count1++;
+            // This assert is unreachable.
+            this.Assert(false, ""Bug found."");
         }
-        void OnEvent2()
+
+        [OnEntry(nameof(EntryCall))]
+        class Call : MachineState { }
+
+        void EntryCall()
         {
-            Assert(count1 != 1);
-        }
-    }
+            if (i == 3)
+            {
+                this.Pop();
+            }
+            else
+            {
+                i = i + 1;
+            }
 
-    class Sender1 : Machine
-    {
-        [Start]
-        [OnEntry(nameof(Run))]
-        class State : MachineState { }
-
-        void Run()
-        {
-            Send((MachineId)Payload, new Event1());
-            Send((MachineId)Payload, new Event1());
-        }
-    }
-
-    class Sender2 : Machine
-    {
-        [Start]
-        [OnEntry(nameof(Run))]
-        class State : MachineState { }
-
-        void Run()
-        {
-            Send((MachineId)Payload, new Event2());
+            this.Raise(new E()); // Call is popped.
         }
     }
 
@@ -109,7 +97,7 @@ namespace PSharpSendInterleavingTest
         [EntryPoint]
         public static void Execute()
         {
-            PSharpRuntime.CreateMachine(typeof(Receiver));
+            PSharpRuntime.CreateMachine(typeof(Program));
         }
     }
 }";
@@ -119,8 +107,6 @@ namespace PSharpSendInterleavingTest
             program.Rewrite();
 
             Configuration.Verbose = 2;
-            Configuration.SchedulingIterations = 19;
-            Configuration.SchedulingStrategy = "dfs";
 
             var assembly = this.GetAssembly(program.GetSyntaxTree());
             AnalysisContext.Create(assembly);
@@ -128,7 +114,7 @@ namespace PSharpSendInterleavingTest
             SCTEngine.Setup();
             SCTEngine.Run();
 
-            Assert.AreEqual(1, SCTEngine.NumOfFoundBugs);
+            Assert.AreEqual(0, SCTEngine.NumOfFoundBugs);
         }
 
         #endregion

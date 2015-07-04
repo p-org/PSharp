@@ -70,10 +70,10 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="PSharpStatementsParsingFailTests.cs" />
-    <Compile Include="PSharpDeclarationsParsingFailTests.cs" />
-    <Compile Include="PSharpStatementsParsingTests.cs" />
-    <Compile Include="PSharpDeclarationsParsingTests.cs" />
+    <Compile Include="StatementTests\PSharpStatementsParsingFailTests.cs" />
+    <Compile Include="DeclarationTests\PSharpDeclarationsParsingFailTests.cs" />
+    <Compile Include="StatementTests\PSharpStatementsParsingTests.cs" />
+    <Compile Include="DeclarationTests\PSharpDeclarationsParsingTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
