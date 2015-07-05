@@ -448,6 +448,12 @@ namespace Microsoft.PSharp
             {
                 nextEvent = this.RaisedEvent;
                 this.RaisedEvent = null;
+
+                // Checks if the raised event is ignored.
+                if (this.IgnoredEvents.Contains(nextEvent.GetType()))
+                {
+                    nextEvent = null;
+                }
             }
             // If there is no raised event, then dequeue.
             else if (this.Inbox.Count > 0)
