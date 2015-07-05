@@ -83,6 +83,7 @@
     <Compile Include="Feature2Stmts\Correct\SEMOneMachine35Test.cs" />
     <Compile Include="Feature2Stmts\Correct\SEMOneMachine34Test.cs" />
     <Compile Include="Feature2Stmts\Correct\SEMOneMachine33Test.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine16Test.cs" />
     <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine15Test.cs" />
     <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine14Test.cs" />
     <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine13Test.cs" />

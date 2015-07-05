@@ -261,8 +261,12 @@ namespace Microsoft.PSharp
         /// </summary>
         protected internal void Pop()
         {
-            Output.Debug(DebugType.Runtime, "<ExitLog> Machine '{0}({1})' exiting state '{2}'.",
-                this, this.Id.Value, this.StateStack.Peek());
+            // The machine performs the on exit action of the current state.
+            this.ExecuteCurrentStateOnExit(null);
+            if (this.IsHalted)
+            {
+                return;
+            }
 
             this.StateStack.Pop();
             
@@ -510,7 +514,7 @@ namespace Microsoft.PSharp
                 // If current state cannot handle the event then pop the state.
                 if (!this.CanHandleEvent(e.GetType()))
                 {
-                    // The machine performs the on exit statements of the current state.
+                    // The machine performs the on exit action of the current state.
                     this.ExecuteCurrentStateOnExit(null);
                     if (this.IsHalted)
                     {
@@ -694,7 +698,7 @@ namespace Microsoft.PSharp
         /// <param name="onExit">Goto on exit action</param>
         private void GotoState(Type s, Action onExit)
         {
-            // The machine performs the on exit statements of the current state.
+            // The machine performs the on exit action of the current state.
             this.ExecuteCurrentStateOnExit(onExit);
             if (this.IsHalted)
             {
@@ -709,7 +713,7 @@ namespace Microsoft.PSharp
             // The machine transitions to the new state.
             this.StateStack.Push(nextState);
 
-            // The machine performs the on entry statements of the new state.
+            // The machine performs the on entry action of the new state.
             this.ExecuteCurrentStateOnEntry();
         }
 
