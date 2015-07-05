@@ -102,6 +102,10 @@
     <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine8Test.cs" />
     <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine6Test.cs" />
     <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine5Test.cs" />
+    <Compile Include="Integration\DynamicError\TwoMachines\SEMTwoMachines15Test.cs" />
+    <Compile Include="Integration\DynamicError\TwoMachines\SEMTwoMachines14Test.cs" />
+    <Compile Include="Integration\DynamicError\TwoMachines\SEMTwoMachines13Test.cs" />
+    <Compile Include="Integration\DynamicError\TwoMachines\SEMTwoMachines10Test.cs" />
     <Compile Include="Integration\DynamicError\TwoMachines\SEMTwoMachines6Test.cs" />
     <Compile Include="Integration\DynamicError\TwoMachines\SEMTwoMachines4Test.cs" />
     <Compile Include="Integration\DynamicError\TwoMachines\SEMTwoMachines2Test.cs" />

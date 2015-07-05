@@ -225,6 +225,9 @@ namespace Microsoft.PSharp
         /// <param name="payload">Optional payload</param>
         protected internal void Send(MachineId mid, Event e, params Object[] payload)
         {
+            // If the event is null then report an error and exit.
+            this.Assert(e != null, "Machine '{0}' is sending a null event.", this.GetType().Name);
+
             e.AssignPayload(payload);
             Output.Debug(DebugType.Runtime, "<SendLog> Machine '{0}({1})' sent event '{2}' " +
                 "to machine with id '{3}'.", this, this.Id.Value, e.GetType(), mid.Value);
@@ -239,6 +242,9 @@ namespace Microsoft.PSharp
         /// <param name="payload">Optional payload</param>
         protected internal void Monitor<T>(Event e, params Object[] payload)
         {
+            // If the event is null then report an error and exit.
+            this.Assert(e != null, "Machine '{0}' is sending a null event.", this.GetType().Name);
+
             e.AssignPayload(payload);
             Machine.Dispatcher.Monitor<T>(e);
         }
@@ -250,6 +256,9 @@ namespace Microsoft.PSharp
         /// <param name="payload">Optional payload</param>
         protected internal void Raise(Event e, params Object[] payload)
         {
+            // If the event is null then report an error and exit.
+            this.Assert(e != null, "Machine '{0}' is raising a null event.", this.GetType().Name);
+
             e.AssignPayload(payload);
             Output.Debug(DebugType.Runtime, "<RaiseLog> Machine '{0}({1})' raised " +
                 "event '{2}'.", this, this.Id.Value, e);
