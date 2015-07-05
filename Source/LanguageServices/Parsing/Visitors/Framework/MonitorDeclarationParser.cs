@@ -47,14 +47,25 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         #region protected API
 
         /// <summary>
-        /// Returns true if the given class declaration is of this type.
+        /// Returns true if the given class declaration is a machine.
         /// </summary>
         /// <param name="compilation">Compilation</param>
         /// <param name="classDecl">Class declaration</param>
         /// <returns>Boolean value</returns>
-        protected override bool IsThisMachineType(CodeAnalysis.Compilation compilation, ClassDeclarationSyntax classDecl)
+        protected override bool IsMachine(CodeAnalysis.Compilation compilation, ClassDeclarationSyntax classDecl)
         {
             return Querying.IsMonitor(compilation, classDecl);
+        }
+
+        /// <summary>
+        /// Returns true if the given class declaration is a state.
+        /// </summary>
+        /// <param name="compilation">Compilation</param>
+        /// <param name="classDecl">Class declaration</param>
+        /// <returns>Boolean value</returns>
+        protected override bool IsState(CodeAnalysis.Compilation compilation, ClassDeclarationSyntax classDecl)
+        {
+            return Querying.IsMonitorState(compilation, classDecl);
         }
 
         /// <summary>

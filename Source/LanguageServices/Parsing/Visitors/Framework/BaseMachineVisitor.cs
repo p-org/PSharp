@@ -41,6 +41,11 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// </summary>
         protected Dictionary<ClassDeclarationSyntax, List<MethodDeclarationSyntax>> ActionsThatRaise;
 
+        /// <summary>
+        /// Map from machines to actions that contain a pop statement.
+        /// </summary>
+        protected Dictionary<ClassDeclarationSyntax, List<MethodDeclarationSyntax>> ActionsThaPop;
+
         #endregion
 
         #region public API
@@ -55,6 +60,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         {
             this.Actions = new Dictionary<ClassDeclarationSyntax, List<MethodDeclarationSyntax>>();
             this.ActionsThatRaise = new Dictionary<ClassDeclarationSyntax, List<MethodDeclarationSyntax>>();
+            this.ActionsThaPop = new Dictionary<ClassDeclarationSyntax, List<MethodDeclarationSyntax>>();
         }
 
         /// <summary>
@@ -67,13 +73,18 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
             var compilation = project.GetCompilationAsync().Result;
 
             var machines = tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().
-                Where(val => this.IsThisMachineType(compilation, val)).
+                Where(val => this.IsMachine(compilation, val)).
                 ToList();
 
             foreach (var machine in machines)
             {
                 this.DiscoverMachineActions(machine, compilation);
                 this.DiscoverMachineActionsThatRaise(machine, compilation);
+                
+                if (!this.GetTypeOfMachine().Equals("Monitor"))
+                {
+                    this.DiscoverMachineActionsThatPop(machine, compilation);
+                }
             }
 
             foreach (var machine in machines)
@@ -88,8 +99,14 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
                 this.CheckForStructs(machine);
                 this.CheckForStartState(machine, compilation);
 
-                this.CheckForNestedRaiseStatementsIActions(machine);
+                this.CheckForNestedRaiseStatementsInActions(machine);
                 this.CheckForRaiseStatementsInMethods(machine);
+
+                if (!this.GetTypeOfMachine().Equals("Monitor"))
+                {
+                    this.CheckForNestedPopStatementsInActions(machine);
+                    this.CheckForPopStatementsInMethods(machine);
+                }
             }
         }
 
@@ -98,12 +115,22 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         #region protected API
 
         /// <summary>
-        /// Returns true if the given class declaration is of this type.
+        /// Returns true if the given class declaration is a machine.
         /// </summary>
         /// <param name="compilation">Compilation</param>
         /// <param name="classDecl">Class declaration</param>
         /// <returns>Boolean value</returns>
-        protected abstract bool IsThisMachineType(CodeAnalysis.Compilation compilation, ClassDeclarationSyntax classDecl);
+        protected abstract bool IsMachine(CodeAnalysis.Compilation compilation,
+            ClassDeclarationSyntax classDecl);
+
+        /// <summary>
+        /// Returns true if the given class declaration is a state.
+        /// </summary>
+        /// <param name="compilation">Compilation</param>
+        /// <param name="classDecl">Class declaration</param>
+        /// <returns>Boolean value</returns>
+        protected abstract bool IsState(CodeAnalysis.Compilation compilation,
+            ClassDeclarationSyntax classDecl);
 
         /// <summary>
         /// Returns the type of the machine.
@@ -125,7 +152,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
             var model = compilation.GetSemanticModel(machine.SyntaxTree);
 
             var onEntryActionNames = machine.DescendantNodes().OfType<ClassDeclarationSyntax>().
-                Where(val => Querying.IsMachineState(compilation, val)).
+                Where(val => this.IsState(compilation, val)).
                 SelectMany(val => val.AttributeLists).
                 SelectMany(val => val.Attributes).
                 Where(val => model.GetTypeInfo(val).Type.ToDisplayString().Equals("Microsoft.PSharp.OnEntry")).
@@ -137,7 +164,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
                 ToList();
 
             var onEntryNameOfActionNames = machine.DescendantNodes().OfType<ClassDeclarationSyntax>().
-                Where(val => Querying.IsMachineState(compilation, val)).
+                Where(val => this.IsState(compilation, val)).
                 SelectMany(val => val.AttributeLists).
                 SelectMany(val => val.Attributes).
                 Where(val => model.GetTypeInfo(val).Type.ToDisplayString().Equals("Microsoft.PSharp.OnEntry")).
@@ -155,7 +182,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
                 ToList();
 
             var onExitActionNames = machine.DescendantNodes().OfType<ClassDeclarationSyntax>().
-                Where(val => Querying.IsMachineState(compilation, val)).
+                Where(val => this.IsState(compilation, val)).
                 SelectMany(val => val.AttributeLists).
                 SelectMany(val => val.Attributes).
                 Where(val => model.GetTypeInfo(val).Type.ToDisplayString().Equals("Microsoft.PSharp.OnExit")).
@@ -167,7 +194,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
                 ToList();
 
             var onExitNameOfActionNames = machine.DescendantNodes().OfType<ClassDeclarationSyntax>().
-                Where(val => Querying.IsMachineState(compilation, val)).
+                Where(val => this.IsState(compilation, val)).
                 SelectMany(val => val.AttributeLists).
                 SelectMany(val => val.Attributes).
                 Where(val => model.GetTypeInfo(val).Type.ToDisplayString().Equals("Microsoft.PSharp.OnExit")).
@@ -185,7 +212,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
                 ToList();
             
             var onEventDoActionNames = machine.DescendantNodes().OfType<ClassDeclarationSyntax>().
-                Where(val => Querying.IsMachineState(compilation, val)).
+                Where(val => this.IsState(compilation, val)).
                 SelectMany(val => val.AttributeLists).
                 SelectMany(val => val.Attributes).
                 Where(val => model.GetTypeInfo(val).Type.ToDisplayString().Equals("Microsoft.PSharp.OnEventDoAction")).
@@ -197,7 +224,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
                 ToList();
 
             var onEventDoNameOfActionNames = machine.DescendantNodes().OfType<ClassDeclarationSyntax>().
-                Where(val => Querying.IsMachineState(compilation, val)).
+                Where(val => this.IsState(compilation, val)).
                 SelectMany(val => val.AttributeLists).
                 SelectMany(val => val.Attributes).
                 Where(val => model.GetTypeInfo(val).Type.ToDisplayString().Equals("Microsoft.PSharp.OnEventDoAction")).
@@ -237,6 +264,19 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
                     this.Actions[machine].Add(action);
                 }
             }
+
+            var states = machine.DescendantNodes().OfType<ClassDeclarationSyntax>().
+                Where(val => this.IsState(compilation, val)).
+                ToList();
+
+            var stateMethods = states.SelectMany(val => val.DescendantNodes().OfType<MethodDeclarationSyntax>()).
+                Where(val => val.Modifiers.Any(SyntaxKind.OverrideKeyword)).
+                ToList();
+
+            foreach (var method in stateMethods)
+            {
+                this.Actions[machine].Add(method);
+            }
         }
 
         /// <summary>
@@ -267,6 +307,38 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
                 if (hasRaise)
                 {
                     this.ActionsThatRaise[machine].Add(action);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Discovers the actions of the given machine that pop.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <param name="compilation">Compilation</param>
+        private void DiscoverMachineActionsThatPop(ClassDeclarationSyntax machine, CodeAnalysis.Compilation compilation)
+        {
+            this.ActionsThaPop.Add(machine, new List<MethodDeclarationSyntax>());
+
+            var actions = this.Actions[machine];
+            foreach (var action in actions)
+            {
+                var hasPop = action.DescendantNodes().OfType<InvocationExpressionSyntax>().
+                    Where(val => val.Expression is IdentifierNameSyntax).
+                    Select(val => val.Expression as IdentifierNameSyntax).
+                    Any(val => val.Identifier.ValueText.Equals("Pop"));
+
+                if (!hasPop)
+                {
+                    hasPop = action.DescendantNodes().OfType<InvocationExpressionSyntax>().
+                        Where(val => val.Expression is MemberAccessExpressionSyntax).
+                        Select(val => val.Expression as MemberAccessExpressionSyntax).
+                        Any(val => val.Name.Identifier.ValueText.Equals("Pop"));
+                }
+
+                if (hasPop)
+                {
+                    this.ActionsThaPop[machine].Add(action);
                 }
             }
         }
@@ -357,7 +429,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         private void CheckForAtLeastOneState(ClassDeclarationSyntax machine, CodeAnalysis.Compilation compilation)
         {
             var states = machine.DescendantNodes().OfType<ClassDeclarationSyntax>().
-                Where(val => Querying.IsMachineState(compilation, val)).
+                Where(val => this.IsState(compilation, val)).
                 ToList();
 
             if (states.Count == 0)
@@ -375,7 +447,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         private void CheckForNonStateClasses(ClassDeclarationSyntax machine, CodeAnalysis.Compilation compilation)
         {
             var classIdentifiers = machine.DescendantNodes().OfType<ClassDeclarationSyntax>().
-                Where(val => !Querying.IsMachineState(compilation, val)).
+                Where(val => !this.IsState(compilation, val)).
                 Select(val => val.Identifier).
                 ToList();
 
@@ -415,7 +487,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
             var model = compilation.GetSemanticModel(machine.SyntaxTree);
             
             var stateAttributes = machine.DescendantNodes().OfType<ClassDeclarationSyntax>().
-                Where(val => Querying.IsMachineState(compilation, val)).
+                Where(val => this.IsState(compilation, val)).
                 SelectMany(val => val.AttributeLists).
                 SelectMany(val => val.Attributes).
                 Where(val => model.GetTypeInfo(val).Type.ToDisplayString().Equals("Microsoft.PSharp.Start")).
@@ -437,7 +509,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// Checks that a nested raise statement is not used in a machine action.
         /// </summary>
         /// <param name="machine">Machine</param>
-        private void CheckForNestedRaiseStatementsIActions(ClassDeclarationSyntax machine)
+        private void CheckForNestedRaiseStatementsInActions(ClassDeclarationSyntax machine)
         {
             var actions = this.Actions[machine];
             foreach (var action in actions)
@@ -462,6 +534,39 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
                     base.ErrorLog.Add(Tuple.Create(action.Identifier, "Method '" + action.Identifier.ValueText +
                         "' of " + this.GetTypeOfMachine().ToLower() + " `" + machine.Identifier.ValueText +
                         "` must not call a method that raises an event."));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Checks that a nested pop statement is not used in a machine action.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        private void CheckForNestedPopStatementsInActions(ClassDeclarationSyntax machine)
+        {
+            var actions = this.Actions[machine];
+            foreach (var action in actions)
+            {
+                var hasNestedPop = action.DescendantNodes().OfType<InvocationExpressionSyntax>().
+                    Where(val => val.Expression is IdentifierNameSyntax).
+                    Select(val => val.Expression as IdentifierNameSyntax).
+                    Select(val => val.Identifier.ValueText).
+                    Any(val => this.ActionsThaPop[machine].Any(m => m.Identifier.ValueText.Equals(val)));
+
+                if (!hasNestedPop)
+                {
+                    hasNestedPop = action.DescendantNodes().OfType<InvocationExpressionSyntax>().
+                        Where(val => val.Expression is MemberAccessExpressionSyntax).
+                        Select(val => val.Expression as MemberAccessExpressionSyntax).
+                        Select(val => val.Name.Identifier.ValueText).
+                        Any(val => this.ActionsThaPop[machine].Any(m => m.Identifier.ValueText.Equals(val)));
+                }
+
+                if (hasNestedPop)
+                {
+                    base.ErrorLog.Add(Tuple.Create(action.Identifier, "Method '" + action.Identifier.ValueText +
+                        "' of " + this.GetTypeOfMachine().ToLower() + " `" + machine.Identifier.ValueText +
+                        "` must not call a method that pops a state."));
                 }
             }
         }
@@ -518,6 +623,62 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
                     base.ErrorLog.Add(Tuple.Create(method.Identifier, "Method '" + method.Identifier.ValueText +
                         "' of " + this.GetTypeOfMachine().ToLower() + " `" + machine.Identifier.ValueText +
                         "` must not call a method that raises an event."));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Checks that a pop statement is not used in a machine method.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        private void CheckForPopStatementsInMethods(ClassDeclarationSyntax machine)
+        {
+            var methods = machine.DescendantNodes().OfType<MethodDeclarationSyntax>().
+                Where(val => !this.Actions[machine].Contains(val)).
+                ToList();
+
+            foreach (var method in methods)
+            {
+                var hasPop = method.DescendantNodes().OfType<InvocationExpressionSyntax>().
+                    Where(val => val.Expression is IdentifierNameSyntax).
+                    Select(val => val.Expression as IdentifierNameSyntax).
+                    Any(val => val.Identifier.ValueText.Equals("Pop"));
+
+                if (!hasPop)
+                {
+                    hasPop = method.DescendantNodes().OfType<InvocationExpressionSyntax>().
+                        Where(val => val.Expression is MemberAccessExpressionSyntax).
+                        Select(val => val.Expression as MemberAccessExpressionSyntax).
+                        Any(val => val.Name.Identifier.ValueText.Equals("Pop"));
+                }
+
+                if (hasPop)
+                {
+                    base.ErrorLog.Add(Tuple.Create(method.Identifier, "Method '" + method.Identifier.ValueText +
+                        "' of " + this.GetTypeOfMachine().ToLower() + " `" + machine.Identifier.ValueText +
+                        "` must not pop a state."));
+                }
+
+                var hasNestedPop = method.DescendantNodes().OfType<InvocationExpressionSyntax>().
+                    Where(val => val.Expression is IdentifierNameSyntax).
+                    Select(val => val.Expression as IdentifierNameSyntax).
+                    Select(val => val.Identifier.ValueText).
+                    Any(val => this.ActionsThaPop[machine].Any(a => a.Identifier.ValueText.Equals(val)));
+
+                if (!hasNestedPop)
+                {
+                    hasNestedPop = method.DescendantNodes().OfType<InvocationExpressionSyntax>().
+                        Where(val => val.Expression is MemberAccessExpressionSyntax).
+                        Select(val => val.Expression as MemberAccessExpressionSyntax).
+                        Select(val => val.Name.Identifier.ValueText).
+                        Any(val => this.ActionsThaPop[machine].Any(a => a.Identifier.ValueText.Equals(val)));
+                }
+
+                if (hasNestedPop)
+                {
+                    base.ErrorLog.Add(Tuple.Create(method.Identifier, "Method '" + method.Identifier.ValueText +
+                        "' of " + this.GetTypeOfMachine().ToLower() + " `" + machine.Identifier.ValueText +
+                        "` must not call a method that pops a state."));
                 }
             }
         }
