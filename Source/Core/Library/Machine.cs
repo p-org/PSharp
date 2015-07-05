@@ -510,8 +510,12 @@ namespace Microsoft.PSharp
                 // If current state cannot handle the event then pop the state.
                 if (!this.CanHandleEvent(e.GetType()))
                 {
-                    Output.Debug(DebugType.Runtime, "<ExitLog> Machine '{0}({1})' exiting state '{2}'.",
-                        this, this.Id.Value, this.StateStack.Peek());
+                    // The machine performs the on exit statements of the current state.
+                    this.ExecuteCurrentStateOnExit(null);
+                    if (this.IsHalted)
+                    {
+                        return;
+                    }
 
                     this.StateStack.Pop();
 

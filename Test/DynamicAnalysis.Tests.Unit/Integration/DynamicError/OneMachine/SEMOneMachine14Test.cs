@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="Actions1FailTest.cs" company="Microsoft">
+// <copyright file="SEMOneMachine14Test.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -28,13 +28,15 @@ using Microsoft.PSharp.Tooling;
 namespace Microsoft.PSharp.DynamicAnalysis.Tests.Unit
 {
     [TestClass]
-    public class Actions1FailTest : BasePSharpTest
+    public class SEMOneMachine14Test : BasePSharpTest
     {
         /// <summary>
-        /// Tests basic semantics of actions and goto transitions.
+        /// P# semantics test: one machine, "goto" transition, action is not inherited
+        /// by the destination state. This test checks that after "goto" transition,
+        /// action of the src state is not inherited by the destination state.
         /// </summary>
         [TestMethod]
-        public void TestActions1Fail()
+        public void TestGotoTransInheritance()
         {
             var test = @"
 using System;
@@ -54,45 +56,35 @@ namespace SystematicTesting
         public E3() : base(1, -1) { }
     }
 
-    class E4 : Event {
-        public E4() : base(1, -1) { }
-    }
-
-    class Unit : Event {
-        public Unit() : base(1, -1) { }
-    }
-
-    class Real : Machine
+    class Real1 : Machine
     {
-        MachineId GhostMachine;
         bool test = false;
 
         [Start]
         [OnEntry(nameof(EntryInit))]
-        [OnExit(nameof(ExitInit))]
-        [OnEventGotoState(typeof(E2), typeof(S1))] // exit actions are performed before transition to S1
-        [OnEventDoAction(typeof(E4), nameof(Action1))] // E4, E3 have no effect on reachability of assert(false)
+        [OnEventGotoState(typeof(E1), typeof(S1))]
+        [OnEventGotoState(typeof(E3), typeof(S2))]
         class Init : MachineState { }
 
         void EntryInit()
         {
-            GhostMachine = this.CreateMachine(typeof(Ghost), this.Id);
-            this.Send(GhostMachine, new E1());
-        }
-
-        void ExitInit()
-        {
-            test = true;
+            this.Send(this.Id, new E1());
         }
 
         [OnEntry(nameof(EntryS1))]
-        [OnEventGotoState(typeof(Unit), typeof(S2))]
+        [OnExit(nameof(ExitS1))]
+        [OnEventGotoState(typeof(E3), typeof(Init))]
         class S1 : MachineState { }
 
         void EntryS1()
         {
-            this.Assert(test == true); // holds
-            this.Raise(new Unit());
+            test = true;
+            this.Send(this.Id, new E3());
+        }
+
+        void ExitS1()
+        {
+            this.Send(this.Id, new E3());
         }
 
         [OnEntry(nameof(EntryS2))]
@@ -100,42 +92,8 @@ namespace SystematicTesting
 
         void EntryS2()
         {
-            // this assert is reachable: Real -E1-> Ghost -E2-> Real;
-            // then Real_S1 (assert holds), Real_S2 (assert fails)
-            this.Assert(false);
+            this.Assert(test == false); // reachable
         }
-
-        void Action1()
-        {
-            this.Send(GhostMachine, new E3());
-        }
-    }
-
-    class Ghost : Machine
-    {
-        MachineId RealMachine;
-
-        [Start]
-        [OnEntry(nameof(EntryInit))]
-        [OnEventGotoState(typeof(E1), typeof(S1))]
-        class Init : MachineState { }
-
-        void EntryInit()
-        {
-            RealMachine = this.Payload as MachineId;
-        }
-
-        [OnEntry(nameof(EntryS1))]
-        [OnEventGotoState(typeof(E3), typeof(S2))]
-        class S1 : MachineState { }
-
-        void EntryS1()
-        {
-            this.Send(RealMachine, new E4());
-            this.Send(RealMachine, new E2());
-        }
-
-        class S2 : MachineState { }
     }
 
     public static class TestProgram
@@ -149,7 +107,7 @@ namespace SystematicTesting
         [EntryPoint]
         public static void Execute()
         {
-            PSharpRuntime.CreateMachine(typeof(Real));
+            PSharpRuntime.CreateMachine(typeof(Real1));
         }
     }
 }";
@@ -159,7 +117,6 @@ namespace SystematicTesting
             program.Rewrite();
 
             Configuration.Verbose = 2;
-            Configuration.SchedulingStrategy = "dfs";
 
             var assembly = base.GetAssembly(program.GetSyntaxTree());
             AnalysisContext.Create(assembly);

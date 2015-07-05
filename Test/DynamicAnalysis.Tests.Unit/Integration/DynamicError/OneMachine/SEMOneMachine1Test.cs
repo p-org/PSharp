@@ -53,7 +53,7 @@ namespace SystematicTesting
 
     class Real1 : Machine
     {
-        bool test;
+        bool test = false;
 
         [Start]
         [OnEntry(nameof(EntryInit))]
@@ -63,7 +63,6 @@ namespace SystematicTesting
 
         void EntryInit()
         {
-            test = false;
             this.Send(this.Id, new E2());
             this.Raise(new E1());
         }
