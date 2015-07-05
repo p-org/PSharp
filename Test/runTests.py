@@ -20,28 +20,6 @@ tests = [
 		  'FailureDetector',
 		  'PingPong',
 		  'TypesAndGenerics',
-
-		  # P# distributed benchmarks
-		  #'DistributedPingPong',
-
-		  # Regressions
-		  # Feature1SMLevelDecls
-		  #'AlonBug',
-		  #'BugRepro1',
-		  #'MaxInstances_2',
-		  #'MaxInstances_3',
-		  #'AlonBug_Fails',
-		  #'BugRepro',
-		  #'MaxInstances_1',
-
-		  # Feature2Stmts
-		  #'SEM_OneMachine_33',
-		  #'SEM_OneMachine_34',
-		  #'SEM_OneMachine_35',
-
-		  # Feature3Exprs
-		  #'ExprOperatorsAsserts',
-		  #'ShortCircuitEval'
         ]
 
 class Options:
