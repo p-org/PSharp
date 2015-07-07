@@ -130,11 +130,16 @@ namespace Microsoft.PSharp
         /// Raises an event internally and returns from the execution context.
         /// </summary>
         /// <param name="e">Event</param>
-        protected internal void Raise(Event e)
+        /// <param name="payload">Optional payload</param>
+        protected internal void Raise(Event e, params Object[] payload)
         {
+            // If the event is null then report an error and exit.
+            this.Assert(e != null, "Monitor '{0}' is raising a null event.", this.GetType().Name);
+
+            e.AssignPayload(payload);
             Output.Debug(DebugType.Runtime, "<RaiseLog> Monitor '{0}' " +
                 "raised event '{1}'.", this, e);
-            this.HandleEvent(e);
+            this.RaisedEvent = e;
         }
 
         /// <summary>

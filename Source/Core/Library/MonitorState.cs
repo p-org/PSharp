@@ -199,9 +199,10 @@ namespace Microsoft.PSharp
         /// Raises an event internally and returns from the execution context.
         /// </summary>
         /// <param name="e">Event</param>
-        protected void Raise(Event e)
+        /// <param name="payload">Optional payload</param>
+        protected void Raise(Event e, params Object[] payload)
         {
-            this.Monitor.Raise(e);
+            this.Monitor.Raise(e, payload);
         }
 
         /// <summary>
