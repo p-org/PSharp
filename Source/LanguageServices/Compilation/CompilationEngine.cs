@@ -213,6 +213,11 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
                 }
             }
 
+            Output.Print("---");
+            Output.Print("Note: the errors below correspond to the intermediate C#-IR, " +
+                "which can be printed using /debug.");
+            Output.Print("---");
+
             var message = string.Join("\r\n", emitResult.Diagnostics);
             throw new ApplicationException(message);
         }
@@ -245,6 +250,11 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
                     return assembly;
                 }
             }
+
+            Output.Print("---");
+            Output.Print("Note: the errors below correspond to the intermediate C#-IR, " +
+                "which can be printed using /debug.");
+            Output.Print("---");
 
             var message = string.Join("\r\n", emitResult.Diagnostics);
             throw new ApplicationException(message);
