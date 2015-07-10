@@ -167,7 +167,6 @@ namespace Microsoft.PSharp
 
             (monitor as Monitor).AssignInitialPayload(payload);
             (monitor as Monitor).GotoStartState();
-            (monitor as Monitor).RunEventHandler();
         }
 
         /// <summary>
@@ -230,8 +229,7 @@ namespace Microsoft.PSharp
             {
                 if (m.GetType() == typeof(T))
                 {
-                    m.Enqueue(e);
-                    m.RunEventHandler();
+                    m.MonitorEvent(e);
                 }
             }
         }

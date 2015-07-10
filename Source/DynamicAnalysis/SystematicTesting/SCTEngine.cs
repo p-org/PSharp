@@ -133,9 +133,15 @@ namespace Microsoft.PSharp.DynamicAnalysis
                         sw = SCTEngine.RedirectOutput();
                     }
 
+                    // Start the test and wait for it to finish.
                     AnalysisContext.EntryPoint.Invoke(null, null);
                     PSharpRuntime.WaitMachines();
-                    PSharpRuntime.CheckLivenessMonitors();
+
+                    // Check liveness monitors if no bug was found.
+                    if (!PSharpRuntime.BugFinder.BugFound)
+                    {
+                        PSharpRuntime.CheckLivenessMonitors();
+                    }
 
                     if (Configuration.Verbose < 2)
                     {

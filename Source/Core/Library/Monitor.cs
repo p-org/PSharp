@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 
 using Microsoft.PSharp.Tooling;
 
@@ -71,28 +70,6 @@ namespace Microsoft.PSharp
         private HashSet<Type> IgnoredEvents;
 
         /// <summary>
-        /// Is monitor running.
-        /// </summary>
-        private bool IsRunning;
-
-        /// <summary>
-        /// Is monitor halted.
-        /// </summary>
-        private bool IsHalted;
-
-        /// <summary>
-        /// Inbox of the monitor. Incoming events are queued here.
-        /// Events are dequeued to be processed.
-        /// </summary>
-        private List<Event> Inbox;
-
-        /// <summary>
-        /// Gets the raised event. If no event has been raised this will
-        /// return null.
-        /// </summary>
-        private Event RaisedEvent;
-
-        /// <summary>
         /// Gets the latest received event type. If no event has been
         /// received this will return null.
         /// </summary>
@@ -113,11 +90,6 @@ namespace Microsoft.PSharp
         /// </summary>
         protected Monitor()
         {
-            this.Inbox = new List<Event>();
-
-            this.IsRunning = true;
-            this.IsHalted = false;
-
             this.InitializeStateInformation();
             this.AssertStateValidity();
         }
@@ -139,7 +111,7 @@ namespace Microsoft.PSharp
             e.AssignPayload(payload);
             Output.Debug(DebugType.Runtime, "<RaiseLog> Monitor '{0}' " +
                 "raised event '{1}'.", this, e);
-            this.RaisedEvent = e;
+            this.HandleEvent(e);
         }
 
         /// <summary>
@@ -207,63 +179,14 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Enqueues an event.
+        /// Notifies the monitor to handle the received event.
         /// </summary>
         /// <param name="e">Event</param>
-        internal void Enqueue(Event e)
+        internal void MonitorEvent(Event e)
         {
-            if (this.IsHalted)
-            {
-                return;
-            }
-
-            Output.Debug(DebugType.Runtime, "<EnqueueLog> Monitor '{0}' enqueued event '{1}'.",
-                    this, e.GetType());
-
-            this.Inbox.Add(e);
-        }
-
-        /// <summary>
-        /// Runs the event handler. The handlers terminates if there
-        /// is no next event to process or if the machine is halted.
-        /// </summary>
-        internal void RunEventHandler()
-        {
-            if (this.IsHalted)
-            {
-                return;
-            }
-            else if (!this.IsRunning)
-            {
-                this.IsRunning = true;
-            }
-
-            Event nextEvent = null;
-            while (!this.IsHalted)
-            {
-                nextEvent = this.GetNextEvent();
-
-                // Check if next event to process is null.
-                if (nextEvent == null)
-                {
-                    if (this.HasDefaultHandler())
-                    {
-                        nextEvent = new Default();
-                    }
-                    else
-                    {
-                        this.IsRunning = false;
-                        break;
-                    }
-                }
-
-                // Assign trigger and payload.
-                this.Trigger = nextEvent.GetType();
-                this.Payload = nextEvent.Payload;
-
-                // Handle next event.
-                this.HandleEvent(nextEvent);
-            }
+            Output.Debug(DebugType.Runtime, "<EnqueueLog> Monitor '{0}' is processing " +
+                "event '{1}'.", this, e.GetType());
+            this.HandleEvent(e);
         }
 
         /// <summary>
@@ -291,75 +214,27 @@ namespace Microsoft.PSharp
         #region private monitor methods
 
         /// <summary>
-        /// Gets the next available event. It gives priority to raised events,
-        /// else deqeues from the inbox. Returns null if no event is available.
-        /// </summary>
-        /// <returns>Next event</returns>
-        private Event GetNextEvent()
-        {
-            Event nextEvent = null;
-
-            // Raised events have priority.
-            if (this.RaisedEvent != null)
-            {
-                nextEvent = this.RaisedEvent;
-                this.RaisedEvent = null;
-
-                // Checks if the raised event is ignored.
-                if (this.IgnoredEvents.Contains(nextEvent.GetType()))
-                {
-                    nextEvent = null;
-                }
-            }
-            // If there is no raised event, then dequeue.
-            else if (this.Inbox.Count > 0)
-            {
-                // Iterate through the events in the inbox.
-                for (int idx = 0; idx < this.Inbox.Count; idx++)
-                {
-                    // Remove an ignored event.
-                    if (this.IgnoredEvents.Contains(this.Inbox[idx].GetType()))
-                    {
-                        this.Inbox.RemoveAt(idx);
-                        idx--;
-                        continue;
-                    }
-
-                    nextEvent = this.Inbox[idx];
-                    Output.Debug(DebugType.Runtime, "<DequeueLog> Monitor '{0}' dequeued event '{1}'.",
-                        this, nextEvent.GetType());
-
-                    this.Inbox.RemoveAt(idx);
-                    break;
-                }
-            }
-
-            return nextEvent;
-        }
-
-        /// <summary>
         /// Handles the given event.
         /// </summary>
         /// <param name="e">Event to handle</param>
         private void HandleEvent(Event e)
         {
+            // Do not process an ignored event.
+            if (this.IgnoredEvents.Contains(e.GetType()))
+            {
+                return;
+            }
+
+            // Assign trigger and payload.
+            this.Trigger = e.GetType();
+            this.Payload = e.Payload;
+
             while (true)
             {
                 if (this.State == null)
                 {
-                    // If the stack of states is empty and the event
-                    // is halt, then terminate the monitor.
-                    if (e.GetType().Equals(typeof(Halt)))
-                    {
-                        Output.Debug(DebugType.Runtime, "<HaltLog> Monitor " +
-                                "'{0}' halted.", this);
-                        this.IsHalted = true;
-                        this.CleanUpResources();
-                        return;
-                    }
-
                     // If the event cannot be handled then report an error and exit.
-                    this.Assert(false, "Monitor ''{0}'' received event ''{1}'' that cannot be handled.",
+                    this.Assert(false, "Monitor '{0}' received event '{1}' that cannot be handled.",
                         this.GetType().Name, e.GetType().Name);
                 }
 
@@ -445,12 +320,12 @@ namespace Microsoft.PSharp
                     {
                         if (s.IsDefined(typeof(Start), false))
                         {
-                            this.Assert(initialStateType == null, "Monitor ''{0}'' can not have " +
+                            this.Assert(initialStateType == null, "Monitor '{0}' can not have " +
                                 "more than one start states.\n", this.GetType().Name);
                             initialStateType = s;
                         }
 
-                        this.Assert(s.BaseType == typeof(MonitorState), "State ''{0}'' is " +
+                        this.Assert(s.BaseType == typeof(MonitorState), "State '{0}' is " +
                             "not of the correct type.\n", s.Name);
                         this.StateTypes.Add(s);
                     }
@@ -491,10 +366,6 @@ namespace Microsoft.PSharp
         {
             // The monitor performs the on exit statements of the current state.
             this.ExecuteCurrentStateOnExit(onExit);
-            if (this.IsHalted)
-            {
-                return;
-            }
 
             var nextState = this.States.First(val => val.GetType().Equals(s));
             this.ConfigureStateTransitions(nextState);
@@ -518,10 +389,6 @@ namespace Microsoft.PSharp
             try
             {
                 a();
-            }
-            catch (TaskCanceledException)
-            {
-                this.IsHalted = true;
             }
             catch (Exception ex)
             {
@@ -547,10 +414,6 @@ namespace Microsoft.PSharp
                 // Performs the on entry statements of the new state.
                 this.State.ExecuteEntryFunction();
             }
-            catch (TaskCanceledException)
-            {
-                this.IsHalted = true;
-            }
             catch (Exception ex)
             {
                 // Handles generic exception.
@@ -575,10 +438,6 @@ namespace Microsoft.PSharp
                 {
                     onExit();
                 }
-            }
-            catch (TaskCanceledException)
-            {
-                this.IsHalted = true;
             }
             catch (Exception ex)
             {
@@ -609,9 +468,9 @@ namespace Microsoft.PSharp
         /// </summary>
         private void AssertStateValidity()
         {
-            this.Assert(this.StateTypes.Count > 0, "Monitor ''{0}'' must " +
+            this.Assert(this.StateTypes.Count > 0, "Monitor '{0}' must " +
                 "have one or more states.\n", this.GetType().Name);
-            this.Assert(this.State != null, "Monitor ''{0}'' " +
+            this.Assert(this.State != null, "Monitor '{0}' " +
                 "must not have a null current state.\n", this.GetType().Name);
         }
 
@@ -626,22 +485,6 @@ namespace Microsoft.PSharp
                 "The stack trace is:\n{4}",
                 ex.GetType(), this.GetType().Name, ex.Source, ex.Message, ex.StackTrace);
         }
-
-        #endregion
-
-        #region cleanup methods
-
-        /// <summary>
-        /// Cleans up resources at monitor termination.
-        /// </summary>
-        private void CleanUpResources()
-        {
-            this.StateTypes.Clear();
-            this.Inbox.Clear();
-
-            this.Trigger = null;
-            this.Payload = null;
-    }
 
         #endregion
     }
