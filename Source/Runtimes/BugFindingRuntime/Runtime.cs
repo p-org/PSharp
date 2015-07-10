@@ -247,6 +247,24 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Checks the liveness monitors for violations.
+        /// </summary>
+        internal static void CheckLivenessMonitors()
+        {
+            foreach (var m in PSharpRuntime.Monitors)
+            {
+                var stateName = "";
+                if (m.IsInHotState(out stateName))
+                {
+                    string message = Output.Format("Program terminated with monitor '{0}' " +
+                        "in hot state '{1}'.", m.GetType().Name, stateName);
+                    ErrorReporter.Report(message);
+                    PSharpRuntime.BugFinder.NotifyAssertionFailure(false);
+                }
+            }
+        }
+
+        /// <summary>
         /// Waits until all P# machines have finished execution.
         /// </summary>
         internal static void WaitMachines()

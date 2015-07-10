@@ -116,6 +116,7 @@
     <Compile Include="Integration\DynamicError\BasicTransitions\Actions5FailTest.cs" />
     <Compile Include="Integration\DynamicError\BasicTransitions\Actions1FailTest.cs" />
     <Compile Include="Integration\DynamicError\Advanced\SendInterleavingsTest.cs" />
+    <Compile Include="Liveness\HotStateTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

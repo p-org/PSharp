@@ -266,6 +266,26 @@ namespace Microsoft.PSharp
             }
         }
 
+        /// <summary>
+        /// Returns true if the monitor is in a hot state. Also outputs
+        /// the name of the current state.
+        /// </summary>
+        /// <param name="stateName">State name</param>
+        /// <returns>Boolean value</returns>
+        internal bool IsInHotState(out string stateName)
+        {
+            var result = false;
+            stateName = this.State.GetType().Name;
+
+            var hotAttribute = this.State.GetType().GetCustomAttribute(typeof(Hot), false) as Hot;
+            if (hotAttribute != null)
+            {
+                result = true;
+            }
+
+            return result;
+        }
+
         #endregion
 
         #region private monitor methods

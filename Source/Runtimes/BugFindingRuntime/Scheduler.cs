@@ -241,16 +241,6 @@ namespace Microsoft.PSharp.Scheduling
         }
 
         /// <summary>
-        /// Notify that an assertion has failed.
-        /// </summary>
-        internal void NotifyAssertionFailure()
-        {
-            this.BugFound = true;
-            this.KillRemainingTasks();
-            throw new TaskCanceledException();
-        }
-
-        /// <summary>
         /// Wait for the task to start.
         /// </summary>
         /// <param name="id">TaskId</param>
@@ -275,6 +265,21 @@ namespace Microsoft.PSharp.Scheduling
         {
             var enabledTasks = this.Tasks.Where(task => task.IsEnabled).ToList();
             return enabledTasks.Any(task => task.Machine.Equals(machine));
+        }
+
+        /// <summary>
+        /// Notify that an assertion has failed.
+        /// </summary>
+        /// <param name="terminateScheduler">Terminate the scheduler</param>
+        internal void NotifyAssertionFailure(bool terminateScheduler = true)
+        {
+            this.BugFound = true;
+
+            if (terminateScheduler)
+            {
+                this.KillRemainingTasks();
+                throw new TaskCanceledException();
+            }
         }
 
         #endregion

@@ -86,6 +86,7 @@
     <Compile Include="Attributes\OnEventDoAction.cs" />
     <Compile Include="Attributes\OnEventGotoState.cs" />
     <Compile Include="Attributes\Model.cs" />
+    <Compile Include="Attributes\Hot.cs" />
     <Compile Include="Attributes\Start.cs" />
     <Compile Include="Collections\Container.cs" />
     <Compile Include="Collections\Map.cs" />

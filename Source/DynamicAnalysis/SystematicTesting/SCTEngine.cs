@@ -135,6 +135,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
 
                     AnalysisContext.EntryPoint.Invoke(null, null);
                     PSharpRuntime.WaitMachines();
+                    PSharpRuntime.CheckLivenessMonitors();
 
                     if (Configuration.Verbose < 2)
                     {
