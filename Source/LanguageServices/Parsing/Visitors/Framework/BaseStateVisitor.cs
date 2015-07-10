@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="StateDeclarationParser.cs">
+// <copyright file="BaseStateVisitor.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -25,9 +25,9 @@ using Microsoft.PSharp.Tooling;
 namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 {
     /// <summary>
-    /// The P# state declaration parsing visitor.
+    /// An abstract P# state visitor.
     /// </summary>
-    internal sealed class StateDeclarationParser : BaseVisitor
+    internal abstract class BaseStateVisitor : BaseVisitor
     {
         #region public API
 
@@ -36,7 +36,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// </summary>
         /// <param name="project">PSharpProject</param>
         /// <param name="errorLog">Error log</param>
-        internal StateDeclarationParser(PSharpProject project, List<Tuple<SyntaxToken, string>> errorLog)
+        internal BaseStateVisitor(PSharpProject project, List<Tuple<SyntaxToken, string>> errorLog)
             : base(project, errorLog)
         {
 
@@ -52,8 +52,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
             var compilation = project.GetCompilationAsync().Result;
 
             var states = tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().
-                Where(val => Querying.IsMachineState(compilation, val) ||
-                    Querying.IsMonitorState(compilation, val)).
+                Where(val => this.IsState(compilation, val)).
                 ToList();
 
             foreach (var state in states)
@@ -65,8 +64,37 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
                 this.CheckForDuplicateOnEntry(state, compilation);
                 this.CheckForDuplicateOnExit(state, compilation);
+
+                this.CheckForSpecialProperties(state, compilation);
             }
         }
+
+        #endregion
+
+        #region protected API
+
+        /// <summary>
+        /// Returns true if the given class declaration is a state.
+        /// </summary>
+        /// <param name="compilation">Compilation</param>
+        /// <param name="classDecl">Class declaration</param>
+        /// <returns>Boolean value</returns>
+        protected abstract bool IsState(CodeAnalysis.Compilation compilation,
+            ClassDeclarationSyntax classDecl);
+
+        /// <summary>
+        /// Returns the type of the state.
+        /// </summary>
+        /// <returns>Text</returns>
+        protected abstract string GetTypeOfState();
+
+        /// <summary>
+        /// Checks for special properties.
+        /// </summary>
+        /// <param name="state">State</param>
+        /// <param name="compilation">Compilation</param>
+        protected abstract void CheckForSpecialProperties(ClassDeclarationSyntax state,
+            CodeAnalysis.Compilation compilation);
 
         #endregion
 

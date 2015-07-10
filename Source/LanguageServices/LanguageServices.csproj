@@ -69,8 +69,10 @@
     <Compile Include="Parsing\Parsers\CSharpParser.cs" />
     <Compile Include="Parsing\Parsers\PSharpParser.cs" />
     <Compile Include="Parsing\Visitors\Framework\BaseMachineVisitor.cs" />
+    <Compile Include="Parsing\Visitors\Framework\MonitorStateDeclarationParser.cs" />
     <Compile Include="Parsing\Visitors\Framework\MonitorDeclarationParser.cs" />
-    <Compile Include="Parsing\Visitors\Framework\StateDeclarationParser.cs" />
+    <Compile Include="Parsing\Visitors\Framework\BaseStateVisitor.cs" />
+    <Compile Include="Parsing\Visitors\Framework\MachineStateDeclarationParser.cs" />
     <Compile Include="Parsing\Visitors\Framework\MachineDeclarationParser.cs" />
     <Compile Include="Parsing\Visitors\Framework\BaseVisitor.cs" />
     <Compile Include="Parsing\Visitors\Syntax\BaseTokenVisitor.cs" />

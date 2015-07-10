@@ -135,7 +135,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 Parse(base.SyntaxTree);
             new MonitorDeclarationParser(base.Project, this.ErrorLog).
                 Parse(base.SyntaxTree);
-            new StateDeclarationParser(base.Project, this.ErrorLog).
+            new MachineStateDeclarationParser(base.Project, this.ErrorLog).
+                Parse(base.SyntaxTree);
+            new MonitorStateDeclarationParser(base.Project, this.ErrorLog).
                 Parse(base.SyntaxTree);
         }
 
