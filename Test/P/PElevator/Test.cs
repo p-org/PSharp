@@ -12,7 +12,7 @@ namespace PElevator
             Console.ReadLine();
         }
 
-        [EntryPoint]
+        [Microsoft.PSharp.Test]
         public static void Execute()
         {
             PSharpRuntime.CreateMachine(typeof(User));

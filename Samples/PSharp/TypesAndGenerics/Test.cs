@@ -12,7 +12,7 @@ namespace TypesAndGenerics
             Console.ReadLine();
         }
 
-        [EntryPoint]
+        [Microsoft.PSharp.Test]
         public static void Execute()
         {
             PSharpRuntime.CreateMachine(typeof(Server));

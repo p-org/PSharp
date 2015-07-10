@@ -240,16 +240,16 @@ namespace Microsoft.PSharp.Remote
         private static MethodInfo FindEntryPoint(Assembly assembly)
         {
             var entrypoints = assembly.GetTypes().SelectMany(t => t.GetMethods()).
-                Where(m => m.GetCustomAttributes(typeof(EntryPoint), false).Length > 0).ToList();
+                Where(m => m.GetCustomAttributes(typeof(Test), false).Length > 0).ToList();
             if (entrypoints.Count == 0)
             {
-                ErrorReporter.ReportAndExit("No entry point found to the P# program. " +
-                    "Use the attribute [EntryPoint] to declare an entry point method.");
+                ErrorReporter.ReportAndExit("Cannot detect a P# test method. " +
+                    "Use the attribute [Test] to declare a test method.");
             }
             else if (entrypoints.Count > 1)
             {
-                ErrorReporter.ReportAndExit("Only one entry point to the P# program can be declared. " +
-                    "{0} entry points were found instead.", entrypoints.Count);
+                ErrorReporter.ReportAndExit("Only one test method to the P# program can be declared. " +
+                    "{0} test methods were found instead.", entrypoints.Count);
             }
 
             return entrypoints[0];

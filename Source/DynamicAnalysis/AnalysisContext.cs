@@ -40,9 +40,9 @@ namespace Microsoft.PSharp.DynamicAnalysis
         internal static SchedulingStrategy Strategy;
 
         /// <summary>
-        /// The entry point to the P# program.
+        /// A P# test method.
         /// </summary>
-        internal static MethodInfo EntryPoint;
+        internal static MethodInfo TestMethod;
 
         #endregion
 
@@ -118,13 +118,13 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// </summary>
         private static void FindEntryPoint()
         {
-            List<MethodInfo> entrypoints = null;
+            List<MethodInfo> testMethods = null;
 
             try
             {
-                entrypoints = AnalysisContext.Assembly.GetTypes().SelectMany(t => t.GetMethods(BindingFlags.Static |
+                testMethods = AnalysisContext.Assembly.GetTypes().SelectMany(t => t.GetMethods(BindingFlags.Static |
                     BindingFlags.Public | BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod)).
-                    Where(m => m.GetCustomAttributes(typeof(EntryPoint), false).Length > 0).ToList();
+                    Where(m => m.GetCustomAttributes(typeof(Test), false).Length > 0).ToList();
             }
             catch (ReflectionTypeLoadException ex)
             {
@@ -141,30 +141,30 @@ namespace Microsoft.PSharp.DynamicAnalysis
                 ErrorReporter.ReportAndExit("Failed to load assembly '{0}'", AnalysisContext.Assembly.FullName);
             }
 
-            if (entrypoints.Count == 0)
+            if (testMethods.Count == 0)
             {
-                ErrorReporter.ReportAndExit("No testing entry point found in the P# program. " +
-                    "Use the attribute [EntryPoint] to declare an entry point method.");
+                ErrorReporter.ReportAndExit("Cannot detect a P# test method. " +
+                    "Use the attribute [Test] to declare a test method.");
             }
-            else if (entrypoints.Count > 1)
+            else if (testMethods.Count > 1)
             {
-                ErrorReporter.ReportAndExit("Only a single testing entry point can be declared. " +
-                    "{0} entry points were found instead.", entrypoints.Count);
-            }
-
-            if (entrypoints[0].ReturnType != typeof(void) ||
-                entrypoints[0].ContainsGenericParameters ||
-                entrypoints[0].GetParameters().Length > 0 ||
-                entrypoints[0].IsAbstract || entrypoints[0].IsVirtual ||
-                entrypoints[0].IsConstructor ||
-                !entrypoints[0].IsPublic || !entrypoints[0].IsStatic)
-            {
-                ErrorReporter.ReportAndExit("Incorrect testing entry point declaration. Please " +
-                    "declare the entry point as follows:\n" +
-                    "  [EntryPoint] public static void Test() { ... }");
+                ErrorReporter.ReportAndExit("Only one test method to the P# program can be declared. " +
+                    "{0} test methods were found instead.", testMethods.Count);
             }
 
-            AnalysisContext.EntryPoint = entrypoints[0];
+            if (testMethods[0].ReturnType != typeof(void) ||
+                testMethods[0].ContainsGenericParameters ||
+                testMethods[0].GetParameters().Length > 0 ||
+                testMethods[0].IsAbstract || testMethods[0].IsVirtual ||
+                testMethods[0].IsConstructor ||
+                !testMethods[0].IsPublic || !testMethods[0].IsStatic)
+            {
+                ErrorReporter.ReportAndExit("Incorrect test method declaration. Please " +
+                    "declare the test method as follows:\n" +
+                    "  [Test] public static void Test() { ... }");
+            }
+
+            AnalysisContext.TestMethod = testMethods[0];
         }
 
         #endregion

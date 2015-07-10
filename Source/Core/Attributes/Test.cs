@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="EntryPoint.cs" company="Microsoft">
+// <copyright file="Test.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -19,9 +19,9 @@ using System;
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Attribute for declaring the entry point to the P# program.
-    /// This is only used during systematic concurrency testing.
+    /// Attribute for declaring the entry point to systematically
+    /// test a P# program.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method)]
-    public sealed class EntryPoint : Attribute { }
+    public sealed class Test : Attribute { }
 }

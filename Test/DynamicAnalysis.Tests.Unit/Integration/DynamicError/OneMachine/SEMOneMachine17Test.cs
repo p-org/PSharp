@@ -98,7 +98,7 @@ namespace SystematicTesting
             Console.ReadLine();
         }
 
-        [EntryPoint]
+        [Test]
         public static void Execute()
         {
             PSharpRuntime.CreateMachine(typeof(Real1));

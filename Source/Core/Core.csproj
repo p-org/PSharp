@@ -78,7 +78,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Attributes\IgnoreEvents.cs" />
-    <Compile Include="Attributes\EntryPoint.cs" />
+    <Compile Include="Attributes\Test.cs" />
     <Compile Include="Attributes\DeferEvents.cs" />
     <Compile Include="Attributes\OnEventPushState.cs" />
     <Compile Include="Attributes\OnExit.cs" />
