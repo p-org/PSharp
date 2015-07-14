@@ -92,7 +92,15 @@ namespace Microsoft.PSharp
         public static void SendEvent(MachineId target, Event e, params Object[] payload)
         {
             e.AssignPayload(payload);
-            PSharpRuntime.Send(target, e);
+
+            try
+            {
+                PSharpRuntime.Send(target, e);
+            }
+            catch (TaskCanceledException)
+            {
+                Output.Log("<Exception> TaskCanceledException was thrown.");
+            }
         }
 
         #endregion

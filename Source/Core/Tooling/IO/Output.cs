@@ -48,9 +48,9 @@ namespace Microsoft.PSharp.Tooling
             Console.WriteLine(message);
         }
 
-        internal static void Verbose(string s, params object[] args)
+        internal static void Log(string s, params object[] args)
         {
-            if (Configuration.Verbose >= 1)
+            if (Configuration.Verbose < 3)
             {
                 return;
             }

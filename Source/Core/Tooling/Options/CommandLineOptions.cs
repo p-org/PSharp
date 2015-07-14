@@ -90,10 +90,10 @@ namespace Microsoft.PSharp.Tooling
                 {
                     int i = 0;
                     if (!int.TryParse(this.Options[idx].Substring(3), out i) &&
-                        i >= 0 && i <= 2)
+                        i >= 0 && i <= 3)
                     {
                         ErrorReporter.ReportAndExit("Please give a valid verbosity level " +
-                            "'/v:[x]', where 0 <= [x] <= 2.");
+                            "'/v:[x]', where 0 <= [x] <= 3.");
                     }
 
                     Configuration.Verbose = i;
