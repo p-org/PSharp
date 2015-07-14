@@ -207,7 +207,7 @@ namespace Microsoft.PSharp.Tooling
             Configuration.SchedulingStrategy = "";
             Configuration.SchedulingIterations = 1;
             Configuration.FullExploration = false;
-            Configuration.DepthBound = 1000;
+            Configuration.DepthBound = 10000;
 
             Configuration.NumberOfContainers = 1;
             Configuration.ContainerId = 0;
