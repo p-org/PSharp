@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 
 using Microsoft.PSharp.Tooling;
 
@@ -392,6 +393,11 @@ namespace Microsoft.PSharp
             }
             catch (Exception ex)
             {
+                if (ex is TaskCanceledException)
+                {
+                    throw ex;
+                }
+
                 // Handles generic exception.
                 this.ReportGenericAssertion(ex);
             }
@@ -416,6 +422,11 @@ namespace Microsoft.PSharp
             }
             catch (Exception ex)
             {
+                if (ex is TaskCanceledException)
+                {
+                    throw ex;
+                }
+
                 // Handles generic exception.
                 this.ReportGenericAssertion(ex);
             }
@@ -441,6 +452,11 @@ namespace Microsoft.PSharp
             }
             catch (Exception ex)
             {
+                if (ex is TaskCanceledException)
+                {
+                    throw ex;
+                }
+
                 // Handles generic exception.
                 this.ReportGenericAssertion(ex);
             }
