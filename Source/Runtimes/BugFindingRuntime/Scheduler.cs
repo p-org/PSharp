@@ -46,6 +46,15 @@ namespace Microsoft.PSharp.Scheduling
         private Dictionary<int, TaskInfo> TaskMap;
 
         /// <summary>
+        /// True if the scheduler managed to reach a terminal
+        /// state in the program.
+        /// </summary>
+        internal bool ProgramTerminated
+        {
+            get; private set;
+        }
+
+        /// <summary>
         /// True if a bug was found.
         /// </summary>
         internal bool BugFound
@@ -74,6 +83,7 @@ namespace Microsoft.PSharp.Scheduling
             this.Strategy = strategy;
             this.Tasks = new List<TaskInfo>();
             this.TaskMap = new Dictionary<int, TaskInfo>();
+            this.ProgramTerminated = false;
             this.BugFound = false;
             this.SchedulingPoints = 0;
         }
@@ -92,14 +102,21 @@ namespace Microsoft.PSharp.Scheduling
             var taskInfo = this.TaskMap[(int)id];
 
             TaskInfo next = null;
-            if ((Configuration.DepthBound > 0 && this.SchedulingPoints == Configuration.DepthBound) ||
-                !this.Strategy.TryGetNext(out next, this.Tasks))
+            if (Configuration.DepthBound > 0 && this.SchedulingPoints == Configuration.DepthBound)
             {
-                Output.Debug(DebugType.Testing, "<ScheduleDebug> Schedule explored.");
+                Output.Debug(DebugType.Testing, "<ScheduleDebug> Depth bound of {0} reached.",
+                    Configuration.DepthBound);
                 this.KillRemainingTasks();
                 throw new TaskCanceledException();
             }
-            
+            else if (!this.Strategy.TryGetNext(out next, this.Tasks))
+            {
+                Output.Debug(DebugType.Testing, "<ScheduleDebug> Schedule explored.");
+                this.ProgramTerminated = true;
+                this.KillRemainingTasks();
+                throw new TaskCanceledException();
+            }
+
             Output.Debug(DebugType.Testing, "<ScheduleDebug> Schedule task {0} of machine {1}({2}).",
                 next.Id, next.Machine.GetType(), next.Machine.Id.Value);
 

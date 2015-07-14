@@ -47,7 +47,12 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// <summary>
         /// Has switched runtime debugging on.
         /// </summary>
-        private static bool SwitchedRuntimeDebuggingOn;
+        private static bool HasSwitchedRuntimeDebuggingOn;
+
+        /// <summary>
+        /// Has redirected console output.
+        /// </summary>
+        private static bool HasRedirectedOutput;
 
         /// <summary>
         /// Number of found bugs.
@@ -87,12 +92,14 @@ namespace Microsoft.PSharp.DynamicAnalysis
                 !Configuration.Debug.Contains(DebugType.Runtime))
             {
                 Configuration.Debug.Add(DebugType.Runtime);
-                SCTEngine.SwitchedRuntimeDebuggingOn = true;
+                SCTEngine.HasSwitchedRuntimeDebuggingOn = true;
             }
             else
             {
-                SCTEngine.SwitchedRuntimeDebuggingOn = false;
+                SCTEngine.HasSwitchedRuntimeDebuggingOn = false;
             }
+
+            SCTEngine.HasRedirectedOutput = false;
         }
 
         /// <summary>
@@ -131,19 +138,22 @@ namespace Microsoft.PSharp.DynamicAnalysis
                     if (Configuration.Verbose < 2)
                     {
                         sw = SCTEngine.RedirectOutput();
+                        SCTEngine.HasRedirectedOutput = true;
                     }
 
                     // Start the test and wait for it to terminate.
                     AnalysisContext.TestMethod.Invoke(null, null);
                     PSharpRuntime.WaitMachines();
 
-                    // Check liveness monitors if no bug was found.
-                    if (!PSharpRuntime.BugFinder.BugFound)
+                    // Check liveness monitors if no bug was found and the
+                    // scheduler terminated before reaching the depth bound.
+                    if (!PSharpRuntime.BugFinder.BugFound &&
+                        PSharpRuntime.BugFinder.ProgramTerminated)
                     {
                         PSharpRuntime.CheckLivenessMonitors();
                     }
 
-                    if (Configuration.Verbose < 2)
+                    if (SCTEngine.HasRedirectedOutput)
                     {
                         SCTEngine.ResetOutput();
                     }
@@ -166,11 +176,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
                     {
                         if (sw != null)
                         {
-                            var path = Path.GetDirectoryName(AnalysisContext.Assembly.Location) +
-                            Path.DirectorySeparatorChar + Path.GetFileNameWithoutExtension(
-                                AnalysisContext.Assembly.Location) + ".txt";
-                            Output.Print("... Writing {0}", path);
-                            File.WriteAllText(path, sw.ToString());
+                            SCTEngine.PrintTrace(sw);
                         }
                         
                         break;
@@ -194,7 +200,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
             }
             catch (AggregateException)
             {
-                if (Configuration.Verbose < 2)
+                if (SCTEngine.HasRedirectedOutput)
                 {
                     SCTEngine.ResetOutput();
                 }
@@ -236,14 +242,33 @@ namespace Microsoft.PSharp.DynamicAnalysis
         }
 
         /// <summary>
+        /// Writes the trace in an output file.
+        /// </summary>
+        /// <param name="sw">StringWriter</param>
+        private static void PrintTrace(StringWriter sw)
+        {
+            var name = Path.GetFileNameWithoutExtension(AnalysisContext.Assembly.Location);
+            var directory = Path.GetDirectoryName(AnalysisContext.Assembly.Location) +
+                Path.DirectorySeparatorChar + "traces" + Path.DirectorySeparatorChar;
+
+            Directory.CreateDirectory(directory);
+
+            var traces = Directory.GetFiles(directory, name + "*.txt");
+            var path = directory + name + "_" + traces.Length + ".txt";
+
+            Output.Print("... Writing {0}", path);
+            File.WriteAllText(path, sw.ToString());
+        }
+
+        /// <summary>
         /// Cleanups the systematic concurrency testing engine.
         /// </summary>
         private static void Cleanup()
         {
-            if (SCTEngine.SwitchedRuntimeDebuggingOn)
+            if (SCTEngine.HasSwitchedRuntimeDebuggingOn)
             {
                 Configuration.Debug.Remove(DebugType.Runtime);
-                SCTEngine.SwitchedRuntimeDebuggingOn = false;
+                SCTEngine.HasSwitchedRuntimeDebuggingOn = false;
             }
         }
 
@@ -287,6 +312,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
             var sw = new StreamWriter(Console.OpenStandardOutput());
             sw.AutoFlush = true;
             Console.SetOut(sw);
+            SCTEngine.HasRedirectedOutput = false;
         }
 
         #endregion
