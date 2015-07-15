@@ -32,6 +32,14 @@ namespace Microsoft.PSharp.Scheduling
         /// </summary>
         private Dictionary<Fingerprint, ProgramState> Map;
 
+        /// <summary>
+        /// The number of unique states.
+        /// </summary>
+        internal int Count
+        {
+            get { return this.Map.Count; }
+        }
+
         #endregion
 
         #region internal API
@@ -42,6 +50,33 @@ namespace Microsoft.PSharp.Scheduling
         internal StateMap()
         {
             this.Map = new Dictionary<Fingerprint, ProgramState>();
+        }
+
+        /// <summary>
+        /// Adds or updates the program state.
+        /// </summary>
+        /// <param name="fingerprint">Fingerprint</param>
+        /// <param name="state">ProgramState</param>
+        internal void AddOrUpdate(Fingerprint fingerprint, ProgramState state)
+        {
+            if (this.Map.ContainsKey(fingerprint))
+            {
+                this.Map[fingerprint] = state;
+            }
+            else
+            {
+                this.Map.Add(fingerprint, state);
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the map contains the given fingerprint.
+        /// </summary>
+        /// <param name="fingerprint">Fingerprint</param>
+        /// <returns>Boolean value</returns>
+        internal bool Contains(Fingerprint fingerprint)
+        {
+            return this.Map.ContainsKey(fingerprint);
         }
 
         #endregion

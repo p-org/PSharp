@@ -17,9 +17,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-
-using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp.Scheduling
 {
@@ -30,11 +27,11 @@ namespace Microsoft.PSharp.Scheduling
     {
         #region fields
 
-        internal int HashValue;
+        internal Fingerprint Fingerprint;
 
         internal Dictionary<Machine, bool> EnabledMachines;
 
-        internal Dictionary<int, bool> Choices;
+        internal Tuple<int, bool> Choice;
 
         internal Dictionary<Monitor, bool> Monitors;
 
@@ -45,11 +42,12 @@ namespace Microsoft.PSharp.Scheduling
         /// <summary>
         /// Constructor.
         /// </summary>
-        internal ProgramState()
+        /// <param name="hash">HashValue</param>
+        internal ProgramState(int hash)
         {
-            this.HashValue = 0;
+            this.Fingerprint = new Fingerprint(hash);
             this.EnabledMachines = new Dictionary<Machine, bool>();
-            this.Choices = new Dictionary<int, bool>();
+            this.Choice = new Tuple.Create<int, bool>();
             this.Monitors = new Dictionary<Monitor, bool>();
         }
 

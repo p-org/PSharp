@@ -38,9 +38,10 @@ namespace Microsoft.PSharp.Scheduling
         /// <summary>
         /// Constructor.
         /// </summary>
-        internal Fingerprint()
+        /// <param name="hash">HashValue</param>
+        internal Fingerprint(int hash)
         {
-            this.HashValue = 0;
+            this.HashValue = hash;
         }
 
         #endregion

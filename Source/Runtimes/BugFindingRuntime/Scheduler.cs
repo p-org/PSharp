@@ -100,6 +100,16 @@ namespace Microsoft.PSharp.Scheduling
         }
 
         /// <summary>
+        /// Caches the next program state.
+        /// </summary>
+        internal void CacheNextProgramState(ProgramState state)
+        {
+            if (this.StateMap.Contains())
+
+            this.Trace.AddStep(state);
+        }
+
+        /// <summary>
         /// Schedules the next machine to execute.
         /// </summary>
         /// <param name="id">TaskId</param>
