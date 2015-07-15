@@ -152,6 +152,12 @@ namespace Microsoft.PSharp.Tooling
         /// </summary>
         internal static int DepthBound;
 
+        /// <summary>
+        /// If true, then the dynamic analyzer will check if
+        /// any liveness properties hold.
+        /// </summary>
+        internal static bool CheckLiveness;
+
         #endregion
 
         #region remote options
@@ -208,6 +214,7 @@ namespace Microsoft.PSharp.Tooling
             Configuration.SchedulingIterations = 1;
             Configuration.FullExploration = false;
             Configuration.DepthBound = 10000;
+            Configuration.CheckLiveness = false;
 
             Configuration.NumberOfContainers = 1;
             Configuration.ContainerId = 0;

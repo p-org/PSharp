@@ -147,7 +147,8 @@ namespace Microsoft.PSharp.DynamicAnalysis
 
                     // Check liveness monitors if no bug was found and the
                     // scheduler terminated before reaching the depth bound.
-                    if (!PSharpRuntime.BugFinder.BugFound &&
+                    if (Configuration.CheckLiveness &&
+                        !PSharpRuntime.BugFinder.BugFound &&
                         PSharpRuntime.BugFinder.ProgramTerminated)
                     {
                         PSharpRuntime.CheckLivenessMonitors();

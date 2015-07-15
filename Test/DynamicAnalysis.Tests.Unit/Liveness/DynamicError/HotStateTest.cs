@@ -170,6 +170,7 @@ namespace SystematicTesting
 
             Configuration.Verbose = 2;
             Configuration.SchedulingStrategy = "dfs";
+            Configuration.CheckLiveness = true;
 
             var assembly = base.GetAssembly(program.GetSyntaxTree());
             AnalysisContext.Create(assembly);

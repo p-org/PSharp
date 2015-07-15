@@ -228,6 +228,10 @@ namespace Microsoft.PSharp.Tooling
 
                     Configuration.DepthBound = i;
                 }
+                else if (this.Options[idx].ToLower().Equals("/liveness"))
+                {
+                    Configuration.CheckLiveness = true;
+                }
 
                 #endregion
 
@@ -284,7 +288,7 @@ namespace Microsoft.PSharp.Tooling
             help += "\n  /p:\t\t Path to a project of a P# solution";
             help += "\n  /o:\t\t Path for output files";
             help += "\n  /timeout:\t Timeout for the tool";
-            help += "\n  /v:\t\t Enable verbose mode (values from 0 to 2)";
+            help += "\n  /v:\t\t Enable verbose mode (values from '0' to '3')";
             help += "\n  /debug\t Enable debugging";
 
             help += "\n\n--------------------";
@@ -297,7 +301,8 @@ namespace Microsoft.PSharp.Tooling
             help += "\n---------------------------";
             help += "\n  /test\t\t Enable the systematic testing mode to find bugs";
             help += "\n  /i:\t\t Number of schedules to explore for bugs";
-            help += "\n  /db:\t\t The depth bound (by default is 1000)";
+            help += "\n  /db:\t\t Depth bound to be explored ('10000' by default)";
+            help += "\n  /liveness\t Enable liveness property checking";
 
             help += "\n";
 
