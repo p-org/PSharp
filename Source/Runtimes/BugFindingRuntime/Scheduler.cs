@@ -46,6 +46,16 @@ namespace Microsoft.PSharp.Scheduling
         private Dictionary<int, TaskInfo> TaskMap;
 
         /// <summary>
+        /// Map from fingerprints to program states.
+        /// </summary>
+        internal StateMap StateMap;
+
+        /// <summary>
+        /// Cached program trace.
+        /// </summary>
+        internal Trace Trace;
+        
+        /// <summary>
         /// True if the scheduler managed to reach a terminal
         /// state in the program.
         /// </summary>
@@ -82,7 +92,8 @@ namespace Microsoft.PSharp.Scheduling
         {
             this.Strategy = strategy;
             this.Tasks = new List<TaskInfo>();
-            this.TaskMap = new Dictionary<int, TaskInfo>();
+            this.StateMap = new StateMap();
+            this.Trace = new Trace();
             this.ProgramTerminated = false;
             this.BugFound = false;
             this.SchedulingPoints = 0;

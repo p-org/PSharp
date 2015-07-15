@@ -30,12 +30,12 @@ namespace Microsoft.PSharp
         /// <summary>
         /// The entry action, if the OnEntry is not overriden.
         /// </summary>
-        internal Action EntryAction;
+        private Action EntryAction;
 
         /// <summary>
         /// The exit action, if the OnExit is not overriden.
         /// </summary>
-        internal Action ExitAction;
+        private Action ExitAction;
 
         /// <summary>
         /// Dictionary containing all the goto state transitions.
@@ -51,6 +51,16 @@ namespace Microsoft.PSharp
         /// Set of ignored event types.
         /// </summary>
         internal HashSet<Type> IgnoredEvents;
+
+        /// <summary>
+        /// Returns true if this is a hot state.
+        /// </summary>
+        internal bool IsHot { get; private set; }
+
+        /// <summary>
+        /// Returns true if this is a cold state.
+        /// </summary>
+        internal bool IsCold { get; private set; }
 
         /// <summary>
         /// Handle to the monitor that owns this state instance.
@@ -87,9 +97,14 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Initializes the state.
         /// <param name="monitor">Monitor</param>
-        internal void InitializeState(Monitor monitor)
+        /// <param name="isHot">Is hot</param>
+        /// <param name="isCold">Is cold</param>
+        internal void InitializeState(Monitor monitor, bool isHot, bool isCold)
         {
             this.Monitor = monitor;
+
+            this.IsHot = isHot;
+            this.IsCold = isCold;
 
             this.GotoTransitions = new GotoStateTransitions();
             this.ActionBindings = new ActionBindings();

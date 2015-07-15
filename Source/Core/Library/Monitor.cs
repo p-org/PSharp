@@ -198,16 +198,20 @@ namespace Microsoft.PSharp
         /// <returns>Boolean value</returns>
         internal bool IsInHotState(out string stateName)
         {
-            var result = false;
             stateName = this.State.GetType().Name;
+            return this.State.IsHot;
+        }
 
-            var hotAttribute = this.State.GetType().GetCustomAttribute(typeof(Hot), false) as Hot;
-            if (hotAttribute != null)
-            {
-                result = true;
-            }
-
-            return result;
+        /// <summary>
+        /// Returns true if the monitor is in a cold state. Also outputs
+        /// the name of the current state.
+        /// </summary>
+        /// <param name="stateName">State name</param>
+        /// <returns>Boolean value</returns>
+        internal bool IsInColdState(out string stateName)
+        {
+            stateName = this.State.GetType().Name;
+            return this.State.IsCold;
         }
 
         #endregion
@@ -337,8 +341,24 @@ namespace Microsoft.PSharp
 
             foreach (var type in this.StateTypes)
             {
+                var isHot = false;
+                var isCold = false;
+
+                var hotAttribute = this.State.GetType().GetCustomAttribute(typeof(Hot), false) as Hot;
+                if (hotAttribute != null)
+                {
+                    isHot = true;
+                }
+
+                var coldAttribute = this.State.GetType().GetCustomAttribute(typeof(Cold), false) as Cold;
+                if (coldAttribute != null)
+                {
+                    isCold = true;
+                }
+
                 MonitorState state = Activator.CreateInstance(type) as MonitorState;
-                state.InitializeState(this);
+                state.InitializeState(this, isHot, isCold);
+
                 this.States.Add(state);
             }
 
