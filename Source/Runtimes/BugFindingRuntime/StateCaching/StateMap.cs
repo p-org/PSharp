@@ -18,10 +18,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.PSharp.Scheduling
+namespace Microsoft.PSharp.StateCaching
 {
     /// <summary>
-    /// Class implementing a map of P# program states.
+    /// Class implementing a map of program states (represented
+    /// as trace steps).
     /// </summary>
     internal sealed class StateMap
     {
@@ -30,7 +31,7 @@ namespace Microsoft.PSharp.Scheduling
         /// <summary>
         /// Map from fingerprints to program states.
         /// </summary>
-        private Dictionary<Fingerprint, ProgramState> Map;
+        private Dictionary<Fingerprint, TraceStep> Map;
 
         /// <summary>
         /// The number of unique states.
@@ -49,15 +50,15 @@ namespace Microsoft.PSharp.Scheduling
         /// </summary>
         internal StateMap()
         {
-            this.Map = new Dictionary<Fingerprint, ProgramState>();
+            this.Map = new Dictionary<Fingerprint, TraceStep>();
         }
 
         /// <summary>
-        /// Adds or updates the program state.
+        /// Updates the program state map.
         /// </summary>
         /// <param name="fingerprint">Fingerprint</param>
         /// <param name="state">ProgramState</param>
-        internal void AddOrUpdate(Fingerprint fingerprint, ProgramState state)
+        internal void Update(Fingerprint fingerprint, TraceStep state)
         {
             if (this.Map.ContainsKey(fingerprint))
             {

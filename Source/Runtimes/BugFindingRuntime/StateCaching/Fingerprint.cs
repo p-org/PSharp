@@ -17,10 +17,10 @@
 using System;
 using System.Globalization;
 
-namespace Microsoft.PSharp.Scheduling
+namespace Microsoft.PSharp.StateCaching
 {
     /// <summary>
-    /// Class implementing a P# program state fingerprint.
+    /// Class implementing a program state fingerprint.
     /// </summary>
     internal sealed class Fingerprint
     {

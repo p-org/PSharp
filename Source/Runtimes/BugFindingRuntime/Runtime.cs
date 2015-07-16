@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.Scheduling;
+using Microsoft.PSharp.StateCaching;
 using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp
@@ -328,6 +329,11 @@ namespace Microsoft.PSharp
             Microsoft.PSharp.Monitor.Dispatcher = dispatcher;
 
             PSharpRuntime.IsRunning = true;
+        }
+
+        private static Fingerprint CaptureProgramState()
+        {
+
         }
 
         #endregion

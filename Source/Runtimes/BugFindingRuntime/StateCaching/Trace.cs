@@ -19,20 +19,20 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.PSharp.Scheduling
+namespace Microsoft.PSharp.StateCaching
 {
     /// <summary>
     /// Class implementing a P# program trace. A trace is a series of
     /// transitions from some initial state to some end state.
     /// </summary>
-    internal sealed class Trace : IEnumerable, IEnumerable<ProgramState>
+    internal sealed class Trace : IEnumerable, IEnumerable<TraceStep>
     {
         #region fields
 
         /// <summary>
         /// The steps of the trace.
         /// </summary>
-        private List<ProgramState> Steps;
+        private List<TraceStep> Steps;
 
         /// <summary>
         /// The number of steps in the trace.
@@ -46,8 +46,8 @@ namespace Microsoft.PSharp.Scheduling
         /// Index for the trace.
         /// </summary>
         /// <param name="index">Index</param>
-        /// <returns>ProgramState</returns>
-        internal ProgramState this[int index]
+        /// <returns>TraceStep</returns>
+        internal TraceStep this[int index]
         {
             get { return this.Steps[index]; }
             set { this.Steps[index] = value; }
@@ -62,14 +62,14 @@ namespace Microsoft.PSharp.Scheduling
         /// </summary>
         internal Trace()
         {
-            this.Steps = new List<ProgramState>();
+            this.Steps = new List<TraceStep>();
         }
 
         /// <summary>
         /// Adds a new program state in the trace.
         /// </summary>
-        /// <param name="state">ProgramState</param>
-        internal void AddStep(ProgramState state)
+        /// <param name="state">Program state</param>
+        internal void AddStep(TraceStep state)
         {
             this.Steps.Add(state);
         }
@@ -87,7 +87,7 @@ namespace Microsoft.PSharp.Scheduling
         /// Returns an enumerator.
         /// </summary>
         /// <returns>IEnumerator</returns>
-        IEnumerator<ProgramState> IEnumerable<ProgramState>.GetEnumerator()
+        IEnumerator<TraceStep> IEnumerable<TraceStep>.GetEnumerator()
         {
             return this.Steps.GetEnumerator();
         }
