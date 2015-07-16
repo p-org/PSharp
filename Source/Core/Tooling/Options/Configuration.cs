@@ -158,6 +158,12 @@ namespace Microsoft.PSharp.Tooling
         /// </summary>
         internal static bool CheckLiveness;
 
+        /// <summary>
+        /// If true, then the dynamic analyzer will export the trace
+        /// that leads to a found error to a file.
+        /// </summary>
+        internal static bool ExportTrace;
+
         #endregion
 
         #region remote options
@@ -215,6 +221,7 @@ namespace Microsoft.PSharp.Tooling
             Configuration.FullExploration = false;
             Configuration.DepthBound = 10000;
             Configuration.CheckLiveness = false;
+            Configuration.ExportTrace = true;
 
             Configuration.NumberOfContainers = 1;
             Configuration.ContainerId = 0;

@@ -361,14 +361,14 @@ namespace Microsoft.PSharp
             {
                 var isHot = false;
                 var isCold = false;
-
-                var hotAttribute = this.State.GetType().GetCustomAttribute(typeof(Hot), false) as Hot;
+                
+                var hotAttribute = type.GetCustomAttribute(typeof(Hot), false) as Hot;
                 if (hotAttribute != null)
                 {
                     isHot = true;
                 }
 
-                var coldAttribute = this.State.GetType().GetCustomAttribute(typeof(Cold), false) as Cold;
+                var coldAttribute = type.GetCustomAttribute(typeof(Cold), false) as Cold;
                 if (coldAttribute != null)
                 {
                     isCold = true;

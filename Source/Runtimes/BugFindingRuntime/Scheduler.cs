@@ -42,15 +42,15 @@ namespace Microsoft.PSharp.Scheduling
         private List<TaskInfo> Tasks;
 
         /// <summary>
-        /// Map from task ids to task infos.
-        /// </summary>
-        private Dictionary<int, TaskInfo> TaskMap;
-
-        /// <summary>
         /// Map from fingerprints to program states.
         /// </summary>
         internal StateMap StateMap;
 
+        /// <summary>
+        /// Map from task ids to task infos.
+        /// </summary>
+        private Dictionary<int, TaskInfo> TaskMap;
+        
         /// <summary>
         /// Cached program trace.
         /// </summary>
@@ -93,8 +93,9 @@ namespace Microsoft.PSharp.Scheduling
         {
             this.Strategy = strategy;
             this.Tasks = new List<TaskInfo>();
-            this.StateMap = new StateMap();
+            this.TaskMap = new Dictionary<int, TaskInfo>();
             this.Trace = new Trace();
+            this.StateMap = new StateMap();
             this.ProgramTerminated = false;
             this.BugFound = false;
             this.SchedulingPoints = 0;

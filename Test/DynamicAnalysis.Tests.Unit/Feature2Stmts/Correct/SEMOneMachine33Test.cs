@@ -123,6 +123,7 @@ namespace SystematicTesting
             var program = parser.Parse();
             program.Rewrite();
 
+            Configuration.ExportTrace = false;
             Configuration.Verbose = 2;
             Configuration.SchedulingIterations = 5;
             Configuration.SchedulingStrategy = "dfs";

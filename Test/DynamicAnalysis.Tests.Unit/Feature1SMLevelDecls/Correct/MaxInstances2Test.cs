@@ -162,6 +162,7 @@ namespace SystematicTesting
             var program = parser.Parse();
             program.Rewrite();
 
+            Configuration.ExportTrace = false;
             Configuration.SchedulingIterations = 257;
             Configuration.SchedulingStrategy = "dfs";
 
