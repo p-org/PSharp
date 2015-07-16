@@ -843,16 +843,6 @@ namespace Microsoft.PSharp
         #region generic public and override methods
 
         /// <summary>
-        /// Returns a machine-specific hash value that represents the state of
-        /// the machine that should be cached for statefull checking.
-        /// </summary>
-        /// <returns></returns>
-        public virtual int GetHashedState()
-        {
-            return 0;
-        }
-
-        /// <summary>
         /// Determines whether the specified machine is equal
         /// to the current machine.
         /// </summary>
@@ -891,26 +881,29 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Hash function.
+        /// Returns the hash code for this instance.
         /// </summary>
         /// <returns>int</returns>
         public override int GetHashCode()
         {
-            var hash = 17;
             unchecked
             {
-                hash += 23 * this.Id.Value.GetHashCode();
-                hash += 23 * this.IsRunning.GetHashCode();
-                hash += 23 * this.IsHalted.GetHashCode();
+                var hash = 19;
+
+                hash = hash + 31 * this.Id.Value.GetHashCode();
+
                 foreach (var state in this.StateStack)
                 {
-                    hash += 23 * state.GetType().GetHashCode();
+                    hash = hash * 31 + state.GetType().GetHashCode();
                 }
 
-                hash += 23 * this.GetHashedState();
-            }
+                foreach (var e in this.Inbox)
+                {
+                    hash = hash * 31 + e.GetType().GetHashCode();
+                }
 
-            return hash;
+                return hash;
+            }
         }
 
         /// <summary>

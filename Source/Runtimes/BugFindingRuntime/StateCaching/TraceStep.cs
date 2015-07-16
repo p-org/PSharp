@@ -65,12 +65,17 @@ namespace Microsoft.PSharp.StateCaching
 
         #region internal API
 
-        internal static TraceStep CreateSchedulingChoice(int hash)
+        /// <summary>
+        /// Creates a scheduling choice trace step.
+        /// </summary>
+        /// <param name="fingerprint">Fingerprint</param>
+        /// <returns>TraceStep</returns>
+        internal static TraceStep CreateSchedulingChoice(Fingerprint fingerprint)
         {
             var traceStep = new TraceStep();
 
             traceStep.IsChoice = false;
-            traceStep.Fingerprint = new Fingerprint(hash);
+            traceStep.Fingerprint = fingerprint;
 
             traceStep.EnabledMachines = new Dictionary<Machine, bool>();
 
@@ -80,16 +85,16 @@ namespace Microsoft.PSharp.StateCaching
         /// <summary>
         /// Creates a nondeterministic choice trace step.
         /// </summary>
-        /// <param name="hash">HashValue</param>
+        /// <param name="fingerprint">Fingerprint</param>
         /// <param name="id">Id of the choice</param>
         /// <param name="choice">Choice value</param>
         /// <returns>TraceStep</returns>
-        internal static TraceStep CreateNondeterministicChoice(int hash, int id, bool choice)
+        internal static TraceStep CreateNondeterministicChoice(Fingerprint fingerprint, int id, bool choice)
         {
             var traceStep = new TraceStep();
 
             traceStep.IsChoice = true;
-            traceStep.Fingerprint = new Fingerprint(hash);
+            traceStep.Fingerprint = fingerprint;
 
             traceStep.EnabledMachines = null;
 

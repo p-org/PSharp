@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+using Microsoft.PSharp.StateCaching;
 using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp.Scheduling
@@ -100,16 +101,6 @@ namespace Microsoft.PSharp.Scheduling
         }
 
         /// <summary>
-        /// Caches the next program state.
-        /// </summary>
-        internal void CacheNextProgramState(ProgramState state)
-        {
-            if (this.StateMap.Contains())
-
-            this.Trace.AddStep(state);
-        }
-
-        /// <summary>
         /// Schedules the next machine to execute.
         /// </summary>
         /// <param name="id">TaskId</param>
@@ -136,6 +127,13 @@ namespace Microsoft.PSharp.Scheduling
                 this.ProgramTerminated = true;
                 this.KillRemainingTasks();
                 throw new TaskCanceledException();
+            }
+
+            if (Configuration.CheckLiveness)
+            {
+                Console.WriteLine("CHECKING LIVENESS ...");
+                var traceStep = PSharpRuntime.GetSchedulingChoiceTraceStep();
+                this.CacheProgramState(traceStep);
             }
 
             Output.Debug(DebugType.Testing, "<ScheduleDebug> Schedule task {0} of machine {1}({2}).",
@@ -194,6 +192,29 @@ namespace Microsoft.PSharp.Scheduling
             }
 
             return choice;
+        }
+
+        /// <summary>
+        /// Caches the program state.
+        /// </summary>
+        /// <param name="traceStep">TraceStep</param>
+        internal void CacheProgramState(TraceStep traceStep)
+        {
+            foreach (var taskInfo in this.Tasks)
+            {
+                traceStep.EnabledMachines.Add(taskInfo.Machine, taskInfo.IsEnabled);
+            }
+
+            this.Trace.AddStep(traceStep);
+
+            if (!this.StateMap.Contains(traceStep.Fingerprint))
+            {
+                this.StateMap.Update(traceStep.Fingerprint, traceStep);
+            }
+            else
+            {
+                Console.WriteLine("< IDENTIFIED POTENTIAL LASO >");
+            }
         }
 
         /// <summary>

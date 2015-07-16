@@ -272,6 +272,33 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Returns the current scheduling choice as a program trace step.
+        /// </summary>
+        /// <returns>TraceStep</returns>
+        internal static TraceStep GetSchedulingChoiceTraceStep()
+        {
+            var fingerprint = PSharpRuntime.CaptureProgramState();
+            var traceStep = TraceStep.CreateSchedulingChoice(fingerprint);
+
+            foreach (var monitor in PSharpRuntime.Monitors)
+            {
+                MonitorStatus status = MonitorStatus.None;
+                if (monitor.IsInHotState())
+                {
+                    status = MonitorStatus.Hot;
+                }
+                else if (monitor.IsInColdState())
+                {
+                    status = MonitorStatus.Cold;
+                }
+
+                traceStep.Monitors.Add(monitor, status);
+            }
+
+            return traceStep;
+        }
+
+        /// <summary>
         /// Waits until all P# machines have finished execution.
         /// </summary>
         internal static void WaitMachines()
@@ -331,13 +358,37 @@ namespace Microsoft.PSharp
             PSharpRuntime.IsRunning = true;
         }
 
+        /// <summary>
+        /// Captures the fingerprint of the current program state.
+        /// </summary>
+        /// <returns>Fingerprint</returns>
         private static Fingerprint CaptureProgramState()
         {
+            Fingerprint fingerprint = null;
 
+            unchecked
+            {
+                var hash = 19;
+
+                foreach (var machine in PSharpRuntime.MachineMap.Values)
+                {
+                    hash = hash + 31 * machine.GetHashCode();
+                }
+
+                foreach (var monitor in PSharpRuntime.Monitors)
+                {
+                    hash = hash + 31 * monitor.GetHashCode();
+                }
+
+                Console.WriteLine("Fingerprint: " + hash);
+                fingerprint = new Fingerprint(hash);
+            }
+
+            return fingerprint;
         }
 
         #endregion
-        
+
         #region error checking and reporting
 
         /// <summary>

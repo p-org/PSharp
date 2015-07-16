@@ -46,8 +46,9 @@
     <Compile Include="Scheduler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Runtime.cs" />
+    <Compile Include="StateCaching\MonitorStatus.cs" />
     <Compile Include="StateCaching\Fingerprint.cs" />
-    <Compile Include="StateCaching\ProgramState.cs" />
+    <Compile Include="StateCaching\TraceStep.cs" />
     <Compile Include="StateCaching\StateMap.cs" />
     <Compile Include="StateCaching\Trace.cs" />
   </ItemGroup>

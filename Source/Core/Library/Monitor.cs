@@ -191,6 +191,15 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Returns true if the monitor is in a hot state.
+        /// </summary>
+        /// <returns>Boolean value</returns>
+        internal bool IsInHotState()
+        {
+            return this.State.IsHot;
+        }
+
+        /// <summary>
         /// Returns true if the monitor is in a hot state. Also outputs
         /// the name of the current state.
         /// </summary>
@@ -200,6 +209,15 @@ namespace Microsoft.PSharp
         {
             stateName = this.State.GetType().Name;
             return this.State.IsHot;
+        }
+
+        /// <summary>
+        /// Returns true if the monitor is in a cold state.
+        /// </summary>
+        /// <returns>Boolean value</returns>
+        internal bool IsInColdState()
+        {
+            return this.State.IsCold;
         }
 
         /// <summary>
@@ -485,6 +503,47 @@ namespace Microsoft.PSharp
         #endregion
 
         #region generic public and override methods
+
+        /// <summary>
+        /// Returns a user-specific hash value that represents the state of
+        /// the monitor that should be cached for liveness checking.
+        /// </summary>
+        /// <returns></returns>
+        public virtual int GetHashedState()
+        {
+            return 0;
+        }
+
+        /// <summary>
+        /// Determines whether the specified System.Object is equal
+        /// to the current System.Object.
+        /// </summary>
+        /// <param name="obj">Object</param>
+        /// <returns>Boolean value</returns>
+        public override bool Equals(object obj)
+        {
+            return base.Equals(obj);
+        }
+
+        /// <summary>
+        /// Returns the hash code for this instance.
+        /// </summary>
+        /// <returns>int</returns>
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hash = 19;
+
+                hash = hash + 31 * this.GetType().GetHashCode();
+
+                hash = hash * 31 + this.State.GetType().GetHashCode();
+
+                hash = hash + 31 * this.GetHashedState();
+
+                return hash;
+            }
+        }
 
         /// <summary>
         /// Returns a string that represents the current monitor.
