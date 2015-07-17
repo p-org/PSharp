@@ -94,7 +94,6 @@ namespace Microsoft.PSharp.Scheduling
                 cycle.Add(trace.Pop());
             }
             while (!trace.Peek().Fingerprint.Equals(root));
-            cycle.Add(trace.Peek());
 
             foreach (var step in cycle)
             {

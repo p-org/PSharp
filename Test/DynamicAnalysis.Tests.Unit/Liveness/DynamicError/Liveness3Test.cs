@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="Liveness2LoopMachineTest.cs" company="Microsoft">
+// <copyright file="Liveness3Test.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -28,10 +28,10 @@ using Microsoft.PSharp.Tooling;
 namespace Microsoft.PSharp.DynamicAnalysis.Tests.Unit
 {
     [TestClass]
-    public class Liveness2LoopMachineTest : BasePSharpTest
+    public class Liveness3Test : BasePSharpTest
     {
         [TestMethod]
-        public void TestLiveness2LoopMachine()
+        public void TestLiveness3()
         {
             var test = @"
 using System;
@@ -73,6 +73,7 @@ namespace SystematicTesting
         }
 
         [OnEntry(nameof(HandleEventOnEntry))]
+        [OnEventGotoState(typeof(Done), typeof(HandleEvent))]
         class HandleEvent : MachineState { }
 
         void HandleEventOnEntry()
