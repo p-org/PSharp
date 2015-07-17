@@ -94,6 +94,7 @@ namespace Microsoft.PSharp.Scheduling
                 cycle.Add(trace.Pop());
             }
             while (!trace.Peek().Fingerprint.Equals(root));
+            cycle.Add(trace.Peek());
 
             foreach (var step in cycle)
             {
@@ -164,6 +165,16 @@ namespace Microsoft.PSharp.Scheduling
             {
                 scheduledMachines.Add(step.ScheduledMachine);
                 enabledMachines.UnionWith(step.EnabledMachines);
+            }
+
+            foreach (var x in enabledMachines)
+            {
+                Console.WriteLine("enabled: " + x.GetType().Name);
+            }
+
+            foreach (var x in scheduledMachines)
+            {
+                Console.WriteLine("scheduled: " + x.GetType().Name);
             }
 
             if (enabledMachines.Count == scheduledMachines.Count)

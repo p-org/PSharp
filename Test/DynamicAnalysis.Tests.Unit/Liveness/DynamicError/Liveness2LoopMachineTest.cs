@@ -134,7 +134,7 @@ namespace SystematicTesting
 
             Configuration.ExportTrace = false;
             Configuration.Verbose = 2;
-            Configuration.SchedulingStrategy = "dfs";
+            Configuration.SchedulingIterations = 100;
             Configuration.CheckLiveness = true;
 
             var assembly = base.GetAssembly(program.GetSyntaxTree());
