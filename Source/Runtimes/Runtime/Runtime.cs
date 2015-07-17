@@ -34,7 +34,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// A map from unique machine ids to machines.
         /// </summary>
-        internal static Dictionary<int, Machine> MachineMap;
+        private static Dictionary<int, Machine> MachineMap;
 
         /// <summary>
         /// Ip address.

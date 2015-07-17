@@ -505,31 +505,10 @@ namespace Microsoft.PSharp
         #region generic public and override methods
 
         /// <summary>
-        /// Returns a user-specific hash value that represents the state of
-        /// the monitor that should be cached for liveness checking.
+        /// Returns the hashed state of this monitor.
         /// </summary>
-        /// <returns></returns>
-        public virtual int GetHashedState()
-        {
-            return 0;
-        }
-
-        /// <summary>
-        /// Determines whether the specified System.Object is equal
-        /// to the current System.Object.
-        /// </summary>
-        /// <param name="obj">Object</param>
-        /// <returns>Boolean value</returns>
-        public override bool Equals(object obj)
-        {
-            return base.Equals(obj);
-        }
-
-        /// <summary>
-        /// Returns the hash code for this instance.
-        /// </summary>
-        /// <returns>int</returns>
-        public override int GetHashCode()
+        /// <returns>Hash</returns>
+        internal int GetHashedState()
         {
             unchecked
             {
@@ -538,8 +517,6 @@ namespace Microsoft.PSharp
                 hash = hash + 31 * this.GetType().GetHashCode();
 
                 hash = hash * 31 + this.State.GetType().GetHashCode();
-
-                hash = hash + 31 * this.GetHashedState();
 
                 return hash;
             }

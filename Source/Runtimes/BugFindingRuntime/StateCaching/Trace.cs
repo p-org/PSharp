@@ -66,12 +66,33 @@ namespace Microsoft.PSharp.StateCaching
         }
 
         /// <summary>
-        /// Adds a new program state in the trace.
+        /// Pushes a new program state to the trace.
         /// </summary>
         /// <param name="state">Program state</param>
-        internal void AddStep(TraceStep state)
+        internal void Push(TraceStep state)
         {
             this.Steps.Add(state);
+        }
+
+        /// <summary>
+        /// Returns the latest program state and removes it from the trace.
+        /// </summary>
+        /// <returns>TraceStep</returns>
+        internal TraceStep Pop()
+        {
+            var step = this.Steps[this.Count - 1];
+            this.Steps.RemoveAt(this.Count - 1);
+            return step;
+        }
+
+        /// <summary>
+        /// Returns the latest program state without removing it.
+        /// </summary>
+        /// <returns>TraceStep</returns>
+        internal TraceStep Peek()
+        {
+            var step = this.Steps[this.Count - 1];
+            return step;
         }
 
         /// <summary>

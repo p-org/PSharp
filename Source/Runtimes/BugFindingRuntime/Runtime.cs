@@ -39,7 +39,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// A map from unique machine ids to machines.
         /// </summary>
-        internal static Dictionary<int, Machine> MachineMap;
+        private static Dictionary<int, Machine> MachineMap;
 
         /// <summary>
         /// List of monitors in the program.
@@ -57,9 +57,19 @@ namespace Microsoft.PSharp
         private static bool IsRunning = false;
 
         /// <summary>
+        /// The P# program state explorer.
+        /// </summary>
+        internal static StateExplorer StateExplorer;
+
+        /// <summary>
         /// The P# bugfinder.
         /// </summary>
         internal static Scheduler BugFinder;
+
+        /// <summary>
+        /// The P# liveness checker.
+        /// </summary>
+        internal static LivenessChecker LivenessChecker;
 
         #endregion
 
@@ -174,6 +184,11 @@ namespace Microsoft.PSharp
 
             PSharpRuntime.Monitors.Add(monitor as Monitor);
 
+            if (Configuration.CheckLiveness)
+            {
+                PSharpRuntime.LivenessChecker.RegisterMonitor(monitor as Monitor);
+            }
+
             (monitor as Monitor).AssignInitialPayload(payload);
             (monitor as Monitor).GotoStartState();
         }
@@ -254,48 +269,32 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Checks the liveness monitors for violations.
+        /// Captures the fingerprint of the current program state.
         /// </summary>
-        internal static void CheckLivenessMonitors()
+        /// <returns>Fingerprint</returns>
+        internal static Fingerprint CaptureProgramState()
         {
-            foreach (var m in PSharpRuntime.Monitors)
+            Fingerprint fingerprint = null;
+
+            unchecked
             {
-                var stateName = "";
-                if (m.IsInHotState(out stateName))
-                {
-                    string message = Output.Format("Program terminated with monitor '{0}' " +
-                        "in hot state '{1}'.", m.GetType().Name, stateName);
-                    ErrorReporter.Report(message);
-                    PSharpRuntime.BugFinder.NotifyAssertionFailure(false);
-                }
-            }
-        }
+                var hash = 19;
 
-        /// <summary>
-        /// Returns the current scheduling choice as a program trace step.
-        /// </summary>
-        /// <returns>TraceStep</returns>
-        internal static TraceStep GetSchedulingChoiceTraceStep()
-        {
-            var fingerprint = PSharpRuntime.CaptureProgramState();
-            var traceStep = TraceStep.CreateSchedulingChoice(fingerprint);
-
-            foreach (var monitor in PSharpRuntime.Monitors)
-            {
-                MonitorStatus status = MonitorStatus.None;
-                if (monitor.IsInHotState())
+                foreach (var machine in PSharpRuntime.MachineMap.Values)
                 {
-                    status = MonitorStatus.Hot;
-                }
-                else if (monitor.IsInColdState())
-                {
-                    status = MonitorStatus.Cold;
+                    hash = hash + 31 * machine.GetHashedState();
                 }
 
-                traceStep.Monitors.Add(monitor, status);
+                foreach (var monitor in PSharpRuntime.Monitors)
+                {
+                    hash = hash + 31 * monitor.GetHashedState();
+                }
+
+                Console.WriteLine("Fingerprint: " + hash);
+                fingerprint = new Fingerprint(hash);
             }
 
-            return traceStep;
+            return fingerprint;
         }
 
         /// <summary>
@@ -355,36 +354,10 @@ namespace Microsoft.PSharp
             Microsoft.PSharp.Machine.Dispatcher = dispatcher;
             Microsoft.PSharp.Monitor.Dispatcher = dispatcher;
 
+            PSharpRuntime.StateExplorer = new StateExplorer();
+            PSharpRuntime.LivenessChecker = new LivenessChecker();
+
             PSharpRuntime.IsRunning = true;
-        }
-
-        /// <summary>
-        /// Captures the fingerprint of the current program state.
-        /// </summary>
-        /// <returns>Fingerprint</returns>
-        private static Fingerprint CaptureProgramState()
-        {
-            Fingerprint fingerprint = null;
-
-            unchecked
-            {
-                var hash = 19;
-
-                foreach (var machine in PSharpRuntime.MachineMap.Values)
-                {
-                    hash = hash + 31 * machine.GetHashCode();
-                }
-
-                foreach (var monitor in PSharpRuntime.Monitors)
-                {
-                    hash = hash + 31 * monitor.GetHashCode();
-                }
-
-                Console.WriteLine("Fingerprint: " + hash);
-                fingerprint = new Fingerprint(hash);
-            }
-
-            return fingerprint;
         }
 
         #endregion

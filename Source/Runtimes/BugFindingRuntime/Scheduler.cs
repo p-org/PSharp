@@ -42,20 +42,10 @@ namespace Microsoft.PSharp.Scheduling
         private List<TaskInfo> Tasks;
 
         /// <summary>
-        /// Map from fingerprints to program states.
-        /// </summary>
-        internal StateMap StateMap;
-
-        /// <summary>
         /// Map from task ids to task infos.
         /// </summary>
         private Dictionary<int, TaskInfo> TaskMap;
-        
-        /// <summary>
-        /// Cached program trace.
-        /// </summary>
-        internal Trace Trace;
-        
+
         /// <summary>
         /// True if the scheduler managed to reach a terminal
         /// state in the program.
@@ -83,7 +73,7 @@ namespace Microsoft.PSharp.Scheduling
 
         #endregion
 
-        #region internal scheduling methods
+        #region internal methods
 
         /// <summary>
         /// Constructor.
@@ -94,8 +84,6 @@ namespace Microsoft.PSharp.Scheduling
             this.Strategy = strategy;
             this.Tasks = new List<TaskInfo>();
             this.TaskMap = new Dictionary<int, TaskInfo>();
-            this.Trace = new Trace();
-            this.StateMap = new StateMap();
             this.ProgramTerminated = false;
             this.BugFound = false;
             this.SchedulingPoints = 0;
@@ -133,8 +121,7 @@ namespace Microsoft.PSharp.Scheduling
             if (Configuration.CheckLiveness)
             {
                 Console.WriteLine("CHECKING LIVENESS ...");
-                var traceStep = PSharpRuntime.GetSchedulingChoiceTraceStep();
-                this.CacheProgramState(traceStep);
+                PSharpRuntime.StateExplorer.CacheStateAtSchedulingChoice(next.Machine);
             }
 
             Output.Debug(DebugType.Testing, "<ScheduleDebug> Schedule task {0} of machine {1}({2}).",
@@ -196,26 +183,21 @@ namespace Microsoft.PSharp.Scheduling
         }
 
         /// <summary>
-        /// Caches the program state.
+        /// Returns the enabled machines.
         /// </summary>
-        /// <param name="traceStep">TraceStep</param>
-        internal void CacheProgramState(TraceStep traceStep)
+        /// <returns>Enabled machines</returns>
+        internal HashSet<Machine> GetEnabledMachines()
         {
+            var enabledMachines = new HashSet<Machine>();
             foreach (var taskInfo in this.Tasks)
             {
-                traceStep.EnabledMachines.Add(taskInfo.Machine, taskInfo.IsEnabled);
+                if (taskInfo.IsEnabled)
+                {
+                    enabledMachines.Add(taskInfo.Machine);
+                }
             }
 
-            this.Trace.AddStep(traceStep);
-
-            if (!this.StateMap.Contains(traceStep.Fingerprint))
-            {
-                this.StateMap.Update(traceStep.Fingerprint, traceStep);
-            }
-            else
-            {
-                Console.WriteLine("< IDENTIFIED POTENTIAL LASO >");
-            }
+            return enabledMachines;
         }
 
         /// <summary>
@@ -337,14 +319,22 @@ namespace Microsoft.PSharp.Scheduling
 
             if (terminateScheduler)
             {
-                this.KillRemainingTasks();
-                throw new TaskCanceledException();
+                this.Stop();
             }
+        }
+
+        /// <summary>
+        /// Stops the scheduler.
+        /// </summary>
+        internal void Stop()
+        {
+            this.KillRemainingTasks();
+            throw new TaskCanceledException();
         }
 
         #endregion
 
-        #region private scheduling methods
+        #region private methods
 
         /// <summary>
         /// Kills any remaining tasks at the end of the schedule.

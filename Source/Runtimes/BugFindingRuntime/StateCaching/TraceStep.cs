@@ -39,15 +39,21 @@ namespace Microsoft.PSharp.StateCaching
         internal bool IsChoice { get; private set; }
 
         /// <summary>
-        /// Map from monitors to their liveness-specific state.
+        /// Map from monitors to their liveness status.
         /// </summary>
-        internal Dictionary<Monitor, MonitorStatus> Monitors;
+        internal Dictionary<Monitor, MonitorStatus> MonitorStatus;
 
         /// <summary>
-        /// Map from machines to their enabled status. Only relevant
-        /// if this is a scheduling trace step.
+        /// The scheduled machine. Only relevant if this is a scheduling
+        /// trace step.
         /// </summary>
-        internal Dictionary<Machine, bool> EnabledMachines;
+        internal Machine ScheduledMachine;
+
+        /// <summary>
+        /// The enabled machines. Only relevant if this is a scheduling
+        /// trace step.
+        /// </summary>
+        internal HashSet<Machine> EnabledMachines;
 
         /// <summary>
         /// The non-deterministic choice id. Only relevant if
@@ -61,6 +67,16 @@ namespace Microsoft.PSharp.StateCaching
         /// </summary>
         internal bool Choice;
 
+        /// <summary>
+        /// Previous trace step.
+        /// </summary>
+        internal TraceStep Previous;
+
+        /// <summary>
+        /// Next trace step.
+        /// </summary>
+        internal TraceStep Next;
+
         #endregion
 
         #region internal API
@@ -69,15 +85,24 @@ namespace Microsoft.PSharp.StateCaching
         /// Creates a scheduling choice trace step.
         /// </summary>
         /// <param name="fingerprint">Fingerprint</param>
+        /// <param name="scheduledMachine">Scheduled machine</param>
+        /// <param name="enabledMachines">Enabled machines</param>
+        /// <param name="monitorStatus">Monitor status</param>
         /// <returns>TraceStep</returns>
-        internal static TraceStep CreateSchedulingChoice(Fingerprint fingerprint)
+        internal static TraceStep CreateSchedulingChoice(Fingerprint fingerprint, Machine scheduledMachine,
+            HashSet<Machine> enabledMachines, Dictionary<Monitor, MonitorStatus> monitorStatus)
         {
             var traceStep = new TraceStep();
 
             traceStep.IsChoice = false;
             traceStep.Fingerprint = fingerprint;
 
-            traceStep.EnabledMachines = new Dictionary<Machine, bool>();
+            traceStep.ScheduledMachine = scheduledMachine;
+            traceStep.EnabledMachines = enabledMachines;
+            traceStep.MonitorStatus = monitorStatus;
+
+            traceStep.Previous = null;
+            traceStep.Next = null;
 
             return traceStep;
         }
@@ -96,24 +121,13 @@ namespace Microsoft.PSharp.StateCaching
             traceStep.IsChoice = true;
             traceStep.Fingerprint = fingerprint;
 
-            traceStep.EnabledMachines = null;
-
             traceStep.ChoiceId = id;
             traceStep.Choice = choice;
 
+            traceStep.Previous = null;
+            traceStep.Next = null;
+
             return traceStep;
-        }
-
-        #endregion
-
-        #region private API
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        private TraceStep()
-        {
-            this.Monitors = new Dictionary<Monitor, MonitorStatus>();
         }
 
         #endregion

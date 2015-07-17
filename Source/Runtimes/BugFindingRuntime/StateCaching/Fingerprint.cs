@@ -59,7 +59,8 @@ namespace Microsoft.PSharp.StateCaching
             var fingerprint = obj as Fingerprint;
             var result = false;
 
-            if (fingerprint != null)
+            if (fingerprint != null &&
+                this.HashValue == fingerprint.HashValue)
             {
                 result = true;
             }

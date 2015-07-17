@@ -145,13 +145,14 @@ namespace Microsoft.PSharp.DynamicAnalysis
                     AnalysisContext.TestMethod.Invoke(null, null);
                     PSharpRuntime.WaitMachines();
 
-                    // Check liveness monitors if no bug was found and the
-                    // scheduler terminated before reaching the depth bound.
+                    // Runs the liveness checker to find any liveness property violations.
+                    // Requires that no bug has been found and the scheduler terminated
+                    // before reaching the depth bound.
                     if (Configuration.CheckLiveness &&
                         !PSharpRuntime.BugFinder.BugFound &&
                         PSharpRuntime.BugFinder.ProgramTerminated)
                     {
-                        PSharpRuntime.CheckLivenessMonitors();
+                        PSharpRuntime.LivenessChecker.Run();
                     }
 
                     if (SCTEngine.HasRedirectedOutput)
