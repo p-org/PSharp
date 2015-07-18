@@ -119,7 +119,6 @@ namespace Microsoft.PSharp.Scheduling
 
             if (Configuration.CheckLiveness)
             {
-                Console.WriteLine("CHECKING LIVENESS ...");
                 PSharpRuntime.StateExplorer.CacheStateAtSchedulingChoice(next.Machine);
             }
 

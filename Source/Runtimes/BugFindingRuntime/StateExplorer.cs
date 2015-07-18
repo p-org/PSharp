@@ -66,7 +66,7 @@ namespace Microsoft.PSharp.Scheduling
 
             if (this.Fingerprints.Contains(traceStep.Fingerprint) && Configuration.CheckLiveness)
             {
-                Console.WriteLine("< IDENTIFIED POTENTIAL LASO >");
+                Output.Log("<LivenessDebug> Detected potential infinite execution.");
                 PSharpRuntime.LivenessChecker.CheckLivenessAtTraceCycle(traceStep.Fingerprint, this.Trace);
             }
 

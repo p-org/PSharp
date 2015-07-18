@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="Liveness3Test.cs" company="Microsoft">
+// <copyright file="WarmStateTest.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -28,10 +28,10 @@ using Microsoft.PSharp.Tooling;
 namespace Microsoft.PSharp.DynamicAnalysis.Tests.Unit
 {
     [TestClass]
-    public class Liveness3Test : BasePSharpTest
+    public class WarmStateTest : BasePSharpTest
     {
         [TestMethod]
-        public void TestLiveness3()
+        public void TestWarmState()
         {
             var test = @"
 using System;
@@ -58,7 +58,6 @@ namespace SystematicTesting
 		void InitOnEntry()
         {
             this.CreateMonitor(typeof(WatchDog));
-            this.CreateMachine(typeof(Loop));
             this.Raise(new Unit());
         }
 
@@ -73,7 +72,6 @@ namespace SystematicTesting
         }
 
         [OnEntry(nameof(HandleEventOnEntry))]
-        [OnEventGotoState(typeof(Done), typeof(HandleEvent))]
         class HandleEvent : MachineState { }
 
         void HandleEventOnEntry()
@@ -82,30 +80,15 @@ namespace SystematicTesting
         }
     }
 
-    class Loop : Machine
-    {
-        [Start]
-        [OnEntry(nameof(LoopingOnEntry))]
-        [OnEventGotoState(typeof(Done), typeof(Looping))]
-        class Looping : MachineState { }
-
-		void LoopingOnEntry()
-        {
-            this.Send(this.Id, new Done());
-        }
-    }
-
     class WatchDog : Monitor
     {
         List<MachineId> Workers;
 
         [Start]
-        [Cold]
         [OnEventGotoState(typeof(Waiting), typeof(CanGetUserInput))]
         [OnEventGotoState(typeof(Computing), typeof(CannotGetUserInput))]
         class CanGetUserInput : MonitorState { }
         
-        [Hot]
         [OnEventGotoState(typeof(Waiting), typeof(CanGetUserInput))]
         [OnEventGotoState(typeof(Computing), typeof(CannotGetUserInput))]
         class CannotGetUserInput : MonitorState { }
@@ -132,8 +115,8 @@ namespace SystematicTesting
             program.Rewrite();
 
             Configuration.ExportTrace = false;
-            Configuration.Verbose = 3;
-            Configuration.SchedulingIterations = 100;
+            Configuration.Verbose = 2;
+            Configuration.SchedulingStrategy = "dfs";
             Configuration.CheckLiveness = true;
 
             var assembly = base.GetAssembly(program.GetSyntaxTree());
@@ -142,7 +125,7 @@ namespace SystematicTesting
             SCTEngine.Setup();
             SCTEngine.Run();
 
-            Assert.AreEqual(1, SCTEngine.NumOfFoundBugs);
+            Assert.AreEqual(0, SCTEngine.NumOfFoundBugs);
         }
     }
 }

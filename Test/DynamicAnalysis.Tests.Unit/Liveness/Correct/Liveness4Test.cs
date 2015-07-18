@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="WarmStateTest.cs" company="Microsoft">
+// <copyright file="Liveness4Test.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -28,10 +28,10 @@ using Microsoft.PSharp.Tooling;
 namespace Microsoft.PSharp.DynamicAnalysis.Tests.Unit
 {
     [TestClass]
-    public class WarmStateTest : BasePSharpTest
+    public class Liveness4Test : BasePSharpTest
     {
         [TestMethod]
-        public void TestWarmState()
+        public void TestLiveness4()
         {
             var test = @"
 using System;
@@ -58,6 +58,7 @@ namespace SystematicTesting
 		void InitOnEntry()
         {
             this.CreateMonitor(typeof(WatchDog));
+            this.CreateMachine(typeof(Loop));
             this.Raise(new Unit());
         }
 
@@ -72,7 +73,7 @@ namespace SystematicTesting
         }
 
         [OnEntry(nameof(HandleEventOnEntry))]
-        [OnEventGotoState(typeof(Done), typeof(WaitForUser))]
+        [OnEventGotoState(typeof(Done), typeof(HandleEvent))]
         class HandleEvent : MachineState { }
 
         void HandleEventOnEntry()
@@ -82,11 +83,25 @@ namespace SystematicTesting
         }
     }
 
+    class Loop : Machine
+    {
+        [Start]
+        [OnEntry(nameof(LoopingOnEntry))]
+        [OnEventGotoState(typeof(Done), typeof(Looping))]
+        class Looping : MachineState { }
+
+		void LoopingOnEntry()
+        {
+            this.Send(this.Id, new Done());
+        }
+    }
+
     class WatchDog : Monitor
     {
         List<MachineId> Workers;
 
         [Start]
+        [Cold]
         [OnEventGotoState(typeof(Waiting), typeof(CanGetUserInput))]
         [OnEventGotoState(typeof(Computing), typeof(CannotGetUserInput))]
         class CanGetUserInput : MonitorState { }
@@ -119,7 +134,6 @@ namespace SystematicTesting
 
             Configuration.ExportTrace = false;
             Configuration.Verbose = 2;
-            Configuration.SchedulingStrategy = "dfs";
             Configuration.CheckLiveness = true;
 
             var assembly = base.GetAssembly(program.GetSyntaxTree());
@@ -128,7 +142,7 @@ namespace SystematicTesting
             SCTEngine.Setup();
             SCTEngine.Run();
 
-            Assert.AreEqual(1, SCTEngine.NumOfFoundBugs);
+            Assert.AreEqual(0, SCTEngine.NumOfFoundBugs);
         }
     }
 }

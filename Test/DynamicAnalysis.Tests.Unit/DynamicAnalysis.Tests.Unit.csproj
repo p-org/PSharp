@@ -117,10 +117,12 @@
     <Compile Include="Integration\DynamicError\BasicTransitions\Actions1FailTest.cs" />
     <Compile Include="Integration\DynamicError\Advanced\SendInterleavingsTest.cs" />
     <Compile Include="Liveness\Correct\Liveness1Test.cs" />
+    <Compile Include="Liveness\Correct\Liveness4Test.cs" />
+    <Compile Include="Liveness\Correct\WarmStateTest.cs" />
     <Compile Include="Liveness\DynamicError\Liveness2BugFoundTest.cs" />
     <Compile Include="Liveness\DynamicError\Liveness3Test.cs" />
     <Compile Include="Liveness\DynamicError\Liveness2LoopMachineTest.cs" />
-    <Compile Include="Liveness\DynamicError\WarmStateTest.cs" />
+    <Compile Include="Liveness\DynamicError\WarmStateBugTest.cs" />
     <Compile Include="Liveness\DynamicError\Liveness2Test.cs" />
     <Compile Include="Liveness\DynamicError\HotStateTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

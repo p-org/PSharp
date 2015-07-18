@@ -87,26 +87,22 @@ namespace Microsoft.PSharp.Scheduling
         internal void CheckLivenessAtTraceCycle(Fingerprint root, Trace trace)
         {
             var cycle = new List<TraceStep>();
-            Console.WriteLine("trace " + trace.Count);
+
             do
             {
-                Console.WriteLine("add " + trace.Peek().Fingerprint.ToString());
+                Output.Log("<LivenessDebug> Cycle contains program state with fingerprint '{0}'.",
+                    trace.Peek().Fingerprint.ToString());
                 cycle.Add(trace.Pop());
             }
             while (!trace.Peek().Fingerprint.Equals(root));
 
-            foreach (var step in cycle)
-            {
-                Console.WriteLine(" >> " + step.Fingerprint.ToString());
-            }
-
             if (!this.IsSchedulingFair(cycle))
             {
-                Console.WriteLine("SCHEDULING IS UNFAIR.");
+                Output.Log("<LivenessDebug> Cycle execution is unfair.");
                 return;
             }
 
-            Console.WriteLine("SCHEDULING IS FAIR.");
+            Output.Log("<LivenessDebug> Cycle execution is fair.");
 
             var hotMonitors = this.GetHotMonitors(cycle);
             foreach (var monitor in hotMonitors)
@@ -164,16 +160,6 @@ namespace Microsoft.PSharp.Scheduling
             {
                 scheduledMachines.Add(step.ScheduledMachine);
                 enabledMachines.UnionWith(step.EnabledMachines);
-            }
-
-            foreach (var x in enabledMachines)
-            {
-                Console.WriteLine("enabled: " + x.GetType().Name);
-            }
-
-            foreach (var x in scheduledMachines)
-            {
-                Console.WriteLine("scheduled: " + x.GetType().Name);
             }
 
             if (enabledMachines.Count == scheduledMachines.Count)
