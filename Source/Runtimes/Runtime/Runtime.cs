@@ -102,6 +102,47 @@ namespace Microsoft.PSharp
             PSharpRuntime.Send(target, e);
         }
 
+        /// <summary>
+        /// Returns a nondeterministic boolean choice, that can be controlled
+        /// during analysis or testing.
+        /// </summary>
+        /// <returns>Boolean</returns>
+        public static bool Nondeterministic()
+        {
+            return PSharpRuntime.Nondet();
+        }
+
+        /// <summary>
+        /// Checks if the assertion holds, and if not it reports
+        /// an error and exits.
+        /// </summary>
+        /// <param name="predicate">Predicate</param>
+        public static void Assert(bool predicate)
+        {
+            if (!predicate)
+            {
+                ErrorReporter.Report("Assertion failure.");
+                Environment.Exit(1);
+            }
+        }
+
+        /// <summary>
+        /// Checks if the assertion holds, and if not it reports
+        /// an error and exits.
+        /// </summary>
+        /// <param name="predicate">Predicate</param>
+        /// <param name="s">Message</param>
+        /// <param name="args">Message arguments</param>
+        public static void Assert(bool predicate, string s, params object[] args)
+        {
+            if (!predicate)
+            {
+                string message = Output.Format(s, args);
+                ErrorReporter.Report(message);
+                Environment.Exit(1);
+            }
+        }
+
         #endregion
 
         #region internal API
@@ -242,41 +283,6 @@ namespace Microsoft.PSharp
             return result;
         }
         
-        #endregion
-        
-        #region error checking and reporting
-
-        /// <summary>
-        /// Checks if the assertion holds, and if not it reports
-        /// an error and exits.
-        /// </summary>
-        /// <param name="predicate">Predicate</param>
-        internal static void Assert(bool predicate)
-        {
-            if (!predicate)
-            {
-                ErrorReporter.Report("Assertion failure.");
-                Environment.Exit(1);
-            }
-        }
-
-        /// <summary>
-        /// Checks if the assertion holds, and if not it reports
-        /// an error and exits.
-        /// </summary>
-        /// <param name="predicate">Predicate</param>
-        /// <param name="s">Message</param>
-        /// <param name="args">Message arguments</param>
-        internal static void Assert(bool predicate, string s, params object[] args)
-        {
-            if (!predicate)
-            {
-                string message = Output.Format(s, args);
-                ErrorReporter.Report(message);
-                Environment.Exit(1);
-            }
-        }
-
         #endregion
     }
 }

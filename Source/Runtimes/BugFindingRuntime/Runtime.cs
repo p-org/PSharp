@@ -52,6 +52,11 @@ namespace Microsoft.PSharp
         private static Object Lock = new Object();
 
         /// <summary>
+        /// The main thread id.
+        /// </summary>
+        private static int? MainThreadId;
+
+        /// <summary>
         /// True if runtime is running. False otherwise.
         /// </summary>
         private static bool IsRunning = false;
@@ -111,6 +116,59 @@ namespace Microsoft.PSharp
             catch (TaskCanceledException)
             {
                 Output.Log("<Exception> TaskCanceledException was thrown.");
+            }
+        }
+
+        /// <summary>
+        /// Returns a nondeterministic boolean choice, that can be controlled
+        /// during analysis or testing.
+        /// </summary>
+        /// <returns>Boolean</returns>
+        public static bool Nondeterministic()
+        {
+            return PSharpRuntime.Nondet();
+        }
+
+        /// <summary>
+        /// Checks if the assertion holds, and if not it reports
+        /// an error and exits.
+        /// </summary>
+        /// <param name="predicate">Predicate</param>
+        public static void Assert(bool predicate)
+        {
+            if (!predicate)
+            {
+                var terminateScheduler = true;
+                if (Task.CurrentId == PSharpRuntime.MainThreadId)
+                {
+                    terminateScheduler = false;
+                }
+
+                ErrorReporter.Report("Assertion failure.");
+                PSharpRuntime.BugFinder.NotifyAssertionFailure(terminateScheduler);
+            }
+        }
+
+        /// <summary>
+        /// Checks if the assertion holds, and if not it reports
+        /// an error and exits.
+        /// </summary>
+        /// <param name="predicate">Predicate</param>
+        /// <param name="s">Message</param>
+        /// <param name="args">Message arguments</param>
+        public static void Assert(bool predicate, string s, params object[] args)
+        {
+            if (!predicate)
+            {
+                var terminateScheduler = true;
+                if (Task.CurrentId == PSharpRuntime.MainThreadId)
+                {
+                    terminateScheduler = false;
+                }
+
+                string message = Output.Format(s, args);
+                ErrorReporter.Report(message);
+                PSharpRuntime.BugFinder.NotifyAssertionFailure(terminateScheduler);
             }
         }
 
@@ -175,8 +233,8 @@ namespace Microsoft.PSharp
         /// <param name="payload">Optional payload</param>
         internal static void TryCreateMonitor(Type type, params Object[] payload)
         {
-            PSharpRuntime.Assert(type.IsSubclassOf(typeof(Monitor)), "Type '{0}' is not a subclass " +
-                "of Monitor.\n", type.Name);
+            PSharpRuntime.Assert(type.IsSubclassOf(typeof(Monitor)), "Type '{0}' is not a " +
+                "subclass of Monitor.\n", type.Name);
 
             Object monitor = Activator.CreateInstance(type);
             
@@ -344,6 +402,8 @@ namespace Microsoft.PSharp
         /// </summary>
         private static void Initialize()
         {
+            PSharpRuntime.MainThreadId = Task.CurrentId;
+
             PSharpRuntime.MachineTasks = new List<Task>();
             PSharpRuntime.MachineMap = new Dictionary<int, Machine>();
             PSharpRuntime.Monitors = new List<Monitor>();
@@ -358,41 +418,6 @@ namespace Microsoft.PSharp
             PSharpRuntime.LivenessChecker = new LivenessChecker();
 
             PSharpRuntime.IsRunning = true;
-        }
-
-        #endregion
-
-        #region error checking and reporting
-
-        /// <summary>
-        /// Checks if the assertion holds, and if not it reports
-        /// an error and exits.
-        /// </summary>
-        /// <param name="predicate">Predicate</param>
-        internal static void Assert(bool predicate)
-        {
-            if (!predicate)
-            {
-                ErrorReporter.Report("Assertion failure.");
-                PSharpRuntime.BugFinder.NotifyAssertionFailure();
-            }
-        }
-
-        /// <summary>
-        /// Checks if the assertion holds, and if not it reports
-        /// an error and exits.
-        /// </summary>
-        /// <param name="predicate">Predicate</param>
-        /// <param name="s">Message</param>
-        /// <param name="args">Message arguments</param>
-        internal static void Assert(bool predicate, string s, params object[] args)
-        {
-            if (!predicate)
-            {
-                string message = Output.Format(s, args);
-                ErrorReporter.Report(message);
-                PSharpRuntime.BugFinder.NotifyAssertionFailure();
-            }
         }
 
         #endregion
