@@ -64,6 +64,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
                 this.CheckForDuplicateOnEntry(state, compilation);
                 this.CheckForDuplicateOnExit(state, compilation);
+                this.CheckForMultipleSameEventHandlers(state, compilation);
 
                 this.CheckForSpecialProperties(state, compilation);
             }
@@ -111,8 +112,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
             if (fields.Count > 0)
             {
-                base.ErrorLog.Add(Tuple.Create(state.Identifier,
-                    "A state cannot declare fields."));
+                base.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" +
+                    state.Identifier.ValueText + "' cannot declare fields."));
             }
         }
 
@@ -128,8 +129,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
             if (methods.Count > 0)
             {
-                base.ErrorLog.Add(Tuple.Create(state.Identifier,
-                    "A state cannot declare methods (besides the P# API ones)."));
+                base.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" +
+                    state.Identifier.ValueText + "' cannot declare methods."));
             }
         }
 
@@ -144,8 +145,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
             if (classes.Count > 0)
             {
-                base.ErrorLog.Add(Tuple.Create(state.Identifier,
-                    "A state cannot declare classes."));
+                base.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" +
+                    state.Identifier.ValueText + "' cannot declare classes."));
             }
         }
 
@@ -160,8 +161,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
             if (structs.Count > 0)
             {
-                base.ErrorLog.Add(Tuple.Create(state.Identifier,
-                    "A state cannot declare structs."));
+                base.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" +
+                    state.Identifier.ValueText + "' cannot declare structs."));
             }
         }
 
@@ -186,7 +187,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
             if (onEntryAttribute != null && onEntryMethod != null)
             {
-                base.ErrorLog.Add(Tuple.Create(state.Identifier, "A state cannot have two entry actions."));
+                base.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" +
+                    state.Identifier.ValueText + "' cannot have two entry actions."));
             }
         }
 
@@ -211,7 +213,41 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
             if (onExitAttribute != null && onExitMethod != null)
             {
-                base.ErrorLog.Add(Tuple.Create(state.Identifier, "A state cannot have two exit actions."));
+                base.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" +
+                    state.Identifier.ValueText + "' cannot have two exit actions."));
+            }
+        }
+
+        /// <summary>
+        /// Checks for multiple handlers for the same event.
+        /// </summary>
+        /// <param name="state">State</param>
+        /// <param name="compilation">Compilation</param>
+        private void CheckForMultipleSameEventHandlers(ClassDeclarationSyntax state, CodeAnalysis.Compilation compilation)
+        {
+            var model = compilation.GetSemanticModel(state.SyntaxTree);
+
+            var eventHandlers = state.AttributeLists.
+                SelectMany(val => val.Attributes).
+                Where(val => model.GetTypeInfo(val).Type.ToDisplayString().Equals("Microsoft.PSharp.OnEventGotoState") ||
+                  model.GetTypeInfo(val).Type.ToDisplayString().Equals("Microsoft.PSharp.OnEventPushState") ||
+                  model.GetTypeInfo(val).Type.ToDisplayString().Equals("Microsoft.PSharp.OnEventDoAction") ||
+                  model.GetTypeInfo(val).Type.ToDisplayString().Equals("Microsoft.PSharp.IgnoreEvents") ||
+                  model.GetTypeInfo(val).Type.ToDisplayString().Equals("Microsoft.PSharp.DeferEvents")).
+                Where(val => val.ArgumentList != null).
+                Where(val => val.ArgumentList.Arguments.Count > 0).
+                Where(val => val.ArgumentList.Arguments[0].Expression is TypeOfExpressionSyntax).
+                Select(val => val.ArgumentList.Arguments[0].Expression as TypeOfExpressionSyntax).
+                Select(val => val.Type as IdentifierNameSyntax).
+                Select(val => val.Identifier.ValueText).
+                ToList();
+
+            var eventOccurrences = eventHandlers.GroupBy(val => val);
+
+            foreach (var e in eventOccurrences.Where(val => val.Count() > 1))
+            {
+                base.ErrorLog.Add(Tuple.Create(state.Identifier, "State '" + state.Identifier.ValueText +
+                    "' cannot declare more than one handler for event '" + e.Key + "'."));
             }
         }
 
