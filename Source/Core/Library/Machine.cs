@@ -461,6 +461,8 @@ namespace Microsoft.PSharp
                 // Checks if the raised event is ignored.
                 if (this.IgnoredEvents.Contains(nextEvent.GetType()))
                 {
+                    Output.Log("<IgnoreLog> Machine '{0}({1})' ignored event < ____{2} >.",
+                        this.GetType().Name, this.Id.Value, nextEvent.GetType());
                     nextEvent = null;
                 }
             }
@@ -473,6 +475,8 @@ namespace Microsoft.PSharp
                     // Remove an ignored event.
                     if (this.IgnoredEvents.Contains(this.Inbox[idx].GetType()))
                     {
+                        Output.Log("<IgnoreLog> Machine '{0}({1})' ignored event < ____{2} >.",
+                            this.GetType().Name, this.Id.Value, this.Inbox[idx].GetType());
                         this.Inbox.RemoveAt(idx);
                         idx--;
                         continue;
@@ -485,7 +489,7 @@ namespace Microsoft.PSharp
                     {
                         nextEvent = this.Inbox[idx];
                         Output.Debug(DebugType.Runtime, "<DequeueLog> Machine '{0}({1})' dequeued " +
-                            "event < ____{2} >.", this, this.Id.Value, nextEvent.GetType());
+                            "event < ____{2} >.", this.GetType().Name, this.Id.Value, nextEvent.GetType());
 
                         this.Inbox.RemoveAt(idx);
                         break;
@@ -513,7 +517,7 @@ namespace Microsoft.PSharp
                         lock (this.Inbox)
                         {
                             Output.Debug(DebugType.Runtime, "<HaltLog> Machine " +
-                                "'{0}({1})' halted.", this, this.Id.Value);
+                                "'{0}({1})' halted.", this.GetType().Name, this.Id.Value);
                             this.IsHalted = true;
                             this.CleanUpResources();
                         }
