@@ -245,6 +245,8 @@ namespace Microsoft.PSharp
             // Do not process an ignored event.
             if (this.IgnoredEvents.Contains(e.GetType()))
             {
+                Output.Log("<IgnoreLog> Monitor '{0}' ignored event '{1}'.",
+                    this.GetType().Name, e.GetType());
                 return;
             }
 
