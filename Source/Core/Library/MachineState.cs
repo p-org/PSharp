@@ -182,7 +182,7 @@ namespace Microsoft.PSharp
 
             if (deferEventsAttribute != null)
             {
-                this.IgnoredEvents.UnionWith(deferEventsAttribute.Events);
+                this.DeferredEvents.UnionWith(deferEventsAttribute.Events);
             }
         }
 
