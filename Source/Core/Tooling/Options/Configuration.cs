@@ -164,6 +164,12 @@ namespace Microsoft.PSharp.Tooling
         /// </summary>
         internal static bool ExportTrace;
 
+        /// <summary>
+        /// If true, then the dynamic analyzer will perform state
+        /// caching when checking liveness properties.
+        /// </summary>
+        internal static bool CacheProgramState;
+
         #endregion
 
         #region remote options
@@ -222,6 +228,7 @@ namespace Microsoft.PSharp.Tooling
             Configuration.DepthBound = 10000;
             Configuration.CheckLiveness = false;
             Configuration.ExportTrace = true;
+            Configuration.CacheProgramState = true;
 
             Configuration.NumberOfContainers = 1;
             Configuration.ContainerId = 0;

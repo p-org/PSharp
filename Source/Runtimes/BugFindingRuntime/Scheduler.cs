@@ -117,7 +117,7 @@ namespace Microsoft.PSharp.Scheduling
                 throw new TaskCanceledException();
             }
 
-            if (Configuration.CheckLiveness)
+            if (Configuration.CheckLiveness && Configuration.CacheProgramState)
             {
                 PSharpRuntime.StateExplorer.CacheStateAtSchedulingChoice(next.Machine);
             }
@@ -178,7 +178,8 @@ namespace Microsoft.PSharp.Scheduling
                 throw new TaskCanceledException();
             }
 
-            if (Configuration.CheckLiveness && uniqueId != null)
+            if (Configuration.CheckLiveness && Configuration.CacheProgramState &&
+                uniqueId != null)
             {
                 PSharpRuntime.StateExplorer.CacheStateAtNondeterministicChoice(uniqueId, choice);
             }

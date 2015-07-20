@@ -27,6 +27,7 @@ namespace Microsoft.PSharp.Tooling
         Rewriting,
         Runtime,
         Analysis,
-        Testing
+        Testing,
+        Liveness
     }
 }

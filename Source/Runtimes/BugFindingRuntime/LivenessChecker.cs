@@ -90,23 +90,24 @@ namespace Microsoft.PSharp.Scheduling
 
             do
             {
-                Output.Log("<LivenessDebug> Cycle contains {0}.", trace.Peek().Fingerprint.ToString());
+                Output.Debug(DebugType.Liveness, "<LivenessDebug> Cycle contains {0}.",
+                    trace.Peek().Fingerprint.ToString());
                 cycle.Add(trace.Pop());
             }
             while (trace.Peek() != null && !trace.Peek().Fingerprint.Equals(root));
 
             if (!this.IsSchedulingFair(cycle))
             {
-                Output.Log("<LivenessDebug> Scheduling in cycle is unfair.");
+                Output.Debug(DebugType.Liveness, "<LivenessDebug> Scheduling in cycle is unfair.");
                 return;
             }
             else if (!this.IsNondeterminismFair(cycle))
             {
-                Output.Log("<LivenessDebug> Nondeterminism in cycle is unfair.");
+                Output.Debug(DebugType.Liveness, "<LivenessDebug> Nondeterminism in cycle is unfair.");
                 return;
             }
 
-            Output.Log("<LivenessDebug> Cycle execution is fair.");
+            Output.Debug(DebugType.Liveness, "<LivenessDebug> Cycle execution is fair.");
 
             var hotMonitors = this.GetHotMonitors(cycle);
             foreach (var monitor in hotMonitors)

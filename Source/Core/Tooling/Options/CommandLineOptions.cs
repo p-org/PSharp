@@ -121,10 +121,14 @@ namespace Microsoft.PSharp.Tooling
                     {
                         Configuration.Debug.Add(DebugType.Testing);
                     }
+                    else if (this.Options[idx].Substring(7).ToLower().Equals("liveness"))
+                    {
+                        Configuration.Debug.Add(DebugType.Liveness);
+                    }
                     else
                     {
                         ErrorReporter.ReportAndExit("Please give a valid debug target '/debug:[x]', " +
-                            "where [x] is 'all', 'runtime', 'analysis' or 'testing'.");
+                            "where [x] is 'all', 'runtime', 'analysis', 'testing' or 'liveness'.");
                     }
                 }
 
@@ -231,6 +235,10 @@ namespace Microsoft.PSharp.Tooling
                 else if (this.Options[idx].ToLower().Equals("/liveness"))
                 {
                     Configuration.CheckLiveness = true;
+                }
+                else if (this.Options[idx].ToLower().Equals("/nocaching"))
+                {
+                    Configuration.CacheProgramState = false;
                 }
 
                 #endregion

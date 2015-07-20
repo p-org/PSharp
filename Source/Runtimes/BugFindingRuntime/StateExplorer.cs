@@ -66,7 +66,7 @@ namespace Microsoft.PSharp.Scheduling
 
             if (this.Fingerprints.Contains(traceStep.Fingerprint) && Configuration.CheckLiveness)
             {
-                Output.Log("<LivenessDebug> Detected potential infinite execution.");
+                Output.Debug(DebugType.Liveness, "<LivenessDebug> Detected potential infinite execution.");
                 PSharpRuntime.LivenessChecker.CheckLivenessAtTraceCycle(traceStep.Fingerprint, this.Trace);
                 this.RemoveNonExistingFingerprints();
             }
@@ -88,7 +88,7 @@ namespace Microsoft.PSharp.Scheduling
 
             if (this.Fingerprints.Contains(traceStep.Fingerprint) && Configuration.CheckLiveness)
             {
-                Output.Log("<LivenessDebug> Detected potential infinite execution.");
+                Output.Debug(DebugType.Liveness, "<LivenessDebug> Detected potential infinite execution.");
                 PSharpRuntime.LivenessChecker.CheckLivenessAtTraceCycle(traceStep.Fingerprint, this.Trace);
                 this.RemoveNonExistingFingerprints();
             }
@@ -113,8 +113,8 @@ namespace Microsoft.PSharp.Scheduling
             var traceStep = TraceStep.CreateSchedulingChoice(fingerprint, scheduledMachine,
                 enabledMachines, PSharpRuntime.LivenessChecker.GetMonitorStatus());
 
-            Output.Log("<LivenessDebug> Captured program state '{0}' at scheduling choice.",
-                fingerprint.GetHashCode());
+            Output.Debug(DebugType.Liveness, "<LivenessDebug> Captured program state '{0}' at " +
+                "scheduling choice.", fingerprint.GetHashCode());
 
             return traceStep;
         }
@@ -133,8 +133,8 @@ namespace Microsoft.PSharp.Scheduling
             var traceStep = TraceStep.CreateNondeterministicChoice(fingerprint, uniqueId,
                 choice, enabledMachines, PSharpRuntime.LivenessChecker.GetMonitorStatus());
 
-            Output.Log("<LivenessDebug> Captured program state '{0}' at nondeterministic choice '{1}-{2}'.",
-                fingerprint.GetHashCode(), uniqueId, choice);
+            Output.Debug(DebugType.Liveness, "<LivenessDebug> Captured program state '{0}' at " +
+                "nondeterministic choice '{1}-{2}'.", fingerprint.GetHashCode(), uniqueId, choice);
 
             return traceStep;
         }
