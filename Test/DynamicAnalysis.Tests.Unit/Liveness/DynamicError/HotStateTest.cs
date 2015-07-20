@@ -164,14 +164,14 @@ namespace SystematicTesting
     }
 }";
 
-            var parser = new CSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), true);
-            var program = parser.Parse();
-            program.Rewrite();
-
             Configuration.ExportTrace = false;
             Configuration.Verbose = 2;
             Configuration.SchedulingStrategy = "dfs";
             Configuration.CheckLiveness = true;
+
+            var parser = new CSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), true);
+            var program = parser.Parse();
+            program.Rewrite();
 
             var assembly = base.GetAssembly(program.GetSyntaxTree());
             AnalysisContext.Create(assembly);

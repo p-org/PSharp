@@ -90,7 +90,7 @@ namespace Microsoft.PSharp.Scheduling
 
             do
             {
-                Output.Log("<LivenessDebug> Cycle contains program state with fingerprint '{0}'.",
+                Output.Log("<LivenessDebug> Cycle contains program state with '{0}'.",
                     trace.Peek().Fingerprint.ToString());
                 cycle.Add(trace.Pop());
             }

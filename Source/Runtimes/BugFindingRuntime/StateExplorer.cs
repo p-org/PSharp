@@ -117,6 +117,9 @@ namespace Microsoft.PSharp.Scheduling
                 traceStep.Previous = this.Trace[this.Trace.Count - 1];
             }
 
+            Output.Log("<LivenessDebug> Captured program state '{0}' at scheduling choice.",
+                fingerprint.GetHashCode());
+
             return traceStep;
         }
 
@@ -139,6 +142,9 @@ namespace Microsoft.PSharp.Scheduling
                 this.Trace[this.Trace.Count - 1].Next = traceStep;
                 traceStep.Previous = this.Trace[this.Trace.Count - 1];
             }
+
+            Output.Log("<LivenessDebug> Captured program state '{0}' at nondeterministic choice '{1}-{2}'.",
+                fingerprint.GetHashCode(), uniqueId, choice);
 
             return traceStep;
         }

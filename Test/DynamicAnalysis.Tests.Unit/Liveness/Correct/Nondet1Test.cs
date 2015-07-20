@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="Liveness3Test.cs" company="Microsoft">
+// <copyright file="Nondet1Test.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -28,10 +28,10 @@ using Microsoft.PSharp.Tooling;
 namespace Microsoft.PSharp.DynamicAnalysis.Tests.Unit
 {
     [TestClass]
-    public class Liveness3Test : BasePSharpTest
+    public class Nondet1Test : BasePSharpTest
     {
         [TestMethod]
-        public void TestLiveness3()
+        public void TestNondet1()
         {
             var test = @"
 using System;
@@ -43,6 +43,7 @@ namespace SystematicTesting
     class Unit : Event { }
     class UserEvent : Event { }
     class Done : Event { }
+    class Loop : Event { }
     class Waiting : Event { }
     class Computing : Event { }
 
@@ -58,7 +59,6 @@ namespace SystematicTesting
 		void InitOnEntry()
         {
             this.CreateMonitor(typeof(WatchDog));
-            this.CreateMachine(typeof(Loop));
             this.Raise(new Unit());
         }
 
@@ -73,25 +73,21 @@ namespace SystematicTesting
         }
 
         [OnEntry(nameof(HandleEventOnEntry))]
-        [OnEventGotoState(typeof(Done), typeof(HandleEvent))]
+        [OnEventGotoState(typeof(Done), typeof(WaitForUser))]
+        [OnEventGotoState(typeof(Loop), typeof(HandleEvent))]
         class HandleEvent : MachineState { }
 
         void HandleEventOnEntry()
         {
             this.Monitor<WatchDog>(new Computing());
-        }
-    }
-
-    class Loop : Machine
-    {
-        [Start]
-        [OnEntry(nameof(LoopingOnEntry))]
-        [OnEventGotoState(typeof(Done), typeof(Looping))]
-        class Looping : MachineState { }
-
-		void LoopingOnEntry()
-        {
-            this.Send(this.Id, new Done());
+            if (this.Nondet())
+            {
+                this.Send(this.Id, new Done());
+            }
+            else
+            {
+                this.Send(this.Id, new Loop());
+            }
         }
     }
 
@@ -129,7 +125,7 @@ namespace SystematicTesting
 
             Configuration.ExportTrace = false;
             Configuration.Verbose = 3;
-            Configuration.SchedulingIterations = 100;
+            Configuration.RunDynamicAnalysis = true;
             Configuration.CheckLiveness = true;
 
             var parser = new CSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), true);
@@ -142,7 +138,7 @@ namespace SystematicTesting
             SCTEngine.Setup();
             SCTEngine.Run();
 
-            Assert.AreEqual(1, SCTEngine.NumOfFoundBugs);
+            Assert.AreEqual(0, SCTEngine.NumOfFoundBugs);
         }
     }
 }

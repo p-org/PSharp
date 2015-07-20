@@ -359,7 +359,6 @@ namespace Microsoft.PSharp
                     hash = hash + 31 * monitor.GetHashedState();
                 }
 
-                Output.Log("<LivenessDebug> Captured program state with fingerprint '{0}'.", hash);
                 fingerprint = new Fingerprint(hash);
             }
 

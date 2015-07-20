@@ -117,6 +117,7 @@
     <Compile Include="Integration\DynamicError\BasicTransitions\Actions1FailTest.cs" />
     <Compile Include="Integration\DynamicError\Advanced\SendInterleavingsTest.cs" />
     <Compile Include="Liveness\Correct\Liveness1Test.cs" />
+    <Compile Include="Liveness\Correct\Nondet1Test.cs" />
     <Compile Include="Liveness\Correct\Liveness4Test.cs" />
     <Compile Include="Liveness\Correct\WarmStateTest.cs" />
     <Compile Include="Liveness\DynamicError\Liveness2BugFoundTest.cs" />
