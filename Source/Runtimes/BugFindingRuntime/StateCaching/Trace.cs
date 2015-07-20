@@ -91,7 +91,13 @@ namespace Microsoft.PSharp.StateCaching
         /// <returns>TraceStep</returns>
         internal TraceStep Peek()
         {
-            var step = this.Steps[this.Count - 1];
+            TraceStep step = null;
+
+            if (this.Steps.Count > 0)
+            {
+                step = this.Steps[this.Count - 1];
+            }
+            
             return step;
         }
 

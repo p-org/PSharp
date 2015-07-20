@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Reflection;
 
 namespace Microsoft.PSharp
@@ -228,6 +229,18 @@ namespace Microsoft.PSharp
         protected internal bool Nondet()
         {
             return this.Monitor.Nondet();
+        }
+
+        /// <summary>
+        /// Returns a nondeterministic boolean choice, that can be controlled
+        /// during analysis or testing.
+        /// </summary>
+        /// <param name="uniqueId">Unique id</param>
+        /// <returns>Boolean</returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        protected internal bool Nondet(int uniqueId)
+        {
+            return this.Monitor.Nondet(uniqueId);
         }
 
         /// <summary>

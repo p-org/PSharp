@@ -327,6 +327,17 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Returns a nondeterministic boolean choice, that can be
+        /// controlled during analysis or testing.
+        /// </summary>
+        /// <param name="uniqueId">Unique id</param>
+        /// <returns>Boolean</returns>
+        internal static bool Nondet(string uniqueId)
+        {
+            return PSharpRuntime.BugFinder.GetNextNondeterministicChoice(uniqueId);
+        }
+
+        /// <summary>
         /// Captures the fingerprint of the current program state.
         /// </summary>
         /// <returns>Fingerprint</returns>

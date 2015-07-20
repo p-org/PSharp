@@ -94,11 +94,16 @@ namespace Microsoft.PSharp.Scheduling
                     trace.Peek().Fingerprint.ToString());
                 cycle.Add(trace.Pop());
             }
-            while (!trace.Peek().Fingerprint.Equals(root));
+            while (trace.Peek() != null && !trace.Peek().Fingerprint.Equals(root));
 
             if (!this.IsSchedulingFair(cycle))
             {
-                Output.Log("<LivenessDebug> Cycle execution is unfair.");
+                Output.Log("<LivenessDebug> Scheduling in cycle is unfair.");
+                return;
+            }
+            else if (!this.IsNondeterminismFair(cycle))
+            {
+                Output.Log("<LivenessDebug> Nondeterminism in cycle is unfair.");
                 return;
             }
 
@@ -163,6 +168,37 @@ namespace Microsoft.PSharp.Scheduling
             }
 
             if (enabledMachines.Count == scheduledMachines.Count)
+            {
+                result = true;
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Checks if the nondeterminism is fair in a trace cycle.
+        /// </summary>
+        /// <param name="cycle">Cycle of states</param>
+        private bool IsNondeterminismFair(List<TraceStep> cycle)
+        {
+            var result = false;
+
+            var trueChoices = new HashSet<string>();
+            var falseChoices = new HashSet<string>();
+
+            foreach (var step in cycle.Where(val => val.IsChoice))
+            {
+                if (step.Choice)
+                {
+                    trueChoices.Add(step.NondetId);
+                }
+                else
+                {
+                    falseChoices.Add(step.NondetId);
+                }
+            }
+
+            if (trueChoices.Count == falseChoices.Count)
             {
                 result = true;
             }

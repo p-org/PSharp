@@ -59,7 +59,7 @@ namespace Microsoft.PSharp.StateCaching
         /// The non-deterministic choice id. Only relevant if
         /// this is a choice trace step.
         /// </summary>
-        internal int ChoiceId;
+        internal string NondetId;
 
         /// <summary>
         /// The non-deterministic choice value. Only relevant if
@@ -111,18 +111,24 @@ namespace Microsoft.PSharp.StateCaching
         /// Creates a nondeterministic choice trace step.
         /// </summary>
         /// <param name="fingerprint">Fingerprint</param>
-        /// <param name="id">Id of the choice</param>
-        /// <param name="choice">Choice value</param>
+        /// <param name="uniqueId">Unique nondet id</param>
+        /// <param name="choice">Choice</param>
+        /// <param name="enabledMachines">Enabled machines</param>
+        /// <param name="monitorStatus">Monitor status</param>
         /// <returns>TraceStep</returns>
-        internal static TraceStep CreateNondeterministicChoice(Fingerprint fingerprint, int id, bool choice)
+        internal static TraceStep CreateNondeterministicChoice(Fingerprint fingerprint,
+            string uniqueId, bool choice, HashSet<Machine> enabledMachines,
+            Dictionary<Monitor, MonitorStatus> monitorStatus)
         {
             var traceStep = new TraceStep();
 
             traceStep.IsChoice = true;
             traceStep.Fingerprint = fingerprint;
 
-            traceStep.ChoiceId = id;
+            traceStep.NondetId = uniqueId;
             traceStep.Choice = choice;
+            traceStep.EnabledMachines = enabledMachines;
+            traceStep.MonitorStatus = monitorStatus;
 
             traceStep.Previous = null;
             traceStep.Next = null;

@@ -104,6 +104,7 @@
     <Compile Include="PSharpProject.cs" />
     <Compile Include="Rewriting\CSharp\CSharpRewriter.cs" />
     <Compile Include="Rewriting\CSharp\Statements\PopRewriter.cs" />
+    <Compile Include="Rewriting\CSharp\Statements\NondetRewriter.cs" />
     <Compile Include="Rewriting\CSharp\Statements\RaiseRewriter.cs" />
     <Compile Include="Rewriting\PSharp\Expressions\FieldAccessRewriter.cs" />
     <Compile Include="Rewriting\PSharp\Expressions\NondeterministicChoiceRewriter.cs" />

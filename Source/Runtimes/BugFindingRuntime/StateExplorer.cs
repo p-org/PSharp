@@ -73,6 +73,27 @@ namespace Microsoft.PSharp.Scheduling
             this.Fingerprints.Add(traceStep.Fingerprint);
         }
 
+        /// <summary>
+        /// Caches the program state at a nondeterministic choice.
+        /// </summary>
+        /// <param name="uniqueId">Unique nondet id</param>
+        /// <param name="choice">Choice</param>
+        internal void CacheStateAtNondeterministicChoice(string uniqueId, bool choice)
+        {
+            var enabledMachines = PSharpRuntime.BugFinder.GetEnabledMachines();
+            var traceStep = this.GetNondeterministicChoiceTraceStep(uniqueId, choice, enabledMachines);
+
+            this.Trace.Push(traceStep);
+
+            if (this.Fingerprints.Contains(traceStep.Fingerprint) && Configuration.CheckLiveness)
+            {
+                Output.Log("<LivenessDebug> Detected potential infinite execution.");
+                PSharpRuntime.LivenessChecker.CheckLivenessAtTraceCycle(traceStep.Fingerprint, this.Trace);
+            }
+
+            this.Fingerprints.Add(traceStep.Fingerprint);
+        }
+
         #endregion
 
         #region private methods
@@ -89,6 +110,29 @@ namespace Microsoft.PSharp.Scheduling
             var fingerprint = PSharpRuntime.CaptureProgramState();
             var traceStep = TraceStep.CreateSchedulingChoice(fingerprint, scheduledMachine,
                 enabledMachines, PSharpRuntime.LivenessChecker.GetMonitorStatus());
+
+            if (this.Trace.Count > 0)
+            {
+                this.Trace[this.Trace.Count - 1].Next = traceStep;
+                traceStep.Previous = this.Trace[this.Trace.Count - 1];
+            }
+
+            return traceStep;
+        }
+
+        /// <summary>
+        /// Returns the current nondeterministic choice as a program trace step.
+        /// </summary>
+        /// <param name="uniqueId">Unique nondet id</param>
+        /// <param name="choice">Choice</param>
+        /// <param name="enabledMachines">Enabled machines</param>
+        /// <returns>TraceStep</returns>
+        private TraceStep GetNondeterministicChoiceTraceStep(string uniqueId, bool choice,
+            HashSet<Machine> enabledMachines)
+        {
+            var fingerprint = PSharpRuntime.CaptureProgramState();
+            var traceStep = TraceStep.CreateNondeterministicChoice(fingerprint, uniqueId,
+                choice, enabledMachines, PSharpRuntime.LivenessChecker.GetMonitorStatus());
 
             if (this.Trace.Count > 0)
             {

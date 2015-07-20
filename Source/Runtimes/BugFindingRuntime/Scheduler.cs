@@ -166,8 +166,9 @@ namespace Microsoft.PSharp.Scheduling
         /// <summary>
         /// Returns the next nondeterministic choice.
         /// </summary>
+        /// <param name="uniqueId">Unique id</param>
         /// <returns>Boolean value</returns>
-        internal bool GetNextNondeterministicChoice()
+        internal bool GetNextNondeterministicChoice(string uniqueId = null)
         {
             var choice = false;
             if (!this.Strategy.GetNextChoice(out choice))
@@ -175,6 +176,11 @@ namespace Microsoft.PSharp.Scheduling
                 Output.Debug(DebugType.Testing, "<ScheduleDebug> Schedule explored.");
                 this.KillRemainingTasks();
                 throw new TaskCanceledException();
+            }
+
+            if (Configuration.CheckLiveness && uniqueId != null)
+            {
+                PSharpRuntime.StateExplorer.CacheStateAtNondeterministicChoice(uniqueId, choice);
             }
 
             return choice;
