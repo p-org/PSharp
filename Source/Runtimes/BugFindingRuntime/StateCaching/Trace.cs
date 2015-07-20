@@ -35,6 +35,11 @@ namespace Microsoft.PSharp.StateCaching
         private List<TraceStep> Steps;
 
         /// <summary>
+        /// The unique fingerprints in the trace.
+        /// </summary>
+        private HashSet<Fingerprint> Fingerprints;
+
+        /// <summary>
         /// The number of steps in the trace.
         /// </summary>
         internal int Count
@@ -63,6 +68,7 @@ namespace Microsoft.PSharp.StateCaching
         internal Trace()
         {
             this.Steps = new List<TraceStep>();
+            this.Fingerprints = new HashSet<Fingerprint>();
         }
 
         /// <summary>
@@ -71,7 +77,14 @@ namespace Microsoft.PSharp.StateCaching
         /// <param name="state">Program state</param>
         internal void Push(TraceStep state)
         {
+            if (this.Count > 0)
+            {
+                this.Steps[this.Count - 1].Next = state;
+                state.Previous = this.Steps[this.Count - 1];
+            }
+
             this.Steps.Add(state);
+            this.Fingerprints.Add(state.Fingerprint);
         }
 
         /// <summary>
@@ -80,8 +93,19 @@ namespace Microsoft.PSharp.StateCaching
         /// <returns>TraceStep</returns>
         internal TraceStep Pop()
         {
+            if (this.Count > 0)
+            {
+                this.Steps[this.Count - 1].Next = null;
+            }
+
             var step = this.Steps[this.Count - 1];
             this.Steps.RemoveAt(this.Count - 1);
+
+            // The fingerprint can be safely removed, because the liveness
+            // detection algorithm currently removes cycles, so a specific
+            // fingerprint can only appear once in the trace.
+            this.Fingerprints.Remove(step.Fingerprint);
+
             return step;
         }
 
@@ -99,6 +123,16 @@ namespace Microsoft.PSharp.StateCaching
             }
             
             return step;
+        }
+
+        /// <summary>
+        /// True if the trace contains the given fingerprint.
+        /// </summary>
+        /// <param name="fingerprint">Fingerprint</param>
+        /// <returns>Boolean value</returns>
+        internal bool Contains(Fingerprint fingerprint)
+        {
+            return this.Fingerprints.Contains(fingerprint);
         }
 
         /// <summary>

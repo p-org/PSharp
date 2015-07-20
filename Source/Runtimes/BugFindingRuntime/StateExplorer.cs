@@ -29,14 +29,14 @@ namespace Microsoft.PSharp.Scheduling
     internal sealed class StateExplorer
     {
         #region fields
-        
+
         /// <summary>
         /// Cached program trace.
         /// </summary>
-        internal Trace Trace;
+        private Trace Trace;
 
         /// <summary>
-        /// Unique fingerprints
+        /// Unique fingerprints in the trace.
         /// </summary>
         private HashSet<Fingerprint> Fingerprints;
 
@@ -68,6 +68,7 @@ namespace Microsoft.PSharp.Scheduling
             {
                 Output.Log("<LivenessDebug> Detected potential infinite execution.");
                 PSharpRuntime.LivenessChecker.CheckLivenessAtTraceCycle(traceStep.Fingerprint, this.Trace);
+                this.RemoveNonExistingFingerprints();
             }
 
             this.Fingerprints.Add(traceStep.Fingerprint);
@@ -89,6 +90,7 @@ namespace Microsoft.PSharp.Scheduling
             {
                 Output.Log("<LivenessDebug> Detected potential infinite execution.");
                 PSharpRuntime.LivenessChecker.CheckLivenessAtTraceCycle(traceStep.Fingerprint, this.Trace);
+                this.RemoveNonExistingFingerprints();
             }
 
             this.Fingerprints.Add(traceStep.Fingerprint);
@@ -111,12 +113,6 @@ namespace Microsoft.PSharp.Scheduling
             var traceStep = TraceStep.CreateSchedulingChoice(fingerprint, scheduledMachine,
                 enabledMachines, PSharpRuntime.LivenessChecker.GetMonitorStatus());
 
-            if (this.Trace.Count > 0)
-            {
-                this.Trace[this.Trace.Count - 1].Next = traceStep;
-                traceStep.Previous = this.Trace[this.Trace.Count - 1];
-            }
-
             Output.Log("<LivenessDebug> Captured program state '{0}' at scheduling choice.",
                 fingerprint.GetHashCode());
 
@@ -137,16 +133,24 @@ namespace Microsoft.PSharp.Scheduling
             var traceStep = TraceStep.CreateNondeterministicChoice(fingerprint, uniqueId,
                 choice, enabledMachines, PSharpRuntime.LivenessChecker.GetMonitorStatus());
 
-            if (this.Trace.Count > 0)
-            {
-                this.Trace[this.Trace.Count - 1].Next = traceStep;
-                traceStep.Previous = this.Trace[this.Trace.Count - 1];
-            }
-
             Output.Log("<LivenessDebug> Captured program state '{0}' at nondeterministic choice '{1}-{2}'.",
                 fingerprint.GetHashCode(), uniqueId, choice);
 
             return traceStep;
+        }
+
+        /// <summary>
+        /// Removes non-existing fingerprints.
+        /// </summary>
+        private void RemoveNonExistingFingerprints()
+        {
+            foreach (var fingerprint in this.Fingerprints.ToList())
+            {
+                if (!this.Trace.Contains(fingerprint))
+                {
+                    this.Fingerprints.Remove(fingerprint);
+                }
+            }
         }
 
         #endregion
