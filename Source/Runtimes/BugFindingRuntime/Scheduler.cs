@@ -123,7 +123,7 @@ namespace Microsoft.PSharp.Scheduling
             }
 
             Output.Debug(DebugType.Testing, "<ScheduleDebug> Schedule task {0} of machine {1}({2}).",
-                next.Id, next.Machine.GetType(), next.Machine.Id.Value);
+                next.Id, next.Machine.GetType(), next.Machine.Id.MVal);
 
             if (!taskInfo.IsCompleted)
             {
@@ -149,10 +149,10 @@ namespace Microsoft.PSharp.Scheduling
                     while (!taskInfo.IsActive)
                     {
                         Output.Debug(DebugType.Testing, "<ScheduleDebug> Sleep task {0} of machine {1}({2}).",
-                            taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id.Value);
+                            taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id.MVal);
                         System.Threading.Monitor.Wait(taskInfo);
                         Output.Debug(DebugType.Testing, "<ScheduleDebug> Wake up task {0} of machine {1}({2}).",
-                            taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id.Value);
+                            taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id.MVal);
                     }
 
                     if (!taskInfo.IsEnabled)
@@ -215,7 +215,7 @@ namespace Microsoft.PSharp.Scheduling
             var taskInfo = new TaskInfo(id, machine);
 
             Output.Debug(DebugType.Testing, "<ScheduleDebug> Created task {0} for machine {1}({2}).",
-                taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id.Value);
+                taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id.MVal);
 
             if (this.Tasks.Count == 0)
             {
@@ -240,7 +240,7 @@ namespace Microsoft.PSharp.Scheduling
             var taskInfo = this.TaskMap[(int)id];
 
             Output.Debug(DebugType.Testing, "<ScheduleDebug> Started task {0} of machine {1}({2}).",
-                taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id.Value);
+                taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id.MVal);
 
             lock (taskInfo)
             {
@@ -249,10 +249,10 @@ namespace Microsoft.PSharp.Scheduling
                 while (!taskInfo.IsActive)
                 {
                     Output.Debug(DebugType.Testing, "<ScheduleDebug> Sleep task {0} of machine {1}({2}).",
-                        taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id.Value);
+                        taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id.MVal);
                     System.Threading.Monitor.Wait(taskInfo);
                     Output.Debug(DebugType.Testing, "<ScheduleDebug> Wake up task {0} of machine {1}({2}).",
-                        taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id.Value);
+                        taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id.MVal);
                 }
 
                 if (!taskInfo.IsEnabled)
@@ -276,7 +276,7 @@ namespace Microsoft.PSharp.Scheduling
             var taskInfo = this.TaskMap[(int)id];
 
             Output.Debug(DebugType.Testing, "<ScheduleDebug> Completed task {0} of machine {1}({2}).",
-                taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id.Value);
+                taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id.MVal);
 
             taskInfo.IsEnabled = false;
             taskInfo.IsCompleted = true;
@@ -284,7 +284,7 @@ namespace Microsoft.PSharp.Scheduling
             this.Schedule(taskInfo.Id);
 
             Output.Debug(DebugType.Testing, "<ScheduleDebug> Exit task {0} of machine {1}({2}).",
-                taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id.Value);
+                taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id.MVal);
         }
 
         /// <summary>

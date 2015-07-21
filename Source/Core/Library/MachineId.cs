@@ -15,6 +15,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 
 namespace Microsoft.PSharp
@@ -28,10 +29,16 @@ namespace Microsoft.PSharp
         #region fields
 
         /// <summary>
-        /// Id value.
+        /// Unique id value.
         /// </summary>
         [DataMember]
         internal readonly int Value;
+
+        /// <summary>
+        /// Machine-type-specific id value.
+        /// </summary>
+        [DataMember]
+        internal readonly int MVal;
 
         /// <summary>
         /// Ip address.
@@ -52,28 +59,50 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Monotonically increasing machine id counter.
         /// </summary>
-        private static int IdCounter = 0;
+        private static int IdCounter;
+
+        /// <summary>
+        /// Id specific to a machine type.
+        /// </summary>
+        private static Dictionary<Type, int> TypeIdCounter;
 
         #endregion
 
         #region internal API
 
         /// <summary>
+        /// Static constructor.
+        /// </summary>
+        static MachineId()
+        {
+            MachineId.IdCounter = 0;
+            MachineId.TypeIdCounter = new Dictionary<Type, int>();
+        }
+
+        /// <summary>
         /// Constructor.
         /// </summary>
-        internal MachineId()
+        /// <param name="type">Type</param>
+        internal MachineId(Type type)
         {
+            if (!MachineId.TypeIdCounter.ContainsKey(type))
+            {
+                MachineId.TypeIdCounter.Add(type, 0);
+            }
+
             this.Value = MachineId.IdCounter++;
+            this.MVal = MachineId.TypeIdCounter[type]++;
             this.IpAddress = "";
             this.Port = "";
         }
 
         /// <summary>
-        /// Resets the machine ID counter.
+        /// Resets the machine id counter.
         /// </summary>
         internal static void ResetMachineIDCounter()
         {
             MachineId.IdCounter = 0;
+            MachineId.TypeIdCounter.Clear();
         }
 
         #endregion

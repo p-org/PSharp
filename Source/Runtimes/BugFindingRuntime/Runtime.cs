@@ -192,7 +192,7 @@ namespace Microsoft.PSharp
                 PSharpRuntime.MachineMap.Add(mid.Value, machine as Machine);
                 
                 Output.Debug(DebugType.Runtime, "<CreateLog> Machine {0}({1}) is created.",
-                    type.Name, mid.Value);
+                    type.Name, mid.MVal);
                 
                 Task task = new Task(() =>
                 {

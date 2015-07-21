@@ -42,7 +42,7 @@ namespace Microsoft.PSharp
         #region fields
 
         /// <summary>
-        /// Unique machine ID.
+        /// Unique machine id.
         /// </summary>
         public readonly MachineId Id;
 
@@ -130,7 +130,7 @@ namespace Microsoft.PSharp
         /// </summary>
         protected Machine()
         {
-            this.Id = new MachineId();
+            this.Id = new MachineId(this.GetType());
 
             this.Inbox = new List<Event>();
             this.StateStack = new Stack<MachineState>();
@@ -231,7 +231,7 @@ namespace Microsoft.PSharp
 
             e.AssignPayload(payload);
             Output.Debug(DebugType.Runtime, "<SendLog> Machine '{0}({1})' sent event '{2}' " +
-                "to machine with id '{3}'.", this, this.Id.Value, e.GetType(), mid.Value);
+                "to machine with id '{3}'.", this, this.Id.MVal, e.GetType(), mid.MVal);
             Machine.Dispatcher.Send(mid, e);
         }
 
@@ -262,7 +262,7 @@ namespace Microsoft.PSharp
 
             e.AssignPayload(payload);
             Output.Debug(DebugType.Runtime, "<RaiseLog> Machine '{0}({1})' raised " +
-                "event '{2}'.", this, this.Id.Value, e);
+                "event '{2}'.", this, this.Id.MVal, e);
             this.RaisedEvent = e;
         }
 
@@ -283,12 +283,12 @@ namespace Microsoft.PSharp
             if (this.StateStack.Count == 0)
             {
                 Output.Debug(DebugType.Runtime, "<PopLog> Machine '{0}({1})' popped.",
-                    this, this.Id.Value);
+                    this, this.Id.MVal);
             }
             else
             {
                 Output.Debug(DebugType.Runtime, "<PopLog> Machine '{0}({1})' popped and " +
-                    "reentered state '{2}'.", this, this.Id.Value, this.StateStack.Peek());
+                    "reentered state '{2}'.", this, this.Id.MVal, this.StateStack.Peek());
                 this.ConfigureStateTransitions(this.StateStack.Peek());
             }
         }
@@ -386,7 +386,7 @@ namespace Microsoft.PSharp
                 }
 
                 Output.Debug(DebugType.Runtime, "<EnqueueLog> Machine '{0}({1})' enqueued " +
-                        "event < ____{2} >.", this, this.Id.Value, e.GetType());
+                        "event < ____{2} >.", this, this.Id.MVal, e.GetType());
 
                 this.Inbox.Add(e);
 
@@ -477,7 +477,7 @@ namespace Microsoft.PSharp
                 if (this.IgnoredEvents.Contains(nextEvent.GetType()))
                 {
                     Output.Log("<IgnoreLog> Machine '{0}({1})' ignored event < ____{2} >.",
-                        this.GetType().Name, this.Id.Value, nextEvent.GetType());
+                        this.GetType().Name, this.Id.MVal, nextEvent.GetType());
                     nextEvent = null;
                 }
             }
@@ -491,7 +491,7 @@ namespace Microsoft.PSharp
                     if (this.IgnoredEvents.Contains(this.Inbox[idx].GetType()))
                     {
                         Output.Log("<IgnoreLog> Machine '{0}({1})' ignored event < ____{2} >.",
-                            this.GetType().Name, this.Id.Value, this.Inbox[idx].GetType());
+                            this.GetType().Name, this.Id.MVal, this.Inbox[idx].GetType());
                         this.Inbox.RemoveAt(idx);
                         idx--;
                         continue;
@@ -504,7 +504,7 @@ namespace Microsoft.PSharp
                     {
                         nextEvent = this.Inbox[idx];
                         Output.Debug(DebugType.Runtime, "<DequeueLog> Machine '{0}({1})' dequeued " +
-                            "event < ____{2} >.", this.GetType().Name, this.Id.Value, nextEvent.GetType());
+                            "event < ____{2} >.", this.GetType().Name, this.Id.MVal, nextEvent.GetType());
 
                         this.Inbox.RemoveAt(idx);
                         break;
@@ -532,7 +532,7 @@ namespace Microsoft.PSharp
                         lock (this.Inbox)
                         {
                             Output.Debug(DebugType.Runtime, "<HaltLog> Machine " +
-                                "'{0}({1})' halted.", this.GetType().Name, this.Id.Value);
+                                "'{0}({1})' halted.", this.GetType().Name, this.Id.MVal);
                             this.IsHalted = true;
                             this.CleanUpResources();
                         }
@@ -560,13 +560,13 @@ namespace Microsoft.PSharp
                     if (this.StateStack.Count == 0)
                     {
                         Output.Debug(DebugType.Runtime, "<PopLog> Machine '{0}({1})' popped with " +
-                            "unhandled event '{2}'.", this, this.Id.Value, e.GetType().Name);
+                            "unhandled event '{2}'.", this, this.Id.MVal, e.GetType().Name);
                     }
                     else
                     {
                         Output.Debug(DebugType.Runtime, "<PopLog> Machine '{0}({1})' popped with " +
                             "unhandled event '{2}' and reentered state '{3}.",
-                            this, this.Id.Value, e.GetType().Name, this.StateStack.Peek());
+                            this, this.Id.MVal, e.GetType().Name, this.StateStack.Peek());
                         this.ConfigureStateTransitions(this.StateStack.Peek());
                     }
                     
@@ -758,7 +758,7 @@ namespace Microsoft.PSharp
         private void PushState(Type s)
         {
             Output.Debug(DebugType.Runtime, "<PushLog> Machine '{0}({1})' pushed.",
-                this, this.Id.Value);
+                this, this.Id.MVal);
 
             var nextState = this.States.First(val => val.GetType().Equals(s));
             this.ConfigureStateTransitions(nextState);
@@ -777,7 +777,7 @@ namespace Microsoft.PSharp
         private void Do(Action a)
         {
             Output.Debug(DebugType.Runtime, "<ActionLog> Machine '{0}({1})' executed " +
-                "action in state '{2}'.", this, this.Id.Value, this.StateStack.Peek());
+                "action in state '{2}'.", this, this.Id.MVal, this.StateStack.Peek());
 
             try
             {
@@ -786,7 +786,7 @@ namespace Microsoft.PSharp
             catch (TaskCanceledException)
             {
                 Output.Log("<Exception> TaskCanceledException was thrown from Machine " +
-                    "'{0}({1})'.", this, this.Id.Value);
+                    "'{0}({1})'.", this, this.Id.MVal);
                 this.IsHalted = true;
             }
             catch (Exception ex)
@@ -806,7 +806,7 @@ namespace Microsoft.PSharp
         private void ExecuteCurrentStateOnEntry()
         {
             Output.Debug(DebugType.Runtime, "<StateLog> Machine '{0}({1})' entering " +
-                "state '{2}'.", this, this.Id.Value, this.StateStack.Peek());
+                "state '{2}'.", this, this.Id.MVal, this.StateStack.Peek());
 
             try
             {
@@ -816,7 +816,7 @@ namespace Microsoft.PSharp
             catch (TaskCanceledException)
             {
                 Output.Log("<Exception> TaskCanceledException was thrown from Machine " +
-                    "'{0}({1})'.", this, this.Id.Value);
+                    "'{0}({1})'.", this, this.Id.MVal);
                 this.IsHalted = true;
             }
             catch (Exception ex)
@@ -833,7 +833,7 @@ namespace Microsoft.PSharp
         private void ExecuteCurrentStateOnExit(Action onExit)
         {
             Output.Debug(DebugType.Runtime, "<ExitLog> Machine '{0}({1})' exiting " +
-                "state '{2}'.", this, this.Id.Value, this.StateStack.Peek());
+                "state '{2}'.", this, this.Id.MVal, this.StateStack.Peek());
 
             try
             {
@@ -847,7 +847,7 @@ namespace Microsoft.PSharp
             catch (TaskCanceledException)
             {
                 Output.Log("<Exception> TaskCanceledException was thrown from Machine " +
-                    "'{0}({1})'.", this, this.Id.Value);
+                    "'{0}({1})'.", this, this.Id.MVal);
                 this.IsHalted = true;
             }
             catch (Exception ex)
@@ -871,7 +871,7 @@ namespace Microsoft.PSharp
             {
                 var hash = 19;
 
-                hash = hash + 31 * this.Id.Value.GetHashCode();
+                hash = hash + 31 * this.Id.MVal.GetHashCode();
                 hash = hash + 31 * this.IsRunning.GetHashCode();
                 hash = hash + 31 * this.IsHalted.GetHashCode();
 
@@ -902,7 +902,7 @@ namespace Microsoft.PSharp
                 return false;
             }
 
-            return this.Id.Value == m.Id.Value;
+            return this.Id.MVal == m.Id.MVal;
         }
 
         /// <summary>
@@ -924,7 +924,7 @@ namespace Microsoft.PSharp
                 return false;
             }
 
-            return this.Id.Value == m.Id.Value;
+            return this.Id.MVal == m.Id.MVal;
         }
 
         /// <summary>
@@ -933,7 +933,7 @@ namespace Microsoft.PSharp
         /// <returns>int</returns>
         public override int GetHashCode()
         {
-            return this.Id.Value.GetHashCode();
+            return this.Id.MVal.GetHashCode();
         }
 
         /// <summary>
