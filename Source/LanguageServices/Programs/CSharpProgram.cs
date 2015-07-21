@@ -79,7 +79,7 @@ namespace Microsoft.PSharp.LanguageServices
 
             if (Configuration.RunDynamicAnalysis && Configuration.CheckLiveness)
             {
-                this.SyntaxTree = new NondetRewriter(this.Project).Rewrite(this.SyntaxTree);
+                this.SyntaxTree = new FairNondetRewriter(this.Project).Rewrite(this.SyntaxTree);
             }
         }
 

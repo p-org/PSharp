@@ -89,14 +89,24 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Returns a nondeterministic boolean choice, that can be
+        /// Returns a fair nondeterministic boolean choice, that can be
+        /// controlled during analysis or testing.
+        /// </summary>
+        /// <returns>Boolean</returns>
+        bool IDispatcher.FairNondet()
+        {
+            return PSharpRuntime.Nondet();
+        }
+
+        /// <summary>
+        /// Returns a fair nondeterministic boolean choice, that can be
         /// controlled during analysis or testing.
         /// </summary>
         /// <param name="uniqueId">Unique id</param>
         /// <returns>Boolean</returns>
-        bool IDispatcher.Nondet(string uniqueId)
+        bool IDispatcher.FairNondet(string uniqueId)
         {
-            return PSharpRuntime.Nondet(uniqueId);
+            return PSharpRuntime.FairNondet(uniqueId);
         }
 
         /// <summary>

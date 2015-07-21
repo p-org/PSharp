@@ -327,12 +327,12 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Returns a nondeterministic boolean choice, that can be
+        /// Returns a fair nondeterministic boolean choice, that can be
         /// controlled during analysis or testing.
         /// </summary>
         /// <param name="uniqueId">Unique id</param>
         /// <returns>Boolean</returns>
-        internal static bool Nondet(string uniqueId)
+        internal static bool FairNondet(string uniqueId)
         {
             return PSharpRuntime.BugFinder.GetNextNondeterministicChoice(uniqueId);
         }

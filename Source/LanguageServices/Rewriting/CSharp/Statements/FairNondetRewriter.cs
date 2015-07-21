@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="NondetRewriter.cs">
+// <copyright file="FairNondetRewriter.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -23,9 +23,9 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Microsoft.PSharp.LanguageServices.Rewriting.CSharp
 {
     /// <summary>
-    /// The nondet statement rewriter.
+    /// The fair nondet statement rewriter.
     /// </summary>
-    internal sealed class NondetRewriter : CSharpRewriter
+    internal sealed class FairNondetRewriter : CSharpRewriter
     {
         #region public API
 
@@ -41,23 +41,23 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.CSharp
         /// <summary>
         /// Static constructor.
         /// </summary>
-        static NondetRewriter()
+        static FairNondetRewriter()
         {
-            NondetRewriter.IdCounter = 0;
+            FairNondetRewriter.IdCounter = 0;
         }
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="project">PSharpProject</param>
-        internal NondetRewriter(PSharpProject project)
+        internal FairNondetRewriter(PSharpProject project)
             : base(project)
         {
             
         }
 
         /// <summary>
-        /// Rewrites the syntax tree with nondet statements.
+        /// Rewrites the syntax tree with fair nondet statements.
         /// </summary>
         /// <param name="tree">SyntaxTree</param>
         /// <returns>SyntaxTree</returns>
@@ -66,13 +66,13 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.CSharp
             var stmts1 = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().
                 Where(val => val.Expression is IdentifierNameSyntax).
                 Where(val => (val.Expression as IdentifierNameSyntax).
-                    Identifier.ValueText.Equals("Nondet")).
+                    Identifier.ValueText.Equals("FairNondet")).
                 ToList();
             
             var stmts2 = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().
                 Where(val => val.Expression is MemberAccessExpressionSyntax).
                 Where(val => (val.Expression as MemberAccessExpressionSyntax).
-                    Name.Identifier.ValueText.Equals("Nondet")).
+                    Name.Identifier.ValueText.Equals("FairNondet")).
                 ToList();
 
             var statements = stmts1;
@@ -95,16 +95,16 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.CSharp
         #region private API
 
         /// <summary>
-        /// Rewrites the nondet statement.
+        /// Rewrites the fair nondet statement.
         /// </summary>
         /// <param name="node">InvocationExpressionSyntax</param>
         /// <returns>SyntaxNode</returns>
         private SyntaxNode RewriteStatement(InvocationExpressionSyntax node)
         {
-            var uniqueId = NondetRewriter.IdCounter;
-            NondetRewriter.IdCounter++;
+            var uniqueId = FairNondetRewriter.IdCounter;
+            FairNondetRewriter.IdCounter++;
 
-            var text = "this.Nondet(" + uniqueId + ")";
+            var text = "this.FairNondet(" + uniqueId + ")";
             var rewritten = SyntaxFactory.ParseExpression(text);
             rewritten = rewritten.WithTriviaFrom(node);
 

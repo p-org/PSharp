@@ -294,8 +294,8 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Returns a nondeterministic boolean choice, that can be controlled
-        /// during analysis or testing.
+        /// Returns a nondeterministic boolean choice, that can be
+        /// controlled during analysis or testing.
         /// </summary>
         /// <returns>Boolean</returns>
         protected internal bool Nondet()
@@ -304,17 +304,27 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Returns a nondeterministic boolean choice, that can be controlled
+        /// Returns a fair nondeterministic boolean choice, that can be
+        /// controlled during analysis or testing.
+        /// </summary>
+        /// <returns>Boolean</returns>
+        protected internal bool FairNondet()
+        {
+            return Machine.Dispatcher.Nondet();
+        }
+
+        /// <summary>
+        /// Returns a fair nondeterministic boolean choice, that can be controlled
         /// during analysis or testing.
         /// </summary>
         /// <param name="uniqueId">Unique id</param>
         /// <returns>Boolean</returns>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        protected internal bool Nondet(int uniqueId)
+        protected internal bool FairNondet(int uniqueId)
         {
             var havocId = this.GetType().Name + "_" + this.StateStack.Peek().
                 GetType().Name + "_" + uniqueId;
-            return Machine.Dispatcher.Nondet(havocId);
+            return Machine.Dispatcher.FairNondet(havocId);
         }
 
         /// <summary>

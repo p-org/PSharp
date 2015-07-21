@@ -69,12 +69,19 @@ namespace Microsoft.PSharp
         bool Nondet();
 
         /// <summary>
-        /// Returns a nondeterministic boolean choice, that can be
+        /// Returns a fair nondeterministic boolean choice, that can be
+        /// controlled during analysis or testing.
+        /// </summary>
+        /// <returns>Boolean</returns>
+        bool FairNondet();
+
+        /// <summary>
+        /// Returns a fair nondeterministic boolean choice, that can be
         /// controlled during analysis or testing.
         /// </summary>
         /// <param name="uniqueId">Unique id</param>
         /// <returns>Boolean</returns>
-        bool Nondet(string uniqueId);
+        bool FairNondet(string uniqueId);
 
         /// <summary>
         /// Checks if the assertion holds, and if not it reports

@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="Nondet1Test.cs" company="Microsoft">
+// <copyright file="FairNondet1Test.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -28,10 +28,10 @@ using Microsoft.PSharp.Tooling;
 namespace Microsoft.PSharp.DynamicAnalysis.Tests.Unit
 {
     [TestClass]
-    public class Nondet1Test : BasePSharpTest
+    public class FairNondet1Test : BasePSharpTest
     {
         [TestMethod]
-        public void TestNondet1()
+        public void TestFairNondet1()
         {
             var test = @"
 using System;
@@ -80,7 +80,7 @@ namespace SystematicTesting
         void HandleEventOnEntry()
         {
             this.Monitor<WatchDog>(new Computing());
-            if (this.Nondet())
+            if (this.FairNondet())
             {
                 this.Send(this.Id, new Done());
             }
