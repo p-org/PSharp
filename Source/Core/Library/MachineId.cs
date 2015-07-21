@@ -35,6 +35,12 @@ namespace Microsoft.PSharp
         internal readonly int Value;
 
         /// <summary>
+        /// Type name.
+        /// </summary>
+        [DataMember]
+        internal readonly string Type;
+
+        /// <summary>
         /// Machine-type-specific id value.
         /// </summary>
         [DataMember]
@@ -91,6 +97,7 @@ namespace Microsoft.PSharp
             }
 
             this.Value = MachineId.IdCounter++;
+            this.Type = type.Name;
             this.MVal = MachineId.TypeIdCounter[type]++;
             this.IpAddress = "";
             this.Port = "";

@@ -231,7 +231,7 @@ namespace Microsoft.PSharp
 
             e.AssignPayload(payload);
             Output.Debug(DebugType.Runtime, "<SendLog> Machine '{0}({1})' sent event '{2}' " +
-                "to machine with id '{3}'.", this, this.Id.MVal, e.GetType(), mid.MVal);
+                "to '{3}({4})'.", this, this.Id.MVal, e.GetType(), mid.Type, mid.MVal);
             Machine.Dispatcher.Send(mid, e);
         }
 
@@ -862,10 +862,10 @@ namespace Microsoft.PSharp
         #region generic public and override methods
 
         /// <summary>
-        /// Returns the hashed state of this machine.
+        /// Returns the cached state of this machine.
         /// </summary>
-        /// <returns>Hash</returns>
-        internal int GetHashedState()
+        /// <returns>Hash value</returns>
+        internal int GetCachedState()
         {
             unchecked
             {

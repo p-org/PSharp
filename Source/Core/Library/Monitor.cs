@@ -523,16 +523,27 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Returns the hashed state of this monitor.
         /// </summary>
-        /// <returns>Hash</returns>
-        internal int GetHashedState()
+        /// <returns></returns>
+        protected virtual int GetHashedState()
+        {
+            return 0;
+        }
+
+        /// <summary>
+        /// Returns the cached state of this monitor.
+        /// </summary>
+        /// <returns>Hash value</returns>
+        internal int GetCachedState()
         {
             unchecked
             {
                 var hash = 19;
 
                 hash = hash + 31 * this.GetType().GetHashCode();
+                hash = hash + 31 * this.State.GetType().GetHashCode();
 
-                hash = hash * 31 + this.State.GetType().GetHashCode();
+                // Adds the user-defined hashed state.
+                hash = hash + 31 * this.GetHashedState(); 
 
                 return hash;
             }

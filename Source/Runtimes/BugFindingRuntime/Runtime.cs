@@ -351,12 +351,12 @@ namespace Microsoft.PSharp
 
                 foreach (var machine in PSharpRuntime.MachineMap.Values)
                 {
-                    hash = hash + 31 * machine.GetHashedState();
+                    hash = hash + 31 * machine.GetCachedState();
                 }
 
                 foreach (var monitor in PSharpRuntime.Monitors)
                 {
-                    hash = hash + 31 * monitor.GetHashedState();
+                    hash = hash + 31 * monitor.GetCachedState();
                 }
 
                 fingerprint = new Fingerprint(hash);
