@@ -123,7 +123,7 @@ namespace SystematicTesting
     }
 }";
 
-            Configuration.ExportTrace = false;
+            Configuration.SuppressTrace = true;
             Configuration.Verbose = 3;
             Configuration.RunDynamicAnalysis = true;
             Configuration.CheckLiveness = true;

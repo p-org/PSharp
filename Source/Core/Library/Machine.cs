@@ -881,7 +881,8 @@ namespace Microsoft.PSharp
             {
                 var hash = 19;
 
-                hash = hash + 31 * this.Id.MVal.GetHashCode();
+                hash = hash + 31 * this.GetType().GetHashCode();
+                hash = hash + 31 * this.Id.Value.GetHashCode();
                 hash = hash + 31 * this.IsRunning.GetHashCode();
                 hash = hash + 31 * this.IsHalted.GetHashCode();
 

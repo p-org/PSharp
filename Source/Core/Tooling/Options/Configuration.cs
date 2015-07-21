@@ -159,10 +159,16 @@ namespace Microsoft.PSharp.Tooling
         internal static bool CheckLiveness;
 
         /// <summary>
-        /// If true, then the dynamic analyzer will export the trace
+        /// If true, then the dynamic analyzer will print the trace
+        /// to a file, even if a bug is not found.
+        /// </summary>
+        internal static bool PrintTrace;
+
+        /// <summary>
+        /// If true, then the dynamic analyzer will supress the trace
         /// that leads to a found error to a file.
         /// </summary>
-        internal static bool ExportTrace;
+        internal static bool SuppressTrace;
 
         /// <summary>
         /// If true, then the dynamic analyzer will perform state
@@ -227,7 +233,8 @@ namespace Microsoft.PSharp.Tooling
             Configuration.FullExploration = false;
             Configuration.DepthBound = 10000;
             Configuration.CheckLiveness = false;
-            Configuration.ExportTrace = true;
+            Configuration.PrintTrace = false;
+            Configuration.SuppressTrace = false;
             Configuration.CacheProgramState = true;
 
             Configuration.NumberOfContainers = 1;

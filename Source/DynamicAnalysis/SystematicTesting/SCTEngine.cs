@@ -174,9 +174,10 @@ namespace Microsoft.PSharp.DynamicAnalysis
                     }
 
                     SCTEngine.Strategy.Reset();
-                    if (!Configuration.FullExploration && SCTEngine.NumOfFoundBugs > 0)
+                    if (!Configuration.FullExploration &&
+                      (SCTEngine.NumOfFoundBugs > 0 || Configuration.PrintTrace))
                     {
-                        if (sw != null && Configuration.ExportTrace)
+                        if (sw != null && !Configuration.SuppressTrace)
                         {
                             SCTEngine.PrintTrace(sw);
                         }

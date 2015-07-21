@@ -128,7 +128,7 @@ namespace SystematicTesting
     }
 }";
 
-            Configuration.ExportTrace = false;
+            Configuration.SuppressTrace = true;
             Configuration.Verbose = 2;
             Configuration.CheckLiveness = true;
 

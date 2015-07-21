@@ -476,8 +476,18 @@ namespace Microsoft.PSharp
         /// </summary>
         private void ExecuteCurrentStateOnEntry()
         {
+            var liveness = "";
+            if (this.IsInHotState())
+            {
+                liveness = "'hot' ";
+            }
+            else if (this.IsInColdState())
+            {
+                liveness = "'cold' ";
+            }
+
             Output.Debug(DebugType.Runtime, "<StateLog> Monitor '{0}' entering " +
-                "state '{1}'.", this, this.State);
+                liveness + "state '{1}'.", this, this.State);
 
             try
             {

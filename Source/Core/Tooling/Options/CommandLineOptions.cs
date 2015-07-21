@@ -236,6 +236,10 @@ namespace Microsoft.PSharp.Tooling
                 {
                     Configuration.CheckLiveness = true;
                 }
+                else if (this.Options[idx].ToLower().Equals("/printtrace"))
+                {
+                    Configuration.PrintTrace = true;
+                }
                 else if (this.Options[idx].ToLower().Equals("/nocaching"))
                 {
                     Configuration.CacheProgramState = false;

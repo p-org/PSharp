@@ -98,7 +98,7 @@ namespace SystematicTesting
             var program = parser.Parse();
             program.Rewrite();
 
-            Configuration.ExportTrace = false;
+            Configuration.SuppressTrace = true;
             Configuration.Verbose = 2;
 
             var assembly = base.GetAssembly(program.GetSyntaxTree());
