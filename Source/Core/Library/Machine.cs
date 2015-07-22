@@ -436,6 +436,7 @@ namespace Microsoft.PSharp
             Event nextEvent = null;
             while (!this.IsHalted)
             {
+                var defaultHandling = false;
                 lock (this.Inbox)
                 {
                     nextEvent = this.GetNextEvent();
@@ -446,6 +447,7 @@ namespace Microsoft.PSharp
                         if (this.HasDefaultHandler())
                         {
                             nextEvent = new Default();
+                            defaultHandling = true;
                         }
                         else
                         {
@@ -461,6 +463,11 @@ namespace Microsoft.PSharp
 
                 // Handle next event.
                 this.HandleEvent(nextEvent);
+
+                if (defaultHandling)
+                {
+                    Machine.Dispatcher.NotifyDefaultHandler();
+                }
             }
         }
 

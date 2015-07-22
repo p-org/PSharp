@@ -98,5 +98,10 @@ namespace Microsoft.PSharp
         /// <param name="s">Message</param>
         /// <param name="args">Message arguments</param>
         void Assert(bool predicate, string s, params object[] args);
+
+        /// <summary>
+        /// Notifies that a default handler has been used.
+        /// </summary>
+        void NotifyDefaultHandler();
     }
 }

@@ -317,6 +317,14 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Notifies that a default handler has been used.
+        /// </summary>
+        internal static void NotifyDefaultHandler()
+        {
+            PSharpRuntime.BugFinder.Schedule(Task.CurrentId);
+        }
+
+        /// <summary>
         /// Returns a nondeterministic boolean choice, that can be
         /// controlled during analysis or testing.
         /// </summary>

@@ -140,6 +140,14 @@ namespace Microsoft.PSharp
             PSharpRuntime.Assert(predicate, s, args);
         }
 
+        /// <summary>
+        /// Notifies that a default handler has been used.
+        /// </summary>
+        void IDispatcher.NotifyDefaultHandler()
+        {
+            // No-op for real execution.
+        }
+
         #endregion
     }
 }

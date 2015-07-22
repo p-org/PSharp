@@ -96,6 +96,11 @@ namespace Microsoft.PSharp.Scheduling
             }
             while (trace.Peek() != null && !trace.Peek().Fingerprint.Equals(root));
 
+            //if (trace.Count < 10000)
+            //{
+            //    return;
+            //}
+            //else
             if (!this.IsSchedulingFair(cycle))
             {
                 Output.Debug(DebugType.Liveness, "<LivenessDebug> Scheduling in cycle is unfair.");
