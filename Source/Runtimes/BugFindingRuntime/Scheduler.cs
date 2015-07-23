@@ -126,7 +126,7 @@ namespace Microsoft.PSharp.Scheduling
             }
 
             if (Configuration.CheckLiveness && Configuration.CacheProgramState &&
-                this.SchedulingPoints > 1000)
+                Configuration.SafetyPrefixBound <= this.SchedulingPoints)
             {
                 PSharpRuntime.StateExplorer.CacheStateAtSchedulingChoice(next.Machine);
             }
@@ -188,7 +188,7 @@ namespace Microsoft.PSharp.Scheduling
             }
 
             if (Configuration.CheckLiveness && Configuration.CacheProgramState &&
-                this.SchedulingPoints > 1000 && uniqueId != null)
+                Configuration.SafetyPrefixBound <= this.SchedulingPoints && uniqueId != null)
             {
                 PSharpRuntime.StateExplorer.CacheStateAtNondeterministicChoice(uniqueId, choice);
             }

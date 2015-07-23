@@ -232,6 +232,19 @@ namespace Microsoft.PSharp.Tooling
 
                     Configuration.DepthBound = i;
                 }
+                else if (this.Options[idx].ToLower().StartsWith("/spb:") &&
+                    this.Options[idx].Length > 5)
+                {
+                    int i = 0;
+                    if (!int.TryParse(this.Options[idx].Substring(5), out i) &&
+                        i >= 0)
+                    {
+                        ErrorReporter.ReportAndExit("Please give a valid safety prefix " +
+                            "bound '/i:[x]', where [x] >= 0.");
+                    }
+
+                    Configuration.SafetyPrefixBound = i;
+                }
                 else if (this.Options[idx].ToLower().Equals("/liveness"))
                 {
                     Configuration.CheckLiveness = true;

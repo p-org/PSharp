@@ -153,6 +153,11 @@ namespace Microsoft.PSharp.Tooling
         internal static int DepthBound;
 
         /// <summary>
+        /// Safety prefix bound. By default it is 0.
+        /// </summary>
+        internal static int SafetyPrefixBound;
+
+        /// <summary>
         /// If true, then the dynamic analyzer will check if
         /// any liveness properties hold.
         /// </summary>
@@ -232,6 +237,7 @@ namespace Microsoft.PSharp.Tooling
             Configuration.SchedulingIterations = 1;
             Configuration.FullExploration = false;
             Configuration.DepthBound = 10000;
+            Configuration.SafetyPrefixBound = 0;
             Configuration.CheckLiveness = false;
             Configuration.PrintTrace = false;
             Configuration.SuppressTrace = false;
