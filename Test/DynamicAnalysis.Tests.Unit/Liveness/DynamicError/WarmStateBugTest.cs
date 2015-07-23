@@ -128,7 +128,9 @@ namespace SystematicTesting
             SCTEngine.Setup();
             SCTEngine.Run();
 
-            Assert.AreEqual(1, SCTEngine.NumOfFoundBugs);
+            var bugReport = "Monitor 'WatchDog' detected infinite execution that violates a liveness property.";
+
+            Assert.AreEqual(bugReport, SCTEngine.BugReport);
         }
     }
 }

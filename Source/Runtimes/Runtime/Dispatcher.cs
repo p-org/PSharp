@@ -143,7 +143,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Notifies that a default handler has been used.
         /// </summary>
-        void IDispatcher.NotifyDefaultHandler()
+        void IDispatcher.NotifyDefaultHandlerFired()
         {
             // No-op for real execution.
         }

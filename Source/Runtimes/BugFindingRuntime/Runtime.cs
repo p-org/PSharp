@@ -144,8 +144,8 @@ namespace Microsoft.PSharp
                     terminateScheduler = false;
                 }
 
-                ErrorReporter.Report("Assertion failure.");
-                PSharpRuntime.BugFinder.NotifyAssertionFailure(terminateScheduler);
+                string message = "Assertion failure.";
+                PSharpRuntime.BugFinder.NotifyAssertionFailure(message, terminateScheduler);
             }
         }
 
@@ -167,8 +167,7 @@ namespace Microsoft.PSharp
                 }
 
                 string message = Output.Format(s, args);
-                ErrorReporter.Report(message);
-                PSharpRuntime.BugFinder.NotifyAssertionFailure(terminateScheduler);
+                PSharpRuntime.BugFinder.NotifyAssertionFailure(message, terminateScheduler);
             }
         }
 
@@ -319,7 +318,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Notifies that a default handler has been used.
         /// </summary>
-        internal static void NotifyDefaultHandler()
+        internal static void NotifyDefaultHandlerFired()
         {
             PSharpRuntime.BugFinder.Schedule(Task.CurrentId);
         }

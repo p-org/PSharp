@@ -64,6 +64,11 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// </summary>
         public static int ExploredDepth { get; private set; }
 
+        /// <summary>
+        /// The latest bug report, if any.
+        /// </summary>
+        public static string BugReport { get; private set; }
+
         #endregion
 
         #region public API
@@ -74,6 +79,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
         public static void Setup()
         {
             SCTEngine.NumOfFoundBugs = 0;
+            SCTEngine.BugReport = "";
             SCTEngine.ExploredDepth = 0;
             SCTEngine.ExploredSchedules = 0;
             SCTEngine.PrintGuard = 1;
@@ -166,6 +172,11 @@ namespace Microsoft.PSharp.DynamicAnalysis
                     if (PSharpRuntime.BugFinder.BugFound)
                     {
                         SCTEngine.NumOfFoundBugs++;
+                        SCTEngine.BugReport = PSharpRuntime.BugFinder.BugReport;
+                    }
+                    else
+                    {
+                        SCTEngine.BugReport = "";
                     }
 
                     if (SCTEngine.Strategy.HasFinished())

@@ -288,7 +288,8 @@ namespace Microsoft.PSharp
             else
             {
                 Output.Debug(DebugType.Runtime, "<PopLog> Machine '{0}({1})' popped and " +
-                    "reentered state '{2}'.", this, this.Id.MVal, this.StateStack.Peek());
+                    "reentered state '{2}'.", this, this.Id.MVal,
+                    this.StateStack.Peek().GetType().Name);
                 this.ConfigureStateTransitions(this.StateStack.Peek());
             }
         }
@@ -446,6 +447,10 @@ namespace Microsoft.PSharp
                     {
                         if (this.HasDefaultHandler())
                         {
+                            Output.Debug(DebugType.Runtime, "<DefaultLog> Machine '{0}({1})' " +
+                                "is executing the default handler in state '{2}'.",
+                                this, this.Id.MVal, this.StateStack.Peek().GetType().Name);
+
                             nextEvent = new Default();
                             defaultHandling = true;
                         }
@@ -464,9 +469,12 @@ namespace Microsoft.PSharp
                 // Handle next event.
                 this.HandleEvent(nextEvent);
 
+                // If the default event was handled, then notify the runtime.
+                // This is only used during bug-finding, because the runtime
+                // has to schedule a machine between default handlers.
                 if (defaultHandling)
                 {
-                    Machine.Dispatcher.NotifyDefaultHandler();
+                    Machine.Dispatcher.NotifyDefaultHandlerFired();
                 }
             }
         }
@@ -582,8 +590,8 @@ namespace Microsoft.PSharp
                     else
                     {
                         Output.Debug(DebugType.Runtime, "<PopLog> Machine '{0}({1})' popped with " +
-                            "unhandled event '{2}' and reentered state '{3}.",
-                            this, this.Id.MVal, e.GetType().Name, this.StateStack.Peek());
+                            "unhandled event '{2}' and reentered state '{3}.", this, this.Id.MVal,
+                            e.GetType().Name, this.StateStack.Peek().GetType().Name);
                         this.ConfigureStateTransitions(this.StateStack.Peek());
                     }
                     
@@ -794,7 +802,8 @@ namespace Microsoft.PSharp
         private void Do(Action a)
         {
             Output.Debug(DebugType.Runtime, "<ActionLog> Machine '{0}({1})' executed " +
-                "action in state '{2}'.", this, this.Id.MVal, this.StateStack.Peek());
+                "action in state '{2}'.", this, this.Id.MVal,
+                this.StateStack.Peek().GetType().Name);
 
             try
             {
@@ -823,7 +832,8 @@ namespace Microsoft.PSharp
         private void ExecuteCurrentStateOnEntry()
         {
             Output.Debug(DebugType.Runtime, "<StateLog> Machine '{0}({1})' entering " +
-                "state '{2}'.", this, this.Id.MVal, this.StateStack.Peek());
+                "state '{2}'.", this, this.Id.MVal,
+                this.StateStack.Peek().GetType().Name);
 
             try
             {
@@ -850,7 +860,8 @@ namespace Microsoft.PSharp
         private void ExecuteCurrentStateOnExit(Action onExit)
         {
             Output.Debug(DebugType.Runtime, "<ExitLog> Machine '{0}({1})' exiting " +
-                "state '{2}'.", this, this.Id.MVal, this.StateStack.Peek());
+                "state '{2}'.", this, this.Id.MVal,
+                this.StateStack.Peek().GetType().Name);
 
             try
             {
@@ -908,22 +919,6 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Determines whether the specified machine is equal
-        /// to the current machine.
-        /// </summary>
-        /// <param name="m">Machine</param>
-        /// <returns>Boolean value</returns>
-        public bool Equals(Machine m)
-        {
-            if (m == null)
-            {
-                return false;
-            }
-
-            return this.Id.MVal == m.Id.MVal;
-        }
-
-        /// <summary>
         /// Determines whether the specified System.Object is equal
         /// to the current System.Object.
         /// </summary>
@@ -937,12 +932,13 @@ namespace Microsoft.PSharp
             }
 
             Machine m = obj as Machine;
-            if (m == null)
+            if (m == null ||
+                this.GetType() != m.GetType())
             {
                 return false;
             }
 
-            return this.Id.MVal == m.Id.MVal;
+            return this.Id.Value == m.Id.Value;
         }
 
         /// <summary>
@@ -951,7 +947,7 @@ namespace Microsoft.PSharp
         /// <returns>int</returns>
         public override int GetHashCode()
         {
-            return this.Id.MVal.GetHashCode();
+            return this.Id.Value.GetHashCode();
         }
 
         /// <summary>

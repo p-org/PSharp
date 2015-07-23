@@ -84,7 +84,7 @@ namespace Microsoft.PSharp.StateCaching
         public override string ToString()
         {
             return String.Format(CultureInfo.InvariantCulture,
-                "fingerprint: {0}", this.HashValue);
+                "fingerprint['{0}']", this.HashValue);
         }
 
         #endregion

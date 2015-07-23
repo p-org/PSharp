@@ -179,7 +179,9 @@ namespace SystematicTesting
             SCTEngine.Setup();
             SCTEngine.Run();
 
-            Assert.AreEqual(1, SCTEngine.NumOfFoundBugs);
+            var bugReport = "Monitor 'M' detected liveness property violation in hot state 'Init'.";
+
+            Assert.AreEqual(bugReport, SCTEngine.BugReport);
         }
     }
 }

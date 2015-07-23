@@ -74,8 +74,7 @@ namespace Microsoft.PSharp.Scheduling
                 {
                     string message = Output.Format("Monitor '{0}' detected liveness property " +
                         "violation in hot state '{1}'.", monitor.GetType().Name, stateName);
-                    ErrorReporter.Report(message);
-                    PSharpRuntime.BugFinder.NotifyAssertionFailure(false);
+                    PSharpRuntime.BugFinder.NotifyAssertionFailure(message, false);
                 }
             }
         }
@@ -95,6 +94,7 @@ namespace Microsoft.PSharp.Scheduling
                 cycle.Add(trace.Pop());
             }
             while (trace.Peek() != null && !trace.Peek().Fingerprint.Equals(root));
+            //cycle.Add(trace.Peek());
 
             //if (trace.Count < 10000)
             //{
@@ -119,8 +119,7 @@ namespace Microsoft.PSharp.Scheduling
             {
                 string message = Output.Format("Monitor '{0}' detected infinite execution that " +
                     "violates a liveness property.", monitor.GetType().Name);
-                ErrorReporter.Report(message);
-                PSharpRuntime.BugFinder.NotifyAssertionFailure(false);
+                PSharpRuntime.BugFinder.NotifyAssertionFailure(message, false);
             }
 
             PSharpRuntime.BugFinder.Stop();
@@ -170,6 +169,16 @@ namespace Microsoft.PSharp.Scheduling
             {
                 scheduledMachines.Add(step.ScheduledMachine);
                 enabledMachines.UnionWith(step.EnabledMachines);
+            }
+
+            foreach (var m in enabledMachines)
+            {
+                Output.Debug(DebugType.Liveness, "<LivenessDebug> Enabled machine {0}.", m);
+            }
+
+            foreach (var m in scheduledMachines)
+            {
+                Output.Debug(DebugType.Liveness, "<LivenessDebug> Scheduled machine {0}.", m);
             }
 
             if (enabledMachines.Count == scheduledMachines.Count)

@@ -102,6 +102,6 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Notifies that a default handler has been used.
         /// </summary>
-        void NotifyDefaultHandler();
+        void NotifyDefaultHandlerFired();
     }
 }

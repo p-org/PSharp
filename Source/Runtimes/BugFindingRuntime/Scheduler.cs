@@ -70,6 +70,14 @@ namespace Microsoft.PSharp.Scheduling
             get; private set;
         }
 
+        /// <summary>
+        /// Bug report.
+        /// </summary>
+        internal string BugReport
+        {
+            get; private set;
+        }
+
         #endregion
 
         #region internal methods
@@ -317,9 +325,13 @@ namespace Microsoft.PSharp.Scheduling
         /// <summary>
         /// Notify that an assertion has failed.
         /// </summary>
+        /// <param name="text">Bug report</param>
         /// <param name="terminateScheduler">Terminate the scheduler</param>
-        internal void NotifyAssertionFailure(bool terminateScheduler = true)
+        internal void NotifyAssertionFailure(string text, bool terminateScheduler = true)
         {
+            this.BugReport = text;
+            ErrorReporter.Report(text);
+
             this.BugFound = true;
 
             if (terminateScheduler)

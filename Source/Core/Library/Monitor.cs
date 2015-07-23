@@ -291,7 +291,7 @@ namespace Microsoft.PSharp
                 if (!this.CanHandleEvent(e.GetType()))
                 {
                     Output.Debug(DebugType.Runtime, "<ExitLog> Monitor '{0}' exiting state '{1}'.",
-                        this, this.State);
+                        this, this.State.GetType().Name);
                     this.State = null;
                     continue;
                 }
@@ -449,7 +449,7 @@ namespace Microsoft.PSharp
         private void Do(Action a)
         {
             Output.Debug(DebugType.Runtime, "<ActionLog> Monitor '{0}' executed " +
-                "action in state '{1}'.", this, this.State);
+                "action in state '{1}'.", this, this.State.GetType().Name);
 
             try
             {
@@ -487,7 +487,7 @@ namespace Microsoft.PSharp
             }
 
             Output.Debug(DebugType.Runtime, "<StateLog> Monitor '{0}' entering " +
-                liveness + "state '{1}'.", this, this.State);
+                liveness + "state '{1}'.", this, this.State.GetType().Name);
 
             try
             {
@@ -513,7 +513,7 @@ namespace Microsoft.PSharp
         private void ExecuteCurrentStateOnExit(Action onExit)
         {
             Output.Debug(DebugType.Runtime, "<ExitLog> Monitor '{0}' exiting " +
-                "state '{1}'.", this, this.State);
+                "state '{1}'.", this, this.State.GetType().Name);
 
             try
             {
