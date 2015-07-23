@@ -113,5 +113,51 @@ namespace Microsoft.PSharp
         }
 
         #endregion
+
+        #region generic public and override methods
+        
+        /// <summary>
+        /// Determines whether the specified System.Object is equal
+        /// to the current System.Object.
+        /// </summary>
+        /// <param name="obj">Object</param>
+        /// <returns>Boolean value</returns>
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+            {
+                return false;
+            }
+
+            MachineId mid = obj as MachineId;
+            if (mid == null)
+            {
+                return false;
+            }
+
+            return this.Value == mid.Value;
+        }
+
+        /// <summary>
+        /// Returns the hash code for this instance.
+        /// </summary>
+        /// <returns>int</returns>
+        public override int GetHashCode()
+        {
+            return this.Value.GetHashCode();
+        }
+
+        /// <summary>
+        /// Returns a string that represents the current machine id.
+        /// </summary>
+        /// <returns>string</returns>
+        public override string ToString()
+        {
+            var text = "[" + this.Type + "," + this.MVal + "," +
+                this.IpAddress + "," + this.Port + "]";
+            return text;
+        }
+
+        #endregion
     }
 }

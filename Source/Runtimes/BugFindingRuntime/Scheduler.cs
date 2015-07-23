@@ -46,15 +46,6 @@ namespace Microsoft.PSharp.Scheduling
         private Dictionary<int, TaskInfo> TaskMap;
 
         /// <summary>
-        /// True if the scheduler managed to reach a terminal
-        /// state in the program.
-        /// </summary>
-        internal bool ProgramTerminated
-        {
-            get; private set;
-        }
-
-        /// <summary>
         /// True if a bug was found.
         /// </summary>
         internal bool BugFound
@@ -91,7 +82,6 @@ namespace Microsoft.PSharp.Scheduling
             this.Strategy = strategy;
             this.Tasks = new List<TaskInfo>();
             this.TaskMap = new Dictionary<int, TaskInfo>();
-            this.ProgramTerminated = false;
             this.BugFound = false;
             this.SchedulingPoints = 0;
         }
@@ -120,7 +110,6 @@ namespace Microsoft.PSharp.Scheduling
             else if (!this.Strategy.TryGetNext(out next, this.Tasks))
             {
                 Output.Debug(DebugType.Testing, "<ScheduleDebug> Schedule explored.");
-                this.ProgramTerminated = true;
                 this.KillRemainingTasks();
                 throw new TaskCanceledException();
             }
