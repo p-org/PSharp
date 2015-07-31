@@ -112,7 +112,7 @@ namespace Microsoft.PSharp
             this.Assert(e != null, "Monitor '{0}' is raising a null event.", this.GetType().Name);
 
             e.AssignPayload(payload);
-            Output.Debug(DebugType.Runtime, "<RaiseLog> Monitor '{0}' " +
+            Output.Debug(DebugType.Runtime, "<MonitorLog> Monitor '{0}' " +
                 "raised event '{1}'.", this, e);
             this.HandleEvent(e);
         }
@@ -210,7 +210,7 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         internal void MonitorEvent(Event e)
         {
-            Output.Debug(DebugType.Runtime, "<EnqueueLog> Monitor '{0}' is processing " +
+            Output.Debug(DebugType.Runtime, "<MonitorLog> Monitor '{0}' is processing " +
                 "event '{1}'.", this, e.GetType());
             this.HandleEvent(e);
         }
@@ -270,7 +270,7 @@ namespace Microsoft.PSharp
             // Do not process an ignored event.
             if (this.IgnoredEvents.Contains(e.GetType()))
             {
-                Output.Log("<IgnoreLog> Monitor '{0}' ignored event '{1}'.",
+                Output.Log("<MonitorLog> Monitor '{0}' ignored event '{1}'.",
                     this.GetType().Name, e.GetType());
                 return;
             }
@@ -291,7 +291,7 @@ namespace Microsoft.PSharp
                 // If current state cannot handle the event then null the state.
                 if (!this.CanHandleEvent(e.GetType()))
                 {
-                    Output.Debug(DebugType.Runtime, "<ExitLog> Monitor '{0}' exiting state '{1}'.",
+                    Output.Debug(DebugType.Runtime, "<MonitorLog> Monitor '{0}' exiting state '{1}'.",
                         this, this.State.GetType().Name);
                     this.State = null;
                     continue;
@@ -450,7 +450,7 @@ namespace Microsoft.PSharp
         [DebuggerStepThrough]
         private void Do(Action a)
         {
-            Output.Debug(DebugType.Runtime, "<ActionLog> Monitor '{0}' executed " +
+            Output.Debug(DebugType.Runtime, "<MonitorLog> Monitor '{0}' executed " +
                 "action '{1}' in state '{2}'.", this, a.Method.Name,
                 this.State.GetType().Name);
 
@@ -494,7 +494,7 @@ namespace Microsoft.PSharp
                 liveness = "'cold' ";
             }
 
-            Output.Debug(DebugType.Runtime, "<StateLog> Monitor '{0}' entering " +
+            Output.Debug(DebugType.Runtime, "<MonitorLog> Monitor '{0}' entering " +
                 liveness + "state '{1}'.", this, this.State.GetType().Name);
 
             try
@@ -525,7 +525,7 @@ namespace Microsoft.PSharp
         [DebuggerStepThrough]
         private void ExecuteCurrentStateOnExit(Action onExit)
         {
-            Output.Debug(DebugType.Runtime, "<ExitLog> Monitor '{0}' exiting " +
+            Output.Debug(DebugType.Runtime, "<MonitorLog> Monitor '{0}' exiting " +
                 "state '{1}'.", this, this.State.GetType().Name);
 
             try
