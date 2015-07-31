@@ -804,9 +804,9 @@ namespace Microsoft.PSharp
         private void Do(Action a)
         {
             Output.Debug(DebugType.Runtime, "<ActionLog> Machine '{0}({1})' executed " +
-                "action in state '{2}'.", this, this.Id.MVal,
+                "action '{2}' in state '{3}'.", this, this.Id.MVal, a.Method.Name,
                 this.StateStack.Peek().GetType().Name);
-
+            
             try
             {
                 a();

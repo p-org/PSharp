@@ -451,7 +451,8 @@ namespace Microsoft.PSharp
         private void Do(Action a)
         {
             Output.Debug(DebugType.Runtime, "<ActionLog> Monitor '{0}' executed " +
-                "action in state '{1}'.", this, this.State.GetType().Name);
+                "action '{1}' in state '{2}'.", this, a.Method.Name,
+                this.State.GetType().Name);
 
             try
             {
