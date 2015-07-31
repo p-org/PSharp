@@ -35,14 +35,22 @@ namespace MultiPaxos
         void AddProposerSet()
         {
             var index = (int)this.Payload;
-            this.Assert(this.ClientSet.ContainsKey(index), "AddProposerSet");
-            this.ProposedSet.Add(index, 0);
+            this.Assert(this.ClientSet.ContainsKey(index), "Client set does not contain {0}", index);
+
+            if (this.ProposedSet.ContainsKey(index))
+            {
+                this.ProposedSet[index] = 0;
+            }
+            else
+            {
+                this.ProposedSet.Add(index, 0);
+            }
         }
 
         void CheckChosenValmachineity()
         {
             var index = (int)this.Payload;
-            this.Assert(this.ProposedSet.ContainsKey(index), "CheckChosenValmachineity");
+            this.Assert(this.ProposedSet.ContainsKey(index), "Proposed set does not contain {0}", index);
         }
     }
 }

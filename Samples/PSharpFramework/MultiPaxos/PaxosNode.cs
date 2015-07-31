@@ -73,12 +73,11 @@ namespace MultiPaxos
         {
             this.AgreeCount = 0;
             this.NextProposal = this.GetNextProposal(this.MaxRound);
-
             this.ReceivedAgree = Tuple.Create(-1, -1, -1);
 
             foreach (var acceptor in this.Acceptors)
             {
-                this.Send(acceptor, new prepare(), this.Id, this.NextSlotForProposer, this.NextProposal, this.MyRank);
+                this.Send(acceptor, new prepare(), this.Id, this.NextSlotForProposer, this.NextProposal.Item1, this.NextProposal.Item2, this.MyRank);
             }
 
             this.Monitor<ValidityCheck>(new monitor_proposer_sent(), this.ProposeVal);
@@ -120,7 +119,7 @@ namespace MultiPaxos
 
             foreach (var acceptor in this.Acceptors)
             {
-                this.Send(acceptor, new accept(), this.Id, this.NextSlotForProposer, this.NextProposal, this.ProposeVal);
+                this.Send(acceptor, new accept(), this.Id, this.NextSlotForProposer, this.NextProposal.Item1, this.NextProposal.Item2, this.ProposeVal);
             }
 
             this.Send(this.Timer, new startTimer());
@@ -160,11 +159,13 @@ namespace MultiPaxos
         void RunLearnerOnEntry()
         {
             var slot = (int)(this.Payload as object[])[0];
-            var proposal = (this.Payload as object[])[1] as Tuple<int, int, int>;
+            var round = (int)(this.Payload as object[])[1];
+            var server = (int)(this.Payload as object[])[2];
+            var value = (int)(this.Payload as object[])[3];
 
-            this.LearnerSlots[slot] = Tuple.Create(proposal.Item1, proposal.Item2, proposal.Item3);
+            this.LearnerSlots[slot] = Tuple.Create(round, server, value);
 
-            if (this.CommitValue == proposal.Item3)
+            if (this.CommitValue == value)
             {
                 this.Pop();
             }
@@ -193,7 +194,7 @@ namespace MultiPaxos
         {
             if (this.CurrentLeader.Item1 == this.MyRank)
             {
-                this.CommitValue = (int)(this.Payload as object[])[0];
+                this.CommitValue = (int)(this.Payload as object[])[1];
                 this.ProposeVal = this.CommitValue;
                 this.Raise(new goPropose());
             }
@@ -207,46 +208,47 @@ namespace MultiPaxos
         {
             var proposer = (this.Payload as object[])[0] as MachineId;
             var slot = (int)(this.Payload as object[])[1];
-            var proposal = (this.Payload as object[])[2] as Tuple<int, int, int>;
-            
+            var round = (int)(this.Payload as object[])[2];
+            var server = (int)(this.Payload as object[])[3];
+
             if (!this.AcceptorSlots.ContainsKey(slot))
             {
-                this.Send(proposer, new agree(), Tuple.Create(slot, -1, -1, -1));
+                this.Send(proposer, new agree(), slot, -1, -1, -1);
                 return;
             }
 
-            if (this.LessThan(proposal.Item1, proposal.Item2,
-                this.AcceptorSlots[slot].Item1, this.AcceptorSlots[slot].Item2))
+            if (this.LessThan(round, server, this.AcceptorSlots[slot].Item1, this.AcceptorSlots[slot].Item2))
             {
                 this.Send(proposer, new reject(), Tuple.Create(slot, this.AcceptorSlots[slot].Item1,
                     this.AcceptorSlots[slot].Item2));
             }
             else
             {
-                this.Send(proposer, new agree(), Tuple.Create(slot, this.AcceptorSlots[slot].Item1,
-                    this.AcceptorSlots[slot].Item2, this.AcceptorSlots[slot].Item3));
+                this.Send(proposer, new agree(), slot, this.AcceptorSlots[slot].Item1,
+                    this.AcceptorSlots[slot].Item2, this.AcceptorSlots[slot].Item3);
                 this.AcceptorSlots[slot] = Tuple.Create(this.AcceptorSlots[slot].Item1, this.AcceptorSlots[slot].Item2, -1);
             }
         }
 
         void AcceptAction()
         {
-            var slot = (int)(this.Payload as object[])[0];
-            var proposer = (this.Payload as object[])[1] as MachineId;
-            var proposal = (this.Payload as object[])[2] as Tuple<int, int, int>;
+            var proposer = (this.Payload as object[])[0] as MachineId;
+            var slot = (int)(this.Payload as object[])[1];
+            var round = (int)(this.Payload as object[])[2];
+            var server = (int)(this.Payload as object[])[3];
+            var value = (int)(this.Payload as object[])[4];
 
             if (this.AcceptorSlots.ContainsKey(slot))
             {
-                if (!this.IsEqual(proposal.Item1, proposal.Item2,
-                    this.AcceptorSlots[slot].Item1, this.AcceptorSlots[slot].Item2))
+                if (!this.IsEqual(round, server, this.AcceptorSlots[slot].Item1, this.AcceptorSlots[slot].Item2))
                 {
                     this.Send(proposer, new reject(), Tuple.Create(slot, this.AcceptorSlots[slot].Item1,
                         this.AcceptorSlots[slot].Item2));
                 }
                 else
                 {
-                    this.AcceptorSlots[slot] = Tuple.Create(proposal.Item1, proposal.Item2, proposal.Item3);
-                    this.Send(proposer, new accepted(), Tuple.Create(slot, proposal.Item1, proposal.Item2, proposal.Item3));
+                    this.AcceptorSlots[slot] = Tuple.Create(round, server, value);
+                    this.Send(proposer, new accepted(), slot, round, server, value);
                 }
             }
         }
@@ -264,14 +266,16 @@ namespace MultiPaxos
         void CountAgree()
         {
             var slot = (int)(this.Payload as object[])[0];
-            var proposal = (this.Payload as object[])[1] as Tuple<int, int, int>;
+            var round = (int)(this.Payload as object[])[1];
+            var server = (int)(this.Payload as object[])[2];
+            var value = (int)(this.Payload as object[])[3];
 
             if (slot == this.NextSlotForProposer)
             {
                 this.AgreeCount++;
-                if (this.LessThan(this.ReceivedAgree.Item1, this.ReceivedAgree.Item2, proposal.Item1, proposal.Item2))
+                if (this.LessThan(this.ReceivedAgree.Item1, this.ReceivedAgree.Item2, round, server))
                 {
-                    this.ReceivedAgree = Tuple.Create(proposal.Item1, proposal.Item2, proposal.Item3);
+                    this.ReceivedAgree = Tuple.Create(round, server, value);
                 }
 
                 if (this.AgreeCount == this.Majority)
@@ -284,11 +288,12 @@ namespace MultiPaxos
         void CountAccepted()
         {
             var slot = (int)(this.Payload as object[])[0];
-            var proposal = (this.Payload as object[])[1] as Tuple<int, int, int>;
+            var round = (int)(this.Payload as object[])[1];
+            var server = (int)(this.Payload as object[])[2];
 
             if (slot == this.NextSlotForProposer)
             {
-                if (this.IsEqual(proposal.Item1, proposal.Item2, this.NextProposal.Item1, this.NextProposal.Item2))
+                if (this.IsEqual(round, server, this.NextProposal.Item1, this.NextProposal.Item2))
                 {
                     this.AcceptCount++;
                 }
