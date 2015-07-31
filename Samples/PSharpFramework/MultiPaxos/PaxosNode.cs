@@ -13,7 +13,6 @@ namespace MultiPaxos
         int CommitValue;
         int ProposeVal;
         int Majority;
-        int RoundNum;
         int MyRank;
         Tuple<int, int> NextProposal;
         Tuple<int, int, int> ReceivedAgree;
@@ -44,7 +43,6 @@ namespace MultiPaxos
             this.MyRank = (int)this.Payload;
 
             this.CurrentLeader = Tuple.Create(this.MyRank, this.Id);
-            this.RoundNum = 0;
             this.MaxRound = 0;
 
             this.Timer = this.CreateMachine(typeof(Timer), this.Id, 10);
@@ -195,7 +193,7 @@ namespace MultiPaxos
         {
             if (this.CurrentLeader.Item1 == this.MyRank)
             {
-                this.CommitValue = (int)this.Payload;
+                this.CommitValue = (int)(this.Payload as object[])[0];
                 this.ProposeVal = this.CommitValue;
                 this.Raise(new goPropose());
             }
@@ -207,10 +205,10 @@ namespace MultiPaxos
         
         void PrepareAction()
         {
-            var slot = (int)(this.Payload as object[])[0];
-            var proposer = (this.Payload as object[])[1] as MachineId;
+            var proposer = (this.Payload as object[])[0] as MachineId;
+            var slot = (int)(this.Payload as object[])[1];
             var proposal = (this.Payload as object[])[2] as Tuple<int, int, int>;
-
+            
             if (!this.AcceptorSlots.ContainsKey(slot))
             {
                 this.Send(proposer, new agree(), Tuple.Create(slot, -1, -1, -1));

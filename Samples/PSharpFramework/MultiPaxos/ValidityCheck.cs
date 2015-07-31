@@ -35,19 +35,14 @@ namespace MultiPaxos
         void AddProposerSet()
         {
             var index = (int)this.Payload;
-            this.Assert(this.ClientSet.ContainsKey(index));
+            this.Assert(this.ClientSet.ContainsKey(index), "AddProposerSet");
             this.ProposedSet.Add(index, 0);
         }
 
         void CheckChosenValmachineity()
         {
             var index = (int)this.Payload;
-            this.Assert(this.ProposedSet.ContainsKey(index));
-        }
-
-        int override GetHashedState()
-        {
-
+            this.Assert(this.ProposedSet.ContainsKey(index), "CheckChosenValmachineity");
         }
     }
 }

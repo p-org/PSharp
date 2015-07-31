@@ -39,7 +39,7 @@ namespace MultiPaxos
             var slot = (int)(this.Payload as object[])[0];
             var proposal = (this.Payload as object[])[1] as Tuple<int, int, int>;
 
-            this.Assert(this.LastValueChosen[slot].Item3 == proposal.Item3);
+            this.Assert(this.LastValueChosen[slot].Item3 == proposal.Item3, "ValueChosenAction");
         }
 
         void ValueProposedAction()
@@ -50,7 +50,7 @@ namespace MultiPaxos
             if (this.LessThan(this.LastValueChosen[slot].Item1, this.LastValueChosen[slot].Item2,
                 proposal.Item1, proposal.Item2))
             {
-                this.Assert(this.LastValueChosen[slot].Item3 == proposal.Item3);
+                this.Assert(this.LastValueChosen[slot].Item3 == proposal.Item3, "ValueProposedAction");
             }
         }
 

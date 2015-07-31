@@ -41,9 +41,14 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="LeaderElection.cs" />
+    <Compile Include="Timer.cs" />
     <Compile Include="Client.cs" />
     <Compile Include="Events.cs" />
-    <Compile Include="Server.cs" />
+    <Compile Include="BasicPaxosInvariant_P2b.cs" />
+    <Compile Include="ValidityCheck.cs" />
+    <Compile Include="PaxosNode.cs" />
+    <Compile Include="GodMachine.cs" />
     <Compile Include="Test.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

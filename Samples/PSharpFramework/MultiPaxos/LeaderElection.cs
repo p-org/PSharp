@@ -23,7 +23,8 @@ namespace MultiPaxos
             this.Servers = (this.Payload as object[])[0] as List<MachineId>;
             this.ParentServer = (this.Payload as object[])[1] as MachineId;
             this.MyRank = (int)(this.Payload as object[])[2];
-            this.CurrentLeader = (this.Payload as object[])[3] as Tuple<int, MachineId>;
+
+            this.CurrentLeader = Tuple.Create(this.MyRank, this.Id);
 
             this.CommunicateLeaderTimeout = this.CreateMachine(typeof(Timer), this.Id, 100);
             this.BroadCastTimeout = this.CreateMachine(typeof(Timer), this.Id, 10);
@@ -52,7 +53,7 @@ namespace MultiPaxos
 
             if (this.CommunicateLeaderTimeout.Equals(id))
             {
-                this.Assert(this.CurrentLeader.Item1 <= this.MyRank);
+                this.Assert(this.CurrentLeader.Item1 <= this.MyRank, "this.CurrentLeader <= this.MyRank");
                 this.Send(this.ParentServer, new newLeader(), this.CurrentLeader);
                 this.CurrentLeader = Tuple.Create(this.MyRank, this.Id);
                 this.Send(this.CommunicateLeaderTimeout, new startTimer());
