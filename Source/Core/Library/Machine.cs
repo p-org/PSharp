@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -799,6 +800,7 @@ namespace Microsoft.PSharp
         /// Performs an action.
         /// </summary>
         /// <param name="a">Action</param>
+        [DebuggerStepThrough]
         private void Do(Action a)
         {
             Output.Debug(DebugType.Runtime, "<ActionLog> Machine '{0}({1})' executed " +
@@ -817,6 +819,11 @@ namespace Microsoft.PSharp
             }
             catch (Exception ex)
             {
+                if (Debugger.IsAttached)
+                {
+                    throw ex;
+                }
+
                 // Handles generic exception.
                 this.ReportGenericAssertion(ex);
             }
@@ -829,6 +836,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Executes the on entry function of the current state.
         /// </summary>
+        [DebuggerStepThrough]
         private void ExecuteCurrentStateOnEntry()
         {
             Output.Debug(DebugType.Runtime, "<StateLog> Machine '{0}({1})' entering " +
@@ -848,6 +856,11 @@ namespace Microsoft.PSharp
             }
             catch (Exception ex)
             {
+                if (Debugger.IsAttached)
+                {
+                    throw ex;
+                }
+
                 // Handles generic exception.
                 this.ReportGenericAssertion(ex);
             }
@@ -857,6 +870,7 @@ namespace Microsoft.PSharp
         /// Executes the on exit function of the current state.
         /// </summary>
         /// <param name="onExit">Goto on exit action</param>
+        [DebuggerStepThrough]
         private void ExecuteCurrentStateOnExit(Action onExit)
         {
             Output.Debug(DebugType.Runtime, "<ExitLog> Machine '{0}({1})' exiting " +
@@ -880,6 +894,11 @@ namespace Microsoft.PSharp
             }
             catch (Exception ex)
             {
+                if (Debugger.IsAttached)
+                {
+                    throw ex;
+                }
+
                 // Handles generic exception.
                 this.ReportGenericAssertion(ex);
             }

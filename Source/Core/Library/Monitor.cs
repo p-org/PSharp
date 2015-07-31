@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -446,6 +447,7 @@ namespace Microsoft.PSharp
         /// Performs an action.
         /// </summary>
         /// <param name="a">Action</param>
+        [DebuggerStepThrough]
         private void Do(Action a)
         {
             Output.Debug(DebugType.Runtime, "<ActionLog> Monitor '{0}' executed " +
@@ -455,9 +457,13 @@ namespace Microsoft.PSharp
             {
                 a();
             }
+            catch (TaskCanceledException ex)
+            {
+                throw ex;
+            }
             catch (Exception ex)
             {
-                if (ex is TaskCanceledException)
+                if (Debugger.IsAttached)
                 {
                     throw ex;
                 }
@@ -474,6 +480,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Executes the on entry function of the current state.
         /// </summary>
+        [DebuggerStepThrough]
         private void ExecuteCurrentStateOnEntry()
         {
             var liveness = "";
@@ -494,9 +501,13 @@ namespace Microsoft.PSharp
                 // Performs the on entry statements of the new state.
                 this.State.ExecuteEntryFunction();
             }
+            catch (TaskCanceledException ex)
+            {
+                throw ex;
+            }
             catch (Exception ex)
             {
-                if (ex is TaskCanceledException)
+                if (Debugger.IsAttached)
                 {
                     throw ex;
                 }
@@ -510,6 +521,7 @@ namespace Microsoft.PSharp
         /// Executes the on exit function of the current state.
         /// </summary>
         /// <param name="onExit">Goto on exit action</param>
+        [DebuggerStepThrough]
         private void ExecuteCurrentStateOnExit(Action onExit)
         {
             Output.Debug(DebugType.Runtime, "<ExitLog> Monitor '{0}' exiting " +
@@ -524,9 +536,13 @@ namespace Microsoft.PSharp
                     onExit();
                 }
             }
+            catch (TaskCanceledException ex)
+            {
+                throw ex;
+            }
             catch (Exception ex)
             {
-                if (ex is TaskCanceledException)
+                if (Debugger.IsAttached)
                 {
                     throw ex;
                 }
