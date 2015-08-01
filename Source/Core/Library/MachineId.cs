@@ -91,16 +91,19 @@ namespace Microsoft.PSharp
         /// <param name="type">Type</param>
         internal MachineId(Type type)
         {
-            if (!MachineId.TypeIdCounter.ContainsKey(type))
+            lock (MachineId.TypeIdCounter)
             {
-                MachineId.TypeIdCounter.Add(type, 0);
-            }
+                if (!MachineId.TypeIdCounter.ContainsKey(type))
+                {
+                    MachineId.TypeIdCounter.Add(type, 0);
+                }
 
-            this.Value = MachineId.IdCounter++;
-            this.Type = type.Name;
-            this.MVal = MachineId.TypeIdCounter[type]++;
-            this.IpAddress = "";
-            this.Port = "";
+                this.Value = MachineId.IdCounter++;
+                this.Type = type.Name;
+                this.MVal = MachineId.TypeIdCounter[type]++;
+                this.IpAddress = "";
+                this.Port = "";
+            }
         }
 
         /// <summary>
