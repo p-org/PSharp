@@ -152,9 +152,9 @@ namespace Microsoft.PSharp.DynamicAnalysis
                     PSharpRuntime.WaitMachines();
 
                     // Runs the liveness checker to find any liveness property violations.
-                    // Requires that no bug has been found and the scheduler terminated
-                    // before reaching the depth bound.
-                    if (Configuration.CheckLiveness &&
+                    // Requires that no bug has been found, the scheduler terminated before
+                    // reaching the depth bound, and there is state caching is not active.
+                    if (Configuration.CheckLiveness && !Configuration.CacheProgramState &&
                         !PSharpRuntime.BugFinder.BugFound)
                     {
                         PSharpRuntime.LivenessChecker.Run();

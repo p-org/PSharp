@@ -116,7 +116,10 @@ namespace Microsoft.PSharp.Scheduling
                 PSharpRuntime.BugFinder.NotifyAssertionFailure(message, false);
             }
 
-            PSharpRuntime.BugFinder.Stop();
+            if (Configuration.DepthBound == 0)
+            {
+                PSharpRuntime.BugFinder.Stop();
+            }
         }
 
         /// <summary>

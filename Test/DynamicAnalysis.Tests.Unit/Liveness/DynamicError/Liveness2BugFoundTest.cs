@@ -117,6 +117,7 @@ namespace SystematicTesting
             Configuration.Verbose = 2;
             Configuration.SchedulingStrategy = "dfs";
             Configuration.CheckLiveness = true;
+            Configuration.CacheProgramState = false;
 
             var parser = new CSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), true);
             var program = parser.Parse();
@@ -128,7 +129,9 @@ namespace SystematicTesting
             SCTEngine.Setup();
             SCTEngine.Run();
 
-            Assert.AreEqual(1, SCTEngine.NumOfFoundBugs);
+            var bugReport = "Monitor 'WatchDog' detected liveness property violation in hot state 'CannotGetUserInput'.";
+
+            Assert.AreEqual(bugReport, SCTEngine.BugReport);
         }
     }
 }

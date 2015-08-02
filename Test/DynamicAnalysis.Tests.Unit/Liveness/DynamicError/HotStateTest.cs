@@ -168,6 +168,7 @@ namespace SystematicTesting
             Configuration.Verbose = 2;
             Configuration.SchedulingStrategy = "dfs";
             Configuration.CheckLiveness = true;
+            Configuration.CacheProgramState = false;
 
             var parser = new CSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), true);
             var program = parser.Parse();
