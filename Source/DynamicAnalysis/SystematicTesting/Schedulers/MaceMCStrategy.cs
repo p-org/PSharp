@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="RandomStrategy.cs" company="Microsoft">
+// <copyright file="MaceMCStrategy.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -24,46 +24,42 @@ using Microsoft.PSharp.Tooling;
 namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
 {
     /// <summary>
-    /// Class representing a random delay scheduling strategy.
+    /// Class representing a depth-first search scheduling strategy
+    /// that incorporates iterative deepening.
     /// </summary>
-    public class RandomStrategy : ISchedulingStrategy
+    public class MaceMCStrategy : ISchedulingStrategy
     {
         /// <summary>
-        /// Nondeterminitic seed.
+        /// The max depth.
         /// </summary>
-        private int Seed;
+        private int MaxDepth;
 
         /// <summary>
-        /// Randomizer.
+        /// The safety prefix depth.
         /// </summary>
-        private Random Random;
+        private int SafetyPrefixDepth;
 
         /// <summary>
-        /// The number of explored scheduling steps.
+        /// A bounded DFS strategy with interative deepening.
         /// </summary>
-        private int SchedulingSteps;
+        private IterativeDeepeningDFSStrategy BoundedDFS;
 
         /// <summary>
-        /// Constructor.
+        /// A random strategy.
         /// </summary>
-        /// <param name="seed">Seed</param>
-        public RandomStrategy(int seed)
-        {
-            this.Seed = seed;
-            this.Random = new Random(seed);
-            this.SchedulingSteps = 0;
-        }
+        private RandomStrategy Random;
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="seed">Seed</param>
-        /// <param name="seed">Scheduling steps</param>
-        public RandomStrategy(int seed, int steps)
+        /// <param name="safetyPrefix">Safety prefix bound</param>
+        public MaceMCStrategy(int safetyPrefix)
+            : base()
         {
-            this.Seed = seed;
-            this.Random = new Random(seed);
-            this.SchedulingSteps = steps;
+            this.MaxDepth = Configuration.DepthBound;
+            this.SafetyPrefixDepth = safetyPrefix;
+            this.BoundedDFS = new IterativeDeepeningDFSStrategy(this.SafetyPrefixDepth);
+            this.Random = new RandomStrategy(DateTime.Now.Millisecond, this.SafetyPrefixDepth);
         }
 
         /// <summary>
@@ -75,22 +71,13 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
         /// <returns>Boolean value</returns>
         public bool TryGetNext(out TaskInfo next, List<TaskInfo> tasks, TaskInfo currentTask)
         {
-            var enabledTasks = tasks.Where(task => task.IsEnabled).ToList();
-            if (enabledTasks.Count == 0)
+            if (this.BoundedDFS.HasReachedDepthBound())
             {
-                next = null;
-                return false;
+                return this.Random.TryGetNext(out next, tasks, currentTask);
             }
-
-            int id = this.Random.Next(enabledTasks.Count);
-            next = enabledTasks[id];
-
-            if (!currentTask.IsCompleted)
             {
-                this.SchedulingSteps++;
+                return this.BoundedDFS.TryGetNext(out next, tasks, currentTask);
             }
-
-            return true;
         }
 
         /// <summary>
@@ -100,13 +87,14 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
         /// <returns>Boolean value</returns>
         public bool GetNextChoice(out bool next)
         {
-            next = false;
-            if (this.Random.Next(2) == 1)
+            if (this.BoundedDFS.HasReachedDepthBound())
             {
-                next = true;
+                return this.Random.GetNextChoice(out next);
             }
-
-            return true;
+            else
+            {
+                return this.BoundedDFS.GetNextChoice(out next);
+            }
         }
 
         /// <summary>
@@ -115,16 +103,23 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
         /// <returns>Scheduling steps</returns>
         public int GetSchedulingSteps()
         {
-            return this.SchedulingSteps;
+            if (this.BoundedDFS.HasReachedDepthBound())
+            {
+                return this.Random.GetSchedulingSteps();
+            }
+            else
+            {
+                return this.BoundedDFS.GetSchedulingSteps();
+            }
         }
 
-        /// <summary>  
+        /// <summary>
         /// Returns the depth bound.
-        /// </summary> 
-        /// <returns>Depth bound</returns>  
+        /// </summary>
+        /// <returns>Depth bound</returns>
         public int GetDepthBound()
         {
-            return Configuration.DepthBound;
+            return this.MaxDepth;
         }
 
         /// <summary>
@@ -134,12 +129,7 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
         /// <returns>Depth bound</returns>
         public bool HasReachedDepthBound()
         {
-            if (Configuration.DepthBound == 0)
-            {
-                return false;
-            }
-
-            return this.SchedulingSteps == this.GetDepthBound();
+            return this.Random.HasReachedDepthBound();
         }
 
         /// <summary>
@@ -148,15 +138,16 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
         /// <returns>Boolean value</returns>
         public bool HasFinished()
         {
-            return false;
+            return this.BoundedDFS.HasFinished();
         }
-        
+
         /// <summary>
         /// Configures the next scheduling iteration.
         /// </summary>
         public void ConfigureNextIteration()
         {
-            this.SchedulingSteps = 0;
+            this.BoundedDFS.ConfigureNextIteration();
+            this.Random.ConfigureNextIteration();
         }
 
         /// <summary>
@@ -164,7 +155,8 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
         /// </summary>
         public void Reset()
         {
-            this.SchedulingSteps = 0;
+            this.BoundedDFS.Reset();
+            this.Random.Reset();
         }
 
         /// <summary>
@@ -173,7 +165,7 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
         /// <returns>String</returns>
         public string GetDescription()
         {
-            return "Random (seed is " + this.Seed + ")";
+            return "MaceMC";
         }
     }
 }

@@ -31,6 +31,11 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// Depth-first search scheduling with
         /// iterative deepening.
         /// </summary>
-        IDDFS = 2
+        IDDFS = 2,
+        /// <summary>
+        /// MaceMC based search scheduling to detect
+        /// potential liveness violations.
+        /// </summary>
+        MaceMC = 3
     }
 }

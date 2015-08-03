@@ -99,6 +99,11 @@ namespace Microsoft.PSharp.DynamicAnalysis
                 SCTEngine.Strategy = new IterativeDeepeningDFSStrategy(Configuration.DepthBound);
                 Configuration.FullExploration = false;
             }
+            else if (AnalysisContext.Strategy == SchedulingStrategy.MaceMC)
+            {
+                SCTEngine.Strategy = new MaceMCStrategy(Configuration.SafetyPrefixBound);
+                Configuration.FullExploration = false;
+            }
 
             if (!Configuration.Debug.Contains(DebugType.All) &&
                 !Configuration.Debug.Contains(DebugType.Runtime))

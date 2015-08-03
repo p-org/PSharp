@@ -162,6 +162,12 @@ namespace Microsoft.PSharp.Tooling
                     "'/p:[x]' or /test:[x], where [x] is the name of the project).");
             }
 
+            if (Configuration.SafetyPrefixBound >= Configuration.DepthBound)
+            {
+                ErrorReporter.ReportAndExit("Please give a safety prefix bound that is less than the " +
+                    "max depth bound.");
+            }
+
             if (Configuration.SchedulingStrategy.Equals("iddfs") && Configuration.DepthBound == 0)
             {
                 ErrorReporter.ReportAndExit("The Iterative Deepening DFS scheduler ('iddfs') must have a " +
