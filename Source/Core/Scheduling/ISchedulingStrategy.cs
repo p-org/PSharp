@@ -28,8 +28,9 @@ namespace Microsoft.PSharp.Scheduling
         /// </summary>
         /// <param name="next">Next</param>
         /// <param name="tasks">Tasks</param>
+        /// <param name="currentTask">Curent task</param>
         /// <returns>Boolean value</returns>
-        bool TryGetNext(out TaskInfo next, List<TaskInfo> tasks);
+        bool TryGetNext(out TaskInfo next, List<TaskInfo> tasks, TaskInfo currentTask);
 
         /// <summary>
         /// Returns the next choice.
@@ -39,10 +40,23 @@ namespace Microsoft.PSharp.Scheduling
         bool GetNextChoice(out bool next);
 
         /// <summary>
+        /// Returns the explored scheduling steps.
+        /// </summary>
+        /// <returns>Scheduling steps</returns>
+        int GetSchedulingSteps();
+
+        /// <summary>  
         /// Returns the depth bound.
+        /// </summary> 
+        /// <returns>Depth bound</returns>  
+        int GetDepthBound();
+
+        /// <summary>
+        /// True if the scheduling strategy reached the depth bound
+        /// for the given scheduling iteration.
         /// </summary>
         /// <returns>Depth bound</returns>
-        int GetDepthBound();
+        bool HasReachedDepthBound();
 
         /// <summary>
         /// True if the scheduling has finished.
@@ -51,19 +65,19 @@ namespace Microsoft.PSharp.Scheduling
         bool HasFinished();
 
         /// <summary>
-        /// Returns a textual description of the scheduling strategy.
+        /// Prepares the next scheduling iteration.
         /// </summary>
-        /// <returns>String</returns>
-        string GetDescription();
-
-        /// <summary>
-        /// Advances the scheduling strategy.
-        /// </summary>
-        void Advance();
+        void ConfigureNextIteration();
 
         /// <summary>
         /// Resets the scheduling strategy.
         /// </summary>
         void Reset();
+
+        /// <summary>
+        /// Returns a textual description of the scheduling strategy.
+        /// </summary>
+        /// <returns>String</returns>
+        string GetDescription();
     }
 }

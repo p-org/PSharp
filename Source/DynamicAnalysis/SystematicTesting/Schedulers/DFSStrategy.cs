@@ -49,6 +49,11 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
         private int NondetIndex;
 
         /// <summary>
+        /// The number of explored scheduling steps.
+        /// </summary>
+        protected int SchedulingSteps;
+
+        /// <summary>
         /// Constructor.
         /// </summary>
         public DFSStrategy()
@@ -57,15 +62,17 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
             this.NondetStack = new List<List<NondetChoice>>();
             this.SchIndex = 0;
             this.NondetIndex = 0;
+            this.SchedulingSteps = 0;
         }
 
         /// <summary>
-        /// Returns the next machine to schedule.
+        /// Returns the next task to schedule.
         /// </summary>
         /// <param name="next">Next</param>
-        /// <param name="machines">Machines</param>
+        /// <param name="tasks">Tasks</param>
+        /// <param name="currentTask">Curent task</param>
         /// <returns>Boolean value</returns>
-        public bool TryGetNext(out TaskInfo next, List<TaskInfo> tasks)
+        public bool TryGetNext(out TaskInfo next, List<TaskInfo> tasks, TaskInfo currentTask)
         {
             var enabledTasks = tasks.Where(task => task.IsEnabled).ToList();
             if (enabledTasks.Count == 0)
@@ -112,6 +119,11 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
             if (next == null)
             {
                 return false;
+            }
+
+            if (!currentTask.IsCompleted)
+            {
+                this.SchedulingSteps++;
             }
 
             return true;
@@ -161,12 +173,36 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
         }
 
         /// <summary>
-        /// Returns the depth bound.
+        /// Returns the explored scheduling steps.
         /// </summary>
-        /// <returns>Depth bound</returns>
+        /// <returns>Scheduling steps</returns>
+        public int GetSchedulingSteps()
+        {
+            return this.SchedulingSteps;
+        }
+
+        /// <summary>  
+        /// Returns the depth bound.
+        /// </summary> 
+        /// <returns>Depth bound</returns>  
         public int GetDepthBound()
         {
             return Configuration.DepthBound;
+        }
+
+        /// <summary>
+        /// True if the scheduling strategy reached the depth bound
+        /// for the given scheduling iteration.
+        /// </summary>
+        /// <returns>Depth bound</returns>
+        public bool HasReachedDepthBound()
+        {
+            if (this.GetDepthBound() == 0)
+            {
+                return false;
+            }
+
+            return this.SchedulingSteps == this.GetDepthBound();
         }
 
         /// <summary>
@@ -179,22 +215,14 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
         }
 
         /// <summary>
-        /// Returns a textual description of the scheduling strategy.
+        /// Configures the next scheduling iteration.
         /// </summary>
-        /// <returns>String</returns>
-        public string GetDescription()
-        {
-            return "DFS";
-        }
-
-        /// <summary>
-        /// Advances the scheduling strategy.
-        /// </summary>
-        public void Advance()
+        public void ConfigureNextIteration()
         {
             //this.PrintSchedule();
             this.SchIndex = 0;
             this.NondetIndex = 0;
+            this.SchedulingSteps = 0;
 
             for (int idx = this.NondetStack.Count - 1; idx > 0; idx--)
             {
@@ -249,6 +277,7 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
             this.NondetStack.Clear();
             this.SchIndex = 0;
             this.NondetIndex = 0;
+            this.SchedulingSteps = 0;
         }
 
         /// <summary>
@@ -321,6 +350,15 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
                 this.Value = value;
                 this.IsDone = false;
             }
+        }
+
+        /// <summary>
+        /// Returns a textual description of the scheduling strategy.
+        /// </summary>
+        /// <returns>String</returns>
+        public string GetDescription()
+        {
+            return "DFS";
         }
     }
 }

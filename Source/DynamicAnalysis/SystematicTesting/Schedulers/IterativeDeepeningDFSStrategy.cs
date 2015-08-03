@@ -38,24 +38,35 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
         /// The current depth.
         /// </summary>
         private int CurrentDepth;
-        
+
         /// <summary>
         /// Constructor.
         /// </summary>
-        public IterativeDeepeningDFSStrategy()
+        /// <param name="depthBound">Depth bound</param>
+        public IterativeDeepeningDFSStrategy(int depthBound)
             : base()
         {
-            this.MaxDepth = Configuration.DepthBound;
+            this.MaxDepth = depthBound;
             this.CurrentDepth = 1;
         }
 
-        /// <summary>
+        /// <summary>  
         /// Returns the depth bound.
-        /// </summary>
-        /// <returns>Depth bound</returns>
+        /// </summary> 
+        /// <returns>Depth bound</returns>  
         public new int GetDepthBound()
         {
             return this.CurrentDepth;
+        }
+
+        /// <summary>
+        /// True if the scheduling strategy reached the depth bound
+        /// for the given scheduling iteration.
+        /// </summary>
+        /// <returns>Depth bound</returns>
+        public new bool HasReachedDepthBound()
+        {
+            return base.SchedulingSteps == this.GetDepthBound();
         }
 
         /// <summary>
@@ -68,22 +79,14 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
         }
 
         /// <summary>
-        /// Returns a textual description of the scheduling strategy.
+        /// Configures the next scheduling iteration.
         /// </summary>
-        /// <returns>String</returns>
-        public new string GetDescription()
+        public new void ConfigureNextIteration()
         {
-            return "DFS with iterative deepening";
-        }
-
-        /// <summary>
-        /// Advances the scheduling strategy.
-        /// </summary>
-        public new void Advance()
-        {
+            Output.Print("....... Depth bound of {0}", this.CurrentDepth);
             if (!base.HasFinished())
             {
-                base.Advance();
+                base.ConfigureNextIteration();
             }
             else
             {
@@ -91,6 +94,15 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
                 this.CurrentDepth++;
                 Output.Print("....... Depth bound increased to {0}", this.CurrentDepth);
             }
+        }
+
+        /// <summary>
+        /// Returns a textual description of the scheduling strategy.
+        /// </summary>
+        /// <returns>String</returns>
+        public new string GetDescription()
+        {
+            return "DFS with iterative deepening";
         }
     }
 }

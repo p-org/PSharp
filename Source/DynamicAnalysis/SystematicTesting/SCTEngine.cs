@@ -96,7 +96,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
             }
             else if (AnalysisContext.Strategy == SchedulingStrategy.IDDFS)
             {
-                SCTEngine.Strategy = new IterativeDeepeningDFSStrategy();
+                SCTEngine.Strategy = new IterativeDeepeningDFSStrategy(Configuration.DepthBound);
                 Configuration.FullExploration = false;
             }
 
@@ -189,7 +189,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
                         break;
                     }
 
-                    SCTEngine.Strategy.Advance();
+                    SCTEngine.Strategy.ConfigureNextIteration();
                     if (!Configuration.FullExploration &&
                       (SCTEngine.NumOfFoundBugs > 0 || Configuration.PrintTrace))
                     {

@@ -39,6 +39,11 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
         private Random Random;
 
         /// <summary>
+        /// The number of explored scheduling steps.
+        /// </summary>
+        private int SchedulingSteps;
+
+        /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="seed">Seed</param>
@@ -46,15 +51,17 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
         {
             this.Seed = seed;
             this.Random = new Random(seed);
+            this.SchedulingSteps = 0;
         }
 
         /// <summary>
-        /// Returns the next machine to schedule.
+        /// Returns the next task to schedule.
         /// </summary>
         /// <param name="next">Next</param>
-        /// <param name="machines">Machines</param>
+        /// <param name="tasks">Tasks</param>
+        /// <param name="currentTask">Curent task</param>
         /// <returns>Boolean value</returns>
-        public bool TryGetNext(out TaskInfo next, List<TaskInfo> tasks)
+        public bool TryGetNext(out TaskInfo next, List<TaskInfo> tasks, TaskInfo currentTask)
         {
             var enabledTasks = tasks.Where(task => task.IsEnabled).ToList();
             if (enabledTasks.Count == 0)
@@ -65,6 +72,12 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
 
             int id = this.Random.Next(enabledTasks.Count);
             next = enabledTasks[id];
+
+            if (!currentTask.IsCompleted)
+            {
+                this.SchedulingSteps++;
+            }
+
             return true;
         }
 
@@ -85,12 +98,36 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
         }
 
         /// <summary>
-        /// Returns the depth bound.
+        /// Returns the explored scheduling steps.
         /// </summary>
-        /// <returns>Depth bound</returns>
+        /// <returns>Scheduling steps</returns>
+        public int GetSchedulingSteps()
+        {
+            return this.SchedulingSteps;
+        }
+
+        /// <summary>  
+        /// Returns the depth bound.
+        /// </summary> 
+        /// <returns>Depth bound</returns>  
         public int GetDepthBound()
         {
             return Configuration.DepthBound;
+        }
+
+        /// <summary>
+        /// True if the scheduling strategy reached the depth bound
+        /// for the given scheduling iteration.
+        /// </summary>
+        /// <returns>Depth bound</returns>
+        public bool HasReachedDepthBound()
+        {
+            if (Configuration.DepthBound == 0)
+            {
+                return false;
+            }
+
+            return this.SchedulingSteps == this.GetDepthBound();
         }
 
         /// <summary>
@@ -101,6 +138,22 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
         {
             return false;
         }
+        
+        /// <summary>
+        /// Configures the next scheduling iteration.
+        /// </summary>
+        public void ConfigureNextIteration()
+        {
+            this.SchedulingSteps = 0;
+        }
+
+        /// <summary>
+        /// Resets the scheduling strategy.
+        /// </summary>
+        public void Reset()
+        {
+            this.SchedulingSteps = 0;
+        }
 
         /// <summary>
         /// Returns a textual description of the scheduling strategy.
@@ -109,22 +162,6 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
         public string GetDescription()
         {
             return "Random (seed is " + this.Seed + ")";
-        }
-
-        /// <summary>
-        /// Advances the scheduling strategy.
-        /// </summary>
-        public void Advance()
-        {
-
-        }
-
-        /// <summary>
-        /// Resets the scheduling strategy.
-        /// </summary>
-        public void Reset()
-        {
-
         }
     }
 }

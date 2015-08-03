@@ -58,7 +58,7 @@ namespace Microsoft.PSharp.Scheduling
         /// </summary>
         internal int SchedulingPoints
         {
-            get; private set;
+            get { return this.Strategy.GetSchedulingSteps(); }
         }
 
         /// <summary>
@@ -83,7 +83,6 @@ namespace Microsoft.PSharp.Scheduling
             this.Tasks = new List<TaskInfo>();
             this.TaskMap = new Dictionary<int, TaskInfo>();
             this.BugFound = false;
-            this.SchedulingPoints = 0;
         }
 
         /// <summary>
@@ -100,14 +99,14 @@ namespace Microsoft.PSharp.Scheduling
             var taskInfo = this.TaskMap[(int)id];
 
             TaskInfo next = null;
-            if (this.Strategy.GetDepthBound() > 0 && this.SchedulingPoints == this.Strategy.GetDepthBound())
+            if (this.Strategy.HasReachedDepthBound())
             {
                 Output.Debug(DebugType.Testing, "<ScheduleDebug> Depth bound of {0} reached.",
                     this.Strategy.GetDepthBound());
                 this.KillRemainingTasks();
                 throw new TaskCanceledException();
             }
-            else if (!this.Strategy.TryGetNext(out next, this.Tasks))
+            else if (!this.Strategy.TryGetNext(out next, this.Tasks, taskInfo))
             {
                 Output.Debug(DebugType.Testing, "<ScheduleDebug> Schedule explored.");
                 this.KillRemainingTasks();
@@ -122,11 +121,6 @@ namespace Microsoft.PSharp.Scheduling
 
             Output.Debug(DebugType.Testing, "<ScheduleDebug> Schedule task {0} of machine {1}({2}).",
                 next.Id, next.Machine.GetType(), next.Machine.Id.MVal);
-
-            if (!taskInfo.IsCompleted)
-            {
-                this.SchedulingPoints++;
-            }
 
             if (taskInfo != next)
             {
