@@ -116,7 +116,7 @@ namespace Microsoft.PSharp.Scheduling
                 PSharpRuntime.BugFinder.NotifyAssertionFailure(message, false);
             }
 
-            if (Configuration.DepthBound == 0)
+            if (Configuration.DepthBound == 0 || hotMonitors.Count > 0)
             {
                 PSharpRuntime.BugFinder.Stop();
             }
