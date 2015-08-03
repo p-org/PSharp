@@ -161,6 +161,12 @@ namespace Microsoft.PSharp.Tooling
                 ErrorReporter.ReportAndExit("Please give the name of the project to test (using either " +
                     "'/p:[x]' or /test:[x], where [x] is the name of the project).");
             }
+
+            if (Configuration.SchedulingStrategy.Equals("iddfs") && Configuration.DepthBound == 0)
+            {
+                ErrorReporter.ReportAndExit("The Iterative Deepening DFS scheduler ('iddfs') must have a " +
+                    "max depth bound. Please give a depth bound using '/db:[x]', where [x] > 0.");
+            }
         }
 
         /// <summary>

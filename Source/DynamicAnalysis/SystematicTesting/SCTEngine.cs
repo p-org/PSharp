@@ -17,6 +17,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
+using Microsoft.PSharp.DynamicAnalysis.Scheduling;
 using Microsoft.PSharp.Scheduling;
 using Microsoft.PSharp.Tooling;
 
@@ -86,11 +87,16 @@ namespace Microsoft.PSharp.DynamicAnalysis
 
             if (AnalysisContext.Strategy == SchedulingStrategy.Random)
             {
-                SCTEngine.Strategy = new RandomSchedulingStrategy(DateTime.Now.Millisecond);
+                SCTEngine.Strategy = new RandomStrategy(DateTime.Now.Millisecond);
             }
             else if (AnalysisContext.Strategy == SchedulingStrategy.DFS)
             {
-                SCTEngine.Strategy = new DFSSchedulingStrategy();
+                SCTEngine.Strategy = new DFSStrategy();
+                Configuration.FullExploration = false;
+            }
+            else if (AnalysisContext.Strategy == SchedulingStrategy.IDDFS)
+            {
+                SCTEngine.Strategy = new IterativeDeepeningDFSStrategy();
                 Configuration.FullExploration = false;
             }
 
@@ -183,7 +189,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
                         break;
                     }
 
-                    SCTEngine.Strategy.Reset();
+                    SCTEngine.Strategy.Advance();
                     if (!Configuration.FullExploration &&
                       (SCTEngine.NumOfFoundBugs > 0 || Configuration.PrintTrace))
                     {

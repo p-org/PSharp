@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="DFSSchedulingStrategy.cs" company="Microsoft">
+// <copyright file="DFSStrategy.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -21,12 +21,12 @@ using System.Linq;
 using Microsoft.PSharp.Scheduling;
 using Microsoft.PSharp.Tooling;
 
-namespace Microsoft.PSharp.DynamicAnalysis
+namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
 {
     /// <summary>
     /// Class representing a depth-first search scheduling strategy.
     /// </summary>
-    public sealed class DFSSchedulingStrategy : ISchedulingStrategy
+    public class DFSStrategy : ISchedulingStrategy
     {
         /// <summary>
         /// Stack of scheduling choices.
@@ -51,7 +51,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// <summary>
         /// Constructor.
         /// </summary>
-        public DFSSchedulingStrategy()
+        public DFSStrategy()
         {
             this.ScheduleStack = new List<List<SChoice>>();
             this.NondetStack = new List<List<NondetChoice>>();
@@ -65,7 +65,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// <param name="next">Next</param>
         /// <param name="machines">Machines</param>
         /// <returns>Boolean value</returns>
-        bool ISchedulingStrategy.TryGetNext(out TaskInfo next, List<TaskInfo> tasks)
+        public bool TryGetNext(out TaskInfo next, List<TaskInfo> tasks)
         {
             var enabledTasks = tasks.Where(task => task.IsEnabled).ToList();
             if (enabledTasks.Count == 0)
@@ -122,7 +122,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// </summary>
         /// <param name="next">Next</param>
         /// <returns>Boolean value</returns>
-        bool ISchedulingStrategy.GetNextChoice(out bool next)
+        public bool GetNextChoice(out bool next)
         {
             NondetChoice nextChoice = null;
             List<NondetChoice> ncs = null;
@@ -161,10 +161,19 @@ namespace Microsoft.PSharp.DynamicAnalysis
         }
 
         /// <summary>
+        /// Returns the depth bound.
+        /// </summary>
+        /// <returns>Depth bound</returns>
+        public int GetDepthBound()
+        {
+            return Configuration.DepthBound;
+        }
+
+        /// <summary>
         /// Returns true if the scheduling has finished.
         /// </summary>
         /// <returns>Boolean value</returns>
-        bool ISchedulingStrategy.HasFinished()
+        public bool HasFinished()
         {
             return this.ScheduleStack.All(scs => scs.All(val => val.IsDone));
         }
@@ -173,15 +182,15 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// Returns a textual description of the scheduling strategy.
         /// </summary>
         /// <returns>String</returns>
-        string ISchedulingStrategy.GetDescription()
+        public string GetDescription()
         {
             return "DFS";
         }
 
         /// <summary>
-        /// Resets the scheduling strategy.
+        /// Advances the scheduling strategy.
         /// </summary>
-        void ISchedulingStrategy.Reset()
+        public void Advance()
         {
             //this.PrintSchedule();
             this.SchIndex = 0;
@@ -229,6 +238,17 @@ namespace Microsoft.PSharp.DynamicAnalysis
                     previousChoice.IsDone = false;
                 }
             }
+        }
+
+        /// <summary>
+        /// Resets the scheduling strategy.
+        /// </summary>
+        public void Reset()
+        {
+            this.ScheduleStack.Clear();
+            this.NondetStack.Clear();
+            this.SchIndex = 0;
+            this.NondetIndex = 0;
         }
 
         /// <summary>

@@ -26,6 +26,11 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// <summary>
         /// Depth-first search scheduling.
         /// </summary>
-        DFS = 1
+        DFS = 1,
+        /// <summary>
+        /// Depth-first search scheduling with
+        /// iterative deepening.
+        /// </summary>
+        IDDFS = 2
     }
 }

@@ -100,10 +100,10 @@ namespace Microsoft.PSharp.Scheduling
             var taskInfo = this.TaskMap[(int)id];
 
             TaskInfo next = null;
-            if (Configuration.DepthBound > 0 && this.SchedulingPoints == Configuration.DepthBound)
+            if (this.Strategy.GetDepthBound() > 0 && this.SchedulingPoints == this.Strategy.GetDepthBound())
             {
                 Output.Debug(DebugType.Testing, "<ScheduleDebug> Depth bound of {0} reached.",
-                    Configuration.DepthBound);
+                    this.Strategy.GetDepthBound());
                 this.KillRemainingTasks();
                 throw new TaskCanceledException();
             }

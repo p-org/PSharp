@@ -291,10 +291,11 @@ namespace Microsoft.PSharp.Tooling
 
             if (!Configuration.SchedulingStrategy.Equals("") &&
                 !Configuration.SchedulingStrategy.Equals("random") &&
-                !Configuration.SchedulingStrategy.Equals("dfs"))
+                !Configuration.SchedulingStrategy.Equals("dfs") &&
+                !Configuration.SchedulingStrategy.Equals("iddfs"))
             {
                 ErrorReporter.ReportAndExit("Please give a valid scheduling strategy " +
-                    "'/sch:[x]', where [x] is 'random' or 'dfs'.");
+                    "'/sch:[x]', where [x] is 'random', 'dfs' or 'iddfs'.");
             }
         }
 

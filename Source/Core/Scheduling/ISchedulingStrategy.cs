@@ -39,6 +39,12 @@ namespace Microsoft.PSharp.Scheduling
         bool GetNextChoice(out bool next);
 
         /// <summary>
+        /// Returns the depth bound.
+        /// </summary>
+        /// <returns>Depth bound</returns>
+        int GetDepthBound();
+
+        /// <summary>
         /// True if the scheduling has finished.
         /// </summary>
         /// <returns>Boolean value</returns>
@@ -49,7 +55,12 @@ namespace Microsoft.PSharp.Scheduling
         /// </summary>
         /// <returns>String</returns>
         string GetDescription();
-        
+
+        /// <summary>
+        /// Advances the scheduling strategy.
+        /// </summary>
+        void Advance();
+
         /// <summary>
         /// Resets the scheduling strategy.
         /// </summary>
