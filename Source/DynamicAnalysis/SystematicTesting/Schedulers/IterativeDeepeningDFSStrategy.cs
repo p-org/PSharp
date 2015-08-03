@@ -83,7 +83,6 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
         /// </summary>
         public new void ConfigureNextIteration()
         {
-            Output.Print("....... Depth bound of {0}", this.CurrentDepth);
             if (!base.HasFinished())
             {
                 base.ConfigureNextIteration();
