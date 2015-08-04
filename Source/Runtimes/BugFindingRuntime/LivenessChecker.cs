@@ -84,16 +84,14 @@ namespace Microsoft.PSharp.Scheduling
         /// Checks liveness at a trace cycle.
         /// </summary>
         /// <param name="root">Cycle start</param>
-        /// <param name="trace">Trace</param>
         /// <param name="stateMap">Map of states</param>
-        internal void CheckLivenessAtTraceCycle(Fingerprint root, Trace trace,
-            Dictionary<TraceStep, State> stateMap)
+        internal void CheckLivenessAtTraceCycle(Fingerprint root, Dictionary<TraceStep, State> stateMap)
         {
             var cycle = new Dictionary<TraceStep, State>();
 
             do
             {
-                var traceStep = trace.Pop();
+                var traceStep = PSharpRuntime.ProgramTrace.Pop();
                 var state = stateMap[traceStep];
                 cycle.Add(traceStep, state);
 
@@ -105,7 +103,8 @@ namespace Microsoft.PSharp.Scheduling
                 // appear once in the trace.
                 stateMap.Remove(traceStep);
             }
-            while (trace.Peek() != null && !stateMap[trace.Peek()].Fingerprint.Equals(root));
+            while (PSharpRuntime.ProgramTrace.Peek() != null && !stateMap[
+                PSharpRuntime.ProgramTrace.Peek()].Fingerprint.Equals(root));
             
             if (!this.IsSchedulingFair(cycle))
             {

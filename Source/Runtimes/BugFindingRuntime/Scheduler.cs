@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+using Microsoft.PSharp.Exploration;
 using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp.Scheduling
@@ -113,10 +114,11 @@ namespace Microsoft.PSharp.Scheduling
                 throw new TaskCanceledException();
             }
 
+           PSharpRuntime.ProgramTrace.AddSchedulingChoice(next.Machine);
             if (Configuration.CheckLiveness && Configuration.CacheProgramState &&
                 Configuration.SafetyPrefixBound <= this.SchedulingPoints)
             {
-                PSharpRuntime.StateCache.CacheSchedulingChoice(next.Machine);
+                PSharpRuntime.StateCache.CaptureState(PSharpRuntime.ProgramTrace.Peek());
             }
 
             Output.Debug(DebugType.Testing, "<ScheduleDebug> Schedule task {0} of machine {1}({2}).",
@@ -170,10 +172,11 @@ namespace Microsoft.PSharp.Scheduling
                 throw new TaskCanceledException();
             }
 
+            PSharpRuntime.ProgramTrace.AddNondeterministicChoice(uniqueId, choice);
             if (Configuration.CheckLiveness && Configuration.CacheProgramState &&
                 Configuration.SafetyPrefixBound <= this.SchedulingPoints && uniqueId != null)
             {
-                PSharpRuntime.StateCache.CacheNondeterministicChoice(uniqueId, choice);
+                PSharpRuntime.StateCache.CaptureState(PSharpRuntime.ProgramTrace.Peek());
             }
 
             return choice;

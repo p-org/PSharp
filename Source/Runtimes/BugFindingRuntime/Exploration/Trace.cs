@@ -66,18 +66,24 @@ namespace Microsoft.PSharp.Exploration
         }
 
         /// <summary>
-        /// Pushes a new program state to the trace.
+        /// Adds a scheduling choice.
         /// </summary>
-        /// <param name="state">Program state</param>
-        internal void Push(TraceStep state)
+        /// <param name="scheduledMachine">Scheduled machine</param>
+        internal void AddSchedulingChoice(Machine scheduledMachine)
         {
-            if (this.Count > 0)
-            {
-                this.Steps[this.Count - 1].Next = state;
-                state.Previous = this.Steps[this.Count - 1];
-            }
+            var traceStep = TraceStep.CreateSchedulingChoice(this.Count, scheduledMachine);
+            this.Push(traceStep);
+        }
 
-            this.Steps.Add(state);
+        /// <summary>
+        /// Adds a nondeterministic choice.
+        /// </summary>
+        /// <param name="uniqueId">Unique nondet id</param>
+        /// <param name="choice">Choice</param>
+        internal void AddNondeterministicChoice(string uniqueId, bool choice)
+        {
+            var traceStep = TraceStep.CreateNondeterministicChoice(this.Count, uniqueId, choice);
+            this.Push(traceStep);
         }
 
         /// <summary>
@@ -129,6 +135,25 @@ namespace Microsoft.PSharp.Exploration
         IEnumerator<TraceStep> IEnumerable<TraceStep>.GetEnumerator()
         {
             return this.Steps.GetEnumerator();
+        }
+
+        #endregion
+
+        #region private methods
+
+        /// <summary>
+        /// Pushes a new program state to the trace.
+        /// </summary>
+        /// <param name="state">Program state</param>
+        private void Push(TraceStep state)
+        {
+            if (this.Count > 0)
+            {
+                this.Steps[this.Count - 1].Next = state;
+                state.Previous = this.Steps[this.Count - 1];
+            }
+
+            this.Steps.Add(state);
         }
 
         #endregion

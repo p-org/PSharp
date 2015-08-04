@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
+using Microsoft.PSharp.Exploration;
 using Microsoft.PSharp.Scheduling;
 using Microsoft.PSharp.StateCaching;
 using Microsoft.PSharp.Tooling;
@@ -62,14 +63,19 @@ namespace Microsoft.PSharp
         private static bool IsRunning = false;
 
         /// <summary>
-        /// The P# program state cache.
+        /// The P# program trace.
         /// </summary>
-        internal static StateCache StateCache;
+        internal static Trace ProgramTrace;
 
         /// <summary>
         /// The P# bugfinder.
         /// </summary>
         internal static Scheduler BugFinder;
+
+        /// <summary>
+        /// The P# program state cache.
+        /// </summary>
+        internal static StateCache StateCache;
 
         /// <summary>
         /// The P# liveness checker.
@@ -361,10 +367,10 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Captures the fingerprint of the current program state.
+        /// Returns the fingerprint of the current program state.
         /// </summary>
         /// <returns>Fingerprint</returns>
-        internal static Fingerprint CaptureProgramState()
+        internal static Fingerprint GetProgramState()
         {
             Fingerprint fingerprint = null;
 
@@ -447,6 +453,7 @@ namespace Microsoft.PSharp
             Microsoft.PSharp.Machine.Dispatcher = dispatcher;
             Microsoft.PSharp.Monitor.Dispatcher = dispatcher;
 
+            PSharpRuntime.ProgramTrace = new Trace();
             PSharpRuntime.StateCache = new StateCache();
             PSharpRuntime.LivenessChecker = new LivenessChecker();
 
