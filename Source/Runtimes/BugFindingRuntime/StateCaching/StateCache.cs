@@ -40,11 +40,6 @@ namespace Microsoft.PSharp.StateCaching
         /// </summary>
         private Dictionary<TraceStep, State> StateMap;
 
-        /// <summary>
-        /// The unique fingerprints in the trace.
-        /// </summary>
-        private HashSet<Fingerprint> Fingerprints;
-
         #endregion
 
         #region internal API
@@ -56,7 +51,6 @@ namespace Microsoft.PSharp.StateCaching
         {
             this.Trace = new Trace();
             this.StateMap = new Dictionary<TraceStep, State>();
-            this.Fingerprints = new HashSet<Fingerprint>();
         }
 
         /// <summary>
@@ -75,16 +69,15 @@ namespace Microsoft.PSharp.StateCaching
                 "scheduling choice.", fingerprint.GetHashCode());
 
             this.Trace.Push(traceStep);
+
+            var stateExists = this.StateMap.Values.Any(val => val.Fingerprint.Equals(fingerprint));
             this.StateMap.Add(traceStep, state);
 
-            if (this.Fingerprints.Contains(state.Fingerprint) && Configuration.CheckLiveness)
+            if (stateExists && Configuration.CheckLiveness)
             {
                 Output.Debug(DebugType.Liveness, "<LivenessDebug> Detected potential infinite execution.");
                 PSharpRuntime.LivenessChecker.CheckLivenessAtTraceCycle(state.Fingerprint, this.Trace, this.StateMap);
-                this.RemoveNonExistingFingerprints();
             }
-
-            this.Fingerprints.Add(state.Fingerprint);
         }
 
         /// <summary>
@@ -104,33 +97,14 @@ namespace Microsoft.PSharp.StateCaching
                 "nondeterministic choice '{1}-{2}'.", fingerprint.GetHashCode(), uniqueId, choice);
 
             this.Trace.Push(traceStep);
+
+            var stateExists = this.StateMap.Values.Any(val => val.Fingerprint.Equals(fingerprint));
             this.StateMap.Add(traceStep, state);
 
-            if (this.Fingerprints.Contains(state.Fingerprint) && Configuration.CheckLiveness)
+            if (stateExists && Configuration.CheckLiveness)
             {
                 Output.Debug(DebugType.Liveness, "<LivenessDebug> Detected potential infinite execution.");
                 PSharpRuntime.LivenessChecker.CheckLivenessAtTraceCycle(state.Fingerprint, this.Trace, this.StateMap);
-                this.RemoveNonExistingFingerprints();
-            }
-
-            this.Fingerprints.Add(state.Fingerprint);
-        }
-
-        #endregion
-
-        #region private methods
-
-        /// <summary>
-        /// Removes non-existing fingerprints.
-        /// </summary>
-        private void RemoveNonExistingFingerprints()
-        {
-            foreach (var fingerprint in this.Fingerprints.ToList())
-            {
-                if (!this.StateMap.Values.Any(val => val.Fingerprint.Equals(fingerprint)))
-                {
-                    this.Fingerprints.Remove(fingerprint);
-                }
             }
         }
 
