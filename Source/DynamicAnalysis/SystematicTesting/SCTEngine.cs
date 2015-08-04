@@ -103,6 +103,8 @@ namespace Microsoft.PSharp.DynamicAnalysis
             {
                 SCTEngine.Strategy = new MaceMCStrategy(Configuration.SafetyPrefixBound);
                 Configuration.FullExploration = false;
+                Configuration.CheckLiveness = true;
+                Configuration.CacheProgramState = false;
             }
 
             if (!Configuration.Debug.Contains(DebugType.All) &&

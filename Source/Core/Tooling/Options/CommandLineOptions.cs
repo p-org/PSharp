@@ -227,20 +227,20 @@ namespace Microsoft.PSharp.Tooling
                         i >= 0)
                     {
                         ErrorReporter.ReportAndExit("Please give a valid exploration depth " +
-                            "bound '/i:[x]', where [x] >= 0.");
+                            "bound '/db:[x]', where [x] >= 0.");
                     }
 
                     Configuration.DepthBound = i;
                 }
-                else if (this.Options[idx].ToLower().StartsWith("/spb:") &&
-                    this.Options[idx].Length > 5)
+                else if (this.Options[idx].ToLower().StartsWith("/prefix:") &&
+                    this.Options[idx].Length > 8)
                 {
                     int i = 0;
-                    if (!int.TryParse(this.Options[idx].Substring(5), out i) &&
+                    if (!int.TryParse(this.Options[idx].Substring(8), out i) &&
                         i >= 0)
                     {
                         ErrorReporter.ReportAndExit("Please give a valid safety prefix " +
-                            "bound '/i:[x]', where [x] >= 0.");
+                            "bound '/prefix:[x]', where [x] >= 0.");
                     }
 
                     Configuration.SafetyPrefixBound = i;
