@@ -62,9 +62,9 @@ namespace Microsoft.PSharp
         private static bool IsRunning = false;
 
         /// <summary>
-        /// The P# program state explorer.
+        /// The P# program state cache.
         /// </summary>
-        internal static StateExplorer StateExplorer;
+        internal static StateCache StateCache;
 
         /// <summary>
         /// The P# bugfinder.
@@ -447,7 +447,7 @@ namespace Microsoft.PSharp
             Microsoft.PSharp.Machine.Dispatcher = dispatcher;
             Microsoft.PSharp.Monitor.Dispatcher = dispatcher;
 
-            PSharpRuntime.StateExplorer = new StateExplorer();
+            PSharpRuntime.StateCache = new StateCache();
             PSharpRuntime.LivenessChecker = new LivenessChecker();
 
             PSharpRuntime.IsRunning = true;

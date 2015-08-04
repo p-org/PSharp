@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Microsoft.PSharp.Exploration;
 using Microsoft.PSharp.StateCaching;
 using Microsoft.PSharp.Tooling;
 
@@ -83,17 +84,28 @@ namespace Microsoft.PSharp.Scheduling
         /// Checks liveness at a trace cycle.
         /// </summary>
         /// <param name="root">Cycle start</param>
-        internal void CheckLivenessAtTraceCycle(Fingerprint root, Trace trace)
+        /// <param name="trace">Trace</param>
+        /// <param name="stateMap">Map of states</param>
+        internal void CheckLivenessAtTraceCycle(Fingerprint root, Trace trace,
+            Dictionary<TraceStep, State> stateMap)
         {
-            var cycle = new List<TraceStep>();
+            var cycle = new Dictionary<TraceStep, State>();
 
             do
             {
+                var traceStep = trace.Pop();
+                var state = stateMap[traceStep];
+                cycle.Add(traceStep, state);
+
                 Output.Debug(DebugType.Liveness, "<LivenessDebug> Cycle contains {0}.",
-                    trace.Peek().Fingerprint.ToString());
-                cycle.Add(trace.Pop());
+                    state.Fingerprint.ToString());
+                
+                // The state can be safely removed, because the liveness detection
+                // algorithm currently removes cycles, so a specific state can only
+                // appear once in the trace.
+                stateMap.Remove(traceStep);
             }
-            while (trace.Peek() != null && !trace.Peek().Fingerprint.Equals(root));
+            while (trace.Peek() != null && !stateMap[trace.Peek()].Fingerprint.Equals(root));
             
             if (!this.IsSchedulingFair(cycle))
             {
@@ -155,7 +167,7 @@ namespace Microsoft.PSharp.Scheduling
         /// Checks if the scheduling is fair in a trace cycle.
         /// </summary>
         /// <param name="cycle">Cycle of states</param>
-        private bool IsSchedulingFair(List<TraceStep> cycle)
+        private bool IsSchedulingFair(Dictionary<TraceStep, State> cycle)
         {
             var result = false;
 
@@ -164,8 +176,8 @@ namespace Microsoft.PSharp.Scheduling
 
             foreach (var step in cycle)
             {
-                scheduledMachines.Add(step.ScheduledMachine);
-                enabledMachines.UnionWith(step.EnabledMachines);
+                scheduledMachines.Add(step.Key.ScheduledMachine);
+                enabledMachines.UnionWith(step.Value.EnabledMachines);
             }
 
             foreach (var m in enabledMachines)
@@ -190,22 +202,22 @@ namespace Microsoft.PSharp.Scheduling
         /// Checks if the nondeterminism is fair in a trace cycle.
         /// </summary>
         /// <param name="cycle">Cycle of states</param>
-        private bool IsNondeterminismFair(List<TraceStep> cycle)
+        private bool IsNondeterminismFair(Dictionary<TraceStep, State> cycle)
         {
             var result = false;
 
             var trueChoices = new HashSet<string>();
             var falseChoices = new HashSet<string>();
 
-            foreach (var step in cycle.Where(val => val.IsChoice))
+            foreach (var step in cycle.Where(val => val.Key.IsChoice))
             {
-                if (step.Choice)
+                if (step.Key.Choice)
                 {
-                    trueChoices.Add(step.NondetId);
+                    trueChoices.Add(step.Key.NondetId);
                 }
                 else
                 {
-                    falseChoices.Add(step.NondetId);
+                    falseChoices.Add(step.Key.NondetId);
                 }
             }
 
@@ -223,13 +235,13 @@ namespace Microsoft.PSharp.Scheduling
         /// </summary>
         /// <param name="cycle">Cycle of states</param>
         /// <returns>Monitors</returns>
-        private HashSet<Monitor> GetHotMonitors(List<TraceStep> cycle)
+        private HashSet<Monitor> GetHotMonitors(Dictionary<TraceStep, State> cycle)
         {
             var monitors = new HashSet<Monitor>();
 
             foreach (var step in cycle)
             {
-                foreach (var kvp in step.MonitorStatus)
+                foreach (var kvp in step.Value.MonitorStatus)
                 {
                     if (kvp.Value == MonitorStatus.Hot)
                     {
@@ -242,7 +254,7 @@ namespace Microsoft.PSharp.Scheduling
             {
                 foreach (var step in cycle)
                 {
-                    foreach (var kvp in step.MonitorStatus)
+                    foreach (var kvp in step.Value.MonitorStatus)
                     {
                         if (kvp.Value == MonitorStatus.Cold &&
                             monitors.Contains(kvp.Key))

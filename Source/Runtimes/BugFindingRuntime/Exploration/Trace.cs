@@ -19,7 +19,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.PSharp.StateCaching
+namespace Microsoft.PSharp.Exploration
 {
     /// <summary>
     /// Class implementing a P# program trace. A trace is a series of
@@ -33,11 +33,6 @@ namespace Microsoft.PSharp.StateCaching
         /// The steps of the trace.
         /// </summary>
         private List<TraceStep> Steps;
-
-        /// <summary>
-        /// The unique fingerprints in the trace.
-        /// </summary>
-        private HashSet<Fingerprint> Fingerprints;
 
         /// <summary>
         /// The number of steps in the trace.
@@ -68,7 +63,6 @@ namespace Microsoft.PSharp.StateCaching
         internal Trace()
         {
             this.Steps = new List<TraceStep>();
-            this.Fingerprints = new HashSet<Fingerprint>();
         }
 
         /// <summary>
@@ -84,7 +78,6 @@ namespace Microsoft.PSharp.StateCaching
             }
 
             this.Steps.Add(state);
-            this.Fingerprints.Add(state.Fingerprint);
         }
 
         /// <summary>
@@ -100,11 +93,6 @@ namespace Microsoft.PSharp.StateCaching
 
             var step = this.Steps[this.Count - 1];
             this.Steps.RemoveAt(this.Count - 1);
-
-            // The fingerprint can be safely removed, because the liveness
-            // detection algorithm currently removes cycles, so a specific
-            // fingerprint can only appear once in the trace.
-            this.Fingerprints.Remove(step.Fingerprint);
 
             return step;
         }
@@ -123,16 +111,6 @@ namespace Microsoft.PSharp.StateCaching
             }
             
             return step;
-        }
-
-        /// <summary>
-        /// True if the trace contains the given fingerprint.
-        /// </summary>
-        /// <param name="fingerprint">Fingerprint</param>
-        /// <returns>Boolean value</returns>
-        internal bool Contains(Fingerprint fingerprint)
-        {
-            return this.Fingerprints.Contains(fingerprint);
         }
 
         /// <summary>

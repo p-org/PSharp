@@ -67,9 +67,10 @@
     <Compile Include="Runtime.cs" />
     <Compile Include="StateCaching\MonitorStatus.cs" />
     <Compile Include="StateCaching\Fingerprint.cs" />
-    <Compile Include="StateExplorer.cs" />
-    <Compile Include="StateCaching\TraceStep.cs" />
-    <Compile Include="StateCaching\Trace.cs" />
+    <Compile Include="StateCaching\StateCache.cs" />
+    <Compile Include="StateCaching\State.cs" />
+    <Compile Include="Exploration\TraceStep.cs" />
+    <Compile Include="Exploration\Trace.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="PSharp.snk" />

@@ -14,23 +14,19 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace Microsoft.PSharp.StateCaching
+namespace Microsoft.PSharp.Exploration
 {
     /// <summary>
-    /// Class implementing a program trace step.
+    /// Class implementing a P# program trace step.
     /// </summary>
     internal sealed class TraceStep
     {
         #region fields
 
         /// <summary>
-        /// The fingerprint of the trace step.
+        /// The unique index of this trace step.
         /// </summary>
-        internal Fingerprint Fingerprint { get; private set; }
+        internal int Index;
 
         /// <summary>
         /// True if the trace step is a non-deterministic choice.
@@ -39,21 +35,10 @@ namespace Microsoft.PSharp.StateCaching
         internal bool IsChoice { get; private set; }
 
         /// <summary>
-        /// Map from monitors to their liveness status.
-        /// </summary>
-        internal Dictionary<Monitor, MonitorStatus> MonitorStatus;
-
-        /// <summary>
         /// The scheduled machine. Only relevant if this is a scheduling
         /// trace step.
         /// </summary>
         internal Machine ScheduledMachine;
-
-        /// <summary>
-        /// The enabled machines. Only relevant if this is a scheduling
-        /// trace step.
-        /// </summary>
-        internal HashSet<Machine> EnabledMachines;
 
         /// <summary>
         /// The non-deterministic choice id. Only relevant if
@@ -84,22 +69,16 @@ namespace Microsoft.PSharp.StateCaching
         /// <summary>
         /// Creates a scheduling choice trace step.
         /// </summary>
-        /// <param name="fingerprint">Fingerprint</param>
+        /// <param name="index">Index</param>
         /// <param name="scheduledMachine">Scheduled machine</param>
-        /// <param name="enabledMachines">Enabled machines</param>
-        /// <param name="monitorStatus">Monitor status</param>
         /// <returns>TraceStep</returns>
-        internal static TraceStep CreateSchedulingChoice(Fingerprint fingerprint, Machine scheduledMachine,
-            HashSet<Machine> enabledMachines, Dictionary<Monitor, MonitorStatus> monitorStatus)
+        internal static TraceStep CreateSchedulingChoice(int index, Machine scheduledMachine)
         {
             var traceStep = new TraceStep();
 
+            traceStep.Index = index;
             traceStep.IsChoice = false;
-            traceStep.Fingerprint = fingerprint;
-
             traceStep.ScheduledMachine = scheduledMachine;
-            traceStep.EnabledMachines = enabledMachines;
-            traceStep.MonitorStatus = monitorStatus;
 
             traceStep.Previous = null;
             traceStep.Next = null;
@@ -110,30 +89,58 @@ namespace Microsoft.PSharp.StateCaching
         /// <summary>
         /// Creates a nondeterministic choice trace step.
         /// </summary>
-        /// <param name="fingerprint">Fingerprint</param>
-        /// <param name="uniqueId">Unique nondet id</param>
+        /// <param name="index">Index</param>
+        /// <param name="uniqueId">Unique id</param>
         /// <param name="choice">Choice</param>
-        /// <param name="enabledMachines">Enabled machines</param>
-        /// <param name="monitorStatus">Monitor status</param>
         /// <returns>TraceStep</returns>
-        internal static TraceStep CreateNondeterministicChoice(Fingerprint fingerprint,
-            string uniqueId, bool choice, HashSet<Machine> enabledMachines,
-            Dictionary<Monitor, MonitorStatus> monitorStatus)
+        internal static TraceStep CreateNondeterministicChoice(int index, string uniqueId, bool choice)
         {
             var traceStep = new TraceStep();
 
+            traceStep.Index = index;
             traceStep.IsChoice = true;
-            traceStep.Fingerprint = fingerprint;
-
             traceStep.NondetId = uniqueId;
             traceStep.Choice = choice;
-            traceStep.EnabledMachines = enabledMachines;
-            traceStep.MonitorStatus = monitorStatus;
 
             traceStep.Previous = null;
             traceStep.Next = null;
 
             return traceStep;
+        }
+
+        #endregion
+
+        #region generic public and override methods
+
+        /// <summary>
+        /// Determines whether the specified System.Object is equal
+        /// to the current System.Object.
+        /// </summary>
+        /// <param name="obj">Object</param>
+        /// <returns>Boolean value</returns>
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+            {
+                return false;
+            }
+
+            TraceStep mid = obj as TraceStep;
+            if (mid == null)
+            {
+                return false;
+            }
+
+            return this.Index == mid.Index;
+        }
+
+        /// <summary>
+        /// Returns the hash code for this instance.
+        /// </summary>
+        /// <returns>int</returns>
+        public override int GetHashCode()
+        {
+            return this.Index.GetHashCode();
         }
 
         #endregion

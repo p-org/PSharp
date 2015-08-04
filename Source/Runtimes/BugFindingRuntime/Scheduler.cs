@@ -116,7 +116,7 @@ namespace Microsoft.PSharp.Scheduling
             if (Configuration.CheckLiveness && Configuration.CacheProgramState &&
                 Configuration.SafetyPrefixBound <= this.SchedulingPoints)
             {
-                PSharpRuntime.StateExplorer.CacheStateAtSchedulingChoice(next.Machine);
+                PSharpRuntime.StateCache.CacheSchedulingChoice(next.Machine);
             }
 
             Output.Debug(DebugType.Testing, "<ScheduleDebug> Schedule task {0} of machine {1}({2}).",
@@ -173,7 +173,7 @@ namespace Microsoft.PSharp.Scheduling
             if (Configuration.CheckLiveness && Configuration.CacheProgramState &&
                 Configuration.SafetyPrefixBound <= this.SchedulingPoints && uniqueId != null)
             {
-                PSharpRuntime.StateExplorer.CacheStateAtNondeterministicChoice(uniqueId, choice);
+                PSharpRuntime.StateCache.CacheNondeterministicChoice(uniqueId, choice);
             }
 
             return choice;
