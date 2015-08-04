@@ -162,7 +162,8 @@ namespace Microsoft.PSharp.Tooling
                     "'/p:[x]' or /test:[x], where [x] is the name of the project).");
             }
 
-            if (Configuration.SafetyPrefixBound >= Configuration.DepthBound)
+            if (Configuration.SafetyPrefixBound > 0 &&
+                Configuration.SafetyPrefixBound >= Configuration.DepthBound)
             {
                 ErrorReporter.ReportAndExit("Please give a safety prefix bound that is less than the " +
                     "max depth bound.");
