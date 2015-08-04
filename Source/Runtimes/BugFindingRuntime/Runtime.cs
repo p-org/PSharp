@@ -107,6 +107,8 @@ namespace Microsoft.PSharp
         /// <param name="payload">Optional payload</param>
         public static void SendEvent(MachineId target, Event e, params Object[] payload)
         {
+            // If the event is null then report an error and exit.
+            PSharpRuntime.Assert(e != null, "Cannot send a null event.");
             e.AssignPayload(payload);
 
             try
@@ -124,8 +126,12 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <typeparam name="T">Type of the monitor</typeparam>
         /// <param name="e">Event</param>
-        public static void InvokeMonitor<T>(Event e)
+        /// <param name="payload">Optional payload</param>
+        public static void InvokeMonitor<T>(Event e, params Object[] payload)
         {
+            // If the event is null then report an error and exit.
+            PSharpRuntime.Assert(e != null, "Cannot send a null event.");
+            e.AssignPayload(payload);
             PSharpRuntime.Monitor<T>(e);
         }
 
