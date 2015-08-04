@@ -103,6 +103,17 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Invokes the specified monitor with the given event.
+        /// </summary>
+        /// <typeparam name="T">Type of the monitor</typeparam>
+        /// <param name="e">Event</param>
+        public static void InvokeMonitor<T>(Event e)
+        {
+            // the execution runtime does not implement monitors.
+            return;
+        }
+
+        /// <summary>
         /// Returns a nondeterministic boolean choice, that can be controlled
         /// during analysis or testing.
         /// </summary>
