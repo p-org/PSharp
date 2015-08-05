@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="SimpleTaskFailTest.cs" company="Microsoft">
+// <copyright file="SimpleAsyncAwaitFailTest.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -28,10 +28,10 @@ using Microsoft.PSharp.Tooling;
 namespace Microsoft.PSharp.DynamicAnalysis.Tests.Unit
 {
     [TestClass]
-    public class SimpleTaskFailTest : BasePSharpTest
+    public class SimpleAsyncAwaitFailTest : BasePSharpTest
     {
         [TestMethod]
-        public void TestSimpleTaskFail()
+        public void TestSimpleAsyncAwaitFail()
         {
             var test = @"
 using System;
@@ -43,7 +43,7 @@ namespace SystematicTesting
 {
     class Unit : Event { }
 
-    class TaskCreator : Machine
+    internal class TaskCreator : Machine
     {
         int Value;
 
@@ -63,12 +63,26 @@ namespace SystematicTesting
 
         void ActiveOnEntry()
         {
-            Task.Factory.StartNew(() =>
-            {
+            Process();
+            this.Assert(this.Value < 3, ""Value is '{0}' (expected less than '3')."", this.Value);
+        }
+
+        async void Process()
+        {
+            Task t = Increment();
+            this.Value++;
+            await t;
+            this.Value++;
+        }
+
+        Task Increment()
+        {
+            Task t = new Task(() => {
                 this.Value++;
             });
 
-            this.Assert(this.Value == 0, ""Value is '{0}' (expected '0')."", this.Value);
+            t.Start();
+            return t;
         }
     }
 
@@ -103,7 +117,7 @@ namespace SystematicTesting
             SCTEngine.Setup();
             SCTEngine.Run();
 
-            var bugReport = "Value is '1' (expected '0').";
+            var bugReport = "Value is '3' (expected less than '3').";
 
             Assert.AreEqual(bugReport, SCTEngine.BugReport);
         }

@@ -40,7 +40,7 @@ namespace TaskParallelismCheck
                 });
             }
 
-            this.Assert(this.Value < 10, "Value is '{0}' (expected '0').", this.Value);
+            this.Assert(this.Value < 10, "Value is '{0}' (expected less than '10').", this.Value);
         }
     }
 }

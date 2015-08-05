@@ -91,6 +91,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="AsyncAwait\DynamicError\SimpleAsyncAwaitFailTest.cs" />
     <Compile Include="BasePSharpTest.cs" />
     <Compile Include="Feature1SMLevelDecls\Correct\MaxInstances2Test.cs" />
     <Compile Include="Feature1SMLevelDecls\Correct\MethodCallTest.cs" />

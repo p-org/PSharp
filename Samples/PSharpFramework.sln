@@ -11,7 +11,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MultiPaxos", "PSharpFramewo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PingPong", "PSharpFramework\PingPong\PingPong.csproj", "{585ACE29-62FC-4B07-91A9-E50E22BAA081}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskParallelismCheck", "PSharpFramework\TaskParallelismCheck\TaskParallelismCheck.csproj", "{2422C5E3-FDC8-494C-8250-2F737560112B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsyncAwaitCheck", "PSharpFramework\AsyncAwaitCheck\AsyncAwaitCheck.csproj", "{2422C5E3-FDC8-494C-8250-2F737560112B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskParallelismCheck", "PSharpFramework\TaskParallelismCheck\TaskParallelismCheck.csproj", "{E8E19186-6D68-4197-8D4C-9F54BB49E5E9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,6 +37,10 @@ Global
 		{2422C5E3-FDC8-494C-8250-2F737560112B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2422C5E3-FDC8-494C-8250-2F737560112B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2422C5E3-FDC8-494C-8250-2F737560112B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E8E19186-6D68-4197-8D4C-9F54BB49E5E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E8E19186-6D68-4197-8D4C-9F54BB49E5E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E8E19186-6D68-4197-8D4C-9F54BB49E5E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E8E19186-6D68-4197-8D4C-9F54BB49E5E9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -44,5 +50,6 @@ Global
 		{A7A1F4B6-D6C3-4A90-AC2F-EC0D1B82BF50} = {4D36A902-54F2-45E8-94AB-1A1E38656E9A}
 		{585ACE29-62FC-4B07-91A9-E50E22BAA081} = {4D36A902-54F2-45E8-94AB-1A1E38656E9A}
 		{2422C5E3-FDC8-494C-8250-2F737560112B} = {4D36A902-54F2-45E8-94AB-1A1E38656E9A}
+		{E8E19186-6D68-4197-8D4C-9F54BB49E5E9} = {4D36A902-54F2-45E8-94AB-1A1E38656E9A}
 	EndGlobalSection
 EndGlobal
