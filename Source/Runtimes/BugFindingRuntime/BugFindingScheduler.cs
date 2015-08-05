@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="Scheduler.cs" company="Microsoft">
+// <copyright file="BugFindingScheduler.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -27,7 +27,7 @@ namespace Microsoft.PSharp.Scheduling
     /// <summary>
     /// Class implementing the P# bug-finding scheduler.
     /// </summary>
-    internal sealed class Scheduler
+    internal sealed class BugFindingScheduler
     {
         #region fields
 
@@ -78,7 +78,7 @@ namespace Microsoft.PSharp.Scheduling
         /// Constructor.
         /// </summary>
         /// <param name="strategy">SchedulingStrategy</param>
-        internal Scheduler(ISchedulingStrategy strategy)
+        internal BugFindingScheduler(ISchedulingStrategy strategy)
         {
             this.Strategy = strategy;
             this.Tasks = new List<TaskInfo>();
@@ -194,9 +194,9 @@ namespace Microsoft.PSharp.Scheduling
         /// Returns the enabled machines.
         /// </summary>
         /// <returns>Enabled machines</returns>
-        internal HashSet<Machine> GetEnabledMachines()
+        internal HashSet<BaseMachine> GetEnabledMachines()
         {
-            var enabledMachines = new HashSet<Machine>();
+            var enabledMachines = new HashSet<BaseMachine>();
             foreach (var taskInfo in this.Tasks)
             {
                 if (taskInfo.IsEnabled)
@@ -213,7 +213,7 @@ namespace Microsoft.PSharp.Scheduling
         /// </summary>
         /// <param name="id">TaskId</param>
         /// <param name="machine">Machine</param>
-        internal void NotifyNewTaskCreated(int id, Machine machine)
+        internal void NotifyNewTaskCreated(int id, BaseMachine machine)
         {
             var taskInfo = new TaskInfo(id, machine);
 
@@ -239,7 +239,7 @@ namespace Microsoft.PSharp.Scheduling
             {
                 return;
             }
-
+            
             var taskInfo = this.TaskMap[(int)id];
 
             Output.Debug(DebugType.Testing, "<ScheduleDebug> Started task {0} of machine {1}({2}).",
@@ -311,7 +311,7 @@ namespace Microsoft.PSharp.Scheduling
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <returns>Boolean</returns>
-        internal bool HasEnabledTaskForMachine(Machine machine)
+        internal bool HasEnabledTaskForMachine(BaseMachine machine)
         {
             var enabledTasks = this.Tasks.Where(task => task.IsEnabled).ToList();
             return enabledTasks.Any(task => task.Machine.Equals(machine));
@@ -321,15 +321,15 @@ namespace Microsoft.PSharp.Scheduling
         /// Notify that an assertion has failed.
         /// </summary>
         /// <param name="text">Bug report</param>
-        /// <param name="terminateScheduler">Terminate the scheduler</param>
-        internal void NotifyAssertionFailure(string text, bool terminateScheduler = true)
+        /// <param name="killTasks">Kill tasks</param>
+        internal void NotifyAssertionFailure(string text, bool killTasks = true)
         {
             this.BugReport = text;
             ErrorReporter.Report(text);
 
             this.BugFound = true;
 
-            if (terminateScheduler)
+            if (killTasks)
             {
                 this.Stop();
             }

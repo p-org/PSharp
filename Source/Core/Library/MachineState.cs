@@ -22,7 +22,7 @@ using System.Reflection;
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Abstract class representing a state of a state machine.
+    /// Abstract class representing a state of a P# machine.
     /// </summary>
     public abstract class MachineState
     {

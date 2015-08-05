@@ -29,7 +29,7 @@ namespace Microsoft.PSharp.Scheduling
         /// <summary>
         /// The machine this task corresponds to.
         /// </summary>
-        internal Machine Machine;
+        internal BaseMachine Machine;
 
         /// <summary>
         /// Is task enabled.
@@ -68,7 +68,7 @@ namespace Microsoft.PSharp.Scheduling
         /// </summary>
         /// <param name="id">TaskId</param>
         /// <param name="machine">Machine</param>
-        internal TaskInfo(int id, Machine machine)
+        internal TaskInfo(int id, BaseMachine machine)
         {
             this.Id = id;
             this.Machine = machine;

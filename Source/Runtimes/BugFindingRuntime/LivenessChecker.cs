@@ -22,7 +22,7 @@ using Microsoft.PSharp.Exploration;
 using Microsoft.PSharp.StateCaching;
 using Microsoft.PSharp.Tooling;
 
-namespace Microsoft.PSharp.Scheduling
+namespace Microsoft.PSharp
 {
     /// <summary>
     /// Class implementing the P# liveness property checker.
@@ -170,8 +170,8 @@ namespace Microsoft.PSharp.Scheduling
         {
             var result = false;
 
-            var enabledMachines = new HashSet<Machine>();
-            var scheduledMachines = new HashSet<Machine>();
+            var enabledMachines = new HashSet<BaseMachine>();
+            var scheduledMachines = new HashSet<BaseMachine>();
 
             var schedulingChoiceSteps= cycle.Where(
                 val => val.Key.Type == TraceStepType.SchedulingChoice);

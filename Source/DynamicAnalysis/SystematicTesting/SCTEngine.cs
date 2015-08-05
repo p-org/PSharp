@@ -151,7 +151,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
                         Output.Print("..... Iteration #{0}", i + 1);
                     }
 
-                    PSharpRuntime.BugFinder = new Scheduler(SCTEngine.Strategy);
+                    PSharpRuntime.BugFinder = new BugFindingScheduler(SCTEngine.Strategy);
 
                     StringWriter sw = null;
                     if (Configuration.Verbose < 2)

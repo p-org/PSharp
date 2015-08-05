@@ -22,7 +22,7 @@ using System.Reflection;
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Abstract class representing a state of a monitor.
+    /// Abstract class representing a state of a P# monitor.
     /// </summary>
     public abstract class MonitorState
     {

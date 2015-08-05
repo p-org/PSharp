@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="State.cs" company="Microsoft">
+// <copyright file="TaskMachine.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -14,49 +14,54 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System.Collections.Generic;
+using System.Threading.Tasks;
 
-namespace Microsoft.PSharp.StateCaching
+namespace Microsoft.PSharp.Threading
 {
     /// <summary>
-    /// Class implementing a P# program state.
+    /// Class implementing a P# task machine.
     /// </summary>
-    internal sealed class State
+    internal sealed class TaskMachine : BaseMachine
     {
         #region fields
 
         /// <summary>
-        /// The fingerprint of the trace step.
+        /// The task scheduler that is responsible
+        /// for executing this task machine.
         /// </summary>
-        internal Fingerprint Fingerprint { get; private set; }
+        internal TaskMachineScheduler TaskScheduler;
 
         /// <summary>
-        /// Map from monitors to their liveness status.
+        /// The task to execute.
         /// </summary>
-        internal Dictionary<Monitor, MonitorStatus> MonitorStatus;
-
-        /// <summary>
-        /// The enabled machines. Only relevant if this is a scheduling
-        /// trace step.
-        /// </summary>
-        internal HashSet<BaseMachine> EnabledMachines;
+        internal Task Task;
 
         #endregion
 
-        #region internal API
+        #region machine constructors
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="fingerprint">Fingerprint</param>
-        /// <param name="enabledMachines">Enabled machines</param>
-        /// <param name="monitorStatus">Monitor status</param>
-        internal State(Fingerprint fingerprint, HashSet<BaseMachine> enabledMachines,
-            Dictionary<Monitor, MonitorStatus> monitorStatus)
+        /// <param name="task">Task</param>
+        internal TaskMachine(TaskMachineScheduler taskScheduler, Task task)
+            : base()
         {
-            this.Fingerprint = fingerprint;
-            this.EnabledMachines = enabledMachines;
-            this.MonitorStatus = monitorStatus;
+            this.TaskScheduler = taskScheduler;
+            this.Task = task;
+        }
+
+        #endregion
+
+        #region P# internal methods
+
+        /// <summary>
+        /// Runs the task machine.
+        /// </summary>
+        internal void Run()
+        {
+            this.TaskScheduler.Execute(this.Task);
+            this.Task.Wait();
         }
 
         #endregion

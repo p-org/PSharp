@@ -27,7 +27,7 @@ using Microsoft.PSharp.Tooling;
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Abstract class representing a monitor.
+    /// Abstract class representing a P# monitor.
     /// </summary>
     public abstract class Monitor
     {
@@ -177,7 +177,7 @@ namespace Microsoft.PSharp
         #region P# internal methods
 
         /// <summary>
-        /// Initializes the machine with an optional payload
+        /// Initializes the machine with an optional payload.
         /// </summary>
         /// <param name="payload">Optional payload</param>
         internal void AssignInitialPayload(params Object[] payload)
@@ -462,6 +462,10 @@ namespace Microsoft.PSharp
             {
                 throw ex;
             }
+            catch (TaskSchedulerException ex)
+            {
+                throw ex;
+            }
             catch (Exception ex)
             {
                 if (Debugger.IsAttached)
@@ -506,6 +510,10 @@ namespace Microsoft.PSharp
             {
                 throw ex;
             }
+            catch (TaskSchedulerException ex)
+            {
+                throw ex;
+            }
             catch (Exception ex)
             {
                 if (Debugger.IsAttached)
@@ -538,6 +546,10 @@ namespace Microsoft.PSharp
                 }
             }
             catch (TaskCanceledException ex)
+            {
+                throw ex;
+            }
+            catch (TaskSchedulerException ex)
             {
                 throw ex;
             }

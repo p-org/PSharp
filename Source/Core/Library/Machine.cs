@@ -27,9 +27,9 @@ using Microsoft.PSharp.Tooling;
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Abstract class representing a state machine.
+    /// Abstract class representing a P# machine.
     /// </summary>
-    public abstract class Machine
+    public abstract class Machine : BaseMachine
     {
         #region static fields
 
@@ -41,11 +41,6 @@ namespace Microsoft.PSharp
         #endregion
 
         #region fields
-
-        /// <summary>
-        /// Unique machine id.
-        /// </summary>
-        public readonly MachineId Id;
 
         /// <summary>
         /// Set of all possible states types.
@@ -130,9 +125,8 @@ namespace Microsoft.PSharp
         /// Constructor.
         /// </summary>
         protected Machine()
+            : base()
         {
-            this.Id = new MachineId(this.GetType());
-
             this.Inbox = new List<Event>();
             this.StateStack = new Stack<MachineState>();
 
@@ -232,7 +226,7 @@ namespace Microsoft.PSharp
 
             e.AssignPayload(payload);
             Output.Debug(DebugType.Runtime, "<SendLog> Machine '{0}({1})' sent event '{2}' " +
-                "to '{3}({4})'.", this, this.Id.MVal, e.GetType(), mid.Type, mid.MVal);
+                "to '{3}({4})'.", this, base.Id.MVal, e.GetType(), mid.Type, mid.MVal);
             Machine.Dispatcher.Send(mid, e);
         }
 
@@ -263,7 +257,7 @@ namespace Microsoft.PSharp
 
             e.AssignPayload(payload);
             Output.Debug(DebugType.Runtime, "<RaiseLog> Machine '{0}({1})' raised " +
-                "event '{2}'.", this, this.Id.MVal, e);
+                "event '{2}'.", this, base.Id.MVal, e);
             this.RaisedEvent = e;
         }
 
@@ -284,12 +278,12 @@ namespace Microsoft.PSharp
             if (this.StateStack.Count == 0)
             {
                 Output.Debug(DebugType.Runtime, "<PopLog> Machine '{0}({1})' popped.",
-                    this, this.Id.MVal);
+                    this, base.Id.MVal);
             }
             else
             {
                 Output.Debug(DebugType.Runtime, "<PopLog> Machine '{0}({1})' popped and " +
-                    "reentered state '{2}'.", this, this.Id.MVal,
+                    "reentered state '{2}'.", this, base.Id.MVal,
                     this.StateStack.Peek().GetType().Name);
                 this.ConfigureStateTransitions(this.StateStack.Peek());
             }
@@ -356,7 +350,7 @@ namespace Microsoft.PSharp
         #region P# internal methods
 
         /// <summary>
-        /// Initializes the machine with an optional payload
+        /// Initializes the machine with an optional payload.
         /// </summary>
         /// <param name="payload">Optional payload</param>
         internal void AssignInitialPayload(params Object[] payload)
@@ -398,7 +392,7 @@ namespace Microsoft.PSharp
                 }
 
                 Output.Debug(DebugType.Runtime, "<EnqueueLog> Machine '{0}({1})' enqueued " +
-                        "event < ____{2} >.", this, this.Id.MVal, e.GetType());
+                        "event < ____{2} >.", this, base.Id.MVal, e.GetType());
 
                 this.Inbox.Add(e);
 
@@ -450,7 +444,7 @@ namespace Microsoft.PSharp
                         {
                             Output.Debug(DebugType.Runtime, "<DefaultLog> Machine '{0}({1})' " +
                                 "is executing the default handler in state '{2}'.",
-                                this, this.Id.MVal, this.StateStack.Peek().GetType().Name);
+                                this, base.Id.MVal, this.StateStack.Peek().GetType().Name);
 
                             nextEvent = new Default();
                             defaultHandling = true;
@@ -480,6 +474,35 @@ namespace Microsoft.PSharp
             }
         }
 
+        /// <summary>
+        /// Returns the cached state of this machine.
+        /// </summary>
+        /// <returns>Hash value</returns>
+        internal int GetCachedState()
+        {
+            unchecked
+            {
+                var hash = 19;
+
+                hash = hash + 31 * this.GetType().GetHashCode();
+                hash = hash + 31 * base.Id.Value.GetHashCode();
+                hash = hash + 31 * this.IsRunning.GetHashCode();
+                hash = hash + 31 * this.IsHalted.GetHashCode();
+
+                foreach (var state in this.StateStack)
+                {
+                    hash = hash * 31 + state.GetType().GetHashCode();
+                }
+
+                foreach (var e in this.Inbox)
+                {
+                    hash = hash * 31 + e.GetType().GetHashCode();
+                }
+
+                return hash;
+            }
+        }
+
         #endregion
 
         #region private machine methods
@@ -503,7 +526,7 @@ namespace Microsoft.PSharp
                 if (this.IgnoredEvents.Contains(nextEvent.GetType()))
                 {
                     Output.Log("<IgnoreLog> Machine '{0}({1})' ignored event < ____{2} >.",
-                        this.GetType().Name, this.Id.MVal, nextEvent.GetType());
+                        this.GetType().Name, base.Id.MVal, nextEvent.GetType());
                     nextEvent = null;
                 }
             }
@@ -517,7 +540,7 @@ namespace Microsoft.PSharp
                     if (this.IgnoredEvents.Contains(this.Inbox[idx].GetType()))
                     {
                         Output.Log("<IgnoreLog> Machine '{0}({1})' ignored event < ____{2} >.",
-                            this.GetType().Name, this.Id.MVal, this.Inbox[idx].GetType());
+                            this.GetType().Name, base.Id.MVal, this.Inbox[idx].GetType());
                         this.Inbox.RemoveAt(idx);
                         idx--;
                         continue;
@@ -530,7 +553,7 @@ namespace Microsoft.PSharp
                     {
                         nextEvent = this.Inbox[idx];
                         Output.Debug(DebugType.Runtime, "<DequeueLog> Machine '{0}({1})' dequeued " +
-                            "event < ____{2} >.", this.GetType().Name, this.Id.MVal, nextEvent.GetType());
+                            "event < ____{2} >.", this.GetType().Name, base.Id.MVal, nextEvent.GetType());
 
                         this.Inbox.RemoveAt(idx);
                         break;
@@ -558,7 +581,7 @@ namespace Microsoft.PSharp
                         lock (this.Inbox)
                         {
                             Output.Debug(DebugType.Runtime, "<HaltLog> Machine " +
-                                "'{0}({1})' halted.", this.GetType().Name, this.Id.MVal);
+                                "'{0}({1})' halted.", this.GetType().Name, base.Id.MVal);
                             this.IsHalted = true;
                             this.CleanUpResources();
                         }
@@ -586,12 +609,12 @@ namespace Microsoft.PSharp
                     if (this.StateStack.Count == 0)
                     {
                         Output.Debug(DebugType.Runtime, "<PopLog> Machine '{0}({1})' popped with " +
-                            "unhandled event '{2}'.", this, this.Id.MVal, e.GetType().Name);
+                            "unhandled event '{2}'.", this, base.Id.MVal, e.GetType().Name);
                     }
                     else
                     {
                         Output.Debug(DebugType.Runtime, "<PopLog> Machine '{0}({1})' popped with " +
-                            "unhandled event '{2}' and reentered state '{3}.", this, this.Id.MVal,
+                            "unhandled event '{2}' and reentered state '{3}.", this, base.Id.MVal,
                             e.GetType().Name, this.StateStack.Peek().GetType().Name);
                         this.ConfigureStateTransitions(this.StateStack.Peek());
                     }
@@ -784,7 +807,7 @@ namespace Microsoft.PSharp
         private void PushState(Type s)
         {
             Output.Debug(DebugType.Runtime, "<PushLog> Machine '{0}({1})' pushed.",
-                this, this.Id.MVal);
+                this, base.Id.MVal);
 
             var nextState = this.States.First(val => val.GetType().Equals(s));
             this.ConfigureStateTransitions(nextState);
@@ -804,7 +827,7 @@ namespace Microsoft.PSharp
         private void Do(Action a)
         {
             Output.Debug(DebugType.Runtime, "<ActionLog> Machine '{0}({1})' executed " +
-                "action '{2}' in state '{3}'.", this, this.Id.MVal, a.Method.Name,
+                "action '{2}' in state '{3}'.", this, base.Id.MVal, a.Method.Name,
                 this.StateStack.Peek().GetType().Name);
             
             try
@@ -814,7 +837,13 @@ namespace Microsoft.PSharp
             catch (TaskCanceledException)
             {
                 Output.Log("<Exception> TaskCanceledException was thrown from Machine " +
-                    "'{0}({1})'.", this, this.Id.MVal);
+                    "'{0}({1})'.", this, base.Id.MVal);
+                this.IsHalted = true;
+            }
+            catch (TaskSchedulerException)
+            {
+                Output.Log("<Exception> TaskSchedulerException was thrown from Machine " +
+                    "'{0}({1})'.", this, base.Id.MVal);
                 this.IsHalted = true;
             }
             catch (Exception ex)
@@ -840,7 +869,7 @@ namespace Microsoft.PSharp
         private void ExecuteCurrentStateOnEntry()
         {
             Output.Debug(DebugType.Runtime, "<StateLog> Machine '{0}({1})' entering " +
-                "state '{2}'.", this, this.Id.MVal,
+                "state '{2}'.", this, base.Id.MVal,
                 this.StateStack.Peek().GetType().Name);
 
             try
@@ -851,7 +880,13 @@ namespace Microsoft.PSharp
             catch (TaskCanceledException)
             {
                 Output.Log("<Exception> TaskCanceledException was thrown from Machine " +
-                    "'{0}({1})'.", this, this.Id.MVal);
+                    "'{0}({1})'.", this, base.Id.MVal);
+                this.IsHalted = true;
+            }
+            catch (TaskSchedulerException)
+            {
+                Output.Log("<Exception> TaskSchedulerException was thrown from Machine " +
+                    "'{0}({1})'.", this, base.Id.MVal);
                 this.IsHalted = true;
             }
             catch (Exception ex)
@@ -874,7 +909,7 @@ namespace Microsoft.PSharp
         private void ExecuteCurrentStateOnExit(Action onExit)
         {
             Output.Debug(DebugType.Runtime, "<ExitLog> Machine '{0}({1})' exiting " +
-                "state '{2}'.", this, this.Id.MVal,
+                "state '{2}'.", this, base.Id.MVal,
                 this.StateStack.Peek().GetType().Name);
 
             try
@@ -889,7 +924,13 @@ namespace Microsoft.PSharp
             catch (TaskCanceledException)
             {
                 Output.Log("<Exception> TaskCanceledException was thrown from Machine " +
-                    "'{0}({1})'.", this, this.Id.MVal);
+                    "'{0}({1})'.", this, base.Id.MVal);
+                this.IsHalted = true;
+            }
+            catch (TaskSchedulerException)
+            {
+                Output.Log("<Exception> TaskSchedulerException was thrown from Machine " +
+                    "'{0}({1})'.", this, base.Id.MVal);
                 this.IsHalted = true;
             }
             catch (Exception ex)
@@ -902,80 +943,6 @@ namespace Microsoft.PSharp
                 // Handles generic exception.
                 this.ReportGenericAssertion(ex);
             }
-        }
-
-        #endregion
-
-        #region generic public and override methods
-
-        /// <summary>
-        /// Returns the cached state of this machine.
-        /// </summary>
-        /// <returns>Hash value</returns>
-        internal int GetCachedState()
-        {
-            unchecked
-            {
-                var hash = 19;
-
-                hash = hash + 31 * this.GetType().GetHashCode();
-                hash = hash + 31 * this.Id.Value.GetHashCode();
-                hash = hash + 31 * this.IsRunning.GetHashCode();
-                hash = hash + 31 * this.IsHalted.GetHashCode();
-
-                foreach (var state in this.StateStack)
-                {
-                    hash = hash * 31 + state.GetType().GetHashCode();
-                }
-
-                foreach (var e in this.Inbox)
-                {
-                    hash = hash * 31 + e.GetType().GetHashCode();
-                }
-
-                return hash;
-            }
-        }
-
-        /// <summary>
-        /// Determines whether the specified System.Object is equal
-        /// to the current System.Object.
-        /// </summary>
-        /// <param name="obj">Object</param>
-        /// <returns>Boolean value</returns>
-        public override bool Equals(object obj)
-        {
-            if (obj == null)
-            {
-                return false;
-            }
-
-            Machine m = obj as Machine;
-            if (m == null ||
-                this.GetType() != m.GetType())
-            {
-                return false;
-            }
-
-            return this.Id.Value == m.Id.Value;
-        }
-
-        /// <summary>
-        /// Returns the hash code for this instance.
-        /// </summary>
-        /// <returns>int</returns>
-        public override int GetHashCode()
-        {
-            return this.Id.Value.GetHashCode();
-        }
-
-        /// <summary>
-        /// Returns a string that represents the current machine.
-        /// </summary>
-        /// <returns>string</returns>
-        public override string ToString()
-        {
-            return this.GetType().Name;
         }
 
         #endregion

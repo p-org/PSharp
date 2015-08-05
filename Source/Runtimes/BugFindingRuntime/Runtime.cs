@@ -21,6 +21,7 @@ using System.Threading.Tasks;
 using Microsoft.PSharp.Exploration;
 using Microsoft.PSharp.Scheduling;
 using Microsoft.PSharp.StateCaching;
+using Microsoft.PSharp.Threading;
 using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp
@@ -48,6 +49,11 @@ namespace Microsoft.PSharp
         private static List<Monitor> Monitors;
 
         /// <summary>
+        /// The P# task machine scheduler.
+        /// </summary>
+        private static TaskMachineScheduler TaskScheduler;
+
+        /// <summary>
         /// Lock used by the runtime.
         /// </summary>
         private static Object Lock = new Object();
@@ -70,7 +76,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// The P# bugfinder.
         /// </summary>
-        internal static Scheduler BugFinder;
+        internal static BugFindingScheduler BugFinder;
 
         /// <summary>
         /// The P# program state cache.
@@ -160,14 +166,14 @@ namespace Microsoft.PSharp
         {
             if (!predicate)
             {
-                var terminateScheduler = true;
+                var killTasks = true;
                 if (Task.CurrentId == PSharpRuntime.MainThreadId)
                 {
-                    terminateScheduler = false;
+                    killTasks = false;
                 }
 
                 string message = "Assertion failure.";
-                PSharpRuntime.BugFinder.NotifyAssertionFailure(message, terminateScheduler);
+                PSharpRuntime.BugFinder.NotifyAssertionFailure(message, killTasks);
             }
         }
 
@@ -182,14 +188,14 @@ namespace Microsoft.PSharp
         {
             if (!predicate)
             {
-                var terminateScheduler = true;
+                var killTasks = true;
                 if (Task.CurrentId == PSharpRuntime.MainThreadId)
                 {
-                    terminateScheduler = false;
+                    killTasks = false;
                 }
 
                 string message = Output.Format(s, args);
-                PSharpRuntime.BugFinder.NotifyAssertionFailure(message, terminateScheduler);
+                PSharpRuntime.BugFinder.NotifyAssertionFailure(message, killTasks);
             }
         }
 
@@ -233,7 +239,7 @@ namespace Microsoft.PSharp
 
                 PSharpRuntime.BugFinder.NotifyNewTaskCreated(task.Id, machine as Machine);
 
-                task.Start();
+                task.Start(PSharpRuntime.TaskScheduler);
 
                 PSharpRuntime.BugFinder.WaitForTaskToStart(task.Id);
                 PSharpRuntime.BugFinder.Schedule(Task.CurrentId);
@@ -270,6 +276,37 @@ namespace Microsoft.PSharp
 
             (monitor as Monitor).AssignInitialPayload(payload);
             (monitor as Monitor).GotoStartState();
+        }
+
+        /// <summary>
+        /// Create a new task machine.
+        /// </summary>
+        /// <param name="userTask">Task</param>
+        internal static void CreateTaskMachine(Task userTask)
+        {
+            var taskMachine = new TaskMachine(PSharpRuntime.TaskScheduler, userTask);
+
+            var mid = taskMachine.Id;
+            Output.Debug(DebugType.Runtime, "<CreateLog> TaskMachine({0}) is created.", mid.MVal);
+
+            Task task = new Task(() =>
+            {
+                PSharpRuntime.BugFinder.NotifyTaskStarted(Task.CurrentId);
+                taskMachine.Run();
+                PSharpRuntime.BugFinder.NotifyTaskCompleted(Task.CurrentId);
+            });
+
+            lock (PSharpRuntime.Lock)
+            {
+                PSharpRuntime.MachineTasks.Add(task);
+            }
+
+            PSharpRuntime.BugFinder.NotifyNewTaskCreated(task.Id, taskMachine);
+
+            task.Start(PSharpRuntime.TaskScheduler);
+
+            PSharpRuntime.BugFinder.WaitForTaskToStart(task.Id);
+            PSharpRuntime.BugFinder.Schedule(Task.CurrentId);
         }
 
         /// <summary>
@@ -315,7 +352,7 @@ namespace Microsoft.PSharp
 
             PSharpRuntime.BugFinder.NotifyNewTaskCreated(task.Id, machine);
 
-            task.Start();
+            task.Start(PSharpRuntime.TaskScheduler);
 
             PSharpRuntime.BugFinder.WaitForTaskToStart(task.Id);
             PSharpRuntime.BugFinder.Schedule(Task.CurrentId);
@@ -446,6 +483,8 @@ namespace Microsoft.PSharp
             PSharpRuntime.MachineTasks = new List<Task>();
             PSharpRuntime.MachineMap = new Dictionary<int, Machine>();
             PSharpRuntime.Monitors = new List<Monitor>();
+
+            PSharpRuntime.TaskScheduler = new TaskMachineScheduler(PSharpRuntime.MachineTasks);
 
             MachineId.ResetMachineIDCounter();
 

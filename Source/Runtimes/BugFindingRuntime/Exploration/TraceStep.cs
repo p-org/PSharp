@@ -37,7 +37,7 @@ namespace Microsoft.PSharp.Exploration
         /// The scheduled machine. Only relevant if this is a scheduling
         /// trace step.
         /// </summary>
-        internal Machine ScheduledMachine;
+        internal BaseMachine ScheduledMachine;
 
         /// <summary>
         /// The non-deterministic choice id. Only relevant if
@@ -71,7 +71,7 @@ namespace Microsoft.PSharp.Exploration
         /// <param name="index">Index</param>
         /// <param name="scheduledMachine">Scheduled machine</param>
         /// <returns>TraceStep</returns>
-        internal static TraceStep CreateSchedulingChoice(int index, Machine scheduledMachine)
+        internal static TraceStep CreateSchedulingChoice(int index, BaseMachine scheduledMachine)
         {
             var traceStep = new TraceStep();
 
