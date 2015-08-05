@@ -172,9 +172,17 @@ namespace Microsoft.PSharp.Scheduling
                 throw new TaskCanceledException();
             }
 
-            PSharpRuntime.ProgramTrace.AddNondeterministicChoice(uniqueId, choice);
+            if (uniqueId == null)
+            {
+                PSharpRuntime.ProgramTrace.AddNondeterministicChoice(choice);
+            }
+            else
+            {
+                PSharpRuntime.ProgramTrace.AddFairNondeterministicChoice(uniqueId, choice);
+            }
+            
             if (Configuration.CheckLiveness && Configuration.CacheProgramState &&
-                Configuration.SafetyPrefixBound <= this.SchedulingPoints && uniqueId != null)
+                Configuration.SafetyPrefixBound <= this.SchedulingPoints)
             {
                 PSharpRuntime.StateCache.CaptureState(PSharpRuntime.ProgramTrace.Peek());
             }

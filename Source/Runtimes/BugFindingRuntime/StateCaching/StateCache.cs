@@ -57,15 +57,20 @@ namespace Microsoft.PSharp.StateCaching
             var enabledMachines = PSharpRuntime.BugFinder.GetEnabledMachines();
             var state = new State(fingerprint, enabledMachines, PSharpRuntime.LivenessChecker.GetMonitorStatus());
 
-            if (traceStep.IsChoice)
-            {
-                Output.Debug(DebugType.Liveness, "<LivenessDebug> Captured program state '{0}' at nondeterministic " +
-                    "choice '{1}-{2}'.", fingerprint.GetHashCode(), traceStep.NondetId, traceStep.Choice);
-            }
-            else
+            if (traceStep.Type == TraceStepType.SchedulingChoice)
             {
                 Output.Debug(DebugType.Liveness, "<LivenessDebug> Captured program state '{0}' at " +
                     "scheduling choice.", fingerprint.GetHashCode());
+            }
+            else if (traceStep.Type == TraceStepType.NondeterministicChoice)
+            {
+                Output.Debug(DebugType.Liveness, "<LivenessDebug> Captured program state '{0}' at " +
+                    "nondeterministic choice '{1}'.", fingerprint.GetHashCode(), traceStep.Choice);
+            }
+            else if (traceStep.Type == TraceStepType.FairNondeterministicChoice)
+            {
+                Output.Debug(DebugType.Liveness, "<LivenessDebug> Captured program state '{0}' at fair nondeterministic " +
+                    "choice '{1}-{2}'.", fingerprint.GetHashCode(), traceStep.NondetId, traceStep.Choice);
             }
             
             var stateExists = this.StateMap.Values.Any(val => val.Fingerprint.Equals(fingerprint));

@@ -78,11 +78,21 @@ namespace Microsoft.PSharp.Exploration
         /// <summary>
         /// Adds a nondeterministic choice.
         /// </summary>
+        /// <param name="choice">Choice</param>
+        internal void AddNondeterministicChoice(bool choice)
+        {
+            var traceStep = TraceStep.CreateNondeterministicChoice(this.Count, choice);
+            this.Push(traceStep);
+        }
+
+        /// <summary>
+        /// Adds a fair nondeterministic choice.
+        /// </summary>
         /// <param name="uniqueId">Unique nondet id</param>
         /// <param name="choice">Choice</param>
-        internal void AddNondeterministicChoice(string uniqueId, bool choice)
+        internal void AddFairNondeterministicChoice(string uniqueId, bool choice)
         {
-            var traceStep = TraceStep.CreateNondeterministicChoice(this.Count, uniqueId, choice);
+            var traceStep = TraceStep.CreateFairNondeterministicChoice(this.Count, uniqueId, choice);
             this.Push(traceStep);
         }
 

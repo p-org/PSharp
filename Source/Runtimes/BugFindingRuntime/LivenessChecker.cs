@@ -95,8 +95,8 @@ namespace Microsoft.PSharp.Scheduling
                 var state = stateMap[traceStep];
                 cycle.Add(traceStep, state);
 
-                Output.Debug(DebugType.Liveness, "<LivenessDebug> Cycle contains {0}.",
-                    state.Fingerprint.ToString());
+                Output.Debug(DebugType.Liveness, "<LivenessDebug> Cycle contains {0} with {1}.",
+                    traceStep.Type, state.Fingerprint.ToString());
                 
                 // The state can be safely removed, because the liveness detection
                 // algorithm currently removes cycles, so a specific state can only
@@ -173,7 +173,9 @@ namespace Microsoft.PSharp.Scheduling
             var enabledMachines = new HashSet<Machine>();
             var scheduledMachines = new HashSet<Machine>();
 
-            foreach (var step in cycle)
+            var schedulingChoiceSteps= cycle.Where(
+                val => val.Key.Type == TraceStepType.SchedulingChoice);
+            foreach (var step in schedulingChoiceSteps)
             {
                 scheduledMachines.Add(step.Key.ScheduledMachine);
                 enabledMachines.UnionWith(step.Value.EnabledMachines);
@@ -208,7 +210,9 @@ namespace Microsoft.PSharp.Scheduling
             var trueChoices = new HashSet<string>();
             var falseChoices = new HashSet<string>();
 
-            foreach (var step in cycle.Where(val => val.Key.IsChoice))
+            var fairNondeterministicChoiceSteps = cycle.Where(
+                val => val.Key.Type == TraceStepType.FairNondeterministicChoice);
+            foreach (var step in fairNondeterministicChoiceSteps)
             {
                 if (step.Key.Choice)
                 {

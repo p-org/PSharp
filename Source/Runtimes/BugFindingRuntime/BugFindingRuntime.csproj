@@ -61,6 +61,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BugFindingDispatcher.cs" />
+    <Compile Include="Exploration\TraceStepType.cs" />
     <Compile Include="LivenessChecker.cs" />
     <Compile Include="Scheduler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

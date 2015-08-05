@@ -29,10 +29,9 @@ namespace Microsoft.PSharp.Exploration
         internal int Index;
 
         /// <summary>
-        /// True if the trace step is a non-deterministic choice.
-        /// False if it is a scheduling choice.
+        /// The type of this trace step.
         /// </summary>
-        internal bool IsChoice { get; private set; }
+        internal TraceStepType Type { get; private set; }
 
         /// <summary>
         /// The scheduled machine. Only relevant if this is a scheduling
@@ -77,7 +76,7 @@ namespace Microsoft.PSharp.Exploration
             var traceStep = new TraceStep();
 
             traceStep.Index = index;
-            traceStep.IsChoice = false;
+            traceStep.Type = TraceStepType.SchedulingChoice;
             traceStep.ScheduledMachine = scheduledMachine;
 
             traceStep.Previous = null;
@@ -90,15 +89,35 @@ namespace Microsoft.PSharp.Exploration
         /// Creates a nondeterministic choice trace step.
         /// </summary>
         /// <param name="index">Index</param>
-        /// <param name="uniqueId">Unique id</param>
         /// <param name="choice">Choice</param>
         /// <returns>TraceStep</returns>
-        internal static TraceStep CreateNondeterministicChoice(int index, string uniqueId, bool choice)
+        internal static TraceStep CreateNondeterministicChoice(int index, bool choice)
         {
             var traceStep = new TraceStep();
 
             traceStep.Index = index;
-            traceStep.IsChoice = true;
+            traceStep.Type = TraceStepType.NondeterministicChoice;
+            traceStep.Choice = choice;
+
+            traceStep.Previous = null;
+            traceStep.Next = null;
+
+            return traceStep;
+        }
+
+        /// <summary>
+        /// Creates a fair nondeterministic choice trace step.
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="uniqueId">Unique id</param>
+        /// <param name="choice">Choice</param>
+        /// <returns>TraceStep</returns>
+        internal static TraceStep CreateFairNondeterministicChoice(int index, string uniqueId, bool choice)
+        {
+            var traceStep = new TraceStep();
+
+            traceStep.Index = index;
+            traceStep.Type = TraceStepType.FairNondeterministicChoice;
             traceStep.NondetId = uniqueId;
             traceStep.Choice = choice;
 
