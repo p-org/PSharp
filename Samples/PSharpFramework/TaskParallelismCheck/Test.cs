@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.PSharp;
 
-namespace PingPong
+namespace TaskParallelismCheck
 {
     public class Test
     {
@@ -15,7 +15,7 @@ namespace PingPong
         [Microsoft.PSharp.Test]
         public static void Execute()
         {
-            PSharpRuntime.CreateMachine(typeof(Server));
+            PSharpRuntime.CreateMachine(typeof(TaskCreator));
         }
     }
 }
