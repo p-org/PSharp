@@ -15,9 +15,7 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
-
-using Microsoft.PSharp.Tooling;
+using System.Threading.Tasks;
 
 namespace Microsoft.PSharp
 {
@@ -51,6 +49,25 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Tries to create a new monitor of the given type with an optional payload.
+        /// </summary>
+        /// <param name="type">Type of the machine</param>
+        /// <param name="payload">Optional payload</param>
+        void IDispatcher.TryCreateMonitor(Type type, params Object[] payload)
+        {
+            PSharpRuntime.TryCreateMonitor(type, payload);
+        }
+
+        /// <summary>
+        /// Tries to create a new task machine.
+        /// </summary>
+        /// <param name="userTask">Task</param>
+        void IDispatcher.TryCreateTaskMachine(Task userTask)
+        {
+            PSharpRuntime.TryCreateTaskMachine(userTask);
+        }
+
+        /// <summary>
         /// Sends an asynchronous event to a machine.
         /// </summary>
         /// <param name="mid">Machine id</param>
@@ -65,16 +82,6 @@ namespace Microsoft.PSharp
             {
                 PSharpRuntime.Send(mid, e);
             }
-        }
-
-        /// <summary>
-        /// Tries to create a new monitor of the given type with an optional payload.
-        /// </summary>
-        /// <param name="type">Type of the machine</param>
-        /// <param name="payload">Optional payload</param>
-        void IDispatcher.TryCreateMonitor(Type type, params Object[] payload)
-        {
-            PSharpRuntime.TryCreateMonitor(type, payload);
         }
 
         /// <summary>

@@ -125,6 +125,8 @@
     <Compile Include="Library\PushStateTransitions.cs" />
     <Compile Include="Scheduling\ISchedulingStrategy.cs" />
     <Compile Include="Scheduling\TaskInfo.cs" />
+    <Compile Include="Threading\TaskMachine.cs" />
+    <Compile Include="Threading\TaskMachineScheduler.cs" />
     <Compile Include="Tooling\Options\CommandLineOptions.cs" />
     <Compile Include="Tooling\Options\Configuration.cs" />
     <Compile Include="Tooling\IO\ErrorReporter.cs" />

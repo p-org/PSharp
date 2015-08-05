@@ -63,7 +63,6 @@
     <Compile Include="BugFindingDispatcher.cs" />
     <Compile Include="Exploration\TraceStepType.cs" />
     <Compile Include="LivenessChecker.cs" />
-    <Compile Include="Threading\TaskMachineScheduler.cs" />
     <Compile Include="BugFindingScheduler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Runtime.cs" />
@@ -73,7 +72,6 @@
     <Compile Include="StateCaching\State.cs" />
     <Compile Include="Exploration\TraceStep.cs" />
     <Compile Include="Exploration\Trace.cs" />
-    <Compile Include="Threading\TaskMachine.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="PSharp.snk" />

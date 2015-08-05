@@ -15,6 +15,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Threading.Tasks;
 
 namespace Microsoft.PSharp
 {
@@ -49,16 +50,6 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Sends an asynchronous event to a machine.
-        /// </summary>
-        /// <param name="mid">Machine id</param>
-        /// <param name="e">Event</param>
-        void IDispatcher.Send(MachineId mid, Event e)
-        {
-            PSharpRuntime.Send(mid, e);
-        }
-
-        /// <summary>
         /// Tries to create a new monitor of the given type with an optional payload.
         /// </summary>
         /// <param name="type">Type of the machine</param>
@@ -66,6 +57,25 @@ namespace Microsoft.PSharp
         void IDispatcher.TryCreateMonitor(Type type, params Object[] payload)
         {
             PSharpRuntime.TryCreateMonitor(type, payload);
+        }
+
+        /// <summary>
+        /// Tries to create a new task machine.
+        /// </summary>
+        /// <param name="userTask">Task</param>
+        void IDispatcher.TryCreateTaskMachine(Task userTask)
+        {
+            PSharpRuntime.TryCreateTaskMachine(userTask);
+        }
+
+        /// <summary>
+        /// Sends an asynchronous event to a machine.
+        /// </summary>
+        /// <param name="mid">Machine id</param>
+        /// <param name="e">Event</param>
+        void IDispatcher.Send(MachineId mid, Event e)
+        {
+            PSharpRuntime.Send(mid, e);
         }
 
         /// <summary>

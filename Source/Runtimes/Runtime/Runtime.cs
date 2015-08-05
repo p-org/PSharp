@@ -213,6 +213,27 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Tries to create a new monitor of the given type with an optional payload.
+        /// </summary>
+        /// <param name="type">Type of the monitor</param>
+        /// <param name="payload">Optional payload</param>
+        internal static void TryCreateMonitor(Type type, params Object[] payload)
+        {
+            // the execution runtime does not implement monitors.
+            return;
+        }
+
+        /// <summary>
+        /// Tries to create a new task machine.
+        /// </summary>
+        /// <param name="userTask">Task</param>
+        internal static void TryCreateTaskMachine(Task userTask)
+        {
+            // the execution runtime does not implement task machines.
+            return;
+        }
+
+        /// <summary>
         /// Sends an asynchronous event to a remote machine.
         /// </summary>
         /// <param name="mid">Machine id</param>
@@ -254,18 +275,6 @@ namespace Microsoft.PSharp
             });
 
             task.Start();
-        }
-
-
-        /// <summary>
-        /// Tries to create a new monitor of the given type with an optional payload.
-        /// </summary>
-        /// <param name="type">Type of the monitor</param>
-        /// <param name="payload">Optional payload</param>
-        internal static void TryCreateMonitor(Type type, params Object[] payload)
-        {
-            // the execution runtime does not implement monitors.
-            return;
         }
 
         /// <summary>

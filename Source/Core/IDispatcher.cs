@@ -15,7 +15,7 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Microsoft.PSharp
 {
@@ -41,18 +41,24 @@ namespace Microsoft.PSharp
         MachineId TryCreateRemoteMachine(Type type, params Object[] payload);
 
         /// <summary>
-        /// Sends an asynchronous event to a machine.
-        /// </summary>
-        /// <param name="mid">Machine id</param>
-        /// <param name="e">Event</param>
-        void Send(MachineId mid, Event e);
-
-        /// <summary>
         /// Tries to create a new monitor of the given type with an optional payload.
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="payload">Optional payload</param>
         void TryCreateMonitor(Type type, params Object[] payload);
+
+        /// <summary>
+        /// Tries to create a new task machine.
+        /// </summary>
+        /// <param name="userTask">Task</param>
+        void TryCreateTaskMachine(Task userTask);
+
+        /// <summary>
+        /// Sends an asynchronous event to a machine.
+        /// </summary>
+        /// <param name="mid">Machine id</param>
+        /// <param name="e">Event</param>
+        void Send(MachineId mid, Event e);
 
         /// <summary>
         /// Invokes the specified monitor with the given event.

@@ -27,7 +27,7 @@ namespace Microsoft.PSharp.Threading
     /// <summary>
     /// Class implementing the P# task machine scheduler.
     /// </summary>
-    internal sealed class TaskMachineScheduler : TaskScheduler
+    public sealed class TaskMachineScheduler : TaskScheduler
     {
         #region fields
 
@@ -87,7 +87,7 @@ namespace Microsoft.PSharp.Threading
             {
                 Output.Debug(DebugType.Testing, "<ScheduleDebug> Wrapping task {0} in a machine.", task.Id);
                 this.ScheduledTasks.Add(task);
-                PSharpRuntime.CreateTaskMachine(task);
+                Machine.Dispatcher.TryCreateTaskMachine(task);
             }
         }
 

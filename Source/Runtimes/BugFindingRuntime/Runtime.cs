@@ -279,10 +279,10 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Create a new task machine.
+        /// Tries to create a new task machine.
         /// </summary>
         /// <param name="userTask">Task</param>
-        internal static void CreateTaskMachine(Task userTask)
+        internal static void TryCreateTaskMachine(Task userTask)
         {
             var taskMachine = new TaskMachine(PSharpRuntime.TaskScheduler, userTask);
 
