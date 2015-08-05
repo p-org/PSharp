@@ -65,10 +65,10 @@ namespace SystematicTesting
         {
             Task.Factory.StartNew(() =>
             {
-                this.Assert(this.Value == 0, ""Value is '{0}' (expected '0')."", this.Value);
+                this.Value++;
             });
 
-            this.Value = 1;
+            this.Assert(this.Value == 0, ""Value is '{0}'(expected '0')."", this.Value);
         }
     }
 

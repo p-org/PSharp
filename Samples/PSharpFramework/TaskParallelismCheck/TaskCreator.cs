@@ -24,12 +24,23 @@ namespace TaskParallelismCheck
 
         void ActiveOnEntry()
         {
-            Task.Factory.StartNew(() =>
+            for (int idx = 0; idx < 5; idx++)
             {
-                this.Assert(this.Value == 0, "Value is '{0}' (expected '0').", this.Value);
-            });
+                Task.Factory.StartNew(() =>
+                {
+                    Task.Factory.StartNew(() =>
+                    {
+                        this.Value++;
+                    });
 
-            this.Value = 1;
+                    Task.Factory.StartNew(() =>
+                    {
+                        this.Value++;
+                    });
+                });
+            }
+
+            this.Assert(this.Value < 10, "Value is '{0}' (expected '0').", this.Value);
         }
     }
 }
