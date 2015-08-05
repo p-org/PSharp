@@ -9,7 +9,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LivenessCheck", "PSharpFram
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MultiPaxos", "PSharpFramework\MultiPaxos\MultiPaxos.csproj", "{A7A1F4B6-D6C3-4A90-AC2F-EC0D1B82BF50}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PingPong", "PSharpFramework\PingPong\PingPong.csproj", "{2422C5E3-FDC8-494C-8250-2F737560112B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PingPongTask", "PSharpFramework\PingPongTask\PingPongTask.csproj", "{2422C5E3-FDC8-494C-8250-2F737560112B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PingPong", "PSharpFramework\PingPong\PingPong.csproj", "{585ACE29-62FC-4B07-91A9-E50E22BAA081}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,6 +31,10 @@ Global
 		{2422C5E3-FDC8-494C-8250-2F737560112B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2422C5E3-FDC8-494C-8250-2F737560112B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2422C5E3-FDC8-494C-8250-2F737560112B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{585ACE29-62FC-4B07-91A9-E50E22BAA081}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{585ACE29-62FC-4B07-91A9-E50E22BAA081}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{585ACE29-62FC-4B07-91A9-E50E22BAA081}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{585ACE29-62FC-4B07-91A9-E50E22BAA081}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -37,5 +43,6 @@ Global
 		{25D12E62-1FBF-48ED-B677-6B0C20908894} = {4D36A902-54F2-45E8-94AB-1A1E38656E9A}
 		{A7A1F4B6-D6C3-4A90-AC2F-EC0D1B82BF50} = {4D36A902-54F2-45E8-94AB-1A1E38656E9A}
 		{2422C5E3-FDC8-494C-8250-2F737560112B} = {4D36A902-54F2-45E8-94AB-1A1E38656E9A}
+		{585ACE29-62FC-4B07-91A9-E50E22BAA081} = {4D36A902-54F2-45E8-94AB-1A1E38656E9A}
 	EndGlobalSection
 EndGlobal
