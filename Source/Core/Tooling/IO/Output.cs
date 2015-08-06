@@ -15,6 +15,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Diagnostics;
 using System.Globalization;
 
 namespace Microsoft.PSharp.Tooling
@@ -57,6 +58,7 @@ namespace Microsoft.PSharp.Tooling
 
             string message = Output.Format(s, args);
             Console.WriteLine(message);
+            Trace.Write(message);
         }
 
         internal static void Debug(DebugType type, string s, params object[] args)
@@ -69,6 +71,7 @@ namespace Microsoft.PSharp.Tooling
 
             string message = Output.Format(s, args);
             Console.WriteLine(message);
+            Trace.Write(message);
         }
     }
 }
