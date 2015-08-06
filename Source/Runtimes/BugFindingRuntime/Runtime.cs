@@ -259,13 +259,13 @@ namespace Microsoft.PSharp
 
                 Task task = new Task(() =>
                 {
-                    PSharpRuntime.BugFinder.NotifyTaskStarted(Task.CurrentId);
+                    PSharpRuntime.BugFinder.NotifyTaskStarted();
 
                     (machine as Machine).AssignInitialPayload(payload);
                     (machine as Machine).GotoStartState();
                     (machine as Machine).RunEventHandler();
 
-                    PSharpRuntime.BugFinder.NotifyTaskCompleted(Task.CurrentId);
+                    PSharpRuntime.BugFinder.NotifyTaskCompleted();
                 });
 
                 lock (PSharpRuntime.Lock)
@@ -286,7 +286,7 @@ namespace Microsoft.PSharp
                 }
 
                 PSharpRuntime.BugFinder.WaitForTaskToStart(task.Id);
-                PSharpRuntime.BugFinder.Schedule(Task.CurrentId);
+                PSharpRuntime.BugFinder.Schedule();
 
                 return mid;
             }
@@ -337,9 +337,9 @@ namespace Microsoft.PSharp
 
             Task task = new Task(() =>
             {
-                PSharpRuntime.BugFinder.NotifyTaskStarted(Task.CurrentId);
+                PSharpRuntime.BugFinder.NotifyTaskStarted();
                 taskMachine.Run();
-                PSharpRuntime.BugFinder.NotifyTaskCompleted(Task.CurrentId);
+                PSharpRuntime.BugFinder.NotifyTaskCompleted();
             });
 
             lock (PSharpRuntime.Lock)
@@ -359,7 +359,7 @@ namespace Microsoft.PSharp
             }
 
             PSharpRuntime.BugFinder.WaitForTaskToStart(task.Id);
-            PSharpRuntime.BugFinder.Schedule(Task.CurrentId);
+            PSharpRuntime.BugFinder.Schedule();
         }
 
         /// <summary>
@@ -385,15 +385,15 @@ namespace Microsoft.PSharp
 
             if (!runHandler)
             {
-                PSharpRuntime.BugFinder.Schedule(Task.CurrentId);
+                PSharpRuntime.BugFinder.Schedule();
                 return;
             }
 
             Task task = new Task(() =>
             {
-                PSharpRuntime.BugFinder.NotifyTaskStarted(Task.CurrentId);
+                PSharpRuntime.BugFinder.NotifyTaskStarted();
                 machine.RunEventHandler();
-                PSharpRuntime.BugFinder.NotifyTaskCompleted(Task.CurrentId);
+                PSharpRuntime.BugFinder.NotifyTaskCompleted();
             });
 
             lock (PSharpRuntime.Lock)
@@ -414,7 +414,7 @@ namespace Microsoft.PSharp
             }
 
             PSharpRuntime.BugFinder.WaitForTaskToStart(task.Id);
-            PSharpRuntime.BugFinder.Schedule(Task.CurrentId);
+            PSharpRuntime.BugFinder.Schedule();
         }
 
         /// <summary>
@@ -459,7 +459,7 @@ namespace Microsoft.PSharp
         /// </summary>
         internal static void NotifyDefaultHandlerFired()
         {
-            PSharpRuntime.BugFinder.Schedule(Task.CurrentId);
+            PSharpRuntime.BugFinder.Schedule();
         }
 
         /// <summary>
@@ -468,7 +468,7 @@ namespace Microsoft.PSharp
         internal static void NotifyWaitEvent()
         {
             PSharpRuntime.BugFinder.NotifyTaskBlockedOnEvent(Task.CurrentId);
-            PSharpRuntime.BugFinder.Schedule(Task.CurrentId);
+            PSharpRuntime.BugFinder.Schedule();
         }
 
         /// <summary>
@@ -493,7 +493,7 @@ namespace Microsoft.PSharp
                 "Cannot schedule on wait without enabling the task-aware bug finding scheduler.");
             (PSharpRuntime.BugFinder as TaskAwareBugFindingScheduler).NotifyTaskBlocked(
                 Task.CurrentId, blockingTasks, waitAll);
-            PSharpRuntime.BugFinder.Schedule(Task.CurrentId);
+            PSharpRuntime.BugFinder.Schedule();
         }
 
         /// <summary>
