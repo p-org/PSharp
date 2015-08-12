@@ -27,7 +27,7 @@ namespace Microsoft.PSharp.Threading
     /// <summary>
     /// Class implementing the P# task machine scheduler.
     /// </summary>
-    public sealed class TaskMachineScheduler : TaskScheduler
+    internal sealed class TaskMachineScheduler : TaskScheduler
     {
         #region fields
 

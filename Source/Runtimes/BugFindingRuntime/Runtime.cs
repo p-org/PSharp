@@ -485,6 +485,7 @@ namespace Microsoft.PSharp
             PSharpRuntime.Monitors = new List<Monitor>();
 
             PSharpRuntime.TaskScheduler = new TaskMachineScheduler(PSharpRuntime.MachineTasks);
+            Tasks.TaskMachineScheduler = PSharpRuntime.TaskScheduler;
 
             MachineId.ResetMachineIDCounter();
 
