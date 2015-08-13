@@ -76,7 +76,6 @@ namespace Microsoft.PSharp.Threading
         /// <param name="tasks">Tasks</param>
         public static void WaitAll(params Task[] tasks)
         {
-            Console.WriteLine("[WAIT]");
             Machine.Dispatcher.ScheduleOnWait(tasks, true);
             Task.WaitAll(tasks);
         }
@@ -128,6 +127,65 @@ namespace Microsoft.PSharp.Threading
         {
             Machine.Dispatcher.ScheduleOnWait(tasks, true);
             Task.WaitAll(tasks, millisecondsTimeout, cancellationToken);
+        }
+
+        /// <summary>
+        /// Waits for any of the provided task objects to complete execution.
+        /// </summary>
+        /// <param name="tasks">Tasks</param>
+        public static void WaitAny(params Task[] tasks)
+        {
+            Machine.Dispatcher.ScheduleOnWait(tasks, false);
+            Task.WaitAny(tasks);
+        }
+
+        /// <summary>
+        /// Waits for any of the provided cancellable task objects to complete execution.
+        /// </summary>
+        /// <param name="tasks">Tasks</param>
+        /// <param name="cancellationToken">CancellationToken</param>
+        public static void WaitAny(Task[] tasks, CancellationToken cancellationToken)
+        {
+            Machine.Dispatcher.ScheduleOnWait(tasks, false);
+            Task.WaitAny(tasks, cancellationToken);
+        }
+
+        /// <summary>
+        /// Waits for any of the provided task objects to complete execution
+        /// within a specified number of milliseconds.
+        /// </summary>
+        /// <param name="tasks">Tasks</param>
+        /// <param name="millisecondsTimeout">Timeout</param>
+        public static void WaitAny(Task[] tasks, int millisecondsTimeout)
+        {
+            Machine.Dispatcher.ScheduleOnWait(tasks, false);
+            Task.WaitAny(tasks, millisecondsTimeout);
+        }
+
+        /// <summary>
+        /// Waits for any of the provided cancellable task objects to complete
+        /// execution within a specified time interval.
+        /// </summary>
+        /// <param name="tasks">Tasks</param>
+        /// <param name="timeout">Timeout</param>
+        public static void WaitAny(Task[] tasks, TimeSpan timeout)
+        {
+            Machine.Dispatcher.ScheduleOnWait(tasks, false);
+            Task.WaitAny(tasks, timeout);
+        }
+
+        /// <summary>
+        /// Waits for any of the provided cancellable task objects to complete
+        /// execution within a specified number of milliseconds.
+        /// </summary>
+        /// <param name="tasks">Tasks</param>
+        /// <param name="millisecondsTimeout">Timeout</param>
+        /// <param name="cancellationToken">CancellationToken</param>
+        public static void WaitAny(Task[] tasks, int millisecondsTimeout,
+            CancellationToken cancellationToken)
+        {
+            Machine.Dispatcher.ScheduleOnWait(tasks, false);
+            Task.WaitAny(tasks, millisecondsTimeout, cancellationToken);
         }
 
         #endregion
