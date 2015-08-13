@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
+
 using Microsoft.PSharp;
+using Microsoft.PSharp.Threading;
 
 namespace TaskParallelismCheck
 {
@@ -28,10 +30,12 @@ namespace TaskParallelismCheck
             {
                 Task.Factory.StartNew(() =>
                 {
-                    Task.Factory.StartNew(() =>
+                    var t = Task.Factory.StartNew(() =>
                     {
                         this.Value++;
                     });
+
+                    TaskMachine.WaitAll(t);
 
                     Task.Factory.StartNew(() =>
                     {
@@ -39,7 +43,7 @@ namespace TaskParallelismCheck
                     });
                 });
             }
-
+            
             this.Assert(this.Value < 10, "Value is '{0}' (expected less than '10').", this.Value);
         }
     }

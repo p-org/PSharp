@@ -347,7 +347,7 @@ namespace Microsoft.PSharp
 
         #endregion
 
-        #region P# internal methods
+        #region internal methods
 
         /// <summary>
         /// Initializes the machine with an optional payload.
@@ -505,7 +505,7 @@ namespace Microsoft.PSharp
 
         #endregion
 
-        #region private machine methods
+        #region private methods
 
         /// <summary>
         /// Gets the next available event. It gives priority to raised events,

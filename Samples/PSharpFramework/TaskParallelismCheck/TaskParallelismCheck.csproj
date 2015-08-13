@@ -39,6 +39,9 @@
     <Reference Include="Microsoft.PSharp.Runtime">
       <HintPath>..\..\..\Binaries\Release\Microsoft.PSharp.Runtime.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.PSharp.Threading">
+      <HintPath>..\..\..\Binaries\Release\Microsoft.PSharp.Threading.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>

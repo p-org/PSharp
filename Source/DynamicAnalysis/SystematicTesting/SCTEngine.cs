@@ -224,13 +224,15 @@ namespace Microsoft.PSharp.DynamicAnalysis
                     task.Wait();
                 }
             }
-            catch (AggregateException)
+            catch (AggregateException ex)
             {
                 if (SCTEngine.HasRedirectedOutput)
                 {
                     SCTEngine.ResetOutput();
                 }
 
+                Output.Debug(DebugType.Testing, ex.Message);
+                Output.Debug(DebugType.Testing, ex.StackTrace);
                 ErrorReporter.ReportAndExit("Internal systematic testing exception. " +
                     "Please send a bug report to the developers.");
             }

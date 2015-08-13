@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{6CF10554-1535-4FE0-A949-EEA5025D8604}</ProjectGuid>
+    <ProjectGuid>{81980F5A-06A4-47F0-86F3-B72F50BAE572}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Microsoft.PSharp.DynamicAnalysis</RootNamespace>

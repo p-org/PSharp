@@ -81,6 +81,10 @@
       <Project>{2e330c40-60ea-4a94-8813-9747b93a1795}</Project>
       <Name>Core</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Threading\Threading.csproj">
+      <Project>{6cf10554-1535-4fe0-a949-eea5025d8604}</Project>
+      <Name>Threading</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

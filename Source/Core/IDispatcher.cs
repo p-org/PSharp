@@ -20,7 +20,8 @@ using System.Threading.Tasks;
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Interface of a generic P# dispatcher.
+    /// Interface of a generic dispatcher that handles the
+    /// communication with the P# runtime.
     /// </summary>
     internal interface IDispatcher
     {
@@ -109,5 +110,13 @@ namespace Microsoft.PSharp
         /// Notifies that a default handler has been used.
         /// </summary>
         void NotifyDefaultHandlerFired();
+        
+        /// <summary>
+        /// Notifies that a scheduling point should be instrumented
+        /// due to a wait synchronization operation.
+        /// </summary>
+        /// <param name="blockingTasks">Blocking tasks</param>
+        /// <param name="waitAll">Boolean value</param>
+        void ScheduleOnWait(Task[] blockingTasks, bool waitAll);
     }
 }

@@ -19,7 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-using Microsoft.PSharp.Exploration;
+using Microsoft.PSharp.Threading;
 using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp.Scheduling
@@ -45,6 +45,11 @@ namespace Microsoft.PSharp.Scheduling
         /// Map from task ids to task infos.
         /// </summary>
         private Dictionary<int, TaskInfo> TaskMap;
+
+        /// <summary>
+        /// Map from wrapped task ids to task infos.
+        /// </summary>
+        private Dictionary<int, TaskInfo> WrappedTaskMap;
 
         /// <summary>
         /// True if a bug was found.
@@ -83,6 +88,7 @@ namespace Microsoft.PSharp.Scheduling
             this.Strategy = strategy;
             this.Tasks = new List<TaskInfo>();
             this.TaskMap = new Dictionary<int, TaskInfo>();
+            this.WrappedTaskMap = new Dictionary<int, TaskInfo>();
             this.BugFound = false;
         }
 
@@ -92,12 +98,27 @@ namespace Microsoft.PSharp.Scheduling
         /// <param name="id">TaskId</param>
         internal void Schedule(int? id)
         {
-            if (id == null || !this.TaskMap.ContainsKey((int)id))
+            if (id == null || id == PSharpRuntime.RootTaskId)
             {
                 return;
             }
 
-            var taskInfo = this.TaskMap[(int)id];
+            TaskInfo taskInfo = null;
+            if (this.TaskMap.ContainsKey((int)id))
+            {
+                taskInfo = this.TaskMap[(int)id];
+            }
+            else if (this.WrappedTaskMap.ContainsKey((int)id))
+            {
+                taskInfo = this.WrappedTaskMap[(int)id];
+            }
+            else
+            {
+                Output.Debug(DebugType.Testing, "<ScheduleDebug> Unable to" +
+                    " schedule task {0}.", id);
+                this.KillRemainingTasks();
+                throw new TaskCanceledException();
+            }
 
             TaskInfo next = null;
             if (this.Strategy.HasReachedDepthBound())
@@ -225,8 +246,13 @@ namespace Microsoft.PSharp.Scheduling
                 taskInfo.IsActive = true;
             }
 
-            this.TaskMap.Add(id, taskInfo);
             this.Tasks.Add(taskInfo);
+            this.TaskMap.Add(id, taskInfo);
+            
+            if (machine is TaskMachine)
+            {
+                this.WrappedTaskMap.Add((machine as TaskMachine).WrappedTask.Id, taskInfo);
+            }
         }
 
         /// <summary>
@@ -239,8 +265,16 @@ namespace Microsoft.PSharp.Scheduling
             {
                 return;
             }
-            
-            var taskInfo = this.TaskMap[(int)id];
+
+            TaskInfo taskInfo = null;
+            if (this.TaskMap.ContainsKey((int)id))
+            {
+                taskInfo = this.TaskMap[(int)id];
+            }
+            else if (this.WrappedTaskMap.ContainsKey((int)id))
+            {
+                taskInfo = this.WrappedTaskMap[(int)id];
+            }
 
             Output.Debug(DebugType.Testing, "<ScheduleDebug> Started task {0} of machine {1}({2}).",
                 taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id.MVal);
@@ -266,6 +300,44 @@ namespace Microsoft.PSharp.Scheduling
         }
 
         /// <summary>
+        /// Notify that the task has blocked.
+        /// </summary>
+        /// <param name="id">TaskId</param>
+        /// <param name="blockingTasks"></param>
+        /// <param name="waitAll"></param>
+        internal void NotifyTaskBlocked(int? id, Task[] blockingTasks, bool waitAll)
+        {
+            if (id == null)
+            {
+                return;
+            }
+            
+            var taskInfo = this.WrappedTaskMap[(int)id];
+
+            Output.Debug(DebugType.Testing, "<ScheduleDebug> Blocked task {0} of machine {1}({2}).",
+                taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id.MVal);
+
+            var blockingTaskInfos = new List<TaskInfo>();
+            foreach (var task in blockingTasks)
+            {
+                if (!this.WrappedTaskMap.ContainsKey(task.Id))
+                {
+                    Output.Debug(DebugType.Testing, "<ScheduleDebug> Unable to block task {0}" +
+                        "  of machine {1}({2}) until task {3} completes.", taskInfo.Id,
+                        taskInfo.Machine.GetType(), taskInfo.Machine.Id.MVal, task.Id);
+                    this.KillRemainingTasks();
+                    throw new TaskCanceledException();
+                }
+
+                blockingTaskInfos.Add(this.WrappedTaskMap[task.Id]);
+            }
+
+            taskInfo.IsBlocked = true;
+            taskInfo.BlockingTasks = blockingTaskInfos;
+            taskInfo.WaitAll = waitAll;
+        }
+
+        /// <summary>
         /// Notify that the task has completed.
         /// </summary>
         /// <param name="id">TaskId</param>
@@ -283,6 +355,23 @@ namespace Microsoft.PSharp.Scheduling
 
             taskInfo.IsEnabled = false;
             taskInfo.IsCompleted = true;
+
+            foreach (var task in this.Tasks)
+            {
+                if (task.IsBlocked && task.BlockingTasks.Contains(task))
+                {
+                    task.BlockingTasks.Remove(task);
+                    if (task.WaitAll && task.BlockingTasks.Count == 0)
+                    {
+                        task.WaitAll = false;
+                        task.IsBlocked = false;
+                    }
+                    else if (!task.WaitAll)
+                    {
+                        task.IsBlocked = false;
+                    }
+                }
+            }
 
             this.Schedule(taskInfo.Id);
 

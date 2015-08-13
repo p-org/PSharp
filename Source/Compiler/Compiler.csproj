@@ -99,7 +99,7 @@
       <Name>Core</Name>
     </ProjectReference>
     <ProjectReference Include="..\DynamicAnalysis\DynamicAnalysis.csproj">
-      <Project>{6cf10554-1535-4fe0-a949-eea5025d8604}</Project>
+      <Project>{81980f5a-06a4-47f0-86f3-b72f50bae572}</Project>
       <Name>DynamicAnalysis</Name>
     </ProjectReference>
     <ProjectReference Include="..\LanguageServices\LanguageServices.csproj">

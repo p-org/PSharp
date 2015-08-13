@@ -20,7 +20,8 @@ using System.Threading.Tasks;
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Class implementing the P# dispatcher.
+    /// Class implementing the dispatcher that handles the
+    /// communication with the P# runtime.
     /// </summary>
     internal sealed class Dispatcher : IDispatcher
     {
@@ -151,6 +152,17 @@ namespace Microsoft.PSharp
         /// Notifies that a default handler has been used.
         /// </summary>
         void IDispatcher.NotifyDefaultHandlerFired()
+        {
+            // No-op for real execution.
+        }
+
+        /// <summary>
+        /// Notifies that a scheduling point should be instrumented
+        /// due to a wait synchronization operation.
+        /// </summary>
+        /// <param name="blockingTasks">Blocking tasks</param>
+        /// <param name="waitAll">Boolean value</param>
+        void IDispatcher.ScheduleOnWait(Task[] blockingTasks, bool waitAll)
         {
             // No-op for real execution.
         }

@@ -82,8 +82,15 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
                 return false;
             }
 
-            int id = this.Random.Next(enabledTasks.Count);
-            next = enabledTasks[id];
+            var availableTasks = enabledTasks.Where(task => !task.IsBlocked).ToList();
+            if (availableTasks.Count == 0)
+            {
+                next = null;
+                return false;
+            }
+
+            int id = this.Random.Next(availableTasks.Count);
+            next = availableTasks[id];
 
             if (!currentTask.IsCompleted)
             {

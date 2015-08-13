@@ -37,12 +37,12 @@ namespace Microsoft.PSharp.Threading
         private List<Task> MachineTasks;
 
         /// <summary>
-        /// The scheduled user tasks.
+        /// The wrapped in a machine user tasks.
         /// </summary>
-        private List<Task> ScheduledTasks;
+        private List<Task> WrappedTasks;
 
         #endregion
-        
+
         #region internal methods
 
         /// <summary>
@@ -52,19 +52,18 @@ namespace Microsoft.PSharp.Threading
         internal TaskMachineScheduler(List<Task> machineTasks)
         {
             this.MachineTasks = machineTasks;
-            this.ScheduledTasks = new List<Task>();
+            this.WrappedTasks = new List<Task>();
         }
 
         /// <summary>
         /// Executes the given scheduled task.
         /// </summary>
-        /// <param name="task"></param>
+        /// <param name="task">Task</param>
         internal void Execute(Task task)
         {
             ThreadPool.UnsafeQueueUserWorkItem(_ =>
             {
                 base.TryExecuteTask(task);
-                this.ScheduledTasks.Remove(task);
             }, null);
         }
 
@@ -86,7 +85,7 @@ namespace Microsoft.PSharp.Threading
             else
             {
                 Output.Debug(DebugType.Testing, "<ScheduleDebug> Wrapping task {0} in a machine.", task.Id);
-                this.ScheduledTasks.Add(task);
+                this.WrappedTasks.Add(task);
                 Machine.Dispatcher.TryCreateTaskMachine(task);
             }
         }
@@ -103,12 +102,12 @@ namespace Microsoft.PSharp.Threading
         }
 
         /// <summary>
-        /// Returns the scheduled tasks.
+        /// Returns the wrapped in a machine scheduled tasks.
         /// </summary>
         /// <returns>Scheduled tasks</returns>
         protected override IEnumerable<Task> GetScheduledTasks()
         {
-            return this.ScheduledTasks;
+            return this.WrappedTasks;
         }
 
         #endregion

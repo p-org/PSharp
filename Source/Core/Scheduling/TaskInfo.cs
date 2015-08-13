@@ -14,6 +14,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System.Collections.Generic;
+
 namespace Microsoft.PSharp.Scheduling
 {
     /// <summary>
@@ -21,6 +23,8 @@ namespace Microsoft.PSharp.Scheduling
     /// </summary>
     public sealed class TaskInfo
     {
+        #region fields
+
         /// <summary>
         /// Task Id.
         /// </summary>
@@ -32,9 +36,28 @@ namespace Microsoft.PSharp.Scheduling
         internal BaseMachine Machine;
 
         /// <summary>
+        /// List of tasks that block this task.
+        /// </summary>
+        internal List<TaskInfo> BlockingTasks;
+
+        /// <summary>
+        /// True if this task should wait all blocking
+        /// tasks to complete, before unblocking.
+        /// </summary>
+        internal bool WaitAll;
+
+        /// <summary>
         /// Is task enabled.
         /// </summary>
         public bool IsEnabled
+        {
+            get; internal set;
+        }
+
+        /// <summary>
+        /// Is task blocked.
+        /// </summary>
+        public bool IsBlocked
         {
             get; internal set;
         }
@@ -63,6 +86,10 @@ namespace Microsoft.PSharp.Scheduling
             get; internal set;
         }
 
+        #endregion
+
+        #region constructors
+
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -73,9 +100,50 @@ namespace Microsoft.PSharp.Scheduling
             this.Id = id;
             this.Machine = machine;
             this.IsEnabled = true;
+            this.IsBlocked = false;
             this.IsActive = false;
             this.HasStarted = false;
             this.IsCompleted = false;
+
+            this.BlockingTasks = new List<TaskInfo>();
+            this.WaitAll = false;
         }
+
+        #endregion
+
+        #region generic public and override methods
+
+        /// <summary>
+        /// Determines whether the specified System.Object is equal
+        /// to the current System.Object.
+        /// </summary>
+        /// <param name="obj">Object</param>
+        /// <returns>Boolean value</returns>
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+            {
+                return false;
+            }
+
+            TaskInfo mid = obj as TaskInfo;
+            if (mid == null)
+            {
+                return false;
+            }
+
+            return this.Id == mid.Id;
+        }
+
+        /// <summary>
+        /// Returns the hash code for this instance.
+        /// </summary>
+        /// <returns>int</returns>
+        public override int GetHashCode()
+        {
+            return this.Id.GetHashCode();
+        }
+
+        #endregion
     }
 }

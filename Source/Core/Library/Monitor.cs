@@ -174,7 +174,7 @@ namespace Microsoft.PSharp
 
         #endregion
 
-        #region P# internal methods
+        #region internal methods
 
         /// <summary>
         /// Initializes the machine with an optional payload.
@@ -259,7 +259,7 @@ namespace Microsoft.PSharp
 
         #endregion
 
-        #region private monitor methods
+        #region private methods
 
         /// <summary>
         /// Handles the given event.

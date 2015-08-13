@@ -49,19 +49,9 @@ namespace Microsoft.PSharp
         private static List<Monitor> Monitors;
 
         /// <summary>
-        /// The P# task machine scheduler.
-        /// </summary>
-        private static TaskMachineScheduler TaskScheduler;
-
-        /// <summary>
         /// Lock used by the runtime.
         /// </summary>
         private static Object Lock = new Object();
-
-        /// <summary>
-        /// The main thread id.
-        /// </summary>
-        private static int? MainThreadId;
 
         /// <summary>
         /// True if runtime is running. False otherwise.
@@ -72,6 +62,16 @@ namespace Microsoft.PSharp
         /// The P# program trace.
         /// </summary>
         internal static Trace ProgramTrace;
+
+        /// <summary>
+        /// The P# task machine scheduler.
+        /// </summary>
+        internal static TaskMachineScheduler TaskScheduler;
+
+        /// <summary>
+        /// The root task id.
+        /// </summary>
+        internal static int? RootTaskId;
 
         /// <summary>
         /// The P# bugfinder.
@@ -167,7 +167,7 @@ namespace Microsoft.PSharp
             if (!predicate)
             {
                 var killTasks = true;
-                if (Task.CurrentId == PSharpRuntime.MainThreadId)
+                if (Task.CurrentId == PSharpRuntime.RootTaskId)
                 {
                     killTasks = false;
                 }
@@ -189,7 +189,7 @@ namespace Microsoft.PSharp
             if (!predicate)
             {
                 var killTasks = true;
-                if (Task.CurrentId == PSharpRuntime.MainThreadId)
+                if (Task.CurrentId == PSharpRuntime.RootTaskId)
                 {
                     killTasks = false;
                 }
@@ -220,7 +220,7 @@ namespace Microsoft.PSharp
                 
                 Output.Debug(DebugType.Runtime, "<CreateLog> Machine {0}({1}) is created.",
                     type.Name, mid.MVal);
-                
+
                 Task task = new Task(() =>
                 {
                     PSharpRuntime.BugFinder.NotifyTaskStarted(Task.CurrentId);
@@ -339,9 +339,7 @@ namespace Microsoft.PSharp
             Task task = new Task(() =>
             {
                 PSharpRuntime.BugFinder.NotifyTaskStarted(Task.CurrentId);
-
                 machine.RunEventHandler();
-
                 PSharpRuntime.BugFinder.NotifyTaskCompleted(Task.CurrentId);
             });
 
@@ -375,14 +373,6 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Notifies that a default handler has been used.
-        /// </summary>
-        internal static void NotifyDefaultHandlerFired()
-        {
-            PSharpRuntime.BugFinder.Schedule(Task.CurrentId);
-        }
-
-        /// <summary>
         /// Returns a nondeterministic boolean choice, that can be
         /// controlled during analysis or testing.
         /// </summary>
@@ -401,6 +391,26 @@ namespace Microsoft.PSharp
         internal static bool FairNondet(string uniqueId)
         {
             return PSharpRuntime.BugFinder.GetNextNondeterministicChoice(uniqueId);
+        }
+
+        /// <summary>
+        /// Notifies that a default handler has been used.
+        /// </summary>
+        internal static void NotifyDefaultHandlerFired()
+        {
+            PSharpRuntime.BugFinder.Schedule(Task.CurrentId);
+        }
+
+        /// <summary>
+        /// Notifies that a scheduling point should be instrumented
+        /// due to a wait synchronization operation.
+        /// </summary>
+        /// <param name="blockingTasks">Blocking tasks</param>
+        /// <param name="waitAll">Boolean value</param>
+        internal static void ScheduleOnWait(Task[] blockingTasks, bool waitAll)
+        {
+            PSharpRuntime.BugFinder.NotifyTaskBlocked(Task.CurrentId, blockingTasks, waitAll);
+            PSharpRuntime.BugFinder.Schedule(Task.CurrentId);
         }
 
         /// <summary>
@@ -478,20 +488,19 @@ namespace Microsoft.PSharp
         /// </summary>
         private static void Initialize()
         {
-            PSharpRuntime.MainThreadId = Task.CurrentId;
+            PSharpRuntime.RootTaskId = Task.CurrentId;
 
             PSharpRuntime.MachineTasks = new List<Task>();
             PSharpRuntime.MachineMap = new Dictionary<int, Machine>();
             PSharpRuntime.Monitors = new List<Monitor>();
 
             PSharpRuntime.TaskScheduler = new TaskMachineScheduler(PSharpRuntime.MachineTasks);
-            Tasks.TaskMachineScheduler = PSharpRuntime.TaskScheduler;
 
             MachineId.ResetMachineIDCounter();
 
             var dispatcher = new BugFindingDispatcher();
-            Microsoft.PSharp.Machine.Dispatcher = dispatcher;
-            Microsoft.PSharp.Monitor.Dispatcher = dispatcher;
+            Machine.Dispatcher = dispatcher;
+            PSharp.Monitor.Dispatcher = dispatcher;
 
             PSharpRuntime.ProgramTrace = new Trace();
             PSharpRuntime.StateCache = new StateCache();
