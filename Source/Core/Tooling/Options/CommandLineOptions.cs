@@ -100,14 +100,14 @@ namespace Microsoft.PSharp.Tooling
                 }
                 else if (this.Options[idx].ToLower().Equals("/debug"))
                 {
-                    Configuration.Debug.Add(DebugType.All);
+                    Configuration.Debug.Add(DebugType.Any);
                 }
                 else if (this.Options[idx].ToLower().StartsWith("/debug:") &&
                     this.Options[idx].Length > 7)
                 {
                     if (this.Options[idx].Substring(7).ToLower().Equals("all"))
                     {
-                        Configuration.Debug.Add(DebugType.All);
+                        Configuration.Debug.Add(DebugType.Any);
                     }
                     else if (this.Options[idx].Substring(7).ToLower().Equals("runtime"))
                     {

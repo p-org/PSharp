@@ -108,7 +108,7 @@ namespace Microsoft.PSharp.Tooling
             ProgramInfo.Solution = project.Solution;
 
             if (Configuration.Debug.Contains(DebugType.Parsing) ||
-                Configuration.Debug.Contains(DebugType.All))
+                Configuration.Debug.Contains(DebugType.Any))
             {
                 ProgramInfo.PrintSyntaxTree(tree);
             }

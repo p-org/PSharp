@@ -61,7 +61,7 @@ namespace Microsoft.PSharp.Tooling
 
         internal static void Debug(DebugType type, string s, params object[] args)
         {
-            if (!Configuration.Debug.Contains(DebugType.All) &&
+            if (!Configuration.Debug.Contains(DebugType.Any) &&
                 !Configuration.Debug.Contains(type))
             {
                 return;

@@ -86,7 +86,7 @@ namespace Microsoft.PSharp
         public static MachineId CreateMachine(Type type, params Object[] payload)
         {
             // TODO: remove
-            Configuration.Debug.Contains(DebugType.All);
+            Configuration.Debug.Contains(DebugType.Any);
             return PSharpRuntime.TryCreateMachine(type, payload);
         }
 

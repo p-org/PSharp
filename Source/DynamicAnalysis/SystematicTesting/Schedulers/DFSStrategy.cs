@@ -81,6 +81,13 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
                 return false;
             }
 
+            var availableTasks = enabledTasks.Where(task => !task.IsBlocked).ToList();
+            if (availableTasks.Count == 0)
+            {
+                next = null;
+                return false;
+            }
+
             SChoice nextChoice = null;
             List<SChoice> scs = null;
 
@@ -91,7 +98,7 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
             else
             {
                 scs = new List<SChoice>();
-                foreach (var task in enabledTasks)
+                foreach (var task in availableTasks)
                 {
                     scs.Add(new SChoice(task.Machine.Id.Value));
                 }
@@ -112,7 +119,7 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
                 previousChoice.IsDone = false;
             }
             
-            next = enabledTasks.Find(task => task.Machine.Id.Value == nextChoice.Id);
+            next = availableTasks.Find(task => task.Machine.Id.Value == nextChoice.Id);
             nextChoice.IsDone = true;
             this.SchIndex++;
 

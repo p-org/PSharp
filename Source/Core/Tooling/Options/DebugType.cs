@@ -22,7 +22,7 @@ namespace Microsoft.PSharp.Tooling
     internal enum DebugType
     {
         None = 0,
-        All,
+        Any,
         Parsing,
         Rewriting,
         Runtime,

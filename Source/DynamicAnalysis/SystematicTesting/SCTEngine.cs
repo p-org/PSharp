@@ -107,7 +107,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
                 Configuration.CacheProgramState = false;
             }
 
-            if (!Configuration.Debug.Contains(DebugType.All) &&
+            if (!Configuration.Debug.Contains(DebugType.Any) &&
                 !Configuration.Debug.Contains(DebugType.Runtime))
             {
                 Configuration.Debug.Add(DebugType.Runtime);

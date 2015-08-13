@@ -57,6 +57,8 @@ namespace Microsoft.PSharp
         static void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs args)
         {
             var ex = (Exception)args.ExceptionObject;
+            Output.Debug(DebugType.Any, ex.Message);
+            Output.Debug(DebugType.Any, ex.StackTrace);
             ErrorReporter.ReportAndExit("internal failure: {0}.", ex.GetType().ToString());
         }
     }
