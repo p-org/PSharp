@@ -323,7 +323,7 @@ namespace Microsoft.PSharp.Scheduling
                 if (!this.WrappedTaskMap.ContainsKey(task.Id))
                 {
                     Output.Debug(DebugType.Testing, "<ScheduleDebug> Unable to block task {0}" +
-                        "  of machine {1}({2}) until task {3} completes.", taskInfo.Id,
+                        " of machine {1}({2}) until task {3} completes.", taskInfo.Id,
                         taskInfo.Machine.GetType(), taskInfo.Machine.Id.MVal, task.Id);
                     this.KillRemainingTasks();
                     throw new TaskCanceledException();
