@@ -15,6 +15,7 @@
 //-----------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Microsoft.PSharp.Scheduling
 {
@@ -36,9 +37,14 @@ namespace Microsoft.PSharp.Scheduling
         internal BaseMachine Machine;
 
         /// <summary>
+        /// List of wrapped tasks that block this task.
+        /// </summary>
+        internal List<TaskInfo> BlockingWrappedTasks;
+
+        /// <summary>
         /// List of tasks that block this task.
         /// </summary>
-        internal List<TaskInfo> BlockingTasks;
+        internal List<Task> BlockingUnwrappedTasks;
 
         /// <summary>
         /// True if this task should wait all blocking
@@ -105,7 +111,8 @@ namespace Microsoft.PSharp.Scheduling
             this.HasStarted = false;
             this.IsCompleted = false;
 
-            this.BlockingTasks = new List<TaskInfo>();
+            this.BlockingWrappedTasks = new List<TaskInfo>();
+            this.BlockingUnwrappedTasks = new List<Task>();
             this.WaitAll = false;
         }
 

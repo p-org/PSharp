@@ -42,6 +42,11 @@ namespace Microsoft.PSharp.Scheduling
         private List<TaskInfo> Tasks;
 
         /// <summary>
+        /// List of user tasks that cannot be directly scheduled.
+        /// </summary>
+        private List<Task> UserTasks;
+
+        /// <summary>
         /// Map from task ids to task infos.
         /// </summary>
         private Dictionary<int, TaskInfo> TaskMap;
@@ -87,6 +92,7 @@ namespace Microsoft.PSharp.Scheduling
         {
             this.Strategy = strategy;
             this.Tasks = new List<TaskInfo>();
+            this.UserTasks = new List<Task>();
             this.TaskMap = new Dictionary<int, TaskInfo>();
             this.WrappedTaskMap = new Dictionary<int, TaskInfo>();
             this.BugFound = false;
@@ -118,6 +124,37 @@ namespace Microsoft.PSharp.Scheduling
                     " schedule task {0}.", id);
                 this.KillRemainingTasks();
                 throw new TaskCanceledException();
+            }
+
+            foreach (var task in this.Tasks.Where(val => val.IsBlocked))
+            {
+                foreach (var userTask in this.UserTasks.Where(val => val.IsCompleted))
+                {
+                    if (task.BlockingUnwrappedTasks.Contains(userTask))
+                    {
+                        task.BlockingUnwrappedTasks.Remove(userTask);
+                        if (!task.WaitAll)
+                        {
+                            task.BlockingWrappedTasks.Clear();
+                            task.BlockingUnwrappedTasks.Clear();
+                            task.IsBlocked = false;
+                            break;
+                        }
+                    }
+                }
+
+                if (task.WaitAll && task.BlockingWrappedTasks.Count == 0 &&
+                    task.BlockingUnwrappedTasks.Count == 0)
+                {
+                    task.WaitAll = false;
+                    task.IsBlocked = false;
+                }
+
+                if (!task.IsBlocked)
+                {
+                    Output.Debug(DebugType.Testing, "<ScheduleDebug> Unblocked task {0} of " +
+                        "machine {1}({2}).", task.Id, task.Machine.GetType(), task.Machine.Id.MVal);
+                }
             }
 
             TaskInfo next = null;
@@ -317,23 +354,24 @@ namespace Microsoft.PSharp.Scheduling
             Output.Debug(DebugType.Testing, "<ScheduleDebug> Blocked task {0} of machine {1}({2}).",
                 taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id.MVal);
 
-            var blockingTaskInfos = new List<TaskInfo>();
+            var blockingWrappedTasks = new List<TaskInfo>();
+            var blockingUnwrappedTasks = new List<Task>();
             foreach (var task in blockingTasks)
             {
-                if (!this.WrappedTaskMap.ContainsKey(task.Id))
+                if (this.WrappedTaskMap.ContainsKey(task.Id))
                 {
-                    Output.Debug(DebugType.Testing, "<ScheduleDebug> Unable to block task {0}" +
-                        " of machine {1}({2}) until task {3} completes.", taskInfo.Id,
-                        taskInfo.Machine.GetType(), taskInfo.Machine.Id.MVal, task.Id);
-                    this.KillRemainingTasks();
-                    throw new TaskCanceledException();
+                    blockingWrappedTasks.Add(this.WrappedTaskMap[task.Id]);
                 }
-
-                blockingTaskInfos.Add(this.WrappedTaskMap[task.Id]);
+                else
+                {
+                    this.UserTasks.Add(task);
+                    blockingUnwrappedTasks.Add(task);
+                }
             }
 
             taskInfo.IsBlocked = true;
-            taskInfo.BlockingTasks = blockingTaskInfos;
+            taskInfo.BlockingWrappedTasks = blockingWrappedTasks;
+            taskInfo.BlockingUnwrappedTasks = blockingUnwrappedTasks;
             taskInfo.WaitAll = waitAll;
         }
 
@@ -356,19 +394,18 @@ namespace Microsoft.PSharp.Scheduling
             taskInfo.IsEnabled = false;
             taskInfo.IsCompleted = true;
 
-            foreach (var task in this.Tasks)
+            foreach (var task in this.Tasks.Where(val => val.IsBlocked))
             {
-                if (task.IsBlocked && task.BlockingTasks.Contains(task))
+                if (task.BlockingWrappedTasks.Contains(taskInfo))
                 {
-                    task.BlockingTasks.Remove(task);
-                    if (task.WaitAll && task.BlockingTasks.Count == 0)
+                    task.BlockingWrappedTasks.Remove(taskInfo);
+                    if (!task.WaitAll)
                     {
-                        task.WaitAll = false;
+                        task.BlockingWrappedTasks.Clear();
+                        task.BlockingUnwrappedTasks.Clear();
                         task.IsBlocked = false;
-                    }
-                    else if (!task.WaitAll)
-                    {
-                        task.IsBlocked = false;
+                        Output.Debug(DebugType.Testing, "<ScheduleDebug> Unblocked task {0} of " +
+                            "machine {1}({2}).", task.Id, task.Machine.GetType(), task.Machine.Id.MVal);
                     }
                 }
             }
