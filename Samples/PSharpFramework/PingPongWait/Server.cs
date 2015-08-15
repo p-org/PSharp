@@ -17,18 +17,19 @@ namespace PingPong
             this.Client = this.CreateMachine(typeof(Client), this.Id);
             this.Raise(new Unit());
         }
-        
-        [OnEventDoAction(typeof(Ping), nameof(SendPong))]
+
+        [OnEntry(nameof(ActiveOnEntry))]
+        [OnEventDoAction(typeof(Pong), nameof(SendPing))]
         class Active : MachineState { }
 
         void ActiveOnEntry()
         {
-            this.SendPong();
+            this.SendPing();
         }
 
-        void SendPong()
+        void SendPing()
         {
-            this.Send(this.Client, new Pong());
+            this.Send(this.Client, new Ping());
         }
     }
 }

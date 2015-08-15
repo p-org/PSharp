@@ -9,7 +9,7 @@ namespace PingPong
         private int Counter;
 
         [Start]
-        [OnEventGotoState(typeof(Unit), typeof(Playing))]
+        [OnEventGotoState(typeof(Unit), typeof(Active))]
         class Init : MachineState
         {
             protected override void OnEntry()
@@ -20,9 +20,9 @@ namespace PingPong
             }
         }
 
-        [OnEventGotoState(typeof(Unit), typeof(Playing))]
+        [OnEventGotoState(typeof(Unit), typeof(Active))]
         [OnEventDoAction(typeof(Pong), nameof(SendPing))]
-        class Playing : MachineState
+        class Active : MachineState
         {
             protected override void OnEntry()
             {

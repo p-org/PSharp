@@ -106,6 +106,19 @@ namespace Microsoft.PSharp
         private Event RaisedEvent;
 
         /// <summary>
+        /// A map from event types, which the machine is currently waiting to
+        /// arrive, to optional actions that must execute when the corresponding
+        /// event arrives.
+        /// </summary>
+        private Dictionary<Type, Action> EventWaiters;
+
+        /// <summary>
+        /// Gets the received event and an optional associated action. If no event
+        /// has been received this will return null.
+        /// </summary>
+        private Tuple<Event, Action> ReceivedEventHandler;
+
+        /// <summary>
         /// Gets the latest received event type. If no event has been
         /// received this will return null.
         /// </summary>
@@ -129,6 +142,7 @@ namespace Microsoft.PSharp
         {
             this.Inbox = new List<Event>();
             this.StateStack = new Stack<MachineState>();
+            this.EventWaiters = new Dictionary<Type, Action>();
 
             this.IsRunning = true;
             this.IsHalted = false;
@@ -262,6 +276,33 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Blocks and waits to receive an event of the given types.
+        /// </summary>
+        protected internal void Receive(params Type[] events)
+        {
+            foreach (var e in events)
+            {
+                this.EventWaiters.Add(e, null);
+            }
+
+            this.WaitOnEvent();
+        }
+
+        /// <summary>
+        /// Blocks and waits to receive an event of the given types, and
+        /// executes a given action on receiving the event.
+        /// </summary>
+        protected internal void Receive(params Tuple<Type, Action>[] events)
+        {
+            foreach (var e in events)
+            {
+                this.EventWaiters.Add(e.Item1, e.Item2);
+            }
+
+            this.WaitOnEvent();
+        }
+
+        /// <summary>
         /// Pops the current state from the state stack.
         /// </summary>
         protected internal void Pop()
@@ -391,8 +432,19 @@ namespace Microsoft.PSharp
                     return;
                 }
 
+                if (this.EventWaiters.ContainsKey(e.GetType()))
+                {
+                    Output.Debug(DebugType.Runtime, "<ReceiveLog> Machine '{0}({1})' received " +
+                        "event '{2}' and unblocked.", this, base.Id.MVal, e.GetType().Name);
+                    this.ReceivedEventHandler = new Tuple<Event, Action>(
+                        e, this.EventWaiters[e.GetType()]);
+                    this.EventWaiters.Clear();
+                    Machine.Dispatcher.NotifyReceivedEvent(this.Id);
+                    return;
+                }
+
                 Output.Debug(DebugType.Runtime, "<EnqueueLog> Machine '{0}({1})' enqueued " +
-                        "event < ____{2} >.", this, base.Id.MVal, e.GetType());
+                        "event < {2} >.", this, base.Id.MVal, e.GetType());
 
                 this.Inbox.Add(e);
 
@@ -525,7 +577,7 @@ namespace Microsoft.PSharp
                 // Checks if the raised event is ignored.
                 if (this.IgnoredEvents.Contains(nextEvent.GetType()))
                 {
-                    Output.Log("<IgnoreLog> Machine '{0}({1})' ignored event < ____{2} >.",
+                    Output.Log("<IgnoreLog> Machine '{0}({1})' ignored event < {2} >.",
                         this.GetType().Name, base.Id.MVal, nextEvent.GetType());
                     nextEvent = null;
                 }
@@ -539,7 +591,7 @@ namespace Microsoft.PSharp
                     // Remove an ignored event.
                     if (this.IgnoredEvents.Contains(this.Inbox[idx].GetType()))
                     {
-                        Output.Log("<IgnoreLog> Machine '{0}({1})' ignored event < ____{2} >.",
+                        Output.Log("<IgnoreLog> Machine '{0}({1})' ignored event < {2} >.",
                             this.GetType().Name, base.Id.MVal, this.Inbox[idx].GetType());
                         this.Inbox.RemoveAt(idx);
                         idx--;
@@ -553,7 +605,7 @@ namespace Microsoft.PSharp
                     {
                         nextEvent = this.Inbox[idx];
                         Output.Debug(DebugType.Runtime, "<DequeueLog> Machine '{0}({1})' dequeued " +
-                            "event < ____{2} >.", this.GetType().Name, base.Id.MVal, nextEvent.GetType());
+                            "event < {2} >.", this.GetType().Name, base.Id.MVal, nextEvent.GetType());
 
                         this.Inbox.RemoveAt(idx);
                         break;
@@ -644,6 +696,61 @@ namespace Microsoft.PSharp
                 }
 
                 break;
+            }
+        }
+
+        /// <summary>
+        /// Waits for an event to arrive.
+        /// </summary>
+        private void WaitOnEvent()
+        {
+            lock (this.Inbox)
+            {
+                // Iterate through the events in the inbox.
+                for (int idx = 0; idx < this.Inbox.Count; idx++)
+                {
+                    // Dequeues the first event that the machine waits
+                    // to receive, if there is one in the inbox.
+                    if (this.EventWaiters.ContainsKey(this.Inbox[idx].GetType()))
+                    {
+                        this.ReceivedEventHandler = new Tuple<Event, Action>(
+                            this.Inbox[idx], this.EventWaiters[this.Inbox[idx].GetType()]);
+                        this.EventWaiters.Clear();
+                        this.Inbox.RemoveAt(idx);
+                        break;
+                    }
+                }
+            }
+
+            if (this.ReceivedEventHandler == null)
+            {
+                var events = "";
+                foreach (var ew in this.EventWaiters)
+                {
+                    events += " '" + ew.Key.Name + "'";
+                }
+
+                Output.Debug(DebugType.Runtime, "<ReceiveLog> Machine '{0}({1})' is " +
+                    "waiting on events:{2}.", this, base.Id.MVal, events);
+
+                Machine.Dispatcher.NotifyWaitEvent(this.Id);
+            }
+            
+            this.HandleReceivedEvent();
+        }
+
+        /// <summary>
+        /// Handles an event that the machine was waiting to arrive.
+        /// </summary>
+        private void HandleReceivedEvent()
+        {
+            var action = this.ReceivedEventHandler.Item2;
+            this.ReceivedEventHandler = null;
+
+            // Execute the associated action, if there is one.
+            if (action != null)
+            {
+                action();
             }
         }
 

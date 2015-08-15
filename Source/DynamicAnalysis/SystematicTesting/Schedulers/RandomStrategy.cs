@@ -82,7 +82,8 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
                 return false;
             }
 
-            var availableTasks = enabledTasks.Where(task => !task.IsBlocked).ToList();
+            var availableTasks = enabledTasks.Where(
+                task => !task.IsBlocked && !task.IsWaiting).ToList();
             if (availableTasks.Count == 0)
             {
                 next = null;

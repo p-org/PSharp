@@ -15,6 +15,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Microsoft.PSharp
@@ -110,13 +111,25 @@ namespace Microsoft.PSharp
         /// Notifies that a default handler has been used.
         /// </summary>
         void NotifyDefaultHandlerFired();
-        
+
+        /// <summary>
+        /// Notifies that a machine is waiting to receive an event.
+        /// </summary>
+        /// <param name="mid">Machine id</param>
+        void NotifyWaitEvent(MachineId mid);
+
+        /// <summary>
+        /// Notifies that a machine received an event that it was waiting for.
+        /// </summary>
+        /// <param name="mid">Machine id</param>
+        void NotifyReceivedEvent(MachineId mid);
+
         /// <summary>
         /// Notifies that a scheduling point should be instrumented
         /// due to a wait synchronization operation.
         /// </summary>
         /// <param name="blockingTasks">Blocking tasks</param>
         /// <param name="waitAll">Boolean value</param>
-        void ScheduleOnWait(Task[] blockingTasks, bool waitAll);
+        void ScheduleOnWait(IEnumerable<Task> blockingTasks, bool waitAll);
     }
 }

@@ -15,6 +15,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -29,7 +30,7 @@ namespace Microsoft.PSharp.Threading
 
         /// <summary>
         /// The task scheduler that is responsible
-        /// for executing this task machine.
+        /// for executing a task machine.
         /// </summary>
         internal TaskMachineScheduler TaskScheduler;
 
@@ -188,6 +189,129 @@ namespace Microsoft.PSharp.Threading
             Task.WaitAny(tasks, millisecondsTimeout, cancellationToken);
         }
 
+        /// <summary>
+        /// Creates a task that will complete when all of the task objects
+        /// in an array have completed.
+        /// </summary>
+        /// <param name="tasks">Tasks</param>
+        /// <returns>Task</returns>
+        public static Task WhenAll(params Task[] tasks)
+        {
+            Machine.Dispatcher.ScheduleOnWait(tasks, true);
+            return Task.WhenAll(tasks);
+        }
+
+        /// <summary>
+        /// Creates a task that will complete when all of the task objects
+        /// in an enumerable collection have completed.
+        /// </summary>
+        /// <param name="tasks">Tasks</param>
+        /// <returns>Task</returns>
+        public static Task WhenAll(IEnumerable<Task> tasks)
+        {
+            Machine.Dispatcher.ScheduleOnWait(tasks, true);
+            return Task.WhenAll(tasks);
+        }
+
+        /// <summary>
+        /// Creates a task that will complete when all of the task objects
+        /// in an array have completed.
+        /// </summary>
+        /// <param name="tasks">Tasks</param>
+        /// <returns>Task</returns>
+        public static Task<TResult[]> WhenAll<TResult>(params Task<TResult>[] tasks)
+        {
+            Machine.Dispatcher.ScheduleOnWait(tasks, true);
+            return Task.WhenAll(tasks);
+        }
+
+        /// <summary>
+        /// Creates a task that will complete when all of the task objects
+        /// in an enumerable collection have completed.
+        /// </summary>
+        /// <param name="tasks">Tasks</param>
+        /// <returns>Task</returns>
+        public static Task<TResult[]> WhenAll<TResult>(IEnumerable<Task<TResult>> tasks)
+        {
+            Machine.Dispatcher.ScheduleOnWait(tasks, true);
+            return Task.WhenAll(tasks);
+        }
+
+        /// <summary>
+        /// Creates a task that will complete when any of the supplied
+        /// tasks have completed.
+        /// </summary>
+        /// <param name="tasks">Tasks</param>
+        /// <returns>Task</returns>
+        public static Task<Task> WhenAny(params Task[] tasks)
+        {
+            Machine.Dispatcher.ScheduleOnWait(tasks, false);
+            return Task.WhenAny(tasks);
+        }
+
+        /// <summary>
+        /// Creates a task that will complete when any of the supplied
+        /// tasks have completed.
+        /// </summary>
+        /// <param name="tasks">Tasks</param>
+        /// <returns>Task</returns>
+        public static Task<Task> WhenAny(IEnumerable<Task> tasks)
+        {
+            Machine.Dispatcher.ScheduleOnWait(tasks, false);
+            return Task.WhenAny(tasks);
+        }
+
+        /// <summary>
+        /// Creates a task that will complete when any of the supplied
+        /// tasks have completed.
+        /// </summary>
+        /// <param name="tasks">Tasks</param>
+        /// <returns>Task</returns>
+        public static Task<Task<TResult>> WhenAny<TResult>(params Task<TResult>[] tasks)
+        {
+            Machine.Dispatcher.ScheduleOnWait(tasks, false);
+            return Task.WhenAny(tasks);
+        }
+
+        /// <summary>
+        /// Creates a task that will complete when any of the supplied
+        /// tasks have completed.
+        /// </summary>
+        /// <param name="tasks">Tasks</param>
+        /// <returns>Task</returns>
+        public static Task<Task<TResult>> WhenAny<TResult>(IEnumerable<Task<TResult>> tasks)
+        {
+            Machine.Dispatcher.ScheduleOnWait(tasks, false);
+            return Task.WhenAny(tasks);
+        }
+        
         #endregion
+    }
+
+    /// <summary>
+    /// Class implementing task extensions.
+    /// </summary>
+    public static class TaskMachineExtensions
+    {
+        /// <summary>
+        /// The task scheduler that is responsible
+        /// for executing a task machine.
+        /// </summary>
+        internal static TaskMachineScheduler TaskScheduler;
+
+        /// <summary>
+        /// Run the task on the P# task scheduler.
+        /// </summary>
+        /// <typeparam name="TResult">Task result</typeparam>
+        /// <param name="@this">Task</param>
+        /// <returns>Task</returns>
+        public static Task<TResult> RunOnPSharpScheduler<TResult>(this Task<TResult> @this)
+        {
+            Console.WriteLine("[RunOnPSharpScheduler]");
+            return @this.ContinueWith(val => val,
+                CancellationToken.None,
+                TaskContinuationOptions.ExecuteSynchronously,
+                TaskMachineExtensions.TaskScheduler).Unwrap();
+        }
     }
 }

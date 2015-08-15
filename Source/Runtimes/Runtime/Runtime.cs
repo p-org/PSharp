@@ -305,7 +305,33 @@ namespace Microsoft.PSharp
 
             return result;
         }
-        
+
+        /// <summary>
+        /// Notifies that a machine is waiting to receive an event.
+        /// </summary>
+        /// <param name="mid">Machine id</param>
+        internal static void NotifyWaitEvent(MachineId mid)
+        {
+            var machine = PSharpRuntime.MachineMap[mid.Value];
+            lock (machine)
+            {
+                System.Threading.Monitor.Wait(machine);
+            }
+        }
+
+        /// <summary>
+        /// Notifies that a machine received an event that it was waiting for.
+        /// </summary>
+        /// <param name="mid">Machine id</param>
+        internal static void NotifyReceivedEvent(MachineId mid)
+        {
+            var machine = PSharpRuntime.MachineMap[mid.Value];
+            lock (machine)
+            {
+                System.Threading.Monitor.Pulse(machine);
+            }
+        }
+
         #endregion
     }
 }

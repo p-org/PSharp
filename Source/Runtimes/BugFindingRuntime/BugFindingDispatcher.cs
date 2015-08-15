@@ -15,6 +15,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Microsoft.PSharp
@@ -151,12 +152,30 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Notifies that a machine is waiting to receive an event.
+        /// </summary>
+        /// <param name="mid">Machine id</param>
+        void IDispatcher.NotifyWaitEvent(MachineId mid)
+        {
+            PSharpRuntime.NotifyWaitEvent();
+        }
+
+        /// <summary>
+        /// Notifies that a machine received an event that it was waiting for.
+        /// </summary>
+        /// <param name="mid">Machine id</param>
+        void IDispatcher.NotifyReceivedEvent(MachineId mid)
+        {
+            PSharpRuntime.NotifyReceivedEvent(mid);
+        }
+
+        /// <summary>
         /// Notifies that a scheduling point should be instrumented
         /// due to a wait synchronization operation.
         /// </summary>
         /// <param name="blockingTasks">Blocking tasks</param>
         /// <param name="waitAll">Boolean value</param>
-        void IDispatcher.ScheduleOnWait(Task[] blockingTasks, bool waitAll)
+        void IDispatcher.ScheduleOnWait(IEnumerable<Task> blockingTasks, bool waitAll)
         {
             PSharpRuntime.ScheduleOnWait(blockingTasks, waitAll);
         }

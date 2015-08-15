@@ -61,6 +61,14 @@ namespace Microsoft.PSharp.Scheduling
         }
 
         /// <summary>
+        /// Is task waiting to receive an event.
+        /// </summary>
+        public bool IsWaiting
+        {
+            get; internal set;
+        }
+
+        /// <summary>
         /// Is task blocked.
         /// </summary>
         public bool IsBlocked
@@ -106,6 +114,7 @@ namespace Microsoft.PSharp.Scheduling
             this.Id = id;
             this.Machine = machine;
             this.IsEnabled = true;
+            this.IsWaiting = false;
             this.IsBlocked = false;
             this.IsActive = false;
             this.HasStarted = false;

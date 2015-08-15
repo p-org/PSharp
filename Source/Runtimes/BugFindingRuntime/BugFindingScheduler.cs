@@ -337,12 +337,42 @@ namespace Microsoft.PSharp.Scheduling
         }
 
         /// <summary>
+        /// Notify that the task is waiting to receive an event.
+        /// </summary>
+        /// <param name="id">TaskId</param>
+        internal void NotifyTaskBlockedOnEvent(int? id)
+        {
+            var taskInfo = this.TaskMap[(int)id];
+
+            Output.Debug(DebugType.Testing, "<ScheduleDebug> Task {0} of machine {1}({2}) " +
+                "is waiting to receive an event.", taskInfo.Id, taskInfo.Machine.GetType(),
+                taskInfo.Machine.Id.MVal);
+
+            taskInfo.IsWaiting = true;
+        }
+
+        /// <summary>
+        /// Notify that the task received an event that it was waiting for.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        internal void NotifyTaskReceivedEvent(BaseMachine machine)
+        {
+            var taskInfo = this.GetTaskFromMachine(machine);
+
+            Output.Debug(DebugType.Testing, "<ScheduleDebug> Task {0} of machine {1}({2}) " +
+                "received an event and unblocked.", taskInfo.Id, taskInfo.Machine.GetType(),
+                taskInfo.Machine.Id.MVal);
+
+            taskInfo.IsWaiting = false;
+        }
+
+        /// <summary>
         /// Notify that the task has blocked.
         /// </summary>
         /// <param name="id">TaskId</param>
         /// <param name="blockingTasks"></param>
         /// <param name="waitAll"></param>
-        internal void NotifyTaskBlocked(int? id, Task[] blockingTasks, bool waitAll)
+        internal void NotifyTaskBlocked(int? id, IEnumerable<Task> blockingTasks, bool waitAll)
         {
             if (id == null)
             {
@@ -473,6 +503,26 @@ namespace Microsoft.PSharp.Scheduling
         #endregion
 
         #region private methods
+
+        /// <summary>
+        /// Returns the task id of the given machine.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <returns>TaskId</returns>
+        private TaskInfo GetTaskFromMachine(BaseMachine machine)
+        {
+            TaskInfo taskInfo = null;
+            foreach (var task in this.Tasks)
+            {
+                if (task.Machine.Equals(machine))
+                {
+                    taskInfo = task;
+                    break;
+                }
+            }
+
+            return taskInfo;
+        }
 
         /// <summary>
         /// Kills any remaining tasks at the end of the schedule.

@@ -402,12 +402,31 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Notifies that a machine is waiting to receive an event.
+        /// </summary>
+        internal static void NotifyWaitEvent()
+        {
+            PSharpRuntime.BugFinder.NotifyTaskBlockedOnEvent(Task.CurrentId);
+            PSharpRuntime.BugFinder.Schedule(Task.CurrentId);
+        }
+
+        /// <summary>
+        /// Notifies that a machine received an event that it was waiting for.
+        /// </summary>
+        /// <param name="mid">Machine id</param>
+        internal static void NotifyReceivedEvent(MachineId mid)
+        {
+            var machine = PSharpRuntime.MachineMap[mid.Value];
+            PSharpRuntime.BugFinder.NotifyTaskReceivedEvent(machine);
+        }
+
+        /// <summary>
         /// Notifies that a scheduling point should be instrumented
         /// due to a wait synchronization operation.
         /// </summary>
         /// <param name="blockingTasks">Blocking tasks</param>
         /// <param name="waitAll">Boolean value</param>
-        internal static void ScheduleOnWait(Task[] blockingTasks, bool waitAll)
+        internal static void ScheduleOnWait(IEnumerable<Task> blockingTasks, bool waitAll)
         {
             PSharpRuntime.BugFinder.NotifyTaskBlocked(Task.CurrentId, blockingTasks, waitAll);
             PSharpRuntime.BugFinder.Schedule(Task.CurrentId);
@@ -495,6 +514,7 @@ namespace Microsoft.PSharp
             PSharpRuntime.Monitors = new List<Monitor>();
 
             PSharpRuntime.TaskScheduler = new TaskMachineScheduler(PSharpRuntime.MachineTasks);
+            TaskMachineExtensions.TaskScheduler = PSharpRuntime.TaskScheduler;
 
             MachineId.ResetMachineIDCounter();
 
