@@ -296,6 +296,23 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Blocks and waits to receive an event of the given types.
+        /// </summary>
+        protected internal void Receive(params Type[] events)
+        {
+            this.Machine.Receive(events);
+        }
+
+        /// <summary>
+        /// Blocks and waits to receive an event of the given types, and
+        /// executes a given action on receiving the event.
+        /// </summary>
+        protected internal void Receive(params Tuple<Type, Action>[] events)
+        {
+            this.Machine.Receive(events);
+        }
+
+        /// <summary>
         /// Pops the current state from the push state stack.
         /// </summary>
         protected void Pop()
