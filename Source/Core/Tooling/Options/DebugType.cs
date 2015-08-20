@@ -19,7 +19,7 @@ namespace Microsoft.PSharp.Tooling
     /// <summary>
     /// The debug type.
     /// </summary>
-    internal enum DebugType
+    public enum DebugType
     {
         None = 0,
         Any,
