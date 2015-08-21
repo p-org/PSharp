@@ -161,7 +161,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
                     }
 
                     StringWriter sw = null;
-                    if (Configuration.Verbose < 2)
+                    if (Configuration.Verbose < 2 && Configuration.RedirectOutput)
                     {
                         sw = SCTEngine.RedirectOutput();
                         SCTEngine.HasRedirectedOutput = true;
