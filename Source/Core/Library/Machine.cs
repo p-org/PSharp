@@ -744,6 +744,10 @@ namespace Microsoft.PSharp
         /// </summary>
         private void HandleReceivedEvent()
         {
+            // Assign trigger and payload.
+            this.Trigger = this.ReceivedEventHandler.Item1.GetType();
+            this.Payload = this.ReceivedEventHandler.Item1.Payload;
+
             var action = this.ReceivedEventHandler.Item2;
             this.ReceivedEventHandler = null;
 
@@ -1092,6 +1096,7 @@ namespace Microsoft.PSharp
         {
             this.StateTypes.Clear();
             this.Inbox.Clear();
+            this.EventWaiters.Clear();
 
             this.Trigger = null;
             this.Payload = null;

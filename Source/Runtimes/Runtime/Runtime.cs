@@ -37,6 +37,11 @@ namespace Microsoft.PSharp
         private static Dictionary<int, Machine> MachineMap;
 
         /// <summary>
+        /// A map from task ids to machines.
+        /// </summary>
+        private static Dictionary<int, Machine> TaskMap;
+
+        /// <summary>
         /// Ip address.
         /// </summary>
         internal static string IpAddress;
@@ -66,12 +71,13 @@ namespace Microsoft.PSharp
         static PSharpRuntime()
         {
             PSharpRuntime.MachineMap = new Dictionary<int, Machine>();
+            PSharpRuntime.TaskMap = new Dictionary<int, Machine>();
 
             MachineId.ResetMachineIDCounter();
 
             var dispatcher = new Dispatcher();
-            Microsoft.PSharp.Machine.Dispatcher = dispatcher;
-            Microsoft.PSharp.Monitor.Dispatcher = dispatcher;
+            PSharp.Machine.Dispatcher = dispatcher;
+            PSharp.Monitor.Dispatcher = dispatcher;
 
             PSharpRuntime.IpAddress = "";
             PSharpRuntime.Port = "";
@@ -85,8 +91,6 @@ namespace Microsoft.PSharp
         /// <returns>Machine id</returns>
         public static MachineId CreateMachine(Type type, params Object[] payload)
         {
-            // TODO: remove
-            Configuration.Debug.Contains(DebugType.Any);
             return PSharpRuntime.TryCreateMachine(type, payload);
         }
 
@@ -102,6 +106,39 @@ namespace Microsoft.PSharp
             PSharpRuntime.Assert(e != null, "Cannot send a null event.");
             e.AssignPayload(payload);
             PSharpRuntime.Send(target, e);
+        }
+
+        /// <summary>
+        /// Blocks and waits to receive an event of the given types. Returns
+        /// a payload, if there is any, else returns null.
+        /// </summary>
+        /// <returns>Payload</returns>
+        public static Object Receive(params Type[] events)
+        {
+            PSharpRuntime.Assert(Task.CurrentId != null, "Only machines can wait to receive an event.");
+            PSharpRuntime.Assert(PSharpRuntime.TaskMap.ContainsKey((int)Task.CurrentId),
+                "Only machines can wait to receive an event; task {0} does not belong to a machine.",
+                (int)Task.CurrentId);
+            var machine = PSharpRuntime.TaskMap[(int)Task.CurrentId];
+            machine.Receive(events);
+            return machine.Payload;
+        }
+
+        /// <summary>
+        /// Blocks and waits to receive an event of the given types, and
+        /// executes a given action on receiving the event. Returns a
+        /// payload, if there is any, else returns null.
+        /// </summary>
+        /// <returns>Payload</returns>
+        public static Object Receive(params Tuple<Type, Action>[] events)
+        {
+            PSharpRuntime.Assert(Task.CurrentId != null, "Only machines can wait to receive an event.");
+            PSharpRuntime.Assert(PSharpRuntime.TaskMap.ContainsKey((int)Task.CurrentId),
+                "Only machines can wait to receive an event; task {0} does not belong to a machine.",
+                (int)Task.CurrentId);
+            var machine = PSharpRuntime.TaskMap[(int)Task.CurrentId];
+            machine.Receive(events);
+            return machine.Payload;
         }
 
         /// <summary>
@@ -201,6 +238,8 @@ namespace Microsoft.PSharp
                     (machine as Machine).RunEventHandler();
                 });
 
+                PSharpRuntime.TaskMap.Add(task.Id, machine as Machine);
+
                 task.Start();
 
                 return mid;
@@ -210,27 +249,6 @@ namespace Microsoft.PSharp
                 ErrorReporter.ReportAndExit("Type '{0}' is not a machine.", type.Name);
                 return null;
             }
-        }
-
-        /// <summary>
-        /// Tries to create a new monitor of the given type with an optional payload.
-        /// </summary>
-        /// <param name="type">Type of the monitor</param>
-        /// <param name="payload">Optional payload</param>
-        internal static void TryCreateMonitor(Type type, params Object[] payload)
-        {
-            // the execution runtime does not implement monitors.
-            return;
-        }
-
-        /// <summary>
-        /// Tries to create a new task machine.
-        /// </summary>
-        /// <param name="userTask">Task</param>
-        internal static void TryCreateTaskMachine(Task userTask)
-        {
-            // the execution runtime does not implement task machines.
-            return;
         }
 
         /// <summary>
@@ -274,18 +292,9 @@ namespace Microsoft.PSharp
                 machine.RunEventHandler();
             });
 
-            task.Start();
-        }
+            PSharpRuntime.TaskMap.Add(task.Id, machine as Machine);
 
-        /// <summary>
-        /// Invokes the specified monitor with the given event.
-        /// </summary>
-        /// <typeparam name="T">Type of the monitor</typeparam>
-        /// <param name="e">Event</param>
-        internal static void Monitor<T>(Event e)
-        {
-            // the execution runtime does not implement monitors.
-            return;
+            task.Start();
         }
 
         /// <summary>

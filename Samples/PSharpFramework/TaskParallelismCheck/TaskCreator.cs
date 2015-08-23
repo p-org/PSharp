@@ -35,8 +35,6 @@ namespace TaskParallelismCheck
                         this.Value++;
                     });
 
-                    TaskMachine.WaitAll(t);
-
                     Task.Factory.StartNew(() =>
                     {
                         this.Value++;

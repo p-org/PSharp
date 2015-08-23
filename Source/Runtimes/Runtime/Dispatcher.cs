@@ -57,7 +57,7 @@ namespace Microsoft.PSharp
         /// <param name="payload">Optional payload</param>
         void IDispatcher.TryCreateMonitor(Type type, params Object[] payload)
         {
-            PSharpRuntime.TryCreateMonitor(type, payload);
+            // No-op for real execution.
         }
 
         /// <summary>
@@ -66,7 +66,7 @@ namespace Microsoft.PSharp
         /// <param name="userTask">Task</param>
         void IDispatcher.TryCreateTaskMachine(Task userTask)
         {
-            PSharpRuntime.TryCreateTaskMachine(userTask);
+            // No-op for real execution.
         }
 
         /// <summary>
@@ -93,7 +93,7 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         void IDispatcher.Monitor<T>(Event e)
         {
-            PSharpRuntime.Monitor<T>(e);
+            // No-op for real execution.
         }
 
         /// <summary>

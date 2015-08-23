@@ -44,6 +44,11 @@ namespace Microsoft.PSharp
         private static Dictionary<int, Machine> MachineMap;
 
         /// <summary>
+        /// A map from task ids to machines.
+        /// </summary>
+        private static Dictionary<int, Machine> TaskMap;
+
+        /// <summary>
         /// List of monitors in the program.
         /// </summary>
         private static List<Monitor> Monitors;
@@ -131,6 +136,37 @@ namespace Microsoft.PSharp
             {
                 Output.Log("<Exception> TaskCanceledException was thrown.");
             }
+        }
+
+        /// <summary>
+        /// Blocks and waits to receive an event of the given types.
+        /// </summary>
+        /// <returns>Payload</returns>
+        public static Object Receive(params Type[] events)
+        {
+            PSharpRuntime.Assert(Task.CurrentId != null, "Only machines can wait to receive an event.");
+            PSharpRuntime.Assert(PSharpRuntime.TaskMap.ContainsKey((int)Task.CurrentId),
+                "Only machines can wait to receive an event; task {0} does not belong to a machine.",
+                (int)Task.CurrentId);
+            var machine = PSharpRuntime.TaskMap[(int)Task.CurrentId];
+            machine.Receive(events);
+            return machine.Payload;
+        }
+
+        /// <summary>
+        /// Blocks and waits to receive an event of the given types, and
+        /// executes a given action on receiving the event.
+        /// </summary>
+        /// <returns>Payload</returns>
+        public static Object Receive(params Tuple<Type, Action>[] events)
+        {
+            PSharpRuntime.Assert(Task.CurrentId != null, "Only machines can wait to receive an event.");
+            PSharpRuntime.Assert(PSharpRuntime.TaskMap.ContainsKey((int)Task.CurrentId),
+                "Only machines can wait to receive an event; task {0} does not belong to a machine.",
+                (int)Task.CurrentId);
+            var machine = PSharpRuntime.TaskMap[(int)Task.CurrentId];
+            machine.Receive(events);
+            return machine.Payload;
         }
 
         /// <summary>
@@ -235,6 +271,7 @@ namespace Microsoft.PSharp
                 lock (PSharpRuntime.Lock)
                 {
                     PSharpRuntime.MachineTasks.Add(task);
+                    PSharpRuntime.TaskMap.Add(task.Id, machine as Machine);
                 }
 
                 PSharpRuntime.BugFinder.NotifyNewTaskCreated(task.Id, machine as Machine);
@@ -346,6 +383,7 @@ namespace Microsoft.PSharp
             lock (PSharpRuntime.Lock)
             {
                 PSharpRuntime.MachineTasks.Add(task);
+                PSharpRuntime.TaskMap.Add(task.Id, machine as Machine);
             }
 
             PSharpRuntime.BugFinder.NotifyNewTaskCreated(task.Id, machine);
@@ -511,6 +549,7 @@ namespace Microsoft.PSharp
 
             PSharpRuntime.MachineTasks = new List<Task>();
             PSharpRuntime.MachineMap = new Dictionary<int, Machine>();
+            PSharpRuntime.TaskMap = new Dictionary<int, Machine>();
             PSharpRuntime.Monitors = new List<Monitor>();
 
             PSharpRuntime.TaskScheduler = new TaskMachineScheduler(PSharpRuntime.MachineTasks);
