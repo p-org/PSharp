@@ -60,7 +60,7 @@
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TaskMachine.cs" />
-    <Compile Include="TaskMachineScheduler.cs" />
+    <Compile Include="TaskWrapperScheduler.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj">
