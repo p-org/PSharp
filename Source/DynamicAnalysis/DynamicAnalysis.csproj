@@ -59,10 +59,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AnalysisContext.cs" />
-    <Compile Include="SystematicTesting\Schedulers\MaceMCStrategy.cs" />
-    <Compile Include="SystematicTesting\Schedulers\IterativeDeepeningDFSStrategy.cs" />
-    <Compile Include="SystematicTesting\Schedulers\DFSStrategy.cs" />
-    <Compile Include="SystematicTesting\Schedulers\RandomStrategy.cs" />
+    <Compile Include="SystematicTesting\SchedulingStrategies\MaceMCStrategy.cs" />
+    <Compile Include="SystematicTesting\SchedulingStrategies\IterativeDeepeningDFSStrategy.cs" />
+    <Compile Include="SystematicTesting\SchedulingStrategies\DFSStrategy.cs" />
+    <Compile Include="SystematicTesting\SchedulingStrategies\RandomStrategy.cs" />
     <Compile Include="SystematicTesting\SchedulingStrategy.cs" />
     <Compile Include="SystematicTesting\SCTEngine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -487,7 +487,10 @@ namespace Microsoft.PSharp
         /// <param name="waitAll">Boolean value</param>
         internal static void ScheduleOnWait(IEnumerable<Task> blockingTasks, bool waitAll)
         {
-            PSharpRuntime.BugFinder.NotifyTaskBlocked(Task.CurrentId, blockingTasks, waitAll);
+            PSharpRuntime.Assert(PSharpRuntime.BugFinder is TaskAwareBugFindingScheduler,
+                "Cannot schedule on wait without enabling the task-aware bug finding scheduler.");
+            (PSharpRuntime.BugFinder as TaskAwareBugFindingScheduler).NotifyTaskBlocked(
+                Task.CurrentId, blockingTasks, waitAll);
             PSharpRuntime.BugFinder.Schedule(Task.CurrentId);
         }
 
