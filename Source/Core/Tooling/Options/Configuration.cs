@@ -158,6 +158,12 @@ namespace Microsoft.PSharp.Tooling
         internal static int SafetyPrefixBound;
 
         /// <summary>
+        /// If true, then the dynamic analyzer will try to schedule
+        /// any intra-machine concurrency.
+        /// </summary>
+        internal static bool ScheduleIntraMachineConcurrency;
+
+        /// <summary>
         /// If true, then the dynamic analyzer will check if
         /// any liveness properties hold.
         /// </summary>
@@ -238,6 +244,7 @@ namespace Microsoft.PSharp.Tooling
             Configuration.FullExploration = false;
             Configuration.DepthBound = 10000;
             Configuration.SafetyPrefixBound = 0;
+            Configuration.ScheduleIntraMachineConcurrency = false;
             Configuration.CheckLiveness = false;
             Configuration.PrintTrace = false;
             Configuration.SuppressTrace = false;

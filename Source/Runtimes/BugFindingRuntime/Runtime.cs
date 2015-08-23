@@ -69,9 +69,9 @@ namespace Microsoft.PSharp
         internal static Trace ProgramTrace;
 
         /// <summary>
-        /// The P# task machine scheduler.
+        /// The P# task wrapper scheduler.
         /// </summary>
-        internal static TaskMachineScheduler TaskScheduler;
+        internal static TaskWrapperScheduler TaskScheduler;
 
         /// <summary>
         /// The root task id.
@@ -276,7 +276,14 @@ namespace Microsoft.PSharp
 
                 PSharpRuntime.BugFinder.NotifyNewTaskCreated(task.Id, machine as Machine);
 
-                task.Start(PSharpRuntime.TaskScheduler);
+                if (Configuration.ScheduleIntraMachineConcurrency)
+                {
+                    task.Start(PSharpRuntime.TaskScheduler);
+                }
+                else
+                {
+                    task.Start();
+                }
 
                 PSharpRuntime.BugFinder.WaitForTaskToStart(task.Id);
                 PSharpRuntime.BugFinder.Schedule(Task.CurrentId);
@@ -340,7 +347,14 @@ namespace Microsoft.PSharp
 
             PSharpRuntime.BugFinder.NotifyNewTaskCreated(task.Id, taskMachine);
 
-            task.Start(PSharpRuntime.TaskScheduler);
+            if (Configuration.ScheduleIntraMachineConcurrency)
+            {
+                task.Start(PSharpRuntime.TaskScheduler);
+            }
+            else
+            {
+                task.Start();
+            }
 
             PSharpRuntime.BugFinder.WaitForTaskToStart(task.Id);
             PSharpRuntime.BugFinder.Schedule(Task.CurrentId);
@@ -388,7 +402,14 @@ namespace Microsoft.PSharp
 
             PSharpRuntime.BugFinder.NotifyNewTaskCreated(task.Id, machine);
 
-            task.Start(PSharpRuntime.TaskScheduler);
+            if (Configuration.ScheduleIntraMachineConcurrency)
+            {
+                task.Start(PSharpRuntime.TaskScheduler);
+            }
+            else
+            {
+                task.Start();
+            }
 
             PSharpRuntime.BugFinder.WaitForTaskToStart(task.Id);
             PSharpRuntime.BugFinder.Schedule(Task.CurrentId);
@@ -552,8 +573,11 @@ namespace Microsoft.PSharp
             PSharpRuntime.TaskMap = new Dictionary<int, Machine>();
             PSharpRuntime.Monitors = new List<Monitor>();
 
-            PSharpRuntime.TaskScheduler = new TaskMachineScheduler(PSharpRuntime.MachineTasks);
-            TaskMachineExtensions.TaskScheduler = PSharpRuntime.TaskScheduler;
+            if (Configuration.ScheduleIntraMachineConcurrency)
+            {
+                PSharpRuntime.TaskScheduler = new TaskWrapperScheduler(PSharpRuntime.MachineTasks);
+                TaskMachineExtensions.TaskScheduler = PSharpRuntime.TaskScheduler;
+            }
 
             MachineId.ResetMachineIDCounter();
 

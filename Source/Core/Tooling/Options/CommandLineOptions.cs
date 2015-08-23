@@ -245,6 +245,10 @@ namespace Microsoft.PSharp.Tooling
 
                     Configuration.SafetyPrefixBound = i;
                 }
+                else if (this.Options[idx].ToLower().Equals("/tpl"))
+                {
+                    Configuration.ScheduleIntraMachineConcurrency = true;
+                }
                 else if (this.Options[idx].ToLower().Equals("/liveness"))
                 {
                     Configuration.CheckLiveness = true;
@@ -330,6 +334,11 @@ namespace Microsoft.PSharp.Tooling
             help += "\n  /i:\t\t Number of schedules to explore for bugs";
             help += "\n  /db:\t\t Depth bound to be explored ('10000' by default)";
             help += "\n  /liveness\t Enable liveness property checking";
+
+            help += "\n\n---------------------------";
+            help += "\nExperimental options:";
+            help += "\n---------------------------";
+            help += "\n  /tpl\t Enable intra-machine concurrency scheduling";
 
             help += "\n";
 

@@ -30,9 +30,9 @@ namespace Microsoft.PSharp.Threading
 
         /// <summary>
         /// The task scheduler that is responsible
-        /// for executing a task machine.
+        /// for wrapping and executing tasks.
         /// </summary>
-        internal TaskMachineScheduler TaskScheduler;
+        internal TaskWrapperScheduler TaskScheduler;
 
         /// <summary>
         /// The wrapped task to execute.
@@ -47,7 +47,7 @@ namespace Microsoft.PSharp.Threading
         /// Constructor.
         /// </summary>
         /// <param name="task">Task</param>
-        internal TaskMachine(TaskMachineScheduler taskScheduler, Task task)
+        internal TaskMachine(TaskWrapperScheduler taskScheduler, Task task)
             : base()
         {
             this.TaskScheduler = taskScheduler;
@@ -295,9 +295,9 @@ namespace Microsoft.PSharp.Threading
     {
         /// <summary>
         /// The task scheduler that is responsible
-        /// for executing a task machine.
+        /// for wrapping and executing tasks.
         /// </summary>
-        internal static TaskMachineScheduler TaskScheduler;
+        internal static TaskWrapperScheduler TaskScheduler;
 
         /// <summary>
         /// Run the task on the P# task scheduler.

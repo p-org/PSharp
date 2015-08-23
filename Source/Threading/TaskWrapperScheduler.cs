@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="TaskMachineScheduler.cs" company="Microsoft">
+// <copyright file="TaskWrapperScheduler.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -25,9 +25,9 @@ using Microsoft.PSharp.Tooling;
 namespace Microsoft.PSharp.Threading
 {
     /// <summary>
-    /// Class implementing the P# task machine scheduler.
+    /// Class implementing the P# task wrapper scheduler.
     /// </summary>
-    internal sealed class TaskMachineScheduler : TaskScheduler
+    internal sealed class TaskWrapperScheduler : TaskScheduler
     {
         #region fields
 
@@ -49,7 +49,7 @@ namespace Microsoft.PSharp.Threading
         /// Constructor.
         /// </summary>
         /// <param name="machineTasks">Machine tasks</param>
-        internal TaskMachineScheduler(List<Task> machineTasks)
+        internal TaskWrapperScheduler(List<Task> machineTasks)
         {
             this.MachineTasks = machineTasks;
             this.WrappedTasks = new List<Task>();
