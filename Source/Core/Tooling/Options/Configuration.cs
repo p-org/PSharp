@@ -55,7 +55,10 @@ namespace Microsoft.PSharp.Tooling
         /// </summary>
         internal static int Verbose;
 
-        public static bool RedirectOutput;
+        /// <summary>
+        /// Redirects the console output.
+        /// </summary>
+        public static bool RedirectConsoleOutput;
 
         /// <summary>
         /// Turn debugging for the specified components on.
@@ -225,7 +228,7 @@ namespace Microsoft.PSharp.Tooling
             Configuration.NoCompilation = false;
             Configuration.AnalysisTimeout = 0;
             Configuration.Verbose = 1;
-            Configuration.RedirectOutput = true;
+            Configuration.RedirectConsoleOutput = true;
             Configuration.Debug = new HashSet<DebugType>();
 
             Configuration.CompileForDistribution = false;

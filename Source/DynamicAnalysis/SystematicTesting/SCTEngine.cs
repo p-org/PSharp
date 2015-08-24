@@ -53,7 +53,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// <summary>
         /// Has redirected console output.
         /// </summary>
-        private static bool HasRedirectedOutput;
+        private static bool HasRedirectedConsoleOutput;
 
         /// <summary>
         /// Number of found bugs.
@@ -118,7 +118,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
                 SCTEngine.HasSwitchedRuntimeDebuggingOn = false;
             }
 
-            SCTEngine.HasRedirectedOutput = false;
+            SCTEngine.HasRedirectedConsoleOutput = false;
         }
 
         /// <summary>
@@ -161,10 +161,10 @@ namespace Microsoft.PSharp.DynamicAnalysis
                     }
 
                     StringWriter sw = null;
-                    if (Configuration.Verbose < 2 && Configuration.RedirectOutput)
+                    if (Configuration.RedirectConsoleOutput && Configuration.Verbose < 2)
                     {
-                        sw = SCTEngine.RedirectOutput();
-                        SCTEngine.HasRedirectedOutput = true;
+                        sw = SCTEngine.RedirectConsoleOutput();
+                        SCTEngine.HasRedirectedConsoleOutput = true;
                     }
 
                     // Start the test and wait for it to terminate.
@@ -180,7 +180,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
                         PSharpRuntime.LivenessChecker.Run();
                     }
 
-                    if (SCTEngine.HasRedirectedOutput)
+                    if (SCTEngine.HasRedirectedConsoleOutput)
                     {
                         SCTEngine.ResetOutput();
                     }
@@ -233,7 +233,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
             }
             catch (AggregateException ex)
             {
-                if (SCTEngine.HasRedirectedOutput)
+                if (SCTEngine.HasRedirectedConsoleOutput)
                 {
                     SCTEngine.ResetOutput();
                 }
@@ -332,7 +332,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// Redirects the console output.
         /// </summary>
         /// <returns>StringWriter</returns>
-        private static StringWriter RedirectOutput()
+        private static StringWriter RedirectConsoleOutput()
         {
             var sw = new StringWriter();
             Console.SetOut(sw);
@@ -347,7 +347,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
             var sw = new StreamWriter(Console.OpenStandardOutput());
             sw.AutoFlush = true;
             Console.SetOut(sw);
-            SCTEngine.HasRedirectedOutput = false;
+            SCTEngine.HasRedirectedConsoleOutput = false;
         }
 
         #endregion
