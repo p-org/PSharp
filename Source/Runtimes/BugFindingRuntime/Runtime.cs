@@ -69,9 +69,9 @@ namespace Microsoft.PSharp
         internal static Trace ProgramTrace;
 
         /// <summary>
-        /// The P# task wrapper scheduler.
+        /// The P# task scheduler.
         /// </summary>
-        internal static TaskWrapperScheduler TaskScheduler;
+        internal static TaskScheduler TaskScheduler;
 
         /// <summary>
         /// The root task id.
@@ -79,7 +79,7 @@ namespace Microsoft.PSharp
         internal static int? RootTaskId;
 
         /// <summary>
-        /// The P# bugfinder.
+        /// The P# bugfinding scheduler.
         /// </summary>
         internal static BugFindingScheduler BugFinder;
 
@@ -328,7 +328,9 @@ namespace Microsoft.PSharp
         /// <param name="userTask">Task</param>
         internal static void TryCreateTaskMachine(Task userTask)
         {
-            var taskMachine = new TaskMachine(PSharpRuntime.TaskScheduler, userTask);
+            PSharpRuntime.Assert(PSharpRuntime.TaskScheduler is TaskWrapperScheduler, "Unable to wrap " +
+                "the task in a machine, because the task wrapper scheduler is not enabled.\n");
+            var taskMachine = new TaskMachine(PSharpRuntime.TaskScheduler as TaskWrapperScheduler, userTask);
 
             var mid = taskMachine.Id;
             Output.Debug(DebugType.Runtime, "<CreateLog> TaskMachine({0}) is created.", mid.MVal);
@@ -579,7 +581,7 @@ namespace Microsoft.PSharp
             if (Configuration.ScheduleIntraMachineConcurrency)
             {
                 PSharpRuntime.TaskScheduler = new TaskWrapperScheduler(PSharpRuntime.MachineTasks);
-                TaskMachineExtensions.TaskScheduler = PSharpRuntime.TaskScheduler;
+                TaskMachineExtensions.TaskScheduler = PSharpRuntime.TaskScheduler as TaskWrapperScheduler;
             }
 
             MachineId.ResetMachineIDCounter();
