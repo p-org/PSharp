@@ -166,7 +166,7 @@ namespace Microsoft.PSharp.Tooling
         /// If true, then the dynamic analyzer will try to schedule
         /// any intra-machine concurrency.
         /// </summary>
-        internal static bool ScheduleIntraMachineConcurrency;
+        public static bool ScheduleIntraMachineConcurrency;
 
         /// <summary>
         /// If true, then the dynamic analyzer will check if
