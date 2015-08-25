@@ -87,7 +87,8 @@ namespace Microsoft.PSharp.DynamicAnalysis
 
             if (AnalysisContext.Strategy == SchedulingStrategy.Random)
             {
-                SCTEngine.Strategy = new RandomStrategy(DateTime.Now.Millisecond);
+                SCTEngine.Strategy = new RandomStrategy(
+                    Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond);
             }
             else if (AnalysisContext.Strategy == SchedulingStrategy.DFS)
             {
@@ -203,6 +204,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
                     }
 
                     SCTEngine.Strategy.ConfigureNextIteration();
+
                     if (!Configuration.FullExploration &&
                       (SCTEngine.NumOfFoundBugs > 0 || Configuration.PrintTrace))
                     {

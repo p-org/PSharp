@@ -134,7 +134,7 @@ namespace Microsoft.PSharp
             }
             catch (TaskCanceledException)
             {
-                Output.Log("<Exception> TaskCanceledException was thrown.");
+                Output.Debug(DebugType.Testing, "<Exception> TaskCanceledException was thrown.");
             }
         }
 

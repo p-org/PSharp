@@ -158,6 +158,11 @@ namespace Microsoft.PSharp.Tooling
         public static bool FullExploration;
 
         /// <summary>
+        /// Seed for random scheduling strategies.
+        /// </summary>
+        internal static int? RandomSchedulingSeed;
+
+        /// <summary>
         /// Depth bound. By default it is 1000.
         /// </summary>
         public static int DepthBound;
@@ -254,6 +259,7 @@ namespace Microsoft.PSharp.Tooling
             Configuration.SchedulingStrategy = "";
             Configuration.SchedulingIterations = 1;
             Configuration.FullExploration = false;
+            Configuration.RandomSchedulingSeed = null;
             Configuration.DepthBound = 10000;
             Configuration.SafetyPrefixBound = 0;
             Configuration.ScheduleIntraMachineConcurrency = false;

@@ -934,14 +934,14 @@ namespace Microsoft.PSharp
             }
             catch (TaskCanceledException)
             {
-                Output.Log("<Exception> TaskCanceledException was thrown from " +
-                    "Machine '{0}({1})'.", this, base.Id.MVal);
+                Output.Debug(DebugType.Testing, "<Exception> TaskCanceledException was " +
+                    "thrown from Machine '{0}({1})'.", this, base.Id.MVal);
                 this.IsHalted = true;
             }
             catch (TaskSchedulerException)
             {
-                Output.Log("<Exception> TaskSchedulerException was thrown from " +
-                    "Machine '{0}({1})'.", this, base.Id.MVal);
+                Output.Debug(DebugType.Testing, "<Exception> TaskSchedulerException was " +
+                    "thrown from Machine '{0}({1})'.", this, base.Id.MVal);
                 this.IsHalted = true;
             }
             catch (Exception ex)
@@ -976,14 +976,14 @@ namespace Microsoft.PSharp
             }
             catch (TaskCanceledException)
             {
-                Output.Log("<Exception> TaskCanceledException was thrown from " +
-                    "Machine '{0}({1})'.", this, base.Id.MVal);
+                Output.Debug(DebugType.Testing, "<Exception> TaskCanceledException was " +
+                    "thrown from Machine '{0}({1})'.", this, base.Id.MVal);
                 this.IsHalted = true;
             }
             catch (TaskSchedulerException)
             {
-                Output.Log("<Exception> TaskSchedulerException was thrown from " +
-                    "Machine '{0}({1})'.", this, base.Id.MVal);
+                Output.Debug(DebugType.Testing, "<Exception> TaskSchedulerException was " +
+                    "thrown from Machine '{0}({1})'.", this, base.Id.MVal);
                 this.IsHalted = true;
             }
             catch (Exception ex)
@@ -1019,14 +1019,14 @@ namespace Microsoft.PSharp
             }
             catch (TaskCanceledException)
             {
-                Output.Log("<Exception> TaskCanceledException was thrown from " +
-                    "Machine '{0}({1})'.", this, base.Id.MVal);
+                Output.Debug(DebugType.Testing, "<Exception> TaskCanceledException was " +
+                    "thrown from Machine '{0}({1})'.", this, base.Id.MVal);
                 this.IsHalted = true;
             }
             catch (TaskSchedulerException)
             {
-                Output.Log("<Exception> TaskSchedulerException was thrown from " +
-                    "Machine '{0}({1})'.", this, base.Id.MVal);
+                Output.Debug(DebugType.Testing, "<Exception> TaskSchedulerException was " +
+                    "thrown from Machine '{0}({1})'.", this, base.Id.MVal);
                 this.IsHalted = true;
             }
             catch (Exception ex)

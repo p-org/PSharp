@@ -17,7 +17,8 @@ namespace PingPong
             this.Client = this.CreateMachine(typeof(Client), this.Id);
             this.Raise(new Unit());
         }
-        
+
+        [OnEntry(nameof(ActiveOnEntry))]
         [OnEventDoAction(typeof(Ping), nameof(SendPong))]
         class Active : MachineState { }
 

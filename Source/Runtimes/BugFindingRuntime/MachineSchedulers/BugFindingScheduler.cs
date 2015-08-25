@@ -367,7 +367,10 @@ namespace Microsoft.PSharp.Scheduling
         internal void NotifyAssertionFailure(string text, bool killTasks = true)
         {
             this.BugReport = text;
+            
             ErrorReporter.Report(text);
+
+            Output.Log("<StrategyLog> Found bug using the " + this.Strategy.GetDescription() + " strategy.");
 
             this.BugFound = true;
 
