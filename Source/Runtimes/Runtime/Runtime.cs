@@ -40,7 +40,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// A map from task ids to machines.
         /// </summary>
-        private static Dictionary<int, Machine> TaskMap;
+        private static ConcurrentDictionary<int, Machine> TaskMap;
 
         /// <summary>
         /// Ip address.
@@ -72,7 +72,7 @@ namespace Microsoft.PSharp
         static PSharpRuntime()
         {
             PSharpRuntime.MachineMap = new ConcurrentDictionary<int, Machine>();
-            PSharpRuntime.TaskMap = new Dictionary<int, Machine>();
+            PSharpRuntime.TaskMap = new ConcurrentDictionary<int, Machine>();
 
             MachineId.ResetMachineIDCounter();
 
@@ -243,7 +243,11 @@ namespace Microsoft.PSharp
                     (machine as Machine).RunEventHandler();
                 });
 
-                PSharpRuntime.TaskMap.Add(task.Id, machine as Machine);
+                if (!PSharpRuntime.TaskMap.TryAdd(task.Id, machine as Machine))
+                {
+                    ErrorReporter.ReportAndExit("Task {0} for machine {1}({2}) was already created.",
+                        task.Id, type.Name, mid.Value);
+                }
 
                 task.Start();
 
@@ -297,7 +301,11 @@ namespace Microsoft.PSharp
                 machine.RunEventHandler();
             });
 
-            PSharpRuntime.TaskMap.Add(task.Id, machine as Machine);
+            if (!PSharpRuntime.TaskMap.TryAdd(task.Id, machine as Machine))
+            {
+                ErrorReporter.ReportAndExit("Task {0} for machine {1}({2}) was already created.",
+                    task.Id, machine.GetType().Name, mid.Value);
+            }
 
             task.Start();
         }
