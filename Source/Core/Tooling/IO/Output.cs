@@ -58,7 +58,7 @@ namespace Microsoft.PSharp.Tooling
 
             string message = Output.Format(s, args);
             Console.WriteLine(message);
-            Trace.Write(message);
+            Trace.WriteLine(message);
         }
 
         internal static void Debug(DebugType type, string s, params object[] args)
@@ -71,7 +71,7 @@ namespace Microsoft.PSharp.Tooling
 
             string message = Output.Format(s, args);
             Console.WriteLine(message);
-            Trace.Write(message);
+            Trace.WriteLine(message);
         }
     }
 }
