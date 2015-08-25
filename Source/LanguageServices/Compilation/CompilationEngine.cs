@@ -86,17 +86,17 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
             }
 
             // Links the P# core library.
-            CompilationEngine.LinkAssembly(typeof(Machine).Assembly, "Microsoft.PSharp.dll");
+            CompilationEngine.LinkAssemblyToAllProjects(typeof(Machine).Assembly, "Microsoft.PSharp.dll");
 
             // Links the P# runtime.
             if (Configuration.RunStaticAnalysis || Configuration.RunDynamicAnalysis)
             {
-                CompilationEngine.LinkAssembly(typeof(BugFindingDispatcher).Assembly,
+                CompilationEngine.LinkAssemblyToAllProjects(typeof(BugFindingDispatcher).Assembly,
                     "Microsoft.PSharp.BugFindingRuntime.dll");
             }
             else
             {
-                CompilationEngine.LinkAssembly(typeof(Dispatcher).Assembly,
+                CompilationEngine.LinkAssemblyToAllProjects(typeof(Dispatcher).Assembly,
                     "Microsoft.PSharp.Runtime.dll");
             }
         }
@@ -185,27 +185,30 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
                 assemblyFileName = compilation.AssemblyName + ".dll";
             }
 
-            string fileName = null;
+            string outputDirectory;
             if (!Configuration.OutputFilePath.Equals(""))
             {
-                fileName = Configuration.OutputFilePath + Path.DirectorySeparatorChar + assemblyFileName;
-                CompilationEngine.OutputDirectoryMap.Add(compilation.AssemblyName, Configuration.OutputFilePath);
+                outputDirectory = Configuration.OutputFilePath;
             }
             else
             {
-                fileName = Path.GetDirectoryName(outputPath) + Path.DirectorySeparatorChar + assemblyFileName;
-                CompilationEngine.OutputDirectoryMap.Add(compilation.AssemblyName, Path.GetDirectoryName(outputPath));
+                outputDirectory = Path.GetDirectoryName(outputPath);
             }
 
+            CompilationEngine.OutputDirectoryMap.Add(compilation.AssemblyName, outputDirectory);
+
+            string fileName = outputDirectory + Path.DirectorySeparatorChar + assemblyFileName;
+            string pdbFileName = outputDirectory + Path.DirectorySeparatorChar + compilation.AssemblyName + ".pdb";
             CompilationEngine.ProjectAssemblyPathMap.Add(compilation.AssemblyName, fileName);
 
             // Link external references.
             CompilationEngine.LinkExternalAssembliesToProject(compilation);
 
             EmitResult emitResult = null;
-            using (var outputFile = new FileStream(fileName, FileMode.Create, FileAccess.Write))
+            using (FileStream outputFile = new FileStream(fileName, FileMode.Create, FileAccess.Write),
+                outputPdbFile = new FileStream(pdbFileName, FileMode.Create, FileAccess.Write))
             {
-                emitResult = compilation.Emit(outputFile);
+                emitResult = compilation.Emit(outputFile, outputPdbFile);
                 if (emitResult.Success)
                 {
                     Output.Print("... Writing " + fileName);
@@ -279,8 +282,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
                 var assemblyPath = CompilationEngine.ProjectAssemblyPathMap[requiredProject.AssemblyName];
                 var fileName = projectPath + Path.DirectorySeparatorChar + requiredProject.AssemblyName + ".dll";
 
-                File.Delete(fileName);
-                File.Copy(assemblyPath, fileName);
+                CompilationEngine.CopyAssembly(assemblyPath, fileName);
             }
         }
 
@@ -304,7 +306,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// </summary>
         /// <param name="assembly">Assembly</param>
         /// <param name="dll">Name of dll</param>
-        private static void LinkAssembly(Assembly assembly, string dll)
+        private static void LinkAssemblyToAllProjects(Assembly assembly, string dll)
         {
             Output.Print("... Linking {0}", dll);
 
@@ -313,8 +315,30 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
                 var localFileName = (new System.Uri(assembly.CodeBase)).LocalPath;
                 var fileName = outputDir + Path.DirectorySeparatorChar + dll;
 
-                File.Delete(fileName);
-                File.Copy(localFileName, fileName);
+                CompilationEngine.CopyAssembly(localFileName, fileName);
+            }
+        }
+
+        /// <summary>
+        /// Copies the assembly from the source to the destination.
+        /// </summary>
+        /// <param name="src">Source</param>
+        /// <param name="dest">Destination</param>
+        private static void CopyAssembly(string src, string dest)
+        {
+            File.Delete(dest);
+            File.Copy(src, dest);
+
+            if (src.EndsWith(".dll") && dest.EndsWith(".dll"))
+            {
+                string srcPdb = src.Substring(0, src.Length - 4) + ".pdb",
+                    destPdb = dest.Substring(0, dest.Length - 4) + ".pdb";
+
+                if (File.Exists(srcPdb))
+                {
+                    File.Delete(destPdb);
+                    File.Copy(srcPdb, destPdb);
+                }
             }
         }
 
