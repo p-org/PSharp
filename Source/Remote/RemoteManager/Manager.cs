@@ -64,7 +64,7 @@ namespace Microsoft.PSharp.Remote
         /// </summary>
         internal static void Run()
         {
-            Output.WriteLine(". Running");
+            Output.PrettyPrintLine(". Running");
 
             Manager.OpenRemoteManagingListener();
 
@@ -75,12 +75,12 @@ namespace Microsoft.PSharp.Remote
 
             Console.ReadLine();
 
-            Output.WriteLine(". Cleaning resources");
+            Output.PrettyPrintLine(". Cleaning resources");
 
             Manager.KillContainers();
             Manager.NotificationService.Close();
 
-            Output.WriteLine("... Closed listener");
+            Output.PrettyPrintLine("... Closed listener");
         }
 
         /// <summary>
@@ -89,7 +89,7 @@ namespace Microsoft.PSharp.Remote
         /// <param name="id">Container id</param>
         internal static void NotifyInitializedContainer(int id)
         {
-            Output.WriteLine("..... Container '{0}' is initialized", id);
+            Output.PrettyPrintLine("..... Container '{0}' is initialized", id);
 
             Uri address = new Uri("http://localhost:8000/notify/" + id + "/");
 
@@ -102,7 +102,7 @@ namespace Microsoft.PSharp.Remote
             
             if (Manager.ContainerServices.Count == Configuration.NumberOfContainers)
             {
-                Output.WriteLine("... Notifying container '0' [start]");
+                Output.PrettyPrintLine("... Notifying container '0' [start]");
                 Manager.ContainerServices[0].NotifyStartRuntime();
             }
         }
@@ -117,7 +117,7 @@ namespace Microsoft.PSharp.Remote
         /// <returns>Process</returns>
         private static void CreateContainer()
         {
-            Output.WriteLine("... Creating container '{0}'", Manager.ContainerIdCounter);
+            Output.PrettyPrintLine("... Creating container '{0}'", Manager.ContainerIdCounter);
 
             Process process = new Process();
             process.StartInfo.FileName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
@@ -144,7 +144,7 @@ namespace Microsoft.PSharp.Remote
         /// </summary>
         private static void KillContainers()
         {
-            Output.WriteLine("... Shutting down containers");
+            Output.PrettyPrintLine("... Shutting down containers");
             foreach (var container in Manager.ContainerServices)
             {
                 container.Value.NotifyExit();
@@ -156,7 +156,7 @@ namespace Microsoft.PSharp.Remote
         /// </summary>
         private static void OpenRemoteManagingListener()
         {
-            Output.WriteLine("... Opening remote managing listener");
+            Output.PrettyPrintLine("... Opening remote managing listener");
 
             Uri address = new Uri("http://localhost:8000/manager/");
             var binding = new WSHttpBinding();

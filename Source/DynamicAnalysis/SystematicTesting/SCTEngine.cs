@@ -46,9 +46,9 @@ namespace Microsoft.PSharp.DynamicAnalysis
         private static int PrintGuard;
 
         /// <summary>
-        /// Has switched runtime debugging on.
+        /// Has switched runtime logging on.
         /// </summary>
-        private static bool HasSwitchedRuntimeDebuggingOn;
+        private static bool HasSwitchedRuntimeLoggingOn;
 
         /// <summary>
         /// Has redirected console output.
@@ -107,15 +107,14 @@ namespace Microsoft.PSharp.DynamicAnalysis
                 Configuration.CacheProgramState = false;
             }
 
-            if (!Configuration.Debug.Contains(DebugType.Any) &&
-                !Configuration.Debug.Contains(DebugType.Runtime))
+            if (!Configuration.Logging)
             {
-                Configuration.Debug.Add(DebugType.Runtime);
-                SCTEngine.HasSwitchedRuntimeDebuggingOn = true;
+                Configuration.Logging = true;
+                SCTEngine.HasSwitchedRuntimeLoggingOn = true;
             }
             else
             {
-                SCTEngine.HasSwitchedRuntimeDebuggingOn = false;
+                SCTEngine.HasSwitchedRuntimeLoggingOn = false;
             }
 
             SCTEngine.HasRedirectedConsoleOutput = false;
@@ -140,7 +139,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// </summary>
         private static void FindBugs()
         {
-            Output.Print("... Using '{0}' strategy", AnalysisContext.Strategy);
+            Output.PrintLine("... Using '{0}' strategy", AnalysisContext.Strategy);
 
             Task task = new Task(() =>
             {
@@ -148,7 +147,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
                 {
                     if (SCTEngine.ShouldPrintIteration(i + 1))
                     {
-                        Output.Print("..... Iteration #{0}", i + 1);
+                        Output.PrintLine("..... Iteration #{0}", i + 1);
                     }
 
                     if (Configuration.ScheduleIntraMachineConcurrency)
@@ -254,26 +253,26 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// </summary>
         private static void Report()
         {
-            Output.Print("... Found {0} bug{1}.", SCTEngine.NumOfFoundBugs,
+            Output.PrintLine("... Found {0} bug{1}.", SCTEngine.NumOfFoundBugs,
                 SCTEngine.NumOfFoundBugs == 1 ? "" : "s");
-            Output.Print("... Explored {0} {1} schedule{2}.", SCTEngine.ExploredSchedules,
+            Output.PrintLine("... Explored {0} {1} schedule{2}.", SCTEngine.ExploredSchedules,
                 SCTEngine.Strategy.HasFinished() ? "(all)" : "",
                 SCTEngine.ExploredSchedules == 1 ? "" : "s");
 
             if (SCTEngine.ExploredSchedules > 0)
             {
-                Output.Print("... Found {0} % buggy schedules.",
+                Output.PrintLine("... Found {0} % buggy schedules.",
                     (SCTEngine.NumOfFoundBugs * 100 / SCTEngine.ExploredSchedules));
-                Output.Print("... Instrumented {0} scheduling point{1} (on last iteration).",
+                Output.PrintLine("... Instrumented {0} scheduling point{1} (on last iteration).",
                     SCTEngine.ExploredDepth, SCTEngine.ExploredDepth == 1 ? "" : "s");
             }
 
             if (Configuration.DepthBound > 0)
             {
-                Output.Print("... Used depth bound of {0}.", Configuration.DepthBound);
+                Output.PrintLine("... Used depth bound of {0}.", Configuration.DepthBound);
             }
 
-            Output.Print("... Elapsed {0} sec.", Profiler.Results());
+            Output.PrintLine("... Elapsed {0} sec.", Profiler.Results());
         }
 
         /// <summary>
@@ -291,7 +290,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
             var traces = Directory.GetFiles(directory, name + "*.txt");
             var path = directory + name + "_" + traces.Length + ".txt";
 
-            Output.Print("... Writing {0}", path);
+            Output.PrintLine("... Writing {0}", path);
             File.WriteAllText(path, sw.ToString());
         }
 
@@ -300,10 +299,10 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// </summary>
         private static void Cleanup()
         {
-            if (SCTEngine.HasSwitchedRuntimeDebuggingOn)
+            if (SCTEngine.HasSwitchedRuntimeLoggingOn)
             {
-                Configuration.Debug.Remove(DebugType.Runtime);
-                SCTEngine.HasSwitchedRuntimeDebuggingOn = false;
+                Configuration.Logging = false;
+                SCTEngine.HasSwitchedRuntimeLoggingOn = false;
             }
         }
 

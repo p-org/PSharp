@@ -132,7 +132,7 @@ namespace SystematicTesting
             Configuration.Verbose = 2;
             Configuration.CheckLiveness = true;
             Configuration.DepthBound = 1000;
-            Configuration.Debug.Add(DebugType.Liveness);
+            Configuration.Debugging.Add(DebugType.Liveness);
 
             var parser = new CSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), true);
             var program = parser.Parse();

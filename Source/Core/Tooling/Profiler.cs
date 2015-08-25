@@ -59,7 +59,7 @@ namespace Microsoft.PSharp.Tooling
                 return;
             }
 
-            Output.Print("Total Runtime: " + Profiler.StopWatch.Elapsed.TotalSeconds + " (sec).");
+            Output.PrintLine("Total Runtime: " + Profiler.StopWatch.Elapsed.TotalSeconds + " (sec).");
         }
     }
 }

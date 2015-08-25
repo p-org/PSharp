@@ -100,35 +100,31 @@ namespace Microsoft.PSharp.Tooling
                 }
                 else if (this.Options[idx].ToLower().Equals("/debug"))
                 {
-                    Configuration.Debug.Add(DebugType.Any);
+                    Configuration.Debugging.Add(DebugType.Any);
                 }
                 else if (this.Options[idx].ToLower().StartsWith("/debug:") &&
                     this.Options[idx].Length > 7)
                 {
                     if (this.Options[idx].Substring(7).ToLower().Equals("all"))
                     {
-                        Configuration.Debug.Add(DebugType.Any);
-                    }
-                    else if (this.Options[idx].Substring(7).ToLower().Equals("runtime"))
-                    {
-                        Configuration.Debug.Add(DebugType.Runtime);
+                        Configuration.Debugging.Add(DebugType.Any);
                     }
                     else if (this.Options[idx].Substring(7).ToLower().Equals("analysis"))
                     {
-                        Configuration.Debug.Add(DebugType.Analysis);
+                        Configuration.Debugging.Add(DebugType.Analysis);
                     }
                     else if (this.Options[idx].Substring(7).ToLower().Equals("testing"))
                     {
-                        Configuration.Debug.Add(DebugType.Testing);
+                        Configuration.Debugging.Add(DebugType.Testing);
                     }
                     else if (this.Options[idx].Substring(7).ToLower().Equals("liveness"))
                     {
-                        Configuration.Debug.Add(DebugType.Liveness);
+                        Configuration.Debugging.Add(DebugType.Liveness);
                     }
                     else
                     {
                         ErrorReporter.ReportAndExit("Please give a valid debug target '/debug:[x]', " +
-                            "where [x] is 'all', 'runtime', 'analysis', 'testing' or 'liveness'.");
+                            "where [x] is 'all', 'analysis', 'testing' or 'liveness'.");
                     }
                 }
 
@@ -342,7 +338,7 @@ namespace Microsoft.PSharp.Tooling
 
             help += "\n";
 
-            Output.WriteLine(help);
+            Output.PrettyPrintLine(help);
         }
 
         #endregion

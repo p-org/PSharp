@@ -96,11 +96,11 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         public static void PrintStatistics()
         {
-            Output.Print("Number of machines in the program: {0}",
+            Output.PrintLine("Number of machines in the program: {0}",
                 StateTransitionAnalysis.NumOfMachines);
-            Output.Print("Number of state transitions in the program: {0}",
+            Output.PrintLine("Number of state transitions in the program: {0}",
                 StateTransitionAnalysis.NumOfTransitions);
-            Output.Print("Number of action bindings in the program: {0}",
+            Output.PrintLine("Number of action bindings in the program: {0}",
                 StateTransitionAnalysis.NumOfActionBindings);
         }
 

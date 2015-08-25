@@ -211,15 +211,15 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
                 emitResult = compilation.Emit(outputFile, outputPdbFile);
                 if (emitResult.Success)
                 {
-                    Output.Print("... Writing " + fileName);
+                    Output.PrintLine("... Writing " + fileName);
                     return fileName;
                 }
             }
 
-            Output.Print("---");
-            Output.Print("Note: the errors below correspond to the intermediate C#-IR, " +
+            Output.PrintLine("---");
+            Output.PrintLine("Note: the errors below correspond to the intermediate C#-IR, " +
                 "which can be printed using /debug.");
-            Output.Print("---");
+            Output.PrintLine("---");
 
             var message = string.Join("\r\n", emitResult.Diagnostics);
             throw new ApplicationException(message);
@@ -254,10 +254,10 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
                 }
             }
 
-            Output.Print("---");
-            Output.Print("Note: the errors below correspond to the intermediate C#-IR, " +
+            Output.PrintLine("---");
+            Output.PrintLine("Note: the errors below correspond to the intermediate C#-IR, " +
                 "which can be printed using /debug.");
-            Output.Print("---");
+            Output.PrintLine("---");
 
             var message = string.Join("\r\n", emitResult.Diagnostics);
             throw new ApplicationException(message);
@@ -308,7 +308,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <param name="dll">Name of dll</param>
         private static void LinkAssemblyToAllProjects(Assembly assembly, string dll)
         {
-            Output.Print("... Linking {0}", dll);
+            Output.PrintLine("... Linking {0}", dll);
 
             foreach (var outputDir in CompilationEngine.OutputDirectoryMap.Values)
             {

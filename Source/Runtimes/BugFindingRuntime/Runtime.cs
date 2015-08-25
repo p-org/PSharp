@@ -254,8 +254,7 @@ namespace Microsoft.PSharp
                 MachineId mid = (machine as Machine).Id;
                 PSharpRuntime.MachineMap.Add(mid.Value, machine as Machine);
                 
-                Output.Debug(DebugType.Runtime, "<CreateLog> Machine {0}({1}) is created.",
-                    type.Name, mid.MVal);
+                Output.Log("<CreateLog> Machine {0}({1}) is created.", type.Name, mid.MVal);
 
                 Task task = new Task(() =>
                 {
@@ -309,7 +308,7 @@ namespace Microsoft.PSharp
 
             Object monitor = Activator.CreateInstance(type);
             
-            Output.Debug(DebugType.Runtime, "<CreateLog> Monitor {0} is created.", type.Name);
+            Output.Log("<CreateLog> Monitor {0} is created.", type.Name);
 
             PSharpRuntime.Monitors.Add(monitor as Monitor);
 
@@ -333,7 +332,7 @@ namespace Microsoft.PSharp
             TaskMachine taskMachine = new TaskMachine(PSharpRuntime.TaskScheduler as TaskWrapperScheduler, userTask);
 
             MachineId mid = taskMachine.Id;
-            Output.Debug(DebugType.Runtime, "<CreateLog> TaskMachine({0}) is created.", mid.MVal);
+            Output.Log("<CreateLog> TaskMachine({0}) is created.", mid.MVal);
 
             Task task = new Task(() =>
             {
@@ -381,12 +380,12 @@ namespace Microsoft.PSharp
             if (PSharpRuntime.TaskMap.ContainsKey((int)Task.CurrentId))
             {
                 Machine sender = PSharpRuntime.TaskMap[(int)Task.CurrentId];
-                Output.Debug(DebugType.Runtime, "<SendLog> Machine '{0}({1})' sent event '{2}' " +
-                    "to '{3}({4})'.", sender, sender.Id.MVal, e.GetType(), mid.Type, mid.MVal);
+                Output.Log("<SendLog> Machine '{0}({1})' sent event '{2}' to '{3}({4})'.",
+                    sender, sender.Id.MVal, e.GetType(), mid.Type, mid.MVal);
             }
             else
             {
-                Output.Debug(DebugType.Runtime, "<SendLog> Event '{2}' was sent to '{3}({4})'.",
+                Output.Log("<SendLog> Event '{2}' was sent to '{3}({4})'.",
                     e.GetType(), mid.Type, mid.MVal);
             }
 

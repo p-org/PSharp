@@ -61,9 +61,14 @@ namespace Microsoft.PSharp.Tooling
         public static bool RedirectConsoleOutput;
 
         /// <summary>
+        /// Turn logging on.
+        /// </summary>
+        public static bool Logging;
+
+        /// <summary>
         /// Turn debugging for the specified components on.
         /// </summary>
-        public static HashSet<DebugType> Debug;
+        public static HashSet<DebugType> Debugging;
 
         #endregion
 
@@ -229,7 +234,8 @@ namespace Microsoft.PSharp.Tooling
             Configuration.AnalysisTimeout = 0;
             Configuration.Verbose = 1;
             Configuration.RedirectConsoleOutput = true;
-            Configuration.Debug = new HashSet<DebugType>();
+            Configuration.Logging = false;
+            Configuration.Debugging = new HashSet<DebugType>();
 
             Configuration.CompileForDistribution = false;
 

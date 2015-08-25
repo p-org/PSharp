@@ -91,7 +91,7 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
             {
                 base.Reset();
                 this.CurrentDepth++;
-                Output.Print("....... Depth bound increased to {0}", this.CurrentDepth);
+                Output.PrintLine("....... Depth bound increased to {0}", this.CurrentDepth);
             }
         }
 

@@ -61,7 +61,7 @@ namespace Microsoft.PSharp.Tooling
             }
             catch (Exception ex)
             {
-                Output.Print(ex.StackTrace);
+                Output.PrintLine(ex.StackTrace);
                 ErrorReporter.ReportAndExit("Please give a valid solution path.");
             }
 
@@ -107,8 +107,8 @@ namespace Microsoft.PSharp.Tooling
 
             ProgramInfo.Solution = project.Solution;
 
-            if (Configuration.Debug.Contains(DebugType.Parsing) ||
-                Configuration.Debug.Contains(DebugType.Any))
+            if (Configuration.Debugging.Contains(DebugType.Parsing) ||
+                Configuration.Debugging.Contains(DebugType.Any))
             {
                 ProgramInfo.PrintSyntaxTree(tree);
             }
@@ -186,7 +186,7 @@ namespace Microsoft.PSharp.Tooling
             var lines = System.Text.RegularExpressions.Regex.Split(root.ToFullString(), "\r\n|\r|\n");
             for (int idx = 0; idx < lines.Length; idx++)
             {
-                Output.Print(idx + 1 + " " + lines[idx]);
+                Output.PrintLine(idx + 1 + " " + lines[idx]);
             }
         }
 
