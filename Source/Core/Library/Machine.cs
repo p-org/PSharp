@@ -237,10 +237,7 @@ namespace Microsoft.PSharp
         {
             // If the event is null then report an error and exit.
             this.Assert(e != null, "Machine '{0}' is sending a null event.", this.GetType().Name);
-
             e.AssignPayload(payload);
-            Output.Debug(DebugType.Runtime, "<SendLog> Machine '{0}({1})' sent event '{2}' " +
-                "to '{3}({4})'.", this, base.Id.MVal, e.GetType(), mid.Type, mid.MVal);
             Machine.Dispatcher.Send(mid, e);
         }
 
@@ -254,7 +251,6 @@ namespace Microsoft.PSharp
         {
             // If the event is null then report an error and exit.
             this.Assert(e != null, "Machine '{0}' is sending a null event.", this.GetType().Name);
-
             e.AssignPayload(payload);
             Machine.Dispatcher.Monitor<T>(e);
         }
@@ -268,7 +264,6 @@ namespace Microsoft.PSharp
         {
             // If the event is null then report an error and exit.
             this.Assert(e != null, "Machine '{0}' is raising a null event.", this.GetType().Name);
-
             e.AssignPayload(payload);
             Output.Debug(DebugType.Runtime, "<RaiseLog> Machine '{0}({1})' raised " +
                 "event '{2}'.", this, base.Id.MVal, e);

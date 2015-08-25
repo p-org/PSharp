@@ -148,7 +148,7 @@ namespace Microsoft.PSharp
             PSharpRuntime.Assert(PSharpRuntime.TaskMap.ContainsKey((int)Task.CurrentId),
                 "Only machines can wait to receive an event; task {0} does not belong to a machine.",
                 (int)Task.CurrentId);
-            var machine = PSharpRuntime.TaskMap[(int)Task.CurrentId];
+            Machine machine = PSharpRuntime.TaskMap[(int)Task.CurrentId];
             machine.Receive(events);
             return machine.Payload;
         }
@@ -164,7 +164,7 @@ namespace Microsoft.PSharp
             PSharpRuntime.Assert(PSharpRuntime.TaskMap.ContainsKey((int)Task.CurrentId),
                 "Only machines can wait to receive an event; task {0} does not belong to a machine.",
                 (int)Task.CurrentId);
-            var machine = PSharpRuntime.TaskMap[(int)Task.CurrentId];
+            Machine machine = PSharpRuntime.TaskMap[(int)Task.CurrentId];
             machine.Receive(events);
             return machine.Payload;
         }
@@ -202,7 +202,7 @@ namespace Microsoft.PSharp
         {
             if (!predicate)
             {
-                var killTasks = true;
+                bool killTasks = true;
                 if (Task.CurrentId == PSharpRuntime.RootTaskId)
                 {
                     killTasks = false;
@@ -224,7 +224,7 @@ namespace Microsoft.PSharp
         {
             if (!predicate)
             {
-                var killTasks = true;
+                bool killTasks = true;
                 if (Task.CurrentId == PSharpRuntime.RootTaskId)
                 {
                     killTasks = false;
@@ -251,7 +251,7 @@ namespace Microsoft.PSharp
             {
                 Object machine = Activator.CreateInstance(type);
 
-                var mid = (machine as Machine).Id;
+                MachineId mid = (machine as Machine).Id;
                 PSharpRuntime.MachineMap.Add(mid.Value, machine as Machine);
                 
                 Output.Debug(DebugType.Runtime, "<CreateLog> Machine {0}({1}) is created.",
@@ -330,9 +330,9 @@ namespace Microsoft.PSharp
         {
             PSharpRuntime.Assert(PSharpRuntime.TaskScheduler is TaskWrapperScheduler, "Unable to wrap " +
                 "the task in a machine, because the task wrapper scheduler is not enabled.\n");
-            var taskMachine = new TaskMachine(PSharpRuntime.TaskScheduler as TaskWrapperScheduler, userTask);
+            TaskMachine taskMachine = new TaskMachine(PSharpRuntime.TaskScheduler as TaskWrapperScheduler, userTask);
 
-            var mid = taskMachine.Id;
+            MachineId mid = taskMachine.Id;
             Output.Debug(DebugType.Runtime, "<CreateLog> TaskMachine({0}) is created.", mid.MVal);
 
             Task task = new Task(() =>
@@ -377,10 +377,22 @@ namespace Microsoft.PSharp
             {
                 ErrorReporter.ReportAndExit("Cannot send a null event.");
             }
+            
+            if (PSharpRuntime.TaskMap.ContainsKey((int)Task.CurrentId))
+            {
+                Machine sender = PSharpRuntime.TaskMap[(int)Task.CurrentId];
+                Output.Debug(DebugType.Runtime, "<SendLog> Machine '{0}({1})' sent event '{2}' " +
+                    "to '{3}({4})'.", sender, sender.Id.MVal, e.GetType(), mid.Type, mid.MVal);
+            }
+            else
+            {
+                Output.Debug(DebugType.Runtime, "<SendLog> Event '{2}' was sent to '{3}({4})'.",
+                    e.GetType(), mid.Type, mid.MVal);
+            }
 
-            var machine = PSharpRuntime.MachineMap[mid.Value];
+            Machine machine = PSharpRuntime.MachineMap[mid.Value];
 
-            var runHandler = false;
+            bool runHandler = false;
             machine.Enqueue(e, ref runHandler);
 
             if (!runHandler)
@@ -477,7 +489,7 @@ namespace Microsoft.PSharp
         /// <param name="mid">Machine id</param>
         internal static void NotifyReceivedEvent(MachineId mid)
         {
-            var machine = PSharpRuntime.MachineMap[mid.Value];
+            Machine machine = PSharpRuntime.MachineMap[mid.Value];
             PSharpRuntime.BugFinder.NotifyTaskReceivedEvent(machine);
         }
 
@@ -506,7 +518,7 @@ namespace Microsoft.PSharp
 
             unchecked
             {
-                var hash = 19;
+                int hash = 19;
 
                 foreach (var machine in PSharpRuntime.MachineMap.Values)
                 {
@@ -586,7 +598,7 @@ namespace Microsoft.PSharp
 
             MachineId.ResetMachineIDCounter();
 
-            var dispatcher = new BugFindingDispatcher();
+            BugFindingDispatcher dispatcher = new BugFindingDispatcher();
             Machine.Dispatcher = dispatcher;
             PSharp.Monitor.Dispatcher = dispatcher;
 

@@ -16,7 +16,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -232,9 +231,6 @@ namespace Microsoft.PSharp
                     ErrorReporter.ReportAndExit("Machine {0}({1}) was already created.",
                         type.Name, mid.Value);
                 }
-                
-                Output.Debug(DebugType.Runtime, "<CreateLog> Machine {0}({1}) is created.",
-                    type.Name, mid.Value);
                 
                 Task task = new Task(() =>
                 {
