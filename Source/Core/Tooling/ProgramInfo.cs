@@ -59,9 +59,12 @@ namespace Microsoft.PSharp.Tooling
                 ProgramInfo.Solution = (workspace as MSBuildWorkspace).OpenSolutionAsync(
                     @"" + Configuration.SolutionFilePath + "").Result;
             }
-            catch (Exception ex)
+            catch (AggregateException ex)
             {
-                Output.PrintLine(ex.StackTrace);
+                ErrorReporter.ReportAndExit(ex.InnerException.Message);
+            }
+            catch (Exception)
+            {
                 ErrorReporter.ReportAndExit("Please give a valid solution path.");
             }
 
