@@ -59,12 +59,12 @@ namespace Microsoft.PSharp.Remote
         /// </summary>
         internal static void Configure()
         {
-            Output.WriteLine(". Setting up");
+            Output.PrettyPrintLine(". Setting up");
 
             Container.LoadApplicationAssembly();
             Container.RegisterSerializableTypes();
 
-            Output.WriteLine("... Configured as container '{0}'", Configuration.ContainerId);
+            Output.PrettyPrintLine("... Configured as container '{0}'", Configuration.ContainerId);
         }
 
         /// <summary>
@@ -72,7 +72,7 @@ namespace Microsoft.PSharp.Remote
         /// </summary>
         internal static void Run()
         {
-            Output.WriteLine(". Running");
+            Output.PrettyPrintLine(". Running");
 
             Container.OpenNotificationListener();
             Container.OpenRemoteRequestListener();
@@ -83,7 +83,7 @@ namespace Microsoft.PSharp.Remote
             Container.RequestService.Close();
             Container.NotificationService.Close();
 
-            Output.WriteLine(". Closed listeners");
+            Output.PrettyPrintLine(". Closed listeners");
         }
 
         /// <summary>
@@ -93,7 +93,7 @@ namespace Microsoft.PSharp.Remote
         {
             Task.Factory.StartNew(() =>
             {
-                Output.WriteLine("... Starting P# runtime");
+                Output.PrettyPrintLine("... Starting P# runtime");
 
                 var entry = Container.FindEntryPoint(PSharpRuntime.AppAssembly);
                 entry.Invoke(null, null);
@@ -139,7 +139,7 @@ namespace Microsoft.PSharp.Remote
         /// </summary>
         private static void OpenNotificationListener()
         {
-            Output.WriteLine("... Opening notification listener");
+            Output.PrettyPrintLine("... Opening notification listener");
 
             Uri address = new Uri("http://localhost:8000/notify/" + Configuration.ContainerId + "/");
             var binding = new WSHttpBinding();
@@ -159,7 +159,7 @@ namespace Microsoft.PSharp.Remote
         /// </summary>
         private static void OpenRemoteRequestListener()
         {
-            Output.WriteLine("... Opening remote request listener");
+            Output.PrettyPrintLine("... Opening remote request listener");
 
             Uri address = new Uri("http://localhost:8000/request/" + Configuration.ContainerId + "/");
             var binding = new WSHttpBinding();
@@ -217,7 +217,7 @@ namespace Microsoft.PSharp.Remote
         /// </summary>
         private static void NotifyManagerInitialization()
         {
-            Output.WriteLine("... Notifying remote manager [initialization]");
+            Output.PrettyPrintLine("... Notifying remote manager [initialization]");
 
             Uri address = new Uri("http://localhost:8000/manager/");
 

@@ -510,12 +510,12 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         internal void PrintAccesses()
         {
-            Output.Print("\nPrinting access set:");
+            Output.PrintLine("\nPrinting access set:");
             foreach (var index in this.AccessSet)
             {
                 foreach (var syntaxNode in index.Value)
                 {
-                    Output.Print("  > access: " + index.Key + " " + syntaxNode);
+                    Output.PrintLine("  > access: " + index.Key + " " + syntaxNode);
                 }
             }
         }
@@ -525,12 +525,12 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         internal void PrintFieldAccesses()
         {
-            Output.Print("\nPrinting field access set:");
+            Output.PrintLine("\nPrinting field access set:");
             foreach (var field in this.FieldAccessSet)
             {
                 foreach (var syntaxNode in field.Value)
                 {
-                    Output.Print("  > access: " + field.Key.Name + " " + syntaxNode);
+                    Output.PrintLine("  > access: " + field.Key.Name + " " + syntaxNode);
                 }
             }
         }
@@ -540,12 +540,12 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         internal void PrintSideEffects()
         {
-            Output.Print("\nPrinting side effects:");
+            Output.PrintLine("\nPrinting side effects:");
             foreach (var pair in this.SideEffects)
             {
                 foreach (var index in pair.Value)
                 {
-                    Output.Print("  " + pair.Key.Name + " " + index);
+                    Output.PrintLine("  " + pair.Key.Name + " " + index);
                 }
             }
         }
@@ -555,15 +555,15 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         internal void PrintReturnSet()
         {
-            Output.Print("\nPrinting return set:");
+            Output.PrintLine("\nPrinting return set:");
             foreach (var index in this.ReturnSet.Item1)
             {
-                Output.Print("  > return: " + index);
+                Output.PrintLine("  > return: " + index);
             }
 
             foreach (var field in this.ReturnSet.Item2)
             {
-                Output.Print("  > return: " + field.Name);
+                Output.PrintLine("  > return: " + field.Name);
             }
         }
 
@@ -572,10 +572,10 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         internal void PrintReturnTypeSet()
         {
-            Output.Print("\nPrinting return type set:");
+            Output.PrintLine("\nPrinting return type set:");
             foreach (var type in this.ReturnTypeSet)
             {
-                Output.Print("  " + type.Name);
+                Output.PrintLine("  " + type.Name);
             }
         }
 
@@ -584,7 +584,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         private void DebugPrint()
         {
-            Output.Print("DebugPrint");
+            Output.PrintLine("DebugPrint");
             this.Node.DebugPrint();
             //this.Node.DebugPrintPredecessors();
             this.Node.DebugPrintSuccessors();

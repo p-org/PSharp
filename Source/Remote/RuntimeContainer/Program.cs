@@ -33,7 +33,7 @@ namespace Microsoft.PSharp.Remote
             Container.Configure();
             Container.Run();
 
-            Output.WriteLine(". Done");
+            Output.PrettyPrintLine(". Done");
         }
 
         #endregion

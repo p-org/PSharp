@@ -25,7 +25,6 @@ namespace Microsoft.PSharp.Tooling
         Any,
         Parsing,
         Rewriting,
-        Runtime,
         Analysis,
         Testing,
         Liveness

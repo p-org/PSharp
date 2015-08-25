@@ -32,7 +32,7 @@ namespace Microsoft.PSharp.Remote
             
             Manager.Run();
 
-            Output.WriteLine(". Done");
+            Output.PrettyPrintLine(". Done");
         }
 
         #endregion

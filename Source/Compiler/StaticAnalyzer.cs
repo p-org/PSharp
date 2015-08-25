@@ -38,7 +38,7 @@ namespace Microsoft.PSharp
 
             foreach (var project in ProgramInfo.Solution.Projects)
             {
-                Output.Print(". Analyzing " + project.Name);
+                Output.PrintLine(". Analyzing " + project.Name);
                 StaticAnalyzer.AnalyseProgramUnit(project);
             }
 

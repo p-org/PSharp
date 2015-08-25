@@ -36,7 +36,7 @@ namespace Microsoft.PSharp
 
             foreach (var dll in Configuration.AssembliesToBeAnalyzed)
             {
-                Output.Print(". Testing " + dll);
+                Output.PrintLine(". Testing " + dll);
                 DynamicAnalyzer.AnalyseAssembly(dll);
             }
         }

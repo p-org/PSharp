@@ -15,42 +15,81 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Diagnostics;
 using System.Globalization;
 
 namespace Microsoft.PSharp.Tooling
 {
     internal static class Output
     {
+        /// <summary>
+        /// Formats the given string.
+        /// </summary>
+        /// <param name="s">String</param>
+        /// <param name="args">Arguments</param>
+        /// <returns></returns>
         internal static string Format(string s, params object[] args)
         {
             return string.Format(CultureInfo.InvariantCulture, s, args);
         }
 
-        internal static void Print(string s)
+        /// <summary>
+        /// Writes the text representation of the specified array
+        /// of objects to the output stream.
+        /// </summary>
+        /// <param name="s">String</param>
+        /// <param name="args">Arguments</param>
+        internal static void Print(string s, params object[] args)
         {
-            Console.WriteLine(s);
+            Console.Write(s, args);
         }
 
-        internal static void Print(string s, params object[] args)
+        /// <summary>
+        /// Writes the text representation of the specified array
+        /// of objects, followed by the current line terminator, to
+        /// the output stream.
+        /// </summary>
+        /// <param name="s">String</param>
+        /// <param name="args">Arguments</param>
+        internal static void PrintLine(string s, params object[] args)
         {
             Console.WriteLine(s, args);
         }
 
-        internal static void Write(string s, params object[] args)
+        /// <summary>
+        /// Writes the text representation of the specified array
+        /// of objects to the output stream. The text is formatted.
+        /// </summary>
+        /// <param name="s">String</param>
+        /// <param name="args">Arguments</param>
+        internal static void PrettyPrint(string s, params object[] args)
         {
             string message = Output.Format(s, args);
             Console.Write(message);
         }
 
-        internal static void WriteLine(string s, params object[] args)
+        /// <summary>
+        /// Writes the text representation of the specified array
+        /// of objects, followed by the current line terminator, to
+        /// the output stream. The text is formatted.
+        /// </summary>
+        /// <param name="s">String</param>
+        /// <param name="args">Arguments</param>
+        internal static void PrettyPrintLine(string s, params object[] args)
         {
             string message = Output.Format(s, args);
             Console.WriteLine(message);
         }
 
+        /// <summary>
+        /// Prints the logging information, followed by the current
+        /// line terminator, to the output stream.
+        /// </summary>
+        /// <param name="s">String</param>
+        /// <param name="args">Arguments</param>
         internal static void Log(string s, params object[] args)
         {
-            if (Configuration.Verbose < 3)
+            if (!Configuration.Logging)
             {
                 return;
             }
@@ -59,10 +98,18 @@ namespace Microsoft.PSharp.Tooling
             Console.WriteLine(message);
         }
 
+        /// <summary>
+        /// Prints the debugging information, followed by the current
+        /// line terminator, to the output stream. The print occurs
+        /// only if the given debugging type is active.
+        /// </summary>
+        /// <param name="type">DebugType</param>
+        /// <param name="s">String</param>
+        /// <param name="args">Arguments</param>
         internal static void Debug(DebugType type, string s, params object[] args)
         {
-            if (!Configuration.Debug.Contains(DebugType.Any) &&
-                !Configuration.Debug.Contains(type))
+            if (!Configuration.Debugging.Contains(DebugType.Any) &&
+                !Configuration.Debugging.Contains(type))
             {
                 return;
             }

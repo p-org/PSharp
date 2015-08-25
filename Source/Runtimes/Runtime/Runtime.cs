@@ -16,7 +16,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -40,7 +39,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// A map from task ids to machines.
         /// </summary>
-        private static Dictionary<int, Machine> TaskMap;
+        private static ConcurrentDictionary<int, Machine> TaskMap;
 
         /// <summary>
         /// Ip address.
@@ -72,11 +71,11 @@ namespace Microsoft.PSharp
         static PSharpRuntime()
         {
             PSharpRuntime.MachineMap = new ConcurrentDictionary<int, Machine>();
-            PSharpRuntime.TaskMap = new Dictionary<int, Machine>();
+            PSharpRuntime.TaskMap = new ConcurrentDictionary<int, Machine>();
 
             MachineId.ResetMachineIDCounter();
 
-            var dispatcher = new Dispatcher();
+            Dispatcher dispatcher = new Dispatcher();
             PSharp.Machine.Dispatcher = dispatcher;
             PSharp.Monitor.Dispatcher = dispatcher;
 
@@ -120,7 +119,7 @@ namespace Microsoft.PSharp
             PSharpRuntime.Assert(PSharpRuntime.TaskMap.ContainsKey((int)Task.CurrentId),
                 "Only machines can wait to receive an event; task {0} does not belong to a machine.",
                 (int)Task.CurrentId);
-            var machine = PSharpRuntime.TaskMap[(int)Task.CurrentId];
+            Machine machine = PSharpRuntime.TaskMap[(int)Task.CurrentId];
             machine.Receive(events);
             return machine.Payload;
         }
@@ -137,7 +136,7 @@ namespace Microsoft.PSharp
             PSharpRuntime.Assert(PSharpRuntime.TaskMap.ContainsKey((int)Task.CurrentId),
                 "Only machines can wait to receive an event; task {0} does not belong to a machine.",
                 (int)Task.CurrentId);
-            var machine = PSharpRuntime.TaskMap[(int)Task.CurrentId];
+            Machine machine = PSharpRuntime.TaskMap[(int)Task.CurrentId];
             machine.Receive(events);
             return machine.Payload;
         }
@@ -221,29 +220,33 @@ namespace Microsoft.PSharp
         {
             if (type.IsSubclassOf(typeof(Machine)))
             {
-                Object machine = Activator.CreateInstance(type);
+                Machine machine = Activator.CreateInstance(type) as Machine;
 
-                var mid = (machine as Machine).Id;
+                MachineId mid = machine.Id;
                 mid.IpAddress = PSharpRuntime.IpAddress;
                 mid.Port = PSharpRuntime.Port;
 
-                if (!PSharpRuntime.MachineMap.TryAdd(mid.Value, machine as Machine))
+                if (!PSharpRuntime.MachineMap.TryAdd(mid.Value, machine))
                 {
                     ErrorReporter.ReportAndExit("Machine {0}({1}) was already created.",
                         type.Name, mid.Value);
                 }
                 
-                Output.Debug(DebugType.Runtime, "<CreateLog> Machine {0}({1}) is created.",
-                    type.Name, mid.Value);
-                
                 Task task = new Task(() =>
                 {
-                    (machine as Machine).AssignInitialPayload(payload);
-                    (machine as Machine).GotoStartState();
-                    (machine as Machine).RunEventHandler();
-                });
+                    PSharpRuntime.TaskMap.TryAdd(Task.CurrentId.Value, machine);
 
-                PSharpRuntime.TaskMap.Add(task.Id, machine as Machine);
+                    try
+                    {
+                        machine.AssignInitialPayload(payload);
+                        machine.GotoStartState();
+                        machine.RunEventHandler();
+                    }
+                    finally
+                    {
+                        PSharpRuntime.TaskMap.TryRemove(Task.CurrentId.Value, out machine);
+                    }
+                });
 
                 task.Start();
 
@@ -282,9 +285,9 @@ namespace Microsoft.PSharp
                 ErrorReporter.ReportAndExit("Cannot send a null event.");
             }
 
-            var machine = PSharpRuntime.MachineMap[mid.Value];
+            Machine machine = PSharpRuntime.MachineMap[mid.Value];
 
-            var runHandler = false;
+            bool runHandler = false;
             machine.Enqueue(e, ref runHandler);
 
             if (!runHandler)
@@ -294,10 +297,17 @@ namespace Microsoft.PSharp
 
             Task task = new Task(() =>
             {
-                machine.RunEventHandler();
-            });
+                PSharpRuntime.TaskMap.TryAdd(Task.CurrentId.Value, machine as Machine);
 
-            PSharpRuntime.TaskMap.Add(task.Id, machine as Machine);
+                try
+                {
+                    machine.RunEventHandler();
+                }
+                finally
+                {
+                    PSharpRuntime.TaskMap.TryRemove(Task.CurrentId.Value, out machine);
+                }
+            });
 
             task.Start();
         }
@@ -309,7 +319,7 @@ namespace Microsoft.PSharp
         /// <returns>Boolean</returns>
         internal static bool Nondet()
         {
-            var random = new Random(DateTime.Now.Millisecond);
+            Random random = new Random(DateTime.Now.Millisecond);
 
             bool result = false;
             if (random.Next(2) == 1)
@@ -326,7 +336,7 @@ namespace Microsoft.PSharp
         /// <param name="mid">Machine id</param>
         internal static void NotifyWaitEvent(MachineId mid)
         {
-            var machine = PSharpRuntime.MachineMap[mid.Value];
+            Machine machine = PSharpRuntime.MachineMap[mid.Value];
             lock (machine)
             {
                 System.Threading.Monitor.Wait(machine);
@@ -339,7 +349,7 @@ namespace Microsoft.PSharp
         /// <param name="mid">Machine id</param>
         internal static void NotifyReceivedEvent(MachineId mid)
         {
-            var machine = PSharpRuntime.MachineMap[mid.Value];
+            Machine machine = PSharpRuntime.MachineMap[mid.Value];
             lock (machine)
             {
                 System.Threading.Monitor.Pulse(machine);

@@ -89,9 +89,9 @@ namespace Microsoft.PSharp.Scheduling
         /// <summary>
         /// Schedules the next machine to execute.
         /// </summary>
-        /// <param name="id">TaskId</param>
-        internal virtual void Schedule(int? id)
+        internal virtual void Schedule()
         {
+            int? id = Task.CurrentId;
             if (id == null || id == PSharpRuntime.RootTaskId)
             {
                 return;
@@ -244,9 +244,9 @@ namespace Microsoft.PSharp.Scheduling
         /// <summary>
         /// Notify that the task has started.
         /// </summary>
-        /// <param name="id">TaskId</param>
-        internal virtual void NotifyTaskStarted(int? id)
+        internal virtual void NotifyTaskStarted()
         {
+            int? id = Task.CurrentId;
             if (id == null)
             {
                 return;
@@ -310,9 +310,9 @@ namespace Microsoft.PSharp.Scheduling
         /// <summary>
         /// Notify that the task has completed.
         /// </summary>
-        /// <param name="id">TaskId</param>
-        internal virtual void NotifyTaskCompleted(int? id)
+        internal virtual void NotifyTaskCompleted()
         {
+            int? id = Task.CurrentId;
             if (id == null)
             {
                 return;
@@ -326,7 +326,7 @@ namespace Microsoft.PSharp.Scheduling
             taskInfo.IsEnabled = false;
             taskInfo.IsCompleted = true;
 
-            this.Schedule(taskInfo.Id);
+            this.Schedule();
 
             Output.Debug(DebugType.Testing, "<ScheduleDebug> Exit task {0} of machine {1}({2}).",
                 taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id.MVal);
