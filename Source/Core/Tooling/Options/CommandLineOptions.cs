@@ -215,6 +215,20 @@ namespace Microsoft.PSharp.Tooling
                 {
                     Configuration.FullExploration = true;
                 }
+
+
+                else if (this.Options[idx].ToLower().StartsWith("/sch-seed:") &&
+                    this.Options[idx].Length > 10)
+                {
+                    int seed;
+                    if (!int.TryParse(this.Options[idx].Substring(10), out seed))
+                    {
+                        ErrorReporter.ReportAndExit("Please give a valid random scheduling " +
+                            "seed '/sch-seed:[x]', where [x] is a signed 32-bit integer.");
+                    }
+
+                    Configuration.RandomSchedulingSeed = seed;
+                }
                 else if (this.Options[idx].ToLower().StartsWith("/db:") &&
                     this.Options[idx].Length > 4)
                 {
@@ -311,11 +325,11 @@ namespace Microsoft.PSharp.Tooling
             help += "\nBasic options:";
             help += "\n--------------";
             help += "\n  /?\t\t Show this help menu";
-            help += "\n  /s:\t\t Path to a P# solution";
-            help += "\n  /p:\t\t Path to a project of a P# solution";
-            help += "\n  /o:\t\t Path for output files";
-            help += "\n  /timeout:\t Timeout for the tool";
-            help += "\n  /v:\t\t Enable verbose mode (values from '0' to '3')";
+            help += "\n  /s:[x]\t Path to a P# solution";
+            help += "\n  /p:[x]\t Name of a project in the P# solution";
+            help += "\n  /o:[x]\t Path for output files";
+            help += "\n  /timeout:[x]\t Timeout for the tool (default is no timeout)";
+            help += "\n  /v:[x]\t Enable verbose mode (values from '0' to '3')";
             help += "\n  /debug\t Enable debugging";
 
             help += "\n\n--------------------";
@@ -327,9 +341,11 @@ namespace Microsoft.PSharp.Tooling
             help += "\nSystematic testing options:";
             help += "\n---------------------------";
             help += "\n  /test\t\t Enable the systematic testing mode to find bugs";
-            help += "\n  /i:\t\t Number of schedules to explore for bugs";
-            help += "\n  /db:\t\t Depth bound to be explored ('10000' by default)";
+            help += "\n  /i:[x]\t Number of schedules to explore for bugs";
+            help += "\n  /sch:[x]\t Choose a systematic testing strategy ('random' by default)";
+            help += "\n  /db:[x]\t Depth bound to be explored ('10000' by default)";
             help += "\n  /liveness\t Enable liveness property checking";
+            help += "\n  /sch-seed:[x]\t Choose a scheduling seed (signed 32-bit integer)";
 
             help += "\n\n---------------------------";
             help += "\nExperimental options:";

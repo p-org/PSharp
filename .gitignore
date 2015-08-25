@@ -6,6 +6,7 @@
 *.user
 *.sln.docstates
 
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
@@ -53,6 +54,8 @@ dlldata.c
 *.pidb
 *.svclog
 *.scc
+*.metaproj
+*.metaproj.tmp
 
 # Chutzpah Test files
 _Chutzpah*

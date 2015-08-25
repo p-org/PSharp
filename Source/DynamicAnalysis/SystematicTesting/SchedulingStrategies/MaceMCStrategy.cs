@@ -59,7 +59,8 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
             this.MaxDepth = Configuration.DepthBound;
             this.SafetyPrefixDepth = safetyPrefix;
             this.BoundedDFS = new IterativeDeepeningDFSStrategy(this.SafetyPrefixDepth);
-            this.Random = new RandomStrategy(DateTime.Now.Millisecond, this.SafetyPrefixDepth);
+            this.Random = new RandomStrategy(
+                Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond);
         }
 
         /// <summary>

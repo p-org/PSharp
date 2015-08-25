@@ -28,6 +28,8 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
     /// </summary>
     public class RandomStrategy : ISchedulingStrategy
     {
+        #region fields
+
         /// <summary>
         /// Nondeterminitic seed.
         /// </summary>
@@ -43,6 +45,10 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
         /// </summary>
         private int SchedulingSteps;
 
+        #endregion
+
+        #region public API
+
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -50,8 +56,8 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
         public RandomStrategy(int seed)
         {
             this.Seed = seed;
-            this.Random = new Random(seed);
             this.SchedulingSteps = 0;
+            this.Random = new Random(seed);
         }
 
         /// <summary>
@@ -62,8 +68,8 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
         public RandomStrategy(int seed, int steps)
         {
             this.Seed = seed;
-            this.Random = new Random(seed);
             this.SchedulingSteps = steps;
+            this.Random = new Random(seed);
         }
 
         /// <summary>
@@ -181,7 +187,9 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
         /// <returns>String</returns>
         public string GetDescription()
         {
-            return "Random (seed is " + this.Seed + ")";
+            return "Random (with seed " + this.Seed + ")";
         }
+
+        #endregion
     }
 }
