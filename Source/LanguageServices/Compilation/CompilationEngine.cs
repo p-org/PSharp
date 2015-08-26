@@ -104,7 +104,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
             this.LinkAssemblyToAllProjects(typeof(Machine).Assembly, "Microsoft.PSharp.dll");
 
             // Links the P# runtime.
-            if (this.Configuration.RunStaticAnalysis || this.Configuration.CompileForTesting)
+            if (this.Configuration.CompileForTesting)
             {
                 this.LinkAssemblyToAllProjects(typeof(BugFindingDispatcher).Assembly,
                     "Microsoft.PSharp.BugFindingRuntime.dll");
@@ -141,13 +141,12 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
             var runtimeDll = project.MetadataReferences.FirstOrDefault(val => val.Display.EndsWith(
                 Path.DirectorySeparatorChar + "Microsoft.PSharp.Runtime.dll"));
 
-            if (runtimeDll != null && (this.Configuration.RunStaticAnalysis ||
-                this.Configuration.CompileForTesting))
+            if (runtimeDll != null && this.Configuration.CompileForTesting)
             {
                 project = project.RemoveMetadataReference(runtimeDll);
             }
 
-            if ((this.Configuration.RunStaticAnalysis || this.Configuration.CompileForTesting) &&
+            if (this.Configuration.CompileForTesting &&
                 !project.MetadataReferences.Any(val => val.Display.EndsWith(
                 Path.DirectorySeparatorChar + "Microsoft.PSharp.BugFindingRuntime.dll")))
             {

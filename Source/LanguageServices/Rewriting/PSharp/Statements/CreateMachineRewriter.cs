@@ -115,8 +115,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
                     (models as LocalDeclarationStatementSyntax).Declaration.
                     Type.ToString().Equals("models"))
                 {
-                    if (!this.Project.Configuration.RunStaticAnalysis &&
-                        !this.Project.Configuration.CompileForTesting)
+                    if (!this.Project.Configuration.CompileForTesting)
                     {
                         machineIdentifier = (models as LocalDeclarationStatementSyntax).
                             Declaration.Variables[0].Identifier.ValueText;
@@ -134,8 +133,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
             var text = "";
             if (base.IsMonitor(machineIdentifier))
             {
-                if (!this.Project.Configuration.RunStaticAnalysis &&
-                    !this.Project.Configuration.CompileForTesting)
+                if (!this.Project.Configuration.CompileForTesting)
                 {
                     this.ToRemove.Add(node);
                     if (models != null)
