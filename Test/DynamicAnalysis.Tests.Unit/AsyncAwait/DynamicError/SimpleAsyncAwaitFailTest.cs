@@ -102,25 +102,26 @@ namespace SystematicTesting
     }
 }";
 
-            Configuration.SuppressTrace = true;
-            Configuration.Verbose = 2;
-            Configuration.SchedulingIterations = 2;
-            Configuration.SchedulingStrategy = "dfs";
-            Configuration.ScheduleIntraMachineConcurrency = true;
-
-            var parser = new CSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), true);
+            var parserConfig = new LanguageServicesConfiguration();
+            var parser = new CSharpParser(new PSharpProject(parserConfig),
+                SyntaxFactory.ParseSyntaxTree(test), true);
             var program = parser.Parse();
             program.Rewrite();
 
-            var assembly = base.GetAssembly(program.GetSyntaxTree());
-            AnalysisContext.Create(assembly);
+            var sctConfig = new DynamicAnalysisConfiguration();
+            sctConfig.SuppressTrace = true;
+            sctConfig.Verbose = 2;
+            sctConfig.SchedulingIterations = 2;
+            sctConfig.SchedulingStrategy = SchedulingStrategy.DFS;
+            sctConfig.ScheduleIntraMachineConcurrency = true;
 
-            SCTEngine.Setup();
-            SCTEngine.Run();
+            var assembly = base.GetAssembly(program.GetSyntaxTree());
+            var context = AnalysisContext.Create(sctConfig, assembly);
+            var sctEngine = SCTEngine.Create(context).Run();
 
             var bugReport = "Value is '3' (expected less than '3').";
 
-            Assert.AreEqual(bugReport, SCTEngine.BugReport);
+            Assert.AreEqual(bugReport, sctEngine.BugReport);
         }
     }
 }

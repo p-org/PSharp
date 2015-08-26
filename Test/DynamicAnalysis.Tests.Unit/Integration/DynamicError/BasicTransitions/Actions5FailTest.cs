@@ -158,21 +158,22 @@ namespace SystematicTesting
     }
 }";
 
-            var parser = new CSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), true);
+            var parserConfig = new LanguageServicesConfiguration();
+            var parser = new CSharpParser(new PSharpProject(parserConfig),
+                SyntaxFactory.ParseSyntaxTree(test), true);
             var program = parser.Parse();
             program.Rewrite();
 
-            Configuration.SuppressTrace = true;
-            Configuration.Verbose = 2;
-            Configuration.SchedulingStrategy = "dfs";
+            var sctConfig = new DynamicAnalysisConfiguration();
+            sctConfig.SuppressTrace = true;
+            sctConfig.Verbose = 2;
+            sctConfig.SchedulingStrategy = SchedulingStrategy.DFS;
 
             var assembly = base.GetAssembly(program.GetSyntaxTree());
-            AnalysisContext.Create(assembly);
+            var context = AnalysisContext.Create(sctConfig, assembly);
+            var sctEngine = SCTEngine.Create(context).Run();
 
-            SCTEngine.Setup();
-            SCTEngine.Run();
-
-            Assert.AreEqual(1, SCTEngine.NumOfFoundBugs);
+            Assert.AreEqual(1, sctEngine.NumOfFoundBugs);
         }
     }
 }

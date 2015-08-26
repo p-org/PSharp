@@ -140,7 +140,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
         #endregion
 
-        #region private API
+        #region private methods
 
         /// <summary>
         /// Discovers the available actions of the given machine.

@@ -28,23 +28,21 @@ namespace Microsoft.PSharp
             AppDomain currentDomain = AppDomain.CurrentDomain;
             currentDomain.UnhandledException += new UnhandledExceptionEventHandler(UnhandledExceptionHandler);
 
-            // Parses the command line options.
-            new CommandLineOptions(args).Parse();
+            // Parses the command line options to get the configuration.
+            var configuration = new CompilerCommandLineOptions(args).
+                Parse() as LanguageServicesConfiguration;
 
-            // Initializes program info.
-            ProgramInfo.Initialize();
+            // Initializes the program info.
+            ProgramInfo.Initialize(configuration);
 
-            // Run the parser.
-            Parser.Run();
+            // Creates and starts a parsing process.
+            ParsingProcess.Create(configuration).Start();
 
-            // Run the compiler.
-            Compiler.Run();
+            // Creates and starts a compilation process.
+            CompilationProcess.Create(configuration).Start();
 
-            // Run the static analyser.
-            StaticAnalyzer.Run();
-
-            // Run the dynamic analyser.
-            DynamicAnalyzer.Run();
+            // Creates and starts a static analysis process.
+            StaticAnalysisProcess.Create(configuration).Start();
 
             Output.PrintLine(". Done");
         }
@@ -57,8 +55,8 @@ namespace Microsoft.PSharp
         static void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs args)
         {
             var ex = (Exception)args.ExceptionObject;
-            Output.Debug(DebugType.Any, ex.Message);
-            Output.Debug(DebugType.Any, ex.StackTrace);
+            Output.Debug(ex.Message);
+            Output.Debug(ex.StackTrace);
             ErrorReporter.ReportAndExit("internal failure: {0}.", ex.GetType().ToString());
         }
     }

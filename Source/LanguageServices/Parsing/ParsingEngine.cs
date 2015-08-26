@@ -25,36 +25,51 @@ using Microsoft.PSharp.Tooling;
 namespace Microsoft.PSharp.LanguageServices.Parsing
 {
     /// <summary>
-    /// The P# parsing engine.
+    /// A P# parsing engine.
     /// </summary>
-    public static class ParsingEngine
+    public sealed class ParsingEngine
     {
-        #region public API
+        #region fields
+
+        /// <summary>
+        /// Configuration.
+        /// </summary>
+        private LanguageServicesConfiguration Configuration;
 
         /// <summary>
         /// List of P# projects.
         /// </summary>
-        private static List<PSharpProject> PSharpProjects;
+        private List<PSharpProject> PSharpProjects;
 
         #endregion
 
         #region public API
 
         /// <summary>
+        /// Creates a P# parsing engine.
+        /// </summary>
+        /// <param name="configuration"></param>
+        /// <returns></returns>
+        public static ParsingEngine Create(LanguageServicesConfiguration configuration)
+        {
+            return new ParsingEngine(configuration);
+        }
+
+        /// <summary>
         /// Runs the P# parsing engine.
         /// </summary>
-        public static void Run()
+        public void Run()
         {
-            ParsingEngine.PSharpProjects = new List<PSharpProject>();
+            this.PSharpProjects = new List<PSharpProject>();
             
             // Parse the projects.
             if (Configuration.ProjectName.Equals(""))
             {
                 foreach (var project in ProgramInfo.Solution.Projects)
                 {
-                    var psharpProject = new PSharpProject(project.Name);
+                    var psharpProject = new PSharpProject(this.Configuration, project.Name);
                     psharpProject.Parse();
-                    ParsingEngine.PSharpProjects.Add(psharpProject);
+                    this.PSharpProjects.Add(psharpProject);
                 }
             }
             else
@@ -73,17 +88,30 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                         continue;
                     }
 
-                    var psharpProject = new PSharpProject(project.Name);
+                    var psharpProject = new PSharpProject(this.Configuration, project.Name);
                     psharpProject.Parse();
-                    ParsingEngine.PSharpProjects.Add(psharpProject);
+                    this.PSharpProjects.Add(psharpProject);
                 }
             }
 
             // Rewrite the projects.
-            for (int idx = 0; idx < ParsingEngine.PSharpProjects.Count; idx++)
+            for (int idx = 0; idx < this.PSharpProjects.Count; idx++)
             {
-                ParsingEngine.PSharpProjects[idx].Rewrite();
+                this.PSharpProjects[idx].Rewrite();
             }
+        }
+
+        #endregion
+
+        #region private methods
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="configuration">Configuration</param>
+        private ParsingEngine(LanguageServicesConfiguration configuration)
+        {
+            this.Configuration = configuration;
         }
 
         #endregion

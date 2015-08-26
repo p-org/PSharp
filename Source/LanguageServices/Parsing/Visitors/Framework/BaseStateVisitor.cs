@@ -99,7 +99,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
         #endregion
 
-        #region private API
+        #region private methods
 
         /// <summary>
         /// Checks that no fields are declared inside the state.

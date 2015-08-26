@@ -64,7 +64,8 @@ namespace Microsoft.PSharp.LanguageServices
         public override void Rewrite()
         {
             var text = "";
-            if (Configuration.RunStaticAnalysis || Configuration.RunDynamicAnalysis)
+            if (base.Project.Configuration.RunStaticAnalysis ||
+                base.Project.Configuration.CompileForTesting)
             {
                 foreach (var node in this.UsingDeclarations)
                 {
@@ -104,7 +105,7 @@ namespace Microsoft.PSharp.LanguageServices
 
         #endregion
 
-        #region private API
+        #region private methods
 
         /// <summary>
         /// Rewrites the P# types to C#.

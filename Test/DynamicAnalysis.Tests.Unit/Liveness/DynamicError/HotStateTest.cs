@@ -163,26 +163,29 @@ namespace SystematicTesting
         }
     }
 }";
-
-            Configuration.SuppressTrace = true;
-            Configuration.Verbose = 2;
-            Configuration.SchedulingStrategy = "dfs";
-            Configuration.CheckLiveness = true;
-            Configuration.CacheProgramState = false;
-
-            var parser = new CSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), true);
+            
+            var parserConfig = new LanguageServicesConfiguration();
+            var parser = new CSharpParser(new PSharpProject(parserConfig),
+                SyntaxFactory.ParseSyntaxTree(test), true);
             var program = parser.Parse();
             program.Rewrite();
 
-            var assembly = base.GetAssembly(program.GetSyntaxTree());
-            AnalysisContext.Create(assembly);
+            var sctConfig = new DynamicAnalysisConfiguration();
+            sctConfig.SuppressTrace = true;
+            sctConfig.Verbose = 2;
+            sctConfig.CheckLiveness = true;
+            sctConfig.CacheProgramState = false;
+            sctConfig.SchedulingStrategy = SchedulingStrategy.DFS;
 
-            SCTEngine.Setup();
-            SCTEngine.Run();
+            Output.Debugging = true;
+
+            var assembly = base.GetAssembly(program.GetSyntaxTree());
+            var context = AnalysisContext.Create(sctConfig, assembly);
+            var sctEngine = SCTEngine.Create(context).Run();
 
             var bugReport = "Monitor 'M' detected liveness property violation in hot state 'Init'.";
 
-            Assert.AreEqual(bugReport, SCTEngine.BugReport);
+            Assert.AreEqual(bugReport, sctEngine.BugReport);
         }
     }
 }

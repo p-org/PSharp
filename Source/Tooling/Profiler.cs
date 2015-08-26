@@ -52,13 +52,6 @@ namespace Microsoft.PSharp.Tooling
         /// </summary>
         public static void PrintResults()
         {
-            if (!Configuration.ShowRuntimeResults &&
-                !Configuration.ShowDFARuntimeResults &&
-                !Configuration.ShowROARuntimeResults)
-            {
-                return;
-            }
-
             Output.PrintLine("Total Runtime: " + Profiler.StopWatch.Elapsed.TotalSeconds + " (sec).");
         }
     }

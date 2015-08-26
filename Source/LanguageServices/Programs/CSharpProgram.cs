@@ -67,7 +67,7 @@ namespace Microsoft.PSharp.LanguageServices
 
         #endregion
 
-        #region private API
+        #region private methods
 
         /// <summary>
         /// Rewrites the P# statements to C#.
@@ -77,7 +77,7 @@ namespace Microsoft.PSharp.LanguageServices
             this.SyntaxTree = new RaiseRewriter(this.Project).Rewrite(this.SyntaxTree);
             this.SyntaxTree = new PopRewriter(this.Project).Rewrite(this.SyntaxTree);
 
-            if (Configuration.RunDynamicAnalysis && Configuration.CheckLiveness)
+            if (this.Project.Configuration.CompileForLivenessChecking)
             {
                 this.SyntaxTree = new FairNondetRewriter(this.Project).Rewrite(this.SyntaxTree);
             }

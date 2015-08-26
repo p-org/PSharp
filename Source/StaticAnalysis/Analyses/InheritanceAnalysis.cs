@@ -39,10 +39,11 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="cfgNode">ControlFlowGraphNode</param>
         /// <param name="originalMachine">Original machine</param>
         /// <param name="model">SemanticModel</param>
+        /// <param name="context">AnalysisContext</param>
         /// <returns>Boolean value</returns>
         internal static bool TryGetPotentialMethodOverriders(out HashSet<MethodDeclarationSyntax> overriders,
             InvocationExpressionSyntax virtualCall, SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode,
-            ClassDeclarationSyntax originalMachine, SemanticModel model)
+            ClassDeclarationSyntax originalMachine, SemanticModel model, AnalysisContext context)
         {
             overriders = new HashSet<MethodDeclarationSyntax>();
 
@@ -58,7 +59,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 calleeSymbol = model.GetSymbolInfo(identifier).Symbol;
                 
                 if (expr.Expression is ThisExpressionSyntax ||
-                    Utilities.IsMachineType(identifier, model))
+                    Utilities.IsMachineType(identifier, model, context))
                 {
                     callee = expr.Name;
                     isThis = true;

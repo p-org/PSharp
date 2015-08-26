@@ -27,16 +27,18 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="field">Field</param>
         /// <param name="summary">MethodSummary</param>
+        /// <param name="context">AnalysisContext</param>
         /// <returns>Boolean value</returns>
-        internal static bool IsAccessedBeforeBeingReset(ISymbol field, MethodSummary summary)
+        internal static bool IsAccessedBeforeBeingReset(ISymbol field, MethodSummary summary,
+            AnalysisContext context)
         {
             StateTransitionGraphNode stateTransitionNode = null;
-            if (!AnalysisContext.StateTransitionGraphs.ContainsKey(summary.Machine))
+            if (!context.StateTransitionGraphs.ContainsKey(summary.Machine))
             {
                 return true;
             }
             
-            stateTransitionNode = AnalysisContext.StateTransitionGraphs[summary.Machine].
+            stateTransitionNode = context.StateTransitionGraphs[summary.Machine].
                 GetGraphNodeForSummary(summary);
             if (stateTransitionNode == null)
             {

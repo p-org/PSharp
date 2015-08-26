@@ -123,24 +123,27 @@ namespace SystematicTesting
     }
 }";
 
-            Configuration.SuppressTrace = true;
-            Configuration.Verbose = 3;
-            Configuration.RunDynamicAnalysis = true;
-            Configuration.CheckLiveness = true;
-            Configuration.DepthBound = 1000;
-            Configuration.Debugging.Add(DebugType.Liveness);
+            var parserConfig = new LanguageServicesConfiguration();
+            parserConfig.CompileForLivenessChecking = true;
 
-            var parser = new CSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), true);
+            var parser = new CSharpParser(new PSharpProject(parserConfig),
+                SyntaxFactory.ParseSyntaxTree(test), true);
             var program = parser.Parse();
             program.Rewrite();
 
+            var sctConfig = new DynamicAnalysisConfiguration();
+            sctConfig.SuppressTrace = true;
+            sctConfig.Verbose = 3;
+            sctConfig.CheckLiveness = true;
+            sctConfig.DepthBound = 1000;
+
+            Output.Debugging = true;
+
             var assembly = base.GetAssembly(program.GetSyntaxTree());
-            AnalysisContext.Create(assembly);
+            var context = AnalysisContext.Create(sctConfig, assembly);
+            var sctEngine = SCTEngine.Create(context).Run();
 
-            SCTEngine.Setup();
-            SCTEngine.Run();
-
-            Assert.AreEqual(0, SCTEngine.NumOfFoundBugs);
+            Assert.AreEqual(0, sctEngine.NumOfFoundBugs);
         }
     }
 }

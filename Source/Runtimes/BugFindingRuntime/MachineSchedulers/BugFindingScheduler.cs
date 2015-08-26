@@ -99,7 +99,7 @@ namespace Microsoft.PSharp.Scheduling
 
             if (this.Strategy.HasReachedDepthBound())
             {
-                Output.Debug(DebugType.Testing, "<ScheduleDebug> Depth bound of {0} reached.",
+                Output.Debug("<ScheduleDebug> Depth bound of {0} reached.",
                     this.Strategy.GetDepthBound());
                 this.KillRemainingTasks();
                 throw new TaskCanceledException();
@@ -112,8 +112,7 @@ namespace Microsoft.PSharp.Scheduling
             }
             else
             {
-                Output.Debug(DebugType.Testing, "<ScheduleDebug> Unable to" +
-                    " schedule task {0}.", id);
+                Output.Debug("<ScheduleDebug> Unable to schedule task {0}.", id);
                 this.KillRemainingTasks();
                 throw new TaskCanceledException();
             }
@@ -121,19 +120,20 @@ namespace Microsoft.PSharp.Scheduling
             TaskInfo next = null;
             if (!this.Strategy.TryGetNext(out next, this.Tasks, taskInfo))
             {
-                Output.Debug(DebugType.Testing, "<ScheduleDebug> Schedule explored.");
+                Output.Debug("<ScheduleDebug> Schedule explored.");
                 this.KillRemainingTasks();
                 throw new TaskCanceledException();
             }
 
            PSharpRuntime.ProgramTrace.AddSchedulingChoice(next.Machine);
-            if (Configuration.CheckLiveness && Configuration.CacheProgramState &&
-                Configuration.SafetyPrefixBound <= this.SchedulingPoints)
+            if (PSharpRuntime.Configuration.CheckLiveness &&
+                PSharpRuntime.Configuration.CacheProgramState &&
+                PSharpRuntime.Configuration.SafetyPrefixBound <= this.SchedulingPoints)
             {
                 PSharpRuntime.StateCache.CaptureState(PSharpRuntime.ProgramTrace.Peek());
             }
 
-            Output.Debug(DebugType.Testing, "<ScheduleDebug> Schedule task {0} of machine {1}({2}).",
+            Output.Debug("<ScheduleDebug> Schedule task {0} of machine {1}({2}).",
                 next.Id, next.Machine.GetType(), next.Machine.Id.MVal);
 
             if (taskInfo != next)
@@ -154,10 +154,10 @@ namespace Microsoft.PSharp.Scheduling
                     
                     while (!taskInfo.IsActive)
                     {
-                        Output.Debug(DebugType.Testing, "<ScheduleDebug> Sleep task {0} of machine {1}({2}).",
+                        Output.Debug("<ScheduleDebug> Sleep task {0} of machine {1}({2}).",
                             taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id.MVal);
                         System.Threading.Monitor.Wait(taskInfo);
-                        Output.Debug(DebugType.Testing, "<ScheduleDebug> Wake up task {0} of machine {1}({2}).",
+                        Output.Debug("<ScheduleDebug> Wake up task {0} of machine {1}({2}).",
                             taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id.MVal);
                     }
 
@@ -179,7 +179,7 @@ namespace Microsoft.PSharp.Scheduling
             var choice = false;
             if (!this.Strategy.GetNextChoice(out choice))
             {
-                Output.Debug(DebugType.Testing, "<ScheduleDebug> Schedule explored.");
+                Output.Debug("<ScheduleDebug> Schedule explored.");
                 this.KillRemainingTasks();
                 throw new TaskCanceledException();
             }
@@ -193,8 +193,9 @@ namespace Microsoft.PSharp.Scheduling
                 PSharpRuntime.ProgramTrace.AddFairNondeterministicChoice(uniqueId, choice);
             }
             
-            if (Configuration.CheckLiveness && Configuration.CacheProgramState &&
-                Configuration.SafetyPrefixBound <= this.SchedulingPoints)
+            if (PSharpRuntime.Configuration.CheckLiveness &&
+                PSharpRuntime.Configuration.CacheProgramState &&
+                PSharpRuntime.Configuration.SafetyPrefixBound <= this.SchedulingPoints)
             {
                 PSharpRuntime.StateCache.CaptureState(PSharpRuntime.ProgramTrace.Peek());
             }
@@ -229,7 +230,7 @@ namespace Microsoft.PSharp.Scheduling
         {
             var taskInfo = new TaskInfo(id, machine);
 
-            Output.Debug(DebugType.Testing, "<ScheduleDebug> Created task {0} for machine {1}({2}).",
+            Output.Debug("<ScheduleDebug> Created task {0} for machine {1}({2}).",
                 taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id.MVal);
 
             if (this.Tasks.Count == 0)
@@ -254,7 +255,7 @@ namespace Microsoft.PSharp.Scheduling
 
             var taskInfo = this.TaskMap[(int)id];
 
-            Output.Debug(DebugType.Testing, "<ScheduleDebug> Started task {0} of machine {1}({2}).",
+            Output.Debug("<ScheduleDebug> Started task {0} of machine {1}({2}).",
                 taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id.MVal);
 
             lock (taskInfo)
@@ -263,10 +264,10 @@ namespace Microsoft.PSharp.Scheduling
                 System.Threading.Monitor.PulseAll(taskInfo);
                 while (!taskInfo.IsActive)
                 {
-                    Output.Debug(DebugType.Testing, "<ScheduleDebug> Sleep task {0} of machine {1}({2}).",
+                    Output.Debug("<ScheduleDebug> Sleep task {0} of machine {1}({2}).",
                         taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id.MVal);
                     System.Threading.Monitor.Wait(taskInfo);
-                    Output.Debug(DebugType.Testing, "<ScheduleDebug> Wake up task {0} of machine {1}({2}).",
+                    Output.Debug("<ScheduleDebug> Wake up task {0} of machine {1}({2}).",
                         taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id.MVal);
                 }
 
@@ -285,7 +286,7 @@ namespace Microsoft.PSharp.Scheduling
         {
             var taskInfo = this.TaskMap[(int)id];
 
-            Output.Debug(DebugType.Testing, "<ScheduleDebug> Task {0} of machine {1}({2}) " +
+            Output.Debug("<ScheduleDebug> Task {0} of machine {1}({2}) " +
                 "is waiting to receive an event.", taskInfo.Id, taskInfo.Machine.GetType(),
                 taskInfo.Machine.Id.MVal);
 
@@ -300,7 +301,7 @@ namespace Microsoft.PSharp.Scheduling
         {
             var taskInfo = this.GetTaskFromMachine(machine);
 
-            Output.Debug(DebugType.Testing, "<ScheduleDebug> Task {0} of machine {1}({2}) " +
+            Output.Debug("<ScheduleDebug> Task {0} of machine {1}({2}) " +
                 "received an event and unblocked.", taskInfo.Id, taskInfo.Machine.GetType(),
                 taskInfo.Machine.Id.MVal);
 
@@ -320,7 +321,7 @@ namespace Microsoft.PSharp.Scheduling
             
             var taskInfo = this.TaskMap[(int)id];
 
-            Output.Debug(DebugType.Testing, "<ScheduleDebug> Completed task {0} of machine {1}({2}).",
+            Output.Debug("<ScheduleDebug> Completed task {0} of machine {1}({2}).",
                 taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id.MVal);
 
             taskInfo.IsEnabled = false;
@@ -328,7 +329,7 @@ namespace Microsoft.PSharp.Scheduling
 
             this.Schedule();
 
-            Output.Debug(DebugType.Testing, "<ScheduleDebug> Exit task {0} of machine {1}({2}).",
+            Output.Debug("<ScheduleDebug> Exit task {0} of machine {1}({2}).",
                 taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id.MVal);
         }
 

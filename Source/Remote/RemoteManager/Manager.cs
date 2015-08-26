@@ -34,6 +34,11 @@ namespace Microsoft.PSharp.Remote
         #region fields
 
         /// <summary>
+        /// Configuration.
+        /// </summary>
+        private static RemoteManagerConfiguration Configuration;
+
+        /// <summary>
         /// The notification listening service.
         /// </summary>
         private static ServiceHost NotificationService;
@@ -60,6 +65,15 @@ namespace Microsoft.PSharp.Remote
         #region internal API
 
         /// <summary>
+        /// Configures the remote manager.
+        /// </summary>
+        /// <param name="configuration">Configuration</param>
+        internal static void Configure(RemoteManagerConfiguration configuration)
+        {
+            Manager.Configuration = configuration;
+        }
+
+        /// <summary>
         /// Runs the remote manager.
         /// </summary>
         internal static void Run()
@@ -68,7 +82,7 @@ namespace Microsoft.PSharp.Remote
 
             Manager.OpenRemoteManagingListener();
 
-            for (int idx = 0; idx < Configuration.NumberOfContainers; idx++)
+            for (int idx = 0; idx < Manager.Configuration.NumberOfContainers; idx++)
             {
                 Manager.CreateContainer();
             }
@@ -100,7 +114,7 @@ namespace Microsoft.PSharp.Remote
             
             Manager.ContainerServices.Add(id, channel);
             
-            if (Manager.ContainerServices.Count == Configuration.NumberOfContainers)
+            if (Manager.ContainerServices.Count == Manager.Configuration.NumberOfContainers)
             {
                 Output.PrettyPrintLine("... Notifying container '0' [start]");
                 Manager.ContainerServices[0].NotifyStartRuntime();
@@ -109,7 +123,7 @@ namespace Microsoft.PSharp.Remote
 
         #endregion
 
-        #region private API
+        #region private methods
 
         /// <summary>
         /// Creates a new container.
@@ -123,7 +137,7 @@ namespace Microsoft.PSharp.Remote
             process.StartInfo.FileName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
                 "PSharpRuntimeContainer.exe");
             process.StartInfo.Arguments = "/id:" + Manager.ContainerIdCounter;
-            process.StartInfo.Arguments += " /main:" + Configuration.ApplicationFilePath;
+            process.StartInfo.Arguments += " /main:" + Manager.Configuration.ApplicationFilePath;
 
             Manager.Containers.Add(Manager.ContainerIdCounter, process);
 

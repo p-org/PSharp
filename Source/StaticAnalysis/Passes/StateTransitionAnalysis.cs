@@ -25,37 +25,52 @@ using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp.StaticAnalysis
 {
-    public static class StateTransitionAnalysis
+    public sealed class StateTransitionAnalysis
     {
         #region fields
 
         /// <summary>
+        /// The analysis context.
+        /// </summary>
+        private AnalysisContext AnalysisContext;
+
+        /// <summary>
         /// Number of machines in the program.
         /// </summary>
-        internal static int NumOfMachines = 0;
+        internal int NumOfMachines = 0;
 
         /// <summary>
         /// Number of transitions in the program.
         /// </summary>
-        internal static int NumOfTransitions = 0;
+        internal int NumOfTransitions = 0;
 
         /// <summary>
         /// Number of action bindings in the program.
         /// </summary>
-        internal static int NumOfActionBindings = 0;
+        internal int NumOfActionBindings = 0;
 
         #endregion
 
         #region public API
 
         /// <summary>
+        /// Creates a new state transition analysis pass.
+        /// </summary>
+        /// <param name="context">AnalysisContext</param>
+        /// <returns>StateTransitionAnalysis</returns>
+        public static StateTransitionAnalysis Create(AnalysisContext context)
+        {
+            return new StateTransitionAnalysis(context);
+        }
+
+        /// <summary>
         /// Runs the analysis.
         /// </summary>
-        public static void Run()
+        public void Run()
         {
             foreach (var machine in AnalysisContext.Machines)
             {
-                StateTransitionAnalysis.ConstructGraphForMachine(machine);
+                this.ConstructGraphForMachine(machine);
             }
         }
 
@@ -64,20 +79,29 @@ namespace Microsoft.PSharp.StaticAnalysis
         #region private methods
 
         /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="context">AnalysisContext</param>
+        private StateTransitionAnalysis(AnalysisContext context)
+        {
+            this.AnalysisContext = context;
+        }
+
+        /// <summary>
         /// Tries to construct the state transition graph for the given machine.
         /// </summary>
         /// <param name="machine">Machine</param>
-        private static void ConstructGraphForMachine(ClassDeclarationSyntax machine)
+        private void ConstructGraphForMachine(ClassDeclarationSyntax machine)
         {
             var model = AnalysisContext.Compilation.GetSemanticModel(machine.SyntaxTree);
 
             Dictionary<ClassDeclarationSyntax, HashSet<ClassDeclarationSyntax>> stateTransitions = null;
-            StateTransitionAnalysis.TryParseStateTransitions(out stateTransitions, machine, model);
+            this.TryParseStateTransitions(out stateTransitions, machine, model);
 
             Dictionary<ClassDeclarationSyntax, HashSet<MethodDeclarationSyntax>> actionBindings = null;
-            StateTransitionAnalysis.TryParseActionBindings(out actionBindings, machine, model);
+            this.TryParseActionBindings(out actionBindings, machine, model);
 
-            StateTransitionAnalysis.ComputeStatistics(stateTransitions, actionBindings);
+            this.ComputeStatistics(stateTransitions, actionBindings);
 
             ClassDeclarationSyntax initState = null;
             foreach (var state in stateTransitions)
@@ -99,7 +123,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 return;
             }
 
-            var initNode = new StateTransitionGraphNode(initState, machine);
+            var initNode = new StateTransitionGraphNode(this.AnalysisContext, initState, machine);
             initNode.IsStartNode = true;
             initNode.Construct(stateTransitions, actionBindings);
 
@@ -113,7 +137,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="machine">Machine</param>
         /// <param name="model">SemanticModel</param>
         /// <returns>Boolean value</returns>
-        private static bool TryParseStateTransitions(out Dictionary<ClassDeclarationSyntax,
+        private bool TryParseStateTransitions(out Dictionary<ClassDeclarationSyntax,
             HashSet<ClassDeclarationSyntax>> stateTransitions, ClassDeclarationSyntax machine,
             SemanticModel model)
         {
@@ -133,7 +157,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 OfType<ReturnStatementSyntax>().First();
             var returnSymbol = model.GetSymbolInfo(returnStmt.Expression).Symbol;
             Dictionary<ClassDeclarationSyntax, IdentifierNameSyntax> stateMap = null;
-            if (!StateTransitionAnalysis.TryParseStateMap(out stateMap, returnSymbol,
+            if (!this.TryParseStateMap(out stateMap, returnSymbol,
                 defineGotoStateTransitionsMethod, model))
             {
                 return false;
@@ -147,7 +171,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 }
 
                 var dictionarySymbol = model.GetSymbolInfo(state.Value).Symbol;
-                var dictionaryInvocations = StateTransitionAnalysis.GetInvocationsFromSymbol(
+                var dictionaryInvocations = this.GetInvocationsFromSymbol(
                     dictionarySymbol, defineGotoStateTransitionsMethod);
 
                 var transitions = ParseTransitions(dictionarySymbol,
@@ -170,7 +194,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="machine">Machine</param>
         /// <param name="model">SemanticModel</param>
         /// <returns>Boolean value</returns>
-        private static bool TryParseActionBindings(out Dictionary<ClassDeclarationSyntax,
+        private bool TryParseActionBindings(out Dictionary<ClassDeclarationSyntax,
             HashSet<MethodDeclarationSyntax>> actionBindings, ClassDeclarationSyntax machine,
             SemanticModel model)
         {
@@ -190,7 +214,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 OfType<ReturnStatementSyntax>().First();
             var returnSymbol = model.GetSymbolInfo(returnStmt.Expression).Symbol;
             Dictionary<ClassDeclarationSyntax, IdentifierNameSyntax> stateMap = null;
-            if (!StateTransitionAnalysis.TryParseStateMap(out stateMap, returnSymbol,
+            if (!this.TryParseStateMap(out stateMap, returnSymbol,
                 defineActionBindingsMethod, model))
             {
                 return false;
@@ -199,7 +223,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             foreach (var state in stateMap)
             {
                 var dictionarySymbol = model.GetSymbolInfo(state.Value).Symbol;
-                var dictionaryInvocations = StateTransitionAnalysis.GetInvocationsFromSymbol(
+                var dictionaryInvocations = this.GetInvocationsFromSymbol(
                     dictionarySymbol, defineActionBindingsMethod);
 
                 var actions = ParseActions(dictionarySymbol, defineActionBindingsMethod, model);
@@ -222,12 +246,12 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="method">Method</param>
         /// <param name="model">SemanticModel</param>
         /// <returns>Boolean value</returns>
-        private static bool TryParseStateMap(out Dictionary<ClassDeclarationSyntax, IdentifierNameSyntax> stateMap,
+        private bool TryParseStateMap(out Dictionary<ClassDeclarationSyntax, IdentifierNameSyntax> stateMap,
             ISymbol symbol, MethodDeclarationSyntax method, SemanticModel model)
         {
             stateMap = new Dictionary<ClassDeclarationSyntax, IdentifierNameSyntax>();
 
-            var invocations = StateTransitionAnalysis.GetInvocationsFromSymbol(symbol, method);
+            var invocations = this.GetInvocationsFromSymbol(symbol, method);
             foreach (var inv in invocations)
             {
                 if (!(inv.Expression is MemberAccessExpressionSyntax))
@@ -269,12 +293,12 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="method">Method</param>
         /// <param name="model">SemanticModel</param>
         /// <returns>Set of transitions</returns>
-        private static HashSet<ClassDeclarationSyntax> ParseTransitions(ISymbol symbol,
+        private HashSet<ClassDeclarationSyntax> ParseTransitions(ISymbol symbol,
             MethodDeclarationSyntax method, SemanticModel model)
         {
             var transitions = new HashSet<ClassDeclarationSyntax>();
 
-            var invocations = StateTransitionAnalysis.GetInvocationsFromSymbol(symbol, method);
+            var invocations = this.GetInvocationsFromSymbol(symbol, method);
             foreach (var inv in invocations)
             {
                 if (!(inv.Expression is MemberAccessExpressionSyntax))
@@ -314,12 +338,12 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="method">Method</param>
         /// <param name="model">SemanticModel</param>
         /// <returns>Set of actions</returns>
-        private static HashSet<MethodDeclarationSyntax> ParseActions(ISymbol symbol,
+        private HashSet<MethodDeclarationSyntax> ParseActions(ISymbol symbol,
             MethodDeclarationSyntax method, SemanticModel model)
         {
             var actions = new HashSet<MethodDeclarationSyntax>();
 
-            var invocations = StateTransitionAnalysis.GetInvocationsFromSymbol(symbol, method);
+            var invocations = this.GetInvocationsFromSymbol(symbol, method);
             foreach (var inv in invocations)
             {
                 if (!(inv.Expression is MemberAccessExpressionSyntax))
@@ -358,7 +382,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="symbol">Symbol</param>
         /// <param name="method">Method</param>
         /// <returns>List of invocations</returns>
-        private static List<InvocationExpressionSyntax> GetInvocationsFromSymbol(ISymbol symbol,
+        private List<InvocationExpressionSyntax> GetInvocationsFromSymbol(ISymbol symbol,
             MethodDeclarationSyntax method)
         {
             var invocations = new List<InvocationExpressionSyntax>();
@@ -393,16 +417,16 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="stateTransitions">State transitions</param>
         /// <param name="actionBindings">Action bindings</param>
-        private static void ComputeStatistics(Dictionary<ClassDeclarationSyntax, HashSet<ClassDeclarationSyntax>> stateTransitions,
+        private void ComputeStatistics(Dictionary<ClassDeclarationSyntax, HashSet<ClassDeclarationSyntax>> stateTransitions,
             Dictionary<ClassDeclarationSyntax, HashSet<MethodDeclarationSyntax>> actionBindings)
         {
-            StateTransitionAnalysis.NumOfMachines++;
+            this.NumOfMachines++;
 
             if (stateTransitions != null)
             {
                 foreach (var state in stateTransitions)
                 {
-                    StateTransitionAnalysis.NumOfTransitions += state.Value.Count;
+                    this.NumOfTransitions += state.Value.Count;
                 }
             }
 
@@ -410,7 +434,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 foreach (var state in actionBindings)
                 {
-                    StateTransitionAnalysis.NumOfActionBindings += state.Value.Count;
+                    this.NumOfActionBindings += state.Value.Count;
                 }
             }
         }

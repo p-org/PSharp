@@ -124,7 +124,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
 
         #endregion
 
-        #region private API
+        #region private methods
 
         /// <summary>
         /// Parses the syntax tree for errors.

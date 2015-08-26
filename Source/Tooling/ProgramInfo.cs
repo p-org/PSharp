@@ -30,6 +30,11 @@ namespace Microsoft.PSharp.Tooling
         #region fields
 
         /// <summary>
+        /// Configuration.
+        /// </summary>
+        public static Configuration Configuration;
+
+        /// <summary>
         /// The solution of the P# program.
         /// </summary>
         public static Solution Solution;
@@ -46,9 +51,10 @@ namespace Microsoft.PSharp.Tooling
         /// <summary>
         /// Initializes the P# program info.
         /// </summary>
-        public static void Initialize()
+        /// <param name="configuration">Configuration</param>
+        public static void Initialize(Configuration configuration)
         {
-            ProgramInfo.CheckForCommandLineOptionErrors();
+            ProgramInfo.Configuration = configuration;
 
             // Create a new workspace.
             var workspace = MSBuildWorkspace.Create();
@@ -57,7 +63,7 @@ namespace Microsoft.PSharp.Tooling
             {
                 // Populate the workspace with the user defined solution.
                 ProgramInfo.Solution = (workspace as MSBuildWorkspace).OpenSolutionAsync(
-                    @"" + Configuration.SolutionFilePath + "").Result;
+                    @"" + ProgramInfo.Configuration.SolutionFilePath + "").Result;
             }
             catch (AggregateException ex)
             {
@@ -68,10 +74,10 @@ namespace Microsoft.PSharp.Tooling
                 ErrorReporter.ReportAndExit("Please give a valid solution path.");
             }
 
-            if (!Configuration.ProjectName.Equals(""))
+            if (!ProgramInfo.Configuration.ProjectName.Equals(""))
             {
                 // Find the project specified by the user.
-                var project = ProgramInfo.GetProjectWithName(Configuration.ProjectName);
+                var project = ProgramInfo.GetProjectWithName(ProgramInfo.Configuration.ProjectName);
                 if (project == null)
                 {
                     ErrorReporter.ReportAndExit("Please give a valid project name.");
@@ -110,8 +116,7 @@ namespace Microsoft.PSharp.Tooling
 
             ProgramInfo.Solution = project.Solution;
 
-            if (Configuration.Debugging.Contains(DebugType.Parsing) ||
-                Configuration.Debugging.Contains(DebugType.Any))
+            if (Output.Debugging)
             {
                 ProgramInfo.PrintSyntaxTree(tree);
             }
@@ -152,32 +157,7 @@ namespace Microsoft.PSharp.Tooling
 
         #endregion
 
-        #region private API
-
-        /// <summary>
-        /// Checks and report any command line option errors.
-        /// </summary>
-        private static void CheckForCommandLineOptionErrors()
-        {
-            if (Configuration.ProjectName.Equals("") && Configuration.RunDynamicAnalysis)
-            {
-                ErrorReporter.ReportAndExit("Please give the name of the project to test (using either " +
-                    "'/p:[x]' or /test:[x], where [x] is the name of the project).");
-            }
-
-            if (Configuration.SafetyPrefixBound > 0 &&
-                Configuration.SafetyPrefixBound >= Configuration.DepthBound)
-            {
-                ErrorReporter.ReportAndExit("Please give a safety prefix bound that is less than the " +
-                    "max depth bound.");
-            }
-
-            if (Configuration.SchedulingStrategy.Equals("iddfs") && Configuration.DepthBound == 0)
-            {
-                ErrorReporter.ReportAndExit("The Iterative Deepening DFS scheduler ('iddfs') must have a " +
-                    "max depth bound. Please give a depth bound using '/db:[x]', where [x] > 0.");
-            }
-        }
+        #region private methods
 
         /// <summary>
         /// Print the syntax tree for debug.

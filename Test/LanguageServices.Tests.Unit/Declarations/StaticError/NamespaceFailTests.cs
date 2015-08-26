@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Microsoft.PSharp.LanguageServices.Parsing;
+using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp.LanguageServices.Tests.Unit
 {
@@ -29,7 +30,9 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
         {
             var test = "private";
 
-            var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false);
+            var parserConfig = new LanguageServicesConfiguration();
+            var parser = new PSharpParser(new PSharpProject(parserConfig),
+                SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
@@ -43,7 +46,9 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
         {
             var test = "namespace { }";
 
-            var parser = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false);
+            var parserConfig = new LanguageServicesConfiguration();
+            var parser = new PSharpParser(new PSharpProject(parserConfig),
+                SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);

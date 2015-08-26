@@ -62,8 +62,10 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="expr">Expression</param>
         /// <param name="model">SemanticModel</param>
+        /// <param name="context">AnalysisContext</param>
         /// <returns>Identifier</returns>
-        internal static IdentifierNameSyntax GetFirstNonMachineIdentifier(ExpressionSyntax expr, SemanticModel model)
+        internal static IdentifierNameSyntax GetFirstNonMachineIdentifier(ExpressionSyntax expr,
+            SemanticModel model, AnalysisContext context)
         {
             IdentifierNameSyntax identifier = null;
 
@@ -76,7 +78,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 foreach (var id in (expr as MemberAccessExpressionSyntax).DescendantNodes().
                     OfType<IdentifierNameSyntax>())
                 {
-                    if (!Utilities.IsMachineType(id, model))
+                    if (!Utilities.IsMachineType(id, model, context))
                     {
                         identifier = id;
                         break;
@@ -93,8 +95,10 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="expr">Expression</param>
         /// <param name="model">SemanticModel</param>
+        /// <param name="context">AnalysisContext</param>
         /// <returns>Boolean value</returns>
-        internal static bool IsExprNonMachineMemberAccess(ExpressionSyntax expr, SemanticModel model)
+        internal static bool IsExprNonMachineMemberAccess(ExpressionSyntax expr, SemanticModel model,
+            AnalysisContext context)
         {
             IdentifierNameSyntax identifier = null;
             bool isMemberAccess = false;
@@ -104,7 +108,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 foreach (var id in (expr as MemberAccessExpressionSyntax).DescendantNodes().
                     OfType<IdentifierNameSyntax>())
                 {
-                    if (!Utilities.IsMachineType(id, model))
+                    if (!Utilities.IsMachineType(id, model, context))
                     {
                         identifier = id;
                         break;
@@ -147,8 +151,10 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="identifier">Identifier</param>
         /// <param name="model">SemanticModel</param>
+        /// <param name="context">AnalysisContext</param>
         /// <returns>Boolean value</returns>
-        internal static bool IsMachineType(IdentifierNameSyntax identifier, SemanticModel model)
+        internal static bool IsMachineType(IdentifierNameSyntax identifier, SemanticModel model,
+            AnalysisContext context)
         {
             TypeInfo typeInfo;
             try
@@ -180,7 +186,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                         string machineName = machineNamespace.Name + "." + (machineNode
                             as ClassDeclarationSyntax).Identifier.ValueText;
 
-                        foreach (var knownMachine in AnalysisContext.Machines)
+                        foreach (var knownMachine in context.Machines)
                         {
                             NamespaceDeclarationSyntax knownMachineNamespace = null;
                             Utilities.TryGetNamespaceDeclarationOfSyntaxNode(
@@ -227,8 +233,9 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="identifier">Identifier</param>
         /// <param name="model">SemanticModel</param>
+        /// <param name="context">AnalysisContext</param>
         /// <returns>Boolean value</returns>
-        internal static bool IsMachineType(ITypeSymbol typeSymbol, SemanticModel model)
+        internal static bool IsMachineType(ITypeSymbol typeSymbol, SemanticModel model, AnalysisContext context)
         {
             if (typeSymbol != null && typeSymbol.ToString().Equals("Microsoft.PSharp.Machine"))
             {
@@ -248,7 +255,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                             machineNode, out machineNamespace);
                         string machineName = machineNamespace.Name + "." + (machineNode
                             as ClassDeclarationSyntax).Identifier.ValueText;
-                        foreach (var knownMachine in AnalysisContext.Machines)
+                        foreach (var knownMachine in context.Machines)
                         {
                             NamespaceDeclarationSyntax knownMachineNamespace = null;
                             Utilities.TryGetNamespaceDeclarationOfSyntaxNode(
@@ -295,8 +302,10 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="type">Type</param>
         /// <param name="model">SemanticModel</param>
+        /// <param name="context">AnalysisContext</param>
         /// <returns>Boolean value</returns>
-        internal static bool IsTypeAllowedToBeSend(TypeSyntax type, SemanticModel model)
+        internal static bool IsTypeAllowedToBeSend(TypeSyntax type, SemanticModel model,
+            AnalysisContext context)
         {
             if (type is PredefinedTypeSyntax)
             {
@@ -322,7 +331,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             else if (type is IdentifierNameSyntax)
             {
                 var identifierType = (type as IdentifierNameSyntax);
-                if (Utilities.IsMachineType(identifierType, model))
+                if (Utilities.IsMachineType(identifierType, model, context))
                 {
                     return true;
                 }
@@ -353,7 +362,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 var genericTypeArgList = (type as GenericNameSyntax).TypeArgumentList;
                 foreach (var arg in genericTypeArgList.Arguments)
                 {
-                    if (!Utilities.IsTypeAllowedToBeSend(arg, model))
+                    if (!Utilities.IsTypeAllowedToBeSend(arg, model, context))
                     {
                         return false;
                     }
@@ -395,8 +404,10 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="symbol">Symbol</param>
         /// <param name="expr">Expression</param>
         /// <param name="model">SemanticModel</param>
+        /// <param name="context">AnalysisContext</param>
         /// <returns>Boolean value</returns>
-        internal static bool TryGetSymbolFromExpression(out ISymbol symbol, ExpressionSyntax expr, SemanticModel model)
+        internal static bool TryGetSymbolFromExpression(out ISymbol symbol, ExpressionSyntax expr,
+            SemanticModel model, AnalysisContext context)
         {
             IdentifierNameSyntax identifier = null;
             bool result = false;
@@ -411,7 +422,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 foreach (var id in (expr as MemberAccessExpressionSyntax).DescendantNodes().
                     OfType<IdentifierNameSyntax>())
                 {
-                    if (!Utilities.IsMachineType(id, model))
+                    if (!Utilities.IsMachineType(id, model, context))
                     {
                         identifier = id;
                         break;
@@ -484,8 +495,10 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="method">Method</param>
         /// <param name="machine">Machine</param>
+        /// <param name="context">AnalysisContext</param>
         /// <returns>Boolean value</returns>
-        internal static bool IsEntryPointMethod(MethodDeclarationSyntax method, ClassDeclarationSyntax machine)
+        internal static bool IsEntryPointMethod(MethodDeclarationSyntax method, ClassDeclarationSyntax machine,
+            AnalysisContext context)
         {
             if (method.Modifiers.Any(SyntaxKind.OverrideKeyword) ||
                 method.Identifier.ValueText.Equals("OnEntry") ||
@@ -495,7 +508,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             var methodName = Utilities.GetFullMethodName(method, machine, null);
-            if (AnalysisContext.MachineActions[machine].Contains(methodName))
+            if (context.MachineActions[machine].Contains(methodName))
             {
                 return true;
             }

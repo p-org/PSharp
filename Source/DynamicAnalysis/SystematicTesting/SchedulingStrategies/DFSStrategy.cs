@@ -28,6 +28,13 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
     /// </summary>
     public class DFSStrategy : ISchedulingStrategy
     {
+        #region fields
+
+        /// <summary>
+        /// The analysis context.
+        /// </summary>
+        protected AnalysisContext AnalysisContext;
+
         /// <summary>
         /// Stack of scheduling choices.
         /// </summary>
@@ -53,11 +60,17 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
         /// </summary>
         protected int SchedulingSteps;
 
+        #endregion
+
+        #region public API
+
         /// <summary>
         /// Constructor.
         /// </summary>
-        public DFSStrategy()
+        /// <param name="context">AnalysisContext</param>
+        public DFSStrategy(AnalysisContext context)
         {
+            this.AnalysisContext = context;
             this.ScheduleStack = new List<List<SChoice>>();
             this.NondetStack = new List<List<NondetChoice>>();
             this.SchIndex = 0;
@@ -195,7 +208,7 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
         /// <returns>Depth bound</returns>  
         public int GetDepthBound()
         {
-            return Configuration.DepthBound;
+            return this.AnalysisContext.Configuration.DepthBound;
         }
 
         /// <summary>
@@ -289,6 +302,19 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
         }
 
         /// <summary>
+        /// Returns a textual description of the scheduling strategy.
+        /// </summary>
+        /// <returns>String</returns>
+        public string GetDescription()
+        {
+            return "DFS";
+        }
+
+        #endregion
+
+        #region private methods
+
+        /// <summary>
         /// Prints the schedule.
         /// </summary>
         private void PrintSchedule()
@@ -360,13 +386,6 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
             }
         }
 
-        /// <summary>
-        /// Returns a textual description of the scheduling strategy.
-        /// </summary>
-        /// <returns>String</returns>
-        public string GetDescription()
-        {
-            return "DFS";
-        }
+        #endregion
     }
 }

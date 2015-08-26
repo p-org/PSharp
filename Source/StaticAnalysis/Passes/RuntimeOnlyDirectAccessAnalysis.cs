@@ -30,17 +30,36 @@ namespace Microsoft.PSharp.StaticAnalysis
     /// has any public methods. Any exposed outside of the class methods
     /// must only be accessed by the P# runtime.
     /// </summary>
-    public static class RuntimeOnlyDirectAccessAnalysis
+    public sealed class RuntimeOnlyDirectAccessAnalysis
     {
+        #region fields
+
+        /// <summary>
+        /// The analysis context.
+        /// </summary>
+        private AnalysisContext AnalysisContext;
+
+        #endregion
+
         #region public API
+
+        /// <summary>
+        /// Creates a new runtime only direct access analysis pass.
+        /// </summary>
+        /// <param name="context">AnalysisContext</param>
+        /// <returns>RuntimeOnlyDirectAccessAnalysis</returns>
+        public static RuntimeOnlyDirectAccessAnalysis Create(AnalysisContext context)
+        {
+            return new RuntimeOnlyDirectAccessAnalysis(context);
+        }
 
         /// <summary>
         /// Runs the analysis.
         /// </summary>
-        public static void Run()
+        public void Run()
         {
-            RuntimeOnlyDirectAccessAnalysis.CheckFields();
-            RuntimeOnlyDirectAccessAnalysis.CheckMethods();
+            this.CheckFields();
+            this.CheckMethods();
         }
 
         #endregion
@@ -48,10 +67,19 @@ namespace Microsoft.PSharp.StaticAnalysis
         #region private methods
 
         /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="context">AnalysisContext</param>
+        private RuntimeOnlyDirectAccessAnalysis(AnalysisContext context)
+        {
+            this.AnalysisContext = context;
+        }
+
+        /// <summary>
         /// Checks the fields of each machine and report warnings if
         /// any field is not private or protected.
         /// </summary>
-        private static void CheckFields()
+        private void CheckFields()
         {
             foreach (var classDecl in AnalysisContext.Machines)
             {
@@ -76,7 +104,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// any method is directly accessed by anything else than the
         /// P# runtime.
         /// </summary>
-        private static void CheckMethods()
+        private void CheckMethods()
         {
             foreach (var classDecl in AnalysisContext.Machines)
             {

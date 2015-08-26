@@ -174,6 +174,7 @@
     <Compile Include="Parsing\Tokens\TokenType.cs" />
     <Compile Include="Parsing\Tokens\TokenTypeRegistry.cs" />
     <Compile Include="Querying.cs" />
+    <Compile Include="Utilities\LanguageServicesConfiguration.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj">
@@ -187,6 +188,10 @@
     <ProjectReference Include="..\Runtimes\Runtime\Runtime.csproj">
       <Project>{62445d0b-c2c6-42c9-ba73-35895e6eeb67}</Project>
       <Name>Runtime</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Tooling\Tooling.csproj">
+      <Project>{16c10d2a-f7fd-4b81-be30-ad63ff868e46}</Project>
+      <Name>Tooling</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

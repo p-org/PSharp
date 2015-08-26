@@ -108,9 +108,11 @@ namespace Microsoft.PSharp
         void Assert(bool predicate, string s, params object[] args);
 
         /// <summary>
-        /// Notifies that a default handler has been used.
+        /// Logs the given text with the runtime.
         /// </summary>
-        void NotifyDefaultHandlerFired();
+        /// <param name="s">String</param>
+        /// <param name="args">Arguments</param>
+        void Log(string s, params object[] args);
 
         /// <summary>
         /// Notifies that a machine is waiting to receive an event.
@@ -123,6 +125,11 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="mid">Machine id</param>
         void NotifyReceivedEvent(MachineId mid);
+
+        /// <summary>
+        /// Notifies that a default handler has been used.
+        /// </summary>
+        void NotifyDefaultHandlerFired();
 
         /// <summary>
         /// Notifies that a scheduling point should be instrumented

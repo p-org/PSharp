@@ -59,26 +59,26 @@ namespace Microsoft.PSharp.StateCaching
 
             if (traceStep.Type == TraceStepType.SchedulingChoice)
             {
-                Output.Debug(DebugType.Liveness, "<LivenessDebug> Captured program state '{0}' at " +
+                Output.Debug("<LivenessDebug> Captured program state '{0}' at " +
                     "scheduling choice.", fingerprint.GetHashCode());
             }
             else if (traceStep.Type == TraceStepType.NondeterministicChoice)
             {
-                Output.Debug(DebugType.Liveness, "<LivenessDebug> Captured program state '{0}' at " +
-                    "nondeterministic choice '{1}'.", fingerprint.GetHashCode(), traceStep.Choice);
+                Output.Debug("<LivenessDebug> Captured program state '{0}' at nondeterministic " +
+                    "choice '{1}'.", fingerprint.GetHashCode(), traceStep.Choice);
             }
             else if (traceStep.Type == TraceStepType.FairNondeterministicChoice)
             {
-                Output.Debug(DebugType.Liveness, "<LivenessDebug> Captured program state '{0}' at fair nondeterministic " +
-                    "choice '{1}-{2}'.", fingerprint.GetHashCode(), traceStep.NondetId, traceStep.Choice);
+                Output.Debug("<LivenessDebug> Captured program state '{0}' at fair nondeterministic choice " +
+                    "'{1}-{2}'.", fingerprint.GetHashCode(), traceStep.NondetId, traceStep.Choice);
             }
             
             var stateExists = this.StateMap.Values.Any(val => val.Fingerprint.Equals(fingerprint));
             this.StateMap.Add(traceStep, state);
 
-            if (stateExists && Configuration.CheckLiveness)
+            if (stateExists && PSharpRuntime.Configuration.CheckLiveness)
             {
-                Output.Debug(DebugType.Liveness, "<LivenessDebug> Detected potential infinite execution.");
+                Output.Debug("<LivenessDebug> Detected potential infinite execution.");
                 PSharpRuntime.LivenessChecker.CheckLivenessAtTraceCycle(state.Fingerprint, this.StateMap);
             }
         }

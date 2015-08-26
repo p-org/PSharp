@@ -74,12 +74,12 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Compiler.cs" />
-    <Compile Include="Parser.cs" />
+    <Compile Include="CompilationProcess.cs" />
+    <Compile Include="CompilerCommandLineOptions.cs" />
+    <Compile Include="ParsingProcess.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="DynamicAnalyzer.cs" />
-    <Compile Include="StaticAnalyzer.cs" />
+    <Compile Include="StaticAnalysisProcess.cs" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.5">
@@ -98,10 +98,6 @@
       <Project>{2e330c40-60ea-4a94-8813-9747b93a1795}</Project>
       <Name>Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\DynamicAnalysis\DynamicAnalysis.csproj">
-      <Project>{81980f5a-06a4-47f0-86f3-b72f50bae572}</Project>
-      <Name>DynamicAnalysis</Name>
-    </ProjectReference>
     <ProjectReference Include="..\LanguageServices\LanguageServices.csproj">
       <Project>{06ccbe95-2e41-4188-bb97-aee702c1bd25}</Project>
       <Name>LanguageServices</Name>
@@ -109,6 +105,10 @@
     <ProjectReference Include="..\StaticAnalysis\StaticAnalysis.csproj">
       <Project>{da00a188-9d9e-4d4f-901c-c2a2cbc84cb6}</Project>
       <Name>StaticAnalysis</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Tooling\Tooling.csproj">
+      <Project>{16c10d2a-f7fd-4b81-be30-ad63ff868e46}</Project>
+      <Name>Tooling</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

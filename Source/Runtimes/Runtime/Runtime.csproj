@@ -78,6 +78,10 @@
       <Project>{2e330c40-60ea-4a94-8813-9747b93a1795}</Project>
       <Name>Core</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Tooling\Tooling.csproj">
+      <Project>{16c10d2a-f7fd-4b81-be30-ad63ff868e46}</Project>
+      <Name>Tooling</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

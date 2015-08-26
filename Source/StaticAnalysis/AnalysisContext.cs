@@ -29,79 +29,58 @@ namespace Microsoft.PSharp.StaticAnalysis
     /// <summary>
     /// The P# static analysis context.
     /// </summary>
-    public static class AnalysisContext
+    public sealed class AnalysisContext
     {
         #region fields
 
         /// <summary>
+        /// Configuration.
+        /// </summary>
+        internal LanguageServicesConfiguration Configuration;
+
+        /// <summary>
         /// The project compilation for this analysis context.
         /// </summary>
-        internal static Compilation Compilation = null;
+        internal Compilation Compilation = null;
 
         /// <summary>
         /// List of machine class declerations in the project.
         /// </summary>
-        internal static List<ClassDeclarationSyntax> Machines = null;
+        internal List<ClassDeclarationSyntax> Machines = null;
 
         /// <summary>
         /// Dictionary containing machine inheritance information.
         /// </summary>
-        internal static Dictionary<ClassDeclarationSyntax, ClassDeclarationSyntax> MachineInheritance = null;
+        internal Dictionary<ClassDeclarationSyntax, ClassDeclarationSyntax> MachineInheritance = null;
 
         /// <summary>
         /// List of machine actions per machine in the project.
         /// </summary>
-        internal static Dictionary<ClassDeclarationSyntax, List<string>> MachineActions = null;
+        internal Dictionary<ClassDeclarationSyntax, List<string>> MachineActions = null;
 
         /// <summary>
         /// Dictionary of method summaries in the project.
         /// </summary>
-        internal static Dictionary<BaseMethodDeclarationSyntax, MethodSummary> Summaries = null;
+        internal Dictionary<BaseMethodDeclarationSyntax, MethodSummary> Summaries = null;
 
         /// <summary>
         /// Dictionary of state transition graphs in the project.
         /// </summary>
-        internal static Dictionary<ClassDeclarationSyntax, StateTransitionGraphNode> StateTransitionGraphs = null;
+        internal Dictionary<ClassDeclarationSyntax, StateTransitionGraphNode> StateTransitionGraphs = null;
 
         #endregion
 
         #region public API
 
         /// <summary>
-        /// Create a new P# static analysis context from the given program unit.
+        /// Create a new P# static analysis context from the given project.
         /// </summary>
+        /// <param name="configuration">Configuration</param>
         /// <param name="project">Project</param>
-        public static void Create(Project project)
+        /// <returns>AnalysisContext</returns>
+        public static AnalysisContext Create(LanguageServicesConfiguration configuration, Project project)
         {
-            AnalysisContext.Compilation = project.GetCompilationAsync().Result;
-
-            AnalysisContext.Machines = new List<ClassDeclarationSyntax>();
-            AnalysisContext.MachineInheritance = new Dictionary<ClassDeclarationSyntax, ClassDeclarationSyntax>();
-            AnalysisContext.MachineActions = new Dictionary<ClassDeclarationSyntax, List<string>>();
-            AnalysisContext.Summaries = new Dictionary<BaseMethodDeclarationSyntax, MethodSummary>();
-            AnalysisContext.StateTransitionGraphs = new Dictionary<ClassDeclarationSyntax, StateTransitionGraphNode>();
-            
-            // Finds all the machines in the project.
-            AnalysisContext.FindAllMachines();
-
-            // Finds machine inheritance information.
-            AnalysisContext.FindMachineInheritanceInformation();
-
-            // Find all machine actions in the project.
-            AnalysisContext.FindAllMachineActions();
-        }
-
-        /// <summary>
-        /// Prints program statistics.
-        /// </summary>
-        public static void PrintStatistics()
-        {
-            Output.PrintLine("Number of machines in the program: {0}",
-                StateTransitionAnalysis.NumOfMachines);
-            Output.PrintLine("Number of state transitions in the program: {0}",
-                StateTransitionAnalysis.NumOfTransitions);
-            Output.PrintLine("Number of action bindings in the program: {0}",
-                StateTransitionAnalysis.NumOfActionBindings);
+            return new AnalysisContext(configuration, project);
         }
 
         #endregion
@@ -109,20 +88,46 @@ namespace Microsoft.PSharp.StaticAnalysis
         #region private methods
 
         /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="configuration">Configuration</param>
+        /// <param name="project">Project</param>
+        private AnalysisContext(LanguageServicesConfiguration configuration, Project project)
+        {
+            this.Configuration = configuration;
+            this.Compilation = project.GetCompilationAsync().Result;
+
+            this.Machines = new List<ClassDeclarationSyntax>();
+            this.MachineInheritance = new Dictionary<ClassDeclarationSyntax, ClassDeclarationSyntax>();
+            this.MachineActions = new Dictionary<ClassDeclarationSyntax, List<string>>();
+            this.Summaries = new Dictionary<BaseMethodDeclarationSyntax, MethodSummary>();
+            this.StateTransitionGraphs = new Dictionary<ClassDeclarationSyntax, StateTransitionGraphNode>();
+
+            // Finds all the machines in the project.
+            this.FindAllMachines();
+
+            // Finds machine inheritance information.
+            this.FindMachineInheritanceInformation();
+
+            // Find all machine actions in the project.
+            this.FindAllMachineActions();
+        }
+
+        /// <summary>
         /// Finds all P# machines in the project.
         /// </summary>
-        private static void FindAllMachines()
+        private void FindAllMachines()
         {
             // Iterate the syntax trees for each project file.
-            foreach (var tree in AnalysisContext.Compilation.SyntaxTrees)
+            foreach (var tree in this.Compilation.SyntaxTrees)
             {
-                if (!AnalysisContext.IsProgramSyntaxTree(tree))
+                if (!this.IsProgramSyntaxTree(tree))
                 {
                     continue;
                 }
 
                 // Get the tree's semantic model.
-                var model = AnalysisContext.Compilation.GetSemanticModel(tree);
+                var model = this.Compilation.GetSemanticModel(tree);
 
                 // Get the tree's root node compilation unit.
                 var root = (CompilationUnitSyntax)tree.GetRoot();
@@ -130,9 +135,9 @@ namespace Microsoft.PSharp.StaticAnalysis
                 // Iterate the class declerations only if they are machines.
                 foreach (var classDecl in root.DescendantNodes().OfType<ClassDeclarationSyntax>())
                 {
-                    if (Querying.IsMachine(AnalysisContext.Compilation, classDecl))
+                    if (Querying.IsMachine(this.Compilation, classDecl))
                     {
-                        AnalysisContext.Machines.Add(classDecl);
+                        this.Machines.Add(classDecl);
                     }
                 }
             }
@@ -142,22 +147,22 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Finds machine inheritance information for all P# machines
         /// in the project.
         /// </summary>
-        private static void FindMachineInheritanceInformation()
+        private void FindMachineInheritanceInformation()
         {
-            foreach (var machine in AnalysisContext.Machines)
+            foreach (var machine in this.Machines)
             {
-                var model = AnalysisContext.Compilation.GetSemanticModel(machine.SyntaxTree);
+                var model = this.Compilation.GetSemanticModel(machine.SyntaxTree);
                 var types = machine.BaseList.Types;
                 foreach (var type in types)
                 {
                     var typeSymbol = model.GetTypeInfo(type).Type;
-                    if (Utilities.IsMachineType(typeSymbol, model))
+                    if (Utilities.IsMachineType(typeSymbol, model, this))
                     {
                         if (!typeSymbol.Name.Equals("Machine"))
                         {
-                            var inheritedMachine = AnalysisContext.Machines.Find(v
+                            var inheritedMachine = this.Machines.Find(v
                                 => v.Identifier.ValueText.Equals(typeSymbol.Name));
-                            AnalysisContext.MachineInheritance.Add(machine, inheritedMachine);
+                            this.MachineInheritance.Add(machine, inheritedMachine);
                         }
                     }
                 }
@@ -167,20 +172,20 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Finds all machine actions for each P# machine in the project.
         /// </summary>
-        private static void FindAllMachineActions()
+        private void FindAllMachineActions()
         {
-            foreach (var machine in AnalysisContext.Machines)
+            foreach (var machine in this.Machines)
             {
                 var actionBindingFunc = machine.ChildNodes().OfType<MethodDeclarationSyntax>().
                     SingleOrDefault(m => m.Modifiers.Any(SyntaxKind.OverrideKeyword) &&
                     m.Identifier.ValueText.Equals("DefineActionBindings"));
                 if (actionBindingFunc == null)
                 {
-                    AnalysisContext.MachineActions.Add(machine, new List<string>());
+                    this.MachineActions.Add(machine, new List<string>());
                     continue;
                 }
 
-                var model = AnalysisContext.Compilation.GetSemanticModel(machine.SyntaxTree);
+                var model = this.Compilation.GetSemanticModel(machine.SyntaxTree);
 
                 List<string> actionNames = new List<string>();
                 foreach (var action in actionBindingFunc.DescendantNodesAndSelf().
@@ -206,7 +211,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     actionNames.Add(methodName);
                 }
 
-                AnalysisContext.MachineActions.Add(machine, actionNames);
+                this.MachineActions.Add(machine, actionNames);
             }
         }
 
@@ -216,7 +221,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="tree">SyntaxTree</param>
         /// <returns>Boolean value</returns>
-        private static bool IsProgramSyntaxTree(SyntaxTree tree)
+        private bool IsProgramSyntaxTree(SyntaxTree tree)
         {
             if (tree.FilePath.Contains("\\AssemblyInfo.cs") ||
                     tree.FilePath.Contains(".NETFramework,"))

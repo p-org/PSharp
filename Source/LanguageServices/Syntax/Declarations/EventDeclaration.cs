@@ -114,7 +114,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
         #endregion
 
-        #region private API
+        #region private methods
 
         /// <summary>
         /// Returns the rewritten event declaration.
@@ -124,7 +124,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         {
             var text = "";
 
-            if (Configuration.CompileForDistribution)
+            if ((this.Program as AbstractPSharpProgram).Project.Configuration.CompileForDistribution)
             {
                 text += "[System.Runtime.Serialization.DataContract]\n";
             }

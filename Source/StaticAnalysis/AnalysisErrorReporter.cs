@@ -57,7 +57,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             if ((AnalysisErrorReporter.ErrorCount > 0 || AnalysisErrorReporter.WarningCount > 0) &&
-                Configuration.ShowWarnings)
+                ErrorReporter.ShowWarnings)
             {
                 Output.PrintLine("... Static analysis detected '{0}' {1} and reported '{2}' {3}",
                     AnalysisErrorReporter.ErrorCount, errorStr,
@@ -388,7 +388,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="args">Parameters</param>
         private static void ReportWarning(Log log, string s, params object[] args)
         {
-            if (!Configuration.ShowWarnings)
+            if (!ErrorReporter.ShowWarnings)
             {
                 return;
             }

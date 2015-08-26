@@ -29,6 +29,13 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
     /// </summary>
     public class MaceMCStrategy : ISchedulingStrategy
     {
+        #region fields
+
+        /// <summary>
+        /// The analysis context.
+        /// </summary>
+        protected AnalysisContext AnalysisContext;
+
         /// <summary>
         /// The max depth.
         /// </summary>
@@ -49,18 +56,21 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
         /// </summary>
         private RandomStrategy Random;
 
+        #endregion
+
+        #region public API
+
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="safetyPrefix">Safety prefix bound</param>
-        public MaceMCStrategy(int safetyPrefix)
-            : base()
+        /// <param name="context">AnalysisContext</param>
+        public MaceMCStrategy(AnalysisContext context)
         {
-            this.MaxDepth = Configuration.DepthBound;
-            this.SafetyPrefixDepth = safetyPrefix;
-            this.BoundedDFS = new IterativeDeepeningDFSStrategy(this.SafetyPrefixDepth);
-            this.Random = new RandomStrategy(
-                Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond);
+            this.AnalysisContext = context;
+            this.MaxDepth = this.AnalysisContext.Configuration.DepthBound;
+            this.SafetyPrefixDepth = this.AnalysisContext.Configuration.SafetyPrefixBound;
+            this.BoundedDFS = new IterativeDeepeningDFSStrategy(this.AnalysisContext);
+            this.Random = new RandomStrategy(this.AnalysisContext);
         }
 
         /// <summary>
@@ -168,5 +178,7 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
         {
             return "MaceMC";
         }
+
+        #endregion
     }
 }

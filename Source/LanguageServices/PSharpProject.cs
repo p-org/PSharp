@@ -32,6 +32,11 @@ namespace Microsoft.PSharp.LanguageServices
         #region fields
 
         /// <summary>
+        /// Configuration.
+        /// </summary>
+        internal LanguageServicesConfiguration Configuration;
+
+        /// <summary>
         /// The P# project name.
         /// </summary>
         internal string Name;
@@ -63,8 +68,10 @@ namespace Microsoft.PSharp.LanguageServices
         /// <summary>
         /// Constructor.
         /// </summary>
-        public PSharpProject()
+        /// <param name="configuration">Configuration</param>
+        public PSharpProject(LanguageServicesConfiguration configuration)
         {
+            this.Configuration = configuration;
             this.PSharpPrograms = new List<PSharpProgram>();
             this.CSharpPrograms = new List<CSharpProgram>();
             this.PPrograms = new List<PProgram>();
@@ -74,11 +81,12 @@ namespace Microsoft.PSharp.LanguageServices
         /// <summary>
         /// Constructor.
         /// </summary>
+        /// <param name="configuration">Configuration</param>
         /// <param name="projectName">Project name</param>
-        public PSharpProject(string projectName)
+        public PSharpProject(LanguageServicesConfiguration configuration, string projectName)
         {
+            this.Configuration = configuration;
             this.Name = projectName;
-
             this.PSharpPrograms = new List<PSharpProgram>();
             this.CSharpPrograms = new List<CSharpProgram>();
             this.PPrograms = new List<PProgram>();
@@ -144,7 +152,7 @@ namespace Microsoft.PSharp.LanguageServices
 
         #endregion
 
-        #region private API
+        #region private methods
 
         /// <summary>
         /// Parses a P# syntax tree to C#.

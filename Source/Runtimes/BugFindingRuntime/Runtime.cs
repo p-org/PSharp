@@ -32,6 +32,11 @@ namespace Microsoft.PSharp
     public static class PSharpRuntime
     {
         #region fields
+
+        /// <summary>
+        /// The configuration.
+        /// </summary>
+        internal static BugFindingConfiguration Configuration;
         
         /// <summary>
         /// List of machine tasks.
@@ -104,15 +109,7 @@ namespace Microsoft.PSharp
         /// <param name="payload">Optional payload</param>
         /// <returns>Machine id</returns>
         public static MachineId CreateMachine(Type type, params Object[] payload)
-        {
-            lock (PSharpRuntime.Lock)
-            {
-                if (!PSharpRuntime.IsRunning)
-                {
-                    PSharpRuntime.Initialize();
-                }
-            }
-            
+        {   
             return PSharpRuntime.TryCreateMachine(type, payload);
         }
 
@@ -134,7 +131,7 @@ namespace Microsoft.PSharp
             }
             catch (TaskCanceledException)
             {
-                Output.Debug(DebugType.Testing, "<Exception> TaskCanceledException was thrown.");
+                Output.Debug("<Exception> TaskCanceledException was thrown.");
             }
         }
 
@@ -240,6 +237,40 @@ namespace Microsoft.PSharp
         #region internal API
 
         /// <summary>
+        /// Configures the P# runtime.
+        /// </summary>
+        /// <param name="configuration">Configuration</param>
+        internal static void Configure(BugFindingConfiguration configuration)
+        {
+            PSharpRuntime.Configuration = configuration;
+
+            PSharpRuntime.RootTaskId = Task.CurrentId;
+
+            PSharpRuntime.MachineTasks = new List<Task>();
+            PSharpRuntime.MachineMap = new Dictionary<int, Machine>();
+            PSharpRuntime.TaskMap = new Dictionary<int, Machine>();
+            PSharpRuntime.Monitors = new List<Monitor>();
+
+            if (PSharpRuntime.Configuration.ScheduleIntraMachineConcurrency)
+            {
+                PSharpRuntime.TaskScheduler = new TaskWrapperScheduler(PSharpRuntime.MachineTasks);
+                TaskMachineExtensions.TaskScheduler = PSharpRuntime.TaskScheduler as TaskWrapperScheduler;
+            }
+
+            MachineId.ResetMachineIDCounter();
+
+            BugFindingDispatcher dispatcher = new BugFindingDispatcher();
+            Machine.Dispatcher = dispatcher;
+            PSharp.Monitor.Dispatcher = dispatcher;
+
+            PSharpRuntime.ProgramTrace = new Trace();
+            PSharpRuntime.StateCache = new StateCache();
+            PSharpRuntime.LivenessChecker = new LivenessChecker();
+
+            PSharpRuntime.IsRunning = true;
+        }
+
+        /// <summary>
         /// Tries to create a new machine of the given type with an optional payload.
         /// </summary>
         /// <param name="type">Type of the machine</param>
@@ -275,7 +306,7 @@ namespace Microsoft.PSharp
 
                 PSharpRuntime.BugFinder.NotifyNewTaskCreated(task.Id, machine as Machine);
 
-                if (Configuration.ScheduleIntraMachineConcurrency)
+                if (PSharpRuntime.Configuration.ScheduleIntraMachineConcurrency)
                 {
                     task.Start(PSharpRuntime.TaskScheduler);
                 }
@@ -312,7 +343,7 @@ namespace Microsoft.PSharp
 
             PSharpRuntime.Monitors.Add(monitor as Monitor);
 
-            if (Configuration.CheckLiveness)
+            if (PSharpRuntime.Configuration.CheckLiveness)
             {
                 PSharpRuntime.LivenessChecker.RegisterMonitor(monitor as Monitor);
             }
@@ -348,7 +379,7 @@ namespace Microsoft.PSharp
 
             PSharpRuntime.BugFinder.NotifyNewTaskCreated(task.Id, taskMachine);
 
-            if (Configuration.ScheduleIntraMachineConcurrency)
+            if (PSharpRuntime.Configuration.ScheduleIntraMachineConcurrency)
             {
                 task.Start(PSharpRuntime.TaskScheduler);
             }
@@ -415,7 +446,7 @@ namespace Microsoft.PSharp
 
             PSharpRuntime.BugFinder.NotifyNewTaskCreated(task.Id, machine);
 
-            if (Configuration.ScheduleIntraMachineConcurrency)
+            if (PSharpRuntime.Configuration.ScheduleIntraMachineConcurrency)
             {
                 task.Start(PSharpRuntime.TaskScheduler);
             }
@@ -466,14 +497,6 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Notifies that a default handler has been used.
-        /// </summary>
-        internal static void NotifyDefaultHandlerFired()
-        {
-            PSharpRuntime.BugFinder.Schedule();
-        }
-
-        /// <summary>
         /// Notifies that a machine is waiting to receive an event.
         /// </summary>
         internal static void NotifyWaitEvent()
@@ -490,6 +513,14 @@ namespace Microsoft.PSharp
         {
             Machine machine = PSharpRuntime.MachineMap[mid.Value];
             PSharpRuntime.BugFinder.NotifyTaskReceivedEvent(machine);
+        }
+
+        /// <summary>
+        /// Notifies that a default handler has been used.
+        /// </summary>
+        internal static void NotifyDefaultHandlerFired()
+        {
+            PSharpRuntime.BugFinder.Schedule();
         }
 
         /// <summary>
@@ -571,41 +602,6 @@ namespace Microsoft.PSharp
             }
 
             PSharpRuntime.IsRunning = false;
-        }
-
-        #endregion
-
-        #region private API
-
-        /// <summary>
-        /// Initializes the P# runtime.
-        /// </summary>
-        private static void Initialize()
-        {
-            PSharpRuntime.RootTaskId = Task.CurrentId;
-
-            PSharpRuntime.MachineTasks = new List<Task>();
-            PSharpRuntime.MachineMap = new Dictionary<int, Machine>();
-            PSharpRuntime.TaskMap = new Dictionary<int, Machine>();
-            PSharpRuntime.Monitors = new List<Monitor>();
-
-            if (Configuration.ScheduleIntraMachineConcurrency)
-            {
-                PSharpRuntime.TaskScheduler = new TaskWrapperScheduler(PSharpRuntime.MachineTasks);
-                TaskMachineExtensions.TaskScheduler = PSharpRuntime.TaskScheduler as TaskWrapperScheduler;
-            }
-
-            MachineId.ResetMachineIDCounter();
-
-            BugFindingDispatcher dispatcher = new BugFindingDispatcher();
-            Machine.Dispatcher = dispatcher;
-            PSharp.Monitor.Dispatcher = dispatcher;
-
-            PSharpRuntime.ProgramTrace = new Trace();
-            PSharpRuntime.StateCache = new StateCache();
-            PSharpRuntime.LivenessChecker = new LivenessChecker();
-
-            PSharpRuntime.IsRunning = true;
         }
 
         #endregion

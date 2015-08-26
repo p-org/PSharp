@@ -70,7 +70,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
         #endregion
 
-        #region private API
+        #region private methods
 
         /// <summary>
         /// Rewrites the cloneable payload.

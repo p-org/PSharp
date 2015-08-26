@@ -29,6 +29,11 @@ namespace Microsoft.PSharp.StaticAnalysis
         #region fields
 
         /// <summary>
+        /// The analysis context.
+        /// </summary>
+        private AnalysisContext AnalysisContext;
+
+        /// <summary>
         /// The unique ID of the node.
         /// </summary>
         internal int Id;
@@ -85,9 +90,11 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Default constructor.
         /// </summary>
+        /// <param name="context">AnalysisContext</param>
         /// <param name="summary">MethodSummary</param>
-        internal ControlFlowGraphNode(MethodSummary summary)
+        internal ControlFlowGraphNode(AnalysisContext context, MethodSummary summary)
         {
+            this.AnalysisContext = context;
             this.Id = ControlFlowGraphNode.IdCounter++;
             this.Summary = summary;
             this.SyntaxNodes = new List<SyntaxNode>();
@@ -141,7 +148,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                             }
                             else
                             {
-                                givesUpNode = new ControlFlowGraphNode(this.Summary);
+                                givesUpNode = new ControlFlowGraphNode(this.AnalysisContext, this.Summary);
                                 this.ISuccessors.Add(givesUpNode);
                                 givesUpNode.IPredecessors.Add(this);
                             }
@@ -171,7 +178,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                             }
                             else if (idx < boundary - 1)
                             {
-                                succNode = new ControlFlowGraphNode(this.Summary);
+                                succNode = new ControlFlowGraphNode(this.AnalysisContext, this.Summary);
                                 givesUpNode.ISuccessors.Add(succNode);
                                 succNode.IPredecessors.Add(givesUpNode);
                                 succNode.Construct(stmtList, idx + 1, false, successor);
@@ -221,7 +228,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 }
                 else
                 {
-                    jumpNode = new ControlFlowGraphNode(this.Summary);
+                    jumpNode = new ControlFlowGraphNode(this.AnalysisContext, this.Summary);
                     this.ISuccessors.Add(jumpNode);
                     jumpNode.IPredecessors.Add(this);
                 }
@@ -230,7 +237,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     if (idx < boundary - 1)
                     {
-                        succNode = new ControlFlowGraphNode(this.Summary);
+                        succNode = new ControlFlowGraphNode(this.AnalysisContext, this.Summary);
                         jumpNode.HandleIfStatement(stmtList[idx] as IfStatementSyntax, succNode);
                         succNode.Construct(stmtList, idx + 1, false, successor);
                         return;
@@ -244,7 +251,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     if (idx < boundary - 1)
                     {
-                        succNode = new ControlFlowGraphNode(this.Summary);
+                        succNode = new ControlFlowGraphNode(this.AnalysisContext, this.Summary);
                         jumpNode.HandleForStatement(stmtList[idx] as ForStatementSyntax, succNode);
                         succNode.Construct(stmtList, idx + 1, false, successor);
                         return;
@@ -258,7 +265,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     if (idx < boundary - 1)
                     {
-                        succNode = new ControlFlowGraphNode(this.Summary);
+                        succNode = new ControlFlowGraphNode(this.AnalysisContext, this.Summary);
                         jumpNode.HandleWhileStatement(stmtList[idx] as WhileStatementSyntax, succNode);
                         succNode.Construct(stmtList, idx + 1, false, successor);
                         return;
@@ -272,7 +279,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     if (idx < boundary - 1)
                     {
-                        succNode = new ControlFlowGraphNode(this.Summary);
+                        succNode = new ControlFlowGraphNode(this.AnalysisContext, this.Summary);
                         jumpNode.HandleDoStatement(stmtList[idx] as DoStatementSyntax, succNode);
                         succNode.Construct(stmtList, idx + 1, false, successor);
                         return;
@@ -286,7 +293,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     if (idx < boundary - 1)
                     {
-                        succNode = new ControlFlowGraphNode(this.Summary);
+                        succNode = new ControlFlowGraphNode(this.AnalysisContext, this.Summary);
                         jumpNode.HandleForeachStatement(stmtList[idx] as ForEachStatementSyntax, succNode);
                         succNode.Construct(stmtList, idx + 1, false, successor);
                         return;
@@ -300,7 +307,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     if (idx < boundary - 1)
                     {
-                        succNode = new ControlFlowGraphNode(this.Summary);
+                        succNode = new ControlFlowGraphNode(this.AnalysisContext, this.Summary);
                         jumpNode.HandleSwitchStatement(stmtList[idx] as SwitchStatementSyntax, succNode);
                         succNode.Construct(stmtList, idx + 1, false, successor);
                         return;
@@ -314,7 +321,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     if (idx < boundary - 1)
                     {
-                        succNode = new ControlFlowGraphNode(this.Summary);
+                        succNode = new ControlFlowGraphNode(this.AnalysisContext, this.Summary);
                         jumpNode.HandleTryStatement(stmtList[idx] as TryStatementSyntax, succNode);
                         succNode.Construct(stmtList, idx + 1, false, successor);
                         return;
@@ -328,7 +335,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     if (idx < boundary - 1)
                     {
-                        succNode = new ControlFlowGraphNode(this.Summary);
+                        succNode = new ControlFlowGraphNode(this.AnalysisContext, this.Summary);
                         jumpNode.HandleUsingStatement(stmtList[idx] as UsingStatementSyntax, succNode);
                         succNode.Construct(stmtList, idx + 1, false, successor);
                         return;
@@ -425,7 +432,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 this.LoopExitNode = successor;
             }
 
-            var ifNode = new ControlFlowGraphNode(this.Summary);
+            var ifNode = new ControlFlowGraphNode(this.AnalysisContext, this.Summary);
             this.ISuccessors.Add(ifNode);
             ifNode.IPredecessors.Add(this);
 
@@ -440,7 +447,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             if (stmt.Else != null)
             {
-                var elseNode = new ControlFlowGraphNode(this.Summary);
+                var elseNode = new ControlFlowGraphNode(this.AnalysisContext, this.Summary);
                 this.ISuccessors.Add(elseNode);
                 elseNode.IPredecessors.Add(this);
 
@@ -479,7 +486,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 this.LoopExitNode = successor;
             }
 
-            var forNode = new ControlFlowGraphNode(this.Summary);
+            var forNode = new ControlFlowGraphNode(this.AnalysisContext, this.Summary);
             this.ISuccessors.Add(forNode);
             forNode.IPredecessors.Add(this);
 
@@ -510,7 +517,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 this.LoopExitNode = successor;
             }
 
-            var whileNode = new ControlFlowGraphNode(this.Summary);
+            var whileNode = new ControlFlowGraphNode(this.AnalysisContext, this.Summary);
             this.ISuccessors.Add(whileNode);
             whileNode.IPredecessors.Add(this);
 
@@ -541,7 +548,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 this.LoopExitNode = successor;
             }
 
-            var doNode = new ControlFlowGraphNode(this.Summary);
+            var doNode = new ControlFlowGraphNode(this.AnalysisContext, this.Summary);
             this.ISuccessors.Add(doNode);
             doNode.IPredecessors.Add(this);
 
@@ -572,7 +579,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 this.LoopExitNode = successor;
             }
 
-            var foreachNode = new ControlFlowGraphNode(this.Summary);
+            var foreachNode = new ControlFlowGraphNode(this.AnalysisContext, this.Summary);
             this.ISuccessors.Add(foreachNode);
             foreachNode.IPredecessors.Add(this);
 
@@ -617,7 +624,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     }
                 }
 
-                var switchNode = new ControlFlowGraphNode(this.Summary);
+                var switchNode = new ControlFlowGraphNode(this.AnalysisContext, this.Summary);
                 this.ISuccessors.Add(switchNode);
                 switchNode.IPredecessors.Add(this);
 
@@ -639,12 +646,12 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="successor">Successor</param>
         private void HandleTryStatement(TryStatementSyntax stmt, ControlFlowGraphNode successor)
         {
-            if (Configuration.AnalyzeExceptionHandling)
+            if (this.AnalysisContext.Configuration.AnalyzeExceptionHandling)
             {
                 var catchSuccessors = new List<ControlFlowGraphNode>();
                 foreach (var catchBlock in stmt.Catches)
                 {
-                    var catchSucc = new ControlFlowGraphNode(this.Summary);
+                    var catchSucc = new ControlFlowGraphNode(this.AnalysisContext, this.Summary);
                     catchSucc.Construct(catchBlock.Block.Statements, 0, false, successor);
                     catchSuccessors.Add(catchSucc);
                 }
@@ -652,7 +659,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 ControlFlowGraphNode pred = null;
                 for (int idx = 0; idx < stmt.Block.Statements.Count; idx++)
                 {
-                    var tryNode = new ControlFlowGraphNode(this.Summary);
+                    var tryNode = new ControlFlowGraphNode(this.AnalysisContext, this.Summary);
                     tryNode.IsJumpNode = true;
 
                     if (idx == 0)
@@ -700,7 +707,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             this.SyntaxNodes.Add(stmt.Declaration);
             this.IsJumpNode = true;
 
-            var usingNode = new ControlFlowGraphNode(this.Summary);
+            var usingNode = new ControlFlowGraphNode(this.AnalysisContext, this.Summary);
             this.ISuccessors.Add(usingNode);
             usingNode.IPredecessors.Add(this);
 
@@ -807,7 +814,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         private bool IsGivesUpOperation(InvocationExpressionSyntax call)
         {
             var callee = Utilities.GetCallee(call);
-            var model = AnalysisContext.Compilation.GetSemanticModel(call.SyntaxTree);
+            var model = this.AnalysisContext.Compilation.GetSemanticModel(call.SyntaxTree);
             var callSymbol = model.GetSymbolInfo(call).Symbol;
             if (callSymbol == null)
             {
@@ -828,8 +835,8 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             var calleeMethod = definition.DeclaringSyntaxReferences.First().GetSyntax()
                 as BaseMethodDeclarationSyntax;
-            if (AnalysisContext.Summaries.ContainsKey(calleeMethod) &&
-                MethodSummary.Factory.Summarize(calleeMethod).GivesUpSet.Count > 0)
+            if (this.AnalysisContext.Summaries.ContainsKey(calleeMethod) &&
+                MethodSummary.Factory.Summarize(this.AnalysisContext, calleeMethod).GivesUpSet.Count > 0)
             {
                 return true;
             }

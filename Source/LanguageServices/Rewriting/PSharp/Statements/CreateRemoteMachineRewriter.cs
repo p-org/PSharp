@@ -92,7 +92,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 
         #endregion
 
-        #region private API
+        #region private methods
 
         /// <summary>
         /// Rewrites the expression with a create remote machine expression.
@@ -115,8 +115,8 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
                     (models as LocalDeclarationStatementSyntax).Declaration.
                     Type.ToString().Equals("models"))
                 {
-                    if (!Configuration.RunStaticAnalysis &&
-                        !Configuration.RunDynamicAnalysis)
+                    if (!this.Project.Configuration.RunStaticAnalysis &&
+                        !this.Project.Configuration.CompileForTesting)
                     {
                         machineIdentifier = (models as LocalDeclarationStatementSyntax).
                             Declaration.Variables[0].Identifier.ValueText;
@@ -134,8 +134,8 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
             var text = "";
             if (base.IsMonitor(machineIdentifier))
             {
-                if (!Configuration.RunStaticAnalysis &&
-                    !Configuration.RunDynamicAnalysis)
+                if (!this.Project.Configuration.RunStaticAnalysis &&
+                    !this.Project.Configuration.CompileForTesting)
                 {
                     this.ToRemove.Add(node);
                     if (models != null)
@@ -148,7 +148,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 
                 text += "this.CreateMonitor";
             }
-            else if (Configuration.CompileForDistribution)
+            else if (this.Project.Configuration.CompileForDistribution)
             {
                 text += "this.CreateRemoteMachine";
             }

@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="Parser.cs">
+// <copyright file="RemoteManagerConfiguration.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,31 +12,41 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using Microsoft.PSharp.LanguageServices.Parsing;
+using System.Collections.Generic;
+
 using Microsoft.PSharp.Tooling;
 
-namespace Microsoft.PSharp
+namespace Microsoft.PSharp.Remote
 {
-    /// <summary>
-    /// Parser for the P# language.
-    /// </summary>
-    internal static class Parser
+    public sealed class RemoteManagerConfiguration : Configuration
     {
+        #region options
+
         /// <summary>
-        /// Starts the P# parser.
+        /// Number of containers.
         /// </summary>
-        public static void Run()
+        public int NumberOfContainers;
+
+        /// <summary>
+        /// The path to the P# application to run in a
+        /// distributed setting.
+        /// </summary>
+        public string ApplicationFilePath;
+
+        #endregion
+
+        #region constructor
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        internal RemoteManagerConfiguration()
+            : base()
         {
-            if (Configuration.NoParsing)
-            {
-                return;
-            }
-
-            Output.PrintLine(". Parsing");
-
-            // Runs the P# parsing engine.
-            ParsingEngine.Run();
+            this.NumberOfContainers = 1;
+            this.ApplicationFilePath = "";
         }
+
+        #endregion
     }
 }

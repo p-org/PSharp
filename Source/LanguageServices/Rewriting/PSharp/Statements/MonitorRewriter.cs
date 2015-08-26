@@ -78,7 +78,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 
         #endregion
 
-        #region private API
+        #region private methods
 
         /// <summary>
         /// Rewrites the statement with a monitor statement.
@@ -87,8 +87,8 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// <returns>StatementSyntax</returns>
         private SyntaxNode RewriteStatement(InvocationExpressionSyntax node)
         {
-            if (!Configuration.RunStaticAnalysis &&
-                !Configuration.RunDynamicAnalysis)
+            if (!this.Project.Configuration.RunStaticAnalysis &&
+                !this.Project.Configuration.CompileForTesting)
             {
                 this.ToRemove.Add(node.Parent);
                 return node;

@@ -63,7 +63,7 @@ namespace Microsoft.PSharp
         /// </summary>
         internal void Run()
         {
-            if (!Configuration.CheckLiveness)
+            if (!PSharpRuntime.Configuration.CheckLiveness)
             {
                 return;
             }
@@ -95,7 +95,7 @@ namespace Microsoft.PSharp
                 var state = stateMap[traceStep];
                 cycle.Add(traceStep, state);
 
-                Output.Debug(DebugType.Liveness, "<LivenessDebug> Cycle contains {0} with {1}.",
+                Output.Debug("<LivenessDebug> Cycle contains {0} with {1}.",
                     traceStep.Type, state.Fingerprint.ToString());
                 
                 // The state can be safely removed, because the liveness detection
@@ -108,16 +108,16 @@ namespace Microsoft.PSharp
             
             if (!this.IsSchedulingFair(cycle))
             {
-                Output.Debug(DebugType.Liveness, "<LivenessDebug> Scheduling in cycle is unfair.");
+                Output.Debug("<LivenessDebug> Scheduling in cycle is unfair.");
                 return;
             }
             else if (!this.IsNondeterminismFair(cycle))
             {
-                Output.Debug(DebugType.Liveness, "<LivenessDebug> Nondeterminism in cycle is unfair.");
+                Output.Debug("<LivenessDebug> Nondeterminism in cycle is unfair.");
                 return;
             }
 
-            Output.Debug(DebugType.Liveness, "<LivenessDebug> Cycle execution is fair.");
+            Output.Debug("<LivenessDebug> Cycle execution is fair.");
 
             var hotMonitors = this.GetHotMonitors(cycle);
             foreach (var monitor in hotMonitors)
@@ -127,7 +127,7 @@ namespace Microsoft.PSharp
                 PSharpRuntime.BugFinder.NotifyAssertionFailure(message, false);
             }
 
-            if (Configuration.DepthBound == 0 || hotMonitors.Count > 0)
+            if (PSharpRuntime.Configuration.DepthBound == 0 || hotMonitors.Count > 0)
             {
                 PSharpRuntime.BugFinder.Stop();
             }
@@ -183,12 +183,12 @@ namespace Microsoft.PSharp
 
             foreach (var m in enabledMachines)
             {
-                Output.Debug(DebugType.Liveness, "<LivenessDebug> Enabled machine {0}.", m);
+                Output.Debug("<LivenessDebug> Enabled machine {0}.", m);
             }
 
             foreach (var m in scheduledMachines)
             {
-                Output.Debug(DebugType.Liveness, "<LivenessDebug> Scheduled machine {0}.", m);
+                Output.Debug("<LivenessDebug> Scheduled machine {0}.", m);
             }
 
             if (enabledMachines.Count == scheduledMachines.Count)
