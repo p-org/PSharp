@@ -45,11 +45,6 @@ namespace Microsoft.PSharp.Tooling
             {
                 configuration.CompileForTesting = true;
             }
-            else if (option.ToLower().Equals("/liveness"))
-            {
-                configuration.CompileForTesting = true;
-                configuration.CompileForLivenessChecking = true;
-            }
             else if (option.ToLower().Equals("/distributed"))
             {
                 configuration.CompileForDistribution = true;
@@ -122,7 +117,6 @@ namespace Microsoft.PSharp.Tooling
             help += "\nCompilation options:";
             help += "\n--------------------";
             help += "\n  /testing\t Compile the P# program for testing";
-            help += "\n  /liveness\t Compile the P# program for liveness checking";
             help += "\n  /ditributed\t Compile the P# program using the distributed runtime";
 
             help += "\n\n---------------------------";

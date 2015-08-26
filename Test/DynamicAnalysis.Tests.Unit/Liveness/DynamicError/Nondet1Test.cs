@@ -124,8 +124,6 @@ namespace SystematicTesting
 }";
             
             var parserConfig = new LanguageServicesConfiguration();
-            parserConfig.CompileForLivenessChecking = true;
-
             var parser = new CSharpParser(new PSharpProject(parserConfig),
                 SyntaxFactory.ParseSyntaxTree(test), true);
             var program = parser.Parse();

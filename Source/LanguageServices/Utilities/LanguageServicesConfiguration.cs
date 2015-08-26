@@ -24,11 +24,6 @@ namespace Microsoft.PSharp.Tooling
         public bool CompileForTesting;
 
         /// <summary>
-        /// Compiles for testing.
-        /// </summary>
-        public bool CompileForLivenessChecking;
-
-        /// <summary>
         /// Compiles for distributed execution.
         /// </summary>
         public bool CompileForDistribution;
@@ -79,7 +74,6 @@ namespace Microsoft.PSharp.Tooling
             : base()
         {
             this.CompileForTesting = false;
-            this.CompileForLivenessChecking = false;
             this.CompileForDistribution = false;
 
             this.RunStaticAnalysis = false;

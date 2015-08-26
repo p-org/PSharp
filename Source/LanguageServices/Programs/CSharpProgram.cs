@@ -76,11 +76,7 @@ namespace Microsoft.PSharp.LanguageServices
         {
             this.SyntaxTree = new RaiseRewriter(this.Project).Rewrite(this.SyntaxTree);
             this.SyntaxTree = new PopRewriter(this.Project).Rewrite(this.SyntaxTree);
-
-            if (this.Project.Configuration.CompileForLivenessChecking)
-            {
-                this.SyntaxTree = new FairNondetRewriter(this.Project).Rewrite(this.SyntaxTree);
-            }
+            this.SyntaxTree = new FairNondetRewriter(this.Project).Rewrite(this.SyntaxTree);
         }
 
         #endregion
