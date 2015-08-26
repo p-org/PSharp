@@ -75,7 +75,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CompilationProcess.cs" />
-    <Compile Include="CompilerCommandLineOptions.cs" />
+    <Compile Include="Utilities\CompilerCommandLineOptions.cs" />
     <Compile Include="ParsingProcess.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

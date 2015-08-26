@@ -73,7 +73,7 @@
     <Compile Include="StateCaching\State.cs" />
     <Compile Include="Exploration\TraceStep.cs" />
     <Compile Include="Exploration\Trace.cs" />
-    <Compile Include="Tooling\BugFindingConfiguration.cs" />
+    <Compile Include="Utilities\BugFindingConfiguration.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="PSharp.snk" />
