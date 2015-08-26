@@ -67,7 +67,7 @@ namespace Microsoft.PSharp.Tooling
             
             this.ScheduleIntraMachineConcurrency = false;
             this.CheckLiveness = false;
-            this.CacheProgramState = true;
+            this.CacheProgramState = false;
         }
 
         #endregion

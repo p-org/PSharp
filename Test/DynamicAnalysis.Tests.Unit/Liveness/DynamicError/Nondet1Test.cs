@@ -133,6 +133,7 @@ namespace SystematicTesting
             sctConfig.SuppressTrace = true;
             sctConfig.Verbose = 3;
             sctConfig.CheckLiveness = true;
+            sctConfig.CacheProgramState = true;
 
             Output.Debugging = true;
 

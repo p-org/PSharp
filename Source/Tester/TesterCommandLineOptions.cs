@@ -124,9 +124,9 @@ namespace Microsoft.PSharp.Tooling
             {
                 configuration.CheckLiveness = true;
             }
-            else if (option.ToLower().Equals("/nocaching"))
+            else if (option.ToLower().Equals("/statecaching"))
             {
-                configuration.CacheProgramState = false;
+                configuration.CacheProgramState = true;
             }
             else
             {

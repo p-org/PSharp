@@ -137,6 +137,7 @@ namespace SystematicTesting
             sctConfig.SuppressTrace = true;
             sctConfig.Verbose = 3;
             sctConfig.CheckLiveness = true;
+            sctConfig.CacheProgramState = true;
             sctConfig.SchedulingIterations = 100;
 
             var assembly = base.GetAssembly(program.GetSyntaxTree());

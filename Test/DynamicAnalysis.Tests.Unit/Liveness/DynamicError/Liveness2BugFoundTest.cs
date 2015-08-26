@@ -123,7 +123,6 @@ namespace SystematicTesting
             sctConfig.SuppressTrace = true;
             sctConfig.Verbose = 2;
             sctConfig.CheckLiveness = true;
-            sctConfig.CacheProgramState = false;
             sctConfig.SchedulingStrategy = SchedulingStrategy.DFS;
 
             var assembly = base.GetAssembly(program.GetSyntaxTree());

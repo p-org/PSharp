@@ -174,7 +174,6 @@ namespace SystematicTesting
             sctConfig.SuppressTrace = true;
             sctConfig.Verbose = 2;
             sctConfig.CheckLiveness = true;
-            sctConfig.CacheProgramState = false;
             sctConfig.SchedulingStrategy = SchedulingStrategy.DFS;
 
             Output.Debugging = true;
