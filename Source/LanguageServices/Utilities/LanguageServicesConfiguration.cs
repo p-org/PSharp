@@ -12,6 +12,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using Microsoft.PSharp.LanguageServices.Compilation;
+
 namespace Microsoft.PSharp.Tooling
 {
     public class LanguageServicesConfiguration : Configuration
@@ -19,14 +21,9 @@ namespace Microsoft.PSharp.Tooling
         #region options
 
         /// <summary>
-        /// Compiles for testing.
+        /// Compilation target.
         /// </summary>
-        public bool CompileForTesting;
-
-        /// <summary>
-        /// Compiles for distributed execution.
-        /// </summary>
-        public bool CompileForDistribution;
+        public CompilationTarget CompilationTarget;
 
         /// <summary>
         /// Run the analysis stage of the compiler.
@@ -73,8 +70,7 @@ namespace Microsoft.PSharp.Tooling
         public LanguageServicesConfiguration()
             : base()
         {
-            this.CompileForTesting = false;
-            this.CompileForDistribution = false;
+            this.CompilationTarget = CompilationTarget.All;
 
             this.RunStaticAnalysis = false;
             this.ShowGivesUpInformation = false;

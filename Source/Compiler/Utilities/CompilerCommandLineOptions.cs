@@ -14,6 +14,8 @@
 
 using System;
 
+using Microsoft.PSharp.LanguageServices.Compilation;
+
 namespace Microsoft.PSharp.Tooling
 {
     public sealed class CompilerCommandLineOptions : BaseCommandLineOptions
@@ -41,13 +43,24 @@ namespace Microsoft.PSharp.Tooling
         protected override void ParseOption(string option)
         {
             var configuration = base.Configuration as LanguageServicesConfiguration;
-            if (option.ToLower().Equals("/testing"))
+            if (option.ToLower().StartsWith("/t:") && option.Length > 3)
             {
-                configuration.CompileForTesting = true;
-            }
-            else if (option.ToLower().Equals("/distributed"))
-            {
-                configuration.CompileForDistribution = true;
+                if (option.ToLower().Substring(3).Equals("all"))
+                {
+                    configuration.CompilationTarget = CompilationTarget.All;
+                }
+                else if (option.ToLower().Substring(3).Equals("execution"))
+                {
+                    configuration.CompilationTarget = CompilationTarget.Execution;
+                }
+                else if (option.ToLower().Substring(3).Equals("testing"))
+                {
+                    configuration.CompilationTarget = CompilationTarget.Testing;
+                }
+                else if (option.ToLower().Substring(3).Equals("distribution"))
+                {
+                    configuration.CompilationTarget = CompilationTarget.Distribution;
+                }
             }
             else if (option.ToLower().Equals("/analyze"))
             {
@@ -93,6 +106,15 @@ namespace Microsoft.PSharp.Tooling
             {
                 ErrorReporter.ReportAndExit("Please give a valid solution path.");
             }
+
+            if (configuration.CompilationTarget != CompilationTarget.All &&
+                configuration.CompilationTarget != CompilationTarget.Execution &&
+                configuration.CompilationTarget != CompilationTarget.Testing &&
+                configuration.CompilationTarget != CompilationTarget.Distribution)
+            {
+                ErrorReporter.ReportAndExit("Please give a valid compilation target '/t:[x]', " +
+                    "where [x] is 'all', 'execution', 'testing' or 'distribution'.");
+            }
         }
 
         /// <summary>
@@ -116,8 +138,7 @@ namespace Microsoft.PSharp.Tooling
             help += "\n\n--------------------";
             help += "\nCompilation options:";
             help += "\n--------------------";
-            help += "\n  /testing\t Compile the P# program for testing";
-            help += "\n  /ditributed\t Compile the P# program using the distributed runtime";
+            help += "\n  /t:[x]\t The compilation target (default is 'all')";
 
             help += "\n\n---------------------------";
             help += "\nExperimental options:";

@@ -75,6 +75,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Compilation\CompilationEngine.cs" />
+    <Compile Include="Compilation\CompilationTarget.cs" />
     <Compile Include="Exceptions.cs" />
     <Compile Include="Parsing\Lexers\BaseLexer.cs" />
     <Compile Include="Parsing\Lexers\ILexer.cs" />

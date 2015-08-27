@@ -14,6 +14,7 @@
 
 using System;
 
+using Microsoft.PSharp.LanguageServices.Compilation;
 using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp

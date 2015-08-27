@@ -12,12 +12,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
+using Microsoft.PSharp.LanguageServices.Compilation;
 using Microsoft.PSharp.LanguageServices.Parsing;
-using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp.LanguageServices.Syntax
 {
@@ -124,7 +120,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         {
             var text = "";
 
-            if ((this.Program as AbstractPSharpProgram).Project.Configuration.CompileForDistribution)
+            if ((this.Program as AbstractPSharpProgram).Project.Configuration.
+                CompilationTarget == CompilationTarget.Distribution)
             {
                 text += "[System.Runtime.Serialization.DataContract]\n";
             }

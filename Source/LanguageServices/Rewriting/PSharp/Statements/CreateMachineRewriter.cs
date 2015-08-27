@@ -20,7 +20,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-using Microsoft.PSharp.Tooling;
+using Microsoft.PSharp.LanguageServices.Compilation;
 
 namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 {
@@ -115,7 +115,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
                     (models as LocalDeclarationStatementSyntax).Declaration.
                     Type.ToString().Equals("models"))
                 {
-                    if (!this.Project.Configuration.CompileForTesting)
+                    if (this.Project.Configuration.CompilationTarget != CompilationTarget.Testing)
                     {
                         machineIdentifier = (models as LocalDeclarationStatementSyntax).
                             Declaration.Variables[0].Identifier.ValueText;
@@ -133,7 +133,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
             var text = "";
             if (base.IsMonitor(machineIdentifier))
             {
-                if (!this.Project.Configuration.CompileForTesting)
+                if (this.Project.Configuration.CompilationTarget != CompilationTarget.Testing)
                 {
                     this.ToRemove.Add(node);
                     if (models != null)
