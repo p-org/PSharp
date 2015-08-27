@@ -90,7 +90,6 @@
     <Compile Include="Passes\SanityCheckingAnalysis.cs" />
     <Compile Include="Passes\StateTransitionAnalysis.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Utilities.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="PSharp.snk" />

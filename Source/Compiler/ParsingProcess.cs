@@ -12,7 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
+using Microsoft.PSharp.LanguageServices.Compilation;
 using Microsoft.PSharp.LanguageServices.Parsing;
 using Microsoft.PSharp.Tooling;
 
@@ -26,9 +26,9 @@ namespace Microsoft.PSharp
         #region fields
 
         /// <summary>
-        /// Configuration.
+        /// The compilation context.
         /// </summary>
-        private LanguageServicesConfiguration Configuration;
+        private CompilationContext CompilationContext;
 
         #endregion
 
@@ -37,11 +37,11 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Creates a P# parsing process.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
+        /// <param name="context">CompilationContext</param>
         /// <returns>ParsingProcess</returns>
-        public static ParsingProcess Create(LanguageServicesConfiguration configuration)
+        public static ParsingProcess Create(CompilationContext context)
         {
-            return new ParsingProcess(configuration);
+            return new ParsingProcess(context);
         }
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace Microsoft.PSharp
             Output.PrintLine(". Parsing");
 
             // Creates and runs a P# parsing engine.
-            ParsingEngine.Create(this.Configuration).Run();
+            ParsingEngine.Create(this.CompilationContext).Run();
         }
 
         #endregion
@@ -62,10 +62,10 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
-        private ParsingProcess(LanguageServicesConfiguration configuration)
+        /// <param name="context">CompilationContext</param>
+        private ParsingProcess(CompilationContext context)
         {
-            this.Configuration = configuration;
+            this.CompilationContext = context;
         }
 
         #endregion

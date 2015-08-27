@@ -21,8 +21,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 
-using Microsoft.PSharp.Tooling;
-
 namespace Microsoft.PSharp.StaticAnalysis
 {
     /// <summary>
@@ -49,7 +47,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             ControlFlowGraphNode targetCfgNode, SemanticModel model, AnalysisContext context)
         {
             ISymbol reference = null;
-            if (!Utilities.TryGetSymbolFromExpression(out reference, expr, model, context))
+            if (!context.TryGetSymbolFromExpression(out reference, expr, model))
             {
                 return false;
             }
@@ -169,7 +167,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         {
 
             ISymbol reference = null;
-            if (!Utilities.TryGetSymbolFromExpression(out reference, expr, model, context))
+            if (!context.TryGetSymbolFromExpression(out reference, expr, model))
             {
                 return false;
             }
@@ -296,7 +294,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         {
             ISymbol reference = null;
             if (!cfgNode.Equals(targetCfgNode) ||
-                !Utilities.TryGetSymbolFromExpression(out reference, expr, model, context))
+                !context.TryGetSymbolFromExpression(out reference, expr, model))
             {
                 return false;
             }
@@ -363,7 +361,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             AnalysisContext context)
         {
             ISymbol reference = null;
-            if (!Utilities.TryGetSymbolFromExpression(out reference, expr, model, context))
+            if (!context.TryGetSymbolFromExpression(out reference, expr, model))
             {
                 return false;
             }
@@ -428,8 +426,8 @@ namespace Microsoft.PSharp.StaticAnalysis
             foreach (var param in summary.Method.ParameterList.Parameters)
             {
                 var declType = model.GetTypeInfo(param.Type).Type;
-                if (Utilities.IsTypeAllowedToBeSend(declType) ||
-                    Utilities.IsMachineType(declType, model, context))
+                if (context.IsTypeAllowedToBeSend(declType) ||
+                    context.IsMachineType(declType, model))
                 {
                     continue;
                 }
@@ -499,8 +497,8 @@ namespace Microsoft.PSharp.StaticAnalysis
                                 declType = model.GetTypeInfo(variable.Initializer.Value).Type;
                             }
 
-                            if (Utilities.IsTypeAllowedToBeSend(declType) ||
-                                Utilities.IsMachineType(declType, model, context))
+                            if (context.IsTypeAllowedToBeSend(declType) ||
+                                context.IsMachineType(declType, model))
                             {
                                 continue;
                             }
@@ -638,8 +636,8 @@ namespace Microsoft.PSharp.StaticAnalysis
                             {
                                 lhs = binaryExpr.Left as IdentifierNameSyntax;
                                 var lhsType = model.GetTypeInfo(lhs).Type;
-                                if (Utilities.IsTypeAllowedToBeSend(lhsType) ||
-                                    Utilities.IsMachineType(lhsType, model, context))
+                                if (context.IsTypeAllowedToBeSend(lhsType) ||
+                                    context.IsMachineType(lhsType, model))
                                 {
                                     previousSyntaxNode = syntaxNode;
                                     previousCfgNode = cfgNode;
@@ -650,15 +648,15 @@ namespace Microsoft.PSharp.StaticAnalysis
                             {
                                 var name = (binaryExpr.Left as MemberAccessExpressionSyntax).Name;
                                 var lhsType = model.GetTypeInfo(name).Type;
-                                if (Utilities.IsTypeAllowedToBeSend(lhsType) ||
-                                    Utilities.IsMachineType(lhsType, model, context))
+                                if (context.IsTypeAllowedToBeSend(lhsType) ||
+                                    context.IsMachineType(lhsType, model))
                                 {
                                     previousSyntaxNode = syntaxNode;
                                     previousCfgNode = cfgNode;
                                     continue;
                                 }
 
-                                lhs = Utilities.GetFirstNonMachineIdentifier(binaryExpr.Left, model, context);
+                                lhs = context.GetFirstNonMachineIdentifier(binaryExpr.Left, model);
                                 lhsFieldSymbol = model.GetSymbolInfo(name as IdentifierNameSyntax).Symbol;
                             }
                             else if (binaryExpr.Left is ElementAccessExpressionSyntax)
@@ -668,8 +666,8 @@ namespace Microsoft.PSharp.StaticAnalysis
                                 {
                                     lhs = memberAccess.Expression as IdentifierNameSyntax;
                                     var lhsType = model.GetTypeInfo(lhs).Type;
-                                    if (Utilities.IsTypeAllowedToBeSend(lhsType) ||
-                                        Utilities.IsMachineType(lhsType, model, context))
+                                    if (context.IsTypeAllowedToBeSend(lhsType) ||
+                                        context.IsMachineType(lhsType, model))
                                     {
                                         previousSyntaxNode = syntaxNode;
                                         previousCfgNode = cfgNode;
@@ -680,15 +678,15 @@ namespace Microsoft.PSharp.StaticAnalysis
                                 {
                                     var name = (memberAccess.Expression as MemberAccessExpressionSyntax).Name;
                                     var lhsType = model.GetTypeInfo(name).Type;
-                                    if (Utilities.IsTypeAllowedToBeSend(lhsType) ||
-                                        Utilities.IsMachineType(lhsType, model, context))
+                                    if (context.IsTypeAllowedToBeSend(lhsType) ||
+                                        context.IsMachineType(lhsType, model))
                                     {
                                         previousSyntaxNode = syntaxNode;
                                         previousCfgNode = cfgNode;
                                         continue;
                                     }
 
-                                    lhs = Utilities.GetFirstNonMachineIdentifier(memberAccess.Expression, model, context);
+                                    lhs = context.GetFirstNonMachineIdentifier(memberAccess.Expression, model);
                                     lhsFieldSymbol = model.GetSymbolInfo(name as IdentifierNameSyntax).Symbol;
                                 }
                             }
@@ -705,7 +703,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                                 }
                                 else if (binaryExpr.Right is MemberAccessExpressionSyntax)
                                 {
-                                    rhs = Utilities.GetFirstNonMachineIdentifier(binaryExpr.Right, model, context);
+                                    rhs = context.GetFirstNonMachineIdentifier(binaryExpr.Right, model);
                                 }
 
                                 var rightSymbol = model.GetSymbolInfo(rhs).Symbol;
@@ -866,7 +864,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                             }
                             else if (ret.Expression is MemberAccessExpressionSyntax)
                             {
-                                rhs = Utilities.GetFirstNonMachineIdentifier(ret.Expression, model, context);
+                                rhs = context.GetFirstNonMachineIdentifier(ret.Expression, model);
                             }
 
                             var rightSymbol = model.GetSymbolInfo(rhs).Symbol;
@@ -1044,7 +1042,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             foreach (var access in accesses)
             {
-                IdentifierNameSyntax id = Utilities.GetFirstNonMachineIdentifier(access, model, context);
+                IdentifierNameSyntax id = context.GetFirstNonMachineIdentifier(access, model);
                 if (id == null)
                 {
                     continue;
@@ -1194,15 +1192,15 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             var name = (expr as MemberAccessExpressionSyntax).Name;
-            var identifier = Utilities.GetFirstNonMachineIdentifier(expr, model, context);
+            var identifier = context.GetFirstNonMachineIdentifier(expr, model);
             if (identifier == null || name == null)
             {
                 return;
             }
 
             var type = model.GetTypeInfo(identifier).Type;
-            if (Utilities.IsTypeAllowedToBeSend(type) ||
-                Utilities.IsMachineType(type, model, context) ||
+            if (context.IsTypeAllowedToBeSend(type) ||
+                context.IsMachineType(type, model) ||
                 name.Equals(identifier))
             {
                 return;
@@ -1275,15 +1273,15 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             var name = (expr as MemberAccessExpressionSyntax).Name;
-            var identifier = Utilities.GetFirstNonMachineIdentifier(expr, model, context);
+            var identifier = context.GetFirstNonMachineIdentifier(expr, model);
             if (identifier == null || name == null)
             {
                 return;
             }
 
             var type = model.GetTypeInfo(identifier).Type;
-            if (Utilities.IsTypeAllowedToBeSend(type) ||
-                Utilities.IsMachineType(type, model, context) ||
+            if (context.IsTypeAllowedToBeSend(type) ||
+                context.IsMachineType(type, model) ||
                 name.Equals(identifier))
             {
                 return;
@@ -1291,7 +1289,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             var symbol = model.GetSymbolInfo(identifier).Symbol;
             var definition = SymbolFinder.FindSourceDefinitionAsync(symbol,
-                ProgramInfo.Solution).Result;
+                context.Solution).Result;
             if (!(definition is IFieldSymbol))
             {
                 return;

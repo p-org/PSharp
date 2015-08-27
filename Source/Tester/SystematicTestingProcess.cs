@@ -52,15 +52,6 @@ namespace Microsoft.PSharp
         /// </summary>
         public void Start()
         {
-            if (!this.Configuration.ProjectName.Equals(""))
-            {
-                Project project = ProgramInfo.GetProjectWithName(this.Configuration.ProjectName);
-                string dll = (this.Configuration.OutputFilePath == ""
-                    ? Path.GetDirectoryName(project.OutputFilePath) : this.Configuration.OutputFilePath) +
-                    Path.DirectorySeparatorChar + project.AssemblyName + ".dll";
-                this.Configuration.AssemblyToBeAnalyzed = dll;
-            }
-
             Output.PrintLine(". Testing " + this.Configuration.AssemblyToBeAnalyzed);
             this.TestAssembly(this.Configuration.AssemblyToBeAnalyzed);
         }

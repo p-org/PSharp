@@ -26,9 +26,9 @@ namespace Microsoft.PSharp
         #region fields
 
         /// <summary>
-        /// Configuration.
+        /// The compilation context.
         /// </summary>
-        private LanguageServicesConfiguration Configuration;
+        private CompilationContext CompilationContext;
 
         #endregion
 
@@ -37,11 +37,11 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Creates a P# compilation process.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
+        /// <param name="context">CompilationContext</param>
         /// <returns>CompilationProcess</returns>
-        public static CompilationProcess Create(LanguageServicesConfiguration configuration)
+        public static CompilationProcess Create(CompilationContext context)
         {
-            return new CompilationProcess(configuration);
+            return new CompilationProcess(context);
         }
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace Microsoft.PSharp
             Output.PrintLine(". Compiling");
 
             // Creates and runs a P# compilation engine.
-            CompilationEngine.Create(this.Configuration).Run();
+            CompilationEngine.Create(this.CompilationContext).Run();
         }
 
         #endregion
@@ -62,10 +62,10 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
-        private CompilationProcess(LanguageServicesConfiguration configuration)
+        /// <param name="context">CompilationContext</param>
+        private CompilationProcess(CompilationContext context)
         {
-            this.Configuration = configuration;
+            this.CompilationContext = context;
         }
 
         #endregion

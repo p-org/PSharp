@@ -23,7 +23,7 @@ using Microsoft.PSharp.Tooling;
 namespace Microsoft.PSharp.DynamicAnalysis
 {
     /// <summary>
-    /// The P# dynamic analysis context.
+    /// A P# dynamic analysis context.
     /// </summary>
     public sealed class AnalysisContext
     {

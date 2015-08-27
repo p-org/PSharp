@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Microsoft.PSharp.LanguageServices.Parsing;
-using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp.LanguageServices.Tests.Unit
 {
@@ -34,8 +33,7 @@ machine M {
 }
 }";
 
-            var parserConfig = new LanguageServicesConfiguration();
-            var parser = new PSharpParser(new PSharpProject(parserConfig),
+            var parser = new PSharpParser(new PSharpProject(),
                 SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
@@ -53,8 +51,7 @@ namespace Foo {
 machine{}
 }";
 
-            var parserConfig = new LanguageServicesConfiguration();
-            var parser = new PSharpParser(new PSharpProject(parserConfig),
+            var parser = new PSharpParser(new PSharpProject(),
                 SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
@@ -76,8 +73,7 @@ start state S { }
 }
 }";
 
-            var parserConfig = new LanguageServicesConfiguration();
-            var parser = new PSharpParser(new PSharpProject(parserConfig),
+            var parser = new PSharpParser(new PSharpProject(),
                 SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
@@ -97,8 +93,7 @@ state S { }
 }
 }";
 
-            var parserConfig = new LanguageServicesConfiguration();
-            var parser = new PSharpParser(new PSharpProject(parserConfig),
+            var parser = new PSharpParser(new PSharpProject(),
                 SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
@@ -119,8 +114,7 @@ state S { }
                 "}" +
                 "}";
 
-            var parserConfig = new LanguageServicesConfiguration();
-            var parser = new PSharpParser(new PSharpProject(parserConfig),
+            var parser = new PSharpParser(new PSharpProject(),
                 SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
@@ -143,8 +137,7 @@ state S3 { }
 }
 }";
 
-            var parserConfig = new LanguageServicesConfiguration();
-            var parser = new PSharpParser(new PSharpProject(parserConfig),
+            var parser = new PSharpParser(new PSharpProject(),
                 SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
@@ -167,8 +160,7 @@ start state S3 { }
 }
 }";
 
-            var parserConfig = new LanguageServicesConfiguration();
-            var parser = new PSharpParser(new PSharpProject(parserConfig),
+            var parser = new PSharpParser(new PSharpProject(),
                 SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);

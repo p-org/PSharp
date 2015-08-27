@@ -21,8 +21,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 
-using Microsoft.PSharp.Tooling;
-
 namespace Microsoft.PSharp.StaticAnalysis
 {
     internal static class InheritanceAnalysis
@@ -59,7 +57,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 calleeSymbol = model.GetSymbolInfo(identifier).Symbol;
                 
                 if (expr.Expression is ThisExpressionSyntax ||
-                    Utilities.IsMachineType(identifier, model, context))
+                    context.IsMachineType(identifier, model))
                 {
                     callee = expr.Name;
                     isThis = true;
@@ -117,7 +115,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             foreach (var objectType in objectTypeMap[calleeSymbol])
             {
                 MethodDeclarationSyntax m = null;
-                if (InheritanceAnalysis.TryGetMethodFromType(out m, objectType, virtualCall))
+                if (InheritanceAnalysis.TryGetMethodFromType(out m, objectType, virtualCall, context))
                 {
                     overriders.Add(m);
                 }
@@ -136,14 +134,14 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="method">Method</param>
         /// <param name="type">Type</param>
         /// <param name="virtualCall">Virtual call</param>
+        /// <param name="context">AnalysisContext</param>
         /// <returns>Boolean value</returns>
         private static bool TryGetMethodFromType(out MethodDeclarationSyntax method, ITypeSymbol type,
-            InvocationExpressionSyntax virtualCall)
+            InvocationExpressionSyntax virtualCall, AnalysisContext context)
         {
             method = null;
 
-            var definition = SymbolFinder.FindSourceDefinitionAsync(type,
-                ProgramInfo.Solution).Result;
+            var definition = SymbolFinder.FindSourceDefinitionAsync(type, context.Solution).Result;
             if (definition == null)
             {
                 return false;
@@ -153,7 +151,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 as ClassDeclarationSyntax;
             foreach (var m in calleeClass.ChildNodes().OfType<MethodDeclarationSyntax>())
             {
-                if (m.Identifier.ValueText.Equals(Utilities.GetCallee(virtualCall)))
+                if (m.Identifier.ValueText.Equals(context.GetCallee(virtualCall)))
                 {
                     method = m;
                     break;

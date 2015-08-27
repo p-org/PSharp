@@ -20,7 +20,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Microsoft.PSharp.LanguageServices.Parsing;
-using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp.LanguageServices.Tests.Unit
 {
@@ -39,8 +38,7 @@ state S2 { }
 }";
 
             var tokens = new PSharpLexer().Tokenize(test);
-            var parserConfig = new LanguageServicesConfiguration();
-            var program = new PSharpParser(new PSharpProject(parserConfig),
+            var program = new PSharpParser(new PSharpProject(),
                 SyntaxFactory.ParseSyntaxTree(test), false).ParseTokens(tokens);
             program.Rewrite();
 
@@ -79,8 +77,7 @@ entry{}
 }";
 
             var tokens = new PSharpLexer().Tokenize(test);
-            var parserConfig = new LanguageServicesConfiguration();
-            var program = new PSharpParser(new PSharpProject(parserConfig),
+            var program = new PSharpParser(new PSharpProject(),
                 SyntaxFactory.ParseSyntaxTree(test), false).ParseTokens(tokens);
             program.Rewrite();
 
@@ -116,8 +113,7 @@ exit{}
 }";
 
             var tokens = new PSharpLexer().Tokenize(test);
-            var parserConfig = new LanguageServicesConfiguration();
-            var program = new PSharpParser(new PSharpProject(parserConfig),
+            var program = new PSharpParser(new PSharpProject(),
                 SyntaxFactory.ParseSyntaxTree(test), false).ParseTokens(tokens);
             program.Rewrite();
 
@@ -154,8 +150,7 @@ exit {}
 }";
 
             var tokens = new PSharpLexer().Tokenize(test);
-            var parserConfig = new LanguageServicesConfiguration();
-            var program = new PSharpParser(new PSharpProject(parserConfig),
+            var program = new PSharpParser(new PSharpProject(),
                 SyntaxFactory.ParseSyntaxTree(test), false).ParseTokens(tokens);
             program.Rewrite();
 
@@ -197,8 +192,7 @@ on e goto S2;
 }";
 
             var tokens = new PSharpLexer().Tokenize(test);
-            var parserConfig = new LanguageServicesConfiguration();
-            var program = new PSharpParser(new PSharpProject(parserConfig),
+            var program = new PSharpParser(new PSharpProject(),
                 SyntaxFactory.ParseSyntaxTree(test), false).ParseTokens(tokens);
             program.Rewrite();
 
@@ -236,8 +230,7 @@ on e2 goto S3;
 }";
 
             var tokens = new PSharpLexer().Tokenize(test);
-            var parserConfig = new LanguageServicesConfiguration();
-            var program = new PSharpParser(new PSharpProject(parserConfig),
+            var program = new PSharpParser(new PSharpProject(),
                 SyntaxFactory.ParseSyntaxTree(test), false).ParseTokens(tokens);
             program.Rewrite();
 
@@ -275,8 +268,7 @@ on e goto S2 with {};
 }";
 
             var tokens = new PSharpLexer().Tokenize(test);
-            var parserConfig = new LanguageServicesConfiguration();
-            var program = new PSharpParser(new PSharpProject(parserConfig),
+            var program = new PSharpParser(new PSharpProject(),
                 SyntaxFactory.ParseSyntaxTree(test), false).ParseTokens(tokens);
             program.Rewrite();
 
@@ -316,8 +308,7 @@ on e do Bar;
 }";
 
             var tokens = new PSharpLexer().Tokenize(test);
-            var parserConfig = new LanguageServicesConfiguration();
-            var program = new PSharpParser(new PSharpProject(parserConfig),
+            var program = new PSharpParser(new PSharpProject(),
                 SyntaxFactory.ParseSyntaxTree(test), false).ParseTokens(tokens);
             program.Rewrite();
 
@@ -355,8 +346,7 @@ on e2 do Baz;
 }";
 
             var tokens = new PSharpLexer().Tokenize(test);
-            var parserConfig = new LanguageServicesConfiguration();
-            var program = new PSharpParser(new PSharpProject(parserConfig),
+            var program = new PSharpParser(new PSharpProject(),
                 SyntaxFactory.ParseSyntaxTree(test), false).ParseTokens(tokens);
             program.Rewrite();
 
@@ -394,8 +384,7 @@ on e do {};
 }";
 
             var tokens = new PSharpLexer().Tokenize(test);
-            var parserConfig = new LanguageServicesConfiguration();
-            var program = new PSharpParser(new PSharpProject(parserConfig),
+            var program = new PSharpParser(new PSharpProject(),
                 SyntaxFactory.ParseSyntaxTree(test), false).ParseTokens(tokens);
             program.Rewrite();
 
@@ -436,8 +425,7 @@ on e2 do Bar;
 }";
 
             var tokens = new PSharpLexer().Tokenize(test);
-            var parserConfig = new LanguageServicesConfiguration();
-            var program = new PSharpParser(new PSharpProject(parserConfig),
+            var program = new PSharpParser(new PSharpProject(),
                 SyntaxFactory.ParseSyntaxTree(test), false).ParseTokens(tokens);
             program.Rewrite();
 
@@ -475,8 +463,7 @@ ignore e;
 }";
 
             var tokens = new PSharpLexer().Tokenize(test);
-            var parserConfig = new LanguageServicesConfiguration();
-            var program = new PSharpParser(new PSharpProject(parserConfig),
+            var program = new PSharpParser(new PSharpProject(),
                 SyntaxFactory.ParseSyntaxTree(test), false).ParseTokens(tokens);
             program.Rewrite();
 
@@ -513,8 +500,7 @@ ignore e1, e2;
 }";
 
             var tokens = new PSharpLexer().Tokenize(test);
-            var parserConfig = new LanguageServicesConfiguration();
-            var program = new PSharpParser(new PSharpProject(parserConfig),
+            var program = new PSharpParser(new PSharpProject(),
                 SyntaxFactory.ParseSyntaxTree(test), false).ParseTokens(tokens);
             program.Rewrite();
 
@@ -550,8 +536,7 @@ defer e;
 }";
 
             var tokens = new PSharpLexer().Tokenize(test);
-            var parserConfig = new LanguageServicesConfiguration();
-            var program = new PSharpParser(new PSharpProject(parserConfig),
+            var program = new PSharpParser(new PSharpProject(),
                 SyntaxFactory.ParseSyntaxTree(test), false).ParseTokens(tokens);
             program.Rewrite();
 
@@ -588,8 +573,7 @@ defer e1,e2;
 }";
 
             var tokens = new PSharpLexer().Tokenize(test);
-            var parserConfig = new LanguageServicesConfiguration();
-            var program = new PSharpParser(new PSharpProject(parserConfig),
+            var program = new PSharpParser(new PSharpProject(),
                 SyntaxFactory.ParseSyntaxTree(test), false).ParseTokens(tokens);
             program.Rewrite();
 

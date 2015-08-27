@@ -65,7 +65,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 Profiler.StartMeasuringExecutionTime();
             }
 
-            foreach (var machine in AnalysisContext.Machines)
+            foreach (var machine in this.AnalysisContext.Machines)
             {
                 this.AnalyseMethodsInMachine(machine);
             }
@@ -85,7 +85,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         public void PrintGivesUpResults()
         {
             Output.PrintLine("\n > Printing gives up ownership information:\n");
-            foreach (var summary in AnalysisContext.Summaries)
+            foreach (var summary in this.AnalysisContext.Summaries)
             {
                 if (summary.Value.GivesUpSet.Count == 0)
                 {
@@ -140,14 +140,14 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 foreach (var method in nestedClass.ChildNodes().OfType<MethodDeclarationSyntax>())
                 {
-                    if (!Utilities.ShouldAnalyseMethod(method) ||
-                        AnalysisContext.Summaries.ContainsKey(method))
+                    if (!this.AnalysisContext.ShouldAnalyseMethod(method) ||
+                        this.AnalysisContext.Summaries.ContainsKey(method))
                     {
                         continue;
                     }
 
                     this.ComputeSummaryForMethod(method, machine, nestedClass);
-                    if (!AnalysisContext.Summaries.ContainsKey(method))
+                    if (!this.AnalysisContext.Summaries.ContainsKey(method))
                     {
                         fixPoint++;
                     }
@@ -156,14 +156,14 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             foreach (var method in machine.ChildNodes().OfType<MethodDeclarationSyntax>())
             {
-                if (!Utilities.ShouldAnalyseMethod(method) ||
-                    AnalysisContext.Summaries.ContainsKey(method))
+                if (!this.AnalysisContext.ShouldAnalyseMethod(method) ||
+                    this.AnalysisContext.Summaries.ContainsKey(method))
                 {
                     continue;
                 }
 
                 this.ComputeSummaryForMethod(method, machine, null);
-                if (!AnalysisContext.Summaries.ContainsKey(method))
+                if (!this.AnalysisContext.Summaries.ContainsKey(method))
                 {
                     fixPoint++;
                 }
@@ -187,7 +187,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             List<InvocationExpressionSyntax> givesUpSources = new List<InvocationExpressionSyntax>();
             foreach (var call in method.DescendantNodes().OfType<InvocationExpressionSyntax>())
             {
-                var model = AnalysisContext.Compilation.GetSemanticModel(call.SyntaxTree);
+                var model = this.AnalysisContext.Compilation.GetSemanticModel(call.SyntaxTree);
 
                 var callSymbol = model.GetSymbolInfo(call).Symbol;
                 if (callSymbol == null)
@@ -195,23 +195,24 @@ namespace Microsoft.PSharp.StaticAnalysis
                     continue;
                 }
 
-                var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol, ProgramInfo.Solution).Result;
+                var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol,
+                    this.AnalysisContext.Solution).Result;
                 if (definition == null)
                 {
                     continue;
                 }
 
-                var callee = Utilities.GetCallee(call);
+                var callee = this.AnalysisContext.GetCallee(call);
                 var calleeMethod = definition.DeclaringSyntaxReferences.First().GetSyntax()
                     as BaseMethodDeclarationSyntax;
 
-                if (Utilities.IsSourceOfGivingUpOwnership(call, model, callee) ||
-                    AnalysisContext.Summaries.ContainsKey(calleeMethod))
+                if (this.AnalysisContext.IsSourceOfGivingUpOwnership(call, model, callee) ||
+                    this.AnalysisContext.Summaries.ContainsKey(calleeMethod))
                 {
                     givesUpSources.Add(call);
                 }
                 else if (machine.ChildNodes().OfType<BaseMethodDeclarationSyntax>().Contains(calleeMethod) &&
-                    !AnalysisContext.Summaries.ContainsKey(calleeMethod) &&
+                    !this.AnalysisContext.Summaries.ContainsKey(calleeMethod) &&
                     !calleeMethod.Modifiers.Any(SyntaxKind.AbstractKeyword))
                 {
                     return;
@@ -400,7 +401,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 return false;
             }
 
-            var model = AnalysisContext.Compilation.GetSemanticModel(call.SyntaxTree);
+            var model = this.AnalysisContext.Compilation.GetSemanticModel(call.SyntaxTree);
 
             if (call.Expression is MemberAccessExpressionSyntax)
             {
@@ -427,7 +428,8 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             var callSymbol = model.GetSymbolInfo(call).Symbol;
-            var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol, ProgramInfo.Solution).Result;
+            var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol,
+                this.AnalysisContext.Solution).Result;
             var calleeMethod = definition.DeclaringSyntaxReferences.First().GetSyntax()
                 as BaseMethodDeclarationSyntax;
             var calleeSummary = MethodSummary.Factory.Summarize(this.AnalysisContext, calleeMethod);
@@ -482,13 +484,13 @@ namespace Microsoft.PSharp.StaticAnalysis
         private void ComputeGivesUpSetForArgument(ExpressionSyntax arg, ControlFlowGraphNode cfgNode,
             MethodSummary summary)
         {
-            var model = AnalysisContext.Compilation.GetSemanticModel(arg.SyntaxTree);
+            var model = this.AnalysisContext.Compilation.GetSemanticModel(arg.SyntaxTree);
             if (arg is IdentifierNameSyntax || arg is MemberAccessExpressionSyntax)
             {
                 for (int idx = 0; idx < summary.Method.ParameterList.Parameters.Count; idx++)
                 {
-                    if (Utilities.IsTypeAllowedToBeSend(summary.Method.ParameterList.
-                        Parameters[idx].Type, model, this.AnalysisContext))
+                    if (this.AnalysisContext.IsTypeAllowedToBeSend(summary.Method.ParameterList.
+                        Parameters[idx].Type, model))
                     {
                         continue;
                     }

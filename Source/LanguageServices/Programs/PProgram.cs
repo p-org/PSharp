@@ -63,7 +63,8 @@ namespace Microsoft.PSharp.LanguageServices
         public override void Rewrite()
         {
             var text = "";
-            if (base.Project.Configuration.CompilationTarget == CompilationTarget.Testing)
+            if (base.Project.CompilationContext.Configuration.
+                CompilationTarget == CompilationTarget.Testing)
             {
                 foreach (var node in this.EventDeclarations)
                 {

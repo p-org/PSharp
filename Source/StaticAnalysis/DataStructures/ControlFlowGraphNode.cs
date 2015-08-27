@@ -813,7 +813,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <returns>Boolean value</returns>
         private bool IsGivesUpOperation(InvocationExpressionSyntax call)
         {
-            var callee = Utilities.GetCallee(call);
+            var callee = this.AnalysisContext.GetCallee(call);
             var model = this.AnalysisContext.Compilation.GetSemanticModel(call.SyntaxTree);
             var callSymbol = model.GetSymbolInfo(call).Symbol;
             if (callSymbol == null)
@@ -821,13 +821,13 @@ namespace Microsoft.PSharp.StaticAnalysis
                 return false;
             }
 
-            if (Utilities.IsSourceOfGivingUpOwnership(call, model, callee))
+            if (this.AnalysisContext.IsSourceOfGivingUpOwnership(call, model, callee))
             {
                 return true;
             }
 
             var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol,
-                ProgramInfo.Solution).Result;
+                this.AnalysisContext.Solution).Result;
             if (definition == null)
             {
                 return false;

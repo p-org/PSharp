@@ -76,7 +76,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 Profiler.StartMeasuringExecutionTime();
             }
 
-            foreach (var machine in AnalysisContext.Machines)
+            foreach (var machine in this.AnalysisContext.Machines)
             {
                 this.AnalyseMethodsInMachine(machine);
             }
@@ -121,8 +121,8 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 foreach (var method in nestedClass.ChildNodes().OfType<MethodDeclarationSyntax>())
                 {
-                    if (Utilities.ShouldAnalyseMethod(method) &&
-                        Utilities.IsEntryPointMethod(method, machineToAnalyse, this.AnalysisContext))
+                    if (this.AnalysisContext.ShouldAnalyseMethod(method) &&
+                        this.AnalysisContext.IsEntryPointMethod(method, machineToAnalyse))
                     {
                         this.AnalyseMethod(method, machineToAnalyse, nestedClass, machine);
                     }
@@ -131,17 +131,17 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             foreach (var method in machineToAnalyse.ChildNodes().OfType<MethodDeclarationSyntax>())
             {
-                if (Utilities.ShouldAnalyseMethod(method) &&
-                    Utilities.IsEntryPointMethod(method, machineToAnalyse, this.AnalysisContext))
+                if (this.AnalysisContext.ShouldAnalyseMethod(method) &&
+                    this.AnalysisContext.IsEntryPointMethod(method, machineToAnalyse))
                 {
                     this.AnalyseMethod(method, machineToAnalyse, null, machine);
                 }
             }
 
-            if (AnalysisContext.MachineInheritance.ContainsKey(machineToAnalyse))
+            if (this.AnalysisContext.MachineInheritance.ContainsKey(machineToAnalyse))
             {
-                this.AnalyseMethodsInMachine(machine,
-                    AnalysisContext.MachineInheritance[machineToAnalyse]);
+                this.AnalyseMethodsInMachine(machine, this.AnalysisContext.
+                    MachineInheritance[machineToAnalyse]);
             }
         }
 
@@ -323,7 +323,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 return;
             }
 
-            var model = AnalysisContext.Compilation.GetSemanticModel(call.SyntaxTree);
+            var model = this.AnalysisContext.Compilation.GetSemanticModel(call.SyntaxTree);
 
             if (call.Expression is MemberAccessExpressionSyntax)
             {
@@ -350,7 +350,8 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             var callSymbol = model.GetSymbolInfo(call).Symbol;
-            var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol, ProgramInfo.Solution).Result;
+            var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol,
+                this.AnalysisContext.Solution).Result;
             var calleeMethod = definition.DeclaringSyntaxReferences.First().GetSyntax()
                 as BaseMethodDeclarationSyntax;
             var calleeSummary = MethodSummary.Factory.Summarize(this.AnalysisContext, calleeMethod);
@@ -409,7 +410,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             ControlFlowGraphNode givesUpNode, ClassDeclarationSyntax machine, ClassDeclarationSyntax state,
             ClassDeclarationSyntax originalMachine)
         {
-            var model = AnalysisContext.Compilation.GetSemanticModel(arg.SyntaxTree);
+            var model = this.AnalysisContext.Compilation.GetSemanticModel(arg.SyntaxTree);
             
             if (arg is MemberAccessExpressionSyntax || arg is IdentifierNameSyntax)
             {
@@ -511,8 +512,8 @@ namespace Microsoft.PSharp.StaticAnalysis
                                     }
                                     else if (variable.Initializer.Value is MemberAccessExpressionSyntax)
                                     {
-                                        identifier = Utilities.GetFirstNonMachineIdentifier(
-                                            variable.Initializer.Value, model, this.AnalysisContext);
+                                        identifier = this.AnalysisContext.GetFirstNonMachineIdentifier(
+                                            variable.Initializer.Value, model);
                                     }
 
                                     if (identifier != null)
@@ -557,12 +558,12 @@ namespace Microsoft.PSharp.StaticAnalysis
                                     ToString().Equals(target.ToString()))
                                 {
                                     var rightDef = SymbolFinder.FindSourceDefinitionAsync(rightSymbol,
-                                        ProgramInfo.Solution).Result;
+                                        this.AnalysisContext.Solution).Result;
                                     var type = model.GetTypeInfo(variable.Initializer.Value).Type;
                                     if (rightDef != null && rightDef.Kind == SymbolKind.Field &&
-                                        Utilities.DoesFieldBelongToMachine(rightDef, cfgNode.Summary) &&
-                                        !Utilities.IsTypeAllowedToBeSend(type) &&
-                                        !Utilities.IsExprEnum(variable.Initializer.Value, model) &&
+                                        this.AnalysisContext.DoesFieldBelongToMachine(rightDef, cfgNode.Summary) &&
+                                        !this.AnalysisContext.IsTypeAllowedToBeSend(type) &&
+                                        !this.AnalysisContext.IsExprEnum(variable.Initializer.Value, model) &&
                                         !DataFlowAnalysis.DoesResetInSuccessors(rightSymbol,
                                         target, syntaxNode, cfgNode) &&
                                         FieldUsageAnalysis.IsAccessedBeforeBeingReset(rightDef,
@@ -596,8 +597,8 @@ namespace Microsoft.PSharp.StaticAnalysis
                             }
                             else if (binaryExpr.Left is MemberAccessExpressionSyntax)
                             {
-                                var leftIdentifier = Utilities.GetFirstNonMachineIdentifier(
-                                    binaryExpr.Left, model, this.AnalysisContext);
+                                var leftIdentifier = this.AnalysisContext.GetFirstNonMachineIdentifier(
+                                    binaryExpr.Left, model);
                                 if (leftIdentifier != null)
                                 {
                                     leftSymbol = model.GetSymbolInfo(leftIdentifier).Symbol;
@@ -619,8 +620,8 @@ namespace Microsoft.PSharp.StaticAnalysis
                                     }
                                     else if (binaryExpr.Right is MemberAccessExpressionSyntax)
                                     {
-                                        rightIdentifier = Utilities.GetFirstNonMachineIdentifier(
-                                            binaryExpr.Right, model, this.AnalysisContext);
+                                        rightIdentifier = this.AnalysisContext.GetFirstNonMachineIdentifier(
+                                            binaryExpr.Right, model);
                                     }
 
                                     if (rightIdentifier != null)
@@ -678,12 +679,12 @@ namespace Microsoft.PSharp.StaticAnalysis
                                 }
 
                                 var rightDef = SymbolFinder.FindSourceDefinitionAsync(rightSymbol,
-                                    ProgramInfo.Solution).Result;
+                                    this.AnalysisContext.Solution).Result;
                                 var rightType = model.GetTypeInfo(binaryExpr.Right).Type;
                                 if (rightDef != null && rightDef.Kind == SymbolKind.Field &&
-                                    Utilities.DoesFieldBelongToMachine(rightDef, cfgNode.Summary) &&
-                                    !Utilities.IsTypeAllowedToBeSend(rightType) &&
-                                    !Utilities.IsExprEnum(binaryExpr.Right, model) &&
+                                    this.AnalysisContext.DoesFieldBelongToMachine(rightDef, cfgNode.Summary) &&
+                                    !this.AnalysisContext.IsTypeAllowedToBeSend(rightType) &&
+                                    !this.AnalysisContext.IsExprEnum(binaryExpr.Right, model) &&
                                     !DataFlowAnalysis.DoesResetInSuccessors(rightSymbol,
                                     target, syntaxNode, cfgNode) &&
                                     FieldUsageAnalysis.IsAccessedBeforeBeingReset(rightDef,
@@ -702,11 +703,11 @@ namespace Microsoft.PSharp.StaticAnalysis
                                         cfgNode, givesUpNode.SyntaxNodes.First(), givesUpNode))
                                     {
                                         var leftDef = SymbolFinder.FindSourceDefinitionAsync(leftSymbol,
-                                            ProgramInfo.Solution).Result;
+                                            this.AnalysisContext.Solution).Result;
                                         var leftType = model.GetTypeInfo(binaryExpr.Left).Type;
                                         if (leftDef != null && leftDef.Kind == SymbolKind.Field &&
-                                            !Utilities.IsTypeAllowedToBeSend(leftType) &&
-                                            !Utilities.IsExprEnum(binaryExpr.Left, model) &&
+                                            !this.AnalysisContext.IsTypeAllowedToBeSend(leftType) &&
+                                            !this.AnalysisContext.IsExprEnum(binaryExpr.Left, model) &&
                                             !DataFlowAnalysis.DoesResetInSuccessors(leftSymbol,
                                             target, syntaxNode, cfgNode) &&
                                             FieldUsageAnalysis.IsAccessedBeforeBeingReset(leftDef,
@@ -793,7 +794,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol,
-                ProgramInfo.Solution).Result;
+                this.AnalysisContext.Solution).Result;
             if (definition == null || definition.DeclaringSyntaxReferences.IsEmpty)
             {
                 if (call.ArgumentList != null && call.ArgumentList.Arguments.Count > 0)
@@ -817,7 +818,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     if (constructorSummary.SideEffects.Any(
                         v => v.Value.Contains(idx) &&
-                        Utilities.DoesFieldBelongToMachine(v.Key, cfgNode.Summary) &&
+                        this.AnalysisContext.DoesFieldBelongToMachine(v.Key, cfgNode.Summary) &&
                         FieldUsageAnalysis.IsAccessedBeforeBeingReset(v.Key,
                         cfgNode.Summary, this.AnalysisContext)))
                     {
@@ -861,7 +862,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol,
-                ProgramInfo.Solution).Result;
+                this.AnalysisContext.Solution).Result;
             if (definition == null || definition.DeclaringSyntaxReferences.IsEmpty)
             {
                 AnalysisErrorReporter.ReportUnknownInvocation(callLog);
@@ -908,7 +909,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     {
                         if (invocationSummary.SideEffects.Any(
                             v => v.Value.Contains(idx) &&
-                            Utilities.DoesFieldBelongToMachine(v.Key, cfgNode.Summary) &&
+                            this.AnalysisContext.DoesFieldBelongToMachine(v.Key, cfgNode.Summary) &&
                             FieldUsageAnalysis.IsAccessedBeforeBeingReset(v.Key,
                             cfgNode.Summary, this.AnalysisContext)))
                         {
@@ -1020,12 +1021,12 @@ namespace Microsoft.PSharp.StaticAnalysis
                                 }
 
                                 var leftDef = SymbolFinder.FindSourceDefinitionAsync(leftSymbol,
-                                    ProgramInfo.Solution).Result;
+                                    this.AnalysisContext.Solution).Result;
                                 var type = model.GetTypeInfo(binaryExpr.Right).Type;
                                 if (leftDef != null && leftDef.Kind == SymbolKind.Field &&
-                                    Utilities.DoesFieldBelongToMachine(leftDef, cfgNode.Summary) &&
-                                    !Utilities.IsTypeAllowedToBeSend(type) &&
-                                    !Utilities.IsExprEnum(binaryExpr.Right, model))
+                                    this.AnalysisContext.DoesFieldBelongToMachine(leftDef, cfgNode.Summary) &&
+                                    !this.AnalysisContext.IsTypeAllowedToBeSend(type) &&
+                                    !this.AnalysisContext.IsExprEnum(binaryExpr.Right, model))
                                 {
                                     Log newLog = new Log();
                                     newLog.Merge(log);
@@ -1065,7 +1066,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
                             if (binaryExpr.Left is MemberAccessExpressionSyntax)
                             {
-                                if (!Utilities.IsExprNonMachineMemberAccess(binaryExpr.Left, model, this.AnalysisContext) &&
+                                if (!this.AnalysisContext.IsExprNonMachineMemberAccess(binaryExpr.Left, model) &&
                                     DataFlowAnalysis.FlowsFromTarget(binaryExpr.Left, target, syntaxNode, cfgNode,
                                     givesUpNode.SyntaxNodes.First(), givesUpNode, model, this.AnalysisContext))
                                 {
@@ -1126,7 +1127,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             var callSymbol = model.GetSymbolInfo(call).Symbol;
             var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol,
-                ProgramInfo.Solution).Result;
+                this.AnalysisContext.Solution).Result;
             if (definition == null || definition.DeclaringSyntaxReferences.IsEmpty)
             {
                 AnalysisErrorReporter.ReportUnknownInvocation(callLog);
@@ -1140,7 +1141,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             for (int idx = 0; idx < arguments.Count; idx++)
             {
-                if (!Utilities.IsExprEnum(arguments[idx].Expression, model) &&
+                if (!this.AnalysisContext.IsExprEnum(arguments[idx].Expression, model) &&
                     DataFlowAnalysis.FlowsFromTarget(arguments[idx].Expression, target, syntaxNode,
                     cfgNode, givesUpSyntaxNode, givesUpCfgNode, model, this.AnalysisContext) &&
                     !DataFlowAnalysis.DoesResetInLoop(arguments[idx].Expression, syntaxNode, cfgNode,
@@ -1160,7 +1161,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
                     if (constructorSummary.SideEffects.Any(
                         v => v.Value.Contains(idx) &&
-                        Utilities.DoesFieldBelongToMachine(v.Key, cfgNode.Summary)))
+                        this.AnalysisContext.DoesFieldBelongToMachine(v.Key, cfgNode.Summary)))
                     {
                         AnalysisErrorReporter.ReportGivenUpOwnershipFieldAssignment(callLog);
                     }
@@ -1222,7 +1223,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
             
             var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol,
-                ProgramInfo.Solution).Result;
+                this.AnalysisContext.Solution).Result;
             if (definition == null || definition.DeclaringSyntaxReferences.IsEmpty)
             {
                 if (call.Expression is MemberAccessExpressionSyntax)
@@ -1283,7 +1284,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
                 for (int idx = 0; idx < arguments.Count; idx++)
                 {
-                    if (!Utilities.IsExprEnum(arguments[idx].Expression, model) &&
+                    if (!this.AnalysisContext.IsExprEnum(arguments[idx].Expression, model) &&
                         DataFlowAnalysis.FlowsFromTarget(arguments[idx].Expression, target, syntaxNode,
                         cfgNode, givesUpSyntaxNode, givesUpCfgNode, model, this.AnalysisContext) &&
                         !DataFlowAnalysis.DoesResetInLoop(arguments[idx].Expression, syntaxNode, cfgNode,
@@ -1303,7 +1304,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
                         if (invocationSummary.SideEffects.Any(
                             v => v.Value.Contains(idx) &&
-                            Utilities.DoesFieldBelongToMachine(v.Key, cfgNode.Summary)))
+                            this.AnalysisContext.DoesFieldBelongToMachine(v.Key, cfgNode.Summary)))
                         {
                             AnalysisErrorReporter.ReportGivenUpOwnershipFieldAssignment(callLog);
                         }
@@ -1432,7 +1433,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             foreach (var arg in extractedArgs)
             {
-                if (!Utilities.IsExprEnum(arg, model) &&
+                if (!this.AnalysisContext.IsExprEnum(arg, model) &&
                     DataFlowAnalysis.FlowsFromTarget(arg, target, syntaxNode, cfgNode,
                     givesUpSyntaxNode, givesUpCfgNode, model, this.AnalysisContext) &&
                     !DataFlowAnalysis.DoesResetInLoop(arg, syntaxNode, cfgNode,
@@ -1489,13 +1490,13 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 var str = (arg as MemberAccessExpressionSyntax).Name.ToString();
                 int idx = Int32.Parse(str.Substring(4));
-                return Utilities.IsTypeAllowedToBeSend(
+                return this.AnalysisContext.IsTypeAllowedToBeSend(
                     symbol.ContainingType.TypeArguments[idx - 1]);
             }
             else
             {
                 var definition = SymbolFinder.FindSourceDefinitionAsync(symbol,
-                    ProgramInfo.Solution).Result;
+                    this.AnalysisContext.Solution).Result;
                 if (definition == null)
                 {
                     return false;
@@ -1507,15 +1508,15 @@ namespace Microsoft.PSharp.StaticAnalysis
                         GetSyntax().Parent as ParameterListSyntax;
                     var parameter = parameterList.Parameters.First(v =>
                         v.Identifier.ValueText.Equals(arg.ToString()));
-                    return Utilities.IsTypeAllowedToBeSend(parameter.Type, model, this.AnalysisContext);
+                    return this.AnalysisContext.IsTypeAllowedToBeSend(parameter.Type, model);
                 }
                 else if (definition.DeclaringSyntaxReferences.First().GetSyntax().Parent is VariableDeclarationSyntax)
                 {
                     var varDecl = definition.DeclaringSyntaxReferences.First().GetSyntax().Parent
                         as VariableDeclarationSyntax;
                     if (shouldReportError && definition != null && definition.Kind == SymbolKind.Field &&
-                        !Utilities.IsTypeAllowedToBeSend(varDecl.Type, model, this.AnalysisContext) &&
-                        !Utilities.IsExprEnum(arg, model) &&
+                        !this.AnalysisContext.IsTypeAllowedToBeSend(varDecl.Type, model) &&
+                        !this.AnalysisContext.IsExprEnum(arg, model) &&
                         !DataFlowAnalysis.DoesResetInSuccessors(symbol, symbol,
                         givesUpNode.SyntaxNodes.First(), givesUpNode) &&
                         FieldUsageAnalysis.IsAccessedBeforeBeingReset(definition,
@@ -1524,7 +1525,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                         AnalysisErrorReporter.ReportGivenUpFieldOwnershipError(log);
                     }
                     
-                    return Utilities.IsTypeAllowedToBeSend(varDecl.Type, model, this.AnalysisContext);
+                    return this.AnalysisContext.IsTypeAllowedToBeSend(varDecl.Type, model);
                 }
             }
 
@@ -1573,7 +1574,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 }
 
                 var leftDef = SymbolFinder.FindSourceDefinitionAsync(leftSymbol,
-                    ProgramInfo.Solution).Result;
+                    this.AnalysisContext.Solution).Result;
                 if (leftDef != null && leftDef.Kind == SymbolKind.Field)
                 {
                     Log newLog = new Log();

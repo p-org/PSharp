@@ -17,6 +17,7 @@ using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 
+using Microsoft.PSharp.LanguageServices.Compilation;
 using Microsoft.PSharp.StaticAnalysis;
 using Microsoft.PSharp.Tooling;
 
@@ -30,9 +31,9 @@ namespace Microsoft.PSharp
         #region fields
 
         /// <summary>
-        /// Configuration.
+        /// The compilation context.
         /// </summary>
-        private LanguageServicesConfiguration Configuration;
+        private CompilationContext CompilationContext;
 
         #endregion
 
@@ -41,11 +42,11 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Creates a P# static analysis process.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
+        /// <param name="context">CompilationContext</param>
         /// <returns>StaticAnalysisProcess</returns>
-        public static StaticAnalysisProcess Create(LanguageServicesConfiguration configuration)
+        public static StaticAnalysisProcess Create(CompilationContext context)
         {
-            return new StaticAnalysisProcess(configuration);
+            return new StaticAnalysisProcess(context);
         }
 
         /// <summary>
@@ -53,12 +54,12 @@ namespace Microsoft.PSharp
         /// </summary>
         public void Start()
         {
-            if (!this.Configuration.RunStaticAnalysis)
+            if (!this.CompilationContext.Configuration.RunStaticAnalysis)
             {
                 return;
             }
 
-            foreach (var project in ProgramInfo.Solution.Projects)
+            foreach (var project in this.CompilationContext.Solution.Projects)
             {
                 Output.PrintLine(". Analyzing " + project.Name);
                 this.AnalyzeProject(project);
@@ -75,10 +76,10 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
-        private StaticAnalysisProcess(LanguageServicesConfiguration configuration)
+        /// <param name="context">CompilationContext</param>
+        private StaticAnalysisProcess(CompilationContext context)
         {
-            this.Configuration = configuration;
+            this.CompilationContext = context;
         }
 
         /// <summary>
@@ -88,13 +89,13 @@ namespace Microsoft.PSharp
         private void AnalyzeProject(Project project)
         {
             // Starts profiling the analysis.
-            if (this.Configuration.ShowRuntimeResults)
+            if (this.CompilationContext.Configuration.ShowRuntimeResults)
             {
                 Profiler.StartMeasuringExecutionTime();
             }
 
             // Create a P# static analysis context.
-            var context = AnalysisContext.Create(this.Configuration, project);
+            var context = AnalysisContext.Create(this.CompilationContext.Configuration, project);
 
             // Creates and runs an analysis that performs an initial sanity
             // checking to see if machine code behaves as it should.
@@ -108,14 +109,14 @@ namespace Microsoft.PSharp
             // for every method in each machine.
             var methodSummaryAnalysis = MethodSummaryAnalysis.Create(context);
             methodSummaryAnalysis.Run();
-            if (this.Configuration.ShowGivesUpInformation)
+            if (this.CompilationContext.Configuration.ShowGivesUpInformation)
             {
                 methodSummaryAnalysis.PrintGivesUpResults();
             }
 
             // Creates and runs an analysis that constructs the
             // state transition graph for each machine.
-            if (this.Configuration.DoStateTransitionAnalysis)
+            if (this.CompilationContext.Configuration.DoStateTransitionAnalysis)
             {
                 StateTransitionAnalysis.Create(context).Run();
             }
@@ -125,14 +126,14 @@ namespace Microsoft.PSharp
             RespectsOwnershipAnalysis.Create(context).Run();
 
             // Stops profiling the analysis.
-            if (this.Configuration.ShowRuntimeResults)
+            if (this.CompilationContext.Configuration.ShowRuntimeResults)
             {
                 Profiler.StopMeasuringExecutionTime();
             }
 
-            if (this.Configuration.ShowRuntimeResults ||
-                this.Configuration.ShowDFARuntimeResults ||
-                this.Configuration.ShowROARuntimeResults)
+            if (this.CompilationContext.Configuration.ShowRuntimeResults ||
+                this.CompilationContext.Configuration.ShowDFARuntimeResults ||
+                this.CompilationContext.Configuration.ShowROARuntimeResults)
             {
                 Profiler.PrintResults();
             }

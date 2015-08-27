@@ -140,16 +140,9 @@ namespace Microsoft.PSharp.Tooling
         protected override void CheckForParsingErrors()
         {
             var configuration = base.Configuration as DynamicAnalysisConfiguration;
-            if (configuration.AssemblyToBeAnalyzed.Equals("") &&
-                configuration.SolutionFilePath.Equals(""))
+            if (configuration.AssemblyToBeAnalyzed.Equals(""))
             {
                 ErrorReporter.ReportAndExit("Please give a valid path to a P# program's dll.");
-            }
-            else if (configuration.AssemblyToBeAnalyzed.Equals("") &&
-                !configuration.SolutionFilePath.Equals("") &&
-                configuration.ProjectName.Equals(""))
-            {
-                ErrorReporter.ReportAndExit("Please give a valid project name.");
             }
 
             if (configuration.SchedulingStrategy != SchedulingStrategy.Random &&

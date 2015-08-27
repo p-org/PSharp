@@ -175,7 +175,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 return null;
             }
 
-            var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol, ProgramInfo.Solution).Result;
+            var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol, context.Solution).Result;
             if (definition == null)
             {
                 return null;
@@ -214,7 +214,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 return null;
             }
 
-            var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol, ProgramInfo.Solution).Result;
+            var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol, context.Solution).Result;
             if (definition == null || definition.DeclaringSyntaxReferences.IsEmpty)
             {
                 return null;
@@ -247,8 +247,8 @@ namespace Microsoft.PSharp.StaticAnalysis
                     {
                         arg = argExpr as IdentifierNameSyntax;
                         var argType = model.GetTypeInfo(arg).Type;
-                        if (Utilities.IsTypeAllowedToBeSend(argType) ||
-                            Utilities.IsMachineType(argType, model, this.AnalysisContext))
+                        if (this.AnalysisContext.IsTypeAllowedToBeSend(argType) ||
+                            this.AnalysisContext.IsMachineType(argType, model))
                         {
                             continue;
                         }
@@ -259,13 +259,13 @@ namespace Microsoft.PSharp.StaticAnalysis
                     {
                         var name = (argExpr as MemberAccessExpressionSyntax).Name;
                         var argType = model.GetTypeInfo(name).Type;
-                        if (Utilities.IsTypeAllowedToBeSend(argType) ||
-                            Utilities.IsMachineType(argType, model, this.AnalysisContext))
+                        if (this.AnalysisContext.IsTypeAllowedToBeSend(argType) ||
+                            this.AnalysisContext.IsMachineType(argType, model))
                         {
                             continue;
                         }
 
-                        arg = Utilities.GetFirstNonMachineIdentifier(argExpr, model, this.AnalysisContext);
+                        arg = this.AnalysisContext.GetFirstNonMachineIdentifier(argExpr, model);
                         argSymbols.Add(model.GetSymbolInfo(arg).Symbol);
                     }
                     else if (argExpr is ObjectCreationExpressionSyntax)
@@ -328,8 +328,8 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     arg = argExpr as IdentifierNameSyntax;
                     var argType = model.GetTypeInfo(arg).Type;
-                    if (Utilities.IsTypeAllowedToBeSend(argType) ||
-                        Utilities.IsMachineType(argType, model, this.AnalysisContext))
+                    if (this.AnalysisContext.IsTypeAllowedToBeSend(argType) ||
+                        this.AnalysisContext.IsMachineType(argType, model))
                     {
                         continue;
                     }
@@ -338,13 +338,13 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     var name = (argExpr as MemberAccessExpressionSyntax).Name;
                     var argType = model.GetTypeInfo(name).Type;
-                    if (Utilities.IsTypeAllowedToBeSend(argType) ||
-                        Utilities.IsMachineType(argType, model, this.AnalysisContext))
+                    if (this.AnalysisContext.IsTypeAllowedToBeSend(argType) ||
+                        this.AnalysisContext.IsMachineType(argType, model))
                     {
                         continue;
                     }
 
-                    arg = Utilities.GetFirstNonMachineIdentifier(argExpr, model, this.AnalysisContext);
+                    arg = this.AnalysisContext.GetFirstNonMachineIdentifier(argExpr, model);
                 }
 
                 returnSymbols.Add(model.GetSymbolInfo(arg).Symbol);
@@ -481,11 +481,11 @@ namespace Microsoft.PSharp.StaticAnalysis
                     foreach (var pair in exitMap)
                     {
                         var keyDefinition = SymbolFinder.FindSourceDefinitionAsync(pair.Key,
-                            ProgramInfo.Solution).Result;
+                            this.AnalysisContext.Solution).Result;
                         foreach (var value in pair.Value)
                         {
                             var valueDefinition = SymbolFinder.FindSourceDefinitionAsync(value,
-                                ProgramInfo.Solution).Result;
+                                this.AnalysisContext.Solution).Result;
                             if (keyDefinition == null || valueDefinition == null)
                             {
                                 continue;

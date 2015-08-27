@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Microsoft.PSharp.LanguageServices.Parsing;
-using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp.LanguageServices.Tests.Unit
 {
@@ -33,8 +32,7 @@ namespace Foo {
 protected event e;
 }";
 
-            var parserConfig = new LanguageServicesConfiguration();
-            var parser = new PSharpParser(new PSharpProject(parserConfig),
+            var parser = new PSharpParser(new PSharpProject(),
                 SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
@@ -52,8 +50,7 @@ namespace Foo {
 private event e;
 }";
 
-            var parserConfig = new LanguageServicesConfiguration();
-            var parser = new PSharpParser(new PSharpProject(parserConfig),
+            var parser = new PSharpParser(new PSharpProject(),
                 SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
@@ -68,8 +65,7 @@ private event e;
         {
             var test = "event e;";
 
-            var parserConfig = new LanguageServicesConfiguration();
-            var parser = new PSharpParser(new PSharpProject(parserConfig),
+            var parser = new PSharpParser(new PSharpProject(),
                 SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);

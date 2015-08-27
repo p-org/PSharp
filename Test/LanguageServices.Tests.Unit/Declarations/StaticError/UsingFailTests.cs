@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Microsoft.PSharp.LanguageServices.Parsing;
-using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp.LanguageServices.Tests.Unit
 {
@@ -30,8 +29,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
         {
             var test = "using System.Text";
 
-            var parserConfig = new LanguageServicesConfiguration();
-            var parser = new PSharpParser(new PSharpProject(parserConfig),
+            var parser = new PSharpParser(new PSharpProject(),
                 SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
@@ -46,8 +44,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
         {
             var test = "using;";
 
-            var parserConfig = new LanguageServicesConfiguration();
-            var parser = new PSharpParser(new PSharpProject(parserConfig),
+            var parser = new PSharpParser(new PSharpProject(),
                 SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);

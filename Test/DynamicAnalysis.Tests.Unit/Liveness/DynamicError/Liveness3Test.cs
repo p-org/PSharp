@@ -14,10 +14,6 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -126,9 +122,8 @@ namespace SystematicTesting
         }
     }
 }";
-            
-            var parserConfig = new LanguageServicesConfiguration();
-            var parser = new CSharpParser(new PSharpProject(parserConfig),
+
+            var parser = new CSharpParser(new PSharpProject(),
                 SyntaxFactory.ParseSyntaxTree(test), true);
             var program = parser.Parse();
             program.Rewrite();

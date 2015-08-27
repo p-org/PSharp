@@ -33,17 +33,17 @@ namespace Microsoft.PSharp
             var configuration = new CompilerCommandLineOptions(args).
                 Parse() as LanguageServicesConfiguration;
 
-            // Initializes the program info.
-            ProgramInfo.Initialize(configuration);
+            // Creates the compilation context and loads the solution.
+            var context = CompilationContext.Create(configuration).LoadSolution();
 
             // Creates and starts a parsing process.
-            ParsingProcess.Create(configuration).Start();
+            ParsingProcess.Create(context).Start();
 
             // Creates and starts a compilation process.
-            CompilationProcess.Create(configuration).Start();
+            CompilationProcess.Create(context).Start();
 
             // Creates and starts a static analysis process.
-            StaticAnalysisProcess.Create(configuration).Start();
+            StaticAnalysisProcess.Create(context).Start();
 
             Output.PrintLine(". Done");
         }

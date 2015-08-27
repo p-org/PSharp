@@ -84,7 +84,6 @@
     <Compile Include="Options\BaseCommandLineOptions.cs" />
     <Compile Include="Options\Configuration.cs" />
     <Compile Include="Profiler.cs" />
-    <Compile Include="ProgramInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

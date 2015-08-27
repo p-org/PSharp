@@ -68,7 +68,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         public void Run()
         {
-            foreach (var machine in AnalysisContext.Machines)
+            foreach (var machine in this.AnalysisContext.Machines)
             {
                 this.ConstructGraphForMachine(machine);
             }
@@ -271,7 +271,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     as IdentifierNameSyntax;
                 var stateSymbol = model.GetTypeInfo(stateType).Type;
                 var stateDefinition = SymbolFinder.FindSourceDefinitionAsync(stateSymbol,
-                    ProgramInfo.Solution).Result;
+                    this.AnalysisContext.Solution).Result;
                 if (stateDefinition == null)
                 {
                     return false;
@@ -316,7 +316,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     as TypeOfExpressionSyntax).Type as IdentifierNameSyntax;
                 var stateSymbol = model.GetTypeInfo(stateType).Type;
                 var stateDefinition = SymbolFinder.FindSourceDefinitionAsync(stateSymbol,
-                    ProgramInfo.Solution).Result;
+                    this.AnalysisContext.Solution).Result;
                 if (stateDefinition == null)
                 {
                     continue;
@@ -362,7 +362,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     Expression as IdentifierNameSyntax;
                 var actionSymbol = model.GetSymbolInfo(actionType).Symbol;
                 var actionDefinition = SymbolFinder.FindSourceDefinitionAsync(actionSymbol,
-                    ProgramInfo.Solution).Result;
+                    this.AnalysisContext.Solution).Result;
                 if (actionDefinition == null)
                 {
                     continue;
@@ -386,7 +386,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             MethodDeclarationSyntax method)
         {
             var invocations = new List<InvocationExpressionSyntax>();
-            var locations = SymbolFinder.FindReferencesAsync(symbol, ProgramInfo.Solution).
+            var locations = SymbolFinder.FindReferencesAsync(symbol, this.AnalysisContext.Solution).
                 Result.First().Locations;
             foreach (var loc in locations)
             {

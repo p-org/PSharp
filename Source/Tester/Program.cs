@@ -32,12 +32,6 @@ namespace Microsoft.PSharp
             var configuration = new TesterCommandLineOptions(args).
                 Parse() as DynamicAnalysisConfiguration;
 
-            // Initializes program info, if a solution and project were specified.
-            if (!configuration.ProjectName.Equals(""))
-            {
-                ProgramInfo.Initialize(configuration);
-            }
-
             // Creates and starts a systematic testing process.
             SystematicTestingProcess.Create(configuration).Start();
 

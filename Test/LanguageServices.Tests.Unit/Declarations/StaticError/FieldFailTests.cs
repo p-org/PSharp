@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Microsoft.PSharp.LanguageServices.Parsing;
-using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp.LanguageServices.Tests.Unit
 {
@@ -36,8 +35,7 @@ start state S { }
 }
 }";
 
-            var parserConfig = new LanguageServicesConfiguration();
-            var parser = new PSharpParser(new PSharpProject(parserConfig),
+            var parser = new PSharpParser(new PSharpProject(),
                 SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
@@ -58,8 +56,7 @@ start state S { }
 }
 }";
 
-            var parserConfig = new LanguageServicesConfiguration();
-            var parser = new PSharpParser(new PSharpProject(parserConfig),
+            var parser = new PSharpParser(new PSharpProject(),
                 SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
@@ -80,8 +77,7 @@ start state S { }
 }
 }";
 
-            var parserConfig = new LanguageServicesConfiguration();
-            var parser = new PSharpParser(new PSharpProject(parserConfig),
+            var parser = new PSharpParser(new PSharpProject(),
                 SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
@@ -102,8 +98,7 @@ start state S { }
 }
 }";
 
-            var parserConfig = new LanguageServicesConfiguration();
-            var parser = new PSharpParser(new PSharpProject(parserConfig),
+            var parser = new PSharpParser(new PSharpProject(),
                 SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
@@ -124,8 +119,7 @@ start state S { }
 }
 }";
 
-            var parserConfig = new LanguageServicesConfiguration();
-            var parser = new PSharpParser(new PSharpProject(parserConfig),
+            var parser = new PSharpParser(new PSharpProject(),
                 SyntaxFactory.ParseSyntaxTree(test), false);
 
             var tokens = new PSharpLexer().Tokenize(test);
