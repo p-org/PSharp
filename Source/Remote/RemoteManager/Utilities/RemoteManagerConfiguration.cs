@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="Compiler.cs">
+// <copyright file="RemoteManagerConfiguration.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,31 +12,41 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using Microsoft.PSharp.LanguageServices.Compilation;
+using System.Collections.Generic;
+
 using Microsoft.PSharp.Tooling;
 
-namespace Microsoft.PSharp
+namespace Microsoft.PSharp.Remote
 {
-    /// <summary>
-    /// Compiler for the P# language.
-    /// </summary>
-    internal static class Compiler
+    public sealed class RemoteManagerConfiguration : Configuration
     {
+        #region options
+
         /// <summary>
-        /// Starts the P# compiler.
+        /// Number of containers.
         /// </summary>
-        public static void Run()
+        public int NumberOfContainers;
+
+        /// <summary>
+        /// The path to the P# application to run in a
+        /// distributed setting.
+        /// </summary>
+        public string ApplicationFilePath;
+
+        #endregion
+
+        #region constructor
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        internal RemoteManagerConfiguration()
+            : base()
         {
-            if (Configuration.NoCompilation)
-            {
-                return;
-            }
-
-            Output.PrintLine(". Compiling");
-
-            // Runs the P# compilation engine.
-            CompilationEngine.Run();
+            this.NumberOfContainers = 1;
+            this.ApplicationFilePath = "";
         }
+
+        #endregion
     }
 }

@@ -12,12 +12,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
+using Microsoft.PSharp.LanguageServices.Compilation;
 using Microsoft.PSharp.LanguageServices.Parsing;
-using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp.LanguageServices.Syntax
 {
@@ -114,7 +110,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
         #endregion
 
-        #region private API
+        #region private methods
 
         /// <summary>
         /// Returns the rewritten event declaration.
@@ -124,7 +120,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         {
             var text = "";
 
-            if (Configuration.CompileForDistribution)
+            if ((this.Program as AbstractPSharpProgram).Project.CompilationContext.
+                ActiveCompilationTarget == CompilationTarget.Distribution)
             {
                 text += "[System.Runtime.Serialization.DataContract]\n";
             }

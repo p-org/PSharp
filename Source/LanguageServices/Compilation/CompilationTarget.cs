@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="Parser.cs">
+// <copyright file="CompilationTarget.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,31 +12,24 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using Microsoft.PSharp.LanguageServices.Parsing;
-using Microsoft.PSharp.Tooling;
-
-namespace Microsoft.PSharp
+namespace Microsoft.PSharp.LanguageServices.Compilation
 {
     /// <summary>
-    /// Parser for the P# language.
+    /// P# compilation target.
     /// </summary>
-    internal static class Parser
+    public enum CompilationTarget
     {
         /// <summary>
-        /// Starts the P# parser.
+        /// Enables execution compilation target.
         /// </summary>
-        public static void Run()
-        {
-            if (Configuration.NoParsing)
-            {
-                return;
-            }
-
-            Output.PrintLine(". Parsing");
-
-            // Runs the P# parsing engine.
-            ParsingEngine.Run();
-        }
+        Execution = 0,
+        /// <summary>
+        /// Enables testing compilation target.
+        /// </summary>
+        Testing = 1,
+        /// <summary>
+        /// Enables distribution compilation target.
+        /// </summary>
+        Distribution = 2
     }
 }

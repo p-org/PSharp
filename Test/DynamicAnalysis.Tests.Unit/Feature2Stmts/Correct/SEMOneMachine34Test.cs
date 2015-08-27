@@ -14,10 +14,6 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -124,22 +120,22 @@ namespace SystematicTesting
     }
 }";
 
-            var parser = new CSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), true);
+            var parser = new CSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), true);
             var program = parser.Parse();
             program.Rewrite();
 
-            Configuration.SuppressTrace = true;
-            Configuration.Verbose = 2;
-            Configuration.SchedulingIterations = 100;
-            Configuration.SchedulingStrategy = "dfs";
+            var sctConfig = new DynamicAnalysisConfiguration();
+            sctConfig.SuppressTrace = true;
+            sctConfig.Verbose = 2;
+            sctConfig.SchedulingStrategy = SchedulingStrategy.DFS;
+            sctConfig.SchedulingIterations = 100;
 
             var assembly = base.GetAssembly(program.GetSyntaxTree());
-            AnalysisContext.Create(assembly);
+            var context = AnalysisContext.Create(sctConfig, assembly);
+            var sctEngine = SCTEngine.Create(context).Run();
 
-            SCTEngine.Setup();
-            SCTEngine.Run();
-
-            Assert.AreEqual(0, SCTEngine.NumOfFoundBugs);
+            Assert.AreEqual(0, sctEngine.NumOfFoundBugs);
         }
     }
 }

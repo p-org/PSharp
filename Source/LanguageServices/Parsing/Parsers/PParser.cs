@@ -136,7 +136,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
 
         #endregion
 
-        #region private API
+        #region private methods
 
         /// <summary>
         /// Visits a main machine modifier.

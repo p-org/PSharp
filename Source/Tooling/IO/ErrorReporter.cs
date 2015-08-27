@@ -21,7 +21,24 @@ namespace Microsoft.PSharp.Tooling
     /// </summary>
     public class ErrorReporter
     {
+        #region fields
+
+        /// <summary>
+        /// Report warnings if true.
+        /// </summary>
+        public static bool ShowWarnings;
+
+        #endregion
+
         #region public API
+
+        /// <summary>
+        /// Static constructor.
+        /// </summary>
+        static ErrorReporter()
+        {
+            ErrorReporter.ShowWarnings = false;
+        }
 
         /// <summary>
         /// Reports a generic error to the user.

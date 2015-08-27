@@ -29,6 +29,8 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
     /// </summary>
     public class IterativeDeepeningDFSStrategy : DFSStrategy, ISchedulingStrategy
     {
+        #region fields
+
         /// <summary>
         /// The max depth.
         /// </summary>
@@ -39,14 +41,18 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
         /// </summary>
         private int CurrentDepth;
 
+        #endregion
+
+        #region public API
+
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="depthBound">Depth bound</param>
-        public IterativeDeepeningDFSStrategy(int depthBound)
-            : base()
+        /// <param name="context">AnalysisContext</param>
+        public IterativeDeepeningDFSStrategy(AnalysisContext context)
+            : base(context)
         {
-            this.MaxDepth = depthBound;
+            this.MaxDepth = context.Configuration.DepthBound;
             this.CurrentDepth = 1;
         }
 
@@ -103,5 +109,7 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
         {
             return "DFS with iterative deepening";
         }
+
+        #endregion
     }
 }

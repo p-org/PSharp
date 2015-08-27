@@ -48,7 +48,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// <param name="tree">SyntaxTree</param>
         internal void Parse(SyntaxTree tree)
         {
-            var project = ProgramInfo.GetProjectWithName(base.Project.Name);
+            var project = base.Project.CompilationContext.GetProjectWithName(base.Project.Name);
             var compilation = project.GetCompilationAsync().Result;
 
             var states = tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().
@@ -99,7 +99,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
         #endregion
 
-        #region private API
+        #region private methods
 
         /// <summary>
         /// Checks that no fields are declared inside the state.

@@ -65,7 +65,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 
         #endregion
 
-        #region private API
+        #region private methods
 
         /// <summary>
         /// Rewrites the statement with a pop statement.

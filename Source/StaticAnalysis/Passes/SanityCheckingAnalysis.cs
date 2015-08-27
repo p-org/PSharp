@@ -30,16 +30,35 @@ namespace Microsoft.PSharp.StaticAnalysis
     /// they are not supposed to e.g directly initialise a machine's state or
     /// call methods that they should not.
     /// </summary>
-    public static class SanityCheckingAnalysis
+    public sealed class SanityCheckingAnalysis
     {
+        #region fields
+
+        /// <summary>
+        /// The analysis context.
+        /// </summary>
+        private AnalysisContext AnalysisContext;
+
+        #endregion
+
         #region public API
 
         /// <summary>
-        /// Runs the analysis.
+        /// Creates a new sanity checking analysis pass.
         /// </summary>
-        public static void Run()
+        /// <param name="context">AnalysisContext</param>
+        /// <returns>SanityCheckingAnalysis</returns>
+        public static SanityCheckingAnalysis Create(AnalysisContext context)
         {
-            SanityCheckingAnalysis.CheckMethods();
+            return new SanityCheckingAnalysis(context);
+        }
+
+        /// <summary>
+        /// Runs the sanity checking analysis pass.
+        /// </summary>
+        public void Run()
+        {
+            this.CheckMethods();
         }
 
         #endregion
@@ -47,15 +66,24 @@ namespace Microsoft.PSharp.StaticAnalysis
         #region private methods
 
         /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="context">AnalysisContext</param>
+        private SanityCheckingAnalysis(AnalysisContext context)
+        {
+            this.AnalysisContext = context;
+        }
+
+        /// <summary>
         /// Checks the methods of each machine and report warnings if
         /// any method is directly accessed by anything else than the
         /// P# runtime.
         /// </summary>
-        private static void CheckMethods()
+        private void CheckMethods()
         {
             foreach (var classDecl in AnalysisContext.Machines)
             {
-                SanityCheckingAnalysis.CheckForExternalAsynchronyUseInMachine(classDecl);
+                this.CheckForExternalAsynchronyUseInMachine(classDecl);
 
                 foreach (var nestedClass in classDecl.ChildNodes().OfType<ClassDeclarationSyntax>())
                 {
@@ -76,7 +104,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
                         foreach (var stmt in method.Body.Statements)
                         {
-                            SanityCheckingAnalysis.CheckStatement(stmt, method, classDecl, nestedClass);
+                            this.CheckStatement(stmt, method, classDecl, nestedClass);
                         }
                     }
                 }
@@ -90,7 +118,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
                     foreach (var stmt in method.Body.Statements)
                     {
-                        SanityCheckingAnalysis.CheckStatement(stmt, method, classDecl);
+                        this.CheckStatement(stmt, method, classDecl);
                     }
                 }
             }
@@ -100,7 +128,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Checks the given machine for using non-P# related asynchrony.
         /// </summary>
         /// <param name="machine"></param>
-        private static void CheckForExternalAsynchronyUseInMachine(ClassDeclarationSyntax machine)
+        private void CheckForExternalAsynchronyUseInMachine(ClassDeclarationSyntax machine)
         {
             if (machine.SyntaxTree.GetRoot().DescendantNodesAndSelf().Any(v
                     => v.ToString().Contains("System.Threading")))
@@ -117,7 +145,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="method">Method</param>
         /// <param name="machine">machine</param>
         /// <param name="state">state</param>
-        private static void CheckStatement(StatementSyntax stmt, MethodDeclarationSyntax method,
+        private void CheckStatement(StatementSyntax stmt, MethodDeclarationSyntax method,
             ClassDeclarationSyntax machine, ClassDeclarationSyntax state = null)
         {
             if (stmt is ExpressionStatementSyntax)
@@ -150,7 +178,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     if (binExprStmt.Right is ObjectCreationExpressionSyntax)
                     {
                         var newObjStmt = binExprStmt.Right as ObjectCreationExpressionSyntax;
-                        if (SanityCheckingAnalysis.IsStateOfTheMachine(newObjStmt.Type.ToString(), machine))
+                        if (this.IsStateOfTheMachine(newObjStmt.Type.ToString(), machine))
                         {
                             Log log = new Log(method, machine, state, null);
                             log.AddTrace(newObjStmt.ToString(), newObjStmt.SyntaxTree.FilePath, newObjStmt.SyntaxTree.
@@ -169,7 +197,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                         variable.Initializer.Value is ObjectCreationExpressionSyntax)
                     {
                         var newObjStmt = variable.Initializer.Value as ObjectCreationExpressionSyntax;
-                        if (SanityCheckingAnalysis.IsStateOfTheMachine(newObjStmt.Type.ToString(), machine))
+                        if (this.IsStateOfTheMachine(newObjStmt.Type.ToString(), machine))
                         {
                             Log log = new Log(method, machine, state, null);
                             log.AddTrace(newObjStmt.ToString(), newObjStmt.SyntaxTree.FilePath, newObjStmt.SyntaxTree.
@@ -187,29 +215,28 @@ namespace Microsoft.PSharp.StaticAnalysis
                     var ifBlockStmt = ifStmt.Statement as BlockSyntax;
                     foreach (var ibs in ifBlockStmt.Statements)
                     {
-                        SanityCheckingAnalysis.CheckStatement(ibs, method, machine, state);
+                        this.CheckStatement(ibs, method, machine, state);
                     }
 
                     if (ifStmt.Else != null)
                     {
                         if (ifStmt.Else.Statement is IfStatementSyntax)
                         {
-                            SanityCheckingAnalysis.CheckStatement(ifStmt.Else.Statement,
-                                method, machine, state);
+                            this.CheckStatement(ifStmt.Else.Statement, method, machine, state);
                         }
                         else if (ifStmt.Else.Statement is BlockSyntax)
                         {
                             var elseBlockStmt = ifStmt.Else.Statement as BlockSyntax;
                             foreach (var ebs in elseBlockStmt.Statements)
                             {
-                                SanityCheckingAnalysis.CheckStatement(ebs, method, machine, state);
+                                this.CheckStatement(ebs, method, machine, state);
                             }
                         }
                     }
                 }
                 else
                 {
-                    SanityCheckingAnalysis.CheckStatement(ifStmt.Statement, method, machine, state);
+                    this.CheckStatement(ifStmt.Statement, method, machine, state);
                 }
             }
             else if (stmt is ForStatementSyntax)
@@ -220,12 +247,12 @@ namespace Microsoft.PSharp.StaticAnalysis
                     var forBlockStmt = forStmt.Statement as BlockSyntax;
                     foreach (var fbs in forBlockStmt.Statements)
                     {
-                        SanityCheckingAnalysis.CheckStatement(fbs, method, machine, state);
+                        this.CheckStatement(fbs, method, machine, state);
                     }
                 }
                 else
                 {
-                    SanityCheckingAnalysis.CheckStatement(forStmt.Statement, method, machine, state);
+                    this.CheckStatement(forStmt.Statement, method, machine, state);
                 }
             }
             else if (stmt is ForEachStatementSyntax)
@@ -236,12 +263,12 @@ namespace Microsoft.PSharp.StaticAnalysis
                     var forEachBlockStmt = forEachStmt.Statement as BlockSyntax;
                     foreach (var fbs in forEachBlockStmt.Statements)
                     {
-                        SanityCheckingAnalysis.CheckStatement(fbs, method, machine, state);
+                        this.CheckStatement(fbs, method, machine, state);
                     }
                 }
                 else
                 {
-                    SanityCheckingAnalysis.CheckStatement(forEachStmt.Statement, method, machine, state);
+                    this.CheckStatement(forEachStmt.Statement, method, machine, state);
                 }
             }
             else if (stmt is WhileStatementSyntax)
@@ -252,12 +279,12 @@ namespace Microsoft.PSharp.StaticAnalysis
                     var whileBlockStmt = whileStmt.Statement as BlockSyntax;
                     foreach (var wbs in whileBlockStmt.Statements)
                     {
-                        SanityCheckingAnalysis.CheckStatement(wbs, method, machine, state);
+                        this.CheckStatement(wbs, method, machine, state);
                     }
                 }
                 else
                 {
-                    SanityCheckingAnalysis.CheckStatement(whileStmt.Statement, method, machine, state);
+                    this.CheckStatement(whileStmt.Statement, method, machine, state);
                 }
             }
             else if (stmt is DoStatementSyntax)
@@ -268,12 +295,12 @@ namespace Microsoft.PSharp.StaticAnalysis
                     var doBlockStmt = doStmt.Statement as BlockSyntax;
                     foreach (var dbs in doBlockStmt.Statements)
                     {
-                        SanityCheckingAnalysis.CheckStatement(dbs, method, machine, state);
+                        this.CheckStatement(dbs, method, machine, state);
                     }
                 }
                 else
                 {
-                    SanityCheckingAnalysis.CheckStatement(doStmt.Statement, method, machine, state);
+                    this.CheckStatement(doStmt.Statement, method, machine, state);
                 }
             }
             else if (stmt is SwitchStatementSyntax)
@@ -283,7 +310,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     foreach (var sbs in section.Statements)
                     {
-                        SanityCheckingAnalysis.CheckStatement(sbs, method, machine, state);
+                        this.CheckStatement(sbs, method, machine, state);
                     }
                 }
             }
@@ -292,14 +319,14 @@ namespace Microsoft.PSharp.StaticAnalysis
                 var tryStmt = stmt as TryStatementSyntax;
                 foreach (var tbs in tryStmt.Block.Statements)
                 {
-                    SanityCheckingAnalysis.CheckStatement(tbs, method, machine, state);
+                    this.CheckStatement(tbs, method, machine, state);
                 }
 
                 foreach (var ctch in tryStmt.Catches)
                 {
                     foreach (var cbs in ctch.Block.Statements)
                     {
-                        SanityCheckingAnalysis.CheckStatement(cbs, method, machine, state);
+                        this.CheckStatement(cbs, method, machine, state);
                     }
                 }
 
@@ -307,7 +334,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     foreach (var tbs in tryStmt.Finally.Block.Statements)
                     {
-                        SanityCheckingAnalysis.CheckStatement(tbs, method, machine, state);
+                        this.CheckStatement(tbs, method, machine, state);
                     }
                 }
             }
@@ -317,7 +344,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 var usingBlockStmt = usingStmt.Statement as BlockSyntax;
                 foreach (var ubs in usingBlockStmt.Statements)
                 {
-                    SanityCheckingAnalysis.CheckStatement(ubs, method, machine, state);
+                    this.CheckStatement(ubs, method, machine, state);
                 }
             }
         }
@@ -332,7 +359,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="name">string</param>
         /// <param name="machine">Machine</param>
         /// <returns>Boolean value</returns>
-        private static bool IsStateOfTheMachine(string name, ClassDeclarationSyntax machine)
+        private bool IsStateOfTheMachine(string name, ClassDeclarationSyntax machine)
         {
             List<string> stateNames = new List<string>();
 

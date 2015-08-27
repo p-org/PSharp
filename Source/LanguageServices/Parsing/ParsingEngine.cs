@@ -13,77 +13,87 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-
-using Microsoft.PSharp.Tooling;
+using Microsoft.PSharp.LanguageServices.Compilation;
 
 namespace Microsoft.PSharp.LanguageServices.Parsing
 {
     /// <summary>
-    /// The P# parsing engine.
+    /// A P# parsing engine.
     /// </summary>
-    public static class ParsingEngine
+    public sealed class ParsingEngine
     {
-        #region public API
+        #region fields
 
         /// <summary>
-        /// List of P# projects.
+        /// The compilation context.
         /// </summary>
-        private static List<PSharpProject> PSharpProjects;
+        private CompilationContext CompilationContext;
 
         #endregion
 
         #region public API
 
         /// <summary>
+        /// Creates a P# parsing engine.
+        /// </summary>
+        /// <param name="context">CompilationContext</param>
+        /// <returns>ParsingEngine</returns>
+        public static ParsingEngine Create(CompilationContext context)
+        {
+            return new ParsingEngine(context);
+        }
+
+        /// <summary>
         /// Runs the P# parsing engine.
         /// </summary>
-        public static void Run()
+        public void Run()
         {
-            ParsingEngine.PSharpProjects = new List<PSharpProject>();
-            
             // Parse the projects.
-            if (Configuration.ProjectName.Equals(""))
+            if (this.CompilationContext.Configuration.ProjectName.Equals(""))
             {
-                foreach (var project in ProgramInfo.Solution.Projects)
+                foreach (var project in this.CompilationContext.GetSolution().Projects)
                 {
-                    var psharpProject = new PSharpProject(project.Name);
+                    var psharpProject = new PSharpProject(this.CompilationContext, project.Name);
                     psharpProject.Parse();
-                    ParsingEngine.PSharpProjects.Add(psharpProject);
+                    this.CompilationContext.GetProjects().Add(psharpProject);
                 }
             }
             else
             {
                 // Find the project specified by the user.
-                var targetProject = ProgramInfo.Solution.Projects.Where(
-                    p => p.Name.Equals(Configuration.ProjectName)).FirstOrDefault();
+                var targetProject = this.CompilationContext.GetSolution().Projects.Where(
+                    p => p.Name.Equals(this.CompilationContext.Configuration.ProjectName)).FirstOrDefault();
 
-                var projectDependencyGraph = ProgramInfo.Solution.GetProjectDependencyGraph();
+                var projectDependencyGraph = this.CompilationContext.GetSolution().GetProjectDependencyGraph();
                 var projectDependencies = projectDependencyGraph.GetProjectsThatThisProjectTransitivelyDependsOn(targetProject.Id);
 
-                foreach (var project in ProgramInfo.Solution.Projects)
+                foreach (var project in this.CompilationContext.GetSolution().Projects)
                 {
                     if (!projectDependencies.Contains(project.Id) && !project.Id.Equals(targetProject.Id))
                     {
                         continue;
                     }
 
-                    var psharpProject = new PSharpProject(project.Name);
+                    var psharpProject = new PSharpProject(this.CompilationContext, project.Name);
                     psharpProject.Parse();
-                    ParsingEngine.PSharpProjects.Add(psharpProject);
+                    this.CompilationContext.GetProjects().Add(psharpProject);
                 }
             }
+        }
 
-            // Rewrite the projects.
-            for (int idx = 0; idx < ParsingEngine.PSharpProjects.Count; idx++)
-            {
-                ParsingEngine.PSharpProjects[idx].Rewrite();
-            }
+        #endregion
+
+        #region private methods
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="context">CompilationContext</param>
+        private ParsingEngine(CompilationContext context)
+        {
+            this.CompilationContext = context;
         }
 
         #endregion

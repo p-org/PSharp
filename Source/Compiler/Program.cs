@@ -14,6 +14,7 @@
 
 using System;
 
+using Microsoft.PSharp.LanguageServices.Compilation;
 using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp
@@ -26,25 +27,26 @@ namespace Microsoft.PSharp
         static void Main(string[] args)
         {
             AppDomain currentDomain = AppDomain.CurrentDomain;
-            currentDomain.UnhandledException += new UnhandledExceptionEventHandler(UnhandledExceptionHandler);
+            //currentDomain.UnhandledException += new UnhandledExceptionEventHandler(UnhandledExceptionHandler);
 
-            // Parses the command line options.
-            new CommandLineOptions(args).Parse();
+            // Parses the command line options to get the configuration.
+            var configuration = new CompilerCommandLineOptions(args).
+                Parse() as LanguageServicesConfiguration;
 
-            // Initializes program info.
-            ProgramInfo.Initialize();
+            // Creates the compilation context and loads the solution.
+            var context = CompilationContext.Create(configuration).LoadSolution();
 
-            // Run the parser.
-            Parser.Run();
+            // Creates and starts a parsing process.
+            ParsingProcess.Create(context).Start();
 
-            // Run the compiler.
-            Compiler.Run();
+            // Creates and starts a rewriting process.
+            RewritingProcess.Create(context).Start();
 
-            // Run the static analyser.
-            StaticAnalyzer.Run();
+            // Creates and starts a compilation process.
+            CompilationProcess.Create(context).Start();
 
-            // Run the dynamic analyser.
-            DynamicAnalyzer.Run();
+            // Creates and starts a static analysis process.
+            StaticAnalysisProcess.Create(context).Start();
 
             Output.PrintLine(". Done");
         }
@@ -57,8 +59,8 @@ namespace Microsoft.PSharp
         static void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs args)
         {
             var ex = (Exception)args.ExceptionObject;
-            Output.Debug(DebugType.Any, ex.Message);
-            Output.Debug(DebugType.Any, ex.StackTrace);
+            Output.Debug(ex.Message);
+            Output.Debug(ex.StackTrace);
             ErrorReporter.ReportAndExit("internal failure: {0}.", ex.GetType().ToString());
         }
     }

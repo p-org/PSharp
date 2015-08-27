@@ -23,65 +23,51 @@ using Microsoft.PSharp.Tooling;
 namespace Microsoft.PSharp.DynamicAnalysis
 {
     /// <summary>
-    /// The P# static analysis context.
+    /// A P# dynamic analysis context.
     /// </summary>
-    public static class AnalysisContext
+    public sealed class AnalysisContext
     {
         #region fields
 
         /// <summary>
-        /// The P# assembly to analyze.
+        /// Configuration.
         /// </summary>
-        internal static Assembly Assembly;
+        internal DynamicAnalysisConfiguration Configuration;
 
         /// <summary>
-        /// The scheduling strategy to use.
+        /// The P# assembly to analyze.
         /// </summary>
-        internal static SchedulingStrategy Strategy;
+        internal Assembly Assembly;
 
         /// <summary>
         /// A P# test method.
         /// </summary>
-        internal static MethodInfo TestMethod;
+        internal MethodInfo TestMethod;
 
         #endregion
 
         #region public API
 
         /// <summary>
-        /// Create a new P# dynamic analysis context from the given assembly.
+        /// Create a new P# dynamic analysis context from the given assembly name.
         /// </summary>
+        /// <param name="configuration">Configuration</param>
         /// <param name="assemblyName">Assembly name</param>
-        public static void Create(string assemblyName)
+        /// <returns>AnalysisContext</returns>
+        public static AnalysisContext Create(DynamicAnalysisConfiguration configuration, string assemblyName)
         {
-            try
-            {
-                AnalysisContext.Assembly = Assembly.LoadFrom(assemblyName);
-            }
-            catch (FileNotFoundException ex)
-            {
-                ErrorReporter.ReportAndExit(ex.Message);
-            }
-
-            AnalysisContext.Setup();
+            return new AnalysisContext(configuration, assemblyName);
         }
 
         /// <summary>
         /// Create a new P# dynamic analysis context from the given assembly.
         /// </summary>
-        /// <param name="assemblyName">Assembly name</param>
-        public static void Create(Assembly assembly)
+        /// <param name="configuration">Configuration</param>
+        /// <param name="assembly">Assembly</param>
+        /// <returns>AnalysisContext</returns>
+        public static AnalysisContext Create(DynamicAnalysisConfiguration configuration, Assembly assembly)
         {
-            try
-            {
-                AnalysisContext.Assembly = assembly;
-            }
-            catch (FileNotFoundException ex)
-            {
-                ErrorReporter.ReportAndExit(ex.Message);
-            }
-
-            AnalysisContext.Setup();
+            return new AnalysisContext(configuration, assembly);
         }
 
         #endregion
@@ -89,48 +75,48 @@ namespace Microsoft.PSharp.DynamicAnalysis
         #region private methods
 
         /// <summary>
-        /// Setups the analysis context.
+        /// Constructor.
         /// </summary>
-        private static void Setup()
+        /// <param name="configuration">Configuration</param>
+        /// <param name="assemblyName">Assembly name</param>
+        private AnalysisContext(DynamicAnalysisConfiguration configuration, string assemblyName)
         {
-            AnalysisContext.SetupSchedulingStrategy();
-            AnalysisContext.FindEntryPoint();
+            this.Configuration = configuration;
+
+            try
+            {
+                this.Assembly = Assembly.LoadFrom(assemblyName);
+            }
+            catch (FileNotFoundException ex)
+            {
+                ErrorReporter.ReportAndExit(ex.Message);
+            }
+            
+            this.FindEntryPoint();
         }
 
         /// <summary>
-        /// Setups the scheduling strategy.
+        /// Constructor.
         /// </summary>
-        private static void SetupSchedulingStrategy()
+        /// <param name="configuration">Configuration</param>
+        /// <param name="assembly">Assembly</param>
+        private AnalysisContext(DynamicAnalysisConfiguration configuration, Assembly assembly)
         {
-            if (Configuration.SchedulingStrategy.Equals("") ||
-                Configuration.SchedulingStrategy.Equals("random"))
-            {
-                AnalysisContext.Strategy = SchedulingStrategy.Random;
-            }
-            else if (Configuration.SchedulingStrategy.Equals("dfs"))
-            {
-                AnalysisContext.Strategy = SchedulingStrategy.DFS;
-            }
-            else if (Configuration.SchedulingStrategy.Equals("iddfs"))
-            {
-                AnalysisContext.Strategy = SchedulingStrategy.IDDFS;
-            }
-            else if (Configuration.SchedulingStrategy.Equals("macemc"))
-            {
-                AnalysisContext.Strategy = SchedulingStrategy.MaceMC;
-            }
+            this.Configuration = configuration;
+            this.Assembly = assembly;
+            this.FindEntryPoint();
         }
 
         /// <summary>
         /// Finds the entry point to the P# program.
         /// </summary>
-        private static void FindEntryPoint()
+        private void FindEntryPoint()
         {
             List<MethodInfo> testMethods = null;
 
             try
             {
-                testMethods = AnalysisContext.Assembly.GetTypes().SelectMany(t => t.GetMethods(BindingFlags.Static |
+                testMethods = this.Assembly.GetTypes().SelectMany(t => t.GetMethods(BindingFlags.Static |
                     BindingFlags.Public | BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod)).
                     Where(m => m.GetCustomAttributes(typeof(Test), false).Length > 0).ToList();
             }
@@ -141,12 +127,12 @@ namespace Microsoft.PSharp.DynamicAnalysis
                     ErrorReporter.Report(le.Message);
                 }
 
-                ErrorReporter.ReportAndExit("Failed to load assembly '{0}'", AnalysisContext.Assembly.FullName);
+                ErrorReporter.ReportAndExit("Failed to load assembly '{0}'", this.Assembly.FullName);
             }
             catch (Exception ex)
             {
                 ErrorReporter.Report(ex.Message);
-                ErrorReporter.ReportAndExit("Failed to load assembly '{0}'", AnalysisContext.Assembly.FullName);
+                ErrorReporter.ReportAndExit("Failed to load assembly '{0}'", this.Assembly.FullName);
             }
 
             if (testMethods.Count == 0)
@@ -172,7 +158,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
                     "  [Test] public static void Test() { ... }");
             }
 
-            AnalysisContext.TestMethod = testMethods[0];
+            this.TestMethod = testMethods[0];
         }
 
         #endregion

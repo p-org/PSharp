@@ -20,8 +20,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Microsoft.PSharp.Tooling;
-
 namespace Microsoft.PSharp.Threading
 {
     /// <summary>
@@ -84,7 +82,7 @@ namespace Microsoft.PSharp.Threading
             }
             else
             {
-                Output.Debug(DebugType.Testing, "<ScheduleDebug> Wrapping task {0} in a machine.", task.Id);
+                Machine.Dispatcher.Log("<ScheduleDebug> Wrapping task {0} in a machine.", task.Id);
                 this.WrappedTasks.Add(task);
                 Machine.Dispatcher.TryCreateTaskMachine(task);
             }

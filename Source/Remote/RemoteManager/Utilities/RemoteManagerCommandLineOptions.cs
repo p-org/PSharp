@@ -19,7 +19,7 @@ using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp.Remote
 {
-    public class RemoteManagerCommandLineOptions : CommandLineOptions
+    public sealed class RemoteManagerCommandLineOptions : BaseCommandLineOptions
     {
         #region public API
 
@@ -30,69 +30,74 @@ namespace Microsoft.PSharp.Remote
         public RemoteManagerCommandLineOptions(string[] args)
             : base(args)
         {
-
-        }
-
-        /// <summary>
-        /// Parses the command line options.
-        /// </summary>
-        public override void Parse()
-        {
-            for (int idx = 0; idx < base.Options.Length; idx++)
-            {
-                #region cluster manager options
-
-                if (this.Options[idx].ToLower().StartsWith("/n:") &&
-                    this.Options[idx].Length > 3)
-                {
-                    int i = 0;
-                    if (!int.TryParse(this.Options[idx].Substring(3), out i) &&
-                        i > 0)
-                    {
-                        ErrorReporter.ReportAndExit("Please give a valid number of containers " +
-                            "'/n:[x]', where [x] > 0.");
-                    }
-
-                    Configuration.NumberOfContainers = i;
-                }
-                else if (base.Options[idx].ToLower().StartsWith("/main:") &&
-                    base.Options[idx].Length > 6)
-                {
-                    Configuration.ApplicationFilePath = base.Options[idx].Substring(6);
-                }
-
-                #endregion
-
-                #region error
-
-                else
-                {
-                    ErrorReporter.ReportAndExit("cannot recognise command line option '" +
-                        base.Options[idx] + "'.");
-                }
-
-                #endregion
-            }
-
-            this.CheckForParsingErrors();
+            base.Configuration = new RemoteManagerConfiguration();
         }
 
         #endregion
 
-        #region private methods
+        #region protected methods
 
-        private void CheckForParsingErrors()
+        /// <summary>
+        /// Parse the given option.
+        /// </summary>
+        /// <param name="option">Option</param>
+        protected override void ParseOption(string option)
         {
-            if (Configuration.ApplicationFilePath.Equals(""))
+            var configuration = base.Configuration as RemoteManagerConfiguration;
+            if (option.ToLower().StartsWith("/n:") && option.Length > 3)
+            {
+                int i = 0;
+                if (!int.TryParse(option.Substring(3), out i) && i > 0)
+                {
+                    ErrorReporter.ReportAndExit("Please give a valid number of containers " +
+                        "'/n:[x]', where [x] > 0.");
+                }
+
+                configuration.NumberOfContainers = i;
+            }
+            else if (option.ToLower().StartsWith("/main:") && option.Length > 6)
+            {
+                configuration.ApplicationFilePath = option.Substring(6);
+            }
+            else
+            {
+                base.ParseOption(option);
+            }
+        }
+
+        protected override void CheckForParsingErrors()
+        {
+            var configuration = base.Configuration as RemoteManagerConfiguration;
+            if (configuration.ApplicationFilePath.Equals(""))
             {
                 ErrorReporter.ReportAndExit("Please give a valid P# application path.");
             }
 
-            if (!Path.GetExtension(Configuration.ApplicationFilePath).Equals(".dll"))
+            if (!Path.GetExtension(configuration.ApplicationFilePath).Equals(".dll"))
             {
                 ErrorReporter.ReportAndExit("The application must be a `dll` file compiled " +
                     "using the P# compiler with the option `/distributed`.");
             }
+        }
+
+        /// <summary>
+        /// Shows help.
+        /// </summary>
+        protected override void ShowHelp()
+        {
+            string help = "\n";
+
+            help += "--------------";
+            help += "\nBasic options:";
+            help += "\n--------------";
+            help += "\n  /?\t\t Show this help menu";
+            help += "\n  /timeout:[x]\t Timeout for the tool (default is no timeout)";
+            help += "\n  /v:[x]\t Enable verbose mode (values from '0' to '3')";
+            help += "\n  /debug\t Enable debugging";
+
+            help += "\n";
+
+            Output.PrettyPrintLine(help);
         }
 
         #endregion

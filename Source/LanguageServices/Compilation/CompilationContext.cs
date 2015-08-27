@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="ProgramInfo.cs">
+// <copyright file="CompilationContext.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -20,44 +20,81 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
 
-namespace Microsoft.PSharp.Tooling
+using Microsoft.PSharp.Tooling;
+
+namespace Microsoft.PSharp.LanguageServices.Compilation
 {
     /// <summary>
-    /// The P# program info.
+    /// A P# compilation context.
     /// </summary>
-    public static class ProgramInfo
+    public sealed class CompilationContext
     {
         #region fields
 
         /// <summary>
-        /// The solution of the P# program.
+        /// Configuration.
         /// </summary>
-        public static Solution Solution;
+        internal LanguageServicesConfiguration Configuration;
+
+        /// <summary>
+        /// The active compilation target.
+        /// </summary>
+        internal CompilationTarget ActiveCompilationTarget;
+
+        /// <summary>
+        /// The solution of the P# program per compilation target.
+        /// </summary>
+        private Dictionary<CompilationTarget, Solution> SolutionMap;
+
+        /// <summary>
+        /// List of P# projects per compilation target.
+        /// </summary>
+        private Dictionary<CompilationTarget, List<PSharpProject>> PSharpProjectMap;
 
         /// <summary>
         /// True if program info has been initialized.
         /// </summary>
-        private static bool HasInitialized = false;
+        private bool HasInitialized = false;
 
         #endregion
 
         #region public API
 
         /// <summary>
-        /// Initializes the P# program info.
+        /// Create a new P# compilation context using the default
+        /// configuration.
         /// </summary>
-        public static void Initialize()
+        /// <returns>CompilationContext</returns>
+        public static CompilationContext Create()
         {
-            ProgramInfo.CheckForCommandLineOptionErrors();
+            var configuration = new LanguageServicesConfiguration();
+            return new CompilationContext(configuration);
+        }
 
+        /// <summary>
+        /// Create a new P# compilation context.
+        /// </summary>
+        /// <param name="configuration">Configuration</param>
+        /// <returns>CompilationContext</returns>
+        public static CompilationContext Create(LanguageServicesConfiguration configuration)
+        {
+            return new CompilationContext(configuration);
+        }
+
+        /// <summary>
+        /// Loads the solution.
+        /// </summary>
+        public CompilationContext LoadSolution()
+        {
             // Create a new workspace.
             var workspace = MSBuildWorkspace.Create();
+            Solution solution = null;
 
             try
             {
                 // Populate the workspace with the user defined solution.
-                ProgramInfo.Solution = (workspace as MSBuildWorkspace).OpenSolutionAsync(
-                    @"" + Configuration.SolutionFilePath + "").Result;
+                solution = (workspace as MSBuildWorkspace).OpenSolutionAsync(
+                    @"" + this.Configuration.SolutionFilePath + "").Result;
             }
             catch (AggregateException ex)
             {
@@ -68,17 +105,41 @@ namespace Microsoft.PSharp.Tooling
                 ErrorReporter.ReportAndExit("Please give a valid solution path.");
             }
 
-            if (!Configuration.ProjectName.Equals(""))
+            this.InstallCompilationTargets(solution);
+
+            if (!this.Configuration.ProjectName.Equals(""))
             {
                 // Find the project specified by the user.
-                var project = ProgramInfo.GetProjectWithName(Configuration.ProjectName);
+                var project = this.GetProjectWithName(this.Configuration.ProjectName);
                 if (project == null)
                 {
                     ErrorReporter.ReportAndExit("Please give a valid project name.");
                 }
             }
+            
+            this.HasInitialized = true;
 
-            ProgramInfo.HasInitialized = true;
+            return this;
+        }
+
+        /// <summary>
+        /// Returns the P# solution associated with the active
+        /// compilation target.
+        /// </summary>
+        /// <returns>Solution</returns>
+        public Solution GetSolution()
+        {
+            return this.SolutionMap[this.ActiveCompilationTarget];
+        }
+
+        /// <summary>
+        /// Returns the P# projects associated with the active
+        /// compilation target.
+        /// </summary>
+        /// <returns>List of P# projects</returns>
+        public List<PSharpProject> GetProjects()
+        {
+            return this.PSharpProjectMap[this.ActiveCompilationTarget];
         }
 
         /// <summary>
@@ -86,9 +147,10 @@ namespace Microsoft.PSharp.Tooling
         /// </summary>
         /// <param name="name">Project name</param>
         /// <returns>Project</returns>
-        public static Project GetProjectWithName(string name)
+        public Project GetProjectWithName(string name)
         {
-            var project = ProgramInfo.Solution.Projects.Where(p => p.Name.Equals(name)).FirstOrDefault();
+            var project = this.SolutionMap[this.ActiveCompilationTarget].Projects.
+                Where(p => p.Name.Equals(name)).FirstOrDefault();
             return project;
         }
 
@@ -97,9 +159,9 @@ namespace Microsoft.PSharp.Tooling
         /// </summary>
         /// <param name="tree">SyntaxTree</param>
         /// <param name="project">Project</param>
-        public static void ReplaceSyntaxTree(SyntaxTree tree, Project project)
+        public void ReplaceSyntaxTree(SyntaxTree tree, Project project)
         {
-            if (!ProgramInfo.HasInitialized)
+            if (!this.HasInitialized)
             {
                 throw new PSharpGenericException("ProgramInfo has not been initialized.");
             }
@@ -108,12 +170,11 @@ namespace Microsoft.PSharp.Tooling
             doc = doc.WithSyntaxRoot(tree.GetRoot());
             project = doc.Project;
 
-            ProgramInfo.Solution = project.Solution;
+            this.SolutionMap[this.ActiveCompilationTarget] = project.Solution;
 
-            if (Configuration.Debugging.Contains(DebugType.Parsing) ||
-                Configuration.Debugging.Contains(DebugType.Any))
+            if (Output.Debugging)
             {
-                ProgramInfo.PrintSyntaxTree(tree);
+                this.PrintSyntaxTree(tree);
             }
         }
 
@@ -122,7 +183,7 @@ namespace Microsoft.PSharp.Tooling
         /// </summary>
         /// <param name="tree">SyntaxTree</param>
         /// <returns>Boolean value</returns>
-        public static bool IsPSharpFile(SyntaxTree tree)
+        public bool IsPSharpFile(SyntaxTree tree)
         {
             var ext = Path.GetExtension(tree.FilePath);
             return ext.Equals(".psharp") ? true : false;
@@ -133,7 +194,7 @@ namespace Microsoft.PSharp.Tooling
         /// </summary>
         /// <param name="tree">SyntaxTree</param>
         /// <returns>Boolean value</returns>
-        public static bool IsCSharpFile(SyntaxTree tree)
+        public bool IsCSharpFile(SyntaxTree tree)
         {
             var ext = Path.GetExtension(tree.FilePath);
             return ext.Equals(".cs") ? true : false;
@@ -144,7 +205,7 @@ namespace Microsoft.PSharp.Tooling
         /// </summary>
         /// <param name="tree">SyntaxTree</param>
         /// <returns>Boolean value</returns>
-        public static bool IsPFile(SyntaxTree tree)
+        public bool IsPFile(SyntaxTree tree)
         {
             var ext = Path.GetExtension(tree.FilePath);
             return ext.Equals(".p") ? true : false;
@@ -152,30 +213,30 @@ namespace Microsoft.PSharp.Tooling
 
         #endregion
 
-        #region private API
+        #region private methods
 
         /// <summary>
-        /// Checks and report any command line option errors.
+        /// Constructor.
         /// </summary>
-        private static void CheckForCommandLineOptionErrors()
+        /// <param name="configuration">Configuration</param>
+        private CompilationContext(LanguageServicesConfiguration configuration)
         {
-            if (Configuration.ProjectName.Equals("") && Configuration.RunDynamicAnalysis)
-            {
-                ErrorReporter.ReportAndExit("Please give the name of the project to test (using either " +
-                    "'/p:[x]' or /test:[x], where [x] is the name of the project).");
-            }
+            this.Configuration = configuration;
+            this.ActiveCompilationTarget = configuration.CompilationTargets.First();
+            this.SolutionMap = new Dictionary<CompilationTarget, Solution>();
+            this.PSharpProjectMap = new Dictionary<CompilationTarget, List<PSharpProject>>();
+        }
 
-            if (Configuration.SafetyPrefixBound > 0 &&
-                Configuration.SafetyPrefixBound >= Configuration.DepthBound)
+        /// <summary>
+        /// Installs the requested compilation targets.
+        /// </summary>
+        /// <param name="solution">Solution</param>
+        private void InstallCompilationTargets(Solution solution)
+        {
+            foreach (var target in this.Configuration.CompilationTargets)
             {
-                ErrorReporter.ReportAndExit("Please give a safety prefix bound that is less than the " +
-                    "max depth bound.");
-            }
-
-            if (Configuration.SchedulingStrategy.Equals("iddfs") && Configuration.DepthBound == 0)
-            {
-                ErrorReporter.ReportAndExit("The Iterative Deepening DFS scheduler ('iddfs') must have a " +
-                    "max depth bound. Please give a depth bound using '/db:[x]', where [x] > 0.");
+                this.SolutionMap.Add(target, solution);
+                this.PSharpProjectMap.Add(target, new List<PSharpProject>());
             }
         }
 
@@ -183,7 +244,7 @@ namespace Microsoft.PSharp.Tooling
         /// Print the syntax tree for debug.
         /// </summary>
         /// <param name="tree">SyntaxTree</param>
-        private static void PrintSyntaxTree(SyntaxTree tree)
+        private void PrintSyntaxTree(SyntaxTree tree)
         {
             var root = (CodeAnalysis.CSharp.Syntax.CompilationUnitSyntax)tree.GetRoot();
             var lines = System.Text.RegularExpressions.Regex.Split(root.ToFullString(), "\r\n|\r|\n");

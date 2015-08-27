@@ -22,8 +22,6 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
-using Microsoft.PSharp.Tooling;
-
 namespace Microsoft.PSharp
 {
     /// <summary>
@@ -111,7 +109,7 @@ namespace Microsoft.PSharp
             // If the event is null then report an error and exit.
             this.Assert(e != null, "Monitor '{0}' is raising a null event.", this.GetType().Name);
             e.AssignPayload(payload);
-            Output.Log("<MonitorLog> Monitor '{0}' raised event '{1}'.", this, e);
+            Machine.Dispatcher.Log("<MonitorLog> Monitor '{0}' raised event '{1}'.", this, e);
             this.HandleEvent(e);
         }
 
@@ -208,7 +206,7 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         internal void MonitorEvent(Event e)
         {
-            Output.Log("<MonitorLog> Monitor '{0}' is processing event '{1}'.",
+            Machine.Dispatcher.Log("<MonitorLog> Monitor '{0}' is processing event '{1}'.",
                 this, e.GetType());
             this.HandleEvent(e);
         }
@@ -287,7 +285,7 @@ namespace Microsoft.PSharp
                 // If current state cannot handle the event then null the state.
                 if (!this.CanHandleEvent(e.GetType()))
                 {
-                    Output.Log("<MonitorLog> Monitor '{0}' exiting state '{1}'.",
+                    Machine.Dispatcher.Log("<MonitorLog> Monitor '{0}' exiting state '{1}'.",
                         this, this.State.GetType().Name);
                     this.State = null;
                     continue;
@@ -446,7 +444,7 @@ namespace Microsoft.PSharp
         [DebuggerStepThrough]
         private void Do(Action a)
         {
-            Output.Log("<MonitorLog> Monitor '{0}' executed action '{1}' in state '{2}'.",
+            Machine.Dispatcher.Log("<MonitorLog> Monitor '{0}' executed action '{1}' in state '{2}'.",
                 this, a.Method.Name, this.State.GetType().Name);
 
             try
@@ -493,7 +491,7 @@ namespace Microsoft.PSharp
                 liveness = "'cold' ";
             }
 
-            Output.Log("<MonitorLog> Monitor '{0}' entering " + liveness +
+            Machine.Dispatcher.Log("<MonitorLog> Monitor '{0}' entering " + liveness +
                 "state '{1}'.", this, this.State.GetType().Name);
 
             try
@@ -528,7 +526,7 @@ namespace Microsoft.PSharp
         [DebuggerStepThrough]
         private void ExecuteCurrentStateOnExit(Action onExit)
         {
-            Output.Log("<MonitorLog> Monitor '{0}' exiting state '{1}'.",
+            Machine.Dispatcher.Log("<MonitorLog> Monitor '{0}' exiting state '{1}'.",
                 this, this.State.GetType().Name);
 
             try

@@ -91,7 +91,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
         #endregion
 
-        #region private API
+        #region private methods
 
         /// <summary>
         /// Returns the rewritten field declaration.

@@ -29,32 +29,51 @@ namespace Microsoft.PSharp.StaticAnalysis
     /// This analysis computes the method summaries for every method
     /// in each machine of a P# program.
     /// </summary>
-    public static class MethodSummaryAnalysis
+    public sealed class MethodSummaryAnalysis
     {
+        #region fields
+
+        /// <summary>
+        /// The analysis context.
+        /// </summary>
+        private AnalysisContext AnalysisContext;
+
+        #endregion
+
         #region public API
+
+        /// <summary>
+        /// Creates a new method summary analysis pass.
+        /// </summary>
+        /// <param name="context">AnalysisContext</param>
+        /// <returns>MethodSummaryAnalysis</returns>
+        public static MethodSummaryAnalysis Create(AnalysisContext context)
+        {
+            return new MethodSummaryAnalysis(context);
+        }
 
         /// <summary>
         /// Runs the analysis.
         /// </summary>
-        public static void Run()
+        public void Run()
         {
             // Starts profiling the data flow analysis.
-            if (Configuration.ShowDFARuntimeResults &&
-                !Configuration.ShowRuntimeResults &&
-                !Configuration.ShowROARuntimeResults)
+            if (this.AnalysisContext.Configuration.ShowDFARuntimeResults &&
+                !this.AnalysisContext.Configuration.ShowRuntimeResults &&
+                !this.AnalysisContext.Configuration.ShowROARuntimeResults)
             {
                 Profiler.StartMeasuringExecutionTime();
             }
 
-            foreach (var machine in AnalysisContext.Machines)
+            foreach (var machine in this.AnalysisContext.Machines)
             {
-                MethodSummaryAnalysis.AnalyseMethodsInMachine(machine);
+                this.AnalyseMethodsInMachine(machine);
             }
 
             // Stops profiling the data flow analysis.
-            if (Configuration.ShowDFARuntimeResults &&
-                !Configuration.ShowRuntimeResults &&
-                !Configuration.ShowROARuntimeResults)
+            if (this.AnalysisContext.Configuration.ShowDFARuntimeResults &&
+                !this.AnalysisContext.Configuration.ShowRuntimeResults &&
+                !this.AnalysisContext.Configuration.ShowROARuntimeResults)
             {
                 Profiler.StopMeasuringExecutionTime();
             }
@@ -63,10 +82,10 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Prints the results of the analysis.
         /// </summary>
-        public static void PrintGivesUpResults()
+        public void PrintGivesUpResults()
         {
             Output.PrintLine("\n > Printing gives up ownership information:\n");
-            foreach (var summary in AnalysisContext.Summaries)
+            foreach (var summary in this.AnalysisContext.Summaries)
             {
                 if (summary.Value.GivesUpSet.Count == 0)
                 {
@@ -100,11 +119,20 @@ namespace Microsoft.PSharp.StaticAnalysis
         #region private methods
 
         /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="context">AnalysisContext</param>
+        private MethodSummaryAnalysis(AnalysisContext context)
+        {
+            this.AnalysisContext = context;
+        }
+
+        /// <summary>
         /// Analyses all the eligible methods of the given machine to compute each
         /// method summary. This process continues until it reaches a fix point.
         /// </summary>
         /// <param name="machine">Machine</param>
-        private static void AnalyseMethodsInMachine(ClassDeclarationSyntax machine)
+        private void AnalyseMethodsInMachine(ClassDeclarationSyntax machine)
         {
             int fixPoint = 0;
 
@@ -112,14 +140,14 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 foreach (var method in nestedClass.ChildNodes().OfType<MethodDeclarationSyntax>())
                 {
-                    if (!Utilities.ShouldAnalyseMethod(method) ||
-                        AnalysisContext.Summaries.ContainsKey(method))
+                    if (!this.AnalysisContext.ShouldAnalyseMethod(method) ||
+                        this.AnalysisContext.Summaries.ContainsKey(method))
                     {
                         continue;
                     }
 
-                    MethodSummaryAnalysis.ComputeSummaryForMethod(method, machine, nestedClass);
-                    if (!AnalysisContext.Summaries.ContainsKey(method))
+                    this.ComputeSummaryForMethod(method, machine, nestedClass);
+                    if (!this.AnalysisContext.Summaries.ContainsKey(method))
                     {
                         fixPoint++;
                     }
@@ -128,14 +156,14 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             foreach (var method in machine.ChildNodes().OfType<MethodDeclarationSyntax>())
             {
-                if (!Utilities.ShouldAnalyseMethod(method) ||
-                    AnalysisContext.Summaries.ContainsKey(method))
+                if (!this.AnalysisContext.ShouldAnalyseMethod(method) ||
+                    this.AnalysisContext.Summaries.ContainsKey(method))
                 {
                     continue;
                 }
 
-                MethodSummaryAnalysis.ComputeSummaryForMethod(method, machine, null);
-                if (!AnalysisContext.Summaries.ContainsKey(method))
+                this.ComputeSummaryForMethod(method, machine, null);
+                if (!this.AnalysisContext.Summaries.ContainsKey(method))
                 {
                     fixPoint++;
                 }
@@ -143,7 +171,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             if (fixPoint > 0)
             {
-                MethodSummaryAnalysis.AnalyseMethodsInMachine(machine);
+                this.AnalyseMethodsInMachine(machine);
             }
         }
 
@@ -153,13 +181,13 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="method">Method</param>
         /// <param name="machine">Machine</param>
         /// <param name="state">State</param>
-        private static void ComputeSummaryForMethod(MethodDeclarationSyntax method,
+        private void ComputeSummaryForMethod(MethodDeclarationSyntax method,
             ClassDeclarationSyntax machine, ClassDeclarationSyntax state)
         {
             List<InvocationExpressionSyntax> givesUpSources = new List<InvocationExpressionSyntax>();
             foreach (var call in method.DescendantNodes().OfType<InvocationExpressionSyntax>())
             {
-                var model = AnalysisContext.Compilation.GetSemanticModel(call.SyntaxTree);
+                var model = this.AnalysisContext.Compilation.GetSemanticModel(call.SyntaxTree);
 
                 var callSymbol = model.GetSymbolInfo(call).Symbol;
                 if (callSymbol == null)
@@ -167,38 +195,36 @@ namespace Microsoft.PSharp.StaticAnalysis
                     continue;
                 }
 
-                var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol, ProgramInfo.Solution).Result;
+                var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol,
+                    this.AnalysisContext.Solution).Result;
                 if (definition == null)
                 {
                     continue;
                 }
 
-                var callee = Utilities.GetCallee(call);
+                var callee = this.AnalysisContext.GetCallee(call);
                 var calleeMethod = definition.DeclaringSyntaxReferences.First().GetSyntax()
                     as BaseMethodDeclarationSyntax;
 
-                if (Utilities.IsSourceOfGivingUpOwnership(call, model, callee) ||
-                    AnalysisContext.Summaries.ContainsKey(calleeMethod))
+                if (this.AnalysisContext.IsSourceOfGivingUpOwnership(call, model, callee) ||
+                    this.AnalysisContext.Summaries.ContainsKey(calleeMethod))
                 {
                     givesUpSources.Add(call);
                 }
                 else if (machine.ChildNodes().OfType<BaseMethodDeclarationSyntax>().Contains(calleeMethod) &&
-                    !AnalysisContext.Summaries.ContainsKey(calleeMethod) &&
+                    !this.AnalysisContext.Summaries.ContainsKey(calleeMethod) &&
                     !calleeMethod.Modifiers.Any(SyntaxKind.AbstractKeyword))
                 {
                     return;
                 }
             }
 
-            MethodSummary summary = MethodSummary.Factory.Summarize(method, machine, state);
+            MethodSummary summary = MethodSummary.Factory.Summarize(this.AnalysisContext, method, machine, state);
             foreach (var givesUpNode in summary.GivesUpNodes)
             {
-                MethodSummaryAnalysis.TryComputeGivesUpSetForSendControlFlowGraphNode(
-                    givesUpNode, summary);
-                MethodSummaryAnalysis.TryComputeGivesUpSetForCreateControlFlowGraphNode(
-                    givesUpNode, summary);
-                MethodSummaryAnalysis.TryComputeGivesUpSetForGenericControlFlowGraphNode(
-                    givesUpNode, summary);
+                this.TryComputeGivesUpSetForSendControlFlowGraphNode(givesUpNode, summary);
+                this.TryComputeGivesUpSetForCreateControlFlowGraphNode(givesUpNode, summary);
+                this.TryComputeGivesUpSetForGenericControlFlowGraphNode(givesUpNode, summary);
             }
         }
 
@@ -213,7 +239,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="cfgNode">ControlFlowGraphNode</param>
         /// <param name="summary">MethodSummary</param>
         /// <returns>Boolean value</returns>
-        private static bool TryComputeGivesUpSetForSendControlFlowGraphNode(ControlFlowGraphNode cfgNode,
+        private bool TryComputeGivesUpSetForSendControlFlowGraphNode(ControlFlowGraphNode cfgNode,
             MethodSummary summary)
         {
             var sendExpr = cfgNode.SyntaxNodes.First() as ExpressionStatementSyntax;
@@ -245,8 +271,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     as ObjectCreationExpressionSyntax;
                 foreach (var arg in objCreation.ArgumentList.Arguments)
                 {
-                    MethodSummaryAnalysis.ComputeGivesUpSetForArgument(arg.Expression,
-                        cfgNode, summary);
+                    this.ComputeGivesUpSetForArgument(arg.Expression, cfgNode, summary);
                 }
             }
             else if (send.ArgumentList.Arguments[1].Expression is BinaryExpressionSyntax &&
@@ -256,15 +281,14 @@ namespace Microsoft.PSharp.StaticAnalysis
                     as BinaryExpressionSyntax;
                 if ((binExpr.Left is IdentifierNameSyntax) || (binExpr.Left is MemberAccessExpressionSyntax))
                 {
-                    MethodSummaryAnalysis.ComputeGivesUpSetForArgument(binExpr.Left,
-                        cfgNode, summary);
+                    this.ComputeGivesUpSetForArgument(binExpr.Left, cfgNode, summary);
                 }
                 else if (binExpr.Left is InvocationExpressionSyntax)
                 {
                     var invocation = binExpr.Left as InvocationExpressionSyntax;
                     for (int i = 1; i < invocation.ArgumentList.Arguments.Count; i++)
                     {
-                        MethodSummaryAnalysis.ComputeGivesUpSetForArgument(invocation.ArgumentList.
+                        this.ComputeGivesUpSetForArgument(invocation.ArgumentList.
                             Arguments[i].Expression, cfgNode, summary);
                     }
                 }
@@ -280,7 +304,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="cfgNode">ControlFlowGraphNode</param>
         /// <param name="summary">MethodSummary</param>
         /// <returns>Boolean value</returns>
-        private static bool TryComputeGivesUpSetForCreateControlFlowGraphNode(ControlFlowGraphNode cfgNode,
+        private bool TryComputeGivesUpSetForCreateControlFlowGraphNode(ControlFlowGraphNode cfgNode,
             MethodSummary summary)
         {
             var createExpr = cfgNode.SyntaxNodes.First() as ExpressionStatementSyntax;
@@ -317,8 +341,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     as ObjectCreationExpressionSyntax;
                 foreach (var arg in objCreation.ArgumentList.Arguments)
                 {
-                    MethodSummaryAnalysis.ComputeGivesUpSetForArgument(arg.Expression,
-                        cfgNode, summary);
+                    this.ComputeGivesUpSetForArgument(arg.Expression, cfgNode, summary);
                 }
             }
             else if (create.ArgumentList.Arguments[0].Expression is BinaryExpressionSyntax &&
@@ -328,15 +351,14 @@ namespace Microsoft.PSharp.StaticAnalysis
                     as BinaryExpressionSyntax;
                 if ((binExpr.Left is IdentifierNameSyntax) || (binExpr.Left is MemberAccessExpressionSyntax))
                 {
-                    MethodSummaryAnalysis.ComputeGivesUpSetForArgument(binExpr.Left,
-                        cfgNode, summary);
+                    this.ComputeGivesUpSetForArgument(binExpr.Left, cfgNode, summary);
                 }
                 else if (binExpr.Left is InvocationExpressionSyntax)
                 {
                     var invocation = binExpr.Left as InvocationExpressionSyntax;
                     for (int i = 1; i < invocation.ArgumentList.Arguments.Count; i++)
                     {
-                        MethodSummaryAnalysis.ComputeGivesUpSetForArgument(invocation.ArgumentList.
+                        this.ComputeGivesUpSetForArgument(invocation.ArgumentList.
                             Arguments[i].Expression, cfgNode, summary);
                     }
                 }
@@ -344,7 +366,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             else if ((create.ArgumentList.Arguments[0].Expression is IdentifierNameSyntax) ||
                 (create.ArgumentList.Arguments[0].Expression is MemberAccessExpressionSyntax))
             {
-                MethodSummaryAnalysis.ComputeGivesUpSetForArgument(create.ArgumentList.
+                this.ComputeGivesUpSetForArgument(create.ArgumentList.
                     Arguments[0].Expression, cfgNode, summary);
             }
 
@@ -358,7 +380,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="cfgNode">ControlFlowGraphNode</param>
         /// <param name="summary">MethodSummary</param>
         /// <returns>Boolean value</returns>
-        private static bool TryComputeGivesUpSetForGenericControlFlowGraphNode(ControlFlowGraphNode cfgNode,
+        private bool TryComputeGivesUpSetForGenericControlFlowGraphNode(ControlFlowGraphNode cfgNode,
             MethodSummary summary)
         {
             var callLocalDecl = cfgNode.SyntaxNodes.First() as LocalDeclarationStatementSyntax;
@@ -379,7 +401,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 return false;
             }
 
-            var model = AnalysisContext.Compilation.GetSemanticModel(call.SyntaxTree);
+            var model = this.AnalysisContext.Compilation.GetSemanticModel(call.SyntaxTree);
 
             if (call.Expression is MemberAccessExpressionSyntax)
             {
@@ -406,10 +428,11 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             var callSymbol = model.GetSymbolInfo(call).Symbol;
-            var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol, ProgramInfo.Solution).Result;
+            var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol,
+                this.AnalysisContext.Solution).Result;
             var calleeMethod = definition.DeclaringSyntaxReferences.First().GetSyntax()
                 as BaseMethodDeclarationSyntax;
-            var calleeSummary = MethodSummary.Factory.Summarize(calleeMethod);
+            var calleeSummary = MethodSummary.Factory.Summarize(this.AnalysisContext, calleeMethod);
 
             foreach (int idx in calleeSummary.GivesUpSet)
             {
@@ -419,8 +442,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                         as ObjectCreationExpressionSyntax;
                     foreach (var arg in objCreation.ArgumentList.Arguments)
                     {
-                        MethodSummaryAnalysis.ComputeGivesUpSetForArgument(
-                            arg.Expression, cfgNode, summary);
+                        this.ComputeGivesUpSetForArgument(arg.Expression, cfgNode, summary);
                     }
                 }
                 else if (call.ArgumentList.Arguments[idx].Expression is BinaryExpressionSyntax &&
@@ -430,15 +452,14 @@ namespace Microsoft.PSharp.StaticAnalysis
                         as BinaryExpressionSyntax;
                     if ((binExpr.Left is IdentifierNameSyntax) || (binExpr.Left is MemberAccessExpressionSyntax))
                     {
-                        MethodSummaryAnalysis.ComputeGivesUpSetForArgument(binExpr.Left,
-                            cfgNode, summary);
+                        this.ComputeGivesUpSetForArgument(binExpr.Left, cfgNode, summary);
                     }
                     else if (binExpr.Left is InvocationExpressionSyntax)
                     {
                         var invocation = binExpr.Left as InvocationExpressionSyntax;
                         for (int i = 1; i < invocation.ArgumentList.Arguments.Count; i++)
                         {
-                            MethodSummaryAnalysis.ComputeGivesUpSetForArgument(invocation.ArgumentList.
+                            this.ComputeGivesUpSetForArgument(invocation.ArgumentList.
                                 Arguments[i].Expression, cfgNode, summary);
                         }
                     }
@@ -446,8 +467,8 @@ namespace Microsoft.PSharp.StaticAnalysis
                 else if ((call.ArgumentList.Arguments[idx].Expression is IdentifierNameSyntax) ||
                     (call.ArgumentList.Arguments[idx].Expression is MemberAccessExpressionSyntax))
                 {
-                    MethodSummaryAnalysis.ComputeGivesUpSetForArgument(call.ArgumentList.
-                        Arguments[idx].Expression, cfgNode, summary);
+                    this.ComputeGivesUpSetForArgument(call.ArgumentList.Arguments[idx].
+                        Expression, cfgNode, summary);
                 }
             }
 
@@ -460,22 +481,23 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="arg">Argument</param>
         /// <param name="cfgNode">ControlFlowGraphNode</param>
         /// <param name="summary">MethodSummary</param>
-        private static void ComputeGivesUpSetForArgument(ExpressionSyntax arg, ControlFlowGraphNode cfgNode,
+        private void ComputeGivesUpSetForArgument(ExpressionSyntax arg, ControlFlowGraphNode cfgNode,
             MethodSummary summary)
         {
-            var model = AnalysisContext.Compilation.GetSemanticModel(arg.SyntaxTree);
+            var model = this.AnalysisContext.Compilation.GetSemanticModel(arg.SyntaxTree);
             if (arg is IdentifierNameSyntax || arg is MemberAccessExpressionSyntax)
             {
                 for (int idx = 0; idx < summary.Method.ParameterList.Parameters.Count; idx++)
                 {
-                    if (Utilities.IsTypeAllowedToBeSend(summary.Method.ParameterList.Parameters[idx].Type, model))
+                    if (this.AnalysisContext.IsTypeAllowedToBeSend(summary.Method.ParameterList.
+                        Parameters[idx].Type, model))
                     {
                         continue;
                     }
 
                     var paramSymbol = model.GetDeclaredSymbol(summary.Method.ParameterList.Parameters[idx]);
                     if (DataFlowAnalysis.FlowsFromTarget(arg, paramSymbol, summary.Node.SyntaxNodes.First(),
-                        summary.Node, cfgNode.SyntaxNodes.First(), cfgNode, model))
+                        summary.Node, cfgNode.SyntaxNodes.First(), cfgNode, model, this.AnalysisContext))
                     {
                         summary.GivesUpSet.Add(idx);
                     }
@@ -486,8 +508,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 var payload = arg as ObjectCreationExpressionSyntax;
                 foreach (var item in payload.ArgumentList.Arguments)
                 {
-                    MethodSummaryAnalysis.ComputeGivesUpSetForArgument(item.Expression,
-                        cfgNode, summary);
+                    this.ComputeGivesUpSetForArgument(item.Expression, cfgNode, summary);
                 }
             }
         }

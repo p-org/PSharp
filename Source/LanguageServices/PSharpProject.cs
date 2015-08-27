@@ -19,6 +19,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Microsoft.PSharp.LanguageServices.Compilation;
 using Microsoft.PSharp.LanguageServices.Parsing;
 using Microsoft.PSharp.Tooling;
 
@@ -30,6 +31,11 @@ namespace Microsoft.PSharp.LanguageServices
     public sealed class PSharpProject
     {
         #region fields
+
+        /// <summary>
+        /// The compilation context.
+        /// </summary>
+        internal CompilationContext CompilationContext;
 
         /// <summary>
         /// The P# project name.
@@ -65,6 +71,7 @@ namespace Microsoft.PSharp.LanguageServices
         /// </summary>
         public PSharpProject()
         {
+            this.CompilationContext = CompilationContext.Create();
             this.PSharpPrograms = new List<PSharpProgram>();
             this.CSharpPrograms = new List<CSharpProgram>();
             this.PPrograms = new List<PProgram>();
@@ -74,11 +81,25 @@ namespace Microsoft.PSharp.LanguageServices
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="projectName">Project name</param>
-        public PSharpProject(string projectName)
+        /// <param name="context">CompilationContext</param>
+        public PSharpProject(CompilationContext context)
         {
-            this.Name = projectName;
+            this.CompilationContext = context;
+            this.PSharpPrograms = new List<PSharpProgram>();
+            this.CSharpPrograms = new List<CSharpProgram>();
+            this.PPrograms = new List<PProgram>();
+            this.ProgramMap = new Dictionary<IPSharpProgram, SyntaxTree>();
+        }
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="context">CompilationContext</param>
+        /// <param name="projectName">Project name</param>
+        public PSharpProject(CompilationContext context, string projectName)
+        {
+            this.CompilationContext = context;
+            this.Name = projectName;
             this.PSharpPrograms = new List<PSharpProgram>();
             this.CSharpPrograms = new List<CSharpProgram>();
             this.PPrograms = new List<PProgram>();
@@ -90,20 +111,20 @@ namespace Microsoft.PSharp.LanguageServices
         /// </summary>
         public void Parse()
         {
-            var project = ProgramInfo.GetProjectWithName(this.Name);
+            var project = this.CompilationContext.GetProjectWithName(this.Name);
             var compilation = project.GetCompilationAsync().Result;
 
             foreach (var tree in compilation.SyntaxTrees.ToList())
             {
-                if (ProgramInfo.IsPSharpFile(tree))
+                if (this.CompilationContext.IsPSharpFile(tree))
                 {
                     this.ParsePSharpSyntaxTree(tree);
                 }
-                else if (ProgramInfo.IsCSharpFile(tree))
+                else if (this.CompilationContext.IsCSharpFile(tree))
                 {
                     this.ParseCSharpSyntaxTree(tree);
                 }
-                else if (ProgramInfo.IsPFile(tree))
+                else if (this.CompilationContext.IsPFile(tree))
                 {
                     this.ParsePSyntaxTree(tree);
                 }
@@ -144,7 +165,7 @@ namespace Microsoft.PSharp.LanguageServices
 
         #endregion
 
-        #region private API
+        #region private methods
 
         /// <summary>
         /// Parses a P# syntax tree to C#.
@@ -201,8 +222,8 @@ namespace Microsoft.PSharp.LanguageServices
         {
             program.Rewrite();
 
-            var project = ProgramInfo.GetProjectWithName(this.Name);
-            ProgramInfo.ReplaceSyntaxTree(program.GetSyntaxTree(), project);
+            var project = this.CompilationContext.GetProjectWithName(this.Name);
+            this.CompilationContext.ReplaceSyntaxTree(program.GetSyntaxTree(), project);
         }
 
         #endregion

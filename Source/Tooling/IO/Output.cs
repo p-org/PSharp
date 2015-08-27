@@ -22,6 +22,22 @@ namespace Microsoft.PSharp.Tooling
 {
     internal static class Output
     {
+        #region fields
+
+        internal static bool Debugging;
+
+        #endregion
+
+        #region API
+
+        /// <summary>
+        /// Static constructor.
+        /// </summary>
+        static Output()
+        {
+            Output.Debugging = false;
+        }
+
         /// <summary>
         /// Formats the given string.
         /// </summary>
@@ -89,11 +105,6 @@ namespace Microsoft.PSharp.Tooling
         /// <param name="args">Arguments</param>
         internal static void Log(string s, params object[] args)
         {
-            if (!Configuration.Logging)
-            {
-                return;
-            }
-
             string message = Output.Format(s, args);
             Console.WriteLine(message);
         }
@@ -101,15 +112,13 @@ namespace Microsoft.PSharp.Tooling
         /// <summary>
         /// Prints the debugging information, followed by the current
         /// line terminator, to the output stream. The print occurs
-        /// only if the given debugging type is active.
+        /// only if debugging is enabled.
         /// </summary>
-        /// <param name="type">DebugType</param>
         /// <param name="s">String</param>
         /// <param name="args">Arguments</param>
-        internal static void Debug(DebugType type, string s, params object[] args)
+        internal static void Debug(string s, params object[] args)
         {
-            if (!Configuration.Debugging.Contains(DebugType.Any) &&
-                !Configuration.Debugging.Contains(type))
+            if (!Output.Debugging)
             {
                 return;
             }
@@ -117,5 +126,7 @@ namespace Microsoft.PSharp.Tooling
             string message = Output.Format(s, args);
             Console.WriteLine(message);
         }
+
+        #endregion
     }
 }

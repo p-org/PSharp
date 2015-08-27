@@ -79,7 +79,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
         #endregion
 
-        #region private API
+        #region private methods
 
         /// <summary>
         /// Checks that a state does not have a liveness attribute.

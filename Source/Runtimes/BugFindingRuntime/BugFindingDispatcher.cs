@@ -18,6 +18,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
+using Microsoft.PSharp.Tooling;
+
 namespace Microsoft.PSharp
 {
     /// <summary>
@@ -144,11 +146,13 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Notifies that a default handler has been used.
+        /// Logs the given text with the runtime.
         /// </summary>
-        void IDispatcher.NotifyDefaultHandlerFired()
+        /// <param name="s">String</param>
+        /// <param name="args">Arguments</param>
+        void IDispatcher.Log(string s, params object[] args)
         {
-            PSharpRuntime.NotifyDefaultHandlerFired();
+            Output.Log(s, args);
         }
 
         /// <summary>
@@ -167,6 +171,14 @@ namespace Microsoft.PSharp
         void IDispatcher.NotifyReceivedEvent(MachineId mid)
         {
             PSharpRuntime.NotifyReceivedEvent(mid);
+        }
+
+        /// <summary>
+        /// Notifies that a default handler has been used.
+        /// </summary>
+        void IDispatcher.NotifyDefaultHandlerFired()
+        {
+            PSharpRuntime.NotifyDefaultHandlerFired();
         }
 
         /// <summary>

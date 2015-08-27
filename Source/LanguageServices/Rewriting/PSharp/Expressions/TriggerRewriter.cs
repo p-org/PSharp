@@ -64,7 +64,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 
         #endregion
 
-        #region private API
+        #region private methods
 
         /// <summary>
         /// Rewrites the expression with a trigger expression.

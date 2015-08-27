@@ -38,8 +38,8 @@ start state S { }
 }";
 
             var tokens = new PSharpLexer().Tokenize(test);
-            var program = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false).
-                ParseTokens(tokens);
+            var program = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), false).ParseTokens(tokens);
             program.Rewrite();
 
             var expected = @"
@@ -73,8 +73,8 @@ start state S { }
 }";
 
             var tokens = new PSharpLexer().Tokenize(test);
-            var program = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false).
-                ParseTokens(tokens);
+            var program = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), false).ParseTokens(tokens);
             program.Rewrite();
 
             var expected = @"
@@ -108,8 +108,8 @@ start state S { }
 }";
 
             var tokens = new PSharpLexer().Tokenize(test);
-            var program = new PSharpParser(new PSharpProject(), SyntaxFactory.ParseSyntaxTree(test), false).
-                ParseTokens(tokens);
+            var program = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), false).ParseTokens(tokens);
             program.Rewrite();
 
             var expected = @"

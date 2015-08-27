@@ -19,8 +19,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Microsoft.PSharp.LanguageServices.Compilation;
 using Microsoft.PSharp.LanguageServices.Syntax;
-using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp.LanguageServices
 {
@@ -63,7 +63,7 @@ namespace Microsoft.PSharp.LanguageServices
         public override void Rewrite()
         {
             var text = "";
-            if (Configuration.RunStaticAnalysis || Configuration.RunDynamicAnalysis)
+            if (base.Project.CompilationContext.ActiveCompilationTarget == CompilationTarget.Testing)
             {
                 foreach (var node in this.EventDeclarations)
                 {
@@ -99,7 +99,7 @@ namespace Microsoft.PSharp.LanguageServices
 
         #endregion
 
-        #region private API
+        #region private methods
 
         /// <summary>
         /// Inserts the P# libraries.

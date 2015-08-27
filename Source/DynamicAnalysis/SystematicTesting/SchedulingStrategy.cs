@@ -17,7 +17,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
     /// <summary>
     /// P# runtime scheduling strategy.
     /// </summary>
-    internal enum SchedulingStrategy
+    public enum SchedulingStrategy
     {
         /// <summary>
         /// Random scheduling.

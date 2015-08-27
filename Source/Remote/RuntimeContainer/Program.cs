@@ -27,10 +27,11 @@ namespace Microsoft.PSharp.Remote
 
         static void Main(string[] args)
         {
-            // Parses the command line options.
-            new RuntimeContainerCommandLineOptions(args).Parse();
+            // Parses the command line options to get the configuration.
+            var configuration = new RuntimeContainerCommandLineOptions(args).
+                Parse() as RuntimeContainerConfiguration;
 
-            Container.Configure();
+            Container.Configure(configuration);
             Container.Run();
 
             Output.PrettyPrintLine(". Done");

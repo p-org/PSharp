@@ -31,6 +31,11 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
         #region fields
 
         /// <summary>
+        /// The analysis context.
+        /// </summary>
+        protected AnalysisContext AnalysisContext;
+
+        /// <summary>
         /// Nondeterminitic seed.
         /// </summary>
         private int Seed;
@@ -52,24 +57,28 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="seed">Seed</param>
-        public RandomStrategy(int seed)
+        /// <param name="context">AnalysisContext</param>
+        public RandomStrategy(AnalysisContext context)
         {
-            this.Seed = seed;
+            this.AnalysisContext = context;
+            this.Seed = this.AnalysisContext.Configuration.RandomSchedulingSeed
+                ?? DateTime.Now.Millisecond;
             this.SchedulingSteps = 0;
-            this.Random = new Random(seed);
+            this.Random = new Random(this.Seed);
         }
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="seed">Seed</param>
+        /// <param name="context">AnalysisContext</param>
         /// <param name="seed">Scheduling steps</param>
-        public RandomStrategy(int seed, int steps)
+        public RandomStrategy(AnalysisContext context, int steps)
         {
-            this.Seed = seed;
+            this.AnalysisContext = context;
+            this.Seed = this.AnalysisContext.Configuration.RandomSchedulingSeed
+                ?? DateTime.Now.Millisecond;
             this.SchedulingSteps = steps;
-            this.Random = new Random(seed);
+            this.Random = new Random(this.Seed);
         }
 
         /// <summary>
@@ -138,7 +147,7 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
         /// <returns>Depth bound</returns>  
         public int GetDepthBound()
         {
-            return Configuration.DepthBound;
+            return this.AnalysisContext.Configuration.DepthBound;
         }
 
         /// <summary>
@@ -148,7 +157,7 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
         /// <returns>Depth bound</returns>
         public bool HasReachedDepthBound()
         {
-            if (Configuration.DepthBound == 0)
+            if (this.AnalysisContext.Configuration.DepthBound == 0)
             {
                 return false;
             }

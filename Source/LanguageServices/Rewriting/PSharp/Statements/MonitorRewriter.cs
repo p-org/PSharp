@@ -20,7 +20,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-using Microsoft.PSharp.Tooling;
+using Microsoft.PSharp.LanguageServices.Compilation;
 
 namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 {
@@ -78,7 +78,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 
         #endregion
 
-        #region private API
+        #region private methods
 
         /// <summary>
         /// Rewrites the statement with a monitor statement.
@@ -87,8 +87,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// <returns>StatementSyntax</returns>
         private SyntaxNode RewriteStatement(InvocationExpressionSyntax node)
         {
-            if (!Configuration.RunStaticAnalysis &&
-                !Configuration.RunDynamicAnalysis)
+            if (this.Project.CompilationContext.ActiveCompilationTarget != CompilationTarget.Testing)
             {
                 this.ToRemove.Add(node.Parent);
                 return node;

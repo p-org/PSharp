@@ -189,7 +189,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
 
         #endregion
 
-        #region private API
+        #region private methods
 
         /// <summary>
         /// Consumes the next token in the stream. Does nothing 

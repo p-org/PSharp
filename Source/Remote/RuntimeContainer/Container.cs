@@ -36,6 +36,11 @@ namespace Microsoft.PSharp.Remote
         #region fields
 
         /// <summary>
+        /// Configuration.
+        /// </summary>
+        private static RuntimeContainerConfiguration Configuration;
+
+        /// <summary>
         /// The notification listening service.
         /// </summary>
         private static ServiceHost NotificationService;
@@ -57,8 +62,11 @@ namespace Microsoft.PSharp.Remote
         /// <summary>
         /// Configures the container.
         /// </summary>
-        internal static void Configure()
+        /// <param name="configuration">Configuration</param>
+        internal static void Configure(RuntimeContainerConfiguration configuration)
         {
+            Container.Configuration = configuration;
+
             Output.PrettyPrintLine(". Setting up");
 
             Container.LoadApplicationAssembly();
@@ -102,7 +110,7 @@ namespace Microsoft.PSharp.Remote
 
         #endregion
 
-        #region private API
+        #region private methods
 
         /// <summary>
         /// Loads the application assembly.

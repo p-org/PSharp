@@ -27,6 +27,11 @@ namespace Microsoft.PSharp.StaticAnalysis
         #region fields
 
         /// <summary>
+        /// The analysis context.
+        /// </summary>
+        private AnalysisContext AnalysisContext;
+
+        /// <summary>
         /// The unique ID of the node.
         /// </summary>
         internal int Id;
@@ -87,9 +92,12 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Default constructor.
         /// </summary>
+        /// <param name="context">AnalysisContext</param>
         /// <param name="machine">Machine</param>
-        internal StateTransitionGraphNode(ClassDeclarationSyntax state, ClassDeclarationSyntax machine)
+        internal StateTransitionGraphNode(AnalysisContext context, ClassDeclarationSyntax state,
+            ClassDeclarationSyntax machine)
         {
+            this.AnalysisContext = context;
             this.Id = StateTransitionGraphNode.IdCounter++;
             this.State = state;
             this.Machine = machine;
@@ -153,7 +161,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             foreach (var method in this.State.ChildNodes().OfType<MethodDeclarationSyntax>())
             {
-                var summary = MethodSummary.Factory.Summarize(method);
+                var summary = MethodSummary.Factory.Summarize(this.AnalysisContext, method);
                 if (method.Modifiers.Any(SyntaxKind.OverrideKeyword) &&
                     method.Identifier.ValueText.Equals("OnEntry"))
                 {
@@ -174,7 +182,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             foreach (var action in actions)
             {
-                var actionSummary = MethodSummary.Factory.Summarize(action);
+                var actionSummary = MethodSummary.Factory.Summarize(this.AnalysisContext, action);
                 this.Actions.Add(actionSummary);
             }
 
@@ -194,7 +202,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 }
                 else
                 {
-                    successor = new StateTransitionGraphNode(successorState, this.Machine);
+                    successor = new StateTransitionGraphNode(this.AnalysisContext, successorState, this.Machine);
                     this.ISuccessors.Add(successor);
                     successor.IPredecessors.Add(this);
                     successor.Construct(stateTransitions, actionBindings, visited);
