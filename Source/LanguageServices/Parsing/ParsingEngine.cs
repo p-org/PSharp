@@ -13,15 +13,9 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-
 using Microsoft.PSharp.LanguageServices.Compilation;
-using Microsoft.PSharp.Tooling;
 
 namespace Microsoft.PSharp.LanguageServices.Parsing
 {
@@ -37,11 +31,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// </summary>
         private CompilationContext CompilationContext;
 
-        /// <summary>
-        /// List of P# projects.
-        /// </summary>
-        private List<PSharpProject> PSharpProjects;
-
         #endregion
 
         #region public API
@@ -50,7 +39,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// Creates a P# parsing engine.
         /// </summary>
         /// <param name="context">CompilationContext</param>
-        /// <returns></returns>
+        /// <returns>ParsingEngine</returns>
         public static ParsingEngine Create(CompilationContext context)
         {
             return new ParsingEngine(context);
@@ -61,28 +50,26 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// </summary>
         public void Run()
         {
-            this.PSharpProjects = new List<PSharpProject>();
-            
             // Parse the projects.
             if (this.CompilationContext.Configuration.ProjectName.Equals(""))
             {
-                foreach (var project in this.CompilationContext.Solution.Projects)
+                foreach (var project in this.CompilationContext.GetSolution().Projects)
                 {
                     var psharpProject = new PSharpProject(this.CompilationContext, project.Name);
                     psharpProject.Parse();
-                    this.PSharpProjects.Add(psharpProject);
+                    this.CompilationContext.GetProjects().Add(psharpProject);
                 }
             }
             else
             {
                 // Find the project specified by the user.
-                var targetProject = this.CompilationContext.Solution.Projects.Where(
+                var targetProject = this.CompilationContext.GetSolution().Projects.Where(
                     p => p.Name.Equals(this.CompilationContext.Configuration.ProjectName)).FirstOrDefault();
 
-                var projectDependencyGraph = this.CompilationContext.Solution.GetProjectDependencyGraph();
+                var projectDependencyGraph = this.CompilationContext.GetSolution().GetProjectDependencyGraph();
                 var projectDependencies = projectDependencyGraph.GetProjectsThatThisProjectTransitivelyDependsOn(targetProject.Id);
 
-                foreach (var project in this.CompilationContext.Solution.Projects)
+                foreach (var project in this.CompilationContext.GetSolution().Projects)
                 {
                     if (!projectDependencies.Contains(project.Id) && !project.Id.Equals(targetProject.Id))
                     {
@@ -91,14 +78,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
 
                     var psharpProject = new PSharpProject(this.CompilationContext, project.Name);
                     psharpProject.Parse();
-                    this.PSharpProjects.Add(psharpProject);
+                    this.CompilationContext.GetProjects().Add(psharpProject);
                 }
-            }
-
-            // Rewrite the projects.
-            for (int idx = 0; idx < this.PSharpProjects.Count; idx++)
-            {
-                this.PSharpProjects[idx].Rewrite();
             }
         }
 

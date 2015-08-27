@@ -20,20 +20,16 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
     public enum CompilationTarget
     {
         /// <summary>
-        /// Enables all compilation targets.
-        /// </summary>
-        All = 0,
-        /// <summary>
         /// Enables execution compilation target.
         /// </summary>
-        Execution = 1,
+        Execution = 0,
         /// <summary>
         /// Enables testing compilation target.
         /// </summary>
-        Testing = 2,
+        Testing = 1,
         /// <summary>
         /// Enables distribution compilation target.
         /// </summary>
-        Distribution = 3
+        Distribution = 2
     }
 }

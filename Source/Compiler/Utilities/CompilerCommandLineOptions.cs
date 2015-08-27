@@ -45,21 +45,25 @@ namespace Microsoft.PSharp.Tooling
             var configuration = base.Configuration as LanguageServicesConfiguration;
             if (option.ToLower().StartsWith("/t:") && option.Length > 3)
             {
-                if (option.ToLower().Substring(3).Equals("all"))
+                if (option.ToLower().Substring(3).Equals("execution"))
                 {
-                    configuration.CompilationTarget = CompilationTarget.All;
-                }
-                else if (option.ToLower().Substring(3).Equals("execution"))
-                {
-                    configuration.CompilationTarget = CompilationTarget.Execution;
+                    configuration.CompilationTargets.Clear();
+                    configuration.CompilationTargets.Add(CompilationTarget.Execution);
                 }
                 else if (option.ToLower().Substring(3).Equals("testing"))
                 {
-                    configuration.CompilationTarget = CompilationTarget.Testing;
+                    configuration.CompilationTargets.Clear();
+                    configuration.CompilationTargets.Add(CompilationTarget.Testing);
                 }
                 else if (option.ToLower().Substring(3).Equals("distribution"))
                 {
-                    configuration.CompilationTarget = CompilationTarget.Distribution;
+                    configuration.CompilationTargets.Clear();
+                    configuration.CompilationTargets.Add(CompilationTarget.Distribution);
+                }
+                else
+                {
+                    ErrorReporter.ReportAndExit("Please give a valid compilation target '/t:[x]', " +
+                        "where [x] is 'all', 'execution', 'testing' or 'distribution'.");
                 }
             }
             else if (option.ToLower().Equals("/analyze"))
@@ -106,15 +110,6 @@ namespace Microsoft.PSharp.Tooling
             {
                 ErrorReporter.ReportAndExit("Please give a valid solution path.");
             }
-
-            if (configuration.CompilationTarget != CompilationTarget.All &&
-                configuration.CompilationTarget != CompilationTarget.Execution &&
-                configuration.CompilationTarget != CompilationTarget.Testing &&
-                configuration.CompilationTarget != CompilationTarget.Distribution)
-            {
-                ErrorReporter.ReportAndExit("Please give a valid compilation target '/t:[x]', " +
-                    "where [x] is 'all', 'execution', 'testing' or 'distribution'.");
-            }
         }
 
         /// <summary>
@@ -138,7 +133,7 @@ namespace Microsoft.PSharp.Tooling
             help += "\n\n--------------------";
             help += "\nCompilation options:";
             help += "\n--------------------";
-            help += "\n  /t:[x]\t The compilation target (default is 'all')";
+            help += "\n  /t:[x]\t The compilation target (default is 'execution' and 'testing')";
 
             help += "\n\n---------------------------";
             help += "\nExperimental options:";

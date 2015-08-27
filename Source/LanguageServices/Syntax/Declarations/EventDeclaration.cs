@@ -121,7 +121,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             var text = "";
 
             if ((this.Program as AbstractPSharpProgram).Project.CompilationContext.
-                Configuration.CompilationTarget == CompilationTarget.Distribution)
+                ActiveCompilationTarget == CompilationTarget.Distribution)
             {
                 text += "[System.Runtime.Serialization.DataContract]\n";
             }

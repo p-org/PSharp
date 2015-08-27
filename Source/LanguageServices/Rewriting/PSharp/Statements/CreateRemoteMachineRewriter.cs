@@ -115,7 +115,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
                     (models as LocalDeclarationStatementSyntax).Declaration.
                     Type.ToString().Equals("models"))
                 {
-                    if (this.Project.CompilationContext.Configuration.CompilationTarget != CompilationTarget.Testing)
+                    if (this.Project.CompilationContext.ActiveCompilationTarget != CompilationTarget.Testing)
                     {
                         machineIdentifier = (models as LocalDeclarationStatementSyntax).
                             Declaration.Variables[0].Identifier.ValueText;
@@ -133,7 +133,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
             var text = "";
             if (base.IsMonitor(machineIdentifier))
             {
-                if (this.Project.CompilationContext.Configuration.CompilationTarget != CompilationTarget.Testing)
+                if (this.Project.CompilationContext.ActiveCompilationTarget != CompilationTarget.Testing)
                 {
                     this.ToRemove.Add(node);
                     if (models != null)
@@ -146,7 +146,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 
                 text += "this.CreateMonitor";
             }
-            else if (this.Project.CompilationContext.Configuration.CompilationTarget == CompilationTarget.Distribution)
+            else if (this.Project.CompilationContext.ActiveCompilationTarget == CompilationTarget.Distribution)
             {
                 text += "this.CreateRemoteMachine";
             }

@@ -49,10 +49,15 @@ namespace Microsoft.PSharp
         /// </summary>
         public void Start()
         {
-            Output.PrintLine(". Compiling");
+            foreach (var target in this.CompilationContext.Configuration.CompilationTargets)
+            {
+                Output.PrintLine(". Compiling for " + target);
 
-            // Creates and runs a P# compilation engine.
-            CompilationEngine.Create(this.CompilationContext).Run();
+                this.CompilationContext.ActiveCompilationTarget = target;
+
+                // Creates and runs a P# compilation engine.
+                CompilationEngine.Create(this.CompilationContext).Run();
+            }
         }
 
         #endregion

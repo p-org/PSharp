@@ -87,7 +87,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// <returns>StatementSyntax</returns>
         private SyntaxNode RewriteStatement(InvocationExpressionSyntax node)
         {
-            if (this.Project.CompilationContext.Configuration.CompilationTarget != CompilationTarget.Testing)
+            if (this.Project.CompilationContext.ActiveCompilationTarget != CompilationTarget.Testing)
             {
                 this.ToRemove.Add(node.Parent);
                 return node;

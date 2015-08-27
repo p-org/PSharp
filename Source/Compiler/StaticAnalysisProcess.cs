@@ -59,7 +59,7 @@ namespace Microsoft.PSharp
                 return;
             }
 
-            foreach (var project in this.CompilationContext.Solution.Projects)
+            foreach (var project in this.CompilationContext.GetSolution().Projects)
             {
                 Output.PrintLine(". Analyzing " + project.Name);
                 this.AnalyzeProject(project);

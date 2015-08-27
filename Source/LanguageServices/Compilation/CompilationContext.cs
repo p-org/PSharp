@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -36,9 +37,19 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         internal LanguageServicesConfiguration Configuration;
 
         /// <summary>
-        /// The solution of the P# program.
+        /// The active compilation target.
         /// </summary>
-        internal Solution Solution;
+        internal CompilationTarget ActiveCompilationTarget;
+
+        /// <summary>
+        /// The solution of the P# program per compilation target.
+        /// </summary>
+        private Dictionary<CompilationTarget, Solution> SolutionMap;
+
+        /// <summary>
+        /// List of P# projects per compilation target.
+        /// </summary>
+        private Dictionary<CompilationTarget, List<PSharpProject>> PSharpProjectMap;
 
         /// <summary>
         /// True if program info has been initialized.
@@ -53,7 +64,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// Create a new P# compilation context using the default
         /// configuration.
         /// </summary>
-        /// <returns>AnalysisContext</returns>
+        /// <returns>CompilationContext</returns>
         public static CompilationContext Create()
         {
             var configuration = new LanguageServicesConfiguration();
@@ -64,7 +75,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// Create a new P# compilation context.
         /// </summary>
         /// <param name="configuration">Configuration</param>
-        /// <returns>AnalysisContext</returns>
+        /// <returns>CompilationContext</returns>
         public static CompilationContext Create(LanguageServicesConfiguration configuration)
         {
             return new CompilationContext(configuration);
@@ -77,11 +88,12 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         {
             // Create a new workspace.
             var workspace = MSBuildWorkspace.Create();
+            Solution solution = null;
 
             try
             {
                 // Populate the workspace with the user defined solution.
-                this.Solution = (workspace as MSBuildWorkspace).OpenSolutionAsync(
+                solution = (workspace as MSBuildWorkspace).OpenSolutionAsync(
                     @"" + this.Configuration.SolutionFilePath + "").Result;
             }
             catch (AggregateException ex)
@@ -93,6 +105,8 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
                 ErrorReporter.ReportAndExit("Please give a valid solution path.");
             }
 
+            this.InstallCompilationTargets(solution);
+
             if (!this.Configuration.ProjectName.Equals(""))
             {
                 // Find the project specified by the user.
@@ -102,10 +116,30 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
                     ErrorReporter.ReportAndExit("Please give a valid project name.");
                 }
             }
-
+            
             this.HasInitialized = true;
 
             return this;
+        }
+
+        /// <summary>
+        /// Returns the P# solution associated with the active
+        /// compilation target.
+        /// </summary>
+        /// <returns>Solution</returns>
+        public Solution GetSolution()
+        {
+            return this.SolutionMap[this.ActiveCompilationTarget];
+        }
+
+        /// <summary>
+        /// Returns the P# projects associated with the active
+        /// compilation target.
+        /// </summary>
+        /// <returns>List of P# projects</returns>
+        public List<PSharpProject> GetProjects()
+        {
+            return this.PSharpProjectMap[this.ActiveCompilationTarget];
         }
 
         /// <summary>
@@ -115,7 +149,8 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <returns>Project</returns>
         public Project GetProjectWithName(string name)
         {
-            var project = this.Solution.Projects.Where(p => p.Name.Equals(name)).FirstOrDefault();
+            var project = this.SolutionMap[this.ActiveCompilationTarget].Projects.
+                Where(p => p.Name.Equals(name)).FirstOrDefault();
             return project;
         }
 
@@ -135,7 +170,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
             doc = doc.WithSyntaxRoot(tree.GetRoot());
             project = doc.Project;
 
-            this.Solution = project.Solution;
+            this.SolutionMap[this.ActiveCompilationTarget] = project.Solution;
 
             if (Output.Debugging)
             {
@@ -187,6 +222,22 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         private CompilationContext(LanguageServicesConfiguration configuration)
         {
             this.Configuration = configuration;
+            this.ActiveCompilationTarget = configuration.CompilationTargets.First();
+            this.SolutionMap = new Dictionary<CompilationTarget, Solution>();
+            this.PSharpProjectMap = new Dictionary<CompilationTarget, List<PSharpProject>>();
+        }
+
+        /// <summary>
+        /// Installs the requested compilation targets.
+        /// </summary>
+        /// <param name="solution">Solution</param>
+        private void InstallCompilationTargets(Solution solution)
+        {
+            foreach (var target in this.Configuration.CompilationTargets)
+            {
+                this.SolutionMap.Add(target, solution);
+                this.PSharpProjectMap.Add(target, new List<PSharpProject>());
+            }
         }
 
         /// <summary>

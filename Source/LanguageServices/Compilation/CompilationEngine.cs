@@ -70,13 +70,13 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
             this.ProjectAssemblyPathMap = new Dictionary<string, string>();
             this.OutputDirectoryMap = new Dictionary<string, string>();
 
-            var graph = this.CompilationContext.Solution.GetProjectDependencyGraph();
+            var graph = this.CompilationContext.GetSolution().GetProjectDependencyGraph();
 
             if (this.CompilationContext.Configuration.ProjectName.Equals(""))
             {
                 foreach (var projectId in graph.GetTopologicallySortedProjects())
                 {
-                    var project = this.CompilationContext.Solution.GetProject(projectId);
+                    var project = this.CompilationContext.GetSolution().GetProject(projectId);
                     this.CompileProject(project);
                     this.LinkSolutionAssembliesToProject(project, graph);
                 }
@@ -95,7 +95,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
                         continue;
                     }
 
-                    var project = this.CompilationContext.Solution.GetProject(projectId);
+                    var project = this.CompilationContext.GetSolution().GetProject(projectId);
                     this.CompileProject(project);
                     this.LinkSolutionAssembliesToProject(project, graph);
                 }
@@ -105,7 +105,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
             this.LinkAssemblyToAllProjects(typeof(Machine).Assembly, "Microsoft.PSharp.dll");
 
             // Links the P# runtime.
-            if (this.CompilationContext.Configuration.CompilationTarget == CompilationTarget.Testing)
+            if (this.CompilationContext.ActiveCompilationTarget == CompilationTarget.Testing)
             {
                 this.LinkAssemblyToAllProjects(typeof(BugFindingDispatcher).Assembly,
                     "Microsoft.PSharp.BugFindingRuntime.dll");
@@ -142,12 +142,12 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
             var runtimeDll = project.MetadataReferences.FirstOrDefault(val => val.Display.EndsWith(
                 Path.DirectorySeparatorChar + "Microsoft.PSharp.Runtime.dll"));
 
-            if (runtimeDll != null && this.CompilationContext.Configuration.CompilationTarget == CompilationTarget.Testing)
+            if (runtimeDll != null && this.CompilationContext.ActiveCompilationTarget == CompilationTarget.Testing)
             {
                 project = project.RemoveMetadataReference(runtimeDll);
             }
 
-            if (this.CompilationContext.Configuration.CompilationTarget == CompilationTarget.Testing &&
+            if (this.CompilationContext.ActiveCompilationTarget == CompilationTarget.Testing &&
                 !project.MetadataReferences.Any(val => val.Display.EndsWith(
                 Path.DirectorySeparatorChar + "Microsoft.PSharp.BugFindingRuntime.dll")))
             {
@@ -159,8 +159,8 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
 
             try
             {
-                if (this.CompilationContext.Configuration.CompilationTarget == CompilationTarget.Testing ||
-                    this.CompilationContext.Configuration.CompilationTarget == CompilationTarget.Distribution)
+                if (this.CompilationContext.ActiveCompilationTarget == CompilationTarget.Testing ||
+                    this.CompilationContext.ActiveCompilationTarget == CompilationTarget.Distribution)
                 {
                     this.ToFile(compilation, OutputKind.DynamicallyLinkedLibrary,
                         project.OutputFilePath);
@@ -293,7 +293,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
 
             foreach (var projectId in graph.GetProjectsThatThisProjectTransitivelyDependsOn(project.Id))
             {
-                var requiredProject = this.CompilationContext.Solution.GetProject(projectId);
+                var requiredProject = this.CompilationContext.GetSolution().GetProject(projectId);
                 var assemblyPath = this.ProjectAssemblyPathMap[requiredProject.AssemblyName];
                 var fileName = projectPath + Path.DirectorySeparatorChar + requiredProject.AssemblyName + ".dll";
 

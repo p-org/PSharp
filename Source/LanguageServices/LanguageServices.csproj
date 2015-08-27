@@ -96,6 +96,7 @@
     <Compile Include="Parsing\Parsers\PParser.cs" />
     <Compile Include="Parsing\Parsers\CSharpParser.cs" />
     <Compile Include="Parsing\Parsers\PSharpParser.cs" />
+    <Compile Include="Parsing\RewritingEngine.cs" />
     <Compile Include="Parsing\Visitors\Framework\BaseMachineVisitor.cs" />
     <Compile Include="Parsing\Visitors\Framework\MonitorStateDeclarationParser.cs" />
     <Compile Include="Parsing\Visitors\Framework\MonitorDeclarationParser.cs" />

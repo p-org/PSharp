@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="ParsingProcess.cs">
+// <copyright file="RewritingEngine.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -13,15 +13,14 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.PSharp.LanguageServices.Compilation;
-using Microsoft.PSharp.LanguageServices.Parsing;
 using Microsoft.PSharp.Tooling;
 
-namespace Microsoft.PSharp
+namespace Microsoft.PSharp.LanguageServices.Parsing
 {
     /// <summary>
-    /// A P# parsing process.
+    /// A P# rewriting engine.
     /// </summary>
-    internal sealed class ParsingProcess
+    public sealed class RewritingEngine
     {
         #region fields
 
@@ -32,29 +31,27 @@ namespace Microsoft.PSharp
 
         #endregion
 
-        #region API
+        #region public API
 
         /// <summary>
-        /// Creates a P# parsing process.
+        /// Creates a P# rewriting engine.
         /// </summary>
         /// <param name="context">CompilationContext</param>
-        /// <returns>ParsingProcess</returns>
-        public static ParsingProcess Create(CompilationContext context)
+        /// <returns>RewritingEngine</returns>
+        public static RewritingEngine Create(CompilationContext context)
         {
-            return new ParsingProcess(context);
+            return new RewritingEngine(context);
         }
 
         /// <summary>
-        /// Starts the P# parsing process.
+        /// Runs the P# rewriting engine.
         /// </summary>
-        public void Start()
+        public void Run()
         {
-            Output.PrintLine(". Parsing");
-
-            foreach (var target in this.CompilationContext.Configuration.CompilationTargets)
+            // Rewrite the projects for the active compilation target.
+            for (int idx = 0; idx < this.CompilationContext.GetProjects().Count; idx++)
             {
-                // Creates and runs a P# parsing engine.
-                ParsingEngine.Create(this.CompilationContext).Run();
+                this.CompilationContext.GetProjects()[idx].Rewrite();
             }
         }
 
@@ -66,7 +63,7 @@ namespace Microsoft.PSharp
         /// Constructor.
         /// </summary>
         /// <param name="context">CompilationContext</param>
-        private ParsingProcess(CompilationContext context)
+        private RewritingEngine(CompilationContext context)
         {
             this.CompilationContext = context;
         }

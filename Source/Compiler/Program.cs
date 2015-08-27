@@ -27,7 +27,7 @@ namespace Microsoft.PSharp
         static void Main(string[] args)
         {
             AppDomain currentDomain = AppDomain.CurrentDomain;
-            currentDomain.UnhandledException += new UnhandledExceptionEventHandler(UnhandledExceptionHandler);
+            //currentDomain.UnhandledException += new UnhandledExceptionEventHandler(UnhandledExceptionHandler);
 
             // Parses the command line options to get the configuration.
             var configuration = new CompilerCommandLineOptions(args).
@@ -38,6 +38,9 @@ namespace Microsoft.PSharp
 
             // Creates and starts a parsing process.
             ParsingProcess.Create(context).Start();
+
+            // Creates and starts a rewriting process.
+            RewritingProcess.Create(context).Start();
 
             // Creates and starts a compilation process.
             CompilationProcess.Create(context).Start();

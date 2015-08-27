@@ -12,6 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System.Collections.Generic;
 using Microsoft.PSharp.LanguageServices.Compilation;
 
 namespace Microsoft.PSharp.Tooling
@@ -21,9 +22,9 @@ namespace Microsoft.PSharp.Tooling
         #region options
 
         /// <summary>
-        /// Compilation target.
+        /// Requested compilation targets.
         /// </summary>
-        public CompilationTarget CompilationTarget;
+        public HashSet<CompilationTarget> CompilationTargets;
 
         /// <summary>
         /// Run the analysis stage of the compiler.
@@ -70,7 +71,9 @@ namespace Microsoft.PSharp.Tooling
         public LanguageServicesConfiguration()
             : base()
         {
-            this.CompilationTarget = CompilationTarget.All;
+            this.CompilationTargets = new HashSet<CompilationTarget>();
+            this.CompilationTargets.Add(CompilationTarget.Execution);
+            this.CompilationTargets.Add(CompilationTarget.Testing);
 
             this.RunStaticAnalysis = false;
             this.ShowGivesUpInformation = false;

@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="ParsingProcess.cs">
+// <copyright file="RewritingProcess.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -19,9 +19,9 @@ using Microsoft.PSharp.Tooling;
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// A P# parsing process.
+    /// A P# rewriting process.
     /// </summary>
-    internal sealed class ParsingProcess
+    internal sealed class RewritingProcess
     {
         #region fields
 
@@ -35,13 +35,13 @@ namespace Microsoft.PSharp
         #region API
 
         /// <summary>
-        /// Creates a P# parsing process.
+        /// Creates a P# rewriting process.
         /// </summary>
         /// <param name="context">CompilationContext</param>
-        /// <returns>ParsingProcess</returns>
-        public static ParsingProcess Create(CompilationContext context)
+        /// <returns>RewritingProcess</returns>
+        public static RewritingProcess Create(CompilationContext context)
         {
-            return new ParsingProcess(context);
+            return new RewritingProcess(context);
         }
 
         /// <summary>
@@ -49,12 +49,14 @@ namespace Microsoft.PSharp
         /// </summary>
         public void Start()
         {
-            Output.PrintLine(". Parsing");
+            Output.PrintLine(". Rewriting");
 
             foreach (var target in this.CompilationContext.Configuration.CompilationTargets)
             {
-                // Creates and runs a P# parsing engine.
-                ParsingEngine.Create(this.CompilationContext).Run();
+                this.CompilationContext.ActiveCompilationTarget = target;
+
+                // Creates and runs a P# rewriting engine.
+                RewritingEngine.Create(this.CompilationContext).Run();
             }
         }
 
@@ -66,7 +68,7 @@ namespace Microsoft.PSharp
         /// Constructor.
         /// </summary>
         /// <param name="context">CompilationContext</param>
-        private ParsingProcess(CompilationContext context)
+        private RewritingProcess(CompilationContext context)
         {
             this.CompilationContext = context;
         }
