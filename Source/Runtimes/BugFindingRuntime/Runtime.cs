@@ -416,7 +416,7 @@ namespace Microsoft.PSharp
             }
             else
             {
-                Output.Log("<SendLog> Event '{2}' was sent to '{3}({4})'.",
+                Output.Log("<SendLog> Event '{1}' was sent to '{2}({3})'.",
                     e.GetType(), mid.Type, mid.MVal);
             }
 
