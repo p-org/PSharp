@@ -139,30 +139,14 @@ namespace Microsoft.PSharp
         /// Blocks and waits to receive an event of the given types.
         /// </summary>
         /// <returns>Payload</returns>
-        public static Object Receive(params Type[] events)
+        public static Object Receive(Predicate<Event> eventPredicate)
         {
             PSharpRuntime.Assert(Task.CurrentId != null, "Only machines can wait to receive an event.");
             PSharpRuntime.Assert(PSharpRuntime.TaskMap.ContainsKey((int)Task.CurrentId),
                 "Only machines can wait to receive an event; task {0} does not belong to a machine.",
                 (int)Task.CurrentId);
             Machine machine = PSharpRuntime.TaskMap[(int)Task.CurrentId];
-            machine.Receive(events);
-            return machine.Payload;
-        }
-
-        /// <summary>
-        /// Blocks and waits to receive an event of the given types, and
-        /// executes a given action on receiving the event.
-        /// </summary>
-        /// <returns>Payload</returns>
-        public static Object Receive(params Tuple<Type, Action>[] events)
-        {
-            PSharpRuntime.Assert(Task.CurrentId != null, "Only machines can wait to receive an event.");
-            PSharpRuntime.Assert(PSharpRuntime.TaskMap.ContainsKey((int)Task.CurrentId),
-                "Only machines can wait to receive an event; task {0} does not belong to a machine.",
-                (int)Task.CurrentId);
-            Machine machine = PSharpRuntime.TaskMap[(int)Task.CurrentId];
-            machine.Receive(events);
+            machine.Receive(eventPredicate);
             return machine.Payload;
         }
 
