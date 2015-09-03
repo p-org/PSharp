@@ -8,7 +8,7 @@ An **actor-based** programming language and **concurrency unit testing** framewo
 - Fully interoperates with C#: the developer can **write any C# code** inside a P# program. P# is basically an extension of C#, build on top of the Roslyn, TPL and .NET frameworks, which not only makes P# easy to learn comparing with a completely new language, but also allows **easy integration with existing code**.
 
 ## Build instructions
-1. Get Visual Studio 2015 Preview (required for Microsoft Roslyn).
+1. Get Visual Studio 2015 (required for Microsoft Roslyn).
 2. Clone this project and compile using VS2015.
 
 Optional: Get the [Visual Studio 2015 SDK](https://www.microsoft.com/en-us/download/details.aspx?id=46850) to be able to compile the P# visual studio extension (syntax highlighting). Only for the high-level P# language.
