@@ -95,7 +95,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
                 this.CheckForInternalMethods(machine);
 
                 this.CheckForAtLeastOneState(machine, compilation);
-                this.CheckForNonStateClasses(machine, compilation);
+                this.CheckForNonStateNonEventClasses(machine, compilation);
                 this.CheckForStructs(machine);
                 this.CheckForStartState(machine, compilation);
 
@@ -440,14 +440,14 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         }
 
         /// <summary>
-        /// Checks that no non-state classes are declared inside the machine.
+        /// Checks that no non-state or non-event classes are declared inside the machine.
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="compilation">Compilation</param>
-        private void CheckForNonStateClasses(ClassDeclarationSyntax machine, CodeAnalysis.Compilation compilation)
+        private void CheckForNonStateNonEventClasses(ClassDeclarationSyntax machine, CodeAnalysis.Compilation compilation)
         {
             var classIdentifiers = machine.DescendantNodes().OfType<ClassDeclarationSyntax>().
-                Where(val => !this.IsState(compilation, val)).
+                Where(val => !this.IsState(compilation, val) && !Querying.IsEventDeclaration(compilation, val)).
                 Select(val => val.Identifier).
                 ToList();
 

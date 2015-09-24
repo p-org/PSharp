@@ -99,6 +99,42 @@ namespace Microsoft.PSharp.LanguageServices
         }
 
         /// <summary>
+        /// Returns true if the given class declaration is a P# event.
+        /// </summary>
+        /// <param name="compilation">Compilation</param>
+        /// <param name="classDecl">Class declaration</param>
+        /// <returns>Boolean value</returns>
+        internal static bool IsEventDeclaration(CodeAnalysis.Compilation compilation, ClassDeclarationSyntax classDecl)
+        {
+            var result = false;
+            if (classDecl.BaseList == null)
+            {
+                return result;
+            }
+
+            var model = compilation.GetSemanticModel(classDecl.SyntaxTree);
+            var symbol = model.GetDeclaredSymbol(classDecl);
+
+            while (true)
+            {
+                if (symbol.ToString() == typeof(Event).FullName)
+                {
+                    result = true;
+                    break;
+                }
+                else if (symbol.BaseType != null)
+                {
+                    symbol = symbol.BaseType;
+                    continue;
+                }
+
+                break;
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Returns true if the given class declaration is a P# monitor.
         /// </summary>
         /// <param name="compilation">Compilation</param>
