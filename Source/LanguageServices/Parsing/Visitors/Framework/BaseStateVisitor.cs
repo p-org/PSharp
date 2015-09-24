@@ -227,7 +227,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         {
             var model = compilation.GetSemanticModel(state.SyntaxTree);
 
-            var eventHandlers = state.AttributeLists.
+            var eventTypes = state.AttributeLists.
                 SelectMany(val => val.Attributes).
                 Where(val => model.GetTypeInfo(val).Type.ToDisplayString().Equals("Microsoft.PSharp.OnEventGotoState") ||
                   model.GetTypeInfo(val).Type.ToDisplayString().Equals("Microsoft.PSharp.OnEventPushState") ||
@@ -237,10 +237,19 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
                 Where(val => val.ArgumentList != null).
                 Where(val => val.ArgumentList.Arguments.Count > 0).
                 Where(val => val.ArgumentList.Arguments[0].Expression is TypeOfExpressionSyntax).
-                Select(val => val.ArgumentList.Arguments[0].Expression as TypeOfExpressionSyntax).
+                Select(val => val.ArgumentList.Arguments[0].Expression as TypeOfExpressionSyntax);
+
+            var eventHandlers = eventTypes.
+                Where(val => val.Type is IdentifierNameSyntax).
                 Select(val => val.Type as IdentifierNameSyntax).
                 Select(val => val.Identifier.ValueText).
                 ToList();
+
+            eventHandlers.AddRange(eventTypes.
+                Where(val => val.Type is QualifiedNameSyntax).
+                Select(val => val.Type as QualifiedNameSyntax).
+                Select(val => val.Right.Identifier.ValueText).
+                ToList());
 
             var eventOccurrences = eventHandlers.GroupBy(val => val);
 
