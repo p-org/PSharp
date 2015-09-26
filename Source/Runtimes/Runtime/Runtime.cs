@@ -113,31 +113,14 @@ namespace Microsoft.PSharp
         /// a payload, if there is any, else returns null.
         /// </summary>
         /// <returns>Payload</returns>
-        public static Object Receive(params Type[] events)
+        public static Object Receive(Predicate<Event> eventPredicate)
         {
             PSharpRuntime.Assert(Task.CurrentId != null, "Only machines can wait to receive an event.");
             PSharpRuntime.Assert(PSharpRuntime.TaskMap.ContainsKey((int)Task.CurrentId),
                 "Only machines can wait to receive an event; task {0} does not belong to a machine.",
                 (int)Task.CurrentId);
             Machine machine = PSharpRuntime.TaskMap[(int)Task.CurrentId];
-            machine.Receive(events);
-            return machine.Payload;
-        }
-
-        /// <summary>
-        /// Blocks and waits to receive an event of the given types, and
-        /// executes a given action on receiving the event. Returns a
-        /// payload, if there is any, else returns null.
-        /// </summary>
-        /// <returns>Payload</returns>
-        public static Object Receive(params Tuple<Type, Action>[] events)
-        {
-            PSharpRuntime.Assert(Task.CurrentId != null, "Only machines can wait to receive an event.");
-            PSharpRuntime.Assert(PSharpRuntime.TaskMap.ContainsKey((int)Task.CurrentId),
-                "Only machines can wait to receive an event; task {0} does not belong to a machine.",
-                (int)Task.CurrentId);
-            Machine machine = PSharpRuntime.TaskMap[(int)Task.CurrentId];
-            machine.Receive(events);
+            machine.Receive(eventPredicate);
             return machine.Payload;
         }
 
@@ -337,10 +320,7 @@ namespace Microsoft.PSharp
         internal static void NotifyWaitEvent(MachineId mid)
         {
             Machine machine = PSharpRuntime.MachineMap[mid.Value];
-            lock (machine)
-            {
-                System.Threading.Monitor.Wait(machine);
-            }
+            machine.WaitUntilWaitedEventSet();
         }
 
         /// <summary>
@@ -350,10 +330,7 @@ namespace Microsoft.PSharp
         internal static void NotifyReceivedEvent(MachineId mid)
         {
             Machine machine = PSharpRuntime.MachineMap[mid.Value];
-            lock (machine)
-            {
-                System.Threading.Monitor.Pulse(machine);
-            }
+            machine.PulseWaitedEvent();
         }
 
         #endregion

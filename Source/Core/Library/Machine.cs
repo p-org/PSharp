@@ -104,17 +104,17 @@ namespace Microsoft.PSharp
         private Event RaisedEvent;
 
         /// <summary>
-        /// A map from event types, which the machine is currently waiting to
-        /// arrive, to optional actions that must execute when the corresponding
-        /// event arrives.
+        /// An event predicate that the machine is waiting for.
+        /// When an event in the Inbox satisfies the predicate,
+        /// the machine will receive the event and continue execution.
         /// </summary>
-        private Dictionary<Type, Action> EventWaiters;
+        private Predicate<Event> EventWaiterPredicate;
 
         /// <summary>
-        /// Gets the received event and an optional associated action. If no event
-        /// has been received this will return null.
+        /// The incoming event that this machine waited for. Once this is set,
+        /// the machine will resume execution and this field is reset to null.
         /// </summary>
-        private Tuple<Event, Action> ReceivedEventHandler;
+        private Event WaitedEvent;
 
         /// <summary>
         /// Gets the latest received event type. If no event has been
@@ -140,7 +140,6 @@ namespace Microsoft.PSharp
         {
             this.Inbox = new List<Event>();
             this.StateStack = new Stack<MachineState>();
-            this.EventWaiters = new Dictionary<Type, Action>();
 
             this.IsRunning = true;
             this.IsHalted = false;
@@ -228,31 +227,23 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Blocks and waits to receive an event of the given types.
+        /// Blocks to receive an event that satisfies the given predicate.
         /// </summary>
-        protected internal void Receive(params Type[] events)
+        protected internal void Receive(Predicate<Event> eventPredicate)
         {
-            foreach (var e in events)
-            {
-                this.EventWaiters.Add(e, null);
-            }
+            this.Assert(this.EventWaiterPredicate == null);
+            this.Assert(this.WaitedEvent == null);
 
-            this.WaitOnEvent();
+            this.EventWaiterPredicate = eventPredicate;
+
+            this.Trigger = null;
+            this.Payload = null;
+
+            this.ReceiveWaitedEvent();
+
+            this.WaitedEvent = null;
         }
-
-        /// <summary>
-        /// Blocks and waits to receive an event of the given types, and
-        /// executes a given action on receiving the event.
-        /// </summary>
-        protected internal void Receive(params Tuple<Type, Action>[] events)
-        {
-            foreach (var e in events)
-            {
-                this.EventWaiters.Add(e.Item1, e.Item2);
-            }
-
-            this.WaitOnEvent();
-        }
+        
 
         /// <summary>
         /// Pops the current state from the state stack.
@@ -382,13 +373,10 @@ namespace Microsoft.PSharp
                     return;
                 }
 
-                if (this.EventWaiters.ContainsKey(e.GetType()))
+                if (this.TrySetWaitedEvent(e))
                 {
                     Machine.Dispatcher.Log("<ReceiveLog> Machine '{0}({1})' received event '{2}' and unblocked.",
                         this, base.Id.MVal, e.GetType().Name);
-                    this.ReceivedEventHandler = new Tuple<Event, Action>(
-                        e, this.EventWaiters[e.GetType()]);
-                    this.EventWaiters.Clear();
                     Machine.Dispatcher.NotifyReceivedEvent(this.Id);
                     return;
                 }
@@ -646,62 +634,92 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Waits for an event to arrive.
+        /// Tries to set WaitedEvent to e. 
+        /// If successful: Trigger, Payload and WaitedEvent will be updated and
+        /// EventWaiterPredicate will be reset to null.
         /// </summary>
-        private void WaitOnEvent()
+        /// <param name="e">The event.</param>
+        /// <returns>Will return false if WaitedEvent was not set.</returns>
+        private bool TrySetWaitedEvent(Event e)
         {
+            if (this.EventWaiterPredicate == null ||
+                !this.EventWaiterPredicate(e))
+            {
+                return false;
+            }
+
+            this.EventWaiterPredicate = null;
+
+            this.Assert(this.Trigger == null);
+            this.Assert(this.Payload == null);
+            this.Assert(this.WaitedEvent == null);
+
+            this.Trigger = e.GetType();
+            this.Payload = e.Payload;
+            this.WaitedEvent = e;
+
+            return true;
+        }
+
+        /// <summary>
+        /// Receives the waited event that satisfies the
+        /// current EventWaiterPredicate.
+        /// On return, WaitedEvent, Trigger and Payload are set,
+        /// while 
+        /// </summary>
+        private void ReceiveWaitedEvent()
+        {
+            this.Assert(this.EventWaiterPredicate != null);
+            this.Assert(this.WaitedEvent == null);
+            this.Assert(this.Trigger == null);
+            this.Assert(this.Payload == null);
+
             lock (this.Inbox)
             {
                 // Iterate through the events in the inbox.
                 for (int idx = 0; idx < this.Inbox.Count; idx++)
                 {
-                    // Dequeues the first event that the machine waits
-                    // to receive, if there is one in the inbox.
-                    if (this.EventWaiters.ContainsKey(this.Inbox[idx].GetType()))
+                    if (TrySetWaitedEvent(this.Inbox[idx]))
                     {
-                        this.ReceivedEventHandler = new Tuple<Event, Action>(
-                            this.Inbox[idx], this.EventWaiters[this.Inbox[idx].GetType()]);
-                        this.EventWaiters.Clear();
                         this.Inbox.RemoveAt(idx);
                         break;
                     }
                 }
             }
 
-            if (this.ReceivedEventHandler == null)
+            if (this.WaitedEvent == null)
             {
-                var events = "";
-                foreach (var ew in this.EventWaiters)
-                {
-                    events += " '" + ew.Key.Name + "'";
-                }
-
-                Machine.Dispatcher.Log("<ReceiveLog> Machine '{0}({1})' is waiting on events:{2}.",
-                    this, base.Id.MVal, events);
-
+                // Not found in Inbox, so wait.
                 Machine.Dispatcher.NotifyWaitEvent(this.Id);
             }
-            
-            this.HandleReceivedEvent();
+
+            this.Assert(this.EventWaiterPredicate == null);
+            this.Assert(this.WaitedEvent != null);
+            this.Assert(this.Trigger != null);
+            this.Assert(this.Payload != null);
         }
 
         /// <summary>
-        /// Handles an event that the machine was waiting to arrive.
+        /// Waits until WaitedEvent has been set.
         /// </summary>
-        private void HandleReceivedEvent()
+        internal void WaitUntilWaitedEventSet()
         {
-            // Assign trigger and payload.
-            this.Trigger = this.ReceivedEventHandler.Item1.GetType();
-            this.Payload = this.ReceivedEventHandler.Item1.Payload;
-
-            var action = this.ReceivedEventHandler.Item2;
-            this.ReceivedEventHandler = null;
-
-            // Execute the associated action, if there is one.
-            if (action != null)
+            lock (Inbox)
             {
-                action();
+                while (WaitedEvent == null)
+                {
+                    System.Threading.Monitor.Wait(Inbox);
+                }
             }
+        }
+
+        /// <summary>
+        /// Pulses the Inbox. This should be called by Runtime after WaitedEvent
+        /// has been set to awaken any waiters.
+        /// </summary>
+        internal void PulseWaitedEvent()
+        {
+            System.Threading.Monitor.PulseAll(Inbox);
         }
 
         /// <summary>
@@ -1039,10 +1057,11 @@ namespace Microsoft.PSharp
         {
             this.StateTypes.Clear();
             this.Inbox.Clear();
-            this.EventWaiters.Clear();
 
             this.Trigger = null;
             this.Payload = null;
+            this.WaitedEvent = null;
+            this.EventWaiterPredicate = null;
         }
 
         #endregion
