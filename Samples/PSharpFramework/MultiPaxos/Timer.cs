@@ -6,7 +6,7 @@ namespace MultiPaxos
 {
     internal class Timer : Machine
     {
-        MachineId Target;
+        Id Target;
         int TimeoutValue;
 
         [Start]
@@ -16,7 +16,7 @@ namespace MultiPaxos
 
         void InitOnEntry()
         {
-            this.Target = (this.Payload as object[])[0] as MachineId;
+            this.Target = (this.Payload as object[])[0] as Id;
             this.TimeoutValue = (int)(this.Payload as object[])[1];
             this.Raise(new local());
         }

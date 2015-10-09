@@ -43,7 +43,7 @@ namespace SystematicTesting
     {
         List<int> l;
         int i;
-        MachineId mac;
+        Id mac;
         Tuple<List<int>, int> t;
 
         [Start]

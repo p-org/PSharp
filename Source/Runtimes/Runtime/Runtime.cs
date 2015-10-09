@@ -73,7 +73,7 @@ namespace Microsoft.PSharp
             PSharpRuntime.MachineMap = new ConcurrentDictionary<int, Machine>();
             PSharpRuntime.TaskMap = new ConcurrentDictionary<int, Machine>();
 
-            MachineId.ResetMachineIDCounter();
+            Id.ResetMachineIDCounter();
 
             Dispatcher dispatcher = new Dispatcher();
             PSharp.Machine.Dispatcher = dispatcher;
@@ -88,8 +88,8 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="payload">Optional payload</param>
-        /// <returns>Machine id</returns>
-        public static MachineId CreateMachine(Type type, params Object[] payload)
+        /// <returns>Id</returns>
+        public static Id CreateMachine(Type type, params Object[] payload)
         {
             return PSharpRuntime.TryCreateMachine(type, payload);
         }
@@ -100,7 +100,7 @@ namespace Microsoft.PSharp
         /// <param name="target">Target machine id</param>
         /// <param name="e">Event</param>
         /// <param name="payload">Optional payload</param>
-        public static void SendEvent(MachineId target, Event e, params Object[] payload)
+        public static void SendEvent(Id target, Event e, params Object[] payload)
         {
             // If the event is null then report an error and exit.
             PSharpRuntime.Assert(e != null, "Cannot send a null event.");
@@ -204,8 +204,8 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="payload">Optional payload</param>
-        /// <returns>Machine id</returns>
-        internal static MachineId TryCreateMachineRemotely(Type type, params Object[] payload)
+        /// <returns>Id</returns>
+        internal static Id TryCreateMachineRemotely(Type type, params Object[] payload)
         {
             return PSharpRuntime.Channel.CreateMachine(type.FullName, payload);
         }
@@ -215,14 +215,14 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="payload">Optional payload</param>
-        /// <returns>Machine id</returns>
-        internal static MachineId TryCreateMachine(Type type, params Object[] payload)
+        /// <returns>Id</returns>
+        internal static Id TryCreateMachine(Type type, params Object[] payload)
         {
             if (type.IsSubclassOf(typeof(Machine)))
             {
                 Machine machine = Activator.CreateInstance(type) as Machine;
 
-                MachineId mid = machine.Id;
+                Id mid = machine.Id;
                 mid.IpAddress = PSharpRuntime.IpAddress;
                 mid.Port = PSharpRuntime.Port;
 
@@ -262,9 +262,9 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Sends an asynchronous event to a remote machine.
         /// </summary>
-        /// <param name="mid">Machine id</param>
+        /// <param name="mid">Id</param>
         /// <param name="e">Event</param>
-        internal static void SendRemotely(MachineId mid, Event e)
+        internal static void SendRemotely(Id mid, Event e)
         {
             PSharpRuntime.Channel.SendEvent(mid, e);
         }
@@ -272,9 +272,9 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Sends an asynchronous event to a machine.
         /// </summary>
-        /// <param name="mid">Machine id</param>
+        /// <param name="mid">Id</param>
         /// <param name="e">Event</param>
-        internal static void Send(MachineId mid, Event e)
+        internal static void Send(Id mid, Event e)
         {
             if (mid == null)
             {
@@ -333,8 +333,8 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Notifies that a machine is waiting to receive an event.
         /// </summary>
-        /// <param name="mid">Machine id</param>
-        internal static void NotifyWaitEvent(MachineId mid)
+        /// <param name="mid">Id</param>
+        internal static void NotifyWaitEvent(Id mid)
         {
             Machine machine = PSharpRuntime.MachineMap[mid.Value];
             lock (machine)
@@ -346,8 +346,8 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Notifies that a machine received an event that it was waiting for.
         /// </summary>
-        /// <param name="mid">Machine id</param>
-        internal static void NotifyReceivedEvent(MachineId mid)
+        /// <param name="mid">Id</param>
+        internal static void NotifyReceivedEvent(Id mid)
         {
             Machine machine = PSharpRuntime.MachineMap[mid.Value];
             lock (machine)

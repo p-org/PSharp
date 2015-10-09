@@ -109,7 +109,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         protected void RewriteMachineType()
         {
-            var textUnit = new TextUnit("MachineId", this.RewrittenStmtTokens[this.Index].TextUnit.Line);
+            var textUnit = new TextUnit("Id", this.RewrittenStmtTokens[this.Index].TextUnit.Line);
             this.RewrittenStmtTokens[this.Index] = new Token(textUnit, this.RewrittenStmtTokens[this.Index].Type);
         }
 

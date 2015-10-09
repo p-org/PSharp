@@ -29,7 +29,7 @@ namespace Microsoft.PSharp.Remote
         /// Known types used for serialization.
         /// </summary>
         public static List<Type> KnownTypes = new List<Type> {
-            typeof(MachineId),
+            typeof(Id),
             typeof(Default),
             typeof(Halt)
         };

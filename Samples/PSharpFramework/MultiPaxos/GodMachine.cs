@@ -6,8 +6,8 @@ namespace MultiPaxos
 {
     internal class GodMachine : Machine
     {
-        List<MachineId> PaxosNodes;
-        MachineId Client;
+        List<Id> PaxosNodes;
+        Id Client;
 
 		[Start]
         [OnEntry(nameof(InitOnEntry))]
@@ -15,7 +15,7 @@ namespace MultiPaxos
 
 		void InitOnEntry()
         {
-            this.PaxosNodes = new List<MachineId>();
+            this.PaxosNodes = new List<Id>();
 
             this.PaxosNodes.Insert(0, this.CreateMachine(typeof(PaxosNode), 3));
             this.PaxosNodes.Insert(0, this.CreateMachine(typeof(PaxosNode), 2));

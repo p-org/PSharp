@@ -44,7 +44,7 @@ namespace SystematicTesting
 
     class EventHandler : Machine
     {
-        List<MachineId> Workers;
+        List<Id> Workers;
 
         [Start]
         [OnEntry(nameof(InitOnEntry))]
@@ -94,7 +94,7 @@ namespace SystematicTesting
 
     class WatchDog : Monitor
     {
-        List<MachineId> Workers;
+        List<Id> Workers;
 
         [Start]
         [Cold]

@@ -5,7 +5,7 @@ namespace PingPong
 {
     internal class Client : Machine
     {
-        private MachineId Server;
+        private Id Server;
         private int Counter;
 
         [Start]
@@ -15,7 +15,7 @@ namespace PingPong
 
         void InitOnEntry()
         {
-            this.Server = (MachineId)this.Payload;
+            this.Server = (Id)this.Payload;
             this.Counter = 0;
             this.Raise(new Unit());
         }

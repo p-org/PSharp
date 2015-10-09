@@ -6,7 +6,7 @@ namespace LivenessCheck
 {
     internal class Master : Machine
     {
-        List<MachineId> Workers;
+        List<Id> Workers;
 
 		[Start]
         [OnEntry(nameof(InitOnEntry))]
@@ -15,7 +15,7 @@ namespace LivenessCheck
 
 		void InitOnEntry()
         {
-            this.Workers = new List<MachineId>();
+            this.Workers = new List<Id>();
 
             for (int idx = 0; idx < 3; idx++)
             {

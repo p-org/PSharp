@@ -6,7 +6,7 @@ namespace LivenessCheck
 {
     internal class M : Monitor
     {
-        List<MachineId> Workers;
+        List<Id> Workers;
 
         [Start]
         [Hot]
@@ -17,7 +17,7 @@ namespace LivenessCheck
 
         void InitOnEntry()
         {
-            this.Workers = (List<MachineId>)this.Payload;
+            this.Workers = (List<Id>)this.Payload;
         }
 
         void ProcessNotification()

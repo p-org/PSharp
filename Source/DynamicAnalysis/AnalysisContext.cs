@@ -91,7 +91,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
             {
                 ErrorReporter.ReportAndExit(ex.Message);
             }
-            
+
             this.FindEntryPoint();
         }
 

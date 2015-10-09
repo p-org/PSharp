@@ -157,7 +157,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         protected void RewriteNull()
         {
             int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
-            var text = "default(MachineId)";
+            var text = "default(Id)";
             this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line));
         }
 

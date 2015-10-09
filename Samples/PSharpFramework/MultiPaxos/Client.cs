@@ -6,7 +6,7 @@ namespace MultiPaxos
 {
     internal class Client : Machine
     {
-        List<MachineId> Servers;
+        List<Id> Servers;
 
         [Start]
         [OnEntry(nameof(InitOnEntry))]
@@ -16,7 +16,7 @@ namespace MultiPaxos
         void InitOnEntry()
         {
             this.CreateMonitor(typeof(ValidityCheck));
-            this.Servers = this.Payload as List<MachineId>;
+            this.Servers = this.Payload as List<Id>;
             this.Raise(new local());
         }
 

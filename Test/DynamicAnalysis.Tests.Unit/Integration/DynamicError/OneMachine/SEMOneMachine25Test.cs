@@ -60,7 +60,7 @@ namespace SystematicTesting
 
     class Real : Machine
     {
-        MachineId GhostMachine;
+        Id GhostMachine;
         bool test = false;
 
         [Start]
@@ -91,7 +91,7 @@ namespace SystematicTesting
 
     class Ghost : Machine
     {
-        MachineId RealMachine;
+        Id RealMachine;
 
         [Start]
         [OnEntry(nameof(EntryInit))]
@@ -100,7 +100,7 @@ namespace SystematicTesting
 
         void EntryInit()
         {
-            RealMachine = this.Payload as MachineId;
+            RealMachine = this.Payload as Id;
         }
 
         void Action()

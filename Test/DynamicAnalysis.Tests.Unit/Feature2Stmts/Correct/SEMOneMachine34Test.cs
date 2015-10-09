@@ -45,7 +45,7 @@ namespace SystematicTesting
     {
         int Int;
         bool Bool;
-        MachineId mach;
+        Id mach;
         Dictionary<int, int> m;
         List<bool> s;
 

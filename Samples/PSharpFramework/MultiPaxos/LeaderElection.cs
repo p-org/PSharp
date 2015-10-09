@@ -6,12 +6,12 @@ namespace MultiPaxos
 {
     internal class LeaderElection : Machine
     {
-        List<MachineId> Servers;
-        MachineId ParentServer;
+        List<Id> Servers;
+        Id ParentServer;
         int MyRank;
-        Tuple<int, MachineId> CurrentLeader;
-        MachineId CommunicateLeaderTimeout;
-        MachineId BroadCastTimeout;
+        Tuple<int, Id> CurrentLeader;
+        Id CommunicateLeaderTimeout;
+        Id BroadCastTimeout;
 
         [Start]
         [OnEntry(nameof(InitOnEntry))]
@@ -20,8 +20,8 @@ namespace MultiPaxos
 
         void InitOnEntry()
         {
-            this.Servers = (this.Payload as object[])[0] as List<MachineId>;
-            this.ParentServer = (this.Payload as object[])[1] as MachineId;
+            this.Servers = (this.Payload as object[])[0] as List<Id>;
+            this.ParentServer = (this.Payload as object[])[1] as Id;
             this.MyRank = (int)(this.Payload as object[])[2];
 
             this.CurrentLeader = Tuple.Create(this.MyRank, this.Id);
@@ -49,7 +49,7 @@ namespace MultiPaxos
 
         void ProcessPingsAction()
         {
-            var id = this.Payload as MachineId;
+            var id = this.Payload as Id;
 
             if (this.CommunicateLeaderTimeout.Equals(id))
             {
@@ -64,7 +64,7 @@ namespace MultiPaxos
         void CalculateLeader()
         {
             var rank = (int)(this.Payload as object[])[0];
-            var leader = (this.Payload as object[])[1] as MachineId;
+            var leader = (this.Payload as object[])[1] as Id;
 
             if (rank < this.MyRank)
             {

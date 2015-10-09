@@ -53,7 +53,7 @@ namespace SystematicTesting
 
     class PING : Machine
     {
-        MachineId PongId;
+        Id PongId;
         int Count;
 
         [Start]
@@ -112,7 +112,7 @@ namespace SystematicTesting
 
         void EntrySendPong()
         {
-            this.Send(this.Payload as MachineId, new Pong());
+            this.Send(this.Payload as Id, new Pong());
             this.Raise(new Success());
         }
     }

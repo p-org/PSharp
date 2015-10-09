@@ -25,7 +25,7 @@ using System.Threading.Tasks;
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Abstract class representing a P# machine.
+    /// Abstract class representing a P# state machine.
     /// </summary>
     public abstract class Machine : BaseMachine
     {
@@ -158,8 +158,8 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="payload">Optional payload</param>
-        /// <returns>Machine id</returns>
-        protected internal MachineId CreateMachine(Type type, params Object[] payload)
+        /// <returns>Id</returns>
+        protected internal Id CreateMachine(Type type, params Object[] payload)
         {
             return Machine.Dispatcher.TryCreateMachine(type, payload);
         }
@@ -169,8 +169,8 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="payload">Optional payload</param>
-        /// <returns>Machine id</returns>
-        protected internal MachineId CreateRemoteMachine(Type type, params Object[] payload)
+        /// <returns>Id</returns>
+        protected internal Id CreateRemoteMachine(Type type, params Object[] payload)
         {
             return Machine.Dispatcher.TryCreateRemoteMachine(type, payload);
         }
@@ -188,10 +188,10 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Sends an asynchronous event to a machine.
         /// </summary>
-        /// <param name="m">Machine id</param>
+        /// <param name="m">Id</param>
         /// <param name="e">Event</param>
         /// <param name="payload">Optional payload</param>
-        protected internal void Send(MachineId mid, Event e, params Object[] payload)
+        protected internal void Send(Id mid, Event e, params Object[] payload)
         {
             // If the event is null then report an error and exit.
             this.Assert(e != null, "Machine '{0}' is sending a null event.", this.GetType().Name);

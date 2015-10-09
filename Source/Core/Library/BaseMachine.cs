@@ -26,7 +26,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Unique machine id.
         /// </summary>
-        public readonly MachineId Id;
+        public readonly Id Id;
 
         #endregion
 
@@ -37,7 +37,7 @@ namespace Microsoft.PSharp
         /// </summary>
         protected BaseMachine()
         {
-            this.Id = new MachineId(this.GetType());
+            this.Id = new Id(this.GetType());
         }
 
         #endregion

@@ -107,8 +107,8 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="payload">Optional payload</param>
-        /// <returns>Machine id</returns>
-        public static MachineId CreateMachine(Type type, params Object[] payload)
+        /// <returns>Id</returns>
+        public static Id CreateMachine(Type type, params Object[] payload)
         {   
             return PSharpRuntime.TryCreateMachine(type, payload);
         }
@@ -119,7 +119,7 @@ namespace Microsoft.PSharp
         /// <param name="target">Target machine id</param>
         /// <param name="e">Event</param>
         /// <param name="payload">Optional payload</param>
-        public static void SendEvent(MachineId target, Event e, params Object[] payload)
+        public static void SendEvent(Id target, Event e, params Object[] payload)
         {
             // If the event is null then report an error and exit.
             PSharpRuntime.Assert(e != null, "Cannot send a null event.");
@@ -257,7 +257,7 @@ namespace Microsoft.PSharp
                 TaskMachineExtensions.TaskScheduler = PSharpRuntime.TaskScheduler as TaskWrapperScheduler;
             }
 
-            MachineId.ResetMachineIDCounter();
+            Id.ResetMachineIDCounter();
 
             BugFindingDispatcher dispatcher = new BugFindingDispatcher();
             Machine.Dispatcher = dispatcher;
@@ -275,14 +275,14 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="payload">Optional payload</param>
-        /// <returns>Machine id</returns>
-        internal static MachineId TryCreateMachine(Type type, params Object[] payload)
+        /// <returns>Id</returns>
+        internal static Id TryCreateMachine(Type type, params Object[] payload)
         {
             if (type.IsSubclassOf(typeof(Machine)))
             {
                 Object machine = Activator.CreateInstance(type);
 
-                MachineId mid = (machine as Machine).Id;
+                Id mid = (machine as Machine).Id;
                 PSharpRuntime.MachineMap.Add(mid.Value, machine as Machine);
                 
                 Output.Log("<CreateLog> Machine {0}({1}) is created.", type.Name, mid.MVal);
@@ -362,7 +362,7 @@ namespace Microsoft.PSharp
                 "the task in a machine, because the task wrapper scheduler is not enabled.\n");
             TaskMachine taskMachine = new TaskMachine(PSharpRuntime.TaskScheduler as TaskWrapperScheduler, userTask);
 
-            MachineId mid = taskMachine.Id;
+            Id mid = taskMachine.Id;
             Output.Log("<CreateLog> TaskMachine({0}) is created.", mid.MVal);
 
             Task task = new Task(() =>
@@ -395,9 +395,9 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Sends an asynchronous event to a machine.
         /// </summary>
-        /// <param name="mid">Machine id</param>
+        /// <param name="mid">Id</param>
         /// <param name="e">Event</param>
-        internal static void Send(MachineId mid, Event e)
+        internal static void Send(Id mid, Event e)
         {
             if (mid == null)
             {
@@ -508,8 +508,8 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Notifies that a machine received an event that it was waiting for.
         /// </summary>
-        /// <param name="mid">Machine id</param>
-        internal static void NotifyReceivedEvent(MachineId mid)
+        /// <param name="mid">Id</param>
+        internal static void NotifyReceivedEvent(Id mid)
         {
             Machine machine = PSharpRuntime.MachineMap[mid.Value];
             PSharpRuntime.BugFinder.NotifyTaskReceivedEvent(machine);

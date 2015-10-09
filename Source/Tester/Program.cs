@@ -48,7 +48,7 @@ namespace Microsoft.PSharp
             var ex = (Exception)args.ExceptionObject;
             Output.Debug(ex.Message);
             Output.Debug(ex.StackTrace);
-            ErrorReporter.ReportAndExit("internal failure: {0}.", ex.GetType().ToString());
+            ErrorReporter.ReportAndExit("internal failure: {0}: {1}", ex.GetType().ToString(), ex.Message);
         }
     }
 }

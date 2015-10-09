@@ -100,7 +100,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             if (this.Type == PType.Machine)
             {
-                text += "MachineId";
+                text += "Id";
             }
             else if (this.Type == PType.Any)
             {

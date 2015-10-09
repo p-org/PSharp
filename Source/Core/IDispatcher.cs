@@ -31,16 +31,16 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="payload">Optional payload</param>
-        /// <returns>Machine id</returns>
-        MachineId TryCreateMachine(Type type, params Object[] payload);
+        /// <returns>Id</returns>
+        Id TryCreateMachine(Type type, params Object[] payload);
 
         /// <summary>
         /// Tries to create a new remote machine of the given type with an optional payload.
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="payload">Optional payload</param>
-        /// <returns>Machine id</returns>
-        MachineId TryCreateRemoteMachine(Type type, params Object[] payload);
+        /// <returns>Id</returns>
+        Id TryCreateRemoteMachine(Type type, params Object[] payload);
 
         /// <summary>
         /// Tries to create a new monitor of the given type with an optional payload.
@@ -58,9 +58,9 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Sends an asynchronous event to a machine.
         /// </summary>
-        /// <param name="mid">Machine id</param>
+        /// <param name="mid">Id</param>
         /// <param name="e">Event</param>
-        void Send(MachineId mid, Event e);
+        void Send(Id mid, Event e);
 
         /// <summary>
         /// Invokes the specified monitor with the given event.
@@ -117,14 +117,14 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Notifies that a machine is waiting to receive an event.
         /// </summary>
-        /// <param name="mid">Machine id</param>
-        void NotifyWaitEvent(MachineId mid);
+        /// <param name="mid">Id</param>
+        void NotifyWaitEvent(Id mid);
 
         /// <summary>
         /// Notifies that a machine received an event that it was waiting for.
         /// </summary>
-        /// <param name="mid">Machine id</param>
-        void NotifyReceivedEvent(MachineId mid);
+        /// <param name="mid">Id</param>
+        void NotifyReceivedEvent(Id mid);
 
         /// <summary>
         /// Notifies that a default handler has been used.

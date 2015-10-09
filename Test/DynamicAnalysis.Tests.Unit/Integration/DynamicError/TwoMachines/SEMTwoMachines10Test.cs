@@ -46,7 +46,7 @@ namespace SystematicTesting
     class Real1 : Machine
     {
         bool test = false;
-        MachineId mac;
+        Id mac;
 
         [Start]
         [OnEntry(nameof(EntryInit))]

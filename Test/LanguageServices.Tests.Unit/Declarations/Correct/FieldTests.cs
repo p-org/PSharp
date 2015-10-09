@@ -84,7 +84,7 @@ namespace Foo
 {
 class M : Machine
 {
-private MachineId N;
+private Id N;
 [Microsoft.PSharp.Start]
 class S : MachineState
 {
