@@ -1,75 +1,77 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Header Files">
+    <Filter Include="Header">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="Resource Files">
+    <Filter Include="Source">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Resources">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Stdafx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PSharpRuntime.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Id.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="psharp.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Machine.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Event.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="AssemblyInfo.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Stdafx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="PSharpRuntime.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Id.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Machine.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Event.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="app.rc">
-      <Filter>Resource Files</Filter>
-    </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="app.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
+    <Filter Include="Header\native">
+      <UniqueIdentifier>{ac0bc451-6595-41f4-8d89-6b4ae454b5b9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\native">
+      <UniqueIdentifier>{0f1ac44e-ffca-4c1f-88a6-f056050d6634}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header\managed">
+      <UniqueIdentifier>{7f82f205-8948-41a2-91c1-df3a5a8543a8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\managed">
+      <UniqueIdentifier>{18dadbba-e328-41a7-a8d4-21488edbab1a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="PSharp.snk">
-      <Filter>Resource Files</Filter>
+      <Filter>Resources</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Header\native\event.h">
+      <Filter>Header\native</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\native\id.h">
+      <Filter>Header\native</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\native\machine.h">
+      <Filter>Header\native</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\native\psharp.h">
+      <Filter>Header\native</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\native\psharp_runtime.h">
+      <Filter>Header\native</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\managed\psharp.h">
+      <Filter>Header\managed</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\managed\wrapper.h">
+      <Filter>Header\managed</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Source\native\event.cpp">
+      <Filter>Source\native</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\native\id.cpp">
+      <Filter>Source\native</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\native\machine.cpp">
+      <Filter>Source\native</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\native\psharp_runtime.cpp">
+      <Filter>Source\native</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\AssemblyInfo.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\managed\wrapper.cpp">
+      <Filter>Source\managed</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

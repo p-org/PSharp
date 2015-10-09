@@ -95,8 +95,10 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <AdditionalUsingDirectories>$(SolutionDir)Binaries\$(Configuration)\</AdditionalUsingDirectories>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -120,8 +122,11 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <AdditionalUsingDirectories>$(SolutionDir)Binaries\$(Configuration)\</AdditionalUsingDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\Header</AdditionalIncludeDirectories>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -146,35 +151,24 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Event.h" />
-    <ClInclude Include="Id.h" />
-    <ClInclude Include="psharp.h" />
-    <ClInclude Include="PSharpRuntime.h" />
-    <ClInclude Include="Machine.h" />
-    <ClInclude Include="resource.h" />
-    <ClInclude Include="Stdafx.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="AssemblyInfo.cpp" />
-    <ClCompile Include="Event.cpp" />
-    <ClCompile Include="Id.cpp" />
-    <ClCompile Include="Machine.cpp" />
-    <ClCompile Include="PSharpRuntime.cpp" />
-    <ClCompile Include="Stdafx.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="app.rc" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="app.ico" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="PSharp.snk" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Header\managed\psharp.h" />
+    <ClInclude Include="Header\managed\wrapper.h" />
+    <ClInclude Include="Header\native\event.h" />
+    <ClInclude Include="Header\native\id.h" />
+    <ClInclude Include="Header\native\machine.h" />
+    <ClInclude Include="Header\native\psharp.h" />
+    <ClInclude Include="Header\native\psharp_runtime.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Source\AssemblyInfo.cpp" />
+    <ClCompile Include="Source\managed\wrapper.cpp" />
+    <ClCompile Include="Source\native\event.cpp" />
+    <ClCompile Include="Source\native\id.cpp" />
+    <ClCompile Include="Source\native\machine.cpp" />
+    <ClCompile Include="Source\native\psharp_runtime.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
