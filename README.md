@@ -1,11 +1,11 @@
 P#
 ====================
-An **actor-based** programming language and **concurrency unit testing** framework for developing **highly-reliable asynchronous software**, such as web-services and distributed systems.
+A .NET framework for developing **highly-reliable asynchronous software**, such as web-services and distributed systems.
 
 ## Features
-- Enables the development of efficient asynchronous applications using an **event-driven**, actor-based programming model. Because **all the asynchrony is explicitly exposed** at specific communication points in a P# program, the user does not need to explicitly create and manage tasks; the P# runtime (built on top of TPL) is instead responsible for handling all the underlying concurrency, allowing the developer to focus on application logic.
-- Allows the environment to be **modeled** via simple language features. The P# compiler can then automatically substitute real code with modeled, and the P# tester can **systematically test** the compiled executable to discover bugs (such as assertion failures and uncaught exceptions).
-- Fully interoperates with C#: the developer can **write any C# code** inside a P# program. P# is basically an extension of C#, build on top of the Roslyn, TPL and .NET frameworks, which not only makes P# easy to learn comparing with a completely new language, but also allows **easy integration with existing code**.
+P# provides:
+- Extensions to the C# language for **event-driven asynchronous programming**, writing **test harnesses**, and specifying **safety and liveness properties**.
+- A **systematic testing engine** that can capture and control all the specified nondeterminism in the system, and systematically explore the actual executable code to discover bugs.
 
 ## Build instructions
 1. Get Visual Studio 2015 (required for Microsoft Roslyn).
