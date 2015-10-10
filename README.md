@@ -1,11 +1,13 @@
 P#
 ====================
-A .NET framework for developing **highly-reliable asynchronous software**, such as web-services and distributed systems.
+A toolkit for **building**, **analyzing** and **systematically testing** asynchronous software, such as web-services and distributed systems.
 
 ## Features
-P# provides:
-- Extensions to the C# language for **event-driven asynchronous programming**, writing **test harnesses**, and specifying **safety and liveness properties**.
+The P# framework provides:
+- Language extensions to C# for building **event-driven asynchronous** applications, writing **test harnesses**, and specifying **safety and liveness properties**.
 - A **systematic testing engine** that can capture and control all the specified nondeterminism in the system, and systematically explore the actual executable code to discover bugs.
+
+Although P# primarily targets .NET, it has also experimental support for systematically testing native C++ code.
 
 ## Build instructions
 1. Get Visual Studio 2015 (required for Microsoft Roslyn).
