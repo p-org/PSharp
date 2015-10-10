@@ -2,17 +2,18 @@
 
 #include "Client.h"
 
-Client::Client()
+Client::Client(NetworkEngine* engine)
 {
-
+	this->_net_engine = engine;
 }
 
 Client::~Client()
 {
-
+	delete this->_net_engine;
 }
 
 void Client::pong()
 {
 	std::cout << "Client received a pong" << std::endl;
+	this->_net_engine->send();
 }

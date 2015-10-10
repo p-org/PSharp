@@ -144,11 +144,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="PingPongWrapper.h" />
+    <ClInclude Include="MockedNetworkEngine.h" />
+    <ClInclude Include="ServerWrapper.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssemblyInfo.cpp" />
-    <ClCompile Include="PingPongWrapper.cpp" />
+    <ClCompile Include="MockedNetworkEngine.cpp" />
+    <ClCompile Include="ServerWrapper.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NativePingPong\NativePingPong.vcxproj">

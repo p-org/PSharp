@@ -2,10 +2,15 @@
 
 #include <memory>
 
+#include "NetworkEngine.h"
+
 class Server
 {
+private:
+	NetworkEngine* _net_engine;
+
 public:
-	Server();
+	Server(NetworkEngine* engine);
 	~Server();
 
 	void ping();

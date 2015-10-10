@@ -2,10 +2,15 @@
 
 #include <memory>
 
+#include "NetworkEngine.h"
+
 class Client
 {
+private:
+	NetworkEngine* _net_engine;
+
 public:
-	Client();
+	Client(NetworkEngine* engine);
 	~Client();
 
 	void pong();
