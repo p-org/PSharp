@@ -14,6 +14,6 @@ Client::~Client()
 
 void Client::pong()
 {
-	std::cout << "Client received a pong" << std::endl;
+	std::cout << "Client received a pong.\n" << std::endl;
 	this->_net_engine->send();
 }

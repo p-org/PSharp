@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------
-// <copyright file="psharp.h" company="Microsoft">
+// <copyright file="psharp_runtime.h" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -16,5 +16,31 @@
 
 #pragma once
 
-#include "wrapper.h"
-#include "psharp_runtime.h"
+#include <memory>
+#include <iostream>
+
+#using <Microsoft.PSharp.dll> as_friend
+#using <Microsoft.PSharp.Runtime.dll> as_friend
+
+namespace Microsoft
+{
+	namespace PSharp
+	{
+		namespace Interop
+		{
+			public ref class Runtime abstract sealed
+			{
+			public:
+				static void send(Microsoft::PSharp::Id^ mid, Microsoft::PSharp::Event^ e)
+				{
+					Microsoft::PSharp::PSharpRuntime::Send(mid, e);
+				}
+
+				static bool non_deterministic_choice()
+				{
+					return Microsoft::PSharp::PSharpRuntime::Nondet();
+				}
+			};
+		}
+	}
+}

@@ -155,6 +155,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Header\managed\psharp.h" />
+    <ClInclude Include="Header\managed\psharp_runtime.h" />
     <ClInclude Include="Header\managed\wrapper.h" />
     <ClInclude Include="Header\native\event.h" />
     <ClInclude Include="Header\native\id.h" />
@@ -164,6 +165,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\AssemblyInfo.cpp" />
+    <ClCompile Include="Source\managed\psharp_runtime.cpp" />
     <ClCompile Include="Source\managed\wrapper.cpp" />
     <ClCompile Include="Source\native\event.cpp" />
     <ClCompile Include="Source\native\id.cpp" />

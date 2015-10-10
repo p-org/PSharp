@@ -53,6 +53,9 @@
     <ClInclude Include="Header\managed\wrapper.h">
       <Filter>Header\managed</Filter>
     </ClInclude>
+    <ClInclude Include="Header\managed\psharp_runtime.h">
+      <Filter>Header\managed</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\native\event.cpp">
@@ -64,13 +67,16 @@
     <ClCompile Include="Source\native\machine.cpp">
       <Filter>Source\native</Filter>
     </ClCompile>
-    <ClCompile Include="Source\native\psharp_runtime.cpp">
-      <Filter>Source\native</Filter>
-    </ClCompile>
     <ClCompile Include="Source\AssemblyInfo.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Source\managed\wrapper.cpp">
+      <Filter>Source\managed</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\native\psharp_runtime.cpp">
+      <Filter>Source\native</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\managed\psharp_runtime.cpp">
       <Filter>Source\managed</Filter>
     </ClCompile>
   </ItemGroup>

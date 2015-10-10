@@ -45,6 +45,11 @@ namespace Microsoft.PSharp.Tooling
         /// </summary>
         public int Timeout;
 
+        /// <summary>
+        /// True if interoperation is enabled.
+        /// </summary>
+        public bool InteroperationEnabled;
+
         #endregion
 
         #region constructor
@@ -60,6 +65,8 @@ namespace Microsoft.PSharp.Tooling
 
             this.Verbose = 1;
             this.Timeout = 0;
+
+            this.InteroperationEnabled = true;
         }
 
         #endregion

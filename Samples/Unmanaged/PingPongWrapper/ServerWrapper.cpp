@@ -11,10 +11,11 @@ public:
 	Server* server;
 };
 
-PingPongWrapper::ServerWrapper::ServerWrapper()
+PingPongWrapper::ServerWrapper::ServerWrapper(Microsoft::PSharp::Id^ mid)
+	: Microsoft::PSharp::Interop::Wrapper()
 {
 	this->_server_native_components = new ServerNativeComponents();
-	this->_server_native_components->mocked_net_engine = new Mocking::MockedNetworkEngine();
+	this->_server_native_components->mocked_net_engine = new Mocking::MockedNetworkEngine(mid);
 	this->_server_native_components->server = new Server(
 		this->_server_native_components->mocked_net_engine);
 }
@@ -26,6 +27,10 @@ PingPongWrapper::ServerWrapper::~ServerWrapper()
 
 void PingPongWrapper::ServerWrapper::invoke(Microsoft::PSharp::Event^ e)
 {
-	System::Console::WriteLine(gcnew System::String("Invoking ..."));
 	this->_server_native_components->server->ping();
 }
+
+//void  PingPongWrapper::ServerWrapper::callback(Microsoft::PSharp::Event^ e)
+//{
+//
+//}

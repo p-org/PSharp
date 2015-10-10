@@ -110,6 +110,10 @@ namespace Microsoft.PSharp.Tooling
 
                 this.Configuration.Timeout = i;
             }
+            else if (option.ToLower().Equals("/interop"))
+            {
+                Configuration.InteroperationEnabled = true;
+            }
             else
                 {
                 this.ShowHelp();

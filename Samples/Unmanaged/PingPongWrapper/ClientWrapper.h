@@ -4,19 +4,19 @@
 
 using namespace System;
 
-class ServerNativeComponents;
+class ClientNativeComponents;
 
 namespace PingPongWrapper {
 
-	public ref class ServerWrapper
+	public ref class ClientWrapper
 		: public Microsoft::PSharp::Interop::Wrapper
 	{
 	private:
-		ServerNativeComponents* _server_native_components;
+		ClientNativeComponents* _server_native_components;
 
 	public:
-		ServerWrapper(Microsoft::PSharp::Id^ mid);
-		~ServerWrapper();
+		ClientWrapper(Microsoft::PSharp::Id^ mid);
+		~ClientWrapper();
 
 		virtual void invoke(Microsoft::PSharp::Event^ e) override;
 		//virtual void callback(Microsoft::PSharp::Event^ e) override;

@@ -74,7 +74,7 @@ namespace Microsoft.PSharp
             PSharpRuntime.TaskMap = new ConcurrentDictionary<int, Machine>();
 
             Id.ResetMachineIDCounter();
-
+            
             Dispatcher dispatcher = new Dispatcher();
             PSharp.Machine.Dispatcher = dispatcher;
             PSharp.Monitor.Dispatcher = dispatcher;

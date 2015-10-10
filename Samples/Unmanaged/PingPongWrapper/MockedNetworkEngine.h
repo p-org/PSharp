@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vcclr.h>
 #include "managed\psharp.h"
 #include "NetworkEngine.h"
 
@@ -10,8 +11,11 @@ namespace Mocking {
 	public class MockedNetworkEngine
 		: public NetworkEngine
 	{
+	private:
+		gcroot<Microsoft::PSharp::Id^> _target_machine_id;
+
 	public:
-		MockedNetworkEngine();
+		MockedNetworkEngine(Microsoft::PSharp::Id^ mid);
 		~MockedNetworkEngine();
 		virtual void send() override;
 	};

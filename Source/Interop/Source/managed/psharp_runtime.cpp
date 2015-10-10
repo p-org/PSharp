@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------
-// <copyright file="psharp.h" company="Microsoft">
+// <copyright file="psharp_runtime.cpp" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -14,7 +14,4 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-#pragma once
-
-#include "wrapper.h"
-#include "psharp_runtime.h"
+#include "managed\psharp_runtime.h"

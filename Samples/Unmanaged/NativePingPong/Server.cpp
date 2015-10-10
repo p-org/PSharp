@@ -14,6 +14,6 @@ Server::~Server()
 
 void Server::ping()
 {
-	std::cout << "Server received a ping" << std::endl;
+	std::cout << "Server received a ping.\n" << std::endl;
 	this->_net_engine->send();
 }

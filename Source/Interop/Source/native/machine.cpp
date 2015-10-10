@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------
-// <copyright file="Machine.cpp" company="Microsoft">
+// <copyright file="machine.cpp" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -25,13 +25,13 @@
 class MachineWrapper
 {
 public:
-	msclr::auto_gcroot<Microsoft::PSharp::TriggerMachine^> trigger;
+	//msclr::auto_gcroot<Microsoft::PSharp::TriggerMachine^> trigger;
 };
 
 Machine::Machine()
 {
 	this->_machine_wrapper = new MachineWrapper();
-	this->_machine_wrapper->trigger = gcnew Microsoft::PSharp::TriggerMachine();
+	//this->_machine_wrapper->trigger = gcnew Microsoft::PSharp::TriggerMachine();
 
 	this->_inbox = new std::queue<Event>();
 	this->_isRunning = true;

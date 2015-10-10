@@ -1,6 +1,5 @@
 ﻿using System;
 using Microsoft.PSharp;
-using Microsoft.PSharp.Interop;
 
 using PingPongWrapper;
 
@@ -18,24 +17,25 @@ namespace PingPong
 
 		void InitOnEntry()
         {
-            this.Server = new ServerWrapper();
-            this.Server.invoke(new Unit());
             this.Client = this.CreateMachine(typeof(ClientMachine), this.Id);
+            
+            this.Server = new ServerWrapper(this.Client);
+
             this.Raise(new Unit());
         }
 
         [OnEntry(nameof(ActiveOnEntry))]
-        [OnEventDoAction(typeof(Ping), nameof(SendPong))]
+        [OnEventDoAction(typeof(Events.MessageEvent), nameof(SendPong))]
         class Active : MachineState { }
 
         void ActiveOnEntry()
         {
-            this.SendPong();
+            this.Send(this.Client, new Events.MessageEvent());
         }
 
         void SendPong()
         {
-            this.Send(this.Client, new Pong());
+            this.Server.invoke(new Unit());
         }
     }
 }

@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------
-// <copyright file="Wrapper.cpp" company="Microsoft">
+// <copyright file="wrapper.cpp" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
