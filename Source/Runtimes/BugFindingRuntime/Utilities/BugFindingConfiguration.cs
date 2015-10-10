@@ -58,7 +58,7 @@ namespace Microsoft.PSharp.Tooling
         /// <summary>
         /// Constructor.
         /// </summary>
-        internal BugFindingConfiguration()
+        protected BugFindingConfiguration()
             : base()
         {
             this.FullExploration = false;
@@ -68,6 +68,22 @@ namespace Microsoft.PSharp.Tooling
             this.ScheduleIntraMachineConcurrency = false;
             this.CheckLiveness = false;
             this.CacheProgramState = false;
+        }
+
+        #endregion
+
+        #region methods
+
+        /// <summary>
+        /// Updates the configuration with liveness checking enabled
+        /// or disabled and returns it.
+        /// </summary>
+        /// <param name="value">Boolean value</param>
+        /// <returns>Configuration</returns>
+        public Configuration WithLivenessCheckingEnabled(bool value = true)
+        {
+            this.CheckLiveness = value;
+            return this;
         }
 
         #endregion

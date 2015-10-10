@@ -67,7 +67,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <returns>CompilationContext</returns>
         public static CompilationContext Create()
         {
-            var configuration = new LanguageServicesConfiguration();
+            var configuration = LanguageServicesConfiguration.Create();
             return new CompilationContext(configuration);
         }
 

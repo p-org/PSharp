@@ -20,7 +20,7 @@
 #include <iostream>
 
 #using <Microsoft.PSharp.dll> as_friend
-#using <Microsoft.PSharp.Runtime.dll> as_friend
+#using <Microsoft.PSharp.BugFindingRuntime.dll> as_friend
 
 namespace Microsoft
 {

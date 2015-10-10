@@ -13,11 +13,12 @@
 //-----------------------------------------------------------------------
 
 using System.Collections.Generic;
+
 using Microsoft.PSharp.LanguageServices.Compilation;
 
 namespace Microsoft.PSharp.Tooling
 {
-    public class LanguageServicesConfiguration : Configuration
+    public sealed class LanguageServicesConfiguration : Configuration
     {
         #region options
 
@@ -68,7 +69,7 @@ namespace Microsoft.PSharp.Tooling
         /// <summary>
         /// Constructor.
         /// </summary>
-        public LanguageServicesConfiguration()
+        private LanguageServicesConfiguration()
             : base()
         {
             this.CompilationTargets = new HashSet<CompilationTarget>();
@@ -82,6 +83,19 @@ namespace Microsoft.PSharp.Tooling
             this.ShowROARuntimeResults = false;
             this.DoStateTransitionAnalysis = true;
             this.AnalyzeExceptionHandling = false;
+        }
+
+        #endregion
+
+        #region methods
+
+        /// <summary>
+        /// Creates a new language services configuration.
+        /// </summary>
+        /// <returns>LanguageServicesConfiguration</returns>
+        public static LanguageServicesConfiguration Create()
+        {
+            return new LanguageServicesConfiguration();
         }
 
         #endregion

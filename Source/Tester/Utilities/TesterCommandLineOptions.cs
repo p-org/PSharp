@@ -27,7 +27,7 @@ namespace Microsoft.PSharp.Tooling
         public TesterCommandLineOptions(string[] args)
             : base (args)
         {
-            base.Configuration = new DynamicAnalysisConfiguration();
+            base.Configuration = DynamicAnalysisConfiguration.Create();
         }
 
         #endregion

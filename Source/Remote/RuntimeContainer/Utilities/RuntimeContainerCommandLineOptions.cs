@@ -29,7 +29,7 @@ namespace Microsoft.PSharp.Remote
         public RuntimeContainerCommandLineOptions(string[] args)
             : base(args)
         {
-            base.Configuration = new RuntimeContainerConfiguration();
+            base.Configuration = RuntimeContainerConfiguration.Create();
         }
 
         #endregion

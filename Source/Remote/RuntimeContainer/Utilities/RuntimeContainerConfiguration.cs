@@ -45,12 +45,25 @@ namespace Microsoft.PSharp.Remote
         /// <summary>
         /// Constructor.
         /// </summary>
-        internal RuntimeContainerConfiguration()
+        private RuntimeContainerConfiguration()
             : base()
         {
             this.NumberOfContainers = 1;
             this.ContainerId = 0;
             this.ApplicationFilePath = "";
+        }
+
+        #endregion
+
+        #region methods
+
+        /// <summary>
+        /// Creates a new runtime container configuration.
+        /// </summary>
+        /// <returns>RuntimeContainerConfiguration</returns>
+        public static RuntimeContainerConfiguration Create()
+        {
+            return new RuntimeContainerConfiguration();
         }
 
         #endregion

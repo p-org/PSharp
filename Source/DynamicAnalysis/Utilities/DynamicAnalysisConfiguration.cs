@@ -64,7 +64,7 @@ namespace Microsoft.PSharp.Tooling
         /// <summary>
         /// Constructor.
         /// </summary>
-        public DynamicAnalysisConfiguration()
+        private DynamicAnalysisConfiguration()
             : base()
         {
             this.AssemblyToBeAnalyzed = "";
@@ -76,6 +76,43 @@ namespace Microsoft.PSharp.Tooling
             this.RedirectConsoleOutput = true;
             this.PrintTrace = false;
             this.SuppressTrace = false;
+        }
+
+        #endregion
+
+        #region methods
+
+        /// <summary>
+        /// Creates a new dynamic analysis configuration.
+        /// </summary>
+        /// <returns>DynamicAnalysisConfiguration</returns>
+        public static DynamicAnalysisConfiguration Create()
+        {
+            return new DynamicAnalysisConfiguration();
+        }
+
+        /// <summary>
+        /// Updates the configuration with the scheduling strategy
+        /// and returns it.
+        /// </summary>
+        /// <param name="strategy">SchedulingStrategy</param>
+        /// <returns>Configuration</returns>
+        public Configuration WithStrategy(SchedulingStrategy strategy)
+        {
+            this.SchedulingStrategy = strategy;
+            return this;
+        }
+
+        /// <summary>
+        /// Updates the configuration with the number of iterations
+        /// and returns it.
+        /// </summary>
+        /// <param name="iterations">Number of iterations</param>
+        /// <returns>Configuration</returns>
+        public Configuration WithNumberOfIterations(int iterations)
+        {
+            this.SchedulingIterations = iterations;
+            return this;
         }
 
         #endregion

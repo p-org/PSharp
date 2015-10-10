@@ -35,7 +35,6 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// </summary>
         private AnalysisContext AnalysisContext;
 
-
         /// <summary>
         /// The bug-finding scheduling strategy.
         /// </summary>
@@ -78,9 +77,20 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// <summary>
         /// Creates a new systematic concurrency testing engine.
         /// </summary>
+        /// <param name="configuration">Configuration</param>
+        /// <param name="action">Action</param>
+        /// <returns>SCTEngine</returns>
+        public static SCTEngine Create(Configuration configuration, Action action)
+        {
+            return SCTEngine.Create(AnalysisContext.Create(configuration, action));
+        }
+
+        /// <summary>
+        /// Creates a new systematic concurrency testing engine.
+        /// </summary>
         /// <param name="context">AnalysisContext</param>
         /// <returns>SCTEngine</returns>
-        public static SCTEngine Create(AnalysisContext context)
+        internal static SCTEngine Create(AnalysisContext context)
         {
             return new SCTEngine(context);
         }
@@ -175,8 +185,17 @@ namespace Microsoft.PSharp.DynamicAnalysis
                     // Configure the test.
                     PSharpRuntime.Configure(this.AnalysisContext.Configuration);
 
-                    // Start the test and wait for it to terminate.
-                    this.AnalysisContext.TestMethod.Invoke(null, null);
+                    // Start the test.
+                    if (this.AnalysisContext.TestAction != null)
+                    {
+                        this.AnalysisContext.TestAction();
+                    }
+                    else
+                    {
+                        this.AnalysisContext.TestMethod.Invoke(null, null);
+                    }
+
+                    // Wait for test to terminate.
                     PSharpRuntime.WaitMachines();
 
                     // Runs the liveness checker to find any liveness property violations.

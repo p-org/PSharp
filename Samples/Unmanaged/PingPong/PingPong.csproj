@@ -39,13 +39,19 @@
     <Reference Include="Microsoft.PSharp">
       <HintPath>..\..\..\Binaries\Release\Microsoft.PSharp.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.PSharp.BugFindingRuntime">
+      <HintPath>..\..\..\Binaries\Release\Microsoft.PSharp.BugFindingRuntime.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.PSharp.DynamicAnalysis">
+      <HintPath>..\..\..\Binaries\Release\Microsoft.PSharp.DynamicAnalysis.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.PSharp.Interop, Version=1.0.5759.40708, Culture=neutral, PublicKeyToken=c4566cf0a7f74012, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\Binaries\Release\Microsoft.PSharp.Interop.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.PSharp.Runtime, Version=1.0.0.0, Culture=neutral, PublicKeyToken=c4566cf0a7f74012, processorArchitecture=MSIL">
+    <Reference Include="Microsoft.PSharp.Tooling, Version=1.0.0.0, Culture=neutral, PublicKeyToken=c4566cf0a7f74012, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\Binaries\Release\Microsoft.PSharp.Runtime.dll</HintPath>
+      <HintPath>..\..\..\Binaries\Release\Microsoft.PSharp.Tooling.dll</HintPath>
     </Reference>
     <Reference Include="System" />
   </ItemGroup>

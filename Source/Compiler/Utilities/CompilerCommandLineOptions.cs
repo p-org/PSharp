@@ -29,7 +29,7 @@ namespace Microsoft.PSharp.Tooling
         public CompilerCommandLineOptions(string[] args)
             : base (args)
         {
-            base.Configuration = new LanguageServicesConfiguration();
+            base.Configuration = LanguageServicesConfiguration.Create();
         }
 
         #endregion

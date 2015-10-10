@@ -12,8 +12,6 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System.Collections.Generic;
-
 namespace Microsoft.PSharp.Tooling
 {
     public abstract class Configuration
@@ -67,6 +65,34 @@ namespace Microsoft.PSharp.Tooling
             this.Timeout = 0;
 
             this.InteroperationEnabled = true;
+        }
+
+        #endregion
+
+        #region methods
+
+        /// <summary>
+        /// Updates the configuration with verbose output enabled
+        /// and returns it.
+        /// </summary>
+        /// <param name="level">Verbosity level</param>
+        /// <returns>Configuration</returns>
+        public Configuration WithVerbosityEnabled(int level)
+        {
+            this.Verbose = level;
+            return this;
+        }
+
+        /// <summary>
+        /// Updates the configuration with debugging information enabled
+        /// or disabled and returns it.
+        /// </summary>
+        /// <param name="level">Verbosity level</param>
+        /// <returns>Configuration</returns>
+        public Configuration WithDebuggingEnabled(bool value = true)
+        {
+            Output.Debugging = value;
+            return this;
         }
 
         #endregion

@@ -30,7 +30,7 @@ namespace Microsoft.PSharp.Remote
         public RemoteManagerCommandLineOptions(string[] args)
             : base(args)
         {
-            base.Configuration = new RemoteManagerConfiguration();
+            base.Configuration = RemoteManagerConfiguration.Create();
         }
 
         #endregion

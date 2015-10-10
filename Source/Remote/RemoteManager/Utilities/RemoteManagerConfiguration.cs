@@ -40,11 +40,24 @@ namespace Microsoft.PSharp.Remote
         /// <summary>
         /// Constructor.
         /// </summary>
-        internal RemoteManagerConfiguration()
+        private RemoteManagerConfiguration()
             : base()
         {
             this.NumberOfContainers = 1;
             this.ApplicationFilePath = "";
+        }
+
+        #endregion
+
+        #region methods
+
+        /// <summary>
+        /// Creates a new remote manager configuration.
+        /// </summary>
+        /// <returns>RemoteManagerConfiguration</returns>
+        public static RemoteManagerConfiguration Create()
+        {
+            return new RemoteManagerConfiguration();
         }
 
         #endregion

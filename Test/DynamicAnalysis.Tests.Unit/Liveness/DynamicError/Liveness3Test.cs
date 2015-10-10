@@ -128,7 +128,7 @@ namespace SystematicTesting
             var program = parser.Parse();
             program.Rewrite();
 
-            var sctConfig = new DynamicAnalysisConfiguration();
+            var sctConfig = DynamicAnalysisConfiguration.Create();
             sctConfig.SuppressTrace = true;
             sctConfig.Verbose = 3;
             sctConfig.CheckLiveness = true;
