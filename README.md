@@ -14,7 +14,7 @@ P# provides:
 Optional: Get the [Visual Studio 2015 SDK](https://www.microsoft.com/en-us/download/details.aspx?id=46850) to be able to compile the P# visual studio extension (syntax highlighting). Only for the high-level P# language.
 
 ## How to use
-A good way to start is by reading the [manual](https://cdn.rawgit.com/p-org/PSharp/master/Docs/Manual/out/manual.pdf).
+A good way to start is by reading the [manual](https://cdn.rawgit.com/p-org/PSharp/master/Docs/Manual/out/manual.pdf) (which is quite outdated right now, a new version will get released soon, but in the meantime please feel free to contact the P# dev team with specific questions).
 
 ## Compilation
 The P# compiler can be used to parse a P# program, rewrite it to C# and finally compile it to an executable. To invoke the compiler use the following command:
@@ -47,6 +47,14 @@ To enable liveness checking use the option `/liveness`.
 ## Options
 
 To see various available command line options for the P# tools use the option `/?`.
+
+## Contact us
+
+If you would like to use P# in your project, or have any specific questions, please feel free to contact one of the following members of the P# team:
+- Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
+- Shaz Qadeer (qadeer@microsoft.com)
+- Akash Lal (akashl@microsoft.com)
+- Cheng Huang (cheng.huang@microsoft.com)
 
 ## Publications
 - **[Asynchronous Programming, Analysis and Testing with State Machines](https://dl.acm.org/citation.cfm?id=2737996)**. Pantazis Deligiannis, Alastair F. Donaldson, Jeroen Ketema, Akash Lal and Paul Thomson. In the *ACM SIGPLAN Conference on Programming Language Design and Implementation* (PLDI), 2015.
