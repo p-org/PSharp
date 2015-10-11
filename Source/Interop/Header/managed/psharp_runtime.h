@@ -31,7 +31,7 @@ namespace Microsoft
 			public ref class Runtime abstract sealed
 			{
 			public:
-				static void send(Microsoft::PSharp::Id^ mid, Microsoft::PSharp::Event^ e)
+				static void send(Microsoft::PSharp::MachineId^ mid, Microsoft::PSharp::Event^ e)
 				{
 					Microsoft::PSharp::PSharpRuntime::Send(mid, e);
 				}

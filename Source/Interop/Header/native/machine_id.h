@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------
-// <copyright file=id.h" company="Microsoft">
+// <copyright file=machine_id.h" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -16,14 +16,14 @@
 
 #pragma once
 
-class IdWrapper;
+class MachineIdWrapper;
 
-class __declspec(dllexport) Id final
+class __declspec(dllexport) MachineId final
 {
 private:
-	IdWrapper* _id;
+	MachineIdWrapper* _id;
 
 public:
-	Id();
-	~Id();
+	MachineId();
+	~MachineId();
 };

@@ -6,10 +6,10 @@ namespace MultiPaxos
 {
     internal class PaxosNode : Machine
     {
-        Tuple<int, Id> CurrentLeader;
-        Id LeaderElectionService;
+        Tuple<int, MachineId> CurrentLeader;
+        MachineId LeaderElectionService;
 
-        List<Id> Acceptors;
+        List<MachineId> Acceptors;
         int CommitValue;
         int ProposeVal;
         int Majority;
@@ -19,7 +19,7 @@ namespace MultiPaxos
         int MaxRound;
         int AcceptCount;
         int AgreeCount;
-        Id Timer;
+        MachineId Timer;
         int NextSlotForProposer;
 
         Dictionary<int, Tuple<int, int, int>> AcceptorSlots;
@@ -36,7 +36,7 @@ namespace MultiPaxos
 
         void InitOnEntry()
         {
-            this.Acceptors = new List<Id>();
+            this.Acceptors = new List<MachineId>();
             this.AcceptorSlots = new Dictionary<int, Tuple<int, int, int>>();
             this.LearnerSlots = new Dictionary<int, Tuple<int, int, int>>();
 
@@ -178,7 +178,7 @@ namespace MultiPaxos
 
         void UpdateAcceptors()
         {
-            var acceptors = this.Payload as List<Id>;
+            var acceptors = this.Payload as List<MachineId>;
 
             this.Acceptors = acceptors;
 
@@ -206,7 +206,7 @@ namespace MultiPaxos
         
         void PrepareAction()
         {
-            var proposer = (this.Payload as object[])[0] as Id;
+            var proposer = (this.Payload as object[])[0] as MachineId;
             var slot = (int)(this.Payload as object[])[1];
             var round = (int)(this.Payload as object[])[2];
             var server = (int)(this.Payload as object[])[3];
@@ -232,7 +232,7 @@ namespace MultiPaxos
 
         void AcceptAction()
         {
-            var proposer = (this.Payload as object[])[0] as Id;
+            var proposer = (this.Payload as object[])[0] as MachineId;
             var slot = (int)(this.Payload as object[])[1];
             var round = (int)(this.Payload as object[])[2];
             var server = (int)(this.Payload as object[])[3];
@@ -260,7 +260,7 @@ namespace MultiPaxos
 
         void UpdateLeader()
         {
-            this.CurrentLeader = this.Payload as Tuple<int, Id>;
+            this.CurrentLeader = this.Payload as Tuple<int, MachineId>;
         }
 
         void CountAgree()

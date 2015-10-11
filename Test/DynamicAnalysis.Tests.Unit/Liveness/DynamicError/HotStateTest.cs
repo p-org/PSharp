@@ -43,7 +43,7 @@ namespace SystematicTesting
 
     class Master : Machine
     {
-        List<Id> Workers;
+        List<MachineId> Workers;
 
 		[Start]
         [OnEntry(nameof(InitOnEntry))]
@@ -52,7 +52,7 @@ namespace SystematicTesting
 
 		void InitOnEntry()
         {
-            this.Workers = new List<Id>();
+            this.Workers = new List<MachineId>();
 
             for (int idx = 0; idx < 3; idx++)
             {
@@ -85,7 +85,7 @@ namespace SystematicTesting
 
     class Worker : Machine
     {
-        Id Master;
+        MachineId Master;
 
 		[Start]
         [OnEntry(nameof(InitOnEntry))]
@@ -94,7 +94,7 @@ namespace SystematicTesting
 
 		void InitOnEntry()
         {
-            this.Master = (Id)this.Payload;
+            this.Master = (MachineId)this.Payload;
             this.Raise(new Unit());
         }
         
@@ -117,7 +117,7 @@ namespace SystematicTesting
 
     class M : Monitor
     {
-        List<Id> Workers;
+        List<MachineId> Workers;
 
         [Start]
         [Hot]
@@ -128,7 +128,7 @@ namespace SystematicTesting
 
         void InitOnEntry()
         {
-            this.Workers = (List<Id>)this.Payload;
+            this.Workers = (List<MachineId>)this.Payload;
         }
 
         void ProcessNotification()

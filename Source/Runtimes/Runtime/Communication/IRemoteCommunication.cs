@@ -33,7 +33,7 @@ namespace Microsoft.PSharp.Remote
         /// <param name="payload">Optional payload</param>
         /// <returns>Id</returns> 
         [OperationContract]
-        Id CreateMachine(string type, params Object[] payload);
+        MachineId CreateMachine(string type, params Object[] payload);
 
         /// <summary>
         /// Sends an asynchronous event to a machine.
@@ -42,6 +42,6 @@ namespace Microsoft.PSharp.Remote
         /// <param name="e">Event</param>
         //[OperationContract(IsOneWay = true)]
         [OperationContract]
-        void SendEvent(Id target, Event e);
+        void SendEvent(MachineId target, Event e);
     }
 }

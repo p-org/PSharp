@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="Id.cs" company="Microsoft">
+// <copyright file="MachineId.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -24,7 +24,7 @@ namespace Microsoft.PSharp
     /// Unique machine id.
     /// </summary>
     [DataContract]
-    public sealed class Id
+    public sealed class MachineId
     {
         #region fields
 
@@ -79,28 +79,28 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Static constructor.
         /// </summary>
-        static Id()
+        static MachineId()
         {
-            Id.IdCounter = 0;
-            Id.TypeIdCounter = new Dictionary<Type, int>();
+            MachineId.IdCounter = 0;
+            MachineId.TypeIdCounter = new Dictionary<Type, int>();
         }
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="type">Type</param>
-        internal Id(Type type)
+        internal MachineId(Type type)
         {
-            lock (Id.TypeIdCounter)
+            lock (MachineId.TypeIdCounter)
             {
-                if (!Id.TypeIdCounter.ContainsKey(type))
+                if (!MachineId.TypeIdCounter.ContainsKey(type))
                 {
-                    Id.TypeIdCounter.Add(type, 0);
+                    MachineId.TypeIdCounter.Add(type, 0);
                 }
 
-                this.Value = Id.IdCounter++;
+                this.Value = MachineId.IdCounter++;
                 this.Type = type.Name;
-                this.MVal = Id.TypeIdCounter[type]++;
+                this.MVal = MachineId.TypeIdCounter[type]++;
                 this.IpAddress = "";
                 this.Port = "";
             }
@@ -111,8 +111,8 @@ namespace Microsoft.PSharp
         /// </summary>
         internal static void ResetMachineIDCounter()
         {
-            Id.IdCounter = 0;
-            Id.TypeIdCounter.Clear();
+            MachineId.IdCounter = 0;
+            MachineId.TypeIdCounter.Clear();
         }
 
         #endregion
@@ -132,7 +132,7 @@ namespace Microsoft.PSharp
                 return false;
             }
 
-            Id mid = obj as Id;
+            MachineId mid = obj as MachineId;
             if (mid == null)
             {
                 return false;

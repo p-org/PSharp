@@ -5,7 +5,7 @@ namespace LivenessCheck
 {
     internal class Worker : Machine
     {
-        Id Master;
+        MachineId Master;
 
 		[Start]
         [OnEntry(nameof(InitOnEntry))]
@@ -14,7 +14,7 @@ namespace LivenessCheck
 
 		void InitOnEntry()
         {
-            this.Master = (Id)this.Payload;
+            this.Master = (MachineId)this.Payload;
             this.Raise(new Unit());
         }
         

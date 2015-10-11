@@ -77,8 +77,8 @@ namespace SystematicTesting
 
     class Employee : Machine
     {
-        Id TravelAgentMachine;
-        Id CityCabMachine;
+        MachineId TravelAgentMachine;
+        MachineId CityCabMachine;
         bool Check;
         bool RemoteCheckIn;
 
@@ -212,7 +212,7 @@ namespace SystematicTesting
 
     class TravelAgent : Machine
     {
-        Id EmployeeMachine;
+        MachineId EmployeeMachine;
 
         [Start]
         [OnEntry(nameof(Entry_Init))]
@@ -221,7 +221,7 @@ namespace SystematicTesting
 
         void Entry_Init()
         {
-            EmployeeMachine = this.Payload as Id;
+            EmployeeMachine = this.Payload as MachineId;
             this.Raise(new Unit());
         }
 
@@ -249,7 +249,7 @@ namespace SystematicTesting
 
     class CityCab : Machine
     {
-        Id EmployeeMachine;
+        MachineId EmployeeMachine;
 
         [Start]
         [OnEntry(nameof(Entry_Init))]
@@ -258,7 +258,7 @@ namespace SystematicTesting
 
         void Entry_Init()
         {
-            EmployeeMachine = this.Payload as Id;
+            EmployeeMachine = this.Payload as MachineId;
             this.Raise(new Unit());
         }
 

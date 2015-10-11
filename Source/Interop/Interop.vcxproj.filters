@@ -35,9 +35,6 @@
     <ClInclude Include="Header\native\event.h">
       <Filter>Header\native</Filter>
     </ClInclude>
-    <ClInclude Include="Header\native\id.h">
-      <Filter>Header\native</Filter>
-    </ClInclude>
     <ClInclude Include="Header\native\machine.h">
       <Filter>Header\native</Filter>
     </ClInclude>
@@ -56,12 +53,12 @@
     <ClInclude Include="Header\managed\psharp_runtime.h">
       <Filter>Header\managed</Filter>
     </ClInclude>
+    <ClInclude Include="Header\native\machine_id.h">
+      <Filter>Header\native</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\native\event.cpp">
-      <Filter>Source\native</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\native\id.cpp">
       <Filter>Source\native</Filter>
     </ClCompile>
     <ClCompile Include="Source\native\machine.cpp">
@@ -78,6 +75,9 @@
     </ClCompile>
     <ClCompile Include="Source\managed\psharp_runtime.cpp">
       <Filter>Source\managed</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\native\machine_id.cpp">
+      <Filter>Source\native</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

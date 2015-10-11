@@ -97,7 +97,7 @@
     <Compile Include="Library\ActionBindings.cs" />
     <Compile Include="Library\GotoStateTransitions.cs" />
     <Compile Include="Library\BaseMachine.cs" />
-    <Compile Include="Library\Id.cs" />
+    <Compile Include="Library\MachineId.cs" />
     <Compile Include="Library\Machine.cs" />
     <Compile Include="Library\MachineState.cs" />
     <Compile Include="Library\Monitor.cs" />

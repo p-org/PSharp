@@ -71,8 +71,8 @@ namespace SystematicTesting
 
         void Run()
         {
-            Send((Id)Payload, new Event1());
-            Send((Id)Payload, new Event1());
+            Send((MachineId)Payload, new Event1());
+            Send((MachineId)Payload, new Event1());
         }
     }
 
@@ -84,7 +84,7 @@ namespace SystematicTesting
 
         void Run()
         {
-            Send((Id)Payload, new Event2());
+            Send((MachineId)Payload, new Event2());
         }
     }
 

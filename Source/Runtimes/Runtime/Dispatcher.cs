@@ -33,8 +33,8 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="payload">Optional payload</param>
-        /// <returns>Id</returns>
-        Id IDispatcher.TryCreateMachine(Type type, params Object[] payload)
+        /// <returns>MachineId</returns>
+        MachineId IDispatcher.TryCreateMachine(Type type, params Object[] payload)
         {
             return PSharpRuntime.TryCreateMachine(type, payload);
         }
@@ -44,8 +44,8 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="payload">Optional payload</param>
-        /// <returns>Id</returns>
-        Id IDispatcher.TryCreateRemoteMachine(Type type, params Object[] payload)
+        /// <returns>MachineId</returns>
+        MachineId IDispatcher.TryCreateRemoteMachine(Type type, params Object[] payload)
         {
             return PSharpRuntime.TryCreateMachineRemotely(type, payload);
         }
@@ -72,9 +72,9 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Sends an asynchronous event to a machine.
         /// </summary>
-        /// <param name="mid">Id</param>
+        /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
-        void IDispatcher.Send(Id mid, Event e)
+        void IDispatcher.Send(MachineId mid, Event e)
         {
             if (mid.IpAddress.Length > 0)
             {
@@ -162,8 +162,8 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Notifies that a machine is waiting to receive an event.
         /// </summary>
-        /// <param name="mid">Id</param>
-        void IDispatcher.NotifyWaitEvent(Id mid)
+        /// <param name="mid">MachineId</param>
+        void IDispatcher.NotifyWaitEvent(MachineId mid)
         {
             PSharpRuntime.NotifyWaitEvent(mid);
         }
@@ -171,8 +171,8 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Notifies that a machine received an event that it was waiting for.
         /// </summary>
-        /// <param name="mid">Id</param>
-        void IDispatcher.NotifyReceivedEvent(Id mid)
+        /// <param name="mid">MachineId</param>
+        void IDispatcher.NotifyReceivedEvent(MachineId mid)
         {
             PSharpRuntime.NotifyReceivedEvent(mid);
         }

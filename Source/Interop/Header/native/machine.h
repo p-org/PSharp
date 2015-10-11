@@ -38,5 +38,5 @@ public:
 	Machine();
 	virtual ~Machine() = 0;
 
-	void send(Id* id, Event* e);
+	void send(MachineId* id, Event* e);
 };

@@ -65,7 +65,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 
             if (base.TokenStream.Peek().Type == TokenType.MachineDecl)
             {
-                base.TokenStream.Swap(new Token(new TextUnit("Id", base.TokenStream.
+                base.TokenStream.Swap(new Token(new TextUnit("MachineId", base.TokenStream.
                     Peek().TextUnit.Line), TokenType.MachineDecl));
                 type = new PBaseType(PType.Machine);
                 type.TypeTokens.Add(base.TokenStream.Peek());
@@ -203,7 +203,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 
                 if (base.TokenStream.Peek().Type == TokenType.MachineDecl)
                 {
-                    base.TokenStream.Swap(new Token(new TextUnit("Id", base.TokenStream.
+                    base.TokenStream.Swap(new Token(new TextUnit("MachineId", base.TokenStream.
                         Peek().TextUnit.Line), TokenType.MachineDecl));
                 }
 
@@ -273,7 +273,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 
                     if (base.TokenStream.Peek().Type == TokenType.MachineDecl)
                     {
-                        base.TokenStream.Swap(new Token(new TextUnit("Id", base.TokenStream.
+                        base.TokenStream.Swap(new Token(new TextUnit("MachineId", base.TokenStream.
                             Peek().TextUnit.Line), TokenType.MachineDecl));
                     }
 

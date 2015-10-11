@@ -66,7 +66,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Unique machine ID.
         /// </summary>
-        protected Id Id
+        protected MachineId Id
         {
             get { return this.Machine.Id; }
         }
@@ -236,8 +236,8 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="payload">Optional payload</param>
-        /// <returns>Id</returns>
-        protected internal Id CreateMachine(Type type, params Object[] payload)
+        /// <returns>MachineId</returns>
+        protected internal MachineId CreateMachine(Type type, params Object[] payload)
         {
             return this.Machine.CreateMachine(type, payload);
         }
@@ -247,8 +247,8 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="payload">Optional payload</param>
-        /// <returns>Id</returns>
-        protected internal Id CreateRemoteMachine(Type type, params Object[] payload)
+        /// <returns>MachineId</returns>
+        protected internal MachineId CreateRemoteMachine(Type type, params Object[] payload)
         {
             return this.Machine.CreateRemoteMachine(type, payload);
         }
@@ -266,10 +266,10 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Sends an asynchronous event to a machine.
         /// </summary>
-        /// <param name="mid">Id</param>
+        /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="payload">Optional payload</param>
-        protected void Send(Id mid, Event e, params Object[] payload)
+        protected void Send(MachineId mid, Event e, params Object[] payload)
         {
             this.Machine.Send(mid, e, payload);
         }

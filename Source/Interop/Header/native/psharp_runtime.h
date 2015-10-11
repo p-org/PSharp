@@ -31,7 +31,7 @@ public:
 	//static Id* create_machine();
 
 	template<typename T>
-	static Id* create_machine()
+	static MachineId* create_machine()
 	{
 		auto machine = std::make_shared<T>();
 		if (!dynamic_cast<Machine*>(machine.get()))
@@ -39,7 +39,7 @@ public:
 			throw std::runtime_error("Cannot create a non-machine type.");
 		}
 
-		auto id = std::make_shared<Id>();
+		auto id = std::make_shared<MachineId>();
 		return id.get();
 	}
 };

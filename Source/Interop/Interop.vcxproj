@@ -158,7 +158,7 @@
     <ClInclude Include="Header\managed\psharp_runtime.h" />
     <ClInclude Include="Header\managed\wrapper.h" />
     <ClInclude Include="Header\native\event.h" />
-    <ClInclude Include="Header\native\id.h" />
+    <ClInclude Include="Header\native\machine_id.h" />
     <ClInclude Include="Header\native\machine.h" />
     <ClInclude Include="Header\native\psharp.h" />
     <ClInclude Include="Header\native\psharp_runtime.h" />
@@ -168,7 +168,7 @@
     <ClCompile Include="Source\managed\psharp_runtime.cpp" />
     <ClCompile Include="Source\managed\wrapper.cpp" />
     <ClCompile Include="Source\native\event.cpp" />
-    <ClCompile Include="Source\native\id.cpp" />
+    <ClCompile Include="Source\native\machine_id.cpp" />
     <ClCompile Include="Source\native\machine.cpp" />
     <ClCompile Include="Source\native\psharp_runtime.cpp" />
   </ItemGroup>

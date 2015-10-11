@@ -40,7 +40,7 @@ Machine::Machine()
 	std::cout << "New machine created" << std::endl;
 }
 
-void Machine::send(Id* id, Event* e)
+void Machine::send(MachineId* id, Event* e)
 {
 	std::cout << "Sending event " << typeid(*e).name() << std::endl;
 }

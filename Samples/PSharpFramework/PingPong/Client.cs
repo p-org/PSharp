@@ -5,7 +5,7 @@ namespace PingPong
 {
     internal class Client : Machine
     {
-        private Id Server;
+        private MachineId Server;
         private int Counter;
 
         [Start]
@@ -14,7 +14,7 @@ namespace PingPong
         {
             protected override void OnEntry()
             {
-                (this.Machine as Client).Server = (Id)this.Payload;
+                (this.Machine as Client).Server = (MachineId)this.Payload;
                 (this.Machine as Client).Counter = 0;
                 this.Raise(new Unit());
             }

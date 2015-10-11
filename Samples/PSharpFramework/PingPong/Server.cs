@@ -5,7 +5,7 @@ namespace PingPong
 {
     internal class Server : Machine
     {
-        Id Client;
+        MachineId Client;
 
 		[Start]
         [OnEntry(nameof(InitOnEntry))]

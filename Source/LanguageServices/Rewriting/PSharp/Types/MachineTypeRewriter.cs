@@ -73,7 +73,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// <returns>ExpressionSyntax</returns>
         private ExpressionSyntax RewriteType(IdentifierNameSyntax node)
         {
-            var text = "Id";
+            var text = "MachineId";
 
             var rewritten = SyntaxFactory.ParseExpression(text);
             rewritten = rewritten.WithTriviaFrom(node);

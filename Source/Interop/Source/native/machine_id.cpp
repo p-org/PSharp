@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------
-// <copyright file="id.cpp" company="Microsoft">
+// <copyright file="machine_id.cpp" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -16,23 +16,23 @@
 
 #include <msclr\auto_gcroot.h>
 
-#include "native\id.h"
+#include "native\machine_id.h"
 
 #using <Microsoft.PSharp.dll> as_friend
 
-class IdWrapper
+class MachineIdWrapper
 {
 public:
-	msclr::auto_gcroot<Microsoft::PSharp::Id^> id;
+	msclr::auto_gcroot<Microsoft::PSharp::MachineId^> id;
 };
 
-Id::Id()
+MachineId::MachineId()
 {
-	this->_id = new IdWrapper();
-	//this->_id->id = gcnew Microsoft::PSharp::Id();
+	this->_id = new MachineIdWrapper();
+	//this->_id->id = gcnew Microsoft::PSharp::MachineId();
 }
 
-Id::~Id()
+MachineId::~MachineId()
 {
 	delete this->_id;
 }
