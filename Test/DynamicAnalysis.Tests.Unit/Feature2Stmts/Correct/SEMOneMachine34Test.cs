@@ -36,10 +36,27 @@ using Microsoft.PSharp;
 
 namespace SystematicTesting
 {
-    class E1 : Event { }
-    class E2 : Event { }
-    class E3 : Event { }
-    class E4 : Event { }
+    class E1 : Event {
+        public Tuple<int, bool> T;
+        public E1(Tuple<int, bool> t) : base(-1, -1) { this.T = t; }
+    }
+
+    class E2 : Event {
+        public int V;
+        public bool B;
+        public E2(int v, bool b) : base(-1, -1) { this.V = v; this.B = b; }
+    }
+
+    class E3 : Event {
+        public int V;
+        public E3(int v) : base(-1, -1) { this.V = v; }
+    }
+
+    class E4 : Event {
+        public Dictionary<int, int> D;
+        public List<bool> L;
+        public E4(Dictionary<int, int> d, List<bool> l) : base(-1, -1) { this.D = d; this.L = l; }
+    }
 
     class MachOS : Machine
     {
@@ -66,40 +83,39 @@ namespace SystematicTesting
 			s.Add(true);
 			s.Add(false);
 			s.Add(true);
-			this.Send(this.Id, new E1(), Tuple.Create(1, true));
-			this.Send(this.Id, new E2(), 0, false);
-            this.Send(this.Id, new E3(), 1);
-			this.Send(this.Id, new E4(), Tuple.Create(m, s));
-
+			this.Send(this.Id, new E1(Tuple.Create(1, true)));
+			this.Send(this.Id, new E2(0, false));
+            this.Send(this.Id, new E3(1));
+			this.Send(this.Id, new E4(m, s));
         }
 
         void Foo1()
         {
-            Int = (int)(this.Payload as Tuple<int, bool>).Item1;
+            Int = (this.ReceivedEvent as E1).T.Item1;
             this.Assert(Int == 1);
-            Bool = (bool)(this.Payload as Tuple<int, bool>).Item2;
+            Bool = (this.ReceivedEvent as E1).T.Item2;
             this.Assert(Bool == true);
         }
 
         void Foo2()
         {
-            Int = (int)(this.Payload as object[])[0];
+            Int = (this.ReceivedEvent as E2).V;
             this.Assert(Int == 0);
-            Bool = (bool)(this.Payload as object[])[1];
+            Bool = (this.ReceivedEvent as E2).B;
             this.Assert(Bool == false);
         }
 
         void Foo3()
         {
-            Int = (int)this.Payload;
+            Int = (this.ReceivedEvent as E3).V;
             this.Assert(Int == 1);
         }
 
         void Foo4()
         {
-            Int = ((this.Payload as Tuple<Dictionary<int, int>, List<bool>>).Item1 as Dictionary<int, int>)[0];
+            Int = (this.ReceivedEvent as E4).D[0];
             this.Assert(Int == 1);
-            Bool = ((this.Payload as Tuple<Dictionary<int, int>, List<bool>>).Item2 as List<bool>)[2];
+            Bool = (this.ReceivedEvent as E4).L[2];
             this.Assert(Bool == true);
         }
     }

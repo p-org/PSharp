@@ -9,15 +9,15 @@ namespace PingPong
         private int Counter;
 
         [Start]
+        [OnEventDoAction(typeof(Config), nameof(Configure))]
         [OnEventGotoState(typeof(Unit), typeof(Active))]
-        class Init : MachineState
+        class Init : MachineState { }
+
+        void Configure()
         {
-            protected override void OnEntry()
-            {
-                (this.Machine as Client).Server = (MachineId)this.Payload;
-                (this.Machine as Client).Counter = 0;
-                this.Raise(new Unit());
-            }
+            this.Server = (this.ReceivedEvent as Config).Id;
+            this.Counter = 0;
+            this.Raise(new Unit());
         }
 
         [OnEventGotoState(typeof(Unit), typeof(Active))]

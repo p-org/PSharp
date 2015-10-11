@@ -103,14 +103,13 @@ namespace Microsoft.PSharp
         #region public API
 
         /// <summary>
-        /// Creates a new machine of the given type with an optional payload.
+        /// Creates a new machine of the given type.
         /// </summary>
         /// <param name="type">Type of the machine</param>
-        /// <param name="payload">Optional payload</param>
         /// <returns>MachineId</returns>
-        public static MachineId CreateMachine(Type type, params Object[] payload)
+        public static MachineId CreateMachine(Type type)
         {   
-            return PSharpRuntime.TryCreateMachine(type, payload);
+            return PSharpRuntime.TryCreateMachine(type);
         }
 
         /// <summary>
@@ -118,12 +117,10 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="target">Target machine id</param>
         /// <param name="e">Event</param>
-        /// <param name="payload">Optional payload</param>
-        public static void SendEvent(MachineId target, Event e, params Object[] payload)
+        public static void SendEvent(MachineId target, Event e)
         {
             // If the event is null then report an error and exit.
             PSharpRuntime.Assert(e != null, "Cannot send a null event.");
-            e.AssignPayload(payload);
 
             try
             {
@@ -138,8 +135,8 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Blocks and waits to receive an event of the given types.
         /// </summary>
-        /// <returns>Payload</returns>
-        public static Object Receive(params Type[] events)
+        /// <returns>Received event</returns>
+        public static Event Receive(params Type[] events)
         {
             PSharpRuntime.Assert(Task.CurrentId != null, "Only machines can wait to receive an event.");
             PSharpRuntime.Assert(PSharpRuntime.TaskMap.ContainsKey((int)Task.CurrentId),
@@ -147,15 +144,15 @@ namespace Microsoft.PSharp
                 (int)Task.CurrentId);
             Machine machine = PSharpRuntime.TaskMap[(int)Task.CurrentId];
             machine.Receive(events);
-            return machine.Payload;
+            return machine.ReceivedEvent;
         }
 
         /// <summary>
         /// Blocks and waits to receive an event of the given types, and
         /// executes a given action on receiving the event.
         /// </summary>
-        /// <returns>Payload</returns>
-        public static Object Receive(params Tuple<Type, Action>[] events)
+        /// <returns>Received event</returns>
+        public static Event Receive(params Tuple<Type, Action>[] events)
         {
             PSharpRuntime.Assert(Task.CurrentId != null, "Only machines can wait to receive an event.");
             PSharpRuntime.Assert(PSharpRuntime.TaskMap.ContainsKey((int)Task.CurrentId),
@@ -163,7 +160,7 @@ namespace Microsoft.PSharp
                 (int)Task.CurrentId);
             Machine machine = PSharpRuntime.TaskMap[(int)Task.CurrentId];
             machine.Receive(events);
-            return machine.Payload;
+            return machine.ReceivedEvent;
         }
 
         /// <summary>
@@ -171,12 +168,10 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <typeparam name="T">Type of the monitor</typeparam>
         /// <param name="e">Event</param>
-        /// <param name="payload">Optional payload</param>
-        public static void InvokeMonitor<T>(Event e, params Object[] payload)
+        public static void InvokeMonitor<T>(Event e)
         {
             // If the event is null then report an error and exit.
             PSharpRuntime.Assert(e != null, "Cannot send a null event.");
-            e.AssignPayload(payload);
             PSharpRuntime.Monitor<T>(e);
         }
 
@@ -271,12 +266,11 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Tries to create a new machine of the given type with an optional payload.
+        /// Tries to create a new machine of the given type.
         /// </summary>
         /// <param name="type">Type of the machine</param>
-        /// <param name="payload">Optional payload</param>
         /// <returns>MachineId</returns>
-        internal static MachineId TryCreateMachine(Type type, params Object[] payload)
+        internal static MachineId TryCreateMachine(Type type)
         {
             if (type.IsSubclassOf(typeof(Machine)))
             {
@@ -290,8 +284,7 @@ namespace Microsoft.PSharp
                 Task task = new Task(() =>
                 {
                     PSharpRuntime.BugFinder.NotifyTaskStarted();
-
-                    (machine as Machine).AssignInitialPayload(payload);
+                    
                     (machine as Machine).GotoStartState();
                     (machine as Machine).RunEventHandler();
 
@@ -328,11 +321,10 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Tries to create a new monitor of the given type with an optional payload.
+        /// Tries to create a new monitor of the given type.
         /// </summary>
         /// <param name="type">Type of the monitor</param>
-        /// <param name="payload">Optional payload</param>
-        internal static void TryCreateMonitor(Type type, params Object[] payload)
+        internal static void TryCreateMonitor(Type type)
         {
             PSharpRuntime.Assert(type.IsSubclassOf(typeof(Monitor)), "Type '{0}' is not a " +
                 "subclass of Monitor.\n", type.Name);
@@ -347,8 +339,7 @@ namespace Microsoft.PSharp
             {
                 PSharpRuntime.LivenessChecker.RegisterMonitor(monitor as Monitor);
             }
-
-            (monitor as Monitor).AssignInitialPayload(payload);
+            
             (monitor as Monitor).GotoStartState();
         }
 
@@ -397,7 +388,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
-        internal static void Send(MachineId mid, Event e)
+        public static void Send(MachineId mid, Event e)
         {
             if (mid == null)
             {

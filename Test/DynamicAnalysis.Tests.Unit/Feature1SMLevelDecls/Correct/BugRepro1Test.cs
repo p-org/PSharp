@@ -36,7 +36,8 @@ using Microsoft.PSharp;
 namespace SystematicTesting
 {
     class Ping : Event {
-        public Ping() : base(1, -1) { }
+        public int V;
+        public Ping(int v) : base(1, -1) { this.V = v; }
     }
 
     class Success : Event { }
@@ -84,7 +85,7 @@ namespace SystematicTesting
                 this.Assert(i == 3);  
                 i = i + 1;
                 this.Assert(i == 4);
-                this.Send(this.Id, new Ping(), i);
+                this.Send(this.Id, new Ping(i));
                 this.Assert(i == 4);
             }
 

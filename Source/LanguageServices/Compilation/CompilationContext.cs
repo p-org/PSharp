@@ -200,17 +200,6 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
             return ext.Equals(".cs") ? true : false;
         }
 
-        /// <summary>
-        /// True if the syntax tree belongs to a P program, else false.
-        /// </summary>
-        /// <param name="tree">SyntaxTree</param>
-        /// <returns>Boolean value</returns>
-        public bool IsPFile(SyntaxTree tree)
-        {
-            var ext = Path.GetExtension(tree.FilePath);
-            return ext.Equals(".p") ? true : false;
-        }
-
         #endregion
 
         #region private methods

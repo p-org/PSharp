@@ -38,8 +38,9 @@ using Microsoft.PSharp;
 
 namespace SystematicTesting
 {
-    class E2 : Event {
-        public E2() : base(1, -1) { }
+    class Config : Event {
+        public bool Value;
+        public Config(bool v) : base(1, -1) { this.Value = v; }
     }
 
     class Real1 : Machine
@@ -53,19 +54,19 @@ namespace SystematicTesting
         void EntryInit()
         {
             this.CreateMonitor(typeof(M));
-            this.Monitor<M>(null, test);
+            this.Monitor<M>(new Config(test));
         }
     }
 
     class M : Monitor
     {
         [Start]
-        [OnEntry(nameof(EntryX))]
+        [OnEventDoAction(typeof(Config), nameof(Configure))]
         class X : MonitorState { }
 
-        void EntryX()
+        void Configure()
         {
-            this.Assert((bool)this.Payload == true); // reachable
+            this.Assert((this.ReceivedEvent as Config).Value == true); // reachable
         }
     }
 

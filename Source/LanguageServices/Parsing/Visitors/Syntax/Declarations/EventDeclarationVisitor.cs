@@ -175,15 +175,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             }
 
             node.SemicolonToken = base.TokenStream.Peek();
-
-            if (base.TokenStream.Program is PSharpProgram)
-            {
-                parentNode.EventDeclarations.Add(node);
-            }
-            else
-            {
-                (program as PProgram).EventDeclarations.Add(node);
-            }
+            parentNode.EventDeclarations.Add(node);
         }
     }
 }

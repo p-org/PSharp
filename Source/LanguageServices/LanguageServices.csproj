@@ -88,12 +88,10 @@
     <Compile Include="Exceptions.cs" />
     <Compile Include="Parsing\Lexers\BaseLexer.cs" />
     <Compile Include="Parsing\Lexers\ILexer.cs" />
-    <Compile Include="Parsing\Lexers\PLexer.cs" />
     <Compile Include="Parsing\Lexers\PSharpLexer.cs" />
     <Compile Include="Parsing\Parsers\IParser.cs" />
     <Compile Include="Parsing\Parsers\TokenParser.cs" />
     <Compile Include="Parsing\Parsers\BaseParser.cs" />
-    <Compile Include="Parsing\Parsers\PParser.cs" />
     <Compile Include="Parsing\Parsers\CSharpParser.cs" />
     <Compile Include="Parsing\Parsers\PSharpParser.cs" />
     <Compile Include="Parsing\RewritingEngine.cs" />
@@ -120,10 +118,6 @@
     <Compile Include="Parsing\Visitors\Syntax\Declarations\StateExitDeclarationVisitor.cs" />
     <Compile Include="Parsing\Visitors\Syntax\Expressions\ArgumentsListVisitor.cs" />
     <Compile Include="Parsing\Visitors\Syntax\Expressions\AttributeListVisitor.cs" />
-    <Compile Include="Parsing\Visitors\Syntax\Expressions\PayloadCollectionVisitor.cs" />
-    <Compile Include="Parsing\Visitors\Syntax\Expressions\PayloadTupleVisitor.cs" />
-    <Compile Include="Parsing\Visitors\Syntax\Expressions\PayloadVisitor.cs" />
-    <Compile Include="Parsing\Visitors\Syntax\Expressions\ReceivedPayloadVisitor.cs" />
     <Compile Include="Parsing\Visitors\Syntax\Types\MapTypeIdentifierVisitor.cs" />
     <Compile Include="Parsing\Visitors\Syntax\Types\SeqTypeIdentifierVisitor.cs" />
     <Compile Include="Parsing\Visitors\Syntax\Types\TupleTypeIdentifierVisitor.cs" />
@@ -137,7 +131,6 @@
     <Compile Include="Rewriting\CSharp\Statements\RaiseRewriter.cs" />
     <Compile Include="Rewriting\PSharp\Expressions\FieldAccessRewriter.cs" />
     <Compile Include="Rewriting\PSharp\Expressions\NondeterministicChoiceRewriter.cs" />
-    <Compile Include="Rewriting\PSharp\Expressions\PayloadRewriter.cs" />
     <Compile Include="Rewriting\PSharp\Expressions\ThisRewriter.cs" />
     <Compile Include="Rewriting\PSharp\Expressions\TriggerRewriter.cs" />
     <Compile Include="Rewriting\PSharp\PSharpRewriter.cs" />
@@ -163,15 +156,11 @@
     <Compile Include="Syntax\Declarations\StateDeclaration.cs" />
     <Compile Include="Syntax\Declarations\UsingDeclaration.cs" />
     <Compile Include="Syntax\Expressions\ExpressionNode.cs" />
-    <Compile Include="Syntax\Expressions\PExpressionNode.cs" />
-    <Compile Include="Syntax\Expressions\PPayloadReceiveNode.cs" />
-    <Compile Include="Syntax\Expressions\PPayloadSendExpressionNode.cs" />
     <Compile Include="Programs\IPSharpProgram.cs" />
     <Compile Include="Syntax\Modifiers\AccessModifier.cs" />
     <Compile Include="Syntax\Modifiers\InheritanceModifier.cs" />
     <Compile Include="Syntax\PDeclarations\PFieldDeclaration.cs" />
     <Compile Include="Syntax\PDeclarations\PFunctionDeclaration.cs" />
-    <Compile Include="Programs\PProgram.cs" />
     <Compile Include="Programs\PSharpProgram.cs" />
     <Compile Include="Syntax\PSharpSyntaxNode.cs" />
     <Compile Include="Syntax\PTypes\PBaseType.cs" />

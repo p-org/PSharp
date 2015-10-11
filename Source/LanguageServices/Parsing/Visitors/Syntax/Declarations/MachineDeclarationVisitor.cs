@@ -149,16 +149,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-            if (base.TokenStream.Program is PSharpProgram)
-            {
-                this.VisitNextPSharpIntraMachineDeclaration(node);
-                parentNode.MachineDeclarations.Add(node);
-            }
-            else
-            {
-                this.VisitNextPIntraMachineDeclaration(node);
-                (program as PProgram).MachineDeclarations.Add(node);
-            }
+            this.VisitNextPSharpIntraMachineDeclaration(node);
+            parentNode.MachineDeclarations.Add(node);
 
             if (node.StateDeclarations.Count == 0 && node.BaseNameTokens.Count == 0)
             {
@@ -490,131 +482,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 new FieldOrMethodDeclarationVisitor(base.TokenStream).Visit(parentNode,
                     isModel, am, im, isAsync);
             }
-        }
-
-        /// <summary>
-        /// Visits the next intra-machine declration.
-        /// </summary>
-        /// <param name="node">Node</param>
-        private void VisitNextPIntraMachineDeclaration(MachineDeclaration node)
-        {
-            bool fixpoint = false;
-            while (!fixpoint)
-            {
-                var token = base.TokenStream.Peek();
-                switch (token.Type)
-                {
-                    case TokenType.WhiteSpace:
-                    case TokenType.Comment:
-                    case TokenType.NewLine:
-                        base.TokenStream.Index++;
-                        break;
-
-                    case TokenType.CommentLine:
-                    case TokenType.Region:
-                        base.TokenStream.SkipWhiteSpaceAndCommentTokens();
-                        break;
-
-                    case TokenType.CommentStart:
-                        base.TokenStream.SkipWhiteSpaceAndCommentTokens();
-                        break;
-
-                    case TokenType.StartState:
-                        this.VisitStartStateModifier(node);
-                        base.TokenStream.Index++;
-                        break;
-
-                    case TokenType.StateDecl:
-                        new StateDeclarationVisitor(base.TokenStream).Visit(node, false, AccessModifier.None);
-                        base.TokenStream.Index++;
-                        break;
-
-                    case TokenType.ModelDecl:
-                        new FunctionDeclarationVisitor(base.TokenStream).Visit(node, true);
-                        base.TokenStream.Index++;
-                        break;
-
-                    case TokenType.FunDecl:
-                        new FunctionDeclarationVisitor(base.TokenStream).Visit(node, false);
-                        base.TokenStream.Index++;
-                        break;
-
-                    case TokenType.Var:
-                        new FieldDeclarationVisitor(base.TokenStream).Visit(node);
-                        base.TokenStream.Index++;
-                        break;
-
-                    case TokenType.ColdState:
-                    case TokenType.HotState:
-                        base.TokenStream.Index++;
-                        break;
-
-                    case TokenType.RightCurlyBracket:
-                        base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit,
-                            TokenType.MachineRightCurlyBracket));
-                        node.RightCurlyBracketToken = base.TokenStream.Peek();
-                        base.TokenStream.CurrentMachine = "";
-                        fixpoint = true;
-                        break;
-
-                    default:
-                        throw new ParsingException("Unexpected token.",
-                            new List<TokenType>());
-                }
-
-                if (base.TokenStream.Done)
-                {
-                    throw new ParsingException("Expected \"}\".",
-                        new List<TokenType>
-                    {
-                            TokenType.StartState,
-                            TokenType.StateDecl,
-                            TokenType.FunDecl,
-                            TokenType.Var
-                    });
-                }
-            }
-        }
-
-        /// <summary>
-        /// Visits a start state modifier.
-        /// </summary>
-        /// <param name="parentNode">Node</param>
-        private void VisitStartStateModifier(MachineDeclaration parentNode)
-        {
-            base.TokenStream.Index++;
-            base.TokenStream.SkipWhiteSpaceAndCommentTokens();
-
-            if (base.TokenStream.Done ||
-                (base.TokenStream.Peek().Type != TokenType.StateDecl &&
-                base.TokenStream.Peek().Type != TokenType.ColdState &&
-                base.TokenStream.Peek().Type != TokenType.HotState))
-            {
-                throw new ParsingException("Expected state declaration.",
-                    new List<TokenType>
-                {
-                    TokenType.StateDecl
-                });
-            }
-
-            if (base.TokenStream.Peek().Type == TokenType.ColdState ||
-                base.TokenStream.Peek().Type == TokenType.HotState)
-            {
-                base.TokenStream.Index++;
-                base.TokenStream.SkipWhiteSpaceAndCommentTokens();
-
-                if (base.TokenStream.Done ||
-                    base.TokenStream.Peek().Type != TokenType.StateDecl)
-                {
-                    throw new ParsingException("Expected state declaration.",
-                        new List<TokenType>
-                    {
-                        TokenType.StateDecl
-                    });
-                }
-            }
-
-            new StateDeclarationVisitor(base.TokenStream).Visit(parentNode, true, AccessModifier.None);
         }
     }
 }

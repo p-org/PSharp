@@ -35,6 +35,11 @@ using Microsoft.PSharp;
 
 namespace SystematicTesting
 {
+    class Config : Event {
+        public MachineId Id;
+        public Config(MachineId id) : base(-1, -1) { this.Id = id; }
+    }
+
     class BookCab : Event {
         public BookCab() : base(2, -1) { }
     }
@@ -89,8 +94,10 @@ namespace SystematicTesting
 
         void EntryInit()
         {
-            TravelAgentMachine = this.CreateMachine(typeof(TravelAgent), this.Id);
-            CityCabMachine = this.CreateMachine(typeof(CityCab), this.Id);
+            TravelAgentMachine = this.CreateMachine(typeof(TravelAgent));
+            this.Send(TravelAgentMachine, new Config(this.Id));
+            CityCabMachine = this.CreateMachine(typeof(CityCab));
+            this.Send(CityCabMachine, new Config(this.Id));
             RemoteCheckIn = false;
             this.Raise(new Unit());
         }
@@ -110,7 +117,7 @@ namespace SystematicTesting
 
         void ExitBangaloreOffice()
         {
-            if (this.Trigger == typeof(FlightBooked))
+            if (this.ReceivedEvent.GetType() == typeof(FlightBooked))
             {
                 this.Send(TravelAgentMachine, new Thanks());
             }
@@ -140,7 +147,7 @@ namespace SystematicTesting
         {
             this.Assert(RemoteCheckIn == false);
             RemoteCheckIn = true;
-            if (this.Trigger != typeof(Default))
+            if (this.ReceivedEvent.GetType() != typeof(Default))
             {
                 this.Send(CityCabMachine, new Thanks());
             }
@@ -215,13 +222,13 @@ namespace SystematicTesting
         MachineId EmployeeMachine;
 
         [Start]
-        [OnEntry(nameof(Entry_Init))]
+        [OnEventDoAction(typeof(Config), nameof(Configure))]
         [OnEventGotoState(typeof(Unit), typeof(Init))]
         class _Init : MachineState { }
 
-        void Entry_Init()
+        void Configure()
         {
-            EmployeeMachine = this.Payload as MachineId;
+            EmployeeMachine = (this.ReceivedEvent as Config).Id;
             this.Raise(new Unit());
         }
 
@@ -252,13 +259,13 @@ namespace SystematicTesting
         MachineId EmployeeMachine;
 
         [Start]
-        [OnEntry(nameof(Entry_Init))]
+        [OnEventDoAction(typeof(Config), nameof(Configure))]
         [OnEventGotoState(typeof(Unit), typeof(Init))]
         class _Init : MachineState { }
 
-        void Entry_Init()
+        void Configure()
         {
-            EmployeeMachine = this.Payload as MachineId;
+            EmployeeMachine = (this.ReceivedEvent as Config).Id;
             this.Raise(new Unit());
         }
 

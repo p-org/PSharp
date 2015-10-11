@@ -24,7 +24,7 @@ using Microsoft.PSharp.Tooling;
 namespace Microsoft.PSharp.DynamicAnalysis.Tests.Unit
 {
     /// <summary>
-    /// Tests that payload works correctly with a push transition.
+    /// Tests that event payload works correctly with a push transition.
     /// </summary>
     [TestClass]
     public class Actions6FailTest : BasePSharpTest
@@ -38,12 +38,18 @@ using Microsoft.PSharp;
 
 namespace SystematicTesting
 {
+    class Config : Event {
+        public MachineId Id;
+        public Config(MachineId id) : base(-1, -1) { this.Id = id; }
+    }
+
     class E1 : Event {
         public E1() : base(1, -1) { }
     }
 
     class E2 : Event {
-        public E2() : base(1, -1) { }
+        public int Value;
+        public E2(int value) : base(1, -1) { this.Value = value; }
     }
 
     class E3 : Event {
@@ -71,7 +77,8 @@ namespace SystematicTesting
 
         void EntryInit()
         {
-            GhostMachine = this.CreateMachine(typeof(Ghost), this.Id);
+            GhostMachine = this.CreateMachine(typeof(Ghost));
+            this.Send(GhostMachine, new Config(this.Id));
             this.Raise(new Unit());
         }
 
@@ -94,7 +101,7 @@ namespace SystematicTesting
 
         void Action1()
         {
-            this.Assert((int)this.Payload == 100); // this assert passes
+            this.Assert((this.ReceivedEvent as E2).Value == 100); // this assert passes
             this.Send(GhostMachine, new E3());
         }
     }
@@ -104,13 +111,13 @@ namespace SystematicTesting
         MachineId RealMachine;
 
         [Start]
-        [OnEntry(nameof(EntryInit))]
+        [OnEventDoAction(typeof(Config), nameof(Configure))]
         [OnEventGotoState(typeof(E1), typeof(S1))]
         class Init : MachineState { }
 
-        void EntryInit()
+        void Configure()
         {
-            RealMachine = this.Payload as MachineId;
+            RealMachine = (this.ReceivedEvent as Config).Id;
         }
 
         [OnEntry(nameof(EntryS1))]
@@ -119,7 +126,7 @@ namespace SystematicTesting
 
         void EntryS1()
         {
-            this.Send(RealMachine, new E2(), 100);
+            this.Send(RealMachine, new E2(100));
         }
 
         [OnEntry(nameof(EntryS2))]
@@ -162,7 +169,7 @@ namespace SystematicTesting
             var sctEngine = SCTEngine.Create(context).Run();
 
             Assert.AreEqual(1, sctEngine.NumOfFoundBugs);
-            Assert.AreEqual(5, sctEngine.ExploredDepth);
+            Assert.AreEqual(6, sctEngine.ExploredDepth);
         }
     }
 }

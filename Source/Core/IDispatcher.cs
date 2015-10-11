@@ -27,27 +27,24 @@ namespace Microsoft.PSharp
     internal interface IDispatcher
     {
         /// <summary>
-        /// Tries to create a new machine of the given type with an optional payload.
+        /// Tries to create a new machine of the given type.
         /// </summary>
         /// <param name="type">Type of the machine</param>
-        /// <param name="payload">Optional payload</param>
         /// <returns>MachineId</returns>
-        MachineId TryCreateMachine(Type type, params Object[] payload);
+        MachineId TryCreateMachine(Type type);
 
         /// <summary>
-        /// Tries to create a new remote machine of the given type with an optional payload.
+        /// Tries to create a new remote machine of the given type.
         /// </summary>
         /// <param name="type">Type of the machine</param>
-        /// <param name="payload">Optional payload</param>
         /// <returns>MachineId</returns>
-        MachineId TryCreateRemoteMachine(Type type, params Object[] payload);
+        MachineId TryCreateRemoteMachine(Type type);
 
         /// <summary>
-        /// Tries to create a new monitor of the given type with an optional payload.
+        /// Tries to create a new monitor of the given type.
         /// </summary>
         /// <param name="type">Type of the machine</param>
-        /// <param name="payload">Optional payload</param>
-        void TryCreateMonitor(Type type, params Object[] payload);
+        void TryCreateMonitor(Type type);
 
         /// <summary>
         /// Tries to create a new task machine.

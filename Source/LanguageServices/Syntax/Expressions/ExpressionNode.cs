@@ -138,11 +138,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             }
 
             var token = this.RewrittenStmtTokens[this.Index];
-            if (token.Type == TokenType.Payload)
-            {
-                this.RewritePayload();
-            }
-            else if (token.Type == TokenType.MachineDecl)
+            if (token.Type == TokenType.MachineDecl)
             {
                 this.RewriteMachineType();
             }
@@ -165,38 +161,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             this.Index++;
             this.RewriteNextToken();
-        }
-
-        /// <summary>
-        /// Rewrites the payload.
-        /// </summary>
-        private void RewritePayload()
-        {
-            var startIdx = this.Index;
-            this.Index++;
-
-            var isArray = false;
-            this.SkipWhiteSpaceTokens();
-            if (this.Index < this.RewrittenStmtTokens.Count &&
-                this.RewrittenStmtTokens[this.Index].Type == TokenType.LeftSquareBracket)
-            {
-                isArray = true;
-            }
-
-            this.Index = startIdx;
-
-            if (isArray)
-            {
-                int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
-                var text = "((Object[])this.Payload)";
-                this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line));
-            }
-            else
-            {
-                int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
-                var text = "this.Payload";
-                this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line));
-            }
         }
 
         /// <summary>
@@ -228,7 +192,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         private void RewriteTrigger()
         {
             int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
-            var text = "this.Trigger";
+            var text = "this.ReceivedEvent";
             this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line));
         }
 

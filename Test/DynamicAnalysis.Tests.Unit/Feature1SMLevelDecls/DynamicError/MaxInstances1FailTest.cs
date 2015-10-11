@@ -35,14 +35,19 @@ using Microsoft.PSharp;
 
 namespace SystematicTesting
 {
+    class Config : Event {
+        public MachineId Id;
+        public Config(MachineId id) : base(-1, -1) { this.Id = id; }
+    }
+
     class E1 : Event {
         public E1() : base(1, -1) { }
     }
 
     class E2 : Event {
-        public E2() : base(1, -1) { }
+        public int Value;
+        public E2(int value) : base(1, -1) { this.Value = value; }
     }
-
     class E3 : Event {
         public E3() : base(-1, -1) { }
     }
@@ -66,7 +71,8 @@ namespace SystematicTesting
 
         void EntryInit()
         {
-            GhostMachine = this.CreateMachine(typeof(GhostMachine), this.Id);
+            GhostMachine = this.CreateMachine(typeof(GhostMachine));
+            this.Send(GhostMachine, new Config(this.Id));
             this.Raise(new Unit());
         }
 
@@ -93,7 +99,7 @@ namespace SystematicTesting
 
         void Action1()
         {
-            this.Assert((int)this.Payload == 100);
+            this.Assert((this.ReceivedEvent as E2).Value == 100);
             this.Send(GhostMachine, new E3());
             this.Send(GhostMachine, new E3());
         }
@@ -104,13 +110,13 @@ namespace SystematicTesting
         MachineId RealMachine;
 
         [Start]
-        [OnEntry(nameof(EntryInit))]
+        [OnEventDoAction(typeof(Config), nameof(Configure))]
         [OnEventGotoState(typeof(Unit), typeof(GhostInit))]
         class Init : MachineState { }
 
-        void EntryInit()
+        void Configure()
         {
-            RealMachine = this.Payload as MachineId;
+            RealMachine = (this.ReceivedEvent as Config).Id;
             this.Raise(new Unit());
         }
 
@@ -124,7 +130,7 @@ namespace SystematicTesting
 
         void EntryS1()
         {
-            this.Send(RealMachine, new E2(), 100);
+            this.Send(RealMachine, new E2(100));
         }
 
         [OnEntry(nameof(EntryS2))]
@@ -164,7 +170,7 @@ namespace SystematicTesting
             sctConfig.SuppressTrace = true;
             sctConfig.Verbose = 2;
             sctConfig.SchedulingStrategy = SchedulingStrategy.DFS;
-            sctConfig.DepthBound = 2;
+            sctConfig.DepthBound = 3;
 
             var assembly = base.GetAssembly(program.GetSyntaxTree());
             var context = AnalysisContext.Create(sctConfig, assembly);

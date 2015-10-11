@@ -31,36 +31,33 @@ namespace Microsoft.PSharp
         #region API methods
 
         /// <summary>
-        /// Tries to create a new machine of the given type with an optional payload.
+        /// Tries to create a new machine of the given type.
         /// </summary>
         /// <param name="type">Type of the machine</param>
-        /// <param name="payload">Optional payload</param>
         /// <returns>MachineId</returns>
-        MachineId IDispatcher.TryCreateMachine(Type type, params Object[] payload)
+        MachineId IDispatcher.TryCreateMachine(Type type)
         {
-            return PSharpRuntime.TryCreateMachine(type, payload);
+            return PSharpRuntime.TryCreateMachine(type);
         }
 
         /// <summary>
-        /// Tries to create a new remote machine of the given type with an optional payload.
+        /// Tries to create a new remote machine of the given type.
         /// </summary>
         /// <param name="type">Type of the machine</param>
-        /// <param name="payload">Optional payload</param>
         /// <returns>MachineId</returns>
-        MachineId IDispatcher.TryCreateRemoteMachine(Type type, params Object[] payload)
+        MachineId IDispatcher.TryCreateRemoteMachine(Type type)
         {
             // Remote does not work in the bug-finding runtime.
-            return PSharpRuntime.TryCreateMachine(type, payload);
+            return PSharpRuntime.TryCreateMachine(type);
         }
 
         /// <summary>
-        /// Tries to create a new monitor of the given type with an optional payload.
+        /// Tries to create a new monitor of the given type.
         /// </summary>
         /// <param name="type">Type of the machine</param>
-        /// <param name="payload">Optional payload</param>
-        void IDispatcher.TryCreateMonitor(Type type, params Object[] payload)
+        void IDispatcher.TryCreateMonitor(Type type)
         {
-            PSharpRuntime.TryCreateMonitor(type, payload);
+            PSharpRuntime.TryCreateMonitor(type);
         }
 
         /// <summary>

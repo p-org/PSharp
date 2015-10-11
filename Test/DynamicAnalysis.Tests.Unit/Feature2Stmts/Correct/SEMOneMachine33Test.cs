@@ -36,8 +36,18 @@ using Microsoft.PSharp;
 
 namespace SystematicTesting
 {
+    class Config : Event {
+        public List<int> List;
+        public int V;
+        public Config(List<int> l, int v) : base(-1, -1) { this.List = l; this.V = v; }
+    }
+
     class Unit : Event { }
-    class SeqPayload : Event { }
+
+    class SeqPayload : Event {
+       public List<int> List;
+        public SeqPayload(List<int> l) : base(-1, -1) { this.List = l; }
+    }
 
     class Entry : Machine
     {
@@ -59,8 +69,9 @@ namespace SystematicTesting
 			l.Insert(0, 23);
 			l.Insert(0, 12);
 			l.Insert(0, 23);
-			mac = this.CreateMachine(typeof(Tester), l, 1);
-			this.Send(mac, new SeqPayload(), l);
+			mac = this.CreateMachine(typeof(Tester));
+            this.Send(mac, new Config(l, 1));
+			this.Send(mac, new SeqPayload(l));
         }
     }
 
@@ -72,6 +83,7 @@ namespace SystematicTesting
 
         [Start]
         [OnEntry(nameof(EntryInit))]
+        [OnEventDoAction(typeof(Config), nameof(Configure))]
         [OnEventGotoState(typeof(SeqPayload), typeof(TestItNow))]
         class Init : MachineState { }
 
@@ -79,9 +91,13 @@ namespace SystematicTesting
         {
             ii = new List<int>();
             rec = new List<int>();
-            ii = (this.Payload as object[])[0] as List<int>;
-            this.Assert(((this.Payload as object[])[0] as List<int>)[0] == 23);
-            this.Assert((int)(this.Payload as object[])[1] == 1);
+        }
+
+        void Configure()
+        {
+            ii = (this.ReceivedEvent as Config).List;
+            this.Assert(ii[0] == 23);
+            this.Assert((this.ReceivedEvent as Config).V == 1);
         }
 
         [OnEntry(nameof(EntryTestItNow))]
@@ -89,7 +105,7 @@ namespace SystematicTesting
 
         void EntryTestItNow()
         {
-            rec = this.Payload as List<int>;
+            rec = (this.ReceivedEvent as SeqPayload).List;
 			i = rec.Count - 1;
 			while (i >= 0)
 			{

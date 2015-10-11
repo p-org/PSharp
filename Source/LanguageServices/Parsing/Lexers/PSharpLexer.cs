@@ -403,10 +403,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     this.Tokens.Add(new Token(unit, TokenType.Assume));
                     break;
 
-                case "payload":
-                    this.Tokens.Add(new Token(unit, TokenType.Payload));
-                    break;
-
                 case "trigger":
                     this.Tokens.Add(new Token(unit, TokenType.Trigger));
                     break;

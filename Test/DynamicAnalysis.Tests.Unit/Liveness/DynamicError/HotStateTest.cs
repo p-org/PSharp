@@ -36,6 +36,16 @@ using Microsoft.PSharp;
 
 namespace SystematicTesting
 {
+    class Config : Event {
+        public MachineId Id;
+        public Config(MachineId id) : base(-1, -1) { this.Id = id; }
+    }
+
+    class MConfig : Event {
+        public List<MachineId> Ids;
+        public MConfig(List<MachineId> ids) : base(-1, -1) { this.Ids = ids; }
+    }
+
     class Unit : Event { }
     class DoProcessing : Event { }
     class FinishedProcessing : Event { }
@@ -56,11 +66,13 @@ namespace SystematicTesting
 
             for (int idx = 0; idx < 3; idx++)
             {
-                var worker = this.CreateMachine(typeof(Worker), this.Id);
+                var worker = this.CreateMachine(typeof(Worker));
+                this.Send(worker, new Config(this.Id));
                 this.Workers.Add(worker);
             }
 
-            this.CreateMonitor(typeof(M), this.Workers);
+            this.CreateMonitor(typeof(M));
+            this.Monitor<M>(new MConfig(this.Workers));
             
             this.Raise(new Unit());
         }
@@ -87,14 +99,14 @@ namespace SystematicTesting
     {
         MachineId Master;
 
-		[Start]
-        [OnEntry(nameof(InitOnEntry))]
+        [Start]
+        [OnEventDoAction(typeof(Config), nameof(Configure))]
         [OnEventGotoState(typeof(Unit), typeof(Processing))]
         class Init : MachineState { }
 
-		void InitOnEntry()
+        void Configure()
         {
-            this.Master = (MachineId)this.Payload;
+            this.Master = (this.ReceivedEvent as Config).Id;
             this.Raise(new Unit());
         }
         
@@ -121,14 +133,14 @@ namespace SystematicTesting
 
         [Start]
         [Hot]
-        [OnEntry(nameof(InitOnEntry))]
+        [OnEventDoAction(typeof(MConfig), nameof(Configure))]
         [OnEventGotoState(typeof(Unit), typeof(Done))]
         [OnEventDoAction(typeof(NotifyWorkerIsDone), nameof(ProcessNotification))]
         class Init : MonitorState { }
 
-        void InitOnEntry()
+        void Configure()
         {
-            this.Workers = (List<MachineId>)this.Payload;
+            this.Workers = (this.ReceivedEvent as MConfig).Ids;
         }
 
         void ProcessNotification()

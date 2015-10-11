@@ -38,6 +38,11 @@ using Microsoft.PSharp;
 
 namespace SystematicTesting
 {
+    class Config : Event {
+        public MachineId Id;
+        public Config(MachineId id) : base(-1, -1) { this.Id = id; }
+    }
+
     class E1 : Event {
         public E1() : base(1, -1) { }
     }
@@ -77,7 +82,8 @@ namespace SystematicTesting
         void ExitInit()
         {
             test = true;
-            GhostMachine = this.CreateMachine(typeof(Ghost), this.Id);
+            GhostMachine = this.CreateMachine(typeof(Ghost));
+            this.Send(GhostMachine, new Config(this.Id));
         }
 
         [OnEntry(nameof(EntryS1))]
@@ -94,13 +100,13 @@ namespace SystematicTesting
         MachineId RealMachine;
 
         [Start]
-        [OnEntry(nameof(EntryInit))]
+        [OnEventDoAction(typeof(Config), nameof(Configure))]
         [OnEventDoAction(typeof(E1), nameof(Action))]
         class Init : MachineState { }
 
-        void EntryInit()
+        void Configure()
         {
-            RealMachine = this.Payload as MachineId;
+            RealMachine = (this.ReceivedEvent as Config).Id;
         }
 
         void Action()

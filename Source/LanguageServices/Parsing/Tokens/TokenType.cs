@@ -172,7 +172,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         Entry,
         Exit,
 
-        Payload,
         Trigger,
 
         HaltEvent,

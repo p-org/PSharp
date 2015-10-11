@@ -397,10 +397,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     text = "assume";
                     break;
 
-                case TokenType.Payload:
-                    text = "payload";
-                    break;
-
                 case TokenType.Trigger:
                     text = "trigger";
                     break;

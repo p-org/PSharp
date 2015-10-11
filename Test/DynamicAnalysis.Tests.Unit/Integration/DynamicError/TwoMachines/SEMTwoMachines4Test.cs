@@ -41,7 +41,8 @@ using Microsoft.PSharp;
 namespace SystematicTesting
 {
     class Ping : Event {
-        public Ping() : base(1, -1) { }
+        public MachineId Id;
+        public Ping(MachineId id) : base(1, -1) { this.Id = id; }
     }
 
     class Pong : Event {
@@ -76,7 +77,7 @@ namespace SystematicTesting
             Count = Count + 1;
             if (Count == 1)
             {
-                this.Send(PongId, new Ping(), this.Id);
+                this.Send(PongId, new Ping(this.Id));
             }
             // halt PONG after one exchange
             if (Count == 2)
@@ -107,7 +108,7 @@ namespace SystematicTesting
 
         void EntrySendPong()
         {
-            this.Send(this.Payload as MachineId, new Pong());
+            this.Send((this.ReceivedEvent as Ping).Id, new Pong());
             this.Raise(new Success());
         }
 

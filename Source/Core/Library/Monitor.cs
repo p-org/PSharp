@@ -71,16 +71,10 @@ namespace Microsoft.PSharp
         private HashSet<Type> IgnoredEvents;
 
         /// <summary>
-        /// Gets the latest received event type. If no event has been
-        /// received this will return null.
+        /// Gets the latest received event, or null if no event
+        /// has been received.
         /// </summary>
-        protected internal Type Trigger { get; private set; }
-
-        /// <summary>
-        /// Gets the latest received payload. If no payload has been
-        /// received this will return null.
-        /// </summary>
-        protected internal Object Payload { get; private set; }
+        protected internal Event ReceivedEvent { get; private set; }
 
         #endregion
 
@@ -103,12 +97,10 @@ namespace Microsoft.PSharp
         /// Raises an event internally and returns from the execution context.
         /// </summary>
         /// <param name="e">Event</param>
-        /// <param name="payload">Optional payload</param>
-        protected internal void Raise(Event e, params Object[] payload)
+        protected internal void Raise(Event e)
         {
             // If the event is null then report an error and exit.
             this.Assert(e != null, "Monitor '{0}' is raising a null event.", this.GetType().Name);
-            e.AssignPayload(payload);
             Machine.Dispatcher.Log("<MonitorLog> Monitor '{0}' raised event '{1}'.", this, e);
             this.HandleEvent(e);
         }
@@ -171,25 +163,6 @@ namespace Microsoft.PSharp
         #endregion
 
         #region internal methods
-
-        /// <summary>
-        /// Initializes the machine with an optional payload.
-        /// </summary>
-        /// <param name="payload">Optional payload</param>
-        internal void AssignInitialPayload(params Object[] payload)
-        {
-            object initPayload = null;
-            if (payload.Length > 1)
-            {
-                initPayload = payload;
-            }
-            else if (payload.Length == 1)
-            {
-                initPayload = payload[0];
-            }
-
-            this.Payload = initPayload;
-        }
 
         /// <summary>
         /// Transitions to the start state and executes the
@@ -269,9 +242,8 @@ namespace Microsoft.PSharp
                 return;
             }
 
-            // Assign trigger and payload.
-            this.Trigger = e.GetType();
-            this.Payload = e.Payload;
+            // Assigns the receieved event.
+            this.ReceivedEvent = e;
 
             while (true)
             {

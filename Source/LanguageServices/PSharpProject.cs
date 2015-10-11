@@ -53,11 +53,6 @@ namespace Microsoft.PSharp.LanguageServices
         internal List<CSharpProgram> CSharpPrograms;
 
         /// <summary>
-        /// List of P programs in the project.
-        /// </summary>
-        internal List<PProgram> PPrograms;
-
-        /// <summary>
         /// Map from P# programs to syntax trees.
         /// </summary>
         internal Dictionary<IPSharpProgram, SyntaxTree> ProgramMap;
@@ -74,7 +69,6 @@ namespace Microsoft.PSharp.LanguageServices
             this.CompilationContext = CompilationContext.Create();
             this.PSharpPrograms = new List<PSharpProgram>();
             this.CSharpPrograms = new List<CSharpProgram>();
-            this.PPrograms = new List<PProgram>();
             this.ProgramMap = new Dictionary<IPSharpProgram, SyntaxTree>();
         }
 
@@ -87,7 +81,6 @@ namespace Microsoft.PSharp.LanguageServices
             this.CompilationContext = context;
             this.PSharpPrograms = new List<PSharpProgram>();
             this.CSharpPrograms = new List<CSharpProgram>();
-            this.PPrograms = new List<PProgram>();
             this.ProgramMap = new Dictionary<IPSharpProgram, SyntaxTree>();
         }
 
@@ -102,7 +95,6 @@ namespace Microsoft.PSharp.LanguageServices
             this.Name = projectName;
             this.PSharpPrograms = new List<PSharpProgram>();
             this.CSharpPrograms = new List<CSharpProgram>();
-            this.PPrograms = new List<PProgram>();
             this.ProgramMap = new Dictionary<IPSharpProgram, SyntaxTree>();
         }
 
@@ -123,10 +115,6 @@ namespace Microsoft.PSharp.LanguageServices
                 else if (this.CompilationContext.IsCSharpFile(tree))
                 {
                     this.ParseCSharpSyntaxTree(tree);
-                }
-                else if (this.CompilationContext.IsPFile(tree))
-                {
-                    this.ParsePSyntaxTree(tree);
                 }
             }
         }
@@ -149,16 +137,8 @@ namespace Microsoft.PSharp.LanguageServices
         /// <returns>Boolean value</returns>
         internal bool IsMachineType(SyntaxToken identifier)
         {
-            var result = false;
-
-            result = this.PSharpPrograms.Any(p => p.NamespaceDeclarations.Any(n => n.MachineDeclarations.Any(
-                    m => m.Identifier.TextUnit.Text.Equals(identifier.ValueText))));
-
-            if (!result)
-            {
-                result = this.PPrograms.Any(p => p.MachineDeclarations.Any(
-                    m => m.Identifier.TextUnit.Text.Equals(identifier.ValueText)));
-            }
+            var result = this.PSharpPrograms.Any(p => p.NamespaceDeclarations.Any(n => n.MachineDeclarations.Any(
+                m => m.Identifier.TextUnit.Text.Equals(identifier.ValueText))));
 
             return result;
         }
@@ -195,21 +175,6 @@ namespace Microsoft.PSharp.LanguageServices
             var program = new CSharpParser(this, tree).Parse();
 
             this.CSharpPrograms.Add(program as CSharpProgram);
-            this.ProgramMap.Add(program, tree);
-        }
-
-        /// <summary>
-        /// Parses a P syntax tree to C#.
-        /// </summary>
-        /// <param name="tree">SyntaxTree</param>
-        private void ParsePSyntaxTree(SyntaxTree tree)
-        {
-            var root = (CompilationUnitSyntax)tree.GetRoot();
-
-            var tokens = new PLexer().Tokenize(root.ToFullString());
-            var program = new PParser(this, tree).ParseTokens(tokens);
-
-            this.PPrograms.Add(program as PProgram);
             this.ProgramMap.Add(program, tree);
         }
 
