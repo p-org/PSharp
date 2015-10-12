@@ -25,16 +25,24 @@ namespace NodeManager
 
             this.DataNode = new DataNodeWrapper(this.Idx);
 
+            this.Monitor<M>(new Events.NodeCreatedEvent());
             this.Raise(new Events.UnitEvent());
         }
         
-        //[OnEventDoAction(typeof(Events.MessageEvent), nameof(SendPing))]
         [OnEntry(nameof(ActiveOnEntry))]
+        [OnEventDoAction(typeof(Events.FailureEvent), nameof(Fail))]
         class Active : MachineState { }
 
         void ActiveOnEntry()
         {
             this.Send(this.NodeManagerMachine, this.DataNode.get_update());
+        }
+
+        void Fail()
+        {
+            this.Monitor<M>(new Events.FailedEvent(this.Idx));
+            this.Send(this.NodeManagerMachine, new Events.FailedEvent(this.Idx));
+            this.Raise(new Halt());
         }
     }
 }

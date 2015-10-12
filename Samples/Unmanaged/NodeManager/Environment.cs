@@ -19,26 +19,44 @@ namespace NodeManager
 
 		void InitOnEntry()
         {
-            this.DataNodeMachines = new List<MachineId>();
-
+            this.CreateMonitor(typeof(M));
             this.NodeManagerMachine = this.CreateMachine(typeof(NodeManagerMachine));
-
-            for (int idx = 0; idx < 3; idx++)
-            {
-                this.DataNodeMachines.Add(this.CreateMachine(typeof(DataNodeMachine)));
-            }
-
-            this.Send(this.NodeManagerMachine, new Events.NodeManagerConfigEvent(this.Id, this.DataNodeMachines));
+            this.Send(this.NodeManagerMachine, new Events.NodeManagerConfigEvent(this.Id));
         }
         
         [OnEntry(nameof(ConfiguringNodesOnEntry))]
+        [OnEventGotoState(typeof(Events.UnitEvent), typeof(InjectFailure))]
         class ConfiguringNodes : MachineState { }
 
         void ConfiguringNodesOnEntry()
         {
+            this.DataNodeMachines = (this.ReceivedEvent as Events.ConfigAckEvent).ids;
+
             for (int idx = 0; idx < 3; idx++)
             {
                 this.Send(this.DataNodeMachines[idx], new Events.DataNodeConfigEvent(this.NodeManagerMachine, idx));
+            }
+
+            this.Raise(new Events.UnitEvent());
+        }
+
+        [OnEntry(nameof(InjectFailureOnEntry))]
+        class InjectFailure : MachineState { }
+
+        void InjectFailureOnEntry()
+        {
+            bool failed = false;
+            while (!failed)
+            {
+                foreach (var node in this.DataNodeMachines)
+                {
+                    if (this.Nondet())
+                    {
+                        this.Send(node, new Events.FailureEvent());
+                        failed = true;
+                        break;
+                    }
+                }
             }
         }
     }

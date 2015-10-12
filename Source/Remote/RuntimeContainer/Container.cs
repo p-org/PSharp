@@ -24,7 +24,7 @@ using System.ServiceModel;
 using System.ServiceModel.Description;
 using System.Threading.Tasks;
 
-using Microsoft.PSharp.Tooling;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.Remote
 {
@@ -38,7 +38,7 @@ namespace Microsoft.PSharp.Remote
         /// <summary>
         /// Configuration.
         /// </summary>
-        private static RuntimeContainerConfiguration Configuration;
+        private static Configuration Configuration;
 
         /// <summary>
         /// The notification listening service.
@@ -63,7 +63,7 @@ namespace Microsoft.PSharp.Remote
         /// Configures the container.
         /// </summary>
         /// <param name="configuration">Configuration</param>
-        internal static void Configure(RuntimeContainerConfiguration configuration)
+        internal static void Configure(Configuration configuration)
         {
             Container.Configuration = configuration;
 

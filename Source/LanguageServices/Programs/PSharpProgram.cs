@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.PSharp.LanguageServices.Compilation;
 using Microsoft.PSharp.LanguageServices.Syntax;
 using Microsoft.PSharp.LanguageServices.Rewriting.PSharp;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.LanguageServices
 {

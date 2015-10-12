@@ -18,7 +18,7 @@ using System;
 using System.Reflection;
 using System.ServiceModel;
 
-using Microsoft.PSharp.Tooling;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.Remote
 {

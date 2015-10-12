@@ -20,7 +20,7 @@ using System.Linq;
 
 using Microsoft.PSharp.Exploration;
 using Microsoft.PSharp.StateCaching;
-using Microsoft.PSharp.Tooling;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp
 {

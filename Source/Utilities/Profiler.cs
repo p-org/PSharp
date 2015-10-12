@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="RemoteManagerConfiguration.cs">
+// <copyright file="Profiler.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,54 +12,47 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System.Collections.Generic;
+using System;
+using System.Diagnostics;
 
-using Microsoft.PSharp.Tooling;
-
-namespace Microsoft.PSharp.Remote
+namespace Microsoft.PSharp.Utilities
 {
-    public sealed class RemoteManagerConfiguration : Configuration
+    public static class Profiler
     {
-        #region options
+        private static Stopwatch StopWatch = null;
 
         /// <summary>
-        /// Number of containers.
+        /// Starts measuring execution time.
         /// </summary>
-        public int NumberOfContainers;
-
-        /// <summary>
-        /// The path to the P# application to run in a
-        /// distributed setting.
-        /// </summary>
-        public string ApplicationFilePath;
-
-        #endregion
-
-        #region constructor
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        private RemoteManagerConfiguration()
-            : base()
+        public static void StartMeasuringExecutionTime()
         {
-            this.NumberOfContainers = 1;
-            this.ApplicationFilePath = "";
+            Profiler.StopWatch = new Stopwatch();
+            Profiler.StopWatch.Start();
         }
 
-        #endregion
-
-        #region methods
-
         /// <summary>
-        /// Creates a new remote manager configuration.
+        /// Stops measuring execution time.
         /// </summary>
-        /// <returns>RemoteManagerConfiguration</returns>
-        public static RemoteManagerConfiguration Create()
+        public static void StopMeasuringExecutionTime()
         {
-            return new RemoteManagerConfiguration();
+            Profiler.StopWatch.Stop();
         }
 
-        #endregion
+        /// <summary>
+        /// Returns profilling results.
+        /// </summary>
+        /// <returns>Seconds</returns>
+        public static double Results()
+        {
+            return Profiler.StopWatch.Elapsed.TotalSeconds;
+        }
+
+        /// <summary>
+        /// Prints profiling results.
+        /// </summary>
+        public static void PrintResults()
+        {
+            Output.PrintLine("Total Runtime: " + Profiler.StopWatch.Elapsed.TotalSeconds + " (sec).");
+        }
     }
 }

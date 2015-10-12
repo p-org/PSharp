@@ -14,7 +14,7 @@
 
 using System;
 
-namespace Microsoft.PSharp.Tooling
+namespace Microsoft.PSharp.Utilities
 {
     public abstract class BaseCommandLineOptions
     {

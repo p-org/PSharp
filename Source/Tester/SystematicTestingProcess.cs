@@ -17,7 +17,7 @@ using System.IO;
 using Microsoft.CodeAnalysis;
 
 using Microsoft.PSharp.DynamicAnalysis;
-using Microsoft.PSharp.Tooling;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp
 {
@@ -31,7 +31,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Configuration.
         /// </summary>
-        private DynamicAnalysisConfiguration Configuration;
+        private Configuration Configuration;
 
         #endregion
 
@@ -42,7 +42,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="configuration">Configuration</param>
         /// <returns>ParsingProcess</returns>
-        public static SystematicTestingProcess Create(DynamicAnalysisConfiguration configuration)
+        public static SystematicTestingProcess Create(Configuration configuration)
         {
             return new SystematicTestingProcess(configuration);
         }
@@ -64,7 +64,7 @@ namespace Microsoft.PSharp
         /// Constructor.
         /// </summary>
         /// <param name="configuration">Configuration</param>
-        private SystematicTestingProcess(DynamicAnalysisConfiguration configuration)
+        private SystematicTestingProcess(Configuration configuration)
         {
             this.Configuration = configuration;
         }

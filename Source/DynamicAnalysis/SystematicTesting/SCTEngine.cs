@@ -19,7 +19,7 @@ using System.Threading.Tasks;
 
 using Microsoft.PSharp.DynamicAnalysis.Scheduling;
 using Microsoft.PSharp.Scheduling;
-using Microsoft.PSharp.Tooling;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.DynamicAnalysis
 {

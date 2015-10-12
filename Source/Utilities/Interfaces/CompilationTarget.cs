@@ -12,7 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-namespace Microsoft.PSharp.LanguageServices.Compilation
+namespace Microsoft.PSharp.Utilities
 {
     /// <summary>
     /// P# compilation target.

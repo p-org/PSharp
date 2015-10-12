@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 using Microsoft.PSharp;
 using Microsoft.PSharp.DynamicAnalysis;
-using Microsoft.PSharp.Tooling;
+using Microsoft.PSharp.Utilities;
 
 namespace NodeManager
 {
@@ -11,8 +11,9 @@ namespace NodeManager
     {
         static void Main(string[] args)
         {
-            var configuration = DynamicAnalysisConfiguration.Create().
-                WithNumberOfIterations(1).
+            var configuration = Configuration.Create().
+                WithLivenessCheckingEnabled().
+                WithNumberOfIterations(10).
                 WithVerbosityEnabled(2);
             SCTEngine.Create(configuration, Execute).Run();
         }

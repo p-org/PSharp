@@ -13,9 +13,8 @@ namespace Events
 	{
 	public:
 		Microsoft::PSharp::MachineId^ env_id;
-		List<Microsoft::PSharp::MachineId^>^ ids;
 
-		NodeManagerConfigEvent(Microsoft::PSharp::MachineId^ env, List<Microsoft::PSharp::MachineId^>^ mids);
+		NodeManagerConfigEvent(Microsoft::PSharp::MachineId^ id);
 		~NodeManagerConfigEvent();
 	};
 
@@ -34,8 +33,36 @@ namespace Events
 		: public Microsoft::PSharp::Event
 	{
 	public:
-		ConfigAckEvent();
+		List<Microsoft::PSharp::MachineId^>^ ids;
+
+		ConfigAckEvent(List<Microsoft::PSharp::MachineId^>^ mids);
 		~ConfigAckEvent();
+	};
+
+	public ref class NodeCreatedEvent
+		: public Microsoft::PSharp::Event
+	{
+	public:
+		NodeCreatedEvent();
+		~NodeCreatedEvent();
+	};
+
+	public ref class FailureEvent
+		: public Microsoft::PSharp::Event
+	{
+	public:
+		FailureEvent();
+		~FailureEvent();
+	};
+
+	public ref class FailedEvent
+		: public Microsoft::PSharp::Event
+	{
+	public:
+		int idx;
+
+		FailedEvent(int idx);
+		~FailedEvent();
 	};
 
 	public ref class MessageEvent

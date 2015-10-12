@@ -16,7 +16,7 @@ using System;
 
 using Microsoft.PSharp.LanguageServices.Compilation;
 
-namespace Microsoft.PSharp.Tooling
+namespace Microsoft.PSharp.Utilities
 {
     public sealed class CompilerCommandLineOptions : BaseCommandLineOptions
     {
@@ -29,7 +29,7 @@ namespace Microsoft.PSharp.Tooling
         public CompilerCommandLineOptions(string[] args)
             : base (args)
         {
-            base.Configuration = LanguageServicesConfiguration.Create();
+            base.Configuration = Configuration.Create();
         }
 
         #endregion
@@ -42,23 +42,22 @@ namespace Microsoft.PSharp.Tooling
         /// <param name="option">Option</param>
         protected override void ParseOption(string option)
         {
-            var configuration = base.Configuration as LanguageServicesConfiguration;
             if (option.ToLower().StartsWith("/t:") && option.Length > 3)
             {
                 if (option.ToLower().Substring(3).Equals("execution"))
                 {
-                    configuration.CompilationTargets.Clear();
-                    configuration.CompilationTargets.Add(CompilationTarget.Execution);
+                    base.Configuration.CompilationTargets.Clear();
+                    base.Configuration.CompilationTargets.Add(CompilationTarget.Execution);
                 }
                 else if (option.ToLower().Substring(3).Equals("testing"))
                 {
-                    configuration.CompilationTargets.Clear();
-                    configuration.CompilationTargets.Add(CompilationTarget.Testing);
+                    base.Configuration.CompilationTargets.Clear();
+                    base.Configuration.CompilationTargets.Add(CompilationTarget.Testing);
                 }
                 else if (option.ToLower().Substring(3).Equals("distribution"))
                 {
-                    configuration.CompilationTargets.Clear();
-                    configuration.CompilationTargets.Add(CompilationTarget.Distribution);
+                    base.Configuration.CompilationTargets.Clear();
+                    base.Configuration.CompilationTargets.Add(CompilationTarget.Distribution);
                 }
                 else
                 {
@@ -68,31 +67,31 @@ namespace Microsoft.PSharp.Tooling
             }
             else if (option.ToLower().Equals("/analyze"))
             {
-                configuration.RunStaticAnalysis = true;
+                base.Configuration.RunStaticAnalysis = true;
             }
             else if (option.ToLower().Equals("/showgivesup"))
             {
-                configuration.ShowGivesUpInformation = true;
+                base.Configuration.ShowGivesUpInformation = true;
             }
             else if (option.ToLower().Equals("/time"))
             {
-                configuration.ShowRuntimeResults = true;
+                base.Configuration.ShowRuntimeResults = true;
             }
             else if (option.ToLower().Equals("/timedfa"))
             {
-                configuration.ShowDFARuntimeResults = true;
+                base.Configuration.ShowDFARuntimeResults = true;
             }
             else if (option.ToLower().Equals("/timeroa"))
             {
-                configuration.ShowROARuntimeResults = true;
+                base.Configuration.ShowROARuntimeResults = true;
             }
             else if (option.ToLower().Equals("/nostatetransitionanalysis"))
             {
-                configuration.DoStateTransitionAnalysis = false;
+                base.Configuration.DoStateTransitionAnalysis = false;
             }
             else if (option.ToLower().Equals("/analyzeexceptions"))
             {
-                configuration.AnalyzeExceptionHandling = true;
+                base.Configuration.AnalyzeExceptionHandling = true;
             }
             else
             {
@@ -105,8 +104,7 @@ namespace Microsoft.PSharp.Tooling
         /// </summary>
         protected override void CheckForParsingErrors()
         {
-            var configuration = base.Configuration as LanguageServicesConfiguration;
-            if (configuration.SolutionFilePath.Equals(""))
+            if (base.Configuration.SolutionFilePath.Equals(""))
             {
                 ErrorReporter.ReportAndExit("Please give a valid solution path.");
             }

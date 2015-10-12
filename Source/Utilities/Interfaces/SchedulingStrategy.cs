@@ -12,7 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-namespace Microsoft.PSharp.DynamicAnalysis
+namespace Microsoft.PSharp.Utilities
 {
     /// <summary>
     /// P# runtime scheduling strategy.

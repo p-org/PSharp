@@ -18,7 +18,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
-using Microsoft.PSharp.Tooling;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.DynamicAnalysis
 {
@@ -32,7 +32,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// <summary>
         /// Configuration.
         /// </summary>
-        internal DynamicAnalysisConfiguration Configuration;
+        internal Configuration Configuration;
 
         /// <summary>
         /// The P# assembly to analyze.
@@ -136,13 +136,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
 
         private void RegisterConfiguration(Configuration configuration)
         {
-            if (!(configuration is DynamicAnalysisConfiguration))
-            {
-                ErrorReporter.ReportWarning("Dynamic analysis configuration not found, using the default one.");
-                configuration = DynamicAnalysisConfiguration.Create();
-            }
-
-            this.Configuration = configuration as DynamicAnalysisConfiguration;
+            this.Configuration = configuration;
         }
 
         /// <summary>

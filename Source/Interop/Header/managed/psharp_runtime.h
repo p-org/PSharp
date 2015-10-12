@@ -33,7 +33,7 @@ namespace Microsoft
 			public:
 				static void send(Microsoft::PSharp::MachineId^ mid, Microsoft::PSharp::Event^ e)
 				{
-					Microsoft::PSharp::PSharpRuntime::Send(mid, e);
+					Microsoft::PSharp::PSharpRuntime::SendEvent(mid, e);
 				}
 
 				static bool non_deterministic_choice()

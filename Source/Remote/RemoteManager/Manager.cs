@@ -22,7 +22,7 @@ using System.Linq;
 using System.ServiceModel;
 using System.ServiceModel.Description;
 
-using Microsoft.PSharp.Tooling;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.Remote
 {
@@ -36,7 +36,7 @@ namespace Microsoft.PSharp.Remote
         /// <summary>
         /// Configuration.
         /// </summary>
-        private static RemoteManagerConfiguration Configuration;
+        private static Configuration Configuration;
 
         /// <summary>
         /// The notification listening service.
@@ -68,7 +68,7 @@ namespace Microsoft.PSharp.Remote
         /// Configures the remote manager.
         /// </summary>
         /// <param name="configuration">Configuration</param>
-        internal static void Configure(RemoteManagerConfiguration configuration)
+        internal static void Configure(Configuration configuration)
         {
             Manager.Configuration = configuration;
         }

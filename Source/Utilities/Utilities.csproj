@@ -7,8 +7,8 @@
     <ProjectGuid>{16C10D2A-F7FD-4B81-BE30-AD63FF868E46}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Microsoft.PSharp.Tooling</RootNamespace>
-    <AssemblyName>Microsoft.PSharp.Tooling</AssemblyName>
+    <RootNamespace>Microsoft.PSharp.Utilities</RootNamespace>
+    <AssemblyName>Microsoft.PSharp.Utilities</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -79,6 +79,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Exceptions.cs" />
+    <Compile Include="Interfaces\CompilationTarget.cs" />
+    <Compile Include="Interfaces\SchedulingStrategy.cs" />
     <Compile Include="IO\ErrorReporter.cs" />
     <Compile Include="IO\Output.cs" />
     <Compile Include="Options\BaseCommandLineOptions.cs" />

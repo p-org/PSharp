@@ -14,7 +14,7 @@
 
 using System;
 
-namespace Microsoft.PSharp.Tooling
+namespace Microsoft.PSharp.Utilities
 {
     /// <summary>
     /// Reports errors and warnings to the user.

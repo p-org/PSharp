@@ -49,13 +49,13 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\Binaries\Release\Microsoft.PSharp.Interop.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.PSharp.Tooling, Version=1.0.0.0, Culture=neutral, PublicKeyToken=c4566cf0a7f74012, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\Binaries\Release\Microsoft.PSharp.Tooling.dll</HintPath>
+    <Reference Include="Microsoft.PSharp.Utilities">
+      <HintPath>..\..\..\Binaries\Release\Microsoft.PSharp.Utilities.dll</HintPath>
     </Reference>
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="M.cs" />
     <Compile Include="DataNodeMachine.cs" />
     <Compile Include="Environment.cs" />
     <Compile Include="NodeManagerMachine.cs" />

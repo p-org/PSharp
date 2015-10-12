@@ -14,7 +14,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Microsoft.PSharp.Tooling;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.Remote
 {
@@ -28,8 +28,7 @@ namespace Microsoft.PSharp.Remote
         static void Main(string[] args)
         {
             // Parses the command line options to get the configuration.
-            var configuration = new RemoteManagerCommandLineOptions(args).
-                Parse() as RemoteManagerConfiguration;
+            var configuration = new RemoteManagerCommandLineOptions(args).Parse();
 
             Manager.Configure(configuration);
             Manager.Run();

@@ -20,7 +20,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
 
-using Microsoft.PSharp.Tooling;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.LanguageServices.Compilation
 {
@@ -34,7 +34,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <summary>
         /// Configuration.
         /// </summary>
-        internal LanguageServicesConfiguration Configuration;
+        internal Configuration Configuration;
 
         /// <summary>
         /// The active compilation target.
@@ -67,7 +67,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <returns>CompilationContext</returns>
         public static CompilationContext Create()
         {
-            var configuration = LanguageServicesConfiguration.Create();
+            var configuration = Configuration.Create();
             return new CompilationContext(configuration);
         }
 
@@ -76,7 +76,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// </summary>
         /// <param name="configuration">Configuration</param>
         /// <returns>CompilationContext</returns>
-        public static CompilationContext Create(LanguageServicesConfiguration configuration)
+        public static CompilationContext Create(Configuration configuration)
         {
             return new CompilationContext(configuration);
         }
@@ -208,7 +208,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// Constructor.
         /// </summary>
         /// <param name="configuration">Configuration</param>
-        private CompilationContext(LanguageServicesConfiguration configuration)
+        private CompilationContext(Configuration configuration)
         {
             this.Configuration = configuration;
             this.ActiveCompilationTarget = configuration.CompilationTargets.First();

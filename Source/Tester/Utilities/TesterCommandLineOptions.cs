@@ -14,7 +14,7 @@
 
 using Microsoft.PSharp.DynamicAnalysis;
 
-namespace Microsoft.PSharp.Tooling
+namespace Microsoft.PSharp.Utilities
 {
     public sealed class TesterCommandLineOptions : BaseCommandLineOptions
     {
@@ -27,7 +27,7 @@ namespace Microsoft.PSharp.Tooling
         public TesterCommandLineOptions(string[] args)
             : base (args)
         {
-            base.Configuration = DynamicAnalysisConfiguration.Create();
+            base.Configuration = Configuration.Create();
         }
 
         #endregion
@@ -40,28 +40,27 @@ namespace Microsoft.PSharp.Tooling
         /// <param name="option">Option</param>
         protected override void ParseOption(string option)
         {
-            var configuration = base.Configuration as DynamicAnalysisConfiguration;
             if (option.ToLower().StartsWith("/test:") && option.Length > 6)
             {
-                configuration.AssemblyToBeAnalyzed = option.Substring(6);
+                base.Configuration.AssemblyToBeAnalyzed = option.Substring(6);
             }
             else if (option.ToLower().StartsWith("/sch:") && option.Length > 5)
             {
                 if (option.ToLower().Substring(5).Equals("random"))
                 {
-                    configuration.SchedulingStrategy = SchedulingStrategy.Random;
+                    base.Configuration.SchedulingStrategy = SchedulingStrategy.Random;
                 }
                 else if (option.ToLower().Substring(5).Equals("dfs"))
                 {
-                    configuration.SchedulingStrategy = SchedulingStrategy.DFS;
+                    base.Configuration.SchedulingStrategy = SchedulingStrategy.DFS;
                 }
                 else if (option.ToLower().Substring(5).Equals("iddfs"))
                 {
-                    configuration.SchedulingStrategy = SchedulingStrategy.IDDFS;
+                    base.Configuration.SchedulingStrategy = SchedulingStrategy.IDDFS;
                 }
                 else if (option.ToLower().Substring(5).Equals("macemc"))
                 {
-                    configuration.SchedulingStrategy = SchedulingStrategy.MaceMC;
+                    base.Configuration.SchedulingStrategy = SchedulingStrategy.MaceMC;
                 }
             }
             else if (option.ToLower().StartsWith("/i:") && option.Length > 3)
@@ -73,11 +72,11 @@ namespace Microsoft.PSharp.Tooling
                         "'/i:[x]', where [x] > 0.");
                 }
 
-                configuration.SchedulingIterations = i;
+                base.Configuration.SchedulingIterations = i;
             }
             else if (option.ToLower().Equals("/explore"))
             {
-                configuration.FullExploration = true;
+                base.Configuration.FullExploration = true;
             }
             else if (option.ToLower().StartsWith("/sch-seed:") && option.Length > 10)
             {
@@ -88,7 +87,7 @@ namespace Microsoft.PSharp.Tooling
                         "seed '/sch-seed:[x]', where [x] is a signed 32-bit integer.");
                 }
 
-                configuration.RandomSchedulingSeed = seed;
+                base.Configuration.RandomSchedulingSeed = seed;
             }
             else if (option.ToLower().StartsWith("/db:") && option.Length > 4)
             {
@@ -99,7 +98,7 @@ namespace Microsoft.PSharp.Tooling
                         "bound '/db:[x]', where [x] >= 0.");
                 }
 
-                configuration.DepthBound = i;
+                base.Configuration.DepthBound = i;
             }
             else if (option.ToLower().StartsWith("/prefix:") && option.Length > 8)
             {
@@ -110,23 +109,23 @@ namespace Microsoft.PSharp.Tooling
                         "bound '/prefix:[x]', where [x] >= 0.");
                 }
 
-                configuration.SafetyPrefixBound = i;
+                base.Configuration.SafetyPrefixBound = i;
             }
             else if (option.ToLower().Equals("/printtrace"))
             {
-                configuration.PrintTrace = true;
+                base.Configuration.PrintTrace = true;
             }
             else if (option.ToLower().Equals("/tpl"))
             {
-                configuration.ScheduleIntraMachineConcurrency = true;
+                base.Configuration.ScheduleIntraMachineConcurrency = true;
             }
             else if (option.ToLower().Equals("/liveness"))
             {
-                configuration.CheckLiveness = true;
+                base.Configuration.CheckLiveness = true;
             }
             else if (option.ToLower().Equals("/statecaching"))
             {
-                configuration.CacheProgramState = true;
+                base.Configuration.CacheProgramState = true;
             }
             else
             {
@@ -139,29 +138,28 @@ namespace Microsoft.PSharp.Tooling
         /// </summary>
         protected override void CheckForParsingErrors()
         {
-            var configuration = base.Configuration as DynamicAnalysisConfiguration;
-            if (configuration.AssemblyToBeAnalyzed.Equals(""))
+            if (base.Configuration.AssemblyToBeAnalyzed.Equals(""))
             {
                 ErrorReporter.ReportAndExit("Please give a valid path to a P# program's dll.");
             }
 
-            if (configuration.SchedulingStrategy != SchedulingStrategy.Random &&
-                configuration.SchedulingStrategy != SchedulingStrategy.DFS &&
-                configuration.SchedulingStrategy != SchedulingStrategy.IDDFS &&
-                configuration.SchedulingStrategy != SchedulingStrategy.MaceMC)
+            if (base.Configuration.SchedulingStrategy != SchedulingStrategy.Random &&
+                base.Configuration.SchedulingStrategy != SchedulingStrategy.DFS &&
+                base.Configuration.SchedulingStrategy != SchedulingStrategy.IDDFS &&
+                base.Configuration.SchedulingStrategy != SchedulingStrategy.MaceMC)
             {
                 ErrorReporter.ReportAndExit("Please give a valid scheduling strategy " +
                     "'/sch:[x]', where [x] is 'random', 'dfs' or 'iddfs'.");
             }
             
-            if (configuration.SafetyPrefixBound > 0 &&
-                configuration.SafetyPrefixBound >= configuration.DepthBound)
+            if (base.Configuration.SafetyPrefixBound > 0 &&
+                base.Configuration.SafetyPrefixBound >= base.Configuration.DepthBound)
             {
                 ErrorReporter.ReportAndExit("Please give a safety prefix bound that is less than the " +
                     "max depth bound.");
             }
 
-            if (configuration.SchedulingStrategy.Equals("iddfs") && configuration.DepthBound == 0)
+            if (base.Configuration.SchedulingStrategy.Equals("iddfs") && base.Configuration.DepthBound == 0)
             {
                 ErrorReporter.ReportAndExit("The Iterative Deepening DFS scheduler ('iddfs') must have a " +
                     "max depth bound. Please give a depth bound using '/db:[x]', where [x] > 0.");

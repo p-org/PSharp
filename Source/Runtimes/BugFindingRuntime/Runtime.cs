@@ -22,7 +22,7 @@ using Microsoft.PSharp.Exploration;
 using Microsoft.PSharp.Scheduling;
 using Microsoft.PSharp.StateCaching;
 using Microsoft.PSharp.Threading;
-using Microsoft.PSharp.Tooling;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp
 {
@@ -36,7 +36,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// The configuration.
         /// </summary>
-        internal static BugFindingConfiguration Configuration;
+        internal static Configuration Configuration;
         
         /// <summary>
         /// List of machine tasks.
@@ -235,7 +235,7 @@ namespace Microsoft.PSharp
         /// Configures the P# runtime.
         /// </summary>
         /// <param name="configuration">Configuration</param>
-        internal static void Configure(BugFindingConfiguration configuration)
+        internal static void Configure(Configuration configuration)
         {
             PSharpRuntime.Configuration = configuration;
 
@@ -388,7 +388,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
-        public static void Send(MachineId mid, Event e)
+        internal static void Send(MachineId mid, Event e)
         {
             if (mid == null)
             {

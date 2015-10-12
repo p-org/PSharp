@@ -18,7 +18,7 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 
-namespace Microsoft.PSharp.Tooling
+namespace Microsoft.PSharp.Utilities
 {
     internal static class Output
     {
