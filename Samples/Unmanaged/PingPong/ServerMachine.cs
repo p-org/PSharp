@@ -8,7 +8,7 @@ namespace PingPong
     internal class ServerMachine : Machine
     {
         ServerWrapper Server;
-        Id Client;
+        MachineId Client;
 
 		[Start]
         [OnEntry(nameof(InitOnEntry))]
@@ -17,7 +17,8 @@ namespace PingPong
 
 		void InitOnEntry()
         {
-            this.Client = this.CreateMachine(typeof(ClientMachine), this.Id);
+            this.Client = this.CreateMachine(typeof(ClientMachine));
+            this.Send(this.Client, new Events.ConfigEvent(this.Id));
             
             this.Server = new ServerWrapper(this.Client);
 

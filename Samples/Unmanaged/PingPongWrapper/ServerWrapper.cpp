@@ -11,7 +11,7 @@ public:
 	Server* server;
 };
 
-PingPongWrapper::ServerWrapper::ServerWrapper(Microsoft::PSharp::Id^ mid)
+PingPongWrapper::ServerWrapper::ServerWrapper(Microsoft::PSharp::MachineId^ mid)
 	: Microsoft::PSharp::Interop::Wrapper()
 {
 	this->_server_native_components = new ServerNativeComponents();

@@ -12,10 +12,10 @@ namespace Mocking {
 		: public NetworkEngine
 	{
 	private:
-		gcroot<Microsoft::PSharp::Id^> _target_machine_id;
+		gcroot<Microsoft::PSharp::MachineId^> _target_machine_id;
 
 	public:
-		MockedNetworkEngine(Microsoft::PSharp::Id^ mid);
+		MockedNetworkEngine(Microsoft::PSharp::MachineId^ mid);
 		~MockedNetworkEngine();
 		virtual void send() override;
 	};

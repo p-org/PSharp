@@ -15,7 +15,7 @@ namespace PingPongWrapper {
 		ServerNativeComponents* _server_native_components;
 
 	public:
-		ServerWrapper(Microsoft::PSharp::Id^ mid);
+		ServerWrapper(Microsoft::PSharp::MachineId^ mid);
 		~ServerWrapper();
 
 		virtual void invoke(Microsoft::PSharp::Event^ e) override;

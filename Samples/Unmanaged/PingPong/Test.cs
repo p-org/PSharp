@@ -12,11 +12,9 @@ namespace PingPong
         static void Main(string[] args)
         {
             var configuration = DynamicAnalysisConfiguration.Create().
+                WithNumberOfIterations(10).
                 WithVerbosityEnabled(2);
             SCTEngine.Create(configuration, Execute).Run();
-
-            //Test.Execute();
-            Console.ReadLine();
         }
 
         [Microsoft.PSharp.Test]

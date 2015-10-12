@@ -8,17 +8,17 @@ namespace PingPong
     internal class ClientMachine : Machine
     {
         ClientWrapper Client;
-        Id Server;
+        MachineId Server;
         int Counter;
 
         [Start]
-        [OnEntry(nameof(InitOnEntry))]
+        [OnEventDoAction(typeof(Events.ConfigEvent), nameof(Configure))]
         [OnEventGotoState(typeof(Unit), typeof(Active))]
         class Init : MachineState { }
 
-        void InitOnEntry()
+        void Configure()
         {
-            this.Server = (Id)this.Payload;
+            this.Server = (this.ReceivedEvent as Events.ConfigEvent).id;
             this.Counter = 0;
 
             this.Client = new ClientWrapper(this.Server);

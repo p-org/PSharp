@@ -11,7 +11,7 @@ public:
 	Client* client;
 };
 
-PingPongWrapper::ClientWrapper::ClientWrapper(Microsoft::PSharp::Id^ mid)
+PingPongWrapper::ClientWrapper::ClientWrapper(Microsoft::PSharp::MachineId^ mid)
 	: Microsoft::PSharp::Interop::Wrapper()
 {
 	this->_server_native_components = new ClientNativeComponents();
@@ -29,8 +29,3 @@ void PingPongWrapper::ClientWrapper::invoke(Microsoft::PSharp::Event^ e)
 {
 	this->_server_native_components->client->pong();
 }
-
-//void PingPongWrapper::ClientWrapper::callback(Microsoft::PSharp::Event^ e)
-//{
-//
-//}

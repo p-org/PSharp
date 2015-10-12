@@ -3,7 +3,7 @@
 #include "MockedNetworkEngine.h"
 #include "Events.h"
 
-Mocking::MockedNetworkEngine::MockedNetworkEngine(Microsoft::PSharp::Id^ mid)
+Mocking::MockedNetworkEngine::MockedNetworkEngine(Microsoft::PSharp::MachineId^ mid)
 	: NetworkEngine()
 {
 	this->_target_machine_id = mid;
