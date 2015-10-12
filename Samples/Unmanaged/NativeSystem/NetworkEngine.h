@@ -2,11 +2,13 @@
 
 #include <memory>
 
+#include "Log.h"
+
 class NetworkEngine
 {
 public:
 	NetworkEngine();
 	~NetworkEngine();
 
-	virtual void send();
+	virtual void send(int idx, Log* log);
 };

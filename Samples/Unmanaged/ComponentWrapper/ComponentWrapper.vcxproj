@@ -22,8 +22,9 @@
     <ProjectGuid>{D62334D1-8B7D-48D8-9CDD-1C370890C195}</ProjectGuid>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <Keyword>ManagedCProj</Keyword>
-    <RootNamespace>PingPongWrapper</RootNamespace>
+    <RootNamespace>ComponentWrapper</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <ProjectName>ComponentWrapper</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -93,7 +94,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile />
-      <AdditionalIncludeDirectories>$(SolutionDir)..\Source\Interop\Header;$(SolutionDir)Unmanaged\NativePingPong</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\Source\Interop\Header;$(SolutionDir)Unmanaged\NativeSystem</AdditionalIncludeDirectories>
       <AdditionalUsingDirectories>$(SolutionDir)..\Binaries\$(Configuration)\</AdditionalUsingDirectories>
     </ClCompile>
     <Link>
@@ -120,7 +121,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile />
-      <AdditionalIncludeDirectories>$(SolutionDir)..\Source\Interop\Header;$(SolutionDir)Unmanaged\NativePingPong</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\Source\Interop\Header;$(SolutionDir)Unmanaged\NativeSystem</AdditionalIncludeDirectories>
       <AdditionalUsingDirectories>$(SolutionDir)..\Binaries\$(Configuration)\</AdditionalUsingDirectories>
     </ClCompile>
     <Link>
@@ -146,20 +147,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ClientWrapper.h" />
+    <ClInclude Include="DataNodeWrapper.h" />
     <ClInclude Include="Events.h" />
     <ClInclude Include="MockedNetworkEngine.h" />
-    <ClInclude Include="ServerWrapper.h" />
+    <ClInclude Include="NodeManagerWrapper.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssemblyInfo.cpp" />
-    <ClCompile Include="ClientWrapper.cpp" />
+    <ClCompile Include="DataNodeWrapper.cpp" />
     <ClCompile Include="Events.cpp" />
     <ClCompile Include="MockedNetworkEngine.cpp" />
-    <ClCompile Include="ServerWrapper.cpp" />
+    <ClCompile Include="NodeManagerWrapper.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NativePingPong\NativePingPong.vcxproj">
+    <ProjectReference Include="..\NativeSystem\NativeSystem.vcxproj">
       <Project>{86255b6f-e155-4a9f-8240-7ca9e10bcc64}</Project>
     </ProjectReference>
   </ItemGroup>

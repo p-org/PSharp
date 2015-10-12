@@ -5,14 +5,14 @@ using Microsoft.PSharp;
 using Microsoft.PSharp.DynamicAnalysis;
 using Microsoft.PSharp.Tooling;
 
-namespace PingPong
+namespace NodeManager
 {
     public class Test
     {
         static void Main(string[] args)
         {
             var configuration = DynamicAnalysisConfiguration.Create().
-                WithNumberOfIterations(10).
+                WithNumberOfIterations(1).
                 WithVerbosityEnabled(2);
             SCTEngine.Create(configuration, Execute).Run();
         }
@@ -20,7 +20,7 @@ namespace PingPong
         [Microsoft.PSharp.Test]
         public static void Execute()
         {
-            PSharpRuntime.CreateMachine(typeof(ServerMachine));
+            PSharpRuntime.CreateMachine(typeof(Environment));
         }
     }
 }

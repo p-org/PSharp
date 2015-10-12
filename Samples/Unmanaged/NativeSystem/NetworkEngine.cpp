@@ -12,7 +12,7 @@ NetworkEngine::~NetworkEngine()
 
 }
 
-void NetworkEngine::send()
+void NetworkEngine::send(int idx, Log* log)
 {
 	std::cout << "NetworkEngine is sending ..." << std::endl;
 }

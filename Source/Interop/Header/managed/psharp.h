@@ -16,5 +16,4 @@
 
 #pragma once
 
-#include "wrapper.h"
 #include "psharp_runtime.h"

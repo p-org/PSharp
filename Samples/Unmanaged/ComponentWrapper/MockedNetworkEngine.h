@@ -3,8 +3,10 @@
 #include <vcclr.h>
 #include "managed\psharp.h"
 #include "NetworkEngine.h"
+#include "Log.h"
 
 using namespace System;
+using namespace System::Collections::Generic;
 
 namespace Mocking {
 
@@ -12,11 +14,11 @@ namespace Mocking {
 		: public NetworkEngine
 	{
 	private:
-		gcroot<Microsoft::PSharp::MachineId^> _target_machine_id;
+		gcroot<List<Microsoft::PSharp::MachineId^>^> _target_machine_ids;
 
 	public:
-		MockedNetworkEngine(Microsoft::PSharp::MachineId^ mid);
+		MockedNetworkEngine(List<Microsoft::PSharp::MachineId^>^ mids);
 		~MockedNetworkEngine();
-		virtual void send() override;
+		virtual void send(int idx, Log* log) override;
 	};
 }

@@ -21,9 +21,9 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{86255B6F-E155-4A9F-8240-7CA9E10BCC64}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>NativePingPong</RootNamespace>
+    <RootNamespace>NativeSystem</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
-    <ProjectName>NativePingPong</ProjectName>
+    <ProjectName>NativeSystem</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -154,16 +154,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Client.h" />
+    <ClInclude Include="DataNode.h" />
+    <ClInclude Include="Log.h" />
+    <ClInclude Include="Message.h" />
     <ClInclude Include="NetworkEngine.h" />
-    <ClInclude Include="Server.h" />
+    <ClInclude Include="NodeManager.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="UpdateMessage.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Client.cpp" />
+    <ClCompile Include="DataNode.cpp" />
+    <ClCompile Include="Message.cpp" />
     <ClCompile Include="NetworkEngine.cpp" />
-    <ClCompile Include="PingPong.cpp" />
-    <ClCompile Include="Server.cpp" />
+    <ClCompile Include="NodeManager.cpp" />
+    <ClCompile Include="UpdateMessage.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
