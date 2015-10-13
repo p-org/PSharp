@@ -89,11 +89,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
             foreach (var machine in machines)
             {
-                this.CheckForPublicFields(machine);
-                this.CheckForInternalFields(machine);
-                this.CheckForPublicMethods(machine);
-                this.CheckForInternalMethods(machine);
-
                 this.CheckForAtLeastOneState(machine, compilation);
                 this.CheckForNonStateNonEventClasses(machine, compilation);
                 this.CheckForStructs(machine);
@@ -340,84 +335,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
                 {
                     this.ActionsThaPop[machine].Add(action);
                 }
-            }
-        }
-
-        /// <summary>
-        /// Checks that machine fields are non-public.
-        /// </summary>
-        /// <param name="machine">Machine</param>
-        private void CheckForPublicFields(ClassDeclarationSyntax machine)
-        {
-            var fieldIdentifiers = machine.DescendantNodes().OfType<FieldDeclarationSyntax>().
-                Where(val => val.Modifiers.Any(SyntaxKind.PublicKeyword)).
-                SelectMany(val => val.Declaration.Variables).
-                Select(val => val.Identifier).
-                ToList();
-
-            foreach (var identifier in fieldIdentifiers)
-            {
-                base.ErrorLog.Add(Tuple.Create(identifier, "Not allowed to declare field '" +
-                    identifier.ValueText + "' of " + this.GetTypeOfMachine().ToLower() + " '" +
-                    machine.Identifier.ValueText + "' as public."));
-            }
-        }
-
-        /// <summary>
-        /// Checks that machine fields are non-internal.
-        /// </summary>
-        /// <param name="machine">Machine</param>
-        private void CheckForInternalFields(ClassDeclarationSyntax machine)
-        {
-            var fieldIdentifiers = machine.DescendantNodes().OfType<FieldDeclarationSyntax>().
-                Where(val => val.Modifiers.Any(SyntaxKind.InternalKeyword)).
-                SelectMany(val => val.Declaration.Variables).
-                Select(val => val.Identifier).
-                ToList();
-
-            foreach (var identifier in fieldIdentifiers)
-            {
-                base.ErrorLog.Add(Tuple.Create(identifier, "Not allowed to declare field '" +
-                    identifier.ValueText + "' of " + this.GetTypeOfMachine().ToLower() + " '" +
-                    machine.Identifier.ValueText + "' as internal."));
-            }
-        }
-
-        /// <summary>
-        /// Checks that machine methods are non-public.
-        /// </summary>
-        /// <param name="machine">Machine</param>
-        private void CheckForPublicMethods(ClassDeclarationSyntax machine)
-        {
-            var methodIdentifiers = machine.DescendantNodes().OfType<MethodDeclarationSyntax>().
-                Where(val => val.Modifiers.Any(SyntaxKind.PublicKeyword)).
-                Select(val => val.Identifier).
-                ToList();
-
-            foreach (var identifier in methodIdentifiers)
-            {
-                base.ErrorLog.Add(Tuple.Create(identifier, "Not allowed to declare method '" +
-                    identifier.ValueText + "' of " + this.GetTypeOfMachine().ToLower() + " '" +
-                    machine.Identifier.ValueText + "' as public."));
-            }
-        }
-
-        /// <summary>
-        /// Checks that machine methods are non-internal.
-        /// </summary>
-        /// <param name="machine">Machine</param>
-        private void CheckForInternalMethods(ClassDeclarationSyntax machine)
-        {
-            var methodIdentifiers = machine.DescendantNodes().OfType<MethodDeclarationSyntax>().
-                Where(val => val.Modifiers.Any(SyntaxKind.InternalKeyword)).
-                Select(val => val.Identifier).
-                ToList();
-
-            foreach (var identifier in methodIdentifiers)
-            {
-                base.ErrorLog.Add(Tuple.Create(identifier, "Not allowed to declare method '" +
-                    identifier.ValueText + "' of " + this.GetTypeOfMachine().ToLower() + " '" +
-                    machine.Identifier.ValueText + "' as internal."));
             }
         }
 

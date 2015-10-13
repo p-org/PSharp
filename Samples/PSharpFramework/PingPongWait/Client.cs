@@ -9,13 +9,13 @@ namespace PingPong
         private int Counter;
 
         [Start]
-        [OnEntry(nameof(InitOnEntry))]
+        [OnEventDoAction(typeof(Config), nameof(Configure))]
         [OnEventGotoState(typeof(Unit), typeof(Active))]
         class Init : MachineState { }
 
-        void InitOnEntry()
+        void Configure()
         {
-            this.Server = (MachineId)this.Payload;
+            this.Server = (this.ReceivedEvent as Config).Id;
             this.Counter = 0;
             this.Raise(new Unit());
         }

@@ -6,17 +6,33 @@ namespace MultiPaxos
 {
     internal class Client : Machine
     {
+        internal class Config : Event
+        {
+            public List<MachineId> Servers;
+
+            public Config(List<MachineId> servers)
+                : base(-1, -1)
+            {
+                this.Servers = servers;
+            }
+        }
+
         List<MachineId> Servers;
 
         [Start]
         [OnEntry(nameof(InitOnEntry))]
         [OnEventGotoState(typeof(local), typeof(PumpRequestOne))]
+        [OnEventDoAction(typeof(Client.Config), nameof(Configure))]
         class Init : MachineState { }
 
         void InitOnEntry()
         {
             this.CreateMonitor(typeof(ValidityCheck));
-            this.Servers = this.Payload as List<MachineId>;
+        }
+
+        void Configure()
+        {
+            this.Servers = (this.ReceivedEvent as Config).Servers;
             this.Raise(new local());
         }
 
@@ -26,15 +42,15 @@ namespace MultiPaxos
 
         void PumpRequestOneOnEntry()
         {
-            this.Monitor<ValidityCheck>(new monitor_client_sent(), 1);
+            this.Monitor<ValidityCheck>(new ValidityCheck.monitor_client_sent(1));
 
             if (this.Nondet())
             {
-                this.Send(this.Servers[0], new update(), 0, 1);
+                this.Send(this.Servers[0], new PaxosNode.Update(0, 1));
             }
             else
             {
-                this.Send(this.Servers[this.Servers.Count - 1], new update(), 0, 1);
+                this.Send(this.Servers[this.Servers.Count - 1], new PaxosNode.Update(0, 1));
             }
 
             this.Raise(new response());
@@ -46,15 +62,15 @@ namespace MultiPaxos
 
         void PumpRequestTwoOnEntry()
         {
-            this.Monitor<ValidityCheck>(new monitor_client_sent(), 2);
+            this.Monitor<ValidityCheck>(new ValidityCheck.monitor_client_sent(2));
 
             if (this.Nondet())
             {
-                this.Send(this.Servers[0], new update(), 0, 2);
+                this.Send(this.Servers[0], new PaxosNode.Update(0, 2));
             }
             else
             {
-                this.Send(this.Servers[this.Servers.Count - 1], new update(), 0, 2);
+                this.Send(this.Servers[this.Servers.Count - 1], new PaxosNode.Update(0, 2));
             }
 
             this.Raise(new response());
