@@ -169,9 +169,9 @@
       <Project>{0e43e150-7d5a-46b5-b394-727df8b7f104}</Project>
       <Name>BugFindingRuntime</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Source\Tooling\Tooling.csproj">
+    <ProjectReference Include="..\..\Source\Utilities\Utilities.csproj">
       <Project>{16c10d2a-f7fd-4b81-be30-ad63ff868e46}</Project>
-      <Name>Tooling</Name>
+      <Name>Utilities</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

@@ -14,7 +14,7 @@
 
 using System;
 
-using Microsoft.PSharp.Tooling;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp
 {
@@ -29,8 +29,7 @@ namespace Microsoft.PSharp
             currentDomain.UnhandledException += new UnhandledExceptionEventHandler(UnhandledExceptionHandler);
 
             // Parses the command line options to get the configuration.
-            var configuration = new TesterCommandLineOptions(args).
-                Parse() as DynamicAnalysisConfiguration;
+            var configuration = new TesterCommandLineOptions(args).Parse();
 
             // Creates and starts a systematic testing process.
             SystematicTestingProcess.Create(configuration).Start();
@@ -48,7 +47,7 @@ namespace Microsoft.PSharp
             var ex = (Exception)args.ExceptionObject;
             Output.Debug(ex.Message);
             Output.Debug(ex.StackTrace);
-            ErrorReporter.ReportAndExit("internal failure: {0}.", ex.GetType().ToString());
+            ErrorReporter.ReportAndExit("internal failure: {0}: {1}", ex.GetType().ToString(), ex.Message);
         }
     }
 }

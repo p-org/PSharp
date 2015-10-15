@@ -29,12 +29,6 @@ namespace Microsoft.PSharp
         #region fields
 
         /// <summary>
-        /// Payload of the event.
-        /// </summary>
-        [DataMember]
-        internal Object Payload;
-
-        /// <summary>
         /// Specifies that there must not be more than k instances
         /// of e in the input queue of any machine.
         /// </summary>
@@ -60,7 +54,6 @@ namespace Microsoft.PSharp
         {
             this.Assert = -1;
             this.Assume = -1;
-            this.Payload = null;
         }
 
         /// <summary>
@@ -72,27 +65,6 @@ namespace Microsoft.PSharp
         {
             this.Assert = assert;
             this.Assume = assume;
-            this.Payload = null;
-        }
-
-        /// <summary>
-        /// Assigns a payload to the event.
-        /// </summary>
-        /// <param name="payload">Payload</param>
-        internal void AssignPayload(params Object[] payload)
-        {
-            if (payload.Length == 0)
-            {
-                this.Payload = null;
-            }
-            else if (payload.Length == 1)
-            {
-                this.Payload = payload[0];
-            }
-            else
-            {
-                this.Payload = payload;
-            }
         }
 
         #endregion

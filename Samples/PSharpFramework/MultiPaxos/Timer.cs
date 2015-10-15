@@ -6,37 +6,64 @@ namespace MultiPaxos
 {
     internal class Timer : Machine
     {
+        internal class Config : Event
+        {
+            public MachineId Target;
+            public int TimeoutValue;
+
+            public Config(MachineId id, int value)
+                : base(-1, -1)
+            {
+                this.Target = id;
+                this.TimeoutValue = value;
+            }
+        }
+
+        internal class Timeout : Event
+        {
+            public MachineId Timer;
+
+            public Timeout(MachineId id)
+                : base(-1, -1)
+            {
+                this.Timer = id;
+            }
+        }
+
+        internal class StartTimer : Event { }
+        internal class CancelTimer : Event { }
+
         MachineId Target;
         int TimeoutValue;
 
         [Start]
-        [OnEntry(nameof(InitOnEntry))]
         [OnEventGotoState(typeof(local), typeof(Loop))]
+        [OnEventDoAction(typeof(Timer.Config), nameof(Configure))]
         class Init : MachineState { }
 
-        void InitOnEntry()
+        void Configure()
         {
-            this.Target = (this.Payload as object[])[0] as MachineId;
-            this.TimeoutValue = (int)(this.Payload as object[])[1];
+            this.Target = (this.ReceivedEvent as Timer.Config).Target;
+            this.TimeoutValue = (this.ReceivedEvent as Timer.Config).TimeoutValue;
             this.Raise(new local());
         }
         
-        [OnEventGotoState(typeof(startTimer), typeof(TimerStarted))]
-        [IgnoreEvents(typeof(cancelTimer))]
+        [OnEventGotoState(typeof(Timer.StartTimer), typeof(TimerStarted))]
+        [IgnoreEvents(typeof(Timer.CancelTimer))]
         class Loop : MachineState { }
 
 
         [OnEntry(nameof(TimerStartedOnEntry))]
         [OnEventGotoState(typeof(local), typeof(Loop))]
-        [OnEventGotoState(typeof(cancelTimer), typeof(Loop))]
-        [IgnoreEvents(typeof(startTimer))]
+        [OnEventGotoState(typeof(Timer.CancelTimer), typeof(Loop))]
+        [IgnoreEvents(typeof(Timer.StartTimer))]
         class TimerStarted : MachineState { }
 
         void TimerStartedOnEntry()
         {
             if (this.Nondet())
             {
-                this.Send(this.Target, new timeout(), this.Id);
+                this.Send(this.Target, new Timer.Timeout(this.Id));
                 this.Raise(new local());
             }
         }

@@ -14,7 +14,7 @@
 
 using System;
 
-using Microsoft.PSharp.Tooling;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.Remote
 {
@@ -29,7 +29,7 @@ namespace Microsoft.PSharp.Remote
         public RuntimeContainerCommandLineOptions(string[] args)
             : base(args)
         {
-            base.Configuration = new RuntimeContainerConfiguration();
+            base.Configuration = Configuration.Create();
         }
 
         #endregion
@@ -42,7 +42,6 @@ namespace Microsoft.PSharp.Remote
         /// <param name="option">Option</param>
         protected override void ParseOption(string option)
         {
-            var configuration = base.Configuration as RuntimeContainerConfiguration;
             if (option.ToLower().StartsWith("/id:") && option.Length > 4)
             {
                 int i = 0;
@@ -51,12 +50,12 @@ namespace Microsoft.PSharp.Remote
                     ErrorReporter.ReportAndExit("Please give a valid container id");
                 }
 
-                configuration.ContainerId = i;
+                base.Configuration.ContainerId = i;
             }
             else if (option.ToLower().StartsWith("/main:") &&
                 option.Length > 6)
             {
-                configuration.ApplicationFilePath = option.Substring(6);
+                base.Configuration.ApplicationFilePath = option.Substring(6);
             }
             else
             {
@@ -66,8 +65,7 @@ namespace Microsoft.PSharp.Remote
 
         protected override void CheckForParsingErrors()
         {
-            var configuration = base.Configuration as RuntimeContainerConfiguration;
-            if (configuration.ApplicationFilePath.Equals(""))
+            if (base.Configuration.ApplicationFilePath.Equals(""))
             {
                 ErrorReporter.ReportAndExit("Please give a valid P# application path.");
             }

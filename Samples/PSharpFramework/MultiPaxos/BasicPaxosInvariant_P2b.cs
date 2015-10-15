@@ -6,6 +6,40 @@ namespace MultiPaxos
 {
     internal class BasicPaxosInvariant_P2b : Monitor
     {
+        internal class monitor_valueProposed : Event
+        {
+            public MachineId Node;
+            public int NextSlotForProposer;
+            public Tuple<int, int> NextProposal;
+            public int ProposeVal;
+
+            public monitor_valueProposed(MachineId id, int nextSlot, Tuple<int, int> nextProposal, int proposeVal)
+                : base(-1, -1)
+            {
+                this.Node = id;
+                this.NextSlotForProposer = nextSlot;
+                this.NextProposal = nextProposal;
+                this.ProposeVal = proposeVal;
+            }
+        }
+
+        internal class monitor_valueChosen : Event
+        {
+            public MachineId Node;
+            public int NextSlotForProposer;
+            public Tuple<int, int> NextProposal;
+            public int ProposeVal;
+
+            public monitor_valueChosen(MachineId id, int nextSlot, Tuple<int, int> nextProposal, int proposeVal)
+                : base(-1, -1)
+            {
+                this.Node = id;
+                this.NextSlotForProposer = nextSlot;
+                this.NextProposal = nextProposal;
+                this.ProposeVal = proposeVal;
+            }
+        }
+
         Dictionary<int, Tuple<int, int, int>> LastValueChosen;
 
         [Start]
@@ -19,33 +53,39 @@ namespace MultiPaxos
             this.Raise(new local());
         }
 
-        [OnEventGotoState(typeof(monitor_valueChosen), typeof(CheckValueProposed), nameof(WaitForValueChosenAction))]
-        [IgnoreEvents(typeof(monitor_valueProposed))]
+        [OnEventGotoState(typeof(BasicPaxosInvariant_P2b.monitor_valueChosen), typeof(CheckValueProposed), nameof(WaitForValueChosenAction))]
+        [IgnoreEvents(typeof(BasicPaxosInvariant_P2b.monitor_valueProposed))]
         class WaitForValueChosen : MonitorState { }
 
         void WaitForValueChosenAction()
         {
-            var slot = (int)(this.Payload as object[])[0];
-            var proposal = (this.Payload as object[])[1] as Tuple<int, int, int>;
+            var slot = (this.ReceivedEvent as BasicPaxosInvariant_P2b.monitor_valueChosen).NextSlotForProposer;
+            var proposal = Tuple.Create((this.ReceivedEvent as BasicPaxosInvariant_P2b.monitor_valueChosen).NextProposal.Item1,
+                (this.ReceivedEvent as BasicPaxosInvariant_P2b.monitor_valueChosen).NextProposal.Item2,
+                (this.ReceivedEvent as BasicPaxosInvariant_P2b.monitor_valueChosen).ProposeVal);
             this.LastValueChosen.Add(slot, proposal);
         }
 
-        [OnEventGotoState(typeof(monitor_valueChosen), typeof(CheckValueProposed), nameof(ValueChosenAction))]
-        [OnEventGotoState(typeof(monitor_valueProposed), typeof(CheckValueProposed), nameof(ValueProposedAction))]
+        [OnEventGotoState(typeof(BasicPaxosInvariant_P2b.monitor_valueChosen), typeof(CheckValueProposed), nameof(ValueChosenAction))]
+        [OnEventGotoState(typeof(BasicPaxosInvariant_P2b.monitor_valueProposed), typeof(CheckValueProposed), nameof(ValueProposedAction))]
         class CheckValueProposed : MonitorState { }
 
         void ValueChosenAction()
         {
-            var slot = (int)(this.Payload as object[])[0];
-            var proposal = (this.Payload as object[])[1] as Tuple<int, int, int>;
+            var slot = (this.ReceivedEvent as BasicPaxosInvariant_P2b.monitor_valueChosen).NextSlotForProposer;
+            var proposal = Tuple.Create((this.ReceivedEvent as BasicPaxosInvariant_P2b.monitor_valueChosen).NextProposal.Item1,
+                (this.ReceivedEvent as BasicPaxosInvariant_P2b.monitor_valueChosen).NextProposal.Item2,
+                (this.ReceivedEvent as BasicPaxosInvariant_P2b.monitor_valueChosen).ProposeVal);
 
             this.Assert(this.LastValueChosen[slot].Item3 == proposal.Item3, "ValueChosenAction");
         }
 
         void ValueProposedAction()
         {
-            var slot = (int)(this.Payload as object[])[0];
-            var proposal = (this.Payload as object[])[1] as Tuple<int, int, int>;
+            var slot = (this.ReceivedEvent as BasicPaxosInvariant_P2b.monitor_valueProposed).NextSlotForProposer;
+            var proposal = Tuple.Create((this.ReceivedEvent as BasicPaxosInvariant_P2b.monitor_valueProposed).NextProposal.Item1,
+                (this.ReceivedEvent as BasicPaxosInvariant_P2b.monitor_valueProposed).NextProposal.Item2,
+                (this.ReceivedEvent as BasicPaxosInvariant_P2b.monitor_valueProposed).ProposeVal);
 
             if (this.LessThan(this.LastValueChosen[slot].Item1, this.LastValueChosen[slot].Item2,
                 proposal.Item1, proposal.Item2))

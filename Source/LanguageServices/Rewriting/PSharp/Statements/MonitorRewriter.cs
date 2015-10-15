@@ -20,7 +20,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-using Microsoft.PSharp.LanguageServices.Compilation;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 {

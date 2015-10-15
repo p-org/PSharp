@@ -18,7 +18,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
-using Microsoft.PSharp.Tooling;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.DynamicAnalysis
 {
@@ -32,7 +32,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// <summary>
         /// Configuration.
         /// </summary>
-        internal DynamicAnalysisConfiguration Configuration;
+        internal Configuration Configuration;
 
         /// <summary>
         /// The P# assembly to analyze.
@@ -44,9 +44,25 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// </summary>
         internal MethodInfo TestMethod;
 
+        /// <summary>
+        /// A P# test action.
+        /// </summary>
+        internal Action TestAction;
+
         #endregion
 
         #region public API
+
+        /// <summary>
+        /// Create a new P# dynamic analysis context from the given action.
+        /// </summary>
+        /// <param name="configuration">Configuration</param>
+        /// <param name="action">Action</param>
+        /// <returns>AnalysisContext</returns>
+        internal static AnalysisContext Create(Configuration configuration, Action action)
+        {
+            return new AnalysisContext(configuration, action);
+        }
 
         /// <summary>
         /// Create a new P# dynamic analysis context from the given assembly name.
@@ -54,7 +70,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// <param name="configuration">Configuration</param>
         /// <param name="assemblyName">Assembly name</param>
         /// <returns>AnalysisContext</returns>
-        public static AnalysisContext Create(DynamicAnalysisConfiguration configuration, string assemblyName)
+        internal static AnalysisContext Create(Configuration configuration, string assemblyName)
         {
             return new AnalysisContext(configuration, assemblyName);
         }
@@ -65,7 +81,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// <param name="configuration">Configuration</param>
         /// <param name="assembly">Assembly</param>
         /// <returns>AnalysisContext</returns>
-        public static AnalysisContext Create(DynamicAnalysisConfiguration configuration, Assembly assembly)
+        internal static AnalysisContext Create(Configuration configuration, Assembly assembly)
         {
             return new AnalysisContext(configuration, assembly);
         }
@@ -79,9 +95,9 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// </summary>
         /// <param name="configuration">Configuration</param>
         /// <param name="assemblyName">Assembly name</param>
-        private AnalysisContext(DynamicAnalysisConfiguration configuration, string assemblyName)
+        private AnalysisContext(Configuration configuration, string assemblyName)
         {
-            this.Configuration = configuration;
+            this.RegisterConfiguration(configuration);
 
             try
             {
@@ -91,7 +107,7 @@ namespace Microsoft.PSharp.DynamicAnalysis
             {
                 ErrorReporter.ReportAndExit(ex.Message);
             }
-            
+
             this.FindEntryPoint();
         }
 
@@ -100,11 +116,27 @@ namespace Microsoft.PSharp.DynamicAnalysis
         /// </summary>
         /// <param name="configuration">Configuration</param>
         /// <param name="assembly">Assembly</param>
-        private AnalysisContext(DynamicAnalysisConfiguration configuration, Assembly assembly)
+        private AnalysisContext(Configuration configuration, Assembly assembly)
         {
-            this.Configuration = configuration;
+            this.RegisterConfiguration(configuration);
             this.Assembly = assembly;
             this.FindEntryPoint();
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="configuration">Configuration</param>
+        /// <param name="assembly">Assembly</param>
+        private AnalysisContext(Configuration configuration, Action action)
+        {
+            this.RegisterConfiguration(configuration);
+            this.TestAction = action;
+        }
+
+        private void RegisterConfiguration(Configuration configuration)
+        {
+            this.Configuration = configuration;
         }
 
         /// <summary>

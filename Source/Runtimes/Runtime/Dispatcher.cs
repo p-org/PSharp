@@ -29,33 +29,30 @@ namespace Microsoft.PSharp
         #region API methods
 
         /// <summary>
-        /// Tries to create a new machine of the given type with an optional payload.
+        /// Tries to create a new machine of the given type.
         /// </summary>
         /// <param name="type">Type of the machine</param>
-        /// <param name="payload">Optional payload</param>
-        /// <returns>Machine id</returns>
-        MachineId IDispatcher.TryCreateMachine(Type type, params Object[] payload)
+        /// <returns>MachineId</returns>
+        MachineId IDispatcher.TryCreateMachine(Type type)
         {
-            return PSharpRuntime.TryCreateMachine(type, payload);
+            return PSharpRuntime.TryCreateMachine(type);
         }
 
         /// <summary>
-        /// Tries to create a new remote machine of the given type with an optional payload.
+        /// Tries to create a new remote machine of the given type.
         /// </summary>
         /// <param name="type">Type of the machine</param>
-        /// <param name="payload">Optional payload</param>
-        /// <returns>Machine id</returns>
-        MachineId IDispatcher.TryCreateRemoteMachine(Type type, params Object[] payload)
+        /// <returns>MachineId</returns>
+        MachineId IDispatcher.TryCreateRemoteMachine(Type type)
         {
-            return PSharpRuntime.TryCreateMachineRemotely(type, payload);
+            return PSharpRuntime.TryCreateMachineRemotely(type);
         }
 
         /// <summary>
-        /// Tries to create a new monitor of the given type with an optional payload.
+        /// Tries to create a new monitor of the given type.
         /// </summary>
         /// <param name="type">Type of the machine</param>
-        /// <param name="payload">Optional payload</param>
-        void IDispatcher.TryCreateMonitor(Type type, params Object[] payload)
+        void IDispatcher.TryCreateMonitor(Type type)
         {
             // No-op for real execution.
         }
@@ -72,7 +69,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Sends an asynchronous event to a machine.
         /// </summary>
-        /// <param name="mid">Machine id</param>
+        /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         void IDispatcher.Send(MachineId mid, Event e)
         {
@@ -162,7 +159,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Notifies that a machine is waiting to receive an event.
         /// </summary>
-        /// <param name="mid">Machine id</param>
+        /// <param name="mid">MachineId</param>
         void IDispatcher.NotifyWaitEvent(MachineId mid)
         {
             PSharpRuntime.NotifyWaitEvent(mid);
@@ -171,7 +168,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Notifies that a machine received an event that it was waiting for.
         /// </summary>
-        /// <param name="mid">Machine id</param>
+        /// <param name="mid">MachineId</param>
         void IDispatcher.NotifyReceivedEvent(MachineId mid)
         {
             PSharpRuntime.NotifyReceivedEvent(mid);

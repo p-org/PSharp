@@ -19,7 +19,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Microsoft.PSharp.LanguageServices;
 using Microsoft.PSharp.LanguageServices.Parsing;
-using Microsoft.PSharp.Tooling;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.DynamicAnalysis.Tests.Unit
 {
@@ -35,6 +35,11 @@ using Microsoft.PSharp;
 
 namespace SystematicTesting
 {
+    class Config : Event {
+        public MachineId Id;
+        public Config(MachineId id) : base(-1, -1) { this.Id = id; }
+    }
+
     class Event1 : Event { }
     class Event2 : Event { }
 
@@ -49,8 +54,10 @@ namespace SystematicTesting
         int count1 = 0;
         void Initialize()
         {
-            CreateMachine(typeof(Sender1), this.Id);
-            CreateMachine(typeof(Sender2), this.Id);
+            var s1 = CreateMachine(typeof(Sender1));
+            this.Send(s1, new Config(this.Id));
+            var s2 = CreateMachine(typeof(Sender2));
+            this.Send(s2, new Config(this.Id));
         }
 
         void OnEvent1()
@@ -66,25 +73,25 @@ namespace SystematicTesting
     class Sender1 : Machine
     {
         [Start]
-        [OnEntry(nameof(Run))]
+        [OnEventDoAction(typeof(Config), nameof(Run))]
         class State : MachineState { }
 
         void Run()
         {
-            Send((MachineId)Payload, new Event1());
-            Send((MachineId)Payload, new Event1());
+            Send((this.ReceivedEvent as Config).Id, new Event1());
+            Send((this.ReceivedEvent as Config).Id, new Event1());
         }
     }
 
     class Sender2 : Machine
     {
         [Start]
-        [OnEntry(nameof(Run))]
+        [OnEventDoAction(typeof(Config), nameof(Run))]
         class State : MachineState { }
 
         void Run()
         {
-            Send((MachineId)Payload, new Event2());
+            Send((this.ReceivedEvent as Config).Id, new Event2());
         }
     }
 
@@ -109,7 +116,7 @@ namespace SystematicTesting
             var program = parser.Parse();
             program.Rewrite();
 
-            var sctConfig = new DynamicAnalysisConfiguration();
+            var sctConfig = Configuration.Create();
             sctConfig.SuppressTrace = true;
             sctConfig.Verbose = 2;
             sctConfig.SchedulingStrategy = SchedulingStrategy.DFS;

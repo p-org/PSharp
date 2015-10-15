@@ -15,7 +15,7 @@
 using System;
 
 using Microsoft.PSharp.LanguageServices.Compilation;
-using Microsoft.PSharp.Tooling;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp
 {
@@ -30,8 +30,7 @@ namespace Microsoft.PSharp
             //currentDomain.UnhandledException += new UnhandledExceptionEventHandler(UnhandledExceptionHandler);
 
             // Parses the command line options to get the configuration.
-            var configuration = new CompilerCommandLineOptions(args).
-                Parse() as LanguageServicesConfiguration;
+            var configuration = new CompilerCommandLineOptions(args).Parse();
 
             // Creates the compilation context and loads the solution.
             var context = CompilationContext.Create(configuration).LoadSolution();

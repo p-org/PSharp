@@ -73,7 +73,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// <returns>SyntaxNode</returns>
         private SyntaxNode RewriteExpression(IdentifierNameSyntax node)
         {
-            var text = "this.Trigger";
+            var text = "this.ReceivedEvent";
             var rewritten = SyntaxFactory.ParseExpression(text);
             rewritten = rewritten.WithTriviaFrom(node);
 

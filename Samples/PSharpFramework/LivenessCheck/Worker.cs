@@ -7,14 +7,14 @@ namespace LivenessCheck
     {
         MachineId Master;
 
-		[Start]
-        [OnEntry(nameof(InitOnEntry))]
+        [Start]
+        [OnEventDoAction(typeof(Config), nameof(Configure))]
         [OnEventGotoState(typeof(Unit), typeof(Processing))]
         class Init : MachineState { }
 
-		void InitOnEntry()
+        void Configure()
         {
-            this.Master = (MachineId)this.Payload;
+            this.Master = (this.ReceivedEvent as Config).Id;
             this.Raise(new Unit());
         }
         

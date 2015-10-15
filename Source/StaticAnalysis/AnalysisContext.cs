@@ -23,7 +23,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 
 using Microsoft.PSharp.LanguageServices;
-using Microsoft.PSharp.Tooling;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.StaticAnalysis
 {
@@ -37,7 +37,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Configuration.
         /// </summary>
-        internal LanguageServicesConfiguration Configuration;
+        internal Configuration Configuration;
 
         /// <summary>
         /// The solution of the P# program.
@@ -84,7 +84,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="configuration">Configuration</param>
         /// <param name="project">Project</param>
         /// <returns>AnalysisContext</returns>
-        public static AnalysisContext Create(LanguageServicesConfiguration configuration, Project project)
+        public static AnalysisContext Create(Configuration configuration, Project project)
         {
             return new AnalysisContext(configuration, project);
         }
@@ -673,7 +673,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="configuration">Configuration</param>
         /// <param name="project">Project</param>
-        private AnalysisContext(LanguageServicesConfiguration configuration, Project project)
+        private AnalysisContext(Configuration configuration, Project project)
         {
             this.Configuration = configuration;
             this.Solution = project.Solution;

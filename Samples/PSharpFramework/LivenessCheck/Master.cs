@@ -19,11 +19,13 @@ namespace LivenessCheck
 
             for (int idx = 0; idx < 3; idx++)
             {
-                var worker = this.CreateMachine(typeof(Worker), this.Id);
+                var worker = this.CreateMachine(typeof(Worker));
+                this.Send(worker, new Config(this.Id));
                 this.Workers.Add(worker);
             }
 
-            this.CreateMonitor(typeof(M), this.Workers);
+            this.CreateMonitor(typeof(M));
+            this.Monitor<M>(new MConfig(this.Workers));
             
             this.Raise(new Unit());
         }

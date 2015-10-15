@@ -19,7 +19,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Microsoft.PSharp.LanguageServices;
 using Microsoft.PSharp.LanguageServices.Parsing;
-using Microsoft.PSharp.Tooling;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.DynamicAnalysis.Tests.Unit
 {
@@ -40,7 +40,8 @@ using Microsoft.PSharp;
 namespace SystematicTesting
 {
     class Ping : Event {
-        public Ping() : base(1, -1) { }
+        public MachineId Id;
+        public Ping(MachineId id) : base(1, -1) { this.Id = id; }
     }
 
     class Pong : Event {
@@ -76,7 +77,7 @@ namespace SystematicTesting
             Count = Count + 1;
             if (Count == 1)
             {
-                this.Send(PongId, new Ping(), this.Id);
+                this.Send(PongId, new Ping(this.Id));
             }
             // halt PONG after one exchange
             if (Count == 2)
@@ -112,7 +113,7 @@ namespace SystematicTesting
 
         void EntrySendPong()
         {
-            this.Send(this.Payload as MachineId, new Pong());
+            this.Send((this.ReceivedEvent as Ping).Id, new Pong());
             this.Raise(new Success());
         }
     }
@@ -138,7 +139,7 @@ namespace SystematicTesting
             var program = parser.Parse();
             program.Rewrite();
 
-            var sctConfig = new DynamicAnalysisConfiguration();
+            var sctConfig = Configuration.Create();
             sctConfig.SuppressTrace = true;
             sctConfig.Verbose = 2;
             sctConfig.SchedulingStrategy = SchedulingStrategy.DFS;

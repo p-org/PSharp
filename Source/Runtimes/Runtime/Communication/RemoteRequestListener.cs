@@ -18,7 +18,7 @@ using System;
 using System.Reflection;
 using System.ServiceModel;
 
-using Microsoft.PSharp.Tooling;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.Remote
 {
@@ -29,16 +29,15 @@ namespace Microsoft.PSharp.Remote
     internal class RemoteRequestListener : IRemoteCommunication
     {
         /// <summary>
-        /// Creates a new machine of the given type with an optional payload.
+        /// Creates a new machine of the given type.
         /// </summary>
         /// <param name="type">Type of the machine</param>
-        /// <param name="payload">Optional payload</param>
-        /// <returns>Machine id</returns> 
-        MachineId IRemoteCommunication.CreateMachine(string type, params Object[] payload)
+        /// <returns>MachineId</returns> 
+        MachineId IRemoteCommunication.CreateMachine(string type)
         {
             Output.PrintLine("Received request to create machine of type {0}", type);
             var resolvedType = PSharpRuntime.AppAssembly.GetType(type);
-            return PSharpRuntime.CreateMachine(resolvedType, payload);
+            return PSharpRuntime.CreateMachine(resolvedType);
         }
 
         /// <summary>

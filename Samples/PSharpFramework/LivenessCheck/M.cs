@@ -10,14 +10,14 @@ namespace LivenessCheck
 
         [Start]
         [Hot]
-        [OnEntry(nameof(InitOnEntry))]
         [OnEventGotoState(typeof(Unit), typeof(Done))]
+        [OnEventDoAction(typeof(MConfig), nameof(Configure))]
         [OnEventDoAction(typeof(NotifyWorkerIsDone), nameof(ProcessNotification))]
         class Init : MonitorState { }
 
-        void InitOnEntry()
+        void Configure()
         {
-            this.Workers = (List<MachineId>)this.Payload;
+            this.Workers = (this.ReceivedEvent as MConfig).Ids;
         }
 
         void ProcessNotification()

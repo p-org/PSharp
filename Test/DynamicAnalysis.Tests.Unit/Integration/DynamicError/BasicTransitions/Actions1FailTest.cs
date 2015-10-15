@@ -19,7 +19,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Microsoft.PSharp.LanguageServices;
 using Microsoft.PSharp.LanguageServices.Parsing;
-using Microsoft.PSharp.Tooling;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.DynamicAnalysis.Tests.Unit
 {
@@ -38,6 +38,11 @@ using Microsoft.PSharp;
 
 namespace SystematicTesting
 {
+    class Config : Event {
+        public MachineId Id;
+        public Config(MachineId id) : base(-1, -1) { this.Id = id; }
+    }
+
     class E1 : Event {
         public E1() : base(1, -1) { }
     }
@@ -72,7 +77,8 @@ namespace SystematicTesting
 
         void EntryInit()
         {
-            GhostMachine = this.CreateMachine(typeof(Ghost), this.Id);
+            GhostMachine = this.CreateMachine(typeof(Ghost));
+            this.Send(GhostMachine, new Config(this.Id));
             this.Send(GhostMachine, new E1());
         }
 
@@ -112,13 +118,13 @@ namespace SystematicTesting
         MachineId RealMachine;
 
         [Start]
-        [OnEntry(nameof(EntryInit))]
+        [OnEventDoAction(typeof(Config), nameof(Configure))]
         [OnEventGotoState(typeof(E1), typeof(S1))]
         class Init : MachineState { }
 
-        void EntryInit()
+        void Configure()
         {
-            RealMachine = this.Payload as MachineId;
+            RealMachine = (this.ReceivedEvent as Config).Id;
         }
 
         [OnEntry(nameof(EntryS1))]
@@ -155,7 +161,7 @@ namespace SystematicTesting
             var program = parser.Parse();
             program.Rewrite();
 
-            var sctConfig = new DynamicAnalysisConfiguration();
+            var sctConfig = Configuration.Create();
             sctConfig.SuppressTrace = true;
             sctConfig.Verbose = 2;
             sctConfig.SchedulingStrategy = SchedulingStrategy.DFS;

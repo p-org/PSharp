@@ -27,13 +27,12 @@ namespace Microsoft.PSharp.Remote
     internal interface IRemoteCommunication
     {
         /// <summary>
-        /// Creates a new machine of the given type with an optional payload.
+        /// Creates a new machine of the given type.
         /// </summary>
         /// <param name="type">Type of the machine</param>
-        /// <param name="payload">Optional payload</param>
-        /// <returns>Machine id</returns> 
+        /// <returns>MachineId</returns> 
         [OperationContract]
-        MachineId CreateMachine(string type, params Object[] payload);
+        MachineId CreateMachine(string type);
 
         /// <summary>
         /// Sends an asynchronous event to a machine.

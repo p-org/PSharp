@@ -19,7 +19,7 @@ using Microsoft.CodeAnalysis;
 
 using Microsoft.PSharp.LanguageServices.Compilation;
 using Microsoft.PSharp.StaticAnalysis;
-using Microsoft.PSharp.Tooling;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp
 {

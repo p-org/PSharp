@@ -19,7 +19,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 
 using Microsoft.PSharp.LanguageServices.Parsing.Framework;
-using Microsoft.PSharp.Tooling;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.LanguageServices.Parsing
 {

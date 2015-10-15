@@ -19,7 +19,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Microsoft.PSharp.LanguageServices;
 using Microsoft.PSharp.LanguageServices.Parsing;
-using Microsoft.PSharp.Tooling;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.DynamicAnalysis.Tests.Unit
 {
@@ -38,8 +38,9 @@ using Microsoft.PSharp;
 
 namespace SystematicTesting
 {
-    class E2 : Event {
-        public E2() : base(1, -1) { }
+    class Config : Event {
+        public bool Value;
+        public Config(bool v) : base(1, -1) { this.Value = v; }
     }
 
     class Real1 : Machine
@@ -52,20 +53,21 @@ namespace SystematicTesting
 
         void EntryInit()
         {
-            this.CreateMonitor(typeof(M), true);
-            this.Monitor<M>(null, test);
+            this.CreateMonitor(typeof(M));
+            this.Monitor<M>(new Config(true));
+            this.Monitor<M>(new Config(test));
         }
     }
 
     class M : Monitor
     {
         [Start]
-        [OnEntry(nameof(EntryX))]
+        [OnEventDoAction(typeof(Config), nameof(Configure))]
         class X : MonitorState { }
 
-        void EntryX()
+        void Configure()
         {
-            //this.Assert((bool)this.Payload == true); // passes
+            //this.Assert((this.ReceivedEvent as Config).Value == true); // passes
         }
     }
 
@@ -90,7 +92,7 @@ namespace SystematicTesting
             var program = parser.Parse();
             program.Rewrite();
 
-            var sctConfig = new DynamicAnalysisConfiguration();
+            var sctConfig = Configuration.Create();
             sctConfig.SuppressTrace = true;
             sctConfig.Verbose = 2;
             sctConfig.SchedulingStrategy = SchedulingStrategy.DFS;
@@ -99,7 +101,7 @@ namespace SystematicTesting
             var context = AnalysisContext.Create(sctConfig, assembly);
             var sctEngine = SCTEngine.Create(context).Run();
 
-            Assert.AreEqual(1, sctEngine.NumOfFoundBugs);
+            Assert.AreEqual(0, sctEngine.NumOfFoundBugs);
         }
     }
 }

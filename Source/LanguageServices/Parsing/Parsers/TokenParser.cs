@@ -18,7 +18,7 @@ using System.Text;
 
 using Microsoft.CodeAnalysis;
 
-using Microsoft.PSharp.Tooling;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.LanguageServices.Parsing
 {

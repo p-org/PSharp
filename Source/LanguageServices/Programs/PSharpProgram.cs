@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.PSharp.LanguageServices.Compilation;
 using Microsoft.PSharp.LanguageServices.Syntax;
 using Microsoft.PSharp.LanguageServices.Rewriting.PSharp;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.LanguageServices
 {
@@ -134,7 +135,6 @@ namespace Microsoft.PSharp.LanguageServices
         /// </summary>
         private void RewriteExpressions()
         {
-            this.SyntaxTree = new PayloadRewriter(this.Project).Rewrite(this.SyntaxTree);
             this.SyntaxTree = new TriggerRewriter(this.Project).Rewrite(this.SyntaxTree);
             this.SyntaxTree = new FieldAccessRewriter(this.Project).Rewrite(this.SyntaxTree);
             this.SyntaxTree = new ThisRewriter(this.Project).Rewrite(this.SyntaxTree);

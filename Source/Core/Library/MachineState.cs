@@ -77,22 +77,12 @@ namespace Microsoft.PSharp
         protected Machine Machine { get; private set; }
 
         /// <summary>
-        /// Gets the latest received payload. If no payload has been
-        /// received this will return null.
+        /// Gets the latest received event, or null if no event
+        /// has been received.
         /// </summary>
-        protected Type Trigger
+        protected Event ReceivedEvent
         {
-            get { return this.Machine.Trigger; }
-        }
-
-        /// <summary>
-        /// Handle to the payload of the last received event.
-        /// If the last received event does not have a payload,
-        /// a null value is returned.
-        /// </summary>
-        protected Object Payload
-        {
-            get { return this.Machine.Payload; }
+            get { return this.Machine.ReceivedEvent; }
         }
 
         #endregion
@@ -232,46 +222,42 @@ namespace Microsoft.PSharp
         protected virtual void OnExit() { }
 
         /// <summary>
-        /// Creates a new machine of the given type with an optional payload.
+        /// Creates a new machine of the given type.
         /// </summary>
         /// <param name="type">Type of the machine</param>
-        /// <param name="payload">Optional payload</param>
-        /// <returns>Machine id</returns>
-        protected internal MachineId CreateMachine(Type type, params Object[] payload)
+        /// <returns>MachineId</returns>
+        protected internal MachineId CreateMachine(Type type)
         {
-            return this.Machine.CreateMachine(type, payload);
+            return this.Machine.CreateMachine(type);
         }
 
         /// <summary>
-        /// Creates a new remote machine of the given type with an optional payload.
+        /// Creates a new remote machine of the given type.
         /// </summary>
         /// <param name="type">Type of the machine</param>
-        /// <param name="payload">Optional payload</param>
-        /// <returns>Machine id</returns>
-        protected internal MachineId CreateRemoteMachine(Type type, params Object[] payload)
+        /// <returns>MachineId</returns>
+        protected internal MachineId CreateRemoteMachine(Type type)
         {
-            return this.Machine.CreateRemoteMachine(type, payload);
+            return this.Machine.CreateRemoteMachine(type);
         }
 
         /// <summary>
-        /// Creates a new monitor of the given type with an optional payload.
+        /// Creates a new monitor of the given type.
         /// </summary>
         /// <param name="type">Type of the monitor</param>
-        /// <param name="payload">Optional payload</param>
-        protected internal void CreateMonitor(Type type, params Object[] payload)
+        protected internal void CreateMonitor(Type type)
         {
-            this.Machine.CreateMonitor(type, payload);
+            this.Machine.CreateMonitor(type);
         }
 
         /// <summary>
         /// Sends an asynchronous event to a machine.
         /// </summary>
-        /// <param name="mid">Machine id</param>
+        /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
-        /// <param name="payload">Optional payload</param>
-        protected void Send(MachineId mid, Event e, params Object[] payload)
+        protected void Send(MachineId mid, Event e)
         {
-            this.Machine.Send(mid, e, payload);
+            this.Machine.Send(mid, e);
         }
 
         /// <summary>
@@ -279,20 +265,18 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <typeparam name="T">Type of the monitor</typeparam>
         /// <param name="e">Event</param>
-        /// <param name="payload">Optional payload</param>
-        protected internal void Monitor<T>(Event e, params Object[] payload)
+        protected internal void Monitor<T>(Event e)
         {
-            this.Machine.Monitor<T>(e, payload);
+            this.Machine.Monitor<T>(e);
         }
 
         /// <summary>
         /// Raises an event internally and returns from the execution context.
         /// </summary>
         /// <param name="e">Event</param>
-        /// <param name="payload">Optional payload</param>
-        protected void Raise(Event e, params Object[] payload)
+        protected void Raise(Event e)
         {
-            this.Machine.Raise(e, payload);
+            this.Machine.Raise(e);
         }
 
         /// <summary>

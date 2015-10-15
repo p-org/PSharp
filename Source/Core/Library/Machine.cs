@@ -25,7 +25,7 @@ using System.Threading.Tasks;
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Abstract class representing a P# machine.
+    /// Abstract class representing a P# state machine.
     /// </summary>
     public abstract class Machine : BaseMachine
     {
@@ -117,16 +117,10 @@ namespace Microsoft.PSharp
         private Tuple<Event, Action> ReceivedEventHandler;
 
         /// <summary>
-        /// Gets the latest received event type. If no event has been
-        /// received this will return null.
+        /// Gets the latest received event, or null if no event
+        /// has been received.
         /// </summary>
-        protected internal Type Trigger { get; private set; }
-
-        /// <summary>
-        /// Gets the latest received payload. If no payload has been
-        /// received this will return null.
-        /// </summary>
-        protected internal Object Payload { get; private set; }
+        protected internal Event ReceivedEvent { get; private set; }
 
         #endregion
 
@@ -154,48 +148,43 @@ namespace Microsoft.PSharp
         #region P# API methods
 
         /// <summary>
-        /// Creates a new machine of the given type with an optional payload.
+        /// Creates a new machine of the given type.
         /// </summary>
         /// <param name="type">Type of the machine</param>
-        /// <param name="payload">Optional payload</param>
-        /// <returns>Machine id</returns>
-        protected internal MachineId CreateMachine(Type type, params Object[] payload)
+        /// <returns>MachineId</returns>
+        protected internal MachineId CreateMachine(Type type)
         {
-            return Machine.Dispatcher.TryCreateMachine(type, payload);
+            return Machine.Dispatcher.TryCreateMachine(type);
         }
 
         /// <summary>
-        /// Creates a new remote machine of the given type with an optional payload.
+        /// Creates a new remote machine of the given type.
         /// </summary>
         /// <param name="type">Type of the machine</param>
-        /// <param name="payload">Optional payload</param>
-        /// <returns>Machine id</returns>
-        protected internal MachineId CreateRemoteMachine(Type type, params Object[] payload)
+        /// <returns>MachineId</returns>
+        protected internal MachineId CreateRemoteMachine(Type type)
         {
-            return Machine.Dispatcher.TryCreateRemoteMachine(type, payload);
+            return Machine.Dispatcher.TryCreateRemoteMachine(type);
         }
 
         /// <summary>
-        /// Creates a new monitor of the given type with an optional payload.
+        /// Creates a new monitor of the given type.
         /// </summary>
         /// <param name="type">Type of the monitor</param>
-        /// <param name="payload">Optional payload</param>
-        protected internal void CreateMonitor(Type type, params Object[] payload)
+        protected internal void CreateMonitor(Type type)
         {
-            Machine.Dispatcher.TryCreateMonitor(type, payload);
+            Machine.Dispatcher.TryCreateMonitor(type);
         }
 
         /// <summary>
         /// Sends an asynchronous event to a machine.
         /// </summary>
-        /// <param name="m">Machine id</param>
+        /// <param name="m">MachineId</param>
         /// <param name="e">Event</param>
-        /// <param name="payload">Optional payload</param>
-        protected internal void Send(MachineId mid, Event e, params Object[] payload)
+        protected internal void Send(MachineId mid, Event e)
         {
             // If the event is null then report an error and exit.
             this.Assert(e != null, "Machine '{0}' is sending a null event.", this.GetType().Name);
-            e.AssignPayload(payload);
             Machine.Dispatcher.Send(mid, e);
         }
 
@@ -204,12 +193,10 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <typeparam name="T">Type of the monitor</typeparam>
         /// <param name="e">Event</param>
-        /// <param name="payload">Optional payload</param>
-        protected internal void Monitor<T>(Event e, params Object[] payload)
+        protected internal void Monitor<T>(Event e)
         {
             // If the event is null then report an error and exit.
             this.Assert(e != null, "Machine '{0}' is sending a null event.", this.GetType().Name);
-            e.AssignPayload(payload);
             Machine.Dispatcher.Monitor<T>(e);
         }
 
@@ -217,12 +204,10 @@ namespace Microsoft.PSharp
         /// Raises an event internally and returns from the execution context.
         /// </summary>
         /// <param name="e">Event</param>
-        /// <param name="payload">Optional payload</param>
-        protected internal void Raise(Event e, params Object[] payload)
+        protected internal void Raise(Event e)
         {
             // If the event is null then report an error and exit.
             this.Assert(e != null, "Machine '{0}' is raising a null event.", this.GetType().Name);
-            e.AssignPayload(payload);
             Machine.Dispatcher.Log("<RaiseLog> Machine '{0}({1})' raised event '{2}'.", this, base.Id.MVal, e);
             this.RaisedEvent = e;
         }
@@ -341,25 +326,6 @@ namespace Microsoft.PSharp
         #region internal methods
 
         /// <summary>
-        /// Initializes the machine with an optional payload.
-        /// </summary>
-        /// <param name="payload">Optional payload</param>
-        internal void AssignInitialPayload(params Object[] payload)
-        {
-            object initPayload = null;
-            if (payload.Length > 1)
-            {
-                initPayload = payload;
-            }
-            else if (payload.Length == 1)
-            {
-                initPayload = payload[0];
-            }
-
-            this.Payload = initPayload;
-        }
-
-        /// <summary>
         /// Transitions to the start state and executes the
         /// entry action, if there is any.
         /// </summary>
@@ -459,11 +425,10 @@ namespace Microsoft.PSharp
                     }
                 }
 
-                // Assign trigger and payload.
-                this.Trigger = nextEvent.GetType();
-                this.Payload = nextEvent.Payload;
+                // Assigns the received event.
+                this.ReceivedEvent = nextEvent;
 
-                // Handle next event.
+                // Handles next event.
                 this.HandleEvent(nextEvent);
 
                 // If the default event was handled, then notify the runtime.
@@ -690,14 +655,13 @@ namespace Microsoft.PSharp
         /// </summary>
         private void HandleReceivedEvent()
         {
-            // Assign trigger and payload.
-            this.Trigger = this.ReceivedEventHandler.Item1.GetType();
-            this.Payload = this.ReceivedEventHandler.Item1.Payload;
+            // Assigns the received event.
+            this.ReceivedEvent = this.ReceivedEventHandler.Item1;
 
             var action = this.ReceivedEventHandler.Item2;
             this.ReceivedEventHandler = null;
 
-            // Execute the associated action, if there is one.
+            // Executes the associated action, if there is one.
             if (action != null)
             {
                 action();
@@ -1041,8 +1005,7 @@ namespace Microsoft.PSharp
             this.Inbox.Clear();
             this.EventWaiters.Clear();
 
-            this.Trigger = null;
-            this.Payload = null;
+            this.ReceivedEvent = null;
         }
 
         #endregion

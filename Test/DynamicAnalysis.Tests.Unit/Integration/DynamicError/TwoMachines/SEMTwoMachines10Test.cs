@@ -19,7 +19,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Microsoft.PSharp.LanguageServices;
 using Microsoft.PSharp.LanguageServices.Parsing;
-using Microsoft.PSharp.Tooling;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.DynamicAnalysis.Tests.Unit
 {
@@ -40,7 +40,8 @@ namespace SystematicTesting
     }
 
     class E2 : Event {
-        public E2() : base(1, -1) { }
+        public bool Value;
+        public E2(bool value) : base(1, -1) { this.Value = value; }
     }
 
     class Real1 : Machine
@@ -57,13 +58,13 @@ namespace SystematicTesting
 
         void EntryInit()
         {
-            mac = this.CreateMachine(typeof(Real2), this.Id);
+            mac = this.CreateMachine(typeof(Real2));
             this.Raise(new E1());
         }
 
         void ExitInit()
         {
-            this.Send(mac, new E2(), test);
+            this.Send(mac, new E2(test));
         }
 
         class S1 : MachineState { }
@@ -85,7 +86,7 @@ namespace SystematicTesting
 
         void EntryAction()
         {
-            if (this.Trigger == typeof(E2))
+            if (this.ReceivedEvent.GetType() == typeof(E2))
             {
                 Action2();
             }
@@ -97,7 +98,7 @@ namespace SystematicTesting
 
         void Action2()
         {
-            this.Assert((bool)this.Payload == false); // reachable
+            this.Assert((this.ReceivedEvent as E2).Value == false); // reachable
         }
     }
 
@@ -109,7 +110,7 @@ namespace SystematicTesting
 
         void EntryX()
         {
-            //this.Assert((bool)this.Payload == true); // reachable
+            //this.Assert((this.ReceivedEvent as E2).Value == true); // reachable
         }
     }
 
@@ -134,7 +135,7 @@ namespace SystematicTesting
             var program = parser.Parse();
             program.Rewrite();
 
-            var sctConfig = new DynamicAnalysisConfiguration();
+            var sctConfig = Configuration.Create();
             sctConfig.SuppressTrace = true;
             sctConfig.Verbose = 2;
             sctConfig.SchedulingStrategy = SchedulingStrategy.DFS;

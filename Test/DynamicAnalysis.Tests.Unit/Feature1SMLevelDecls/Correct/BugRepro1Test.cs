@@ -19,7 +19,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Microsoft.PSharp.LanguageServices;
 using Microsoft.PSharp.LanguageServices.Parsing;
-using Microsoft.PSharp.Tooling;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.DynamicAnalysis.Tests.Unit
 {
@@ -36,7 +36,8 @@ using Microsoft.PSharp;
 namespace SystematicTesting
 {
     class Ping : Event {
-        public Ping() : base(1, -1) { }
+        public int V;
+        public Ping(int v) : base(1, -1) { this.V = v; }
     }
 
     class Success : Event { }
@@ -84,7 +85,7 @@ namespace SystematicTesting
                 this.Assert(i == 3);  
                 i = i + 1;
                 this.Assert(i == 4);
-                this.Send(this.Id, new Ping(), i);
+                this.Send(this.Id, new Ping(i));
                 this.Assert(i == 4);
             }
 
@@ -122,7 +123,7 @@ namespace SystematicTesting
             var program = parser.Parse();
             program.Rewrite();
 
-            var sctConfig = new DynamicAnalysisConfiguration();
+            var sctConfig = Configuration.Create();
             sctConfig.SuppressTrace = true;
             sctConfig.Verbose = 2;
 

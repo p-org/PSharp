@@ -69,21 +69,12 @@ namespace Microsoft.PSharp
         protected Monitor Monitor { get; private set; }
 
         /// <summary>
-        /// Gets the latest received payload. If no payload has been
-        /// received this will return null.
+        /// Gets the latest received event, or null if no event
+        /// has been received.
         /// </summary>
-        protected Type Trigger
+        protected internal Event ReceivedEvent
         {
-            get { return this.Monitor.Trigger; }
-        }
-
-        /// <summary>
-        /// Gets the latest received payload. If no payload has been
-        /// received this will return null.
-        /// </summary>
-        protected Object Payload
-        {
-            get { return this.Monitor.Payload; }
+            get { return this.Monitor.ReceivedEvent; }
         }
 
         #endregion
@@ -215,10 +206,9 @@ namespace Microsoft.PSharp
         /// Raises an event internally and returns from the execution context.
         /// </summary>
         /// <param name="e">Event</param>
-        /// <param name="payload">Optional payload</param>
-        protected void Raise(Event e, params Object[] payload)
+        protected void Raise(Event e)
         {
-            this.Monitor.Raise(e, payload);
+            this.Monitor.Raise(e);
         }
 
         /// <summary>

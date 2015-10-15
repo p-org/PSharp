@@ -20,7 +20,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.Remote;
-using Microsoft.PSharp.Tooling;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp
 {
@@ -74,7 +74,7 @@ namespace Microsoft.PSharp
             PSharpRuntime.TaskMap = new ConcurrentDictionary<int, Machine>();
 
             MachineId.ResetMachineIDCounter();
-
+            
             Dispatcher dispatcher = new Dispatcher();
             PSharp.Machine.Dispatcher = dispatcher;
             PSharp.Monitor.Dispatcher = dispatcher;
@@ -84,14 +84,13 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Creates a new machine of the given type with an optional payload.
+        /// Creates a new machine of the given type.
         /// </summary>
         /// <param name="type">Type of the machine</param>
-        /// <param name="payload">Optional payload</param>
-        /// <returns>Machine id</returns>
-        public static MachineId CreateMachine(Type type, params Object[] payload)
+        /// <returns>MachineId</returns>
+        public static MachineId CreateMachine(Type type)
         {
-            return PSharpRuntime.TryCreateMachine(type, payload);
+            return PSharpRuntime.TryCreateMachine(type);
         }
 
         /// <summary>
@@ -99,21 +98,19 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="target">Target machine id</param>
         /// <param name="e">Event</param>
-        /// <param name="payload">Optional payload</param>
-        public static void SendEvent(MachineId target, Event e, params Object[] payload)
+        public static void SendEvent(MachineId target, Event e)
         {
             // If the event is null then report an error and exit.
             PSharpRuntime.Assert(e != null, "Cannot send a null event.");
-            e.AssignPayload(payload);
             PSharpRuntime.Send(target, e);
         }
 
         /// <summary>
         /// Blocks and waits to receive an event of the given types. Returns
-        /// a payload, if there is any, else returns null.
+        /// the received event.
         /// </summary>
-        /// <returns>Payload</returns>
-        public static Object Receive(params Type[] events)
+        /// <returns>Received event</returns>
+        public static Event Receive(params Type[] events)
         {
             PSharpRuntime.Assert(Task.CurrentId != null, "Only machines can wait to receive an event.");
             PSharpRuntime.Assert(PSharpRuntime.TaskMap.ContainsKey((int)Task.CurrentId),
@@ -121,16 +118,16 @@ namespace Microsoft.PSharp
                 (int)Task.CurrentId);
             Machine machine = PSharpRuntime.TaskMap[(int)Task.CurrentId];
             machine.Receive(events);
-            return machine.Payload;
+            return machine.ReceivedEvent;
         }
 
         /// <summary>
         /// Blocks and waits to receive an event of the given types, and
-        /// executes a given action on receiving the event. Returns a
-        /// payload, if there is any, else returns null.
+        /// executes a given action on receiving the event. Returns the
+        /// received event.
         /// </summary>
-        /// <returns>Payload</returns>
-        public static Object Receive(params Tuple<Type, Action>[] events)
+        /// <returns>Received event</returns>
+        public static Event Receive(params Tuple<Type, Action>[] events)
         {
             PSharpRuntime.Assert(Task.CurrentId != null, "Only machines can wait to receive an event.");
             PSharpRuntime.Assert(PSharpRuntime.TaskMap.ContainsKey((int)Task.CurrentId),
@@ -138,7 +135,7 @@ namespace Microsoft.PSharp
                 (int)Task.CurrentId);
             Machine machine = PSharpRuntime.TaskMap[(int)Task.CurrentId];
             machine.Receive(events);
-            return machine.Payload;
+            return machine.ReceivedEvent;
         }
 
         /// <summary>
@@ -146,8 +143,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <typeparam name="T">Type of the monitor</typeparam>
         /// <param name="e">Event</param>
-        /// <param name="payload">Optional payload</param>
-        public static void InvokeMonitor<T>(Event e, params Object[] payload)
+        public static void InvokeMonitor<T>(Event e)
         {
             // the execution runtime does not implement monitors.
             return;
@@ -199,24 +195,21 @@ namespace Microsoft.PSharp
         #region internal API
 
         /// <summary>
-        /// Tries to create a new remote machine of the given type
-        /// with an optional payload.
+        /// Tries to create a new remote machine of the given type.
         /// </summary>
         /// <param name="type">Type of the machine</param>
-        /// <param name="payload">Optional payload</param>
-        /// <returns>Machine id</returns>
-        internal static MachineId TryCreateMachineRemotely(Type type, params Object[] payload)
+        /// <returns>MachineId</returns>
+        internal static MachineId TryCreateMachineRemotely(Type type)
         {
-            return PSharpRuntime.Channel.CreateMachine(type.FullName, payload);
+            return PSharpRuntime.Channel.CreateMachine(type.FullName);
         }
 
         /// <summary>
-        /// Tries to create a new machine of the given type with an optional payload.
+        /// Tries to create a new machine of the given type.
         /// </summary>
         /// <param name="type">Type of the machine</param>
-        /// <param name="payload">Optional payload</param>
-        /// <returns>Machine id</returns>
-        internal static MachineId TryCreateMachine(Type type, params Object[] payload)
+        /// <returns>MachineId</returns>
+        internal static MachineId TryCreateMachine(Type type)
         {
             if (type.IsSubclassOf(typeof(Machine)))
             {
@@ -238,7 +231,6 @@ namespace Microsoft.PSharp
 
                     try
                     {
-                        machine.AssignInitialPayload(payload);
                         machine.GotoStartState();
                         machine.RunEventHandler();
                     }
@@ -262,7 +254,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Sends an asynchronous event to a remote machine.
         /// </summary>
-        /// <param name="mid">Machine id</param>
+        /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         internal static void SendRemotely(MachineId mid, Event e)
         {
@@ -272,7 +264,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Sends an asynchronous event to a machine.
         /// </summary>
-        /// <param name="mid">Machine id</param>
+        /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         internal static void Send(MachineId mid, Event e)
         {
@@ -333,7 +325,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Notifies that a machine is waiting to receive an event.
         /// </summary>
-        /// <param name="mid">Machine id</param>
+        /// <param name="mid">MachineId</param>
         internal static void NotifyWaitEvent(MachineId mid)
         {
             Machine machine = PSharpRuntime.MachineMap[mid.Value];
@@ -346,7 +338,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Notifies that a machine received an event that it was waiting for.
         /// </summary>
-        /// <param name="mid">Machine id</param>
+        /// <param name="mid">MachineId</param>
         internal static void NotifyReceivedEvent(MachineId mid)
         {
             Machine machine = PSharpRuntime.MachineMap[mid.Value];

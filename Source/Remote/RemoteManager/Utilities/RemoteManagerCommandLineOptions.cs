@@ -15,7 +15,7 @@
 using System;
 using System.IO;
 
-using Microsoft.PSharp.Tooling;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.Remote
 {
@@ -30,7 +30,7 @@ namespace Microsoft.PSharp.Remote
         public RemoteManagerCommandLineOptions(string[] args)
             : base(args)
         {
-            base.Configuration = new RemoteManagerConfiguration();
+            base.Configuration = Configuration.Create();
         }
 
         #endregion
@@ -43,7 +43,6 @@ namespace Microsoft.PSharp.Remote
         /// <param name="option">Option</param>
         protected override void ParseOption(string option)
         {
-            var configuration = base.Configuration as RemoteManagerConfiguration;
             if (option.ToLower().StartsWith("/n:") && option.Length > 3)
             {
                 int i = 0;
@@ -53,11 +52,11 @@ namespace Microsoft.PSharp.Remote
                         "'/n:[x]', where [x] > 0.");
                 }
 
-                configuration.NumberOfContainers = i;
+                base.Configuration.NumberOfContainers = i;
             }
             else if (option.ToLower().StartsWith("/main:") && option.Length > 6)
             {
-                configuration.ApplicationFilePath = option.Substring(6);
+                base.Configuration.ApplicationFilePath = option.Substring(6);
             }
             else
             {
@@ -67,13 +66,12 @@ namespace Microsoft.PSharp.Remote
 
         protected override void CheckForParsingErrors()
         {
-            var configuration = base.Configuration as RemoteManagerConfiguration;
-            if (configuration.ApplicationFilePath.Equals(""))
+            if (base.Configuration.ApplicationFilePath.Equals(""))
             {
                 ErrorReporter.ReportAndExit("Please give a valid P# application path.");
             }
 
-            if (!Path.GetExtension(configuration.ApplicationFilePath).Equals(".dll"))
+            if (!Path.GetExtension(base.Configuration.ApplicationFilePath).Equals(".dll"))
             {
                 ErrorReporter.ReportAndExit("The application must be a `dll` file compiled " +
                     "using the P# compiler with the option `/distributed`.");

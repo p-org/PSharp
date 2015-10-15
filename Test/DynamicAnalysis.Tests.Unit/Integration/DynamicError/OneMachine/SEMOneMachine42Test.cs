@@ -19,7 +19,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Microsoft.PSharp.LanguageServices;
 using Microsoft.PSharp.LanguageServices.Parsing;
-using Microsoft.PSharp.Tooling;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.DynamicAnalysis.Tests.Unit
 {
@@ -28,10 +28,10 @@ namespace Microsoft.PSharp.DynamicAnalysis.Tests.Unit
     {
         /// <summary>
         /// P# semantics test: one machine: one machine, testing for
-        /// "null" event, both payload and trigger are null.
+        /// "default" event.
         /// </summary>
         [TestMethod]
-        public void TestNullTriggerPayload()
+        public void TestDefaultEventHandled()
         {
             var test = @"
 using System;
@@ -58,7 +58,7 @@ namespace SystematicTesting
 
         void EntryS1()
         {
-            this.Assert(this.Payload != null || this.Trigger != typeof(Default)); // reachable
+            this.Assert(this.ReceivedEvent.GetType() == typeof(Default));
         }
     }
 
@@ -83,7 +83,7 @@ namespace SystematicTesting
             var program = parser.Parse();
             program.Rewrite();
 
-            var sctConfig = new DynamicAnalysisConfiguration();
+            var sctConfig = Configuration.Create();
             sctConfig.SuppressTrace = true;
             sctConfig.Verbose = 2;
 
@@ -91,7 +91,7 @@ namespace SystematicTesting
             var context = AnalysisContext.Create(sctConfig, assembly);
             var sctEngine = SCTEngine.Create(context).Run();
 
-            Assert.AreEqual(1, sctEngine.NumOfFoundBugs);
+            Assert.AreEqual(0, sctEngine.NumOfFoundBugs);
         }
     }
 }
