@@ -20,16 +20,16 @@ namespace PingPong
             this.Raise(new Unit());
         }
 
+        [OnEntry(nameof(ActiveOnEntry))]
         [OnEventGotoState(typeof(Unit), typeof(Active))]
         [OnEventDoAction(typeof(Pong), nameof(SendPing))]
-        class Active : MachineState
+        class Active : MachineState { }
+
+        void ActiveOnEntry()
         {
-            protected override void OnEntry()
+            if (this.Counter == 5)
             {
-                if ((this.Machine as Client).Counter == 5)
-                {
-                    this.Raise(new Halt());
-                }
+                this.Raise(new Halt());
             }
         }
 
