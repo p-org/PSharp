@@ -200,7 +200,9 @@ namespace Raft
         [OnEntry(nameof(FollowerOnInit))]
         [OnEventDoAction(typeof(Timer.Timeout), nameof(StartLeaderElection))]
         [OnEventDoAction(typeof(VoteRequest), nameof(Vote))]
+        [OnEventDoAction(typeof(AppendEntries), nameof(TryAppendEntries))]
         [OnEventDoAction(typeof(VoteResponse), nameof(RespondVoteAsFollower))]
+        [OnEventDoAction(typeof(AppendEntriesResponse), nameof(RespondAppendEntriesAsFollower))]
         [OnEventGotoState(typeof(BecomeFollower), typeof(Follower))]
         [OnEventGotoState(typeof(BecomeCandidate), typeof(Candidate))]
         class Follower : MachineState { }
@@ -242,6 +244,37 @@ namespace Raft
             }
         }
 
+        void TryAppendEntries()
+        {
+            var request = this.ReceivedEvent as AppendEntries;
+
+            Console.WriteLine("append terms: " + this.CurrentTerm + " " + request.Term);
+
+            if (request.Term > this.CurrentTerm)
+            {
+                this.CurrentTerm = request.Term;
+                this.Send(this.Id, this.ReceivedEvent);
+                this.Raise(new BecomeFollower());
+            }
+            else if (request.Term < this.CurrentTerm)
+            {
+                Console.WriteLine("append: " + this.ServerId + " false");
+                this.Send(this.Timer, new Timer.ResetTimer());
+                this.Send(request.LeaderId, new AppendEntriesResponse(this.CurrentTerm, false));
+            }
+            else
+            {
+                this.Send(this.Timer, new Timer.ResetTimer());
+
+                if (request.PrevLogIndex > 0)
+                {
+                    // TODO
+                }
+
+                this.Send(request.LeaderId, new AppendEntriesResponse(this.CurrentTerm, true));
+            }
+        }
+
         void RespondVoteAsFollower()
         {
             var request = this.ReceivedEvent as VoteResponse;
@@ -251,9 +284,20 @@ namespace Raft
             }
         }
 
+        void RespondAppendEntriesAsFollower()
+        {
+            var request = this.ReceivedEvent as AppendEntriesResponse;
+            if (request.Term > this.CurrentTerm)
+            {
+                this.CurrentTerm = request.Term;
+            }
+        }
+
         [OnEntry(nameof(CandidateOnInit))]
         [OnEventDoAction(typeof(VoteRequest), nameof(Vote))]
+        [OnEventDoAction(typeof(AppendEntries), nameof(TryAppendEntries))]
         [OnEventDoAction(typeof(VoteResponse), nameof(RespondVoteAsCandidate))]
+        [OnEventDoAction(typeof(AppendEntriesResponse), nameof(RespondAppendEntriesAsCandidate))]
         [OnEventGotoState(typeof(BecomeLeader), typeof(Leader))]
         [OnEventGotoState(typeof(BecomeFollower), typeof(Follower))]
         [IgnoreEvents(typeof(Timer.Timeout))] // temporary
@@ -295,14 +339,47 @@ namespace Raft
             }
         }
 
+        void RespondAppendEntriesAsCandidate()
+        {
+            var request = this.ReceivedEvent as AppendEntriesResponse;
+            if (request.Term > this.CurrentTerm)
+            {
+                this.CurrentTerm = request.Term;
+                this.Raise(new BecomeFollower());
+            }
+        }
+
+        [OnEntry(nameof(LeaderOnInit))]
         [OnEventDoAction(typeof(VoteRequest), nameof(Vote))]
         [OnEventDoAction(typeof(VoteResponse), nameof(RespondVoteAsLeader))]
+        [OnEventDoAction(typeof(AppendEntriesResponse), nameof(RespondAppendEntriesAsLeader))]
         [OnEventGotoState(typeof(BecomeFollower), typeof(Follower))]
         class Leader : MachineState { }
+
+        void LeaderOnInit()
+        {
+            for (int idx = 0; idx < this.Servers.Length; idx++)
+            {
+                if (idx == this.ServerId)
+                    continue;
+                this.Send(this.Servers[idx], new AppendEntries(this.CurrentTerm, this.Id,
+                    0, 0, new Log[0], this.CommitIndex)); // temporary
+            }
+        }
 
         void RespondVoteAsLeader()
         {
             var request = this.ReceivedEvent as VoteResponse;
+            if (request.Term > this.CurrentTerm)
+            {
+                this.CurrentTerm = request.Term;
+                this.Raise(new BecomeFollower());
+            }
+        }
+
+        void RespondAppendEntriesAsLeader()
+        {
+            var request = this.ReceivedEvent as AppendEntriesResponse;
             if (request.Term > this.CurrentTerm)
             {
                 this.CurrentTerm = request.Term;
