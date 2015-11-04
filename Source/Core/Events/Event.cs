@@ -27,6 +27,11 @@ namespace Microsoft.PSharp
     public abstract class Event
     {
         #region fields
+        
+        /// <summary>
+        /// Declares the Operation that this event corresponds.
+        /// </summary>
+        internal ulong OperationId;
 
         /// <summary>
         /// Specifies that there must not be more than k instances

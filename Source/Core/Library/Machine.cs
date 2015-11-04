@@ -178,13 +178,16 @@ namespace Microsoft.PSharp
 
         /// <summary>
         /// Sends an asynchronous event to a machine.
+        /// Optionally starts a new operation.
         /// </summary>
         /// <param name="m">MachineId</param>
         /// <param name="e">Event</param>
-        protected internal void Send(MachineId mid, Event e)
+        /// <param name="startNewOp">Starts a new operation</param>
+        protected internal void Send(MachineId mid, Event e, bool startNewOp = false)
         {
             // If the event is null then report an error and exit.
             this.Assert(e != null, "Machine '{0}' is sending a null event.", this.GetType().Name);
+            this.SetOperationIdFor(startNewOp, e);
             Machine.Dispatcher.Send(mid, e);
         }
 
@@ -437,6 +440,9 @@ namespace Microsoft.PSharp
                         }
                     }
                 }
+
+                // Set OperationId.
+                this.OperationId = nextEvent.OperationId;
 
                 // Assigns the received event.
                 this.ReceivedEvent = nextEvent;
@@ -973,6 +979,25 @@ namespace Microsoft.PSharp
 
                 // Handles generic exception.
                 this.ReportGenericAssertion(ex);
+            }
+        }
+
+        /// <summary>
+        /// Sets the operation ID for the given event.
+        /// </summary>
+        /// <param name="startNewOp">Starts new operation</param>
+        /// <param name="e">Event</param>
+        private void SetOperationIdFor(bool startNewOp, Event e)
+        {
+            if (startNewOp || e.GetType().IsDefined(typeof(StartOperation)))
+            {
+                e.OperationId = Machine.FreshOperationId();
+                Machine.Dispatcher.Log("<OperationLog> Assigned new operation with ID '{0}'", e.OperationId);
+            }
+            else
+            {
+                e.OperationId = this.OperationId;
+                Machine.Dispatcher.Log("<OperationLog> Assigned operation with ID '{0}'", e.OperationId);
             }
         }
 
