@@ -17,12 +17,14 @@ namespace Raft
         {
             public int Id;
             public MachineId[] Servers;
+            public MachineId Environment;
 
-            public ConfigureEvent(int id, MachineId[] servers)
+            public ConfigureEvent(int id, MachineId[] servers, MachineId env)
                 : base()
             {
                 this.Id = id;
                 this.Servers = servers;
+                this.Environment = env;
             }
         }
 
@@ -115,6 +117,11 @@ namespace Raft
         int ServerId;
 
         /// <summary>
+        /// The environment machine.
+        /// </summary>
+        MachineId Environment;
+
+        /// <summary>
         /// The servers.
         /// </summary>
         MachineId[] Servers;
@@ -189,6 +196,7 @@ namespace Raft
         {
             this.ServerId = (this.ReceivedEvent as ConfigureEvent).Id;
             this.Servers = (this.ReceivedEvent as ConfigureEvent).Servers;
+            this.Environment = (this.ReceivedEvent as ConfigureEvent).Environment;
 
             this.Timer = this.CreateMachine(typeof(Timer));
             this.Send(this.Timer, new Timer.ConfigureEvent(this.Id));
@@ -350,6 +358,7 @@ namespace Raft
         }
 
         [OnEntry(nameof(LeaderOnInit))]
+        [OnEventDoAction(typeof(Client.Request), nameof(ProcessClientRequest))]
         [OnEventDoAction(typeof(VoteRequest), nameof(Vote))]
         [OnEventDoAction(typeof(VoteResponse), nameof(RespondVoteAsLeader))]
         [OnEventDoAction(typeof(AppendEntriesResponse), nameof(RespondAppendEntriesAsLeader))]
@@ -358,6 +367,8 @@ namespace Raft
 
         void LeaderOnInit()
         {
+            this.Send(this.Environment, new Environment.NotifyLeaderUpdate(this.Id));
+
             for (int idx = 0; idx < this.Servers.Length; idx++)
             {
                 if (idx == this.ServerId)
@@ -365,6 +376,12 @@ namespace Raft
                 this.Send(this.Servers[idx], new AppendEntries(this.CurrentTerm, this.Id,
                     0, 0, new Log[0], this.CommitIndex)); // temporary
             }
+        }
+
+        void ProcessClientRequest()
+        {
+            var request = this.ReceivedEvent as Client.Request;
+            Console.WriteLine("leader: new client request " + request.Command);
         }
 
         void RespondVoteAsLeader()
