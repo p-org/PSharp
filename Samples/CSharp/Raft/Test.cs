@@ -15,7 +15,7 @@ namespace Raft
         [Microsoft.PSharp.Test]
         public static void Execute()
         {
-            PSharpRuntime.CreateMachine(typeof(Environment));
+            var environment = PSharpRuntime.CreateMachine(typeof(Environment));
         }
     }
 }
