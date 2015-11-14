@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskParallelismCheck", "CSh
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Raft", "CSharp\Raft\Raft.csproj", "{4F4ECEC3-A83A-4A27-AC55-D6888D314BA9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OperationsExample", "OperationsExample\OperationsExample.csproj", "{C094E617-E1DD-4F8D-9950-FF914066CE2D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -53,6 +55,10 @@ Global
 		{4F4ECEC3-A83A-4A27-AC55-D6888D314BA9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4F4ECEC3-A83A-4A27-AC55-D6888D314BA9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4F4ECEC3-A83A-4A27-AC55-D6888D314BA9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C094E617-E1DD-4F8D-9950-FF914066CE2D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C094E617-E1DD-4F8D-9950-FF914066CE2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C094E617-E1DD-4F8D-9950-FF914066CE2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C094E617-E1DD-4F8D-9950-FF914066CE2D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -65,5 +71,6 @@ Global
 		{585ACE29-62FC-4B07-91A9-E50E22BAA081} = {9F303C8B-A686-4BB2-BE75-29B00CF1DBA3}
 		{E8E19186-6D68-4197-8D4C-9F54BB49E5E9} = {9F303C8B-A686-4BB2-BE75-29B00CF1DBA3}
 		{4F4ECEC3-A83A-4A27-AC55-D6888D314BA9} = {9F303C8B-A686-4BB2-BE75-29B00CF1DBA3}
+		{C094E617-E1DD-4F8D-9950-FF914066CE2D} = {9F303C8B-A686-4BB2-BE75-29B00CF1DBA3}
 	EndGlobalSection
 EndGlobal
