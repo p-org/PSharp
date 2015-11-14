@@ -71,14 +71,14 @@ namespace Microsoft.PSharp
         /// controlled during analysis or testing.
         /// </summary>
         /// <returns>Boolean</returns>
-        bool Nondet();
+        bool Random();
 
         /// <summary>
         /// Returns a fair nondeterministic boolean choice, that can be
         /// controlled during analysis or testing.
         /// </summary>
         /// <returns>Boolean</returns>
-        bool FairNondet();
+        bool FairRandom();
 
         /// <summary>
         /// Returns a fair nondeterministic boolean choice, that can be
@@ -86,7 +86,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="uniqueId">Unique id</param>
         /// <returns>Boolean</returns>
-        bool FairNondet(string uniqueId);
+        bool FairRandom(string uniqueId);
 
         /// <summary>
         /// Checks if the assertion holds, and if not it reports

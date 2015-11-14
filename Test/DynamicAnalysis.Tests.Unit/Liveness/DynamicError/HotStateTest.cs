@@ -118,7 +118,7 @@ namespace SystematicTesting
 
         void DoneOnEntry()
         {
-            if (this.Nondet())
+            if (this.Random())
             {
                 this.Send(this.Master, new FinishedProcessing());
             }

@@ -119,7 +119,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         protected void RewriteNonDeterministicChoice()
         {
             int line = this.RewrittenStmtTokens[this.Index].TextUnit.Line;
-            var text = "this.Nondet()";
+            var text = "this.Random()";
             this.RewrittenStmtTokens[this.Index] = new Token(new TextUnit(text, line));
         }
 

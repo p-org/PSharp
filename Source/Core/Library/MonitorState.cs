@@ -216,9 +216,9 @@ namespace Microsoft.PSharp
         /// controlled during analysis or testing.
         /// </summary>
         /// <returns>Boolean</returns>
-        protected internal bool Nondet()
+        protected internal bool Random()
         {
-            return this.Monitor.Nondet();
+            return this.Monitor.Random();
         }
 
         /// <summary>
@@ -226,9 +226,9 @@ namespace Microsoft.PSharp
         /// controlled during analysis or testing.
         /// </summary>
         /// <returns>Boolean</returns>
-        protected internal bool FairNondet()
+        protected internal bool FairRandom()
         {
-            return this.Monitor.FairNondet();
+            return this.Monitor.FairRandom();
         }
 
         /// <summary>

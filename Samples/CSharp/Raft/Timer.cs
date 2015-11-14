@@ -68,7 +68,7 @@ namespace Raft
 
         void Tick()
         {
-            if (this.Nondet())
+            if (this.Random())
             {
                 this.Counter++;
             }

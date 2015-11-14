@@ -180,9 +180,9 @@ namespace Microsoft.PSharp
         /// during analysis or testing.
         /// </summary>
         /// <returns>Boolean</returns>
-        public static bool Nondeterministic()
+        public static bool Random()
         {
-            return PSharpRuntime.Nondet();
+            return PSharpRuntime.GetNondeterministicChoice();
         }
 
         /// <summary>
@@ -471,7 +471,7 @@ namespace Microsoft.PSharp
         /// controlled during analysis or testing.
         /// </summary>
         /// <returns>Boolean</returns>
-        internal static bool Nondet()
+        internal static bool GetNondeterministicChoice()
         {
             return PSharpRuntime.BugFinder.GetNextNondeterministicChoice();
         }
@@ -482,7 +482,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="uniqueId">Unique id</param>
         /// <returns>Boolean</returns>
-        internal static bool FairNondet(string uniqueId)
+        internal static bool GetFairNondeterministicChoice(string uniqueId)
         {
             return PSharpRuntime.BugFinder.GetNextNondeterministicChoice(uniqueId);
         }

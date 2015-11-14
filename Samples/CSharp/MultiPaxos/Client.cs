@@ -44,7 +44,7 @@ namespace MultiPaxos
         {
             this.Monitor<ValidityCheck>(new ValidityCheck.monitor_client_sent(1));
 
-            if (this.Nondet())
+            if (this.Random())
             {
                 this.Send(this.Servers[0], new PaxosNode.Update(0, 1));
             }
@@ -64,7 +64,7 @@ namespace MultiPaxos
         {
             this.Monitor<ValidityCheck>(new ValidityCheck.monitor_client_sent(2));
 
-            if (this.Nondet())
+            if (this.Random())
             {
                 this.Send(this.Servers[0], new PaxosNode.Update(0, 2));
             }

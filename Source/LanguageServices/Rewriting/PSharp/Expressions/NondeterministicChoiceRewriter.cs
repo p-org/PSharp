@@ -74,7 +74,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// <returns>SyntaxNode</returns>
         private SyntaxNode RewriteExpression(PrefixUnaryExpressionSyntax node)
         {
-            var text = "this.Nondet()";
+            var text = "this.Random()";
             var rewritten = SyntaxFactory.ParseExpression(text);
             return rewritten;
         }

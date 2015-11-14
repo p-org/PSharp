@@ -332,7 +332,7 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
             }
 
             Output.PrintLine("*******************");
-            Output.PrintLine("Nondet stack size: " + this.NondetStack.Count);
+            Output.PrintLine("Random stack size: " + this.NondetStack.Count);
             for (int idx = 0; idx < this.NondetStack.Count; idx++)
             {
                 Output.PrintLine("Index: " + idx);

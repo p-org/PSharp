@@ -94,9 +94,9 @@ namespace Microsoft.PSharp
         /// controlled during analysis or testing.
         /// </summary>
         /// <returns>Boolean</returns>
-        bool IDispatcher.Nondet()
+        bool IDispatcher.Random()
         {
-            return PSharpRuntime.Nondet();
+            return PSharpRuntime.GetNondeterministicChoice();
         }
 
         /// <summary>
@@ -104,9 +104,9 @@ namespace Microsoft.PSharp
         /// controlled during analysis or testing.
         /// </summary>
         /// <returns>Boolean</returns>
-        bool IDispatcher.FairNondet()
+        bool IDispatcher.FairRandom()
         {
-            return PSharpRuntime.Nondet();
+            return PSharpRuntime.GetNondeterministicChoice();
         }
 
         /// <summary>
@@ -115,9 +115,9 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="uniqueId">Unique id</param>
         /// <returns>Boolean</returns>
-        bool IDispatcher.FairNondet(string uniqueId)
+        bool IDispatcher.FairRandom(string uniqueId)
         {
-            return PSharpRuntime.FairNondet(uniqueId);
+            return PSharpRuntime.GetFairNondeterministicChoice(uniqueId);
         }
 
         /// <summary>

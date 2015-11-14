@@ -48,7 +48,7 @@ namespace NodeManager
         {
             var failed = (this.ReceivedEvent as Events.FailedEvent).idx;
 
-            if (this.Nondet())
+            if (this.Random())
             {
                 var node = this.CreateMachine(typeof(DataNodeMachine));
                 this.DataNodeMachines.Add(node);

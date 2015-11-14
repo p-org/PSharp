@@ -50,7 +50,7 @@ namespace NodeManager
             {
                 foreach (var node in this.DataNodeMachines)
                 {
-                    if (this.Nondet())
+                    if (this.Random())
                     {
                         this.Send(node, new Events.FailureEvent());
                         failed = true;

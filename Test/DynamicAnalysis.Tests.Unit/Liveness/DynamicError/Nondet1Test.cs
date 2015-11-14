@@ -76,7 +76,7 @@ namespace SystematicTesting
         void HandleEventOnEntry()
         {
             this.Monitor<WatchDog>(new Computing());
-            if (this.Nondet())
+            if (this.Random())
             {
                 this.Send(this.Id, new Done());
             }

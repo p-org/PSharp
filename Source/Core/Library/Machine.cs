@@ -270,9 +270,9 @@ namespace Microsoft.PSharp
         /// controlled during analysis or testing.
         /// </summary>
         /// <returns>Boolean</returns>
-        protected internal bool Nondet()
+        protected internal bool Random()
         {
-            return Machine.Dispatcher.Nondet();
+            return Machine.Dispatcher.Random();
         }
 
         /// <summary>
@@ -280,9 +280,9 @@ namespace Microsoft.PSharp
         /// controlled during analysis or testing.
         /// </summary>
         /// <returns>Boolean</returns>
-        protected internal bool FairNondet()
+        protected internal bool FairRandom()
         {
-            return Machine.Dispatcher.Nondet();
+            return Machine.Dispatcher.Random();
         }
 
         /// <summary>
@@ -296,7 +296,7 @@ namespace Microsoft.PSharp
         {
             var havocId = this.GetType().Name + "_" + this.StateStack.Peek().
                 GetType().Name + "_" + uniqueId;
-            return Machine.Dispatcher.FairNondet(havocId);
+            return Machine.Dispatcher.FairRandom(havocId);
         }
 
         /// <summary>
@@ -351,7 +351,7 @@ namespace Microsoft.PSharp
                 if (this.EventWaiters.ContainsKey(e.GetType()))
                 {
                     Machine.Dispatcher.Log("<ReceiveLog> Machine '{0}({1})' received event '{2}' and unblocked.",
-                        this, base.Id.MVal, e.GetType().Name);
+                        this, base.Id.MVal, e.GetType().FullName);
                     this.ReceivedEventHandler = new Tuple<Event, Action>(
                         e, this.EventWaiters[e.GetType()]);
                     this.EventWaiters.Clear();
@@ -360,7 +360,7 @@ namespace Microsoft.PSharp
                 }
 
                 Machine.Dispatcher.Log("<EnqueueLog> Machine '{0}({1})' enqueued event < {2} >.",
-                    this, base.Id.MVal, e.GetType());
+                    this, base.Id.MVal, e.GetType().FullName);
 
                 this.Inbox.Add(e);
 
@@ -368,14 +368,14 @@ namespace Microsoft.PSharp
                 {
                     var eventCount = this.Inbox.Count(val => val.GetType().Equals(e.GetType()));
                     this.Assert(eventCount <= e.Assert, "There are more than {0} instances of '{1}' " +
-                        "in the input queue of machine '{1}'", e.Assert, e.GetType().Name, this);
+                        "in the input queue of machine '{1}'", e.Assert, e.GetType().FullName, this);
                 }
 
                 if (e.Assume >= 0)
                 {
                     var eventCount = this.Inbox.Count(val => val.GetType().Equals(e.GetType()));
                     this.Assert(eventCount <= e.Assume, "There are more than {0} instances of '{1}' " +
-                        "in the input queue of machine '{2}'", e.Assume, e.GetType().Name, this);
+                        "in the input queue of machine '{2}'", e.Assume, e.GetType().FullName, this);
                 }
 
                 if (!this.IsRunning)
@@ -516,7 +516,7 @@ namespace Microsoft.PSharp
                     {
                         nextEvent = this.Inbox[idx];
                         Machine.Dispatcher.Log("<DequeueLog> Machine '{0}({1})' dequeued event < {2} >.",
-                            this.GetType().Name, base.Id.MVal, nextEvent.GetType());
+                            this.GetType().Name, base.Id.MVal, nextEvent.GetType().FullName);
 
                         this.Inbox.RemoveAt(idx);
                         break;
@@ -554,7 +554,7 @@ namespace Microsoft.PSharp
 
                     // If the event cannot be handled then report an error and exit.
                     this.Assert(false, "Machine '{0}' received event '{1}' that cannot be handled.",
-                        this.GetType().Name, e.GetType().Name);
+                        this.GetType().Name, e.GetType().FullName);
                 }
 
                 // If current state cannot handle the event then pop the state.
@@ -572,12 +572,12 @@ namespace Microsoft.PSharp
                     if (this.StateStack.Count == 0)
                     {
                         Machine.Dispatcher.Log("<PopLog> Machine '{0}({1})' popped with unhandled event '{2}'.",
-                            this, base.Id.MVal, e.GetType().Name);
+                            this, base.Id.MVal, e.GetType().FullName);
                     }
                     else
                     {
                         Machine.Dispatcher.Log("<PopLog> Machine '{0}({1})' popped with unhandled event '{2}' " +
-                            "and reentered state '{3}.", this, base.Id.MVal, e.GetType().Name,
+                            "and reentered state '{3}.", this, base.Id.MVal, e.GetType().FullName,
                             this.StateStack.Peek().GetType().Name);
                         this.ConfigureStateTransitions(this.StateStack.Peek());
                     }

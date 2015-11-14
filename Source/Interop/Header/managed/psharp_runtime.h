@@ -38,7 +38,7 @@ namespace Microsoft
 
 				static bool non_deterministic_choice()
 				{
-					return Microsoft::PSharp::PSharpRuntime::Nondet();
+					return Microsoft::PSharp::PSharpRuntime::Random();
 				}
 			};
 		}

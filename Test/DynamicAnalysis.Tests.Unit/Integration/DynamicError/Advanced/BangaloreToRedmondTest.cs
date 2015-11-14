@@ -206,7 +206,7 @@ namespace SystematicTesting
 
         bool AmILucky()
         {
-            if (this.Nondet())
+            if (this.Random())
             {
                 return true;
             }
@@ -242,7 +242,7 @@ namespace SystematicTesting
 
         void EntrySBookFlight()
         {
-            if (this.Nondet())
+            if (this.Random())
             {
                 this.Send(EmployeeMachine, new TryAgain());
                 this.Raise(new Unit());
@@ -279,7 +279,7 @@ namespace SystematicTesting
 
         void EntrySBookCab()
         {
-            if (this.Nondet())
+            if (this.Random())
             {
                 this.Raise(new Unit());
             }

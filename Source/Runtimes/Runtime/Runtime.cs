@@ -154,9 +154,9 @@ namespace Microsoft.PSharp
         /// during analysis or testing.
         /// </summary>
         /// <returns>Boolean</returns>
-        public static bool Nondeterministic()
+        public static bool Random()
         {
-            return PSharpRuntime.Nondet();
+            return PSharpRuntime.GetNondeterministicChoice();
         }
 
         /// <summary>
@@ -309,7 +309,7 @@ namespace Microsoft.PSharp
         /// controlled during analysis or testing.
         /// </summary>
         /// <returns>Boolean</returns>
-        internal static bool Nondet()
+        internal static bool GetNondeterministicChoice()
         {
             Random random = new Random(DateTime.Now.Millisecond);
 

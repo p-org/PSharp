@@ -61,7 +61,7 @@ namespace MultiPaxos
 
         void TimerStartedOnEntry()
         {
-            if (this.Nondet())
+            if (this.Random())
             {
                 this.Send(this.Target, new Timer.Timeout(this.Id));
                 this.Raise(new local());

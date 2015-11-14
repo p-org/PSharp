@@ -101,7 +101,8 @@ namespace Microsoft.PSharp
         {
             // If the event is null then report an error and exit.
             this.Assert(e != null, "Monitor '{0}' is raising a null event.", this.GetType().Name);
-            Machine.Dispatcher.Log("<MonitorLog> Monitor '{0}' raised event '{1}'.", this, e);
+            Machine.Dispatcher.Log("<MonitorLog> Monitor '{0}' raised event '{1}'.",
+                this, e.GetType().FullName);
             this.HandleEvent(e);
         }
 
@@ -110,9 +111,9 @@ namespace Microsoft.PSharp
         /// controlled during analysis or testing.
         /// </summary>
         /// <returns>Boolean</returns>
-        protected internal bool Nondet()
+        protected internal bool Random()
         {
-            return Machine.Dispatcher.Nondet();
+            return Machine.Dispatcher.Random();
         }
 
         /// <summary>
@@ -120,9 +121,9 @@ namespace Microsoft.PSharp
         /// controlled during analysis or testing.
         /// </summary>
         /// <returns>Boolean</returns>
-        protected internal bool FairNondet()
+        protected internal bool FairRandom()
         {
-            return Machine.Dispatcher.FairNondet();
+            return Machine.Dispatcher.FairRandom();
         }
 
         /// <summary>
@@ -135,7 +136,7 @@ namespace Microsoft.PSharp
         protected internal bool FairNondet(int uniqueId)
         {
             var havocId = this.GetType().Name + "_" + this.State.GetType().Name + "_" + uniqueId;
-            return Machine.Dispatcher.FairNondet(havocId);
+            return Machine.Dispatcher.FairRandom(havocId);
         }
 
         /// <summary>
@@ -180,7 +181,7 @@ namespace Microsoft.PSharp
         internal void MonitorEvent(Event e)
         {
             Machine.Dispatcher.Log("<MonitorLog> Monitor '{0}' is processing event '{1}'.",
-                this, e.GetType());
+                this, e.GetType().FullName);
             this.HandleEvent(e);
         }
 
@@ -251,7 +252,7 @@ namespace Microsoft.PSharp
                 {
                     // If the event cannot be handled then report an error and exit.
                     this.Assert(false, "Monitor '{0}' received event '{1}' that cannot be handled.",
-                        this.GetType().Name, e.GetType().Name);
+                        this.GetType().Name, e.GetType().FullName);
                 }
 
                 // If current state cannot handle the event then null the state.
