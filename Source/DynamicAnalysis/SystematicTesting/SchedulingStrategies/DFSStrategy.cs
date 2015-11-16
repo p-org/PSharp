@@ -153,9 +153,10 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
         /// <summary>
         /// Returns the next choice.
         /// </summary>
+        /// <param name="maxValue">Max value</param>
         /// <param name="next">Next</param>
         /// <returns>Boolean value</returns>
-        public bool GetNextChoice(out bool next)
+        public bool GetNextChoice(int maxValue, out bool next)
         {
             NondetChoice nextChoice = null;
             List<NondetChoice> ncs = null;

@@ -276,6 +276,19 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Returns a nondeterministic boolean choice, that can be
+        /// controlled during analysis or testing. The value is used
+        /// to generate a number in the range [1..maxValue], where 1
+        /// triggers true.
+        /// </summary>
+        /// <param name="maxValue">Max value</param>
+        /// <returns>Boolean</returns>
+        protected internal bool Random(int maxValue)
+        {
+            return Machine.Dispatcher.Random();
+        }
+
+        /// <summary>
         /// Returns a fair nondeterministic boolean choice, that can be
         /// controlled during analysis or testing.
         /// </summary>

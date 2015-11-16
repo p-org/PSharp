@@ -119,12 +119,13 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
         /// <summary>
         /// Returns the next choice.
         /// </summary>
+        /// <param name="maxValue">Max value</param>
         /// <param name="next">Next</param>
         /// <returns>Boolean value</returns>
-        public bool GetNextChoice(out bool next)
+        public bool GetNextChoice(int maxValue, out bool next)
         {
             next = false;
-            if (this.Random.Next(2) == 1)
+            if (this.Random.Next(maxValue) == 1)
             {
                 next = true;
             }

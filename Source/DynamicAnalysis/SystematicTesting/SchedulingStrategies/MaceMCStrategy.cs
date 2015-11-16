@@ -94,17 +94,18 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
         /// <summary>
         /// Returns the next choice.
         /// </summary>
+        /// <param name="maxValue">Max value</param>
         /// <param name="next">Next</param>
         /// <returns>Boolean value</returns>
-        public bool GetNextChoice(out bool next)
+        public bool GetNextChoice(int maxValue, out bool next)
         {
             if (this.BoundedDFS.HasReachedDepthBound())
             {
-                return this.Random.GetNextChoice(out next);
+                return this.Random.GetNextChoice(maxValue, out next);
             }
             else
             {
-                return this.BoundedDFS.GetNextChoice(out next);
+                return this.BoundedDFS.GetNextChoice(maxValue, out next);
             }
         }
 

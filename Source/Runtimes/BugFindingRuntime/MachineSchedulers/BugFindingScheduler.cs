@@ -172,12 +172,13 @@ namespace Microsoft.PSharp.Scheduling
         /// <summary>
         /// Returns the next nondeterministic choice.
         /// </summary>
+        /// <param name="maxValue">Max value</param>
         /// <param name="uniqueId">Unique id</param>
         /// <returns>Boolean value</returns>
-        internal bool GetNextNondeterministicChoice(string uniqueId = null)
+        internal bool GetNextNondeterministicChoice(int maxValue, string uniqueId = null)
         {
             var choice = false;
-            if (!this.Strategy.GetNextChoice(out choice))
+            if (!this.Strategy.GetNextChoice(maxValue, out choice))
             {
                 Output.Debug("<ScheduleDebug> Schedule explored.");
                 this.KillRemainingTasks();

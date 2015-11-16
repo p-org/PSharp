@@ -35,9 +35,10 @@ namespace Microsoft.PSharp.Scheduling
         /// <summary>
         /// Returns the next choice.
         /// </summary>
+        /// <param name="maxValue">Max value</param>
         /// <param name="next">Next</param>
         /// <returns>Boolean value</returns>
-        bool GetNextChoice(out bool next);
+        bool GetNextChoice(int maxValue, out bool next);
 
         /// <summary>
         /// Returns the explored scheduling steps.

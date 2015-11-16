@@ -182,7 +182,19 @@ namespace Microsoft.PSharp
         /// <returns>Boolean</returns>
         public static bool Random()
         {
-            return PSharpRuntime.GetNondeterministicChoice();
+            return PSharpRuntime.GetNondeterministicChoice(2);
+        }
+
+        /// <summary>
+        /// Returns a nondeterministic boolean choice, that can be controlled
+        /// during analysis or testing. The value is used to generate a number
+        /// in the range [1..maxValue], where 1 triggers true.
+        /// </summary>
+        /// <param name="maxValue">Max value</param>
+        /// <returns>Boolean</returns>
+        public static bool Random(int maxValue)
+        {
+            return PSharpRuntime.GetNondeterministicChoice(maxValue);
         }
 
         /// <summary>
@@ -470,10 +482,11 @@ namespace Microsoft.PSharp
         /// Returns a nondeterministic boolean choice, that can be
         /// controlled during analysis or testing.
         /// </summary>
+        /// <param name="maxValue">Max value</param>
         /// <returns>Boolean</returns>
-        internal static bool GetNondeterministicChoice()
+        internal static bool GetNondeterministicChoice(int maxValue)
         {
-            return PSharpRuntime.BugFinder.GetNextNondeterministicChoice();
+            return PSharpRuntime.BugFinder.GetNextNondeterministicChoice(maxValue);
         }
 
         /// <summary>
@@ -484,7 +497,7 @@ namespace Microsoft.PSharp
         /// <returns>Boolean</returns>
         internal static bool GetFairNondeterministicChoice(string uniqueId)
         {
-            return PSharpRuntime.BugFinder.GetNextNondeterministicChoice(uniqueId);
+            return PSharpRuntime.BugFinder.GetNextNondeterministicChoice(2, uniqueId);
         }
 
         /// <summary>
