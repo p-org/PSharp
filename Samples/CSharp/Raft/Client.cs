@@ -42,8 +42,8 @@ namespace Raft
 
         [Start]
         [OnEntry(nameof(InitOnEntry))]
-        [OnEventGotoState(typeof(LocalEvent), typeof(PumpRequest))]
         [OnEventDoAction(typeof(NotifyServer), nameof(UpdateServer))]
+        [OnEventGotoState(typeof(LocalEvent), typeof(PumpRequest))]
         class Init : MachineState { }
 
         void InitOnEntry()

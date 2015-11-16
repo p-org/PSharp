@@ -42,6 +42,7 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="SafetyMonitor.cs" />
     <Compile Include="Client.cs" />
     <Compile Include="Server.cs" />
     <Compile Include="Environment.cs" />

@@ -29,6 +29,8 @@ namespace Raft
 
         void EntryOnInit()
         {
+            this.CreateMonitor(typeof(SafetyMonitor));
+
             this.NumberOfServers = 5;
             this.Servers = new MachineId[this.NumberOfServers];
 

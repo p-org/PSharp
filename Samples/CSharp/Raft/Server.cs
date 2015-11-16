@@ -224,6 +224,8 @@ namespace Raft
 
         void FollowerOnInit()
         {
+            this.Monitor<SafetyMonitor>(new SafetyMonitor.NotifyNewFollower(this.Id));
+
             this.LeaderId = null;
             this.VotedFor = null;
             this.Send(this.Timer, new Timer.ResetTimer());
@@ -356,7 +358,8 @@ namespace Raft
                 this.VotesReceived++;
                 if (this.VotesReceived == (this.Servers.Length / 2) + 1)
                 {
-                    Console.WriteLine("leader: " + this.ServerId + " with " + this.VotesReceived + " votes");
+                    Console.WriteLine("leader: " + this.ServerId + " in term " + this.CurrentTerm +
+                        " with " + this.VotesReceived + " votes");
                     this.VotesReceived = 0;
                     this.Raise(new BecomeLeader());
                 }
@@ -390,6 +393,8 @@ namespace Raft
 
         void LeaderOnInit()
         {
+            this.Monitor<SafetyMonitor>(new SafetyMonitor.NotifyLeaderElected(this.Id));
+
             this.Send(this.Environment, new Environment.NotifyLeaderUpdate(this.Id));
 
             for (int idx = 0; idx < this.Servers.Length; idx++)
