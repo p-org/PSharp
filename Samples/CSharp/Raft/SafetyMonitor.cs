@@ -9,28 +9,20 @@ namespace Raft
         internal class NotifyLeaderElected : Event
         {
             public MachineId Leader;
+            public int Term;
 
-            public NotifyLeaderElected(MachineId leader)
+            public NotifyLeaderElected(MachineId leader, int term)
                 : base()
             {
                 this.Leader = leader;
-            }
-        }
-
-        internal class NotifyNewFollower : Event
-        {
-            public MachineId Follower;
-
-            public NotifyNewFollower(MachineId follower)
-                : base()
-            {
-                this.Follower = follower;
+                this.Term = term;
             }
         }
 
         private class LocalEvent : Event { }
 
-        HashSet<MachineId> Leaders;
+        private int CurrentTerm;
+        private HashSet<MachineId> Leaders;
 
         [Start]
         [OnEntry(nameof(InitOnEntry))]
@@ -39,30 +31,27 @@ namespace Raft
 
         void InitOnEntry()
         {
+            this.CurrentTerm = -1;
             this.Leaders = new HashSet<MachineId>();
             this.Raise(new LocalEvent());
         }
 
         [OnEventDoAction(typeof(NotifyLeaderElected), nameof(ProcessLeaderElected))]
-        [OnEventDoAction(typeof(NotifyNewFollower), nameof(ProcessNewFollower))]
         class Monitoring : MonitorState { }
 
         void ProcessLeaderElected()
         {
             var leader = (this.ReceivedEvent as NotifyLeaderElected).Leader;
-            this.Leaders.Add(leader);
+            var term = (this.ReceivedEvent as NotifyLeaderElected).Term;
 
-            this.Assert(this.Leaders.Count == 1, "Detected " + this.Leaders.Count + " leaders.");
-        }
-
-        void ProcessNewFollower()
-        {
-            var follower = (this.ReceivedEvent as NotifyNewFollower).Follower;
-
-            if (this.Leaders.Contains(follower))
+            if (term > this.CurrentTerm)
             {
-                this.Leaders.Remove(follower);
+                this.CurrentTerm = term;
+                this.Leaders.Clear();
             }
+
+            this.Leaders.Add(leader);
+            this.Assert(this.Leaders.Count == 1, "Detected " + this.Leaders.Count + " leaders.");
         }
     }
 }

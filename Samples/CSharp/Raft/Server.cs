@@ -224,8 +224,6 @@ namespace Raft
 
         void FollowerOnInit()
         {
-            this.Monitor<SafetyMonitor>(new SafetyMonitor.NotifyNewFollower(this.Id));
-
             this.LeaderId = null;
             this.VotedFor = null;
             this.Send(this.Timer, new Timer.ResetTimer());
@@ -253,7 +251,7 @@ namespace Raft
         {
             var request = this.ReceivedEvent as VoteRequest;
 
-            Console.WriteLine("vote terms: " + this.CurrentTerm + " " + request.Term);
+            Console.WriteLine("\nvote terms: " + this.CurrentTerm + " " + request.Term + "\n");
 
             if (request.Term > this.CurrentTerm)
             {
@@ -263,13 +261,13 @@ namespace Raft
             }
             else if (request.Term < this.CurrentTerm)
             {
-                Console.WriteLine("vote: " + this.ServerId + " false");
+                Console.WriteLine("\nvote: " + this.ServerId + " false\n");
                 this.Send(request.CandidateId, new VoteResponse(this.CurrentTerm, false));
             }
             else if ((this.VotedFor == null || this.VotedFor == request.CandidateId) &&
                 request.LastLogIndex >= 0) // temporary
             {
-                Console.WriteLine("vote: " + this.ServerId + " true");
+                Console.WriteLine("\nvote: " + this.ServerId + " true\n");
                 this.VotedFor = request.CandidateId;
                 this.Send(request.CandidateId, new VoteResponse(this.CurrentTerm, true));
             }
@@ -279,7 +277,7 @@ namespace Raft
         {
             var request = this.ReceivedEvent as AppendEntries;
 
-            Console.WriteLine("append terms: " + this.CurrentTerm + " " + request.Term);
+            Console.WriteLine("\nappend terms: " + this.CurrentTerm + " " + request.Term + "\n");
 
             if (request.Term > this.CurrentTerm)
             {
@@ -289,7 +287,7 @@ namespace Raft
             }
             else if (request.Term < this.CurrentTerm)
             {
-                Console.WriteLine("append: " + this.ServerId + " false");
+                Console.WriteLine("\nappend: " + this.ServerId + " false\n");
                 this.Send(this.Timer, new Timer.ResetTimer());
                 this.Send(request.LeaderId, new AppendEntriesResponse(this.CurrentTerm, false));
             }
@@ -358,8 +356,8 @@ namespace Raft
                 this.VotesReceived++;
                 if (this.VotesReceived == (this.Servers.Length / 2) + 1)
                 {
-                    Console.WriteLine("leader: " + this.ServerId + " in term " + this.CurrentTerm +
-                        " with " + this.VotesReceived + " votes");
+                    Console.WriteLine("\nleader: " + this.ServerId + " in term " + this.CurrentTerm +
+                        " with " + this.VotesReceived + " votes\n");
                     this.VotesReceived = 0;
                     this.Raise(new BecomeLeader());
                 }
@@ -393,7 +391,7 @@ namespace Raft
 
         void LeaderOnInit()
         {
-            this.Monitor<SafetyMonitor>(new SafetyMonitor.NotifyLeaderElected(this.Id));
+            this.Monitor<SafetyMonitor>(new SafetyMonitor.NotifyLeaderElected(this.Id, this.CurrentTerm));
 
             this.Send(this.Environment, new Environment.NotifyLeaderUpdate(this.Id));
 
@@ -409,14 +407,14 @@ namespace Raft
         void ProcessClientRequest()
         {
             var request = this.ReceivedEvent as Client.Request;
-            Console.WriteLine("leader: new client request " + request.Command);
+            Console.WriteLine("\nleader: new client request " + request.Command + "\n");
         }
 
         void TryAppendEntriesAsLeader()
         {
             var request = this.ReceivedEvent as AppendEntries;
 
-            Console.WriteLine("append terms: " + this.CurrentTerm + " " + request.Term);
+            Console.WriteLine("\nappend terms: " + this.CurrentTerm + " " + request.Term + "\n");
 
             if (request.Term > this.CurrentTerm)
             {
