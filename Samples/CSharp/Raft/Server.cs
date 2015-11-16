@@ -127,6 +127,11 @@ namespace Raft
         MachineId[] Servers;
 
         /// <summary>
+        /// Leader id.
+        /// </summary>
+        MachineId LeaderId;
+
+        /// <summary>
         /// The timer of this server.
         /// </summary>
         MachineId Timer;
@@ -189,6 +194,7 @@ namespace Raft
             this.CommitIndex = 0;
             this.LastApplied = 0;
 
+            this.LeaderId = null;
             this.VotedFor = null;
         }
 
@@ -206,6 +212,7 @@ namespace Raft
         }
 
         [OnEntry(nameof(FollowerOnInit))]
+        [OnEventDoAction(typeof(Client.Request), nameof(RedirectClientRequest))]
         [OnEventDoAction(typeof(Timer.Timeout), nameof(StartLeaderElection))]
         [OnEventDoAction(typeof(VoteRequest), nameof(Vote))]
         [OnEventDoAction(typeof(AppendEntries), nameof(TryAppendEntries))]
@@ -217,8 +224,22 @@ namespace Raft
 
         void FollowerOnInit()
         {
+            this.LeaderId = null;
             this.VotedFor = null;
             this.Send(this.Timer, new Timer.ResetTimer());
+        }
+
+        void RedirectClientRequest()
+        {
+            if (this.LeaderId != null)
+            {
+                this.Send(this.LeaderId, this.ReceivedEvent);
+            }
+            else
+            {
+                var request = this.ReceivedEvent as Client.Request;
+                this.Send(request.Client, new Client.ResponseError());
+            }
         }
 
         void StartLeaderElection()
@@ -272,6 +293,7 @@ namespace Raft
             }
             else
             {
+                this.LeaderId = request.LeaderId;
                 this.Send(this.Timer, new Timer.ResetTimer());
 
                 if (request.PrevLogIndex > 0)
@@ -360,6 +382,7 @@ namespace Raft
         [OnEntry(nameof(LeaderOnInit))]
         [OnEventDoAction(typeof(Client.Request), nameof(ProcessClientRequest))]
         [OnEventDoAction(typeof(VoteRequest), nameof(Vote))]
+        [OnEventDoAction(typeof(AppendEntries), nameof(TryAppendEntriesAsLeader))]
         [OnEventDoAction(typeof(VoteResponse), nameof(RespondVoteAsLeader))]
         [OnEventDoAction(typeof(AppendEntriesResponse), nameof(RespondAppendEntriesAsLeader))]
         [OnEventGotoState(typeof(BecomeFollower), typeof(Follower))]
@@ -382,6 +405,20 @@ namespace Raft
         {
             var request = this.ReceivedEvent as Client.Request;
             Console.WriteLine("leader: new client request " + request.Command);
+        }
+
+        void TryAppendEntriesAsLeader()
+        {
+            var request = this.ReceivedEvent as AppendEntries;
+
+            Console.WriteLine("append terms: " + this.CurrentTerm + " " + request.Term);
+
+            if (request.Term > this.CurrentTerm)
+            {
+                this.CurrentTerm = request.Term;
+                this.Send(this.Id, this.ReceivedEvent);
+                this.Raise(new BecomeFollower());
+            }
         }
 
         void RespondVoteAsLeader()
