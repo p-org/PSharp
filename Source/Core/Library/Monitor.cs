@@ -16,7 +16,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
@@ -104,39 +103,6 @@ namespace Microsoft.PSharp
             Machine.Dispatcher.Log("<MonitorLog> Monitor '{0}' raised event '{1}'.",
                 this, e.GetType().FullName);
             this.HandleEvent(e);
-        }
-
-        /// <summary>
-        /// Returns a nondeterministic boolean choice, that can be
-        /// controlled during analysis or testing.
-        /// </summary>
-        /// <returns>Boolean</returns>
-        protected internal bool Random()
-        {
-            return Machine.Dispatcher.Random();
-        }
-
-        /// <summary>
-        /// Returns a fair nondeterministic boolean choice, that can be
-        /// controlled during analysis or testing.
-        /// </summary>
-        /// <returns>Boolean</returns>
-        protected internal bool FairRandom()
-        {
-            return Machine.Dispatcher.FairRandom();
-        }
-
-        /// <summary>
-        /// Returns a fair nondeterministic boolean choice, that can be
-        /// controlled during analysis or testing.
-        /// </summary>
-        /// <param name="uniqueId">Unique id</param>
-        /// <returns>Boolean</returns>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        protected internal bool FairNondet(int uniqueId)
-        {
-            var havocId = this.GetType().Name + "_" + this.State.GetType().Name + "_" + uniqueId;
-            return Machine.Dispatcher.FairRandom(havocId);
         }
 
         /// <summary>

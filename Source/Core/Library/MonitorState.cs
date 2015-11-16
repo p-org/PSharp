@@ -16,7 +16,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Reflection;
 
 namespace Microsoft.PSharp
@@ -209,38 +208,6 @@ namespace Microsoft.PSharp
         protected void Raise(Event e)
         {
             this.Monitor.Raise(e);
-        }
-
-        /// <summary>
-        /// Returns a nondeterministic boolean choice, that can be
-        /// controlled during analysis or testing.
-        /// </summary>
-        /// <returns>Boolean</returns>
-        protected internal bool Random()
-        {
-            return this.Monitor.Random();
-        }
-
-        /// <summary>
-        /// Returns a fair nondeterministic boolean choice, that can be
-        /// controlled during analysis or testing.
-        /// </summary>
-        /// <returns>Boolean</returns>
-        protected internal bool FairRandom()
-        {
-            return this.Monitor.FairRandom();
-        }
-
-        /// <summary>
-        /// Returns a fair nondeterministic boolean choice, that can be
-        /// controlled during analysis or testing.
-        /// </summary>
-        /// <param name="uniqueId">Unique id</param>
-        /// <returns>Boolean</returns>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        protected internal bool FairNondet(int uniqueId)
-        {
-            return this.Monitor.FairNondet(uniqueId);
         }
 
         /// <summary>
