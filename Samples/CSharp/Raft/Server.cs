@@ -77,8 +77,10 @@ namespace Raft
             public List<Log> Entries; // log entries to store (empty for heartbeat; may send more than one for efficiency) 
             public int LeaderCommit; // leader’s CommitIndex
 
+            public MachineId ReceiverEndpoint; // client
+
             public AppendEntries(int term, MachineId leaderId, int prevLogIndex,
-                int prevLogTerm, List<Log> entries, int leaderCommit)
+                int prevLogTerm, List<Log> entries, int leaderCommit, MachineId client)
                 : base()
             {
                 this.Term = term;
@@ -87,6 +89,7 @@ namespace Raft
                 this.PrevLogTerm = prevLogTerm;
                 this.Entries = entries;
                 this.LeaderCommit = leaderCommit;
+                this.ReceiverEndpoint = client;
             }
         }
         
@@ -98,11 +101,16 @@ namespace Raft
             public int Term; // current Term, for leader to update itself 
             public bool Success; // true if follower contained entry matching PrevLogIndex and PrevLogTerm 
 
-            public AppendEntriesResponse(int term, bool success)
+            public MachineId Server;
+            public MachineId ReceiverEndpoint; // client
+            
+            public AppendEntriesResponse(int term, bool success, MachineId server, MachineId client)
                 : base()
             {
                 this.Term = term;
                 this.Success = success;
+                this.Server = server;
+                this.ReceiverEndpoint = client;
             }
         }
 
@@ -232,6 +240,9 @@ namespace Raft
         {
             this.LeaderId = null;
             this.VotedFor = null;
+
+            this.VotesReceived = 0;
+
             this.Send(this.Timer, new Timer.ResetTimer());
         }
 
@@ -257,8 +268,6 @@ namespace Raft
         {
             var request = this.ReceivedEvent as VoteRequest;
 
-            Console.WriteLine("\nvote terms: " + this.CurrentTerm + " " + request.Term + "\n");
-
             if (request.Term > this.CurrentTerm)
             {
                 this.CurrentTerm = request.Term;
@@ -267,13 +276,15 @@ namespace Raft
             }
             else if (request.Term < this.CurrentTerm)
             {
-                Console.WriteLine("\nvote: " + this.ServerId + " false\n");
+                Console.WriteLine("\nvote: " + this.ServerId + " false" +
+                    " | log size: " + this.Logs.Count + "\n");
                 this.Send(request.CandidateId, new VoteResponse(this.CurrentTerm, false));
             }
             else if ((this.VotedFor == null || this.VotedFor == request.CandidateId) &&
                 request.LastLogIndex >= 0) // temporary
             {
-                Console.WriteLine("\nvote: " + this.ServerId + " true\n");
+                Console.WriteLine("\nvote: " + this.ServerId + " true" +
+                    " | log size: " + this.Logs.Count + "\n");
                 this.VotedFor = request.CandidateId;
                 this.Send(request.CandidateId, new VoteResponse(this.CurrentTerm, true));
             }
@@ -283,8 +294,6 @@ namespace Raft
         {
             var request = this.ReceivedEvent as AppendEntries;
 
-            Console.WriteLine("\nappend terms: " + this.CurrentTerm + " " + request.Term + "\n");
-
             if (request.Term > this.CurrentTerm)
             {
                 this.CurrentTerm = request.Term;
@@ -293,22 +302,25 @@ namespace Raft
             }
             else if (request.Term < this.CurrentTerm)
             {
-                Console.WriteLine("\nappend false: " + this.ServerId + " | last applied: " + this.LastApplied + "\n");
+                Console.WriteLine("\nappend false: " + this.ServerId + " | log size: " + this.Logs.Count +
+                    " | last applied: " + this.LastApplied + "\n");
                 this.Send(this.Timer, new Timer.ResetTimer());
-                this.Send(request.LeaderId, new AppendEntriesResponse(this.CurrentTerm, false));
+                this.Send(request.LeaderId, new AppendEntriesResponse(this.CurrentTerm, false,
+                    this.Id, request.ReceiverEndpoint));
             }
             else
             {
                 this.Send(this.Timer, new Timer.ResetTimer());
                 
-                Console.WriteLine("\nappend true: " + this.ServerId + " | entries received: " + request.Entries.Count +
-                    " | last applied: " + this.LastApplied + "\n");
+                Console.WriteLine("\nappend true: " + this.ServerId + " | log size: " + this.Logs.Count +
+                    " | entries received: " + request.Entries.Count + " | last applied: " + this.LastApplied + "\n");
                 
                 if (request.PrevLogIndex > 0 &&
                     (this.Logs.Count < request.PrevLogIndex ||
                     this.Logs[request.PrevLogIndex - 1].Term != request.PrevLogTerm))
                 {
-                    this.Send(request.LeaderId, new AppendEntriesResponse(this.CurrentTerm, false));
+                    this.Send(request.LeaderId, new AppendEntriesResponse(this.CurrentTerm,
+                        false, this.Id, request.ReceiverEndpoint));
                 }
                 else
                 {
@@ -347,7 +359,8 @@ namespace Raft
                     }
 
                     this.LeaderId = request.LeaderId;
-                    this.Send(request.LeaderId, new AppendEntriesResponse(this.CurrentTerm, true));
+                    this.Send(request.LeaderId, new AppendEntriesResponse(this.CurrentTerm,
+                        true, this.Id, request.ReceiverEndpoint));
                 }
             }
         }
@@ -403,9 +416,8 @@ namespace Raft
                 this.VotesReceived++;
                 if (this.VotesReceived == (this.Servers.Length / 2) + 1)
                 {
-                    Console.WriteLine("\nleader: " + this.ServerId + " in term " + this.CurrentTerm +
-                        " with " + this.VotesReceived + " votes\n");
-                    this.VotesReceived = 0;
+                    Console.WriteLine("\nleader: " + this.ServerId + " in term " + this.CurrentTerm + " with " +
+                        this.VotesReceived + " votes" + " | log size: " + this.Logs.Count + "\n");
                     this.Raise(new BecomeLeader());
                 }
             }
@@ -438,15 +450,17 @@ namespace Raft
 
         void LeaderOnInit()
         {
+            this.VotesReceived = 0;
+
             this.Monitor<SafetyMonitor>(new SafetyMonitor.NotifyLeaderElected(this.Id, this.CurrentTerm));
 
             this.Send(this.Environment, new Environment.NotifyLeaderUpdate(this.Id));
 
             var prevLogIndex = this.Logs.Count;
             var prevLogTerm = 0;
-            if (this.Logs.Count > 0)
+            if (prevLogIndex > 0)
             {
-                prevLogTerm = this.Logs[this.Logs.Count - 1].Term;
+                prevLogTerm = this.Logs[prevLogIndex - 1].Term;
             }
 
             this.NextIndex.Clear();
@@ -455,7 +469,7 @@ namespace Raft
             {
                 if (idx == this.ServerId)
                     continue;
-                this.NextIndex.Add(this.Servers[idx], this.Logs.Count + 1);
+                this.NextIndex.Add(this.Servers[idx], prevLogIndex + 1);
                 this.MatchIndex.Add(this.Servers[idx], 0);
             }
 
@@ -464,7 +478,7 @@ namespace Raft
                 if (idx == this.ServerId)
                     continue;
                 this.Send(this.Servers[idx], new AppendEntries(this.CurrentTerm, this.Id,
-                    prevLogIndex, prevLogTerm, new List<Log>(), this.CommitIndex));
+                    prevLogIndex, prevLogTerm, new List<Log>(), this.CommitIndex, null));
             }
         }
 
@@ -475,16 +489,17 @@ namespace Raft
 
             var prevLogIndex = this.Logs.Count;
             var prevLogTerm = 0;
-            if (this.Logs.Count > 0)
+            if (prevLogIndex > 0)
             {
-                prevLogTerm = this.Logs[this.Logs.Count - 1].Term;
+                prevLogTerm = this.Logs[prevLogIndex - 1].Term;
             }
 
             this.Logs.Add(log);
 
-            Console.WriteLine("\nleader: new client request " + request.Command +
+            Console.WriteLine("\nleader: " + this.ServerId + " new client request " + request.Command +
                 " | log count:" + this.Logs.Count + "\n");
 
+            this.VotesReceived = 1;
             for (int idx = 0; idx < this.Servers.Length; idx++)
             {
                 if (idx == this.ServerId)
@@ -497,8 +512,8 @@ namespace Raft
 
                 var trueIndex = nextIndex - 1;
                 var logs = this.Logs.GetRange(trueIndex, this.Logs.Count - trueIndex);
-                this.Send(server, new AppendEntries(this.CurrentTerm, this.Id,
-                    prevLogIndex, prevLogTerm, logs, this.CommitIndex));
+                this.Send(server, new AppendEntries(this.CurrentTerm, this.Id, prevLogIndex,
+                    prevLogTerm, logs, this.CommitIndex, request.Client));
             }
         }
 
@@ -533,6 +548,50 @@ namespace Raft
             {
                 this.CurrentTerm = request.Term;
                 this.Raise(new BecomeFollower());
+            }
+
+            if (request.Success)
+            {
+                this.NextIndex[request.Server] = this.Logs.Count + 1;
+                this.MatchIndex[request.Server] = this.Logs.Count;
+
+                this.VotesReceived++;
+                if (request.ReceiverEndpoint != null &&
+                    this.VotesReceived == (this.Servers.Length / 2) + 1)
+                {
+                    Console.WriteLine("\nleader-commit: " + this.ServerId + " in term " + this.CurrentTerm +
+                        " with " + this.VotesReceived + " votes\n");
+
+                    var commitIndex = this.MatchIndex[request.Server];
+                    if (commitIndex > this.CommitIndex &&
+                        this.Logs[commitIndex - 1].Term == this.CurrentTerm)
+                    {
+                        this.CommitIndex = commitIndex;
+                    }
+
+                    this.Send(request.ReceiverEndpoint, new Client.Response());
+                }
+            }
+            else
+            {
+                this.NextIndex[request.Server] = this.NextIndex[request.Server] - 1;
+                
+                var prevLogIndex = 0;
+                if (this.Logs.Count > 0)
+                {
+                    prevLogIndex = this.Logs.Count - 1;
+                }
+
+                var prevLogTerm = 0;
+                if (prevLogIndex > 0)
+                {
+                    prevLogTerm = this.Logs[prevLogIndex - 1].Term;
+                }
+
+                var nextIndex = this.NextIndex[request.Server] - 1;
+                var logs = this.Logs.GetRange(nextIndex, this.Logs.Count - nextIndex);
+                this.Send(request.Server, new AppendEntries(this.CurrentTerm, this.Id, prevLogIndex,
+                    prevLogTerm, logs, this.CommitIndex, request.ReceiverEndpoint));
             }
         }
     }

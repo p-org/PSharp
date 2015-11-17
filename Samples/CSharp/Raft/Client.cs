@@ -55,7 +55,11 @@ namespace Raft
         void UpdateServer()
         {
             this.Server = (this.ReceivedEvent as NotifyServer).Server;
-            this.Raise(new LocalEvent());
+
+            if (this.Counter == 0)
+            {
+                this.Raise(new LocalEvent());
+            }
         }
 
         [OnEntry(nameof(PumpRequestOnEntry))]
