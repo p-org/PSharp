@@ -74,11 +74,11 @@ namespace Raft
             public MachineId LeaderId; // so follower can redirect clients
             public int PrevLogIndex; // index of log entry immediately preceding new ones 
             public int PrevLogTerm; // term of PrevLogIndex entry
-            public Log[] Entries; // log entries to store (empty for heartbeat; may send more than one for efficiency) 
+            public List<Log> Entries; // log entries to store (empty for heartbeat; may send more than one for efficiency) 
             public int LeaderCommit; // leader’s CommitIndex
 
             public AppendEntries(int term, MachineId leaderId, int prevLogIndex,
-                int prevLogTerm, Log[] entries, int leaderCommit)
+                int prevLogTerm, List<Log> entries, int leaderCommit)
                 : base()
             {
                 this.Term = term;
@@ -150,7 +150,7 @@ namespace Raft
         /// <summary>
         /// Log entries.
         /// </summary>
-        Log[] Logs;
+        List<Log> Logs;
 
         /// <summary>
         /// Index of highest log entry known to be committed (initialized
@@ -168,13 +168,13 @@ namespace Raft
         /// For each server, index of the next log entry to send to that
         /// server (initialized to leader last log index + 1). 
         /// </summary>
-        int[] NextIndex;
+        Dictionary<MachineId, int> NextIndex;
 
         /// <summary>
         /// For each server, index of highest log entry known to be replicated
         /// on server (initialized to 0, increases monotonically).
         /// </summary>
-        int[] MatchIndex;
+        Dictionary<MachineId, int> MatchIndex;
 
         /// <summary>
         /// Number of received votes.
@@ -191,11 +191,17 @@ namespace Raft
         void EntryOnInit()
         {
             this.CurrentTerm = 0;
-            this.CommitIndex = 0;
-            this.LastApplied = 0;
 
             this.LeaderId = null;
             this.VotedFor = null;
+
+            this.Logs = new List<Log>();
+
+            this.CommitIndex = 0;
+            this.LastApplied = 0;
+
+            this.NextIndex = new Dictionary<MachineId, int>();
+            this.MatchIndex = new Dictionary<MachineId, int>();
         }
 
         void Configure()
@@ -287,21 +293,62 @@ namespace Raft
             }
             else if (request.Term < this.CurrentTerm)
             {
-                Console.WriteLine("\nappend: " + this.ServerId + " false\n");
+                Console.WriteLine("\nappend false: " + this.ServerId + " | last applied: " + this.LastApplied + "\n");
                 this.Send(this.Timer, new Timer.ResetTimer());
                 this.Send(request.LeaderId, new AppendEntriesResponse(this.CurrentTerm, false));
             }
             else
             {
-                this.LeaderId = request.LeaderId;
                 this.Send(this.Timer, new Timer.ResetTimer());
-
-                if (request.PrevLogIndex > 0)
+                
+                Console.WriteLine("\nappend true: " + this.ServerId + " | entries received: " + request.Entries.Count +
+                    " | last applied: " + this.LastApplied + "\n");
+                
+                if (request.PrevLogIndex > 0 &&
+                    (this.Logs.Count < request.PrevLogIndex ||
+                    this.Logs[request.PrevLogIndex - 1].Term != request.PrevLogTerm))
                 {
-                    // TODO
+                    this.Send(request.LeaderId, new AppendEntriesResponse(this.CurrentTerm, false));
                 }
+                else
+                {
+                    if (request.Entries.Count > 0)
+                    {
+                        var currentIndex = request.PrevLogIndex + 1;
+                        foreach (var entry in request.Entries)
+                        {
+                            if (this.Logs.Count < currentIndex)
+                            {
+                                this.Logs.Add(entry);
+                            }
+                            else if (this.Logs[currentIndex - 1].Term != entry.Term)
+                            {
+                                this.Logs.RemoveRange(currentIndex - 1, this.Logs.Count - currentIndex - 1);
+                                this.Logs.Add(entry);
+                            }
 
-                this.Send(request.LeaderId, new AppendEntriesResponse(this.CurrentTerm, true));
+                            currentIndex++;
+                        }
+                    }
+
+                    if (request.LeaderCommit > this.CommitIndex &&
+                        this.Logs.Count < request.LeaderCommit)
+                    {
+                        this.CommitIndex = this.Logs.Count;
+                    }
+                    else if (request.LeaderCommit > this.CommitIndex)
+                    {
+                        this.CommitIndex = request.LeaderCommit;
+                    }
+
+                    if (this.CommitIndex > this.LastApplied)
+                    {
+                        this.LastApplied++;
+                    }
+
+                    this.LeaderId = request.LeaderId;
+                    this.Send(request.LeaderId, new AppendEntriesResponse(this.CurrentTerm, true));
+                }
             }
         }
 
@@ -395,19 +442,64 @@ namespace Raft
 
             this.Send(this.Environment, new Environment.NotifyLeaderUpdate(this.Id));
 
+            var prevLogIndex = this.Logs.Count;
+            var prevLogTerm = 0;
+            if (this.Logs.Count > 0)
+            {
+                prevLogTerm = this.Logs[this.Logs.Count - 1].Term;
+            }
+
+            this.NextIndex.Clear();
+            this.MatchIndex.Clear();
+            for (int idx = 0; idx < this.Servers.Length; idx++)
+            {
+                if (idx == this.ServerId)
+                    continue;
+                this.NextIndex.Add(this.Servers[idx], this.Logs.Count + 1);
+                this.MatchIndex.Add(this.Servers[idx], 0);
+            }
+
             for (int idx = 0; idx < this.Servers.Length; idx++)
             {
                 if (idx == this.ServerId)
                     continue;
                 this.Send(this.Servers[idx], new AppendEntries(this.CurrentTerm, this.Id,
-                    0, 0, new Log[0], this.CommitIndex)); // temporary
+                    prevLogIndex, prevLogTerm, new List<Log>(), this.CommitIndex));
             }
         }
 
         void ProcessClientRequest()
         {
             var request = this.ReceivedEvent as Client.Request;
-            Console.WriteLine("\nleader: new client request " + request.Command + "\n");
+            var log = new Log(this.CurrentTerm, request.Command);
+
+            var prevLogIndex = this.Logs.Count;
+            var prevLogTerm = 0;
+            if (this.Logs.Count > 0)
+            {
+                prevLogTerm = this.Logs[this.Logs.Count - 1].Term;
+            }
+
+            this.Logs.Add(log);
+
+            Console.WriteLine("\nleader: new client request " + request.Command +
+                " | log count:" + this.Logs.Count + "\n");
+
+            for (int idx = 0; idx < this.Servers.Length; idx++)
+            {
+                if (idx == this.ServerId)
+                    continue;
+
+                var server = this.Servers[idx];
+                var nextIndex = this.NextIndex[server];
+                if (prevLogIndex + 1 < nextIndex)
+                    continue;
+
+                var trueIndex = nextIndex - 1;
+                var logs = this.Logs.GetRange(trueIndex, this.Logs.Count - trueIndex);
+                this.Send(server, new AppendEntries(this.CurrentTerm, this.Id,
+                    prevLogIndex, prevLogTerm, logs, this.CommitIndex));
+            }
         }
 
         void TryAppendEntriesAsLeader()
