@@ -350,11 +350,7 @@ namespace Raft
                     continue;
 
                 var lastLogIndex = this.Logs.Count;
-                var lastLogTerm = 0;
-                if (lastLogIndex > 0)
-                {
-                    lastLogTerm = this.Logs[lastLogTerm - 1].Term;
-                }
+                var lastLogTerm = this.GetLogTermForIndex(lastLogIndex);
 
                 this.Send(this.Servers[idx], new VoteRequest(this.CurrentTerm, this.Id,
                     lastLogIndex, lastLogTerm));
@@ -446,7 +442,7 @@ namespace Raft
 
         void LeaderOnInit()
         {
-            this.Monitor<SafetyMonitor>(new SafetyMonitor.NotifyLeaderElected(this.Id, this.CurrentTerm));
+            this.Monitor<SafetyMonitor>(new SafetyMonitor.NotifyLeaderElected(this.CurrentTerm));
             this.Send(this.ClusterManager, new ClusterManager.NotifyLeaderUpdate(this.Id, this.CurrentTerm));
 
             var logIndex = this.Logs.Count;
@@ -500,7 +496,12 @@ namespace Raft
                 if (prevLogIndex + 1 < nextIndex)
                     continue;
 
-                var trueIndex = nextIndex - 1;
+                var trueIndex = 0;
+                if (nextIndex > 0)
+                {
+                    trueIndex = nextIndex - 1;
+                }
+
                 var logs = this.Logs.GetRange(trueIndex, this.Logs.Count - trueIndex);
 
                 this.Send(server, new AppendEntriesRequest(this.CurrentTerm, this.Id, prevLogIndex,
@@ -607,7 +608,12 @@ namespace Raft
                 var prevLogIndex = this.GetPreviousLogIndex();
                 var prevLogTerm = this.GetLogTermForIndex(prevLogIndex);
 
-                var nextIndex = this.NextIndex[request.Server] - 1;
+                var nextIndex = 0;
+                if (this.NextIndex[request.Server] > 0)
+                {
+                    nextIndex = this.NextIndex[request.Server] - 1;
+                }
+
                 var logs = this.Logs.GetRange(nextIndex, this.Logs.Count - nextIndex);
                 this.Send(request.Server, new AppendEntriesRequest(this.CurrentTerm, this.Id, prevLogIndex,
                     prevLogTerm, logs, this.CommitIndex, request.ReceiverEndpoint));

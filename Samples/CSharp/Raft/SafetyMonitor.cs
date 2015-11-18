@@ -8,13 +8,11 @@ namespace Raft
     {
         internal class NotifyLeaderElected : Event
         {
-            public MachineId Leader;
             public int Term;
 
-            public NotifyLeaderElected(MachineId leader, int term)
+            public NotifyLeaderElected(int term)
                 : base()
             {
-                this.Leader = leader;
                 this.Term = term;
             }
         }
@@ -22,7 +20,7 @@ namespace Raft
         private class LocalEvent : Event { }
 
         private int CurrentTerm;
-        private HashSet<MachineId> Leaders;
+        private HashSet<int> TermsWithLeader;
 
         [Start]
         [OnEntry(nameof(InitOnEntry))]
@@ -32,7 +30,7 @@ namespace Raft
         void InitOnEntry()
         {
             this.CurrentTerm = -1;
-            this.Leaders = new HashSet<MachineId>();
+            this.TermsWithLeader = new HashSet<int>();
             this.Raise(new LocalEvent());
         }
 
@@ -41,17 +39,10 @@ namespace Raft
 
         void ProcessLeaderElected()
         {
-            var leader = (this.ReceivedEvent as NotifyLeaderElected).Leader;
             var term = (this.ReceivedEvent as NotifyLeaderElected).Term;
 
-            if (term > this.CurrentTerm)
-            {
-                this.CurrentTerm = term;
-                this.Leaders.Clear();
-            }
-
-            this.Leaders.Add(leader);
-            this.Assert(this.Leaders.Count == 1, "Detected " + this.Leaders.Count + " leaders.");
+            this.Assert(!this.TermsWithLeader.Contains(term), "Detected more than one leader in term " + term);
+            this.TermsWithLeader.Add(term);
         }
     }
 }
