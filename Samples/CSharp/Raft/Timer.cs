@@ -39,8 +39,8 @@ namespace Raft
         int Counter;
 
         [Start]
-        [OnEventGotoState(typeof(LocalEvent), typeof(Inactive))]
         [OnEventDoAction(typeof(ConfigureEvent), nameof(Configure))]
+        [OnEventGotoState(typeof(LocalEvent), typeof(Inactive))]
         class Init : MachineState { }
 
         void Configure()
@@ -55,9 +55,9 @@ namespace Raft
         class Inactive : MachineState { }
 
         [OnEntry(nameof(TimerStartedOnEntry))]
-        [OnEventGotoState(typeof(CancelTimer), typeof(Inactive))]
         [OnEventDoAction(typeof(TickEvent), nameof(Tick))]
         [OnEventDoAction(typeof(ResetTimer), nameof(Reset))]
+        [OnEventGotoState(typeof(CancelTimer), typeof(Inactive))]
         [IgnoreEvents(typeof(StartTimer))]
         class Active : MachineState { }
 

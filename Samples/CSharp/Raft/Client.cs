@@ -6,17 +6,25 @@ namespace Raft
 {
     internal class Client : Machine
     {
-        internal class NotifyServer : Event
+        #region events
+        
+        /// <summary>
+        /// Used to configure the client.
+        /// </summary>
+        public class ConfigureEvent : Event
         {
-            public MachineId Server;
+            public MachineId Cluster;
 
-            public NotifyServer(MachineId server)
+            public ConfigureEvent(MachineId cluster)
                 : base()
             {
-                this.Server = server;
+                this.Cluster = cluster;
             }
         }
 
+        /// <summary>
+        /// Used for a client request.
+        /// </summary>
         internal class Request : Event
         {
             public MachineId Client;
@@ -31,18 +39,25 @@ namespace Raft
         }
 
         internal class Response : Event { }
-        internal class ResponseError : Event { }
 
         private class LocalEvent : Event { }
 
-        MachineId Server;
+        #endregion
+
+        #region fields
+
+        MachineId Cluster;
         
         int LatestCommand;
         int Counter;
 
+        #endregion
+
+        #region states
+
         [Start]
         [OnEntry(nameof(InitOnEntry))]
-        [OnEventDoAction(typeof(NotifyServer), nameof(UpdateServer))]
+        [OnEventDoAction(typeof(ConfigureEvent), nameof(Configure))]
         [OnEventGotoState(typeof(LocalEvent), typeof(PumpRequest))]
         class Init : MachineState { }
 
@@ -52,20 +67,14 @@ namespace Raft
             this.Counter = 0;
         }
 
-        void UpdateServer()
+        void Configure()
         {
-            this.Server = (this.ReceivedEvent as NotifyServer).Server;
-
-            if (this.Counter == 0)
-            {
-                this.Raise(new LocalEvent());
-            }
+            this.Cluster = (this.ReceivedEvent as ConfigureEvent).Cluster;
+            this.Raise(new LocalEvent());
         }
 
         [OnEntry(nameof(PumpRequestOnEntry))]
-        [OnEventDoAction(typeof(NotifyServer), nameof(UpdateServer))]
         [OnEventDoAction(typeof(Response), nameof(ProcessResponse))]
-        [OnEventDoAction(typeof(ResponseError), nameof(RetryRequest))]
         [OnEventGotoState(typeof(LocalEvent), typeof(PumpRequest))]
         class PumpRequest : MachineState { }
 
@@ -74,7 +83,9 @@ namespace Raft
             this.LatestCommand = new Random().Next(100);
             this.Counter++;
 
-            this.Send(this.Server, new Request(this.Id, this.LatestCommand));
+            Console.WriteLine("\nclient sends new request " + this.LatestCommand + "\n");
+
+            this.Send(this.Cluster, new Request(this.Id, this.LatestCommand));
         }
 
         void ProcessResponse()
@@ -89,9 +100,6 @@ namespace Raft
             }
         }
 
-        void RetryRequest()
-        {
-            this.Send(this.Server, new Request(this.Id, this.LatestCommand));
-        }
+        #endregion
     }
 }

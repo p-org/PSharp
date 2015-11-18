@@ -10,7 +10,7 @@ namespace Raft
     /// </summary>
     internal class Server : Machine
     {
-        #region server-specific events
+        #region events
 
         /// <summary>
         /// Used to configure the server.
@@ -19,14 +19,14 @@ namespace Raft
         {
             public int Id;
             public MachineId[] Servers;
-            public MachineId Environment;
+            public MachineId ClusterManager;
 
-            public ConfigureEvent(int id, MachineId[] servers, MachineId env)
+            public ConfigureEvent(int id, MachineId[] servers, MachineId manager)
                 : base()
             {
                 this.Id = id;
                 this.Servers = servers;
-                this.Environment = env;
+                this.ClusterManager = manager;
             }
         }
 
@@ -131,9 +131,9 @@ namespace Raft
         int ServerId;
 
         /// <summary>
-        /// The environment machine.
+        /// The cluster manager machine.
         /// </summary>
-        MachineId Environment;
+        MachineId ClusterManager;
 
         /// <summary>
         /// The servers.
@@ -195,6 +195,11 @@ namespace Raft
         /// </summary>
         int VotesReceived;
 
+        /// <summary>
+        /// The latest client request.
+        /// </summary>
+        Client.Request LastClientRequest;
+
         #endregion
 
         #region initialization
@@ -226,7 +231,7 @@ namespace Raft
         {
             this.ServerId = (this.ReceivedEvent as ConfigureEvent).Id;
             this.Servers = (this.ReceivedEvent as ConfigureEvent).Servers;
-            this.Environment = (this.ReceivedEvent as ConfigureEvent).Environment;
+            this.ClusterManager = (this.ReceivedEvent as ConfigureEvent).ClusterManager;
 
             this.Timer = this.CreateMachine(typeof(Timer));
             this.Send(this.Timer, new Timer.ConfigureEvent(this.Id));
@@ -266,8 +271,7 @@ namespace Raft
             }
             else
             {
-                var request = this.ReceivedEvent as Client.Request;
-                this.Send(request.Client, new Client.ResponseError());
+                this.Send(this.ClusterManager, new ClusterManager.RedirectRequest(this.ReceivedEvent));
             }
         }
 
@@ -390,10 +394,11 @@ namespace Raft
             if (request.VoteGranted)
             {
                 this.VotesReceived++;
-                if (this.VotesReceived == (this.Servers.Length / 2) + 1)
+                if (this.VotesReceived >= (this.Servers.Length / 2) + 1)
                 {
-                    Console.WriteLine("\nleader: " + this.ServerId + " | term " + this.CurrentTerm + " | " +
-                        this.VotesReceived + " votes" + " | log size: " + this.Logs.Count + "\n");
+                    Console.WriteLine("\n [Leader] " + this.ServerId + " | term " + this.CurrentTerm +
+                        " | election votes " + this.VotesReceived + " | log " + this.Logs.Count + "\n");
+                    this.VotesReceived = 0;
                     this.Raise(new BecomeLeader());
                 }
             }
@@ -441,11 +446,8 @@ namespace Raft
 
         void LeaderOnInit()
         {
-            this.VotesReceived = 0;
-
             this.Monitor<SafetyMonitor>(new SafetyMonitor.NotifyLeaderElected(this.Id, this.CurrentTerm));
-
-            this.Send(this.Environment, new Environment.NotifyLeaderUpdate(this.Id));
+            this.Send(this.ClusterManager, new ClusterManager.NotifyLeaderUpdate(this.Id, this.CurrentTerm));
 
             var logIndex = this.Logs.Count;
             var logTerm = this.GetLogTermForIndex(logIndex);
@@ -471,16 +473,21 @@ namespace Raft
 
         void ProcessClientRequest()
         {
-            var request = this.ReceivedEvent as Client.Request;
-            var log = new Log(this.CurrentTerm, request.Command);
-            
+            this.LastClientRequest = this.ReceivedEvent as Client.Request;
+
+            var log = new Log(this.CurrentTerm, this.LastClientRequest.Command);
             this.Logs.Add(log);
-            
+
+            this.BroadcastLastClientRequest();
+        }
+
+        void BroadcastLastClientRequest()
+        {
+            Console.WriteLine("\n [Leader] " + this.ServerId + " sends append requests | term " +
+                this.CurrentTerm + " | log " + this.Logs.Count + "\n");
+
             var prevLogIndex = this.GetPreviousLogIndex();
             var prevLogTerm = this.GetLogTermForIndex(prevLogIndex);
-            
-            Console.WriteLine("\nleader: " + this.ServerId + " new client request " + request.Command +
-                " | term " + this.CurrentTerm + " | log count:" + this.Logs.Count + "\n");
 
             this.VotesReceived = 1;
             for (int idx = 0; idx < this.Servers.Length; idx++)
@@ -495,8 +502,9 @@ namespace Raft
 
                 var trueIndex = nextIndex - 1;
                 var logs = this.Logs.GetRange(trueIndex, this.Logs.Count - trueIndex);
+
                 this.Send(server, new AppendEntriesRequest(this.CurrentTerm, this.Id, prevLogIndex,
-                    prevLogTerm, logs, this.CommitIndex, request.Client));
+                    prevLogTerm, logs, this.CommitIndex, this.LastClientRequest.Client));
             }
         }
 
@@ -508,7 +516,10 @@ namespace Raft
             {
                 this.CurrentTerm = request.Term;
                 this.VotedFor = null;
+
+                this.RedirectLastClientRequestToClusterManager();
                 this.Vote(this.ReceivedEvent as VoteRequest);
+
                 this.Raise(new BecomeFollower());
             }
             else
@@ -524,6 +535,8 @@ namespace Raft
             {
                 this.CurrentTerm = request.Term;
                 this.VotedFor = null;
+
+                this.RedirectLastClientRequestToClusterManager();
                 this.Raise(new BecomeFollower());
             }
         }
@@ -535,7 +548,10 @@ namespace Raft
             {
                 this.CurrentTerm = request.Term;
                 this.VotedFor = null;
+
+                this.RedirectLastClientRequestToClusterManager();
                 this.AppendEntries(this.ReceivedEvent as AppendEntriesRequest);
+
                 this.Raise(new BecomeFollower());
             }
         }
@@ -547,6 +563,8 @@ namespace Raft
             {
                 this.CurrentTerm = request.Term;
                 this.VotedFor = null;
+                
+                this.RedirectLastClientRequestToClusterManager();
                 this.Raise(new BecomeFollower());
             }
             else if (request.Term != this.CurrentTerm)
@@ -558,20 +576,26 @@ namespace Raft
             {
                 this.NextIndex[request.Server] = this.Logs.Count + 1;
                 this.MatchIndex[request.Server] = this.Logs.Count;
-
+                
                 this.VotesReceived++;
                 if (request.ReceiverEndpoint != null &&
-                    this.VotesReceived == (this.Servers.Length / 2) + 1)
+                    this.VotesReceived >= (this.Servers.Length / 2) + 1)
                 {
-                    Console.WriteLine("\nleader-commit: " + this.ServerId + " in term " + this.CurrentTerm +
-                        " with " + this.VotesReceived + " votes\n");
+                    Console.WriteLine("\n [Leader] " + this.ServerId + " | term " + this.CurrentTerm +
+                        " | append votes " + this.VotesReceived + "\n");
 
                     var commitIndex = this.MatchIndex[request.Server];
                     if (commitIndex > this.CommitIndex &&
                         this.Logs[commitIndex - 1].Term == this.CurrentTerm)
                     {
                         this.CommitIndex = commitIndex;
+
+                        Console.WriteLine("\n [Leader] " + this.ServerId + " | term " + this.CurrentTerm +
+                            " | log " + this.Logs.Count + " | command " + this.Logs[commitIndex - 1].Command + "\n");
                     }
+
+                    this.VotesReceived = 0;
+                    this.LastClientRequest = null;
 
                     this.Send(request.ReceiverEndpoint, new Client.Response());
                 }
@@ -582,11 +606,6 @@ namespace Raft
                 
                 var prevLogIndex = this.GetPreviousLogIndex();
                 var prevLogTerm = this.GetLogTermForIndex(prevLogIndex);
-
-                Console.WriteLine("ID: " + this.ServerId);
-                Console.WriteLine("term: " + this.CurrentTerm);
-                Console.WriteLine("nextIndex: " + (this.NextIndex[request.Server] - 1));
-                Console.WriteLine("count: " + (this.Logs.Count - (this.NextIndex[request.Server] - 1)));
 
                 var nextIndex = this.NextIndex[request.Server] - 1;
                 var logs = this.Logs.GetRange(nextIndex, this.Logs.Count - nextIndex);
@@ -599,6 +618,10 @@ namespace Raft
 
         #region core methods
 
+        /// <summary>
+        /// Processes the given vote request.
+        /// </summary>
+        /// <param name="request">VoteRequest</param>
         void Vote(VoteRequest request)
         {
             var lastLogIndex = this.Logs.Count;
@@ -609,14 +632,14 @@ namespace Raft
                 lastLogIndex > request.LastLogIndex ||
                 lastLogTerm > request.LastLogTerm)
             {
-                Console.WriteLine("\nvote: " + this.ServerId + " false | term " + this.CurrentTerm +
-                    " | log size: " + this.Logs.Count + "\n");
+                Console.WriteLine("\n [Server] " + this.ServerId + " | term " + this.CurrentTerm +
+                    " | log " + this.Logs.Count + " | vote false\n");
                 this.Send(request.CandidateId, new VoteResponse(this.CurrentTerm, false));
             }
             else
             {
-                Console.WriteLine("\nvote: " + this.ServerId + " true | term " + this.CurrentTerm +
-                    " | log size: " + this.Logs.Count + "\n");
+                Console.WriteLine("\n [Server] " + this.ServerId + " | term " + this.CurrentTerm +
+                    " | log " + this.Logs.Count + " | vote true\n");
 
                 this.VotedFor = request.CandidateId;
                 this.LeaderId = null;
@@ -625,12 +648,17 @@ namespace Raft
             }
         }
 
+        /// <summary>
+        /// Processes the given append entries request.
+        /// </summary>
+        /// <param name="request">AppendEntriesRequest</param>
         void AppendEntries(AppendEntriesRequest request)
         {
             if (request.Term < this.CurrentTerm)
             {
-                Console.WriteLine("\nappend false: " + this.ServerId + " | term " + this.CurrentTerm +
-                    " | log size: " + this.Logs.Count + " | last applied: " + this.LastApplied + "\n");
+                Console.WriteLine("\n [Server] " + this.ServerId + " | term " + this.CurrentTerm + " | log " +
+                    this.Logs.Count + " | last applied: " + this.LastApplied + " | append false\n");
+
                 this.Send(this.Timer, new Timer.ResetTimer());
                 this.Send(request.LeaderId, new AppendEntriesResponse(this.CurrentTerm, false,
                     this.Id, request.ReceiverEndpoint));
@@ -638,15 +666,14 @@ namespace Raft
             else
             {
                 this.Send(this.Timer, new Timer.ResetTimer());
-
-                Console.WriteLine("\nappend true: " + this.ServerId + " | term " + this.CurrentTerm +
-                    " | log size: " + this.Logs.Count + " | entries received: " + request.Entries.Count +
-                    " | last applied: " + this.LastApplied + "\n");
-
+                
                 if (request.PrevLogIndex > 0 &&
                     (this.Logs.Count < request.PrevLogIndex ||
                     this.Logs[request.PrevLogIndex - 1].Term != request.PrevLogTerm))
                 {
+                    Console.WriteLine("\n [Server] " + this.ServerId + " | term " + this.CurrentTerm + " | log " +
+                        this.Logs.Count + " | last applied: " + this.LastApplied + " | append false\n");
+
                     this.Send(request.LeaderId, new AppendEntriesResponse(this.CurrentTerm,
                         false, this.Id, request.ReceiverEndpoint));
                 }
@@ -686,6 +713,10 @@ namespace Raft
                         this.LastApplied++;
                     }
 
+                    Console.WriteLine("\n [Server] " + this.ServerId + " | term " + this.CurrentTerm + " | log " +
+                        this.Logs.Count + " | entries received " + request.Entries.Count + " | last applied " +
+                        this.LastApplied + " | append true\n");
+
                     this.LeaderId = request.LeaderId;
                     this.Send(request.LeaderId, new AppendEntriesResponse(this.CurrentTerm,
                         true, this.Id, request.ReceiverEndpoint));
@@ -693,6 +724,18 @@ namespace Raft
             }
         }
 
+        void RedirectLastClientRequestToClusterManager()
+        {
+            if (this.LastClientRequest != null)
+            {
+                this.Send(this.ClusterManager, this.LastClientRequest);
+            }
+        }
+
+        /// <summary>
+        /// Returns the previous log index.
+        /// </summary>
+        /// <returns>Index</returns>
         int GetPreviousLogIndex()
         {
             var logIndex = 0;
@@ -704,6 +747,11 @@ namespace Raft
             return logIndex;
         }
 
+        /// <summary>
+        /// Returns the log term for the given log index.
+        /// </summary>
+        /// <param name="logIndex">Index</param>
+        /// <returns>Term</returns>
         int GetLogTermForIndex(int logIndex)
         {
             var logTerm = 0;

@@ -45,7 +45,7 @@
     <Compile Include="SafetyMonitor.cs" />
     <Compile Include="Client.cs" />
     <Compile Include="Server.cs" />
-    <Compile Include="Environment.cs" />
+    <Compile Include="ClusterManager.cs" />
     <Compile Include="Log.cs" />
     <Compile Include="Test.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
