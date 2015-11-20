@@ -114,5 +114,20 @@ namespace Microsoft.PSharp
         }
 
         #endregion
+
+        #region internal methods
+
+        /// <summary>
+        /// Returns the next operation ID.
+        /// </summary>
+        /// <param name="operationId">OperationId</param>
+        /// <returns>Boolean</returns>
+        internal virtual bool TryGetNextOperationId(out ulong operationId)
+        {
+            operationId = 0;
+            return false;
+        }
+
+        #endregion
     }
 }

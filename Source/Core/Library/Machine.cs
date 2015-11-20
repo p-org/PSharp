@@ -461,6 +461,25 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Returns the next operation ID.
+        /// </summary>
+        /// <param name="operationId">OperationId</param>
+        /// <returns>Boolean</returns>
+        internal override bool TryGetNextOperationId(out ulong operationId)
+        {
+            var result = false;
+            operationId = 0;
+
+            if (this.Inbox.Count > 0)
+            {
+                operationId = this.Inbox[0].OperationId;
+                result = true;
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Returns the cached state of this machine.
         /// </summary>
         /// <returns>Hash value</returns>
