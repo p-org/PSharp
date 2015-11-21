@@ -22,8 +22,6 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
-using Microsoft.PSharp.Utilities;
-
 namespace Microsoft.PSharp
 {
     /// <summary>
