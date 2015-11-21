@@ -8,14 +8,15 @@ namespace TaskParallelismCheck
     {
         static void Main(string[] args)
         {
-            Test.Execute();
+            var runtime = PSharpRuntime.Create();
+            Test.Execute(runtime);
             Console.ReadLine();
         }
 
         [Microsoft.PSharp.Test]
-        public static void Execute()
+        public static void Execute(PSharpRuntime runtime)
         {
-            PSharpRuntime.CreateMachine(typeof(TaskCreator));
+            runtime.CreateMachine(typeof(TaskCreator));
         }
     }
 }

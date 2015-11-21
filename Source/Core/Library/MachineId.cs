@@ -29,16 +29,21 @@ namespace Microsoft.PSharp
         #region fields
 
         /// <summary>
+        /// The P# runtime that executes the machine with this id.
+        /// </summary>
+        public readonly PSharpRuntime Runtime;
+
+        /// <summary>
+        /// Type of the machine with this id.
+        /// </summary>
+        [DataMember]
+        public readonly string Type;
+
+        /// <summary>
         /// Unique id value.
         /// </summary>
         [DataMember]
         internal readonly int Value;
-
-        /// <summary>
-        /// Type name.
-        /// </summary>
-        [DataMember]
-        internal readonly string Type;
 
         /// <summary>
         /// Machine-type-specific id value.
@@ -89,8 +94,11 @@ namespace Microsoft.PSharp
         /// Constructor.
         /// </summary>
         /// <param name="type">Type</param>
-        internal MachineId(Type type)
+        /// <param name="runtime">PSharpRuntime</param>
+        internal MachineId(Type type, PSharpRuntime runtime)
         {
+            this.Runtime = runtime;
+
             lock (MachineId.TypeIdCounter)
             {
                 if (!MachineId.TypeIdCounter.ContainsKey(type))

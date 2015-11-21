@@ -24,21 +24,14 @@ namespace Microsoft.PSharp
         #region fields
 
         /// <summary>
-        /// Unique machine id.
+        /// The P# runtime that executes this machine.
         /// </summary>
-        public readonly MachineId Id;
-
-        #endregion
-
-        #region machine constructors
+        internal PSharpRuntime Runtime { get; private set; }
 
         /// <summary>
-        /// Constructor.
+        /// Unique machine id.
         /// </summary>
-        protected BaseMachine()
-        {
-            this.Id = new MachineId(this.GetType());
-        }
+        protected internal MachineId Id { get; private set; }
 
         #endregion
 
@@ -83,6 +76,20 @@ namespace Microsoft.PSharp
         public override string ToString()
         {
             return this.GetType().Name;
+        }
+
+        #endregion
+
+        #region internal methods
+
+        /// <summary>
+        /// Sets the ID of this machine.
+        /// </summary>
+        /// <param name="mid">MachineId</param>
+        internal void SetMachineId(MachineId mid)
+        {
+            this.Id = mid;
+            this.Runtime = mid.Runtime;
         }
 
         #endregion

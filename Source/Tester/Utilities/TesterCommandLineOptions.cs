@@ -12,7 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Microsoft.PSharp.DynamicAnalysis;
+using Microsoft.PSharp.SystematicTesting;
 
 namespace Microsoft.PSharp.Utilities
 {

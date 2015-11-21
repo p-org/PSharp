@@ -331,9 +331,9 @@ namespace Microsoft.PSharp
         /// <param name="uniqueId">Unique id</param>
         /// <returns>Boolean</returns>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        protected internal bool FairNondet(int uniqueId)
+        protected internal bool FairRandom(int uniqueId)
         {
-            return this.Machine.FairNondet(uniqueId);
+            return this.Machine.FairRandom(uniqueId);
         }
 
         /// <summary>

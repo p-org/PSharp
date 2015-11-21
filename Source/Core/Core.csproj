@@ -84,16 +84,16 @@
     <Compile Include="Attributes\OnEntry.cs" />
     <Compile Include="Attributes\OnEventDoAction.cs" />
     <Compile Include="Attributes\OnEventGotoState.cs" />
-    <Compile Include="Attributes\Model.cs" />
     <Compile Include="Attributes\Hot.cs" />
     <Compile Include="Attributes\Start.cs" />
-    <Compile Include="Collections\Container.cs" />
-    <Compile Include="Collections\Map.cs" />
-    <Compile Include="Collections\Seq.cs" />
     <Compile Include="Events\Default.cs" />
     <Compile Include="Events\Event.cs" />
     <Compile Include="Events\Halt.cs" />
-    <Compile Include="IDispatcher.cs" />
+    <Compile Include="Exceptions.cs" />
+    <Compile Include="Options\CompilationTarget.cs" />
+    <Compile Include="Options\SchedulingStrategy.cs" />
+    <Compile Include="Utilities\ErrorReporter.cs" />
+    <Compile Include="Utilities\Output.cs" />
     <Compile Include="Library\ActionBindings.cs" />
     <Compile Include="Library\GotoStateTransitions.cs" />
     <Compile Include="Library\BaseMachine.cs" />
@@ -103,8 +103,10 @@
     <Compile Include="Library\Monitor.cs" />
     <Compile Include="Library\MonitorState.cs" />
     <Compile Include="Library\PushStateTransitions.cs" />
-    <Compile Include="Scheduling\ISchedulingStrategy.cs" />
-    <Compile Include="Scheduling\TaskInfo.cs" />
+    <Compile Include="Options\BaseCommandLineOptions.cs" />
+    <Compile Include="Options\Configuration.cs" />
+    <Compile Include="Utilities\Profiler.cs" />
+    <Compile Include="Runtime.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

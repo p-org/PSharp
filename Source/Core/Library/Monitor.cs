@@ -26,17 +26,8 @@ namespace Microsoft.PSharp
     /// <summary>
     /// Abstract class representing a P# monitor.
     /// </summary>
-    public abstract class Monitor
+    public abstract class Monitor : BaseMachine
     {
-        #region static fields
-
-        /// <summary>
-        /// Dispatcher used to communicate with the P# runtime.
-        /// </summary>
-        internal static IDispatcher Dispatcher;
-
-        #endregion
-
         #region fields
 
         /// <summary>
@@ -83,9 +74,9 @@ namespace Microsoft.PSharp
         /// Constructor.
         /// </summary>
         protected Monitor()
+            : base()
         {
-            this.InitializeStateInformation();
-            this.AssertStateValidity();
+
         }
 
         #endregion
@@ -100,7 +91,7 @@ namespace Microsoft.PSharp
         {
             // If the event is null then report an error and exit.
             this.Assert(e != null, "Monitor '{0}' is raising a null event.", this.GetType().Name);
-            Machine.Dispatcher.Log("<MonitorLog> Monitor '{0}' raised event '{1}'.",
+            base.Runtime.Log("<MonitorLog> Monitor '{0}' raised event '{1}'.",
                 this, e.GetType().FullName);
             this.HandleEvent(e);
         }
@@ -112,7 +103,7 @@ namespace Microsoft.PSharp
         /// <param name="predicate">Predicate</param>
         protected internal void Assert(bool predicate)
         {
-            Monitor.Dispatcher.Assert(predicate);
+            base.Runtime.Assert(predicate);
         }
 
         /// <summary>
@@ -124,7 +115,7 @@ namespace Microsoft.PSharp
         /// <param name="args">Message arguments</param>
         protected internal void Assert(bool predicate, string s, params object[] args)
         {
-            Monitor.Dispatcher.Assert(predicate, s, args);
+            base.Runtime.Assert(predicate, s, args);
         }
 
         #endregion
@@ -146,7 +137,7 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         internal void MonitorEvent(Event e)
         {
-            Machine.Dispatcher.Log("<MonitorLog> Monitor '{0}' is processing event '{1}'.",
+            base.Runtime.Log("<MonitorLog> Monitor '{0}' is processing event '{1}'.",
                 this, e.GetType().FullName);
             this.HandleEvent(e);
         }
@@ -224,7 +215,7 @@ namespace Microsoft.PSharp
                 // If current state cannot handle the event then null the state.
                 if (!this.CanHandleEvent(e.GetType()))
                 {
-                    Machine.Dispatcher.Log("<MonitorLog> Monitor '{0}' exiting state '{1}'.",
+                    base.Runtime.Log("<MonitorLog> Monitor '{0}' exiting state '{1}'.",
                         this, this.State.GetType().Name);
                     this.State = null;
                     continue;
@@ -283,69 +274,6 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Initializes information about the states of the monitor.
-        /// </summary>
-        private void InitializeStateInformation()
-        {
-            this.StateTypes = new HashSet<Type>();
-            this.States = new HashSet<MonitorState>();
-
-            Type monitorType = this.GetType();
-            Type initialStateType = null;
-
-            while (monitorType != typeof(Monitor))
-            {
-                foreach (var s in monitorType.GetNestedTypes(BindingFlags.Instance |
-                    BindingFlags.NonPublic | BindingFlags.Public |
-                    BindingFlags.DeclaredOnly))
-                {
-                    if (s.IsClass && s.IsSubclassOf(typeof(MonitorState)))
-                    {
-                        if (s.IsDefined(typeof(Start), false))
-                        {
-                            this.Assert(initialStateType == null, "Monitor '{0}' can not have " +
-                                "more than one start states.\n", this.GetType().Name);
-                            initialStateType = s;
-                        }
-
-                        this.Assert(s.BaseType == typeof(MonitorState), "State '{0}' is " +
-                            "not of the correct type.\n", s.Name);
-                        this.StateTypes.Add(s);
-                    }
-                }
-
-                monitorType = monitorType.BaseType;
-            }
-
-            foreach (var type in this.StateTypes)
-            {
-                var isHot = false;
-                var isCold = false;
-                
-                var hotAttribute = type.GetCustomAttribute(typeof(Hot), false) as Hot;
-                if (hotAttribute != null)
-                {
-                    isHot = true;
-                }
-
-                var coldAttribute = type.GetCustomAttribute(typeof(Cold), false) as Cold;
-                if (coldAttribute != null)
-                {
-                    isCold = true;
-                }
-
-                MonitorState state = Activator.CreateInstance(type) as MonitorState;
-                state.InitializeState(this, isHot, isCold);
-
-                this.States.Add(state);
-            }
-
-            var initialState = this.States.First(val => val.GetType().Equals(initialStateType));
-            this.ConfigureStateTransitions(initialState);
-            this.State = initialState;
-        }
-
-        /// <summary>
         /// Configures the state transitions of the monitor.
         /// </summary>
         /// <param name="state">State</param>
@@ -383,7 +311,7 @@ namespace Microsoft.PSharp
         [DebuggerStepThrough]
         private void Do(Action a)
         {
-            Machine.Dispatcher.Log("<MonitorLog> Monitor '{0}' executed action '{1}' in state '{2}'.",
+            base.Runtime.Log("<MonitorLog> Monitor '{0}' executed action '{1}' in state '{2}'.",
                 this, a.Method.Name, this.State.GetType().Name);
 
             try
@@ -430,7 +358,7 @@ namespace Microsoft.PSharp
                 liveness = "'cold' ";
             }
 
-            Machine.Dispatcher.Log("<MonitorLog> Monitor '{0}' entering " + liveness +
+            base.Runtime.Log("<MonitorLog> Monitor '{0}' entering " + liveness +
                 "state '{1}'.", this, this.State.GetType().Name);
 
             try
@@ -465,7 +393,7 @@ namespace Microsoft.PSharp
         [DebuggerStepThrough]
         private void ExecuteCurrentStateOnExit(Action onExit)
         {
-            Machine.Dispatcher.Log("<MonitorLog> Monitor '{0}' exiting state '{1}'.",
+            base.Runtime.Log("<MonitorLog> Monitor '{0}' exiting state '{1}'.",
                 this, this.State.GetType().Name);
 
             try
@@ -564,6 +492,75 @@ namespace Microsoft.PSharp
             this.Assert(false, "Exception '{0}' was thrown in monitor '{1}', '{2}':\n   {3}\n" +
                 "The stack trace is:\n{4}",
                 ex.GetType(), this.GetType().Name, ex.Source, ex.Message, ex.StackTrace);
+        }
+
+        #endregion
+
+        #region configuration and cleanup methods
+
+        /// <summary>
+        /// Initializes information about the states of the monitor.
+        /// </summary>
+        internal void InitializeStateInformation()
+        {
+            this.StateTypes = new HashSet<Type>();
+            this.States = new HashSet<MonitorState>();
+
+            Type monitorType = this.GetType();
+            Type initialStateType = null;
+
+            while (monitorType != typeof(Monitor))
+            {
+                foreach (var s in monitorType.GetNestedTypes(BindingFlags.Instance |
+                    BindingFlags.NonPublic | BindingFlags.Public |
+                    BindingFlags.DeclaredOnly))
+                {
+                    if (s.IsClass && s.IsSubclassOf(typeof(MonitorState)))
+                    {
+                        if (s.IsDefined(typeof(Start), false))
+                        {
+                            this.Assert(initialStateType == null, "Monitor '{0}' can not have " +
+                                "more than one start states.\n", this.GetType().Name);
+                            initialStateType = s;
+                        }
+
+                        this.Assert(s.BaseType == typeof(MonitorState), "State '{0}' is " +
+                            "not of the correct type.\n", s.Name);
+                        this.StateTypes.Add(s);
+                    }
+                }
+
+                monitorType = monitorType.BaseType;
+            }
+
+            foreach (var type in this.StateTypes)
+            {
+                var isHot = false;
+                var isCold = false;
+
+                var hotAttribute = type.GetCustomAttribute(typeof(Hot), false) as Hot;
+                if (hotAttribute != null)
+                {
+                    isHot = true;
+                }
+
+                var coldAttribute = type.GetCustomAttribute(typeof(Cold), false) as Cold;
+                if (coldAttribute != null)
+                {
+                    isCold = true;
+                }
+
+                MonitorState state = Activator.CreateInstance(type) as MonitorState;
+                state.InitializeState(this, isHot, isCold);
+
+                this.States.Add(state);
+            }
+
+            var initialState = this.States.First(val => val.GetType().Equals(initialStateType));
+            this.ConfigureStateTransitions(initialState);
+            this.State = initialState;
+
+            this.AssertStateValidity();
         }
 
         #endregion

@@ -179,18 +179,6 @@
       <Project>{2e330c40-60ea-4a94-8813-9747b93a1795}</Project>
       <Name>Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Runtimes\BugFindingRuntime\BugFindingRuntime.csproj">
-      <Project>{0e43e150-7d5a-46b5-b394-727df8b7f104}</Project>
-      <Name>BugFindingRuntime</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Runtimes\Runtime\Runtime.csproj">
-      <Project>{62445d0b-c2c6-42c9-ba73-35895e6eeb67}</Project>
-      <Name>Runtime</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Utilities\Utilities.csproj">
-      <Project>{16c10d2a-f7fd-4b81-be30-ad63ff868e46}</Project>
-      <Name>Utilities</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="PSharp.snk" />
