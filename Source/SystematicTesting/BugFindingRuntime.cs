@@ -346,10 +346,15 @@ namespace Microsoft.PSharp.SystematicTesting
         {
             this.Assert(mid != null, "Cannot send to a null machine.");
             this.Assert(e != null, "Cannot send a null event.");
-
+            
             this.SetEventOperationId(sender, e, isStarter);
 
-            if (sender != null)
+            if (Output.Debugging && sender != null)
+            {
+                Output.Log("<SendLog> Machine '{0}({1})' sent event '{2}({3})' to '{4}({5})'.",
+                    sender, sender.Id.MVal, e.GetType(), e.OperationId, mid.Type, mid.MVal);
+            }
+            else if (sender != null)
             {
                 Output.Log("<SendLog> Machine '{0}({1})' sent event '{2}' to '{3}({4})'.",
                     sender, sender.Id.MVal, e.GetType(), mid.Type, mid.MVal);
@@ -563,17 +568,14 @@ namespace Microsoft.PSharp.SystematicTesting
             {
                 this.OperationIdCounter++;
                 e.OperationId = this.OperationIdCounter;
-                base.Log("<OperationLog> Assigned new operation with ID '{0}'", e.OperationId);
             }
             else if (sender != null)
             {
                 e.OperationId = sender.OperationId;
-                base.Log("<OperationLog> Assigned operation with ID '{0}'", e.OperationId);
             }
             else
             {
                 e.OperationId = 0;
-                base.Log("<OperationLog> Assigned operation with ID '{0}'", e.OperationId);
             }
         }
 
