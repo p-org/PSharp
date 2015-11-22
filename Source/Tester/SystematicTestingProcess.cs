@@ -16,7 +16,7 @@ using System.IO;
 
 using Microsoft.CodeAnalysis;
 
-using Microsoft.PSharp.DynamicAnalysis;
+using Microsoft.PSharp.SystematicTesting;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp

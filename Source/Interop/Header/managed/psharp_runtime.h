@@ -20,7 +20,7 @@
 #include <iostream>
 
 #using <Microsoft.PSharp.dll> as_friend
-#using <Microsoft.PSharp.BugFindingRuntime.dll> as_friend
+#using <Microsoft.PSharp.SystematicTesting.dll> as_friend
 
 namespace Microsoft
 {
@@ -33,12 +33,7 @@ namespace Microsoft
 			public:
 				static void send(Microsoft::PSharp::MachineId^ mid, Microsoft::PSharp::Event^ e)
 				{
-					Microsoft::PSharp::PSharpRuntime::SendEvent(mid, e);
-				}
-
-				static bool non_deterministic_choice()
-				{
-					return Microsoft::PSharp::PSharpRuntime::Random();
+					mid->Runtime->Send(mid, e);
 				}
 			};
 		}

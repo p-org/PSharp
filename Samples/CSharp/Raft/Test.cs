@@ -8,14 +8,15 @@ namespace Raft
     {
         static void Main(string[] args)
         {
-            Test.Execute();
+            var runtime = PSharpRuntime.Create();
+            Test.Execute(runtime);
             Console.ReadLine();
         }
 
         [Microsoft.PSharp.Test]
-        public static void Execute()
+        public static void Execute(PSharpRuntime runtime)
         {
-            var environment = PSharpRuntime.CreateMachine(typeof(ClusterManager));
+            runtime.CreateMachine(typeof(ClusterManager));
         }
     }
 }

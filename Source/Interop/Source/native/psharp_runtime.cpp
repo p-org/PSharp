@@ -17,7 +17,7 @@
 #include "native\psharp_runtime.h"
 
 #using <Microsoft.PSharp.dll> as_friend
-#using "Microsoft.PSharp.BugFindingRuntime.dll"
+#using "Microsoft.PSharp.SystematicTesting.dll"
 
 //template<typename T>
 //Id* PSharpRuntime::create_machine()

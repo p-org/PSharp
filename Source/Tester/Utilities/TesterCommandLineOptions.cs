@@ -12,7 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Microsoft.PSharp.DynamicAnalysis;
+using Microsoft.PSharp.SystematicTesting;
 
 namespace Microsoft.PSharp.Utilities
 {
@@ -58,6 +58,10 @@ namespace Microsoft.PSharp.Utilities
                 {
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.IDDFS;
                 }
+                else if (option.ToLower().Substring(5).Equals("db"))
+                {
+                    base.Configuration.SchedulingStrategy = SchedulingStrategy.DelayBounding;
+                }
                 else if (option.ToLower().Substring(5).Equals("macemc"))
                 {
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.MaceMC;
@@ -89,16 +93,27 @@ namespace Microsoft.PSharp.Utilities
 
                 base.Configuration.RandomSchedulingSeed = seed;
             }
-            else if (option.ToLower().StartsWith("/db:") && option.Length > 4)
+            else if (option.ToLower().StartsWith("/depth-bound:") && option.Length > 13)
             {
                 int i = 0;
-                if (!int.TryParse(option.Substring(4), out i) && i >= 0)
+                if (!int.TryParse(option.Substring(13), out i) && i >= 0)
                 {
                     ErrorReporter.ReportAndExit("Please give a valid exploration depth " +
-                        "bound '/db:[x]', where [x] >= 0.");
+                        "bound '/depth-bound:[x]', where [x] >= 0.");
                 }
 
                 base.Configuration.DepthBound = i;
+            }
+            else if (option.ToLower().StartsWith("/delay-bound:") && option.Length > 13)
+            {
+                int i = 0;
+                if (!int.TryParse(option.Substring(13), out i) && i >= 0)
+                {
+                    ErrorReporter.ReportAndExit("Please give a valid delay bound " +
+                        "'/delay-bound:[x]', where [x] >= 0.");
+                }
+
+                base.Configuration.DelayBound = i;
             }
             else if (option.ToLower().StartsWith("/prefix:") && option.Length > 8)
             {
@@ -146,10 +161,11 @@ namespace Microsoft.PSharp.Utilities
             if (base.Configuration.SchedulingStrategy != SchedulingStrategy.Random &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.DFS &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.IDDFS &&
+                base.Configuration.SchedulingStrategy != SchedulingStrategy.DelayBounding &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.MaceMC)
             {
                 ErrorReporter.ReportAndExit("Please give a valid scheduling strategy " +
-                    "'/sch:[x]', where [x] is 'random', 'dfs' or 'iddfs'.");
+                    "'/sch:[x]', where [x] is 'random', 'dfs', 'iddfs' or 'db'.");
             }
             
             if (base.Configuration.SafetyPrefixBound > 0 &&

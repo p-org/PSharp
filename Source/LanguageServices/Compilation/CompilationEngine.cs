@@ -15,11 +15,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
 
 using Microsoft.PSharp.Utilities;
@@ -103,18 +101,6 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
 
             // Links the P# core library.
             this.LinkAssemblyToAllProjects(typeof(Machine).Assembly, "Microsoft.PSharp.dll");
-
-            // Links the P# runtime.
-            if (this.CompilationContext.ActiveCompilationTarget == CompilationTarget.Testing)
-            {
-                this.LinkAssemblyToAllProjects(typeof(BugFindingDispatcher).Assembly,
-                    "Microsoft.PSharp.BugFindingRuntime.dll");
-            }
-            else
-            {
-                this.LinkAssemblyToAllProjects(typeof(Dispatcher).Assembly,
-                    "Microsoft.PSharp.Runtime.dll");
-            }
         }
 
         #endregion
@@ -136,25 +122,6 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <param name="project">Project</param>
         private void CompileProject(Project project)
         {
-            var runtimeDllPath = typeof(Dispatcher).Assembly.Location;
-            var bugFindingRuntimeDllPath = typeof(BugFindingDispatcher).Assembly.Location;
-
-            var runtimeDll = project.MetadataReferences.FirstOrDefault(val => val.Display.EndsWith(
-                Path.DirectorySeparatorChar + "Microsoft.PSharp.Runtime.dll"));
-
-            if (runtimeDll != null && this.CompilationContext.ActiveCompilationTarget == CompilationTarget.Testing)
-            {
-                project = project.RemoveMetadataReference(runtimeDll);
-            }
-
-            if (this.CompilationContext.ActiveCompilationTarget == CompilationTarget.Testing &&
-                !project.MetadataReferences.Any(val => val.Display.EndsWith(
-                Path.DirectorySeparatorChar + "Microsoft.PSharp.BugFindingRuntime.dll")))
-            {
-                project = project.AddMetadataReference(MetadataReference.CreateFromFile(
-                    bugFindingRuntimeDllPath));
-            }
-
             var compilation = project.GetCompilationAsync().Result;
 
             try

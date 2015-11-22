@@ -83,7 +83,7 @@ namespace Raft
             this.LatestCommand = new Random().Next(100);
             this.Counter++;
 
-            Console.WriteLine("\nclient sends new request " + this.LatestCommand + "\n");
+            Console.WriteLine("\n [Client] new request " + this.LatestCommand + "\n");
 
             this.Send(this.Cluster, new Request(this.Id, this.LatestCommand));
         }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 
 using Microsoft.PSharp;
-using Microsoft.PSharp.DynamicAnalysis;
+using Microsoft.PSharp.SystematicTesting;
 using Microsoft.PSharp.Utilities;
 
 namespace NodeManager
@@ -19,9 +19,9 @@ namespace NodeManager
         }
 
         [Microsoft.PSharp.Test]
-        public static void Execute()
+        public static void Execute(PSharpRuntime runtime)
         {
-            PSharpRuntime.CreateMachine(typeof(Environment));
+            runtime.CreateMachine(typeof(Environment));
         }
     }
 }

@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{6CF10554-1535-4FE0-A949-EEA5025D8604}</ProjectGuid>
+    <ProjectGuid>{B25475D1-C7A7-4EA3-BC02-1744E5B7B0F3}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Microsoft.PSharp.Threading</RootNamespace>

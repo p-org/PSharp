@@ -47,26 +47,19 @@ namespace Microsoft.PSharp
         #region fields
 
         /// <summary>
+        /// The P# runtime that executes this machine.
+        /// </summary>
+        internal PSharpRuntime Runtime { get; private set; }
+
+        /// <summary>
         /// Unique machine id.
         /// </summary>
-        public readonly MachineId Id;
+        protected internal MachineId Id { get; private set; }
 
         /// <summary>
         /// Last operation's ID.
         /// </summary>
         internal ulong OperationId = 0;
-
-        #endregion
-
-        #region machine constructors
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        protected BaseMachine()
-        {
-            this.Id = new MachineId(this.GetType());
-        }
 
         #endregion
 
@@ -116,6 +109,16 @@ namespace Microsoft.PSharp
         #endregion
 
         #region internal methods
+        
+        /// <summary>
+        /// Sets the ID of this machine.
+        /// </summary>
+        /// <param name="mid">MachineId</param>
+        internal void SetMachineId(MachineId mid)
+        {
+            this.Id = mid;
+            this.Runtime = mid.Runtime;
+        }
 
         /// <summary>
         /// Returns the next operation ID.

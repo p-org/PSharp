@@ -30,6 +30,11 @@ namespace Microsoft.PSharp.Threading
         #region fields
 
         /// <summary>
+        /// The P# runtime.
+        /// </summary>
+        private PSharpRuntime Runtime;
+
+        /// <summary>
         /// The machine tasks.
         /// </summary>
         private List<Task> MachineTasks;
@@ -46,9 +51,11 @@ namespace Microsoft.PSharp.Threading
         /// <summary>
         /// Constructor.
         /// </summary>
+        /// <param name="runtime">PSharpRuntime</param>
         /// <param name="machineTasks">Machine tasks</param>
-        internal TaskWrapperScheduler(List<Task> machineTasks)
+        internal TaskWrapperScheduler(PSharpRuntime runtime, List<Task> machineTasks)
         {
+            this.Runtime = runtime;
             this.MachineTasks = machineTasks;
             this.WrappedTasks = new List<Task>();
         }
@@ -82,9 +89,9 @@ namespace Microsoft.PSharp.Threading
             }
             else
             {
-                Machine.Dispatcher.Log("<ScheduleDebug> Wrapping task {0} in a machine.", task.Id);
+                this.Runtime.Log("<ScheduleDebug> Wrapping task {0} in a machine.", task.Id);
                 this.WrappedTasks.Add(task);
-                Machine.Dispatcher.TryCreateTaskMachine(task);
+                this.Runtime.TryCreateTaskMachine(task);
             }
         }
 

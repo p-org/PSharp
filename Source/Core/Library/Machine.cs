@@ -29,15 +29,6 @@ namespace Microsoft.PSharp
     /// </summary>
     public abstract class Machine : BaseMachine
     {
-        #region static fields
-
-        /// <summary>
-        /// Dispatcher used to communicate with the P# runtime.
-        /// </summary>
-        internal static IDispatcher Dispatcher;
-
-        #endregion
-
         #region fields
 
         /// <summary>
@@ -138,9 +129,6 @@ namespace Microsoft.PSharp
 
             this.IsRunning = true;
             this.IsHalted = false;
-
-            this.InitializeStateInformation();
-            this.AssertStateValidity();
         }
 
         #endregion
@@ -154,7 +142,7 @@ namespace Microsoft.PSharp
         /// <returns>MachineId</returns>
         protected internal MachineId CreateMachine(Type type)
         {
-            return Machine.Dispatcher.TryCreateMachine(type);
+            return base.Runtime.TryCreateMachine(type);
         }
 
         /// <summary>
@@ -162,9 +150,10 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <returns>MachineId</returns>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         protected internal MachineId CreateRemoteMachine(Type type)
         {
-            return Machine.Dispatcher.TryCreateRemoteMachine(type);
+            return base.Runtime.TryCreateRemoteMachine(type);
         }
 
         /// <summary>
@@ -173,7 +162,7 @@ namespace Microsoft.PSharp
         /// <param name="type">Type of the monitor</param>
         protected internal void CreateMonitor(Type type)
         {
-            Machine.Dispatcher.TryCreateMonitor(type);
+            base.Runtime.TryCreateMonitor(type);
         }
 
         /// <summary>
@@ -188,7 +177,7 @@ namespace Microsoft.PSharp
             // If the event is null then report an error and exit.
             this.Assert(e != null, "Machine '{0}' is sending a null event.", this.GetType().Name);
             this.SetOperationIdFor(startNewOp, e);
-            Machine.Dispatcher.Send(mid, e);
+            base.Runtime.Send(mid, e);
         }
 
         /// <summary>
@@ -200,7 +189,7 @@ namespace Microsoft.PSharp
         {
             // If the event is null then report an error and exit.
             this.Assert(e != null, "Machine '{0}' is sending a null event.", this.GetType().Name);
-            Machine.Dispatcher.Monitor<T>(e);
+            base.Runtime.Monitor<T>(e);
         }
 
         /// <summary>
@@ -211,7 +200,7 @@ namespace Microsoft.PSharp
         {
             // If the event is null then report an error and exit.
             this.Assert(e != null, "Machine '{0}' is raising a null event.", this.GetType().Name);
-            Machine.Dispatcher.Log("<RaiseLog> Machine '{0}({1})' raised event '{2}'.", this, base.Id.MVal, e);
+            base.Runtime.Log("<RaiseLog> Machine '{0}({1})' raised event '{2}'.", this, base.Id.MVal, e);
             this.RaisedEvent = e;
         }
 
@@ -258,11 +247,11 @@ namespace Microsoft.PSharp
             
             if (this.StateStack.Count == 0)
             {
-                Machine.Dispatcher.Log("<PopLog> Machine '{0}({1})' popped.", this, base.Id.MVal);
+                base.Runtime.Log("<PopLog> Machine '{0}({1})' popped.", this, base.Id.MVal);
             }
             else
             {
-                Machine.Dispatcher.Log("<PopLog> Machine '{0}({1})' popped and reentered state '{2}'.",
+                base.Runtime.Log("<PopLog> Machine '{0}({1})' popped and reentered state '{2}'.",
                     this, base.Id.MVal, this.StateStack.Peek().GetType().Name);
                 this.ConfigureStateTransitions(this.StateStack.Peek());
             }
@@ -275,7 +264,7 @@ namespace Microsoft.PSharp
         /// <returns>Boolean</returns>
         protected internal bool Random()
         {
-            return Machine.Dispatcher.Random();
+            return base.Runtime.Random();
         }
 
         /// <summary>
@@ -288,7 +277,7 @@ namespace Microsoft.PSharp
         /// <returns>Boolean</returns>
         protected internal bool Random(int maxValue)
         {
-            return Machine.Dispatcher.Random();
+            return base.Runtime.Random(maxValue);
         }
 
         /// <summary>
@@ -298,7 +287,7 @@ namespace Microsoft.PSharp
         /// <returns>Boolean</returns>
         protected internal bool FairRandom()
         {
-            return Machine.Dispatcher.Random();
+            return base.Runtime.Random();
         }
 
         /// <summary>
@@ -308,11 +297,11 @@ namespace Microsoft.PSharp
         /// <param name="uniqueId">Unique id</param>
         /// <returns>Boolean</returns>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        protected internal bool FairNondet(int uniqueId)
+        protected internal bool FairRandom(int uniqueId)
         {
             var havocId = this.GetType().Name + "_" + this.StateStack.Peek().
                 GetType().Name + "_" + uniqueId;
-            return Machine.Dispatcher.FairRandom(havocId);
+            return base.Runtime.GetFairNondeterministicChoice(havocId);
         }
 
         /// <summary>
@@ -322,7 +311,7 @@ namespace Microsoft.PSharp
         /// <param name="predicate">Predicate</param>
         protected internal void Assert(bool predicate)
         {
-            Machine.Dispatcher.Assert(predicate);
+            base.Runtime.Assert(predicate);
         }
 
         /// <summary>
@@ -334,7 +323,7 @@ namespace Microsoft.PSharp
         /// <param name="args">Message arguments</param>
         protected internal void Assert(bool predicate, string s, params object[] args)
         {
-            Machine.Dispatcher.Assert(predicate, s, args);
+            base.Runtime.Assert(predicate, s, args);
         }
 
         #endregion
@@ -366,16 +355,16 @@ namespace Microsoft.PSharp
 
                 if (this.EventWaiters.ContainsKey(e.GetType()))
                 {
-                    Machine.Dispatcher.Log("<ReceiveLog> Machine '{0}({1})' received event '{2}' and unblocked.",
+                    base.Runtime.Log("<ReceiveLog> Machine '{0}({1})' received event '{2}' and unblocked.",
                         this, base.Id.MVal, e.GetType().FullName);
                     this.ReceivedEventHandler = new Tuple<Event, Action>(
                         e, this.EventWaiters[e.GetType()]);
                     this.EventWaiters.Clear();
-                    Machine.Dispatcher.NotifyReceivedEvent(this.Id);
+                    base.Runtime.NotifyReceivedEvent(this.Id);
                     return;
                 }
 
-                Machine.Dispatcher.Log("<EnqueueLog> Machine '{0}({1})' enqueued event < {2} >.",
+                base.Runtime.Log("<EnqueueLog> Machine '{0}({1})' enqueued event < {2} >.",
                     this, base.Id.MVal, e.GetType().FullName);
 
                 this.Inbox.Add(e);
@@ -426,7 +415,7 @@ namespace Microsoft.PSharp
                     {
                         if (this.HasDefaultHandler())
                         {
-                            Machine.Dispatcher.Log("<DefaultLog> Machine '{0}({1})' is executing the " +
+                            base.Runtime.Log("<DefaultLog> Machine '{0}({1})' is executing the " +
                                 "default handler in state '{2}'.", this, base.Id.MVal,
                                 this.StateStack.Peek().GetType().Name);
 
@@ -455,7 +444,7 @@ namespace Microsoft.PSharp
                 // has to schedule a machine between default handlers.
                 if (defaultHandling)
                 {
-                    Machine.Dispatcher.NotifyDefaultHandlerFired();
+                    base.Runtime.NotifyDefaultHandlerFired();
                 }
             }
         }
@@ -553,7 +542,7 @@ namespace Microsoft.PSharp
                         !this.DeferredEvents.Contains(this.Inbox[idx].GetType()))
                     {
                         nextEvent = this.Inbox[idx];
-                        Machine.Dispatcher.Log("<DequeueLog> Machine '{0}({1})' dequeued event < {2} >.",
+                        base.Runtime.Log("<DequeueLog> Machine '{0}({1})' dequeued event < {2} >.",
                             this.GetType().Name, base.Id.MVal, nextEvent.GetType().FullName);
 
                         this.Inbox.RemoveAt(idx);
@@ -581,7 +570,7 @@ namespace Microsoft.PSharp
                     {
                         lock (this.Inbox)
                         {
-                            Machine.Dispatcher.Log("<HaltLog> Machine '{0}({1})' halted.",
+                            base.Runtime.Log("<HaltLog> Machine '{0}({1})' halted.",
                                 this.GetType().Name, base.Id.MVal);
                             this.IsHalted = true;
                             this.CleanUpResources();
@@ -609,12 +598,12 @@ namespace Microsoft.PSharp
 
                     if (this.StateStack.Count == 0)
                     {
-                        Machine.Dispatcher.Log("<PopLog> Machine '{0}({1})' popped with unhandled event '{2}'.",
+                        base.Runtime.Log("<PopLog> Machine '{0}({1})' popped with unhandled event '{2}'.",
                             this, base.Id.MVal, e.GetType().FullName);
                     }
                     else
                     {
-                        Machine.Dispatcher.Log("<PopLog> Machine '{0}({1})' popped with unhandled event '{2}' " +
+                        base.Runtime.Log("<PopLog> Machine '{0}({1})' popped with unhandled event '{2}' " +
                             "and reentered state '{3}.", this, base.Id.MVal, e.GetType().FullName,
                             this.StateStack.Peek().GetType().Name);
                         this.ConfigureStateTransitions(this.StateStack.Peek());
@@ -679,10 +668,10 @@ namespace Microsoft.PSharp
                     events += " '" + ew.Key.Name + "'";
                 }
 
-                Machine.Dispatcher.Log("<ReceiveLog> Machine '{0}({1})' is waiting on events:{2}.",
+                base.Runtime.Log("<ReceiveLog> Machine '{0}({1})' is waiting on events:{2}.",
                     this, base.Id.MVal, events);
 
-                Machine.Dispatcher.NotifyWaitEvent(this.Id);
+                base.Runtime.NotifyWaitEvent(this.Id);
             }
             
             this.HandleReceivedEvent();
@@ -740,53 +729,6 @@ namespace Microsoft.PSharp
             }
 
             return false;
-        }
-
-        /// <summary>
-        /// Initializes information about the states of the machine.
-        /// </summary>
-        private void InitializeStateInformation()
-        {
-            this.StateTypes = new HashSet<Type>();
-            this.States = new HashSet<MachineState>();
-
-            Type machineType = this.GetType();
-            Type initialStateType = null;
-
-            while (machineType != typeof(Machine))
-            {
-                foreach (var s in machineType.GetNestedTypes(BindingFlags.Instance |
-                    BindingFlags.NonPublic | BindingFlags.Public |
-                    BindingFlags.DeclaredOnly))
-                {
-                    if (s.IsClass && s.IsSubclassOf(typeof(MachineState)))
-                    {
-                        if (s.IsDefined(typeof(Start), false))
-                        {
-                            this.Assert(initialStateType == null, "Machine '{0}' can not have " +
-                                "more than one start states.", this.GetType().Name);
-                            initialStateType = s;
-                        }
-
-                        this.Assert(s.BaseType == typeof(MachineState), "State '{0}' is " +
-                            "not of the correct type.", s.Name);
-                        this.StateTypes.Add(s);
-                    }
-                }
-
-                machineType = machineType.BaseType;
-            }
-
-            foreach (var type in this.StateTypes)
-            {
-                MachineState state = Activator.CreateInstance(type) as MachineState;
-                state.InitializeState(this);
-                this.States.Add(state);
-            }
-
-            var initialState = this.States.First(val => val.GetType().Equals(initialStateType));
-            this.ConfigureStateTransitions(initialState);
-            this.StateStack.Push(initialState);
         }
         
         /// <summary>
@@ -865,7 +807,7 @@ namespace Microsoft.PSharp
         /// <param name="s">Type of the state</param>
         private void PushState(Type s)
         {
-            Machine.Dispatcher.Log("<PushLog> Machine '{0}({1})' pushed.", this, base.Id.MVal);
+            base.Runtime.Log("<PushLog> Machine '{0}({1})' pushed.", this, base.Id.MVal);
 
             var nextState = this.States.First(val => val.GetType().Equals(s));
             this.ConfigureStateTransitions(nextState);
@@ -884,7 +826,7 @@ namespace Microsoft.PSharp
         [DebuggerStepThrough]
         private void Do(Action a)
         {
-            Machine.Dispatcher.Log("<ActionLog> Machine '{0}({1})' executed action '{2}' in state '{3}'.",
+            base.Runtime.Log("<ActionLog> Machine '{0}({1})' executed action '{2}' in state '{3}'.",
                 this, base.Id.MVal, a.Method.Name,
                 this.StateStack.Peek().GetType().Name);
             
@@ -894,13 +836,13 @@ namespace Microsoft.PSharp
             }
             catch (TaskCanceledException)
             {
-                Machine.Dispatcher.Log("<Exception> TaskCanceledException was thrown from " +
+                base.Runtime.Log("<Exception> TaskCanceledException was thrown from " +
                     "Machine '{0}({1})'.", this, base.Id.MVal);
                 this.IsHalted = true;
             }
             catch (TaskSchedulerException)
             {
-                Machine.Dispatcher.Log("<Exception> TaskSchedulerException was thrown from " +
+                base.Runtime.Log("<Exception> TaskSchedulerException was thrown from " +
                     "Machine '{0}({1})'.", this, base.Id.MVal);
                 this.IsHalted = true;
             }
@@ -926,7 +868,7 @@ namespace Microsoft.PSharp
         [DebuggerStepThrough]
         private void ExecuteCurrentStateOnEntry()
         {
-            Machine.Dispatcher.Log("<StateLog> Machine '{0}({1})' entering state '{2}'.",
+            base.Runtime.Log("<StateLog> Machine '{0}({1})' entering state '{2}'.",
                 this, base.Id.MVal, this.StateStack.Peek().GetType().Name);
 
             try
@@ -936,13 +878,13 @@ namespace Microsoft.PSharp
             }
             catch (TaskCanceledException)
             {
-                Machine.Dispatcher.Log("<Exception> TaskCanceledException was thrown from " +
+                base.Runtime.Log("<Exception> TaskCanceledException was thrown from " +
                     "Machine '{0}({1})'.", this, base.Id.MVal);
                 this.IsHalted = true;
             }
             catch (TaskSchedulerException)
             {
-                Machine.Dispatcher.Log("<Exception> TaskSchedulerException was thrown from " +
+                base.Runtime.Log("<Exception> TaskSchedulerException was thrown from " +
                     "Machine '{0}({1})'.", this, base.Id.MVal);
                 this.IsHalted = true;
             }
@@ -965,7 +907,7 @@ namespace Microsoft.PSharp
         [DebuggerStepThrough]
         private void ExecuteCurrentStateOnExit(Action onExit)
         {
-            Machine.Dispatcher.Log("<ExitLog> Machine '{0}({1})' exiting state '{2}'.",
+            base.Runtime.Log("<ExitLog> Machine '{0}({1})' exiting state '{2}'.",
                 this, base.Id.MVal, this.StateStack.Peek().GetType().Name);
 
             try
@@ -979,13 +921,13 @@ namespace Microsoft.PSharp
             }
             catch (TaskCanceledException)
             {
-                Machine.Dispatcher.Log("<Exception> TaskCanceledException was thrown from " +
+                base.Runtime.Log("<Exception> TaskCanceledException was thrown from " +
                     "Machine '{0}({1})'.", this, base.Id.MVal);
                 this.IsHalted = true;
             }
             catch (TaskSchedulerException)
             {
-                Machine.Dispatcher.Log("<Exception> TaskSchedulerException was thrown from " +
+                base.Runtime.Log("<Exception> TaskSchedulerException was thrown from " +
                     "Machine '{0}({1})'.", this, base.Id.MVal);
                 this.IsHalted = true;
             }
@@ -1011,12 +953,12 @@ namespace Microsoft.PSharp
             if (startNewOp || e.GetType().IsDefined(typeof(StartOperation)))
             {
                 e.OperationId = Machine.FreshOperationId();
-                Machine.Dispatcher.Log("<OperationLog> Assigned new operation with ID '{0}'", e.OperationId);
+                base.Runtime.Log("<OperationLog> Assigned new operation with ID '{0}'", e.OperationId);
             }
             else
             {
                 e.OperationId = this.OperationId;
-                Machine.Dispatcher.Log("<OperationLog> Assigned operation with ID '{0}'", e.OperationId);
+                base.Runtime.Log("<OperationLog> Assigned operation with ID '{0}'", e.OperationId);
             }
         }
 
@@ -1051,7 +993,56 @@ namespace Microsoft.PSharp
 
         #endregion
 
-        #region cleanup methods
+        #region configuration and cleanup methods
+
+        /// <summary>
+        /// Initializes information about the states of the machine.
+        /// </summary>
+        internal void InitializeStateInformation()
+        {
+            this.StateTypes = new HashSet<Type>();
+            this.States = new HashSet<MachineState>();
+
+            Type machineType = this.GetType();
+            Type initialStateType = null;
+
+            while (machineType != typeof(Machine))
+            {
+                foreach (var s in machineType.GetNestedTypes(BindingFlags.Instance |
+                    BindingFlags.NonPublic | BindingFlags.Public |
+                    BindingFlags.DeclaredOnly))
+                {
+                    if (s.IsClass && s.IsSubclassOf(typeof(MachineState)))
+                    {
+                        if (s.IsDefined(typeof(Start), false))
+                        {
+                            this.Assert(initialStateType == null, "Machine '{0}' can not have " +
+                                "more than one start states.", this.GetType().Name);
+                            initialStateType = s;
+                        }
+
+                        this.Assert(s.BaseType == typeof(MachineState), "State '{0}' is " +
+                            "not of the correct type.", s.Name);
+                        this.StateTypes.Add(s);
+                    }
+                }
+
+                machineType = machineType.BaseType;
+            }
+
+            foreach (var type in this.StateTypes)
+            {
+                MachineState state = Activator.CreateInstance(type) as MachineState;
+                state.InitializeState(this);
+                this.States.Add(state);
+            }
+
+            var initialState = this.States.First(val => val.GetType().Equals(initialStateType));
+            this.ConfigureStateTransitions(initialState);
+            this.StateStack.Push(initialState);
+
+            this.AssertStateValidity();
+        }
 
         /// <summary>
         /// Cleans up resources at machine termination.
