@@ -77,7 +77,6 @@
   <ItemGroup>
     <Compile Include="Attributes\Cold.cs" />
     <Compile Include="Attributes\IgnoreEvents.cs" />
-    <Compile Include="Attributes\StartOperation.cs" />
     <Compile Include="Attributes\Test.cs" />
     <Compile Include="Attributes\DeferEvents.cs" />
     <Compile Include="Attributes\OnEventPushState.cs" />

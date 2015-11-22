@@ -171,13 +171,12 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="m">MachineId</param>
         /// <param name="e">Event</param>
-        /// <param name="startNewOp">Starts a new operation</param>
-        protected internal void Send(MachineId mid, Event e, bool startNewOp = false)
+        /// <param name="isStarter">Is starting a new operation</param>
+        protected internal void Send(MachineId mid, Event e, bool isStarter = false)
         {
             // If the event is null then report an error and exit.
             this.Assert(e != null, "Machine '{0}' is sending a null event.", this.GetType().Name);
-            this.SetOperationIdFor(startNewOp, e);
-            base.Runtime.Send(mid, e);
+            base.Runtime.Send(this, mid, e, isStarter);
         }
 
         /// <summary>
@@ -189,7 +188,7 @@ namespace Microsoft.PSharp
         {
             // If the event is null then report an error and exit.
             this.Assert(e != null, "Machine '{0}' is sending a null event.", this.GetType().Name);
-            base.Runtime.Monitor<T>(e);
+            base.Runtime.Monitor<T>(this, e);
         }
 
         /// <summary>
@@ -940,25 +939,6 @@ namespace Microsoft.PSharp
 
                 // Handles generic exception.
                 this.ReportGenericAssertion(ex);
-            }
-        }
-
-        /// <summary>
-        /// Sets the operation ID for the given event.
-        /// </summary>
-        /// <param name="startNewOp">Starts new operation</param>
-        /// <param name="e">Event</param>
-        private void SetOperationIdFor(bool startNewOp, Event e)
-        {
-            if (startNewOp || e.GetType().IsDefined(typeof(StartOperation)))
-            {
-                e.OperationId = Machine.FreshOperationId();
-                base.Runtime.Log("<OperationLog> Assigned new operation with ID '{0}'", e.OperationId);
-            }
-            else
-            {
-                e.OperationId = this.OperationId;
-                base.Runtime.Log("<OperationLog> Assigned operation with ID '{0}'", e.OperationId);
             }
         }
 

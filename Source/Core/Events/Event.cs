@@ -29,7 +29,7 @@ namespace Microsoft.PSharp
         #region fields
         
         /// <summary>
-        /// Declares the Operation that this event corresponds.
+        /// The operation id of this event.
         /// </summary>
         internal ulong OperationId;
 

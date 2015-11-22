@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="RandomStrategy.cs" company="Microsoft">
+// <copyright file="OperationBoundingStrategy.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -21,19 +21,19 @@ using System.Linq;
 using Microsoft.PSharp.Scheduling;
 using Microsoft.PSharp.Utilities;
 
-namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
+namespace Microsoft.PSharp.SystematicTesting.Scheduling
 {
     /// <summary>
     /// Class representing an operation bounding scheduling strategy.
     /// </summary>
-    public class OperationBoundingRandomStrategy : ISchedulingStrategy
+    public class OperationBoundingStrategy : ISchedulingStrategy
     {
         #region fields
 
         /// <summary>
-        /// The analysis context.
+        /// The configuration.
         /// </summary>
-        protected AnalysisContext AnalysisContext;
+        protected Configuration Configuration;
 
         /// <summary>
         /// The machine scheduler.
@@ -72,39 +72,18 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="context">AnalysisContext</param>
+        /// <param name="context">Configuration</param>
         /// <param name="delays">Max number of delays</param>
         /// <param name="machineSchedulingStrategy">Machine scheduling strategy</param>
-        public OperationBoundingRandomStrategy(AnalysisContext context, int delays,
+        public OperationBoundingStrategy(Configuration configuration, int delays,
             ISchedulingStrategy machineSchedulingStrategy)
         {
-            this.AnalysisContext = context;
+            this.Configuration = configuration;
             this.MachineScheduler = machineSchedulingStrategy;
             this.EnabledOperationId = 0;
             this.Delays = delays;
-            this.Seed = this.AnalysisContext.Configuration.RandomSchedulingSeed
-                ?? DateTime.Now.Millisecond;
+            this.Seed = this.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
             this.SchedulingSteps = 0;
-            this.Random = new Random(this.Seed);
-        }
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="context">AnalysisContext</param>
-        /// <param name="delays">Max number of delays</param>
-        /// <param name="machineSchedulingStrategy">Machine scheduling strategy</param>
-        /// <param name="seed">Scheduling steps</param>
-        public OperationBoundingRandomStrategy(AnalysisContext context, int delays,
-            ISchedulingStrategy machineSchedulingStrategy, int steps)
-        {
-            this.AnalysisContext = context;
-            this.MachineScheduler = machineSchedulingStrategy;
-            this.EnabledOperationId = 0;
-            this.Delays = delays;
-            this.Seed = this.AnalysisContext.Configuration.RandomSchedulingSeed
-                ?? DateTime.Now.Millisecond;
-            this.SchedulingSteps = steps;
             this.Random = new Random(this.Seed);
         }
 
@@ -220,7 +199,7 @@ namespace Microsoft.PSharp.DynamicAnalysis.Scheduling
         /// <returns>String</returns>
         public string GetDescription()
         {
-            return "Operation bounding with " + this.MachineScheduler.GetDescription();
+            return "Operation-bounding with " + this.MachineScheduler.GetDescription();
         }
 
         #endregion

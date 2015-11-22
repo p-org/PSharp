@@ -65,6 +65,7 @@
     <Compile Include="Exploration\TraceStepType.cs" />
     <Compile Include="Liveness\LivenessChecker.cs" />
     <Compile Include="SchedulingStrategies\DelayBoundingStrategy.cs" />
+    <Compile Include="SchedulingStrategies\OperationBoundingStrategy.cs" />
     <Compile Include="Scheduling\BugFindingScheduler.cs" />
     <Compile Include="Scheduling\TaskAwareBugFindingScheduler.cs" />
     <Compile Include="SchedulingStrategies\ISchedulingStrategy.cs" />

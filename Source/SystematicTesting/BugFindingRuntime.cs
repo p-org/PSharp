@@ -84,6 +84,11 @@ namespace Microsoft.PSharp.SystematicTesting
         /// </summary>
         internal LivenessChecker LivenessChecker;
 
+        /// <summary>
+        /// Monotonically increasing machine id counter.
+        /// </summary>
+        private ulong OperationIdCounter;
+
         #endregion
 
         #region public API
@@ -110,6 +115,8 @@ namespace Microsoft.PSharp.SystematicTesting
             this.LivenessChecker = new LivenessChecker(this);
 
             this.IsRunning = true;
+
+            this.OperationIdCounter = 0;
         }
 
         /// <summary>
@@ -124,7 +131,7 @@ namespace Microsoft.PSharp.SystematicTesting
 
             try
             {
-                this.Send(target, e);
+                this.Send(null, target, e, false);
             }
             catch (TaskCanceledException)
             {
@@ -141,7 +148,7 @@ namespace Microsoft.PSharp.SystematicTesting
         {
             // If the event is null then report an error and exit.
             this.Assert(e != null, "Cannot send a null event.");
-            this.Monitor<T>(e);
+            this.Monitor<T>(null, e);
         }
 
         /// <summary>
@@ -331,16 +338,19 @@ namespace Microsoft.PSharp.SystematicTesting
         /// <summary>
         /// Sends an asynchronous event to a machine.
         /// </summary>
+        /// <param name="sender">Sender machine</param>
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
-        internal override void Send(MachineId mid, Event e)
+        /// <param name="isStarter">Is starting a new operation</param>
+        internal override void Send(BaseMachine sender, MachineId mid, Event e, bool isStarter)
         {
             this.Assert(mid != null, "Cannot send to a null machine.");
             this.Assert(e != null, "Cannot send a null event.");
-            
-            if (this.TaskMap.ContainsKey((int)Task.CurrentId))
+
+            this.SetEventOperationId(sender, e, isStarter);
+
+            if (sender != null)
             {
-                Machine sender = this.TaskMap[(int)Task.CurrentId];
                 Output.Log("<SendLog> Machine '{0}({1})' sent event '{2}' to '{3}({4})'.",
                     sender, sender.Id.MVal, e.GetType(), mid.Type, mid.MVal);
             }
@@ -392,9 +402,10 @@ namespace Microsoft.PSharp.SystematicTesting
         /// <summary>
         /// Invokes the specified monitor with the given event.
         /// </summary>
+        /// <param name="sender">Sender machine</param>
         /// <typeparam name="T">Type of the monitor</typeparam>
         /// <param name="e">Event</param>
-        internal override void Monitor<T>(Event e)
+        internal override void Monitor<T>(BaseMachine sender, Event e)
         {
             foreach (var m in this.Monitors)
             {
@@ -538,7 +549,37 @@ namespace Microsoft.PSharp.SystematicTesting
 
         #endregion
 
-        #region TPL API
+        #region private methods
+
+        /// <summary>
+        /// Sets the operation id for the given event.
+        /// </summary>
+        /// <param name="sender">Sender machine</param>
+        /// <param name="e">Event</param>
+        /// <param name="isStarter">Is starting a new operation</param>
+        private void SetEventOperationId(BaseMachine sender, Event e, bool isStarter)
+        {
+            if (isStarter)
+            {
+                this.OperationIdCounter++;
+                e.OperationId = this.OperationIdCounter;
+                base.Log("<OperationLog> Assigned new operation with ID '{0}'", e.OperationId);
+            }
+            else if (sender != null)
+            {
+                e.OperationId = sender.OperationId;
+                base.Log("<OperationLog> Assigned operation with ID '{0}'", e.OperationId);
+            }
+            else
+            {
+                e.OperationId = 0;
+                base.Log("<OperationLog> Assigned operation with ID '{0}'", e.OperationId);
+            }
+        }
+
+        #endregion
+
+        #region TPL methods
 
         /// <summary>
         /// Waits for all of the provided task objects to complete execution.

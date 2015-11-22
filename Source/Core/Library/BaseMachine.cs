@@ -21,29 +21,6 @@ namespace Microsoft.PSharp
     /// </summary>
     public abstract class BaseMachine
     {
-        #region static fields
-
-        /// <summary>
-        /// Monotonically increasing machine id counter.
-        /// </summary>
-        private static ulong OperationIdCounter;
-
-        #endregion
-
-        #region static methods
-
-        /// <summary>
-        /// Gets a new fresh OperationId from the monotonically increasing 
-        /// OperationIdCounter counter.
-        /// </summary>
-        /// <returns></returns>
-        internal static ulong FreshOperationId()
-        {
-            return ++BaseMachine.OperationIdCounter;
-        }
-
-        #endregion
-
         #region fields
 
         /// <summary>
@@ -57,7 +34,7 @@ namespace Microsoft.PSharp
         protected internal MachineId Id { get; private set; }
 
         /// <summary>
-        /// Last operation's ID.
+        /// Latest operation id.
         /// </summary>
         internal ulong OperationId = 0;
 

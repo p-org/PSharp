@@ -77,8 +77,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         public DelayBoundingStrategy(Configuration configuration, int delays)
         {
             this.Configuration = configuration;
-            this.Seed = this.Configuration.RandomSchedulingSeed
-                ?? DateTime.Now.Millisecond;
+            this.Seed = this.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
             this.SchedulingSteps = 0;
             this.MaxSchedulingSteps = 0;
             this.Random = new Random(this.Seed);
