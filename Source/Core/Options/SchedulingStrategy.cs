@@ -26,16 +26,20 @@ namespace Microsoft.PSharp.Utilities
         /// <summary>
         /// Depth-first search scheduling.
         /// </summary>
-        DFS = 1,
+        DFS,
         /// <summary>
         /// Depth-first search scheduling with
         /// iterative deepening.
         /// </summary>
-        IDDFS = 2,
+        IDDFS,
+        /// <summary>
+        /// Delay-bounding scheduling.
+        /// </summary>
+        DelayBounding,
         /// <summary>
         /// MaceMC based search scheduling to detect
         /// potential liveness violations.
         /// </summary>
-        MaceMC = 3
+        MaceMC
     }
 }

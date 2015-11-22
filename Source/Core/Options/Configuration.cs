@@ -110,6 +110,11 @@ namespace Microsoft.PSharp.Utilities
         public int DepthBound;
 
         /// <summary>
+        /// Delay bound. By default it is 2.
+        /// </summary>
+        public int DelayBound;
+
+        /// <summary>
         /// Safety prefix bound. By default it is 0.
         /// </summary>
         public int SafetyPrefixBound;
@@ -225,6 +230,7 @@ namespace Microsoft.PSharp.Utilities
 
             this.FullExploration = false;
             this.DepthBound = 10000;
+            this.DelayBound = 2;
             this.SafetyPrefixBound = 0;
 
             this.ScheduleIntraMachineConcurrency = false;

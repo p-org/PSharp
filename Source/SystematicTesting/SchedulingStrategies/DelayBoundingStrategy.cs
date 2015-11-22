@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="RandomStrategy.cs" company="Microsoft">
+// <copyright file="DelayBoundingStrategy.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -24,9 +24,9 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.SystematicTesting.Scheduling
 {
     /// <summary>
-    /// Class representing a random-walk scheduling strategy.
+    /// Class representing a delay-bounding scheduling strategy.
     /// </summary>
-    public class RandomStrategy : ISchedulingStrategy
+    public class DelayBoundingStrategy : ISchedulingStrategy
     {
         #region fields
 
@@ -50,6 +50,21 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// </summary>
         private int SchedulingSteps;
 
+        /// <summary>
+        /// The maximum number of scheduling steps (explored so far).
+        /// </summary>
+        private int MaxSchedulingSteps;
+
+        /// <summary>
+        /// The maximum number of delays.
+        /// </summary>
+        private int MaxDelays;
+
+        /// <summary>
+        /// The remaining delays.
+        /// </summary>
+        private List<int> RemainingDelays;
+
         #endregion
 
         #region public API
@@ -58,13 +73,17 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// Constructor.
         /// </summary>
         /// <param name="configuration">Configuration</param>
-        public RandomStrategy(Configuration configuration)
+        /// <param name="delays">Max number of delays</param>
+        public DelayBoundingStrategy(Configuration configuration, int delays)
         {
             this.Configuration = configuration;
             this.Seed = this.Configuration.RandomSchedulingSeed
                 ?? DateTime.Now.Millisecond;
             this.SchedulingSteps = 0;
+            this.MaxSchedulingSteps = 0;
             this.Random = new Random(this.Seed);
+            this.MaxDelays = delays;
+            this.RemainingDelays = new List<int>();
         }
 
         /// <summary>
@@ -76,7 +95,16 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// <returns>Boolean value</returns>
         public bool TryGetNext(out TaskInfo next, List<TaskInfo> tasks, TaskInfo currentTask)
         {
-            var availableTasks = tasks.Where(
+            tasks = tasks.OrderBy(task => task.Machine.Id.Value).ToList();
+
+            var currentTaskIdx = tasks.IndexOf(currentTask);
+            var orderedTasks = tasks.GetRange(currentTaskIdx, tasks.Count - currentTaskIdx);
+            if (currentTaskIdx != 0)
+            {
+                orderedTasks.AddRange(tasks.GetRange(0, currentTaskIdx));
+            }
+
+            var availableTasks = orderedTasks.Where(
                 task => task.IsEnabled && !task.IsBlocked && !task.IsWaiting).ToList();
             if (availableTasks.Count == 0)
             {
@@ -84,7 +112,15 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                 return false;
             }
 
-            int idx = this.Random.Next(availableTasks.Count);
+            int idx = 0;
+            while (this.RemainingDelays.Count > 0 && this.SchedulingSteps == this.RemainingDelays[0])
+            {
+                idx = (idx + 1) % availableTasks.Count;
+                this.RemainingDelays.RemoveAt(0);
+
+                Output.PrintLine("....... Inserted delay, {0} remaining", this.RemainingDelays.Count);
+            }
+
             next = availableTasks[idx];
 
             if (!currentTask.IsCompleted)
@@ -159,7 +195,16 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// </summary>
         public void ConfigureNextIteration()
         {
+            this.MaxSchedulingSteps = Math.Max(this.MaxSchedulingSteps, this.SchedulingSteps);
             this.SchedulingSteps = 0;
+
+            this.RemainingDelays.Clear();
+            for (int idx = 0; idx < this.MaxDelays; idx++)
+            {
+                this.RemainingDelays.Add(this.Random.Next(this.MaxSchedulingSteps));
+            }
+
+            this.RemainingDelays.Sort();
         }
 
         /// <summary>
@@ -168,6 +213,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         public void Reset()
         {
             this.SchedulingSteps = 0;
+            this.RemainingDelays.Clear();
             this.Random = new Random(this.Seed);
         }
 
@@ -177,7 +223,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// <returns>String</returns>
         public string GetDescription()
         {
-            return "Random-walk (with seed '" + this.Seed + "')";
+            return "Delay-bounding (with delays '" + this.MaxDelays + "' and seed '" + this.Seed + "')";
         }
 
         #endregion

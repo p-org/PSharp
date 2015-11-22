@@ -87,15 +87,8 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// <returns>Boolean value</returns>
         public bool TryGetNext(out TaskInfo next, List<TaskInfo> tasks, TaskInfo currentTask)
         {
-            var enabledTasks = tasks.Where(task => task.IsEnabled).ToList();
-            if (enabledTasks.Count == 0)
-            {
-                next = null;
-                return false;
-            }
-
-            var availableTasks = enabledTasks.Where(
-                task => !task.IsBlocked && !task.IsWaiting).ToList();
+            var availableTasks = tasks.Where(
+                task => task.IsEnabled && !task.IsBlocked && !task.IsWaiting).ToList();
             if (availableTasks.Count == 0)
             {
                 next = null;

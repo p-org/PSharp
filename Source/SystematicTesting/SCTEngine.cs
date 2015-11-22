@@ -138,6 +138,11 @@ namespace Microsoft.PSharp.SystematicTesting
                 this.Strategy = new IterativeDeepeningDFSStrategy(this.AnalysisContext.Configuration);
                 this.AnalysisContext.Configuration.FullExploration = false;
             }
+            else if (this.AnalysisContext.Configuration.SchedulingStrategy == SchedulingStrategy.DelayBounding)
+            {
+                this.Strategy = new DelayBoundingStrategy(this.AnalysisContext.Configuration,
+                    this.AnalysisContext.Configuration.DelayBound);
+            }
             else if (this.AnalysisContext.Configuration.SchedulingStrategy == SchedulingStrategy.MaceMC)
             {
                 this.Strategy = new MaceMCStrategy(this.AnalysisContext.Configuration);
