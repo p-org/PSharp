@@ -27,7 +27,7 @@ namespace Microsoft.PSharp
     /// <summary>
     /// Abstract class representing a P# state machine.
     /// </summary>
-    public abstract class Machine : BaseMachine
+    public abstract class Machine : AbstractMachine
     {
         #region fields
 
@@ -391,7 +391,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Runs the event handler. The handlers terminates if there
+        /// Runs the event handler. The handler terminates if there
         /// is no next event to process or if the machine is halted.
         /// </summary>
         internal void RunEventHandler()
@@ -429,8 +429,9 @@ namespace Microsoft.PSharp
                     }
                 }
 
-                // Set OperationId.
-                this.OperationId = nextEvent.OperationId;
+                // Set the operation id of the machine to the operation
+                // id of the dequeued event.
+                this.SetOperationId(nextEvent.OperationId);
 
                 // Assigns the received event.
                 this.ReceivedEvent = nextEvent;
@@ -449,22 +450,20 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Returns the next operation ID.
+        /// Returns the next operation id, or the current
+        /// if there is no next operation id
         /// </summary>
         /// <param name="operationId">OperationId</param>
         /// <returns>Boolean</returns>
-        internal override bool TryGetNextOperationId(out ulong operationId)
+        internal override int GetNextOperationId()
         {
-            var result = false;
-            operationId = 0;
-
-            if (this.Inbox.Count > 0)
+            var id = this.OperationId;
+            if (!this.IsRunning && this.Inbox.Count > 0)
             {
-                operationId = this.Inbox[0].OperationId;
-                result = true;
+                id = this.Inbox[0].OperationId;
             }
 
-            return result;
+            return id;
         }
 
         /// <summary>

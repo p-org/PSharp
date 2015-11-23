@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="DelayBoundingStrategy.cs" company="Microsoft">
+// <copyright file="RandomDelayBoundingStrategy.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -24,49 +24,10 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.SystematicTesting.Scheduling
 {
     /// <summary>
-    /// Class representing a delay-bounding scheduling strategy.
+    /// Class representing a random delay-bounding scheduling strategy.
     /// </summary>
-    public class DelayBoundingStrategy : ISchedulingStrategy
+    public class RandomDelayBoundingStrategy : DelayBoundingStrategy, ISchedulingStrategy
     {
-        #region fields
-
-        /// <summary>
-        /// The configuration.
-        /// </summary>
-        protected Configuration Configuration;
-
-        /// <summary>
-        /// Nondeterminitic seed.
-        /// </summary>
-        private int Seed;
-
-        /// <summary>
-        /// Randomizer.
-        /// </summary>
-        private Random Random;
-
-        /// <summary>
-        /// The number of explored scheduling steps.
-        /// </summary>
-        private int SchedulingSteps;
-
-        /// <summary>
-        /// The maximum number of scheduling steps (explored so far).
-        /// </summary>
-        private int MaxSchedulingSteps;
-
-        /// <summary>
-        /// The maximum number of delays.
-        /// </summary>
-        private int MaxDelays;
-
-        /// <summary>
-        /// The remaining delays.
-        /// </summary>
-        private List<int> RemainingDelays;
-
-        #endregion
-
         #region public API
 
         /// <summary>
@@ -74,15 +35,10 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// </summary>
         /// <param name="configuration">Configuration</param>
         /// <param name="delays">Max number of delays</param>
-        public DelayBoundingStrategy(Configuration configuration, int delays)
+        public RandomDelayBoundingStrategy(Configuration configuration, int delays)
+            : base(configuration,delays)
         {
-            this.Configuration = configuration;
-            this.Seed = this.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
-            this.SchedulingSteps = 0;
-            this.MaxSchedulingSteps = 0;
-            this.Random = new Random(this.Seed);
-            this.MaxDelays = delays;
-            this.RemainingDelays = new List<int>();
+
         }
 
         /// <summary>
@@ -92,7 +48,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// <param name="tasks">Tasks</param>
         /// <param name="currentTask">Curent task</param>
         /// <returns>Boolean value</returns>
-        public bool TryGetNext(out TaskInfo next, List<TaskInfo> tasks, TaskInfo currentTask)
+        public override bool TryGetNext(out TaskInfo next, List<TaskInfo> tasks, TaskInfo currentTask)
         {
             tasks = tasks.OrderBy(task => task.Machine.Id.Value).ToList();
 
@@ -136,7 +92,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// <param name="maxValue">Max value</param>
         /// <param name="next">Next</param>
         /// <returns>Boolean value</returns>
-        public bool GetNextChoice(int maxValue, out bool next)
+        public override bool GetNextChoice(int maxValue, out bool next)
         {
             next = false;
             if (this.Random.Next(maxValue) == 1)
@@ -148,79 +104,19 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         }
 
         /// <summary>
-        /// Returns the explored scheduling steps.
-        /// </summary>
-        /// <returns>Scheduling steps</returns>
-        public int GetSchedulingSteps()
-        {
-            return this.SchedulingSteps;
-        }
-
-        /// <summary>  
-        /// Returns the depth bound.
-        /// </summary> 
-        /// <returns>Depth bound</returns>  
-        public int GetDepthBound()
-        {
-            return this.Configuration.DepthBound;
-        }
-
-        /// <summary>
-        /// True if the scheduling strategy reached the depth bound
-        /// for the given scheduling iteration.
-        /// </summary>
-        /// <returns>Depth bound</returns>
-        public bool HasReachedDepthBound()
-        {
-            if (this.Configuration.DepthBound == 0)
-            {
-                return false;
-            }
-
-            return this.SchedulingSteps == this.GetDepthBound();
-        }
-
-        /// <summary>
         /// Returns true if the scheduling has finished.
         /// </summary>
         /// <returns>Boolean value</returns>
-        public bool HasFinished()
+        public override bool HasFinished()
         {
             return false;
-        }
-        
-        /// <summary>
-        /// Configures the next scheduling iteration.
-        /// </summary>
-        public void ConfigureNextIteration()
-        {
-            this.MaxSchedulingSteps = Math.Max(this.MaxSchedulingSteps, this.SchedulingSteps);
-            this.SchedulingSteps = 0;
-
-            this.RemainingDelays.Clear();
-            for (int idx = 0; idx < this.MaxDelays; idx++)
-            {
-                this.RemainingDelays.Add(this.Random.Next(this.MaxSchedulingSteps));
-            }
-
-            this.RemainingDelays.Sort();
-        }
-
-        /// <summary>
-        /// Resets the scheduling strategy.
-        /// </summary>
-        public void Reset()
-        {
-            this.SchedulingSteps = 0;
-            this.RemainingDelays.Clear();
-            this.Random = new Random(this.Seed);
         }
 
         /// <summary>
         /// Returns a textual description of the scheduling strategy.
         /// </summary>
         /// <returns>String</returns>
-        public string GetDescription()
+        public override string GetDescription()
         {
             return "Delay-bounding (with delays '" + this.MaxDelays + "' and seed '" + this.Seed + "')";
         }

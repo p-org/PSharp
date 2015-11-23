@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="OperationBoundingStrategy.cs" company="Microsoft">
+// <copyright file="DelayBoundingStrategy.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -24,9 +24,9 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.SystematicTesting.Scheduling
 {
     /// <summary>
-    /// Class representing an operation bounding scheduling strategy.
+    /// Class representing an abstract delay-bounding scheduling strategy.
     /// </summary>
-    public class OperationBoundingStrategy : ISchedulingStrategy
+    public abstract class DelayBoundingStrategy : ISchedulingStrategy
     {
         #region fields
 
@@ -36,34 +36,34 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         protected Configuration Configuration;
 
         /// <summary>
-        /// The machine scheduler.
-        /// </summary>
-        private ISchedulingStrategy MachineScheduler;
-
-        /// <summary>
-        /// The currently enabled operation id.
-        /// </summary>
-        private ulong EnabledOperationId;
-
-        /// <summary>
-        /// Number of max delays.
-        /// </summary>
-        private int Delays;
-
-        /// <summary>
         /// Nondeterminitic seed.
         /// </summary>
-        private int Seed;
+        protected int Seed;
 
         /// <summary>
         /// Randomizer.
         /// </summary>
-        private Random Random;
+        protected Random Random;
 
         /// <summary>
         /// The number of explored scheduling steps.
         /// </summary>
-        private int SchedulingSteps;
+        protected int SchedulingSteps;
+
+        /// <summary>
+        /// The maximum number of scheduling steps (explored so far).
+        /// </summary>
+        protected int MaxSchedulingSteps;
+
+        /// <summary>
+        /// The maximum number of delays.
+        /// </summary>
+        protected int MaxDelays;
+
+        /// <summary>
+        /// The remaining delays.
+        /// </summary>
+        protected List<int> RemainingDelays;
 
         #endregion
 
@@ -72,19 +72,17 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="context">Configuration</param>
+        /// <param name="configuration">Configuration</param>
         /// <param name="delays">Max number of delays</param>
-        /// <param name="machineSchedulingStrategy">Machine scheduling strategy</param>
-        public OperationBoundingStrategy(Configuration configuration, int delays,
-            ISchedulingStrategy machineSchedulingStrategy)
+        public DelayBoundingStrategy(Configuration configuration, int delays)
         {
             this.Configuration = configuration;
-            this.MachineScheduler = machineSchedulingStrategy;
-            this.EnabledOperationId = 0;
-            this.Delays = delays;
             this.Seed = this.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
             this.SchedulingSteps = 0;
+            this.MaxSchedulingSteps = 0;
             this.Random = new Random(this.Seed);
+            this.MaxDelays = delays;
+            this.RemainingDelays = new List<int>();
         }
 
         /// <summary>
@@ -94,40 +92,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// <param name="tasks">Tasks</param>
         /// <param name="currentTask">Curent task</param>
         /// <returns>Boolean value</returns>
-        public bool TryGetNext(out TaskInfo next, List<TaskInfo> tasks, TaskInfo currentTask)
-        {
-            // TODO: check if it returns null
-            var availableOps = tasks.Select(val => val.Machine.OperationId).Distinct().ToList();
-            if (availableOps.Count == 0)
-            {
-                next = null;
-                return false;
-            }
-
-            if (!availableOps.Contains(this.EnabledOperationId))
-            {
-                int id = this.Random.Next(availableOps.Count);
-                this.EnabledOperationId = availableOps[id];
-            }
-            else if (this.Delays > 0 && this.Random.Next(2) == 1)
-            {
-                int id = this.Random.Next(availableOps.Count);
-                this.EnabledOperationId = availableOps[id];
-                this.Delays--;
-            }
-
-            var allowedTasks = new List<TaskInfo>();
-            foreach (var task in tasks)
-            {
-                ulong opId;
-                if (task.Machine.TryGetNextOperationId(out opId) && opId == this.EnabledOperationId)
-                {
-                    allowedTasks.Add(task);
-                }
-            }
-            
-            return this.MachineScheduler.TryGetNext(out next, allowedTasks, currentTask);
-        }
+        public abstract bool TryGetNext(out TaskInfo next, List<TaskInfo> tasks, TaskInfo currentTask);
 
         /// <summary>
         /// Returns the next choice.
@@ -135,27 +100,24 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// <param name="maxValue">Max value</param>
         /// <param name="next">Next</param>
         /// <returns>Boolean value</returns>
-        public bool GetNextChoice(int maxValue, out bool next)
-        {
-            return this.MachineScheduler.GetNextChoice(maxValue, out next);
-        }
+        public abstract bool GetNextChoice(int maxValue, out bool next);
 
         /// <summary>
         /// Returns the explored scheduling steps.
         /// </summary>
         /// <returns>Scheduling steps</returns>
-        public int GetSchedulingSteps()
+        public virtual int GetSchedulingSteps()
         {
-            return this.MachineScheduler.GetSchedulingSteps();
+            return this.SchedulingSteps;
         }
 
         /// <summary>  
         /// Returns the depth bound.
         /// </summary> 
         /// <returns>Depth bound</returns>  
-        public int GetDepthBound()
+        public virtual int GetDepthBound()
         {
-            return this.MachineScheduler.GetDepthBound();
+            return this.Configuration.DepthBound;
         }
 
         /// <summary>
@@ -163,44 +125,54 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// for the given scheduling iteration.
         /// </summary>
         /// <returns>Depth bound</returns>
-        public bool HasReachedDepthBound()
+        public virtual bool HasReachedDepthBound()
         {
-            return this.MachineScheduler.HasReachedDepthBound();
+            if (this.Configuration.DepthBound == 0)
+            {
+                return false;
+            }
+
+            return this.SchedulingSteps == this.GetDepthBound();
         }
 
         /// <summary>
         /// Returns true if the scheduling has finished.
         /// </summary>
         /// <returns>Boolean value</returns>
-        public bool HasFinished()
-        {
-            return this.MachineScheduler.HasFinished();
-        }
+        public abstract bool HasFinished();
         
         /// <summary>
         /// Configures the next scheduling iteration.
         /// </summary>
-        public void ConfigureNextIteration()
+        public virtual void ConfigureNextIteration()
         {
-            this.MachineScheduler.ConfigureNextIteration();
+            this.MaxSchedulingSteps = Math.Max(this.MaxSchedulingSteps, this.SchedulingSteps);
+            this.SchedulingSteps = 0;
+
+            this.RemainingDelays.Clear();
+            for (int idx = 0; idx < this.MaxDelays; idx++)
+            {
+                this.RemainingDelays.Add(this.Random.Next(this.MaxSchedulingSteps));
+            }
+
+            this.RemainingDelays.Sort();
         }
 
         /// <summary>
         /// Resets the scheduling strategy.
         /// </summary>
-        public void Reset()
+        public virtual void Reset()
         {
-            this.MachineScheduler.Reset();
+            this.SchedulingSteps = 0;
+            this.RemainingDelays.Clear();
+            this.Random = new Random(this.Seed);
         }
 
         /// <summary>
         /// Returns a textual description of the scheduling strategy.
         /// </summary>
         /// <returns>String</returns>
-        public string GetDescription()
-        {
-            return "Operation-bounding with " + this.MachineScheduler.GetDescription();
-        }
+        public abstract string GetDescription();
 
         #endregion
     }

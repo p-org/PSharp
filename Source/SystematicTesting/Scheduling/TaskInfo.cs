@@ -34,7 +34,7 @@ namespace Microsoft.PSharp.Scheduling
         /// <summary>
         /// The machine this task corresponds to.
         /// </summary>
-        internal BaseMachine Machine;
+        internal AbstractMachine Machine;
 
         /// <summary>
         /// List of wrapped tasks that block this task.
@@ -109,7 +109,7 @@ namespace Microsoft.PSharp.Scheduling
         /// </summary>
         /// <param name="id">TaskId</param>
         /// <param name="machine">Machine</param>
-        internal TaskInfo(int id, BaseMachine machine)
+        internal TaskInfo(int id, AbstractMachine machine)
         {
             this.Id = id;
             this.Machine = machine;

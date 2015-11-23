@@ -215,9 +215,9 @@ namespace Microsoft.PSharp.Scheduling
         /// Returns the enabled machines.
         /// </summary>
         /// <returns>Enabled machines</returns>
-        internal HashSet<BaseMachine> GetEnabledMachines()
+        internal HashSet<AbstractMachine> GetEnabledMachines()
         {
-            var enabledMachines = new HashSet<BaseMachine>();
+            var enabledMachines = new HashSet<AbstractMachine>();
             foreach (var taskInfo in this.Tasks)
             {
                 if (taskInfo.IsEnabled)
@@ -234,7 +234,7 @@ namespace Microsoft.PSharp.Scheduling
         /// </summary>
         /// <param name="id">TaskId</param>
         /// <param name="machine">Machine</param>
-        internal virtual void NotifyNewTaskCreated(int id, BaseMachine machine)
+        internal virtual void NotifyNewTaskCreated(int id, AbstractMachine machine)
         {
             var taskInfo = new TaskInfo(id, machine);
 
@@ -305,7 +305,7 @@ namespace Microsoft.PSharp.Scheduling
         /// Notify that the task received an event that it was waiting for.
         /// </summary>
         /// <param name="machine">Machine</param>
-        internal void NotifyTaskReceivedEvent(BaseMachine machine)
+        internal void NotifyTaskReceivedEvent(AbstractMachine machine)
         {
             var taskInfo = this.GetTaskFromMachine(machine);
 
@@ -362,7 +362,7 @@ namespace Microsoft.PSharp.Scheduling
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <returns>Boolean</returns>
-        internal bool HasEnabledTaskForMachine(BaseMachine machine)
+        internal bool HasEnabledTaskForMachine(AbstractMachine machine)
         {
             var enabledTasks = this.Tasks.Where(task => task.IsEnabled).ToList();
             return enabledTasks.Any(task => task.Machine.Equals(machine));
@@ -407,7 +407,7 @@ namespace Microsoft.PSharp.Scheduling
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <returns>TaskId</returns>
-        protected TaskInfo GetTaskFromMachine(BaseMachine machine)
+        protected TaskInfo GetTaskFromMachine(AbstractMachine machine)
         {
             TaskInfo taskInfo = null;
             foreach (var task in this.Tasks)

@@ -177,8 +177,8 @@ namespace Microsoft.PSharp.SystematicTesting
         {
             var result = false;
 
-            var enabledMachines = new HashSet<BaseMachine>();
-            var scheduledMachines = new HashSet<BaseMachine>();
+            var enabledMachines = new HashSet<AbstractMachine>();
+            var scheduledMachines = new HashSet<AbstractMachine>();
 
             var schedulingChoiceSteps= cycle.Where(
                 val => val.Key.Type == TraceStepType.SchedulingChoice);

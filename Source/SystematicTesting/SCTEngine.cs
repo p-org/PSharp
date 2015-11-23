@@ -140,8 +140,14 @@ namespace Microsoft.PSharp.SystematicTesting
             }
             else if (this.AnalysisContext.Configuration.SchedulingStrategy == SchedulingStrategy.DelayBounding)
             {
-                this.Strategy = new DelayBoundingStrategy(this.AnalysisContext.Configuration,
+                this.Strategy = new RandomDelayBoundingStrategy(this.AnalysisContext.Configuration,
                     this.AnalysisContext.Configuration.DelayBound);
+            }
+            else if (this.AnalysisContext.Configuration.SchedulingStrategy == SchedulingStrategy.OperationBounding)
+            {
+                this.Strategy = new OperationBoundingStrategy(this.AnalysisContext.Configuration,
+                    this.AnalysisContext.Configuration.OperationDelayBound,
+                    new RandomStrategy(this.AnalysisContext.Configuration));
             }
             else if (this.AnalysisContext.Configuration.SchedulingStrategy == SchedulingStrategy.MaceMC)
             {

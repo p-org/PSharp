@@ -31,7 +31,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// The operation id of this event.
         /// </summary>
-        internal ulong OperationId;
+        internal int OperationId;
 
         /// <summary>
         /// Specifies that there must not be more than k instances

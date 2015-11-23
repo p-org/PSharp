@@ -62,6 +62,10 @@ namespace Microsoft.PSharp.Utilities
                 {
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.DelayBounding;
                 }
+                else if (option.ToLower().Substring(5).Equals("opbound"))
+                {
+                    base.Configuration.SchedulingStrategy = SchedulingStrategy.OperationBounding;
+                }
                 else if (option.ToLower().Substring(5).Equals("macemc"))
                 {
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.MaceMC;
@@ -115,6 +119,17 @@ namespace Microsoft.PSharp.Utilities
 
                 base.Configuration.DelayBound = i;
             }
+            else if (option.ToLower().StartsWith("/op-delay-bound:") && option.Length > 16)
+            {
+                int i = 0;
+                if (!int.TryParse(option.Substring(16), out i) && i >= 0)
+                {
+                    ErrorReporter.ReportAndExit("Please give a valid operation delay bound " +
+                        "'/op-delay-bound:[x]', where [x] >= 0.");
+                }
+
+                base.Configuration.DelayBound = i;
+            }
             else if (option.ToLower().StartsWith("/prefix:") && option.Length > 8)
             {
                 int i = 0;
@@ -162,6 +177,7 @@ namespace Microsoft.PSharp.Utilities
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.DFS &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.IDDFS &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.DelayBounding &&
+                base.Configuration.SchedulingStrategy != SchedulingStrategy.OperationBounding &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.MaceMC)
             {
                 ErrorReporter.ReportAndExit("Please give a valid scheduling strategy " +

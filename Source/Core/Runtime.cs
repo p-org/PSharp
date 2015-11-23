@@ -317,7 +317,7 @@ namespace Microsoft.PSharp
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="isStarter">Is starting a new operation</param>
-        internal virtual void Send(BaseMachine sender, MachineId mid, Event e, bool isStarter)
+        internal virtual void Send(AbstractMachine sender, MachineId mid, Event e, bool isStarter)
         {
             if (mid == null)
             {
@@ -361,7 +361,7 @@ namespace Microsoft.PSharp
         /// <param name="sender">Sender machine</param>
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
-        internal virtual void SendRemotely(BaseMachine sender, MachineId mid, Event e)
+        internal virtual void SendRemotely(AbstractMachine sender, MachineId mid, Event e)
         {
             this.Send(sender, mid, e, false);
         }
@@ -372,7 +372,7 @@ namespace Microsoft.PSharp
         /// <param name="sender">Sender machine</param>
         /// <typeparam name="T">Type of the monitor</typeparam>
         /// <param name="e">Event</param>
-        internal virtual void Monitor<T>(BaseMachine sender, Event e)
+        internal virtual void Monitor<T>(AbstractMachine sender, Event e)
         {
             // No-op for real execution.
         }

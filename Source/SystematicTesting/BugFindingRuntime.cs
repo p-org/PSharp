@@ -87,7 +87,7 @@ namespace Microsoft.PSharp.SystematicTesting
         /// <summary>
         /// Monotonically increasing machine id counter.
         /// </summary>
-        private ulong OperationIdCounter;
+        private int OperationIdCounter;
 
         #endregion
 
@@ -342,7 +342,7 @@ namespace Microsoft.PSharp.SystematicTesting
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="isStarter">Is starting a new operation</param>
-        internal override void Send(BaseMachine sender, MachineId mid, Event e, bool isStarter)
+        internal override void Send(AbstractMachine sender, MachineId mid, Event e, bool isStarter)
         {
             this.Assert(mid != null, "Cannot send to a null machine.");
             this.Assert(e != null, "Cannot send a null event.");
@@ -410,7 +410,7 @@ namespace Microsoft.PSharp.SystematicTesting
         /// <param name="sender">Sender machine</param>
         /// <typeparam name="T">Type of the monitor</typeparam>
         /// <param name="e">Event</param>
-        internal override void Monitor<T>(BaseMachine sender, Event e)
+        internal override void Monitor<T>(AbstractMachine sender, Event e)
         {
             foreach (var m in this.Monitors)
             {
@@ -562,7 +562,7 @@ namespace Microsoft.PSharp.SystematicTesting
         /// <param name="sender">Sender machine</param>
         /// <param name="e">Event</param>
         /// <param name="isStarter">Is starting a new operation</param>
-        private void SetEventOperationId(BaseMachine sender, Event e, bool isStarter)
+        private void SetEventOperationId(AbstractMachine sender, Event e, bool isStarter)
         {
             if (isStarter)
             {

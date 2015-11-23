@@ -182,7 +182,7 @@ namespace Microsoft.PSharp.Scheduling
         /// </summary>
         /// <param name="id">TaskId</param>
         /// <param name="machine">Machine</param>
-        internal override void NotifyNewTaskCreated(int id, BaseMachine machine)
+        internal override void NotifyNewTaskCreated(int id, AbstractMachine machine)
         {
             var taskInfo = new TaskInfo(id, machine);
 

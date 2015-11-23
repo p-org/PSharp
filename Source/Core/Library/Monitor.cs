@@ -26,7 +26,7 @@ namespace Microsoft.PSharp
     /// <summary>
     /// Abstract class representing a P# monitor.
     /// </summary>
-    public abstract class Monitor : BaseMachine
+    public abstract class Monitor : AbstractMachine
     {
         #region fields
 

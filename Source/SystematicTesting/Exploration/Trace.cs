@@ -69,7 +69,7 @@ namespace Microsoft.PSharp.Exploration
         /// Adds a scheduling choice.
         /// </summary>
         /// <param name="scheduledMachine">Scheduled machine</param>
-        internal void AddSchedulingChoice(BaseMachine scheduledMachine)
+        internal void AddSchedulingChoice(AbstractMachine scheduledMachine)
         {
             var traceStep = TraceStep.CreateSchedulingChoice(this.Count, scheduledMachine);
             this.Push(traceStep);
