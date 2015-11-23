@@ -408,12 +408,21 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Notifies that a machine dequeued an event.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <param name="e">Event</param>
+        internal virtual void NotifyDequeuedEvent(Machine machine, Event e)
+        {
+            // No-op for real execution.
+        }
+
+        /// <summary>
         /// Notifies that a machine is waiting to receive an event.
         /// </summary>
-        /// <param name="mid">MachineId</param>
-        internal virtual void NotifyWaitEvent(MachineId mid)
+        /// <param name="machine">Machine</param>
+        internal virtual void NotifyWaitEvent(Machine machine)
         {
-            Machine machine = this.MachineMap[mid.Value];
             lock (machine)
             {
                 System.Threading.Monitor.Wait(machine);
@@ -423,10 +432,10 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Notifies that a machine received an event that it was waiting for.
         /// </summary>
-        /// <param name="mid">MachineId</param>
-        internal virtual void NotifyReceivedEvent(MachineId mid)
+        /// <param name="machine">Machine</param>
+        /// <param name="e">Event</param>
+        internal virtual void NotifyReceivedEvent(Machine machine, Event e)
         {
-            Machine machine = this.MachineMap[mid.Value];
             lock (machine)
             {
                 System.Threading.Monitor.Pulse(machine);

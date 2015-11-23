@@ -31,7 +31,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// The operation id of this event.
         /// </summary>
-        internal int OperationId;
+        internal int OperationId { get; private set; }
 
         /// <summary>
         /// Specifies that there must not be more than k instances
@@ -50,7 +50,7 @@ namespace Microsoft.PSharp
 
         #endregion
 
-        #region API
+        #region protected methods
 
         /// <summary>
         /// Constructor.
@@ -70,6 +70,19 @@ namespace Microsoft.PSharp
         {
             this.Assert = assert;
             this.Assume = assume;
+        }
+
+        #endregion
+
+        #region internal methods
+
+        /// <summary>
+        /// Sets the operation id of this event.
+        /// </summary>
+        /// <param name="opid">OperationId</param>
+        internal void SetOperationId(int opid)
+        {
+            this.OperationId = opid;
         }
 
         #endregion

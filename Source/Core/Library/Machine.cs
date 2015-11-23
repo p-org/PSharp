@@ -359,7 +359,7 @@ namespace Microsoft.PSharp
                     this.ReceivedEventHandler = new Tuple<Event, Action>(
                         e, this.EventWaiters[e.GetType()]);
                     this.EventWaiters.Clear();
-                    base.Runtime.NotifyReceivedEvent(this.Id);
+                    base.Runtime.NotifyReceivedEvent(this, e);
                     return;
                 }
 
@@ -429,10 +429,6 @@ namespace Microsoft.PSharp
                     }
                 }
 
-                // Set the operation id of the machine to the operation
-                // id of the dequeued event.
-                this.SetOperationId(nextEvent.OperationId);
-
                 // Assigns the received event.
                 this.ReceivedEvent = nextEvent;
 
@@ -455,16 +451,16 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="operationId">OperationId</param>
         /// <returns>Boolean</returns>
-        internal override int GetNextOperationId()
-        {
-            var id = this.OperationId;
-            if (!this.IsRunning && this.Inbox.Count > 0)
-            {
-                id = this.Inbox[0].OperationId;
-            }
+        //internal override int GetNextOperationId()
+        //{
+        //    var id = this.OperationId;
+        //    if (!this.IsRunning && this.Inbox.Count > 0)
+        //    {
+        //        id = this.Inbox[0].OperationId;
+        //    }
 
-            return id;
-        }
+        //    return id;
+        //}
 
         /// <summary>
         /// Returns the cached state of this machine.
@@ -544,6 +540,8 @@ namespace Microsoft.PSharp
                             this.GetType().Name, base.Id.MVal, nextEvent.GetType().FullName);
 
                         this.Inbox.RemoveAt(idx);
+                        base.Runtime.NotifyDequeuedEvent(this, nextEvent);
+
                         break;
                     }
                 }
@@ -669,7 +667,7 @@ namespace Microsoft.PSharp
                 base.Runtime.Log("<ReceiveLog> Machine '{0}({1})' is waiting on events:{2}.",
                     this, base.Id.MVal, events);
 
-                base.Runtime.NotifyWaitEvent(this.Id);
+                base.Runtime.NotifyWaitEvent(this);
             }
             
             this.HandleReceivedEvent();

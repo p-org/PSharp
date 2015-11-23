@@ -347,7 +347,7 @@ namespace Microsoft.PSharp.SystematicTesting
             this.Assert(mid != null, "Cannot send to a null machine.");
             this.Assert(e != null, "Cannot send a null event.");
             
-            this.SetEventOperationId(sender, e, isStarter);
+            this.SetOperationIdForEvent(e, sender, isStarter);
 
             if (Output.Debugging && sender != null)
             {
@@ -444,10 +444,22 @@ namespace Microsoft.PSharp.SystematicTesting
         }
 
         /// <summary>
+        /// Notifies that a machine dequeued an event.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <param name="e">Event</param>
+        internal override void NotifyDequeuedEvent(Machine machine, Event e)
+        {
+            // Set the operation id of the machine to the operation
+            // id of the dequeued event.
+            machine.SetOperationId(e.OperationId);
+        }
+
+        /// <summary>
         /// Notifies that a machine is waiting to receive an event.
         /// </summary>
-        /// <param name="mid">MachineId</param>
-        internal override void NotifyWaitEvent(MachineId mid)
+        /// <param name="machine">Machine</param>
+        internal override void NotifyWaitEvent(Machine machine)
         {
             this.BugFinder.NotifyTaskBlockedOnEvent(Task.CurrentId);
             this.BugFinder.Schedule();
@@ -456,10 +468,10 @@ namespace Microsoft.PSharp.SystematicTesting
         /// <summary>
         /// Notifies that a machine received an event that it was waiting for.
         /// </summary>
-        /// <param name="mid">MachineId</param>
-        internal override void NotifyReceivedEvent(MachineId mid)
+        /// <param name="machine">Machine</param>
+        /// <param name="e">Event</param>
+        internal override void NotifyReceivedEvent(Machine machine, Event e)
         {
-            Machine machine = this.MachineMap[mid.Value];
             this.BugFinder.NotifyTaskReceivedEvent(machine);
         }
 
@@ -559,23 +571,23 @@ namespace Microsoft.PSharp.SystematicTesting
         /// <summary>
         /// Sets the operation id for the given event.
         /// </summary>
-        /// <param name="sender">Sender machine</param>
         /// <param name="e">Event</param>
+        /// <param name="sender">Sender machine</param>
         /// <param name="isStarter">Is starting a new operation</param>
-        private void SetEventOperationId(AbstractMachine sender, Event e, bool isStarter)
+        private void SetOperationIdForEvent(Event e, AbstractMachine sender, bool isStarter)
         {
             if (isStarter)
             {
                 this.OperationIdCounter++;
-                e.OperationId = this.OperationIdCounter;
+                e.SetOperationId(this.OperationIdCounter);
             }
             else if (sender != null)
             {
-                e.OperationId = sender.OperationId;
+                e.SetOperationId(sender.OperationId);
             }
             else
             {
-                e.OperationId = 0;
+                e.SetOperationId(0);
             }
         }
 
