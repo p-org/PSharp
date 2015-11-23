@@ -50,11 +50,6 @@ namespace Microsoft.PSharp.SystematicTesting
         private Object Lock = new Object();
 
         /// <summary>
-        /// True if runtime is running. False otherwise.
-        /// </summary>
-        private bool IsRunning = false;
-
-        /// <summary>
         /// The P# program trace.
         /// </summary>
         internal Trace ProgramTrace;
@@ -85,14 +80,19 @@ namespace Microsoft.PSharp.SystematicTesting
         internal LivenessChecker LivenessChecker;
 
         /// <summary>
+        /// Monotonically increasing machine id counter.
+        /// </summary>
+        private int OperationIdCounter;
+
+        /// <summary>
         /// The P# operation-based scheduler.
         /// </summary>
         internal OperationScheduler OperationScheduler;
 
         /// <summary>
-        /// Monotonically increasing machine id counter.
+        /// True if runtime is running.
         /// </summary>
-        private int OperationIdCounter;
+        private bool IsRunning = false;
 
         #endregion
 
@@ -101,7 +101,8 @@ namespace Microsoft.PSharp.SystematicTesting
         /// <summary>
         /// Constructor.
         /// <param name="configuration">Configuration</param>
-        internal PSharpBugFindingRuntime(Configuration configuration)
+        /// <param name="strategy">SchedulingStrategy</param>
+        internal PSharpBugFindingRuntime(Configuration configuration, ISchedulingStrategy strategy)
             : base(configuration)
         {
             this.RootTaskId = Task.CurrentId;
@@ -113,16 +114,21 @@ namespace Microsoft.PSharp.SystematicTesting
             {
                 this.TaskScheduler = new TaskWrapperScheduler(this, this.MachineTasks);
                 TaskMachineExtensions.TaskScheduler = this.TaskScheduler as TaskWrapperScheduler;
+                this.BugFinder = new TaskAwareBugFindingScheduler(this, strategy);
+            }
+            else
+            {
+                this.BugFinder = new BugFindingScheduler(this, strategy);
             }
 
             this.ProgramTrace = new Trace();
             this.StateCache = new StateCache(this);
             this.LivenessChecker = new LivenessChecker(this);
+
+            this.OperationIdCounter = 0;
             this.OperationScheduler = new OperationScheduler(this);
 
             this.IsRunning = true;
-
-            this.OperationIdCounter = 0;
         }
 
         /// <summary>

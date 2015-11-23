@@ -169,16 +169,7 @@ namespace Microsoft.PSharp.SystematicTesting
                         Output.PrintLine("..... Iteration #{0}", i + 1);
                     }
 
-                    var runtime = new PSharpBugFindingRuntime(this.AnalysisContext.Configuration);
-
-                    if (this.AnalysisContext.Configuration.ScheduleIntraMachineConcurrency)
-                    {
-                        runtime.BugFinder = new TaskAwareBugFindingScheduler(runtime, this.Strategy);
-                    }
-                    else
-                    {
-                        runtime.BugFinder = new BugFindingScheduler(runtime, this.Strategy);
-                    }
+                    var runtime = new PSharpBugFindingRuntime(this.AnalysisContext.Configuration, this.Strategy);
 
                     StringWriter sw = null;
                     if (this.AnalysisContext.Configuration.RedirectConsoleOutput &&

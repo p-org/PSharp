@@ -46,6 +46,12 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// <returns>Scheduling steps</returns>
         int GetSchedulingSteps();
 
+        /// <summary>
+        /// Returns the maximum explored scheduling steps.
+        /// </summary>
+        /// <returns>Scheduling steps</returns>
+        int GetMaxSchedulingSteps();
+
         /// <summary>  
         /// Returns the depth bound.
         /// </summary> 

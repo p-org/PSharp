@@ -152,11 +152,6 @@ namespace Microsoft.PSharp.Utilities
         public int DelayBound;
 
         /// <summary>
-        /// Operation delay bound. By default it is 2.
-        /// </summary>
-        public int OperationDelayBound;
-
-        /// <summary>
         /// Safety prefix bound. By default it is 0.
         /// </summary>
         public int SafetyPrefixBound;
@@ -184,6 +179,16 @@ namespace Microsoft.PSharp.Utilities
         /// the interleavings between operations.
         /// </summary>
         public bool BoundOperations;
+
+        /// <summary>
+        /// Operation delay bound. By default it is 2.
+        /// </summary>
+        public int OperationDelayBound;
+
+        /// <summary>
+        /// Seed for random operation bounding strategies.
+        /// </summary>
+        internal int? RandomOperationBoundingSeed;
 
         #endregion
 
@@ -247,7 +252,6 @@ namespace Microsoft.PSharp.Utilities
 
             this.FullExploration = false;
             this.DepthBound = 10000;
-            this.DelayBound = 2;
             this.OperationDelayBound = 2;
             this.SafetyPrefixBound = 0;
 
@@ -255,6 +259,8 @@ namespace Microsoft.PSharp.Utilities
             this.CheckLiveness = false;
             this.CacheProgramState = false;
             this.BoundOperations = false;
+            this.DelayBound = 2;
+            this.RandomOperationBoundingSeed = null;
 
             this.NumberOfContainers = 1;
             this.ContainerId = 0;

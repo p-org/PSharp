@@ -45,11 +45,6 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         private Random Random;
 
         /// <summary>
-        /// The maximum number of scheduling steps (explored so far).
-        /// </summary>
-        private int MaxSchedulingSteps;
-
-        /// <summary>
         /// The remaining delays.
         /// </summary>
         private List<int> RemainingDelays;
@@ -70,11 +65,14 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         internal OperationScheduler(PSharpBugFindingRuntime runtime)
         {
             this.Runtime = runtime;
-            this.Seed = this.Runtime.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
-            this.MaxSchedulingSteps = 0;
+            this.Seed = this.Runtime.Configuration.RandomOperationBoundingSeed
+                ?? DateTime.Now.Millisecond;
             this.Random = new Random(this.Seed);
-            this.RemainingDelays = new List<int>();
+            
             this.PrioritizedOperationId = 0;
+
+            this.RemainingDelays = new List<int>();
+            this.GenerateDelays();
         }
 
         /// <summary>
@@ -130,32 +128,33 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
 
             return prioritizedMachines;
         }
-                
-        /// <summary>
-        /// Configures the next operation scheduling iteration.
-        /// </summary>
-        public void ConfigureNextIteration()
-        {
-            this.PrioritizedOperationId = 0;
-            this.MaxSchedulingSteps = Math.Max(this.MaxSchedulingSteps, this.Runtime.BugFinder.SchedulingPoints);
-
-            this.RemainingDelays.Clear();
-            for (int idx = 0; idx < this.Runtime.Configuration.OperationDelayBound; idx++)
-            {
-                this.RemainingDelays.Add(this.Random.Next(this.MaxSchedulingSteps));
-            }
-
-            this.RemainingDelays.Sort();
-        }
 
         /// <summary>
-        /// Resets the scheduling strategy.
+        /// Resets the operation bounding scheduler.
         /// </summary>
         public void Reset()
         {
             this.PrioritizedOperationId = 0;
             this.RemainingDelays.Clear();
             this.Random = new Random(this.Seed);
+        }
+
+        #endregion
+
+        #region private methods
+
+        /// <summary>
+        /// Generates delays at random points along the execution.
+        /// </summary>
+        private void GenerateDelays()
+        {
+            this.RemainingDelays.Clear();
+            for (int idx = 0; idx < this.Runtime.Configuration.OperationDelayBound; idx++)
+            {
+                this.RemainingDelays.Add(this.Random.Next(this.Runtime.BugFinder.MaxSchedulingPoints));
+            }
+
+            this.RemainingDelays.Sort();
         }
 
         #endregion

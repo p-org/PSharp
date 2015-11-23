@@ -67,6 +67,14 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         }
 
         /// <summary>
+        /// Maximum number of scheduling points.
+        /// </summary>
+        internal int MaxSchedulingPoints
+        {
+            get { return this.Strategy.GetMaxSchedulingSteps(); }
+        }
+
+        /// <summary>
         /// Bug report.
         /// </summary>
         internal string BugReport

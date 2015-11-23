@@ -115,17 +115,6 @@ namespace Microsoft.PSharp.Utilities
 
                 base.Configuration.DelayBound = i;
             }
-            else if (option.ToLower().StartsWith("/op-delay-bound:") && option.Length > 16)
-            {
-                int i = 0;
-                if (!int.TryParse(option.Substring(16), out i) && i >= 0)
-                {
-                    ErrorReporter.ReportAndExit("Please give a valid operation delay bound " +
-                        "'/op-delay-bound:[x]', where [x] >= 0.");
-                }
-
-                base.Configuration.OperationDelayBound = i;
-            }
             else if (option.ToLower().StartsWith("/prefix:") && option.Length > 8)
             {
                 int i = 0;
@@ -156,6 +145,28 @@ namespace Microsoft.PSharp.Utilities
             else if (option.ToLower().Equals("/opbound"))
             {
                 base.Configuration.BoundOperations = true;
+            }
+            else if (option.ToLower().StartsWith("/op-delay-bound:") && option.Length > 16)
+            {
+                int i = 0;
+                if (!int.TryParse(option.Substring(16), out i) && i >= 0)
+                {
+                    ErrorReporter.ReportAndExit("Please give a valid operation delay bound " +
+                        "'/op-delay-bound:[x]', where [x] >= 0.");
+                }
+
+                base.Configuration.OperationDelayBound = i;
+            }
+            else if (option.ToLower().StartsWith("/op-bound-seed:") && option.Length > 15)
+            {
+                int seed;
+                if (!int.TryParse(option.Substring(15), out seed))
+                {
+                    ErrorReporter.ReportAndExit("Please give a valid random operation bounding " +
+                        "seed '/sch-seed:[x]', where [x] is a signed 32-bit integer.");
+                }
+
+                base.Configuration.RandomOperationBoundingSeed = seed;
             }
             else
             {
