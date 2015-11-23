@@ -147,6 +147,12 @@ namespace Microsoft.PSharp.Utilities
         public int DepthBound;
 
         /// <summary>
+        /// If true, then the P# tester will consider an execution
+        /// that hits the depth bound as buggy.
+        /// </summary>
+        public bool ConsiderDepthBoundHitAsBug;
+
+        /// <summary>
         /// Delay bound. By default it is 2.
         /// </summary>
         public int DelayBound;
@@ -252,14 +258,15 @@ namespace Microsoft.PSharp.Utilities
 
             this.FullExploration = false;
             this.DepthBound = 10000;
-            this.OperationDelayBound = 2;
+            this.ConsiderDepthBoundHitAsBug = false;
+            this.DelayBound = 2;
             this.SafetyPrefixBound = 0;
 
             this.ScheduleIntraMachineConcurrency = false;
             this.CheckLiveness = false;
             this.CacheProgramState = false;
             this.BoundOperations = false;
-            this.DelayBound = 2;
+            this.OperationDelayBound = 2;
             this.RandomOperationBoundingSeed = null;
 
             this.NumberOfContainers = 1;

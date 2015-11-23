@@ -104,6 +104,10 @@ namespace Microsoft.PSharp.Utilities
 
                 base.Configuration.DepthBound = i;
             }
+            else if (option.ToLower().Equals("/depthboundbug"))
+            {
+                base.Configuration.ConsiderDepthBoundHitAsBug = true;
+            }
             else if (option.ToLower().StartsWith("/delay-bound:") && option.Length > 13)
             {
                 int i = 0;
