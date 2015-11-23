@@ -349,7 +349,8 @@ namespace Microsoft.PSharp.SystematicTesting
             
             this.SetOperationIdForEvent(e, sender, isStarter);
 
-            if (Output.Debugging && sender != null)
+            if (this.Configuration.SchedulingStrategy == SchedulingStrategy.OperationBounding &&
+                sender != null)
             {
                 Output.Log("<SendLog> Machine '{0}({1})' sent event '{2}({3})' to '{4}({5})'.",
                     sender, sender.Id.MVal, e.GetType(), e.OperationId, mid.Type, mid.MVal);
