@@ -19,7 +19,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.PSharp.Exploration
+namespace Microsoft.PSharp.SystematicTesting.Exploration
 {
     /// <summary>
     /// Class implementing a P# program trace. A trace is a series of

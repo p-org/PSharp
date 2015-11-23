@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Microsoft.PSharp.Scheduling;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.SystematicTesting.Scheduling
@@ -42,45 +41,45 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         }
 
         /// <summary>
-        /// Returns the next task to schedule.
+        /// Returns the next machine to schedule.
         /// </summary>
         /// <param name="next">Next</param>
-        /// <param name="tasks">Tasks</param>
-        /// <param name="currentTask">Curent task</param>
+        /// <param name="machines">Machines</param>
+        /// <param name="currentMachine">Curent machine</param>
         /// <returns>Boolean value</returns>
-        public override bool TryGetNext(out TaskInfo next, List<TaskInfo> tasks, TaskInfo currentTask)
+        public override bool TryGetNext(out MachineInfo next, List<MachineInfo> machines, MachineInfo currentMachine)
         {
-            tasks = tasks.OrderBy(task => task.Machine.Id.Value).ToList();
+            machines = machines.OrderBy(machine => machine.Machine.Id.Value).ToList();
 
-            var currentTaskIdx = tasks.IndexOf(currentTask);
-            var orderedTasks = tasks.GetRange(currentTaskIdx, tasks.Count - currentTaskIdx);
-            if (currentTaskIdx != 0)
+            var currentMachineIdx = machines.IndexOf(currentMachine);
+            var orderedMachines = machines.GetRange(currentMachineIdx, machines.Count - currentMachineIdx);
+            if (currentMachineIdx != 0)
             {
-                orderedTasks.AddRange(tasks.GetRange(0, currentTaskIdx));
+                orderedMachines.AddRange(machines.GetRange(0, currentMachineIdx));
             }
 
-            var availableTasks = orderedTasks.Where(
-                task => task.IsEnabled && !task.IsBlocked && !task.IsWaiting).ToList();
-            if (availableTasks.Count == 0)
+            var availableMachines = orderedMachines.Where(
+                m => m.IsEnabled && !m.IsBlocked && !m.IsWaiting).ToList();
+            if (availableMachines.Count == 0)
             {
                 next = null;
                 return false;
             }
 
             int idx = 0;
-            while (this.RemainingDelays.Count > 0 && this.SchedulingSteps == this.RemainingDelays[0])
+            while (base.RemainingDelays.Count > 0 && base.SchedulingSteps == base.RemainingDelays[0])
             {
-                idx = (idx + 1) % availableTasks.Count;
+                idx = (idx + 1) % availableMachines.Count;
                 this.RemainingDelays.RemoveAt(0);
 
-                Output.PrintLine("....... Inserted delay, {0} remaining", this.RemainingDelays.Count);
+                Output.PrintLine("<DelayLog> Inserted delay, '{0}' remaining.", base.RemainingDelays.Count);
             }
 
-            next = availableTasks[idx];
+            next = availableMachines[idx];
 
-            if (!currentTask.IsCompleted)
+            if (!currentMachine.IsCompleted)
             {
-                this.SchedulingSteps++;
+                base.SchedulingSteps++;
             }
 
             return true;
@@ -95,7 +94,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         public override bool GetNextChoice(int maxValue, out bool next)
         {
             next = false;
-            if (this.Random.Next(maxValue) == 1)
+            if (base.Random.Next(maxValue) == 1)
             {
                 next = true;
             }
@@ -118,7 +117,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// <returns>String</returns>
         public override string GetDescription()
         {
-            return "Delay-bounding (with delays '" + this.MaxDelays + "' and seed '" + this.Seed + "')";
+            return "Delay-bounding (with delays '" + base.MaxDelays + "' and seed '" + base.Seed + "')";
         }
 
         #endregion

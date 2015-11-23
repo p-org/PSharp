@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="TaskInfo.cs" company="Microsoft">
+// <copyright file="MachineInfo.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -17,43 +17,43 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Microsoft.PSharp.Scheduling
+namespace Microsoft.PSharp.SystematicTesting.Scheduling
 {
     /// <summary>
-    /// Class implementing task related information for scheduling purposes.
+    /// Class implementing machine related information for scheduling purposes.
     /// </summary>
-    public sealed class TaskInfo
+    public sealed class MachineInfo
     {
         #region fields
 
         /// <summary>
-        /// Task Id.
-        /// </summary>
-        public readonly int Id;
-
-        /// <summary>
-        /// The machine this task corresponds to.
+        /// The corresponding machine.
         /// </summary>
         internal AbstractMachine Machine;
 
         /// <summary>
-        /// List of wrapped tasks that block this task.
+        /// Task id of the machine.
         /// </summary>
-        internal List<TaskInfo> BlockingWrappedTasks;
+        public readonly int Id;
 
         /// <summary>
-        /// List of tasks that block this task.
+        /// List of wrapped tasks that block the machine.
+        /// </summary>
+        internal List<MachineInfo> BlockingWrappedTasks;
+
+        /// <summary>
+        /// List of tasks that block the machine.
         /// </summary>
         internal List<Task> BlockingUnwrappedTasks;
 
         /// <summary>
-        /// True if this task should wait all blocking
+        /// True if the machine should wait all blocking
         /// tasks to complete, before unblocking.
         /// </summary>
         internal bool WaitAll;
 
         /// <summary>
-        /// Is task enabled.
+        /// Is machine enabled.
         /// </summary>
         public bool IsEnabled
         {
@@ -61,7 +61,7 @@ namespace Microsoft.PSharp.Scheduling
         }
 
         /// <summary>
-        /// Is task waiting to receive an event.
+        /// Is machine waiting to receive an event.
         /// </summary>
         public bool IsWaiting
         {
@@ -69,7 +69,7 @@ namespace Microsoft.PSharp.Scheduling
         }
 
         /// <summary>
-        /// Is task blocked.
+        /// Is machine blocked.
         /// </summary>
         public bool IsBlocked
         {
@@ -77,7 +77,7 @@ namespace Microsoft.PSharp.Scheduling
         }
 
         /// <summary>
-        /// Is task active.
+        /// Is machine active.
         /// </summary>
         public bool IsActive
         {
@@ -85,7 +85,7 @@ namespace Microsoft.PSharp.Scheduling
         }
 
         /// <summary>
-        /// Has the task started.
+        /// Has the machine started.
         /// </summary>
         public bool HasStarted
         {
@@ -93,7 +93,7 @@ namespace Microsoft.PSharp.Scheduling
         }
 
         /// <summary>
-        /// Is task completed.
+        /// Is machine completed.
         /// </summary>
         public bool IsCompleted
         {
@@ -109,7 +109,7 @@ namespace Microsoft.PSharp.Scheduling
         /// </summary>
         /// <param name="id">TaskId</param>
         /// <param name="machine">Machine</param>
-        internal TaskInfo(int id, AbstractMachine machine)
+        internal MachineInfo(int id, AbstractMachine machine)
         {
             this.Id = id;
             this.Machine = machine;
@@ -120,7 +120,7 @@ namespace Microsoft.PSharp.Scheduling
             this.HasStarted = false;
             this.IsCompleted = false;
 
-            this.BlockingWrappedTasks = new List<TaskInfo>();
+            this.BlockingWrappedTasks = new List<MachineInfo>();
             this.BlockingUnwrappedTasks = new List<Task>();
             this.WaitAll = false;
         }
@@ -142,7 +142,7 @@ namespace Microsoft.PSharp.Scheduling
                 return false;
             }
 
-            TaskInfo mid = obj as TaskInfo;
+            MachineInfo mid = obj as MachineInfo;
             if (mid == null)
             {
                 return false;

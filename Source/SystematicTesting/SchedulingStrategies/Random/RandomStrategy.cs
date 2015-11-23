@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Microsoft.PSharp.Scheduling;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.SystematicTesting.Scheduling
@@ -67,26 +66,26 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         }
 
         /// <summary>
-        /// Returns the next task to schedule.
+        /// Returns the next machine to schedule.
         /// </summary>
         /// <param name="next">Next</param>
-        /// <param name="tasks">Tasks</param>
-        /// <param name="currentTask">Curent task</param>
+        /// <param name="machines">Machines</param>
+        /// <param name="currentMachine">Curent machine</param>
         /// <returns>Boolean value</returns>
-        public bool TryGetNext(out TaskInfo next, List<TaskInfo> tasks, TaskInfo currentTask)
+        public bool TryGetNext(out MachineInfo next, List<MachineInfo> machines, MachineInfo currentMachine)
         {
-            var availableTasks = tasks.Where(
-                task => task.IsEnabled && !task.IsBlocked && !task.IsWaiting).ToList();
-            if (availableTasks.Count == 0)
+            var availableMachines = machines.Where(
+                m => m.IsEnabled && !m.IsBlocked && !m.IsWaiting).ToList();
+            if (availableMachines.Count == 0)
             {
                 next = null;
                 return false;
             }
 
-            int idx = this.Random.Next(availableTasks.Count);
-            next = availableTasks[idx];
+            int idx = this.Random.Next(availableMachines.Count);
+            next = availableMachines[idx];
 
-            if (!currentTask.IsCompleted)
+            if (!currentMachine.IsCompleted)
             {
                 this.SchedulingSteps++;
             }

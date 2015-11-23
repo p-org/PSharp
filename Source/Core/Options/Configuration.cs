@@ -100,6 +100,43 @@ namespace Microsoft.PSharp.Utilities
         #region bug finding options
 
         /// <summary>
+        /// The assembly to be analyzed for bugs.
+        /// </summary>
+        public string AssemblyToBeAnalyzed;
+
+        /// <summary>
+        /// Scheduling strategy to use with the P# tester.
+        /// </summary>
+        public SchedulingStrategy SchedulingStrategy;
+
+        /// <summary>
+        /// Number of scheduling iterations.
+        /// </summary>
+        public int SchedulingIterations;
+
+        /// <summary>
+        /// Seed for random scheduling strategies.
+        /// </summary>
+        internal int? RandomSchedulingSeed;
+
+        /// <summary>
+        /// Redirects the console output.
+        /// </summary>
+        public bool RedirectConsoleOutput;
+
+        /// <summary>
+        /// If true, then the P# tester will print the trace
+        /// to a file, even if a bug is not found.
+        /// </summary>
+        public bool PrintTrace;
+
+        /// <summary>
+        /// If true, then the P# tester will not output the
+        /// error trace to a file.
+        /// </summary>
+        public bool SuppressTrace;
+
+        /// <summary>
         /// Systematic tester does not stop when it finds a bug.
         /// </summary>
         public bool FullExploration;
@@ -142,46 +179,11 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         public bool CacheProgramState;
 
-        #endregion
-
-        #region dynamic analysis options
-
         /// <summary>
-        /// The assembly to be analyzed for bugs.
+        /// If true, then the P# tester will try to bound
+        /// the interleavings between operations.
         /// </summary>
-        public string AssemblyToBeAnalyzed;
-
-        /// <summary>
-        /// Scheduling strategy to use with the P# tester.
-        /// </summary>
-        public SchedulingStrategy SchedulingStrategy;
-
-        /// <summary>
-        /// Number of scheduling iterations.
-        /// </summary>
-        public int SchedulingIterations;
-
-        /// <summary>
-        /// Seed for random scheduling strategies.
-        /// </summary>
-        internal int? RandomSchedulingSeed;
-
-        /// <summary>
-        /// Redirects the console output.
-        /// </summary>
-        public bool RedirectConsoleOutput;
-
-        /// <summary>
-        /// If true, then the P# tester will print the trace
-        /// to a file, even if a bug is not found.
-        /// </summary>
-        public bool PrintTrace;
-
-        /// <summary>
-        /// If true, then the P# tester will supress the trace
-        /// that leads to a found error to a file.
-        /// </summary>
-        public bool SuppressTrace;
+        public bool BoundOperations;
 
         #endregion
 
@@ -233,16 +235,6 @@ namespace Microsoft.PSharp.Utilities
             this.DoStateTransitionAnalysis = true;
             this.AnalyzeExceptionHandling = false;
 
-            this.FullExploration = false;
-            this.DepthBound = 10000;
-            this.DelayBound = 2;
-            this.OperationDelayBound = 2;
-            this.SafetyPrefixBound = 0;
-
-            this.ScheduleIntraMachineConcurrency = false;
-            this.CheckLiveness = false;
-            this.CacheProgramState = false;
-
             this.AssemblyToBeAnalyzed = "";
 
             this.SchedulingStrategy = SchedulingStrategy.Random;
@@ -252,6 +244,17 @@ namespace Microsoft.PSharp.Utilities
             this.RedirectConsoleOutput = true;
             this.PrintTrace = false;
             this.SuppressTrace = false;
+
+            this.FullExploration = false;
+            this.DepthBound = 10000;
+            this.DelayBound = 2;
+            this.OperationDelayBound = 2;
+            this.SafetyPrefixBound = 0;
+
+            this.ScheduleIntraMachineConcurrency = false;
+            this.CheckLiveness = false;
+            this.CacheProgramState = false;
+            this.BoundOperations = false;
 
             this.NumberOfContainers = 1;
             this.ContainerId = 0;

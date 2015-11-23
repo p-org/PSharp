@@ -18,7 +18,6 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.SystematicTesting.Scheduling;
-using Microsoft.PSharp.Scheduling;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.SystematicTesting
@@ -143,12 +142,6 @@ namespace Microsoft.PSharp.SystematicTesting
                 this.Strategy = new RandomDelayBoundingStrategy(this.AnalysisContext.Configuration,
                     this.AnalysisContext.Configuration.DelayBound);
             }
-            else if (this.AnalysisContext.Configuration.SchedulingStrategy == SchedulingStrategy.OperationBounding)
-            {
-                this.Strategy = new OperationBoundingStrategy(this.AnalysisContext.Configuration,
-                    this.AnalysisContext.Configuration.OperationDelayBound,
-                    new RandomStrategy(this.AnalysisContext.Configuration));
-            }
             else if (this.AnalysisContext.Configuration.SchedulingStrategy == SchedulingStrategy.MaceMC)
             {
                 this.Strategy = new MaceMCStrategy(this.AnalysisContext.Configuration);
@@ -243,8 +236,7 @@ namespace Microsoft.PSharp.SystematicTesting
 
                     this.Strategy.ConfigureNextIteration();
 
-                    if (!this.AnalysisContext.Configuration.FullExploration &&
-                      (this.NumOfFoundBugs > 0 || this.AnalysisContext.Configuration.PrintTrace))
+                    if (!this.AnalysisContext.Configuration.FullExploration && this.NumOfFoundBugs > 0)
                     {
                         if (sw != null && !this.AnalysisContext.Configuration.SuppressTrace)
                         {
@@ -252,6 +244,10 @@ namespace Microsoft.PSharp.SystematicTesting
                         }
                         
                         break;
+                    }
+                    else if (sw != null && this.AnalysisContext.Configuration.PrintTrace)
+                    {
+                        this.PrintTrace(sw);
                     }
                 }
             });

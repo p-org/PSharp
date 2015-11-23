@@ -16,21 +16,21 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.PSharp.Scheduling
+namespace Microsoft.PSharp.SystematicTesting.Scheduling
 {
     /// <summary>
-    /// Interface of a generic scheduling strategy.
+    /// Interface of a generic machine scheduling strategy.
     /// </summary>
     public interface ISchedulingStrategy
     {
         /// <summary>
-        /// Returns the next task to schedule.
+        /// Returns the next machine to schedule.
         /// </summary>
         /// <param name="next">Next</param>
-        /// <param name="tasks">Tasks</param>
-        /// <param name="currentTask">Curent task</param>
+        /// <param name="machines">Machines</param>
+        /// <param name="currentMachine">Curent machine</param>
         /// <returns>Boolean value</returns>
-        bool TryGetNext(out TaskInfo next, List<TaskInfo> tasks, TaskInfo currentTask);
+        bool TryGetNext(out MachineInfo next, List<MachineInfo> machines, MachineInfo currentMachine);
 
         /// <summary>
         /// Returns the next choice.

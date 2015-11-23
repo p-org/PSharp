@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Microsoft.PSharp.Scheduling;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.SystematicTesting.Scheduling

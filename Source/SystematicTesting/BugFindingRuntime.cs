@@ -19,9 +19,9 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Microsoft.PSharp.Exploration;
-using Microsoft.PSharp.Scheduling;
-using Microsoft.PSharp.StateCaching;
+using Microsoft.PSharp.SystematicTesting.Exploration;
+using Microsoft.PSharp.SystematicTesting.Scheduling;
+using Microsoft.PSharp.SystematicTesting.StateCaching;
 using Microsoft.PSharp.Threading;
 using Microsoft.PSharp.Utilities;
 
@@ -85,6 +85,11 @@ namespace Microsoft.PSharp.SystematicTesting
         internal LivenessChecker LivenessChecker;
 
         /// <summary>
+        /// The P# operation-based scheduler.
+        /// </summary>
+        internal OperationScheduler OperationScheduler;
+
+        /// <summary>
         /// Monotonically increasing machine id counter.
         /// </summary>
         private int OperationIdCounter;
@@ -113,6 +118,7 @@ namespace Microsoft.PSharp.SystematicTesting
             this.ProgramTrace = new Trace();
             this.StateCache = new StateCache(this);
             this.LivenessChecker = new LivenessChecker(this);
+            this.OperationScheduler = new OperationScheduler(this);
 
             this.IsRunning = true;
 
@@ -349,8 +355,7 @@ namespace Microsoft.PSharp.SystematicTesting
             
             this.SetOperationIdForEvent(e, sender, isStarter);
 
-            if (this.Configuration.SchedulingStrategy == SchedulingStrategy.OperationBounding &&
-                sender != null)
+            if (this.Configuration.BoundOperations && sender != null)
             {
                 Output.Log("<SendLog> Machine '{0}({1})' sent event '{2}({3})' to '{4}({5})'.",
                     sender, sender.Id.MVal, e.GetType(), e.OperationId, mid.Type, mid.MVal);

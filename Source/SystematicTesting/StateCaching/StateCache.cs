@@ -18,11 +18,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Microsoft.PSharp.Exploration;
-using Microsoft.PSharp.SystematicTesting;
+using Microsoft.PSharp.SystematicTesting.Exploration;
 using Microsoft.PSharp.Utilities;
 
-namespace Microsoft.PSharp.StateCaching
+namespace Microsoft.PSharp.SystematicTesting.StateCaching
 {
     /// <summary>
     /// Class implementing a P# state cache.

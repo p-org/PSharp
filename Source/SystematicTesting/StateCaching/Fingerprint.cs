@@ -17,7 +17,7 @@
 using System;
 using System.Globalization;
 
-namespace Microsoft.PSharp.StateCaching
+namespace Microsoft.PSharp.SystematicTesting.StateCaching
 {
     /// <summary>
     /// Class implementing a program state fingerprint.

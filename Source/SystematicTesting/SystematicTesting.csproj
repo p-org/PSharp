@@ -66,11 +66,11 @@
     <Compile Include="Liveness\LivenessChecker.cs" />
     <Compile Include="SchedulingStrategies\DelayBounded\RandomDelayBoundingStrategy.cs" />
     <Compile Include="SchedulingStrategies\DelayBounded\DelayBoundingStrategy.cs" />
-    <Compile Include="SchedulingStrategies\Special\OperationBoundingStrategy.cs" />
     <Compile Include="Scheduling\BugFindingScheduler.cs" />
+    <Compile Include="Scheduling\OperationScheduler.cs" />
     <Compile Include="Scheduling\TaskAwareBugFindingScheduler.cs" />
     <Compile Include="SchedulingStrategies\ISchedulingStrategy.cs" />
-    <Compile Include="Scheduling\TaskInfo.cs" />
+    <Compile Include="Scheduling\MachineInfo.cs" />
     <Compile Include="StateCaching\Fingerprint.cs" />
     <Compile Include="StateCaching\MonitorStatus.cs" />
     <Compile Include="StateCaching\State.cs" />

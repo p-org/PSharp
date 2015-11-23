@@ -37,10 +37,6 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         DelayBounding,
         /// <summary>
-        /// Operation-bounding scheduling.
-        /// </summary>
-        OperationBounding,
-        /// <summary>
         /// MaceMC based search scheduling to detect
         /// potential liveness violations.
         /// </summary>

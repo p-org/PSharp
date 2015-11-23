@@ -16,7 +16,7 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.PSharp.StateCaching
+namespace Microsoft.PSharp.SystematicTesting.StateCaching
 {
     /// <summary>
     /// Class implementing a P# program state.

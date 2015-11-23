@@ -14,7 +14,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-namespace Microsoft.PSharp.Exploration
+namespace Microsoft.PSharp.SystematicTesting.Exploration
 {
     /// <summary>
     /// The trace step type.
