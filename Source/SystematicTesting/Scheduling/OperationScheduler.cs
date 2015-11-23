@@ -81,7 +81,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// Returns the prioritized machines.
         /// </summary>
         /// <param name="machines">Machines</param>
-        /// <param name="currentMachines">Curent machine</param>
+        /// <param name="currentMachine">Curent machine</param>
         /// <returns>Boolean value</returns>
         public List<MachineInfo> GetPrioritizedMachines(List<MachineInfo> machines, MachineInfo currentMachine)
         {
