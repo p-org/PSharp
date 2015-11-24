@@ -36,17 +36,7 @@
     <Reference Include="Microsoft.PSharp">
       <HintPath>..\..\Binaries\Release\Microsoft.PSharp.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.PSharp.Runtime">
-      <HintPath>..\..\Binaries\Release\Microsoft.PSharp.Runtime.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Events\SlaveEvents.cs" />

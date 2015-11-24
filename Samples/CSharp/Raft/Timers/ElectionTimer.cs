@@ -4,7 +4,7 @@ using Microsoft.PSharp;
 
 namespace Raft
 {
-    internal class Timer : Machine
+    internal class ElectionTimer : Machine
     {
         internal class ConfigureEvent : Event
         {
@@ -40,28 +40,29 @@ namespace Raft
 
         [Start]
         [OnEventDoAction(typeof(ConfigureEvent), nameof(Configure))]
-        [OnEventGotoState(typeof(LocalEvent), typeof(Inactive))]
+        [OnEventGotoState(typeof(LocalEvent), typeof(Active))]
         class Init : MachineState { }
 
         void Configure()
         {
             this.Target = (this.ReceivedEvent as ConfigureEvent).Target;
-            this.Counter = 0;
+            this.Reset();
             this.Raise(new LocalEvent());
         }
 
-        [OnEventGotoState(typeof(StartTimer), typeof(Active))]
-        [IgnoreEvents(typeof(ResetTimer), typeof(CancelTimer), typeof(TickEvent))]
-        class Inactive : MachineState { }
+        void Reset()
+        {
+            this.Counter = 0;
+        }
 
-        [OnEntry(nameof(TimerStartedOnEntry))]
+        [OnEntry(nameof(ActiveOnEntry))]
         [OnEventDoAction(typeof(TickEvent), nameof(Tick))]
         [OnEventDoAction(typeof(ResetTimer), nameof(Reset))]
         [OnEventGotoState(typeof(CancelTimer), typeof(Inactive))]
         [IgnoreEvents(typeof(StartTimer))]
         class Active : MachineState { }
 
-        void TimerStartedOnEntry()
+        void ActiveOnEntry()
         {
             this.Send(this.Id, new TickEvent());
         }
@@ -73,21 +74,23 @@ namespace Raft
                 this.Counter++;
             }
 
-            if (this.Counter == 4)
+            if (this.Counter == 10)
             {
                 this.Reset();
-                this.Send(this.Target, new Timeout(this.Id));
-                this.Raise(new CancelTimer());
+                this.Send(this.Target, new Timeout(this.Id), true);
             }
-            else
-            {
-                this.Send(this.Id, new TickEvent());
-            }
+
+            this.Send(this.Id, new TickEvent());
         }
 
-        void Reset()
+        [OnExit(nameof(InactiveOnExit))]
+        [OnEventGotoState(typeof(StartTimer), typeof(Active))]
+        [IgnoreEvents(typeof(ResetTimer), typeof(CancelTimer), typeof(TickEvent))]
+        class Inactive : MachineState { }
+
+        void InactiveOnExit()
         {
-            this.Counter = 0;
+            this.Reset();
         }
     }
 }

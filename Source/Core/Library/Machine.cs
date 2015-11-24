@@ -823,8 +823,7 @@ namespace Microsoft.PSharp
         private void Do(Action a)
         {
             base.Runtime.Log("<ActionLog> Machine '{0}({1})' executed action '{2}' in state '{3}'.",
-                this, base.Id.MVal, a.Method.Name,
-                this.StateStack.Peek().GetType().Name);
+                this, base.Id.MVal, a.Method.Name, this.StateStack.Peek().GetType().Name);
             
             try
             {

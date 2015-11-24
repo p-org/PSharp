@@ -85,13 +85,14 @@ namespace Raft
 
             Console.WriteLine("\n [Client] new request " + this.LatestCommand + "\n");
 
-            this.Send(this.Cluster, new Request(this.Id, this.LatestCommand));
+            this.Send(this.Cluster, new Request(this.Id, this.LatestCommand), true);
         }
 
         void ProcessResponse()
         {
             if (this.Counter == 3)
             {
+                this.Send(this.Cluster, new ClusterManager.ShutDown());
                 this.Raise(new Halt());
             }
             else

@@ -122,7 +122,6 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                 else
                 {
                     Output.Debug("<ScheduleDebug> {0}", msg);
-
                     this.KillRemainingMachines();
                     throw new TaskCanceledException();
                 }
