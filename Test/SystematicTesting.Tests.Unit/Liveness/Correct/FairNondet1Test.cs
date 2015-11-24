@@ -103,7 +103,7 @@ namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
             configuration.Verbose = 3;
             configuration.CheckLiveness = true;
             configuration.CacheProgramState = true;
-            configuration.DepthBound = 1500;
+            configuration.SchedulingStrategy = SchedulingStrategy.DFS;
 
             Output.Debugging = true;
 
