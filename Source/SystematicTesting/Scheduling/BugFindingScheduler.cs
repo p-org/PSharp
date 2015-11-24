@@ -205,6 +205,22 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// <returns>Boolean value</returns>
         internal bool GetNextNondeterministicChoice(int maxValue, string uniqueId = null)
         {
+            // Check if the exploration depth-bound has been reached.
+            if (this.Strategy.HasReachedDepthBound())
+            {
+                var msg = Output.Format("Depth bound of {0} reached.", this.Strategy.GetDepthBound());
+                if (this.Runtime.Configuration.ConsiderDepthBoundHitAsBug)
+                {
+                    this.Runtime.BugFinder.NotifyAssertionFailure(msg, true);
+                }
+                else
+                {
+                    Output.Debug("<ScheduleDebug> {0}", msg);
+                    this.KillRemainingMachines();
+                    throw new TaskCanceledException();
+                }
+            }
+
             var choice = false;
             if (!this.Strategy.GetNextChoice(maxValue, out choice))
             {
