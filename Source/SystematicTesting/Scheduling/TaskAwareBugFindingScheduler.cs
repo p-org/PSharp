@@ -141,7 +141,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             base.Runtime.ProgramTrace.AddSchedulingChoice(next.Machine);
             if (base.Runtime.Configuration.CheckLiveness &&
                 base.Runtime.Configuration.CacheProgramState &&
-                base.Runtime.Configuration.SafetyPrefixBound <= this.SchedulingPoints)
+                base.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps)
             {
                 base.Runtime.StateCache.CaptureState(base.Runtime.ProgramTrace.Peek());
             }

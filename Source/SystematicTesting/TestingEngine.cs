@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="SCTEngine.cs">
+// <copyright file="TestingEngine.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -13,8 +13,10 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.SystematicTesting.Scheduling;
@@ -23,16 +25,36 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.SystematicTesting
 {
     /// <summary>
-    /// The P# systematic concurrency testing engine.
+    /// The P# testing engine.
     /// </summary>
-    public sealed class SCTEngine
+    public sealed class TestingEngine
     {
         #region fields
 
         /// <summary>
+        /// Configuration.
+        /// </summary>
+        internal Configuration Configuration;
+
+        /// <summary>
+        /// The P# assembly to analyze.
+        /// </summary>
+        internal Assembly Assembly;
+
+        /// <summary>
+        /// A P# test method.
+        /// </summary>
+        internal MethodInfo TestMethod;
+
+        /// <summary>
+        /// A P# test action.
+        /// </summary>
+        internal Action<PSharpRuntime> TestAction;
+
+        /// <summary>
         /// The analysis context.
         /// </summary>
-        private AnalysisContext AnalysisContext;
+        //private AnalysisContext AnalysisContext;
 
         /// <summary>
         /// The bug-finding scheduling strategy.
@@ -74,31 +96,43 @@ namespace Microsoft.PSharp.SystematicTesting
         #region public API
 
         /// <summary>
-        /// Creates a new systematic concurrency testing engine.
+        /// Creates a new P# testing engine.
         /// </summary>
         /// <param name="configuration">Configuration</param>
         /// <param name="action">Action</param>
-        /// <returns>SCTEngine</returns>
-        public static SCTEngine Create(Configuration configuration, Action<PSharpRuntime> action)
+        /// <returns>TestingEngine</returns>
+        public static TestingEngine Create(Configuration configuration, Action<PSharpRuntime> action)
         {
-            return SCTEngine.Create(AnalysisContext.Create(configuration, action));
+            return new TestingEngine(configuration, action);
         }
 
         /// <summary>
-        /// Creates a new systematic concurrency testing engine.
+        /// Creates a new P# testing engine.
         /// </summary>
-        /// <param name="context">AnalysisContext</param>
-        /// <returns>SCTEngine</returns>
-        internal static SCTEngine Create(AnalysisContext context)
+        /// <param name="configuration">Configuration</param>
+        /// <param name="assembly">Assembly</param>
+        /// <returns>TestingEngine</returns>
+        internal static TestingEngine Create(Configuration configuration, Assembly assembly)
         {
-            return new SCTEngine(context);
+            return new TestingEngine(configuration, assembly);
         }
 
         /// <summary>
-        /// Runs the P# systematic testing engine.
+        /// Creates a new P# testing engine.
         /// </summary>
-        /// <returns>SCTEngine</returns>
-        public SCTEngine Run()
+        /// <param name="configuration">Configuration</param>
+        /// <param name="assemblyName">Assembly name</param>
+        /// <returns>TestingEngine</returns>
+        internal static TestingEngine Create(Configuration configuration, string assemblyName)
+        {
+            return new TestingEngine(configuration, assemblyName);
+        }
+
+        /// <summary>
+        /// Runs the P# testing engine.
+        /// </summary>
+        /// <returns>TestingEngine</returns>
+        public TestingEngine Run()
         {
             this.FindBugs();
             this.Report();
@@ -107,86 +141,134 @@ namespace Microsoft.PSharp.SystematicTesting
 
         #endregion
 
-        #region private methods
+        #region initialization methods
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="context">AnalysisContext</param>
-        private SCTEngine(AnalysisContext context)
+        /// <param name="configuration">Configuration</param>
+        /// <param name="action">Action</param>
+        private TestingEngine(Configuration configuration, Action<PSharpRuntime> action)
         {
-            this.AnalysisContext = context;
+            this.Configuration = configuration;
+            this.TestAction = action;
+            this.Initialize();
+        }
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="configuration">Configuration</param>
+        /// <param name="assembly">Assembly</param>
+        private TestingEngine(Configuration configuration, Assembly assembly)
+        {
+            this.Configuration = configuration;
+            this.Assembly = assembly;
+            this.FindEntryPoint();
+            this.Initialize();
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="configuration">Configuration</param>
+        /// <param name="assemblyName">Assembly name</param>
+        private TestingEngine(Configuration configuration, string assemblyName)
+        {
+            this.Configuration = configuration;
+
+            try
+            {
+                this.Assembly = Assembly.LoadFrom(assemblyName);
+            }
+            catch (FileNotFoundException ex)
+            {
+                ErrorReporter.ReportAndExit(ex.Message);
+            }
+
+            this.FindEntryPoint();
+            this.Initialize();
+        }
+
+        /// <summary>
+        /// Initialized the testing engine.
+        /// </summary>
+        private void Initialize()
+        {
             this.NumOfFoundBugs = 0;
             this.BugReport = "";
             this.ExploredDepth = 0;
             this.ExploredSchedules = 0;
             this.PrintGuard = 1;
             
-            if (this.AnalysisContext.Configuration.SchedulingStrategy == SchedulingStrategy.Random)
+            if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Random)
             {
-                this.Strategy = new RandomStrategy(this.AnalysisContext.Configuration);
+                this.Strategy = new RandomStrategy(this.Configuration);
             }
-            else if (this.AnalysisContext.Configuration.SchedulingStrategy == SchedulingStrategy.DFS)
+            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.DFS)
             {
-                this.Strategy = new DFSStrategy(this.AnalysisContext.Configuration);
-                this.AnalysisContext.Configuration.FullExploration = false;
+                this.Strategy = new DFSStrategy(this.Configuration);
+                this.Configuration.FullExploration = false;
             }
-            else if (this.AnalysisContext.Configuration.SchedulingStrategy == SchedulingStrategy.IDDFS)
+            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.IDDFS)
             {
-                this.Strategy = new IterativeDeepeningDFSStrategy(this.AnalysisContext.Configuration);
-                this.AnalysisContext.Configuration.FullExploration = false;
+                this.Strategy = new IterativeDeepeningDFSStrategy(this.Configuration);
+                this.Configuration.FullExploration = false;
             }
-            else if (this.AnalysisContext.Configuration.SchedulingStrategy == SchedulingStrategy.DelayBounding)
+            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.DelayBounding)
             {
-                this.Strategy = new RandomDelayBoundingStrategy(this.AnalysisContext.Configuration,
-                    this.AnalysisContext.Configuration.DelayBound);
+                this.Strategy = new RandomDelayBoundingStrategy(this.Configuration,
+                    this.Configuration.DelayBound);
             }
-            else if (this.AnalysisContext.Configuration.SchedulingStrategy == SchedulingStrategy.MaceMC)
+            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.MaceMC)
             {
-                this.Strategy = new MaceMCStrategy(this.AnalysisContext.Configuration);
-                this.AnalysisContext.Configuration.FullExploration = false;
-                this.AnalysisContext.Configuration.CheckLiveness = true;
-                this.AnalysisContext.Configuration.CacheProgramState = false;
+                this.Strategy = new MaceMCStrategy(this.Configuration);
+                this.Configuration.FullExploration = false;
+                this.Configuration.CheckLiveness = true;
+                this.Configuration.CacheProgramState = false;
             }
 
             this.HasRedirectedConsoleOutput = false;
         }
+
+        #endregion
+
+        #region core methods
 
         /// <summary>
         /// Explores the P# program for bugs.
         /// </summary>
         private void FindBugs()
         {
-            Output.PrintLine("... Using '{0}' strategy", AnalysisContext.Configuration.SchedulingStrategy);
+            Output.PrintLine("... Using '{0}' strategy", this.Configuration.SchedulingStrategy);
 
             Task task = new Task(() =>
             {
-                for (int i = 0; i < this.AnalysisContext.Configuration.SchedulingIterations; i++)
+                for (int i = 0; i < this.Configuration.SchedulingIterations; i++)
                 {
                     if (this.ShouldPrintIteration(i + 1))
                     {
                         Output.PrintLine("..... Iteration #{0}", i + 1);
                     }
 
-                    var runtime = new PSharpBugFindingRuntime(this.AnalysisContext.Configuration, this.Strategy);
+                    var runtime = new PSharpBugFindingRuntime(this.Configuration, this.Strategy);
 
                     StringWriter sw = null;
-                    if (this.AnalysisContext.Configuration.RedirectConsoleOutput &&
-                        this.AnalysisContext.Configuration.Verbose < 2)
+                    if (this.Configuration.RedirectConsoleOutput &&
+                        this.Configuration.Verbose < 2)
                     {
                         sw = this.RedirectConsoleOutput();
                         this.HasRedirectedConsoleOutput = true;
                     }
 
                     // Start the test.
-                    if (this.AnalysisContext.TestAction != null)
+                    if (this.TestAction != null)
                     {
-                        this.AnalysisContext.TestAction(runtime);
+                        this.TestAction(runtime);
                     }
                     else
                     {
-                        this.AnalysisContext.TestMethod.Invoke(null, new object[] { runtime });
+                        this.TestMethod.Invoke(null, new object[] { runtime });
                     }
 
                     // Wait for test to terminate.
@@ -195,8 +277,8 @@ namespace Microsoft.PSharp.SystematicTesting
                     // Runs the liveness checker to find any liveness property violations.
                     // Requires that no bug has been found, the scheduler terminated before
                     // reaching the depth bound, and there is state caching is not active.
-                    if (this.AnalysisContext.Configuration.CheckLiveness &&
-                        !this.AnalysisContext.Configuration.CacheProgramState &&
+                    if (this.Configuration.CheckLiveness &&
+                        !this.Configuration.CacheProgramState &&
                         !runtime.BugFinder.BugFound)
                     {
                         runtime.LivenessChecker.Run();
@@ -208,7 +290,7 @@ namespace Microsoft.PSharp.SystematicTesting
                     }
 
                     this.ExploredSchedules++;
-                    this.ExploredDepth = runtime.BugFinder.SchedulingPoints;
+                    this.ExploredDepth = runtime.BugFinder.ExploredSteps;
 
                     if (runtime.BugFinder.BugFound)
                     {
@@ -227,16 +309,16 @@ namespace Microsoft.PSharp.SystematicTesting
 
                     this.Strategy.ConfigureNextIteration();
 
-                    if (!this.AnalysisContext.Configuration.FullExploration && this.NumOfFoundBugs > 0)
+                    if (!this.Configuration.FullExploration && this.NumOfFoundBugs > 0)
                     {
-                        if (sw != null && !this.AnalysisContext.Configuration.SuppressTrace)
+                        if (sw != null && !this.Configuration.SuppressTrace)
                         {
                             this.PrintTrace(sw);
                         }
                         
                         break;
                     }
-                    else if (sw != null && this.AnalysisContext.Configuration.PrintTrace)
+                    else if (sw != null && this.Configuration.PrintTrace)
                     {
                         this.PrintTrace(sw);
                     }
@@ -248,9 +330,9 @@ namespace Microsoft.PSharp.SystematicTesting
 
             try
             {
-                if (this.AnalysisContext.Configuration.Timeout > 0)
+                if (this.Configuration.Timeout > 0)
                 {
-                    task.Wait(this.AnalysisContext.Configuration.Timeout * 1000);
+                    task.Wait(this.Configuration.Timeout * 1000);
                 }
                 else
                 {
@@ -294,9 +376,9 @@ namespace Microsoft.PSharp.SystematicTesting
                     this.ExploredDepth, this.ExploredDepth == 1 ? "" : "s");
             }
 
-            if (this.AnalysisContext.Configuration.DepthBound > 0)
+            if (this.Configuration.DepthBound > 0)
             {
-                Output.PrintLine("... Used depth bound of {0}.", this.AnalysisContext.Configuration.DepthBound);
+                Output.PrintLine("... Used depth bound of {0}.", this.Configuration.DepthBound);
             }
 
             Output.PrintLine("... Elapsed {0} sec.", Profiler.Results());
@@ -308,8 +390,8 @@ namespace Microsoft.PSharp.SystematicTesting
         /// <param name="sw">StringWriter</param>
         private void PrintTrace(StringWriter sw)
         {
-            var name = Path.GetFileNameWithoutExtension(this.AnalysisContext.Assembly.Location);
-            var directory = Path.GetDirectoryName(this.AnalysisContext.Assembly.Location) +
+            var name = Path.GetFileNameWithoutExtension(this.Assembly.Location);
+            var directory = Path.GetDirectoryName(this.Assembly.Location) +
                 Path.DirectorySeparatorChar + "traces" + Path.DirectorySeparatorChar;
 
             Directory.CreateDirectory(directory);
@@ -319,6 +401,61 @@ namespace Microsoft.PSharp.SystematicTesting
 
             Output.PrintLine("... Writing {0}", path);
             File.WriteAllText(path, sw.ToString());
+        }
+
+        /// <summary>
+        /// Finds the entry point to the P# program.
+        /// </summary>
+        private void FindEntryPoint()
+        {
+            List<MethodInfo> testMethods = null;
+
+            try
+            {
+                testMethods = this.Assembly.GetTypes().SelectMany(t => t.GetMethods(BindingFlags.Static |
+                    BindingFlags.Public | BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod)).
+                    Where(m => m.GetCustomAttributes(typeof(Test), false).Length > 0).ToList();
+            }
+            catch (ReflectionTypeLoadException ex)
+            {
+                foreach (var le in ex.LoaderExceptions)
+                {
+                    ErrorReporter.Report(le.Message);
+                }
+
+                ErrorReporter.ReportAndExit("Failed to load assembly '{0}'", this.Assembly.FullName);
+            }
+            catch (Exception ex)
+            {
+                ErrorReporter.Report(ex.Message);
+                ErrorReporter.ReportAndExit("Failed to load assembly '{0}'", this.Assembly.FullName);
+            }
+
+            if (testMethods.Count == 0)
+            {
+                ErrorReporter.ReportAndExit("Cannot detect a P# test method. " +
+                    "Use the attribute [Test] to declare a test method.");
+            }
+            else if (testMethods.Count > 1)
+            {
+                ErrorReporter.ReportAndExit("Only one test method to the P# program can be declared. " +
+                    "{0} test methods were found instead.", testMethods.Count);
+            }
+
+            if (testMethods[0].ReturnType != typeof(void) ||
+                testMethods[0].ContainsGenericParameters ||
+                testMethods[0].IsAbstract || testMethods[0].IsVirtual ||
+                testMethods[0].IsConstructor ||
+                !testMethods[0].IsPublic || !testMethods[0].IsStatic ||
+                testMethods[0].GetParameters().Length != 1 ||
+                testMethods[0].GetParameters()[0].ParameterType != typeof(PSharpRuntime))
+            {
+                ErrorReporter.ReportAndExit("Incorrect test method declaration. Please " +
+                    "declare the test method as follows:\n" +
+                    "  [Test] public static void TestCase(PSharpRuntime runtime) { ... }");
+            }
+
+            this.TestMethod = testMethods[0];
         }
 
         #endregion

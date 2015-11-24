@@ -101,7 +101,7 @@ namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
 
             Output.Debugging = true;
 
-            var engine = SCTEngine.Create(configuration, TestProgram.Execute).Run();
+            var engine = TestingEngine.Create(configuration, TestProgram.Execute).Run();
             Assert.AreEqual(0, engine.NumOfFoundBugs);
         }
     }

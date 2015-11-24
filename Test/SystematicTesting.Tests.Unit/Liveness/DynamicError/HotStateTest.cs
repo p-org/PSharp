@@ -165,7 +165,7 @@ namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
 
             Output.Debugging = true;
 
-            var engine = SCTEngine.Create(configuration, TestProgram.Execute).Run();
+            var engine = TestingEngine.Create(configuration, TestProgram.Execute).Run();
             var bugReport = "Monitor 'M' detected liveness property violation in hot state 'Init'.";
             Assert.AreEqual(bugReport, engine.BugReport);
         }

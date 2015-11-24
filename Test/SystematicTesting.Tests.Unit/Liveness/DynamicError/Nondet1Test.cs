@@ -111,7 +111,7 @@ namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
 
             Output.Debugging = true;
 
-            var engine = SCTEngine.Create(configuration, TestProgram.Execute).Run();
+            var engine = TestingEngine.Create(configuration, TestProgram.Execute).Run();
             var bugReport = "Monitor 'WatchDog' detected infinite execution that violates a liveness property.";
             Assert.AreEqual(bugReport, engine.BugReport);
         }

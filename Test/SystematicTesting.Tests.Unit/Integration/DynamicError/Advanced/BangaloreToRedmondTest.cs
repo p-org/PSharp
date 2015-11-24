@@ -305,9 +305,9 @@ namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
             configuration.Verbose = 2;
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
 
-            var engine = SCTEngine.Create(configuration, TestProgram.Execute).Run();
-            //Assert.AreEqual(0, SCTEngine.NumOfFoundBugs);
-            //Assert.AreEqual(5, SCTEngine.ExploredDepth);
+            var engine = TestingEngine.Create(configuration, TestProgram.Execute).Run();
+            //Assert.AreEqual(0, TestingEngine.NumOfFoundBugs);
+            //Assert.AreEqual(5, TestingEngine.ExploredDepth);
         }
     }
 }

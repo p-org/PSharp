@@ -58,7 +58,6 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AnalysisContext.cs" />
     <Compile Include="BugFindingRuntime.cs" />
     <Compile Include="Exploration\Trace.cs" />
     <Compile Include="Exploration\TraceStep.cs" />
@@ -79,7 +78,7 @@
     <Compile Include="SchedulingStrategies\Exhaustive\IterativeDeepeningDFSStrategy.cs" />
     <Compile Include="SchedulingStrategies\Exhaustive\DFSStrategy.cs" />
     <Compile Include="SchedulingStrategies\Random\RandomStrategy.cs" />
-    <Compile Include="SCTEngine.cs" />
+    <Compile Include="TestingEngine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -71,7 +71,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// <returns>Depth bound</returns>
         public new bool HasReachedDepthBound()
         {
-            return base.SchedulingSteps == this.GetDepthBound();
+            return base.ExploredSteps == this.GetDepthBound();
         }
 
         /// <summary>

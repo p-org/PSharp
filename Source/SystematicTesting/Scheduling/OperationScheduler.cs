@@ -102,10 +102,10 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             }
 
             var operations = availableMachines.Select(val => val.Machine.OperationId).Distinct().ToList();
-
+            
             int idx = 0;
             while (this.RemainingDelays.Count > 0 &&
-                this.Runtime.BugFinder.SchedulingPoints == this.RemainingDelays[0])
+                this.Runtime.BugFinder.ExploredSteps == this.RemainingDelays[0])
             {
                 idx = (idx + 1) % operations.Count;
                 this.RemainingDelays.RemoveAt(0);
@@ -115,7 +115,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             }
 
             this.PrioritizedOperationId = operations[idx];
-
+            
             foreach (var mi in availableMachines)
             {
                 int opId = mi.Machine.GetNextOperationId();
@@ -151,7 +151,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             this.RemainingDelays.Clear();
             for (int idx = 0; idx < this.Runtime.Configuration.OperationDelayBound; idx++)
             {
-                this.RemainingDelays.Add(this.Random.Next(this.Runtime.BugFinder.MaxSchedulingPoints));
+                this.RemainingDelays.Add(this.Random.Next(this.Runtime.BugFinder.MaxExploredSteps));
             }
 
             this.RemainingDelays.Sort();

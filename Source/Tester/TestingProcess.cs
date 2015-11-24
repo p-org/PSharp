@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="SystematicTestingProcess.cs">
+// <copyright file="TestingProcess.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,19 +12,15 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System.IO;
-
-using Microsoft.CodeAnalysis;
-
 using Microsoft.PSharp.SystematicTesting;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// A P# systematic testing process.
+    /// A P# testing process.
     /// </summary>
-    internal sealed class SystematicTestingProcess
+    internal sealed class TestingProcess
     {
         #region fields
 
@@ -38,17 +34,17 @@ namespace Microsoft.PSharp
         #region API
 
         /// <summary>
-        /// Creates a P# systematic testing process.
+        /// Creates a P# testing process.
         /// </summary>
         /// <param name="configuration">Configuration</param>
         /// <returns>ParsingProcess</returns>
-        public static SystematicTestingProcess Create(Configuration configuration)
+        public static TestingProcess Create(Configuration configuration)
         {
-            return new SystematicTestingProcess(configuration);
+            return new TestingProcess(configuration);
         }
 
         /// <summary>
-        /// Starts the P# systematic testing process.
+        /// Starts the P# testing process.
         /// </summary>
         public void Start()
         {
@@ -64,7 +60,7 @@ namespace Microsoft.PSharp
         /// Constructor.
         /// </summary>
         /// <param name="configuration">Configuration</param>
-        private SystematicTestingProcess(Configuration configuration)
+        private TestingProcess(Configuration configuration)
         {
             this.Configuration = configuration;
         }
@@ -75,12 +71,9 @@ namespace Microsoft.PSharp
         /// <param name="dll">Assembly</param>
         private void TestAssembly(string dll)
         {
-            // Create a P# dynamic analysis context.
-            var context = AnalysisContext.Create(this.Configuration, dll);
-
-            // Creates and runs the systematic testing engine
+            // Creates and runs the P# testing engine
             // to find bugs in the P# program.
-            SCTEngine.Create(context).Run();
+            TestingEngine.Create(this.Configuration, dll).Run();
         }
 
         #endregion

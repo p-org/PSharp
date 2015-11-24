@@ -41,16 +41,16 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         bool GetNextChoice(int maxValue, out bool next);
 
         /// <summary>
-        /// Returns the explored scheduling steps.
+        /// Returns the explored steps.
         /// </summary>
-        /// <returns>Scheduling steps</returns>
-        int GetSchedulingSteps();
+        /// <returns>Explored steps</returns>
+        int GetExploredSteps();
 
         /// <summary>
-        /// Returns the maximum explored scheduling steps.
+        /// Returns the maximum explored steps.
         /// </summary>
-        /// <returns>Scheduling steps</returns>
-        int GetMaxSchedulingSteps();
+        /// <returns>Explored steps</returns>
+        int GetMaxExploredSteps();
 
         /// <summary>  
         /// Returns the depth bound.

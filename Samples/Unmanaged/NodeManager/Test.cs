@@ -15,7 +15,7 @@ namespace NodeManager
                 WithLivenessCheckingEnabled().
                 WithNumberOfIterations(10).
                 WithVerbosityEnabled(2);
-            SCTEngine.Create(configuration, Execute).Run();
+            TestingEngine.Create(configuration, Execute).Run();
         }
 
         [Microsoft.PSharp.Test]

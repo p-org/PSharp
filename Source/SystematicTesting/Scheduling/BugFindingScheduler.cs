@@ -59,19 +59,19 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         }
 
         /// <summary>
-        /// Number of scheduling points.
+        /// Number of explored steps.
         /// </summary>
-        internal int SchedulingPoints
+        internal int ExploredSteps
         {
-            get { return this.Strategy.GetSchedulingSteps(); }
+            get { return this.Strategy.GetExploredSteps(); }
         }
 
         /// <summary>
-        /// Maximum number of scheduling points.
+        /// Maximum number of explored steps.
         /// </summary>
-        internal int MaxSchedulingPoints
+        internal int MaxExploredSteps
         {
-            get { return this.Strategy.GetMaxSchedulingSteps(); }
+            get { return this.Strategy.GetMaxExploredSteps(); }
         }
 
         /// <summary>
@@ -156,7 +156,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             this.Runtime.ProgramTrace.AddSchedulingChoice(next.Machine);
             if (this.Runtime.Configuration.CheckLiveness &&
                 this.Runtime.Configuration.CacheProgramState &&
-                this.Runtime.Configuration.SafetyPrefixBound <= this.SchedulingPoints)
+                this.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps)
             {
                 this.Runtime.StateCache.CaptureState(this.Runtime.ProgramTrace.Peek());
             }
@@ -224,7 +224,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             
             if (this.Runtime.Configuration.CheckLiveness &&
                 this.Runtime.Configuration.CacheProgramState &&
-                this.Runtime.Configuration.SafetyPrefixBound <= this.SchedulingPoints)
+                this.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps)
             {
                 this.Runtime.StateCache.CaptureState(this.Runtime.ProgramTrace.Peek());
             }

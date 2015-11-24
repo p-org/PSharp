@@ -67,7 +67,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             }
 
             int idx = 0;
-            while (base.RemainingDelays.Count > 0 && base.SchedulingSteps == base.RemainingDelays[0])
+            while (base.RemainingDelays.Count > 0 && base.ExploredSteps == base.RemainingDelays[0])
             {
                 idx = (idx + 1) % availableMachines.Count;
                 this.RemainingDelays.RemoveAt(0);
@@ -79,7 +79,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
 
             if (!currentMachine.IsCompleted)
             {
-                base.SchedulingSteps++;
+                base.ExploredSteps++;
             }
 
             return true;
@@ -98,6 +98,8 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             {
                 next = true;
             }
+
+            this.ExploredSteps++;
 
             return true;
         }

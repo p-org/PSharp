@@ -45,14 +45,14 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         protected Random Random;
 
         /// <summary>
-        /// The maximum number of explored scheduling steps.
+        /// The maximum number of explored steps.
         /// </summary>
-        private int MaxSchedulingSteps;
+        private int MaxExploredSteps;
 
         /// <summary>
-        /// The number of explored scheduling steps.
+        /// The number of explored steps.
         /// </summary>
-        protected int SchedulingSteps;
+        protected int ExploredSteps;
 
         /// <summary>
         /// The maximum number of delays.
@@ -77,8 +77,8 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         {
             this.Configuration = configuration;
             this.Seed = this.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
-            this.MaxSchedulingSteps = 0;
-            this.SchedulingSteps = 0;
+            this.MaxExploredSteps = 0;
+            this.ExploredSteps = 0;
             this.Random = new Random(this.Seed);
             this.MaxDelays = delays;
             this.RemainingDelays = new List<int>();
@@ -102,21 +102,21 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         public abstract bool GetNextChoice(int maxValue, out bool next);
 
         /// <summary>
-        /// Returns the explored scheduling steps.
+        /// Returns the explored steps.
         /// </summary>
-        /// <returns>Scheduling steps</returns>
-        public virtual int GetSchedulingSteps()
+        /// <returns>Explored steps</returns>
+        public virtual int GetExploredSteps()
         {
-            return this.SchedulingSteps;
+            return this.ExploredSteps;
         }
 
         /// <summary>
-        /// Returns the maximum explored scheduling steps.
+        /// Returns the maximum explored steps.
         /// </summary>
-        /// <returns>Scheduling steps</returns>
-        public int GetMaxSchedulingSteps()
+        /// <returns>Explored steps</returns>
+        public int GetMaxExploredSteps()
         {
-            return this.MaxSchedulingSteps;
+            return this.MaxExploredSteps;
         }
 
         /// <summary>  
@@ -140,7 +140,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                 return false;
             }
 
-            return this.SchedulingSteps == this.GetDepthBound();
+            return this.ExploredSteps == this.GetDepthBound();
         }
 
         /// <summary>
@@ -154,13 +154,13 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// </summary>
         public virtual void ConfigureNextIteration()
         {
-            this.MaxSchedulingSteps = Math.Max(this.MaxSchedulingSteps, this.SchedulingSteps);
-            this.SchedulingSteps = 0;
+            this.MaxExploredSteps = Math.Max(this.MaxExploredSteps, this.ExploredSteps);
+            this.ExploredSteps = 0;
 
             this.RemainingDelays.Clear();
             for (int idx = 0; idx < this.MaxDelays; idx++)
             {
-                this.RemainingDelays.Add(this.Random.Next(this.MaxSchedulingSteps));
+                this.RemainingDelays.Add(this.Random.Next(this.MaxExploredSteps));
             }
 
             this.RemainingDelays.Sort();
@@ -171,7 +171,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// </summary>
         public virtual void Reset()
         {
-            this.SchedulingSteps = 0;
+            this.ExploredSteps = 0;
             this.RemainingDelays.Clear();
             this.Random = new Random(this.Seed);
         }

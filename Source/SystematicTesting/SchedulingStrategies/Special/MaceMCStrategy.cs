@@ -109,34 +109,34 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         }
 
         /// <summary>
-        /// Returns the explored scheduling steps.
+        /// Returns the explored steps.
         /// </summary>
-        /// <returns>Scheduling steps</returns>
-        public int GetSchedulingSteps()
+        /// <returns>Explored steps</returns>
+        public int GetExploredSteps()
         {
             if (this.BoundedDFS.HasReachedDepthBound())
             {
-                return this.Random.GetSchedulingSteps();
+                return this.Random.GetExploredSteps();
             }
             else
             {
-                return this.BoundedDFS.GetSchedulingSteps();
+                return this.BoundedDFS.GetExploredSteps();
             }
         }
 
         /// <summary>
-        /// Returns the maximum explored scheduling steps.
+        /// Returns the maximum explored steps.
         /// </summary>
-        /// <returns>Scheduling steps</returns>
-        public int GetMaxSchedulingSteps()
+        /// <returns>Explored steps</returns>
+        public int GetMaxExploredSteps()
         {
             if (this.BoundedDFS.HasReachedDepthBound())
             {
-                return this.Random.GetMaxSchedulingSteps();
+                return this.Random.GetMaxExploredSteps();
             }
             else
             {
-                return this.BoundedDFS.GetMaxSchedulingSteps();
+                return this.BoundedDFS.GetMaxExploredSteps();
             }
         }
 

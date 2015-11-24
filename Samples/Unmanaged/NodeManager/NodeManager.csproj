@@ -36,16 +36,13 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.PSharp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=c4566cf0a7f74012, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="Microsoft.PSharp">
       <HintPath>..\..\..\Binaries\Release\Microsoft.PSharp.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.PSharp.Interop, Version=1.0.5803.1984, Culture=neutral, PublicKeyToken=c4566cf0a7f74012, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="Microsoft.PSharp.Interop">
       <HintPath>..\..\..\Binaries\Release\Microsoft.PSharp.Interop.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.PSharp.SystematicTesting, Version=1.0.0.0, Culture=neutral, PublicKeyToken=c4566cf0a7f74012, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="Microsoft.PSharp.SystematicTesting">
       <HintPath>..\..\..\Binaries\Release\Microsoft.PSharp.SystematicTesting.dll</HintPath>
     </Reference>
     <Reference Include="System" />
