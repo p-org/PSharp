@@ -192,7 +192,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// <returns>String</returns>
         public string GetDescription()
         {
-            return "MaceMC";
+            return "";
         }
 
         #endregion

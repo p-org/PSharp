@@ -134,7 +134,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             }
             else
             {
-                Output.Debug("<ScheduleDebug> Unable to schedule machineInfo {0}.", id);
+                Output.Debug("<ScheduleDebug> Unable to schedule task {0}.", id);
                 this.KillRemainingMachines();
                 throw new TaskCanceledException();
             }
@@ -144,7 +144,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             {
                 machineInfos = this.Runtime.OperationScheduler.GetPrioritizedMachines(machineInfos, machineInfo);
             }
-
+            
             MachineInfo next = null;
             if (!this.Strategy.TryGetNext(out next, machineInfos, machineInfo))
             {
@@ -161,7 +161,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                 this.Runtime.StateCache.CaptureState(this.Runtime.ProgramTrace.Peek());
             }
 
-            Output.Debug("<ScheduleDebug> Schedule machineInfo {0} of machine {1}({2}).",
+            Output.Debug("<ScheduleDebug> Schedule task {0} of machine {1}({2}).",
                 next.Id, next.Machine.GetType(), next.Machine.Id.MVal);
 
             if (machineInfo != next)
@@ -182,10 +182,10 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                     
                     while (!machineInfo.IsActive)
                     {
-                        Output.Debug("<ScheduleDebug> Sleep machineInfo {0} of machine {1}({2}).",
+                        Output.Debug("<ScheduleDebug> Sleep task {0} of machine {1}({2}).",
                             machineInfo.Id, machineInfo.Machine.GetType(), machineInfo.Machine.Id.MVal);
                         System.Threading.Monitor.Wait(machineInfo);
-                        Output.Debug("<ScheduleDebug> Wake up machineInfo {0} of machine {1}({2}).",
+                        Output.Debug("<ScheduleDebug> Wake up task {0} of machine {1}({2}).",
                             machineInfo.Id, machineInfo.Machine.GetType(), machineInfo.Machine.Id.MVal);
                     }
 
@@ -275,7 +275,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         {
             var machineInfo = new MachineInfo(id, machine);
 
-            Output.Debug("<ScheduleDebug> Created machineInfo {0} for machine {1}({2}).",
+            Output.Debug("<ScheduleDebug> Created task {0} for machine {1}({2}).",
                 machineInfo.Id, machineInfo.Machine.GetType(), machineInfo.Machine.Id.MVal);
 
             if (this.MachineInfos.Count == 0)
@@ -300,7 +300,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
 
             var machineInfo = this.TaskMap[(int)id];
 
-            Output.Debug("<ScheduleDebug> Started machineInfo {0} of machine {1}({2}).",
+            Output.Debug("<ScheduleDebug> Started task {0} of machine {1}({2}).",
                 machineInfo.Id, machineInfo.Machine.GetType(), machineInfo.Machine.Id.MVal);
 
             lock (machineInfo)
@@ -309,10 +309,10 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                 System.Threading.Monitor.PulseAll(machineInfo);
                 while (!machineInfo.IsActive)
                 {
-                    Output.Debug("<ScheduleDebug> Sleep machineInfo {0} of machine {1}({2}).",
+                    Output.Debug("<ScheduleDebug> Sleep task {0} of machine {1}({2}).",
                         machineInfo.Id, machineInfo.Machine.GetType(), machineInfo.Machine.Id.MVal);
                     System.Threading.Monitor.Wait(machineInfo);
-                    Output.Debug("<ScheduleDebug> Wake up machineInfo {0} of machine {1}({2}).",
+                    Output.Debug("<ScheduleDebug> Wake up task {0} of machine {1}({2}).",
                         machineInfo.Id, machineInfo.Machine.GetType(), machineInfo.Machine.Id.MVal);
                 }
 
@@ -366,7 +366,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             
             var machineInfo = this.TaskMap[(int)id];
 
-            Output.Debug("<ScheduleDebug> Completed machineInfo {0} of machine {1}({2}).",
+            Output.Debug("<ScheduleDebug> Completed task {0} of machine {1}({2}).",
                 machineInfo.Id, machineInfo.Machine.GetType(), machineInfo.Machine.Id.MVal);
 
             machineInfo.IsEnabled = false;
@@ -374,7 +374,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
 
             this.Schedule();
 
-            Output.Debug("<ScheduleDebug> Exit machineInfo {0} of machine {1}({2}).",
+            Output.Debug("<ScheduleDebug> Exit task {0} of machine {1}({2}).",
                 machineInfo.Id, machineInfo.Machine.GetType(), machineInfo.Machine.Id.MVal);
         }
 
@@ -416,7 +416,17 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             
             ErrorReporter.Report(text);
 
-            Output.Log("<StrategyLog> Found bug using the " + this.Strategy.GetDescription() + " strategy.");
+            Output.Log("<StrategyLog> Found bug using '{0}' strategy.", this.Runtime.Configuration.SchedulingStrategy);
+
+            if (this.Strategy.GetDescription().Length > 0)
+            {
+                Output.Log("<StrategyLog> {0}", this.Strategy.GetDescription());
+            }
+
+            if (this.Runtime.Configuration.BoundOperations)
+            {
+                Output.Log("<StrategyLog> {0}", this.Runtime.OperationScheduler.GetDescription());
+            }
 
             this.BugFound = true;
 

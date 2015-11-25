@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="RandomDelayBoundingStrategy.cs" company="Microsoft">
+// <copyright file="ExhaustiveDelayBoundingStrategy.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -23,26 +23,16 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.SystematicTesting.Scheduling
 {
     /// <summary>
-    /// Class representing a random delay-bounding scheduling strategy.
+    /// Class representing an exhaustive delay-bounding scheduling strategy.
     /// </summary>
-    public class RandomDelayBoundingStrategy : DelayBoundingStrategy, ISchedulingStrategy
+    public class ExhaustiveDelayBoundingStrategy : DelayBoundingStrategy, ISchedulingStrategy
     {
         #region fields
 
         /// <summary>
-        /// Nondeterminitic seed.
+        /// Cache of delays across iterations.
         /// </summary>
-        private int Seed;
-
-        /// <summary>
-        /// Randomizer.
-        /// </summary>
-        private Random Random;
-
-        /// <summary>
-        /// Delays in this iteration.
-        /// </summary>
-        private List<int> IterationDelays;
+        private List<int> DelaysCache;
 
         #endregion
 
@@ -53,12 +43,10 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// </summary>
         /// <param name="configuration">Configuration</param>
         /// <param name="delays">Max number of delays</param>
-        public RandomDelayBoundingStrategy(Configuration configuration, int delays)
+        public ExhaustiveDelayBoundingStrategy(Configuration configuration, int delays)
             : base(configuration, delays)
         {
-            this.Seed = this.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
-            this.Random = new Random(this.Seed);
-            this.IterationDelays = new List<int>();
+            this.DelaysCache = Enumerable.Repeat(0, base.MaxDelays).ToList();
         }
 
         /// <summary>
@@ -69,16 +57,21 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             base.MaxExploredSteps = Math.Max(base.MaxExploredSteps, base.ExploredSteps);
             base.ExploredSteps = 0;
 
-            base.RemainingDelays.Clear();
-            for (int idx = 0; idx < base.MaxDelays; idx++)
+            var bound = Math.Min(base.Configuration.DepthBound, base.MaxExploredSteps);
+            for (var idx = 0; idx < base.MaxDelays; idx++)
             {
-                base.RemainingDelays.Add(this.Random.Next(base.MaxExploredSteps));
+                if (this.DelaysCache[idx] < bound)
+                {
+                    this.DelaysCache[idx] = this.DelaysCache[idx] + 1;
+                    break;
+                }
+
+                this.DelaysCache[idx] = 0;
             }
 
+            base.RemainingDelays.Clear();
+            base.RemainingDelays.AddRange(this.DelaysCache);
             base.RemainingDelays.Sort();
-
-            this.IterationDelays.Clear();
-            this.IterationDelays.AddRange(base.RemainingDelays);
         }
 
         /// <summary>
@@ -86,7 +79,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// </summary>
         public override void Reset()
         {
-            this.Random = new Random(this.Seed);
+            this.DelaysCache = Enumerable.Repeat(0, base.MaxDelays).ToList();
             base.Reset();
         }
 
@@ -96,11 +89,11 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// <returns>String</returns>
         public override string GetDescription()
         {
-            var text = "Random seed '" + this.Seed + "', '" + base.MaxDelays + "' delays, delays '[";
-            for (int idx = 0; idx < this.IterationDelays.Count; idx++)
+            var text = base.MaxDelays + "' delays, delays '[";
+            for (int idx = 0; idx < this.DelaysCache.Count; idx++)
             {
-                text += this.IterationDelays[idx];
-                if (idx < this.IterationDelays.Count - 1)
+                text += this.DelaysCache[idx];
+                if (idx < this.DelaysCache.Count - 1)
                 {
                     text += ", ";
                 }

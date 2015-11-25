@@ -50,6 +50,11 @@ namespace Microsoft.PSharp.SystematicTesting
         private Object Lock = new Object();
 
         /// <summary>
+        /// The exploration cache.
+        /// </summary>
+        internal ExplorationCache ExplorationCache;
+
+        /// <summary>
         /// The P# program trace.
         /// </summary>
         internal Trace ProgramTrace;
@@ -101,14 +106,18 @@ namespace Microsoft.PSharp.SystematicTesting
         /// <summary>
         /// Constructor.
         /// <param name="configuration">Configuration</param>
+        /// <param name="explorationCache">ExplorationCache</param>
         /// <param name="strategy">SchedulingStrategy</param>
-        internal PSharpBugFindingRuntime(Configuration configuration, ISchedulingStrategy strategy)
+        internal PSharpBugFindingRuntime(Configuration configuration, ExplorationCache explorationCache,
+            ISchedulingStrategy strategy)
             : base(configuration)
         {
             this.RootTaskId = Task.CurrentId;
 
             this.MachineTasks = new List<Task>();
             this.Monitors = new List<Monitor>();
+
+            this.ExplorationCache = explorationCache;
 
             if (this.Configuration.ScheduleIntraMachineConcurrency)
             {
@@ -126,7 +135,10 @@ namespace Microsoft.PSharp.SystematicTesting
             this.LivenessChecker = new LivenessChecker(this);
 
             this.OperationIdCounter = 0;
-            this.OperationScheduler = new OperationScheduler(this);
+            if (this.Configuration.BoundOperations)
+            {
+                this.OperationScheduler = new OperationScheduler(this);
+            }
 
             this.IsRunning = true;
         }

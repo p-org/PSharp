@@ -59,10 +59,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BugFindingRuntime.cs" />
+    <Compile Include="Exploration\ExplorationCache.cs" />
     <Compile Include="Exploration\Trace.cs" />
     <Compile Include="Exploration\TraceStep.cs" />
     <Compile Include="Exploration\TraceStepType.cs" />
     <Compile Include="Liveness\LivenessChecker.cs" />
+    <Compile Include="SchedulingStrategies\DelayBounded\ExhaustiveDelayBoundingStrategy.cs" />
     <Compile Include="SchedulingStrategies\DelayBounded\RandomDelayBoundingStrategy.cs" />
     <Compile Include="SchedulingStrategies\DelayBounded\DelayBoundingStrategy.cs" />
     <Compile Include="Scheduling\BugFindingScheduler.cs" />
@@ -75,8 +77,8 @@
     <Compile Include="StateCaching\State.cs" />
     <Compile Include="StateCaching\StateCache.cs" />
     <Compile Include="SchedulingStrategies\Special\MaceMCStrategy.cs" />
-    <Compile Include="SchedulingStrategies\Exhaustive\IterativeDeepeningDFSStrategy.cs" />
-    <Compile Include="SchedulingStrategies\Exhaustive\DFSStrategy.cs" />
+    <Compile Include="SchedulingStrategies\DFS\IterativeDeepeningDFSStrategy.cs" />
+    <Compile Include="SchedulingStrategies\DFS\DFSStrategy.cs" />
     <Compile Include="SchedulingStrategies\Random\RandomStrategy.cs" />
     <Compile Include="TestingEngine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -62,6 +62,10 @@ namespace Microsoft.PSharp.Utilities
                 {
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.DelayBounding;
                 }
+                else if (option.ToLower().Substring(5).Equals("rdb"))
+                {
+                    base.Configuration.SchedulingStrategy = SchedulingStrategy.RandomDelayBounding;
+                }
                 else if (option.ToLower().Substring(5).Equals("macemc"))
                 {
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.MaceMC;
@@ -192,10 +196,11 @@ namespace Microsoft.PSharp.Utilities
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.DFS &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.IDDFS &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.DelayBounding &&
+                base.Configuration.SchedulingStrategy != SchedulingStrategy.RandomDelayBounding &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.MaceMC)
             {
                 ErrorReporter.ReportAndExit("Please give a valid scheduling strategy " +
-                    "'/sch:[x]', where [x] is 'random', 'dfs', 'iddfs' or 'db'.");
+                    "'/sch:[x]', where [x] is 'random', 'dfs', 'iddfs', 'db' or 'rdb'.");
             }
             
             if (base.Configuration.SafetyPrefixBound > 0 &&

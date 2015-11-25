@@ -23,7 +23,7 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.SystematicTesting.Scheduling
 {
     /// <summary>
-    /// Class representing an abstract delay-bounding scheduling strategy.
+    /// Class representing a delay-bounding scheduling strategy.
     /// </summary>
     public abstract class DelayBoundingStrategy : ISchedulingStrategy
     {
@@ -35,19 +35,9 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         protected Configuration Configuration;
 
         /// <summary>
-        /// Nondeterminitic seed.
-        /// </summary>
-        protected int Seed;
-
-        /// <summary>
-        /// Randomizer.
-        /// </summary>
-        protected Random Random;
-
-        /// <summary>
         /// The maximum number of explored steps.
         /// </summary>
-        private int MaxExploredSteps;
+        protected int MaxExploredSteps;
 
         /// <summary>
         /// The number of explored steps.
@@ -76,10 +66,8 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         public DelayBoundingStrategy(Configuration configuration, int delays)
         {
             this.Configuration = configuration;
-            this.Seed = this.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
             this.MaxExploredSteps = 0;
             this.ExploredSteps = 0;
-            this.Random = new Random(this.Seed);
             this.MaxDelays = delays;
             this.RemainingDelays = new List<int>();
         }
@@ -91,7 +79,51 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// <param name="machines">Machines</param>
         /// <param name="currentMachine">Curent machine</param>
         /// <returns>Boolean value</returns>
-        public abstract bool TryGetNext(out MachineInfo next, List<MachineInfo> machines, MachineInfo currentMachine);
+        public virtual bool TryGetNext(out MachineInfo next, List<MachineInfo> machines, MachineInfo currentMachine)
+        {
+            List<MachineInfo> availableMachines;
+            if (this.Configuration.BoundOperations)
+            {
+                availableMachines = machines;
+            }
+            else
+            {
+                machines = machines.OrderBy(machine => machine.Machine.Id.Value).ToList();
+
+                var currentMachineIdx = machines.IndexOf(currentMachine);
+                var orderedMachines = machines.GetRange(currentMachineIdx, machines.Count - currentMachineIdx);
+                if (currentMachineIdx != 0)
+                {
+                    orderedMachines.AddRange(machines.GetRange(0, currentMachineIdx));
+                }
+
+                availableMachines = orderedMachines.Where(
+                    m => m.IsEnabled && !m.IsBlocked && !m.IsWaiting).ToList();
+            }
+
+            if (availableMachines.Count == 0)
+            {
+                next = null;
+                return false;
+            }
+
+            int idx = 0;
+            while (this.RemainingDelays.Count > 0 && this.ExploredSteps == this.RemainingDelays[0])
+            {
+                idx = (idx + 1) % availableMachines.Count;
+                this.RemainingDelays.RemoveAt(0);
+                Output.PrintLine("<DelayLog> Inserted delay, '{0}' remaining.", this.RemainingDelays.Count);
+            }
+
+            next = availableMachines[idx];
+
+            if (!currentMachine.IsCompleted)
+            {
+                this.ExploredSteps++;
+            }
+
+            return true;
+        }
 
         /// <summary>
         /// Returns the next choice.
@@ -99,13 +131,26 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// <param name="maxValue">Max value</param>
         /// <param name="next">Next</param>
         /// <returns>Boolean value</returns>
-        public abstract bool GetNextChoice(int maxValue, out bool next);
+        public virtual bool GetNextChoice(int maxValue, out bool next)
+        {
+            next = false;
+            if (this.RemainingDelays.Count > 0 && this.ExploredSteps == this.RemainingDelays[0])
+            {
+                next = true;
+                this.RemainingDelays.RemoveAt(0);
+                Output.PrintLine("<DelayLog> Inserted delay, '{0}' remaining.", this.RemainingDelays.Count);
+            }
+
+            this.ExploredSteps++;
+
+            return true;
+        }
 
         /// <summary>
         /// Returns the explored steps.
         /// </summary>
         /// <returns>Explored steps</returns>
-        public virtual int GetExploredSteps()
+        public int GetExploredSteps()
         {
             return this.ExploredSteps;
         }
@@ -123,7 +168,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// Returns the depth bound.
         /// </summary> 
         /// <returns>Depth bound</returns>  
-        public virtual int GetDepthBound()
+        public int GetDepthBound()
         {
             return this.Configuration.DepthBound;
         }
@@ -133,7 +178,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// for the given scheduling iteration.
         /// </summary>
         /// <returns>Depth bound</returns>
-        public virtual bool HasReachedDepthBound()
+        public bool HasReachedDepthBound()
         {
             if (this.Configuration.DepthBound == 0)
             {
@@ -147,24 +192,15 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// Returns true if the scheduling has finished.
         /// </summary>
         /// <returns>Boolean value</returns>
-        public abstract bool HasFinished();
-        
+        public bool HasFinished()
+        {
+            return false;
+        }
+
         /// <summary>
         /// Configures the next scheduling iteration.
         /// </summary>
-        public virtual void ConfigureNextIteration()
-        {
-            this.MaxExploredSteps = Math.Max(this.MaxExploredSteps, this.ExploredSteps);
-            this.ExploredSteps = 0;
-
-            this.RemainingDelays.Clear();
-            for (int idx = 0; idx < this.MaxDelays; idx++)
-            {
-                this.RemainingDelays.Add(this.Random.Next(this.MaxExploredSteps));
-            }
-
-            this.RemainingDelays.Sort();
-        }
+        public abstract void ConfigureNextIteration();
 
         /// <summary>
         /// Resets the scheduling strategy.
@@ -173,7 +209,6 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         {
             this.ExploredSteps = 0;
             this.RemainingDelays.Clear();
-            this.Random = new Random(this.Seed);
         }
 
         /// <summary>

@@ -193,7 +193,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// <returns>String</returns>
         public string GetDescription()
         {
-            return "Random-walk (with seed '" + this.Seed + "')";
+            return "Random seed '" + this.Seed + "'.";
         }
 
         #endregion

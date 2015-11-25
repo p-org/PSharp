@@ -19,6 +19,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
+using Microsoft.PSharp.SystematicTesting.Exploration;
 using Microsoft.PSharp.SystematicTesting.Scheduling;
 using Microsoft.PSharp.Utilities;
 
@@ -52,14 +53,14 @@ namespace Microsoft.PSharp.SystematicTesting
         internal Action<PSharpRuntime> TestAction;
 
         /// <summary>
-        /// The analysis context.
-        /// </summary>
-        //private AnalysisContext AnalysisContext;
-
-        /// <summary>
         /// The bug-finding scheduling strategy.
         /// </summary>
         private ISchedulingStrategy Strategy;
+
+        /// <summary>
+        /// The exploration cache.
+        /// </summary>
+        private ExplorationCache ExplorationCache;
 
         /// <summary>
         /// Explored schedules so far.
@@ -200,7 +201,9 @@ namespace Microsoft.PSharp.SystematicTesting
             this.ExploredDepth = 0;
             this.ExploredSchedules = 0;
             this.PrintGuard = 1;
-            
+
+            this.ExplorationCache = ExplorationCache.Create(this.Configuration);
+
             if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Random)
             {
                 this.Strategy = new RandomStrategy(this.Configuration);
@@ -216,6 +219,11 @@ namespace Microsoft.PSharp.SystematicTesting
                 this.Configuration.FullExploration = false;
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.DelayBounding)
+            {
+                this.Strategy = new ExhaustiveDelayBoundingStrategy(this.Configuration,
+                    this.Configuration.DelayBound);
+            }
+            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.RandomDelayBounding)
             {
                 this.Strategy = new RandomDelayBoundingStrategy(this.Configuration,
                     this.Configuration.DelayBound);
@@ -251,7 +259,7 @@ namespace Microsoft.PSharp.SystematicTesting
                         Output.PrintLine("..... Iteration #{0}", i + 1);
                     }
 
-                    var runtime = new PSharpBugFindingRuntime(this.Configuration, this.Strategy);
+                    var runtime = new PSharpBugFindingRuntime(this.Configuration, this.ExplorationCache, this.Strategy);
 
                     StringWriter sw = null;
                     if (this.Configuration.RedirectConsoleOutput &&

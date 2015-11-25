@@ -37,6 +37,10 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         DelayBounding,
         /// <summary>
+        /// Random delay-bounding scheduling.
+        /// </summary>
+        RandomDelayBounding,
+        /// <summary>
         /// MaceMC based search scheduling to detect
         /// potential liveness violations.
         /// </summary>

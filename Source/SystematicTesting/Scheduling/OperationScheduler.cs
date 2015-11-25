@@ -81,7 +81,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// <param name="machines">Machines</param>
         /// <param name="currentMachine">Curent machine</param>
         /// <returns>Boolean value</returns>
-        public List<MachineInfo> GetPrioritizedMachines(List<MachineInfo> machines, MachineInfo currentMachine)
+        internal List<MachineInfo> GetPrioritizedMachines(List<MachineInfo> machines, MachineInfo currentMachine)
         {
             var prioritizedMachines = new List<MachineInfo>(); 
 
@@ -102,7 +102,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             }
 
             var operations = availableMachines.Select(val => val.Machine.OperationId).Distinct().ToList();
-            
+
             int idx = 0;
             while (this.RemainingDelays.Count > 0 &&
                 this.Runtime.BugFinder.ExploredSteps == this.RemainingDelays[0])
@@ -115,7 +115,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             }
 
             this.PrioritizedOperationId = operations[idx];
-            
+
             foreach (var mi in availableMachines)
             {
                 int opId = mi.Machine.GetNextOperationId();
@@ -132,11 +132,32 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// <summary>
         /// Resets the operation bounding scheduler.
         /// </summary>
-        public void Reset()
+        internal void Reset()
         {
             this.PrioritizedOperationId = 0;
             this.RemainingDelays.Clear();
             this.Random = new Random(this.Seed);
+            this.Runtime.ExplorationCache.Reset();
+        }
+
+        /// <summary>
+        /// Returns a textual description of the scheduling strategy.
+        /// </summary>
+        /// <returns>String</returns>
+        internal string GetDescription()
+        {
+            var text = this.Runtime.Configuration.OperationDelayBound + "' operation delays, operation delays '[";
+            for (int idx = 0; idx < this.Runtime.ExplorationCache.OperationDelaysCache.Count; idx++)
+            {
+                text += this.Runtime.ExplorationCache.OperationDelaysCache[idx];
+                if (idx < this.Runtime.ExplorationCache.OperationDelaysCache.Count - 1)
+                {
+                    text += ", ";
+                }
+            }
+
+            text += "]'.";
+            return text;
         }
 
         #endregion
@@ -144,16 +165,33 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         #region private methods
 
         /// <summary>
-        /// Generates delays at random points along the execution.
+        /// Generates delays at steps along the execution.
         /// </summary>
         private void GenerateDelays()
         {
-            this.RemainingDelays.Clear();
-            for (int idx = 0; idx < this.Runtime.Configuration.OperationDelayBound; idx++)
+            //this.RemainingDelays.Clear();
+            //for (int idx = 0; idx < this.Runtime.Configuration.OperationDelayBound; idx++)
+            //{
+            //    this.RemainingDelays.Add(this.Random.Next(this.Runtime.BugFinder.MaxExploredSteps));
+            //}
+
+            //this.RemainingDelays.Sort();
+            
+            var bound = Math.Min(this.Runtime.Configuration.DepthBound, this.Runtime.BugFinder.MaxExploredSteps);
+            for (var idx = 0; idx < this.Runtime.Configuration.OperationDelayBound; idx++)
             {
-                this.RemainingDelays.Add(this.Random.Next(this.Runtime.BugFinder.MaxExploredSteps));
+                if (this.Runtime.ExplorationCache.OperationDelaysCache[idx] < bound)
+                {
+                    this.Runtime.ExplorationCache.OperationDelaysCache[idx] =
+                        this.Runtime.ExplorationCache.OperationDelaysCache[idx] + 1;
+                    break;
+                }
+
+                this.Runtime.ExplorationCache.OperationDelaysCache[idx] = 0;
             }
 
+            this.RemainingDelays.Clear();
+            this.RemainingDelays.AddRange(this.Runtime.ExplorationCache.OperationDelaysCache);
             this.RemainingDelays.Sort();
         }
 
