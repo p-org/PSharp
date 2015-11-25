@@ -215,7 +215,7 @@ namespace Raft
         [OnEntry(nameof(EntryOnInit))]
         [OnEventDoAction(typeof(ConfigureEvent), nameof(Configure))]
         [OnEventGotoState(typeof(BecomeFollower), typeof(Follower))]
-        [DeferEvents(typeof(VoteRequest))]
+        [DeferEvents(typeof(VoteRequest), typeof(AppendEntriesRequest))]
         class Init : MachineState { }
 
         void EntryOnInit()
