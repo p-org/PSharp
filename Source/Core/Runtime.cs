@@ -187,7 +187,7 @@ namespace Microsoft.PSharp
         {
             if (!predicate)
             {
-                string message = Output.Format(s, args);
+                string message = IO.Format(s, args);
                 ErrorReporter.Report(message);
                 Environment.Exit(1);
             }

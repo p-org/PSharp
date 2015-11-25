@@ -110,7 +110,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                 idx = (idx + 1) % operations.Count;
                 this.RemainingDelays.RemoveAt(0);
 
-                Output.PrintLine("<OperationDelayLog> Priority given to operation '{0}', '{1}' delays remaining, .",
+                IO.PrintLine("<OperationDelayLog> Priority given to operation '{0}', '{1}' delays remaining, .",
                     operations[idx], this.RemainingDelays.Count);
             }
 

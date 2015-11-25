@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="Output.cs" company="Microsoft">
+// <copyright file="IO.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -19,7 +19,10 @@ using System.Globalization;
 
 namespace Microsoft.PSharp.Utilities
 {
-    internal static class Output
+    /// <summary>
+    /// Static class implementing IO methods.
+    /// </summary>
+    internal static class IO
     {
         #region fields
 
@@ -32,9 +35,9 @@ namespace Microsoft.PSharp.Utilities
         /// <summary>
         /// Static constructor.
         /// </summary>
-        static Output()
+        static IO()
         {
-            Output.Debugging = false;
+            IO.Debugging = false;
         }
 
         /// <summary>
@@ -46,6 +49,24 @@ namespace Microsoft.PSharp.Utilities
         internal static string Format(string s, params object[] args)
         {
             return string.Format(CultureInfo.InvariantCulture, s, args);
+        }
+
+        /// <summary>
+        /// Returns the next character from the standard input stream.
+        /// </summary>
+        /// <returns>int</returns>
+        internal static int Get()
+        {
+            return Console.Read();
+        }
+
+        /// <summary>
+        /// Returns the next line of characters from the standard input stream.
+        /// </summary>
+        /// <returns>string</returns>
+        internal static string GetLine()
+        {
+            return Console.ReadLine();
         }
 
         /// <summary>
@@ -79,7 +100,7 @@ namespace Microsoft.PSharp.Utilities
         /// <param name="args">Arguments</param>
         internal static void PrettyPrint(string s, params object[] args)
         {
-            string message = Output.Format(s, args);
+            string message = IO.Format(s, args);
             Console.Write(message);
         }
 
@@ -92,7 +113,7 @@ namespace Microsoft.PSharp.Utilities
         /// <param name="args">Arguments</param>
         internal static void PrettyPrintLine(string s, params object[] args)
         {
-            string message = Output.Format(s, args);
+            string message = IO.Format(s, args);
             Console.WriteLine(message);
         }
 
@@ -104,7 +125,7 @@ namespace Microsoft.PSharp.Utilities
         /// <param name="args">Arguments</param>
         internal static void Log(string s, params object[] args)
         {
-            string message = Output.Format(s, args);
+            string message = IO.Format(s, args);
             Console.WriteLine(message);
         }
 
@@ -117,12 +138,12 @@ namespace Microsoft.PSharp.Utilities
         /// <param name="args">Arguments</param>
         internal static void Debug(string s, params object[] args)
         {
-            if (!Output.Debugging)
+            if (!IO.Debugging)
             {
                 return;
             }
 
-            string message = Output.Format(s, args);
+            string message = IO.Format(s, args);
             Console.WriteLine(message);
         }
 

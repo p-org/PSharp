@@ -52,7 +52,7 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         public static void PrintResults()
         {
-            Output.PrintLine("Total Runtime: " + Profiler.StopWatch.Elapsed.TotalSeconds + " (sec).");
+            IO.PrintLine("Total Runtime: " + Profiler.StopWatch.Elapsed.TotalSeconds + " (sec).");
         }
     }
 }

@@ -163,7 +163,7 @@ namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
             configuration.CheckLiveness = true;
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
 
-            Output.Debugging = true;
+            IO.Debugging = true;
 
             var engine = TestingEngine.Create(configuration, TestProgram.Execute).Run();
             var bugReport = "Monitor 'M' detected liveness property violation in hot state 'Init'.";

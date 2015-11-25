@@ -84,7 +84,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         public void PrintGivesUpResults()
         {
-            Output.PrintLine("\n > Printing gives up ownership information:\n");
+            IO.PrintLine("\n > Printing gives up ownership information:\n");
             foreach (var summary in this.AnalysisContext.Summaries)
             {
                 if (summary.Value.GivesUpSet.Count == 0)

@@ -112,15 +112,12 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             {
                 idx = (idx + 1) % availableMachines.Count;
                 this.RemainingDelays.RemoveAt(0);
-                Output.PrintLine("<DelayLog> Inserted delay, '{0}' remaining.", this.RemainingDelays.Count);
+                IO.PrintLine("<DelayLog> Inserted delay, '{0}' remaining.", this.RemainingDelays.Count);
             }
 
             next = availableMachines[idx];
 
-            if (!currentMachine.IsCompleted)
-            {
-                this.ExploredSteps++;
-            }
+            this.ExploredSteps++;
 
             return true;
         }
@@ -138,7 +135,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             {
                 next = true;
                 this.RemainingDelays.RemoveAt(0);
-                Output.PrintLine("<DelayLog> Inserted delay, '{0}' remaining.", this.RemainingDelays.Count);
+                IO.PrintLine("<DelayLog> Inserted delay, '{0}' remaining.", this.RemainingDelays.Count);
             }
 
             this.ExploredSteps++;

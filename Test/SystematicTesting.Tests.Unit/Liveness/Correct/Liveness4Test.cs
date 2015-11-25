@@ -114,7 +114,7 @@ namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
             configuration.CacheProgramState = true;
             configuration.DepthBound = 1000;
 
-            Output.Debugging = true;
+            IO.Debugging = true;
 
             var engine = TestingEngine.Create(configuration, TestProgram.Execute).Run();
             Assert.AreEqual(0, engine.NumOfFoundBugs);

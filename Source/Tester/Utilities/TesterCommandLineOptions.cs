@@ -44,9 +44,17 @@ namespace Microsoft.PSharp.Utilities
             {
                 base.Configuration.AssemblyToBeAnalyzed = option.Substring(6);
             }
+            else if (option.ToLower().Equals("/interactive"))
+            {
+                base.Configuration.SchedulingStrategy = SchedulingStrategy.Interactive;
+            }
             else if (option.ToLower().StartsWith("/sch:") && option.Length > 5)
             {
-                if (option.ToLower().Substring(5).Equals("random"))
+                if (option.ToLower().Substring(5).Equals("i"))
+                {
+                    base.Configuration.SchedulingStrategy = SchedulingStrategy.Interactive;
+                }
+                else if (option.ToLower().Substring(5).Equals("random"))
                 {
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.Random;
                 }
@@ -192,7 +200,8 @@ namespace Microsoft.PSharp.Utilities
                 ErrorReporter.ReportAndExit("Please give a valid path to a P# program's dll.");
             }
 
-            if (base.Configuration.SchedulingStrategy != SchedulingStrategy.Random &&
+            if (base.Configuration.SchedulingStrategy != SchedulingStrategy.Interactive &&
+                base.Configuration.SchedulingStrategy != SchedulingStrategy.Random &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.DFS &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.IDDFS &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.DelayBounding &&
@@ -200,7 +209,7 @@ namespace Microsoft.PSharp.Utilities
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.MaceMC)
             {
                 ErrorReporter.ReportAndExit("Please give a valid scheduling strategy " +
-                    "'/sch:[x]', where [x] is 'random', 'dfs', 'iddfs', 'db' or 'rdb'.");
+                    "'/sch:[x]', where [x] is 'i', 'random', 'dfs', 'iddfs', 'db' or 'rdb'.");
             }
             
             if (base.Configuration.SafetyPrefixBound > 0 &&
@@ -239,6 +248,7 @@ namespace Microsoft.PSharp.Utilities
             help += "\nSystematic testing options:";
             help += "\n---------------------------";
             help += "\n  /i:[x]\t\t Number of schedules to explore for bugs";
+            help += "\n  /interactive\t\t Enable interactive scheduling";
             help += "\n  /sch:[x]\t\t Choose a systematic testing strategy ('random' by default)";
             help += "\n  /depth-bound:[x]\t Depth bound to be explored ('10000' by default)";
             help += "\n  /delay-bound:[x]\t Delay bound ('2' by default)";
@@ -252,7 +262,7 @@ namespace Microsoft.PSharp.Utilities
 
             help += "\n";
 
-            Output.PrettyPrintLine(help);
+            IO.PrettyPrintLine(help);
         }
 
         #endregion

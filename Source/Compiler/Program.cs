@@ -47,7 +47,7 @@ namespace Microsoft.PSharp
             // Creates and starts a static analysis process.
             StaticAnalysisProcess.Create(context).Start();
 
-            Output.PrintLine(". Done");
+            IO.PrintLine(". Done");
         }
 
         /// <summary>
@@ -58,8 +58,8 @@ namespace Microsoft.PSharp
         static void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs args)
         {
             var ex = (Exception)args.ExceptionObject;
-            Output.Debug(ex.Message);
-            Output.Debug(ex.StackTrace);
+            IO.Debug(ex.Message);
+            IO.Debug(ex.StackTrace);
             ErrorReporter.ReportAndExit("internal failure: {0}.", ex.GetType().ToString());
         }
     }

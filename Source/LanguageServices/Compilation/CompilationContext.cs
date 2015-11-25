@@ -172,7 +172,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
 
             this.SolutionMap[this.ActiveCompilationTarget] = project.Solution;
 
-            if (Output.Debugging)
+            if (IO.Debugging)
             {
                 this.PrintSyntaxTree(tree);
             }
@@ -239,7 +239,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
             var lines = System.Text.RegularExpressions.Regex.Split(root.ToFullString(), "\r\n|\r|\n");
             for (int idx = 0; idx < lines.Length; idx++)
             {
-                Output.PrintLine(idx + 1 + " " + lines[idx]);
+                IO.PrintLine(idx + 1 + " " + lines[idx]);
             }
         }
 

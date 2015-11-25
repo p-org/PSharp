@@ -307,7 +307,7 @@ namespace Microsoft.PSharp.Utilities
         /// <returns>Configuration</returns>
         public Configuration WithDebuggingEnabled(bool value = true)
         {
-            Output.Debugging = value;
+            IO.Debugging = value;
             return this;
         }
 

@@ -159,7 +159,7 @@ namespace Microsoft.PSharp.SystematicTesting
             }
             catch (TaskCanceledException)
             {
-                Output.Debug("<Exception> TaskCanceledException was thrown.");
+                IO.Debug("<Exception> TaskCanceledException was thrown.");
             }
         }
 
@@ -212,7 +212,7 @@ namespace Microsoft.PSharp.SystematicTesting
                     killTasks = false;
                 }
 
-                string message = Output.Format(s, args);
+                string message = IO.Format(s, args);
                 this.BugFinder.NotifyAssertionFailure(message, killTasks);
             }
         }
@@ -224,7 +224,7 @@ namespace Microsoft.PSharp.SystematicTesting
         /// <param name="args">Arguments</param>
         public override void Log(string s, params object[] args)
         {
-            Output.Log(s, args);
+            IO.Log(s, args);
         }
 
         #endregion
@@ -250,7 +250,7 @@ namespace Microsoft.PSharp.SystematicTesting
                     this.Assert(false, "Machine {0}({1}) was already created.", type.Name, mid.Value);
                 }
 
-                Output.Log("<CreateLog> Machine {0}({1}) is created.", type.Name, mid.MVal);
+                IO.Log("<CreateLog> Machine {0}({1}) is created.", type.Name, mid.MVal);
 
                 Task task = new Task(() =>
                 {
@@ -305,7 +305,7 @@ namespace Microsoft.PSharp.SystematicTesting
             (monitor as Monitor).SetMachineId(mid);
             (monitor as Monitor).InitializeStateInformation();
 
-            Output.Log("<CreateLog> Monitor {0} is created.", type.Name);
+            IO.Log("<CreateLog> Monitor {0} is created.", type.Name);
 
             this.Monitors.Add(monitor as Monitor);
 
@@ -330,7 +330,7 @@ namespace Microsoft.PSharp.SystematicTesting
             TaskMachine taskMachine = new TaskMachine(this.TaskScheduler as TaskWrapperScheduler, userTask);
             taskMachine.SetMachineId(mid);
             
-            Output.Log("<CreateLog> TaskMachine({0}) is created.", mid.MVal);
+            IO.Log("<CreateLog> TaskMachine({0}) is created.", mid.MVal);
 
             Task task = new Task(() =>
             {
@@ -375,17 +375,17 @@ namespace Microsoft.PSharp.SystematicTesting
 
             if (this.Configuration.BoundOperations && sender != null)
             {
-                Output.Log("<SendLog> Machine '{0}({1})' sent event '{2}({3})' to '{4}({5})'.",
+                IO.Log("<SendLog> Machine '{0}({1})' sent event '{2}({3})' to '{4}({5})'.",
                     sender, sender.Id.MVal, e.GetType(), e.OperationId, mid.Type, mid.MVal);
             }
             else if (sender != null)
             {
-                Output.Log("<SendLog> Machine '{0}({1})' sent event '{2}' to '{3}({4})'.",
+                IO.Log("<SendLog> Machine '{0}({1})' sent event '{2}' to '{3}({4})'.",
                     sender, sender.Id.MVal, e.GetType(), mid.Type, mid.MVal);
             }
             else
             {
-                Output.Log("<SendLog> Event '{0}' was sent to '{1}({2})'.",
+                IO.Log("<SendLog> Event '{0}' was sent to '{1}({2})'.",
                     e.GetType(), mid.Type, mid.MVal);
             }
 

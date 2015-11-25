@@ -140,10 +140,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                 return false;
             }
 
-            if (!currentMachine.IsCompleted)
-            {
-                this.ExploredSteps++;
-            }
+            this.ExploredSteps++;
 
             return true;
         }
@@ -332,30 +329,30 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// </summary>
         private void PrintSchedule()
         {
-            Output.PrintLine("*******************");
-            Output.PrintLine("Schedule stack size: " + this.ScheduleStack.Count);
+            IO.PrintLine("*******************");
+            IO.PrintLine("Schedule stack size: " + this.ScheduleStack.Count);
             for (int idx = 0; idx < this.ScheduleStack.Count; idx++)
             {
-                Output.PrintLine("Index: " + idx);
+                IO.PrintLine("Index: " + idx);
                 foreach (var sc in this.ScheduleStack[idx])
                 {
                     Console.Write(sc.Id + " [" + sc.IsDone + "], ");
                 }
-                Output.PrintLine("");
+                IO.PrintLine("");
             }
 
-            Output.PrintLine("*******************");
-            Output.PrintLine("Random stack size: " + this.NondetStack.Count);
+            IO.PrintLine("*******************");
+            IO.PrintLine("Random stack size: " + this.NondetStack.Count);
             for (int idx = 0; idx < this.NondetStack.Count; idx++)
             {
-                Output.PrintLine("Index: " + idx);
+                IO.PrintLine("Index: " + idx);
                 foreach (var nc in this.NondetStack[idx])
                 {
                     Console.Write(nc.Value + " [" + nc.IsDone + "], ");
                 }
-                Output.PrintLine("");
+                IO.PrintLine("");
             }
-            Output.PrintLine("*******************");
+            IO.PrintLine("*******************");
         }
 
         /// <summary>

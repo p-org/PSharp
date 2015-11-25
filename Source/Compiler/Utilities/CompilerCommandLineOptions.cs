@@ -140,7 +140,7 @@ namespace Microsoft.PSharp.Utilities
 
             help += "\n";
 
-            Output.PrettyPrintLine(help);
+            IO.PrettyPrintLine(help);
         }
 
         #endregion

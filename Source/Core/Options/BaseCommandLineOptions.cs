@@ -92,7 +92,7 @@ namespace Microsoft.PSharp.Utilities
             }
             else if (option.ToLower().Equals("/debug"))
             {
-                Output.Debugging = true;
+                IO.Debugging = true;
             }
             else if (option.ToLower().Equals("/showwarnings"))
             {

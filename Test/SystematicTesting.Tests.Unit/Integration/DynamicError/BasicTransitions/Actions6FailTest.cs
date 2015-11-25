@@ -150,7 +150,7 @@ namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
 
             var engine = TestingEngine.Create(configuration, TestProgram.Execute).Run();
             Assert.AreEqual(1, engine.NumOfFoundBugs);
-            Assert.AreEqual(6, engine.ExploredDepth);
+            Assert.AreEqual(10, engine.ExploredDepth);
         }
     }
 }

@@ -48,7 +48,7 @@ namespace Microsoft.PSharp
         /// </summary>
         public void Start()
         {
-            Output.PrintLine(". Testing " + this.Configuration.AssemblyToBeAnalyzed);
+            IO.PrintLine(". Testing " + this.Configuration.AssemblyToBeAnalyzed);
             this.TestAssembly(this.Configuration.AssemblyToBeAnalyzed);
         }
 

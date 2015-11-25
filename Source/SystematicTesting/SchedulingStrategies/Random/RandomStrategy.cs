@@ -66,9 +66,9 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         {
             this.Configuration = configuration;
             this.Seed = this.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
+            this.Random = new Random(this.Seed);
             this.MaxExploredSteps = 0;
             this.ExploredSteps = 0;
-            this.Random = new Random(this.Seed);
         }
 
         /// <summary>
@@ -91,10 +91,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             int idx = this.Random.Next(availableMachines.Count);
             next = availableMachines[idx];
 
-            if (!currentMachine.IsCompleted)
-            {
-                this.ExploredSteps++;
-            }
+            this.ExploredSteps++;
 
             return true;
         }

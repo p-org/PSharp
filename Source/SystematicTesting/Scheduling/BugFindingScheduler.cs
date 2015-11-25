@@ -114,14 +114,14 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             // Check if the exploration depth-bound has been reached.
             if (this.Strategy.HasReachedDepthBound())
             {
-                var msg = Output.Format("Depth bound of {0} reached.", this.Strategy.GetDepthBound());
+                var msg = IO.Format("Depth bound of {0} reached.", this.Strategy.GetDepthBound());
                 if (this.Runtime.Configuration.ConsiderDepthBoundHitAsBug)
                 {
                     this.Runtime.BugFinder.NotifyAssertionFailure(msg, true);
                 }
                 else
                 {
-                    Output.Debug("<ScheduleDebug> {0}", msg);
+                    IO.Debug("<ScheduleDebug> {0}", msg);
                     this.KillRemainingMachines();
                     throw new TaskCanceledException();
                 }
@@ -134,7 +134,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             }
             else
             {
-                Output.Debug("<ScheduleDebug> Unable to schedule task {0}.", id);
+                IO.Debug("<ScheduleDebug> Unable to schedule task {0}.", id);
                 this.KillRemainingMachines();
                 throw new TaskCanceledException();
             }
@@ -148,7 +148,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             MachineInfo next = null;
             if (!this.Strategy.TryGetNext(out next, machineInfos, machineInfo))
             {
-                Output.Debug("<ScheduleDebug> Schedule explored.");
+                IO.Debug("<ScheduleDebug> Schedule explored.");
                 this.KillRemainingMachines();
                 throw new TaskCanceledException();
             }
@@ -161,7 +161,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                 this.Runtime.StateCache.CaptureState(this.Runtime.ProgramTrace.Peek());
             }
 
-            Output.Debug("<ScheduleDebug> Schedule task {0} of machine {1}({2}).",
+            IO.Debug("<ScheduleDebug> Schedule task {0} of machine {1}({2}).",
                 next.Id, next.Machine.GetType(), next.Machine.Id.MVal);
 
             if (machineInfo != next)
@@ -182,10 +182,10 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                     
                     while (!machineInfo.IsActive)
                     {
-                        Output.Debug("<ScheduleDebug> Sleep task {0} of machine {1}({2}).",
+                        IO.Debug("<ScheduleDebug> Sleep task {0} of machine {1}({2}).",
                             machineInfo.Id, machineInfo.Machine.GetType(), machineInfo.Machine.Id.MVal);
                         System.Threading.Monitor.Wait(machineInfo);
-                        Output.Debug("<ScheduleDebug> Wake up task {0} of machine {1}({2}).",
+                        IO.Debug("<ScheduleDebug> Wake up task {0} of machine {1}({2}).",
                             machineInfo.Id, machineInfo.Machine.GetType(), machineInfo.Machine.Id.MVal);
                     }
 
@@ -208,14 +208,14 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             // Check if the exploration depth-bound has been reached.
             if (this.Strategy.HasReachedDepthBound())
             {
-                var msg = Output.Format("Depth bound of {0} reached.", this.Strategy.GetDepthBound());
+                var msg = IO.Format("Depth bound of {0} reached.", this.Strategy.GetDepthBound());
                 if (this.Runtime.Configuration.ConsiderDepthBoundHitAsBug)
                 {
                     this.Runtime.BugFinder.NotifyAssertionFailure(msg, true);
                 }
                 else
                 {
-                    Output.Debug("<ScheduleDebug> {0}", msg);
+                    IO.Debug("<ScheduleDebug> {0}", msg);
                     this.KillRemainingMachines();
                     throw new TaskCanceledException();
                 }
@@ -224,7 +224,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             var choice = false;
             if (!this.Strategy.GetNextChoice(maxValue, out choice))
             {
-                Output.Debug("<ScheduleDebug> Schedule explored.");
+                IO.Debug("<ScheduleDebug> Schedule explored.");
                 this.KillRemainingMachines();
                 throw new TaskCanceledException();
             }
@@ -275,7 +275,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         {
             var machineInfo = new MachineInfo(id, machine);
 
-            Output.Debug("<ScheduleDebug> Created task {0} for machine {1}({2}).",
+            IO.Debug("<ScheduleDebug> Created task {0} for machine {1}({2}).",
                 machineInfo.Id, machineInfo.Machine.GetType(), machineInfo.Machine.Id.MVal);
 
             if (this.MachineInfos.Count == 0)
@@ -300,7 +300,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
 
             var machineInfo = this.TaskMap[(int)id];
 
-            Output.Debug("<ScheduleDebug> Started task {0} of machine {1}({2}).",
+            IO.Debug("<ScheduleDebug> Started task {0} of machine {1}({2}).",
                 machineInfo.Id, machineInfo.Machine.GetType(), machineInfo.Machine.Id.MVal);
 
             lock (machineInfo)
@@ -309,10 +309,10 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                 System.Threading.Monitor.PulseAll(machineInfo);
                 while (!machineInfo.IsActive)
                 {
-                    Output.Debug("<ScheduleDebug> Sleep task {0} of machine {1}({2}).",
+                    IO.Debug("<ScheduleDebug> Sleep task {0} of machine {1}({2}).",
                         machineInfo.Id, machineInfo.Machine.GetType(), machineInfo.Machine.Id.MVal);
                     System.Threading.Monitor.Wait(machineInfo);
-                    Output.Debug("<ScheduleDebug> Wake up task {0} of machine {1}({2}).",
+                    IO.Debug("<ScheduleDebug> Wake up task {0} of machine {1}({2}).",
                         machineInfo.Id, machineInfo.Machine.GetType(), machineInfo.Machine.Id.MVal);
                 }
 
@@ -331,7 +331,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         {
             var machineInfo = this.TaskMap[(int)id];
 
-            Output.Debug("<ScheduleDebug> Task {0} of machine {1}({2}) " +
+            IO.Debug("<ScheduleDebug> Task {0} of machine {1}({2}) " +
                 "is waiting to receive an event.", machineInfo.Id, machineInfo.Machine.GetType(),
                 machineInfo.Machine.Id.MVal);
 
@@ -346,7 +346,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         {
             var machineInfo = this.GetInfoFromMachine(machine);
 
-            Output.Debug("<ScheduleDebug> Task {0} of machine {1}({2}) " +
+            IO.Debug("<ScheduleDebug> Task {0} of machine {1}({2}) " +
                 "received an event and unblocked.", machineInfo.Id, machineInfo.Machine.GetType(),
                 machineInfo.Machine.Id.MVal);
 
@@ -366,7 +366,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             
             var machineInfo = this.TaskMap[(int)id];
 
-            Output.Debug("<ScheduleDebug> Completed task {0} of machine {1}({2}).",
+            IO.Debug("<ScheduleDebug> Completed task {0} of machine {1}({2}).",
                 machineInfo.Id, machineInfo.Machine.GetType(), machineInfo.Machine.Id.MVal);
 
             machineInfo.IsEnabled = false;
@@ -374,7 +374,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
 
             this.Schedule();
 
-            Output.Debug("<ScheduleDebug> Exit task {0} of machine {1}({2}).",
+            IO.Debug("<ScheduleDebug> Exit task {0} of machine {1}({2}).",
                 machineInfo.Id, machineInfo.Machine.GetType(), machineInfo.Machine.Id.MVal);
         }
 
@@ -416,16 +416,16 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             
             ErrorReporter.Report(text);
 
-            Output.Log("<StrategyLog> Found bug using '{0}' strategy.", this.Runtime.Configuration.SchedulingStrategy);
+            IO.Log("<StrategyLog> Found bug using '{0}' strategy.", this.Runtime.Configuration.SchedulingStrategy);
 
             if (this.Strategy.GetDescription().Length > 0)
             {
-                Output.Log("<StrategyLog> {0}", this.Strategy.GetDescription());
+                IO.Log("<StrategyLog> {0}", this.Strategy.GetDescription());
             }
 
             if (this.Runtime.Configuration.BoundOperations)
             {
-                Output.Log("<StrategyLog> {0}", this.Runtime.OperationScheduler.GetDescription());
+                IO.Log("<StrategyLog> {0}", this.Runtime.OperationScheduler.GetDescription());
             }
 
             this.BugFound = true;

@@ -105,7 +105,7 @@ namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
             configuration.CacheProgramState = true;
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
 
-            Output.Debugging = true;
+            IO.Debugging = true;
 
             var engine = TestingEngine.Create(configuration, TestProgram.Execute).Run();
             Assert.AreEqual(0, engine.NumOfFoundBugs);

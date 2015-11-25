@@ -204,7 +204,14 @@ namespace Microsoft.PSharp.SystematicTesting
 
             this.ExplorationCache = ExplorationCache.Create(this.Configuration);
 
-            if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Random)
+            if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Interactive)
+            {
+                this.Strategy = new InteractiveStrategy(this.Configuration);
+                this.Configuration.SchedulingIterations = 1;
+                this.Configuration.FullExploration = false;
+                this.Configuration.Verbose = 2;
+            }
+            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Random)
             {
                 this.Strategy = new RandomStrategy(this.Configuration);
             }
@@ -248,7 +255,7 @@ namespace Microsoft.PSharp.SystematicTesting
         /// </summary>
         private void FindBugs()
         {
-            Output.PrintLine("... Using '{0}' strategy", this.Configuration.SchedulingStrategy);
+            IO.PrintLine("... Using '{0}' strategy", this.Configuration.SchedulingStrategy);
 
             Task task = new Task(() =>
             {
@@ -256,7 +263,7 @@ namespace Microsoft.PSharp.SystematicTesting
                 {
                     if (this.ShouldPrintIteration(i + 1))
                     {
-                        Output.PrintLine("..... Iteration #{0}", i + 1);
+                        IO.PrintLine("..... Iteration #{0}", i + 1);
                     }
 
                     var runtime = new PSharpBugFindingRuntime(this.Configuration, this.ExplorationCache, this.Strategy);
@@ -354,8 +361,8 @@ namespace Microsoft.PSharp.SystematicTesting
                     this.ResetOutput();
                 }
 
-                Output.Debug(ex.Message);
-                Output.Debug(ex.StackTrace);
+                IO.Debug(ex.Message);
+                IO.Debug(ex.StackTrace);
                 ErrorReporter.ReportAndExit("Internal systematic testing exception. " +
                     "Please send a bug report to the developers.");
             }
@@ -370,26 +377,26 @@ namespace Microsoft.PSharp.SystematicTesting
         /// </summary>
         private void Report()
         {
-            Output.PrintLine("... Found {0} bug{1}.", this.NumOfFoundBugs,
+            IO.PrintLine("... Found {0} bug{1}.", this.NumOfFoundBugs,
                 this.NumOfFoundBugs == 1 ? "" : "s");
-            Output.PrintLine("... Explored {0} {1} schedule{2}.", this.ExploredSchedules,
+            IO.PrintLine("... Explored {0} {1} schedule{2}.", this.ExploredSchedules,
                 this.Strategy.HasFinished() ? "(all)" : "",
                 this.ExploredSchedules == 1 ? "" : "s");
 
             if (this.ExploredSchedules > 0)
             {
-                Output.PrintLine("... Found {0} % buggy schedules.",
+                IO.PrintLine("... Found {0} % buggy schedules.",
                     (this.NumOfFoundBugs * 100 / this.ExploredSchedules));
-                Output.PrintLine("... Instrumented {0} scheduling point{1} (on last iteration).",
+                IO.PrintLine("... Instrumented {0} scheduling point{1} (on last iteration).",
                     this.ExploredDepth, this.ExploredDepth == 1 ? "" : "s");
             }
 
             if (this.Configuration.DepthBound > 0)
             {
-                Output.PrintLine("... Used depth bound of {0}.", this.Configuration.DepthBound);
+                IO.PrintLine("... Used depth bound of {0}.", this.Configuration.DepthBound);
             }
 
-            Output.PrintLine("... Elapsed {0} sec.", Profiler.Results());
+            IO.PrintLine("... Elapsed {0} sec.", Profiler.Results());
         }
 
         /// <summary>
@@ -407,7 +414,7 @@ namespace Microsoft.PSharp.SystematicTesting
             var traces = Directory.GetFiles(directory, name + "*.txt");
             var path = directory + name + "_" + traces.Length + ".txt";
 
-            Output.PrintLine("... Writing {0}", path);
+            IO.PrintLine("... Writing {0}", path);
             File.WriteAllText(path, sw.ToString());
         }
 

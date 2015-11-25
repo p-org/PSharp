@@ -96,7 +96,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             {
                 base.Reset();
                 this.CurrentDepth++;
-                Output.PrintLine("....... Depth bound increased to {0}", this.CurrentDepth);
+                IO.PrintLine("....... Depth bound increased to {0}", this.CurrentDepth);
             }
         }
 

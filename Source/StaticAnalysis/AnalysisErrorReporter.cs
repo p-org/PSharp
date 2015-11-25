@@ -59,18 +59,18 @@ namespace Microsoft.PSharp.StaticAnalysis
             if ((AnalysisErrorReporter.ErrorCount > 0 || AnalysisErrorReporter.WarningCount > 0) &&
                 ErrorReporter.ShowWarnings)
             {
-                Output.PrintLine("... Static analysis detected '{0}' {1} and reported '{2}' {3}",
+                IO.PrintLine("... Static analysis detected '{0}' {1} and reported '{2}' {3}",
                     AnalysisErrorReporter.ErrorCount, errorStr,
                     AnalysisErrorReporter.WarningCount, warningStr);
             }
             else if (AnalysisErrorReporter.ErrorCount > 0)
             {
-                Output.PrintLine("... Static analysis detected '{0}' {1}",
+                IO.PrintLine("... Static analysis detected '{0}' {1}",
                     AnalysisErrorReporter.ErrorCount, errorStr);
             }
             else
             {
-                Output.PrintLine("... No static analysis errors detected (but absolutely no warranty provided)");
+                IO.PrintLine("... No static analysis errors detected (but absolutely no warranty provided)");
             }
         }
         
@@ -318,27 +318,27 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="args">Parameters</param>
         private static void ReportDataRaceSource(Log log, string s, params object[] args)
         {
-            string message = Output.Format(s, args);
+            string message = IO.Format(s, args);
             ConsoleColor previous = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Red;
             Console.Write("Error: Potential source for data race detected. ");
             Console.ForegroundColor = previous;
-            Output.PrintLine(message);
+            IO.PrintLine(message);
 
             for (int idx = log.ErrorTrace.Count - 1; idx >= 0; idx--)
             {
                 if (idx == 0)
                 {
-                    Output.PrintLine("   --- Point of sending the payload ---");
+                    IO.PrintLine("   --- Point of sending the payload ---");
                     Console.Write("   at '{0}' ", log.ErrorTrace[idx].Item1);
                     Console.Write("in {0}:", log.ErrorTrace[idx].Item2);
-                    Output.PrintLine("line {0}", log.ErrorTrace[idx].Item3);
+                    IO.PrintLine("line {0}", log.ErrorTrace[idx].Item3);
                 }
                 else
                 {
                     Console.Write("   at '{0}' ", log.ErrorTrace[idx].Item1);
                     Console.Write("in {0}:", log.ErrorTrace[idx].Item2);
-                    Output.PrintLine("line {0}", log.ErrorTrace[idx].Item3);
+                    IO.PrintLine("line {0}", log.ErrorTrace[idx].Item3);
                 }
             }
 
@@ -353,27 +353,27 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="args">Parameters</param>
         private static void ReportOwnershipError(Log log, string s, params object[] args)
         {
-            string message = Output.Format(s, args);
+            string message = IO.Format(s, args);
             ConsoleColor previous = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Red;
             Console.Write("Error: Potential data race detected. ");
             Console.ForegroundColor = previous;
-            Output.PrintLine(message);
+            IO.PrintLine(message);
 
             for (int idx = log.ErrorTrace.Count - 1; idx >= 0; idx--)
             {
                 if (idx == 0)
                 {
-                    Output.PrintLine("   --- Source of giving up ownership ---");
+                    IO.PrintLine("   --- Source of giving up ownership ---");
                     Console.Write("   at '{0}' ", log.ErrorTrace[idx].Item1);
                     Console.Write("in {0}:", log.ErrorTrace[idx].Item2);
-                    Output.PrintLine("line {0}", log.ErrorTrace[idx].Item3);
+                    IO.PrintLine("line {0}", log.ErrorTrace[idx].Item3);
                 }
                 else
                 {
                     Console.Write("   at '{0}' ", log.ErrorTrace[idx].Item1);
                     Console.Write("in {0}:", log.ErrorTrace[idx].Item2);
-                    Output.PrintLine("line {0}", log.ErrorTrace[idx].Item3);
+                    IO.PrintLine("line {0}", log.ErrorTrace[idx].Item3);
                 }
             }
 
@@ -393,16 +393,16 @@ namespace Microsoft.PSharp.StaticAnalysis
                 return;
             }
 
-            string message = Output.Format(s, args);
+            string message = IO.Format(s, args);
             ConsoleColor previous = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Red;
             Console.Write("Warning: ");
             Console.ForegroundColor = previous;
-            Output.PrintLine(message);
+            IO.PrintLine(message);
 
             Console.Write("   at '{0}' ", log.ErrorTrace[log.ErrorTrace.Count - 1].Item1);
             Console.Write("in {0}:", log.ErrorTrace[log.ErrorTrace.Count - 1].Item2);
-            Output.PrintLine("line {0}", log.ErrorTrace[log.ErrorTrace.Count - 1].Item3);
+            IO.PrintLine("line {0}", log.ErrorTrace[log.ErrorTrace.Count - 1].Item3);
 
             AnalysisErrorReporter.WarningCount++;
         }
@@ -415,18 +415,18 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="args">Parameters</param>
         private static void ReportGenericError(Log log, string s, params object[] args)
         {
-            string message = Output.Format(s, args);
+            string message = IO.Format(s, args);
             ConsoleColor previous = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Red;
             Console.Write("Error: ");
             Console.ForegroundColor = previous;
-            Output.PrintLine(message);
+            IO.PrintLine(message);
 
             for (int idx = log.ErrorTrace.Count - 1; idx >= 0; idx--)
             {
                 Console.Write("   at '{0}' ", log.ErrorTrace[idx].Item1);
                 Console.Write("in {0}:", log.ErrorTrace[idx].Item2);
-                Output.PrintLine("line {0}", log.ErrorTrace[idx].Item3);
+                IO.PrintLine("line {0}", log.ErrorTrace[idx].Item3);
             }
 
             AnalysisErrorReporter.ErrorCount++;

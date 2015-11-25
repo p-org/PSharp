@@ -49,7 +49,7 @@ namespace Microsoft.PSharp
         /// </summary>
         public void Start()
         {
-            Output.PrintLine(". Parsing");
+            IO.PrintLine(". Parsing");
 
             foreach (var target in this.CompilationContext.Configuration.CompilationTargets)
             {
