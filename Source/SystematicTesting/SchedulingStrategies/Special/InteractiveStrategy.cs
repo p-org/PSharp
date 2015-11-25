@@ -110,7 +110,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                             var steps = Convert.ToInt32(IO.GetLine());
                             if (steps < 0)
                             {
-                                IO.PrintLine(">> Expected positive integer, retry ...");
+                                IO.PrintLine(">> Expected positive integer, please retry ...");
                                 continue;
                             }
 
@@ -118,7 +118,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                         }
                         catch (FormatException)
                         {
-                            IO.PrintLine(">> Wrong format, retry ...");
+                            IO.PrintLine(">> Wrong format, please retry ...");
                             continue;
                         }
 
@@ -136,11 +136,16 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                     try
                     {
                         var id = Convert.ToInt32(input);
-                        next = availableMachines.Find(m => m.Machine.Id.Value == id);
+                        next = availableMachines.FirstOrDefault(m => m.Machine.Id.Value == id);
+                        if (next == null)
+                        {
+                            IO.PrintLine(">> Unexpected id, please retry ...");
+                            continue;
+                        }
                     }
                     catch (FormatException)
                     {
-                        IO.PrintLine(">> Wrong format, retry ...");
+                        IO.PrintLine(">> Wrong format, please retry ...");
                         continue;
                     }
 
@@ -148,7 +153,6 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                     parsed = true;
                 }
             }
-
             return true;
         }
 
@@ -184,7 +188,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                             var steps = Convert.ToInt32(IO.GetLine());
                             if (steps < 0)
                             {
-                                IO.PrintLine(">> Expected positive integer, retry ...");
+                                IO.PrintLine(">> Expected positive integer, please retry ...");
                                 continue;
                             }
 
@@ -192,7 +196,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                         }
                         catch (FormatException)
                         {
-                            IO.PrintLine(">> Wrong format, retry ...");
+                            IO.PrintLine(">> Wrong format, please retry ...");
                             continue;
                         }
 
@@ -213,7 +217,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                     }
                     catch (FormatException)
                     {
-                        IO.PrintLine(">> Wrong format, retry ...");
+                        IO.PrintLine(">> Wrong format, please retry ...");
                         continue;
                     }
 
