@@ -354,8 +354,6 @@ namespace Microsoft.PSharp
 
                 if (this.EventWaiters.ContainsKey(e.GetType()))
                 {
-                    base.Runtime.Log("<ReceiveLog> Machine '{0}({1})' received event '{2}' and unblocked.",
-                        this, base.Id.MVal, e.GetType().FullName);
                     this.ReceivedEventHandler = new Tuple<Event, Action>(
                         e, this.EventWaiters[e.GetType()]);
                     this.EventWaiters.Clear();
@@ -363,7 +361,7 @@ namespace Microsoft.PSharp
                     return;
                 }
 
-                base.Runtime.Log("<EnqueueLog> Machine '{0}({1})' enqueued event < {2} >.",
+                base.Runtime.Log("<EnqueueLog> Machine '{0}({1})' enqueued event '{2}'.",
                     this, base.Id.MVal, e.GetType().FullName);
 
                 this.Inbox.Add(e);
@@ -532,12 +530,8 @@ namespace Microsoft.PSharp
                         !this.DeferredEvents.Contains(this.Inbox[idx].GetType()))
                     {
                         nextEvent = this.Inbox[idx];
-                        base.Runtime.Log("<DequeueLog> Machine '{0}({1})' dequeued event < {2} >.",
-                            this.GetType().Name, base.Id.MVal, nextEvent.GetType().FullName);
-
                         this.Inbox.RemoveAt(idx);
                         dequeued = true;
-
                         break;
                     }
                 }

@@ -358,17 +358,17 @@ namespace Microsoft.PSharp.SystematicTesting
             if (this.Configuration.BoundOperations && sender != null)
             {
                 IO.Log("<SendLog> Machine '{0}({1})' sent event '{2}({3})' to '{4}({5})'.",
-                    sender, sender.Id.MVal, e.GetType(), e.OperationId, mid.Type, mid.MVal);
+                    sender, sender.Id.MVal, e.GetType().FullName, e.OperationId, mid.Type, mid.MVal);
             }
             else if (sender != null)
             {
                 IO.Log("<SendLog> Machine '{0}({1})' sent event '{2}' to '{3}({4})'.",
-                    sender, sender.Id.MVal, e.GetType(), mid.Type, mid.MVal);
+                    sender, sender.Id.MVal, e.GetType().FullName, mid.Type, mid.MVal);
             }
             else
             {
                 IO.Log("<SendLog> Event '{0}' was sent to '{1}({2})'.",
-                    e.GetType(), mid.Type, mid.MVal);
+                    e.GetType().FullName, mid.Type, mid.MVal);
             }
 
             Machine machine = this.MachineMap[mid.Value];
@@ -458,6 +458,17 @@ namespace Microsoft.PSharp.SystematicTesting
         /// <param name="e">Event</param>
         internal override void NotifyDequeuedEvent(Machine machine, Event e)
         {
+            if (this.Configuration.BoundOperations)
+            {
+                IO.Log("<DequeueLog> Machine '{0}({1})' dequeued event '{2}({3})'.",
+                    machine, machine.Id.MVal, e.GetType().FullName, e.OperationId);
+            }
+            else
+            {
+                IO.Log("<DequeueLog> Machine '{0}({1})' dequeued event '{2}'.",
+                    machine, machine.Id.MVal, e.GetType().FullName);
+            }
+            
             var prevMachineOpId = machine.OperationId;
             machine.SetOperationId(e.OperationId);
             if (this.Configuration.BoundOperations && prevMachineOpId != machine.OperationId)
@@ -483,6 +494,17 @@ namespace Microsoft.PSharp.SystematicTesting
         /// <param name="e">Event</param>
         internal override void NotifyReceivedEvent(Machine machine, Event e)
         {
+            if (this.Configuration.BoundOperations)
+            {
+                IO.Log("<ReceiveLog> Machine '{0}({1})' received event '{2}({3})' and unblocked.",
+                    machine, machine.Id.MVal, e.GetType().FullName, e.OperationId);
+            }
+            else
+            {
+                IO.Log("<ReceiveLog> Machine '{0}({1})' received event '{2}' and unblocked.",
+                    machine, machine.Id.MVal, e.GetType().FullName);
+            }
+
             this.BugFinder.NotifyTaskReceivedEvent(machine);
         }
 
