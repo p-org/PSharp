@@ -378,6 +378,17 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Raises an event internally and returns from the execution context.
+        /// </summary>
+        /// <param name="raiser">Raiser machine</param>
+        /// <param name="e">Event</param>
+        /// <param name="isStarter">Is starting a new operation</param>
+        internal virtual void Raise(AbstractMachine raiser, Event e, bool isStarter)
+        {
+            // No-op for real execution.
+        }
+
+        /// <summary>
         /// Returns a nondeterministic boolean choice, that can be
         /// controlled during analysis or testing.
         /// </summary>
@@ -413,6 +424,16 @@ namespace Microsoft.PSharp
         /// <param name="machine">Machine</param>
         /// <param name="e">Event</param>
         internal virtual void NotifyDequeuedEvent(Machine machine, Event e)
+        {
+            // No-op for real execution.
+        }
+
+        /// <summary>
+        /// Notifies that a machine raised an event.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <param name="e">Event</param>
+        internal virtual void NotifyRaisedEvent(Machine machine, Event e)
         {
             // No-op for real execution.
         }

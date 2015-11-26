@@ -167,7 +167,6 @@ namespace Microsoft.PSharp
 
         /// <summary>
         /// Sends an asynchronous event to a machine.
-        /// Optionally starts a new operation.
         /// </summary>
         /// <param name="m">MachineId</param>
         /// <param name="e">Event</param>
@@ -195,12 +194,13 @@ namespace Microsoft.PSharp
         /// Raises an event internally and returns from the execution context.
         /// </summary>
         /// <param name="e">Event</param>
-        protected internal void Raise(Event e)
+        /// <param name="isStarter">Is starting a new operation</param>
+        protected internal void Raise(Event e, bool isStarter = false)
         {
             // If the event is null then report an error and exit.
             this.Assert(e != null, "Machine '{0}' is raising a null event.", this.GetType().Name);
-            base.Runtime.Log("<RaiseLog> Machine '{0}({1})' raised event '{2}'.", this, base.Id.MVal, e);
             this.RaisedEvent = e;
+            base.Runtime.Raise(this, e, isStarter);
         }
 
         /// <summary>
@@ -428,13 +428,16 @@ namespace Microsoft.PSharp
                     }
                 }
 
-                // If the event was dequeued, then notify the runtime. This is
-                // only used during bug-finding and operation bounding, because
-                // the runtime has to schedule a machine between when a new operation
-                // is dequeued.
+                // Notifies the runtime for a new event to handle. This is only used
+                // during bug-finding and operation bounding, because the runtime has
+                // to schedule a machine between when a new operation is dequeued.
                 if (dequeued)
                 {
                     base.Runtime.NotifyDequeuedEvent(this, nextEvent);
+                }
+                else
+                {
+                    base.Runtime.NotifyRaisedEvent(this, nextEvent);
                 }
 
                 // Assigns the received event.

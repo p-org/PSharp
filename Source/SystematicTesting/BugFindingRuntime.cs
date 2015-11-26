@@ -430,6 +430,28 @@ namespace Microsoft.PSharp.SystematicTesting
         }
 
         /// <summary>
+        /// Raises an event internally and returns from the execution context.
+        /// </summary>
+        /// <param name="raiser">Raiser machine</param>
+        /// <param name="e">Event</param>
+        /// <param name="isStarter">Is starting a new operation</param>
+        internal override void Raise(AbstractMachine raiser, Event e, bool isStarter)
+        {
+            this.SetOperationIdForEvent(e, raiser, isStarter);
+
+            if (this.Configuration.BoundOperations)
+            {
+                IO.Log("<RaiseLog> Machine '{0}({1})' raised event '{2}({3})'.",
+                    raiser, raiser.Id.MVal, e.GetType().FullName, e.OperationId);
+            }
+            else
+            {
+                IO.Log("<RaiseLog> Machine '{0}({1})' raised event '{2}'.",
+                    raiser, raiser.Id.MVal, e.GetType().FullName);
+            }
+        }
+
+        /// <summary>
         /// Returns a nondeterministic boolean choice, that can be
         /// controlled during analysis or testing.
         /// </summary>
@@ -469,6 +491,21 @@ namespace Microsoft.PSharp.SystematicTesting
                     machine, machine.Id.MVal, e.GetType().FullName);
             }
             
+            var prevMachineOpId = machine.OperationId;
+            machine.SetOperationId(e.OperationId);
+            if (this.Configuration.BoundOperations && prevMachineOpId != machine.OperationId)
+            {
+                this.BugFinder.Schedule();
+            }
+        }
+
+        /// <summary>
+        /// Notifies that a machine raised an event.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <param name="e">Event</param>
+        internal override void NotifyRaisedEvent(Machine machine, Event e)
+        {
             var prevMachineOpId = machine.OperationId;
             machine.SetOperationId(e.OperationId);
             if (this.Configuration.BoundOperations && prevMachineOpId != machine.OperationId)

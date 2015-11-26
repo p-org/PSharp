@@ -423,7 +423,7 @@ namespace Raft
                     Console.WriteLine("\n [Leader] " + this.ServerId + " | term " + this.CurrentTerm +
                         " | election votes " + this.VotesReceived + " | log " + this.Logs.Count + "\n");
                     this.VotesReceived = 0;
-                    this.Raise(new BecomeLeader());
+                    this.Raise(new BecomeLeader(), true);
                 }
             }
         }
