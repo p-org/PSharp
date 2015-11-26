@@ -79,7 +79,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// </summary>
         /// <param name="compilation">Compilation</param>
         /// <param name="classDecl">Class declaration</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         protected abstract bool IsState(CodeAnalysis.Compilation compilation,
             ClassDeclarationSyntax classDecl);
 

@@ -145,7 +145,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Returns true if the monitor is in a hot state.
         /// </summary>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal bool IsInHotState()
         {
             return this.State.IsHot;
@@ -156,7 +156,7 @@ namespace Microsoft.PSharp
         /// the name of the current state.
         /// </summary>
         /// <param name="stateName">State name</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal bool IsInHotState(out string stateName)
         {
             stateName = this.State.GetType().Name;
@@ -166,7 +166,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Returns true if the monitor is in a cold state.
         /// </summary>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal bool IsInColdState()
         {
             return this.State.IsCold;
@@ -177,7 +177,7 @@ namespace Microsoft.PSharp
         /// the name of the current state.
         /// </summary>
         /// <param name="stateName">State name</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal bool IsInColdState(out string stateName)
         {
             stateName = this.State.GetType().Name;
@@ -246,7 +246,7 @@ namespace Microsoft.PSharp
         /// action binding. Ignored events have been removed.
         /// </summary>
         /// <param name="e">Event type</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         private bool CanHandleEvent(Type e)
         {
             if (this.GotoTransitions.ContainsKey(e) ||

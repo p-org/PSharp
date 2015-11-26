@@ -66,7 +66,7 @@
     <Compile Include="SchedulingStrategies\DelayBounded\ExhaustiveDelayBoundingStrategy.cs" />
     <Compile Include="SchedulingStrategies\DelayBounded\RandomDelayBoundingStrategy.cs" />
     <Compile Include="SchedulingStrategies\DelayBounded\DelayBoundingStrategy.cs" />
-    <Compile Include="SchedulingStrategies\OperationBounded\ExhaustiveOperationBoundingStrategy.cs" />
+    <Compile Include="SchedulingStrategies\OperationBounded\PrioritizedOperationBoundingStrategy.cs" />
     <Compile Include="SchedulingStrategies\Special\InteractiveStrategy.cs" />
     <Compile Include="SchedulingStrategies\OperationBounded\OperationBoundingStrategy.cs" />
     <Compile Include="Scheduling\BugFindingScheduler.cs" />

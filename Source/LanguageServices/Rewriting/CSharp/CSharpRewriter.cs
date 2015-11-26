@@ -76,7 +76,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.CSharp
         /// True if the given syntax node is in the scope of a state.
         /// </summary>
         /// <param name="node">SyntaxNode</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         protected bool IsInStateScope(SyntaxNode node)
         {
             var result = false;
@@ -103,7 +103,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.CSharp
         /// True if the given syntax node is a machine field.
         /// </summary>
         /// <param name="node">SyntaxNode</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         protected bool IsMachineField(SyntaxNode node)
         {
             var result = false;
@@ -124,7 +124,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.CSharp
         /// True if the given syntax node is a machine method.
         /// </summary>
         /// <param name="node">SyntaxNode</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         protected bool IsMachineMethod(SyntaxNode node)
         {
             var result = false;
@@ -151,7 +151,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.CSharp
         /// True if the machine is a monitor.
         /// </summary>
         /// <param name="machineIdentifier">MachineIdentifier</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         protected bool IsMonitor(string machineIdentifier)
         {
             var result = false;
@@ -174,7 +174,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.CSharp
         /// </summary>
         /// <param name="node">SyntaxNode</param>
         /// <param name="machine">MachineDeclaration</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         protected bool TryGetParentMachine(SyntaxNode node, out MachineDeclaration machine)
         {
             var result = false;

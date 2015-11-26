@@ -463,7 +463,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="targetSyntaxNode">Target syntaxNode</param>
         /// <param name="targetCfgNode">Target controlFlowGraphNode</param>
         /// <param name="track">Tracking</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal bool DoesSymbolReset(ISymbol symbol, SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode,
             SyntaxNode targetSyntaxNode, ControlFlowGraphNode targetCfgNode, bool track = false)
         {
@@ -476,7 +476,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="syntaxNode">SyntaxNode</param>
         /// <param name="cfgNode">ControlFlowGraphNode</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal bool ExistsMapForSyntaxNode(SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode)
         {
             if (this.Map.ContainsKey(cfgNode))
@@ -503,7 +503,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="syntaxNode">SyntaxNode</param>
         /// <param name="cfgNode">ControlFlowGraphNode</param>
         /// <param name="map">Map</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal bool TryGetMapForSyntaxNode(SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode,
             out Dictionary<ISymbol, HashSet<ISymbol>> map)
         {
@@ -540,7 +540,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="syntaxNode">SyntaxNode</param>
         /// <param name="cfgNode">ControlFlowGraphNode</param>
         /// <param name="map">Map</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal bool TryGetReachabilityMapForSyntaxNode(SyntaxNode syntaxNode,
             ControlFlowGraphNode cfgNode, out Dictionary<ISymbol, HashSet<ISymbol>> map)
         {
@@ -577,7 +577,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="syntaxNode">SyntaxNode</param>
         /// <param name="cfgNode">ControlFlowGraphNode</param>
         /// <param name="map">Map</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal bool TryGetObjectTypeMapForSyntaxNode(SyntaxNode syntaxNode,
             ControlFlowGraphNode cfgNode, out Dictionary<ISymbol, HashSet<ITypeSymbol>> map)
         {
@@ -643,7 +643,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="targetCfgNode">Target controlFlowGraphNode</param>
         /// <param name="visited">Already visited cfgNodes</param>
         /// <param name="track">Tracking</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal bool DoesSymbolReset(ISymbol symbol, SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode,
             SyntaxNode targetSyntaxNode, ControlFlowGraphNode targetCfgNode, HashSet<ControlFlowGraphNode> visited,
             bool track)

@@ -81,7 +81,7 @@ namespace Microsoft.PSharp
         /// Determines whether the collection contains the specified key.
         /// </summary>
         /// <param name="key">Type of the event</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         public bool ContainsKey(Type key)
         {
             return this.Dictionary.ContainsKey(key);

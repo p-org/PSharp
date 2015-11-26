@@ -521,7 +521,7 @@ namespace Microsoft.PSharp.SystematicTesting
         /// due to a wait synchronization operation.
         /// </summary>
         /// <param name="blockingTasks">Blocking tasks</param>
-        /// <param name="waitAll">Boolean value</param>
+        /// <param name="waitAll">Boolean</param>
         internal void ScheduleOnWait(IEnumerable<Task> blockingTasks, bool waitAll)
         {
             this.Assert(this.BugFinder is TaskAwareBugFindingScheduler,

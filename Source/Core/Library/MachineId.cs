@@ -132,7 +132,7 @@ namespace Microsoft.PSharp
         /// to the current System.Object.
         /// </summary>
         /// <param name="obj">Object</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         public override bool Equals(object obj)
         {
             if (obj == null)

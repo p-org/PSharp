@@ -65,7 +65,7 @@ namespace Microsoft.PSharp.Utilities
             if (option.ToLower().Equals("/?"))
             {
                 this.ShowHelp();
-                Environment.Exit(1);
+                Environment.Exit(0);
             }
             else if (option.ToLower().StartsWith("/s:") && option.Length > 3)
             {

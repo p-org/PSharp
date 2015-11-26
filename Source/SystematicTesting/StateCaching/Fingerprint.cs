@@ -53,7 +53,7 @@ namespace Microsoft.PSharp.SystematicTesting.StateCaching
         /// the given object.
         /// </summary>
         /// <param name="obj">Object</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         public override bool Equals(object obj)
         {
             var fingerprint = obj as Fingerprint;

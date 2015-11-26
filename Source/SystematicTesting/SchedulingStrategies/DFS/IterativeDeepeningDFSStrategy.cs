@@ -77,7 +77,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// <summary>
         /// Returns true if the scheduling has finished.
         /// </summary>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         public new bool HasFinished()
         {
             return base.HasFinished() && this.CurrentDepth == this.MaxDepth;

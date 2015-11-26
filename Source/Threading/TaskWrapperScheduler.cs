@@ -99,8 +99,8 @@ namespace Microsoft.PSharp.Threading
         /// Tries to execute the task inline.
         /// </summary>
         /// <param name="task">Task</param>
-        /// <param name="taskWasPreviouslyQueued">Boolean value</param>
-        /// <returns>Boolean value</returns>
+        /// <param name="taskWasPreviouslyQueued">Boolean</param>
+        /// <returns>Boolean</returns>
         protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
         {
             return false;

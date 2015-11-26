@@ -229,8 +229,8 @@ namespace Microsoft.PSharp.SystematicTesting
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.OperationBounding)
             {
-                this.Strategy = new ExhaustiveOperationBoundingStrategy(this.Configuration,
-                    this.Configuration.OperationDelayBound, this.Configuration.DelayBound);
+                this.Strategy = new PrioritizedOperationBoundingStrategy(this.Configuration,
+                    this.Configuration.BugDepth);
                 this.Configuration.BoundOperations = true;
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.MaceMC)

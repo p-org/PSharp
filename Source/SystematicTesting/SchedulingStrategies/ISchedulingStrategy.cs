@@ -27,17 +27,17 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// Returns the next machine to schedule.
         /// </summary>
         /// <param name="next">Next</param>
-        /// <param name="machines">Machines</param>
-        /// <param name="currentMachine">Curent machine</param>
-        /// <returns>Boolean value</returns>
-        bool TryGetNext(out MachineInfo next, List<MachineInfo> machines, MachineInfo currentMachine);
+        /// <param name="choices">Choices</param>
+        /// <param name="current">Curent</param>
+        /// <returns>Boolean</returns>
+        bool TryGetNext(out MachineInfo next, IList<MachineInfo> choices, MachineInfo current);
 
         /// <summary>
         /// Returns the next choice.
         /// </summary>
         /// <param name="maxValue">Max value</param>
         /// <param name="next">Next</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         bool GetNextChoice(int maxValue, out bool next);
 
         /// <summary>
@@ -68,7 +68,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// <summary>
         /// True if the scheduling has finished.
         /// </summary>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         bool HasFinished();
 
         /// <summary>

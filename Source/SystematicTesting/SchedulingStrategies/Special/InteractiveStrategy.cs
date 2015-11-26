@@ -75,22 +75,22 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// Returns the next machine to schedule.
         /// </summary>
         /// <param name="next">Next</param>
-        /// <param name="machines">Machines</param>
-        /// <param name="currentMachine">Curent machine</param>
-        /// <returns>Boolean value</returns>
-        public bool TryGetNext(out MachineInfo next, List<MachineInfo> machines, MachineInfo currentMachine)
+        /// <param name="choices">Choices</param>
+        /// <param name="current">Curent</param>
+        /// <returns>Boolean</returns>
+        public bool TryGetNext(out MachineInfo next, IList<MachineInfo> choices, MachineInfo current)
         {
             next = null;
 
             List<MachineInfo> availableMachines;
             if (this.Configuration.BoundOperations)
             {
-                availableMachines = this.GetPrioritizedMachines(machines, currentMachine);
+                availableMachines = this.GetPrioritizedMachines(choices.ToList(), current);
             }
             else
             {
-                machines = machines.OrderBy(machine => machine.Machine.Id.Value).ToList();
-                availableMachines = machines.Where(
+                choices = choices.OrderBy(machine => machine.Machine.Id.Value).ToList();
+                availableMachines = choices.Where(
                     m => m.IsEnabled && !m.IsBlocked && !m.IsWaiting).ToList();
             }
             
@@ -209,7 +209,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// </summary>
         /// <param name="maxValue">Max value</param>
         /// <param name="next">Next</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         public bool GetNextChoice(int maxValue, out bool next)
         {
             next = false;
@@ -324,7 +324,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// <summary>
         /// Returns true if the scheduling has finished.
         /// </summary>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         public bool HasFinished()
         {
             return false;
@@ -366,7 +366,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// </summary>
         /// <param name="machines">Machines</param>
         /// <param name="currentMachine">Curent machine</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         private List<MachineInfo> GetPrioritizedMachines(List<MachineInfo> machines, MachineInfo currentMachine)
         {
             machines = machines.OrderBy(mi => mi.Machine.Id.Value).ToList();

@@ -76,17 +76,17 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// Returns the next machine to schedule.
         /// </summary>
         /// <param name="next">Next</param>
-        /// <param name="machines">Machines</param>
-        /// <param name="currentMachine">Curent machine</param>
-        /// <returns>Boolean value</returns>
-        public bool TryGetNext(out MachineInfo next, List<MachineInfo> machines, MachineInfo currentMachine)
+        /// <param name="choices">Choices</param>
+        /// <param name="current">Curent</param>
+        /// <returns>Boolean</returns>
+        public bool TryGetNext(out MachineInfo next, IList<MachineInfo> choices, MachineInfo current)
         {
             if (this.BoundedDFS.HasReachedDepthBound())
             {
-                return this.Random.TryGetNext(out next, machines, currentMachine);
+                return this.Random.TryGetNext(out next, choices, current);
             }
             {
-                return this.BoundedDFS.TryGetNext(out next, machines, currentMachine);
+                return this.BoundedDFS.TryGetNext(out next, choices, current);
             }
         }
 
@@ -95,7 +95,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// </summary>
         /// <param name="maxValue">Max value</param>
         /// <param name="next">Next</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         public bool GetNextChoice(int maxValue, out bool next)
         {
             if (this.BoundedDFS.HasReachedDepthBound())
@@ -162,7 +162,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// <summary>
         /// Returns true if the scheduling has finished.
         /// </summary>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         public bool HasFinished()
         {
             return this.BoundedDFS.HasFinished();

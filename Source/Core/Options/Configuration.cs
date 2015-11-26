@@ -153,6 +153,11 @@ namespace Microsoft.PSharp.Utilities
         public bool ConsiderDepthBoundHitAsBug;
 
         /// <summary>
+        /// The bug depth. By default it is 2.
+        /// </summary>
+        public int BugDepth;
+
+        /// <summary>
         /// Delay bound. By default it is 2.
         /// </summary>
         public int DelayBound;
@@ -185,11 +190,6 @@ namespace Microsoft.PSharp.Utilities
         /// the interleavings between operations.
         /// </summary>
         public bool BoundOperations;
-
-        /// <summary>
-        /// Operation delay bound. By default it is 2.
-        /// </summary>
-        public int OperationDelayBound;
 
         /// <summary>
         /// Seed for random operation bounding strategies.
@@ -259,6 +259,7 @@ namespace Microsoft.PSharp.Utilities
             this.FullExploration = false;
             this.DepthBound = 10000;
             this.ConsiderDepthBoundHitAsBug = false;
+            this.BugDepth = 2;
             this.DelayBound = 2;
             this.SafetyPrefixBound = 0;
 
@@ -266,7 +267,6 @@ namespace Microsoft.PSharp.Utilities
             this.CheckLiveness = false;
             this.CacheProgramState = false;
             this.BoundOperations = false;
-            this.OperationDelayBound = 2;
             this.RandomOperationBoundingSeed = null;
 
             this.NumberOfContainers = 1;
@@ -315,7 +315,7 @@ namespace Microsoft.PSharp.Utilities
         /// Updates the configuration with liveness checking enabled
         /// or disabled and returns it.
         /// </summary>
-        /// <param name="value">Boolean value</param>
+        /// <param name="value">Boolean</param>
         /// <returns>Configuration</returns>
         public Configuration WithLivenessCheckingEnabled(bool value = true)
         {

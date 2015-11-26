@@ -40,9 +40,9 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         private Random Random;
 
         /// <summary>
-        /// Delays in this iteration.
+        /// Delays during this iteration.
         /// </summary>
-        private List<int> IterationDelays;
+        private List<int> CurrentIterationDelays;
 
         #endregion
 
@@ -58,7 +58,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         {
             this.Seed = this.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
             this.Random = new Random(this.Seed);
-            this.IterationDelays = new List<int>();
+            this.CurrentIterationDelays = new List<int>();
         }
 
         /// <summary>
@@ -77,8 +77,8 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
 
             base.RemainingDelays.Sort();
 
-            this.IterationDelays.Clear();
-            this.IterationDelays.AddRange(base.RemainingDelays);
+            this.CurrentIterationDelays.Clear();
+            this.CurrentIterationDelays.AddRange(base.RemainingDelays);
         }
 
         /// <summary>
@@ -97,10 +97,10 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         public override string GetDescription()
         {
             var text = "Random seed '" + this.Seed + "', '" + base.MaxDelays + "' delays, delays '[";
-            for (int idx = 0; idx < this.IterationDelays.Count; idx++)
+            for (int idx = 0; idx < this.CurrentIterationDelays.Count; idx++)
             {
-                text += this.IterationDelays[idx];
-                if (idx < this.IterationDelays.Count - 1)
+                text += this.CurrentIterationDelays[idx];
+                if (idx < this.CurrentIterationDelays.Count - 1)
                 {
                     text += ", ";
                 }

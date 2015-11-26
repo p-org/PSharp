@@ -41,7 +41,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="targetCfgNode">Target controlFlowGraphNode</param>
         /// <param name="model">SemanticModel</param>
         /// <param name="context">AnalysisContext</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal static bool FlowsIntoTarget(ExpressionSyntax expr, ISymbol target,
             SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode, SyntaxNode targetSyntaxNode,
             ControlFlowGraphNode targetCfgNode, SemanticModel model, AnalysisContext context)
@@ -66,7 +66,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="targetSyntaxNode">Target syntaxNode</param>
         /// <param name="targetCfgNode">Target controlFlowGraphNode</param>
         /// <param name="model">SemanticModel</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal static bool FlowsIntoTarget(VariableDeclaratorSyntax variable, ISymbol target,
             SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode, SyntaxNode targetSyntaxNode,
             ControlFlowGraphNode targetCfgNode, SemanticModel model)
@@ -85,7 +85,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="cfgNode">ControlFlowGraphNode</param>
         /// <param name="targetSyntaxNode">Target syntaxNode</param>
         /// <param name="targetCfgNode">Target controlFlowGraphNode</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal static bool FlowsIntoTarget(ISymbol symbol, ISymbol target, SyntaxNode syntaxNode,
             ControlFlowGraphNode cfgNode, SyntaxNode targetSyntaxNode, ControlFlowGraphNode targetCfgNode)
         {
@@ -160,7 +160,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="targetCfgNode">Target controlFlowGraphNode</param>
         /// <param name="model">SemanticModel</param>
         /// <param name="context">AnalysisContext</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal static bool FlowsFromTarget(ExpressionSyntax expr, ISymbol target,
             SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode, SyntaxNode targetSyntaxNode,
             ControlFlowGraphNode targetCfgNode, SemanticModel model, AnalysisContext context)
@@ -186,7 +186,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="targetSyntaxNode">Target syntaxNode</param>
         /// <param name="targetCfgNode">Target controlFlowGraphNode</param>
         /// <param name="model">SemanticModel</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal static bool FlowsFromTarget(VariableDeclaratorSyntax variable, ISymbol target,
             SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode, SyntaxNode targetSyntaxNode,
             ControlFlowGraphNode targetCfgNode, SemanticModel model)
@@ -205,7 +205,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="cfgNode">ControlFlowGraphNode</param>
         /// <param name="targetSyntaxNode">Target syntaxNode</param>
         /// <param name="targetCfgNode">Target controlFlowGraphNode</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal static bool FlowsFromTarget(ISymbol symbol, ISymbol target, SyntaxNode syntaxNode,
             ControlFlowGraphNode cfgNode, SyntaxNode targetSyntaxNode, ControlFlowGraphNode targetCfgNode)
         {
@@ -287,7 +287,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="targetCfgNode">Target controlFlowGraphNode</param>
         /// <param name="model">SemanticModel</param>
         /// <param name="context">AnalysisContext</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal static bool DoesResetInLoop(ExpressionSyntax expr, SyntaxNode syntaxNode,
             ControlFlowGraphNode cfgNode, SyntaxNode targetSyntaxNode,
             ControlFlowGraphNode targetCfgNode, SemanticModel model, AnalysisContext context)
@@ -313,7 +313,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="cfgNode">ControlFlowGraphNode</param>
         /// <param name="targetSyntaxNode">Target syntaxNode</param>
         /// <param name="targetCfgNode">Target controlFlowGraphNode</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal static bool DoesResetInLoop(ISymbol symbol, SyntaxNode syntaxNode,
             ControlFlowGraphNode cfgNode, SyntaxNode targetSyntaxNode,
             ControlFlowGraphNode targetCfgNode)
@@ -355,7 +355,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="cfgNode">ControlFlowGraphNode</param>
         /// <param name="model">SemanticModel</param>
         /// <param name="context">AnalysisContext</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal static bool DoesResetInSuccessors(ExpressionSyntax expr, ISymbol target,
             SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode, SemanticModel model,
             AnalysisContext context)
@@ -377,7 +377,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="target">Target</param>
         /// <param name="syntaxNode">SyntaxNode</param>
         /// <param name="cfgNode">ControlFlowGraphNode</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal static bool DoesResetInSuccessors(ISymbol symbol, ISymbol target,
             SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode)
         {
@@ -456,7 +456,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="dataFlowMap">DataFlowMap</param>
         /// <param name="model">SemanticModel</param>
         /// <param name="context">AnalysisContext</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         private static void AnalyseControlFlowGraphNode(ControlFlowGraphNode cfgNode, ControlFlowGraphNode previousCfgNode,
             SyntaxNode previousSyntaxNode, DataFlowMap dataFlowMap, SemanticModel model, AnalysisContext context)
         {
@@ -945,7 +945,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="cfgNode">ControlFlowGraphNode</param>
         /// <param name="successorCfgNode">Successor controlFlowGraphNode</param>
         /// <param name="dataFlowMap">DataFlowMap</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         private static bool ReachedFixpoint(SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode,
             ControlFlowGraphNode successorCfgNode, DataFlowMap dataFlowMap)
         {
@@ -1151,7 +1151,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="syntaxNode">SyntaxNode</param>
         /// <param name="cfgNode">ControlFlowGraphNode</param>
         /// <param name="dataFlowMap">DataFlowMap</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         private static bool ResolveObjectType(out HashSet<ITypeSymbol> types, ISymbol symbol,
             SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode, DataFlowMap dataFlowMap)
         {
@@ -1376,7 +1376,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="cfgNode">ControlFlowGraphNode</param>
         /// <param name="targetCfgNode">Target controlFlowGraphNode</param>
         /// <param name="visited">Already visited cfgNodes</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         private static bool DoesResetInSuccessors(ISymbol symbol, ISymbol target,
             SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode, ControlFlowGraphNode targetCfgNode,
             HashSet<ControlFlowGraphNode> visited, bool track = false)

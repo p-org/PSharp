@@ -136,7 +136,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="query">Query</param>
         /// <param name="input">Query input</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal bool VisitSelfAndSuccessors(Func<StateTransitionGraphNode, object, bool, bool> query, object input)
         {
             return this.VisitSelfAndSuccessors(query, input, true, new HashSet<StateTransitionGraphNode>());
@@ -253,7 +253,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="input">Query input</param>
         /// <param name="isFirstVisit">True if first node to visit</param>
         /// <param name="visited">Already visited nodes</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         private bool VisitSelfAndSuccessors(Func<StateTransitionGraphNode, object, bool, bool> query,
             object input, bool isFirstVisit, HashSet<StateTransitionGraphNode> visited)
         {

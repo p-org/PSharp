@@ -396,7 +396,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Returns false if not.
         /// </summary>
         /// <param name="node">ControlFlowGraphNode</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal bool IsPredecessorOf(ControlFlowGraphNode node)
         {
             return this.IsPredecessorOf(node, new HashSet<ControlFlowGraphNode>());
@@ -727,7 +727,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="node">ControlFlowGraphNode</param>
         /// <param name="visited">Already visited cfgNodes</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         private bool IsPredecessorOf(ControlFlowGraphNode node, HashSet<ControlFlowGraphNode> visited)
         {
             visited.Add(this);
@@ -810,7 +810,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Returns false if it is not.
         /// </summary>
         /// <param name="call">Call</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         private bool IsGivesUpOperation(InvocationExpressionSyntax call)
         {
             var callee = this.AnalysisContext.GetCallee(call);

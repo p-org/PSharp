@@ -38,7 +38,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="originalMachine">Original machine</param>
         /// <param name="model">SemanticModel</param>
         /// <param name="context">AnalysisContext</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal static bool TryGetPotentialMethodOverriders(out HashSet<MethodDeclarationSyntax> overriders,
             InvocationExpressionSyntax virtualCall, SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode,
             ClassDeclarationSyntax originalMachine, SemanticModel model, AnalysisContext context)
@@ -135,7 +135,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="type">Type</param>
         /// <param name="virtualCall">Virtual call</param>
         /// <param name="context">AnalysisContext</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         private static bool TryGetMethodFromType(out MethodDeclarationSyntax method, ITypeSymbol type,
             InvocationExpressionSyntax virtualCall, AnalysisContext context)
         {

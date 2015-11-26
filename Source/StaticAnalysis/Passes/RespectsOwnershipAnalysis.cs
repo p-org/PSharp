@@ -1458,7 +1458,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="model">SemanticModel</param>
         /// <param name="log">Log</param>
         /// <param name="shouldReportError">Should report error</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         private bool IsArgumentSafeToAccess(ExpressionSyntax arg, ControlFlowGraphNode givesUpNode,
             SemanticModel model, Log log, bool shouldReportError)
         {

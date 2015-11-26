@@ -120,6 +120,17 @@ namespace Microsoft.PSharp.Utilities
             {
                 base.Configuration.ConsiderDepthBoundHitAsBug = true;
             }
+            else if (option.ToLower().StartsWith("/bug-depth:") && option.Length > 11)
+            {
+                int i = 1;
+                if (!int.TryParse(option.Substring(11), out i) && i >= 1)
+                {
+                    ErrorReporter.ReportAndExit("Please give a valid bug depth " +
+                        "'/bug-depth:[x]', where [x] >= 1.");
+                }
+
+                base.Configuration.BugDepth = i;
+            }
             else if (option.ToLower().StartsWith("/delay-bound:") && option.Length > 13)
             {
                 int i = 0;
@@ -161,17 +172,6 @@ namespace Microsoft.PSharp.Utilities
             else if (option.ToLower().Equals("/opbound"))
             {
                 base.Configuration.BoundOperations = true;
-            }
-            else if (option.ToLower().StartsWith("/op-delay-bound:") && option.Length > 16)
-            {
-                int i = 0;
-                if (!int.TryParse(option.Substring(16), out i) && i >= 0)
-                {
-                    ErrorReporter.ReportAndExit("Please give a valid operation delay bound " +
-                        "'/op-delay-bound:[x]', where [x] >= 0.");
-                }
-
-                base.Configuration.OperationDelayBound = i;
             }
             else if (option.ToLower().StartsWith("/op-bound-seed:") && option.Length > 15)
             {

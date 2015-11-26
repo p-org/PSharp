@@ -182,7 +182,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// True if the syntax tree belongs to a P# program, else false.
         /// </summary>
         /// <param name="tree">SyntaxTree</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         public bool IsPSharpFile(SyntaxTree tree)
         {
             var ext = Path.GetExtension(tree.FilePath);
@@ -193,7 +193,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// True if the syntax tree belongs to a C# program, else false.
         /// </summary>
         /// <param name="tree">SyntaxTree</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         public bool IsCSharpFile(SyntaxTree tree)
         {
             var ext = Path.GetExtension(tree.FilePath);

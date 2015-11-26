@@ -139,7 +139,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <param name="eventIdentifier">Token</param>
         /// <param name="stateIdentifier">Token</param>
         /// <param name="stmtBlock">Statement block</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal bool AddGotoStateTransition(Token eventIdentifier, Token stateIdentifier,
             BlockSyntax stmtBlock = null)
         {
@@ -164,7 +164,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         /// <param name="eventIdentifier">Token</param>
         /// <param name="stateIdentifier">Token</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal bool AddPushStateTransition(Token eventIdentifier, Token stateIdentifier)
         {
             if (this.Machine.IsMonitor)
@@ -189,7 +189,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         /// <param name="eventIdentifier">Token</param>
         /// <param name="stateIdentifier">Token</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal bool AddActionBinding(Token eventIdentifier, BlockSyntax stmtBlock)
         {
             if (this.GotoStateTransitions.ContainsKey(eventIdentifier) ||
@@ -210,7 +210,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         /// <param name="eventIdentifier">Token</param>
         /// <param name="actionIdentifier">Token</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal bool AddActionBinding(Token eventIdentifier, Token actionIdentifier)
         {
             if (this.GotoStateTransitions.ContainsKey(eventIdentifier) ||
@@ -229,7 +229,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Adds a deferred event.
         /// </summary>
         /// <param name="eventIdentifier">Token</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal bool AddDeferredEvent(Token eventIdentifier)
         {
             if (this.Machine.IsMonitor)
@@ -252,7 +252,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Adds an ignored event.
         /// </summary>
         /// <param name="eventIdentifier">Token</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal bool AddIgnoredEvent(Token eventIdentifier)
         {
             if (this.DeferredEvents.Contains(eventIdentifier) ||

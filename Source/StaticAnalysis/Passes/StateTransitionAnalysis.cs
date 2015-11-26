@@ -136,7 +136,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="stateTransitions">State transitions</param>
         /// <param name="machine">Machine</param>
         /// <param name="model">SemanticModel</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         private bool TryParseStateTransitions(out Dictionary<ClassDeclarationSyntax,
             HashSet<ClassDeclarationSyntax>> stateTransitions, ClassDeclarationSyntax machine,
             SemanticModel model)
@@ -193,7 +193,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="actionBindings">Action bindings</param>
         /// <param name="machine">Machine</param>
         /// <param name="model">SemanticModel</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         private bool TryParseActionBindings(out Dictionary<ClassDeclarationSyntax,
             HashSet<MethodDeclarationSyntax>> actionBindings, ClassDeclarationSyntax machine,
             SemanticModel model)
@@ -245,7 +245,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="symbol">Symbol</param>
         /// <param name="method">Method</param>
         /// <param name="model">SemanticModel</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         private bool TryParseStateMap(out Dictionary<ClassDeclarationSyntax, IdentifierNameSyntax> stateMap,
             ISymbol symbol, MethodDeclarationSyntax method, SemanticModel model)
         {

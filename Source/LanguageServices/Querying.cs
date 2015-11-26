@@ -31,7 +31,7 @@ namespace Microsoft.PSharp.LanguageServices
         /// </summary>
         /// <param name="compilation">Compilation</param>
         /// <param name="classDecl">Class declaration</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal static bool IsMachine(CodeAnalysis.Compilation compilation, ClassDeclarationSyntax classDecl)
         {
             var result = false;
@@ -67,7 +67,7 @@ namespace Microsoft.PSharp.LanguageServices
         /// </summary>
         /// <param name="compilation">Compilation</param>
         /// <param name="classDecl">Class declaration</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal static bool IsMachineState(CodeAnalysis.Compilation compilation, ClassDeclarationSyntax classDecl)
         {
             var result = false;
@@ -103,7 +103,7 @@ namespace Microsoft.PSharp.LanguageServices
         /// </summary>
         /// <param name="compilation">Compilation</param>
         /// <param name="classDecl">Class declaration</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal static bool IsEventDeclaration(CodeAnalysis.Compilation compilation, ClassDeclarationSyntax classDecl)
         {
             var result = false;
@@ -139,7 +139,7 @@ namespace Microsoft.PSharp.LanguageServices
         /// </summary>
         /// <param name="compilation">Compilation</param>
         /// <param name="classDecl">Class declaration</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal static bool IsMonitor(CodeAnalysis.Compilation compilation, ClassDeclarationSyntax classDecl)
         {
             var result = false;
@@ -175,7 +175,7 @@ namespace Microsoft.PSharp.LanguageServices
         /// </summary>
         /// <param name="compilation">Compilation</param>
         /// <param name="classDecl">Class declaration</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal static bool IsMonitorState(CodeAnalysis.Compilation compilation, ClassDeclarationSyntax classDecl)
         {
             var result = false;

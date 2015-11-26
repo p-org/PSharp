@@ -209,7 +209,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// Skips whitespace tokens.
         /// </summary>
         /// <param name="skipped">Skipped tokens</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         private bool SkipWhiteSpaceTokens(List<Token> skipped)
         {
             if ((this.Peek().Type != TokenType.WhiteSpace) &&
@@ -231,7 +231,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// Comments out a line-wide comment, if any.
         /// </summary>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         private bool CommentOutLineComment()
         {
             if ((this.Peek().Type != TokenType.CommentLine) &&
@@ -252,7 +252,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// Comments out a multi-line comment, if any.
         /// </summary>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         private bool CommentOutMultiLineComment()
         {
             if (this.Peek().Type != TokenType.CommentStart)

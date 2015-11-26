@@ -687,7 +687,7 @@ namespace Microsoft.PSharp
         /// action binding. Ignored events have been removed.
         /// </summary>
         /// <param name="e">Event type</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         private bool CanHandleEvent(Type e)
         {
             if (this.DeferredEvents.Contains(e) ||

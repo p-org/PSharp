@@ -28,7 +28,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="field">Field</param>
         /// <param name="summary">MethodSummary</param>
         /// <param name="context">AnalysisContext</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal static bool IsAccessedBeforeBeingReset(ISymbol field, MethodSummary summary,
             AnalysisContext context)
         {
@@ -62,7 +62,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="node">StateTransitionGraphNode</param>
         /// <param name="input">Input</param>
         /// <param name="isFirstVisit">True if first node to visit</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         private static bool IsAccessedBeforeBeingReset(StateTransitionGraphNode node,
             object input, bool isFirstVisit)
         {

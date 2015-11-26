@@ -196,7 +196,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// </summary>
         /// <param name="maxValue">Max value</param>
         /// <param name="uniqueId">Unique id</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal bool GetNextNondeterministicChoice(int maxValue, string uniqueId = null)
         {
             // Check if the exploration depth-bound has been reached.

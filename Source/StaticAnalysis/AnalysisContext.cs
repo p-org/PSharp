@@ -99,7 +99,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="symbol">Symbol</param>
         /// <param name="summary">MethodSummary</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal bool DoesFieldBelongToMachine(ISymbol symbol, MethodSummary summary)
         {
             if (symbol == null || summary.Machine == null ||
@@ -157,7 +157,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="expr">Expression</param>
         /// <param name="model">SemanticModel</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal bool IsExprNonMachineMemberAccess(ExpressionSyntax expr, SemanticModel model)
         {
             IdentifierNameSyntax identifier = null;
@@ -190,7 +190,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Returns false if it is not
         /// </summary>
         /// <param name="model">SemanticModel</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal bool IsExprEnum(ExpressionSyntax expr, SemanticModel model)
         {
             var type = model.GetTypeInfo(expr).Type;
@@ -210,7 +210,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="identifier">Identifier</param>
         /// <param name="model">SemanticModel</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal bool IsMachineType(IdentifierNameSyntax identifier, SemanticModel model)
         {
             TypeInfo typeInfo;
@@ -289,7 +289,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="identifier">Identifier</param>
         /// <param name="model">SemanticModel</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal bool IsMachineType(ITypeSymbol typeSymbol, SemanticModel model)
         {
             if (typeSymbol != null && typeSymbol.ToString().Equals("Microsoft.PSharp.Machine"))
@@ -356,7 +356,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="type">Type</param>
         /// <param name="model">SemanticModel</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal bool IsTypeAllowedToBeSend(TypeSyntax type, SemanticModel model)
         {
             if (type is PredefinedTypeSyntax)
@@ -430,7 +430,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// through and event to another machine.
         /// </summary>
         /// <param name="type">Type</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal bool IsTypeAllowedToBeSend(ITypeSymbol type)
         {
             var typeName = type.ToString();
@@ -456,7 +456,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="symbol">Symbol</param>
         /// <param name="expr">Expression</param>
         /// <param name="model">SemanticModel</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal bool TryGetSymbolFromExpression(out ISymbol symbol, ExpressionSyntax expr,
             SemanticModel model)
         {
@@ -497,7 +497,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="call">Call</param>
         /// <param name="model">Semantic model</param>
         /// <param name="callee">Callee (optional)</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal bool IsSourceOfGivingUpOwnership(InvocationExpressionSyntax call, SemanticModel model,
             string callee = null)
         {
@@ -525,7 +525,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Checks if the analysis should consider the given method.
         /// </summary>
         /// <param name="method">Method</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal bool ShouldAnalyseMethod(MethodDeclarationSyntax method)
         {
             if (method.Modifiers.Any(SyntaxKind.AbstractKeyword) ||
@@ -546,7 +546,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="method">Method</param>
         /// <param name="machine">Machine</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal bool IsEntryPointMethod(MethodDeclarationSyntax method, ClassDeclarationSyntax machine)
         {
             if (method.Modifiers.Any(SyntaxKind.OverrideKeyword) ||
@@ -802,7 +802,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Else returns false.
         /// </summary>
         /// <param name="tree">SyntaxTree</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         private bool IsProgramSyntaxTree(SyntaxTree tree)
         {
             if (tree.FilePath.Contains("\\AssemblyInfo.cs") ||

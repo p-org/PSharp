@@ -75,12 +75,12 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// Returns the next machine to schedule.
         /// </summary>
         /// <param name="next">Next</param>
-        /// <param name="machines">Machines</param>
-        /// <param name="currentMachine">Curent machine</param>
-        /// <returns>Boolean value</returns>
-        public bool TryGetNext(out MachineInfo next, List<MachineInfo> machines, MachineInfo currentMachine)
+        /// <param name="choices">Choices</param>
+        /// <param name="current">Curent</param>
+        /// <returns>Boolean</returns>
+        public bool TryGetNext(out MachineInfo next, IList<MachineInfo> choices, MachineInfo current)
         {
-            var availableMachines = machines.Where(
+            var availableMachines = choices.Where(
                 m => m.IsEnabled && !m.IsBlocked && !m.IsWaiting).ToList();
             if (availableMachines.Count == 0)
             {
@@ -101,7 +101,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// </summary>
         /// <param name="maxValue">Max value</param>
         /// <param name="next">Next</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         public bool GetNextChoice(int maxValue, out bool next)
         {
             next = false;
@@ -160,7 +160,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// <summary>
         /// Returns true if the scheduling has finished.
         /// </summary>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         public bool HasFinished()
         {
             return false;
@@ -180,6 +180,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// </summary>
         public void Reset()
         {
+            this.MaxExploredSteps = 0;
             this.ExploredSteps = 0;
             this.Random = new Random(this.Seed);
         }

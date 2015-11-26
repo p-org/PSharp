@@ -238,7 +238,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="cfgNode">ControlFlowGraphNode</param>
         /// <param name="summary">MethodSummary</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         private bool TryComputeGivesUpSetForSendControlFlowGraphNode(ControlFlowGraphNode cfgNode,
             MethodSummary summary)
         {
@@ -303,7 +303,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="cfgNode">ControlFlowGraphNode</param>
         /// <param name="summary">MethodSummary</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         private bool TryComputeGivesUpSetForCreateControlFlowGraphNode(ControlFlowGraphNode cfgNode,
             MethodSummary summary)
         {
@@ -379,7 +379,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="cfgNode">ControlFlowGraphNode</param>
         /// <param name="summary">MethodSummary</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         private bool TryComputeGivesUpSetForGenericControlFlowGraphNode(ControlFlowGraphNode cfgNode,
             MethodSummary summary)
         {

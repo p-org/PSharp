@@ -133,7 +133,7 @@ namespace Microsoft.PSharp.LanguageServices
         /// Is the identifier a machine type.
         /// </summary>
         /// <param name="identifier">IdentifierNameSyntax</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         internal bool IsMachineType(SyntaxToken identifier)
         {
             var result = this.PSharpPrograms.Any(p => p.NamespaceDeclarations.Any(n => n.MachineDeclarations.Any(

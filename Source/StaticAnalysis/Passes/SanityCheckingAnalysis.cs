@@ -358,7 +358,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="name">string</param>
         /// <param name="machine">Machine</param>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         private bool IsStateOfTheMachine(string name, ClassDeclarationSyntax machine)
         {
             List<string> stateNames = new List<string>();

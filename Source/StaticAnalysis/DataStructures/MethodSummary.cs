@@ -433,7 +433,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Tries to construct the control flow graph for the given method.
         /// Returns false if it cannot construct the cfg.
         /// </summary>
-        /// <returns>Boolean value</returns>
+        /// <returns>Boolean</returns>
         private bool TryConstruct()
         {
             if (this.Method.Modifiers.Any(SyntaxKind.AbstractKeyword))
