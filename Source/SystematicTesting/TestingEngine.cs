@@ -19,7 +19,6 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
-using Microsoft.PSharp.SystematicTesting.Exploration;
 using Microsoft.PSharp.SystematicTesting.Scheduling;
 using Microsoft.PSharp.Utilities;
 
