@@ -105,7 +105,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         public bool GetNextChoice(int maxValue, out bool next)
         {
             next = false;
-            if (this.Random.Next(maxValue) == 1)
+            if (this.Random.Next(maxValue) == 0)
             {
                 next = true;
             }
