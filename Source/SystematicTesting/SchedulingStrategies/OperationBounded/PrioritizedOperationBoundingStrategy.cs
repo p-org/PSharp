@@ -172,17 +172,17 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// <summary>
         /// Returns the prioritized machines.
         /// </summary>
-        /// <param name="machines">Machines</param>
-        /// <param name="currentMachine">Curent machine</param>
+        /// <param name="choices">Choices</param>
+        /// <param name="current">Curent</param>
         /// <returns>Boolean</returns>
-        private List<MachineInfo> GetPrioritizedMachines(List<MachineInfo> machines, MachineInfo currentMachine)
+        private List<MachineInfo> GetPrioritizedMachines(List<MachineInfo> choices, MachineInfo current)
         {
             if (this.PrioritizedOperations.Count == 0)
             {
-                this.PrioritizedOperations.Add(currentMachine.Machine.OperationId);
+                this.PrioritizedOperations.Add(current.Machine.OperationId);
             }
-
-            var operationIds = machines.Select(val => val.Machine.OperationId).Distinct().ToList();
+            
+            var operationIds = choices.Select(val => val.Machine.OperationId).Distinct().ToList();
             foreach (var id in operationIds.Where(id => !this.PrioritizedOperations.Contains(id)))
             {
                 this.PrioritizedOperations.Insert(this.Random.Next(this.PrioritizedOperations.Count) + 1, id);
@@ -190,20 +190,42 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
 
             if (this.PriorityChangePoints.Contains(this.ExploredSteps))
             {
+                var priority = this.PrioritizedOperations[0];
                 this.PrioritizedOperations.RemoveAt(0);
-                this.PrioritizedOperations.Add(currentMachine.Machine.OperationId);
+                this.PrioritizedOperations.Add(priority);
+                IO.PrintLine("<OperationLog> Priority changes from operation '{0}' to operation '{1}'.",
+                    priority, this.PrioritizedOperations[0]);
             }
 
-            while (this.PrioritizedOperations.Count > 0)
+            var prioritizedOperation = -1;
+            foreach (var op in this.PrioritizedOperations)
             {
-                if (!machines.Any(m => m.Machine.OperationId == this.PrioritizedOperations[0]))
+                if (choices.Any(m => m.Machine.OperationId == op))
                 {
-                    this.PrioritizedOperations.RemoveAt(0);
+                    prioritizedOperation = op;
+                    break;
                 }
             }
 
-            var prioritizedMachines = machines.Where(
-                mi => mi.Machine.OperationId == this.PrioritizedOperations[0]).ToList();
+            IO.Debug("<OperationDebug> Prioritized operation '{0}'.", prioritizedOperation);
+            if (IO.Debugging)
+            {
+                IO.Print("<OperationDebug> Priority list: ");
+                for (int idx = 0; idx < this.PrioritizedOperations.Count; idx++)
+                {
+                    if (idx < this.PrioritizedOperations.Count - 1)
+                    {
+                        IO.Print("'{0}', ", this.PrioritizedOperations[idx]);
+                    }
+                    else
+                    {
+                        IO.Print("'{0}'.\n", this.PrioritizedOperations[idx]);
+                    }
+                }
+            }
+
+            var prioritizedMachines = choices.Where(
+                mi => mi.Machine.OperationId == prioritizedOperation).ToList();
             return prioritizedMachines;
         }
 

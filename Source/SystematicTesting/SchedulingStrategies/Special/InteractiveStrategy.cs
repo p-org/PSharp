@@ -364,38 +364,38 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// <summary>
         /// Returns the prioritized machines.
         /// </summary>
-        /// <param name="machines">Machines</param>
-        /// <param name="currentMachine">Curent machine</param>
+        /// <param name="choices">Choices</param>
+        /// <param name="current">Curent</param>
         /// <returns>Boolean</returns>
-        private List<MachineInfo> GetPrioritizedMachines(List<MachineInfo> machines, MachineInfo currentMachine)
+        private List<MachineInfo> GetPrioritizedMachines(List<MachineInfo> choices, MachineInfo current)
         {
-            machines = machines.OrderBy(mi => mi.Machine.Id.Value).ToList();
-            machines = machines.OrderBy(mi => mi.Machine.OperationId).ToList();
+            choices = choices.OrderBy(mi => mi.Machine.Id.Value).ToList();
+            choices = choices.OrderBy(mi => mi.Machine.OperationId).ToList();
 
-            MachineInfo priorityMachine = currentMachine;
+            MachineInfo priorityMachine = current;
             var prioritizedMachines = new List<MachineInfo>();
-            if (currentMachine.Machine.OperationId == this.PrioritizedOperationId)
+            if (current.Machine.OperationId == this.PrioritizedOperationId)
             {
-                var currentMachineIdx = machines.IndexOf(currentMachine);
-                prioritizedMachines = machines.GetRange(currentMachineIdx, machines.Count - currentMachineIdx);
+                var currentMachineIdx = choices.IndexOf(current);
+                prioritizedMachines = choices.GetRange(currentMachineIdx, choices.Count - currentMachineIdx);
                 if (currentMachineIdx != 0)
                 {
-                    prioritizedMachines.AddRange(machines.GetRange(0, currentMachineIdx));
+                    prioritizedMachines.AddRange(choices.GetRange(0, currentMachineIdx));
                 }
             }
             else
             {
-                priorityMachine = machines.First(mi => mi.Machine.OperationId == this.PrioritizedOperationId);
-                var priorityMachineIdx = machines.IndexOf(priorityMachine);
-                prioritizedMachines = machines.GetRange(priorityMachineIdx, machines.Count - priorityMachineIdx);
+                priorityMachine = choices.First(mi => mi.Machine.OperationId == this.PrioritizedOperationId);
+                var priorityMachineIdx = choices.IndexOf(priorityMachine);
+                prioritizedMachines = choices.GetRange(priorityMachineIdx, choices.Count - priorityMachineIdx);
                 if (priorityMachineIdx != 0)
                 {
-                    prioritizedMachines.AddRange(machines.GetRange(0, priorityMachineIdx));
+                    prioritizedMachines.AddRange(choices.GetRange(0, priorityMachineIdx));
                 }
             }
 
             prioritizedMachines = prioritizedMachines.Where(mi => mi.IsEnabled && !mi.IsBlocked && !mi.IsWaiting).ToList();
-            if (machines.Count == 0)
+            if (prioritizedMachines.Count == 0)
             {
                 return prioritizedMachines;
             }
