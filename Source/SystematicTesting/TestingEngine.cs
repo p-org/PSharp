@@ -58,11 +58,6 @@ namespace Microsoft.PSharp.SystematicTesting
         private ISchedulingStrategy Strategy;
 
         /// <summary>
-        /// The exploration cache.
-        /// </summary>
-        private ExplorationCache ExplorationCache;
-
-        /// <summary>
         /// Explored schedules so far.
         /// </summary>
         private int ExploredSchedules;
@@ -202,8 +197,6 @@ namespace Microsoft.PSharp.SystematicTesting
             this.ExploredSchedules = 0;
             this.PrintGuard = 1;
 
-            this.ExplorationCache = ExplorationCache.Create(this.Configuration);
-
             if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Interactive)
             {
                 this.Strategy = new InteractiveStrategy(this.Configuration);
@@ -234,6 +227,12 @@ namespace Microsoft.PSharp.SystematicTesting
             {
                 this.Strategy = new RandomDelayBoundingStrategy(this.Configuration,
                     this.Configuration.DelayBound);
+            }
+            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.OperationBounding)
+            {
+                this.Strategy = new ExhaustiveOperationBoundingStrategy(this.Configuration,
+                    this.Configuration.OperationDelayBound, this.Configuration.DelayBound);
+                this.Configuration.BoundOperations = true;
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.MaceMC)
             {
@@ -266,7 +265,7 @@ namespace Microsoft.PSharp.SystematicTesting
                         IO.PrintLine("..... Iteration #{0}", i + 1);
                     }
 
-                    var runtime = new PSharpBugFindingRuntime(this.Configuration, this.ExplorationCache, this.Strategy);
+                    var runtime = new PSharpBugFindingRuntime(this.Configuration, this.Strategy);
 
                     StringWriter sw = null;
                     if (this.Configuration.RedirectConsoleOutput &&

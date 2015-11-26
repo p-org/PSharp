@@ -124,14 +124,8 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                 throw new TaskCanceledException();
             }
 
-            var machineInfos = this.MachineInfos;
-            if (this.Runtime.Configuration.BoundOperations)
-            {
-                machineInfos = this.Runtime.OperationScheduler.GetPrioritizedMachines(machineInfos, machineInfo);
-            }
-
             MachineInfo next = null;
-            if (!this.Strategy.TryGetNext(out next, machineInfos, machineInfo))
+            if (!this.Strategy.TryGetNext(out next, this.MachineInfos, machineInfo))
             {
                 IO.Debug("<ScheduleDebug> Schedule explored.");
                 this.KillRemainingMachines();

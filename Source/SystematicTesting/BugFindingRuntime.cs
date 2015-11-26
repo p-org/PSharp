@@ -50,11 +50,6 @@ namespace Microsoft.PSharp.SystematicTesting
         private Object Lock = new Object();
 
         /// <summary>
-        /// The exploration cache.
-        /// </summary>
-        internal ExplorationCache ExplorationCache;
-
-        /// <summary>
         /// The P# program trace.
         /// </summary>
         internal Trace ProgramTrace;
@@ -90,11 +85,6 @@ namespace Microsoft.PSharp.SystematicTesting
         private int OperationIdCounter;
 
         /// <summary>
-        /// The P# operation-based scheduler.
-        /// </summary>
-        internal OperationScheduler OperationScheduler;
-
-        /// <summary>
         /// True if runtime is running.
         /// </summary>
         private bool IsRunning = false;
@@ -106,18 +96,14 @@ namespace Microsoft.PSharp.SystematicTesting
         /// <summary>
         /// Constructor.
         /// <param name="configuration">Configuration</param>
-        /// <param name="explorationCache">ExplorationCache</param>
         /// <param name="strategy">SchedulingStrategy</param>
-        internal PSharpBugFindingRuntime(Configuration configuration, ExplorationCache explorationCache,
-            ISchedulingStrategy strategy)
+        internal PSharpBugFindingRuntime(Configuration configuration, ISchedulingStrategy strategy)
             : base(configuration)
         {
             this.RootTaskId = Task.CurrentId;
 
             this.MachineTasks = new List<Task>();
             this.Monitors = new List<Monitor>();
-
-            this.ExplorationCache = explorationCache;
 
             if (this.Configuration.ScheduleIntraMachineConcurrency)
             {
@@ -135,10 +121,6 @@ namespace Microsoft.PSharp.SystematicTesting
             this.LivenessChecker = new LivenessChecker(this);
 
             this.OperationIdCounter = 0;
-            if (this.Configuration.BoundOperations)
-            {
-                this.OperationScheduler = new OperationScheduler(this);
-            }
 
             this.IsRunning = true;
         }
@@ -391,14 +373,16 @@ namespace Microsoft.PSharp.SystematicTesting
 
             Machine machine = this.MachineMap[mid.Value];
 
-            bool runHandler = false;
-            machine.Enqueue(e, ref runHandler);
-
-            if (!runHandler)
+            bool runNewHandler = false;
+            machine.Enqueue(e, ref runNewHandler);
+            
+            if (!runNewHandler)
             {
                 this.BugFinder.Schedule();
                 return;
             }
+
+            machine.SetOperationId(e.OperationId);
 
             Task task = new Task(() =>
             {
@@ -474,9 +458,12 @@ namespace Microsoft.PSharp.SystematicTesting
         /// <param name="e">Event</param>
         internal override void NotifyDequeuedEvent(Machine machine, Event e)
         {
-            // Set the operation id of the machine to the operation
-            // id of the dequeued event.
+            var prevMachineOpId = machine.OperationId;
             machine.SetOperationId(e.OperationId);
+            if (this.Configuration.BoundOperations && prevMachineOpId != machine.OperationId)
+            {
+                this.BugFinder.Schedule();
+            }
         }
 
         /// <summary>

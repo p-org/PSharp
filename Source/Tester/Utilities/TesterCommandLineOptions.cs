@@ -50,11 +50,7 @@ namespace Microsoft.PSharp.Utilities
             }
             else if (option.ToLower().StartsWith("/sch:") && option.Length > 5)
             {
-                if (option.ToLower().Substring(5).Equals("i"))
-                {
-                    base.Configuration.SchedulingStrategy = SchedulingStrategy.Interactive;
-                }
-                else if (option.ToLower().Substring(5).Equals("random"))
+                if (option.ToLower().Substring(5).Equals("random"))
                 {
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.Random;
                 }
@@ -73,6 +69,10 @@ namespace Microsoft.PSharp.Utilities
                 else if (option.ToLower().Substring(5).Equals("rdb"))
                 {
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.RandomDelayBounding;
+                }
+                else if (option.ToLower().Substring(5).Equals("ob"))
+                {
+                    base.Configuration.SchedulingStrategy = SchedulingStrategy.OperationBounding;
                 }
                 else if (option.ToLower().Substring(5).Equals("macemc"))
                 {
@@ -206,10 +206,11 @@ namespace Microsoft.PSharp.Utilities
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.IDDFS &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.DelayBounding &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.RandomDelayBounding &&
+                base.Configuration.SchedulingStrategy != SchedulingStrategy.OperationBounding &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.MaceMC)
             {
                 ErrorReporter.ReportAndExit("Please give a valid scheduling strategy " +
-                    "'/sch:[x]', where [x] is 'i', 'random', 'dfs', 'iddfs', 'db' or 'rdb'.");
+                    "'/sch:[x]', where [x] is 'random', 'dfs', 'iddfs', 'db' or 'rdb'.");
             }
             
             if (base.Configuration.SafetyPrefixBound > 0 &&

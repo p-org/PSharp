@@ -49,6 +49,11 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// </summary>
         private int ExploredSteps;
 
+        /// <summary>
+        /// The prioritized operation id.
+        /// </summary>
+        protected int PrioritizedOperationId;
+
         #endregion
 
         #region public API
@@ -63,6 +68,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             this.InputCache = new List<string>();
             this.MaxExploredSteps = 0;
             this.ExploredSteps = 0;
+            this.PrioritizedOperationId = 0;
         }
 
         /// <summary>
@@ -76,71 +82,108 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         {
             next = null;
 
-            var availableMachines = machines.Where(
-                m => m.IsEnabled && !m.IsBlocked && !m.IsWaiting).ToList();
-            if (availableMachines.Count == 0)
+            List<MachineInfo> availableMachines;
+            if (this.Configuration.BoundOperations)
             {
-                return false;
-            }
-
-            this.ExploredSteps++;
-
-            if (this.InputCache.Count >= this.ExploredSteps)
-            {
-                var id = Convert.ToInt32(this.InputCache[this.ExploredSteps - 1]);
-                next = availableMachines.Find(m => m.Machine.Id.Value == id);
+                availableMachines = this.GetPrioritizedMachines(machines, currentMachine);
             }
             else
             {
-                IO.PrintLine(">> Available machines to schedule ...");
-                foreach (var m in availableMachines)
-                    IO.PrintLine(">>   '{0}({1})' with id '{2}'", m.Machine, m.Machine.Id.MVal, m.Machine.Id.Value);
-                IO.PrintLine(">> Choose id of machine to schedule [step '{0}']", this.ExploredSteps);
+                machines = machines.OrderBy(machine => machine.Machine.Id.Value).ToList();
+                availableMachines = machines.Where(
+                    m => m.IsEnabled && !m.IsBlocked && !m.IsWaiting).ToList();
+            }
+            
+            if (availableMachines.Count == 0)
+            {
+                IO.PrintLine(">> No available machines to schedule ...");
+                return false;
+            }
+            
+            this.ExploredSteps++;
 
-                var parsed = false;
-                while (!parsed)
+            var parsed = false;
+            while (!parsed)
+            {
+                if (this.InputCache.Count >= this.ExploredSteps)
                 {
-                    var input = IO.GetLine();
-                    if (input.Equals("replay"))
+                    var step = this.InputCache[this.ExploredSteps - 1];
+                    int idx = 0;
+                    if (step.Length > 0)
                     {
-                        IO.PrintLine(">> Replay up to first ?? steps [step '{0}']", this.ExploredSteps);
+                        idx = Convert.ToInt32(step);
+                    }
+                    else
+                    {
+                        this.InputCache[this.ExploredSteps - 1] = "0";
+                    }
 
-                        try
-                        {
-                            var steps = Convert.ToInt32(IO.GetLine());
-                            if (steps < 0)
-                            {
-                                IO.PrintLine(">> Expected positive integer, please retry ...");
-                                continue;
-                            }
+                    next = availableMachines[idx];
+                    parsed = true;
+                    break;
+                }
 
-                            this.ManipulateInputCache(steps);
-                        }
-                        catch (FormatException)
+                IO.PrintLine(">> Available machines to schedule ...");
+                for (int idx = 0; idx < availableMachines.Count; idx++)
+                {
+                    var m = availableMachines[idx];
+                    if (this.Configuration.BoundOperations)
+                    {
+                        IO.PrintLine(">> [{0}] '{1}({2})' with operation id '{3}'",
+                            idx, m.Machine, m.Machine.Id.MVal, m.Machine.OperationId);
+                    }
+                    else
+                    {
+                        IO.PrintLine(">> [{0}] '{1}({2})'", idx, m.Machine, m.Machine.Id.MVal);
+                    }
+                }
+
+                IO.PrintLine(">> Choose machine to schedule [step '{0}']", this.ExploredSteps);
+
+                var input = IO.GetLine();
+                if (input.Equals("replay"))
+                {
+                    if (!this.Replay())
+                    {
+                        continue;
+                    }
+
+                    this.Configuration.SchedulingIterations++;
+                    this.ConfigureNextIteration();
+                    return false;
+                }
+                else if (input.Equals("jump"))
+                {
+                    this.Jump();
+                    continue;
+                }
+                else if (input.Equals("reset"))
+                {
+                    this.Configuration.SchedulingIterations++;
+                    this.Reset();
+                    return false;
+                }
+                else if (input.Length > 0)
+                {
+                    try
+                    {
+                        var idx = Convert.ToInt32(input);
+                        if (idx < 0)
                         {
-                            IO.PrintLine(">> Wrong format, please retry ...");
+                            IO.PrintLine(">> Expected positive integer, please retry ...");
                             continue;
                         }
 
-                        this.Configuration.SchedulingIterations++;
-                        this.ConfigureNextIteration();
-                        return false;
-                    }
-                    else if (input.Equals("reset"))
-                    {
-                        this.Configuration.SchedulingIterations++;
-                        this.Reset();
-                        return false;
-                    }
-
-                    try
-                    {
-                        var id = Convert.ToInt32(input);
-                        next = availableMachines.FirstOrDefault(m => m.Machine.Id.Value == id);
+                        next = availableMachines[idx];
                         if (next == null)
                         {
                             IO.PrintLine(">> Unexpected id, please retry ...");
                             continue;
+                        }
+
+                        if (this.Configuration.BoundOperations)
+                        {
+                            this.PrioritizedOperationId = next.Machine.OperationId;
                         }
                     }
                     catch (FormatException)
@@ -148,11 +191,16 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                         IO.PrintLine(">> Wrong format, please retry ...");
                         continue;
                     }
-
-                    this.InputCache.Add(input);
-                    parsed = true;
                 }
+                else
+                {
+                    next = availableMachines[0];
+                }
+
+                this.InputCache.Add(input);
+                parsed = true;
             }
+
             return true;
         }
 
@@ -167,50 +215,52 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             next = false;
             this.ExploredSteps++;
 
-            if (this.InputCache.Count >= this.ExploredSteps)
+            var parsed = false;
+            while (!parsed)
             {
-                next = Convert.ToBoolean(this.InputCache[this.ExploredSteps - 1]);
-            }
-            else
-            {
+                if (this.InputCache.Count >= this.ExploredSteps)
+                {
+                    var step = this.InputCache[this.ExploredSteps - 1];
+                    if (step.Length > 0)
+                    {
+                        next = Convert.ToBoolean(this.InputCache[this.ExploredSteps - 1]);
+                    }
+                    else
+                    {
+                        this.InputCache[this.ExploredSteps - 1] = "false";
+                    }
+                    
+                    parsed = true;
+                    break;
+                }
+
                 IO.PrintLine(">> Choose true or false [step '{0}']", this.ExploredSteps);
 
-                var parsed = false;
-                while (!parsed)
+                var input = IO.GetLine();
+                if (input.Equals("replay"))
                 {
-                    var input = IO.GetLine();
-                    if (input.Equals("replay"))
+                    if (!this.Replay())
                     {
-                        IO.PrintLine(">> Replay up to first ?? steps [step '{0}']", this.ExploredSteps);
-
-                        try
-                        {
-                            var steps = Convert.ToInt32(IO.GetLine());
-                            if (steps < 0)
-                            {
-                                IO.PrintLine(">> Expected positive integer, please retry ...");
-                                continue;
-                            }
-
-                            this.ManipulateInputCache(steps);
-                        }
-                        catch (FormatException)
-                        {
-                            IO.PrintLine(">> Wrong format, please retry ...");
-                            continue;
-                        }
-
-                        this.Configuration.SchedulingIterations++;
-                        this.ConfigureNextIteration();
-                        return false;
-                    }
-                    else if (input.Equals("reset"))
-                    {
-                        this.Configuration.SchedulingIterations++;
-                        this.Reset();
-                        return false;
+                        continue;
                     }
 
+                    this.Configuration.SchedulingIterations++;
+                    this.ConfigureNextIteration();
+                    return false;
+                }
+                else if (input.Equals("jump"))
+                {
+                    this.Jump();
+                    continue;
+                }
+                else if (input.Equals("reset"))
+                {
+                    this.Configuration.SchedulingIterations++;
+                    this.Reset();
+                    return false;
+                }
+                else if (input.Length > 0)
+                {
                     try
                     {
                         next = Convert.ToBoolean(input);
@@ -220,10 +270,10 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                         IO.PrintLine(">> Wrong format, please retry ...");
                         continue;
                     }
-
-                    this.InputCache.Add(input);
-                    parsed = true;
                 }
+
+                this.InputCache.Add(input);
+                parsed = true;
             }
 
             return true;
@@ -312,10 +362,125 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         #region private methods
 
         /// <summary>
-        /// Manipulates the input cache.
+        /// Returns the prioritized machines.
+        /// </summary>
+        /// <param name="machines">Machines</param>
+        /// <param name="currentMachine">Curent machine</param>
+        /// <returns>Boolean value</returns>
+        private List<MachineInfo> GetPrioritizedMachines(List<MachineInfo> machines, MachineInfo currentMachine)
+        {
+            machines = machines.OrderBy(mi => mi.Machine.Id.Value).ToList();
+            machines = machines.OrderBy(mi => mi.Machine.OperationId).ToList();
+
+            MachineInfo priorityMachine = currentMachine;
+            var prioritizedMachines = new List<MachineInfo>();
+            if (currentMachine.Machine.OperationId == this.PrioritizedOperationId)
+            {
+                var currentMachineIdx = machines.IndexOf(currentMachine);
+                prioritizedMachines = machines.GetRange(currentMachineIdx, machines.Count - currentMachineIdx);
+                if (currentMachineIdx != 0)
+                {
+                    prioritizedMachines.AddRange(machines.GetRange(0, currentMachineIdx));
+                }
+            }
+            else
+            {
+                priorityMachine = machines.First(mi => mi.Machine.OperationId == this.PrioritizedOperationId);
+                var priorityMachineIdx = machines.IndexOf(priorityMachine);
+                prioritizedMachines = machines.GetRange(priorityMachineIdx, machines.Count - priorityMachineIdx);
+                if (priorityMachineIdx != 0)
+                {
+                    prioritizedMachines.AddRange(machines.GetRange(0, priorityMachineIdx));
+                }
+            }
+
+            prioritizedMachines = prioritizedMachines.Where(mi => mi.IsEnabled && !mi.IsBlocked && !mi.IsWaiting).ToList();
+            if (machines.Count == 0)
+            {
+                return prioritizedMachines;
+            }
+
+            return prioritizedMachines;
+        }
+
+        /// <summary>
+        /// Replays an earlier point of the execution.
+        /// </summary>
+        /// <returns>Boolean</returns>
+        private bool Replay()
+        {
+            var result = true;
+
+            IO.PrintLine(">> Replay up to first ?? steps [step '{0}']", this.ExploredSteps);
+
+            try
+            {
+                var steps = Convert.ToInt32(IO.GetLine());
+                if (steps < 0)
+                {
+                    IO.PrintLine(">> Expected positive integer, please retry ...");
+                    result = false;
+                }
+
+                this.RemoveFromInputCache(steps);
+            }
+            catch (FormatException)
+            {
+                IO.PrintLine(">> Wrong format, please retry ...");
+                result = false;
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Jumps to a later point in the execution.
+        /// </summary>
+        /// <returns>Boolean</returns>
+        private bool Jump()
+        {
+            var result = true;
+
+            IO.PrintLine(">> Jump to ?? step [step '{0}']", this.ExploredSteps);
+
+            try
+            {
+                var steps = Convert.ToInt32(IO.GetLine());
+                if (steps < this.ExploredSteps)
+                {
+                    IO.PrintLine(">> Expected integer greater than {0}, please retry ...",
+                        this.ExploredSteps);
+                    result = false;
+                }
+
+                this.AddInInputCache(steps);
+            }
+            catch (FormatException)
+            {
+                IO.PrintLine(">> Wrong format, please retry ...");
+                result = false;
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Adds in the input cache.
         /// </summary>
         /// <param name="steps">Number of steps</param>
-        private void ManipulateInputCache(int steps)
+        private void AddInInputCache(int steps)
+        {
+            if (steps > this.InputCache.Count)
+            {
+                this.InputCache.AddRange(Enumerable.Repeat("", steps - this.InputCache.Count));
+            }
+        }
+
+        /// <summary>
+        /// Removes from the input cache.
+        /// </summary>
+        /// <param name="steps">Number of steps</param>
+        private void RemoveFromInputCache(int steps)
         {
             if (steps > 0 && steps < this.InputCache.Count)
             {

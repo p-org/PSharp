@@ -59,7 +59,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BugFindingRuntime.cs" />
-    <Compile Include="Exploration\ExplorationCache.cs" />
     <Compile Include="Exploration\Trace.cs" />
     <Compile Include="Exploration\TraceStep.cs" />
     <Compile Include="Exploration\TraceStepType.cs" />
@@ -67,9 +66,10 @@
     <Compile Include="SchedulingStrategies\DelayBounded\ExhaustiveDelayBoundingStrategy.cs" />
     <Compile Include="SchedulingStrategies\DelayBounded\RandomDelayBoundingStrategy.cs" />
     <Compile Include="SchedulingStrategies\DelayBounded\DelayBoundingStrategy.cs" />
+    <Compile Include="SchedulingStrategies\OperationBounded\ExhaustiveOperationBoundingStrategy.cs" />
     <Compile Include="SchedulingStrategies\Special\InteractiveStrategy.cs" />
+    <Compile Include="SchedulingStrategies\OperationBounded\OperationBoundingStrategy.cs" />
     <Compile Include="Scheduling\BugFindingScheduler.cs" />
-    <Compile Include="Scheduling\OperationScheduler.cs" />
     <Compile Include="Scheduling\TaskAwareBugFindingScheduler.cs" />
     <Compile Include="SchedulingStrategies\ISchedulingStrategy.cs" />
     <Compile Include="Scheduling\MachineInfo.cs" />

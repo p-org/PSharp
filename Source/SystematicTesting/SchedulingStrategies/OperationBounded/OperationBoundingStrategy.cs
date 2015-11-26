@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="DelayBoundingStrategy.cs" company="Microsoft">
+// <copyright file="OperationBoundingStrategy.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -23,9 +23,9 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.SystematicTesting.Scheduling
 {
     /// <summary>
-    /// Class representing a delay-bounding scheduling strategy.
+    /// Class representing an operation-bounding scheduling strategy.
     /// </summary>
-    public abstract class DelayBoundingStrategy : ISchedulingStrategy
+    public abstract class OperationBoundingStrategy : ISchedulingStrategy
     {
         #region fields
 
@@ -45,14 +45,29 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         protected int ExploredSteps;
 
         /// <summary>
+        /// The maximum number of operation delays.
+        /// </summary>
+        protected int MaxOperationDelays;
+
+        /// <summary>
         /// The maximum number of delays.
         /// </summary>
         protected int MaxDelays;
 
         /// <summary>
+        /// The remaining operation delays.
+        /// </summary>
+        protected List<int> RemainingOperationDelays;
+
+        /// <summary>
         /// The remaining delays.
         /// </summary>
         protected List<int> RemainingDelays;
+
+        /// <summary>
+        /// The prioritized operation id.
+        /// </summary>
+        protected int PrioritizedOperationId;
 
         #endregion
 
@@ -62,14 +77,18 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// Constructor.
         /// </summary>
         /// <param name="configuration">Configuration</param>
+        /// <param name="opdelays">Max number of operation delays</param>
         /// <param name="delays">Max number of delays</param>
-        public DelayBoundingStrategy(Configuration configuration, int delays)
+        public OperationBoundingStrategy(Configuration configuration, int opdelays, int delays)
         {
             this.Configuration = configuration;
             this.MaxExploredSteps = 0;
             this.ExploredSteps = 0;
+            this.MaxOperationDelays = opdelays;
             this.MaxDelays = delays;
+            this.RemainingOperationDelays = new List<int>();
             this.RemainingDelays = new List<int>();
+            this.PrioritizedOperationId = 0;
         }
 
         /// <summary>
@@ -81,17 +100,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// <returns>Boolean value</returns>
         public virtual bool TryGetNext(out MachineInfo next, List<MachineInfo> machines, MachineInfo currentMachine)
         {
-            machines = machines.OrderBy(machine => machine.Machine.Id.Value).ToList();
-
-            var currentMachineIdx = machines.IndexOf(currentMachine);
-            var orderedMachines = machines.GetRange(currentMachineIdx, machines.Count - currentMachineIdx);
-            if (currentMachineIdx != 0)
-            {
-                orderedMachines.AddRange(machines.GetRange(0, currentMachineIdx));
-            }
-
-            var availableMachines = orderedMachines.Where(
-                m => m.IsEnabled && !m.IsBlocked && !m.IsWaiting).ToList();
+            var availableMachines = this.GetPrioritizedMachines(machines, currentMachine);
             if (availableMachines.Count == 0)
             {
                 next = null;
@@ -196,7 +205,9 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         public virtual void Reset()
         {
             this.ExploredSteps = 0;
+            this.RemainingOperationDelays.Clear();
             this.RemainingDelays.Clear();
+            this.PrioritizedOperationId = 0;
         }
 
         /// <summary>
@@ -204,6 +215,62 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// </summary>
         /// <returns>String</returns>
         public abstract string GetDescription();
+
+        #endregion
+
+        #region private methods
+
+        /// <summary>
+        /// Returns the prioritized machines.
+        /// </summary>
+        /// <param name="machines">Machines</param>
+        /// <param name="currentMachine">Curent machine</param>
+        /// <returns>Boolean value</returns>
+        private List<MachineInfo> GetPrioritizedMachines(List<MachineInfo> machines, MachineInfo currentMachine)
+        {
+            var prioritizedMachines = new List<MachineInfo>();
+
+            machines = machines.OrderBy(task => task.Machine.OperationId).ToList();
+
+            var currentMachineIdx = machines.IndexOf(currentMachine);
+            var orderedMachines = machines.GetRange(currentMachineIdx, machines.Count - currentMachineIdx);
+            if (currentMachineIdx != 0)
+            {
+                orderedMachines.AddRange(machines.GetRange(0, currentMachineIdx));
+            }
+
+            var availableMachines = orderedMachines.Where(
+                task => task.IsEnabled && !task.IsBlocked && !task.IsWaiting).ToList();
+            if (availableMachines.Count == 0)
+            {
+                return prioritizedMachines;
+            }
+
+            var operations = availableMachines.Select(val => val.Machine.OperationId).Distinct().ToList();
+
+            int idx = 0;
+            while (this.RemainingDelays.Count > 0 && this.ExploredSteps == this.RemainingDelays[0])
+            {
+                idx = (idx + 1) % operations.Count;
+                this.RemainingDelays.RemoveAt(0);
+
+                IO.PrintLine("<OperationDelayLog> Priority given to operation '{0}', '{1}' delays remaining, .",
+                    operations[idx], this.RemainingDelays.Count);
+            }
+
+            this.PrioritizedOperationId = operations[idx];
+
+            foreach (var mi in availableMachines)
+            {
+                if ((mi.Equals(currentMachine) && mi.Machine.OperationId == this.PrioritizedOperationId) ||
+                    mi.Machine.OperationId == this.PrioritizedOperationId)
+                {
+                    prioritizedMachines.Add(mi);
+                }
+            }
+
+            return prioritizedMachines;
+        }
 
         #endregion
     }

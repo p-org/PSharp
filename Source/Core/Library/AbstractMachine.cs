@@ -114,17 +114,6 @@ namespace Microsoft.PSharp
             this.OperationId = opid;
         }
 
-        /// <summary>
-        /// Returns the next operation id, or the current one
-        /// if there is no next operation id.
-        /// </summary>
-        /// <param name="operationId">OperationId</param>
-        /// <returns>Boolean</returns>
-        internal virtual int GetNextOperationId()
-        {
-            return this.OperationId;
-        }
-
         #endregion
     }
 }

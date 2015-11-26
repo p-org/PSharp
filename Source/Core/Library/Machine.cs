@@ -342,8 +342,8 @@ namespace Microsoft.PSharp
         /// Enqueues an event.
         /// </summary>
         /// <param name="e">Event</param>
-        /// <param name="runHandler">Run the handler</param>
-        internal void Enqueue(Event e, ref bool runHandler)
+        /// <param name="runNewHandler">Run a new handler</param>
+        internal void Enqueue(Event e, ref bool runNewHandler)
         {
             lock (this.Inbox)
             {
@@ -385,7 +385,7 @@ namespace Microsoft.PSharp
                 if (!this.IsRunning)
                 {
                     this.IsRunning = true;
-                    runHandler = true;
+                    runNewHandler = true;
                 }
             }
         }
@@ -405,9 +405,10 @@ namespace Microsoft.PSharp
             while (!this.IsHalted)
             {
                 var defaultHandling = false;
+                var dequeued = false;
                 lock (this.Inbox)
                 {
-                    nextEvent = this.GetNextEvent();
+                    dequeued = this.GetNextEvent(out nextEvent);
 
                     // Check if next event to process is null.
                     if (nextEvent == null)
@@ -429,6 +430,15 @@ namespace Microsoft.PSharp
                     }
                 }
 
+                // If the event was dequeued, then notify the runtime. This is
+                // only used during bug-finding and operation bounding, because
+                // the runtime has to schedule a machine between when a new operation
+                // is dequeued.
+                if (dequeued)
+                {
+                    base.Runtime.NotifyDequeuedEvent(this, nextEvent);
+                }
+
                 // Assigns the received event.
                 this.ReceivedEvent = nextEvent;
 
@@ -444,23 +454,6 @@ namespace Microsoft.PSharp
                 }
             }
         }
-
-        /// <summary>
-        /// Returns the next operation id, or the current
-        /// if there is no next operation id
-        /// </summary>
-        /// <param name="operationId">OperationId</param>
-        /// <returns>Boolean</returns>
-        //internal override int GetNextOperationId()
-        //{
-        //    var id = this.OperationId;
-        //    if (!this.IsRunning && this.Inbox.Count > 0)
-        //    {
-        //        id = this.Inbox[0].OperationId;
-        //    }
-
-        //    return id;
-        //}
 
         /// <summary>
         /// Returns the cached state of this machine.
@@ -497,12 +490,15 @@ namespace Microsoft.PSharp
 
         /// <summary>
         /// Gets the next available event. It gives priority to raised events,
-        /// else deqeues from the inbox. Returns null if no event is available.
+        /// else deqeues from the inbox. Returns false if the next event was
+        /// not dequeued. It returns a null event if no event is available.
         /// </summary>
-        /// <returns>Next event</returns>
-        private Event GetNextEvent()
+        /// <param name="nextEvent">Event</param>
+        /// <returns>Boolean</returns>
+        private bool GetNextEvent(out Event nextEvent)
         {
-            Event nextEvent = null;
+            bool dequeued = false;
+            nextEvent = null;
 
             // Raised events have priority.
             if (this.RaisedEvent != null)
@@ -540,14 +536,14 @@ namespace Microsoft.PSharp
                             this.GetType().Name, base.Id.MVal, nextEvent.GetType().FullName);
 
                         this.Inbox.RemoveAt(idx);
-                        base.Runtime.NotifyDequeuedEvent(this, nextEvent);
+                        dequeued = true;
 
                         break;
                     }
                 }
             }
 
-            return nextEvent;
+            return dequeued;
         }
 
         /// <summary>

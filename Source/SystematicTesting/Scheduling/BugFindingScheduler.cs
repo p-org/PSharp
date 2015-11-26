@@ -138,15 +138,9 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                 this.KillRemainingMachines();
                 throw new TaskCanceledException();
             }
-
-            var machineInfos = this.MachineInfos;
-            if (this.Runtime.Configuration.BoundOperations)
-            {
-                machineInfos = this.Runtime.OperationScheduler.GetPrioritizedMachines(machineInfos, machineInfo);
-            }
             
             MachineInfo next = null;
-            if (!this.Strategy.TryGetNext(out next, machineInfos, machineInfo))
+            if (!this.Strategy.TryGetNext(out next, this.MachineInfos, machineInfo))
             {
                 IO.Debug("<ScheduleDebug> Schedule explored.");
                 this.KillRemainingMachines();
@@ -421,11 +415,6 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             if (this.Strategy.GetDescription().Length > 0)
             {
                 IO.Log("<StrategyLog> {0}", this.Strategy.GetDescription());
-            }
-
-            if (this.Runtime.Configuration.BoundOperations)
-            {
-                IO.Log("<StrategyLog> {0}", this.Runtime.OperationScheduler.GetDescription());
             }
 
             this.BugFound = true;
