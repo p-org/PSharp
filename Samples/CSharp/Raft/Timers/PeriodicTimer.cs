@@ -32,36 +32,27 @@ namespace Raft
         internal class CancelTimer : Event { }
 
         private class TickEvent : Event { }
-        private class LocalEvent : Event { }
 
         MachineId Target;
-        int Counter;
 
         [Start]
         [OnEventDoAction(typeof(ConfigureEvent), nameof(Configure))]
-        [OnEventGotoState(typeof(LocalEvent), typeof(Inactive))]
+        [OnEventGotoState(typeof(StartTimer), typeof(Active))]
         class Init : MachineState { }
 
         void Configure()
         {
             this.Target = (this.ReceivedEvent as ConfigureEvent).Target;
-            this.Counter = 0;
-            this.Raise(new LocalEvent());
         }
 
-        [OnEventGotoState(typeof(StartTimer), typeof(Active))]
-        [IgnoreEvents(typeof(CancelTimer), typeof(TickEvent))]
-        class Inactive : MachineState { }
-
-        [OnEntry(nameof(TimerStartedOnEntry))]
+        [OnEntry(nameof(ActiveOnEntry))]
         [OnEventDoAction(typeof(TickEvent), nameof(Tick))]
         [OnEventGotoState(typeof(CancelTimer), typeof(Inactive))]
         [IgnoreEvents(typeof(StartTimer))]
         class Active : MachineState { }
 
-        void TimerStartedOnEntry()
+        void ActiveOnEntry()
         {
-            this.Counter = 0;
             this.Send(this.Id, new TickEvent());
         }
 
@@ -69,18 +60,14 @@ namespace Raft
         {
             if (this.Random())
             {
-                this.Counter++;
+                this.Send(this.Target, new Timeout(this.Id));
             }
 
-            if (this.Counter == 4)
-            {
-                this.Send(this.Target, new Timeout(this.Id), true);
-                this.Raise(new CancelTimer());
-            }
-            else
-            {
-                this.Send(this.Id, new TickEvent());
-            }
+            this.Raise(new CancelTimer());
         }
+
+        [OnEventGotoState(typeof(StartTimer), typeof(Active))]
+        [IgnoreEvents(typeof(CancelTimer), typeof(TickEvent))]
+        class Inactive : MachineState { }
     }
 }

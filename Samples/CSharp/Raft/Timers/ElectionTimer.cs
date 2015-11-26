@@ -29,35 +29,24 @@ namespace Raft
         }
 
         internal class StartTimer : Event { }
-        internal class ResetTimer : Event { }
         internal class CancelTimer : Event { }
 
         private class TickEvent : Event { }
-        private class LocalEvent : Event { }
 
         MachineId Target;
-        int Counter;
 
         [Start]
         [OnEventDoAction(typeof(ConfigureEvent), nameof(Configure))]
-        [OnEventGotoState(typeof(LocalEvent), typeof(Active))]
+        [OnEventGotoState(typeof(StartTimer), typeof(Active))]
         class Init : MachineState { }
 
         void Configure()
         {
             this.Target = (this.ReceivedEvent as ConfigureEvent).Target;
-            this.Reset();
-            this.Raise(new LocalEvent());
-        }
-
-        void Reset()
-        {
-            this.Counter = 0;
         }
 
         [OnEntry(nameof(ActiveOnEntry))]
         [OnEventDoAction(typeof(TickEvent), nameof(Tick))]
-        [OnEventDoAction(typeof(ResetTimer), nameof(Reset))]
         [OnEventGotoState(typeof(CancelTimer), typeof(Inactive))]
         [IgnoreEvents(typeof(StartTimer))]
         class Active : MachineState { }
@@ -71,26 +60,14 @@ namespace Raft
         {
             if (this.Random())
             {
-                this.Counter++;
-            }
-
-            if (this.Counter == 10)
-            {
-                this.Reset();
                 this.Send(this.Target, new Timeout(this.Id), true);
             }
 
-            this.Send(this.Id, new TickEvent());
+            this.Raise(new CancelTimer());
         }
 
-        [OnExit(nameof(InactiveOnExit))]
         [OnEventGotoState(typeof(StartTimer), typeof(Active))]
-        [IgnoreEvents(typeof(ResetTimer), typeof(CancelTimer), typeof(TickEvent))]
+        [IgnoreEvents(typeof(CancelTimer), typeof(TickEvent))]
         class Inactive : MachineState { }
-
-        void InactiveOnExit()
-        {
-            this.Reset();
-        }
     }
 }

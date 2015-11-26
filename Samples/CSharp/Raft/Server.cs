@@ -242,7 +242,6 @@ namespace Raft
 
             this.ElectionTimer = this.CreateMachine(typeof(ElectionTimer));
             this.Send(this.ElectionTimer, new ElectionTimer.ConfigureEvent(this.Id));
-            this.Send(this.ElectionTimer, new ElectionTimer.StartTimer());
 
             this.PeriodicTimer = this.CreateMachine(typeof(PeriodicTimer));
             this.Send(this.PeriodicTimer, new PeriodicTimer.ConfigureEvent(this.Id));
@@ -272,7 +271,7 @@ namespace Raft
             this.LeaderId = null;
             this.VotesReceived = 0;
 
-            this.Send(this.ElectionTimer, new ElectionTimer.ResetTimer());
+            this.Send(this.ElectionTimer, new ElectionTimer.StartTimer());
         }
 
         void RedirectClientRequest()
@@ -360,7 +359,7 @@ namespace Raft
             this.VotedFor = this.Id;
             this.VotesReceived = 1;
 
-            this.Send(this.ElectionTimer, new ElectionTimer.ResetTimer());
+            this.Send(this.ElectionTimer, new ElectionTimer.StartTimer());
 
             Console.WriteLine("\n [Candidate] " + this.ServerId + " | term " + this.CurrentTerm +
                 " | election votes " + this.VotesReceived + " | log " + this.Logs.Count + "\n");
@@ -695,14 +694,11 @@ namespace Raft
                 Console.WriteLine("\n [Server] " + this.ServerId + " | term " + this.CurrentTerm + " | log " +
                     this.Logs.Count + " | last applied: " + this.LastApplied + " | append false (< term)\n");
 
-                this.Send(this.ElectionTimer, new ElectionTimer.ResetTimer());
                 this.Send(request.LeaderId, new AppendEntriesResponse(this.CurrentTerm, false,
                     this.Id, request.ReceiverEndpoint));
             }
             else
-            {
-                this.Send(this.ElectionTimer, new ElectionTimer.ResetTimer());
-                
+            {                
                 if (request.PrevLogIndex > 0 &&
                     (this.Logs.Count < request.PrevLogIndex ||
                     this.Logs[request.PrevLogIndex - 1].Term != request.PrevLogTerm))
@@ -786,8 +782,8 @@ namespace Raft
 
         void ShuttingDown()
         {
-            this.Send(this.ElectionTimer, new ElectionTimer.CancelTimer());
-            this.Send(this.PeriodicTimer, new PeriodicTimer.CancelTimer());
+            this.Send(this.ElectionTimer, new Halt());
+            this.Send(this.PeriodicTimer, new Halt());
 
             this.Raise(new Halt());
         }
