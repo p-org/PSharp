@@ -19,7 +19,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.PSharp.Exploration
+namespace Microsoft.PSharp.SystematicTesting.Exploration
 {
     /// <summary>
     /// Class implementing a P# program trace. A trace is a series of
@@ -69,7 +69,7 @@ namespace Microsoft.PSharp.Exploration
         /// Adds a scheduling choice.
         /// </summary>
         /// <param name="scheduledMachine">Scheduled machine</param>
-        internal void AddSchedulingChoice(BaseMachine scheduledMachine)
+        internal void AddSchedulingChoice(AbstractMachine scheduledMachine)
         {
             var traceStep = TraceStep.CreateSchedulingChoice(this.Count, scheduledMachine);
             this.Push(traceStep);

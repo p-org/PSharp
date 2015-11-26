@@ -24,7 +24,7 @@ namespace Microsoft.PSharp.Threading
     /// <summary>
     /// Class implementing a P# task machine.
     /// </summary>
-    public sealed class TaskMachine : BaseMachine
+    public sealed class TaskMachine : AbstractMachine
     {
         #region fields
 

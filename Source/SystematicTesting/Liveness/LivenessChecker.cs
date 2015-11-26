@@ -18,8 +18,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Microsoft.PSharp.Exploration;
-using Microsoft.PSharp.StateCaching;
+using Microsoft.PSharp.SystematicTesting.Exploration;
+using Microsoft.PSharp.SystematicTesting.StateCaching;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.SystematicTesting
@@ -80,7 +80,7 @@ namespace Microsoft.PSharp.SystematicTesting
                 var stateName = "";
                 if (monitor.IsInHotState(out stateName))
                 {
-                    string message = Output.Format("Monitor '{0}' detected liveness property " +
+                    string message = IO.Format("Monitor '{0}' detected liveness property " +
                         "violation in hot state '{1}'.", monitor.GetType().Name, stateName);
                     this.Runtime.BugFinder.NotifyAssertionFailure(message, false);
                 }
@@ -102,7 +102,7 @@ namespace Microsoft.PSharp.SystematicTesting
                 var state = stateMap[traceStep];
                 cycle.Add(traceStep, state);
 
-                Output.Debug("<LivenessDebug> Cycle contains {0} with {1}.",
+                IO.Debug("<LivenessDebug> Cycle contains {0} with {1}.",
                     traceStep.Type, state.Fingerprint.ToString());
                 
                 // The state can be safely removed, because the liveness detection
@@ -115,21 +115,21 @@ namespace Microsoft.PSharp.SystematicTesting
             
             if (!this.IsSchedulingFair(cycle))
             {
-                Output.Debug("<LivenessDebug> Scheduling in cycle is unfair.");
+                IO.Debug("<LivenessDebug> Scheduling in cycle is unfair.");
                 return;
             }
             else if (!this.IsNondeterminismFair(cycle))
             {
-                Output.Debug("<LivenessDebug> Nondeterminism in cycle is unfair.");
+                IO.Debug("<LivenessDebug> Nondeterminism in cycle is unfair.");
                 return;
             }
 
-            Output.Debug("<LivenessDebug> Cycle execution is fair.");
+            IO.Debug("<LivenessDebug> Cycle execution is fair.");
 
             var hotMonitors = this.GetHotMonitors(cycle);
             foreach (var monitor in hotMonitors)
             {
-                string message = Output.Format("Monitor '{0}' detected infinite execution that " +
+                string message = IO.Format("Monitor '{0}' detected infinite execution that " +
                     "violates a liveness property.", monitor.GetType().Name);
                 this.Runtime.BugFinder.NotifyAssertionFailure(message, false);
             }
@@ -177,8 +177,8 @@ namespace Microsoft.PSharp.SystematicTesting
         {
             var result = false;
 
-            var enabledMachines = new HashSet<BaseMachine>();
-            var scheduledMachines = new HashSet<BaseMachine>();
+            var enabledMachines = new HashSet<AbstractMachine>();
+            var scheduledMachines = new HashSet<AbstractMachine>();
 
             var schedulingChoiceSteps= cycle.Where(
                 val => val.Key.Type == TraceStepType.SchedulingChoice);
@@ -190,12 +190,12 @@ namespace Microsoft.PSharp.SystematicTesting
 
             foreach (var m in enabledMachines)
             {
-                Output.Debug("<LivenessDebug> Enabled machine {0}.", m);
+                IO.Debug("<LivenessDebug> Enabled machine {0}.", m);
             }
 
             foreach (var m in scheduledMachines)
             {
-                Output.Debug("<LivenessDebug> Scheduled machine {0}.", m);
+                IO.Debug("<LivenessDebug> Scheduled machine {0}.", m);
             }
 
             if (enabledMachines.Count == scheduledMachines.Count)

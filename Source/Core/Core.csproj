@@ -93,10 +93,10 @@
     <Compile Include="Options\CompilationTarget.cs" />
     <Compile Include="Options\SchedulingStrategy.cs" />
     <Compile Include="Utilities\ErrorReporter.cs" />
-    <Compile Include="Utilities\Output.cs" />
+    <Compile Include="Utilities\IO.cs" />
     <Compile Include="Library\ActionBindings.cs" />
     <Compile Include="Library\GotoStateTransitions.cs" />
-    <Compile Include="Library\BaseMachine.cs" />
+    <Compile Include="Library\AbstractMachine.cs" />
     <Compile Include="Library\MachineId.cs" />
     <Compile Include="Library\Machine.cs" />
     <Compile Include="Library\MachineState.cs" />

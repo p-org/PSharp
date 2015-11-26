@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Microsoft.PSharp.Scheduling;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.SystematicTesting.Scheduling
@@ -72,7 +71,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// <returns>Depth bound</returns>
         public new bool HasReachedDepthBound()
         {
-            return base.SchedulingSteps == this.GetDepthBound();
+            return base.ExploredSteps == this.GetDepthBound();
         }
 
         /// <summary>
@@ -97,7 +96,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             {
                 base.Reset();
                 this.CurrentDepth++;
-                Output.PrintLine("....... Depth bound increased to {0}", this.CurrentDepth);
+                IO.PrintLine("....... Depth bound increased to {0}", this.CurrentDepth);
             }
         }
 

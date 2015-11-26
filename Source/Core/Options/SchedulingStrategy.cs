@@ -20,9 +20,13 @@ namespace Microsoft.PSharp.Utilities
     public enum SchedulingStrategy
     {
         /// <summary>
+        /// Interactive scheduling.
+        /// </summary>
+        Interactive = 0,
+        /// <summary>
         /// Random scheduling.
         /// </summary>
-        Random = 0,
+        Random,
         /// <summary>
         /// Depth-first search scheduling.
         /// </summary>
@@ -36,6 +40,14 @@ namespace Microsoft.PSharp.Utilities
         /// Delay-bounding scheduling.
         /// </summary>
         DelayBounding,
+        /// <summary>
+        /// Random delay-bounding scheduling.
+        /// </summary>
+        RandomDelayBounding,
+        /// <summary>
+        /// Operation-bounding scheduling.
+        /// </summary>
+        OperationBounding,
         /// <summary>
         /// MaceMC based search scheduling to detect
         /// potential liveness violations.

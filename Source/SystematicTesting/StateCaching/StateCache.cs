@@ -18,11 +18,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Microsoft.PSharp.Exploration;
-using Microsoft.PSharp.SystematicTesting;
+using Microsoft.PSharp.SystematicTesting.Exploration;
 using Microsoft.PSharp.Utilities;
 
-namespace Microsoft.PSharp.StateCaching
+namespace Microsoft.PSharp.SystematicTesting.StateCaching
 {
     /// <summary>
     /// Class implementing a P# state cache.
@@ -67,17 +66,17 @@ namespace Microsoft.PSharp.StateCaching
 
             if (traceStep.Type == TraceStepType.SchedulingChoice)
             {
-                Output.Debug("<LivenessDebug> Captured program state '{0}' at " +
+                IO.Debug("<LivenessDebug> Captured program state '{0}' at " +
                     "scheduling choice.", fingerprint.GetHashCode());
             }
             else if (traceStep.Type == TraceStepType.NondeterministicChoice)
             {
-                Output.Debug("<LivenessDebug> Captured program state '{0}' at nondeterministic " +
+                IO.Debug("<LivenessDebug> Captured program state '{0}' at nondeterministic " +
                     "choice '{1}'.", fingerprint.GetHashCode(), traceStep.Choice);
             }
             else if (traceStep.Type == TraceStepType.FairNondeterministicChoice)
             {
-                Output.Debug("<LivenessDebug> Captured program state '{0}' at fair nondeterministic choice " +
+                IO.Debug("<LivenessDebug> Captured program state '{0}' at fair nondeterministic choice " +
                     "'{1}-{2}'.", fingerprint.GetHashCode(), traceStep.NondetId, traceStep.Choice);
             }
             
@@ -86,7 +85,7 @@ namespace Microsoft.PSharp.StateCaching
 
             if (stateExists && this.Runtime.Configuration.CheckLiveness)
             {
-                Output.Debug("<LivenessDebug> Detected potential infinite execution.");
+                IO.Debug("<LivenessDebug> Detected potential infinite execution.");
                 this.Runtime.LivenessChecker.CheckLivenessAtTraceCycle(state.Fingerprint, this.StateMap);
             }
         }

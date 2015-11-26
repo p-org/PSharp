@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Microsoft.PSharp.Scheduling;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.SystematicTesting.Scheduling
@@ -74,20 +73,20 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         }
 
         /// <summary>
-        /// Returns the next task to schedule.
+        /// Returns the next machine to schedule.
         /// </summary>
         /// <param name="next">Next</param>
-        /// <param name="tasks">Tasks</param>
-        /// <param name="currentTask">Curent task</param>
+        /// <param name="machines">Machines</param>
+        /// <param name="currentMachine">Curent machine</param>
         /// <returns>Boolean value</returns>
-        public bool TryGetNext(out TaskInfo next, List<TaskInfo> tasks, TaskInfo currentTask)
+        public bool TryGetNext(out MachineInfo next, List<MachineInfo> machines, MachineInfo currentMachine)
         {
             if (this.BoundedDFS.HasReachedDepthBound())
             {
-                return this.Random.TryGetNext(out next, tasks, currentTask);
+                return this.Random.TryGetNext(out next, machines, currentMachine);
             }
             {
-                return this.BoundedDFS.TryGetNext(out next, tasks, currentTask);
+                return this.BoundedDFS.TryGetNext(out next, machines, currentMachine);
             }
         }
 
@@ -110,18 +109,34 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         }
 
         /// <summary>
-        /// Returns the explored scheduling steps.
+        /// Returns the explored steps.
         /// </summary>
-        /// <returns>Scheduling steps</returns>
-        public int GetSchedulingSteps()
+        /// <returns>Explored steps</returns>
+        public int GetExploredSteps()
         {
             if (this.BoundedDFS.HasReachedDepthBound())
             {
-                return this.Random.GetSchedulingSteps();
+                return this.Random.GetExploredSteps();
             }
             else
             {
-                return this.BoundedDFS.GetSchedulingSteps();
+                return this.BoundedDFS.GetExploredSteps();
+            }
+        }
+
+        /// <summary>
+        /// Returns the maximum explored steps.
+        /// </summary>
+        /// <returns>Explored steps</returns>
+        public int GetMaxExploredSteps()
+        {
+            if (this.BoundedDFS.HasReachedDepthBound())
+            {
+                return this.Random.GetMaxExploredSteps();
+            }
+            else
+            {
+                return this.BoundedDFS.GetMaxExploredSteps();
             }
         }
 
@@ -177,7 +192,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// <returns>String</returns>
         public string GetDescription()
         {
-            return "MaceMC";
+            return "";
         }
 
         #endregion

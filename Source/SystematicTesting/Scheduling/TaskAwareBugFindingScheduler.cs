@@ -19,11 +19,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-using Microsoft.PSharp.SystematicTesting;
 using Microsoft.PSharp.Threading;
 using Microsoft.PSharp.Utilities;
 
-namespace Microsoft.PSharp.Scheduling
+namespace Microsoft.PSharp.SystematicTesting.Scheduling
 {
     /// <summary>
     /// Class implementing a P# bug-finding scheduler that is
@@ -39,9 +38,9 @@ namespace Microsoft.PSharp.Scheduling
         private List<Task> UserTasks;
 
         /// <summary>
-        /// Map from wrapped task ids to task infos.
+        /// Map from wrapped task ids to machine infos.
         /// </summary>
-        private Dictionary<int, TaskInfo> WrappedTaskMap;
+        private Dictionary<int, MachineInfo> WrappedTaskMap;
 
         #endregion
 
@@ -56,7 +55,7 @@ namespace Microsoft.PSharp.Scheduling
             : base (runtime, strategy)
         {
             this.UserTasks = new List<Task>();
-            this.WrappedTaskMap = new Dictionary<int, TaskInfo>();
+            this.WrappedTaskMap = new Dictionary<int, MachineInfo>();
         }
 
         /// <summary>
@@ -72,13 +71,13 @@ namespace Microsoft.PSharp.Scheduling
 
             if (this.Strategy.HasReachedDepthBound())
             {
-                Output.Debug("<ScheduleDebug> Depth bound of {0} reached.",
+                IO.Debug("<ScheduleDebug> Depth bound of {0} reached.",
                     this.Strategy.GetDepthBound());
-                this.KillRemainingTasks();
+                this.KillRemainingMachines();
                 throw new TaskCanceledException();
             }
 
-            foreach (var task in this.Tasks.Where(val => val.IsBlocked))
+            foreach (var task in base.MachineInfos.Where(val => val.IsBlocked))
             {
                 foreach (var userTask in this.UserTasks.Where(val => val.IsCompleted))
                 {
@@ -104,72 +103,72 @@ namespace Microsoft.PSharp.Scheduling
 
                 if (!task.IsBlocked)
                 {
-                    Output.Debug("<ScheduleDebug> Unblocked task {0} of " +
+                    IO.Debug("<ScheduleDebug> Unblocked task {0} of " +
                         "machine {1}({2}).", task.Id, task.Machine.GetType(), task.Machine.Id.MVal);
                 }
             }
 
-            TaskInfo taskInfo = null;
-            if (this.TaskMap.ContainsKey((int)id))
+            MachineInfo machineInfo = null;
+            if (base.TaskMap.ContainsKey((int)id))
             {
-                taskInfo = this.TaskMap[(int)id];
+                machineInfo = base.TaskMap[(int)id];
             }
             else if (this.WrappedTaskMap.ContainsKey((int)id))
             {
-                taskInfo = this.WrappedTaskMap[(int)id];
+                machineInfo = this.WrappedTaskMap[(int)id];
             }
             else
             {
-                Output.Debug("<ScheduleDebug> Unable to schedule task {0}.", id);
-                this.KillRemainingTasks();
+                IO.Debug("<ScheduleDebug> Unable to schedule task {0}.", id);
+                this.KillRemainingMachines();
                 throw new TaskCanceledException();
             }
 
-            TaskInfo next = null;
-            if (!this.Strategy.TryGetNext(out next, this.Tasks, taskInfo))
+            MachineInfo next = null;
+            if (!this.Strategy.TryGetNext(out next, this.MachineInfos, machineInfo))
             {
-                Output.Debug("<ScheduleDebug> Schedule explored.");
-                this.KillRemainingTasks();
+                IO.Debug("<ScheduleDebug> Schedule explored.");
+                this.KillRemainingMachines();
                 throw new TaskCanceledException();
             }
 
             base.Runtime.ProgramTrace.AddSchedulingChoice(next.Machine);
             if (base.Runtime.Configuration.CheckLiveness &&
                 base.Runtime.Configuration.CacheProgramState &&
-                base.Runtime.Configuration.SafetyPrefixBound <= this.SchedulingPoints)
+                base.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps)
             {
                 base.Runtime.StateCache.CaptureState(base.Runtime.ProgramTrace.Peek());
             }
 
-            Output.Debug("<ScheduleDebug> Schedule task {0} of machine {1}({2}).",
+            IO.Debug("<ScheduleDebug> Schedule task {0} of machine {1}({2}).",
                 next.Id, next.Machine.GetType(), next.Machine.Id.MVal);
 
-            if (taskInfo != next)
+            if (machineInfo != next)
             {
-                taskInfo.IsActive = false;
+                machineInfo.IsActive = false;
                 lock (next)
                 {
                     next.IsActive = true;
                     System.Threading.Monitor.PulseAll(next);
                 }
 
-                lock (taskInfo)
+                lock (machineInfo)
                 {
-                    if (taskInfo.IsCompleted)
+                    if (machineInfo.IsCompleted)
                     {
                         return;
                     }
                     
-                    while (!taskInfo.IsActive)
+                    while (!machineInfo.IsActive)
                     {
-                        Output.Debug("<ScheduleDebug> Sleep task {0} of machine {1}({2}).",
-                            taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id.MVal);
-                        System.Threading.Monitor.Wait(taskInfo);
-                        Output.Debug("<ScheduleDebug> Wake up task {0} of machine {1}({2}).",
-                            taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id.MVal);
+                        IO.Debug("<ScheduleDebug> Sleep task {0} of machine {1}({2}).",
+                            machineInfo.Id, machineInfo.Machine.GetType(), machineInfo.Machine.Id.MVal);
+                        System.Threading.Monitor.Wait(machineInfo);
+                        IO.Debug("<ScheduleDebug> Wake up task {0} of machine {1}({2}).",
+                            machineInfo.Id, machineInfo.Machine.GetType(), machineInfo.Machine.Id.MVal);
                     }
 
-                    if (!taskInfo.IsEnabled)
+                    if (!machineInfo.IsEnabled)
                     {
                         throw new TaskCanceledException();
                     }
@@ -182,24 +181,24 @@ namespace Microsoft.PSharp.Scheduling
         /// </summary>
         /// <param name="id">TaskId</param>
         /// <param name="machine">Machine</param>
-        internal override void NotifyNewTaskCreated(int id, BaseMachine machine)
+        internal override void NotifyNewTaskCreated(int id, AbstractMachine machine)
         {
-            var taskInfo = new TaskInfo(id, machine);
+            var machineInfo = new MachineInfo(id, machine);
 
-            Output.Debug("<ScheduleDebug> Created task {0} for machine {1}({2}).",
-                taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id.MVal);
+            IO.Debug("<ScheduleDebug> Created task {0} for machine {1}({2}).",
+                machineInfo.Id, machineInfo.Machine.GetType(), machineInfo.Machine.Id.MVal);
 
-            if (this.Tasks.Count == 0)
+            if (base.MachineInfos.Count == 0)
             {
-                taskInfo.IsActive = true;
+                machineInfo.IsActive = true;
             }
 
-            this.Tasks.Add(taskInfo);
-            this.TaskMap.Add(id, taskInfo);
+            base.MachineInfos.Add(machineInfo);
+            base.TaskMap.Add(id, machineInfo);
             
             if (machine is TaskMachine)
             {
-                this.WrappedTaskMap.Add((machine as TaskMachine).WrappedTask.Id, taskInfo);
+                this.WrappedTaskMap.Add((machine as TaskMachine).WrappedTask.Id, machineInfo);
             }
         }
 
@@ -214,33 +213,33 @@ namespace Microsoft.PSharp.Scheduling
                 return;
             }
 
-            TaskInfo taskInfo = null;
-            if (this.TaskMap.ContainsKey((int)id))
+            MachineInfo machineInfo = null;
+            if (base.TaskMap.ContainsKey((int)id))
             {
-                taskInfo = this.TaskMap[(int)id];
+                machineInfo = base.TaskMap[(int)id];
             }
             else if (this.WrappedTaskMap.ContainsKey((int)id))
             {
-                taskInfo = this.WrappedTaskMap[(int)id];
+                machineInfo = this.WrappedTaskMap[(int)id];
             }
 
-            Output.Debug("<ScheduleDebug> Started task {0} of machine {1}({2}).",
-                taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id.MVal);
+            IO.Debug("<ScheduleDebug> Started task {0} of machine {1}({2}).",
+                machineInfo.Id, machineInfo.Machine.GetType(), machineInfo.Machine.Id.MVal);
 
-            lock (taskInfo)
+            lock (machineInfo)
             {
-                taskInfo.HasStarted = true;
-                System.Threading.Monitor.PulseAll(taskInfo);
-                while (!taskInfo.IsActive)
+                machineInfo.HasStarted = true;
+                System.Threading.Monitor.PulseAll(machineInfo);
+                while (!machineInfo.IsActive)
                 {
-                    Output.Debug("<ScheduleDebug> Sleep task {0} of machine {1}({2}).",
-                        taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id.MVal);
-                    System.Threading.Monitor.Wait(taskInfo);
-                    Output.Debug("<ScheduleDebug> Wake up task {0} of machine {1}({2}).",
-                        taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id.MVal);
+                    IO.Debug("<ScheduleDebug> Sleep task {0} of machine {1}({2}).",
+                        machineInfo.Id, machineInfo.Machine.GetType(), machineInfo.Machine.Id.MVal);
+                    System.Threading.Monitor.Wait(machineInfo);
+                    IO.Debug("<ScheduleDebug> Wake up task {0} of machine {1}({2}).",
+                        machineInfo.Id, machineInfo.Machine.GetType(), machineInfo.Machine.Id.MVal);
                 }
 
-                if (!taskInfo.IsEnabled)
+                if (!machineInfo.IsEnabled)
                 {
                     throw new TaskCanceledException();
                 }
@@ -260,12 +259,12 @@ namespace Microsoft.PSharp.Scheduling
                 return;
             }
             
-            var taskInfo = this.WrappedTaskMap[(int)id];
+            var machineInfo = this.WrappedTaskMap[(int)id];
 
-            Output.Debug("<ScheduleDebug> Blocked task {0} of machine {1}({2}).",
-                taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id.MVal);
+            IO.Debug("<ScheduleDebug> Blocked task {0} of machine {1}({2}).",
+                machineInfo.Id, machineInfo.Machine.GetType(), machineInfo.Machine.Id.MVal);
 
-            var blockingWrappedTasks = new List<TaskInfo>();
+            var blockingWrappedTasks = new List<MachineInfo>();
             var blockingUnwrappedTasks = new List<Task>();
             foreach (var task in blockingTasks)
             {
@@ -280,10 +279,10 @@ namespace Microsoft.PSharp.Scheduling
                 }
             }
 
-            taskInfo.IsBlocked = true;
-            taskInfo.BlockingWrappedTasks = blockingWrappedTasks;
-            taskInfo.BlockingUnwrappedTasks = blockingUnwrappedTasks;
-            taskInfo.WaitAll = waitAll;
+            machineInfo.IsBlocked = true;
+            machineInfo.BlockingWrappedTasks = blockingWrappedTasks;
+            machineInfo.BlockingUnwrappedTasks = blockingUnwrappedTasks;
+            machineInfo.WaitAll = waitAll;
         }
 
         /// <summary>
@@ -297,34 +296,34 @@ namespace Microsoft.PSharp.Scheduling
                 return;
             }
             
-            var taskInfo = this.TaskMap[(int)id];
+            var machineInfo = base.TaskMap[(int)id];
 
-            Output.Debug("<ScheduleDebug> Completed task {0} of machine {1}({2}).",
-                taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id.MVal);
+            IO.Debug("<ScheduleDebug> Completed task {0} of machine {1}({2}).",
+                machineInfo.Id, machineInfo.Machine.GetType(), machineInfo.Machine.Id.MVal);
 
-            taskInfo.IsEnabled = false;
-            taskInfo.IsCompleted = true;
+            machineInfo.IsEnabled = false;
+            machineInfo.IsCompleted = true;
 
-            foreach (var task in this.Tasks.Where(val => val.IsBlocked))
+            foreach (var mi in base.MachineInfos.Where(val => val.IsBlocked))
             {
-                if (task.BlockingWrappedTasks.Contains(taskInfo))
+                if (mi.BlockingWrappedTasks.Contains(machineInfo))
                 {
-                    task.BlockingWrappedTasks.Remove(taskInfo);
-                    if (!task.WaitAll)
+                    mi.BlockingWrappedTasks.Remove(machineInfo);
+                    if (!mi.WaitAll)
                     {
-                        task.BlockingWrappedTasks.Clear();
-                        task.BlockingUnwrappedTasks.Clear();
-                        task.IsBlocked = false;
-                        Output.Debug("<ScheduleDebug> Unblocked task {0} of " +
-                            "machine {1}({2}).", task.Id, task.Machine.GetType(), task.Machine.Id.MVal);
+                        mi.BlockingWrappedTasks.Clear();
+                        mi.BlockingUnwrappedTasks.Clear();
+                        mi.IsBlocked = false;
+                        IO.Debug("<ScheduleDebug> Unblocked task {0} of " +
+                            "machine {1}({2}).", mi.Id, mi.Machine.GetType(), mi.Machine.Id.MVal);
                     }
                 }
             }
 
             this.Schedule();
 
-            Output.Debug("<ScheduleDebug> Exit task {0} of machine {1}({2}).",
-                taskInfo.Id, taskInfo.Machine.GetType(), taskInfo.Machine.Id.MVal);
+            IO.Debug("<ScheduleDebug> Exit task {0} of machine {1}({2}).",
+                machineInfo.Id, machineInfo.Machine.GetType(), machineInfo.Machine.Id.MVal);
         }
 
         #endregion

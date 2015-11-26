@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Microsoft.PSharp.Scheduling;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.SystematicTesting.Scheduling
@@ -26,7 +25,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
     /// <summary>
     /// Class representing a delay-bounding scheduling strategy.
     /// </summary>
-    public class DelayBoundingStrategy : ISchedulingStrategy
+    public abstract class DelayBoundingStrategy : ISchedulingStrategy
     {
         #region fields
 
@@ -36,34 +35,24 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         protected Configuration Configuration;
 
         /// <summary>
-        /// Nondeterminitic seed.
+        /// The maximum number of explored steps.
         /// </summary>
-        private int Seed;
+        protected int MaxExploredSteps;
 
         /// <summary>
-        /// Randomizer.
+        /// The number of explored steps.
         /// </summary>
-        private Random Random;
-
-        /// <summary>
-        /// The number of explored scheduling steps.
-        /// </summary>
-        private int SchedulingSteps;
-
-        /// <summary>
-        /// The maximum number of scheduling steps (explored so far).
-        /// </summary>
-        private int MaxSchedulingSteps;
+        protected int ExploredSteps;
 
         /// <summary>
         /// The maximum number of delays.
         /// </summary>
-        private int MaxDelays;
+        protected int MaxDelays;
 
         /// <summary>
         /// The remaining delays.
         /// </summary>
-        private List<int> RemainingDelays;
+        protected List<int> RemainingDelays;
 
         #endregion
 
@@ -77,56 +66,49 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         public DelayBoundingStrategy(Configuration configuration, int delays)
         {
             this.Configuration = configuration;
-            this.Seed = this.Configuration.RandomSchedulingSeed
-                ?? DateTime.Now.Millisecond;
-            this.SchedulingSteps = 0;
-            this.MaxSchedulingSteps = 0;
-            this.Random = new Random(this.Seed);
+            this.MaxExploredSteps = 0;
+            this.ExploredSteps = 0;
             this.MaxDelays = delays;
             this.RemainingDelays = new List<int>();
         }
 
         /// <summary>
-        /// Returns the next task to schedule.
+        /// Returns the next machine to schedule.
         /// </summary>
         /// <param name="next">Next</param>
-        /// <param name="tasks">Tasks</param>
-        /// <param name="currentTask">Curent task</param>
+        /// <param name="machines">Machines</param>
+        /// <param name="currentMachine">Curent machine</param>
         /// <returns>Boolean value</returns>
-        public bool TryGetNext(out TaskInfo next, List<TaskInfo> tasks, TaskInfo currentTask)
+        public virtual bool TryGetNext(out MachineInfo next, List<MachineInfo> machines, MachineInfo currentMachine)
         {
-            tasks = tasks.OrderBy(task => task.Machine.Id.Value).ToList();
+            machines = machines.OrderBy(machine => machine.Machine.Id.Value).ToList();
 
-            var currentTaskIdx = tasks.IndexOf(currentTask);
-            var orderedTasks = tasks.GetRange(currentTaskIdx, tasks.Count - currentTaskIdx);
-            if (currentTaskIdx != 0)
+            var currentMachineIdx = machines.IndexOf(currentMachine);
+            var orderedMachines = machines.GetRange(currentMachineIdx, machines.Count - currentMachineIdx);
+            if (currentMachineIdx != 0)
             {
-                orderedTasks.AddRange(tasks.GetRange(0, currentTaskIdx));
+                orderedMachines.AddRange(machines.GetRange(0, currentMachineIdx));
             }
 
-            var availableTasks = orderedTasks.Where(
-                task => task.IsEnabled && !task.IsBlocked && !task.IsWaiting).ToList();
-            if (availableTasks.Count == 0)
+            var availableMachines = orderedMachines.Where(
+                m => m.IsEnabled && !m.IsBlocked && !m.IsWaiting).ToList();
+            if (availableMachines.Count == 0)
             {
                 next = null;
                 return false;
             }
 
             int idx = 0;
-            while (this.RemainingDelays.Count > 0 && this.SchedulingSteps == this.RemainingDelays[0])
+            while (this.RemainingDelays.Count > 0 && this.ExploredSteps == this.RemainingDelays[0])
             {
-                idx = (idx + 1) % availableTasks.Count;
+                idx = (idx + 1) % availableMachines.Count;
                 this.RemainingDelays.RemoveAt(0);
-
-                Output.PrintLine("....... Inserted delay, {0} remaining", this.RemainingDelays.Count);
+                IO.PrintLine("<DelayLog> Inserted delay, '{0}' remaining.", this.RemainingDelays.Count);
             }
 
-            next = availableTasks[idx];
+            next = availableMachines[idx];
 
-            if (!currentTask.IsCompleted)
-            {
-                this.SchedulingSteps++;
-            }
+            this.ExploredSteps++;
 
             return true;
         }
@@ -137,24 +119,37 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// <param name="maxValue">Max value</param>
         /// <param name="next">Next</param>
         /// <returns>Boolean value</returns>
-        public bool GetNextChoice(int maxValue, out bool next)
+        public virtual bool GetNextChoice(int maxValue, out bool next)
         {
             next = false;
-            if (this.Random.Next(maxValue) == 1)
+            if (this.RemainingDelays.Count > 0 && this.ExploredSteps == this.RemainingDelays[0])
             {
                 next = true;
+                this.RemainingDelays.RemoveAt(0);
+                IO.PrintLine("<DelayLog> Inserted delay, '{0}' remaining.", this.RemainingDelays.Count);
             }
+
+            this.ExploredSteps++;
 
             return true;
         }
 
         /// <summary>
-        /// Returns the explored scheduling steps.
+        /// Returns the explored steps.
         /// </summary>
-        /// <returns>Scheduling steps</returns>
-        public int GetSchedulingSteps()
+        /// <returns>Explored steps</returns>
+        public int GetExploredSteps()
         {
-            return this.SchedulingSteps;
+            return this.ExploredSteps;
+        }
+
+        /// <summary>
+        /// Returns the maximum explored steps.
+        /// </summary>
+        /// <returns>Explored steps</returns>
+        public int GetMaxExploredSteps()
+        {
+            return this.MaxExploredSteps;
         }
 
         /// <summary>  
@@ -178,7 +173,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                 return false;
             }
 
-            return this.SchedulingSteps == this.GetDepthBound();
+            return this.ExploredSteps == this.GetDepthBound();
         }
 
         /// <summary>
@@ -189,42 +184,26 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         {
             return false;
         }
-        
+
         /// <summary>
         /// Configures the next scheduling iteration.
         /// </summary>
-        public void ConfigureNextIteration()
-        {
-            this.MaxSchedulingSteps = Math.Max(this.MaxSchedulingSteps, this.SchedulingSteps);
-            this.SchedulingSteps = 0;
-
-            this.RemainingDelays.Clear();
-            for (int idx = 0; idx < this.MaxDelays; idx++)
-            {
-                this.RemainingDelays.Add(this.Random.Next(this.MaxSchedulingSteps));
-            }
-
-            this.RemainingDelays.Sort();
-        }
+        public abstract void ConfigureNextIteration();
 
         /// <summary>
         /// Resets the scheduling strategy.
         /// </summary>
-        public void Reset()
+        public virtual void Reset()
         {
-            this.SchedulingSteps = 0;
+            this.ExploredSteps = 0;
             this.RemainingDelays.Clear();
-            this.Random = new Random(this.Seed);
         }
 
         /// <summary>
         /// Returns a textual description of the scheduling strategy.
         /// </summary>
         /// <returns>String</returns>
-        public string GetDescription()
-        {
-            return "Delay-bounding (with delays '" + this.MaxDelays + "' and seed '" + this.Seed + "')";
-        }
+        public abstract string GetDescription();
 
         #endregion
     }

@@ -31,10 +31,10 @@ namespace Microsoft.PSharp
             // Parses the command line options to get the configuration.
             var configuration = new TesterCommandLineOptions(args).Parse();
 
-            // Creates and starts a systematic testing process.
-            SystematicTestingProcess.Create(configuration).Start();
+            // Creates and starts a testing process.
+            TestingProcess.Create(configuration).Start();
 
-            Output.PrintLine(". Done");
+            IO.PrintLine(". Done");
         }
 
         /// <summary>
@@ -45,8 +45,8 @@ namespace Microsoft.PSharp
         static void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs args)
         {
             var ex = (Exception)args.ExceptionObject;
-            Output.Debug(ex.Message);
-            Output.Debug(ex.StackTrace);
+            IO.Debug(ex.Message);
+            IO.Debug(ex.StackTrace);
             ErrorReporter.ReportAndExit("internal failure: {0}: {1}", ex.GetType().ToString(), ex.Message);
         }
     }

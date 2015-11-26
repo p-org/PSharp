@@ -14,7 +14,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-namespace Microsoft.PSharp.StateCaching
+namespace Microsoft.PSharp.SystematicTesting.StateCaching
 {
     /// <summary>
     /// Monitor status.

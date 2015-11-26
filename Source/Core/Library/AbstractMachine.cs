@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="BaseMachine.cs" company="Microsoft">
+// <copyright file="AbstractMachine.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -17,9 +17,9 @@
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Abstract class representing a base P# machine.
+    /// Abstract class representing a P# machine.
     /// </summary>
-    public abstract class BaseMachine
+    public abstract class AbstractMachine
     {
         #region fields
 
@@ -29,13 +29,26 @@ namespace Microsoft.PSharp
         internal PSharpRuntime Runtime { get; private set; }
 
         /// <summary>
-        /// Unique machine id.
+        /// The unique machine id.
         /// </summary>
         protected internal MachineId Id { get; private set; }
+
+        /// <summary>
+        /// The operation id.
+        /// </summary>
+        internal int OperationId { get; private set; }
 
         #endregion
 
         #region generic public and override methods
+
+        /// <summary>
+        /// Default constructor.
+        /// </summary>
+        public AbstractMachine()
+        {
+            this.OperationId = 0;
+        }
 
         /// <summary>
         /// Determines whether the specified System.Object is equal
@@ -50,7 +63,7 @@ namespace Microsoft.PSharp
                 return false;
             }
 
-            BaseMachine m = obj as BaseMachine;
+            AbstractMachine m = obj as AbstractMachine;
             if (m == null ||
                 this.GetType() != m.GetType())
             {
@@ -81,15 +94,24 @@ namespace Microsoft.PSharp
         #endregion
 
         #region internal methods
-
+        
         /// <summary>
-        /// Sets the ID of this machine.
+        /// Sets the id of this machine.
         /// </summary>
         /// <param name="mid">MachineId</param>
         internal void SetMachineId(MachineId mid)
         {
             this.Id = mid;
             this.Runtime = mid.Runtime;
+        }
+
+        /// <summary>
+        /// Sets the operation id of this machine.
+        /// </summary>
+        /// <param name="opid">OperationId</param>
+        internal void SetOperationId(int opid)
+        {
+            this.OperationId = opid;
         }
 
         #endregion

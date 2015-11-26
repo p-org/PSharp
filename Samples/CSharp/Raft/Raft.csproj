@@ -47,7 +47,8 @@
     <Compile Include="Log.cs" />
     <Compile Include="Test.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Timer.cs" />
+    <Compile Include="Timers\ElectionTimer.cs" />
+    <Compile Include="Timers\PeriodicTimer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

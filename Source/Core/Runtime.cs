@@ -94,7 +94,7 @@ namespace Microsoft.PSharp
         {
             // If the event is null then report an error and exit.
             this.Assert(e != null, "Cannot send a null event.");
-            this.Send(target, e);
+            this.Send(null, target, e, false);
         }
 
         /// <summary>
@@ -187,7 +187,7 @@ namespace Microsoft.PSharp
         {
             if (!predicate)
             {
-                string message = Output.Format(s, args);
+                string message = IO.Format(s, args);
                 ErrorReporter.Report(message);
                 Environment.Exit(1);
             }
@@ -313,9 +313,11 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Sends an asynchronous event to a machine.
         /// </summary>
+        /// <param name="sender">Sender machine</param>
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
-        internal virtual void Send(MachineId mid, Event e)
+        /// <param name="isStarter">Is starting a new operation</param>
+        internal virtual void Send(AbstractMachine sender, MachineId mid, Event e, bool isStarter)
         {
             if (mid == null)
             {
@@ -356,19 +358,21 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Sends an asynchronous event to a remote machine.
         /// </summary>
+        /// <param name="sender">Sender machine</param>
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
-        internal virtual void SendRemotely(MachineId mid, Event e)
+        internal virtual void SendRemotely(AbstractMachine sender, MachineId mid, Event e)
         {
-            this.Send(mid, e);
+            this.Send(sender, mid, e, false);
         }
 
         /// <summary>
         /// Invokes the specified monitor with the given event.
         /// </summary>
+        /// <param name="sender">Sender machine</param>
         /// <typeparam name="T">Type of the monitor</typeparam>
         /// <param name="e">Event</param>
-        internal virtual void Monitor<T>(Event e)
+        internal virtual void Monitor<T>(AbstractMachine sender, Event e)
         {
             // No-op for real execution.
         }
@@ -404,12 +408,21 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Notifies that a machine dequeued an event.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <param name="e">Event</param>
+        internal virtual void NotifyDequeuedEvent(Machine machine, Event e)
+        {
+            // No-op for real execution.
+        }
+
+        /// <summary>
         /// Notifies that a machine is waiting to receive an event.
         /// </summary>
-        /// <param name="mid">MachineId</param>
-        internal virtual void NotifyWaitEvent(MachineId mid)
+        /// <param name="machine">Machine</param>
+        internal virtual void NotifyWaitEvent(Machine machine)
         {
-            Machine machine = this.MachineMap[mid.Value];
             lock (machine)
             {
                 System.Threading.Monitor.Wait(machine);
@@ -419,10 +432,10 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Notifies that a machine received an event that it was waiting for.
         /// </summary>
-        /// <param name="mid">MachineId</param>
-        internal virtual void NotifyReceivedEvent(MachineId mid)
+        /// <param name="machine">Machine</param>
+        /// <param name="e">Event</param>
+        internal virtual void NotifyReceivedEvent(Machine machine, Event e)
         {
-            Machine machine = this.MachineMap[mid.Value];
             lock (machine)
             {
                 System.Threading.Monitor.Pulse(machine);

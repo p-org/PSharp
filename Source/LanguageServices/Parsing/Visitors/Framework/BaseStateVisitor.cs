@@ -242,13 +242,13 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
             var eventHandlers = eventTypes.
                 Where(val => val.Type is IdentifierNameSyntax).
                 Select(val => val.Type as IdentifierNameSyntax).
-                Select(val => val.Identifier.ValueText).
+                Select(val => val.ToFullString()).
                 ToList();
 
             eventHandlers.AddRange(eventTypes.
                 Where(val => val.Type is QualifiedNameSyntax).
                 Select(val => val.Type as QualifiedNameSyntax).
-                Select(val => val.Right.Identifier.ValueText).
+                Select(val => val.ToFullString()).
                 ToList());
 
             var eventOccurrences = eventHandlers.GroupBy(val => val);

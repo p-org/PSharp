@@ -121,6 +121,8 @@ namespace Raft
         private class BecomeCandidate : Event { }
         private class BecomeLeader : Event { }
 
+        internal class ShutDown : Event { }
+
         #endregion
 
         #region fields
@@ -146,9 +148,14 @@ namespace Raft
         MachineId LeaderId;
 
         /// <summary>
-        /// The timer of this server.
+        /// The election timer of this server.
         /// </summary>
-        MachineId Timer;
+        MachineId ElectionTimer;
+
+        /// <summary>
+        /// The periodic timer of this server.
+        /// </summary>
+        MachineId PeriodicTimer;
 
         /// <summary>
         /// Latest term server has seen (initialized to 0 on
@@ -208,7 +215,7 @@ namespace Raft
         [OnEntry(nameof(EntryOnInit))]
         [OnEventDoAction(typeof(ConfigureEvent), nameof(Configure))]
         [OnEventGotoState(typeof(BecomeFollower), typeof(Follower))]
-        [DeferEvents(typeof(VoteRequest))]
+        [DeferEvents(typeof(VoteRequest), typeof(AppendEntriesRequest))]
         class Init : MachineState { }
 
         void EntryOnInit()
@@ -233,9 +240,11 @@ namespace Raft
             this.Servers = (this.ReceivedEvent as ConfigureEvent).Servers;
             this.ClusterManager = (this.ReceivedEvent as ConfigureEvent).ClusterManager;
 
-            this.Timer = this.CreateMachine(typeof(Timer));
-            this.Send(this.Timer, new Timer.ConfigureEvent(this.Id));
-            this.Send(this.Timer, new Timer.StartTimer());
+            this.ElectionTimer = this.CreateMachine(typeof(ElectionTimer));
+            this.Send(this.ElectionTimer, new ElectionTimer.ConfigureEvent(this.Id));
+
+            this.PeriodicTimer = this.CreateMachine(typeof(PeriodicTimer));
+            this.Send(this.PeriodicTimer, new PeriodicTimer.ConfigureEvent(this.Id));
 
             this.Raise(new BecomeFollower());
         }
@@ -246,13 +255,15 @@ namespace Raft
 
         [OnEntry(nameof(FollowerOnInit))]
         [OnEventDoAction(typeof(Client.Request), nameof(RedirectClientRequest))]
-        [OnEventDoAction(typeof(Timer.Timeout), nameof(StartLeaderElection))]
         [OnEventDoAction(typeof(VoteRequest), nameof(VoteAsFollower))]
         [OnEventDoAction(typeof(VoteResponse), nameof(RespondVoteAsFollower))]
         [OnEventDoAction(typeof(AppendEntriesRequest), nameof(AppendEntriesAsFollower))]
         [OnEventDoAction(typeof(AppendEntriesResponse), nameof(RespondAppendEntriesAsFollower))]
+        [OnEventDoAction(typeof(ElectionTimer.Timeout), nameof(StartLeaderElection))]
+        [OnEventDoAction(typeof(ShutDown), nameof(ShuttingDown))]
         [OnEventGotoState(typeof(BecomeFollower), typeof(Follower))]
         [OnEventGotoState(typeof(BecomeCandidate), typeof(Candidate))]
+        [IgnoreEvents(typeof(PeriodicTimer.Timeout))]
         class Follower : MachineState { }
 
         void FollowerOnInit()
@@ -260,7 +271,7 @@ namespace Raft
             this.LeaderId = null;
             this.VotesReceived = 0;
 
-            this.Send(this.Timer, new Timer.ResetTimer());
+            this.Send(this.ElectionTimer, new ElectionTimer.StartTimer());
         }
 
         void RedirectClientRequest()
@@ -329,13 +340,17 @@ namespace Raft
         #region candidate
 
         [OnEntry(nameof(CandidateOnInit))]
+        [OnEventDoAction(typeof(Client.Request), nameof(RedirectClientRequest))]
         [OnEventDoAction(typeof(VoteRequest), nameof(VoteAsCandidate))]
         [OnEventDoAction(typeof(VoteResponse), nameof(RespondVoteAsCandidate))]
         [OnEventDoAction(typeof(AppendEntriesRequest), nameof(AppendEntriesAsCandidate))]
         [OnEventDoAction(typeof(AppendEntriesResponse), nameof(RespondAppendEntriesAsCandidate))]
+        [OnEventDoAction(typeof(ElectionTimer.Timeout), nameof(StartLeaderElection))]
+        [OnEventDoAction(typeof(PeriodicTimer.Timeout), nameof(BroadcastVoteRequests))]
+        [OnEventDoAction(typeof(ShutDown), nameof(ShuttingDown))]
         [OnEventGotoState(typeof(BecomeLeader), typeof(Leader))]
         [OnEventGotoState(typeof(BecomeFollower), typeof(Follower))]
-        [IgnoreEvents(typeof(Timer.Timeout))] // temporary
+        [OnEventGotoState(typeof(BecomeCandidate), typeof(Candidate))]
         class Candidate : MachineState { }
 
         void CandidateOnInit()
@@ -343,6 +358,19 @@ namespace Raft
             this.CurrentTerm++;
             this.VotedFor = this.Id;
             this.VotesReceived = 1;
+
+            this.Send(this.ElectionTimer, new ElectionTimer.StartTimer());
+
+            Console.WriteLine("\n [Candidate] " + this.ServerId + " | term " + this.CurrentTerm +
+                " | election votes " + this.VotesReceived + " | log " + this.Logs.Count + "\n");
+
+            this.BroadcastVoteRequests();
+        }
+
+        void BroadcastVoteRequests()
+        {
+            // BUG: duplicate votes from same follower
+            this.Send(this.PeriodicTimer, new PeriodicTimer.StartTimer());
 
             for (int idx = 0; idx < this.Servers.Length; idx++)
             {
@@ -437,7 +465,9 @@ namespace Raft
         [OnEventDoAction(typeof(VoteResponse), nameof(RespondVoteAsLeader))]
         [OnEventDoAction(typeof(AppendEntriesRequest), nameof(AppendEntriesAsLeader))]
         [OnEventDoAction(typeof(AppendEntriesResponse), nameof(RespondAppendEntriesAsLeader))]
+        [OnEventDoAction(typeof(ShutDown), nameof(ShuttingDown))]
         [OnEventGotoState(typeof(BecomeFollower), typeof(Follower))]
+        [IgnoreEvents(typeof(ElectionTimer.Timeout), typeof(PeriodicTimer.Timeout))]
         class Leader : MachineState { }
 
         void LeaderOnInit()
@@ -482,8 +512,7 @@ namespace Raft
             Console.WriteLine("\n [Leader] " + this.ServerId + " sends append requests | term " +
                 this.CurrentTerm + " | log " + this.Logs.Count + "\n");
 
-            var prevLogIndex = this.GetPreviousLogIndex();
-            var prevLogTerm = this.GetLogTermForIndex(prevLogIndex);
+            var lastLogIndex = this.Logs.Count;
 
             this.VotesReceived = 1;
             for (int idx = 0; idx < this.Servers.Length; idx++)
@@ -492,17 +521,14 @@ namespace Raft
                     continue;
 
                 var server = this.Servers[idx];
-                var nextIndex = this.NextIndex[server];
-                if (prevLogIndex + 1 < nextIndex)
+                if (lastLogIndex < this.NextIndex[server])
                     continue;
+                
+                var logs = this.Logs.GetRange(this.NextIndex[server] - 1,
+                    this.Logs.Count - (this.NextIndex[server] - 1));
 
-                var trueIndex = 0;
-                if (nextIndex > 0)
-                {
-                    trueIndex = nextIndex - 1;
-                }
-
-                var logs = this.Logs.GetRange(trueIndex, this.Logs.Count - trueIndex);
+                var prevLogIndex = this.NextIndex[server] - 1;
+                var prevLogTerm = this.GetLogTermForIndex(prevLogIndex);
 
                 this.Send(server, new AppendEntriesRequest(this.CurrentTerm, this.Id, prevLogIndex,
                     prevLogTerm, logs, this.CommitIndex, this.LastClientRequest.Client));
@@ -583,7 +609,7 @@ namespace Raft
                     this.VotesReceived >= (this.Servers.Length / 2) + 1)
                 {
                     Console.WriteLine("\n [Leader] " + this.ServerId + " | term " + this.CurrentTerm +
-                        " | append votes " + this.VotesReceived + "\n");
+                        " | append votes " + this.VotesReceived + " | append success\n");
 
                     var commitIndex = this.MatchIndex[request.Server];
                     if (commitIndex > this.CommitIndex &&
@@ -603,18 +629,21 @@ namespace Raft
             }
             else
             {
-                this.NextIndex[request.Server] = this.NextIndex[request.Server] - 1;
+                if (this.NextIndex[request.Server] > 1)
+                {
+                    this.NextIndex[request.Server] = this.NextIndex[request.Server] - 1;
+                }
                 
-                var prevLogIndex = this.GetPreviousLogIndex();
+                var logs = this.Logs.GetRange(this.NextIndex[request.Server] - 1,
+                    this.Logs.Count - (this.NextIndex[request.Server] - 1));
+
+                var prevLogIndex = this.NextIndex[request.Server] - 1;
                 var prevLogTerm = this.GetLogTermForIndex(prevLogIndex);
 
-                var nextIndex = 0;
-                if (this.NextIndex[request.Server] > 0)
-                {
-                    nextIndex = this.NextIndex[request.Server] - 1;
-                }
+                Console.WriteLine("\n [Leader] " + this.ServerId + " | term " + this.CurrentTerm + " | log " +
+                    this.Logs.Count + " | append votes " + this.VotesReceived +
+                    " | append fail (next idx = " + this.NextIndex[request.Server] + ")\n");
 
-                var logs = this.Logs.GetRange(nextIndex, this.Logs.Count - nextIndex);
                 this.Send(request.Server, new AppendEntriesRequest(this.CurrentTerm, this.Id, prevLogIndex,
                     prevLogTerm, logs, this.CommitIndex, request.ReceiverEndpoint));
             }
@@ -622,7 +651,7 @@ namespace Raft
 
         #endregion
 
-        #region core methods
+        #region general methods
 
         /// <summary>
         /// Processes the given vote request.
@@ -663,22 +692,19 @@ namespace Raft
             if (request.Term < this.CurrentTerm)
             {
                 Console.WriteLine("\n [Server] " + this.ServerId + " | term " + this.CurrentTerm + " | log " +
-                    this.Logs.Count + " | last applied: " + this.LastApplied + " | append false\n");
+                    this.Logs.Count + " | last applied: " + this.LastApplied + " | append false (< term)\n");
 
-                this.Send(this.Timer, new Timer.ResetTimer());
                 this.Send(request.LeaderId, new AppendEntriesResponse(this.CurrentTerm, false,
                     this.Id, request.ReceiverEndpoint));
             }
             else
-            {
-                this.Send(this.Timer, new Timer.ResetTimer());
-                
+            {                
                 if (request.PrevLogIndex > 0 &&
                     (this.Logs.Count < request.PrevLogIndex ||
                     this.Logs[request.PrevLogIndex - 1].Term != request.PrevLogTerm))
                 {
                     Console.WriteLine("\n [Server] " + this.ServerId + " | term " + this.CurrentTerm + " | log " +
-                        this.Logs.Count + " | last applied: " + this.LastApplied + " | append false\n");
+                        this.Logs.Count + " | last applied: " + this.LastApplied + " | append false (not in log)\n");
 
                     this.Send(request.LeaderId, new AppendEntriesResponse(this.CurrentTerm,
                         false, this.Id, request.ReceiverEndpoint));
@@ -739,21 +765,6 @@ namespace Raft
         }
 
         /// <summary>
-        /// Returns the previous log index.
-        /// </summary>
-        /// <returns>Index</returns>
-        int GetPreviousLogIndex()
-        {
-            var logIndex = 0;
-            if (this.Logs.Count > 0)
-            {
-                logIndex = this.Logs.Count - 1;
-            }
-
-            return logIndex;
-        }
-
-        /// <summary>
         /// Returns the log term for the given log index.
         /// </summary>
         /// <param name="logIndex">Index</param>
@@ -767,6 +778,14 @@ namespace Raft
             }
 
             return logTerm;
+        }
+
+        void ShuttingDown()
+        {
+            this.Send(this.ElectionTimer, new Halt());
+            this.Send(this.PeriodicTimer, new Halt());
+
+            this.Raise(new Halt());
         }
 
         #endregion

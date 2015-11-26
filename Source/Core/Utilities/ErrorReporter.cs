@@ -78,7 +78,7 @@ namespace Microsoft.PSharp.Utilities
         /// <param name="args">Parameters</param>
         public static void ReportAndExit(string s, params object[] args)
         {
-            string message = Output.Format(s, args);
+            string message = IO.Format(s, args);
             Console.Write("Error: ");
             Console.WriteLine(message);
             Environment.Exit(1);
@@ -91,7 +91,7 @@ namespace Microsoft.PSharp.Utilities
         /// <param name="args">Parameters</param>
         public static void WriteLineAndExit(string s, params object[] args)
         {
-            string message = Output.Format(s, args);
+            string message = IO.Format(s, args);
             Console.WriteLine(message);
             Environment.Exit(1);
         }

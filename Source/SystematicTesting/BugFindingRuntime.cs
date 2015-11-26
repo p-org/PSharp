@@ -19,9 +19,9 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Microsoft.PSharp.Exploration;
-using Microsoft.PSharp.Scheduling;
-using Microsoft.PSharp.StateCaching;
+using Microsoft.PSharp.SystematicTesting.Exploration;
+using Microsoft.PSharp.SystematicTesting.Scheduling;
+using Microsoft.PSharp.SystematicTesting.StateCaching;
 using Microsoft.PSharp.Threading;
 using Microsoft.PSharp.Utilities;
 
@@ -48,11 +48,6 @@ namespace Microsoft.PSharp.SystematicTesting
         /// Lock used by the runtime.
         /// </summary>
         private Object Lock = new Object();
-
-        /// <summary>
-        /// True if runtime is running. False otherwise.
-        /// </summary>
-        private bool IsRunning = false;
 
         /// <summary>
         /// The P# program trace.
@@ -84,6 +79,16 @@ namespace Microsoft.PSharp.SystematicTesting
         /// </summary>
         internal LivenessChecker LivenessChecker;
 
+        /// <summary>
+        /// Monotonically increasing machine id counter.
+        /// </summary>
+        private int OperationIdCounter;
+
+        /// <summary>
+        /// True if runtime is running.
+        /// </summary>
+        private bool IsRunning = false;
+
         #endregion
 
         #region public API
@@ -91,7 +96,8 @@ namespace Microsoft.PSharp.SystematicTesting
         /// <summary>
         /// Constructor.
         /// <param name="configuration">Configuration</param>
-        internal PSharpBugFindingRuntime(Configuration configuration)
+        /// <param name="strategy">SchedulingStrategy</param>
+        internal PSharpBugFindingRuntime(Configuration configuration, ISchedulingStrategy strategy)
             : base(configuration)
         {
             this.RootTaskId = Task.CurrentId;
@@ -103,11 +109,18 @@ namespace Microsoft.PSharp.SystematicTesting
             {
                 this.TaskScheduler = new TaskWrapperScheduler(this, this.MachineTasks);
                 TaskMachineExtensions.TaskScheduler = this.TaskScheduler as TaskWrapperScheduler;
+                this.BugFinder = new TaskAwareBugFindingScheduler(this, strategy);
+            }
+            else
+            {
+                this.BugFinder = new BugFindingScheduler(this, strategy);
             }
 
             this.ProgramTrace = new Trace();
             this.StateCache = new StateCache(this);
             this.LivenessChecker = new LivenessChecker(this);
+
+            this.OperationIdCounter = 0;
 
             this.IsRunning = true;
         }
@@ -124,11 +137,11 @@ namespace Microsoft.PSharp.SystematicTesting
 
             try
             {
-                this.Send(target, e);
+                this.Send(null, target, e, false);
             }
             catch (TaskCanceledException)
             {
-                Output.Debug("<Exception> TaskCanceledException was thrown.");
+                IO.Debug("<Exception> TaskCanceledException was thrown.");
             }
         }
 
@@ -141,7 +154,7 @@ namespace Microsoft.PSharp.SystematicTesting
         {
             // If the event is null then report an error and exit.
             this.Assert(e != null, "Cannot send a null event.");
-            this.Monitor<T>(e);
+            this.Monitor<T>(null, e);
         }
 
         /// <summary>
@@ -181,7 +194,7 @@ namespace Microsoft.PSharp.SystematicTesting
                     killTasks = false;
                 }
 
-                string message = Output.Format(s, args);
+                string message = IO.Format(s, args);
                 this.BugFinder.NotifyAssertionFailure(message, killTasks);
             }
         }
@@ -193,7 +206,7 @@ namespace Microsoft.PSharp.SystematicTesting
         /// <param name="args">Arguments</param>
         public override void Log(string s, params object[] args)
         {
-            Output.Log(s, args);
+            IO.Log(s, args);
         }
 
         #endregion
@@ -219,7 +232,7 @@ namespace Microsoft.PSharp.SystematicTesting
                     this.Assert(false, "Machine {0}({1}) was already created.", type.Name, mid.Value);
                 }
 
-                Output.Log("<CreateLog> Machine {0}({1}) is created.", type.Name, mid.MVal);
+                IO.Log("<CreateLog> Machine {0}({1}) is created.", type.Name, mid.MVal);
 
                 Task task = new Task(() =>
                 {
@@ -274,7 +287,7 @@ namespace Microsoft.PSharp.SystematicTesting
             (monitor as Monitor).SetMachineId(mid);
             (monitor as Monitor).InitializeStateInformation();
 
-            Output.Log("<CreateLog> Monitor {0} is created.", type.Name);
+            IO.Log("<CreateLog> Monitor {0} is created.", type.Name);
 
             this.Monitors.Add(monitor as Monitor);
 
@@ -299,7 +312,7 @@ namespace Microsoft.PSharp.SystematicTesting
             TaskMachine taskMachine = new TaskMachine(this.TaskScheduler as TaskWrapperScheduler, userTask);
             taskMachine.SetMachineId(mid);
             
-            Output.Log("<CreateLog> TaskMachine({0}) is created.", mid.MVal);
+            IO.Log("<CreateLog> TaskMachine({0}) is created.", mid.MVal);
 
             Task task = new Task(() =>
             {
@@ -331,35 +344,45 @@ namespace Microsoft.PSharp.SystematicTesting
         /// <summary>
         /// Sends an asynchronous event to a machine.
         /// </summary>
+        /// <param name="sender">Sender machine</param>
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
-        internal override void Send(MachineId mid, Event e)
+        /// <param name="isStarter">Is starting a new operation</param>
+        internal override void Send(AbstractMachine sender, MachineId mid, Event e, bool isStarter)
         {
             this.Assert(mid != null, "Cannot send to a null machine.");
             this.Assert(e != null, "Cannot send a null event.");
             
-            if (this.TaskMap.ContainsKey((int)Task.CurrentId))
+            this.SetOperationIdForEvent(e, sender, isStarter);
+
+            if (this.Configuration.BoundOperations && sender != null)
             {
-                Machine sender = this.TaskMap[(int)Task.CurrentId];
-                Output.Log("<SendLog> Machine '{0}({1})' sent event '{2}' to '{3}({4})'.",
+                IO.Log("<SendLog> Machine '{0}({1})' sent event '{2}({3})' to '{4}({5})'.",
+                    sender, sender.Id.MVal, e.GetType(), e.OperationId, mid.Type, mid.MVal);
+            }
+            else if (sender != null)
+            {
+                IO.Log("<SendLog> Machine '{0}({1})' sent event '{2}' to '{3}({4})'.",
                     sender, sender.Id.MVal, e.GetType(), mid.Type, mid.MVal);
             }
             else
             {
-                Output.Log("<SendLog> Event '{0}' was sent to '{1}({2})'.",
+                IO.Log("<SendLog> Event '{0}' was sent to '{1}({2})'.",
                     e.GetType(), mid.Type, mid.MVal);
             }
 
             Machine machine = this.MachineMap[mid.Value];
 
-            bool runHandler = false;
-            machine.Enqueue(e, ref runHandler);
-
-            if (!runHandler)
+            bool runNewHandler = false;
+            machine.Enqueue(e, ref runNewHandler);
+            
+            if (!runNewHandler)
             {
                 this.BugFinder.Schedule();
                 return;
             }
+
+            machine.SetOperationId(e.OperationId);
 
             Task task = new Task(() =>
             {
@@ -392,9 +415,10 @@ namespace Microsoft.PSharp.SystematicTesting
         /// <summary>
         /// Invokes the specified monitor with the given event.
         /// </summary>
+        /// <param name="sender">Sender machine</param>
         /// <typeparam name="T">Type of the monitor</typeparam>
         /// <param name="e">Event</param>
-        internal override void Monitor<T>(Event e)
+        internal override void Monitor<T>(AbstractMachine sender, Event e)
         {
             foreach (var m in this.Monitors)
             {
@@ -428,10 +452,25 @@ namespace Microsoft.PSharp.SystematicTesting
         }
 
         /// <summary>
+        /// Notifies that a machine dequeued an event.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <param name="e">Event</param>
+        internal override void NotifyDequeuedEvent(Machine machine, Event e)
+        {
+            var prevMachineOpId = machine.OperationId;
+            machine.SetOperationId(e.OperationId);
+            if (this.Configuration.BoundOperations && prevMachineOpId != machine.OperationId)
+            {
+                this.BugFinder.Schedule();
+            }
+        }
+
+        /// <summary>
         /// Notifies that a machine is waiting to receive an event.
         /// </summary>
-        /// <param name="mid">MachineId</param>
-        internal override void NotifyWaitEvent(MachineId mid)
+        /// <param name="machine">Machine</param>
+        internal override void NotifyWaitEvent(Machine machine)
         {
             this.BugFinder.NotifyTaskBlockedOnEvent(Task.CurrentId);
             this.BugFinder.Schedule();
@@ -440,10 +479,10 @@ namespace Microsoft.PSharp.SystematicTesting
         /// <summary>
         /// Notifies that a machine received an event that it was waiting for.
         /// </summary>
-        /// <param name="mid">MachineId</param>
-        internal override void NotifyReceivedEvent(MachineId mid)
+        /// <param name="machine">Machine</param>
+        /// <param name="e">Event</param>
+        internal override void NotifyReceivedEvent(Machine machine, Event e)
         {
-            Machine machine = this.MachineMap[mid.Value];
             this.BugFinder.NotifyTaskReceivedEvent(machine);
         }
 
@@ -538,7 +577,34 @@ namespace Microsoft.PSharp.SystematicTesting
 
         #endregion
 
-        #region TPL API
+        #region private methods
+
+        /// <summary>
+        /// Sets the operation id for the given event.
+        /// </summary>
+        /// <param name="e">Event</param>
+        /// <param name="sender">Sender machine</param>
+        /// <param name="isStarter">Is starting a new operation</param>
+        private void SetOperationIdForEvent(Event e, AbstractMachine sender, bool isStarter)
+        {
+            if (isStarter)
+            {
+                this.OperationIdCounter++;
+                e.SetOperationId(this.OperationIdCounter);
+            }
+            else if (sender != null)
+            {
+                e.SetOperationId(sender.OperationId);
+            }
+            else
+            {
+                e.SetOperationId(0);
+            }
+        }
+
+        #endregion
+
+        #region TPL methods
 
         /// <summary>
         /// Waits for all of the provided task objects to complete execution.

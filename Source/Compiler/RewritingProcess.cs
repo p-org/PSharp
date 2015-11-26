@@ -49,7 +49,7 @@ namespace Microsoft.PSharp
         /// </summary>
         public void Start()
         {
-            Output.PrintLine(". Rewriting");
+            IO.PrintLine(". Rewriting");
 
             foreach (var target in this.CompilationContext.Configuration.CompilationTargets)
             {

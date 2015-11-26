@@ -27,7 +27,7 @@ namespace Microsoft.PSharp
     /// <summary>
     /// Abstract class representing a P# state machine.
     /// </summary>
-    public abstract class Machine : BaseMachine
+    public abstract class Machine : AbstractMachine
     {
         #region fields
 
@@ -167,14 +167,16 @@ namespace Microsoft.PSharp
 
         /// <summary>
         /// Sends an asynchronous event to a machine.
+        /// Optionally starts a new operation.
         /// </summary>
         /// <param name="m">MachineId</param>
         /// <param name="e">Event</param>
-        protected internal void Send(MachineId mid, Event e)
+        /// <param name="isStarter">Is starting a new operation</param>
+        protected internal void Send(MachineId mid, Event e, bool isStarter = false)
         {
             // If the event is null then report an error and exit.
             this.Assert(e != null, "Machine '{0}' is sending a null event.", this.GetType().Name);
-            base.Runtime.Send(mid, e);
+            base.Runtime.Send(this, mid, e, isStarter);
         }
 
         /// <summary>
@@ -186,7 +188,7 @@ namespace Microsoft.PSharp
         {
             // If the event is null then report an error and exit.
             this.Assert(e != null, "Machine '{0}' is sending a null event.", this.GetType().Name);
-            base.Runtime.Monitor<T>(e);
+            base.Runtime.Monitor<T>(this, e);
         }
 
         /// <summary>
@@ -340,8 +342,8 @@ namespace Microsoft.PSharp
         /// Enqueues an event.
         /// </summary>
         /// <param name="e">Event</param>
-        /// <param name="runHandler">Run the handler</param>
-        internal void Enqueue(Event e, ref bool runHandler)
+        /// <param name="runNewHandler">Run a new handler</param>
+        internal void Enqueue(Event e, ref bool runNewHandler)
         {
             lock (this.Inbox)
             {
@@ -357,7 +359,7 @@ namespace Microsoft.PSharp
                     this.ReceivedEventHandler = new Tuple<Event, Action>(
                         e, this.EventWaiters[e.GetType()]);
                     this.EventWaiters.Clear();
-                    base.Runtime.NotifyReceivedEvent(this.Id);
+                    base.Runtime.NotifyReceivedEvent(this, e);
                     return;
                 }
 
@@ -383,13 +385,13 @@ namespace Microsoft.PSharp
                 if (!this.IsRunning)
                 {
                     this.IsRunning = true;
-                    runHandler = true;
+                    runNewHandler = true;
                 }
             }
         }
 
         /// <summary>
-        /// Runs the event handler. The handlers terminates if there
+        /// Runs the event handler. The handler terminates if there
         /// is no next event to process or if the machine is halted.
         /// </summary>
         internal void RunEventHandler()
@@ -403,9 +405,10 @@ namespace Microsoft.PSharp
             while (!this.IsHalted)
             {
                 var defaultHandling = false;
+                var dequeued = false;
                 lock (this.Inbox)
                 {
-                    nextEvent = this.GetNextEvent();
+                    dequeued = this.GetNextEvent(out nextEvent);
 
                     // Check if next event to process is null.
                     if (nextEvent == null)
@@ -425,6 +428,15 @@ namespace Microsoft.PSharp
                             break;
                         }
                     }
+                }
+
+                // If the event was dequeued, then notify the runtime. This is
+                // only used during bug-finding and operation bounding, because
+                // the runtime has to schedule a machine between when a new operation
+                // is dequeued.
+                if (dequeued)
+                {
+                    base.Runtime.NotifyDequeuedEvent(this, nextEvent);
                 }
 
                 // Assigns the received event.
@@ -478,12 +490,15 @@ namespace Microsoft.PSharp
 
         /// <summary>
         /// Gets the next available event. It gives priority to raised events,
-        /// else deqeues from the inbox. Returns null if no event is available.
+        /// else deqeues from the inbox. Returns false if the next event was
+        /// not dequeued. It returns a null event if no event is available.
         /// </summary>
-        /// <returns>Next event</returns>
-        private Event GetNextEvent()
+        /// <param name="nextEvent">Event</param>
+        /// <returns>Boolean</returns>
+        private bool GetNextEvent(out Event nextEvent)
         {
-            Event nextEvent = null;
+            bool dequeued = false;
+            nextEvent = null;
 
             // Raised events have priority.
             if (this.RaisedEvent != null)
@@ -521,12 +536,14 @@ namespace Microsoft.PSharp
                             this.GetType().Name, base.Id.MVal, nextEvent.GetType().FullName);
 
                         this.Inbox.RemoveAt(idx);
+                        dequeued = true;
+
                         break;
                     }
                 }
             }
 
-            return nextEvent;
+            return dequeued;
         }
 
         /// <summary>
@@ -646,7 +663,7 @@ namespace Microsoft.PSharp
                 base.Runtime.Log("<ReceiveLog> Machine '{0}({1})' is waiting on events:{2}.",
                     this, base.Id.MVal, events);
 
-                base.Runtime.NotifyWaitEvent(this.Id);
+                base.Runtime.NotifyWaitEvent(this);
             }
             
             this.HandleReceivedEvent();
@@ -802,8 +819,7 @@ namespace Microsoft.PSharp
         private void Do(Action a)
         {
             base.Runtime.Log("<ActionLog> Machine '{0}({1})' executed action '{2}' in state '{3}'.",
-                this, base.Id.MVal, a.Method.Name,
-                this.StateStack.Peek().GetType().Name);
+                this, base.Id.MVal, a.Method.Name, this.StateStack.Peek().GetType().Name);
             
             try
             {

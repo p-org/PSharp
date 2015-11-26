@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Microsoft.PSharp.Scheduling;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.SystematicTesting.Scheduling
@@ -56,9 +55,14 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         private int NondetIndex;
 
         /// <summary>
-        /// The number of explored scheduling steps.
+        /// The maximum number of explored steps.
         /// </summary>
-        protected int SchedulingSteps;
+        private int MaxExploredSteps;
+
+        /// <summary>
+        /// The number of explored steps.
+        /// </summary>
+        protected int ExploredSteps;
 
         #endregion
 
@@ -75,21 +79,22 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             this.NondetStack = new List<List<NondetChoice>>();
             this.SchIndex = 0;
             this.NondetIndex = 0;
-            this.SchedulingSteps = 0;
+            this.MaxExploredSteps = 0;
+            this.ExploredSteps = 0;
         }
 
         /// <summary>
-        /// Returns the next task to schedule.
+        /// Returns the next machine to schedule.
         /// </summary>
         /// <param name="next">Next</param>
-        /// <param name="tasks">Tasks</param>
-        /// <param name="currentTask">Curent task</param>
+        /// <param name="machines">Machines</param>
+        /// <param name="currentMachine">Curent machine</param>
         /// <returns>Boolean value</returns>
-        public bool TryGetNext(out TaskInfo next, List<TaskInfo> tasks, TaskInfo currentTask)
+        public bool TryGetNext(out MachineInfo next, List<MachineInfo> machines, MachineInfo currentMachine)
         {
-            var availableTasks = tasks.Where(
-                task => task.IsEnabled && !task.IsBlocked && !task.IsWaiting).ToList();
-            if (availableTasks.Count == 0)
+            var availableMachines = machines.Where(
+                m => m.IsEnabled && !m.IsBlocked && !m.IsWaiting).ToList();
+            if (availableMachines.Count == 0)
             {
                 next = null;
                 return false;
@@ -105,7 +110,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             else
             {
                 scs = new List<SChoice>();
-                foreach (var task in availableTasks)
+                foreach (var task in availableMachines)
                 {
                     scs.Add(new SChoice(task.Machine.Id.Value));
                 }
@@ -126,7 +131,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                 previousChoice.IsDone = false;
             }
             
-            next = availableTasks.Find(task => task.Machine.Id.Value == nextChoice.Id);
+            next = availableMachines.Find(task => task.Machine.Id.Value == nextChoice.Id);
             nextChoice.IsDone = true;
             this.SchIndex++;
 
@@ -135,10 +140,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                 return false;
             }
 
-            if (!currentTask.IsCompleted)
-            {
-                this.SchedulingSteps++;
-            }
+            this.ExploredSteps++;
 
             return true;
         }
@@ -184,16 +186,27 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             nextChoice.IsDone = true;
             this.NondetIndex++;
 
+            this.ExploredSteps++;
+
             return true;
         }
 
         /// <summary>
-        /// Returns the explored scheduling steps.
+        /// Returns the explored steps.
         /// </summary>
-        /// <returns>Scheduling steps</returns>
-        public int GetSchedulingSteps()
+        /// <returns>Explored steps</returns>
+        public int GetExploredSteps()
         {
-            return this.SchedulingSteps;
+            return this.ExploredSteps;
+        }
+
+        /// <summary>
+        /// Returns the maximum explored steps.
+        /// </summary>
+        /// <returns>Explored steps</returns>
+        public int GetMaxExploredSteps()
+        {
+            return this.MaxExploredSteps;
         }
 
         /// <summary>  
@@ -217,7 +230,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                 return false;
             }
 
-            return this.SchedulingSteps == this.GetDepthBound();
+            return this.ExploredSteps == this.GetDepthBound();
         }
 
         /// <summary>
@@ -235,9 +248,12 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         public void ConfigureNextIteration()
         {
             //this.PrintSchedule();
+
+            this.MaxExploredSteps = Math.Max(this.MaxExploredSteps, this.ExploredSteps);
+            this.ExploredSteps = 0;
+
             this.SchIndex = 0;
             this.NondetIndex = 0;
-            this.SchedulingSteps = 0;
 
             for (int idx = this.NondetStack.Count - 1; idx > 0; idx--)
             {
@@ -292,7 +308,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             this.NondetStack.Clear();
             this.SchIndex = 0;
             this.NondetIndex = 0;
-            this.SchedulingSteps = 0;
+            this.ExploredSteps = 0;
         }
 
         /// <summary>
@@ -301,7 +317,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// <returns>String</returns>
         public string GetDescription()
         {
-            return "DFS";
+            return "";
         }
 
         #endregion
@@ -313,30 +329,30 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// </summary>
         private void PrintSchedule()
         {
-            Output.PrintLine("*******************");
-            Output.PrintLine("Schedule stack size: " + this.ScheduleStack.Count);
+            IO.PrintLine("*******************");
+            IO.PrintLine("Schedule stack size: " + this.ScheduleStack.Count);
             for (int idx = 0; idx < this.ScheduleStack.Count; idx++)
             {
-                Output.PrintLine("Index: " + idx);
+                IO.PrintLine("Index: " + idx);
                 foreach (var sc in this.ScheduleStack[idx])
                 {
                     Console.Write(sc.Id + " [" + sc.IsDone + "], ");
                 }
-                Output.PrintLine("");
+                IO.PrintLine("");
             }
 
-            Output.PrintLine("*******************");
-            Output.PrintLine("Random stack size: " + this.NondetStack.Count);
+            IO.PrintLine("*******************");
+            IO.PrintLine("Random stack size: " + this.NondetStack.Count);
             for (int idx = 0; idx < this.NondetStack.Count; idx++)
             {
-                Output.PrintLine("Index: " + idx);
+                IO.PrintLine("Index: " + idx);
                 foreach (var nc in this.NondetStack[idx])
                 {
                     Console.Write(nc.Value + " [" + nc.IsDone + "], ");
                 }
-                Output.PrintLine("");
+                IO.PrintLine("");
             }
-            Output.PrintLine("*******************");
+            IO.PrintLine("*******************");
         }
 
         /// <summary>

@@ -33,7 +33,7 @@ namespace Microsoft
 			public:
 				static void send(Microsoft::PSharp::MachineId^ mid, Microsoft::PSharp::Event^ e)
 				{
-					mid->Runtime->Send(mid, e);
+					mid->Runtime->Send(nullptr, mid, e, false);
 				}
 			};
 		}

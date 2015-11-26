@@ -64,7 +64,7 @@ namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
             configuration.SuppressTrace = true;
             configuration.Verbose = 2;
 
-            var engine = SCTEngine.Create(configuration, TestProgram.Execute).Run();
+            var engine = TestingEngine.Create(configuration, TestProgram.Execute).Run();
             Assert.AreEqual(1, engine.NumOfFoundBugs);
         }
     }

@@ -700,18 +700,18 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         internal void Print()
         {
-            Output.PrintLine("\nPrinting data flow map:");
+            IO.PrintLine("\nPrinting data flow map:");
             foreach (var cfgNode in this.Map)
             {
-                Output.PrintLine("  > cfgNode: " + cfgNode.Key.Id);
+                IO.PrintLine("  > cfgNode: " + cfgNode.Key.Id);
                 foreach (var syntaxNode in cfgNode.Value)
                 {
-                    Output.PrintLine("    > syntaxNode: " + syntaxNode.Key);
+                    IO.PrintLine("    > syntaxNode: " + syntaxNode.Key);
                     foreach (var pair in syntaxNode.Value)
                     {
                         foreach (var symbol in pair.Value)
                         {
-                            Output.PrintLine("        " + pair.Key.Name + " ::= " + symbol.Name);
+                            IO.PrintLine("        " + pair.Key.Name + " ::= " + symbol.Name);
                         }
                     }
                 }
@@ -723,18 +723,18 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         internal void PrintReachabilityMap()
         {
-            Output.PrintLine("\nPrinting reachability map:");
+            IO.PrintLine("\nPrinting reachability map:");
             foreach (var cfgNode in this.ReachabilityMap)
             {
-                Output.PrintLine("  > cfgNode: " + cfgNode.Key.Id);
+                IO.PrintLine("  > cfgNode: " + cfgNode.Key.Id);
                 foreach (var syntaxNode in cfgNode.Value)
                 {
-                    Output.PrintLine("    > syntaxNode: " + syntaxNode.Key);
+                    IO.PrintLine("    > syntaxNode: " + syntaxNode.Key);
                     foreach (var pair in syntaxNode.Value)
                     {
                         foreach (var symbol in pair.Value)
                         {
-                            Output.PrintLine("        " + pair.Key.Name + " ::= " + symbol.Name);
+                            IO.PrintLine("        " + pair.Key.Name + " ::= " + symbol.Name);
                         }
                     }
                 }
@@ -746,18 +746,18 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         internal void PrintObjectTypeMap()
         {
-            Output.PrintLine("\nPrinting object type map:");
+            IO.PrintLine("\nPrinting object type map:");
             foreach (var cfgNode in this.ObjectTypeMap)
             {
-                Output.PrintLine("  > cfgNode: " + cfgNode.Key.Id);
+                IO.PrintLine("  > cfgNode: " + cfgNode.Key.Id);
                 foreach (var syntaxNode in cfgNode.Value)
                 {
-                    Output.PrintLine("    > syntaxNode: " + syntaxNode.Key);
+                    IO.PrintLine("    > syntaxNode: " + syntaxNode.Key);
                     foreach (var pair in syntaxNode.Value)
                     {
                         foreach (var symbol in pair.Value)
                         {
-                            Output.PrintLine("        " + pair.Key.Name + " ::= " + symbol.Name);
+                            IO.PrintLine("        " + pair.Key.Name + " ::= " + symbol.Name);
                         }
                     }
                 }
@@ -769,17 +769,17 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         internal void Print(ControlFlowGraphNode cfgNode)
         {
-            Output.PrintLine("\nPrinting data flow map of cfgNode {0}: ", cfgNode.Id);
+            IO.PrintLine("\nPrinting data flow map of cfgNode {0}: ", cfgNode.Id);
             if (this.Map.ContainsKey(cfgNode))
             {
                 foreach (var syntaxNode in this.Map[cfgNode])
                 {
-                    Output.PrintLine("    > syntaxNode: " + syntaxNode.Key);
+                    IO.PrintLine("    > syntaxNode: " + syntaxNode.Key);
                     foreach (var pair in syntaxNode.Value)
                     {
                         foreach (var symbol in pair.Value)
                         {
-                            Output.PrintLine("        " + pair.Key.Name + " ::= " + symbol.Name);
+                            IO.PrintLine("        " + pair.Key.Name + " ::= " + symbol.Name);
                         }
                     }
                 }
@@ -791,16 +791,16 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         internal void PrintResets()
         {
-            Output.PrintLine("\nPrinting resets:");
+            IO.PrintLine("\nPrinting resets:");
             foreach (var cfgNode in this.ResetMap)
             {
-                Output.PrintLine("  > cfgNode: " + cfgNode.Key.Id);
+                IO.PrintLine("  > cfgNode: " + cfgNode.Key.Id);
                 foreach (var syntaxNode in cfgNode.Value)
                 {
-                    Output.PrintLine("    > syntaxNode: " + syntaxNode.Key);
+                    IO.PrintLine("    > syntaxNode: " + syntaxNode.Key);
                     foreach (var symbol in syntaxNode.Value)
                     {
-                        Output.PrintLine("      " + symbol.Name);
+                        IO.PrintLine("      " + symbol.Name);
                     }
                 }
             }

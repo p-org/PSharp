@@ -113,7 +113,7 @@ namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
             configuration.CacheProgramState = true;
             configuration.SchedulingIterations = 100;
 
-            var engine = SCTEngine.Create(configuration, TestProgram.Execute).Run();
+            var engine = TestingEngine.Create(configuration, TestProgram.Execute).Run();
             Assert.AreEqual(1, engine.NumOfFoundBugs);
             var bugReport = "Monitor 'WatchDog' detected infinite execution that violates a liveness property.";
             Assert.AreEqual(bugReport, engine.BugReport);

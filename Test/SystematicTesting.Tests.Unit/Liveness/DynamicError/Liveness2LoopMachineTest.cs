@@ -111,7 +111,7 @@ namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
             configuration.CheckLiveness = true;
             configuration.SchedulingIterations = 100;
 
-            var engine = SCTEngine.Create(configuration, TestProgram.Execute).Run();
+            var engine = TestingEngine.Create(configuration, TestProgram.Execute).Run();
             Assert.AreEqual(1, engine.NumOfFoundBugs);
         }
     }

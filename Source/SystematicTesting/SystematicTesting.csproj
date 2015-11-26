@@ -58,26 +58,30 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AnalysisContext.cs" />
     <Compile Include="BugFindingRuntime.cs" />
     <Compile Include="Exploration\Trace.cs" />
     <Compile Include="Exploration\TraceStep.cs" />
     <Compile Include="Exploration\TraceStepType.cs" />
     <Compile Include="Liveness\LivenessChecker.cs" />
-    <Compile Include="SchedulingStrategies\DelayBoundingStrategy.cs" />
+    <Compile Include="SchedulingStrategies\DelayBounded\ExhaustiveDelayBoundingStrategy.cs" />
+    <Compile Include="SchedulingStrategies\DelayBounded\RandomDelayBoundingStrategy.cs" />
+    <Compile Include="SchedulingStrategies\DelayBounded\DelayBoundingStrategy.cs" />
+    <Compile Include="SchedulingStrategies\OperationBounded\ExhaustiveOperationBoundingStrategy.cs" />
+    <Compile Include="SchedulingStrategies\Special\InteractiveStrategy.cs" />
+    <Compile Include="SchedulingStrategies\OperationBounded\OperationBoundingStrategy.cs" />
     <Compile Include="Scheduling\BugFindingScheduler.cs" />
     <Compile Include="Scheduling\TaskAwareBugFindingScheduler.cs" />
     <Compile Include="SchedulingStrategies\ISchedulingStrategy.cs" />
-    <Compile Include="Scheduling\TaskInfo.cs" />
+    <Compile Include="Scheduling\MachineInfo.cs" />
     <Compile Include="StateCaching\Fingerprint.cs" />
     <Compile Include="StateCaching\MonitorStatus.cs" />
     <Compile Include="StateCaching\State.cs" />
     <Compile Include="StateCaching\StateCache.cs" />
-    <Compile Include="SchedulingStrategies\MaceMCStrategy.cs" />
-    <Compile Include="SchedulingStrategies\IterativeDeepeningDFSStrategy.cs" />
-    <Compile Include="SchedulingStrategies\DFSStrategy.cs" />
-    <Compile Include="SchedulingStrategies\RandomStrategy.cs" />
-    <Compile Include="SCTEngine.cs" />
+    <Compile Include="SchedulingStrategies\Special\MaceMCStrategy.cs" />
+    <Compile Include="SchedulingStrategies\DFS\IterativeDeepeningDFSStrategy.cs" />
+    <Compile Include="SchedulingStrategies\DFS\DFSStrategy.cs" />
+    <Compile Include="SchedulingStrategies\Random\RandomStrategy.cs" />
+    <Compile Include="TestingEngine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

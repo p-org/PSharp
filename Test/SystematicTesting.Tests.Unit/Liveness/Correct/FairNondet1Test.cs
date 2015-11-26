@@ -103,11 +103,11 @@ namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
             configuration.Verbose = 3;
             configuration.CheckLiveness = true;
             configuration.CacheProgramState = true;
-            configuration.DepthBound = 1500;
+            configuration.SchedulingStrategy = SchedulingStrategy.DFS;
 
-            Output.Debugging = true;
+            IO.Debugging = true;
 
-            var engine = SCTEngine.Create(configuration, TestProgram.Execute).Run();
+            var engine = TestingEngine.Create(configuration, TestProgram.Execute).Run();
             Assert.AreEqual(0, engine.NumOfFoundBugs);
         }
     }

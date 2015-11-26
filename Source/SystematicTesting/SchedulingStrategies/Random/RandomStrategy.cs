@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Microsoft.PSharp.Scheduling;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.SystematicTesting.Scheduling
@@ -46,9 +45,14 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         private Random Random;
 
         /// <summary>
-        /// The number of explored scheduling steps.
+        /// The maximum number of explored steps.
         /// </summary>
-        private int SchedulingSteps;
+        private int MaxExploredSteps;
+
+        /// <summary>
+        /// The number of explored steps.
+        /// </summary>
+        private int ExploredSteps;
 
         #endregion
 
@@ -61,36 +65,33 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         public RandomStrategy(Configuration configuration)
         {
             this.Configuration = configuration;
-            this.Seed = this.Configuration.RandomSchedulingSeed
-                ?? DateTime.Now.Millisecond;
-            this.SchedulingSteps = 0;
+            this.Seed = this.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
             this.Random = new Random(this.Seed);
+            this.MaxExploredSteps = 0;
+            this.ExploredSteps = 0;
         }
 
         /// <summary>
-        /// Returns the next task to schedule.
+        /// Returns the next machine to schedule.
         /// </summary>
         /// <param name="next">Next</param>
-        /// <param name="tasks">Tasks</param>
-        /// <param name="currentTask">Curent task</param>
+        /// <param name="machines">Machines</param>
+        /// <param name="currentMachine">Curent machine</param>
         /// <returns>Boolean value</returns>
-        public bool TryGetNext(out TaskInfo next, List<TaskInfo> tasks, TaskInfo currentTask)
+        public bool TryGetNext(out MachineInfo next, List<MachineInfo> machines, MachineInfo currentMachine)
         {
-            var availableTasks = tasks.Where(
-                task => task.IsEnabled && !task.IsBlocked && !task.IsWaiting).ToList();
-            if (availableTasks.Count == 0)
+            var availableMachines = machines.Where(
+                m => m.IsEnabled && !m.IsBlocked && !m.IsWaiting).ToList();
+            if (availableMachines.Count == 0)
             {
                 next = null;
                 return false;
             }
 
-            int idx = this.Random.Next(availableTasks.Count);
-            next = availableTasks[idx];
+            int idx = this.Random.Next(availableMachines.Count);
+            next = availableMachines[idx];
 
-            if (!currentTask.IsCompleted)
-            {
-                this.SchedulingSteps++;
-            }
+            this.ExploredSteps++;
 
             return true;
         }
@@ -109,16 +110,27 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                 next = true;
             }
 
+            this.ExploredSteps++;
+
             return true;
         }
 
         /// <summary>
-        /// Returns the explored scheduling steps.
+        /// Returns the explored steps.
         /// </summary>
-        /// <returns>Scheduling steps</returns>
-        public int GetSchedulingSteps()
+        /// <returns>Explored steps</returns>
+        public int GetExploredSteps()
         {
-            return this.SchedulingSteps;
+            return this.ExploredSteps;
+        }
+
+        /// <summary>
+        /// Returns the maximum explored steps.
+        /// </summary>
+        /// <returns>Explored steps</returns>
+        public int GetMaxExploredSteps()
+        {
+            return this.MaxExploredSteps;
         }
 
         /// <summary>  
@@ -142,7 +154,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                 return false;
             }
 
-            return this.SchedulingSteps == this.GetDepthBound();
+            return this.ExploredSteps == this.GetDepthBound();
         }
 
         /// <summary>
@@ -159,7 +171,8 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// </summary>
         public void ConfigureNextIteration()
         {
-            this.SchedulingSteps = 0;
+            this.MaxExploredSteps = Math.Max(this.MaxExploredSteps, this.ExploredSteps);
+            this.ExploredSteps = 0;
         }
 
         /// <summary>
@@ -167,7 +180,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// </summary>
         public void Reset()
         {
-            this.SchedulingSteps = 0;
+            this.ExploredSteps = 0;
             this.Random = new Random(this.Seed);
         }
 
@@ -177,7 +190,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// <returns>String</returns>
         public string GetDescription()
         {
-            return "Random-walk (with seed '" + this.Seed + "')";
+            return "Random seed '" + this.Seed + "'.";
         }
 
         #endregion

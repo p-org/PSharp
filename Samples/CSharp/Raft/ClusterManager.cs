@@ -32,6 +32,7 @@ namespace Raft
             }
         }
 
+        internal class ShutDown : Event { }
         private class LocalEvent : Event { }
 
         #endregion
@@ -80,6 +81,7 @@ namespace Raft
         }
 
         [OnEventDoAction(typeof(NotifyLeaderUpdate), nameof(BecomeAvailable))]
+        [OnEventDoAction(typeof(ShutDown), nameof(ShuttingDown))]
         [OnEventGotoState(typeof(LocalEvent), typeof(Available))]
         [DeferEvents(typeof(Client.Request))]
         class Unavailable : MachineState { }
@@ -93,6 +95,7 @@ namespace Raft
         [OnEventDoAction(typeof(Client.Request), nameof(SendClientRequestToLeader))]
         [OnEventDoAction(typeof(RedirectRequest), nameof(RedirectClientRequest))]
         [OnEventDoAction(typeof(NotifyLeaderUpdate), nameof(RefreshLeader))]
+        [OnEventDoAction(typeof(ShutDown), nameof(ShuttingDown))]
         [OnEventGotoState(typeof(LocalEvent), typeof(Unavailable))]
         class Available : MachineState { }
 
@@ -114,6 +117,16 @@ namespace Raft
         void BecomeUnavailable()
         {
 
+        }
+
+        void ShuttingDown()
+        {
+            for (int idx = 0; idx < this.NumberOfServers; idx++)
+            {
+                this.Send(this.Servers[idx], new Server.ShutDown());
+            }
+
+            this.Raise(new Halt());
         }
 
         #endregion

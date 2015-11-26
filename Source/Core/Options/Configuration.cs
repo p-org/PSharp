@@ -100,48 +100,6 @@ namespace Microsoft.PSharp.Utilities
         #region bug finding options
 
         /// <summary>
-        /// Systematic tester does not stop when it finds a bug.
-        /// </summary>
-        public bool FullExploration;
-
-        /// <summary>
-        /// Depth bound. By default it is 1000.
-        /// </summary>
-        public int DepthBound;
-
-        /// <summary>
-        /// Delay bound. By default it is 2.
-        /// </summary>
-        public int DelayBound;
-
-        /// <summary>
-        /// Safety prefix bound. By default it is 0.
-        /// </summary>
-        public int SafetyPrefixBound;
-
-        /// <summary>
-        /// If true, then the P# tester will try to schedule
-        /// any intra-machine concurrency.
-        /// </summary>
-        public bool ScheduleIntraMachineConcurrency;
-
-        /// <summary>
-        /// If true, then the P# tester will check if any liveness
-        /// properties hold.
-        /// </summary>
-        public bool CheckLiveness;
-
-        /// <summary>
-        /// If true, then the P# tester will perform state
-        /// caching when checking liveness properties.
-        /// </summary>
-        public bool CacheProgramState;
-
-        #endregion
-
-        #region dynamic analysis options
-
-        /// <summary>
         /// The assembly to be analyzed for bugs.
         /// </summary>
         public string AssemblyToBeAnalyzed;
@@ -173,10 +131,70 @@ namespace Microsoft.PSharp.Utilities
         public bool PrintTrace;
 
         /// <summary>
-        /// If true, then the P# tester will supress the trace
-        /// that leads to a found error to a file.
+        /// If true, then the P# tester will not output the
+        /// error trace to a file.
         /// </summary>
         public bool SuppressTrace;
+
+        /// <summary>
+        /// Systematic tester does not stop when it finds a bug.
+        /// </summary>
+        public bool FullExploration;
+
+        /// <summary>
+        /// Depth bound. By default it is 1000.
+        /// </summary>
+        public int DepthBound;
+
+        /// <summary>
+        /// If true, then the P# tester will consider an execution
+        /// that hits the depth bound as buggy.
+        /// </summary>
+        public bool ConsiderDepthBoundHitAsBug;
+
+        /// <summary>
+        /// Delay bound. By default it is 2.
+        /// </summary>
+        public int DelayBound;
+
+        /// <summary>
+        /// Safety prefix bound. By default it is 0.
+        /// </summary>
+        public int SafetyPrefixBound;
+
+        /// <summary>
+        /// If true, then the P# tester will try to schedule
+        /// any intra-machine concurrency.
+        /// </summary>
+        public bool ScheduleIntraMachineConcurrency;
+
+        /// <summary>
+        /// If true, then the P# tester will check if any liveness
+        /// properties hold.
+        /// </summary>
+        public bool CheckLiveness;
+
+        /// <summary>
+        /// If true, then the P# tester will perform state
+        /// caching when checking liveness properties.
+        /// </summary>
+        public bool CacheProgramState;
+
+        /// <summary>
+        /// If true, then the P# tester will try to bound
+        /// the interleavings between operations.
+        /// </summary>
+        public bool BoundOperations;
+
+        /// <summary>
+        /// Operation delay bound. By default it is 2.
+        /// </summary>
+        public int OperationDelayBound;
+
+        /// <summary>
+        /// Seed for random operation bounding strategies.
+        /// </summary>
+        internal int? RandomOperationBoundingSeed;
 
         #endregion
 
@@ -228,15 +246,6 @@ namespace Microsoft.PSharp.Utilities
             this.DoStateTransitionAnalysis = true;
             this.AnalyzeExceptionHandling = false;
 
-            this.FullExploration = false;
-            this.DepthBound = 10000;
-            this.DelayBound = 2;
-            this.SafetyPrefixBound = 0;
-
-            this.ScheduleIntraMachineConcurrency = false;
-            this.CheckLiveness = false;
-            this.CacheProgramState = false;
-
             this.AssemblyToBeAnalyzed = "";
 
             this.SchedulingStrategy = SchedulingStrategy.Random;
@@ -246,6 +255,19 @@ namespace Microsoft.PSharp.Utilities
             this.RedirectConsoleOutput = true;
             this.PrintTrace = false;
             this.SuppressTrace = false;
+
+            this.FullExploration = false;
+            this.DepthBound = 10000;
+            this.ConsiderDepthBoundHitAsBug = false;
+            this.DelayBound = 2;
+            this.SafetyPrefixBound = 0;
+
+            this.ScheduleIntraMachineConcurrency = false;
+            this.CheckLiveness = false;
+            this.CacheProgramState = false;
+            this.BoundOperations = false;
+            this.OperationDelayBound = 2;
+            this.RandomOperationBoundingSeed = null;
 
             this.NumberOfContainers = 1;
             this.ContainerId = 0;
@@ -285,7 +307,7 @@ namespace Microsoft.PSharp.Utilities
         /// <returns>Configuration</returns>
         public Configuration WithDebuggingEnabled(bool value = true)
         {
-            Output.Debugging = value;
+            IO.Debugging = value;
             return this;
         }
 
