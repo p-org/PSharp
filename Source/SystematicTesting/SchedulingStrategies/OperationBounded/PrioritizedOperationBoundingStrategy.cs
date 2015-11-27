@@ -108,6 +108,11 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                 next = true;
             }
 
+            if (this.PriorityChangePoints.Contains(this.ExploredSteps))
+            {
+                this.MovePriorityChangePointForward();
+            }
+
             this.ExploredSteps++;
 
             return true;
@@ -192,22 +197,14 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             {
                 if (operationIds.Count() == 1)
                 {
-                    this.PriorityChangePoints.Remove(this.ExploredSteps);
-                    var newPriorityChangePoint = this.ExploredSteps + 1;
-                    while (this.PriorityChangePoints.Contains(newPriorityChangePoint))
-                    {
-                        newPriorityChangePoint++;
-                    }
-
-                    this.PriorityChangePoints.Add(newPriorityChangePoint);
-                    IO.Debug("<OperationDebug> Moving priority change to '{0}'.", newPriorityChangePoint);
+                    this.MovePriorityChangePointForward();
                 }
                 else
                 {
                     var priority = this.GetHighestPriorityEnabledOperationId(choices);
                     this.PrioritizedOperations.Remove(priority);
                     this.PrioritizedOperations.Add(priority);
-                    IO.PrintLine("<OperationLog> Priority changes from operation '{0}' to operation '{1}'.",
+                    IO.PrintLine("<OperationLog> Operation '{0}' changes to lowest priority.",
                         priority, this.PrioritizedOperations[0]);
                 }
             }
@@ -254,6 +251,24 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             }
 
             return prioritizedOperation;
+        }
+
+        /// <summary>
+        /// Moves the current priority change point forward. This is a useful
+        /// optimization when a priority change point is assigned in either a
+        /// sequential execution or a nondeterministic choice.
+        /// </summary>
+        private void MovePriorityChangePointForward()
+        {
+            this.PriorityChangePoints.Remove(this.ExploredSteps);
+            var newPriorityChangePoint = this.ExploredSteps + 1;
+            while (this.PriorityChangePoints.Contains(newPriorityChangePoint))
+            {
+                newPriorityChangePoint++;
+            }
+
+            this.PriorityChangePoints.Add(newPriorityChangePoint);
+            IO.Debug("<OperationDebug> Moving priority change to '{0}'.", newPriorityChangePoint);
         }
 
         #endregion
