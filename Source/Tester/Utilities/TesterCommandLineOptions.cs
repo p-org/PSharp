@@ -153,7 +153,7 @@ namespace Microsoft.PSharp.Utilities
 
                 base.Configuration.SafetyPrefixBound = i;
             }
-            else if (option.ToLower().Equals("/printtrace"))
+            else if (option.ToLower().Equals("/print-trace"))
             {
                 base.Configuration.PrintTrace = true;
             }
@@ -165,7 +165,7 @@ namespace Microsoft.PSharp.Utilities
             {
                 base.Configuration.CheckLiveness = true;
             }
-            else if (option.ToLower().Equals("/statecaching"))
+            else if (option.ToLower().Equals("/state-caching"))
             {
                 base.Configuration.CacheProgramState = true;
             }
@@ -173,16 +173,9 @@ namespace Microsoft.PSharp.Utilities
             {
                 base.Configuration.BoundOperations = true;
             }
-            else if (option.ToLower().StartsWith("/op-bound-seed:") && option.Length > 15)
+            else if (option.ToLower().Equals("/dynamic-event-reordering"))
             {
-                int seed;
-                if (!int.TryParse(option.Substring(15), out seed))
-                {
-                    ErrorReporter.ReportAndExit("Please give a valid random operation bounding " +
-                        "seed '/sch-seed:[x]', where [x] is a signed 32-bit integer.");
-                }
-
-                base.Configuration.RandomOperationBoundingSeed = seed;
+                base.Configuration.DynamicEventQueuePrioritization = true;
             }
             else
             {

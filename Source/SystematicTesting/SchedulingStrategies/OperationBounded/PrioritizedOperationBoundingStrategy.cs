@@ -210,6 +210,13 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             }
 
             var prioritizedOperation = this.GetHighestPriorityEnabledOperationId(choices);
+            if (this.Configuration.DynamicEventQueuePrioritization)
+            {
+                foreach (var choice in choices)
+                {
+                    choice.Machine.SetQueueOperationPriority(prioritizedOperation);
+                }
+            }
 
             IO.Debug("<OperationDebug> Prioritized operation '{0}'.", prioritizedOperation);
             if (IO.Debugging)

@@ -352,7 +352,8 @@ namespace Microsoft.PSharp.SystematicTesting
         {
             this.Assert(mid != null, "Cannot send to a null machine.");
             this.Assert(e != null, "Cannot send a null event.");
-            
+
+            e.SetSenderMachine(sender.Id);
             this.SetOperationIdForEvent(e, sender, isStarter);
 
             if (this.Configuration.BoundOperations && sender != null)

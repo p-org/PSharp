@@ -192,9 +192,10 @@ namespace Microsoft.PSharp.Utilities
         public bool BoundOperations;
 
         /// <summary>
-        /// Seed for random operation bounding strategies.
+        /// If true, the runtime can reorder events in machine
+        /// queues dynamically, depending on priorities.
         /// </summary>
-        internal int? RandomOperationBoundingSeed;
+        public bool DynamicEventQueuePrioritization;
 
         #endregion
 
@@ -267,7 +268,7 @@ namespace Microsoft.PSharp.Utilities
             this.CheckLiveness = false;
             this.CacheProgramState = false;
             this.BoundOperations = false;
-            this.RandomOperationBoundingSeed = null;
+            this.DynamicEventQueuePrioritization = false;
 
             this.NumberOfContainers = 1;
             this.ContainerId = 0;

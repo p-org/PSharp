@@ -457,6 +457,46 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Sets the operation priority of the queue to
+        /// the given operation id.
+        /// </summary>
+        /// <param name="opid">OperationId</param>
+        internal override void SetQueueOperationPriority(int opid)
+        {
+            lock (this.Inbox)
+            {
+                // Iterate through the events in the inbox, and give priority
+                // to the first event with the given operation id.
+                for (int idx = 0; idx < this.Inbox.Count; idx++)
+                {
+                    if (idx == 0 && this.Inbox[idx].OperationId == opid)
+                    {
+                        break;
+                    }
+                    else if (this.Inbox[idx].OperationId == opid)
+                    {
+                        var prioritizedEvent = this.Inbox[idx];
+                        var sameSenderConflict = false;
+                        for (int prev = 0; prev < idx; prev++)
+                        {
+                            if (this.Inbox[prev].Sender.Equals(prioritizedEvent.Sender))
+                            {
+                                sameSenderConflict = true;
+                            }
+                        }
+
+                        if (!sameSenderConflict)
+                        {
+                            this.Inbox.RemoveAt(idx);
+                            this.Inbox.Insert(0, prioritizedEvent);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Returns the cached state of this machine.
         /// </summary>
         /// <returns>Hash value</returns>

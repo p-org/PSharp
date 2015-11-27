@@ -27,7 +27,12 @@ namespace Microsoft.PSharp
     public abstract class Event
     {
         #region fields
-        
+
+        /// <summary>
+        /// The machine id of the sender of this event.
+        /// </summary>
+        internal MachineId Sender { get; private set; }
+
         /// <summary>
         /// The operation id of this event.
         /// </summary>
@@ -75,6 +80,15 @@ namespace Microsoft.PSharp
         #endregion
 
         #region internal methods
+
+        /// <summary>
+        /// Sets the machine id of the sender of this event.
+        /// </summary>
+        /// <param name="mid">MachineId</param>
+        internal void SetSenderMachine(MachineId mid)
+        {
+            this.Sender = mid;
+        }
 
         /// <summary>
         /// Sets the operation id of this event.

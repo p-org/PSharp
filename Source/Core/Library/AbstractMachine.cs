@@ -114,6 +114,16 @@ namespace Microsoft.PSharp
             this.OperationId = opid;
         }
 
+        /// <summary>
+        /// Sets the operation priority of the queue to
+        /// the given operation id.
+        /// </summary>
+        /// <param name="opid">OperationId</param>
+        internal virtual void SetQueueOperationPriority(int opid)
+        {
+            // No-op.
+        }
+
         #endregion
     }
 }
