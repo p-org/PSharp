@@ -53,7 +53,7 @@ namespace Raft
 
         [Start]
         [OnEntry(nameof(EntryOnInit))]
-        [OnEventGotoState(typeof(LocalEvent), typeof(Unavailable))]
+        [OnEventGotoState(typeof(LocalEvent), typeof(Configuring))]
         class Init : MachineState { }
 
         void EntryOnInit()
@@ -69,12 +69,22 @@ namespace Raft
                 this.Servers[idx] = this.CreateMachine(typeof(Server));
             }
 
+            this.Client = this.CreateMachine(typeof(Client));
+
+            this.Raise(new LocalEvent());
+        }
+
+        [OnEntry(nameof(ConfiguringOnInit))]
+        [OnEventGotoState(typeof(LocalEvent), typeof(Unavailable))]
+        class Configuring : MachineState { }
+
+        void ConfiguringOnInit()
+        {
             for (int idx = 0; idx < this.NumberOfServers; idx++)
             {
                 this.Send(this.Servers[idx], new Server.ConfigureEvent(idx, this.Servers, this.Id));
             }
 
-            this.Client = this.CreateMachine(typeof(Client));
             this.Send(this.Client, new Client.ConfigureEvent(this.Id));
 
             this.Raise(new LocalEvent());

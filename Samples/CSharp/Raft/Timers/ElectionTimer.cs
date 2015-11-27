@@ -17,19 +17,9 @@ namespace Raft
             }
         }
 
-        internal class Timeout : Event
-        {
-            public MachineId Timer;
-
-            public Timeout(MachineId id)
-                : base()
-            {
-                this.Timer = id;
-            }
-        }
-
         internal class StartTimer : Event { }
         internal class CancelTimer : Event { }
+        internal class Timeout : Event { }
 
         private class TickEvent : Event { }
 
@@ -60,7 +50,7 @@ namespace Raft
         {
             if (this.Random())
             {
-                this.Send(this.Target, new Timeout(this.Id), true);
+                this.Send(this.Target, new Timeout(), true);
             }
 
             this.Raise(new CancelTimer());
