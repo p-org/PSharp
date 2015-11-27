@@ -182,30 +182,37 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                 this.PrioritizedOperations.Add(current.Machine.OperationId);
             }
             
-            var operationIds = choices.Select(val => val.Machine.OperationId).Distinct().ToList();
+            var operationIds = choices.Select(val => val.Machine.OperationId).Distinct();
             foreach (var id in operationIds.Where(id => !this.PrioritizedOperations.Contains(id)))
             {
                 this.PrioritizedOperations.Insert(this.Random.Next(this.PrioritizedOperations.Count) + 1, id);
             }
-
+            
             if (this.PriorityChangePoints.Contains(this.ExploredSteps))
             {
-                var priority = this.PrioritizedOperations[0];
-                this.PrioritizedOperations.RemoveAt(0);
-                this.PrioritizedOperations.Add(priority);
-                IO.PrintLine("<OperationLog> Priority changes from operation '{0}' to operation '{1}'.",
-                    priority, this.PrioritizedOperations[0]);
-            }
-
-            var prioritizedOperation = -1;
-            foreach (var op in this.PrioritizedOperations)
-            {
-                if (choices.Any(m => m.Machine.OperationId == op))
+                if (operationIds.Count() == 1)
                 {
-                    prioritizedOperation = op;
-                    break;
+                    this.PriorityChangePoints.Remove(this.ExploredSteps);
+                    var newPriorityChangePoint = this.ExploredSteps + 1;
+                    while (this.PriorityChangePoints.Contains(newPriorityChangePoint))
+                    {
+                        newPriorityChangePoint++;
+                    }
+
+                    this.PriorityChangePoints.Add(newPriorityChangePoint);
+                    IO.Debug("<OperationDebug> Moving priority change to '{0}'.", newPriorityChangePoint);
+                }
+                else
+                {
+                    var priority = this.GetHighestPriorityEnabledOperationId(choices);
+                    this.PrioritizedOperations.Remove(priority);
+                    this.PrioritizedOperations.Add(priority);
+                    IO.PrintLine("<OperationLog> Priority changes from operation '{0}' to operation '{1}'.",
+                        priority, this.PrioritizedOperations[0]);
                 }
             }
+
+            var prioritizedOperation = this.GetHighestPriorityEnabledOperationId(choices);
 
             IO.Debug("<OperationDebug> Prioritized operation '{0}'.", prioritizedOperation);
             if (IO.Debugging)
@@ -227,6 +234,26 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             var prioritizedMachines = choices.Where(
                 mi => mi.Machine.OperationId == prioritizedOperation).ToList();
             return prioritizedMachines;
+        }
+
+        /// <summary>
+        /// Returns the highest-priority enabled operation id.
+        /// </summary>
+        /// <param name="choices">Choices</param>
+        /// <returns>OperationId</returns>
+        private int GetHighestPriorityEnabledOperationId(IEnumerable<MachineInfo> choices)
+        {
+            var prioritizedOperation = -1;
+            foreach (var op in this.PrioritizedOperations)
+            {
+                if (choices.Any(m => m.Machine.OperationId == op))
+                {
+                    prioritizedOperation = op;
+                    break;
+                }
+            }
+
+            return prioritizedOperation;
         }
 
         #endregion
