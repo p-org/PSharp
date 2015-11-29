@@ -115,13 +115,14 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Sets the operation priority of the queue to
-        /// the given operation id.
+        /// Returns true if the given operation id is pending
+        /// execution by the machine.
         /// </summary>
         /// <param name="opid">OperationId</param>
-        internal virtual void SetQueueOperationPriority(int opid)
+        /// <returns>Boolean</returns>
+        internal virtual bool IsOperationPending(int opid)
         {
-            // No-op.
+            return false;
         }
 
         #endregion

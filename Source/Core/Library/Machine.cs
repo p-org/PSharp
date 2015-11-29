@@ -263,7 +263,7 @@ namespace Microsoft.PSharp
         /// <returns>Boolean</returns>
         protected internal bool Random()
         {
-            return base.Runtime.Random();
+            return base.Runtime.GetNondeterministicChoice(this, 2);
         }
 
         /// <summary>
@@ -276,7 +276,7 @@ namespace Microsoft.PSharp
         /// <returns>Boolean</returns>
         protected internal bool Random(int maxValue)
         {
-            return base.Runtime.Random(maxValue);
+            return base.Runtime.GetNondeterministicChoice(this, maxValue);
         }
 
         /// <summary>
@@ -286,7 +286,7 @@ namespace Microsoft.PSharp
         /// <returns>Boolean</returns>
         protected internal bool FairRandom()
         {
-            return base.Runtime.Random();
+            return base.Runtime.GetNondeterministicChoice(this, 2);
         }
 
         /// <summary>
@@ -300,7 +300,7 @@ namespace Microsoft.PSharp
         {
             var havocId = this.GetType().Name + "_" + this.StateStack.Peek().
                 GetType().Name + "_" + uniqueId;
-            return base.Runtime.GetFairNondeterministicChoice(havocId);
+            return base.Runtime.GetFairNondeterministicChoice(this, havocId);
         }
 
         /// <summary>
@@ -457,11 +457,10 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Sets the operation priority of the queue to
-        /// the given operation id.
+        /// Sets the operation priority of the queue to the given operation id.
         /// </summary>
         /// <param name="opid">OperationId</param>
-        internal override void SetQueueOperationPriority(int opid)
+        internal void SetQueueOperationPriority(int opid)
         {
             lock (this.Inbox)
             {
@@ -494,6 +493,25 @@ namespace Microsoft.PSharp
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Returns true if the given operation id is pending
+        /// execution by the machine.
+        /// </summary>
+        /// <param name="opid">OperationId</param>
+        /// <returns>Boolean</returns>
+        internal override bool IsOperationPending(int opid)
+        {
+            foreach (var e in this.Inbox)
+            {
+                if (e.OperationId == opid)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>

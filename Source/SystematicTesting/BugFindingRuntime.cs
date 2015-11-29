@@ -456,22 +456,30 @@ namespace Microsoft.PSharp.SystematicTesting
         /// Returns a nondeterministic boolean choice, that can be
         /// controlled during analysis or testing.
         /// </summary>
+        /// <param name="machine">Machine</param>
         /// <param name="maxValue">Max value</param>
         /// <returns>Boolean</returns>
-        internal override bool GetNondeterministicChoice(int maxValue)
+        internal override bool GetNondeterministicChoice(AbstractMachine machine, int maxValue)
         {
-            return this.BugFinder.GetNextNondeterministicChoice(maxValue);
+            var choice = this.BugFinder.GetNextNondeterministicChoice(maxValue);
+            IO.Log("<RandomLog> Machine '{0}({1})' nondeterministically chose '{2}'.",
+                machine, machine.Id.MVal, choice);
+            return choice;
         }
 
         /// <summary>
         /// Returns a fair nondeterministic boolean choice, that can be
         /// controlled during analysis or testing.
         /// </summary>
+        /// <param name="machine">Machine</param>
         /// <param name="uniqueId">Unique id</param>
         /// <returns>Boolean</returns>
-        internal override bool GetFairNondeterministicChoice(string uniqueId)
+        internal override bool GetFairNondeterministicChoice(AbstractMachine machine, string uniqueId)
         {
-            return this.BugFinder.GetNextNondeterministicChoice(2, uniqueId);
+            var choice = this.BugFinder.GetNextNondeterministicChoice(2, uniqueId);
+            IO.Log("<RandomLog> Machine '{0}({1})' nondeterministically chose '{2}'.",
+                machine, machine.Id.MVal, choice);
+            return choice;
         }
 
         /// <summary>

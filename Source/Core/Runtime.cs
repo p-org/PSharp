@@ -147,7 +147,7 @@ namespace Microsoft.PSharp
         /// <returns>Boolean</returns>
         public virtual bool Random()
         {
-            return this.GetNondeterministicChoice(2);
+            return this.GetNondeterministicChoice(null, 2);
         }
 
         /// <summary>
@@ -159,7 +159,7 @@ namespace Microsoft.PSharp
         /// <returns>Boolean</returns>
         public virtual bool Random(int maxValue)
         {
-            return this.GetNondeterministicChoice(maxValue);
+            return this.GetNondeterministicChoice(null, maxValue);
         }
 
         /// <summary>
@@ -392,14 +392,15 @@ namespace Microsoft.PSharp
         /// Returns a nondeterministic boolean choice, that can be
         /// controlled during analysis or testing.
         /// </summary>
+        /// <param name="machine">Machine</param>
         /// <param name="maxValue">Max value</param>
         /// <returns>Boolean</returns>
-        internal virtual bool GetNondeterministicChoice(int maxValue)
+        internal virtual bool GetNondeterministicChoice(AbstractMachine machine, int maxValue)
         {
             Random random = new Random(DateTime.Now.Millisecond);
 
             bool result = false;
-            if (random.Next(maxValue) == 1)
+            if (random.Next(maxValue) == 0)
             {
                 result = true;
             }
@@ -411,11 +412,12 @@ namespace Microsoft.PSharp
         /// Returns a fair nondeterministic boolean choice, that can be
         /// controlled during analysis or testing.
         /// </summary>
+        /// <param name="machine">Machine</param>
         /// <param name="uniqueId">Unique id</param>
         /// <returns>Boolean</returns>
-        internal virtual bool GetFairNondeterministicChoice(string uniqueId)
+        internal virtual bool GetFairNondeterministicChoice(AbstractMachine machine, string uniqueId)
         {
-            return this.GetNondeterministicChoice(2);
+            return this.GetNondeterministicChoice(machine, 2);
         }
 
         /// <summary>
