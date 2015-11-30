@@ -141,7 +141,30 @@ namespace ReplicatingStorage
                 return;
             }
 
-            Console.WriteLine("\n [consensus] {0} - {1}\n", consensus.Count(), consensus.Key);
+            Console.WriteLine("\n [NodeManager] consensus {0} - {1}.\n",
+                consensus.Count(), consensus.Key);
+
+            var numOfReplicas = consensus.Count();
+            if (numOfReplicas >= this.NumberOfReplicas)
+            {
+                return;
+            }
+
+            foreach (var node in this.DataMap)
+            {
+                if (node.Value != consensus.Key)
+                {
+                    Console.WriteLine("\n [NodeManager] repairing node {0}.\n", node.Key);
+
+                    this.Send(this.Nodes[node.Key], new Node.StoreRequest(consensus.Key));
+                    numOfReplicas++;
+                }
+
+                if (numOfReplicas == this.NumberOfReplicas)
+                {
+                    break;
+                }
+            }
         }
 
         void ProcessSyncReport()
@@ -163,7 +186,9 @@ namespace ReplicatingStorage
             this.NodeMap.Remove(nodeId);
             this.DataMap.Remove(nodeId);
 
-            Console.WriteLine("\n [NodeManager] node {0} failed\n", nodeId);
+            Console.WriteLine("\n [NodeManager] node {0} failed.\n", nodeId);
+
+            this.CreateNewNode();
         }
 
         #endregion

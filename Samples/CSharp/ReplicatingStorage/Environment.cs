@@ -90,7 +90,7 @@ namespace ReplicatingStorage
             {
                 if (this.Random())
                 {
-                    Console.WriteLine("\n [Environment] injecting fault\n");
+                    Console.WriteLine("\n [Environment] injecting fault.\n");
 
                     this.Send(node, new FaultInject());
                     this.AliveNodes.Remove(node);

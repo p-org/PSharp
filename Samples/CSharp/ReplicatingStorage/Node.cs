@@ -118,6 +118,8 @@ namespace ReplicatingStorage
             this.NodeManager = (this.ReceivedEvent as ConfigureEvent).NodeManager;
             this.NodeId = (this.ReceivedEvent as ConfigureEvent).Id;
 
+            Console.WriteLine("\n [Node-{0}] is up and running.\n", this.NodeId);
+
             this.Send(this.Environment, new Environment.NotifyNode(this.Id));
 
             this.Raise(new LocalEvent());
@@ -132,7 +134,7 @@ namespace ReplicatingStorage
         {
             var command = (this.ReceivedEvent as StoreRequest).Command;
             
-            Console.WriteLine("\n [Node-{0}] received command {1}\n", this.NodeId, command);
+            Console.WriteLine("\n [Node-{0}] received command {1}.\n", this.NodeId, command);
 
             this.Data = command;
         }
@@ -145,6 +147,7 @@ namespace ReplicatingStorage
         void Terminate()
         {
             this.Send(this.NodeManager, new NotifyFailure(this.NodeId));
+            this.Send(this.SyncTimer, new Halt());
             this.Raise(new Halt());
         }
 

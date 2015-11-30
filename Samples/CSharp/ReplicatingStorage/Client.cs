@@ -80,7 +80,7 @@ namespace ReplicatingStorage
             var command = new Random().Next(100);
             this.Counter++;
 
-            Console.WriteLine("\n [Client] new request {0}\n", command);
+            Console.WriteLine("\n [Client] new request {0}.\n", command);
 
             this.Send(this.NodeManager, new Request(this.Id, command), true);
         }
