@@ -16,7 +16,7 @@ namespace ReplicatingStorage
         [Microsoft.PSharp.Test]
         public static void Execute(PSharpRuntime runtime)
         {
-            //runtime.CreateMachine(typeof());
+            runtime.CreateMachine(typeof(Environment));
         }
     }
 }
