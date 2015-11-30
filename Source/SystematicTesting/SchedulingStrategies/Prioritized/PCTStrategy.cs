@@ -70,11 +70,6 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// </summary>
         private SortedSet<int> PriorityChangePoints;
 
-        /// <summary>
-        /// Set of nondeterministic choice points.
-        /// </summary>
-        private SortedSet<int> NondeterministicChoicePoints;
-
         #endregion
 
         #region public API
@@ -94,7 +89,6 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             this.Random = new Random(this.Seed);
             this.PrioritizedMachines = new List<MachineId>();
             this.PriorityChangePoints = new SortedSet<int>();
-            this.NondeterministicChoicePoints = new SortedSet<int>();
         }
 
         /// <summary>
@@ -129,23 +123,9 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         public bool GetNextChoice(int maxValue, out bool next)
         {
             next = false;
-
-            if (this.Configuration.NondeterministicChoiceBudget > 0 &&
-                this.NondeterministicChoicePoints.Any(p => p < this.ExploredSteps))
-            {
-                next = true;
-                this.NondeterministicChoicePoints.Remove(
-                    this.NondeterministicChoicePoints.First(p => p < this.ExploredSteps));
-            }
-            else if (this.Configuration.NondeterministicChoiceBudget == 0 &&
-                this.Random.Next(maxValue) == 0)
-            {
-                next = true;
-            }
-
             if (this.PriorityChangePoints.Contains(this.ExploredSteps))
             {
-                this.MovePriorityChangePointForward();
+                next = true;
             }
 
             this.ExploredSteps++;
@@ -218,12 +198,6 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             {
                 this.PriorityChangePoints.Add(this.Random.Next(this.MaxExploredSteps));
             }
-
-            this.NondeterministicChoicePoints.Clear();
-            for (int idx = 0; idx < this.Configuration.NondeterministicChoiceBudget; idx++)
-            {
-                this.NondeterministicChoicePoints.Add(this.Random.Next(this.MaxExploredSteps));
-            }
         }
 
         /// <summary>
@@ -236,7 +210,6 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             this.Random = new Random(this.Seed);
             this.PrioritizedMachines.Clear();
             this.PriorityChangePoints.Clear();
-            this.NondeterministicChoicePoints.Clear();
         }
 
         /// <summary>
