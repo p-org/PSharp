@@ -38,29 +38,24 @@ namespace ReplicatingStorage
         private MachineId Environment;
 
         /// <summary>
-        /// The nodes.
+        /// The storage nodes.
         /// </summary>
-        private List<MachineId> Nodes;
+        private List<MachineId> StorageNodes;
 
         /// <summary>
-        /// The number of replicas that must
+        /// The number of storage replicas that must
         /// be sustained.
         /// </summary>
         private int NumberOfReplicas;
-
+        
         /// <summary>
-        /// The client who sent the latest request.
-        /// </summary>
-        private MachineId Client;
-
-        /// <summary>
-        /// Map from node ids to a boolean value that
+        /// Map from storage node ids to a boolean value that
         /// denotes if the node is alive or not.
         /// </summary>
-        private Dictionary<int, bool> NodeMap;
+        private Dictionary<int, bool> StorageNodeMap;
 
         /// <summary>
-        /// Map from node ids to data they contain.
+        /// Map from storage node ids to data they contain.
         /// </summary>
         private Dictionary<int, int> DataMap;
 
@@ -68,6 +63,11 @@ namespace ReplicatingStorage
         /// The repair timer.
         /// </summary>
         private MachineId RepairTimer;
+
+        /// <summary>
+        /// The client who sent the latest request.
+        /// </summary>
+        private MachineId Client;
 
         #endregion
 
@@ -82,8 +82,8 @@ namespace ReplicatingStorage
 
         void EntryOnInit()
         {
-            this.Nodes = new List<MachineId>();
-            this.NodeMap = new Dictionary<int, bool>();
+            this.StorageNodes = new List<MachineId>();
+            this.StorageNodeMap = new Dictionary<int, bool>();
             this.DataMap = new Dictionary<int, int>();
 
             this.RepairTimer = this.CreateMachine(typeof(RepairTimer));
@@ -105,17 +105,17 @@ namespace ReplicatingStorage
 
         void CreateNewNode()
         {
-            var idx = this.Nodes.Count;
-            var node = this.CreateMachine(typeof(Node));
-            this.Nodes.Add(node);
-            this.NodeMap.Add(idx, true);
-            this.Send(node, new Node.ConfigureEvent(this.Environment, this.Id, idx));
+            var idx = this.StorageNodes.Count;
+            var node = this.CreateMachine(typeof(StorageNode));
+            this.StorageNodes.Add(node);
+            this.StorageNodeMap.Add(idx, true);
+            this.Send(node, new StorageNode.ConfigureEvent(this.Environment, this.Id, idx));
         }
 
         [OnEventDoAction(typeof(Client.Request), nameof(ProcessClientRequest))]
         [OnEventDoAction(typeof(RepairTimer.Timeout), nameof(RepairNodes))]
-        [OnEventDoAction(typeof(Node.SyncReport), nameof(ProcessSyncReport))]
-        [OnEventDoAction(typeof(Node.NotifyFailure), nameof(ProcessFailure))]
+        [OnEventDoAction(typeof(StorageNode.SyncReport), nameof(ProcessSyncReport))]
+        [OnEventDoAction(typeof(StorageNode.NotifyFailure), nameof(ProcessFailure))]
         class Active : MachineState { }
 
         void ProcessClientRequest()
@@ -123,10 +123,10 @@ namespace ReplicatingStorage
             this.Client = (this.ReceivedEvent as Client.Request).Client;
             var command = (this.ReceivedEvent as Client.Request).Command;
 
-            var aliveNodeIds = this.NodeMap.Where(n => n.Value).Select(n => n.Key);
+            var aliveNodeIds = this.StorageNodeMap.Where(n => n.Value).Select(n => n.Key);
             foreach (var nodeId in aliveNodeIds)
             {
-                this.Send(this.Nodes[nodeId], new Node.StoreRequest(command));
+                this.Send(this.StorageNodes[nodeId], new StorageNode.SyncRequest(command));
             }
 
             this.Send(this.Environment, new Environment.NotifyClientRequestHandled());
@@ -154,9 +154,9 @@ namespace ReplicatingStorage
             {
                 if (node.Value != consensus.Key)
                 {
-                    Console.WriteLine("\n [NodeManager] repairing node {0}.\n", node.Key);
+                    Console.WriteLine("\n [NodeManager] repairing storage node {0}.\n", node.Key);
 
-                    this.Send(this.Nodes[node.Key], new Node.StoreRequest(consensus.Key));
+                    this.Send(this.StorageNodes[node.Key], new StorageNode.SyncRequest(consensus.Key));
                     numOfReplicas++;
                 }
 
@@ -169,8 +169,8 @@ namespace ReplicatingStorage
 
         void ProcessSyncReport()
         {
-            var nodeId = (this.ReceivedEvent as Node.SyncReport).NodeId;
-            var data = (this.ReceivedEvent as Node.SyncReport).Data;
+            var nodeId = (this.ReceivedEvent as StorageNode.SyncReport).NodeId;
+            var data = (this.ReceivedEvent as StorageNode.SyncReport).Data;
 
             if (!this.DataMap.ContainsKey(nodeId))
             {
@@ -182,11 +182,11 @@ namespace ReplicatingStorage
 
         void ProcessFailure()
         {
-            var nodeId = (this.ReceivedEvent as Node.NotifyFailure).NodeId;
-            this.NodeMap.Remove(nodeId);
+            var nodeId = (this.ReceivedEvent as StorageNode.NotifyFailure).NodeId;
+            this.StorageNodeMap.Remove(nodeId);
             this.DataMap.Remove(nodeId);
 
-            Console.WriteLine("\n [NodeManager] node {0} failed.\n", nodeId);
+            Console.WriteLine("\n [NodeManager] storage node {0} failed.\n", nodeId);
 
             this.CreateNewNode();
         }

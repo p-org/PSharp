@@ -4,12 +4,12 @@ using Microsoft.PSharp;
 
 namespace ReplicatingStorage
 {
-    internal class Node : Machine
+    internal class StorageNode : Machine
     {
         #region events
 
         /// <summary>
-        /// Used to configure the node.
+        /// Used to configure the storage node.
         /// </summary>
         public class ConfigureEvent : Event
         {
@@ -26,17 +26,6 @@ namespace ReplicatingStorage
             }
         }
         
-        public class StoreRequest : Event
-        {
-            public int Command;
-
-            public StoreRequest(int command)
-                : base()
-            {
-                this.Command = command;
-            }
-        }
-        
         public class SyncReport : Event
         {
             public int NodeId;
@@ -46,6 +35,17 @@ namespace ReplicatingStorage
                 : base()
             {
                 this.NodeId = id;
+                this.Data = data;
+            }
+        }
+
+        public class SyncRequest : Event
+        {
+            public int Data;
+
+            public SyncRequest(int data)
+                : base()
+            {
                 this.Data = data;
             }
         }
@@ -74,17 +74,17 @@ namespace ReplicatingStorage
         private MachineId Environment;
 
         /// <summary>
-        /// The node manager.
+        /// The storage node manager.
         /// </summary>
         private MachineId NodeManager;
 
         /// <summary>
-        /// The node id.
+        /// The storage node id.
         /// </summary>
         private int NodeId;
 
         /// <summary>
-        /// The data that this node contains.
+        /// The data that this storage node contains.
         /// </summary>
         private int Data;
 
@@ -107,7 +107,6 @@ namespace ReplicatingStorage
         void EntryOnInit()
         {
             this.Data = 0;
-
             this.SyncTimer = this.CreateMachine(typeof(SyncTimer));
             this.Send(this.SyncTimer, new SyncTimer.ConfigureEvent(this.Id));
         }
@@ -118,25 +117,25 @@ namespace ReplicatingStorage
             this.NodeManager = (this.ReceivedEvent as ConfigureEvent).NodeManager;
             this.NodeId = (this.ReceivedEvent as ConfigureEvent).Id;
 
-            Console.WriteLine("\n [Node-{0}] is up and running.\n", this.NodeId);
+            Console.WriteLine("\n [StorageNode-{0}] is up and running.\n", this.NodeId);
 
+            this.Monitor<LivenessMonitor>(new LivenessMonitor.NotifyNodeCreated(this.NodeId));
             this.Send(this.Environment, new Environment.NotifyNode(this.Id));
 
             this.Raise(new LocalEvent());
         }
 
-        [OnEventDoAction(typeof(StoreRequest), nameof(ProcessStoreRequest))]
+        [OnEventDoAction(typeof(SyncRequest), nameof(Sync))]
         [OnEventDoAction(typeof(SyncTimer.Timeout), nameof(GenerateSyncReport))]
         [OnEventDoAction(typeof(Environment.FaultInject), nameof(Terminate))]
         class Active : MachineState { }
 
-        void ProcessStoreRequest()
+        void Sync()
         {
-            var command = (this.ReceivedEvent as StoreRequest).Command;
-            
-            Console.WriteLine("\n [Node-{0}] received command {1}.\n", this.NodeId, command);
-
-            this.Data = command;
+            var data = (this.ReceivedEvent as SyncRequest).Data;
+            Console.WriteLine("\n [StorageNode-{0}] is syncing with data {1}.\n", this.NodeId, data);
+            this.Data += data;
+            this.Monitor<LivenessMonitor>(new LivenessMonitor.NotifyNodeUpdate(this.NodeId, this.Data));
         }
 
         void GenerateSyncReport()
@@ -146,6 +145,7 @@ namespace ReplicatingStorage
 
         void Terminate()
         {
+            this.Monitor<LivenessMonitor>(new LivenessMonitor.NotifyNodeFail(this.NodeId));
             this.Send(this.NodeManager, new NotifyFailure(this.NodeId));
             this.Send(this.SyncTimer, new Halt());
             this.Raise(new Halt());
