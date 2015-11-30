@@ -70,6 +70,10 @@ namespace Microsoft.PSharp.Utilities
                 {
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.RandomDelayBounding;
                 }
+                else if (option.ToLower().Substring(5).Equals("pct"))
+                {
+                    base.Configuration.SchedulingStrategy = SchedulingStrategy.PCT;
+                }
                 else if (option.ToLower().Substring(5).Equals("ob"))
                 {
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.OperationBounding;
@@ -210,6 +214,7 @@ namespace Microsoft.PSharp.Utilities
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.IDDFS &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.DelayBounding &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.RandomDelayBounding &&
+                base.Configuration.SchedulingStrategy != SchedulingStrategy.PCT &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.OperationBounding &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.MaceMC)
             {

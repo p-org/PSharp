@@ -227,6 +227,10 @@ namespace Microsoft.PSharp.SystematicTesting
                 this.Strategy = new RandomDelayBoundingStrategy(this.Configuration,
                     this.Configuration.DelayBound);
             }
+            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.PCT)
+            {
+                this.Strategy = new PCTStrategy(this.Configuration, this.Configuration.BugDepth);
+            }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.OperationBounding)
             {
                 this.Strategy = new PrioritizedOperationBoundingStrategy(this.Configuration,

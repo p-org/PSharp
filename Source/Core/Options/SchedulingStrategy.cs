@@ -45,6 +45,10 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         RandomDelayBounding,
         /// <summary>
+        /// Prioritized scheduling.
+        /// </summary>
+        PCT,
+        /// <summary>
         /// Operation-bounding scheduling.
         /// </summary>
         OperationBounding,
