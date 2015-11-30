@@ -37,8 +37,7 @@ namespace ReplicatingStorage
                 this.Command = command;
             }
         }
-
-        internal class Response : Event { }
+        
         private class LocalEvent : Event { }
 
         #endregion
@@ -71,7 +70,6 @@ namespace ReplicatingStorage
         }
 
         [OnEntry(nameof(PumpRequestOnEntry))]
-        [OnEventDoAction(typeof(Response), nameof(ProcessResponse))]
         [OnEventGotoState(typeof(LocalEvent), typeof(PumpRequest))]
         class PumpRequest : MachineState { }
 
@@ -83,13 +81,9 @@ namespace ReplicatingStorage
             Console.WriteLine("\n [Client] new request {0}.\n", command);
 
             this.Send(this.NodeManager, new Request(this.Id, command), true);
-        }
 
-        void ProcessResponse()
-        {
-            if (this.Counter == 3)
+            if (this.Counter == 1)
             {
-                this.Send(this.NodeManager, new NodeManager.ShutDown());
                 this.Raise(new Halt());
             }
             else
