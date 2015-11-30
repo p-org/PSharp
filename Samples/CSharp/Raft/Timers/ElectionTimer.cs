@@ -33,6 +33,7 @@ namespace Raft
         void Configure()
         {
             this.Target = (this.ReceivedEvent as ConfigureEvent).Target;
+            //this.Raise(new StartTimer());
         }
 
         [OnEntry(nameof(ActiveOnEntry))]
@@ -50,9 +51,11 @@ namespace Raft
         {
             if (this.Random())
             {
+                Console.WriteLine("\n [ElectionTimer] " + this.Target + " | timed out\n");
                 this.Send(this.Target, new Timeout(), true);
             }
 
+            //this.Send(this.Id, new TickEvent());
             this.Raise(new CancelTimer());
         }
 
