@@ -25,6 +25,17 @@ namespace ReplicatingStorage
             }
         }
 
+        public class NotifyFailure : Event
+        {
+            public MachineId Node;
+
+            public NotifyFailure(MachineId node)
+                : base()
+            {
+                this.Node = node;
+            }
+        }
+
         internal class ShutDown : Event { }
         private class LocalEvent : Event { }
 
@@ -53,6 +64,11 @@ namespace ReplicatingStorage
         /// denotes if the node is alive or not.
         /// </summary>
         private Dictionary<int, bool> StorageNodeMap;
+
+        /// <summary>
+        /// The latest data.
+        /// </summary>
+        private int LatestData;
 
         /// <summary>
         /// Map from storage node ids to data they contain.
@@ -85,6 +101,7 @@ namespace ReplicatingStorage
             this.StorageNodes = new List<MachineId>();
             this.StorageNodeMap = new Dictionary<int, bool>();
             this.DataMap = new Dictionary<int, int>();
+            this.LatestData = 0;
 
             this.RepairTimer = this.CreateMachine(typeof(RepairTimer));
             this.Send(this.RepairTimer, new RepairTimer.ConfigureEvent(this.Id));
@@ -115,7 +132,7 @@ namespace ReplicatingStorage
         [OnEventDoAction(typeof(Client.Request), nameof(ProcessClientRequest))]
         [OnEventDoAction(typeof(RepairTimer.Timeout), nameof(RepairNodes))]
         [OnEventDoAction(typeof(StorageNode.SyncReport), nameof(ProcessSyncReport))]
-        [OnEventDoAction(typeof(StorageNode.NotifyFailure), nameof(ProcessFailure))]
+        [OnEventDoAction(typeof(NotifyFailure), nameof(ProcessFailure))]
         class Active : MachineState { }
 
         void ProcessClientRequest()
@@ -136,7 +153,7 @@ namespace ReplicatingStorage
         {
             var consensus = this.DataMap.Select(kvp => kvp.Value).GroupBy(v => v).
                 OrderByDescending(v => v.Count()).FirstOrDefault();
-            if (consensus == null)
+            if (consensus == null || this.LatestData > consensus.Key)
             {
                 return;
             }
@@ -172,6 +189,11 @@ namespace ReplicatingStorage
             var nodeId = (this.ReceivedEvent as StorageNode.SyncReport).NodeId;
             var data = (this.ReceivedEvent as StorageNode.SyncReport).Data;
 
+            if (this.LatestData < data)
+            {
+                this.LatestData = data;
+            }
+
             // BUG: can fail to ever repair again as it thinks there are enough replicas
             //if (!this.StorageNodeMap.ContainsKey(nodeId))
             //{
@@ -188,7 +210,8 @@ namespace ReplicatingStorage
 
         void ProcessFailure()
         {
-            var nodeId = (this.ReceivedEvent as StorageNode.NotifyFailure).NodeId;
+            var node = (this.ReceivedEvent as NotifyFailure).Node;
+            var nodeId = this.StorageNodes.IndexOf(node);
             this.StorageNodeMap.Remove(nodeId);
             this.DataMap.Remove(nodeId);
 

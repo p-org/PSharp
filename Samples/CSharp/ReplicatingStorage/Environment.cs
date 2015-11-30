@@ -94,6 +94,7 @@ namespace ReplicatingStorage
                     Console.WriteLine("\n [Environment] injecting fault.\n");
 
                     this.Send(node, new FaultInject());
+                    this.Send(this.NodeManager, new NodeManager.NotifyFailure(node));
                     this.AliveNodes.Remove(node);
                     this.NumberOfFaults--;
                     break;

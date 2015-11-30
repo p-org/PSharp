@@ -61,17 +61,6 @@ namespace ReplicatingStorage
             }
         }
 
-        public class NotifyFailure : Event
-        {
-            public int NodeId;
-
-            public NotifyFailure(int id)
-                : base()
-            {
-                this.NodeId = id;
-            }
-        }
-
         internal class ShutDown : Event { }
         private class LocalEvent : Event { }
 
@@ -166,7 +155,6 @@ namespace ReplicatingStorage
         void Terminate()
         {
             this.Monitor<LivenessMonitor>(new LivenessMonitor.NotifyNodeFail(this.NodeId));
-            this.Send(this.NodeManager, new NotifyFailure(this.NodeId));
             this.Send(this.SyncTimer, new Halt());
             this.Raise(new Halt());
         }
