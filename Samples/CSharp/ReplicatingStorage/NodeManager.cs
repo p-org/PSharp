@@ -145,8 +145,6 @@ namespace ReplicatingStorage
             {
                 this.Send(this.StorageNodes[nodeId], new StorageNode.StoreRequest(command));
             }
-
-            this.Send(this.Environment, new Environment.NotifyClientRequestHandled());
         }
 
         void RepairNodes()
@@ -172,7 +170,6 @@ namespace ReplicatingStorage
                 if (node.Value != consensus.Key)
                 {
                     Console.WriteLine("\n [NodeManager] repairing storage node {0}.\n", node.Key);
-
                     this.Send(this.StorageNodes[node.Key], new StorageNode.SyncRequest(consensus.Key));
                     numOfReplicas++;
                 }

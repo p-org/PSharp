@@ -18,9 +18,10 @@ namespace ReplicatingStorage
                 this.Node = node;
             }
         }
-
-        public class NotifyClientRequestHandled : Event { }
+        
         public class FaultInject : Event { }
+
+        private class CreateFailure : Event { }
         private class LocalEvent : Event { }
 
         #endregion
@@ -35,6 +36,11 @@ namespace ReplicatingStorage
 
         private MachineId Client;
 
+        /// <summary>
+        /// The failure timer.
+        /// </summary>
+        private MachineId FailureTimer;
+
         #endregion
 
         #region states
@@ -42,6 +48,7 @@ namespace ReplicatingStorage
         [Start]
         [OnEntry(nameof(EntryOnInit))]
         [OnEventGotoState(typeof(LocalEvent), typeof(Configuring))]
+        [DeferEvents(typeof(FailureTimer.Timeout))]
         class Init : MachineState { }
 
         void EntryOnInit()
@@ -56,11 +63,15 @@ namespace ReplicatingStorage
             this.NodeManager = this.CreateMachine(typeof(NodeManager));
             this.Client = this.CreateMachine(typeof(Client));
 
+            this.FailureTimer = this.CreateMachine(typeof(FailureTimer));
+            this.Send(this.FailureTimer, new FailureTimer.ConfigureEvent(this.Id));
+
             this.Raise(new LocalEvent());
         }
 
         [OnEntry(nameof(ConfiguringOnInit))]
         [OnEventGotoState(typeof(LocalEvent), typeof(Active))]
+        [DeferEvents(typeof(FailureTimer.Timeout))]
         class Configuring : MachineState { }
 
         void ConfiguringOnInit()
@@ -71,7 +82,7 @@ namespace ReplicatingStorage
         }
 
         [OnEventDoAction(typeof(NotifyNode), nameof(UpdateAliveNodes))]
-        [OnEventDoAction(typeof(NotifyClientRequestHandled), nameof(InjectFault))]
+        [OnEventDoAction(typeof(FailureTimer.Timeout), nameof(InjectFault))]
         class Active : MachineState { }
 
         void UpdateAliveNodes()

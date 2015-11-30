@@ -82,7 +82,7 @@ namespace ReplicatingStorage
         [Start]
         [OnEntry(nameof(InitOnEntry))]
         [OnEventDoAction(typeof(ConfigureEvent), nameof(Configure))]
-        [OnEventGotoState(typeof(LocalEvent), typeof(Repairing))]
+        [OnEventGotoState(typeof(LocalEvent), typeof(Repaired))]
         class Init : MonitorState { }
 
         void InitOnEntry()
@@ -96,23 +96,38 @@ namespace ReplicatingStorage
             this.Raise(new LocalEvent());
         }
 
+        [Cold]
+        [OnEventDoAction(typeof(NotifyNodeCreated), nameof(ProcessNodeCreated))]
+        [OnEventDoAction(typeof(NotifyNodeFail), nameof(FailAndCheckRepair))]
+        [OnEventDoAction(typeof(NotifyNodeUpdate), nameof(ProcessNodeUpdate))]
+        [OnEventGotoState(typeof(LocalEvent), typeof(Repairing))]
+        class Repaired : MonitorState { }
+
+        void ProcessNodeCreated()
+        {
+            var nodeId = (this.ReceivedEvent as NotifyNodeCreated).NodeId;
+            this.DataMap.Add(nodeId, 0);
+        }
+
+        void FailAndCheckRepair()
+        {
+            this.ProcessNodeFail();
+            this.Raise(new LocalEvent());
+        }
+
+        void ProcessNodeUpdate()
+        {
+            var nodeId = (this.ReceivedEvent as NotifyNodeUpdate).NodeId;
+            var data = (this.ReceivedEvent as NotifyNodeUpdate).Data;
+            this.DataMap[nodeId] = data;
+        }
+
         [Hot]
         [OnEventDoAction(typeof(NotifyNodeCreated), nameof(ProcessNodeCreated))]
         [OnEventDoAction(typeof(NotifyNodeFail), nameof(ProcessNodeFail))]
         [OnEventDoAction(typeof(NotifyNodeUpdate), nameof(CheckIfRepaired))]
         [OnEventGotoState(typeof(LocalEvent), typeof(Repaired))]
         class Repairing : MonitorState { }
-
-        void ProcessNodeCreated()
-        {
-            var nodeId = (this.ReceivedEvent as NotifyNodeCreated).NodeId;
-            this.DataMap.Add(nodeId, 0);
-
-            if (this.CheckRepair())
-            {
-                this.Raise(new LocalEvent());
-            }
-        }
 
         void ProcessNodeFail()
         {
@@ -122,64 +137,12 @@ namespace ReplicatingStorage
 
         void CheckIfRepaired()
         {
-            var nodeId = (this.ReceivedEvent as NotifyNodeUpdate).NodeId;
-            var data = (this.ReceivedEvent as NotifyNodeUpdate).Data;
-            this.DataMap[nodeId] = data;
-
-            if (this.CheckRepair())
-            {
-                this.Raise(new LocalEvent());
-            }
-        }
-
-        bool CheckRepair()
-        {
+            this.ProcessNodeUpdate();
             var consensus = this.DataMap.Select(kvp => kvp.Value).GroupBy(v => v).
                 OrderByDescending(v => v.Count()).FirstOrDefault();
 
             var numOfReplicas = consensus.Count();
             if (numOfReplicas >= this.NumberOfReplicas)
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        [Cold]
-        [OnEventDoAction(typeof(NotifyNodeCreated), nameof(CreateAndCheckRepair))]
-        [OnEventDoAction(typeof(NotifyNodeFail), nameof(FailAndCheckRepair))]
-        [OnEventDoAction(typeof(NotifyNodeUpdate), nameof(UpdateAndCheckRepair))]
-        [OnEventGotoState(typeof(LocalEvent), typeof(Repairing))]
-        class Repaired : MonitorState { }
-
-        void CreateAndCheckRepair()
-        {
-            var nodeId = (this.ReceivedEvent as NotifyNodeCreated).NodeId;
-
-            if (!this.CheckRepair())
-            {
-                this.Raise(new LocalEvent());
-            }
-        }
-
-        void FailAndCheckRepair()
-        {
-            this.ProcessNodeFail();
-
-            if (!this.CheckRepair())
-            {
-                this.Raise(new LocalEvent());
-            }
-        }
-
-        void UpdateAndCheckRepair()
-        {
-            var nodeId = (this.ReceivedEvent as NotifyNodeUpdate).NodeId;
-            var data = (this.ReceivedEvent as NotifyNodeUpdate).Data;
-            this.DataMap[nodeId] = data;
-
-            if (!this.CheckRepair())
             {
                 this.Raise(new LocalEvent());
             }
