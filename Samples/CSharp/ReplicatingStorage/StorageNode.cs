@@ -25,7 +25,18 @@ namespace ReplicatingStorage
                 this.Id = id;
             }
         }
-        
+
+        public class StoreRequest : Event
+        {
+            public int Command;
+
+            public StoreRequest(int cmd)
+                : base()
+            {
+                this.Command = cmd;
+            }
+        }
+
         public class SyncReport : Event
         {
             public int NodeId;
@@ -125,16 +136,25 @@ namespace ReplicatingStorage
             this.Raise(new LocalEvent());
         }
 
+        [OnEventDoAction(typeof(StoreRequest), nameof(Store))]
         [OnEventDoAction(typeof(SyncRequest), nameof(Sync))]
         [OnEventDoAction(typeof(SyncTimer.Timeout), nameof(GenerateSyncReport))]
         [OnEventDoAction(typeof(Environment.FaultInject), nameof(Terminate))]
         class Active : MachineState { }
 
+        void Store()
+        {
+            var cmd = (this.ReceivedEvent as StoreRequest).Command;
+            this.Data += cmd;
+            Console.WriteLine("\n [StorageNode-{0}] is applying command {1}.\n", this.NodeId, cmd);
+            this.Monitor<LivenessMonitor>(new LivenessMonitor.NotifyNodeUpdate(this.NodeId, this.Data));
+        }
+
         void Sync()
         {
             var data = (this.ReceivedEvent as SyncRequest).Data;
-            Console.WriteLine("\n [StorageNode-{0}] is syncing with data {1}.\n", this.NodeId, data);
-            this.Data += data;
+            this.Data = data;
+            Console.WriteLine("\n [StorageNode-{0}] is syncing with data {1}.\n", this.NodeId, this.Data);
             this.Monitor<LivenessMonitor>(new LivenessMonitor.NotifyNodeUpdate(this.NodeId, this.Data));
         }
 

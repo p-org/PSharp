@@ -30,11 +30,11 @@ namespace ReplicatingStorage
             public MachineId Client;
             public int Command;
 
-            public Request(MachineId client, int command)
+            public Request(MachineId client, int cmd)
                 : base()
             {
                 this.Client = client;
-                this.Command = command;
+                this.Command = cmd;
             }
         }
         

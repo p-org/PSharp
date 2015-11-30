@@ -126,7 +126,7 @@ namespace ReplicatingStorage
             var aliveNodeIds = this.StorageNodeMap.Where(n => n.Value).Select(n => n.Key);
             foreach (var nodeId in aliveNodeIds)
             {
-                this.Send(this.StorageNodes[nodeId], new StorageNode.SyncRequest(command));
+                this.Send(this.StorageNodes[nodeId], new StorageNode.StoreRequest(command));
             }
 
             this.Send(this.Environment, new Environment.NotifyClientRequestHandled());
@@ -171,6 +171,12 @@ namespace ReplicatingStorage
         {
             var nodeId = (this.ReceivedEvent as StorageNode.SyncReport).NodeId;
             var data = (this.ReceivedEvent as StorageNode.SyncReport).Data;
+
+            // BUG: can fail to ever repair again as it thinks there are enough replicas
+            //if (!this.StorageNodeMap.ContainsKey(nodeId))
+            //{
+            //    return;
+            //}
 
             if (!this.DataMap.ContainsKey(nodeId))
             {
