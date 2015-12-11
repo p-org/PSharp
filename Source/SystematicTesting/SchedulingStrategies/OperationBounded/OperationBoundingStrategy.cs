@@ -130,12 +130,8 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                     choice.SetQueueOperationPriority(nextOperation);
                 }
             }
-            
-            availableMachines = availableMachines.Where(
-                mi => mi.Machine.OperationId == nextOperation).ToList();
-            
-            int idx = this.Random.Next(availableMachines.Count);
-            next = availableMachines[idx];
+
+            next = this.GetNextMachineWithOperation(availableMachines, nextOperation);
 
             this.ExploredSteps++;
 
@@ -231,6 +227,20 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         #endregion
 
         #region protected methods
+
+        /// <summary>
+        /// Returns the next machine to schedule that has the given operation.
+        /// </summary>
+        /// <param name="choices">Choices</param>
+        /// <param name="operationId">OperationId</param>
+        /// <returns>MachineInfo</returns>
+        protected virtual MachineInfo GetNextMachineWithOperation(List<MachineInfo> choices, int operationId)
+        {
+            var availableMachines = choices.Where(
+                mi => mi.Machine.OperationId == operationId).ToList();
+            int idx = this.Random.Next(availableMachines.Count);
+            return availableMachines[idx];
+        }
         
         /// <summary>
         /// Returns the next operation to schedule.
