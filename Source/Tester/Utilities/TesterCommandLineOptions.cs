@@ -146,17 +146,6 @@ namespace Microsoft.PSharp.Utilities
 
                 base.Configuration.DelayBound = i;
             }
-            else if (option.ToLower().StartsWith("/nondet-bound:") && option.Length > 14)
-            {
-                int i = 1;
-                if (!int.TryParse(option.Substring(14), out i) && i >= 1)
-                {
-                    ErrorReporter.ReportAndExit("Please give a valid nondeterministic choice " +
-                        "bound '/nondet-bound:[x]', where [x] >= 1.");
-                }
-
-                base.Configuration.NondeterministicChoiceBudget = i;
-            }
             else if (option.ToLower().StartsWith("/prefix:") && option.Length > 8)
             {
                 int i = 0;

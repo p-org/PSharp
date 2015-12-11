@@ -163,12 +163,6 @@ namespace Microsoft.PSharp.Utilities
         public int DelayBound;
 
         /// <summary>
-        /// The budget of nondeterministic choices that can
-        /// be made.
-        /// </summary>
-        public int NondeterministicChoiceBudget;
-
-        /// <summary>
         /// Safety prefix bound. By default it is 0.
         /// </summary>
         public int SafetyPrefixBound;
@@ -268,7 +262,6 @@ namespace Microsoft.PSharp.Utilities
             this.ConsiderDepthBoundHitAsBug = false;
             this.BugDepth = 2;
             this.DelayBound = 2;
-            this.NondeterministicChoiceBudget = 0;
             this.SafetyPrefixBound = 0;
 
             this.ScheduleIntraMachineConcurrency = false;

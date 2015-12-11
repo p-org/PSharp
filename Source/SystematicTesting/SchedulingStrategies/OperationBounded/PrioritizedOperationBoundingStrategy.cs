@@ -76,6 +76,12 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// <returns>Boolean</returns>
         public override bool TryGetNext(out MachineInfo next, IList<MachineInfo> choices, MachineInfo current)
         {
+            if (this.HasCurrentOperationCompleted(choices, current))
+            {
+                this.PrioritizedOperations.Remove(current.Machine.OperationId);
+                IO.Debug("<OperationDebug> Removes operation '{0}'.", current.Machine.OperationId);
+            }
+
             var availableMachines = choices.Where(
                 mi => mi.IsEnabled && !mi.IsBlocked && !mi.IsWaiting).ToList();
             if (availableMachines.Count == 0)
@@ -103,6 +109,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         public override bool GetNextChoice(int maxValue, out bool next)
         {
             next = false;
+
             if (this.Random.Next(maxValue) == 0)
             {
                 next = true;
@@ -128,7 +135,6 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
 
             this.PrioritizedOperations.Clear();
             this.PriorityChangePoints.Clear();
-
             for (int idx = 0; idx < base.BugDepth - 1; idx++)
             {
                 this.PriorityChangePoints.Add(this.Random.Next(base.MaxExploredSteps));
@@ -179,7 +185,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// </summary>
         /// <param name="choices">Choices</param>
         /// <param name="current">Curent</param>
-        /// <returns>Boolean</returns>
+        /// <returns>Machines</returns>
         private List<MachineInfo> GetPrioritizedMachines(List<MachineInfo> choices, MachineInfo current)
         {
             if (this.PrioritizedOperations.Count == 0)
@@ -190,7 +196,9 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             var operationIds = choices.Select(val => val.Machine.OperationId).Distinct();
             foreach (var id in operationIds.Where(id => !this.PrioritizedOperations.Contains(id)))
             {
-                this.PrioritizedOperations.Insert(this.Random.Next(this.PrioritizedOperations.Count) + 1, id);
+                var opIndex = this.Random.Next(this.PrioritizedOperations.Count) + 1;
+                this.PrioritizedOperations.Insert(opIndex, id);
+                IO.Debug("<OperationDebug> Detected new operation '{0}' at index '{1}'.", id, opIndex);
             }
             
             if (this.PriorityChangePoints.Contains(this.ExploredSteps))
@@ -205,16 +213,18 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                     this.PrioritizedOperations.Remove(priority);
                     this.PrioritizedOperations.Add(priority);
                     IO.PrintLine("<OperationLog> Operation '{0}' changes to lowest priority.",
-                        priority, this.PrioritizedOperations[0]);
+                        priority);
                 }
             }
 
             var prioritizedOperation = this.GetHighestPriorityEnabledOperationId(choices);
             if (this.Configuration.DynamicEventQueuePrioritization)
             {
-                foreach (var choice in choices)
+                var machineChoices = choices.Where(mi => mi.Machine is Machine).
+                    Select(m => m.Machine as Machine);
+                foreach (var choice in machineChoices)
                 {
-                    choice.Machine.SetQueueOperationPriority(prioritizedOperation);
+                    choice.SetQueueOperationPriority(prioritizedOperation);
                 }
             }
 
@@ -276,6 +286,25 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
 
             this.PriorityChangePoints.Add(newPriorityChangePoint);
             IO.Debug("<OperationDebug> Moving priority change to '{0}'.", newPriorityChangePoint);
+        }
+
+        /// <summary>
+        /// Returns true if the current operation has completed.
+        /// </summary>
+        /// <param name="opid">OperationId</param>
+        /// <returns>Boolean</returns>
+        private bool HasCurrentOperationCompleted(IEnumerable<MachineInfo> choices, MachineInfo current)
+        {
+            foreach (var choice in choices.Where(mi => !mi.IsCompleted))
+            {
+                if (choice.Machine.OperationId == current.Machine.OperationId ||
+                    choice.Machine.IsOperationPending(current.Machine.OperationId))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         #endregion
