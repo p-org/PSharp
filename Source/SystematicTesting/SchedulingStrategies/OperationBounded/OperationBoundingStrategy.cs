@@ -35,6 +35,21 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         protected Configuration Configuration;
 
         /// <summary>
+        /// List of operations.
+        /// </summary>
+        protected List<int> Operations;
+
+        /// <summary>
+        /// Nondeterminitic seed.
+        /// </summary>
+        protected int Seed;
+
+        /// <summary>
+        /// Randomizer.
+        /// </summary>
+        protected Random Random;
+
+        /// <summary>
         /// The maximum number of explored steps.
         /// </summary>
         protected int MaxExploredSteps;
@@ -44,11 +59,6 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// </summary>
         protected int ExploredSteps;
 
-        /// <summary>
-        /// The bug depth.
-        /// </summary>
-        protected int BugDepth;
-
         #endregion
 
         #region public API
@@ -57,15 +67,16 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// Constructor.
         /// </summary>
         /// <param name="configuration">Configuration</param>
-        /// <param name="depth">Bug depth</param>
-        public OperationBoundingStrategy(Configuration configuration, int depth)
+        public OperationBoundingStrategy(Configuration configuration)
         {
             this.Configuration = configuration;
+            this.Operations = new List<int>();
+            this.Seed = this.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
+            this.Random = new Random(this.Seed);
             this.MaxExploredSteps = 0;
             this.ExploredSteps = 0;
-            this.BugDepth = depth;
         }
-
+        
         /// <summary>
         /// Returns the next machine to schedule.
         /// </summary>
@@ -73,7 +84,63 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// <param name="choices">Choices</param>
         /// <param name="current">Curent</param>
         /// <returns>Boolean</returns>
-        public abstract bool TryGetNext(out MachineInfo next, IList<MachineInfo> choices, MachineInfo current);
+        public bool TryGetNext(out MachineInfo next, IList<MachineInfo> choices, MachineInfo current)
+        {
+            if (this.HasCurrentOperationCompleted(choices, current))
+            {
+                this.Operations.Remove(current.Machine.OperationId);
+                IO.Debug("<OperationDebug> Removes operation '{0}'.", current.Machine.OperationId);
+            }
+
+            var availableMachines = choices.Where(
+                mi => mi.IsEnabled && !mi.IsBlocked && !mi.IsWaiting).ToList();
+            if (availableMachines.Count == 0)
+            {
+                next = null;
+                return false;
+            }
+
+            this.TryRegisterNewOperations(availableMachines, current);
+
+            var nextOperation = this.GetNextOperation(availableMachines, current);
+
+            IO.Debug("<OperationDebug> Chosen operation '{0}'.", nextOperation);
+            if (IO.Debugging)
+            {
+                IO.Print("<OperationDebug> Operation list: ");
+                for (int opIdx = 0; opIdx < this.Operations.Count; opIdx++)
+                {
+                    if (opIdx < this.Operations.Count - 1)
+                    {
+                        IO.Print("'{0}', ", this.Operations[opIdx]);
+                    }
+                    else
+                    {
+                        IO.Print("'{0}'.\n", this.Operations[opIdx]);
+                    }
+                }
+            }
+            
+            if (this.Configuration.DynamicEventQueuePrioritization)
+            {
+                var machineChoices = availableMachines.Where(mi => mi.Machine is Machine).
+                    Select(m => m.Machine as Machine);
+                foreach (var choice in machineChoices)
+                {
+                    choice.SetQueueOperationPriority(nextOperation);
+                }
+            }
+            
+            availableMachines = availableMachines.Where(
+                mi => mi.Machine.OperationId == nextOperation).ToList();
+            
+            int idx = this.Random.Next(availableMachines.Count);
+            next = availableMachines[idx];
+
+            this.ExploredSteps++;
+
+            return true;
+        }
 
         /// <summary>
         /// Returns the next choice.
@@ -137,13 +204,20 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// <summary>
         /// Configures the next scheduling iteration.
         /// </summary>
-        public abstract void ConfigureNextIteration();
+        public virtual void ConfigureNextIteration()
+        {
+            this.MaxExploredSteps = Math.Max(this.MaxExploredSteps, this.ExploredSteps);
+            this.ExploredSteps = 0;
+            this.Operations.Clear();
+        }
 
         /// <summary>
         /// Resets the scheduling strategy.
         /// </summary>
         public virtual void Reset()
         {
+            this.Operations.Clear();
+            this.Random = new Random(this.Seed);
             this.MaxExploredSteps = 0;
             this.ExploredSteps = 0;
         }
@@ -153,6 +227,62 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// </summary>
         /// <returns>String</returns>
         public abstract string GetDescription();
+
+        #endregion
+
+        #region protected methods
+        
+        /// <summary>
+        /// Returns the next operation to schedule.
+        /// </summary>
+        /// <param name="choices">Choices</param>
+        /// <param name="current">Curent</param>
+        /// <returns>OperationId</returns>
+        protected abstract int GetNextOperation(List<MachineInfo> choices, MachineInfo current);
+
+        /// <summary>
+        /// Returns true if the current operation has completed.
+        /// </summary>
+        /// <param name="opid">OperationId</param>
+        /// <returns>Boolean</returns>
+        protected bool HasCurrentOperationCompleted(IEnumerable<MachineInfo> choices, MachineInfo current)
+        {
+            foreach (var choice in choices.Where(mi => !mi.IsCompleted))
+            {
+                if (choice.Machine.OperationId == current.Machine.OperationId ||
+                    choice.Machine.IsOperationPending(current.Machine.OperationId))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        #endregion
+
+        #region private methods
+
+        /// <summary>
+        /// Tries to register any new operations.
+        /// </summary>
+        /// <param name="choices">Choices</param>
+        /// <param name="current">Curent</param>
+        private void TryRegisterNewOperations(List<MachineInfo> choices, MachineInfo current)
+        {
+            if (this.Operations.Count == 0)
+            {
+                this.Operations.Add(current.Machine.OperationId);
+            }
+
+            var operationIds = choices.Select(val => val.Machine.OperationId).Distinct();
+            foreach (var id in operationIds.Where(id => !this.Operations.Contains(id)))
+            {
+                var opIndex = this.Random.Next(this.Operations.Count) + 1;
+                this.Operations.Insert(opIndex, id);
+                IO.Debug("<OperationDebug> Detected new operation '{0}' at index '{1}'.", id, opIndex);
+            }
+        }
 
         #endregion
     }

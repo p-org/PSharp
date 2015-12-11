@@ -49,9 +49,13 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         PCT,
         /// <summary>
-        /// Operation-bounding scheduling.
+        /// Random operation-bounding scheduling.
         /// </summary>
-        OperationBounding,
+        RandomOperationBounding,
+        /// <summary>
+        /// Prioritized operation-bounding scheduling.
+        /// </summary>
+        PrioritizedOperationBounding,
         /// <summary>
         /// MaceMC based search scheduling to detect
         /// potential liveness violations.

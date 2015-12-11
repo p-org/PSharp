@@ -74,9 +74,13 @@ namespace Microsoft.PSharp.Utilities
                 {
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.PCT;
                 }
-                else if (option.ToLower().Substring(5).Equals("ob"))
+                else if (option.ToLower().Substring(5).Equals("rob"))
                 {
-                    base.Configuration.SchedulingStrategy = SchedulingStrategy.OperationBounding;
+                    base.Configuration.SchedulingStrategy = SchedulingStrategy.RandomOperationBounding;
+                }
+                else if (option.ToLower().Substring(5).Equals("pob"))
+                {
+                    base.Configuration.SchedulingStrategy = SchedulingStrategy.PrioritizedOperationBounding;
                 }
                 else if (option.ToLower().Substring(5).Equals("macemc"))
                 {
@@ -204,7 +208,8 @@ namespace Microsoft.PSharp.Utilities
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.DelayBounding &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.RandomDelayBounding &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.PCT &&
-                base.Configuration.SchedulingStrategy != SchedulingStrategy.OperationBounding &&
+                base.Configuration.SchedulingStrategy != SchedulingStrategy.RandomOperationBounding &&
+                base.Configuration.SchedulingStrategy != SchedulingStrategy.PrioritizedOperationBounding &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.MaceMC)
             {
                 ErrorReporter.ReportAndExit("Please give a valid scheduling strategy " +

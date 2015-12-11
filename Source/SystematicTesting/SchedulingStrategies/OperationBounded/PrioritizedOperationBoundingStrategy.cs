@@ -30,19 +30,9 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         #region fields
 
         /// <summary>
-        /// Nondeterminitic seed.
+        /// The bug depth.
         /// </summary>
-        private int Seed;
-
-        /// <summary>
-        /// Randomizer.
-        /// </summary>
-        private Random Random;
-
-        /// <summary>
-        /// List of prioritized operations.
-        /// </summary>
-        private List<int> PrioritizedOperations;
+        private int BugDepth;
 
         /// <summary>
         /// Set of priority change points.
@@ -59,45 +49,10 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// <param name="configuration">Configuration</param>
         /// <param name="depth">Bug depth</param>
         public PrioritizedOperationBoundingStrategy(Configuration configuration, int depth)
-            : base(configuration, depth)
+            : base(configuration)
         {
-            this.Seed = this.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
-            this.Random = new Random(this.Seed);
-            this.PrioritizedOperations = new List<int>();
+            this.BugDepth = depth;
             this.PriorityChangePoints = new SortedSet<int>();
-        }
-
-        /// <summary>
-        /// Returns the next machine to schedule.
-        /// </summary>
-        /// <param name="next">Next</param>
-        /// <param name="choices">Choices</param>
-        /// <param name="current">Curent</param>
-        /// <returns>Boolean</returns>
-        public override bool TryGetNext(out MachineInfo next, IList<MachineInfo> choices, MachineInfo current)
-        {
-            if (this.HasCurrentOperationCompleted(choices, current))
-            {
-                this.PrioritizedOperations.Remove(current.Machine.OperationId);
-                IO.Debug("<OperationDebug> Removes operation '{0}'.", current.Machine.OperationId);
-            }
-
-            var availableMachines = choices.Where(
-                mi => mi.IsEnabled && !mi.IsBlocked && !mi.IsWaiting).ToList();
-            if (availableMachines.Count == 0)
-            {
-                next = null;
-                return false;
-            }
-
-            availableMachines = this.GetPrioritizedMachines(availableMachines, current);
-
-            int idx = this.Random.Next(availableMachines.Count);
-            next = availableMachines[idx];
-            
-            this.ExploredSteps++;
-
-            return true;
         }
 
         /// <summary>
@@ -110,7 +65,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         {
             next = false;
 
-            if (this.Random.Next(maxValue) == 0)
+            if (base.Random.Next(maxValue) == 0)
             {
                 next = true;
             }
@@ -130,14 +85,12 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// </summary>
         public override void ConfigureNextIteration()
         {
-            base.MaxExploredSteps = Math.Max(base.MaxExploredSteps, base.ExploredSteps);
-            base.ExploredSteps = 0;
-
-            this.PrioritizedOperations.Clear();
+            base.ConfigureNextIteration();
+            
             this.PriorityChangePoints.Clear();
-            for (int idx = 0; idx < base.BugDepth - 1; idx++)
+            for (int idx = 0; idx < this.BugDepth - 1; idx++)
             {
-                this.PriorityChangePoints.Add(this.Random.Next(base.MaxExploredSteps));
+                this.PriorityChangePoints.Add(base.Random.Next(base.MaxExploredSteps));
             }
         }
 
@@ -146,8 +99,6 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// </summary>
         public override void Reset()
         {
-            this.Random = new Random(this.Seed);
-            this.PrioritizedOperations.Clear();
             this.PriorityChangePoints.Clear();
             base.Reset();
         }
@@ -158,7 +109,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// <returns>String</returns>
         public override string GetDescription()
         {
-            var text = base.BugDepth + "' bug depth, priority change points '[";
+            var text = this.BugDepth + "' bug depth, priority change points '[";
 
             int idx = 0;
             foreach (var points in this.PriorityChangePoints)
@@ -178,29 +129,17 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
 
         #endregion
 
-        #region private methods
+        #region protected methods
 
         /// <summary>
-        /// Returns the prioritized machines.
+        /// Returns the next operation to schedule.
         /// </summary>
         /// <param name="choices">Choices</param>
         /// <param name="current">Curent</param>
-        /// <returns>Machines</returns>
-        private List<MachineInfo> GetPrioritizedMachines(List<MachineInfo> choices, MachineInfo current)
+        /// <returns>OperationId</returns>
+        protected override int GetNextOperation(List<MachineInfo> choices, MachineInfo current)
         {
-            if (this.PrioritizedOperations.Count == 0)
-            {
-                this.PrioritizedOperations.Add(current.Machine.OperationId);
-            }
-            
             var operationIds = choices.Select(val => val.Machine.OperationId).Distinct();
-            foreach (var id in operationIds.Where(id => !this.PrioritizedOperations.Contains(id)))
-            {
-                var opIndex = this.Random.Next(this.PrioritizedOperations.Count) + 1;
-                this.PrioritizedOperations.Insert(opIndex, id);
-                IO.Debug("<OperationDebug> Detected new operation '{0}' at index '{1}'.", id, opIndex);
-            }
-            
             if (this.PriorityChangePoints.Contains(this.ExploredSteps))
             {
                 if (operationIds.Count() == 1)
@@ -210,45 +149,19 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                 else
                 {
                     var priority = this.GetHighestPriorityEnabledOperationId(choices);
-                    this.PrioritizedOperations.Remove(priority);
-                    this.PrioritizedOperations.Add(priority);
+                    base.Operations.Remove(priority);
+                    base.Operations.Add(priority);
                     IO.PrintLine("<OperationLog> Operation '{0}' changes to lowest priority.",
                         priority);
                 }
             }
-
-            var prioritizedOperation = this.GetHighestPriorityEnabledOperationId(choices);
-            if (this.Configuration.DynamicEventQueuePrioritization)
-            {
-                var machineChoices = choices.Where(mi => mi.Machine is Machine).
-                    Select(m => m.Machine as Machine);
-                foreach (var choice in machineChoices)
-                {
-                    choice.SetQueueOperationPriority(prioritizedOperation);
-                }
-            }
-
-            IO.Debug("<OperationDebug> Prioritized operation '{0}'.", prioritizedOperation);
-            if (IO.Debugging)
-            {
-                IO.Print("<OperationDebug> Priority list: ");
-                for (int idx = 0; idx < this.PrioritizedOperations.Count; idx++)
-                {
-                    if (idx < this.PrioritizedOperations.Count - 1)
-                    {
-                        IO.Print("'{0}', ", this.PrioritizedOperations[idx]);
-                    }
-                    else
-                    {
-                        IO.Print("'{0}'.\n", this.PrioritizedOperations[idx]);
-                    }
-                }
-            }
-
-            var prioritizedMachines = choices.Where(
-                mi => mi.Machine.OperationId == prioritizedOperation).ToList();
-            return prioritizedMachines;
+            
+            return this.GetHighestPriorityEnabledOperationId(choices);
         }
+
+        #endregion
+
+        #region private methods
 
         /// <summary>
         /// Returns the highest-priority enabled operation id.
@@ -258,7 +171,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         private int GetHighestPriorityEnabledOperationId(IEnumerable<MachineInfo> choices)
         {
             var prioritizedOperation = -1;
-            foreach (var op in this.PrioritizedOperations)
+            foreach (var op in base.Operations)
             {
                 if (choices.Any(m => m.Machine.OperationId == op))
                 {
@@ -286,25 +199,6 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
 
             this.PriorityChangePoints.Add(newPriorityChangePoint);
             IO.Debug("<OperationDebug> Moving priority change to '{0}'.", newPriorityChangePoint);
-        }
-
-        /// <summary>
-        /// Returns true if the current operation has completed.
-        /// </summary>
-        /// <param name="opid">OperationId</param>
-        /// <returns>Boolean</returns>
-        private bool HasCurrentOperationCompleted(IEnumerable<MachineInfo> choices, MachineInfo current)
-        {
-            foreach (var choice in choices.Where(mi => !mi.IsCompleted))
-            {
-                if (choice.Machine.OperationId == current.Machine.OperationId ||
-                    choice.Machine.IsOperationPending(current.Machine.OperationId))
-                {
-                    return false;
-                }
-            }
-
-            return true;
         }
 
         #endregion

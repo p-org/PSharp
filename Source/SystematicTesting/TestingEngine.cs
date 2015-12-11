@@ -231,7 +231,12 @@ namespace Microsoft.PSharp.SystematicTesting
             {
                 this.Strategy = new PCTStrategy(this.Configuration, this.Configuration.BugDepth);
             }
-            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.OperationBounding)
+            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.RandomOperationBounding)
+            {
+                this.Strategy = new RandomOperationBoundingStrategy(this.Configuration);
+                this.Configuration.BoundOperations = true;
+            }
+            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.PrioritizedOperationBounding)
             {
                 this.Strategy = new PrioritizedOperationBoundingStrategy(this.Configuration,
                     this.Configuration.BugDepth);
