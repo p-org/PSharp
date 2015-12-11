@@ -76,7 +76,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             this.MaxExploredSteps = 0;
             this.ExploredSteps = 0;
         }
-        
+
         /// <summary>
         /// Returns the next machine to schedule.
         /// </summary>
@@ -101,7 +101,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             }
 
             this.TryRegisterNewOperations(availableMachines, current);
-
+            
             var nextOperation = this.GetNextOperation(availableMachines, current);
 
             IO.Debug("<OperationDebug> Chosen operation '{0}'.", nextOperation);
@@ -229,6 +229,14 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         #region protected methods
 
         /// <summary>
+        /// Returns the next operation to schedule.
+        /// </summary>
+        /// <param name="choices">Choices</param>
+        /// <param name="current">Curent</param>
+        /// <returns>OperationId</returns>
+        protected abstract int GetNextOperation(List<MachineInfo> choices, MachineInfo current);
+
+        /// <summary>
         /// Returns the next machine to schedule that has the given operation.
         /// </summary>
         /// <param name="choices">Choices</param>
@@ -241,21 +249,38 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             int idx = this.Random.Next(availableMachines.Count);
             return availableMachines[idx];
         }
-        
+
+        #endregion
+
+        #region private methods
+
         /// <summary>
-        /// Returns the next operation to schedule.
+        /// Tries to register any new operations.
         /// </summary>
         /// <param name="choices">Choices</param>
         /// <param name="current">Curent</param>
-        /// <returns>OperationId</returns>
-        protected abstract int GetNextOperation(List<MachineInfo> choices, MachineInfo current);
+        private void TryRegisterNewOperations(IEnumerable<MachineInfo> choices, MachineInfo current)
+        {
+            if (this.Operations.Count == 0)
+            {
+                this.Operations.Add(current.Machine.OperationId);
+            }
+
+            var operationIds = choices.Select(mi => mi.Machine.OperationId).Distinct();
+            foreach (var id in operationIds.Where(id => !this.Operations.Contains(id)))
+            {
+                var opIndex = this.Random.Next(this.Operations.Count) + 1;
+                this.Operations.Insert(opIndex, id);
+                IO.Debug("<OperationDebug> Detected new operation '{0}' at index '{1}'.", id, opIndex);
+            }
+        }
 
         /// <summary>
         /// Returns true if the current operation has completed.
         /// </summary>
         /// <param name="opid">OperationId</param>
         /// <returns>Boolean</returns>
-        protected bool HasCurrentOperationCompleted(IEnumerable<MachineInfo> choices, MachineInfo current)
+        private bool HasCurrentOperationCompleted(IEnumerable<MachineInfo> choices, MachineInfo current)
         {
             foreach (var choice in choices.Where(mi => !mi.IsCompleted))
             {
@@ -267,31 +292,6 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             }
 
             return true;
-        }
-
-        #endregion
-
-        #region private methods
-
-        /// <summary>
-        /// Tries to register any new operations.
-        /// </summary>
-        /// <param name="choices">Choices</param>
-        /// <param name="current">Curent</param>
-        private void TryRegisterNewOperations(List<MachineInfo> choices, MachineInfo current)
-        {
-            if (this.Operations.Count == 0)
-            {
-                this.Operations.Add(current.Machine.OperationId);
-            }
-
-            var operationIds = choices.Select(val => val.Machine.OperationId).Distinct();
-            foreach (var id in operationIds.Where(id => !this.Operations.Contains(id)))
-            {
-                var opIndex = this.Random.Next(this.Operations.Count) + 1;
-                this.Operations.Insert(opIndex, id);
-                IO.Debug("<OperationDebug> Detected new operation '{0}' at index '{1}'.", id, opIndex);
-            }
         }
 
         #endregion

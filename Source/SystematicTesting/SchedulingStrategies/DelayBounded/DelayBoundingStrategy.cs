@@ -81,7 +81,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// <returns>Boolean</returns>
         public virtual bool TryGetNext(out MachineInfo next, IList<MachineInfo> choices, MachineInfo current)
         {
-            var machines = choices.OrderBy(machine => machine.Machine.Id.Value).ToList();
+            var machines = choices.OrderBy(mi => mi.Machine.Id.Value).ToList();
 
             var currentMachineIdx = machines.IndexOf(current);
             var orderedMachines = machines.GetRange(currentMachineIdx, machines.Count - currentMachineIdx);
@@ -91,7 +91,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             }
 
             var availableMachines = orderedMachines.Where(
-                m => m.IsEnabled && !m.IsBlocked && !m.IsWaiting).ToList();
+                mi => mi.IsEnabled && !mi.IsBlocked && !mi.IsWaiting).ToList();
             if (availableMachines.Count == 0)
             {
                 next = null;

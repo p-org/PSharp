@@ -82,7 +82,7 @@
     <Compile Include="SchedulingStrategies\Special\MaceMCStrategy.cs" />
     <Compile Include="SchedulingStrategies\DFS\IterativeDeepeningDFSStrategy.cs" />
     <Compile Include="SchedulingStrategies\DFS\DFSStrategy.cs" />
-    <Compile Include="SchedulingStrategies\Random\RandomStrategy.cs" />
+    <Compile Include="SchedulingStrategies\Fuzzing\RandomStrategy.cs" />
     <Compile Include="TestingEngine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

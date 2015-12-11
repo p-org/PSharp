@@ -27,6 +27,15 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
     /// </summary>
     public class RandomOperationBoundingStrategy : OperationBoundingStrategy, ISchedulingStrategy
     {
+        #region fields
+
+        /// <summary>
+        /// Map from operations to scheduled machine.
+        /// </summary>
+        private Dictionary<int, MachineInfo> OperationSchedule;
+
+        #endregion
+
         #region public API
 
         /// <summary>
@@ -36,7 +45,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         public RandomOperationBoundingStrategy(Configuration configuration)
             : base(configuration)
         {
-            
+            this.OperationSchedule = new Dictionary<int, MachineInfo>();
         }
 
         /// <summary>
@@ -97,10 +106,47 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// <returns>OperationId</returns>
         protected override int GetNextOperation(List<MachineInfo> choices, MachineInfo current)
         {
-            var enabledOperations = base.Operations.Where(val => choices.Any(
-                m => m.Machine.OperationId == val)).ToList();
-            int opIdx = base.Random.Next(enabledOperations.Count);
-            return enabledOperations[opIdx];
+            int idx = this.Random.Next(choices.Count);
+            var machineWithNextOperation = choices[idx];
+            return machineWithNextOperation.Machine.OperationId;
+
+            //var enabledOperations = base.Operations.Where(val => choices.Any(
+            //    m => m.Machine.OperationId == val)).ToList();
+            //int opIdx = base.Random.Next(enabledOperations.Count);
+            //return enabledOperations[opIdx];
+        }
+
+        /// <summary>
+        /// Returns the next machine to schedule that has the given operation.
+        /// </summary>
+        /// <param name="choices">Choices</param>
+        /// <param name="operationId">OperationId</param>
+        /// <returns>MachineInfo</returns>
+        protected override MachineInfo GetNextMachineWithOperation(List<MachineInfo> choices, int operationId)
+        {
+            var availableMachines = choices.Where(mi => mi.Machine.OperationId == operationId)
+                .OrderBy(mi => mi.Machine.Id.Value).ToList();
+
+            MachineInfo next = null;
+            int idx = 0;
+
+            if (this.OperationSchedule.ContainsKey(operationId))
+            {
+                idx = availableMachines.IndexOf(this.OperationSchedule[operationId]) + 1;
+                if (idx == availableMachines.Count)
+                {
+                    idx = 0;
+                }
+            }
+            else
+            {
+                this.OperationSchedule.Add(operationId, null);
+            }
+
+            next = availableMachines[idx];
+            this.OperationSchedule[operationId] = next;
+
+            return next;
         }
 
         #endregion

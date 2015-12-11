@@ -502,10 +502,10 @@ namespace Microsoft.PSharp.SystematicTesting
             
             var prevMachineOpId = machine.OperationId;
             machine.SetOperationId(e.OperationId);
-            if (this.Configuration.BoundOperations && prevMachineOpId != machine.OperationId)
-            {
-                this.BugFinder.Schedule();
-            }
+            //if (this.Configuration.BoundOperations && prevMachineOpId != machine.OperationId)
+            //{
+            //    this.BugFinder.Schedule();
+            //}
         }
 
         /// <summary>
@@ -517,10 +517,10 @@ namespace Microsoft.PSharp.SystematicTesting
         {
             var prevMachineOpId = machine.OperationId;
             machine.SetOperationId(e.OperationId);
-            if (this.Configuration.BoundOperations && prevMachineOpId != machine.OperationId)
-            {
-                this.BugFinder.Schedule();
-            }
+            //if (this.Configuration.BoundOperations && prevMachineOpId != machine.OperationId)
+            //{
+            //    this.BugFinder.Schedule();
+            //}
         }
 
         /// <summary>
