@@ -14,6 +14,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using RuntimeTrace;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -112,6 +113,13 @@ namespace Microsoft.PSharp
         /// has been received.
         /// </summary>
         protected internal Event ReceivedEvent { get; private set; }
+
+        //Instrumentation
+        internal List<MachineTrace> runtimeTrace = new List<MachineTrace>();
+
+        private int actionId = 0;
+        private int sendId = 0;
+        //end instrumentation
 
         #endregion
 
