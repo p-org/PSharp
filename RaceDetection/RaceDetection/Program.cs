@@ -23,9 +23,9 @@ namespace RaceDetection
             //String input = "C:\\Users\\t-rasmud\\Documents\\Visual Studio 2015\\Projects\\RacyTests\\RacyInts\\bin\\Debug\\RacyInts.exe";
             //String input = "C:\\Users\\t-rasmud\\Documents\\Visual Studio 2015\\Projects\\RacyTests\\StructAddressCheck\\bin\\Debug\\StructAddressCheck.exe";
             //String input = "D:\\PSharp\\Samples\\CSharp\\Raft\\bin\\Debug\\Raft.exe";
-            //String input = "D:\\RaceDetection\\RacyBenchmarks\\RacyBenchmarks\\bin\\Debug\\BasicPaxosRacy.exe";
-            String input = "D:\\RaceDetection\\RacyBenchmarks\\BoundedAsyncRacy\\bin\\Debug\\BoundedAsyncRacy.exe";
-            //String input = "D:\\RaceDetection\\RacyBenchmarks\\ChainReplicationRacy\\bin\\Debug\\ChainReplicationRacy.exe";
+            //String input = "D:\\PSharp\\RaceDetection\\RacyBenchmarks\\RacyBenchmarks\\bin\\Debug\\BasicPaxosRacy.exe";
+            String input = "D:\\PSharp\\RaceDetection\\RacyBenchmarks\\BoundedAsyncRacy\\bin\\Debug\\BoundedAsyncRacy.exe";
+            //String input = "D:\\PSharp\\RaceDetection\\RacyBenchmarks\\ChainReplicationRacy\\bin\\Debug\\ChainReplicationRacy.exe";
 
             Assembly a = Assembly.LoadFrom(input);
 

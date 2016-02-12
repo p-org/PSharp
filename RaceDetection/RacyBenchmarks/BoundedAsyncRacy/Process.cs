@@ -167,8 +167,9 @@ namespace BoundedAsyncRacy
 
             var countMsg = (this.ReceivedEvent as eMyCount).cntPayload;
 
+            Console.WriteLine("countMsg: " + countMessage.Count + " " + "cntMsg: " + countMsg.Count);
             Assert((countMessage.Count <= countMsg.Count) &&
-                (countMessage.Count >= (countMsg.Count - 1)));
+                (countMessage.Count >= (countMsg.Count - 1)), "Caught!!");
         }
 
         #endregion
