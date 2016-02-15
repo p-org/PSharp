@@ -37,21 +37,17 @@
     <Reference Include="ProgramTrace">
       <HintPath>..\ProgramTrace\bin\Debug\ProgramTrace.dll</HintPath>
     </Reference>
-    <Reference Include="QuickGraph, Version=3.6.61114.0, Culture=neutral, PublicKeyToken=f3fb40175eec2af3, processorArchitecture=MSIL">
-      <HintPath>..\packages\QuickGraph.3.6.61119.7\lib\net4\QuickGraph.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="QuickGraph">
+      <HintPath>..\..\References\QuickGraph\QuickGraph.dll</HintPath>
     </Reference>
-    <Reference Include="QuickGraph.Data, Version=3.6.61114.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\QuickGraph.3.6.61119.7\lib\net4\QuickGraph.Data.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="QuickGraph.Data">
+      <HintPath>..\..\References\QuickGraph\QuickGraph.Data.dll</HintPath>
     </Reference>
-    <Reference Include="QuickGraph.Graphviz, Version=3.6.61114.0, Culture=neutral, PublicKeyToken=f3fb40175eec2af3, processorArchitecture=MSIL">
-      <HintPath>..\packages\QuickGraph.3.6.61119.7\lib\net4\QuickGraph.Graphviz.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="QuickGraph.Graphviz">
+      <HintPath>..\..\References\QuickGraph\QuickGraph.Graphviz.dll</HintPath>
     </Reference>
-    <Reference Include="QuickGraph.Serialization, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\QuickGraph.3.6.61119.7\lib\net4\QuickGraph.Serialization.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="QuickGraph.Serialization">
+      <HintPath>..\..\References\QuickGraph\QuickGraph.Serialization.dll</HintPath>
     </Reference>
     <Reference Include="RuntimeTrace">
       <HintPath>..\..\PSharp\Binaries\Debug\RuntimeTrace.dll</HintPath>
