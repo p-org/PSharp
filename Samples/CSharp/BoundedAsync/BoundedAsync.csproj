@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{E68017E7-D94B-413E-BEF4-F29D5A61790E}</ProjectGuid>
+    <ProjectGuid>{A19C3F73-4BDA-4BB2-88CF-0EA3D7AFEFEA}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>PingPong</RootNamespace>
-    <AssemblyName>PingPong</AssemblyName>
+    <RootNamespace>BoundedAsync</RootNamespace>
+    <AssemblyName>BoundedAsync</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -40,9 +40,8 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Client.cs" />
-    <Compile Include="Events.cs" />
-    <Compile Include="Server.cs" />
+    <Compile Include="Process.cs" />
+    <Compile Include="Scheduler.cs" />
     <Compile Include="Test.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
