@@ -126,7 +126,7 @@ namespace Offline
         static List<ThreadTrace> allThreadTraces = new List<ThreadTrace>();                     //can be simplified?
         static void Main(String[] args)
         {
-            string[] fileEntries = Directory.GetFiles("D:\\RaceDetection\\RaceDetection\\bin\\Debug");
+            string[] fileEntries = Directory.GetFiles("D:\\PSharp\\RaceDetection\\RaceDetection\\bin\\Debug");
             foreach (string fileName in fileEntries)
             {
                 //Deserialize thread traces
@@ -283,6 +283,8 @@ namespace Offline
         static void detectRaces()
         {
             List<Tuple<Node, Node>> racyPairs = new List<Tuple<Node, Node>>();
+            List<Tuple<string, string>> reportedRaces = new List<Tuple<string, string>>();
+
             foreach (Node n in HbGraph.Vertices)
             {
                 if (n.GetType().ToString().Contains("MemAccess"))
@@ -306,6 +308,7 @@ namespace Offline
                                 {
                                     Console.WriteLine("RACE DETECTED: " + loc1.location + " and " + loc2.location + " i.e " + loc1.srcLocation + ";" + loc1.isWrite + " and " + loc2.srcLocation + ";" + loc2.isWrite);
                                     racyPairs.Add(new Tuple<Node, Node>(n, n1));
+                                    reportedRaces.Add(new Tuple<string, string>(loc1.location + ";" + loc1.isWrite, loc2.location + ";" + loc2.isWrite));
                                 }
                             }
                         }

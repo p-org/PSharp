@@ -14,7 +14,7 @@ namespace BoundedAsyncRacy
         #endregion
 
         #region structs
-        internal struct CountMessage
+        internal class CountMessage
         {
             public int Count;
 
@@ -167,7 +167,6 @@ namespace BoundedAsyncRacy
 
             var countMsg = (this.ReceivedEvent as eMyCount).cntPayload;
 
-            Console.WriteLine("countMsg: " + countMessage.Count + " " + "cntMsg: " + countMsg.Count);
             Assert((countMessage.Count <= countMsg.Count) &&
                 (countMessage.Count >= (countMsg.Count - 1)), "Caught!!");
         }

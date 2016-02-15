@@ -43,7 +43,7 @@ namespace RaceDetection
             referencedAssemblies.CopyTo(includedAssemblies, 0);
             //Old ExtendedReflection
             ProcessStartInfo info = ControllerSetUp.GetMonitorableProcessStartInfo(
-                "D:\\RaceDetection\\Base\\bin\\Debug\\Base.exe",
+                "D:\\PSharp\\RaceDetection\\Base\\bin\\Debug\\Base.exe",
                 new String[] { WrapString(input) },
                 MonitorInstrumentationFlags.All,
                 true,

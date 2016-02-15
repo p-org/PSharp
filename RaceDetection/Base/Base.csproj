@@ -35,7 +35,7 @@
   <ItemGroup>
     <Reference Include="Microsoft.ExtendedReflection, Version=0.14.40609.4, Culture=neutral, PublicKeyToken=76a274db078248c8, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\chesstool-69631\ManagedChess\external\Microsoft.ExtendedReflection.dll</HintPath>
+      <HintPath>..\..\..\chesstool-69631\ManagedChess\external\Microsoft.ExtendedReflection.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.PSharp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=c4566cf0a7f74012, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
