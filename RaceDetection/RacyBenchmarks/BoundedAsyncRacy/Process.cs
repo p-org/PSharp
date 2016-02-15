@@ -14,7 +14,7 @@ namespace BoundedAsyncRacy
         #endregion
 
         #region structs
-        internal class CountMessage
+        internal struct CountMessage
         {
             public int Count;
 

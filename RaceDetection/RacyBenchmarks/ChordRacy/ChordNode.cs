@@ -313,19 +313,19 @@ namespace ChordRacy
             if (this.Keys.Contains(id))
             {
                 message = new Message(this.Id, id);
-                this.Send(sender, new eFindSuccessorResp(message));
+                this.Send(sender, new Client.eFindSuccessorResp(message));
                 this.message = message;
             }
             else if (this.FingerTable.ContainsKey(id))
             {
                 message = new Message(this.FingerTable[id].Item3, id);
-                this.Send(sender, new eFindSuccessorResp(message));
+                this.Send(sender, new Client.eFindSuccessorResp(message));
                 this.message = message;
             }
             else if (this.Identity.Equals(id))
             {
                 message = new Message(this.FingerTable[(this.Identity + 1) % this.NumOfId].Item3, id);
-                this.Send(sender, new eFindSuccessorResp(message));
+                this.Send(sender, new Client.eFindSuccessorResp(message));
                 this.message = message;
             }
             else
