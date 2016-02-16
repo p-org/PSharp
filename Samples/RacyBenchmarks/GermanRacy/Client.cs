@@ -23,6 +23,38 @@ namespace GermanRacy
                 this.initPayload = initPayload;
             }
         }
+
+        private class eWait : Event { }
+
+        private class eNormal : Event { }
+
+        public class eAskShare : Event
+        {
+            public MachineId mId;
+
+            public eAskShare(MachineId mId)
+            {
+                this.mId = mId;
+            }
+        }
+
+        public class eAskExcl : Event
+        {
+            public MachineId mid;
+
+            public eAskExcl(MachineId mid)
+            {
+                this.mid = mid;
+            }
+        }
+
+        public class eInvalidate : Event { }
+
+        public class eGrantExcl : Event { }
+
+        public class eGrantShare : Event { }
+
+        public class eStop : Event { }
         #endregion
 
         #region fields
@@ -40,7 +72,68 @@ namespace GermanRacy
         private class Init : MachineState { }
 
         [OnEventDoAction(typeof(eInitialize), nameof(OnInitialize))]
+        [OnEventGotoState(typeof(eLocal), typeof(Invalid))]
         private class WaitingForInit : MachineState { }
+
+        [OnEntry(nameof(OnInvalidEntry))]
+        [OnEventGotoState(typeof(eAskShare), typeof(AskedShare))]
+        [OnEventGotoState(typeof(eAskExcl), typeof(AskedExcl))]
+        [OnEventGotoState(typeof(eInvalidate), typeof(Invalidating))]
+        [OnEventGotoState(typeof(eGrantExcl), typeof(Exclusive))]
+        [OnEventGotoState(typeof(eGrantShare), typeof(Sharing))]
+        [OnEventDoAction(typeof(eStop), nameof(Stop))]
+        private class Invalid : MachineState { }
+
+        [OnEntry(nameof(OnAskedShareEntry))]
+        [OnEventGotoState(typeof(eLocal), typeof(InvalidWaiting))]
+        private class AskedShare : MachineState { }
+
+        [OnEntry(nameof(OnAskedExclEntry))]
+        [OnEventGotoState(typeof(eLocal), typeof(InvalidWaiting))]
+        private class AskedExcl : MachineState { }
+
+        [OnEntry(nameof(OnInvalidWaitingEntry))]
+        [DeferEvents(typeof(eAskShare),
+                    typeof(eAskExcl))]
+        [OnEventGotoState(typeof(eInvalidate), typeof(Invalidating))]
+        [OnEventGotoState(typeof(eGrantExcl), typeof(Exclusive))]
+        [OnEventGotoState(typeof(eGrantShare), typeof(Sharing))]
+        [OnEventDoAction(typeof(eStop), nameof(Stop))]
+        private class InvalidWaiting : MachineState { }
+
+        [OnEntry(nameof(OnAskedEx2Entry))]
+        [OnEventGotoState(typeof(eLocal), typeof(ShareWaiting))]
+        private class AskedEx2 : MachineState { }
+
+        [OnEntry(nameof(OnSharingEntry))]
+        [OnEventGotoState(typeof(eInvalidate), typeof(Invalidating))]
+        [OnEventGotoState(typeof(eGrantShare), typeof(Sharing))]
+        [OnEventGotoState(typeof(eGrantExcl), typeof(Exclusive))]
+        [OnEventGotoState(typeof(eAskExcl), typeof(AskedEx2))]
+        [OnEventDoAction(typeof(eStop), nameof(Stop))]
+        [OnEventDoAction(typeof(eAskShare), nameof(Ack))]
+        private class Sharing : MachineState { }
+
+        [OnEntry(nameof(OnShareWaitingEntry))]
+        [OnEventGotoState(typeof(eInvalidate), typeof(Invalidating))]
+        [OnEventGotoState(typeof(eGrantShare), typeof(Sharing))]
+        [OnEventGotoState(typeof(eGrantExcl), typeof(Exclusive))]
+        [OnEventDoAction(typeof(eStop), nameof(Stop))]
+        private class ShareWaiting : MachineState { }
+
+        [OnEntry(nameof(OnExclusiveEntry))]
+        [IgnoreEvents(typeof(eAskShare),
+                    typeof(eAskExcl))]
+        [OnEventGotoState(typeof(eInvalidate), typeof(Invalidating))]
+        [OnEventGotoState(typeof(eGrantShare), typeof(Sharing))]
+        [OnEventGotoState(typeof(eGrantExcl), typeof(Exclusive))]
+        [OnEventDoAction(typeof(eStop), nameof(Stop))]
+        private class Exclusive : MachineState { }
+
+        [OnEntry(nameof(OnInvalidatingEntry))]
+        [OnEventGotoState(typeof(eWait), typeof(InvalidWaiting))]
+        [OnEventGotoState(typeof(eNormal), typeof(Invalid))]
+        private class Invalidating : MachineState { }
         #endregion
 
         #region actions
@@ -59,141 +152,74 @@ namespace GermanRacy
 
             this.Raise(new eLocal());
         }
-        #endregion
-    }
-}
 
-internal class Client : Machine
-{
-    private class Invalid : State
-    {
-        protected override void OnEntry()
+        private void OnInvalidEntry()
         {
-            var machine = this.Machine as Client;
-
             Console.WriteLine("[Client] Invalid ...\n");
         }
-    }
 
-    private class AskedShare : State
-    {
-        protected override void OnEntry()
+        private void OnAskedShareEntry()
         {
-            var machine = this.Machine as Client;
-
             Console.WriteLine("[Client] AskedShare ...\n");
 
-            var message = new Message(machine.Id, machine.Pending);
-            this.Send(machine.Host, new eShareReq(message));
-            machine.Pending = message.Pending;
+            var message = new Host.Message(Identity, Pending);
+            this.Send(Host, new Host.eShareReq(message));
+            Pending = message.Pending;
 
             this.Raise(new eLocal());
         }
-    }
 
-    private class AskedExcl : State
-    {
-        protected override void OnEntry()
+        private void OnAskedExclEntry()
         {
-            var machine = this.Machine as Client;
-
             Console.WriteLine("[Client] AskedExcl ...\n");
 
-            var message = new Message(machine.Id, machine.Pending);
-            this.Send(machine.Host, new eExclReq(message));
-            machine.Pending = message.Pending;
+            var message = new Host.Message(Identity, Pending);
+            this.Send(Host, new Host.eExclReq(message));
+            Pending = message.Pending;
 
             this.Raise(new eLocal());
         }
-    }
 
-    private class InvalidWaiting : State
-    {
-        protected override void OnEntry()
+        private void OnInvalidWaitingEntry()
         {
-            var machine = this.Machine as Client;
-
             Console.WriteLine("[Client] InvalidWaiting ...\n");
         }
 
-        protected override HashSet<Type> DefineDeferredEvents()
+        private void OnAskedEx2Entry()
         {
-            return new HashSet<Type>
-                {
-                    typeof(eAskShare),
-                    typeof(eAskExcl)
-                };
-        }
-    }
-
-    private class AskedEx2 : State
-    {
-        protected override void OnEntry()
-        {
-            var machine = this.Machine as Client;
-
             Console.WriteLine("[Client] AskedEx2 ...\n");
 
-            var message = new Message(machine.Id, machine.Pending);
-            this.Send(machine.Host, new eExclReq(message));
-            machine.Pending = message.Pending;
+            var message = new Host.Message(Identity, Pending);
+            this.Send(Host, new Host.eExclReq(message));
+            Pending = message.Pending;
 
             this.Raise(new eLocal());
         }
-    }
 
-    private class Sharing : State
-    {
-        protected override void OnEntry()
+        private void OnSharingEntry()
         {
-            var machine = this.Machine as Client;
-
             Console.WriteLine("[Client] Sharing ...\n");
 
-            machine.Pending = false;
+            Pending = false;
         }
-    }
 
-    private class ShareWaiting : State
-    {
-        protected override void OnEntry()
+        private void OnShareWaitingEntry()
         {
-            var machine = this.Machine as Client;
-
             Console.WriteLine("[Client] ShareWaiting ...\n");
         }
-    }
 
-    private class Exclusive : State
-    {
-        protected override void OnEntry()
+        private void OnExclusiveEntry()
         {
-            var machine = this.Machine as Client;
-
             Console.WriteLine("[Client] Exclusive ...\n");
 
-            machine.Pending = false;
+            Pending = false;
         }
 
-        protected override HashSet<Type> DefineIgnoredEvents()
+        private void OnInvalidatingEntry()
         {
-            return new HashSet<Type>
-                {
-                    typeof(eAskShare),
-                    typeof(eAskExcl)
-                };
-        }
-    }
-
-    private class Invalidating : State
-    {
-        protected override void OnEntry()
-        {
-            var machine = this.Machine as Client;
-
             Console.WriteLine("[Client] Invalidating ...\n");
 
-            if (machine.Pending)
+            if (Pending)
             {
                 this.Raise(new eWait());
             }
@@ -202,110 +228,21 @@ internal class Client : Machine
                 this.Raise(new eNormal());
             }
         }
-    }
 
-    private void Ack()
-    {
-        var cpu = (Machine)this.Payload;
+        private void Ack()
+        {
+            var cpu = (this.ReceivedEvent as eAskShare).mId;
 
-        this.Send(cpu, new eAck());
-    }
+            this.Send(cpu, new CPU.eAck());
+        }
 
-    private void Stop()
-    {
-        Console.WriteLine("[Client] Stopping ...\n");
+        private void Stop()
+        {
+            Console.WriteLine("[Client] Stopping ...\n");
 
-        this.Delete();
-    }
+            Raise(new Halt());
+        }
 
-    protected override Dictionary<Type, StepStateTransitions> DefineStepStateTransitions()
-    {
-        Dictionary<Type, StepStateTransitions> dict = new Dictionary<Type, StepStateTransitions>();
-
-        StepStateTransitions initDict = new StepStateTransitions();
-        initDict.Add(typeof(eLocal), typeof(Invalid));
-
-        StepStateTransitions invalidDict = new StepStateTransitions();
-        invalidDict.Add(typeof(eAskShare), typeof(AskedShare));
-        invalidDict.Add(typeof(eAskExcl), typeof(AskedExcl));
-        invalidDict.Add(typeof(eInvalidate), typeof(Invalidating));
-        invalidDict.Add(typeof(eGrantExcl), typeof(Exclusive));
-        invalidDict.Add(typeof(eGrantShare), typeof(Sharing));
-
-        StepStateTransitions askedShareDict = new StepStateTransitions();
-        askedShareDict.Add(typeof(eLocal), typeof(InvalidWaiting));
-
-        StepStateTransitions askedExclDict = new StepStateTransitions();
-        askedExclDict.Add(typeof(eLocal), typeof(InvalidWaiting));
-
-        StepStateTransitions invalidWaitingDict = new StepStateTransitions();
-        invalidWaitingDict.Add(typeof(eInvalidate), typeof(Invalidating));
-        invalidWaitingDict.Add(typeof(eGrantExcl), typeof(Exclusive));
-        invalidWaitingDict.Add(typeof(eGrantShare), typeof(Sharing));
-
-        StepStateTransitions askedEx2Dict = new StepStateTransitions();
-        askedEx2Dict.Add(typeof(eLocal), typeof(ShareWaiting));
-
-        StepStateTransitions sharingDict = new StepStateTransitions();
-        sharingDict.Add(typeof(eInvalidate), typeof(Invalidating));
-        sharingDict.Add(typeof(eGrantShare), typeof(Sharing));
-        sharingDict.Add(typeof(eGrantExcl), typeof(Exclusive));
-        sharingDict.Add(typeof(eAskExcl), typeof(AskedEx2));
-
-        StepStateTransitions shareWaitingDict = new StepStateTransitions();
-        shareWaitingDict.Add(typeof(eInvalidate), typeof(Invalidating));
-        shareWaitingDict.Add(typeof(eGrantShare), typeof(Sharing));
-        shareWaitingDict.Add(typeof(eGrantExcl), typeof(Exclusive));
-
-        StepStateTransitions exclusiveDict = new StepStateTransitions();
-        exclusiveDict.Add(typeof(eInvalidate), typeof(Invalidating));
-        exclusiveDict.Add(typeof(eGrantShare), typeof(Sharing));
-        exclusiveDict.Add(typeof(eGrantExcl), typeof(Exclusive));
-
-        StepStateTransitions invalidatingDict = new StepStateTransitions();
-        invalidatingDict.Add(typeof(eWait), typeof(InvalidWaiting));
-        invalidatingDict.Add(typeof(eNormal), typeof(Invalid));
-
-        dict.Add(typeof(Init), initDict);
-        dict.Add(typeof(Invalid), invalidDict);
-        dict.Add(typeof(AskedShare), askedShareDict);
-        dict.Add(typeof(AskedExcl), askedExclDict);
-        dict.Add(typeof(InvalidWaiting), invalidWaitingDict);
-        dict.Add(typeof(AskedEx2), askedEx2Dict);
-        dict.Add(typeof(Sharing), sharingDict);
-        dict.Add(typeof(ShareWaiting), shareWaitingDict);
-        dict.Add(typeof(Exclusive), exclusiveDict);
-        dict.Add(typeof(Invalidating), invalidatingDict);
-
-        return dict;
-    }
-
-    protected override Dictionary<Type, ActionBindings> DefineActionBindings()
-    {
-        Dictionary<Type, ActionBindings> dict = new Dictionary<Type, ActionBindings>();
-
-        ActionBindings invalidDict = new ActionBindings();
-        invalidDict.Add(typeof(eStop), new Action(Stop));
-
-        ActionBindings invalidWaitingDict = new ActionBindings();
-        invalidWaitingDict.Add(typeof(eStop), new Action(Stop));
-
-        ActionBindings sharingDict = new ActionBindings();
-        sharingDict.Add(typeof(eStop), new Action(Stop));
-        sharingDict.Add(typeof(eAskShare), new Action(Ack));
-
-        ActionBindings shareWaitingDict = new ActionBindings();
-        shareWaitingDict.Add(typeof(eStop), new Action(Stop));
-
-        ActionBindings exclusiveDict = new ActionBindings();
-        exclusiveDict.Add(typeof(eStop), new Action(Stop));
-
-        dict.Add(typeof(Invalid), invalidDict);
-        dict.Add(typeof(InvalidWaiting), invalidWaitingDict);
-        dict.Add(typeof(Sharing), sharingDict);
-        dict.Add(typeof(ShareWaiting), shareWaitingDict);
-        dict.Add(typeof(Exclusive), exclusiveDict);
-
-        return dict;
+        #endregion
     }
 }
