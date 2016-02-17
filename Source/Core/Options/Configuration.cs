@@ -115,9 +115,10 @@ namespace Microsoft.PSharp.Utilities
         public int SchedulingIterations;
 
         /// <summary>
-        /// Seed for random scheduling strategies.
+        /// If true, the P# runtime will perform instrumentation
+        /// while a P# program executes.
         /// </summary>
-        internal int? RandomSchedulingSeed;
+        public bool PerformInstrumentation;
 
         /// <summary>
         /// Redirects the console output.
@@ -131,7 +132,7 @@ namespace Microsoft.PSharp.Utilities
         public bool PrintTrace;
 
         /// <summary>
-        /// If true, then the P# tester will not output the
+        /// If true, the P# tester will not output the
         /// error trace to a file.
         /// </summary>
         public bool SuppressTrace;
@@ -147,7 +148,7 @@ namespace Microsoft.PSharp.Utilities
         public int DepthBound;
 
         /// <summary>
-        /// If true, then the P# tester will consider an execution
+        /// If true, the P# tester will consider an execution
         /// that hits the depth bound as buggy.
         /// </summary>
         public bool ConsiderDepthBoundHitAsBug;
@@ -168,31 +169,36 @@ namespace Microsoft.PSharp.Utilities
         public int SafetyPrefixBound;
 
         /// <summary>
-        /// If true, then the P# tester will try to schedule
+        /// Seed for random scheduling strategies.
+        /// </summary>
+        public int? RandomSchedulingSeed;
+
+        /// <summary>
+        /// If true, the P# tester will try to schedule
         /// any intra-machine concurrency.
         /// </summary>
         public bool ScheduleIntraMachineConcurrency;
 
         /// <summary>
-        /// If true, then the P# tester will check if any liveness
+        /// If true, the P# tester will check if any liveness
         /// properties hold.
         /// </summary>
         public bool CheckLiveness;
 
         /// <summary>
-        /// If true, then the P# tester will perform state
+        /// If true, the P# tester will perform state
         /// caching when checking liveness properties.
         /// </summary>
         public bool CacheProgramState;
 
         /// <summary>
-        /// If true, then the P# tester will try to bound
+        /// If true, the P# tester will try to bound
         /// the interleavings between operations.
         /// </summary>
         public bool BoundOperations;
 
         /// <summary>
-        /// If true, the runtime can reorder events in machine
+        /// If true, runtime can reorder events in machine
         /// queues dynamically, depending on priorities.
         /// </summary>
         public bool DynamicEventQueuePrioritization;
@@ -251,7 +257,7 @@ namespace Microsoft.PSharp.Utilities
 
             this.SchedulingStrategy = SchedulingStrategy.Random;
             this.SchedulingIterations = 1;
-            this.RandomSchedulingSeed = null;
+            this.PerformInstrumentation = false;
 
             this.RedirectConsoleOutput = true;
             this.PrintTrace = false;
@@ -263,6 +269,7 @@ namespace Microsoft.PSharp.Utilities
             this.BugDepth = 2;
             this.DelayBound = 2;
             this.SafetyPrefixBound = 0;
+            this.RandomSchedulingSeed = null;
 
             this.ScheduleIntraMachineConcurrency = false;
             this.CheckLiveness = false;

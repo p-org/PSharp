@@ -67,7 +67,7 @@
     <Compile Include="ObjectAccessThreadMonitor.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ThreadExecutionMoniorDispatcher.cs" />
+    <Compile Include="ThreadExecutionMonitorDispatcher.cs" />
     <Compile Include="ThreadMonitorBase.cs" />
     <Compile Include="ThreadMonitorCollection.cs" />
     <Compile Include="ThreadMonitorFactory.cs" />
