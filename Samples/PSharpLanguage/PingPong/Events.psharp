@@ -2,7 +2,7 @@
 {
     #region Events
 
-	internal event Config;
+	internal event Config (target: machine);
     internal event Ping;
     internal event Pong;
     internal event Unit;

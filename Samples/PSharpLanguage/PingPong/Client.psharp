@@ -36,7 +36,7 @@
         {
             this.Counter++;
             Console.WriteLine("\nTurns: {0} / 5\n", this.Counter);
-			send(this.Server, Ping, x, y, z, x, test(x) - 1);
+			send(this.Server, Ping);
             raise(Unit);
         }
     }

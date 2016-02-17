@@ -77,15 +77,15 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             if (base.TokenStream.Done ||
                 (base.TokenStream.Peek().Type != TokenType.Assert &&
                 base.TokenStream.Peek().Type != TokenType.Assume &&
-                base.TokenStream.Peek().Type != TokenType.Colon &&
+                base.TokenStream.Peek().Type != TokenType.LeftParenthesis &&
                 base.TokenStream.Peek().Type != TokenType.Semicolon))
             {
-                throw new ParsingException("Expected \":\" or \";\".",
+                throw new ParsingException("Expected \"(\" or \";\".",
                     new List<TokenType>
                 {
                     TokenType.Assert,
                     TokenType.Assume,
-                    TokenType.Colon,
+                    TokenType.LeftParenthesis,
                     TokenType.Semicolon
                 });
             }
@@ -140,28 +140,75 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
                 if (base.TokenStream.Done ||
-                    (base.TokenStream.Peek().Type != TokenType.Colon &&
+                    (base.TokenStream.Peek().Type != TokenType.LeftParenthesis &&
                     base.TokenStream.Peek().Type != TokenType.Semicolon))
                 {
-                    throw new ParsingException("Expected \":\" or \";\".",
+                    throw new ParsingException("Expected \"(\" or \";\".",
                         new List<TokenType>
                     {
-                        TokenType.Colon,
+                        TokenType.LeftParenthesis,
                         TokenType.Semicolon
                     });
                 }
             }
 
-            if (base.TokenStream.Peek().Type == TokenType.Colon)
+            if (base.TokenStream.Peek().Type == TokenType.LeftParenthesis)
             {
-                node.ColonToken = base.TokenStream.Peek();
+                node.LeftParenthesis = base.TokenStream.Peek();
 
                 base.TokenStream.Index++;
                 base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-                PBaseType payloadType = null;
-                new TypeIdentifierVisitor(base.TokenStream).Visit(ref payloadType);
-                node.PayloadType = payloadType;
+                bool isType = false;
+                while (!base.TokenStream.Done &&
+                    base.TokenStream.Peek().Type != TokenType.RightParenthesis)
+                {
+                    if (isType &&
+                        base.TokenStream.Peek().Type != TokenType.Colon &&
+                        base.TokenStream.Peek().Type != TokenType.Comma)
+                    {
+                        TextUnit textUnit = null;
+                        new TypeIdentifierVisitor(base.TokenStream).Visit(ref textUnit);
+                        var typeIdentifier = new Token(textUnit, TokenType.TypeIdentifier);
+                        node.PayloadTypes.Add(typeIdentifier);
+                    }
+                    else if (base.TokenStream.Peek().Type != TokenType.Colon &&
+                        base.TokenStream.Peek().Type != TokenType.Comma)
+                    {
+                        node.PayloadIdentifiers.Add(base.TokenStream.Peek());
+
+                        isType = true;
+                        base.TokenStream.Index++;
+                        base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                    }
+
+                    if (base.TokenStream.Peek().Type == TokenType.Comma)
+                    {
+                        isType = false;
+                        base.TokenStream.Index++;
+                        base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                    }
+                    else if (base.TokenStream.Peek().Type == TokenType.Colon)
+                    {
+                        base.TokenStream.Index++;
+                        base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                    }
+                }
+
+                if (base.TokenStream.Done ||
+                    base.TokenStream.Peek().Type != TokenType.RightParenthesis)
+                {
+                    throw new ParsingException("Expected \")\".",
+                        new List<TokenType>
+                    {
+                            TokenType.RightParenthesis
+                    });
+                }
+
+                node.RightParenthesis = base.TokenStream.Peek();
+
+                base.TokenStream.Index++;
+                base.TokenStream.SkipWhiteSpaceAndCommentTokens();
             }
 
             if (base.TokenStream.Done ||
