@@ -70,6 +70,15 @@ namespace Microsoft.PSharp.Utilities
         }
 
         /// <summary>
+        ///  Writes the specified string value to the output stream.
+        /// </summary>
+        /// <param name="s">String</param>
+        internal static void Print(string s)
+        {
+            Console.Write(s);
+        }
+
+        /// <summary>
         /// Writes the text representation of the specified array
         /// of objects to the output stream.
         /// </summary>
@@ -78,6 +87,16 @@ namespace Microsoft.PSharp.Utilities
         internal static void Print(string s, params object[] args)
         {
             Console.Write(s, args);
+        }
+
+        /// <summary>
+        /// Writes the specified string value, followed by the
+        /// current line terminator, to the output stream.
+        /// </summary>
+        /// <param name="s">String</param>
+        internal static void PrintLine(string s)
+        {
+            Console.WriteLine(s);
         }
 
         /// <summary>

@@ -7,14 +7,15 @@
 
         private start state Init
         {
-            entry
-            {
-                this.Server = (machine)payload;
+            on Unit goto Playing;
+			on Config do Configure;
+        }
+
+		private void Configure()
+        {
+            this.Server = (machine)payload;
                 this.Counter = 0;
                 raise(Unit);
-            }
-
-            on Unit goto Playing;
         }
 
         private state Playing
@@ -35,7 +36,7 @@
         {
             this.Counter++;
             Console.WriteLine("\nTurns: {0} / 5\n", this.Counter);
-			send(this.Server, Ping);
+			send(this.Server, Ping, x, y, z, x, test(x) - 1);
             raise(Unit);
         }
     }
