@@ -13,9 +13,9 @@
 
 		private void Configure()
         {
-            this.Server = (machine)payload;
-                this.Counter = 0;
-                raise(Unit);
+            this.Server = (trigger as Config).target;
+			this.Counter = 0;
+			raise(Unit);
         }
 
         private state Playing

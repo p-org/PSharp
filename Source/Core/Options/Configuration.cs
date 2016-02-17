@@ -237,7 +237,6 @@ namespace Microsoft.PSharp.Utilities
 
             this.CompilationTargets = new HashSet<CompilationTarget>();
             this.CompilationTargets.Add(CompilationTarget.Execution);
-            this.CompilationTargets.Add(CompilationTarget.Testing);
 
             this.RunStaticAnalysis = false;
             this.ShowGivesUpInformation = false;

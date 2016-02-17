@@ -275,6 +275,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     this.Tokens.Add(new Token(unit, TokenType.Exit));
                     break;
 
+                case "trigger":
+                    this.Tokens.Add(new Token(unit, TokenType.Trigger));
+                    break;
+
                 case "this":
                     this.Tokens.Add(new Token(unit, TokenType.This));
                     break;
@@ -401,10 +405,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
 
                 case "assume":
                     this.Tokens.Add(new Token(unit, TokenType.Assume));
-                    break;
-
-                case "trigger":
-                    this.Tokens.Add(new Token(unit, TokenType.Trigger));
                     break;
 
                 case "halt":

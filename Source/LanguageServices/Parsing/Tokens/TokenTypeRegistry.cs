@@ -261,6 +261,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     text = "exit";
                     break;
 
+                case TokenType.Trigger:
+                    text = "trigger";
+                    break;
+
                 case TokenType.This:
                     text = "this";
                     break;
@@ -395,10 +399,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
 
                 case TokenType.Assume:
                     text = "assume";
-                    break;
-
-                case TokenType.Trigger:
-                    text = "trigger";
                     break;
 
                 case TokenType.HaltEvent:
