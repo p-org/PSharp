@@ -180,6 +180,11 @@ namespace Microsoft.PSharp.Utilities
         public bool ScheduleIntraMachineConcurrency;
 
         /// <summary>
+        /// If true, the P# tester will check for data races.
+        /// </summary>
+        public bool CheckDataRaces;
+
+        /// <summary>
         /// If true, the P# tester will check if any liveness
         /// properties hold.
         /// </summary>
@@ -257,7 +262,7 @@ namespace Microsoft.PSharp.Utilities
 
             this.SchedulingStrategy = SchedulingStrategy.Random;
             this.SchedulingIterations = 1;
-            this.PerformInstrumentation = false;
+            this.PerformInstrumentation = true;
 
             this.RedirectConsoleOutput = true;
             this.PrintTrace = false;
@@ -272,6 +277,7 @@ namespace Microsoft.PSharp.Utilities
             this.RandomSchedulingSeed = null;
 
             this.ScheduleIntraMachineConcurrency = false;
+            this.CheckDataRaces = false;
             this.CheckLiveness = false;
             this.CacheProgramState = false;
             this.BoundOperations = false;
