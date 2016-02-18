@@ -1,21 +1,19 @@
-﻿using System.Collections.Generic;
-
-namespace German
+﻿namespace German
 {
-    internal model CPU
+    internal machine CPU
     {
 	    private Tuple<machine, machine, machine> Cache;
 
-        start state Init
+		private start state Init
         {
-            entry
-            {
-			    Cache = payload as Tuple<machine, machine, machine>;
+            on unit goto MakeReq;
+			on cpuConfig do Configure;
+        }
 
-				raise(unit);
-            }
-
-			on unit goto MakeReq;
+		private void Configure()
+        {
+			Cache = (trigger as cpuConfig).clients;
+			raise(unit);
         }
 
 		state MakeReq

@@ -5,17 +5,17 @@
 	    private machine Host;
 		private bool Pending;
 
-        start state Init
+		private start state Init
         {
-            entry
-            {
-			    Host = payload[0] as machine;
-				Pending = (bool)payload[1];
+            on unit goto Invalid;
+			on clientConfig do Configure;
+        }
 
-				raise(unit);
-            }
-
-			on unit goto Invalid;
+		private void Configure()
+        {
+			Host = (trigger as clientConfig).host;
+			Pending = (trigger as clientConfig).pending;
+			raise(unit);
         }
 
 		state Invalid
