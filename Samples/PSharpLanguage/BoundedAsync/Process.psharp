@@ -8,18 +8,7 @@
 
         private CountMessage CountMessage;
 
-        private start state _Init
-        {
-            entry
-            {	
-                this.Scheduler = (machine)payload;
-                raise(eUnit);
-            }
-
-            on eUnit goto Init;
-        }
-		
-        private state Init
+        private start state Init
         {
             entry
             {
@@ -71,15 +60,16 @@
 
         private void InitAction()
         {	
-			this.LeftProcess = payload[0] as machine;
-            this.RightProcess = payload[1] as machine;
+			this.Scheduler = (trigger as eInit).scheduler;
+			this.LeftProcess = (trigger as eInit).left;
+            this.RightProcess = (trigger as eInit).right;
 
             send(Scheduler, eReq);
         }
 		
         private void ConfirmThatInSync()
         {
-            var countMsg = (CountMessage)payload;
+            var countMsg = (trigger as eMyCount).msg;
 			assert(this.CountMessage.Count <= countMsg.Count &&
 			  this.CountMessage.Count >= countMsg.Count - 1);
         }

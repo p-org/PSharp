@@ -5,8 +5,8 @@
     internal event eUnit;
     internal event eReq;
     internal event eResp;
-    internal event eInit;
-    internal event eMyCount;
+    internal event eInit (scheduler: machine, left: machine, right: machine);
+    internal event eMyCount (msg: CountMessage);
 
     #endregion
 }
