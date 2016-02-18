@@ -1,4 +1,6 @@
-﻿namespace TypesAndGenerics
+﻿using System;
+
+namespace TypesAndGenerics
 {
     internal machine Client
     {

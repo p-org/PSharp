@@ -1,4 +1,6 @@
-﻿namespace AbstractPong
+﻿using System;
+
+namespace AbstractPong
 {
     internal machine Server : BaseServer
     {

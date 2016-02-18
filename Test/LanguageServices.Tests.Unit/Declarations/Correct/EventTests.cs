@@ -42,8 +42,6 @@ public event e3;
             program.Rewrite();
 
             var expected = @"
-using System;
-using System.Collections.Generic;
 using Microsoft.PSharp;
 namespace Foo
 {

@@ -1,4 +1,6 @@
-﻿namespace SimpleAsyncAwait
+﻿using System;
+
+namespace SimpleAsyncAwait
 {
     internal machine Client
     {

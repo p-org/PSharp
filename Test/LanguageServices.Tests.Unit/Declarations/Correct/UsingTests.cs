@@ -37,8 +37,6 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
             program.Rewrite();
             
             var expected = @"
-using System;
-using System.Collections.Generic;
 using Microsoft.PSharp;
 using System.Text;";
 

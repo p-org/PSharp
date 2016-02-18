@@ -38,8 +38,6 @@ namespace Foo { }";
             program.Rewrite();
 
             var expected = @"
-using System;
-using System.Collections.Generic;
 using Microsoft.PSharp;
 namespace Foo
 {
@@ -62,8 +60,6 @@ namespace Bar { }";
             program.Rewrite();
 
             var expected = @"
-using System;
-using System.Collections.Generic;
 using Microsoft.PSharp;
 namespace Foo
 {
@@ -88,8 +84,6 @@ namespace Foo{}";
             program.Rewrite();
 
             var expected = @"
-using System;
-using System.Collections.Generic;
 using Microsoft.PSharp;
 namespace Foo
 {

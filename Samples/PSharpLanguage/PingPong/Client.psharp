@@ -1,4 +1,6 @@
-﻿namespace PingPong
+﻿using System;
+
+namespace PingPong
 {
     internal machine Client
     {

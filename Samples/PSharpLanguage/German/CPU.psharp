@@ -1,4 +1,6 @@
-﻿namespace German
+﻿using System;
+
+namespace German
 {
     internal machine CPU
     {

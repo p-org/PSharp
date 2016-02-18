@@ -1,4 +1,6 @@
-﻿namespace BoundedAsync
+﻿using System;
+
+namespace BoundedAsync
 {
     internal machine Process
     {

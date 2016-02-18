@@ -43,8 +43,6 @@ state S2 { }
             program.Rewrite();
 
             var expected = @"
-using System;
-using System.Collections.Generic;
 using Microsoft.PSharp;
 namespace Foo
 {
@@ -83,8 +81,6 @@ entry{}
             program.Rewrite();
 
             var expected = @"
-using System;
-using System.Collections.Generic;
 using Microsoft.PSharp;
 namespace Foo
 {
@@ -120,8 +116,6 @@ exit{}
             program.Rewrite();
 
             var expected = @"
-using System;
-using System.Collections.Generic;
 using Microsoft.PSharp;
 namespace Foo
 {
@@ -158,8 +152,6 @@ exit {}
             program.Rewrite();
 
             var expected = @"
-using System;
-using System.Collections.Generic;
 using Microsoft.PSharp;
 namespace Foo
 {
@@ -201,8 +193,6 @@ on e goto S2;
             program.Rewrite();
 
             var expected = @"
-using System;
-using System.Collections.Generic;
 using Microsoft.PSharp;
 namespace Foo
 {
@@ -240,8 +230,6 @@ on e2 goto S3;
             program.Rewrite();
 
             var expected = @"
-using System;
-using System.Collections.Generic;
 using Microsoft.PSharp;
 namespace Foo
 {
@@ -279,8 +267,6 @@ on e goto S2 with {};
             program.Rewrite();
 
             var expected = @"
-using System;
-using System.Collections.Generic;
 using Microsoft.PSharp;
 namespace Foo
 {
@@ -320,8 +306,6 @@ on e do Bar;
             program.Rewrite();
 
             var expected = @"
-using System;
-using System.Collections.Generic;
 using Microsoft.PSharp;
 namespace Foo
 {
@@ -359,8 +343,6 @@ on e2 do Baz;
             program.Rewrite();
 
             var expected = @"
-using System;
-using System.Collections.Generic;
 using Microsoft.PSharp;
 namespace Foo
 {
@@ -398,8 +380,6 @@ on e do {};
             program.Rewrite();
 
             var expected = @"
-using System;
-using System.Collections.Generic;
 using Microsoft.PSharp;
 namespace Foo
 {
@@ -440,8 +420,6 @@ on e2 do Bar;
             program.Rewrite();
 
             var expected = @"
-using System;
-using System.Collections.Generic;
 using Microsoft.PSharp;
 namespace Foo
 {
@@ -479,8 +457,6 @@ ignore e;
             program.Rewrite();
 
             var expected = @"
-using System;
-using System.Collections.Generic;
 using Microsoft.PSharp;
 namespace Foo
 {
@@ -517,8 +493,6 @@ ignore e1, e2;
             program.Rewrite();
 
             var expected = @"
-using System;
-using System.Collections.Generic;
 using Microsoft.PSharp;
 namespace Foo
 {
@@ -554,8 +528,6 @@ defer e;
             program.Rewrite();
 
             var expected = @"
-using System;
-using System.Collections.Generic;
 using Microsoft.PSharp;
 namespace Foo
 {
@@ -592,8 +564,6 @@ defer e1,e2;
             program.Rewrite();
 
             var expected = @"
-using System;
-using System.Collections.Generic;
 using Microsoft.PSharp;
 namespace Foo
 {

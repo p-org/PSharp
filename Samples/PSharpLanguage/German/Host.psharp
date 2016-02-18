@@ -1,4 +1,7 @@
-﻿namespace German
+﻿using System;
+using System.Collections.Generic;
+
+namespace German
 {
     internal machine Host
     {
