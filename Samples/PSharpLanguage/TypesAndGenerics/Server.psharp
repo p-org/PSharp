@@ -11,7 +11,8 @@ namespace TypesAndGenerics
         {
             entry
             {
-                this.Client = create(Client, this);
+                this.Client = create(Client);
+				send(this.Client, Config, this);
 				this.Field = new List<Tuple<int[], bool>>();
                 raise(Unit);
             }

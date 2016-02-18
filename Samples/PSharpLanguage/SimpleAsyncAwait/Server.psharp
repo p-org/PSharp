@@ -11,7 +11,8 @@ namespace SimpleAsyncAwait
         {
             entry
             {
-                this.Client = create(Client, this);
+                this.Client = create(Client);
+				send(this.Client, Config, this);
 				this.Check = true;
 				var task = this.EditCheckAsync();
 				Console.WriteLine("Test: " + this.Check);
