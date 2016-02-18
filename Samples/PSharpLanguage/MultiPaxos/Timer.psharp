@@ -3,20 +3,20 @@
     machine Timer
     {
 	    machine Target;
-		
 		int TimeoutValue;
 
-	    start state Init
-		{
-		    entry
-			{
-			    Target = payload[0] as machine;
-				TimeoutValue = (int)payload[1];
-				raise(local);
-			}
+		start state Init
+        {
+            on local goto Loop;
+			on timerConfig do Configure;
+        }
 
-			on local goto Loop;
-		}
+		void Configure()
+        {
+            Target = (trigger as timerConfig).target;
+			TimeoutValue = (trigger as timerConfig).timeout;
+			raise(local);
+        }
 
 		state Loop
 		{
@@ -30,7 +30,11 @@
 
 		    entry
 			{
-			    send(Target, timeout, this);
+			    if (*)
+				{
+				    //send(Target, timeout);
+				    raise(local);
+			    }
 			}
 
 			on local goto Loop;

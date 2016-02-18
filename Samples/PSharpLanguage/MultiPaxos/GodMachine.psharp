@@ -12,13 +12,16 @@ namespace MultiPaxos
 			{
 			    PaxosNodes = new List<machine>();
 
-				var temp = create(PaxosNode, 1);
+				var temp = create(PaxosNode);
+				send(temp, nodeConfig, 1);
 				PaxosNodes.Add(temp);
 
-				temp = create(PaxosNode, 2);
+				temp = create(PaxosNode);
+				send(temp, nodeConfig, 2);
 				PaxosNodes.Add(temp);
 
-				temp = create(PaxosNode, 3);
+				temp = create(PaxosNode);
+				send(temp, nodeConfig, 3);
 				PaxosNodes.Add(temp);
 
 				foreach (var node in PaxosNodes)
@@ -26,7 +29,8 @@ namespace MultiPaxos
 				    send(node, allNodes, PaxosNodes);
 				}
 
-				create(TestClient, PaxosNodes) models Client;
+				var client = create(Client);
+				send(client, clientConfig, PaxosNodes);
 			}
 		}
     }

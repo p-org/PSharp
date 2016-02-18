@@ -2,23 +2,22 @@
 
 namespace MultiPaxos
 {
-    model TestClient
+    machine Client
     {
 	    List<machine> Servers;
 
-	    start state Init
-		{
-		    entry
-			{
-			    create(ValMachineCheck);
+		start state Init
+        {
+            on local goto PumpRequestOne;
+			on clientConfig do Configure;
+        }
 
-				Servers = (List<machine>)payload;
-
-				raise(local);
-			}
-
-			on local goto PumpRequestOne;
-		}
+		void Configure()
+        {
+            create(ValMachineCheck);
+			Servers = (trigger as clientConfig).nodes;
+			raise(local);
+        }
 
 		state PumpRequestOne
 		{
@@ -52,39 +51,6 @@ namespace MultiPaxos
 				    send(Servers[Servers.Count - 1], update, 0, 2);
 				}
 
-				raise(response);
-			}
-
-			on response goto Done;
-		}
-
-		state Done
-		{
-
-		}
-    }
-
-	machine Client
-    {
-	    List<machine> Servers;
-
-	    start state Init
-		{
-		    entry
-			{
-				Servers = (List<machine>)payload;
-
-				raise(local);
-			}
-
-			on local goto PumpRequest;
-		}
-
-		state PumpRequest
-		{
-		    entry
-			{
-			    send(Servers[0], update, 0, 1);
 				raise(response);
 			}
 

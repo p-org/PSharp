@@ -28,26 +28,26 @@ namespace MultiPaxos
 
 		void AddClientSet()
 		{
-		    ClientSet[(int)payload] = 0;
+		    ClientSet[(trigger as monitor_client_sent).value] = 0;
 		}
 		
 		void AddProposerSet()
 		{
-		    assert(ClientSet.ContainsKey((int)payload));
+		    assert(ClientSet.ContainsKey((trigger as monitor_proposer_sent).value));
 
-			if (!ProposedSet.ContainsKey((int)payload))
+			if (!ProposedSet.ContainsKey((trigger as monitor_proposer_sent).value))
 			{
-			    ProposedSet.Add((int)payload, 0);
+			    ProposedSet.Add((trigger as monitor_proposer_sent).value, 0);
 			}
 			else
 			{
-			    ProposedSet[(int)payload] = 0;
+			    ProposedSet[(trigger as monitor_proposer_sent).value] = 0;
 			}
 		}
 		
 		void CheckChosenValMachineIty()
 		{
-		    assert(ProposedSet.ContainsKey((int)payload));
+		    assert(ProposedSet.ContainsKey((trigger as monitor_proposer_chosen).value));
 		}
     }
 }
