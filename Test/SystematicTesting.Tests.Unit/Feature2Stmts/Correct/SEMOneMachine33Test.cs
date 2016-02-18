@@ -42,9 +42,7 @@ namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
         class Entry : Machine
         {
             List<int> l;
-            int i;
             MachineId mac;
-            Tuple<List<int>, int> t;
 
             [Start]
             [OnEntry(nameof(EntryInit))]

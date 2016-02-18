@@ -39,6 +39,7 @@ namespace Foo { }";
 
             var expected = @"
 using System;
+using System.Collections.Generic;
 using Microsoft.PSharp;
 namespace Foo
 {
@@ -62,6 +63,7 @@ namespace Bar { }";
 
             var expected = @"
 using System;
+using System.Collections.Generic;
 using Microsoft.PSharp;
 namespace Foo
 {
@@ -87,6 +89,7 @@ namespace Foo{}";
 
             var expected = @"
 using System;
+using System.Collections.Generic;
 using Microsoft.PSharp;
 namespace Foo
 {

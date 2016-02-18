@@ -34,6 +34,7 @@ namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
 
             void EntryInit()
             {
+                x = 2;
                 this.Foo(1, 3, x);
             }
 

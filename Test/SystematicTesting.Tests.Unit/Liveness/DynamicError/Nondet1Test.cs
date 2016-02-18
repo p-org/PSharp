@@ -32,8 +32,6 @@ namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
 
         class EventHandler : Machine
         {
-            List<MachineId> Workers;
-
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventGotoState(typeof(Unit), typeof(WaitForUser))]
@@ -76,8 +74,6 @@ namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
 
         class WatchDog : Monitor
         {
-            List<MachineId> Workers;
-
             [Start]
             [Cold]
             [OnEventGotoState(typeof(Waiting), typeof(CanGetUserInput))]

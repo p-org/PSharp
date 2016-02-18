@@ -43,12 +43,13 @@ public event e3;
 
             var expected = @"
 using System;
+using System.Collections.Generic;
 using Microsoft.PSharp;
 namespace Foo
 {
 class e1 : Event
 {
- internal e1()
+ public e1()
   : base()
  { }
 }
@@ -60,7 +61,7 @@ internal class e2 : Event
 }
 public class e3 : Event
 {
- internal e3()
+ public e3()
   : base()
  { }
 }

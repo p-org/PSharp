@@ -44,6 +44,7 @@ start state S { }
 
             var expected = @"
 using System;
+using System.Collections.Generic;
 using Microsoft.PSharp;
 namespace Foo
 {
@@ -79,6 +80,7 @@ start state S { }
 
             var expected = @"
 using System;
+using System.Collections.Generic;
 using Microsoft.PSharp;
 namespace Foo
 {
@@ -114,6 +116,7 @@ start state S { }
 
             var expected = @"
 using System;
+using System.Collections.Generic;
 using Microsoft.PSharp;
 namespace Foo
 {

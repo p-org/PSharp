@@ -56,7 +56,6 @@ namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
         class Real : Machine
         {
             MachineId GhostMachine;
-            bool test = false;
 
             [Start]
             [OnEntry(nameof(EntryInit))]
@@ -71,7 +70,6 @@ namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
 
             void ExitInit()
             {
-                test = true;
                 GhostMachine = this.CreateMachine(typeof(Ghost));
                 this.Send(GhostMachine, new Config(this.Id));
             }

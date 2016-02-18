@@ -44,6 +44,7 @@ state S2 { }
 
             var expected = @"
 using System;
+using System.Collections.Generic;
 using Microsoft.PSharp;
 namespace Foo
 {
@@ -83,6 +84,7 @@ entry{}
 
             var expected = @"
 using System;
+using System.Collections.Generic;
 using Microsoft.PSharp;
 namespace Foo
 {
@@ -119,6 +121,7 @@ exit{}
 
             var expected = @"
 using System;
+using System.Collections.Generic;
 using Microsoft.PSharp;
 namespace Foo
 {
@@ -156,6 +159,7 @@ exit {}
 
             var expected = @"
 using System;
+using System.Collections.Generic;
 using Microsoft.PSharp;
 namespace Foo
 {
@@ -198,6 +202,7 @@ on e goto S2;
 
             var expected = @"
 using System;
+using System.Collections.Generic;
 using Microsoft.PSharp;
 namespace Foo
 {
@@ -236,6 +241,7 @@ on e2 goto S3;
 
             var expected = @"
 using System;
+using System.Collections.Generic;
 using Microsoft.PSharp;
 namespace Foo
 {
@@ -274,6 +280,7 @@ on e goto S2 with {};
 
             var expected = @"
 using System;
+using System.Collections.Generic;
 using Microsoft.PSharp;
 namespace Foo
 {
@@ -314,6 +321,7 @@ on e do Bar;
 
             var expected = @"
 using System;
+using System.Collections.Generic;
 using Microsoft.PSharp;
 namespace Foo
 {
@@ -352,6 +360,7 @@ on e2 do Baz;
 
             var expected = @"
 using System;
+using System.Collections.Generic;
 using Microsoft.PSharp;
 namespace Foo
 {
@@ -390,6 +399,7 @@ on e do {};
 
             var expected = @"
 using System;
+using System.Collections.Generic;
 using Microsoft.PSharp;
 namespace Foo
 {
@@ -431,6 +441,7 @@ on e2 do Bar;
 
             var expected = @"
 using System;
+using System.Collections.Generic;
 using Microsoft.PSharp;
 namespace Foo
 {
@@ -469,6 +480,7 @@ ignore e;
 
             var expected = @"
 using System;
+using System.Collections.Generic;
 using Microsoft.PSharp;
 namespace Foo
 {
@@ -506,6 +518,7 @@ ignore e1, e2;
 
             var expected = @"
 using System;
+using System.Collections.Generic;
 using Microsoft.PSharp;
 namespace Foo
 {
@@ -542,6 +555,7 @@ defer e;
 
             var expected = @"
 using System;
+using System.Collections.Generic;
 using Microsoft.PSharp;
 namespace Foo
 {
@@ -579,6 +593,7 @@ defer e1,e2;
 
             var expected = @"
 using System;
+using System.Collections.Generic;
 using Microsoft.PSharp;
 namespace Foo
 {

@@ -154,18 +154,18 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             for (int i = 0; i < this.PayloadIdentifiers.Count; i++)
             {
-                text += "public ";
+                text += " public ";
                 text += this.PayloadTypes[i].TextUnit.Text + " ";
                 text += this.PayloadIdentifiers[i].TextUnit.Text + ";\n";
             }
 
-            if (this.AccessModifier == AccessModifier.Public)
+            if (this.AccessModifier == AccessModifier.Internal)
             {
-                text += "public ";
+                text += " internal ";
             }
-            else if (this.AccessModifier == AccessModifier.Internal)
+            else
             {
-                text += "internal ";
+                text += " public ";
             }
 
             text += this.Identifier.TextUnit.Text + "(";
