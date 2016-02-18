@@ -11,30 +11,34 @@ namespace FailureDetector
 		Dictionary<machine, bool> Responses;
         machine Timer;
 
-        start state Init
+		start state Init
         {
-            entry
-            {
-			    this.Nodes = new List<machine>();
+			on FailureDetectorConfig do
+			{
+				this.Nodes = new List<machine>();
 				this.Clients = new Dictionary<machine, bool>();
 				this.Alive = new Dictionary<machine, bool>();
 				this.Responses = new Dictionary<machine, bool>();
-                this.Nodes = payload as List<machine>;
+                this.Nodes = (trigger as FailureDetectorConfig).nodes;
+
 				this.InitializeAliveSet();
-				this.Timer = create(Timer, this);
+
+				this.Timer = create(Timer);
+				send(this.Timer, TimerConfig, this);
+
                 raise(Unit);
-            }
+			};
 
 			on RegisterClient do
 			{
-			    this.Clients[(machine)payload] = true;
+			    this.Clients[(trigger as RegisterClient).client] = true;
 			};
 
 			on UnregisterClient do
 			{
-			    if (this.Clients.ContainsKey((machine)payload))
+			    if (this.Clients.ContainsKey((trigger as UnregisterClient).client))
 				{
-				    this.Clients.Remove((machine)payload);
+				    this.Clients.Remove((trigger as UnregisterClient).client);
 				}
 			};
 
@@ -51,9 +55,9 @@ namespace FailureDetector
 
 			on Pong do
 			{
-			    if (this.Alive.ContainsKey((machine)payload))
+			    if (this.Alive.ContainsKey((trigger as Pong).node))
 				{
-				    this.Responses[(machine)payload] = true;
+				    this.Responses[(trigger as Pong).node] = true;
 					if (this.Responses.Count == this.Alive.Count)
 					{
 					    send(this.Timer, Cancel);

@@ -93,10 +93,24 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
                 return node;
             }
 
-            var arguments = new List<ArgumentSyntax>(node.ArgumentList.Arguments);
+            var arguments = new List<ArgumentSyntax>();
+            arguments.Add(node.ArgumentList.Arguments[0]);
+
+            string payload = "";
+            for (int i = 1; i < node.ArgumentList.Arguments.Count; i++)
+            {
+                if (i == node.ArgumentList.Arguments.Count - 1)
+                {
+                    payload += node.ArgumentList.Arguments[i].ToString();
+                }
+                else
+                {
+                    payload += node.ArgumentList.Arguments[i].ToString() + ", ";
+                }
+            }
 
             arguments[0] = SyntaxFactory.Argument(SyntaxFactory.ParseExpression(
-                "new " + arguments[0].ToString() + "()"));
+                "new " + arguments[0].ToString() + "(" + payload + ")"));
 
             var rewritten = node.
                 WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments))).

@@ -1,25 +1,26 @@
 ﻿namespace FailureDetector
 {
-    model Timer
+    machine Timer
     {
-        machine Client;
+        machine Target;
 
-        start state Init
+		private start state Init
         {
-            entry
-            {
-                this.Client = (machine)payload;
-                raise(Unit);
-            }
-
             on Unit goto WaitForReq;
+			on TimerConfig do Configure;
+        }
+
+		private void Configure()
+        {
+            this.Target = (trigger as TimerConfig).target;
+			raise(Unit);
         }
 
         state WaitForReq
         {
             on Cancel goto WaitForReq with
             {
-                send(this.Client, CancelFailure, this);
+                send(this.Target, CancelFailure);
             };
 
             on Start goto WaitForCancel;
@@ -33,18 +34,18 @@
             {
 			    if (*)
 				{
-				    send(this.Client, CancelSuccess, this);
+				    send(this.Target, CancelSuccess);
 				}
 				else
 				{
-				    send(this.Client, CancelFailure, this);
-					send(this.Client, Timeout, this);
+				    send(this.Target, CancelFailure);
+					send(this.Target, Timeout);
 				}
             };
 
             on default goto WaitForReq with
             {
-                send(this.Client, Timeout, this);
+                send(this.Target, Timeout);
             };
         }
     }
