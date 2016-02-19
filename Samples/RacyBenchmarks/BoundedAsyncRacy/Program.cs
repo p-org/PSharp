@@ -15,9 +15,15 @@ namespace BoundedAsyncRacy
         public static void Main(string[] args)
         {
             PSharpRuntime runtime = PSharpRuntime.Create();
-            runtime.CreateMachine(typeof(Scheduler));
+            Program.Execute(runtime);
             Console.WriteLine("Done");
             Console.ReadLine();
+        }
+
+        [Microsoft.PSharp.Test]
+        public static void Execute(PSharpRuntime runtime)
+        {
+            runtime.CreateMachine(typeof(Scheduler));
         }
     }
 }
