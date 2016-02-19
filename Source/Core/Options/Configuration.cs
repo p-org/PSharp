@@ -261,7 +261,7 @@ namespace Microsoft.PSharp.Utilities
 
             this.SchedulingStrategy = SchedulingStrategy.Random;
             this.SchedulingIterations = 1;
-            this.PerformInstrumentation = true;
+            this.PerformInstrumentation = false;
 
             this.RedirectConsoleOutput = true;
             this.PrintTrace = false;

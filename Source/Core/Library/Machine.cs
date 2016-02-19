@@ -994,7 +994,6 @@ namespace Microsoft.PSharp
                     MachineTrace trace = new MachineTrace(this.Id.GetHashCode(), null, this.ActionId, null, 0);
                     this.RuntimeTrace.Add(trace);
                 }
-
             }
             catch (TaskCanceledException)
             {

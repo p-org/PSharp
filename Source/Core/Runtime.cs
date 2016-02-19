@@ -212,6 +212,8 @@ namespace Microsoft.PSharp
         /// </summary>
         protected PSharpRuntime()
         {
+            this.Configuration = Configuration.Create();
+
             this.MachineMap = new ConcurrentDictionary<int, Machine>();
             this.TaskMap = new ConcurrentDictionary<int, Machine>();
 
