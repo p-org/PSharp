@@ -15,20 +15,20 @@ namespace FailureDetector
 
 			on MPing do
 			{
-			    if (!this.Pending.ContainsKey((machine)payload))
+			    if (!this.Pending.ContainsKey((trigger as MPing).client))
 				{
-				    this.Pending[(machine)payload] = 0;
+				    this.Pending[(trigger as MPing).client] = 0;
 				}
 
-				this.Pending[(machine)payload] = this.Pending[(machine)payload] + 1;
-				assert(this.Pending[(machine)payload] <= 3, "1");
+				this.Pending[(trigger as MPing).client] = this.Pending[(trigger as MPing).client] + 1;
+				assert(this.Pending[(trigger as MPing).client] <= 3, "1");
 			};
 
 			on MPong do
 			{
-			    assert(this.Pending.ContainsKey((machine)payload), "2");
-				assert(this.Pending[(machine)payload] > 0, "3");
-				this.Pending[(machine)payload] = this.Pending[(machine)payload] - 1;
+			    assert(this.Pending.ContainsKey((trigger as MPong).node), "2");
+				assert(this.Pending[(trigger as MPong).node] > 0, "3");
+				this.Pending[(trigger as MPong).node] = this.Pending[(trigger as MPong).node] - 1;
 			};
         }
     }

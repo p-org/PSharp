@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace German
 {
@@ -19,14 +20,20 @@ namespace German
         {
             entry
             {	
-			    machine client1 = create(Client, this, false);
-				machine client2 = create(Client, this, false);
-				machine client3 = create(Client, this, false);
+			    machine client1 = create(Client);
+				send(client1, clientConfig, this, false);
+
+				machine client2 = create(Client);
+				send(client2, clientConfig, this, false);
+
+				machine client3 = create(Client);
+				send(client3, clientConfig, this, false);
 
                 this.Clients = Tuple.Create(client1, client2, client3);
 
 				this.CurrentClient = null;
-				this.CurrentCPU = create(CPU, this.Clients);
+				this.CurrentCPU = create(CPU);
+				send(CurrentCPU, cpuConfig, this.Clients);
 
 				this.SharerList = new List<machine>();
 				assert(this.SharerList.Count == 0);
@@ -34,10 +41,10 @@ namespace German
                 raise(unit);
             }
 
-            on unit goto Receive;
+            on unit goto Receiving;
         }
 		
-        private state Receive
+        private state Receiving
         {
 			on req_share goto ShareRequest;
 			on req_excl goto ExclRequest;
@@ -49,7 +56,7 @@ namespace German
         {
             entry
             {
-			    CurrentClient = payload as machine;
+			    CurrentClient = (trigger as req_share).client;
 				IsCurrReqExcl = false;
 
 				raise(unit);
@@ -62,7 +69,7 @@ namespace German
         {
             entry
             {
-			    CurrentClient = payload as machine;
+			    CurrentClient = (trigger as req_excl).client;
 				IsCurrReqExcl = true;
 
 				raise(unit);
@@ -128,7 +135,7 @@ namespace German
 				raise(unit);
             }
 
-			on unit goto Receive;
+			on unit goto Receiving;
         }
 
 		void RecAck()

@@ -12,6 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System.Collections.Generic;
 using Microsoft.PSharp.LanguageServices.Parsing;
 using Microsoft.PSharp.Utilities;
 
@@ -40,14 +41,24 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         internal Token Identifier;
 
         /// <summary>
-        /// The colon token.
+        /// The left parenthesis token.
         /// </summary>
-        internal Token ColonToken;
+        internal Token LeftParenthesis;
 
         /// <summary>
-        /// The payload type.
+        /// The payload types.
         /// </summary>
-        internal PBaseType PayloadType;
+        internal List<Token> PayloadTypes;
+
+        /// <summary>
+        /// The payload identifiers.
+        /// </summary>
+        internal List<Token> PayloadIdentifiers;
+
+        /// <summary>
+        /// The right parenthesis token.
+        /// </summary>
+        internal Token RightParenthesis;
 
         /// <summary>
         /// The assert keyword.
@@ -85,7 +96,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         internal EventDeclaration(IPSharpProgram program)
             : base(program, false)
         {
-
+            this.PayloadTypes = new List<Token>();
+            this.PayloadIdentifiers = new List<Token>();
         }
 
         /// <summary>
@@ -139,8 +151,40 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             text += "\n";
             text += "{\n";
-            text += " internal " + this.Identifier.TextUnit.Text + "()\n";
 
+            for (int i = 0; i < this.PayloadIdentifiers.Count; i++)
+            {
+                text += " public ";
+                text += this.PayloadTypes[i].TextUnit.Text + " ";
+                text += this.PayloadIdentifiers[i].TextUnit.Text + ";\n";
+            }
+
+            if (this.AccessModifier == AccessModifier.Internal)
+            {
+                text += " internal ";
+            }
+            else
+            {
+                text += " public ";
+            }
+
+            text += this.Identifier.TextUnit.Text + "(";
+
+            for (int i = 0; i < this.PayloadIdentifiers.Count; i++)
+            {
+                if (i == this.PayloadIdentifiers.Count - 1)
+                {
+                    text += this.PayloadTypes[i].TextUnit.Text + " ";
+                    text += this.PayloadIdentifiers[i].TextUnit.Text;
+                }
+                else
+                {
+                    text += this.PayloadTypes[i].TextUnit.Text + " ";
+                    text += this.PayloadIdentifiers[i].TextUnit.Text + ", ";
+                }
+            }
+
+            text += ")\n";
             text += "  : base(";
 
             if (this.AssertKeyword != null)
@@ -153,7 +197,15 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             }
 
             text += ")\n";
-            text += " { }\n";
+            text += " {\n";
+
+            for (int i = 0; i < this.PayloadIdentifiers.Count; i++)
+            {
+                text += "  this." + this.PayloadIdentifiers[i].TextUnit.Text + " = ";
+                text += this.PayloadIdentifiers[i].TextUnit.Text + ";\n";
+            }
+
+            text += " }\n";
             text += "}\n";
 
             return text;

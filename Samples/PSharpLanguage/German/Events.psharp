@@ -1,10 +1,15 @@
-﻿namespace German
+﻿using System;
+using System.Collections.Generic;
+
+namespace German
 {
     #region internal events
 
+	internal event clientConfig (host: machine, pending: bool);
+	internal event cpuConfig (clients: Tuple<machine, machine, machine>);
 	internal event unit;
-	internal event req_share;
-	internal event req_excl;
+	internal event req_share (client: machine);
+	internal event req_excl (client: machine);
 	internal event need_invalidate;
 	internal event invalidate_ack;
 	internal event grant;

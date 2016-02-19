@@ -147,11 +147,9 @@ namespace Microsoft.PSharp.LanguageServices
         private void InsertLibraries()
         {
             var list = new List<UsingDirectiveSyntax>();
-
-            var systemLib = base.CreateLibrary("System");
+            
             var psharpLib = base.CreateLibrary("Microsoft.PSharp");
-
-            list.Add(systemLib);
+            
             list.Add(psharpLib);
 
             list.AddRange(base.SyntaxTree.GetCompilationUnitRoot().Usings);

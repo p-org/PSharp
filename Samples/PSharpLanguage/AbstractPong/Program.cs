@@ -4,18 +4,19 @@ using Microsoft.PSharp;
 
 namespace AbstractPong
 {
-    public class Program
+    public class Test
     {
         static void Main(string[] args)
         {
-            Program.Execute();
+            var runtime = PSharpRuntime.Create();
+            Test.Execute(runtime);
             Console.ReadLine();
         }
 
         [Microsoft.PSharp.Test]
-        public static void Execute()
+        public static void Execute(PSharpRuntime runtime)
         {
-            PSharpRuntime.CreateMachine(typeof(Server));
+            runtime.CreateMachine(typeof(Server));
         }
     }
 }

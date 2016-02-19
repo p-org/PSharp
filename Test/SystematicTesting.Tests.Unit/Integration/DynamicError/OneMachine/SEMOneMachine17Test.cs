@@ -39,8 +39,6 @@ namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
 
         class Real1 : Machine
         {
-            bool test = false;
-
             [Start]
             [OnEntry(nameof(EntryInit))]
             [OnExit(nameof(ExitInit))]
@@ -64,7 +62,6 @@ namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
 
             void EntryS1()
             {
-                test = true;
                 this.Raise(new E1());
             }
 

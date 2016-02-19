@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace MultiPaxos
 {
@@ -30,62 +31,48 @@ namespace MultiPaxos
 		Dictionary<int, Tuple<Tuple<int, int>, int>> LearnerSlots;
 		int LastExecutedSlot;
 
-	    start state Init
-		{
-		    entry
-			{
-			    Acceptors = new List<machine>();
-				AcceptorSlots = new Dictionary<int, Tuple<Tuple<int, int>, int>>();
-				LearnerSlots = new Dictionary<int, Tuple<Tuple<int, int>, int>>();
-
-				NextProposal = Tuple.Create(0, 0);
-				ReceivedAgree = Tuple.Create(Tuple.Create(0, 0), 0);
-
-			    MyRank = (int)payload;
-				CurrentLeader = this;
-				CurrentLeaderRank = MyRank;
-
-				MaxRound = 0;
-				AgreeCounter = 0;
-
-				Timer = create(NondetTimer, this, 10) models Timer;
-
-				LastExecutedSlot = 0;
-				NextSlotForProposer = 0;
-			}
-
-			defer ping;
-
+		start state Init
+        {
+			on nodeConfig do Configure;
 			on allNodes do UpdateAcceptors;
 			on local goto PerformOperation;
-		}
+			defer ping;
+        }
+
+		void Configure()
+        {
+            Acceptors = new List<machine>();
+			AcceptorSlots = new Dictionary<int, Tuple<Tuple<int, int>, int>>();
+			LearnerSlots = new Dictionary<int, Tuple<Tuple<int, int>, int>>();
+
+			NextProposal = Tuple.Create(0, 0);
+			ReceivedAgree = Tuple.Create(Tuple.Create(0, 0), 0);
+			
+			MyRank = (trigger as nodeConfig).rank;
+			CurrentLeader = this;
+			CurrentLeaderRank = MyRank;
+			
+			MaxRound = 0;
+			AgreeCounter = 0;
+			
+			Timer = create(Timer);
+			send(Timer, timerConfig, this, 10);
+			
+			LastExecutedSlot = 0;
+			NextSlotForProposer = 0;
+        }
 
 		void UpdateAcceptors()
 		{
-			Acceptors = (List<machine>)payload;
+			Acceptors = (trigger as allNodes).nodes;
 			Majority = Acceptors.Count/2 + 1;
 			assert(Majority == 2);
 
-			// Also start the leader election service.
-			LeaderElectionService = create(LeaderElection, Acceptors, this, MyRank);
+			// Start the leader election service.
+			LeaderElectionService = create(LeaderElection);
+			send(LeaderElectionService, leaderElectionConfig, Acceptors, this, MyRank);
 			
 			raise(local);
-		}
-
-		void CheckIfLeader()
-		{
-		    if (CurrentLeaderRank == MyRank)
-			{
-			    // The node is the leader.
-				CommitValue = (int)payload[1];
-				ProposeVal = CommitValue;
-				raise(goPropose);
-			}
-			else
-			{
-			    // Forward it to the leader.
-				send(CurrentLeader, update, payload);
-			}
 		}
 
 		state PerformOperation
@@ -107,17 +94,35 @@ namespace MultiPaxos
 			on newLeader do UpdateLeader;
 		}
 
+		void CheckIfLeader()
+		{
+		    if (CurrentLeaderRank == MyRank)
+			{
+			    // The node is the leader.
+				CommitValue = (trigger as update).value;
+				ProposeVal = CommitValue;
+				raise(goPropose);
+			}
+			else
+			{
+			    // Forward it to the leader.
+				var leader = (trigger as update).leader;
+				var value = (trigger as update).value;
+				send(CurrentLeader, update, leader, value);
+			}
+		}
+
 		void UpdateLeader()
 		{
-		    CurrentLeader = payload[0] as machine;
-		    CurrentLeaderRank = (int)payload[1];
+		    CurrentLeader = (trigger as newLeader).currentLeader;
+		    CurrentLeaderRank = (trigger as newLeader).currentLeaderRank;
 		}
 
 		void PrepareFun()
 		{
-			var proposer = payload[0] as machine;
-			var slot = (int)payload[1];
-			var proposal = payload[2] as Tuple<int, int>;
+			var proposer = (trigger as prepare).proposer;
+			var slot = (trigger as prepare).slot;
+			var proposal = (trigger as prepare).proposal;
 
 			if (!AcceptorSlots.ContainsKey(slot))
 			{
@@ -127,7 +132,7 @@ namespace MultiPaxos
 
 			if (LessThan(proposal, AcceptorSlots[slot].Item1))
 			{
-			    send(proposer, reject, slot, AcceptorSlots[slot].Item1);
+			    send(proposer, reject, slot, AcceptorSlots[slot].Item1.Item1);
 			}
 			else
 			{
@@ -138,16 +143,16 @@ namespace MultiPaxos
 
 		void Acceptfun()
 		{
-		    var proposer = payload[0] as machine;
-		    var slot = (int)payload[1];
-		    var proposal = payload[2] as Tuple<int, int>;
-		    var value = (int)payload[3];
+		    var proposer = (trigger as accept).proposer;
+		    var slot = (trigger as accept).slot;
+		    var proposal = (trigger as accept).proposal;
+		    var value = (trigger as accept).value;
 
 			if (AcceptorSlots.ContainsKey(slot))
 			{
 			    if (!Equal(proposal, AcceptorSlots[slot].Item1))
 				{
-				    send(proposer, reject, slot, AcceptorSlots[slot].Item1);
+				    send(proposer, reject, slot, AcceptorSlots[slot].Item1.Item1);
 				}
 				else
 				{
@@ -191,26 +196,6 @@ namespace MultiPaxos
 
 		// Proposer.
 
-		void CountAgree()
-		{
-		    var slot = (int)payload[0];
-		    var proposal = payload[1] as Tuple<int, int>;
-			var value = (int)payload[2];
-
-			if (slot == NextSlotForProposer)
-			{
-			    AgreeCounter++;
-
-				if (LessThan(ReceivedAgree.Item1, proposal))
-				{
-				    ReceivedAgree = Tuple.Create(proposal, value);
-				}
-
-				if (AgreeCounter == Majority)
-				    raise(success);
-			}
-		}
-
 		state ProposeValuePhase1
 		{
 		    ignore accepted;
@@ -223,7 +208,7 @@ namespace MultiPaxos
 
 				foreach (var acceptor in Acceptors)
 				{
-			        send(acceptor, prepare, this, NextSlotForProposer, Tuple.Create(NextProposal.Item1, MyRank));
+			        send(acceptor, prepare, this, NextSlotForProposer, NextProposal);
 				}
 
 				monitor<ValMachineCheck>(monitor_proposer_sent, ProposeVal);
@@ -233,7 +218,7 @@ namespace MultiPaxos
 			on agree do CountAgree;
 
 			on reject goto ProposeValuePhase1 with {
-			    var round = (payload[1] as Tuple<int, int>).Item1;
+			    var round = (trigger as reject).round;
 			    if (NextProposal.Item1 <= round)
 				    MaxRound = round;
 				
@@ -248,23 +233,23 @@ namespace MultiPaxos
 			on timeout goto ProposeValuePhase1;
 		}
 
-		void CountAccepted()
+		void CountAgree()
 		{
-		    var slot = (int)payload[0];
-		    var proposal = payload[1] as Tuple<int, int>;
-			var value = (int)payload[2];
+		    var slot = (trigger as agree).slot;
+		    var proposal = (trigger as agree).proposal;
+			var value = (trigger as agree).value;
 
 			if (slot == NextSlotForProposer)
 			{
-			    if (this.Equal(proposal, NextProposal))
+			    AgreeCounter++;
+
+				if (LessThan(ReceivedAgree.Item1, proposal))
 				{
-				    AcceptCounter++;
+				    ReceivedAgree = Tuple.Create(proposal, value);
 				}
 
-				if (AcceptCounter == Majority)
-				{
-				    raise(chosen, payload);
-				}
+				if (AgreeCounter == Majority)
+				    raise(success);
 			}
 		}
 
@@ -292,7 +277,7 @@ namespace MultiPaxos
 				ProposeVal = GetHighestProposedValue();
 
 				// Monitor the monitor on proposal event.
-				monitor<BasicPaxosInvariant_P2b>(monitor_valueProposed, this, NextSlotForProposer, NextProposal, ProposeVal);
+				//monitor<BasicPaxosInvariant_P2b>(monitor_valueProposed, this, NextSlotForProposer, NextProposal, ProposeVal);
 				monitor<ValMachineCheck>(monitor_proposer_sent, ProposeVal);
 				
 				foreach (var acceptor in Acceptors)
@@ -305,13 +290,11 @@ namespace MultiPaxos
 
 			exit
 			{
-			    if (trigger == typeof(chosen))
+			    if (trigger.GetType() == typeof(chosen))
 				{
 				    // The value is chosen, hence invoke the monitor on chosen event.
-					monitor<BasicPaxosInvariant_P2b>(monitor_valueChosen, this, NextSlotForProposer, NextProposal, ProposeVal);
-
+					//monitor<BasicPaxosInvariant_P2b>(monitor_valueChosen, this, NextSlotForProposer, NextProposal, ProposeVal);
 					send(Timer, cancelTimer);
-
 					monitor<ValMachineCheck>(monitor_proposer_chosen, ProposeVal);
 
 					// Increment the nextSlotForProposer.
@@ -322,7 +305,7 @@ namespace MultiPaxos
 			on accepted do CountAccepted;
 
 			on reject goto ProposeValuePhase1 with {
-			    var round = (payload[1] as Tuple<int, int>).Item1;
+			    var round = (trigger as reject).round;
 			    if (NextProposal.Item1 <= round)
 				    MaxRound = round;
 				
@@ -330,6 +313,26 @@ namespace MultiPaxos
 			};
 
 			on timeout goto ProposeValuePhase1;
+		}
+
+		void CountAccepted()
+		{
+		    var slot = (trigger as accepted).slot;
+		    var proposal = (trigger as accepted).proposal;
+			var value = (trigger as accepted).value;
+
+			if (slot == NextSlotForProposer)
+			{
+			    if (this.Equal(proposal, NextProposal))
+				{
+				    AcceptCounter++;
+				}
+
+				if (AcceptCounter == Majority)
+				{
+				    raise(chosen, slot, proposal, value);
+				}
+			}
 		}
 
 		// Learner.
@@ -358,9 +361,9 @@ namespace MultiPaxos
 
 			entry
 			{
-				var slot = (int)payload[0];
-				var proposal = payload[1] as Tuple<int, int>;
-				var value = (int)payload[2];
+				var slot = (trigger as chosen).slot;
+				var proposal = (trigger as chosen).proposal;
+				var value = (trigger as chosen).value;
 
 				if (!LearnerSlots.ContainsKey(slot))
 				{

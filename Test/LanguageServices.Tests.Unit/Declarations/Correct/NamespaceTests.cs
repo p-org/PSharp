@@ -38,7 +38,6 @@ namespace Foo { }";
             program.Rewrite();
 
             var expected = @"
-using System;
 using Microsoft.PSharp;
 namespace Foo
 {
@@ -61,7 +60,6 @@ namespace Bar { }";
             program.Rewrite();
 
             var expected = @"
-using System;
 using Microsoft.PSharp;
 namespace Foo
 {
@@ -86,7 +84,6 @@ namespace Foo{}";
             program.Rewrite();
 
             var expected = @"
-using System;
 using Microsoft.PSharp;
 namespace Foo
 {

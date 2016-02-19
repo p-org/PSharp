@@ -54,7 +54,6 @@ namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
         {
             int Int;
             bool Bool;
-            MachineId mach;
             Dictionary<int, int> m;
             List<bool> s;
 

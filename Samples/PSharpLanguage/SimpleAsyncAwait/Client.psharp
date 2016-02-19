@@ -1,20 +1,23 @@
-﻿namespace SimpleAsyncAwait
+﻿using System;
+
+namespace SimpleAsyncAwait
 {
     internal machine Client
     {
         private machine Server;
         private int Counter;
 
-        private start state Init
+		private start state Init
         {
-            entry
-            {
-                this.Server = (machine)payload;
-                this.Counter = 0;
-                raise(Unit);
-            }
-
             on Unit goto Playing;
+			on Config do Configure;
+        }
+
+		private void Configure()
+        {
+            this.Server = (trigger as Config).target;
+			this.Counter = 0;
+			raise(Unit);
         }
 
         private state Playing

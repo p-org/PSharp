@@ -77,10 +77,25 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         private SyntaxNode RewriteStatement(ExpressionStatementSyntax node)
         {
             var invocation = node.Expression as InvocationExpressionSyntax;
-            var arguments = new List<ArgumentSyntax>(invocation.ArgumentList.Arguments);
 
+            var arguments = new List<ArgumentSyntax>();
+            arguments.Add(invocation.ArgumentList.Arguments[0]);
+
+            string payload = "";
+            for (int i = 1; i < invocation.ArgumentList.Arguments.Count; i++)
+            {
+                if (i == invocation.ArgumentList.Arguments.Count - 1)
+                {
+                    payload += invocation.ArgumentList.Arguments[i].ToString();
+                }
+                else
+                {
+                    payload += invocation.ArgumentList.Arguments[i].ToString() + ", ";
+                }
+            }
+            
             arguments[0] = SyntaxFactory.Argument(SyntaxFactory.ParseExpression(
-                "new " + arguments[0].ToString() + "()"));
+                "new " + arguments[0].ToString() + "(" + payload + ")"));
             invocation = invocation.WithArgumentList(SyntaxFactory.ArgumentList(
                 SyntaxFactory.SeparatedList(arguments)));
             

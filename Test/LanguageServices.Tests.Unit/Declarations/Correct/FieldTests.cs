@@ -43,7 +43,6 @@ start state S { }
             program.Rewrite();
 
             var expected = @"
-using System;
 using Microsoft.PSharp;
 namespace Foo
 {
@@ -78,7 +77,6 @@ start state S { }
             program.Rewrite();
 
             var expected = @"
-using System;
 using Microsoft.PSharp;
 namespace Foo
 {
@@ -113,7 +111,6 @@ start state S { }
             program.Rewrite();
 
             var expected = @"
-using System;
 using Microsoft.PSharp;
 namespace Foo
 {

@@ -43,7 +43,6 @@ void Bar() { }
             program.Rewrite();
 
             var expected = @"
-using System;
 using Microsoft.PSharp;
 namespace Foo
 {

@@ -2,7 +2,7 @@
 
 namespace FailureDetector
 {
-    model Driver
+    machine Driver
     {
         machine FailureDetector;
 		List<machine> NodeSeq;
@@ -15,9 +15,13 @@ namespace FailureDetector
 			    this.NodeSeq = new List<machine>();
 				this.NodeMap = new Dictionary<machine, bool>();
 				this.Initialize();
+
 				create(Safety);
-                this.FailureDetector = create(FailureDetector, this.NodeSeq);
+
+                this.FailureDetector = create(FailureDetector);
+				send(this.FailureDetector, FailureDetectorConfig, this.NodeSeq);
 				send(this.FailureDetector, RegisterClient, this);
+
 				this.Fail();
             }
         }

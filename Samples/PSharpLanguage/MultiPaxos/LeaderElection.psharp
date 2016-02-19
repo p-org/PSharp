@@ -10,20 +10,21 @@ namespace MultiPaxos
 		int CurrentLeaderRank;
 		int MyRank;
 
-	    start state Init
-		{
-		    entry
-			{
-			    Servers = payload[0] as List<machine>;
-				ParentServer = payload[1] as machine;
-				MyRank = (int)payload[2];
-				CurrentLeader = this;
-				CurrentLeaderRank = MyRank;
-				raise(local);
-			}
+		start state Init
+        {
+            on local goto SendLeader;
+			on leaderElectionConfig do Configure;
+        }
 
-			on local goto SendLeader;
-		}
+		void Configure()
+        {
+			Servers = (trigger as leaderElectionConfig).nodes;
+			ParentServer = (trigger as leaderElectionConfig).node;
+			MyRank = (trigger as leaderElectionConfig).rank;
+			CurrentLeader = this;
+			CurrentLeaderRank = MyRank;
+			raise(local);
+        }
 
 		state SendLeader
 		{
@@ -35,14 +36,13 @@ namespace MultiPaxos
 			}
 		}
 
-		model void GetNewLeader()
+		void GetNewLeader()
 		{
-		    /*
 		    for (int idx = 0; idx < Servers.Count; idx++)
 			{
 			    if (idx + 1 < MyRank)
 				{
-					if ($)
+					if (this.Random())
 					{
 					    CurrentLeader = Servers[idx];
 						CurrentLeaderRank = idx + 1;
@@ -50,16 +50,9 @@ namespace MultiPaxos
 					}
 				}
 			}
-			*/
 			
 			CurrentLeader = ParentServer;
 			CurrentLeaderRank = MyRank;
-		}
-
-		void GetNewLeader()
-		{
-			CurrentLeader = Servers[0];
-			CurrentLeaderRank = 1;
 		}
     }
 }
