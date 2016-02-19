@@ -34,7 +34,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.ExtendedReflection, Version=0.14.40609.4, Culture=neutral, PublicKeyToken=76a274db078248c8, processorArchitecture=MSIL">
+    <Reference Include="Microsoft.ExtendedReflection, Version=0.92.50603.1, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\References\Microsoft.ExtendedReflection.dll</HintPath>
     </Reference>

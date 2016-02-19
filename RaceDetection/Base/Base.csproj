@@ -33,9 +33,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.ExtendedReflection, Version=0.14.40609.4, Culture=neutral, PublicKeyToken=76a274db078248c8, processorArchitecture=MSIL">
+    <Reference Include="Microsoft.ExtendedReflection, Version=0.92.50603.1, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\chesstool-69631\ManagedChess\external\Microsoft.ExtendedReflection.dll</HintPath>
+      <HintPath>..\..\References\Microsoft.ExtendedReflection.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.PSharp">
       <HintPath>..\..\Binaries\Release\Microsoft.PSharp.dll</HintPath>
@@ -67,7 +67,7 @@
     <Compile Include="ObjectAccessThreadMonitor.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ThreadExecutionMoniorDispatcher.cs" />
+    <Compile Include="ThreadExecutionMonitorDispatcher.cs" />
     <Compile Include="ThreadMonitorBase.cs" />
     <Compile Include="ThreadMonitorCollection.cs" />
     <Compile Include="ThreadMonitorFactory.cs" />

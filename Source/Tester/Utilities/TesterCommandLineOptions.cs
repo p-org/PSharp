@@ -169,6 +169,11 @@ namespace Microsoft.PSharp.Utilities
             {
                 base.Configuration.ScheduleIntraMachineConcurrency = true;
             }
+            else if (option.ToLower().Equals("/raceDetection"))
+            {
+                base.Configuration.CheckDataRaces = true;
+                base.Configuration.PerformInstrumentation = true;
+            }
             else if (option.ToLower().Equals("/liveness"))
             {
                 base.Configuration.CheckLiveness = true;
@@ -256,6 +261,7 @@ namespace Microsoft.PSharp.Utilities
             help += "\n  /sch:[x]\t\t Choose a systematic testing strategy ('random' by default)";
             help += "\n  /depth-bound:[x]\t Depth bound to be explored ('10000' by default)";
             help += "\n  /delay-bound:[x]\t Delay bound ('2' by default)";
+            help += "\n  /raceDetection\t\t Enable dynamic data race detection";
             help += "\n  /liveness\t\t Enable liveness property checking";
             help += "\n  /sch-seed:[x]\t\t Choose a scheduling seed (signed 32-bit integer)";
 

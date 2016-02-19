@@ -24,7 +24,8 @@ namespace RaceDetection
             //String input = "C:\\Users\\t-rasmud\\Documents\\Visual Studio 2015\\Projects\\RacyTests\\StructAddressCheck\\bin\\Debug\\StructAddressCheck.exe";
             //String input = "D:\\PSharp\\Samples\\CSharp\\Raft\\bin\\Debug\\Raft.exe";
             //String input = "D:\\PSharp\\Samples\\RacyBenchmarks\\RacyBenchmarks\\bin\\Debug\\BasicPaxosRacy.exe";
-            String input = "D:\\PSharp\\Samples\\RacyBenchmarks\\BoundedAsyncRacy\\bin\\Debug\\BoundedAsyncRacy.exe";
+            String input = "C:\\Users\\Pantazis\\workspace\\PSharp\\Samples\\RacyBenchmarks\\BoundedAsyncRacy\\bin\\Debug\\BoundedAsyncRacy.exe";
+            //String input = "D:\\PSharp\\Samples\\RacyBenchmarks\\BoundedAsyncRacy\\bin\\Debug\\BoundedAsyncRacy.exe";
             //String input = "D:\\PSharp\\Samples\\RacyBenchmarks\\ChainReplicationRacy\\bin\\Debug\\ChainReplicationRacy.exe";
 
             Assembly a = Assembly.LoadFrom(input);
@@ -43,7 +44,7 @@ namespace RaceDetection
             referencedAssemblies.CopyTo(includedAssemblies, 0);
             //Old ExtendedReflection
             ProcessStartInfo info = ControllerSetUp.GetMonitorableProcessStartInfo(
-                "D:\\PSharp\\RaceDetection\\Base\\bin\\Debug\\Base.exe",
+                "C:\\Users\\Pantazis\\workspace\\PSharp\\RaceDetection\\Base\\bin\\Debug\\Base.exe",
                 new String[] { WrapString(input) },
                 MonitorInstrumentationFlags.All,
                 true,

@@ -55,10 +55,6 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="RuntimeTrace, Version=1.0.0.0, Culture=neutral, PublicKeyToken=c4566cf0a7f74012, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\RuntimeTrace\bin\Debug\RuntimeTrace.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Composition.AttributedModel">
       <HintPath>..\..\References\Roslyn\System.Composition.AttributedModel.dll</HintPath>
@@ -96,17 +92,18 @@
     <Compile Include="Exceptions.cs" />
     <Compile Include="Options\CompilationTarget.cs" />
     <Compile Include="Options\SchedulingStrategy.cs" />
+    <Compile Include="Instrumentation\MachineTrace.cs" />
     <Compile Include="Utilities\ErrorReporter.cs" />
     <Compile Include="Utilities\IO.cs" />
-    <Compile Include="Library\ActionBindings.cs" />
-    <Compile Include="Library\GotoStateTransitions.cs" />
+    <Compile Include="EventHandlers\ActionBindings.cs" />
+    <Compile Include="EventHandlers\GotoStateTransitions.cs" />
     <Compile Include="Library\AbstractMachine.cs" />
     <Compile Include="Library\MachineId.cs" />
     <Compile Include="Library\Machine.cs" />
     <Compile Include="Library\MachineState.cs" />
     <Compile Include="Library\Monitor.cs" />
     <Compile Include="Library\MonitorState.cs" />
-    <Compile Include="Library\PushStateTransitions.cs" />
+    <Compile Include="EventHandlers\PushStateTransitions.cs" />
     <Compile Include="Options\BaseCommandLineOptions.cs" />
     <Compile Include="Options\Configuration.cs" />
     <Compile Include="Utilities\Profiler.cs" />

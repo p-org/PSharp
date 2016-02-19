@@ -1,10 +1,26 @@
-﻿using System;
+﻿//-----------------------------------------------------------------------
+// <copyright file="MachineTrace.cs" company="Microsoft">
+//      Copyright (c) Microsoft Corporation. All rights reserved.
+// 
+//      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
+//      EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES 
+//      OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
+// ----------------------------------------------------------------------------------
+//      The example companies, organizations, products, domain names,
+//      e-mail addresses, logos, people, places, and events depicted
+//      herein are fictitious.  No association with any real company,
+//      organization, product, domain name, email address, logo, person,
+//      places, or events is intended or should be inferred.
+// </copyright>
+//-----------------------------------------------------------------------
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RuntimeTrace
+namespace Microsoft.PSharp
 {
     [Serializable]
     public class MachineTrace
@@ -13,19 +29,30 @@ namespace RuntimeTrace
 
         public bool isSend = false;
 
-        //begin action fields
+        /// <summary>
+        /// Start action fields.
+        /// </summary>
         public String actionName;
         public int actionID;
         public String eventName;
         public int eventID;
 
-        //send event fields
+        /// <summary>
+        /// Send event fields.
+        /// </summary>
         public int sendID;
         public int toMachine;
         public String sendEventName;
         public int sendEventID;
 
-        //action begin
+        /// <summary>
+        /// Trace when starting an action.
+        /// </summary>
+        /// <param name="machineID"></param>
+        /// <param name="actionName"></param>
+        /// <param name="actionID"></param>
+        /// <param name="eventName"></param>
+        /// <param name="eventID"></param>
         public MachineTrace(int machineID, String actionName, int actionID, String eventName, int eventID)
         {
             this.machineID = machineID;
@@ -36,7 +63,14 @@ namespace RuntimeTrace
             this.isSend = false;
         }
 
-        //send event
+        /// <summary>
+        /// Trace when sending an event.
+        /// </summary>
+        /// <param name="machineID"></param>
+        /// <param name="sendID"></param>
+        /// <param name="toMachine"></param>
+        /// <param name="sendEventName"></param>
+        /// <param name="sendEventID"></param>
         public MachineTrace(int machineID, int sendID, int toMachine, String sendEventName, int sendEventID)
         {
             this.machineID = machineID;

@@ -14,7 +14,6 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using RuntimeTrace;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -116,15 +115,28 @@ namespace Microsoft.PSharp
         /// </summary>
         protected internal Event ReceivedEvent { get; private set; }
 
-        //Instrumentation
-        private bool instrument;
-        internal List<MachineTrace> runtimeTrace = new List<MachineTrace>();
-        private int actionId = 0;
-        private int sendId = 0;
-        //end instrumentation
         #endregion
 
-        #region machine constructors
+        #region instrumentation-related fields
+
+        /// <summary>
+        /// Runtime trace used during instrumentation.
+        /// </summary>
+        internal List<MachineTrace> RuntimeTrace = new List<MachineTrace>();
+
+        /// <summary>
+        /// Monotonically increasing action id.
+        /// </summary>
+        private int ActionId = 0;
+
+        /// <summary>
+        /// Monotonically increasing send id.
+        /// </summary>
+        private int SendId = 0;
+
+        #endregion
+
+        #region machine constructors and destructors
 
         /// <summary>
         /// Constructor.
@@ -138,21 +150,17 @@ namespace Microsoft.PSharp
 
             this.IsRunning = true;
             this.IsHalted = false;
-
-            //instrumentation
-            this.instrument = true;
-            //end instrumentation
         }
 
-        #endregion
-
-        #region destructor for instrumentation
+        /// <summary>
+        /// Destructor, currently only used during instrumentation.
+        /// </summary>
         ~Machine()
         {
-            if (instrument)
+            if (base.Runtime.Configuration.PerformInstrumentation)
             {
                 Console.WriteLine("machine ID: " + Id.GetHashCode() + " " + Id.ToString());
-                foreach (var item in runtimeTrace)
+                foreach (var item in this.RuntimeTrace)
                 {
                     if (item.isSend)
                         continue;
@@ -160,18 +168,18 @@ namespace Microsoft.PSharp
                         Console.WriteLine(item.actionName + " " + item.actionID);
                 }
 
-                if (runtimeTrace.Count > 0)
+                if (this.RuntimeTrace.Count > 0)
                 {
                     Stream stream = File.Open("rtTrace_" + Id.GetHashCode() + ".osl", FileMode.Create);
                     BinaryFormatter bformatter = new BinaryFormatter();
-                    bformatter.Serialize(stream, runtimeTrace);
+                    bformatter.Serialize(stream, this.RuntimeTrace);
                     stream.Close();
                 }
             }
         }
+
         #endregion
-
-
+        
         #region P# API methods
 
         /// <summary>
@@ -214,16 +222,14 @@ namespace Microsoft.PSharp
         {
             // If the event is null then report an error and exit.
             this.Assert(e != null, "Machine '{0}' is sending a null event.", this.GetType().Name);
-
-            //Instrumentation
-            if (instrument)
+            
+            if (base.Runtime.Configuration.PerformInstrumentation)
             {
-                sendId++;
-                //MachineTrace obj = new MachineTrace(sendId, base.Id.GetHashCode(), mid.GetHashCode(), e.ToString(), e.GetHashCode());
-                MachineTrace obj = new MachineTrace(this.Id.GetHashCode(), sendId, mid.GetHashCode(), e.ToString(), e.GetHashCode());
-                runtimeTrace.Add(obj);
+                this.SendId++;
+                //MachineTrace trace = new MachineTrace(this.SendId, base.Id.GetHashCode(), mid.GetHashCode(), e.ToString(), e.GetHashCode());
+                MachineTrace trace = new MachineTrace(this.Id.GetHashCode(), this.SendId, mid.GetHashCode(), e.ToString(), e.GetHashCode());
+                this.RuntimeTrace.Add(trace);
             }
-            //end instrumentation
 
             base.Runtime.Send(this, mid, e, isStarter);
         }
@@ -727,16 +733,14 @@ namespace Microsoft.PSharp
                 else if (this.ActionBindings.ContainsKey(e.GetType()))
                 {
                     Action action = this.ActionBindings[e.GetType()];
-
-                    //Instrumentation
-                    if (instrument)
+                    
+                    if (base.Runtime.Configuration.PerformInstrumentation)
                     {
-                        actionId++;
-                        //MachineTrace obj = new MachineTrace(this.Id.GetHashCode(), action.Method.Name, actionId, e.ToString(), e.GetHashCode());
-                        MachineTrace obj = new MachineTrace(this.Id.GetHashCode(), action.Method.Name, actionId, e.ToString(), e.GetHashCode());
-                        runtimeTrace.Add(obj);
+                        this.ActionId++;
+                        //MachineTrace trace = new MachineTrace(this.Id.GetHashCode(), action.Method.Name, this.ActionId, e.ToString(), e.GetHashCode());
+                        MachineTrace trace = new MachineTrace(this.Id.GetHashCode(), action.Method.Name, this.ActionId, e.ToString(), e.GetHashCode());
+                        this.RuntimeTrace.Add(trace);
                     }
-                    //end instrumentation
 
                     this.Do(action);
                 }
@@ -982,16 +986,14 @@ namespace Microsoft.PSharp
             {
                 // Performs the on entry statements of the new state.
                 this.StateStack.Peek().ExecuteEntryFunction();
-
-                //Instrumentation
-                if (instrument)
+                
+                if (base.Runtime.Configuration.PerformInstrumentation)
                 {
-                    actionId++;
-                    //MachineTrace obj = new MachineTrace(this.Id.GetHashCode(), action.Method.Name, actionId, e.ToString(), e.GetHashCode());
-                    MachineTrace obj = new MachineTrace(this.Id.GetHashCode(), null, actionId, null, 0);
-                    runtimeTrace.Add(obj);
+                    this.ActionId++;
+                    //MachineTrace trace = new MachineTrace(this.Id.GetHashCode(), action.Method.Name, this.ActionId, e.ToString(), e.GetHashCode());
+                    MachineTrace trace = new MachineTrace(this.Id.GetHashCode(), null, this.ActionId, null, 0);
+                    this.RuntimeTrace.Add(trace);
                 }
-                //end Instrumentation
 
             }
             catch (TaskCanceledException)
@@ -1036,16 +1038,14 @@ namespace Microsoft.PSharp
                 {
                     onExit();
                 }
-
-                //Instrumentation
-                if (instrument)
+                
+                if (base.Runtime.Configuration.PerformInstrumentation)
                 {
-                    actionId++;
-                    //MachineTrace obj = new MachineTrace(this.Id.GetHashCode(), action.Method.Name, actionId, e.ToString(), e.GetHashCode());
-                    MachineTrace obj = new MachineTrace(this.Id.GetHashCode(), null, actionId, null, 0);
-                    runtimeTrace.Add(obj);
+                    this.ActionId++;
+                    //MachineTrace trace = new MachineTrace(this.Id.GetHashCode(), action.Method.Name, this.ActionId, e.ToString(), e.GetHashCode());
+                    MachineTrace trace = new MachineTrace(this.Id.GetHashCode(), null, this.ActionId, null, 0);
+                    this.RuntimeTrace.Add(trace);
                 }
-                //end Instrumentation
 
             }
             catch (TaskCanceledException)

@@ -34,6 +34,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.PSharp">
+      <HintPath>..\..\Binaries\Release\Microsoft.PSharp.dll</HintPath>
+    </Reference>
     <Reference Include="ProgramTrace">
       <HintPath>..\ProgramTrace\bin\Debug\ProgramTrace.dll</HintPath>
     </Reference>
@@ -48,9 +51,6 @@
     </Reference>
     <Reference Include="QuickGraph.Serialization">
       <HintPath>..\..\References\QuickGraph\QuickGraph.Serialization.dll</HintPath>
-    </Reference>
-    <Reference Include="RuntimeTrace">
-      <HintPath>..\..\PSharp\Binaries\Debug\RuntimeTrace.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

@@ -5,7 +5,7 @@ using Microsoft.PSharp;
 namespace BoundedAsyncRacy
 {
     /// <summary>
-    /// This is an example of usign P#.
+    /// This is an example of using P#.
     /// 
     /// This example implements an asynchronous scheduler communicating
     /// with a number of processes under a predefined bound.

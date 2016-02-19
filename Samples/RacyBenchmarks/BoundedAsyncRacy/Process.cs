@@ -11,18 +11,6 @@ namespace BoundedAsyncRacy
     {
         #region events
         private class eWaitForInitialization : Event { }
-        #endregion
-
-        #region structs
-        internal class CountMessage
-        {
-            public int Count;
-
-            public CountMessage(int count)
-            {
-                this.Count = count;
-            }
-        }
 
         public class eInitialize : Event
         {
