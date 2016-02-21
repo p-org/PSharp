@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="MyMain.cs">
+// <copyright file="PSharpProgram.cs">
 //      Copyright (c) 2016 Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -20,22 +20,15 @@ using Microsoft.ExtendedReflection.Monitoring;
 
 namespace Microsoft.PSharp.DynamicRaceDetection
 {
-    class MyMain
+    class PSharpProgram
     {
-        public MyMain(Assembly assembly)
+        public PSharpProgram(Assembly assembly)
         {
             TryLoadReferencedAssemblies(new[] { assembly });
 
             //ObjectAccessThreadMonitor.ReadRawAccess += new RawAccessHandler(this.ObjectAccessThreadMonitor_ReadAccess);
-            //Type t = assembly.GetType("PSharpShoppingList.Program", true);
-            //Type t = assembly.GetType("RacyTests.Program", true);
-            //Type t = assembly.GetType("RacyCreatePayload.Program", true);
-            //Type t = assembly.GetType("RacyInts.Program", true);
-            //Type t = assembly.GetType("StructAddressCheck.Program", true);
-            //Type t = assembly.GetType("Raft.Test", true);
-            //Type t = assembly.GetType("BasicPaxosRacy.Program", true);
             Type t = assembly.GetType("BoundedAsyncRacy.Program", true);
-            //Type t = assembly.GetType("ChainReplicationRacy.Program", true);
+
             try
             {
                 //Type t = assembly.GetType("Migration.Program", true);

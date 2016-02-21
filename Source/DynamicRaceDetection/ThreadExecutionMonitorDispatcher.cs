@@ -417,7 +417,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
                     obj.accesses.Add(new ActionInstr(r.GetHashCode(), true));
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
 
             }

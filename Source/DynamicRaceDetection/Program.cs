@@ -49,13 +49,13 @@ namespace Microsoft.PSharp.DynamicRaceDetection
             var resolver = new AssemblyResolver();
             Array.ForEach(searchDirectories, d => resolver.AddSearchDirectory(d));
             resolver.Attach();
-            var engine = new RemoteEngine();
+            var engine = new RemoteRaceInstrumentationEngine();
             engine.Execute(executable, args);
         }
     }
 
     [Serializable]
-    internal class RemoteEngine : MarshalByRefObject
+    internal class RemoteRaceInstrumentationEngine : MarshalByRefObject
     {
         public override object InitializeLifetimeService()
         {
@@ -67,8 +67,8 @@ namespace Microsoft.PSharp.DynamicRaceDetection
             try
             {
                 var assembly = Assembly.LoadFrom(executable);
-                var engine = new MyEngine();
-                var main = new MyMain(assembly);
+                new RaceInstrumentationEngine();
+                new PSharpProgram(assembly);
                 Environment.Exit(0);
             }
             catch (Exception e)

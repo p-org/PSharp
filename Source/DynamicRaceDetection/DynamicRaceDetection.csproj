@@ -76,7 +76,7 @@
   <ItemGroup>
     <Compile Include="ComponentBase.cs" />
     <Compile Include="ComponentService.cs" />
-    <Compile Include="Engine.cs" />
+    <Compile Include="RaceInstrumentationEngine.cs" />
     <Compile Include="IComponent.cs" />
     <Compile Include="IComponentServices.cs" />
     <Compile Include="IInternalService.cs" />

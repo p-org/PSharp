@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="Engine.cs">
+// <copyright file="RaceInstrumentationEngine.cs">
 //      Copyright (c) 2016 Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -24,30 +24,30 @@ using Microsoft.PSharp.DynamicRaceDetection.CallsOnly;
 namespace Microsoft.PSharp.DynamicRaceDetection
 {
     /// <summary>
-    /// Extended Reflection Engine
+    /// Race instrumentation engine.
     /// </remarks>
-    internal sealed class MyEngine : Microsoft.ExtendedReflection.ComponentModel.Engine
+    internal sealed class RaceInstrumentationEngine : Engine
     {
-        private static MyEngine theOnlyOne;
+        private static RaceInstrumentationEngine SingletonEngine;
+
         public static void DisposeExecutionMonitors()
         {
-            Debug.Assert(theOnlyOne != null);
-            theOnlyOne.GetService<IMonitorManager>().DisposeExecutionMonitors();
+            Debug.Assert(SingletonEngine != null);
+            SingletonEngine.GetService<IMonitorManager>().DisposeExecutionMonitors();
         }
 
-
         /// <summary>
-        /// Initializes a new instance of the <see cref="MyEngine"/> class.
+        /// Initializes a new instance of the race instrumentation engine.
         /// </summary>
-        public MyEngine()
-            : base(new Container(), new EngineOptions(),
-                   new MonitorManager(), new ThreadMonitorManager())
+        public RaceInstrumentationEngine()
+            : base(new Container(), new EngineOptions(), new MonitorManager(), new ThreadMonitorManager())
         {
-            if (theOnlyOne != null)
+            if (SingletonEngine != null)
             {
                 throw new InvalidOperationException("MyEngine created more than once");
             }
-            theOnlyOne = this;
+
+            SingletonEngine = this;
 
             //required?
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(CurrentDomain_ProcessExit);
@@ -92,20 +92,17 @@ namespace Microsoft.PSharp.DynamicRaceDetection
             get { return (IExecutionMonitor)this.GetService<MonitorManager>(); }
         }
 
-
         private sealed class StackFrameFilter : IStackFrameFilter
         {
             public bool Exclude(StackFrameName frame)
             {
                 string v = frame.Value;
-                return
-                    v.Contains("Microsoft.ExtendedReflection") ||
+                return v.Contains("Microsoft.ExtendedReflection") ||
                     v.Contains("___redirect") ||
                     v.Contains("___lateredirect") ||
                     v.Contains("__Substitutions") ||
                     v.Contains("mscorlib") ||
-                    v.Contains("System.Reflection")
-                    ;
+                    v.Contains("System.Reflection");
             }
         }
 

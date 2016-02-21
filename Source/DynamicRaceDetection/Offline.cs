@@ -132,7 +132,6 @@ namespace Microsoft.PSharp.DynamicRaceDetection.Offline
         }
     }
 
-
     class Program
     {
         //HB graph
