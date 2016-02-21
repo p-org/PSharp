@@ -101,7 +101,7 @@
       <Name>Core</Name>
     </ProjectReference>
     <ProjectReference Include="..\SystematicTesting\SystematicTesting.csproj">
-      <Project>{81980f5a-06a4-47f0-86f3-b72f50bae572}</Project>
+      <Project>{f2ac5655-2f62-452e-88c1-67788d730a82}</Project>
       <Name>SystematicTesting</Name>
     </ProjectReference>
   </ItemGroup>
