@@ -299,7 +299,7 @@ namespace Microsoft.PSharp.SystematicTesting
                     if (this.Configuration.CheckDataRaces)
                     {
                         // Emits the trace from the race instrumentation.
-                        runtime.EmitRaceInstrumentationTrace();
+                        this.EmitRaceInstrumentationTrace(runtime);
                     }
 
                     // Runs the liveness checker to find any liveness property violations.
@@ -341,14 +341,14 @@ namespace Microsoft.PSharp.SystematicTesting
                     {
                         if (sw != null && !this.Configuration.SuppressTrace)
                         {
-                            this.PrintTrace(sw);
+                            this.EmitScheduleTrace(sw);
                         }
                         
                         break;
                     }
                     else if (sw != null && this.Configuration.PrintTrace)
                     {
-                        this.PrintTrace(sw);
+                        this.EmitScheduleTrace(sw);
                     }
                 }
             });
@@ -382,6 +382,10 @@ namespace Microsoft.PSharp.SystematicTesting
             finally
             {
                 Profiler.StopMeasuringExecutionTime();
+                if (!this.Configuration.KeepTemporaryFiles)
+                {
+                    this.CleanupTemporaryFiles();
+                }
             }
         }
 
@@ -413,10 +417,10 @@ namespace Microsoft.PSharp.SystematicTesting
         }
 
         /// <summary>
-        /// Writes the trace in an output file.
+        /// Emits the schedule trace in an output file.
         /// </summary>
         /// <param name="sw">StringWriter</param>
-        private void PrintTrace(StringWriter sw)
+        private void EmitScheduleTrace(StringWriter sw)
         {
             var name = Path.GetFileNameWithoutExtension(this.Assembly.Location);
             var directory = Path.GetDirectoryName(this.Assembly.Location) +
@@ -429,6 +433,19 @@ namespace Microsoft.PSharp.SystematicTesting
 
             IO.PrintLine("... Writing {0}", path);
             File.WriteAllText(path, sw.ToString());
+        }
+
+        /// <summary>
+        /// Emits the race intrumentation trace in an output file.
+        /// </summary>
+        /// <param name="runtime">Runtime</param>
+        private void EmitRaceInstrumentationTrace(PSharpBugFindingRuntime runtime)
+        {
+            var directory = Path.GetDirectoryName(this.Assembly.Location) +
+                Path.DirectorySeparatorChar + "temp" + Path.DirectorySeparatorChar;
+            Directory.CreateDirectory(directory);
+
+            runtime.EmitRaceInstrumentationTrace(directory);
         }
 
         /// <summary>
@@ -489,6 +506,16 @@ namespace Microsoft.PSharp.SystematicTesting
         #endregion
 
         #region helper API
+
+        /// <summary>
+        /// Cleans up temporary files.
+        /// </summary>
+        private void CleanupTemporaryFiles()
+        {
+            var directory = Path.GetDirectoryName(this.Assembly.Location) +
+                Path.DirectorySeparatorChar + "temp" + Path.DirectorySeparatorChar;
+            Directory.Delete(directory, true);
+        }
 
         /// <summary>
         /// Returns true if the engine should print the current iteration.

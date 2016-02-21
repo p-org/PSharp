@@ -610,29 +610,30 @@ namespace Microsoft.PSharp.SystematicTesting
         /// <summary>
         /// Emits the race instrumentation trace.
         /// </summary>
-        internal void EmitRaceInstrumentationTrace()
+        /// <param name="directory">Output directory</param>
+        internal void EmitRaceInstrumentationTrace(string directory)
         {
             foreach (var machine in this.MachineMap.Values)
             {
-                IO.Debug("machine ID: " + machine.Id.GetHashCode() + " " + machine.Id.ToString());
+                IO.Debug("<RaceTracing> Machine id: " + machine.Id.GetHashCode() + " " + machine.Id.ToString());
                 foreach (var item in machine.RuntimeTrace)
                 {
                     if (item.isSend)
                     {
                         continue;
                     }
-                    else
-                    {
-                        Console.WriteLine(item.actionName + " " + item.actionID);
-                    }
+
+                    IO.Debug("<RaceTracing> Action: " + item.actionName + " " + item.actionID);
                 }
 
                 if (machine.RuntimeTrace.Count > 0)
                 {
-                    using (FileStream stream = File.Open("rtTrace_" + machine.Id.GetHashCode() + ".osl", FileMode.Create))
+                    string path = directory + "rtTrace_" + machine.Id.GetHashCode() + ".osl";
+                    using (FileStream stream = File.Open(path, FileMode.Create))
                     {
                         BinaryFormatter binaryFormatter = new BinaryFormatter();
                         binaryFormatter.Serialize(stream, machine.RuntimeTrace);
+                        IO.Debug("... Writing {0}", path);
                     }
                 }
             }

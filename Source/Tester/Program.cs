@@ -41,12 +41,11 @@ namespace Microsoft.PSharp
             {
                 // Creates and starts a monitorable testing process.
                 Program.StartMonitorableTestingProcess(configuration, args);
+                return;
             }
-            else
-            {
-                // Creates and starts a testing process.
-                TestingProcess.Create(configuration).Start();
-            }
+
+            // Creates and starts a testing process.
+            TestingProcess.Create(configuration).Start();
 
             IO.PrintLine(". Done");
         }

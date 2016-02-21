@@ -208,6 +208,11 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         public bool EnableMonitorableTestingProcess;
 
+        /// <summary>
+        /// If true, the temporary files will not get deleted.
+        /// </summary>
+        public bool KeepTemporaryFiles;
+
         #endregion
 
         #region remote manager options
@@ -282,6 +287,7 @@ namespace Microsoft.PSharp.Utilities
             this.DynamicEventQueuePrioritization = false;
 
             this.EnableMonitorableTestingProcess = false;
+            this.KeepTemporaryFiles = false;
 
             this.NumberOfContainers = 1;
             this.ContainerId = 0;
