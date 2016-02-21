@@ -22,6 +22,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection.CallsOnly
     internal interface IThreadMonitor
     {
         #region Memory access addresses
+
         /// <summary>
         /// This method is called when a (non-local) memory location is loaded from.
         /// </summary>
@@ -39,6 +40,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection.CallsOnly
         /// <param name="volatile">indicates if the access is volatile</param>
         /// <returns>an exception that should be thrown, if any</returns>
         Exception Store(UIntPtr location, uint size, bool @volatile);
+
         #endregion
 
         /// <summary>

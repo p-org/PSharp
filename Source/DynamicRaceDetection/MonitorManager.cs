@@ -48,6 +48,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection
                     this.threadMonitorFactory = new ThreadMonitorFactory(this.ThreadMonitorManager);
                     this.ThreadMonitorManager.AddMonitorFactory(this.threadMonitorFactory);
                 }
+
                 return this.threadMonitorFactory;
             }
         }
@@ -57,6 +58,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection
         /// </summary>
         void IMonitorManager.DisposeExecutionMonitors()
         {
+
         }
 
         /// <summary>
@@ -66,7 +68,10 @@ namespace Microsoft.PSharp.DynamicRaceDetection
         void IMonitorManager.RegisterThreadMonitor(IThreadMonitor threadMonitor)
         {
             if (threadMonitor == null)
+            {
                 throw new ArgumentNullException("threadMonitor");
+            }
+
             this.ThreadMonitorFactory.Monitors.Add(threadMonitor);
         }
 
@@ -77,8 +82,12 @@ namespace Microsoft.PSharp.DynamicRaceDetection
         {
             // ensure we only have 1
             foreach (IThreadMonitor monitor in this.ThreadMonitorFactory.Monitors)
+            {
                 if (monitor is ObjectAccessThreadMonitor)
+                {
                     return;
+                }
+            }
 
             this.ThreadMonitorFactory.Monitors.Add(new ObjectAccessThreadMonitor(this.ThreadMonitorManager));
         }
@@ -119,6 +128,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection
 
         void IExecutionMonitor.BeforeMain()
         {
+
         }
 
         void IExecutionMonitor.Terminate()
@@ -135,10 +145,12 @@ namespace Microsoft.PSharp.DynamicRaceDetection
         }
 
         #region Injection (disabled)
+
         IExecutionValueInjector IExecutionMonitor.ValueInjector
         {
             get { return ThreadExecutionValueInjectorEmpty.Instance; }
         }
+
         #endregion
     }
 }

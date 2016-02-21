@@ -18,5 +18,6 @@ namespace Microsoft.PSharp.DynamicRaceDetection.ComponentModel
 {
     internal interface IInternalService : IService
     {
+
     }
 }

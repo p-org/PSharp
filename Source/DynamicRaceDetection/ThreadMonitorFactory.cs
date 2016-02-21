@@ -29,17 +29,16 @@ namespace Microsoft.PSharp.DynamicRaceDetection.CallsOnly
         , IThreadMonitorFactory
     {
         private readonly ThreadMonitorCollection monitors = new ThreadMonitorCollection();
+
         public ThreadMonitorCollection Monitors
         {
             get { return this.monitors; }
         }
 
         /// <summary>
-        /// Constructor
+        /// Constructor.
         /// </summary>
-        public ThreadMonitorFactory(ICopComponent host)
-            : base(host)
-        { }
+        public ThreadMonitorFactory(ICopComponent host) : base(host) { }
 
         public override Exception Load(UIntPtr location, uint size, bool @volatile)
         {
@@ -49,7 +48,9 @@ namespace Microsoft.PSharp.DynamicRaceDetection.CallsOnly
                 {
                     Exception exceptionToThrow = callMonitor.Load(location, size, @volatile);
                     if (exceptionToThrow != null)
+                    {
                         return exceptionToThrow;
+                    }
                 }
             }
             catch (Exception ex)
@@ -60,6 +61,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection.CallsOnly
                     "CallMonitor",
                     "unexpected error occurred");
             }
+
             return null;
         }
 
@@ -71,7 +73,9 @@ namespace Microsoft.PSharp.DynamicRaceDetection.CallsOnly
                 {
                     Exception exceptionToThrow = callMonitor.Store(location, size, @volatile);
                     if (exceptionToThrow != null)
+                    {
                         return exceptionToThrow;
+                    }
                 }
             }
             catch (Exception ex)
@@ -82,6 +86,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection.CallsOnly
                     "CallMonitor",
                     "unexpected error occurred");
             }
+
             return null;
         }
 
@@ -93,7 +98,9 @@ namespace Microsoft.PSharp.DynamicRaceDetection.CallsOnly
                 {
                     Exception exceptionToThrow = callMonitor.ObjectAllocationAccess(newObject);
                     if (exceptionToThrow != null)
+                    {
                         return exceptionToThrow;
+                    }
                 }
             }
             catch (Exception ex)
@@ -104,6 +111,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection.CallsOnly
                     "CallMonitor",
                     "unexpected error occurred");
             }
+
             return null;
         }
 
@@ -137,9 +145,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection.CallsOnly
                     "CallMonitor",
                     "unexpected error occurred");
             }
-
-
-
+            
             // Print summaries
             try
             {

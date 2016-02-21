@@ -222,6 +222,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection.Offline
                         {
                             nd1 = new MemAccess(ins.isWrite, ins.location, ins.objHandle, ins.offset, ins.srcLocation);
                         }
+
                         HbGraph.AddVertex(nd1);
                         HbGraph.AddEdge(new Edge(latest, nd1));
                         latest = nd1;
@@ -243,7 +244,9 @@ namespace Microsoft.PSharp.DynamicRaceDetection.Offline
                         SendEvent sendNode = (SendEvent)n;
                         ActBegin beginNode = (ActBegin)n1;
                         if (sendNode.toMachine == beginNode.machineID && sendNode.sendEventID == beginNode.eventID)
+                        {
                             HbGraph.AddEdge(new Edge(sendNode, beginNode));
+                        }
                     }
                 }
 
@@ -255,7 +258,9 @@ namespace Microsoft.PSharp.DynamicRaceDetection.Offline
                         CreateMachine createNode = (CreateMachine)n;
                         ActBegin beginNode = (ActBegin)n1;
                         if (createNode.createMachineId == beginNode.machineID && beginNode.actionID == 1)
+                        {
                             HbGraph.AddEdge(new Edge(createNode, beginNode));
+                        }
                     }
                 }
             }
@@ -290,6 +295,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection.Offline
             {
                 Console.WriteLine(e.src.GetHashCode() + " ---> " + e.trg.GetHashCode());
             }
+
             Console.WriteLine();
         }
 
@@ -306,9 +312,15 @@ namespace Microsoft.PSharp.DynamicRaceDetection.Offline
                     foreach (Node n1 in HbGraph.Vertices)
                     {
                         if (n.Equals(n1))
+                        {
                             continue;
+                        }
+
                         if (racyPairs.Contains(new Tuple<Node, Node>(n, n1)) || racyPairs.Contains(new Tuple<Node, Node>(n1, n)))
+                        {
                             continue;
+                        }
+
                         if (n1.GetType().ToString().Contains("MemAccess"))
                         {
                             MemAccess loc2 = (MemAccess)n1;
@@ -316,7 +328,10 @@ namespace Microsoft.PSharp.DynamicRaceDetection.Offline
                             if (loc1.isWrite || loc2.isWrite)
                             {
                                 if (loc1.objHandle == UIntPtr.Zero && loc1.offset == UIntPtr.Zero && loc2.objHandle == UIntPtr.Zero && loc2.offset == UIntPtr.Zero)
+                                {
                                     continue;
+                                }
+
                                 if ((loc1.location == loc2.location) && (loc1.offset == loc2.offset) && !existsPath(n, n1) && !existsPath(n1, n))
                                 {
                                     Console.WriteLine("RACE DETECTED: " + loc1.location + " and " + loc2.location + " i.e " + loc1.srcLocation + ";" + loc1.isWrite + " and " + loc2.srcLocation + ";" + loc2.isWrite);
@@ -384,8 +399,11 @@ namespace Microsoft.PSharp.DynamicRaceDetection.Offline
                     {
                         return true;
                     }
+
                     if (!successor.visited)
+                    {
                         dfsS.Push(successor);
+                    }
                 }
             }
 

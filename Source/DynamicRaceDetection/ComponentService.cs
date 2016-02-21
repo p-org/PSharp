@@ -17,12 +17,12 @@ using Microsoft.ExtendedReflection.ComponentModel;
 namespace Microsoft.PSharp.DynamicRaceDetection.ComponentModel
 {
     /// <summary>
-    /// List of available ChessCop services
+    /// List of available ChessCop services.
     /// </summary>
     internal class CopComponentServices : ComponentServices, ICopComponentServices
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ChessCopComponentServices"/> class.
+        /// Initializes a new instance of the CopComponentServices class.
         /// </summary>
         /// <param name="host">The host.</param>
         public CopComponentServices(IComponent host)
@@ -30,6 +30,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection.ComponentModel
         { }
 
         IMonitorManager _monitorManager;
+
         /// <summary>
         /// Gets the monitor manager.
         /// </summary>
@@ -39,7 +40,10 @@ namespace Microsoft.PSharp.DynamicRaceDetection.ComponentModel
             get
             {
                 if (this._monitorManager == null)
+                {
                     this._monitorManager = this.GetService<MonitorManager>();
+                }
+
                 return this._monitorManager;
             }
         }

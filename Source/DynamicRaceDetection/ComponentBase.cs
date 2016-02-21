@@ -17,11 +17,12 @@ using Microsoft.ExtendedReflection.ComponentModel;
 namespace Microsoft.PSharp.DynamicRaceDetection.ComponentModel
 {
     /// <summary>
-    /// Base class for <see cref="IChessCopComponent"/>.
+    /// Base class for CopComponentBase.
     /// </summary>
     internal class CopComponentBase : ComponentBase, ICopComponent
     {
         ICopComponentServices _services;
+
         /// <summary>
         /// Gets the services.
         /// </summary>
@@ -31,7 +32,10 @@ namespace Microsoft.PSharp.DynamicRaceDetection.ComponentModel
             get
             {
                 if (this._services == null)
+                {
                     this._services = new CopComponentServices(this);
+                }
+
                 return this._services;
             }
         }

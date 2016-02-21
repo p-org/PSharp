@@ -22,9 +22,7 @@ using Microsoft.PSharp.DynamicRaceDetection.ComponentModel;
 
 namespace Microsoft.PSharp.DynamicRaceDetection
 {
-    internal sealed class ThreadMonitorManager
-        : CopComponentBase
-        , IInternalService
+    internal sealed class ThreadMonitorManager : CopComponentBase, IInternalService
     {
         private readonly SafeList<IThreadMonitorFactory> monitorFactories = new SafeList<IThreadMonitorFactory>();
 
@@ -54,6 +52,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection
                 threadId = this.executionMonitors.Count;
                 this.executionMonitors.Add(null);
             }
+
             SafeDebug.Assert(this.executionMonitors[threadId] == null, "this.destroyedExecutionMonitorIds[threadId] == null");
 
             SafeList<IThreadExecutionMonitor> childExecutionMonitors = new SafeList<IThreadExecutionMonitor>(2);    //all callbacks
@@ -62,14 +61,13 @@ namespace Microsoft.PSharp.DynamicRaceDetection
             {
                 IThreadExecutionMonitor monitor;
                 if (monitorFactory.TryCreateThreadMonitor(threadId, out monitor))
+                {
                     childExecutionMonitors.Add(monitor);
-
+                }
             }
 
             this.executionMonitors[threadId] =
-                new ThreadExecutionMonitorMultiplexer(
-                    childExecutionMonitors
-                    );
+                new ThreadExecutionMonitorMultiplexer(childExecutionMonitors);
 
             return threadId;
         }

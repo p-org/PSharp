@@ -49,7 +49,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection
 
             SingletonEngine = this;
 
-            //required?
+            // required?
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(CurrentDomain_ProcessExit);
             this.GetService<ISymbolManager>().AddStackFrameFilter(new StackFrameFilter());
 

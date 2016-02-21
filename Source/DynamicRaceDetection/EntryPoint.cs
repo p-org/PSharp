@@ -36,6 +36,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection
                 object result = null;
                 ParameterInfo[] parameters = main_method.GetParameters();
                 //object classInstance = Activator.CreateInstance(t, null);
+
                 if (parameters.Length == 0)
                 {
                     result = main_method.Invoke(main_method, null);
@@ -76,6 +77,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection
         }
 
         static private SafeDictionary<string, Assembly> assemblies = new SafeDictionary<string, Assembly>();
+
         private void TryLoadReferencedAssemblies(Assembly[] inputAssemblies)
         {
             var ws = new SafeDictionary<string, Assembly>();

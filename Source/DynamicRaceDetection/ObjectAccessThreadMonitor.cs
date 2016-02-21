@@ -62,10 +62,12 @@ namespace Microsoft.PSharp.DynamicRaceDetection.CallsOnly
         public override Exception Store(UIntPtr interiorPointer, uint size, bool @volatile)
         {
             RawAccessHandler rh = WriteRawAccess;
+
             if (rh != null)
             {
                 return rh(interiorPointer, size, @volatile);
             }
+
             return null;
         }
 
@@ -80,10 +82,12 @@ namespace Microsoft.PSharp.DynamicRaceDetection.CallsOnly
         public override Exception Load(UIntPtr interiorPointer, uint size, bool @volatile)
         {
             RawAccessHandler rh = ReadRawAccess;
+
             if (rh != null)
             {
                 return rh(interiorPointer, size, @volatile);
             }
+
             return null;
         }
 
@@ -91,10 +95,12 @@ namespace Microsoft.PSharp.DynamicRaceDetection.CallsOnly
         public override Exception ObjectAllocationAccess(object newObject)
         {
             ObjectAllocationHandler rh = ObjectAllocationHandlerEvent;
+
             if (rh != null)
             {
                 return rh(newObject);
             }
+
             return null;
         }
     }

@@ -98,6 +98,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
             {
                 Stream stream = File.Open("thTrace_" + threadIndex + ".osl", FileMode.Create);
                 BinaryFormatter bformatter = new BinaryFormatter();
+
                 try
                 {
                     bformatter.Serialize(stream, thTrace);
@@ -106,6 +107,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
                 {
                     Console.WriteLine("EXCEPTION: " + ex);
                 }
+
                 stream.Close();
             }
         }
@@ -307,6 +309,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
                 recordRW = true;
                 currentAction = method.FullName;
             }
+
             return false;
         }
 
@@ -449,6 +452,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
                 {
                     actionIds.Add(mcID, 1);
                 }
+
                 obj.set(actionIds[mcID]);
                 thTrace.Add(obj);
             }
@@ -460,6 +464,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
         /// <param name="method">callee before vtable lookup</param>
         public override void Callvirt(Method method)
         {
+
         }
 
         /// <summary>
@@ -480,7 +485,9 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
         /// <param name="type">actual receiver type</param>
         public override void CallvirtType(TypeEx type, int codeLabel)
         {
+
         }
+
         #endregion
 
         public string GetSourceLocation(UIntPtr location)
@@ -488,14 +495,18 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
             StackTrace st = new StackTrace(true);
             int lineno_cnt = 0;
             string ret = null;
+
             for (int i = 0; i < st.FrameCount; i++)
             {
-                System.Diagnostics.StackFrame sf = st.GetFrame(i);
+                StackFrame sf = st.GetFrame(i);
                 string assembly_name = sf.GetMethod().Module.Assembly.GetName().ToString();
 
                 // this is fragile
-                if (assembly_name.Contains("Base") || assembly_name.Contains(".ExtendedReflection") || assembly_name.Contains(".PSharp") || assembly_name.Contains("mscorlib"))
+                if (assembly_name.Contains("Base") || assembly_name.Contains(".ExtendedReflection") ||
+                    assembly_name.Contains(".PSharp") || assembly_name.Contains("mscorlib"))
+                {
                     continue;
+                }
 
                 string file = sf.GetFileName();
 
@@ -511,9 +522,11 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
                 ret = file + ";" + method + ";" + lineno;
 
                 if (lineno_cnt > 3)
+                {
                     break;
-
+                }
             }
+
             return ret;
         }
     }
