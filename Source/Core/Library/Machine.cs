@@ -18,10 +18,8 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading.Tasks;
 
 namespace Microsoft.PSharp
@@ -152,32 +150,6 @@ namespace Microsoft.PSharp
             this.IsHalted = false;
         }
 
-        /// <summary>
-        /// Destructor, currently only used during instrumentation.
-        /// </summary>
-        ~Machine()
-        {
-            if (base.Runtime.Configuration.PerformInstrumentation)
-            {
-                Console.WriteLine("machine ID: " + Id.GetHashCode() + " " + Id.ToString());
-                foreach (var item in this.RuntimeTrace)
-                {
-                    if (item.isSend)
-                        continue;
-                    else
-                        Console.WriteLine(item.actionName + " " + item.actionID);
-                }
-
-                if (this.RuntimeTrace.Count > 0)
-                {
-                    Stream stream = File.Open("rtTrace_" + Id.GetHashCode() + ".osl", FileMode.Create);
-                    BinaryFormatter bformatter = new BinaryFormatter();
-                    bformatter.Serialize(stream, this.RuntimeTrace);
-                    stream.Close();
-                }
-            }
-        }
-
         #endregion
         
         #region P# API methods
@@ -223,7 +195,7 @@ namespace Microsoft.PSharp
             // If the event is null then report an error and exit.
             this.Assert(e != null, "Machine '{0}' is sending a null event.", this.GetType().Name);
             
-            if (base.Runtime.Configuration.PerformInstrumentation)
+            if (base.Runtime.Configuration.CheckDataRaces)
             {
                 this.SendId++;
                 //MachineTrace trace = new MachineTrace(this.SendId, base.Id.GetHashCode(), mid.GetHashCode(), e.ToString(), e.GetHashCode());
@@ -734,7 +706,7 @@ namespace Microsoft.PSharp
                 {
                     Action action = this.ActionBindings[e.GetType()];
                     
-                    if (base.Runtime.Configuration.PerformInstrumentation)
+                    if (base.Runtime.Configuration.CheckDataRaces)
                     {
                         this.ActionId++;
                         //MachineTrace trace = new MachineTrace(this.Id.GetHashCode(), action.Method.Name, this.ActionId, e.ToString(), e.GetHashCode());
@@ -987,7 +959,7 @@ namespace Microsoft.PSharp
                 // Performs the on entry statements of the new state.
                 this.StateStack.Peek().ExecuteEntryFunction();
                 
-                if (base.Runtime.Configuration.PerformInstrumentation)
+                if (base.Runtime.Configuration.CheckDataRaces)
                 {
                     this.ActionId++;
                     //MachineTrace trace = new MachineTrace(this.Id.GetHashCode(), action.Method.Name, this.ActionId, e.ToString(), e.GetHashCode());
@@ -1038,7 +1010,7 @@ namespace Microsoft.PSharp
                     onExit();
                 }
                 
-                if (base.Runtime.Configuration.PerformInstrumentation)
+                if (base.Runtime.Configuration.CheckDataRaces)
                 {
                     this.ActionId++;
                     //MachineTrace trace = new MachineTrace(this.Id.GetHashCode(), action.Method.Name, this.ActionId, e.ToString(), e.GetHashCode());

@@ -44,32 +44,32 @@ namespace RaceDetection
             referencedAssemblies.CopyTo(includedAssemblies, 0);
             //Old ExtendedReflection
             ProcessStartInfo info = ControllerSetUp.GetMonitorableProcessStartInfo(
-                "C:\\Users\\Pantazis\\workspace\\PSharp\\RaceDetection\\Base\\bin\\Debug\\Base.exe",
-                new String[] { WrapString(input) },
-                MonitorInstrumentationFlags.All,
-                true,
+                "C:\\Users\\Pantazis\\workspace\\PSharp\\RaceDetection\\Base\\bin\\Debug\\Base.exe", // filename
+                new String[] { WrapString(input) }, // arguments
+                MonitorInstrumentationFlags.All, // monitor flags
+                true, // track gc accesses
 
                 null, // we don't monitor process at startup since it loads the DLL to monitor
-                null, // ibid.
+                null, // user type
 
-                null,
-                null,
-                null,
-                null,
-                null,
+                null, // substitution assemblies
+                null, // types to monitor
+                null, // types to exclude monitor
+                null, // namespaces to monitor
+                null, // namespaces to exclude monitor
                 includedAssemblies,
-                null,
+                null, //assembliesToExcludeMonitor to exclude monitor
 
                 null,
                 null, null, null,
                 null, null,
 
-                null,
-                false,
-                null,
-                true,
-                false,
-                ProfilerInteraction.Fail,
+                null, // clrmonitor log file name
+                false, // clrmonitor  log verbose
+                null, // crash on failure
+                true, // protect all cctors
+                false, // disable mscrolib suppressions
+                ProfilerInteraction.Fail, // profiler interaction
                 null, "", ""
                 );
 

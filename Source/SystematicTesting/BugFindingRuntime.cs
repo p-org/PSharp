@@ -16,6 +16,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -603,6 +605,37 @@ namespace Microsoft.PSharp.SystematicTesting
             }
 
             return fingerprint;
+        }
+
+        /// <summary>
+        /// Emits the race instrumentation trace.
+        /// </summary>
+        internal void EmitRaceInstrumentationTrace()
+        {
+            foreach (var machine in this.MachineMap.Values)
+            {
+                IO.Debug("machine ID: " + machine.Id.GetHashCode() + " " + machine.Id.ToString());
+                foreach (var item in machine.RuntimeTrace)
+                {
+                    if (item.isSend)
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        Console.WriteLine(item.actionName + " " + item.actionID);
+                    }
+                }
+
+                if (machine.RuntimeTrace.Count > 0)
+                {
+                    using (FileStream stream = File.Open("rtTrace_" + machine.Id.GetHashCode() + ".osl", FileMode.Create))
+                    {
+                        BinaryFormatter binaryFormatter = new BinaryFormatter();
+                        binaryFormatter.Serialize(stream, machine.RuntimeTrace);
+                    }
+                }
+            }
         }
 
         /// <summary>

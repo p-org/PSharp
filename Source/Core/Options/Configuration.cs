@@ -115,12 +115,6 @@ namespace Microsoft.PSharp.Utilities
         public int SchedulingIterations;
 
         /// <summary>
-        /// If true, the P# runtime will perform instrumentation
-        /// while a P# program executes.
-        /// </summary>
-        public bool PerformInstrumentation;
-
-        /// <summary>
         /// Redirects the console output.
         /// </summary>
         public bool RedirectConsoleOutput;
@@ -208,6 +202,12 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         public bool DynamicEventQueuePrioritization;
 
+        /// <summary>
+        /// If true, the P# tester will spawn a monitorable
+        /// testing process.
+        /// </summary>
+        public bool EnableMonitorableTestingProcess;
+
         #endregion
 
         #region remote manager options
@@ -261,7 +261,6 @@ namespace Microsoft.PSharp.Utilities
 
             this.SchedulingStrategy = SchedulingStrategy.Random;
             this.SchedulingIterations = 1;
-            this.PerformInstrumentation = false;
 
             this.RedirectConsoleOutput = true;
             this.PrintTrace = false;
@@ -281,6 +280,8 @@ namespace Microsoft.PSharp.Utilities
             this.CacheProgramState = false;
             this.BoundOperations = false;
             this.DynamicEventQueuePrioritization = false;
+
+            this.EnableMonitorableTestingProcess = false;
 
             this.NumberOfContainers = 1;
             this.ContainerId = 0;

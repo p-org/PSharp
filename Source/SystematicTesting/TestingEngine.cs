@@ -293,8 +293,14 @@ namespace Microsoft.PSharp.SystematicTesting
                         this.TestMethod.Invoke(null, new object[] { runtime });
                     }
 
-                    // Wait for test to terminate.
+                    // Wait for the test to terminate.
                     runtime.WaitMachines();
+
+                    if (this.Configuration.CheckDataRaces)
+                    {
+                        // Emits the trace from the race instrumentation.
+                        runtime.EmitRaceInstrumentationTrace();
+                    }
 
                     // Runs the liveness checker to find any liveness property violations.
                     // Requires that no bug has been found, the scheduler terminated before

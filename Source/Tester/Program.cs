@@ -13,7 +13,13 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Collections.Specialized;
+using System.Diagnostics;
+using System.Linq;
+using System.Reflection;
 
+using Microsoft.ExtendedReflection.Monitoring;
+using Microsoft.ExtendedReflection.Utilities.Safe;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp
@@ -26,15 +32,109 @@ namespace Microsoft.PSharp
         static void Main(string[] args)
         {
             AppDomain currentDomain = AppDomain.CurrentDomain;
-            currentDomain.UnhandledException += new UnhandledExceptionEventHandler(UnhandledExceptionHandler);
+            currentDomain.UnhandledException += new UnhandledExceptionEventHandler(Program.UnhandledExceptionHandler);
 
             // Parses the command line options to get the configuration.
             var configuration = new TesterCommandLineOptions(args).Parse();
 
-            // Creates and starts a testing process.
-            TestingProcess.Create(configuration).Start();
+            if (configuration.EnableMonitorableTestingProcess)
+            {
+                // Creates and starts a monitorable testing process.
+                Program.StartMonitorableTestingProcess(configuration, args);
+            }
+            else
+            {
+                // Creates and starts a testing process.
+                TestingProcess.Create(configuration).Start();
+            }
 
             IO.PrintLine(". Done");
+        }
+
+        /// <summary>
+        /// Starts a monitorable testing process.
+        /// </summary>
+        /// <param name="configuration">Configuration</param>
+        /// <param name="args">Arguments</param>
+        private static void StartMonitorableTestingProcess(Configuration configuration, string[] args)
+        {
+            StringCollection referencedAssemblies = new StringCollection();
+
+            Assembly assembly = Assembly.LoadFrom(configuration.AssemblyToBeAnalyzed);
+            referencedAssemblies.Add(assembly.GetName().Name);
+
+            AssemblyName[] assemblyName = assembly.GetReferencedAssemblies();
+            foreach (AssemblyName item in assemblyName)
+            {
+                if (item.Name.Contains("mscorlib") || item.Name.Contains("System") ||
+                    item.Name.Contains("NLog") || item.Name.Contains("System.Core"))
+                {
+                    continue;
+                }
+
+                referencedAssemblies.Add(item.Name);
+            }
+
+            string[] includedAssemblies = new string[referencedAssemblies.Count];
+            referencedAssemblies.CopyTo(includedAssemblies, 0);
+
+            var newArgs = args.ToList();
+            newArgs.Remove("/race-detection");
+            newArgs.Add("/race-detection-no-monitorable-process");
+
+            ProcessStartInfo info = ControllerSetUp.GetMonitorableProcessStartInfo(
+                AppDomain.CurrentDomain.BaseDirectory + AppDomain.CurrentDomain.FriendlyName, // filename
+                newArgs.ToArray(), // arguments
+                MonitorInstrumentationFlags.All, // monitor flags
+                true, // track gc accesses
+
+                null, // we don't monitor process at startup since it loads the DLL to monitor
+                null, // user type
+
+                null, // substitution assemblies
+                null, // types to monitor
+                null, // types to exclude monitor
+                null, // namespaces to monitor
+                null, // namespaces to exclude monitor
+                includedAssemblies,
+                null, //assembliesToExcludeMonitor to exclude monitor
+
+                null,
+                null, null, null,
+                null, null,
+
+                null, // clrmonitor log file name
+                false, // clrmonitor  log verbose
+                null, // crash on failure
+                true, // protect all cctors
+                false, // disable mscrolib suppressions
+                ProfilerInteraction.Fail, // profiler interaction
+                null, "", ""
+                );
+
+            IO.PrintLine(". Starts monitorable testing process");
+
+            var process = new Process();
+            process.StartInfo = info;
+            process.Start();
+            process.WaitForExit();
+        }
+
+        /// <summary>
+        /// Wraps the given string.
+        /// </summary>
+        /// <param name="text">Text</param>
+        /// <returns></returns>
+        private static string WrapString(string text)
+        {
+            if (text == null)
+            {
+                return text;
+            }
+            else
+            {
+                return SafeString.IndexOf(text, ' ') != -1 ? "\"" + text.TrimEnd('\\') + "\"" : text;
+            }  
         }
 
         /// <summary>
@@ -42,7 +142,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="args"></param>
-        static void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs args)
+        private static void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs args)
         {
             var ex = (Exception)args.ExceptionObject;
             IO.Debug(ex.Message);

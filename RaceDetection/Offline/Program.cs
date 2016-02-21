@@ -126,7 +126,7 @@ namespace Offline
         static List<ThreadTrace> allThreadTraces = new List<ThreadTrace>();                     //can be simplified?
         static void Main(String[] args)
         {
-            string[] fileEntries = Directory.GetFiles("D:\\PSharp\\RaceDetection\\RaceDetection\\bin\\Debug");
+            string[] fileEntries = Directory.GetFiles("C:\\Users\\Pantazis\\workspace\\PSharp\\RaceDetection\\RaceDetection\\bin\\Debug");
             foreach (string fileName in fileEntries)
             {
                 //Deserialize thread traces
