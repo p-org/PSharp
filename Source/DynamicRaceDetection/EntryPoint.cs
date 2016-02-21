@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="PSharpProgram.cs">
+// <copyright file="EntryPoint.cs">
 //      Copyright (c) 2016 Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -20,9 +20,9 @@ using Microsoft.ExtendedReflection.Monitoring;
 
 namespace Microsoft.PSharp.DynamicRaceDetection
 {
-    class PSharpProgram
+    class EntryPoint
     {
-        public PSharpProgram(Assembly assembly)
+        public EntryPoint(Assembly assembly)
         {
             TryLoadReferencedAssemblies(new[] { assembly });
 
@@ -71,6 +71,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection
                     return e;
                 }
             }
+
             return null;
         }
 
@@ -78,19 +79,25 @@ namespace Microsoft.PSharp.DynamicRaceDetection
         private void TryLoadReferencedAssemblies(Assembly[] inputAssemblies)
         {
             var ws = new SafeDictionary<string, Assembly>();
+            
             //foreach (Assembly b in AppDomain.CurrentDomain.GetAssemblies())
             //{
             //    ws.Add(b.GetName().FullName, b);
             //}
+
             foreach (Assembly a in inputAssemblies)
             {
                 if (a == null)
+                {
                     continue;
+                }
+                
                 // recursively load all the assemblies reachables from the root!
                 if (!assemblies.ContainsKey(a.GetName().FullName) && !ws.ContainsKey(a.GetName().FullName))
                 {
                     ws.Add(a.GetName().FullName, a);
                 }
+
                 while (ws.Count > 0)
                 {
                     var en = ws.Keys.GetEnumerator();
@@ -99,10 +106,12 @@ namespace Microsoft.PSharp.DynamicRaceDetection
                     var a_assembly = ws[a_name];
                     assemblies.Add(a_name, a_assembly);
                     ws.Remove(a_name);
+
                     foreach (AssemblyName name in a_assembly.GetReferencedAssemblies())
                     {
                         Assembly b;
-                        Microsoft.ExtendedReflection.Utilities.ReflectionHelper.TryLoadAssembly(name.FullName, out b);
+                        ExtendedReflection.Utilities.ReflectionHelper.TryLoadAssembly(name.FullName, out b);
+
                         if (b != null)
                         {
                             //Console.WriteLine("Loaded {0}", name.FullName);

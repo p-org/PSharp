@@ -28,17 +28,6 @@ namespace Microsoft.PSharp.DynamicRaceDetection
             Console.WriteLine("reached " + executable);
 
             var path = Assembly.GetAssembly(typeof(Program)).Location;
-
-            /*try
-            {
-                Assembly.LoadFrom(executable);
-            }
-            catch(Exception ex)
-            {
-                Console.WriteLine("Couldn't load assembly 2 " + ex);
-                return;
-            }*/
-
             var assembly = Assembly.LoadFrom(executable);
 
             string[] searchDirectories = new[]{
@@ -68,7 +57,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection
             {
                 var assembly = Assembly.LoadFrom(executable);
                 new RaceInstrumentationEngine();
-                new PSharpProgram(assembly);
+                new EntryPoint(assembly);
                 Environment.Exit(0);
             }
             catch (Exception e)

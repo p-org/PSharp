@@ -44,7 +44,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection
         {
             if (SingletonEngine != null)
             {
-                throw new InvalidOperationException("MyEngine created more than once");
+                throw new InvalidOperationException("RaceInstrumentationEngine created more than once");
             }
 
             SingletonEngine = this;

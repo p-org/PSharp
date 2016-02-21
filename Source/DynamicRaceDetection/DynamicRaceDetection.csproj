@@ -83,7 +83,7 @@
     <Compile Include="IMonitorManager.cs" />
     <Compile Include="IThreadMonitor.cs" />
     <Compile Include="MonitorManager.cs" />
-    <Compile Include="MyMain.cs" />
+    <Compile Include="EntryPoint.cs" />
     <Compile Include="ObjectAccessHandler.cs" />
     <Compile Include="ObjectAccessThreadMonitor.cs" />
     <Compile Include="Offline.cs" />
