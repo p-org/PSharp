@@ -32,8 +32,8 @@ namespace Microsoft.PSharp.DynamicRaceDetection
 
         public static void DisposeExecutionMonitors()
         {
-            Debug.Assert(SingletonEngine != null);
-            SingletonEngine.GetService<IMonitorManager>().DisposeExecutionMonitors();
+            Debug.Assert(RaceInstrumentationEngine.SingletonEngine != null);
+            RaceInstrumentationEngine.SingletonEngine.GetService<IMonitorManager>().DisposeExecutionMonitors();
         }
 
         /// <summary>
@@ -42,12 +42,12 @@ namespace Microsoft.PSharp.DynamicRaceDetection
         public RaceInstrumentationEngine()
             : base(new Container(), new EngineOptions(), new MonitorManager(), new ThreadMonitorManager())
         {
-            if (SingletonEngine != null)
+            if (RaceInstrumentationEngine.SingletonEngine != null)
             {
                 throw new InvalidOperationException("RaceInstrumentationEngine created more than once");
             }
 
-            SingletonEngine = this;
+            RaceInstrumentationEngine.SingletonEngine = this;
 
             // required?
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(CurrentDomain_ProcessExit);
