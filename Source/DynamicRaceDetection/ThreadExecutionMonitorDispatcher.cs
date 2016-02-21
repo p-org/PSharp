@@ -372,7 +372,9 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
         /// <param name="method">callee</param>
         public override void Call(Method method)
         {
-            if ((method.FullName.Contains("Microsoft.PSharp.Machine.CreateMachine") || method.FullName.Contains("Microsoft.PSharp.PSharpRuntime.CreateMachine")) && !callStack.Peek().FullName.Contains(".Main"))
+            if ((method.FullName.Contains("Microsoft.PSharp.Machine.CreateMachine") ||
+                method.FullName.Contains("Microsoft.PSharp.PSharpRuntime.CreateMachine")) &&
+                !callStack.Peek().FullName.Contains(".Main"))
             {
                 isCreateMachine = true;
                 trace.Add("call: " + method + " " + isCreateMachine);
@@ -387,7 +389,9 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
             else if (method.FullName.Equals("Microsoft.PSharp.Machine.ExecuteCurrentStateOnExit"))
                 isExitFuntionCalled = true;
 
-            else if ((method.FullName.Equals("Microsoft.PSharp.Machine.Send") || method.FullName.Equals("Microsoft.PSharp.PSharpRuntime.SendEvent")) && !callStack.Peek().FullName.Contains(".Main"))
+            else if ((method.FullName.Equals("Microsoft.PSharp.Machine.Send") ||
+                method.FullName.Equals("Microsoft.PSharp.PSharpRuntime.SendEvent")) &&
+                !callStack.Peek().FullName.Contains(".Main"))
             {
                 trace.Add("send: " + method.FullName);
                 ThreadTrace obj = thTrace[thTrace.Count - 1];

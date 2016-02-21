@@ -55,7 +55,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection
 
             SafeDebug.Assert(this.executionMonitors[threadId] == null, "this.destroyedExecutionMonitorIds[threadId] == null");
 
-            SafeList<IThreadExecutionMonitor> childExecutionMonitors = new SafeList<IThreadExecutionMonitor>(2);    //all callbacks
+            SafeList<IThreadExecutionMonitor> childExecutionMonitors = new SafeList<IThreadExecutionMonitor>(2); // all callbacks
 
             foreach (var monitorFactory in this.monitorFactories)
             {
