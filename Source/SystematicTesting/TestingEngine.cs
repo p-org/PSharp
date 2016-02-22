@@ -268,6 +268,7 @@ namespace Microsoft.PSharp.SystematicTesting
             {
                 for (int i = 0; i < this.Configuration.SchedulingIterations; i++)
                 {
+                    Console.WriteLine("................... Iteration" +  i + "...................");
                     if (this.ShouldPrintIteration(i + 1))
                     {
                         IO.PrintLine("..... Iteration #{0}", i + 1);
@@ -512,9 +513,12 @@ namespace Microsoft.PSharp.SystematicTesting
         /// </summary>
         private void CleanupTemporaryFiles()
         {
-            var directory = Path.GetDirectoryName(this.Assembly.Location) +
+            if (this.Configuration.CheckDataRaces)
+            {
+                var directory = Path.GetDirectoryName(this.Assembly.Location) +
                 Path.DirectorySeparatorChar + "temp" + Path.DirectorySeparatorChar;
-            Directory.Delete(directory, true);
+                Directory.Delete(directory, true);
+            }
         }
 
         /// <summary>

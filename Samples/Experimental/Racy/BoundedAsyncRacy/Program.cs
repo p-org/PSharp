@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.PSharp;
 using Microsoft.PSharp.Utilities;
+using Microsoft.PSharp.SystematicTesting;
 
 namespace BoundedAsyncRacy
 {
@@ -23,11 +24,11 @@ namespace BoundedAsyncRacy
             var configuration = Configuration.Create();
             configuration.SuppressTrace = true;
             configuration.Verbose = 2;
-            configuration.SchedulingIterations = 1000;
+            configuration.SchedulingIterations = 2;
             configuration.SchedulingStrategy = SchedulingStrategy.Random;
             configuration.ScheduleIntraMachineConcurrency = true;
 
-            var engine = TestingEngine.Create(configuration, Test.Execute).Run();
+            var engine = TestingEngine.Create(configuration, Program.Execute).Run();
             Console.ReadLine();
         }
 

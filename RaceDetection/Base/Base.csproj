@@ -37,8 +37,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\References\Microsoft.ExtendedReflection.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.PSharp">
-      <HintPath>..\..\Binaries\Release\Microsoft.PSharp.dll</HintPath>
+    <Reference Include="Microsoft.PSharp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=c4566cf0a7f74012, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Binaries\Debug\Microsoft.PSharp.dll</HintPath>
     </Reference>
     <Reference Include="ProgramTrace">
       <HintPath>..\ProgramTrace\bin\Debug\ProgramTrace.dll</HintPath>
