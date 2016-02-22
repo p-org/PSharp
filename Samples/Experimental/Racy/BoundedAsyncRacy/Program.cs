@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.PSharp;
+using Microsoft.PSharp.Utilities;
 
 namespace BoundedAsyncRacy
 {
@@ -14,9 +15,19 @@ namespace BoundedAsyncRacy
     {
         public static void Main(string[] args)
         {
-            PSharpRuntime runtime = PSharpRuntime.Create();
+            /*PSharpRuntime runtime = PSharpRuntime.Create();
             Program.Execute(runtime);
             Console.WriteLine("Done");
+            Console.ReadLine();*/
+
+            var configuration = Configuration.Create();
+            configuration.SuppressTrace = true;
+            configuration.Verbose = 2;
+            configuration.SchedulingIterations = 1000;
+            configuration.SchedulingStrategy = SchedulingStrategy.Random;
+            configuration.ScheduleIntraMachineConcurrency = true;
+
+            var engine = TestingEngine.Create(configuration, Test.Execute).Run();
             Console.ReadLine();
         }
 
