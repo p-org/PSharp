@@ -17,6 +17,7 @@ using System.Reflection;
 
 using Microsoft.ExtendedReflection.Collections;
 using Microsoft.ExtendedReflection.Monitoring;
+using Microsoft.PSharp.SystematicTesting;
 
 namespace Microsoft.PSharp.DynamicRaceDetection
 {
@@ -32,19 +33,20 @@ namespace Microsoft.PSharp.DynamicRaceDetection
             try
             {
                 //Type t = assembly.GetType("Migration.Program", true);
-                MethodInfo main_method = t.GetMethod("Main");
-                object result = null;
-                ParameterInfo[] parameters = main_method.GetParameters();
+                /* MethodInfo main_method = t.GetMethod("Main");
+                 object result = null;
+                 ParameterInfo[] parameters = main_method.GetParameters();*/
                 //object classInstance = Activator.CreateInstance(t, null);
-
-                if (parameters.Length == 0)
+                Console.WriteLine("InEntry point: " + InvokeArgs.runtime + " " + InvokeArgs.TestAction);
+                if (InvokeArgs.TestAction != null)
                 {
-                    result = main_method.Invoke(main_method, null);
+                    InvokeArgs.TestAction(InvokeArgs.runtime);
                 }
                 else
                 {
                     //The invoke does NOT work it throws "Object does not match target type"             
-                    result = main_method.Invoke(main_method, new Object[] { new String[] { } });
+                    //result = main_method.Invoke(main_method, new Object[] { new String[] { } });
+                    InvokeArgs.TestMethod.Invoke(null, new object[] { InvokeArgs.runtime });
                 }
             }
             catch (Exception ex)

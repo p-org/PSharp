@@ -23,6 +23,8 @@ using System.Reflection;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.Instrumentation;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Microsoft.PSharp
 {
@@ -152,6 +154,18 @@ namespace Microsoft.PSharp
             this.IsHalted = false;
         }
 
+        ~Machine()
+        {
+            if (RuntimeTrace.Count > 0)
+            {
+                string path = "rtTrace_" + Id.GetHashCode() + ".osl";
+                using (FileStream stream = File.Open(path, FileMode.Create))
+                {
+                    BinaryFormatter binaryFormatter = new BinaryFormatter();
+                    binaryFormatter.Serialize(stream, RuntimeTrace);
+                }
+            }
+        }
         #endregion
         
         #region P# API methods
@@ -196,7 +210,7 @@ namespace Microsoft.PSharp
         {
             // If the event is null then report an error and exit.
             this.Assert(e != null, "Machine '{0}' is sending a null event.", this.GetType().Name);
-            
+            Console.WriteLine("Machine Sending");
             if (base.Runtime.Configuration.CheckDataRaces)
             {
                 this.SendId++;
@@ -707,7 +721,7 @@ namespace Microsoft.PSharp
                 else if (this.ActionBindings.ContainsKey(e.GetType()))
                 {
                     Action action = this.ActionBindings[e.GetType()];
-                    
+                    Console.WriteLine("Machine Doing Action");
                     if (base.Runtime.Configuration.CheckDataRaces)
                     {
                         this.ActionId++;
@@ -960,7 +974,7 @@ namespace Microsoft.PSharp
             {
                 // Performs the on entry statements of the new state.
                 this.StateStack.Peek().ExecuteEntryFunction();
-                
+                Console.WriteLine("Machine Executing onEntry");
                 if (base.Runtime.Configuration.CheckDataRaces)
                 {
                     this.ActionId++;
@@ -1011,10 +1025,10 @@ namespace Microsoft.PSharp
                 {
                     onExit();
                 }
-                
+                Console.WriteLine("Machine Executing onExit");
                 if (base.Runtime.Configuration.CheckDataRaces)
                 {
-                    this.ActionId++;
+                this.ActionId++;
                     //MachineTrace trace = new MachineTrace(this.Id.GetHashCode(), action.Method.Name, this.ActionId, e.ToString(), e.GetHashCode());
                     MachineTrace trace = new MachineTrace(this.Id.GetHashCode(), null, this.ActionId, null, 0);
                     this.RuntimeTrace.Add(trace);
