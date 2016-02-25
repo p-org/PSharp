@@ -25,6 +25,7 @@ using System.Collections.Specialized;
 using System.Diagnostics;
 using Microsoft.ExtendedReflection.Monitoring;
 using Microsoft.ExtendedReflection.Utilities.Safe;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Microsoft.PSharp.SystematicTesting
 {
@@ -149,7 +150,6 @@ namespace Microsoft.PSharp.SystematicTesting
         /// <param name="action">Action</param>
         private TestingEngine(Configuration configuration, Action<PSharpRuntime> action)
         {
-            Console.WriteLine("has testaction");
             this.Configuration = configuration;
             this.TestAction = action;
             this.Initialize();
@@ -273,6 +273,13 @@ namespace Microsoft.PSharp.SystematicTesting
             {
                 for (int i = 0; i < this.Configuration.SchedulingIterations; i++)
                 {
+                    //Dynamic race detection
+                    if (this.Configuration.CheckDataRaces)
+                    {
+                        Environment.SetEnvironmentVariable("DIRPATH", i.ToString());
+                    }
+                    //end: dynamic race detection
+
                     if (this.ShouldPrintIteration(i + 1))
                     {
                         IO.PrintLine("..... Iteration #{0}", i + 1);
@@ -288,96 +295,31 @@ namespace Microsoft.PSharp.SystematicTesting
                         this.HasRedirectedConsoleOutput = true;
                     }
 
-                    //Dynamic race detection
-                    if (this.Configuration.CheckDataRaces)
+                    // Start the test.
+                    if (this.TestAction != null)
                     {
-                        InvokeArgs.runtime = runtime;
-                        Console.WriteLine("RUNTIME: " + runtime + " " + InvokeArgs.runtime);
-                        InvokeArgs.TestAction = this.TestAction;
-                        Console.WriteLine("ACTION: " + TestAction + " " + InvokeArgs.TestAction);
-                        InvokeArgs.TestMethod = this.TestMethod;
-                        Console.WriteLine("METHOD: " + TestMethod + " " + InvokeArgs.TestMethod);
-
-                        StringCollection referencedAssemblies = new StringCollection();
-                        String input = "D:\\PSharp\\Samples\\Experimental\\Binaries\\Debug\\BoundedAsyncRacy.exe";
-                        Assembly a = Assembly.LoadFrom(input);
-                        referencedAssemblies.Add(a.GetName().Name);
-
-                        AssemblyName[] an = a.GetReferencedAssemblies();
-                        foreach (AssemblyName item in an)
-                        {
-                            if (item.Name.Contains("mscorlib") || item.Name.Contains("System") || item.Name.Contains("NLog") || item.Name.Contains("System.Core"))
-                                continue;
-                            referencedAssemblies.Add(item.Name);
-                        }
-
-                        string[] includedAssemblies = new string[referencedAssemblies.Count];
-                        referencedAssemblies.CopyTo(includedAssemblies, 0);
-                        ProcessStartInfo info = ControllerSetUp.GetMonitorableProcessStartInfo(
-                            "D:\\PSharp\\Binaries\\Debug\\Microsoft.PSharp.DynamicRaceDetection.exe", // filename
-                            new String[] { WrapString(input) }, // arguments
-                            MonitorInstrumentationFlags.All, // monitor flags
-                            true, // track gc accesses
-
-                            null, // we don't monitor process at startup since it loads the DLL to monitor
-                            null, // user type
-
-                            null, // substitution assemblies
-                            null, // types to monitor
-                            null, // types to exclude monitor
-                            null, // namespaces to monitor
-                            null, // namespaces to exclude monitor
-                            includedAssemblies,
-                            null, //assembliesToExcludeMonitor to exclude monitor
-
-                            null,
-                            null, null, null,
-                            null, null,
-
-                            null, // clrmonitor log file name
-                            false, // clrmonitor  log verbose
-                            null, // crash on failure
-                            true, // protect all cctors
-                            false, // disable mscrolib suppressions
-                            ProfilerInteraction.Fail, // profiler interaction
-                            null, "", ""
-                            );
-                        var process = new Process();
-                        process.StartInfo = info;
-                        process.Start();
-                        process.WaitForExit();
-                        Console.WriteLine("Done instrumenting");
-                        Console.ReadLine();
+                        this.TestAction(runtime);
                     }
-                    //end: dynamic race detection
                     else
                     {
-                        // Start the test.
-                        if (this.TestAction != null)
-                        {
-                            this.TestAction(runtime);
-                        }
-                        else
-                        {
-                            this.TestMethod.Invoke(null, new object[] { runtime });
-                        }
+                        this.TestMethod.Invoke(null, new object[] { runtime });
                     }
 
                     // Wait for the test to terminate.
                     runtime.WaitMachines();
 
-                    /*if (this.Configuration.CheckDataRaces)
+                    if (this.Configuration.CheckDataRaces)
                     {
                         // Emits the trace from the race instrumentation.
-                        this.EmitRaceInstrumentationTrace(runtime);
-                    }*/
+                        this.EmitRaceInstrumentationTrace(runtime, i);
+                    }
 
                     // Runs the liveness checker to find any liveness property violations.
                     // Requires that no bug has been found, the scheduler terminated before
                     // reaching the depth bound, and there is state caching is not active.
                     if (this.Configuration.CheckLiveness &&
-                        !this.Configuration.CacheProgramState &&
-                        !runtime.BugFinder.BugFound)
+                    !this.Configuration.CacheProgramState &&
+                    !runtime.BugFinder.BugFound)
                     {
                         runtime.LivenessChecker.Run();
                     }
@@ -518,10 +460,12 @@ namespace Microsoft.PSharp.SystematicTesting
         /// Emits the race intrumentation trace in an output file.
         /// </summary>
         /// <param name="runtime">Runtime</param>
-        private void EmitRaceInstrumentationTrace(PSharpBugFindingRuntime runtime)
+        private void EmitRaceInstrumentationTrace(PSharpBugFindingRuntime runtime, int i)
         {
-            var directory = Path.GetDirectoryName(this.Assembly.Location) +
+            /*var directory = Path.GetDirectoryName(this.Assembly.Location) +
                 Path.DirectorySeparatorChar + "temp" + Path.DirectorySeparatorChar;
+                */
+            string directory = runtime.Configuration.DirectoryPath + "InstrTrace" + i;
             Directory.CreateDirectory(directory);
 
             runtime.EmitRaceInstrumentationTrace(directory);

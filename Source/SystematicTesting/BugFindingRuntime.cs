@@ -628,7 +628,7 @@ namespace Microsoft.PSharp.SystematicTesting
 
                 if (machine.RuntimeTrace.Count > 0)
                 {
-                    string path = directory + "rtTrace_" + machine.Id.GetHashCode() + ".osl";
+                    string path = directory + "\\" + "rtTrace_" + machine.Id.GetHashCode() + ".osl";
                     using (FileStream stream = File.Open(path, FileMode.Create))
                     {
                         BinaryFormatter binaryFormatter = new BinaryFormatter();

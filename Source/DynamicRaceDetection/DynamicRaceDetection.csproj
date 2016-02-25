@@ -62,10 +62,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\References\Microsoft.ExtendedReflection.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.PSharp.SystematicTesting, Version=1.0.0.0, Culture=neutral, PublicKeyToken=c4566cf0a7f74012, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Binaries\Debug\Microsoft.PSharp.SystematicTesting.dll</HintPath>
-    </Reference>
     <Reference Include="QuickGraph">
       <HintPath>..\..\References\QuickGraph\QuickGraph.dll</HintPath>
     </Reference>

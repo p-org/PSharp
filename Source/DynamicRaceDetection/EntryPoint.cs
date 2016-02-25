@@ -17,36 +17,40 @@ using System.Reflection;
 
 using Microsoft.ExtendedReflection.Collections;
 using Microsoft.ExtendedReflection.Monitoring;
-using Microsoft.PSharp.SystematicTesting;
 
 namespace Microsoft.PSharp.DynamicRaceDetection
 {
+    public static class InvokeArgs
+    {
+        public static PSharpRuntime runtime;
+        public static Action<PSharpRuntime> TestAction;
+        public static MethodInfo TestMethod;
+    }
+
     class EntryPoint
     {
-        public EntryPoint(Assembly assembly)
+        public EntryPoint(Assembly assembly, String mainClass)
         {
             TryLoadReferencedAssemblies(new[] { assembly });
 
             //ObjectAccessThreadMonitor.ReadRawAccess += new RawAccessHandler(this.ObjectAccessThreadMonitor_ReadAccess);
-            Type t = assembly.GetType("BoundedAsyncRacy.Program", true);
+            Type t = assembly.GetType(mainClass, true);
 
             try
             {
                 //Type t = assembly.GetType("Migration.Program", true);
-                /* MethodInfo main_method = t.GetMethod("Main");
-                 object result = null;
-                 ParameterInfo[] parameters = main_method.GetParameters();*/
+                MethodInfo main_method = t.GetMethod("Main");
+                object result = null;
+                ParameterInfo[] parameters = main_method.GetParameters();
                 //object classInstance = Activator.CreateInstance(t, null);
-                Console.WriteLine("InEntry point: " + InvokeArgs.runtime + " " + InvokeArgs.TestAction);
-                if (InvokeArgs.TestAction != null)
+                if (parameters.Length == 0)
                 {
-                    InvokeArgs.TestAction(InvokeArgs.runtime);
+                    result = main_method.Invoke(main_method, null);
                 }
                 else
                 {
                     //The invoke does NOT work it throws "Object does not match target type"             
-                    //result = main_method.Invoke(main_method, new Object[] { new String[] { } });
-                    InvokeArgs.TestMethod.Invoke(null, new object[] { InvokeArgs.runtime });
+                    result = main_method.Invoke(main_method, new Object[] { new String[] { } });
                 }
             }
             catch (Exception ex)

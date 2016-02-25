@@ -62,12 +62,10 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Base.cs" />
     <Compile Include="BugFindingRuntime.cs" />
     <Compile Include="Exploration\Trace.cs" />
     <Compile Include="Exploration\TraceStep.cs" />
     <Compile Include="Exploration\TraceStepType.cs" />
-    <Compile Include="InvokeArgs.cs" />
     <Compile Include="Liveness\LivenessChecker.cs" />
     <Compile Include="SchedulingStrategies\DelayBounded\ExhaustiveDelayBoundingStrategy.cs" />
     <Compile Include="SchedulingStrategies\DelayBounded\RandomDelayBoundingStrategy.cs" />

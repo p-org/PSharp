@@ -43,10 +43,11 @@ namespace Microsoft.PSharp
                 Program.StartMonitorableTestingProcess(configuration, args);
                 return;
             }
-
-            // Creates and starts a testing process.
-            TestingProcess.Create(configuration).Start();
-
+            else
+            {
+                // Creates and starts a testing process.
+                TestingProcess.Create(configuration).Start();
+            }
             IO.PrintLine(". Done");
         }
 
@@ -58,8 +59,9 @@ namespace Microsoft.PSharp
         private static void StartMonitorableTestingProcess(Configuration configuration, string[] args)
         {
             StringCollection referencedAssemblies = new StringCollection();
+            String input = configuration.AssemblyToBeAnalyzed;
 
-            Assembly assembly = Assembly.LoadFrom(configuration.AssemblyToBeAnalyzed);
+            Assembly assembly = Assembly.LoadFrom(input);
             referencedAssemblies.Add(assembly.GetName().Name);
 
             AssemblyName[] assemblyName = assembly.GetReferencedAssemblies();
@@ -81,7 +83,8 @@ namespace Microsoft.PSharp
             newArgs.Remove("/race-detection");
             newArgs.Add("/race-detection-no-monitorable-process");
 
-            ProcessStartInfo info = ControllerSetUp.GetMonitorableProcessStartInfo(
+            configuration.DirectoryPath = "..\\..\\Binaries\\Debug\\";
+            /*ProcessStartInfo info = ControllerSetUp.GetMonitorableProcessStartInfo(
                 AppDomain.CurrentDomain.BaseDirectory + AppDomain.CurrentDomain.FriendlyName, // filename
                 newArgs.ToArray(), // arguments
                 MonitorInstrumentationFlags.All, // monitor flags
@@ -110,7 +113,37 @@ namespace Microsoft.PSharp
                 ProfilerInteraction.Fail, // profiler interaction
                 null, "", ""
                 );
+                */
 
+            ProcessStartInfo info = ControllerSetUp.GetMonitorableProcessStartInfo(
+                "..\\..\\Binaries\\Debug\\Microsoft.PSharp.DynamicRaceDetection.exe", // filename
+                new String[] { WrapString(input), configuration.MainClass, configuration.DirectoryPath }, // arguments
+                MonitorInstrumentationFlags.All, // monitor flags
+                true, // track gc accesses
+
+                null, // we don't monitor process at startup since it loads the DLL to monitor
+                null, // user type
+
+                null, // substitution assemblies
+                null, // types to monitor
+                null, // types to exclude monitor
+                null, // namespaces to monitor
+                null, // namespaces to exclude monitor
+                includedAssemblies,
+                null, //assembliesToExcludeMonitor to exclude monitor
+
+                null,
+                null, null, null,
+                null, null,
+
+                null, // clrmonitor log file name
+                false, // clrmonitor  log verbose
+                null, // crash on failure
+                true, // protect all cctors
+                false, // disable mscrolib suppressions
+                ProfilerInteraction.Fail, // profiler interaction
+                null, "", ""
+                );
             IO.PrintLine(". Starts monitorable testing process");
 
             var process = new Process();

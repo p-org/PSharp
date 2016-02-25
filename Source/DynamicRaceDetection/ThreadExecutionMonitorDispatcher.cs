@@ -76,14 +76,14 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
 
         ~ThreadExecutionMonitorDispatcher()
         {
-            Console.WriteLine("\nDestructor called " + threadIndex);
+            /*Console.WriteLine("\nDestructor called " + threadIndex);
             foreach (var item in trace)
             {
                 Console.WriteLine(item);
             }
             foreach (var item in thTrace)
             {
-                /*Console.WriteLine("check: " + item.machineID + " " + item.actionName + " " + item.actionID);
+                Console.WriteLine("check: " + item.machineID + " " + item.actionName + " " + item.actionID);
                 Console.WriteLine("memory accesses");
                 foreach(var it in item.accesses)
                 {
@@ -91,12 +91,13 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
                         Console.WriteLine("send");
                     else
                         Console.WriteLine(it.location + " " + " " + it.objectHash + " " + it.write);
-                }*/
-            }
+                }
+            }*/
 
             if (thTrace.Count > 0)
             {
-                Stream stream = File.Open("thTrace_" + threadIndex + ".osl", FileMode.Create);
+                string path = "thTrace_" + threadIndex + ".osl";
+                Stream stream = File.Open(path, FileMode.Create);
                 BinaryFormatter bformatter = new BinaryFormatter();
 
                 try
@@ -107,7 +108,6 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
                 {
                     Console.WriteLine("EXCEPTION: " + ex);
                 }
-
                 stream.Close();
             }
         }

@@ -57,7 +57,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection
             {
                 var assembly = Assembly.LoadFrom(executable);
                 new RaceInstrumentationEngine();
-                new EntryPoint(assembly);
+                new EntryPoint(assembly, args[1]);
                 Environment.Exit(0);
             }
             catch (Exception e)

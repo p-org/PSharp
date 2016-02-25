@@ -156,15 +156,21 @@ namespace Microsoft.PSharp
 
         ~Machine()
         {
-            if (RuntimeTrace.Count > 0)
+            /*if (RuntimeTrace.Count > 0)
             {
+                string dirPath = base.Runtime.Configuration.DirectoryPath;
+                Directory.CreateDirectory(dirPath);
+
                 string path = "rtTrace_" + Id.GetHashCode() + ".osl";
                 using (FileStream stream = File.Open(path, FileMode.Create))
                 {
                     BinaryFormatter binaryFormatter = new BinaryFormatter();
                     binaryFormatter.Serialize(stream, RuntimeTrace);
+                    stream.Close();
                 }
-            }
+
+                File.Move(path, dirPath + "\\" + path);
+            }*/
         }
         #endregion
         
@@ -1028,7 +1034,7 @@ namespace Microsoft.PSharp
                 Console.WriteLine("Machine Executing onExit");
                 if (base.Runtime.Configuration.CheckDataRaces)
                 {
-                this.ActionId++;
+                    this.ActionId++;
                     //MachineTrace trace = new MachineTrace(this.Id.GetHashCode(), action.Method.Name, this.ActionId, e.ToString(), e.GetHashCode());
                     MachineTrace trace = new MachineTrace(this.Id.GetHashCode(), null, this.ActionId, null, 0);
                     this.RuntimeTrace.Add(trace);
