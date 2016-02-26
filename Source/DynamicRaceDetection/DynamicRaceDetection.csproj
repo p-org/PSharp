@@ -62,6 +62,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\References\Microsoft.ExtendedReflection.dll</HintPath>
     </Reference>
+    <Reference Include="ProgramTrace">
+      <HintPath>..\..\ProgramTrace\bin\Debug\ProgramTrace.dll</HintPath>
+    </Reference>
     <Reference Include="QuickGraph">
       <HintPath>..\..\References\QuickGraph\QuickGraph.dll</HintPath>
     </Reference>
@@ -73,6 +76,10 @@
     </Reference>
     <Reference Include="QuickGraph.Serialization">
       <HintPath>..\..\References\QuickGraph\QuickGraph.Serialization.dll</HintPath>
+    </Reference>
+    <Reference Include="RuntimeTrace, Version=1.0.0.0, Culture=neutral, PublicKeyToken=c4566cf0a7f74012, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\RuntimeTrace\bin\Debug\RuntimeTrace.dll</HintPath>
     </Reference>
     <Reference Include="System" />
   </ItemGroup>
@@ -96,7 +103,6 @@
     <Compile Include="ThreadMonitorCollection.cs" />
     <Compile Include="ThreadMonitorFactory.cs" />
     <Compile Include="ThreadMonitorManager.cs" />
-    <Compile Include="ThreadTrace.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj">

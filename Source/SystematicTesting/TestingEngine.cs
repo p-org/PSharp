@@ -276,7 +276,8 @@ namespace Microsoft.PSharp.SystematicTesting
                     //Dynamic race detection
                     if (this.Configuration.CheckDataRaces)
                     {
-                        Environment.SetEnvironmentVariable("DIRPATH", i.ToString());
+                        Environment.SetEnvironmentVariable("ITERATION", i.ToString());
+                        Environment.SetEnvironmentVariable("DIRPATH", this.Configuration.DirectoryPath);
                     }
                     //end: dynamic race detection
 

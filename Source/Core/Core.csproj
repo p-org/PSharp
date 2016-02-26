@@ -55,6 +55,9 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="RuntimeTrace">
+      <HintPath>..\..\RuntimeTrace\bin\Debug\RuntimeTrace.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Composition.AttributedModel">
       <HintPath>..\..\References\Roslyn\System.Composition.AttributedModel.dll</HintPath>
@@ -92,7 +95,6 @@
     <Compile Include="Exceptions.cs" />
     <Compile Include="Options\CompilationTarget.cs" />
     <Compile Include="Options\SchedulingStrategy.cs" />
-    <Compile Include="Instrumentation\MachineTrace.cs" />
     <Compile Include="Utilities\ErrorReporter.cs" />
     <Compile Include="Utilities\IO.cs" />
     <Compile Include="EventHandlers\ActionBindings.cs" />

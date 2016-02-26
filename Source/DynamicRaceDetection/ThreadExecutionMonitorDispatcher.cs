@@ -25,6 +25,7 @@ using Microsoft.ExtendedReflection.Monitoring;
 using Microsoft.ExtendedReflection.Utilities.Safe.Diagnostics;
 
 using Microsoft.PSharp.DynamicRaceDetection.CallsOnly;
+using ProgramTrace;
 
 namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
 {
@@ -53,6 +54,9 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
         private String currentAction;
         private int currentMachineId;
         private bool isCreateMachine = false;
+
+        private string localIter = "-1";
+        private string done = "-1";
 
         static Dictionary<int, int> actionIds = new Dictionary<int, int>();
         static Dictionary<int, int> sendIds = new Dictionary<int, int>();
@@ -96,7 +100,11 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
 
             if (thTrace.Count > 0)
             {
-                string path = "thTrace_" + threadIndex + ".osl";
+                string env = Environment.GetEnvironmentVariable("ITERATION");
+                string path = Environment.GetEnvironmentVariable("DIRPATH") + "InstrTrace" + env + "\\";  //thTrace_" + threadIndex + ".osl";
+
+                path += "thTrace_" + threadIndex + ".osl";
+
                 Stream stream = File.Open(path, FileMode.Create);
                 BinaryFormatter bformatter = new BinaryFormatter();
 
@@ -298,6 +306,38 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
         /// <remarks>Only one to push on callstack.</remarks>
         public override bool EnterMethod(Method method)
         {
+            /*if (!localIter.Equals(Environment.GetEnvironmentVariable("ITERATION")))
+            {
+                //Console.WriteLine("iteration changed for {0} from {1} to {2}", threadIndex, localIter, Environment.GetEnvironmentVariable("ITERATION"));
+
+                if (thTrace.Count > 0 && !localIter.Equals("-1"))
+                {
+                    string path = Environment.GetEnvironmentVariable("DIRPATH") + "InstrTrace" + localIter + "\\";  //thTrace_" + threadIndex + ".osl";
+                    if (!Directory.Exists(path))
+                    {
+                        Directory.CreateDirectory(path);
+                    }
+
+                    path += "thTrace_" + threadIndex + ".osl";
+                    Stream stream = File.Open(path, FileMode.Create);
+                    BinaryFormatter bformatter = new BinaryFormatter();
+
+                    try
+                    {
+                        bformatter.Serialize(stream, thTrace);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("EXCEPTION: " + ex);
+                    }
+                    stream.Close();
+                }
+
+                thTrace = new List<ThreadTrace>();
+                localIter = Environment.GetEnvironmentVariable("ITERATION");
+                //Console.ReadLine();
+            }*/
+
             callStack.Push(method);
             if (isAction && !method.FullName.Contains("Microsoft.PSharp"))
             {
@@ -434,6 +474,38 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
         {
             if (isDoCalled || isEntryFuntionCalled || isExitFuntionCalled)
             {
+                if (!localIter.Equals(Environment.GetEnvironmentVariable("ITERATION")))
+                {
+                    //Console.WriteLine("iteration changed for {0} from {1} to {2}", threadIndex, localIter, Environment.GetEnvironmentVariable("ITERATION"));
+
+                    if (thTrace.Count > 0 && !localIter.Equals("-1"))
+                    {
+                        string path = Environment.GetEnvironmentVariable("DIRPATH") + "InstrTrace" + localIter + "\\";  //thTrace_" + threadIndex + ".osl";
+                        if (!Directory.Exists(path))
+                        {
+                            Directory.CreateDirectory(path);
+                        }
+
+                        path += "thTrace_" + threadIndex + ".osl";
+                        Stream stream = File.Open(path, FileMode.Create);
+                        BinaryFormatter bformatter = new BinaryFormatter();
+
+                        try
+                        {
+                            bformatter.Serialize(stream, thTrace);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine("EXCEPTION: " + ex);
+                        }
+                        stream.Close();
+                    }
+
+                    thTrace = new List<ThreadTrace>();
+                    localIter = Environment.GetEnvironmentVariable("ITERATION");
+                    //Console.ReadLine();
+                }
+
                 Machine mc = (Machine)receiver;
                 int mcID = mc.GetHashCode();
 

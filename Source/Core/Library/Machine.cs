@@ -22,9 +22,9 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
-using Microsoft.PSharp.Instrumentation;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
+using RuntimeTrace;
 
 namespace Microsoft.PSharp
 {

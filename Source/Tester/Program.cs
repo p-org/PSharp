@@ -21,6 +21,8 @@ using System.Reflection;
 using Microsoft.ExtendedReflection.Monitoring;
 using Microsoft.ExtendedReflection.Utilities.Safe;
 using Microsoft.PSharp.Utilities;
+using System.IO;
+using System.Collections.Generic;
 
 namespace Microsoft.PSharp
 {
@@ -84,36 +86,14 @@ namespace Microsoft.PSharp
             newArgs.Add("/race-detection-no-monitorable-process");
 
             configuration.DirectoryPath = "..\\..\\Binaries\\Debug\\";
-            /*ProcessStartInfo info = ControllerSetUp.GetMonitorableProcessStartInfo(
-                AppDomain.CurrentDomain.BaseDirectory + AppDomain.CurrentDomain.FriendlyName, // filename
-                newArgs.ToArray(), // arguments
-                MonitorInstrumentationFlags.All, // monitor flags
-                true, // track gc accesses
-
-                null, // we don't monitor process at startup since it loads the DLL to monitor
-                null, // user type
-
-                null, // substitution assemblies
-                null, // types to monitor
-                null, // types to exclude monitor
-                null, // namespaces to monitor
-                null, // namespaces to exclude monitor
-                includedAssemblies,
-                null, //assembliesToExcludeMonitor to exclude monitor
-
-                null,
-                null, null, null,
-                null, null,
-
-                null, // clrmonitor log file name
-                false, // clrmonitor  log verbose
-                null, // crash on failure
-                true, // protect all cctors
-                false, // disable mscrolib suppressions
-                ProfilerInteraction.Fail, // profiler interaction
-                null, "", ""
-                );
-                */
+            IEnumerable<string> dirNames = Directory.EnumerateDirectories(configuration.DirectoryPath);
+            foreach(string item in dirNames)
+            {
+                if (item.Contains("InstrTrace"))
+                {
+                    Directory.Delete(configuration.DirectoryPath + item, true);
+                }
+            }
 
             ProcessStartInfo info = ControllerSetUp.GetMonitorableProcessStartInfo(
                 "..\\..\\Binaries\\Debug\\Microsoft.PSharp.DynamicRaceDetection.exe", // filename
