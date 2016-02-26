@@ -127,43 +127,55 @@ namespace OfflineRaceDetection
         static List<ThreadTrace> allThreadTraces = new List<ThreadTrace>();                     //can be simplified?
         static void Main(String[] args)
         {
-            string[] fileEntries = Directory.GetFiles("D:\\PSharp\\Binaries\\Debug\\InstrTrace0");
-            foreach (string fileName in fileEntries)
+            string[] dirNames = Directory.GetDirectories("..\\..\\..\\Binaries\\Debug\\");
+            foreach(string dirName in dirNames)
             {
-                //Deserialize thread traces
-                if (fileName.Contains("thTrace"))
+                if (dirName.Contains("InstrTrace"))
                 {
-                    //Open the file written above and read values from it.
-                    Stream stream = File.Open(fileName, FileMode.Open);
-                    BinaryFormatter bformatter = new BinaryFormatter();
-                    List<ThreadTrace> tt = (List<ThreadTrace>)bformatter.Deserialize(stream);
-
-                    for (int i = 0; i < tt.Count; i++)
+                    string[] fileEntries = Directory.GetFiles(dirName);
+                    foreach (string fileName in fileEntries)
                     {
-                        allThreadTraces.Add(tt[i]);
-                        //Console.WriteLine(tt[i].machineID + " " + tt[i].actionID);
+                        //Deserialize thread traces
+                        if (fileName.Contains("thTrace"))
+                        {
+                            //Open the file written above and read values from it.
+                            Stream stream = File.Open(fileName, FileMode.Open);
+                            BinaryFormatter bformatter = new BinaryFormatter();
+                            List<ThreadTrace> tt = (List<ThreadTrace>)bformatter.Deserialize(stream);
+
+                            for (int i = 0; i < tt.Count; i++)
+                            {
+                                allThreadTraces.Add(tt[i]);
+                                //Console.WriteLine(tt[i].machineID + " " + tt[i].actionID);
+                            }
+                            stream.Close();
+                        }
                     }
-                    stream.Close();
+                    foreach (string fileName in fileEntries)
+                    {
+                        if (fileName.Contains("rtTrace"))
+                        {
+                            Stream stream = File.Open(fileName, FileMode.Open);
+                            BinaryFormatter bformatter = new BinaryFormatter();
+                            List<MachineTrace> machineTrace = ((List<MachineTrace>)bformatter.Deserialize(stream));
+                            stream.Close();
+
+                            updateGraph(machineTrace);
+                            updateGraphCrossEdges();
+                        }
+                    }
+
+                    //printGraph();
+                    Console.WriteLine("Detecting races");
+                    detectRaces();
+
+                    HbGraph.Clear();
+                    allThreadTraces.Clear();
+                    Console.WriteLine("*************************************");
                 }
+                
             }
-            foreach (string fileName in fileEntries)
-            {
-                if (fileName.Contains("rtTrace"))
-                {
-                    Stream stream = File.Open(fileName, FileMode.Open);
-                    BinaryFormatter bformatter = new BinaryFormatter();
-                    List<MachineTrace> machineTrace = ((List<MachineTrace>)bformatter.Deserialize(stream));
-                    stream.Close();
-
-                    updateGraph(machineTrace);
-                    updateGraphCrossEdges();
-                }
-            }
-
-            printGraph();
-            Console.WriteLine("Detecting races");
-            detectRaces();
-
+            
             Console.WriteLine("Press enter to exit");
             Console.ReadLine();
         }
@@ -307,9 +319,14 @@ namespace OfflineRaceDetection
                                     continue;
                                 if ((loc1.location == loc2.location) && (loc1.offset == loc2.offset) && !existsPath(n, n1) && !existsPath(n1, n))
                                 {
-                                    Console.WriteLine("RACE DETECTED: " + loc1.location + " and " + loc2.location + " i.e " + loc1.srcLocation + ";" + loc1.isWrite + " and " + loc2.srcLocation + ";" + loc2.isWrite);
                                     racyPairs.Add(new Tuple<Node, Node>(n, n1));
-                                    reportedRaces.Add(new Tuple<string, string>(loc1.location + ";" + loc1.isWrite, loc2.location + ";" + loc2.isWrite));
+                                    if (!(reportedRaces.Where(item => item.Item1.Equals(loc1.srcLocation + ";" + loc1.isWrite) && item.Item2.Equals(loc2.srcLocation + ";" + loc2.isWrite)).Any())
+                                        && !(reportedRaces.Where(item => item.Item1.Equals(loc2.srcLocation + ";" + loc2.isWrite) && item.Item2.Equals(loc1.srcLocation + ";" + loc1.isWrite)).Any()))
+                                    {
+                                        Console.WriteLine("RACE DETECTED: " + loc1.location + " and " + loc2.location + " i.e " + loc1.srcLocation + ";" + loc1.isWrite + " and " + loc2.srcLocation + ";" + loc2.isWrite);
+
+                                        reportedRaces.Add(new Tuple<string, string>(loc1.srcLocation + ";" + loc1.isWrite, loc2.srcLocation + ";" + loc2.isWrite));
+                                    }
                                 }
                             }
                         }

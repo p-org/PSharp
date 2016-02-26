@@ -62,7 +62,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\References\Microsoft.ExtendedReflection.dll</HintPath>
     </Reference>
-    <Reference Include="ProgramTrace">
+    <Reference Include="ProgramTrace, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\ProgramTrace\bin\Debug\ProgramTrace.dll</HintPath>
     </Reference>
     <Reference Include="QuickGraph">
@@ -76,10 +77,6 @@
     </Reference>
     <Reference Include="QuickGraph.Serialization">
       <HintPath>..\..\References\QuickGraph\QuickGraph.Serialization.dll</HintPath>
-    </Reference>
-    <Reference Include="RuntimeTrace, Version=1.0.0.0, Culture=neutral, PublicKeyToken=c4566cf0a7f74012, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\RuntimeTrace\bin\Debug\RuntimeTrace.dll</HintPath>
     </Reference>
     <Reference Include="System" />
   </ItemGroup>

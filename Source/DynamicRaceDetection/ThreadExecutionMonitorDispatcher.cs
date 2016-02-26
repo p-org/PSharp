@@ -56,10 +56,10 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
         private bool isCreateMachine = false;
 
         private string localIter = "-1";
-        private string done = "-1";
 
         static Dictionary<int, int> actionIds = new Dictionary<int, int>();
         static Dictionary<int, int> sendIds = new Dictionary<int, int>();
+        static int cleared = -1;
 
         /// <summary>
         /// Constructor
@@ -101,7 +101,8 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
             if (thTrace.Count > 0)
             {
                 string env = Environment.GetEnvironmentVariable("ITERATION");
-                string path = Environment.GetEnvironmentVariable("DIRPATH") + "InstrTrace" + env + "\\";  //thTrace_" + threadIndex + ".osl";
+                string path = Environment.GetEnvironmentVariable("DIRPATH") + "InstrTrace" + env + "\\";
+                //string path = "D:\\Psharp\\Binaries\\Debug\\";
 
                 path += "thTrace_" + threadIndex + ".osl";
 
@@ -118,6 +119,42 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
                 }
                 stream.Close();
             }
+
+            /*if(thTrace.Count > 0)
+            {
+                int iters = Int32.Parse(Environment.GetEnvironmentVariable("ITERATION"));
+                for(int i = 0; i <= iters; i++)
+                {
+                    List<ThreadTrace> iTrace = new List<ThreadTrace>();
+                    foreach (ThreadTrace item in thTrace)
+                    {
+                        if (Int32.Parse(item.iteration) == i)
+                        {
+                            iTrace.Add(item);
+                        }
+                    }
+
+                    if (iTrace.Count > 0)
+                    {
+                        string path = Environment.GetEnvironmentVariable("DIRPATH") + "InstrTrace" + i + "\\";
+
+                        path += "thTrace_" + threadIndex + ".osl";
+
+                        Stream stream = File.Open(path, FileMode.Create);
+                        BinaryFormatter bformatter = new BinaryFormatter();
+
+                        try
+                        {
+                            bformatter.Serialize(stream, iTrace);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine("EXCEPTION: " + ex);
+                        }
+                        stream.Close();
+                    }
+                }
+            }*/
         }
 
         [System.Diagnostics.Conditional("DEBUG")]
@@ -306,38 +343,6 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
         /// <remarks>Only one to push on callstack.</remarks>
         public override bool EnterMethod(Method method)
         {
-            /*if (!localIter.Equals(Environment.GetEnvironmentVariable("ITERATION")))
-            {
-                //Console.WriteLine("iteration changed for {0} from {1} to {2}", threadIndex, localIter, Environment.GetEnvironmentVariable("ITERATION"));
-
-                if (thTrace.Count > 0 && !localIter.Equals("-1"))
-                {
-                    string path = Environment.GetEnvironmentVariable("DIRPATH") + "InstrTrace" + localIter + "\\";  //thTrace_" + threadIndex + ".osl";
-                    if (!Directory.Exists(path))
-                    {
-                        Directory.CreateDirectory(path);
-                    }
-
-                    path += "thTrace_" + threadIndex + ".osl";
-                    Stream stream = File.Open(path, FileMode.Create);
-                    BinaryFormatter bformatter = new BinaryFormatter();
-
-                    try
-                    {
-                        bformatter.Serialize(stream, thTrace);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("EXCEPTION: " + ex);
-                    }
-                    stream.Close();
-                }
-
-                thTrace = new List<ThreadTrace>();
-                localIter = Environment.GetEnvironmentVariable("ITERATION");
-                //Console.ReadLine();
-            }*/
-
             callStack.Push(method);
             if (isAction && !method.FullName.Contains("Microsoft.PSharp"))
             {
@@ -503,6 +508,12 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
 
                     thTrace = new List<ThreadTrace>();
                     localIter = Environment.GetEnvironmentVariable("ITERATION");
+                    if(cleared != Int32.Parse(localIter))
+                    {
+                        sendIds.Clear();
+                        actionIds.Clear();
+                    }
+                    cleared = Int32.Parse(localIter);
                     //Console.ReadLine();
                 }
 

@@ -25,7 +25,7 @@ namespace BoundedAsyncRacy
             configuration.CheckDataRaces = true;
             configuration.SuppressTrace = true;
             configuration.Verbose = 2;
-            configuration.SchedulingIterations = 2;
+            configuration.SchedulingIterations = 11;
             configuration.SchedulingStrategy = SchedulingStrategy.Random;
             configuration.ScheduleIntraMachineConcurrency = true;
 
