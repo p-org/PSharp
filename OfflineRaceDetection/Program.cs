@@ -120,16 +120,21 @@ namespace OfflineRaceDetection
     }
 
 
-    class Program
+    public class Program
     {
         //HB graph
         static QuickGraph.AdjacencyGraph<Node, Edge> HbGraph = new AdjacencyGraph<Node, Edge>();
         static List<ThreadTrace> allThreadTraces = new List<ThreadTrace>();                     //can be simplified?
-        static void Main(String[] args)
+        //static void Main(String[] args)
+        public static void findRaces()
         {
-            string[] dirNames = Directory.GetDirectories("..\\..\\..\\Binaries\\Debug\\");
+            Console.WriteLine("Finding races");
+            string[] dirNames = Directory.GetDirectories(".\\");
+            Console.WriteLine("Finding races");
+            Console.WriteLine(dirNames.Count());
             foreach(string dirName in dirNames)
             {
+                Console.WriteLine(dirName);
                 if (dirName.Contains("InstrTrace"))
                 {
                     string[] fileEntries = Directory.GetFiles(dirName);

@@ -75,6 +75,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\References\Microsoft.ExtendedReflection.dll</HintPath>
     </Reference>
+    <Reference Include="OfflineRaceDetection">
+      <HintPath>..\..\OfflineRaceDetection\bin\Debug\OfflineRaceDetection.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>

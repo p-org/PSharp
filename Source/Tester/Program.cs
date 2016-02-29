@@ -23,6 +23,7 @@ using Microsoft.ExtendedReflection.Utilities.Safe;
 using Microsoft.PSharp.Utilities;
 using System.IO;
 using System.Collections.Generic;
+using OfflineRaceDetection;
 
 namespace Microsoft.PSharp
 {
@@ -43,6 +44,7 @@ namespace Microsoft.PSharp
             {
                 // Creates and starts a monitorable testing process.
                 Program.StartMonitorableTestingProcess(configuration, args);
+
                 return;
             }
             else
@@ -130,6 +132,10 @@ namespace Microsoft.PSharp
             process.StartInfo = info;
             process.Start();
             process.WaitForExit();
+
+            IO.PrintLine("Done monitoring process");
+            Console.ReadLine();
+            OfflineRaceDetection.Program.findRaces();
         }
 
         /// <summary>
