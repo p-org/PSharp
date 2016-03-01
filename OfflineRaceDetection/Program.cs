@@ -128,10 +128,7 @@ namespace OfflineRaceDetection
         //static void Main(String[] args)
         public static void findRaces()
         {
-            Console.WriteLine("Finding races");
             string[] dirNames = Directory.GetDirectories(".\\");
-            Console.WriteLine("Finding races");
-            Console.WriteLine(dirNames.Count());
             foreach(string dirName in dirNames)
             {
                 Console.WriteLine(dirName);

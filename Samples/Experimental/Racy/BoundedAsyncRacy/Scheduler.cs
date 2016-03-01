@@ -73,7 +73,7 @@ namespace BoundedAsyncRacy
 
         private void OnSyncExit()
         {
-            Console.WriteLine("{0} sending event {1} to {2}",this, typeof(Process.eResp), Process1);
+            Console.WriteLine("{0} sending event {1} to {2}", this, typeof(Process.eResp), Process1);
             this.Send(Process1, new Process.eResp());
 
             Console.WriteLine("{0} sending event {1} to {2}", this, typeof(Process.eResp), Process1);

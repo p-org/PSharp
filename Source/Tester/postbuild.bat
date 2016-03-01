@@ -1,0 +1,2 @@
+﻿SET FrameworkSDKDIR=%~1
+ECHO %FRAMEWORKSDKDIR%

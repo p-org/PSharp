@@ -13,7 +13,7 @@ namespace BasicPaxosRacy
 
         #region C# Classes and Structs
 
-        public struct Proposal
+        public class Proposal
         {
             public int Round;
             public int ServerId;
@@ -75,7 +75,7 @@ namespace BasicPaxosRacy
         private void OnEnd()
         {
             Console.WriteLine("[GodMachine] Stopping ...\n");
-            Console.ReadLine();
+            //Console.ReadLine();
             this.Raise(new Halt());
         }
         #endregion

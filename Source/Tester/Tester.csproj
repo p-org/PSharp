@@ -110,9 +110,15 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <None Include="postbuild.bat" />
     <None Include="PSharp.snk" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>"$(FrameworkSDKDIR)\bin\NETFX 4.6 Tools\gacutil" /i "..\..\References\Microsoft.ExtendedReflection.dll" 
+regsvr32 /s "..\..\References\Microsoft.ExtendedReflection.ClrMonitor.X86.dll"
+</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

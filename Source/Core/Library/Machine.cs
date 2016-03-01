@@ -216,7 +216,6 @@ namespace Microsoft.PSharp
         {
             // If the event is null then report an error and exit.
             this.Assert(e != null, "Machine '{0}' is sending a null event.", this.GetType().Name);
-            Console.WriteLine("Machine Sending");
             if (base.Runtime.Configuration.CheckDataRaces)
             {
                 this.SendId++;
@@ -727,7 +726,6 @@ namespace Microsoft.PSharp
                 else if (this.ActionBindings.ContainsKey(e.GetType()))
                 {
                     Action action = this.ActionBindings[e.GetType()];
-                    Console.WriteLine("Machine Doing Action");
                     if (base.Runtime.Configuration.CheckDataRaces)
                     {
                         this.ActionId++;
@@ -980,7 +978,6 @@ namespace Microsoft.PSharp
             {
                 // Performs the on entry statements of the new state.
                 this.StateStack.Peek().ExecuteEntryFunction();
-                Console.WriteLine("Machine Executing onEntry");
                 if (base.Runtime.Configuration.CheckDataRaces)
                 {
                     this.ActionId++;
@@ -1031,7 +1028,6 @@ namespace Microsoft.PSharp
                 {
                     onExit();
                 }
-                Console.WriteLine("Machine Executing onExit");
                 if (base.Runtime.Configuration.CheckDataRaces)
                 {
                     this.ActionId++;
