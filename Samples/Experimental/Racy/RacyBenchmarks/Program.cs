@@ -43,7 +43,7 @@ namespace BasicPaxosRacy
             configuration.CheckDataRaces = true;
             configuration.SuppressTrace = true;
             configuration.Verbose = 2;
-            configuration.SchedulingIterations = 1000;
+            configuration.SchedulingIterations = 4;
             configuration.SchedulingStrategy = SchedulingStrategy.Random;
             configuration.ScheduleIntraMachineConcurrency = true;
 

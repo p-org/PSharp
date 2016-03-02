@@ -133,7 +133,7 @@ namespace Microsoft.PSharp
             process.Start();
             process.WaitForExit();
 
-            IO.PrintLine("Done monitoring process");
+            IO.PrintLine("Done monitoring process; Press enter to continue");
             Console.ReadLine();
             OfflineRaceDetection.Program.findRaces();
         }
