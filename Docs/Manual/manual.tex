@@ -2,15 +2,17 @@
 
 \pagestyle{plain}
 
+\usepackage[left=3.5cm,right=3.5cm,top=3.5cm,bottom=3cm]{geometry}
+
 \usepackage[english]{babel}
+\usepackage[dvipsnames]{xcolor}
 \usepackage{graphicx}
 \usepackage{listings}
 \usepackage{times}
-\usepackage{color}
 \usepackage{xspace}
 \usepackage{booktabs}
 \usepackage{subfigure}
-\usepackage[hyphens]{url}
+\usepackage{hyperref}
 \usepackage{wrapfig}
 \usepackage{psharp}
 
@@ -27,7 +29,7 @@
 
 \begin{document}
 
-\title{Getting Started with \ps}
+\title{Getting Started with the \ps Framework}
 
 \author{Pantazis Deligiannis$^1$, Akash Lal$^2$, Shaz Qadeer$^3$}
 \institute{$^1$ \textsf{p.deligiannis@imperial.ac.uk}, \emph{Imperial College London}, UK\\$^2$ \textsf{akashl@microsoft.com}, \emph{Microsoft Research}, India\\$^3$ \textsf{qadeer@microsoft.com}, \emph{Microsoft Research}, USA}
@@ -37,40 +39,38 @@
 \section{Introduction}
 \label{sec:intro}
 
-\ps~\cite{pd2015psharp} is an extension of the \cs language, designed to significantly ease the process of developing and testing asynchronous applications in Microsoft's .NET platform. To achieve this goal, \ps has the following core capabilities:
+\ps~\cite{deligiannis2015psharp}\cite{deligiannis2016psharp} is an advanced systematic testing framework, designed to significantly ease the process of developing and testing asynchronous reactive applications (i.e.\ distributed systems and web services) in Microsoft's .NET platform. \ps works as follows:
 
 \begin{itemize}
-\item Exposes a computational model based on \emph{communicating state-machines} (similar concept to actors from other asynchronous programming languages). \ps machines are built on top of the Task Parallel Library (TPL) and communicate by explicitly \emph{sending} and implicitly \emph{receiving events}, an approach commonly used in building web services and distributed systems. Because \ps \emph{fully interoperates} with \cs, the \ps programmer can easily blend \ps and \cs code, which makes it \emph{easy to integrate} with existing .NET projects.
+\item Provides an API for writing \emph{test harnesses}, specifying \emph{safety} and \emph{liveness properties}, and \emph{modeling} the individual components of a large system as \emph{communicating state-machines} (which is a similar concept to actors).
 
-\item Provides powerful mechanisms for writing \emph{concurrency unit tests} of \ps applications, as well as legacy \cs code that uses message-passing. When executing a concurrency unit test, the \ps runtime is invoked in \emph{systematic testing} mode, where it takes control of the underlying task scheduler and systematically explores \emph{event handler interleavings} to find bugs, such as safety and liveness property violations, and runtime exceptions.
+\item During testing, the \ps runtime takes control of the \ps test harness (which drives the system-under-test) and all the modeled components, and systematically explores all interleavings between asynchronous events, as well as other declared sources of nondeterminism (e.g.\ timeouts and failures), to find bugs, such as local and global safety and liveness property violations, and runtime exceptions.
 
-\item Enables the developer to specify \emph{models} of the application's \emph{environment} (e.g. the client, a sub-module of a distributed system or the network). These models can introduce non-deterministic choices (e.g. to model node failures) that are captured by the \ps runtime and/or abstract away implementation details of the real system that are irrelevant to the properties being checked. When systematically testing a \ps application, these models \emph{substitute} the real environment. This can be effectively used for \emph{compositional} (and thus scalable) testing of large systems.
+\item \ps can be optionally used for development of applications that will get deployed in production. \ps provides a runtime where the execution of the \ps state-machines is not controlled. This runtime is a thin layer built on top of TPL.
 \end{itemize}
 
-\newparagraph{Programming model} \ps is built on top of the Roslyn\footnote{\url{https://github.com/dotnet/roslyn}} compiler and provides new language primitives (which are largely based on Microsoft's P~\cite{desai2013p} programming language) for creating machines, sending events from one machine to another, and writing assertions about system properties. Each machine has an input queue, states, state transitions, event handlers, fields and methods. Machines run concurrently with each other, each executing an event handling loop that dequeues an event from the input queue and handles it by executing a sequence of operations. Each operation might update a field, create a new machine, or send an event to another machine. In \ps, create machine operations and send operations are non-blocking. In the case of a send operation the message is simply enqueued into the input queue of the target machine.\\
+\newparagraph{Programming model} \ps is built on top of the Roslyn\footnote{\textcolor{blue}{\url{https://github.com/dotnet/roslyn}}} compiler and provides new \cs language primitives (which are largely based on Microsoft's P~\cite{desai2013p} programming language) for creating machines, sending events from one machine to another, and writing assertions about system properties. Each machine has an input queue, states, state transitions, event handlers, fields and methods. Machines run concurrently with each other, each executing an event handling loop that dequeues an event from the input queue and handles it by executing a sequence of operations. Each operation might update a field, create a new machine, or send an event to another machine. In \ps, create machine operations and send operations are non-blocking. In the case of a send operation the message is simply enqueued into the input queue of the target machine.\\
 
-\newparagraph{Usage} There are many different ways that someone can use \ps to create highly-reliable asynchronous .NET applications:
+\newparagraph{Usage} There are many different ways that someone can use \ps to test existing systems, or build new highly-reliable ones:
 
 \begin{itemize}
-\item Use the \emph{surface syntax} of \ps to write an entire application from scratch. The surface syntax directly extends \cs with new language constructs, which allows for rapid prototyping. The main disadvantage of this approach is that \ps does not yet fully integrate with the Visual Studio integrated development environment (IDE), and thus does not support high-productivity features such as IntelliSense (e.g. for auto-completition and automated refactoring).
+\item \ps can be used just for systematically testing an existing message-passing system, by modeling its environment (e.g.\ a client) and/or components of the system.
 
-\item Use \ps as a \cs library to write an entire application from scratch. This approach is more verbose than the above, but allows full integration with Visual Studio. Note that most examples in this guide will use the \ps surface syntax as it is less verbose. See Section~\ref{} for an example of using \ps as a \cs library.
+\item The \emph{surface syntax} of \ps can be used to write an entire system from scratch. The surface \ps syntax directly extends \cs with new language constructs, which allows for rapid prototyping. However, to use the surface syntax, a developer has to use the \ps compiler, which is built on top of Roslyn. The main disadvantage of this approach is that \ps does not yet fully integrate with the Visual Studio integrated development environment (IDE), and thus does not support high-productivity features such as IntelliSense (e.g. for auto-completition and automated refactoring).
 
-\item Mix \ps projects with \cs projects. \ps compiles to \cs using Roslyn, which allows easy integration of the two languages in the same solution.
-
-\item Use \ps only for modeling the environment of a legacy \cs system and then systematically test it. Note that the assumption is that the \cs code that will be tested is sequential and deterministic. If not, bugs might still be found, but the \ps runtime cannot fully control the underlying scheduler and, thus, loses efficiency.
+\item \ps can be used as a \cs library to write an entire system from scratch. This approach is slightly more verbose than the above, but allows full integration with Visual Studio. Note that most examples in this guide will use the \ps surface syntax, since it is less verbose. See \S\ref{sec:example} for an example of using \ps as a \cs library.
 \end{itemize}
 
-\newparagraph{Repository} The \ps language is publicly available as open-source and can be found at its git repository at \textbf{\url{https://github.com/p-org/PSharp}}.\\
+\newparagraph{Repository} The \ps framework is publicly available as open-source and can be found at its git repository at \textcolor{blue}{\url{https://github.com/p-org/PSharp}}.\\
 
 \noindent
-In the rest of this guide, we first introduce basic features of a \ps program (Section~\ref{sec:basics}) and then discuss how \ps can be embedded in \cs code (Section~\ref{sec:ps2cs}). Next, we present an example of a simple program using both the \ps surface syntax and \ps as a library (Section~\ref{sec:simple}). We then present the more advanced features of \ps (Section~\ref{sec:advanced}). Next, we illustrate how someone can write safety properties in \ps (see Section~\ref{sec:safetyproperties}), which can be systematically checked for bugs. Finally, we provide an overview of the tools for compiling and systematically testing a \ps program and conclude with a glossary of all \ps-specific features in our language.
+In the rest of this guide, we first introduce the basic features of a \ps program (see \S\ref{sec:basics}) and then discuss how \ps can be embedded in \cs code (see \S\ref{sec:interop}). Next, we present an example of a simple program using both the \ps surface syntax and \ps as a library (see \S\ref{sec:example}). We then present the more advanced features of \ps (see \S\ref{sec:advanced}). Next, we illustrate how someone can write safety properties in \ps (see \S\ref{sec:safetyproperties}), which can be systematically checked for bugs. Finally, we provide an overview of the tools for compiling and systematically testing a \ps program.
 
-
+% Basic features of a P# program
 \section{Basic features of a \ps program}
 \label{sec:basics}
 
-A \ps program is a collection of \inlinepsharp{event} and \inlinepsharp{machine} declarations and, optionally, other top-level \cs declarations, such as \inlinepsharp{class} and \inlinepsharp{struct}. All top-level declarations must be declared inside a \inlinepsharp{namespace}, as in \cs. If someone uses the \ps high-level syntax, then events and machines must be declared inside a \texttt{.psharp} file, while \cs top-level declarations must be declared in a \texttt{.cs} file. On the other hand, if someone uses \ps as a \cs library, all the code must be written inside a \texttt{.cs} file.
+A \ps program is a collection of \texttt{event} and \texttt{machine} declarations and, optionally, other top-level \cs declarations, such as \texttt{class} and \texttt{struct}. All top-level declarations must be declared inside a \texttt{namespace}, as in \cs. If someone uses the \ps high-level syntax, then events and machines must be declared inside a \texttt{.psharp} file, while \cs top-level declarations must be declared in a \texttt{.cs} file. On the other hand, if someone uses \ps as a \cs library, all the code must be written inside a \texttt{.cs} file.
 
 State machines are first-class citizens of the \ps language and can be declared in the following way:
 
@@ -79,7 +79,7 @@ machine Server { ... }
 \end{psharpNoLines}
 
 \noindent
-This declares a machine named \inlinepsharp{Server}. Machine declarations are very similar to class declarations in \cs and can contain fields, states and methods. Fields can be declared similar to how fields are declared in \cs:
+The above code snippet declares a \ps machine named \texttt{Server}. Machine declarations are similar to class declarations in \cs, and thus can contain an arbitrary number of fields and methods. For example, the below code snippet declares the field \texttt{client} of type \texttt{machine}. An object of this type contains a reference to a machine instance.
 
 \begin{psharpNoLines}
 machine Server {
@@ -88,9 +88,7 @@ machine Server {
 \end{psharpNoLines}
 
 \noindent
-This declares a field named \inlinepsharp{client} of type \inlinepsharp{machine}, which contains the \emph{unique id} of a dynamically-created \ps machine. This id can be used to send an event to \inlinepsharp{client}, as discussed later in the guide. Fields in \ps can have an arbitrary type; all \cs types, as well as user-defined types, are allowed. Note that the fields of a machine \emph{cannot} be \inlinepsharp{public} or \inlinepsharp{internal}; they can only be accessed from the local scope of an instance of a machine. If a user declares a field as \inlinepsharp{public} or \inlinepsharp{internal}, then the compiler will exit with an appropriate error.
-
-Machine states can be declared as follows:
+The main difference between a class and a machine declaration is that the latter must also declare one or more \emph{states}:
 
 \begin{psharpNoLines}
 machine Server {
@@ -101,9 +99,7 @@ machine Server {
 \end{psharpNoLines}
 
 \noindent
-This declares two states in the \inlinepsharp{Server} machine: \inlinepsharp{Init} and \inlinepsharp{Active}. A machine \emph{must} declare an \emph{initial} state, which will be the first state that the machine will start execution. The \inlinepsharp{start} modifier is used for declaring an initial state. In the above example, the \inlinepsharp{Init} state has been declared as the initial state of the \inlinepsharp{Server} machine.
-
-A \inlinepsharp{state} declaration can optionally contain a number of state-specific declarations, as seen in the following example:
+The above declares two states in the \texttt{Server} machine: \texttt{Init} and \texttt{Active}. The \ps developer must use the \texttt{start} modifier to declare an \emph{initial} state, which will be the first state that the machine will transition to upon instantiation. In this example, the \texttt{Init} state has been declared as the initial state of \texttt{Server}. Note that only a single state is allowed to be declared as an initial per machine. A \texttt{state} declaration can optionally contain a number of state-specific actions, as seen in the following code snippet:
 
 \begin{psharpNoLines}
 state SomeState {
@@ -113,32 +109,36 @@ state SomeState {
 \end{psharpNoLines}
 
 \noindent
-A code block indicated by \inlinepsharp{entry} \{ ... \} denotes an action that is executed when the state is entered, while a code block indicated by \inlinepsharp{exit} \{ ... \} denotes an action that is executed when the state exits. The \inlinepsharp{entry} and \inlinepsharp{exit} actions are blocks of arbitrary \ps and \cs statements. An example of an \inlinepsharp{entry} action is the following:
+A code block indicated by \texttt{entry} \{ ...\ \} denotes an action that will be executed when the machine transitions to the state, while a code block indicated by \texttt{exit} \{ ...\ \} denotes an action that will be executed when the machine leaves the state. Actions in \ps are essentially \cs methods with no input parameters and \texttt{void} return type. \ps actions can contain arbitrary \ps and \cs statements. However, since we want to explicitly declare all sources of asynchrony using \ps, we only allow the use of \emph{sequential} \cs code inside a \ps machine.\footnote{In practise, we just assume that the \cs code is sequential, as it would be very challenging to impose this rule in real life programs (e.g.\ a developer could use an external library).} An example of an \texttt{entry} action is the following:
 
 \begin{psharpNoLines}
 entry {
-  this.client = create(Client, this);
+  this.client = create(Client);
+  send(this.client, Config, this);
   send(this.client, Ping);
   raise(Unit);
 }
 \end{psharpNoLines}
 
 \noindent
-The above action contains three of the most important \ps statements. The \inlinepsharp{create} statement, creates a new instance of the \inlinepsharp{Client} machine and stores the unique id of this instance in the field \inlinepsharp{client}. Next, the \inlinepsharp{send} statement sends an event (in this case the event \inlinepsharp{Ping}) to a target machine (in this case the machine whose address is stored in the field \inlinepsharp{Client}). When an event is sent, it is enqueued in the event queue of the target machine. The target machine can then dequeue the event and handle it concurrently from the sender machine. Finally, The \inlinepsharp{raise} statement sends an event to the caller machine (i.e. sends an event to itself). In \ps, when a machine raises an event, the raised event is not enqueued; the machine terminates execution of the enclosing code block and handles the event immediately.
+The above action contains the three most important \ps statements. The \texttt{create} statement is used to create a new instance of the \texttt{Client} machine. A reference to this instance is stored in the \texttt{client} field. Next, the \texttt{send} statement is used to send an event (in this case the events \texttt{Config} and \texttt{Ping}) to a target machine (in this case the machine whose address is stored in the field \texttt{client}).
 
-Events (e.g. \inlinepsharp{Ping} and \inlinepsharp{Unit} in our case) can be simply declared as follows:
+When an event is being send, it is enqueued in the event queue of the target machine, which can then dequeue the received event, and handle it asynchronously from the sender machine. Finally, the \texttt{raise} statement is used to send an event to the caller machine (i.e. to itself). When a machine raises an event, the raised event is not enqueued as in the case of \texttt{send}; instead, the machine terminates execution of the enclosing code block and handles the event immediately. In \ps, events (e.g.\ \texttt{Ping}, \texttt{Unit} and \texttt{Config} in the above example) can be declared as follows:
 
 \begin{psharpNoLines}
 event Ping;
 event Unit;
+event Config (target: machine);
 \end{psharpNoLines}
 
 \noindent
-A machine can optionally send data to another machine, either when creating a new machine (via the \inlinepsharp{create} statement) or when sending an event to a machine (via the \inlinepsharp{send} statement). A machine can also send data to itself (e.g. for processing in a later state) via the \inlinepsharp{raise} statement. In the previous example, the machine sends \inlinepsharp{this} to \inlinepsharp{client}. By default, \inlinepsharp{this} denotes a reference to the instance of the machine that uses it, but when sending \inlinepsharp{this} to another machine, it sends the unique id of the machine (e.g. so the other machine can use it to send something back). The receiver machine (in our case \inlinepsharp{client} can retrieve the sent data by using the keyword \inlinepsharp{payload} and casting it to its expected type; in this case the \inlinepsharp{payload} has to be casted to the \inlinepsharp{machine} type (as it is the id of the sender machine).
+A \ps machine can send data (scalar values or references) to a target machine, as the payload of an event. Such an event must specify the type of the payload in its declaration (as in the case of the \texttt{Config} event above). A machine can also send data to itself (e.g.\ for processing in a later state) using \texttt{raise}.
 
-As discussed earlier, the \inlinepsharp{create} and \inlinepsharp{send} statements are non-blocking. The \ps runtime will take care of all the underlying asynchrony, and thus the user does not need to create and manage explicit tasks. For efficiency, the \ps runtime executes the event handler on the context of a separate TPL task instead of a more heavyweight thread.
+In the previous example, the \texttt{Server} machine sends \texttt{this} (i.e.\ a reference to the current machine instance) to the \texttt{client} machine. The receiver (in our case \texttt{client}) can retrieve the sent data by using the keyword \texttt{trigger} (or \texttt{ReceivedEvent} when using \ps as a \cs library), which is a handle to the received event, casting \texttt{trigger} to the expected event type (in this case \texttt{Config}), and then accessing the payload as a field of the received event.
 
-Other than the \inlinepsharp{entry} and \inlinepsharp{exit} declarations, all other declarations inside a state are related to \emph{event-handling}. Two of the most important event-handling declarations in \ps are the following:
+As discussed earlier, the \texttt{create} and \texttt{send} statements are non-blocking. The \ps runtime will take care of all the underlying asynchrony using the Task Parallel Library and, thus, the developer does not need to explicitly create and manage tasks.
+
+Besides the \texttt{entry} and \texttt{exit} declarations, all other declarations inside a \ps state are related to \emph{event-handling}, which is a key feature of \ps. An event-handler declares how a \ps machine should \emph{react} to a received event. One such possible reaction is to create one or more machine instances, send one or more events, or process some local data. The two most important event-handling declarations in \ps are the following:
 
 \begin{psharpNoLines}
 state SomeState {
@@ -148,101 +148,117 @@ state SomeState {
 \end{psharpNoLines}
 
 \noindent
-The declaration \inlinepsharp{on Unit goto AnotherState} indicates that when the machine receives the \inlinepsharp{Unit} event in \inlinepsharp{SomeState}, it must handle the event by exiting the
-state and transitioning to \inlinepsharp{AnotherState}. The declaration \inlinepsharp{on Pong do SomeAction} indicates that the \inlinepsharp{Pong} event must be handled by invoking the action \inlinepsharp{SomeAction}. Each event can be associated with at most one handler in a particular state of a machine.
+The declaration \texttt{on Unit goto AnotherState} indicates that when the machine receives the \texttt{Unit} event in \texttt{SomeState}, it must handle the event by exiting the state and transitioning to \texttt{AnotherState}. The declaration \texttt{on Pong do SomeAction} indicates that the \texttt{Pong} event must be handled by invoking the action \texttt{SomeAction}. Each event can be associated with at most one handler in a particular state of a machine. \ps also supports \emph{anonymous} event-handlers. For example, the declaration \texttt{on Pong do} \{ ...\ \} is an anonymous event-handler, which states that the block of statements between the braces must be executed when event \texttt{Pong} is dequeued.
 
-Actions in \ps are methods with no parameters. A \ps method (declared exactly like a typical \cs method) can contain arbitrary \ps and \cs statements. Note that the methods of a machine \emph{cannot} be \inlinepsharp{public} or \inlinepsharp{internal} (similar to machine fields). If a user declares a method as \inlinepsharp{public} or \inlinepsharp{internal}, then the compiler will exit with an appropriate error. \ps also supports \emph{anonymous} actions. For example, the declaration \inlinepsharp{on Pong do} \{ ... \} is such an anonymous action, which states that the block of statements between the braces must be executed when event \inlinepsharp{Pong} is dequeued.\\
+\ps also supports specifying invariants (i.e.\ assertions) on the local state of a machine. The developer can achieve this by using the \texttt{assert} statement, which accepts as input a predicate that must always hold in that specific program point, e.g.\ \texttt{assert(k == 0)}, which holds if the integer \texttt{k} equals to 0.
 
+% Interoperability
+\section{Interoperability Between \ps and \cs}
+\label{sec:interop}
 
-\section{Embedding \ps into \cs}
-\label{sec:ps2cs}
-
-Interoperability between the two languages is in the heart of the \ps programming approach. This is because \ps is essentially \cs, but with some extra key features for enabling safer and easier-to-test asynchronous .NET programming. Even to start executing a \ps program, the programmer has to create the very first machine from inside the context of a \cs method. This can be done by calling the \inlinepsharp{CreateMachine} method (provided by the \inlinepsharp{PSharpRuntime} APIs) from any \cs method (typically the \inlinepsharp{Main} method) as follows:
+Because \ps is built on top of the \cs language, the entry point of a \ps program (i.e.\ the first machine that the \ps runtime will instantiate and execute) must be explicitly declared inside a host \cs program (typically in the \texttt{Main} method), as follows:
 
 \begin{psharpNoLines}
-public class Program {
+using Microsoft.PSharp;
+public class HostProgram {
   static void Main(string[] args) {
-    PSharpRuntime.CreateMachine(typeof(Server));
+    PSharpRuntime.Create().CreateMachine(typeof(Server));
     Console.ReadLine();
   }
 }
 \end{psharpNoLines}
 
 \noindent
-The \inlinepsharp{CreateMachine} method accepts as an argument the type of the machine to be created (in our case \inlinepsharp{Server}) and an optional payload (not used in this example). Because \inlinepsharp{CreateMachine} is non-blocking, we use the \inlinepsharp{Console.ReadLine()} statement so that the program does not exit prematurely.
+The developer must first import the \ps runtime library (\texttt{Microsoft.PSharp.dll}), then create a \texttt{PSharpRuntime} instance, and finally invoke the \texttt{CreateMachine} runtime method to instantiate the first \ps machine (\texttt{Server} in the above example).
 
-The \inlinepsharp{PSharpRuntime} APIs also provide the \inlinepsharp{SendEvent} method for enqueueing events to a \ps machine from \cs code (also not used in this example). This method accepts as an argument a \inlinepsharp{MachineId} object (which corresponds to the unique id of a machine), an event and an optional payload. The \inlinepsharp{MachineId} object is returned when creating a machine via the \inlinepsharp{CreateMachine} method.
+The \texttt{CreateMachine} method is part of the .NET interoperability API (a set of methods for calling \ps from native \cs code) that is exposed by \texttt{PSharpRuntime}. This method accepts as a parameter the type of the machine to be instantiated, and returns an object of the \texttt{MachineId} type, which contains a reference to the created \ps machine. Because \texttt{CreateMachine} is an asynchronous method, we call the \texttt{Console.ReadLine} method, which pauses the main thread until a console input has been given, so that the host \cs program does not exit prematurely.
 
-Although the programmer has to use the above methods to send data from \cs code to a \ps machine, the opposite is much more straightforward. A typical way to achieve this is to pass a reference to a \cs object as a payload to a \ps machine, and then invoke a method (or access a field) on that object.
+The \texttt{PSharpRuntime} .NET interoperability API also provides the \texttt{SendEvent} method for sending events to a \ps machine from native \cs. This method accepts as parameters an object of type \texttt{MachineId}, an event and an optional payload. Although the developer has to use \texttt{CreateMachine} and \texttt{SendEvent} to call \ps code from native \cs, the opposite is straightforward, as it only requires accessing a \cs object from \ps code.
 
+% A Simple Example Program
+\section{A Simple Example Program}
+\label{sec:example}
 
-\section{A simple \ps program}
-\label{sec:simple}
+The following \ps program shows a \texttt{Client} machine and a \texttt{Server} machine that communicate asynchronously by exchanging \texttt{Ping} and \texttt{Pong} events:
 
-The following example contains a \inlinepsharp{Server} machine and a \inlinepsharp{Client} machine communicating with each other via sending and receiving \inlinepsharp{Ping} and \inlinepsharp{Pong} events.\\
-
-\begin{psharp}[caption=Simple PingPong application written in the \ps high-level syntax., label=fig:simple_example_ps]
-// PingPong.psharp
+\begin{psharp}
 namespace PingPong {
-  event Ping;
-  event Pong;
-  event Unit;
+  event Ping; // Client sends this event to the Server
+  event Pong; // Server sends this event to the Client
+  event Unit; // Event used for local transitions
+  
+  // Event used for configuration, can take a payload
+  event Config (target: machine);
   
   machine Server {
     machine client;
-
+  
     start state Init {
       entry {
-        this.client = create(Client, this);
-        raise(Unit);
+        // Instantiates the Client
+        this.client = create(Client);
+        // Sends event to client to configure it
+        send(this.client, Config, this);
+        raise(Unit); // Sends an event to itself
       }
-      on Unit goto Active;
+      
+      on Unit goto Active; // Performs a state transition
     }
-
+  
+    state Active {
+      on Ping do {
+        // Sends a Pong event to the Client
+        send(this.client, Pong);
+      };
+    }
+  }
+  
+  machine Client {
+    machine server;
+  
+    start state Init {
+      on Config do Configure; // Handles the event
+      on Unit goto Active; // Performs a state transition
+    }
+    
+    void Configure() {
+      // Receives reference to Server
+      this.server = (trigger as Config).target;
+      raise(Unit); // Sends an event to itself
+    }
+  
     state Active {
       entry {
         SendPing();
       }
       on Pong do SendPing;
     }
-
+  
     void SendPing() {
-      send(this.client, Ping);
-    }
-  }
-
-  machine Client {
-    machine server;
-
-    start state Init {
-      entry {
-        this.server = (machine)payload;
-        raise(Unit);
-      }
-      on Unit goto Active;
-    }
-
-    state Active {
-      on Ping do {
-        send(this.server, Pong);
-      };
+      // Sends a Ping event to the Server
+      send(this.server, Ping);
     }
   }
   
-  public class Program {
+  public class HostProgram {
     static void Main(string[] args) {
-      PSharpRuntime.CreateMachine(typeof(Server));
+      PSharpRuntime.Create().CreateMachine(typeof(Server));
       Console.ReadLine();
     }
   }
 }
 \end{psharp}
 
-In this example, the \ps program starts with a single instance of \inlinepsharp{Server} being created and then entering state \inlinepsharp{Init}. Let us call this instance of the Server machine \emph{server}. Machine \emph{server} then creates an instance of the \inlinepsharp{Client} machine and raises the event \inlinepsharp{Unit} to enter the state \inlinepsharp{Active}. Let us call this instance of the \inlinepsharp{Client} machine \emph{client}. The machine \emph{client} begins execution when \emph{server} is in the state \inlinepsharp{Active}, then \emph{client} also transitions to the state \inlinepsharp{Active} by raising a event \inlinepsharp{Unit}. From this point on, \emph{server} and \emph{client} keep exchanging \inlinepsharp{Ping} and \inlinepsharp{Pong} events (in an infinite loop).
+\noindent
+In the above example, the program starts by creating an instance of the \texttt{Server} machine (line 61). The implicit constructor of each \ps machine initializes the internal to the \ps runtime data of the machine, including the event queue, a set of available states, and a map from events to event-handlers per state.
+
+After the \texttt{Server} machine has initialized, the \ps runtime executes the \texttt{entry} action of the initial (\texttt{Init}) state of \texttt{Server}, which first creates an instance of the \texttt{Client} machine (line 15), then sends the event \texttt{Config} to the \texttt{Client} machine (line 17), with the \texttt{this} reference as a payload, and then raises the event \texttt{Unit} (line 18). As mentioned earlier, when a machine calls \texttt{raise}, it exits the currently executing action, and immediately handles the raised event (bypassing the queue). In this case, the \texttt{Server} machine handles \texttt{Unit} by transitioning to the \texttt{Active} state (line 21).
+
+\texttt{Client} starts executing (asynchronously) when it is created by \texttt{Server}. The \texttt{Client} machine stores the received payload (which is a reference to the \texttt{Server} machine) in the \texttt{server} field (line 42), and then raises \texttt{Unit} to transition to the \texttt{Active} state. In the new state, \texttt{Client} calls the \texttt{SendPing} method to send a \texttt{Ping} event to \texttt{Server} (line 55). In turn, the \texttt{Server} machine dequeues \texttt{Ping} and handles it by sending a \texttt{Pong} event to \texttt{Client} (line 27), which subsequently responds by sending a new \texttt{Ping} event to \texttt{Server}. This asynchronous exchange of \texttt{Ping} and \texttt{Pong} events continues indefinitely.
 
 The above example can be written using \ps as a \cs library as follows:
 
-\begin{psharp}[caption=Simple PingPong application written using \ps as a \cs library., label=fig:simple_example_cs]
+\begin{psharp}
 // PingPong.cs
 using System;
 using Microsoft.PSharp;
@@ -251,6 +267,13 @@ namespace PingPong {
   class Unit : Event { }
   class Ping : Event { }
   class Pong : Event { }
+  
+  class Config : Event {
+    public MachineId Target;
+    public Config(MachineId target) : base() {
+      this.Target = target;
+    }
+  }
   
   class Server : Machine {
     MachineId Client;
@@ -261,7 +284,8 @@ namespace PingPong {
     class Init : MachineState { }
     
     void InitOnEntry() {
-      this.Client = this.CreateMachine(typeof(Client), this);
+      this.Client = this.CreateMachine(typeof(Client));
+      this.Send(this.Client, new Config(this));
       this.Raise(new Unit());
     }
     
@@ -282,11 +306,12 @@ namespace PingPong {
     
     [Start]
     [OnEventGotoState(typeof(Unit), typeof(Active))]
-    class Init : MachineState {
-      protected override void OnEntry() {
-        (this.Machine as Client).Server = (MachineId)this.Payload;
-        this.Raise(new Unit());
-      }
+    [OnEventDoAction(typeof(Config), nameof(Configure))]
+    class Init : MachineState { }
+    
+    void Configure() {
+      this.Server = (this.ReceivedEvent as Config).Trigger;
+      this.Raise(new Unit());
     }
     
     [OnEventDoAction(typeof(Ping), nameof(SendPong))]
@@ -306,17 +331,60 @@ namespace PingPong {
 }
 \end{psharp}
 
-The programmer can use \ps as a library by importing the \inlinepsharp{Microsoft.PSharp} library. A \ps machine can be declared by creating a \cs \inlinepsharp{class} that inherits from the type \inlinepsharp{Machine} (provided by the \ps library). A state can be declared by creating a \inlinepsharp{class} that inherits from the type \inlinepsharp{MachineState}. This state class must be nested inside a machine class (no other class besides a state can be nested inside a machine class). The start state can be declared using the \inlinepsharp{[Start]} attribute.
+The programmer can use \ps as a library by importing the \texttt{Microsoft.PSharp.dll} library. A \ps machine can be declared by creating a \cs \texttt{class} that inherits from the type \texttt{Machine} (provided by the \ps library). A state can be declared by creating a \texttt{class} that inherits from the type \texttt{MachineState}. This state class must be nested inside a machine class (no other class besides a state can be nested inside a machine class). The start state can be declared using the \texttt{[Start]} attribute.
 
-A state transition can be declared using the \inlinepsharp{[OnEventGotoState(...)]} attribute, where the first argument of the attribute is the type of the received event and the second argument is the type of the target state. An optional third argument, is a string that denotes the name of the method to be executed after exiting the state and before entering the new state.
+A state transition can be declared using the \texttt{[OnEventGotoState(...)]} attribute, where the first argument of the attribute is the type of the received event and the second argument is the type of the target state. An optional third argument, is a string that denotes the name of the method to be executed after exiting the state and before entering the new state. Likewise, an action handler can be declared using the \texttt{[OnEventDoAction(...)]} attribute, where the first argument of the attribute is the type of the received event and the second argument is the name of the action to be executed. All \ps statements (e.g. \texttt{send} and \texttt{raise}) are exposed as method calls of the \texttt{Machine} and \texttt{MachineState} classes.
 
-An action handler can be declared using the \inlinepsharp{[OnEventDoAction(...)]} attribute, where the first argument of the attribute is the type of the received event and the second argument is the name of the action to be executed.
+Note that even when using \ps as a \cs library, the program has to still be compiled using the \ps compiler as the compiler performs some important static checking to find \ps syntax-related errors and rewriting (e.g.\ a \texttt{return} statement is instrumented after a \texttt{raise}).
 
-All \ps statements (e.g. \inlinepsharp{send} and \inlinepsharp{raise}) are exposed as method calls of the \inlinepsharp{Machine} and \inlinepsharp{MachineState} classes.
+% The P# compiler
+\subsection{Compiling and Testing \ps Programs}
+\label{psharp:coding:compilation}
 
-Note that even when using \ps as a library, the program has to still be compiled using the \ps compiler as the compiler performs some important static checking to find \ps syntax-related errors and rewriting. Moreover a \ps program can only be systematically tested via a special mode of the \ps compiler as discussed in Section~\ref{}.
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.95\linewidth]{figures/workflow.pdf}
+\caption{The typical \ps workflow.}
+\label{fig:workflow}
+\end{figure}
 
+To compile a \ps program, the developer must use the \ps compiler (\texttt{PSharpCompiler.exe}), which is built on top of the Microsoft Roslyn compiler. The \ps compilation process consists of two phases: \emph{parsing} and \emph{rewriting}. In the parsing phase, the input \ps program is parsed using a recursive-descent parser to produce an abstract syntax tree (AST). In the rewriting phase, the \ps compiler traverses the produced AST, and rewrites all \ps statements to native (intermediate) \cs code. Finally, the \ps compiler invokes the Roslyn compiler to build the intermediate \cs program, link it with the \ps runtime library, and produce a .NET executable.
 
+To test a \ps program, the developer must use the \texttt{PSharpTester.exe} systematic testing tool (see \textcolor{blue}{\url{https://github.com/p-org/PSharp}} for instructions), or use the \ps systematic testing APIs, as follows:
+
+\begin{psharp}
+using System;
+using System.Collections.Generic;
+
+using Microsoft.PSharp;
+using Microsoft.PSharp.SystematicTesting;
+using Microsoft.PSharp.Utilities;
+
+namespace Example
+{
+    public class Test
+    {
+        static void Main(string[] args)
+        {
+            var configuration = Configuration.Create().
+                WithLivenessCheckingEnabled().
+                WithNumberOfIterations(10).
+                WithVerbosityEnabled(2);
+            TestingEngine.Create(configuration, Execute).Run();
+        }
+
+        [Microsoft.PSharp.Test]
+        public static void Execute(PSharpRuntime runtime)
+        {
+            runtime.CreateMachine(typeof(SomeMachine));
+        }
+    }
+}
+\end{psharp}
+
+The developer must first create a \texttt{Configuration} object, which declares testing options such as the number of testing iterations. Next, the developer must create a \texttt{TestingEngine}, passing the configuration instance and the entry point to the test (in our case \texttt{Execute}), which must be annotated with the \texttt{[Microsoft.PSharp.Test]} attribute, as arguments. Finally, the \texttt{Run} method must be invoked to start testing the \ps program.
+
+% Advanced features of P#
 \section{Advanced features of \ps}
 \label{sec:advanced}
 
@@ -325,28 +393,26 @@ The following is a discussion of more advanced features of \ps, such as terminat
 \subsection{Termination of \ps machines}
 \label{sec:termination}
 
-In order to terminate a \ps machine cleanly, it must dequeue a special event named \inlinepsharp{halt}, which is provided by \ps (the user cannot declare it). A \inlinepsharp{halt} event can be raised and/or send to another machine. Termination of a machine due to an unhandled \inlinepsharp{halt} event is valid behavior (the \ps runtime does not report an error). From the point of view of formal operational semantics, a halted machine is fully receptive and consumes any event that is sent to it. The \ps runtime implements this semantics efficiently by cleaning up resources allocated to a halted machine and recording that the machine has halted. An event sent to a halted machine is simply dropped. A halted machine cannot be restarted; it remains halted forever.
+In order to terminate a \ps machine cleanly, it must dequeue a special event named \texttt{halt}, which is provided by \ps (the user cannot declare it). A \texttt{halt} event (\texttt{Halt} when using \ps as a library) can be raised and/or send to another machine. Termination of a machine due to an unhandled \texttt{halt} event is valid behavior (the \ps runtime does not report an error). From the point of view of formal operational semantics, a halted machine is fully receptive and consumes any event that is sent to it. The \ps runtime implements this semantics efficiently by cleaning up resources allocated to a halted machine and recording that the machine has halted. An event sent to a halted machine is simply dropped. A halted machine cannot be restarted; it remains halted forever.
 
 \subsection{Writing safety properties}
 \label{sec:safety}
 
 The most important safety specification of a \ps program is that every event dequeued by a machine is handled; otherwise, the \ps runtime reports an unhandled event error. The PingPong program satisfies this specification since the \texttt{Server} machine handles the \texttt{Ping} event and the \texttt{Client} machine handles the \texttt{Pong} event in every state where an event dequeue is possible.
 
+TODO
+
 \subsection{Writing liveness properties}
 \label{sec:liveness}
+
+TODO
 
 \subsection{Modeling the environment}
 \label{sec:modeling}
 
-The following example illustrates the more advanced features of the \ps language. This program implements a failure detection protocol. A \inlinepsharp{FailureDetector} machine is given a list of machines, each of which represents a daemon running at a node of a distributed system. The \inlinepsharp{FailureDetector} sends each machine in the list a \inlinepsharp{Ping} event and determines whether a machine has failed. A machine has failed if it does not respond with a \inlinepsharp{Pong} event within a certain time period. The \inlinepsharp{FailureDetector} uses an operating system timer to implement the bounded wait for the \inlinepsharp{Pong} event.
+The following example illustrates the more advanced features of the \ps language. This program implements a failure detection protocol. A \texttt{FailureDetector} machine is given a list of machines, each of which represents a daemon running at a node of a distributed system. The \texttt{FailureDetector} sends each machine in the list a \texttt{Ping} event and determines whether a machine has failed. A machine has failed if it does not respond with a \texttt{Pong} event within a certain time period. The \texttt{FailureDetector} uses an operating system timer to implement the bounded wait for the \texttt{Pong} event.
 
-
- \begin{figure}[t]
- \centering
- \includegraphics[width=0.95\linewidth]{figures/workflow.pdf}
- \caption{The typical \ps workflow.}
- \label{fig:workflow}
- \end{figure}
+TODO
 
 %\newpage
 
