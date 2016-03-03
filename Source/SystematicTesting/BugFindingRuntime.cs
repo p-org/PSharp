@@ -311,6 +311,9 @@ namespace Microsoft.PSharp.SystematicTesting
                 "the task in a machine, because the task wrapper scheduler is not enabled.\n");
 
             MachineId mid = new MachineId(typeof(TaskMachine), this);
+            Console.WriteLine("Wrapped machine has ID: " + mid.GetHashCode());
+            Console.ReadLine();
+
             TaskMachine taskMachine = new TaskMachine(this.TaskScheduler as TaskWrapperScheduler, userTask);
             taskMachine.SetMachineId(mid);
             

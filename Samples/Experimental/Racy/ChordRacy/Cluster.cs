@@ -75,6 +75,10 @@ namespace ChordRacy
         #region actions
         private void OnInit()
         {
+            Send(Id, new Cluster.eInitialize(new Tuple<int, List<int>, List<int>>(
+                3,
+                new List<int> { 0, 1, 3 },
+                new List<int> { 1, 2, 6 })));
             Raise(new eWaitForInit());
         }
 

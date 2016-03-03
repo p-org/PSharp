@@ -125,6 +125,7 @@ namespace GermanRacy
         #region actions
         private void OnInit()
         {
+            Send(Id, new Host.eInitialize(3));
             Raise(new eWaitForInit());
         }
 

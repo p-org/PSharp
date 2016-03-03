@@ -166,7 +166,7 @@ namespace OfflineRaceDetection
                         }
                     }
 
-                    //printGraph();
+                    printGraph();
                     Console.WriteLine("Detecting races");
                     detectRaces();
 
