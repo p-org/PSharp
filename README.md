@@ -1,6 +1,6 @@
 P#
 ====================
-A toolkit for **building**, **analyzing** and **systematically testing** asynchronous software, such as web-services and distributed systems.
+A toolkit for **building**, **analyzing** and **systematically testing** asynchronous reactive software, such as web-services and distributed systems.
 
 ## Features
 The P# framework provides:
@@ -16,7 +16,7 @@ Although P# primarily targets .NET, it has also experimental support for systema
 Optional: Get the [Visual Studio 2015 SDK](https://www.microsoft.com/en-us/download/details.aspx?id=46850) to be able to compile the P# visual studio extension (syntax highlighting). Only for the high-level P# language.
 
 ## How to use
-A good way to start is by reading the [manual](https://cdn.rawgit.com/p-org/PSharp/master/Docs/Manual/out/manual.pdf) (which is quite outdated right now, a new version will get released soon, but in the meantime please feel free to contact the P# dev team with specific questions).
+A good way to start is by reading the [manual](https://github.com/p-org/PSharp/blob/master/Docs/Manual/manual.pdf) (which is not feature complete yet, but please also feel free to contact the P# dev team with specific questions).
 
 ## Compilation
 The P# compiler can be used to parse a P# program, rewrite it to C# and finally compile it to an executable. To invoke the compiler use the following command:
