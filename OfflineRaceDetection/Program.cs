@@ -41,6 +41,33 @@ namespace OfflineRaceDetection
         }
     }
 
+    internal class cActBegin : Node
+    {
+        public int machineID;
+        public String actionName;
+        public int actionID;
+        public String eventName;
+        public int eventID;
+
+        public int taskId;
+
+        public List<MemAccess> addresses = new List<MemAccess>();
+
+        public cActBegin(int machineID, String actionName, int actionID, String eventName, int eventID)
+        {
+            this.machineID = machineID;
+            this.actionName = actionName;
+            this.actionID = actionID;
+            this.eventName = eventName;
+            this.eventID = eventID;
+        }
+
+        public cActBegin(int taskId)
+        {
+            this.taskId = taskId;
+        }
+    }
+
     //May not be required!!!!!!!
     internal class ActEnd : Node
     {
@@ -383,7 +410,11 @@ namespace OfflineRaceDetection
                         {
                             MemAccess loc2 = (MemAccess)n1;
 
-                            if (loc1.isWrite || loc2.isWrite)
+                            if (reportedRaces.Where(item => item.Item1.Equals(loc1.srcLocation + ";" + loc1.isWrite) && item.Item2.Equals(loc2.srcLocation + ";" + loc2.isWrite)).Any()
+                                        || reportedRaces.Where(item => item.Item1.Equals(loc2.srcLocation + ";" + loc2.isWrite) && item.Item2.Equals(loc1.srcLocation + ";" + loc1.isWrite)).Any())
+                                continue;
+
+                                if (loc1.isWrite || loc2.isWrite)
                             {
                                 if (loc1.objHandle == UIntPtr.Zero && loc1.offset == UIntPtr.Zero && loc2.objHandle == UIntPtr.Zero && loc2.offset == UIntPtr.Zero)
                                     continue;
