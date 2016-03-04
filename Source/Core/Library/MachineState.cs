@@ -235,10 +235,11 @@ namespace Microsoft.PSharp
         /// Creates a new remote machine of the given type.
         /// </summary>
         /// <param name="type">Type of the machine</param>
+        /// <param name="endpoint">Endpoint</param>
         /// <returns>MachineId</returns>
-        protected internal MachineId CreateRemoteMachine(Type type)
+        protected internal MachineId CreateRemoteMachine(Type type, string endpoint)
         {
-            return this.Machine.CreateRemoteMachine(type);
+            return this.Machine.CreateRemoteMachine(type, endpoint);
         }
 
         /// <summary>
@@ -258,6 +259,17 @@ namespace Microsoft.PSharp
         protected void Send(MachineId mid, Event e)
         {
             this.Machine.Send(mid, e);
+        }
+
+        /// <summary>
+        /// Sends an asynchronous event to a remote machine.
+        /// </summary>
+        /// <param name="m">MachineId</param>
+        /// <param name="e">Event</param>
+        /// <param name="isStarter">Is starting a new operation</param>
+        protected internal void RemoteSend(MachineId mid, Event e, bool isStarter = false)
+        {
+            this.Machine.RemoteSend(mid, e);
         }
 
         /// <summary>

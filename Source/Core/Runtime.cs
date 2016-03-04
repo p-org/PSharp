@@ -21,6 +21,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.PSharp.Net;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp
@@ -40,7 +41,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// The application assembly.
         /// </summary>
-        internal Assembly AppAssembly;
+        protected Assembly ApplicationAssembly;
 
         /// <summary>
         /// A map from unique machine ids to machines.
@@ -51,6 +52,11 @@ namespace Microsoft.PSharp
         /// A map from task ids to machines.
         /// </summary>
         protected ConcurrentDictionary<int, Machine> TaskMap;
+
+        /// <summary>
+        /// Network provider for remote communication.
+        /// </summary>
+        internal INetworkProvider NetworkProvider;
 
         #endregion
 
@@ -68,11 +74,32 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Creates a new P# runtime.
         /// </summary>
+        /// <param name="netProvider">NetworkProvider</param>
+        /// <returns>PSharpRuntime</returns>
+        public static PSharpRuntime Create(INetworkProvider netProvider)
+        {
+            return new PSharpRuntime(netProvider);
+        }
+
+        /// <summary>
+        /// Creates a new P# runtime.
+        /// </summary>
         /// <param name="configuration">Configuration</param>
         /// <returns>PSharpRuntime</returns>
         public static PSharpRuntime Create(Configuration configuration)
         {
             return new PSharpRuntime(configuration);
+        }
+
+        /// <summary>
+        /// Creates a new P# runtime.
+        /// </summary>
+        /// <param name="configuration">Configuration</param>
+        /// <param name="netProvider">NetworkProvider</param>
+        /// <returns>PSharpRuntime</returns>
+        public static PSharpRuntime Create(Configuration configuration, INetworkProvider netProvider)
+        {
+            return new PSharpRuntime(configuration, netProvider);
         }
 
         /// <summary>
@@ -86,15 +113,42 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Creates a new remote machine of the given type.
+        /// </summary>
+        /// <param name="type">Type of the machine</param>
+        /// <param name="endpoint">Endpoint</param>
+        /// <returns>MachineId</returns>
+        public virtual MachineId RemoteCreateMachine(Type type, string endpoint)
+        {
+            return this.TryCreateRemoteMachine(type, endpoint);
+        }
+
+        /// <summary>
         /// Sends an asynchronous event to a machine.
         /// </summary>
         /// <param name="target">Target machine id</param>
         /// <param name="e">Event</param>
         public virtual void SendEvent(MachineId target, Event e)
         {
+            // If the target machine is null then report an error and exit.
+            this.Assert(target != null, "Cannot send to a null machine.");
             // If the event is null then report an error and exit.
             this.Assert(e != null, "Cannot send a null event.");
             this.Send(null, target, e, false);
+        }
+
+        /// <summary>
+        /// Sends an asynchronous event to a remote machine.
+        /// </summary>
+        /// <param name="target">Target machine id</param>
+        /// <param name="e">Event</param>
+        public virtual void RemoteSendEvent(MachineId target, Event e)
+        {
+            // If the target machine is null then report an error and exit.
+            this.Assert(target != null, "Cannot send to a null machine.");
+            // If the event is null then report an error and exit.
+            this.Assert(e != null, "Cannot send a null event.");
+            this.SendRemotely(null, target, e, false);
         }
 
         /// <summary>
@@ -205,17 +259,27 @@ namespace Microsoft.PSharp
 
         #endregion
 
-        #region protected API
+        #region initialization
 
         /// <summary>
         /// Default constructor.
         /// </summary>
         protected PSharpRuntime()
         {
-            this.MachineMap = new ConcurrentDictionary<int, Machine>();
-            this.TaskMap = new ConcurrentDictionary<int, Machine>();
+            this.Configuration = Configuration.Create();
+            this.NetworkProvider = new DefaultNetworkProvider(this);
+            this.Initialize();
+        }
 
-            MachineId.ResetMachineIDCounter();
+        /// <summary>
+        /// Default constructor.
+        /// </summary>
+        /// <param name="netProvider">NetworkProvider</param>
+        protected PSharpRuntime(INetworkProvider netProvider)
+        {
+            this.Configuration = Configuration.Create();
+            this.NetworkProvider = netProvider;
+            this.Initialize();
         }
 
         /// <summary>
@@ -225,6 +289,29 @@ namespace Microsoft.PSharp
         protected PSharpRuntime(Configuration configuration)
         {
             this.Configuration = configuration;
+            this.NetworkProvider = new DefaultNetworkProvider(this);
+            this.Initialize();
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="configuration">Configuration</param>
+        /// <param name="netProvider">NetworkProvider</param>
+        protected PSharpRuntime(Configuration configuration, INetworkProvider netProvider)
+        {
+            this.Configuration = configuration;
+            this.NetworkProvider = netProvider;
+            this.Initialize();
+        }
+
+        /// <summary>
+        /// Initializes various components of the runtime.
+        /// </summary>
+        private void Initialize()
+        {
+            this.ApplicationAssembly = this.GetType().Assembly;
+            Console.WriteLine(this.ApplicationAssembly.FullName);
 
             this.MachineMap = new ConcurrentDictionary<int, Machine>();
             this.TaskMap = new ConcurrentDictionary<int, Machine>();
@@ -286,10 +373,11 @@ namespace Microsoft.PSharp
         /// Tries to create a new remote machine of the given type.
         /// </summary>
         /// <param name="type">Type of the machine</param>
+        /// <param name="endpoint">Endpoint</param>
         /// <returns>MachineId</returns>
-        internal virtual MachineId TryCreateRemoteMachine(Type type)
+        internal virtual MachineId TryCreateRemoteMachine(Type type, string endpoint)
         {
-            return this.TryCreateMachine(type);
+            return this.NetworkProvider.RemoteCreateMachine(type, endpoint);
         }
 
         /// <summary>
@@ -319,15 +407,6 @@ namespace Microsoft.PSharp
         /// <param name="isStarter">Is starting a new operation</param>
         internal virtual void Send(AbstractMachine sender, MachineId mid, Event e, bool isStarter)
         {
-            if (mid == null)
-            {
-                ErrorReporter.ReportAndExit("Cannot send to a null machine.");
-            }
-            else if (e == null)
-            {
-                ErrorReporter.ReportAndExit("Cannot send a null event.");
-            }
-
             Machine machine = this.MachineMap[mid.Value];
 
             bool runHandler = false;
@@ -361,9 +440,10 @@ namespace Microsoft.PSharp
         /// <param name="sender">Sender machine</param>
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
-        internal virtual void SendRemotely(AbstractMachine sender, MachineId mid, Event e)
+        /// <param name="isStarter">Is starting a new operation</param>
+        internal virtual void SendRemotely(AbstractMachine sender, MachineId mid, Event e, bool isStarter)
         {
-            this.Send(sender, mid, e, false);
+            this.NetworkProvider.RemoteSend(mid, e);
         }
 
         /// <summary>
@@ -471,6 +551,20 @@ namespace Microsoft.PSharp
         internal virtual void NotifyDefaultHandlerFired()
         {
             // No-op for real execution.
+        }
+
+        /// <summary>
+        /// Gets the Type object of the machine with the specified type.
+        /// </summary>
+        /// <param name="typeName">TypeName</param>
+        internal Type GetMachineType(string typeName)
+        {
+            Type machineType = Type.GetType(typeName, false, false);
+            //Type machineType = this.ApplicationAssembly.GetType(typeName);
+            this.Assert(machineType != null, "Could not infer type of " + typeName + ".");
+            this.Assert(machineType.IsSubclassOf(typeof(Machine)), typeName +
+                " is not a subclass of type Machine.");
+            return machineType;
         }
 
         #endregion

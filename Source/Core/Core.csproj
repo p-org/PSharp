@@ -73,6 +73,7 @@
       <HintPath>..\..\Roslyn\System.Reflection.Metadata.dll</HintPath>
     </Reference>
     <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Attributes\Cold.cs" />
@@ -90,8 +91,10 @@
     <Compile Include="Events\Event.cs" />
     <Compile Include="Events\Halt.cs" />
     <Compile Include="Exceptions.cs" />
+    <Compile Include="Net\NetworkProviders\DefaultNetworkProvider.cs" />
     <Compile Include="Options\CompilationTarget.cs" />
     <Compile Include="Options\SchedulingStrategy.cs" />
+    <Compile Include="Net\INetworkProvider.cs" />
     <Compile Include="Utilities\ErrorReporter.cs" />
     <Compile Include="Utilities\IO.cs" />
     <Compile Include="Library\ActionBindings.cs" />

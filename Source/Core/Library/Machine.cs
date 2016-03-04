@@ -149,11 +149,11 @@ namespace Microsoft.PSharp
         /// Creates a new remote machine of the given type.
         /// </summary>
         /// <param name="type">Type of the machine</param>
+        /// <param name="endpoint">Endpoint</param>
         /// <returns>MachineId</returns>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        protected internal MachineId CreateRemoteMachine(Type type)
+        protected internal MachineId CreateRemoteMachine(Type type, string endpoint)
         {
-            return base.Runtime.TryCreateRemoteMachine(type);
+            return base.Runtime.TryCreateRemoteMachine(type, endpoint);
         }
 
         /// <summary>
@@ -173,9 +173,26 @@ namespace Microsoft.PSharp
         /// <param name="isStarter">Is starting a new operation</param>
         protected internal void Send(MachineId mid, Event e, bool isStarter = false)
         {
+            // If the target machine is null then report an error and exit.
+            this.Assert(mid != null, "Machine '{0}' is sending to a null machine.", this.GetType().Name);
             // If the event is null then report an error and exit.
             this.Assert(e != null, "Machine '{0}' is sending a null event.", this.GetType().Name);
             base.Runtime.Send(this, mid, e, isStarter);
+        }
+
+        /// <summary>
+        /// Sends an asynchronous event to a remote machine.
+        /// </summary>
+        /// <param name="m">MachineId</param>
+        /// <param name="e">Event</param>
+        /// <param name="isStarter">Is starting a new operation</param>
+        protected internal void RemoteSend(MachineId mid, Event e, bool isStarter = false)
+        {
+            // If the target machine is null then report an error and exit.
+            this.Assert(mid != null, "Machine '{0}' is sending to a null machine.", this.GetType().Name);
+            // If the event is null then report an error and exit.
+            this.Assert(e != null, "Machine '{0}' is sending a null event.", this.GetType().Name);
+            base.Runtime.SendRemotely(this, mid, e, isStarter);
         }
 
         /// <summary>

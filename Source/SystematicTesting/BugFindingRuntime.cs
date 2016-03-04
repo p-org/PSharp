@@ -22,7 +22,7 @@ using System.Threading.Tasks;
 using Microsoft.PSharp.SystematicTesting.Exploration;
 using Microsoft.PSharp.SystematicTesting.Scheduling;
 using Microsoft.PSharp.SystematicTesting.StateCaching;
-using Microsoft.PSharp.Threading;
+using Microsoft.PSharp.SystematicTesting.Threading;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.SystematicTesting
@@ -125,6 +125,18 @@ namespace Microsoft.PSharp.SystematicTesting
             this.IsRunning = true;
         }
 
+        // <summary>
+        /// Creates a new remote machine of the given type. The
+        /// remote machine is created locally for testing.
+        /// </summary>
+        /// <param name="type">Type of the machine</param>
+        /// <param name="endpoint">Endpoint</param>
+        /// <returns>MachineId</returns>
+        public override MachineId RemoteCreateMachine(Type type, string endpoint)
+        {
+            return this.TryCreateMachine(type);
+        }
+
         /// <summary>
         /// Sends an asynchronous event to a machine.
         /// </summary>
@@ -132,6 +144,8 @@ namespace Microsoft.PSharp.SystematicTesting
         /// <param name="e">Event</param>
         public override void SendEvent(MachineId target, Event e)
         {
+            // If the target machine is null then report an error and exit.
+            this.Assert(target != null, "Cannot send to a null machine.");
             // If the event is null then report an error and exit.
             this.Assert(e != null, "Cannot send a null event.");
 
@@ -143,6 +157,17 @@ namespace Microsoft.PSharp.SystematicTesting
             {
                 IO.Debug("<Exception> TaskCanceledException was thrown.");
             }
+        }
+
+        /// <summary>
+        /// Sends an asynchronous event to a remote machine, which
+        /// is modeled as a local machine during testing.
+        /// </summary>
+        /// <param name="target">Target machine id</param>
+        /// <param name="e">Event</param>
+        public override void RemoteSendEvent(MachineId target, Event e)
+        {
+            this.SendEvent(target, e);
         }
 
         /// <summary>
@@ -350,9 +375,6 @@ namespace Microsoft.PSharp.SystematicTesting
         /// <param name="isStarter">Is starting a new operation</param>
         internal override void Send(AbstractMachine sender, MachineId mid, Event e, bool isStarter)
         {
-            this.Assert(mid != null, "Cannot send to a null machine.");
-            this.Assert(e != null, "Cannot send a null event.");
-
             e.SetSenderMachine(sender.Id);
             this.SetOperationIdForEvent(e, sender, isStarter);
 
@@ -411,6 +433,19 @@ namespace Microsoft.PSharp.SystematicTesting
 
             this.BugFinder.WaitForTaskToStart(task.Id);
             this.BugFinder.Schedule();
+        }
+
+        /// <summary>
+        /// Sends an asynchronous event to a remote machine, which
+        /// is modeled as a local machine during testing.
+        /// </summary>
+        /// <param name="sender">Sender machine</param>
+        /// <param name="mid">MachineId</param>
+        /// <param name="e">Event</param>
+        /// <param name="isStarter">Is starting a new operation</param>
+        internal override void SendRemotely(AbstractMachine sender, MachineId mid, Event e, bool isStarter)
+        {
+            this.Send(sender, mid, e, isStarter);
         }
 
         /// <summary>

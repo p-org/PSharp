@@ -52,16 +52,10 @@ namespace Microsoft.PSharp
         internal readonly int MVal;
 
         /// <summary>
-        /// Ip address.
+        /// Endpoint.
         /// </summary>
         [DataMember]
-        internal string IpAddress;
-
-        /// <summary>
-        /// Port.
-        /// </summary>
-        [DataMember]
-        internal string Port;
+        internal readonly string EndPoint;
 
         #endregion
 
@@ -109,8 +103,8 @@ namespace Microsoft.PSharp
                 this.Value = MachineId.IdCounter++;
                 this.Type = type.Name;
                 this.MVal = MachineId.TypeIdCounter[type]++;
-                this.IpAddress = "";
-                this.Port = "";
+
+                this.EndPoint = this.Runtime.NetworkProvider.GetLocalEndPoint();
             }
         }
 
@@ -165,7 +159,7 @@ namespace Microsoft.PSharp
         public override string ToString()
         {
             var text = "[" + this.Type + "," + this.MVal + "," +
-                this.IpAddress + "," + this.Port + "]";
+                this.EndPoint + "]";
             return text;
         }
 
