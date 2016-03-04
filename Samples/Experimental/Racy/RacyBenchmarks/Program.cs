@@ -43,9 +43,9 @@ namespace BasicPaxosRacy
             configuration.CheckDataRaces = true;
             configuration.SuppressTrace = true;
             configuration.Verbose = 2;
-            configuration.SchedulingIterations = 4;
+            configuration.SchedulingIterations = 1;
             configuration.SchedulingStrategy = SchedulingStrategy.Random;
-            configuration.ScheduleIntraMachineConcurrency = true;
+            configuration.ScheduleIntraMachineConcurrency = false;
 
             var engine = TestingEngine.Create(configuration, Program.Execute).Run();
         }

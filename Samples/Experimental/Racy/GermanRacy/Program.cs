@@ -36,7 +36,7 @@ namespace GermanRacy
             configuration.Verbose = 2;
             configuration.SchedulingIterations = 11;
             configuration.SchedulingStrategy = SchedulingStrategy.Random;
-            configuration.ScheduleIntraMachineConcurrency = true;
+            configuration.ScheduleIntraMachineConcurrency = false;
 
             var engine = TestingEngine.Create(configuration, Program.Execute).Run();
         }

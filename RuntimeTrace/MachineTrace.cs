@@ -25,6 +25,10 @@ namespace RuntimeTrace
         public String sendEventName;
         public int sendEventID;
 
+        //task machine fields
+        public int taskId;
+        public bool isTaskMachine;
+
         //action begin
         public MachineTrace(int machineID, String actionName, int actionID, String eventName, int eventID)
         {
@@ -34,6 +38,8 @@ namespace RuntimeTrace
             this.eventName = eventName;
             this.eventID = eventID;
             this.isSend = false;
+            this.isTaskMachine = false;
+            this.taskId = -5;
         }
 
         //send event
@@ -45,6 +51,16 @@ namespace RuntimeTrace
             this.sendEventName = sendEventName;
             this.sendEventID = sendEventID;
             this.isSend = true;
+            this.isTaskMachine = false;
+            this.taskId = -5;
+        }
+
+        //task machine
+        public MachineTrace(int taskId, int machineId)
+        {
+            this.taskId = taskId;
+            this.isTaskMachine = true;
+            this.machineID = machineId;
         }
     }
 

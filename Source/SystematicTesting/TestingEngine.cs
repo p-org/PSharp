@@ -448,7 +448,10 @@ namespace Microsoft.PSharp.SystematicTesting
             var directory = Path.GetDirectoryName(this.Assembly.Location) +
                 Path.DirectorySeparatorChar + "traces" + Path.DirectorySeparatorChar;
 
-            Directory.CreateDirectory(directory);
+            if (!Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
 
             var traces = Directory.GetFiles(directory, name + "*.txt");
             var path = directory + name + "_" + traces.Length + ".txt";

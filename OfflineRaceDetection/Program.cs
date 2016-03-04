@@ -24,6 +24,8 @@ namespace OfflineRaceDetection
         public String eventName;
         public int eventID;
 
+        public int taskId;
+
         public ActBegin(int machineID, String actionName, int actionID, String eventName, int eventID)
         {
             this.machineID = machineID;
@@ -31,6 +33,11 @@ namespace OfflineRaceDetection
             this.actionID = actionID;
             this.eventName = eventName;
             this.eventID = eventID;
+        }
+
+        public ActBegin(int taskId)
+        {
+            this.taskId = taskId;
         }
     }
 
@@ -54,14 +61,16 @@ namespace OfflineRaceDetection
         public UIntPtr objHandle;
         public UIntPtr offset;
         public string srcLocation;
+        public int machineId;
 
-        public MemAccess(bool isWrite, UIntPtr location, UIntPtr objHandle, UIntPtr offset, string srcLocation)
+        public MemAccess(bool isWrite, UIntPtr location, UIntPtr objHandle, UIntPtr offset, string srcLocation, int machineId)
         {
             this.isWrite = isWrite;
             this.location = location;
             this.objHandle = objHandle;
             this.offset = offset;
             this.srcLocation = srcLocation;
+            this.machineId = machineId;
         }
     }
 
@@ -90,6 +99,16 @@ namespace OfflineRaceDetection
         public CreateMachine(int createMachineId)
         {
             this.createMachineId = createMachineId;
+        }
+    }
+
+    internal class CreateTask : Node
+    {
+        public int taskId;
+
+        public CreateTask(int taskId)
+        {
+            this.taskId = taskId;
         }
     }
 
@@ -161,12 +180,13 @@ namespace OfflineRaceDetection
                             List<MachineTrace> machineTrace = ((List<MachineTrace>)bformatter.Deserialize(stream));
                             stream.Close();
 
+                            updateTasks(machineTrace);
                             updateGraph(machineTrace);
                             updateGraphCrossEdges();
                         }
                     }
 
-                    printGraph();
+                    //printGraph();
                     Console.WriteLine("Detecting races");
                     detectRaces();
 
@@ -181,15 +201,46 @@ namespace OfflineRaceDetection
             Console.ReadLine();
         }
 
+        static void updateTasks(List<MachineTrace> machineTrace)
+        {
+            foreach (MachineTrace mt in machineTrace)
+            {
+                if (mt.isTaskMachine)
+                {
+                    //ThreadTrace matching = null;
+                    var matching = allThreadTraces.Where(item => item.isTask && item.taskId == mt.taskId);
+
+                    foreach (var m in matching)
+                    {
+                        if (m.accesses.Count > 0)
+                        {
+                            Node nd = new ActBegin(m.taskId);
+                            HbGraph.AddVertex(nd);
+
+                            Node latest = nd;
+                            foreach (ActionInstr ins in m.accesses)
+                            {
+                                Node nd1 = new MemAccess(ins.isWrite, ins.location, ins.objHandle, ins.offset, ins.srcLocation, mt.machineID);
+                                HbGraph.AddVertex(nd1);
+                                HbGraph.AddEdge(new Edge(latest, nd1));
+                                latest = nd1;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         static void updateGraph(List<MachineTrace> machineTrace)
         {
             Node latestAction = null;
             foreach (MachineTrace mt in machineTrace)
             {
-                if (!mt.isSend && (mt.actionID != 0))
+                if (!mt.isSend && (mt.actionID != 0) && !mt.isTaskMachine)
                 {
                     ThreadTrace matching = null;
 
+                    //Console.WriteLine("matching: " + mt.machineID + " " + mt.actionID);
                     matching = allThreadTraces.Where(item => item.machineID == mt.machineID && item.actionID == mt.actionID).Single();
 
                     Node nd = new ActBegin(matching.machineID, matching.actionName, matching.actionID, mt.eventName, mt.eventID);
@@ -218,10 +269,16 @@ namespace OfflineRaceDetection
                             nd1 = new CreateMachine(ins.createMachineID);
                         }
 
+                        //user trace task creation
+                        else if (ins.isTask)
+                        {
+                            nd1 = new CreateTask(ins.taskId);
+                        }
+
                         //user trace reads/writes
                         else
                         {
-                            nd1 = new MemAccess(ins.isWrite, ins.location, ins.objHandle, ins.offset, ins.srcLocation);
+                            nd1 = new MemAccess(ins.isWrite, ins.location, ins.objHandle, ins.offset, ins.srcLocation, mt.machineID);
                         }
                         HbGraph.AddVertex(nd1);
                         HbGraph.AddEdge(new Edge(latest, nd1));
@@ -256,6 +313,18 @@ namespace OfflineRaceDetection
                         CreateMachine createNode = (CreateMachine)n;
                         ActBegin beginNode = (ActBegin)n1;
                         if (createNode.createMachineId == beginNode.machineID && beginNode.actionID == 1)
+                            HbGraph.AddEdge(new Edge(createNode, beginNode));
+                    }
+                }
+
+                else if (n.GetType().ToString().Contains("CreateTask"))
+                {
+                    IEnumerable<Node> actBegins = HbGraph.Vertices.Where(item => item.GetType().ToString().Contains("ActBegin"));
+                    foreach (Node n1 in actBegins)
+                    {
+                        CreateTask createNode = (CreateTask)n;
+                        ActBegin beginNode = (ActBegin)n1;
+                        if (createNode.taskId == beginNode.taskId)
                             HbGraph.AddEdge(new Edge(createNode, beginNode));
                     }
                 }
@@ -318,7 +387,7 @@ namespace OfflineRaceDetection
                             {
                                 if (loc1.objHandle == UIntPtr.Zero && loc1.offset == UIntPtr.Zero && loc2.objHandle == UIntPtr.Zero && loc2.offset == UIntPtr.Zero)
                                     continue;
-                                if ((loc1.location == loc2.location) && (loc1.offset == loc2.offset) && !existsPath(n, n1) && !existsPath(n1, n))
+                                if ((loc1.machineId != loc2.machineId) && (loc1.location == loc2.location) && (loc1.offset == loc2.offset) && !existsPath(n, n1) && !existsPath(n1, n))
                                 {
                                     racyPairs.Add(new Tuple<Node, Node>(n, n1));
                                     if (!(reportedRaces.Where(item => item.Item1.Equals(loc1.srcLocation + ";" + loc1.isWrite) && item.Item2.Equals(loc2.srcLocation + ";" + loc2.isWrite)).Any())

@@ -26,6 +26,7 @@ using Microsoft.PSharp.SystematicTesting.Scheduling;
 using Microsoft.PSharp.SystematicTesting.StateCaching;
 using Microsoft.PSharp.Threading;
 using Microsoft.PSharp.Utilities;
+using RuntimeTrace;
 
 namespace Microsoft.PSharp.SystematicTesting
 {
@@ -311,13 +312,37 @@ namespace Microsoft.PSharp.SystematicTesting
                 "the task in a machine, because the task wrapper scheduler is not enabled.\n");
 
             MachineId mid = new MachineId(typeof(TaskMachine), this);
-            Console.WriteLine("Wrapped machine has ID: " + mid.GetHashCode());
-            Console.ReadLine();
 
             TaskMachine taskMachine = new TaskMachine(this.TaskScheduler as TaskWrapperScheduler, userTask);
             taskMachine.SetMachineId(mid);
-            
+
             IO.Log("<CreateLog> TaskMachine({0}) is created.", mid.MVal);
+
+
+            if (this.Configuration.CheckDataRaces)
+            {
+                MachineTrace trace = new MachineTrace(userTask.Id, mid.GetHashCode());
+                List<MachineTrace> RuntimeTrace = new List<MachineTrace>();
+                RuntimeTrace.Add(trace);
+
+                string iter = Environment.GetEnvironmentVariable("ITERATION");
+                int i = Int32.Parse(iter);
+
+                string directory = this.Configuration.DirectoryPath + "InstrTrace" + i;
+
+                if (!Directory.Exists(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                }
+
+                string path = directory + "\\" + "rtTrace_" + mid.GetHashCode() + ".osl";
+                using (FileStream stream = File.Open(path, FileMode.Create))
+                {
+                    BinaryFormatter binaryFormatter = new BinaryFormatter();
+                    binaryFormatter.Serialize(stream, RuntimeTrace);
+                    IO.Debug("... Writing {0}", path);
+                }
+            }
 
             Task task = new Task(() =>
             {
