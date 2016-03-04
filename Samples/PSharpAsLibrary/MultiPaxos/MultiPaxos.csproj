@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{4F4ECEC3-A83A-4A27-AC55-D6888D314BA9}</ProjectGuid>
+    <ProjectGuid>{A7A1F4B6-D6C3-4A90-AC2F-EC0D1B82BF50}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NodeManager</RootNamespace>
-    <AssemblyName>NodeManager</AssemblyName>
+    <RootNamespace>MultiPaxos</RootNamespace>
+    <AssemblyName>MultiPaxos</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -32,37 +32,27 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup>
-    <StartupObject />
-  </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.PSharp">
+    <Reference Include="Microsoft.PSharp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=c4566cf0a7f74012, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\Binaries\Release\Microsoft.PSharp.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.PSharp.Interop">
-      <HintPath>..\..\..\Binaries\Release\Microsoft.PSharp.Interop.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.PSharp.SystematicTesting">
-      <HintPath>..\..\..\Binaries\Release\Microsoft.PSharp.SystematicTesting.dll</HintPath>
     </Reference>
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="M.cs" />
-    <Compile Include="DataNodeMachine.cs" />
-    <Compile Include="Environment.cs" />
-    <Compile Include="NodeManagerMachine.cs" />
+    <Compile Include="LeaderElection.cs" />
+    <Compile Include="Timer.cs" />
+    <Compile Include="Client.cs" />
+    <Compile Include="Events.cs" />
+    <Compile Include="BasicPaxosInvariant_P2b.cs" />
+    <Compile Include="ValidityCheck.cs" />
+    <Compile Include="PaxosNode.cs" />
+    <Compile Include="GodMachine.cs" />
     <Compile Include="Test.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\ComponentWrapper\ComponentWrapper.vcxproj">
-      <Project>{d62334d1-8b7d-48d8-9cdd-1c370890c195}</Project>
-      <Name>ComponentWrapper</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
