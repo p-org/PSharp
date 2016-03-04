@@ -87,7 +87,8 @@ namespace Microsoft.PSharp
             newArgs.Remove("/race-detection");
             newArgs.Add("/race-detection-no-monitorable-process");
 
-            configuration.DirectoryPath = "..\\..\\Binaries\\Debug\\";
+            //configuration.DirectoryPath = "..\\..\\Binaries\\Debug\\";
+            configuration.DirectoryPath = ".\\";
             IEnumerable<string> dirNames = Directory.EnumerateDirectories(configuration.DirectoryPath);
             foreach(string item in dirNames)
             {
@@ -98,8 +99,8 @@ namespace Microsoft.PSharp
             }
 
             ProcessStartInfo info = ControllerSetUp.GetMonitorableProcessStartInfo(
-                "..\\..\\Binaries\\Debug\\Microsoft.PSharp.DynamicRaceDetection.exe", // filename
-                new String[] { WrapString(input), configuration.MainClass, configuration.DirectoryPath }, // arguments
+                AppDomain.CurrentDomain.BaseDirectory + "\\Microsoft.PSharp.DynamicRaceDetection.exe", // filename
+                new String[] { WrapString(input), configuration.DirectoryPath }, // arguments
                 MonitorInstrumentationFlags.All, // monitor flags
                 true, // track gc accesses
 

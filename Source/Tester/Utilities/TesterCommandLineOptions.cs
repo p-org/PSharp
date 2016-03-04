@@ -174,10 +174,6 @@ namespace Microsoft.PSharp.Utilities
                 base.Configuration.CheckDataRaces = true;
                 base.Configuration.EnableMonitorableTestingProcess = true;
             }
-            else if (option.ToLower().StartsWith("/class:") && option.Length > 7)
-            {
-                base.Configuration.MainClass = option.Substring(7);
-            }
             else if (option.ToLower().Equals("/race-detection-no-monitorable-process"))
             {
                 base.Configuration.CheckDataRaces = true;
@@ -264,7 +260,6 @@ namespace Microsoft.PSharp.Utilities
             help += "\n  /timeout:[x]\t Timeout (default is no timeout)";
             help += "\n  /v:[x]\t Enable verbose mode (values from '0' to '3')";
             help += "\n  /debug\t Enable debugging";
-            help += "\n  /class:[x]\t name of the main class (required for race-detection)";
 
             help += "\n\n---------------------------";
             help += "\nSystematic testing options:";

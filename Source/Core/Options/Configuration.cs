@@ -179,12 +179,6 @@ namespace Microsoft.PSharp.Utilities
         public bool CheckDataRaces;
 
         /// <summary>
-        /// Class contining main nethod
-        /// Required for race detection
-        /// </summary>
-        public string MainClass;
-
-        /// <summary>
         /// Path to store instrumentation traces for race detection
         /// New directory for each iteration of SCT
         /// </summary>

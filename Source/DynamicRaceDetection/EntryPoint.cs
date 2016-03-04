@@ -29,17 +29,15 @@ namespace Microsoft.PSharp.DynamicRaceDetection
 
     class EntryPoint
     {
-        public EntryPoint(Assembly assembly, String mainClass)
+        public EntryPoint(Assembly assembly)
         {
             TryLoadReferencedAssemblies(new[] { assembly });
 
-            //ObjectAccessThreadMonitor.ReadRawAccess += new RawAccessHandler(this.ObjectAccessThreadMonitor_ReadAccess);
-            Type t = assembly.GetType(mainClass, true);
+            //Type t = assembly.GetType(mainClass, true);
 
             try
             {
-                //Type t = assembly.GetType("Migration.Program", true);
-                MethodInfo main_method = t.GetMethod("Main");
+                MethodInfo main_method = assembly.EntryPoint;
                 object result = null;
                 ParameterInfo[] parameters = main_method.GetParameters();
                 //object classInstance = Activator.CreateInstance(t, null);
