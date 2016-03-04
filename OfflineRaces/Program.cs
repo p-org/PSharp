@@ -9,7 +9,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OfflineRaceDetection
+namespace OfflineRaces
 {
     internal abstract class Node
     {
@@ -41,17 +41,30 @@ namespace OfflineRaceDetection
         }
     }
 
-
-    //May not be required!!!!!!!
-    internal class ActEnd : Node
+    internal class cActBegin : Node
     {
         public int machineID;
+        public String actionName;
         public int actionID;
+        public String eventName;
+        public int eventID;
 
-        public ActEnd(int machineID, int actionID)
+        public int taskId;
+
+        public List<MemAccess> addresses = new List<MemAccess>();
+
+        public cActBegin(int machineID, String actionName, int actionID, String eventName, int eventID)
         {
             this.machineID = machineID;
+            this.actionName = actionName;
             this.actionID = actionID;
+            this.eventName = eventName;
+            this.eventID = eventID;
+        }
+
+        public cActBegin(int taskId)
+        {
+            this.taskId = taskId;
         }
     }
 
@@ -145,11 +158,14 @@ namespace OfflineRaceDetection
         //HB graph
         static QuickGraph.AdjacencyGraph<Node, Edge> HbGraph = new AdjacencyGraph<Node, Edge>();
         static List<ThreadTrace> allThreadTraces = new List<ThreadTrace>();                     //can be simplified?
+
+        static QuickGraph.AdjacencyGraph<Node, Edge> cGraph = new AdjacencyGraph<Node, Edge>();
+
         //static void Main(String[] args)
         public static void findRaces()
         {
             string[] dirNames = Directory.GetDirectories(".\\");
-            foreach(string dirName in dirNames)
+            foreach (string dirName in dirNames)
             {
                 if (dirName.Contains("InstrTrace"))
                 {
@@ -192,12 +208,13 @@ namespace OfflineRaceDetection
                     detectRaces();
 
                     HbGraph.Clear();
+                    cGraph.Clear();
                     allThreadTraces.Clear();
                     Console.WriteLine("*************************************");
                 }
-                
+
             }
-            
+
             Console.WriteLine("Press enter to exit");
             Console.ReadLine();
         }
@@ -218,12 +235,18 @@ namespace OfflineRaceDetection
                             Node nd = new ActBegin(m.taskId);
                             HbGraph.AddVertex(nd);
 
+                            /*Node cn = new cActBegin(m.taskId);
+                            cGraph.AddVertex(cn);
+                            */
+
                             Node latest = nd;
                             foreach (ActionInstr ins in m.accesses)
                             {
                                 Node nd1 = new MemAccess(ins.isWrite, ins.location, ins.objHandle, ins.offset, ins.srcLocation, mt.machineID);
                                 HbGraph.AddVertex(nd1);
                                 HbGraph.AddEdge(new Edge(latest, nd1));
+                                //((cActBegin)cn).addresses.Add(new MemAccess(ins.isWrite, ins.location, ins.objHandle, ins.offset, ins.srcLocation, mt.machineID));
+
                                 latest = nd1;
                             }
                         }
@@ -235,6 +258,8 @@ namespace OfflineRaceDetection
         static void updateGraph(List<MachineTrace> machineTrace)
         {
             Node latestAction = null;
+
+            Node cLatestAction = null;
             foreach (MachineTrace mt in machineTrace)
             {
                 if (!mt.isSend && (mt.actionID != 0) && !mt.isTaskMachine)
@@ -247,44 +272,100 @@ namespace OfflineRaceDetection
                     Node nd = new ActBegin(matching.machineID, matching.actionName, matching.actionID, mt.eventName, mt.eventID);
                     HbGraph.AddVertex(nd);
 
+                    /*Node cn = new cActBegin(matching.machineID, matching.actionName, matching.actionID, mt.eventName, mt.eventID);
+                    cGraph.AddVertex(cn);
+                    */
+
                     if (latestAction != null)
                     {
                         HbGraph.AddEdge(new Edge(latestAction, nd));
                     }
 
+                    /*if(cLatestAction != null)
+                    {
+                        cGraph.AddEdge(new Edge(cLatestAction, cn));
+                    }*/
+
                     Node latest = nd;
                     latestAction = nd;
+
+                    /*Node cLatest = cn;
+                    latestAction = cn;
+                    */
+
+                    bool createNew = false;
+
                     foreach (ActionInstr ins in matching.accesses)
                     {
                         //user trace send event
                         Node nd1;
+                        Node cn1;
+
+                        /*if (createNew)
+                        {
+                            Node cnn = new cActBegin(matching.machineID, matching.actionName, matching.actionID, mt.eventName, mt.eventID);
+                            //cGraph.AddVertex(cnn);
+                            cn = cnn;
+
+                            createNew = false;
+                        }*/
+
                         if (ins.isSend)
                         {
                             MachineTrace machineSend = machineTrace.Where(item => item.machineID == matching.machineID && item.sendID == ins.sendID).Single();
                             nd1 = new SendEvent(machineSend.machineID, machineSend.sendID, machineSend.toMachine, machineSend.sendEventName, machineSend.sendEventID);
+
+                            /*cn1 = new SendEvent(machineSend.machineID, machineSend.sendID, machineSend.toMachine, machineSend.sendEventName, machineSend.sendEventID);
+                            cGraph.AddVertex(cn1);
+                            cGraph.AddEdge(new Edge(cLatest, cn1));
+                            */
+
+                            createNew = true;
                         }
 
-                        //user trace create machine
+                        //user trace create machine 
                         else if (ins.isCreate)
                         {
                             nd1 = new CreateMachine(ins.createMachineID);
+
+                            /*cn1 = new CreateMachine(ins.createMachineID);
+                            cGraph.AddVertex(cn1);
+                            cGraph.AddEdge(new Edge(cLatest, cn1));
+                            */
+
+                            createNew = true;
                         }
 
                         //user trace task creation
                         else if (ins.isTask)
                         {
                             nd1 = new CreateTask(ins.taskId);
+
+                            /*cn1 = new CreateTask(ins.taskId);
+                            cGraph.AddVertex(cn1);
+                            cGraph.AddEdge(new Edge(cLatest, cn1));
+                            */
+
+                            createNew = true;
                         }
 
                         //user trace reads/writes
                         else
                         {
                             nd1 = new MemAccess(ins.isWrite, ins.location, ins.objHandle, ins.offset, ins.srcLocation, mt.machineID);
+
+                            /*((cActBegin)cn).addresses.Add(new MemAccess(ins.isWrite, ins.location, ins.objHandle, ins.offset, ins.srcLocation, mt.machineID));
+                            cn1 = cn;
+                            */
                         }
                         HbGraph.AddVertex(nd1);
                         HbGraph.AddEdge(new Edge(latest, nd1));
                         latest = nd1;
                         latestAction = nd1;
+
+                        /*latest = cn1;
+                        latestAction = cn1;
+                        */
                     }
                 }
             }
@@ -330,6 +411,47 @@ namespace OfflineRaceDetection
                     }
                 }
             }
+
+
+            /*foreach (Node n in cGraph.Vertices)
+            {
+                if (n.GetType().ToString().Contains("SendEvent"))
+                {
+                    IEnumerable<Node> actBegins = cGraph.Vertices.Where(item => item.GetType().ToString().Contains("cActBegin"));
+                    foreach (Node n1 in actBegins)
+                    {
+                        SendEvent sendNode = (SendEvent)n;
+                        ActBegin beginNode = (ActBegin)n1;
+                        if (sendNode.toMachine == beginNode.machineID && sendNode.sendEventID == beginNode.eventID)
+                            cGraph.AddEdge(new Edge(sendNode, beginNode));
+                    }
+                }
+
+                else if (n.GetType().ToString().Contains("CreateMachine"))
+                {
+                    IEnumerable<Node> actBegins = cGraph.Vertices.Where(item => item.GetType().ToString().Contains("cActBegin"));
+                    foreach (Node n1 in actBegins)
+                    {
+                        CreateMachine createNode = (CreateMachine)n;
+                        ActBegin beginNode = (ActBegin)n1;
+                        if (createNode.createMachineId == beginNode.machineID && beginNode.actionID == 1)
+                            cGraph.AddEdge(new Edge(createNode, beginNode));
+                    }
+                }
+
+                else if (n.GetType().ToString().Contains("CreateTask"))
+                {
+                    IEnumerable<Node> actBegins = cGraph.Vertices.Where(item => item.GetType().ToString().Contains("cActBegin"));
+                    foreach (Node n1 in actBegins)
+                    {
+                        CreateTask createNode = (CreateTask)n;
+                        ActBegin beginNode = (ActBegin)n1;
+                        if (createNode.taskId == beginNode.taskId)
+                            cGraph.AddEdge(new Edge(createNode, beginNode));
+                    }
+                }
+            }
+            */
         }
 
         static void printGraph()
@@ -388,7 +510,7 @@ namespace OfflineRaceDetection
                                         || reportedRaces.Where(item => item.Item1.Equals(loc2.srcLocation + ";" + loc2.isWrite) && item.Item2.Equals(loc1.srcLocation + ";" + loc1.isWrite)).Any())
                                 continue;
 
-                                if (loc1.isWrite || loc2.isWrite)
+                            if (loc1.isWrite || loc2.isWrite)
                             {
                                 if (loc1.objHandle == UIntPtr.Zero && loc1.offset == UIntPtr.Zero && loc2.objHandle == UIntPtr.Zero && loc2.offset == UIntPtr.Zero)
                                     continue;

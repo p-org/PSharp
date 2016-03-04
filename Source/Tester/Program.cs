@@ -136,7 +136,8 @@ namespace Microsoft.PSharp
 
             IO.PrintLine("Done monitoring process; Press enter to continue");
             Console.ReadLine();
-            OfflineRaceDetection.Program.findRaces();
+            //OfflineRaceDetection.Program.findRaces();
+            OfflineRaces.Program.findRaces();
         }
 
         /// <summary>

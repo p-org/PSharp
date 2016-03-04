@@ -78,6 +78,9 @@
     <Reference Include="OfflineRaceDetection">
       <HintPath>..\..\OfflineRaceDetection\bin\Debug\OfflineRaceDetection.dll</HintPath>
     </Reference>
+    <Reference Include="OfflineRaces">
+      <HintPath>..\..\OfflineRaces\bin\Debug\OfflineRaces.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
