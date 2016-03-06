@@ -12,5 +12,6 @@ If you have any questions, please get in touch!
 ## Sample categories
 - **PSharpAsLibrary**, which includes sample applications created using P# as a C# library.
 - **PSharpAsLanguage**, which includes sample applications created using the high-level syntax of P#.
+- **Distributed**, which includes sample P# applications that can run remotely on multiple processes.
 - **Umanaged**, which includes samples of using P# to systematically test unmanaged applications written in C++.
 - **Experimental**, which contain experimental features of P#, primarily to be used by the P# dev team.
