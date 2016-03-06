@@ -52,6 +52,11 @@ namespace Microsoft.PSharp.Remote
         private static ServiceHost RequestService;
 
         /// <summary>
+        /// The local P# runtime.
+        /// </summary>
+        private static PSharpRuntime PSharpRuntime;
+
+        /// <summary>
         /// Network provider for remote communication.
         /// </summary>
         private static InterProcessNetworkProvider NetworkProvider;
@@ -76,6 +81,7 @@ namespace Microsoft.PSharp.Remote
         /// <param name="configuration">Configuration</param>
         internal static void Configure(Configuration configuration)
         {
+            configuration.PauseOnAssertionFailure = true;
             Container.Configuration = configuration;
 
             IO.PrettyPrintLine(". Setting up the runtime container");
@@ -92,10 +98,10 @@ namespace Microsoft.PSharp.Remote
         internal static void Run()
         {
             IO.PrettyPrintLine(". Running");
-
-            Container.OpenNotificationListener();
+            
             Container.CreateNetworkProvider();
             Container.InitializePSharpRuntime();
+            Container.OpenNotificationListener();
 
             Console.ReadLine();
 
@@ -106,16 +112,23 @@ namespace Microsoft.PSharp.Remote
         }
 
         /// <summary>
-        /// Invoke the distributed runtime.
+        /// Starts the P# runtime.
         /// </summary>
-        internal static void InvokeDistributedRuntime()
+        internal static void StartPSharpRuntime()
         {
             Task.Factory.StartNew(() =>
             {
-                IO.PrettyPrintLine("... Starting P# runtime");
-
+                IO.PrettyPrintLine("... Starting the P# runtime");
                 MethodInfo entry = Container.FindEntryPointOfRemoteApplication();
-                entry.Invoke(null, null);
+
+                try
+                {
+                    entry.Invoke(null, new object[] { Container.PSharpRuntime });
+                }
+                catch (Exception ex)
+                {
+                    ErrorReporter.Report(ex.Message);
+                }
             });
         }
 
@@ -151,26 +164,6 @@ namespace Microsoft.PSharp.Remote
         }
 
         /// <summary>
-        /// Opens the remote notification listener.
-        /// </summary>
-        private static void OpenNotificationListener()
-        {
-            IO.PrettyPrintLine("... Opening notification listener");
-
-            Uri address = new Uri("http://localhost:8000/notify/" + Configuration.ContainerId + "/");
-            WSHttpBinding binding = new WSHttpBinding();
-
-            Container.NotificationService = new ServiceHost(typeof(NotificationListener));
-
-            //host.Description.Behaviors.Remove(typeof(ServiceDebugBehavior));
-            //host.Description.Behaviors.Add(new ServiceDebugBehavior {
-            //    IncludeExceptionDetailInFaults = true });
-
-            Container.NotificationService.AddServiceEndpoint(typeof(IContainerService), binding, address);
-            Container.NotificationService.Open();
-        }
-
-        /// <summary>
         /// Creates the P# network provider.
         /// </summary>
         private static void CreateNetworkProvider()
@@ -196,10 +189,29 @@ namespace Microsoft.PSharp.Remote
         /// </summary>
         private static void InitializePSharpRuntime()
         {
-            PSharpRuntime runtime = PSharpRuntime.Create(Container.Configuration, Container.NetworkProvider);
-
-            Container.NetworkProvider.Initialize(runtime, Container.RemoteApplicationAssembly);
+            Container.PSharpRuntime = PSharpRuntime.Create(Container.Configuration, Container.NetworkProvider);
+            Container.NetworkProvider.Initialize(Container.PSharpRuntime, Container.RemoteApplicationAssembly);
             Container.NotifyManagerInitialization();
+        }
+
+        /// <summary>
+        /// Opens the remote notification listener.
+        /// </summary>
+        private static void OpenNotificationListener()
+        {
+            IO.PrettyPrintLine("... Opening notification listener");
+
+            Uri address = new Uri("http://localhost:8000/notify/" + Configuration.ContainerId + "/");
+            WSHttpBinding binding = new WSHttpBinding();
+
+            Container.NotificationService = new ServiceHost(typeof(NotificationListener));
+
+            //host.Description.Behaviors.Remove(typeof(ServiceDebugBehavior));
+            //host.Description.Behaviors.Add(new ServiceDebugBehavior {
+            //    IncludeExceptionDetailInFaults = true });
+
+            Container.NotificationService.AddServiceEndpoint(typeof(IContainerService), binding, address);
+            Container.NotificationService.Open();
         }
 
         /// <summary>
@@ -229,16 +241,16 @@ namespace Microsoft.PSharp.Remote
         private static MethodInfo FindEntryPointOfRemoteApplication()
         {
             var entrypoints = Container.RemoteApplicationAssembly.GetTypes().SelectMany(t => t.GetMethods()).
-                Where(m => m.GetCustomAttributes(typeof(Test), false).Length > 0).ToList();
+                Where(m => m.GetCustomAttributes(typeof(EntryPoint), false).Length > 0).ToList();
             if (entrypoints.Count == 0)
             {
-                ErrorReporter.ReportAndExit("Cannot detect a P# test method. " +
-                    "Use the attribute [Test] to declare a test method.");
+                ErrorReporter.ReportAndExit("Cannot detect a P# entry point method. " +
+                    "Use the attribute [EntryPoint] to declare an entry point.");
             }
             else if (entrypoints.Count > 1)
             {
-                ErrorReporter.ReportAndExit("Only one test method to the P# program can be declared. " +
-                    "{0} test methods were found instead.", entrypoints.Count);
+                ErrorReporter.ReportAndExit("Only one entry point method to the P# program can be " +
+                    "declared. {0} entry points were found instead.", entrypoints.Count);
             }
 
             return entrypoints[0];

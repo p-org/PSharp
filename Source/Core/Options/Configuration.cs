@@ -47,6 +47,11 @@ namespace Microsoft.PSharp.Utilities
         public int Timeout;
 
         /// <summary>
+        /// Pause on assertion failure.
+        /// </summary>
+        internal bool PauseOnAssertionFailure;
+
+        /// <summary>
         /// True if interoperation is enabled.
         /// </summary>
         public bool InteroperationEnabled;
@@ -231,6 +236,8 @@ namespace Microsoft.PSharp.Utilities
 
             this.Verbose = 1;
             this.Timeout = 0;
+
+            this.PauseOnAssertionFailure = false;
 
             this.InteroperationEnabled = true;
 

@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="IContainerService.cs" company="Microsoft">
+// <copyright file="EntryPoint.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -14,26 +14,13 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System.ServiceModel;
+using System;
 
-namespace Microsoft.PSharp.Remote
+namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Interface for sending notifications to a container.
+    /// Attribute for declaring the entry point to a P# program.
     /// </summary>
-    [ServiceContract(Namespace = "Microsoft.PSharp")]
-    internal interface IContainerService
-    {
-        /// <summary>
-        /// Notifies the container to start the P# runtime.
-        /// </summary>
-        [OperationContract(IsOneWay = true)]
-        void NotifyStartPSharpRuntime();
-
-        /// <summary>
-        /// Notifies the container to terminate.
-        /// </summary>
-        [OperationContract(IsOneWay = true)]
-        void NotifyTerminate();
-    }
+    [AttributeUsage(AttributeTargets.Method)]
+    public sealed class EntryPoint : Attribute { }
 }

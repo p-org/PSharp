@@ -117,7 +117,7 @@ namespace Microsoft.PSharp.Remote
             if (Manager.ContainerServices.Count == Manager.Configuration.NumberOfContainers)
             {
                 IO.PrettyPrintLine("... Notifying container '0' [start]");
-                Manager.ContainerServices[0].NotifyStartRuntime();
+                Manager.ContainerServices[0].NotifyStartPSharpRuntime();
             }
         }
 

@@ -220,6 +220,12 @@ namespace Microsoft.PSharp
             if (!predicate)
             {
                 ErrorReporter.Report("Assertion failure.");
+
+                if (this.Configuration.PauseOnAssertionFailure)
+                {
+                    IO.GetLine();
+                }
+
                 Environment.Exit(1);
             }
         }
@@ -237,6 +243,12 @@ namespace Microsoft.PSharp
             {
                 string message = IO.Format(s, args);
                 ErrorReporter.Report(message);
+
+                if (this.Configuration.PauseOnAssertionFailure)
+                {
+                    IO.GetLine();
+                }
+
                 Environment.Exit(1);
             }
         }
@@ -321,43 +333,34 @@ namespace Microsoft.PSharp
         /// <returns>MachineId</returns>
         internal virtual MachineId TryCreateMachine(Type type)
         {
-            if (type.IsSubclassOf(typeof(Machine)))
+            this.Assert(type.IsSubclassOf(typeof(Machine)), "Type '{0}' is not a machine.", type.Name);
+
+            MachineId mid = new MachineId(type, this);
+            Machine machine = Activator.CreateInstance(type) as Machine;
+            machine.SetMachineId(mid);
+            machine.InitializeStateInformation();
+
+            bool result = this.MachineMap.TryAdd(mid.Value, machine);
+            this.Assert(result, "Machine {0}({1}) was already created.", type.Name, mid.Value);
+
+            Task task = new Task(() =>
             {
-                MachineId mid = new MachineId(type, this);
-                Machine machine = Activator.CreateInstance(type) as Machine;
-                machine.SetMachineId(mid);
-                machine.InitializeStateInformation();
-                
-                if (!this.MachineMap.TryAdd(mid.Value, machine))
+                this.TaskMap.TryAdd(Task.CurrentId.Value, machine);
+
+                try
                 {
-                    ErrorReporter.ReportAndExit("Machine {0}({1}) was already created.",
-                        type.Name, mid.Value);
+                    machine.GotoStartState();
+                    machine.RunEventHandler();
                 }
-                
-                Task task = new Task(() =>
+                finally
                 {
-                    this.TaskMap.TryAdd(Task.CurrentId.Value, machine);
+                    this.TaskMap.TryRemove(Task.CurrentId.Value, out machine);
+                }
+            });
 
-                    try
-                    {
-                        machine.GotoStartState();
-                        machine.RunEventHandler();
-                    }
-                    finally
-                    {
-                        this.TaskMap.TryRemove(Task.CurrentId.Value, out machine);
-                    }
-                });
+            task.Start();
 
-                task.Start();
-
-                return mid;
-            }
-            else
-            {
-                ErrorReporter.ReportAndExit("Type '{0}' is not a machine.", type.Name);
-                return null;
-            }
+            return mid;
         }
 
         /// <summary>

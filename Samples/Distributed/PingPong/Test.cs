@@ -13,6 +13,7 @@ namespace PingPong
             Console.ReadLine();
         }
 
+        [Microsoft.PSharp.EntryPoint]
         [Microsoft.PSharp.Test]
         public static void Execute(PSharpRuntime runtime)
         {

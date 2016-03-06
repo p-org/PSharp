@@ -27,11 +27,11 @@ namespace Microsoft.PSharp.Remote
     internal class NotificationListener : IContainerService
     {
         /// <summary>
-        /// Notifies the container to start the runtime.
+        /// Notifies the container to start the P# runtime.
         /// </summary>
-        void IContainerService.NotifyStartRuntime()
+        void IContainerService.NotifyStartPSharpRuntime()
         {
-            Container.InvokeDistributedRuntime();
+            Container.StartPSharpRuntime();
         }
 
         /// <summary>
