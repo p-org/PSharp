@@ -31,7 +31,9 @@ To specify an output path destination use the option `/o:${OUTPUT\_PATH}`.
 
 To compile only a specific project in the solution use the option `/p:${PROJECT_NAME}`.
 
-To only compile for testing use the option `/t:testing`.
+To compile as a library (dll) use the option `/t:lib`.
+
+To compile for testing use the option `/t:test`.
 
 ## Systematic testing
 The P# tester can be used to systematically test a P# program to find safety property and liveness property violations. It can be invoked on a P# program (dll) that was previously compiled using the P# compiler (or some other custom build system). To invoke the tester use the following command:

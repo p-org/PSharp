@@ -146,13 +146,9 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 
                 text += "this.CreateMonitor";
             }
-            else if (this.Project.CompilationContext.ActiveCompilationTarget == CompilationTarget.Distribution)
-            {
-                text += "this.CreateRemoteMachine";
-            }
             else
             {
-                text += "this.CreateMachine";
+                text += "this.CreateRemoteMachine";
             }
 
             var rewritten = node.

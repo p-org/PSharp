@@ -212,10 +212,9 @@ namespace Microsoft.PSharp.Utilities
         public int NumberOfContainers;
 
         /// <summary>
-        /// The path to the P# application to run in a
-        /// distributed setting.
+        /// The path to the P# application to run remotely.
         /// </summary>
-        public string ApplicationFilePath;
+        public string RemoteApplicationFilePath;
 
         #endregion
 
@@ -271,7 +270,7 @@ namespace Microsoft.PSharp.Utilities
 
             this.NumberOfContainers = 1;
             this.ContainerId = 0;
-            this.ApplicationFilePath = "";
+            this.RemoteApplicationFilePath = "";
         }
 
         #endregion

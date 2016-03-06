@@ -133,7 +133,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             var text = "";
 
             if ((this.Program as AbstractPSharpProgram).Project.CompilationContext.
-                ActiveCompilationTarget == CompilationTarget.Distribution)
+                ActiveCompilationTarget == CompilationTarget.Remote)
             {
                 text += "[System.Runtime.Serialization.DataContract]\n";
             }

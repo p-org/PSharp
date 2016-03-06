@@ -17,7 +17,7 @@
 using System;
 using System.ServiceModel;
 
-namespace Microsoft.PSharp.Net
+namespace Microsoft.PSharp.Remote
 {
     /// <summary>
     /// Interface for remote P# machine communication.
@@ -29,10 +29,10 @@ namespace Microsoft.PSharp.Net
         /// <summary>
         /// Creates a new machine of the given type.
         /// </summary>
-        /// <param name="type">Type of the machine</param>
+        /// <param name="typeName">Type of the machine</param>
         /// <returns>MachineId</returns> 
         [OperationContract]
-        MachineId CreateMachine(string type);
+        MachineId CreateMachine(string typeName);
 
         /// <summary>
         /// Sends an asynchronous event to a machine.

@@ -62,7 +62,6 @@
     <Compile Include="Communication\IContainerService.cs" />
     <Compile Include="Communication\IManagerService.cs" />
     <Compile Include="Communication\IRemoteCommunication.cs" />
-    <Compile Include="Communication\RemoteRequestListener.cs" />
     <Compile Include="NetworkProviders\InterProcessNetworkProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Serialization\KnownTypesProvider.cs" />

@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.IO;
 
 using Microsoft.PSharp.Utilities;
 
@@ -52,10 +53,10 @@ namespace Microsoft.PSharp.Remote
 
                 base.Configuration.ContainerId = i;
             }
-            else if (option.ToLower().StartsWith("/main:") &&
+            else if (option.ToLower().StartsWith("/load:") &&
                 option.Length > 6)
             {
-                base.Configuration.ApplicationFilePath = option.Substring(6);
+                base.Configuration.RemoteApplicationFilePath = option.Substring(6);
             }
             else
             {
@@ -65,9 +66,14 @@ namespace Microsoft.PSharp.Remote
 
         protected override void CheckForParsingErrors()
         {
-            if (base.Configuration.ApplicationFilePath.Equals(""))
+            if (base.Configuration.RemoteApplicationFilePath.Equals(""))
             {
                 ErrorReporter.ReportAndExit("Please give a valid P# application path.");
+            }
+
+            if (!Path.GetExtension(base.Configuration.RemoteApplicationFilePath).Equals(".dll"))
+            {
+                ErrorReporter.ReportAndExit("The application must be a `dll` file.");
             }
         }
 
@@ -82,6 +88,7 @@ namespace Microsoft.PSharp.Remote
             help += "\nBasic options:";
             help += "\n--------------";
             help += "\n  /?\t\t Show this help menu";
+            help += "\n  /load:[x]\t Path to the P# application to execute";
             help += "\n  /timeout:[x]\t Timeout for the tool (default is no timeout)";
             help += "\n  /v:[x]\t Enable verbose mode (values from '0' to '3')";
             help += "\n  /debug\t Enable debugging";

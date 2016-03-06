@@ -24,6 +24,7 @@ using System.ServiceModel;
 using System.ServiceModel.Description;
 using System.Threading.Tasks;
 
+using Microsoft.PSharp.Net;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.Remote
@@ -51,9 +52,19 @@ namespace Microsoft.PSharp.Remote
         private static ServiceHost RequestService;
 
         /// <summary>
+        /// Network provider for remote communication.
+        /// </summary>
+        private static InterProcessNetworkProvider NetworkProvider;
+
+        /// <summary>
         /// Channel for remote communication.
         /// </summary>
         internal static IManagerService Channel;
+
+        /// <summary>
+        /// The remote application assembly.
+        /// </summary>
+        private static Assembly RemoteApplicationAssembly;
 
         #endregion
 
@@ -67,7 +78,7 @@ namespace Microsoft.PSharp.Remote
         {
             Container.Configuration = configuration;
 
-            IO.PrettyPrintLine(". Setting up");
+            IO.PrettyPrintLine(". Setting up the runtime container");
 
             Container.LoadApplicationAssembly();
             Container.RegisterSerializableTypes();
@@ -83,8 +94,8 @@ namespace Microsoft.PSharp.Remote
             IO.PrettyPrintLine(". Running");
 
             Container.OpenNotificationListener();
-            Container.OpenRemoteRequestListener();
-            Container.InitializeDistributedRuntime();
+            Container.CreateNetworkProvider();
+            Container.InitializePSharpRuntime();
 
             Console.ReadLine();
 
@@ -103,7 +114,7 @@ namespace Microsoft.PSharp.Remote
             {
                 IO.PrettyPrintLine("... Starting P# runtime");
 
-                var entry = Container.FindEntryPoint(PSharpRuntime.AppAssembly);
+                MethodInfo entry = Container.FindEntryPointOfRemoteApplication();
                 entry.Invoke(null, null);
             });
         }
@@ -117,18 +128,15 @@ namespace Microsoft.PSharp.Remote
         /// </summary>
         private static void LoadApplicationAssembly()
         {
-            Assembly applicationAssembly = null;
-
             try
             {
-                applicationAssembly = Assembly.LoadFrom(Configuration.ApplicationFilePath);
+                Container.RemoteApplicationAssembly = Assembly.LoadFrom(
+                    Configuration.RemoteApplicationFilePath);
             }
             catch (FileNotFoundException ex)
             {
                 ErrorReporter.ReportAndExit(ex.Message);
             }
-
-            PSharpRuntime.AppAssembly = applicationAssembly;
         }
 
         /// <summary>
@@ -136,7 +144,7 @@ namespace Microsoft.PSharp.Remote
         /// </summary>
         private static void RegisterSerializableTypes()
         {
-            var eventTypes = from type in PSharpRuntime.AppAssembly.GetTypes()
+            var eventTypes = from type in Container.RemoteApplicationAssembly.GetTypes()
                              where type.IsSubclassOf(typeof(Event))
                              select type;
             KnownTypesProvider.KnownTypes.AddRange(eventTypes);
@@ -150,7 +158,7 @@ namespace Microsoft.PSharp.Remote
             IO.PrettyPrintLine("... Opening notification listener");
 
             Uri address = new Uri("http://localhost:8000/notify/" + Configuration.ContainerId + "/");
-            var binding = new WSHttpBinding();
+            WSHttpBinding binding = new WSHttpBinding();
 
             Container.NotificationService = new ServiceHost(typeof(NotificationListener));
 
@@ -163,60 +171,34 @@ namespace Microsoft.PSharp.Remote
         }
 
         /// <summary>
-        /// Opens the remote request listener.
+        /// Creates the P# network provider.
         /// </summary>
-        private static void OpenRemoteRequestListener()
+        private static void CreateNetworkProvider()
         {
-            IO.PrettyPrintLine("... Opening remote request listener");
+            IO.PrettyPrintLine("... Creating network provider");
 
-            Uri address = new Uri("http://localhost:8000/request/" + Configuration.ContainerId + "/");
-            var binding = new WSHttpBinding();
-
-            Container.RequestService = new ServiceHost(typeof(RemoteRequestListener));
+            Container.NetworkProvider = new InterProcessNetworkProvider("localhost", "8000");
+            Container.RequestService = new ServiceHost(Container.NetworkProvider);
 
             //host.Description.Behaviors.Remove(typeof(ServiceDebugBehavior));
             //host.Description.Behaviors.Add(new ServiceDebugBehavior {
             //    IncludeExceptionDetailInFaults = true });
+
+            Uri address = new Uri("http://localhost:8000/request/" + Configuration.ContainerId + "/");
+            WSHttpBinding binding = new WSHttpBinding();
 
             Container.RequestService.AddServiceEndpoint(typeof(IRemoteCommunication), binding, address);
             Container.RequestService.Open();
         }
 
         /// <summary>
-        /// Initializes the distributed runtime and creates
-        /// a remote communication channel.
+        /// Initializes the P# runtime.
         /// </summary>
-        /// <returns>Process</returns>
-        private static void InitializeDistributedRuntime()
+        private static void InitializePSharpRuntime()
         {
-            PSharpRuntime.IpAddress = "localhost";
-            PSharpRuntime.Port = "8000";
+            PSharpRuntime runtime = PSharpRuntime.Create(Container.Configuration, Container.NetworkProvider);
 
-            //var channels = new Dictionary<string, IRemoteCommunication>();
-
-            if (Configuration.ContainerId == 0)
-            {
-                Uri address = new Uri("http://" + PSharpRuntime.IpAddress + ":" +
-                    PSharpRuntime.Port + "/request/" + 1 + "/");
-
-                var binding = new WSHttpBinding();
-                var endpoint = new EndpointAddress(address);
-
-                var channel = ChannelFactory<IRemoteCommunication>.CreateChannel(binding, endpoint);
-                PSharpRuntime.Channel = channel;
-            }
-            else
-            {
-                Uri address = new Uri("http://" + PSharpRuntime.IpAddress + ":" +
-                    PSharpRuntime.Port + "/request/" + 0 + "/");
-
-                var binding = new WSHttpBinding();
-                var endpoint = new EndpointAddress(address);
-
-                var channel = ChannelFactory<IRemoteCommunication>.CreateChannel(binding, endpoint);
-                PSharpRuntime.Channel = channel;
-            }
-
+            Container.NetworkProvider.Initialize(runtime, Container.RemoteApplicationAssembly);
             Container.NotifyManagerInitialization();
         }
 
@@ -229,8 +211,8 @@ namespace Microsoft.PSharp.Remote
 
             Uri address = new Uri("http://localhost:8000/manager/");
 
-            var binding = new WSHttpBinding();
-            var endpoint = new EndpointAddress(address);
+            WSHttpBinding binding = new WSHttpBinding();
+            EndpointAddress endpoint = new EndpointAddress(address);
 
             Container.Channel = ChannelFactory<IManagerService>.CreateChannel(binding, endpoint);
             Container.Channel.NotifyInitialized(Configuration.ContainerId);
@@ -243,11 +225,10 @@ namespace Microsoft.PSharp.Remote
         /// <summary>
         /// Finds the entry point to the P# program.
         /// </summary>
-        /// <param name="assembly">Assembly</param>
         /// <returns>MethodInfo</returns>
-        private static MethodInfo FindEntryPoint(Assembly assembly)
+        private static MethodInfo FindEntryPointOfRemoteApplication()
         {
-            var entrypoints = assembly.GetTypes().SelectMany(t => t.GetMethods()).
+            var entrypoints = Container.RemoteApplicationAssembly.GetTypes().SelectMany(t => t.GetMethods()).
                 Where(m => m.GetCustomAttributes(typeof(Test), false).Length > 0).ToList();
             if (entrypoints.Count == 0)
             {

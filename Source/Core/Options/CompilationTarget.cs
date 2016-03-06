@@ -24,12 +24,16 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         Execution = 0,
         /// <summary>
+        /// Enables library compilation target.
+        /// </summary>
+        Library = 1,
+        /// <summary>
         /// Enables testing compilation target.
         /// </summary>
-        Testing = 1,
+        Testing = 2,
         /// <summary>
-        /// Enables distribution compilation target.
+        /// Enables remote compilation target.
         /// </summary>
-        Distribution = 2
+        Remote = 3
     }
 }

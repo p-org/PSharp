@@ -17,7 +17,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -37,11 +36,6 @@ namespace Microsoft.PSharp
         /// The configuration.
         /// </summary>
         internal Configuration Configuration;
-
-        /// <summary>
-        /// The application assembly.
-        /// </summary>
-        protected Assembly ApplicationAssembly;
 
         /// <summary>
         /// A map from unique machine ids to machines.
@@ -310,9 +304,6 @@ namespace Microsoft.PSharp
         /// </summary>
         private void Initialize()
         {
-            this.ApplicationAssembly = this.GetType().Assembly;
-            Console.WriteLine(this.ApplicationAssembly.FullName);
-
             this.MachineMap = new ConcurrentDictionary<int, Machine>();
             this.TaskMap = new ConcurrentDictionary<int, Machine>();
 
@@ -551,20 +542,6 @@ namespace Microsoft.PSharp
         internal virtual void NotifyDefaultHandlerFired()
         {
             // No-op for real execution.
-        }
-
-        /// <summary>
-        /// Gets the Type object of the machine with the specified type.
-        /// </summary>
-        /// <param name="typeName">TypeName</param>
-        internal Type GetMachineType(string typeName)
-        {
-            Type machineType = Type.GetType(typeName, false, false);
-            //Type machineType = this.ApplicationAssembly.GetType(typeName);
-            this.Assert(machineType != null, "Could not infer type of " + typeName + ".");
-            this.Assert(machineType.IsSubclassOf(typeof(Machine)), typeName +
-                " is not a subclass of type Machine.");
-            return machineType;
         }
 
         #endregion

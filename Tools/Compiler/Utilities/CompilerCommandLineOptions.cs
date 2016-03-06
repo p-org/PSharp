@@ -44,25 +44,30 @@ namespace Microsoft.PSharp.Utilities
         {
             if (option.ToLower().StartsWith("/t:") && option.Length > 3)
             {
-                if (option.ToLower().Substring(3).Equals("execution"))
+                if (option.ToLower().Substring(3).Equals("exe"))
                 {
                     base.Configuration.CompilationTargets.Clear();
                     base.Configuration.CompilationTargets.Add(CompilationTarget.Execution);
                 }
-                else if (option.ToLower().Substring(3).Equals("testing"))
+                else if (option.ToLower().Substring(3).Equals("lib"))
+                {
+                    base.Configuration.CompilationTargets.Clear();
+                    base.Configuration.CompilationTargets.Add(CompilationTarget.Library);
+                }
+                else if (option.ToLower().Substring(3).Equals("test"))
                 {
                     base.Configuration.CompilationTargets.Clear();
                     base.Configuration.CompilationTargets.Add(CompilationTarget.Testing);
                 }
-                else if (option.ToLower().Substring(3).Equals("distribution"))
+                else if (option.ToLower().Substring(3).Equals("remote"))
                 {
                     base.Configuration.CompilationTargets.Clear();
-                    base.Configuration.CompilationTargets.Add(CompilationTarget.Distribution);
+                    base.Configuration.CompilationTargets.Add(CompilationTarget.Remote);
                 }
                 else
                 {
                     ErrorReporter.ReportAndExit("Please give a valid compilation target '/t:[x]', " +
-                        "where [x] is 'all', 'execution', 'testing' or 'distribution'.");
+                        "where [x] is 'all', 'exe', 'lib' or 'test'.");
                 }
             }
             else if (option.ToLower().Equals("/analyze"))
@@ -131,7 +136,7 @@ namespace Microsoft.PSharp.Utilities
             help += "\n\n--------------------";
             help += "\nCompilation options:";
             help += "\n--------------------";
-            help += "\n  /t:[x]\t The compilation target (default is 'execution' and 'testing')";
+            help += "\n  /t:[x]\t The compilation target ('exe', 'lib' or 'test')";
 
             help += "\n\n---------------------------";
             help += "\nExperimental options:";

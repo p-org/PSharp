@@ -31,9 +31,9 @@ namespace Microsoft.PSharp.Remote
         void NotifyStartRuntime();
 
         /// <summary>
-        /// Notifies the container to exit.
+        /// Notifies the container to terminate.
         /// </summary>
         [OperationContract(IsOneWay = true)]
-        void NotifyExit();
+        void NotifyTerminate();
     }
 }

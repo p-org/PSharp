@@ -137,7 +137,7 @@ namespace Microsoft.PSharp.Remote
             process.StartInfo.FileName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
                 "PSharpRuntimeContainer.exe");
             process.StartInfo.Arguments = "/id:" + Manager.ContainerIdCounter;
-            process.StartInfo.Arguments += " /main:" + Manager.Configuration.ApplicationFilePath;
+            process.StartInfo.Arguments += " /load:" + Manager.Configuration.RemoteApplicationFilePath;
 
             Manager.Containers.Add(Manager.ContainerIdCounter, process);
 
@@ -154,14 +154,14 @@ namespace Microsoft.PSharp.Remote
         }
 
         /// <summary>
-        /// Notifies the containers to exit.
+        /// Notifies the containers to terminate.
         /// </summary>
         private static void KillContainers()
         {
             IO.PrettyPrintLine("... Shutting down containers");
             foreach (var container in Manager.ContainerServices)
             {
-                container.Value.NotifyExit();
+                container.Value.NotifyTerminate();
             }
         }
 
@@ -170,7 +170,7 @@ namespace Microsoft.PSharp.Remote
         /// </summary>
         private static void OpenRemoteManagingListener()
         {
-            IO.PrettyPrintLine("... Opening remote managing listener");
+            IO.PrettyPrintLine("... Opening notification listener");
 
             Uri address = new Uri("http://localhost:8000/manager/");
             var binding = new WSHttpBinding();

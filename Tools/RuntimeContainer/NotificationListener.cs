@@ -35,9 +35,9 @@ namespace Microsoft.PSharp.Remote
         }
 
         /// <summary>
-        /// Notifies the container to exit.
+        /// Notifies the container to terminate.
         /// </summary>
-        void IContainerService.NotifyExit()
+        void IContainerService.NotifyTerminate()
         {
             Environment.Exit(1);
         }

@@ -51,7 +51,7 @@ namespace Microsoft.PSharp
         {
             foreach (var target in this.CompilationContext.Configuration.CompilationTargets)
             {
-                IO.PrintLine(". Compiling for " + target);
+                IO.PrintLine(". Compiling target '" + target + "'");
 
                 this.CompilationContext.ActiveCompilationTarget = target;
 

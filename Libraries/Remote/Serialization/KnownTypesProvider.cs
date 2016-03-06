@@ -18,7 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace Microsoft.PSharp.Net
+namespace Microsoft.PSharp.Remote
 {
     /// <summary>
     /// Provider for known types. Used for serialization.
