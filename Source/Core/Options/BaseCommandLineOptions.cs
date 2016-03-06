@@ -82,10 +82,10 @@ namespace Microsoft.PSharp.Utilities
             else if (option.ToLower().StartsWith("/v:") && option.Length > 3)
             {
                 int i = 0;
-                if (!int.TryParse(option.Substring(3), out i) && i >= 0 && i <= 3)
+                if (!int.TryParse(option.Substring(3), out i) && i > 0 && i <= 3)
                 {
                     ErrorReporter.ReportAndExit("Please give a valid verbosity level " +
-                        "'/v:[x]', where 0 <= [x] <= 3.");
+                        "'/v:[x]', where 1 <= [x] <= 3.");
                 }
 
                 this.Configuration.Verbose = i;

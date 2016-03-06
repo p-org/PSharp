@@ -91,7 +91,7 @@ namespace Microsoft.PSharp.Remote
             help += "\n  /load:[x]\t Path to the P# application to execute";
             help += "\n  /n:[x]\t Number of runtime containers to create (x > 0)";
             help += "\n  /timeout:[x]\t Timeout for the tool (default is no timeout)";
-            help += "\n  /v:[x]\t Enable verbose mode (values from '0' to '3')";
+            help += "\n  /v:[x]\t Enable verbose mode (values from '1' to '3')";
             help += "\n  /debug\t Enable debugging";
 
             help += "\n";

@@ -260,7 +260,10 @@ namespace Microsoft.PSharp
         /// <param name="args">Arguments</param>
         public virtual void Log(string s, params object[] args)
         {
-            // No-op for real execution.
+            if (this.Configuration.Verbose > 1)
+            {
+                IO.Log(s, args);
+            }
         }
 
         #endregion

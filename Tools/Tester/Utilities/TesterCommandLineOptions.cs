@@ -245,7 +245,7 @@ namespace Microsoft.PSharp.Utilities
             help += "\n  /test:[x]\t Name of a project in the P# solution to test";
             help += "\n  /o:[x]\t Path for output files";
             help += "\n  /timeout:[x]\t Timeout (default is no timeout)";
-            help += "\n  /v:[x]\t Enable verbose mode (values from '0' to '3')";
+            help += "\n  /v:[x]\t Enable verbose mode (values from '1' to '3')";
             help += "\n  /debug\t Enable debugging";
 
             help += "\n\n---------------------------";

@@ -138,6 +138,7 @@ namespace Microsoft.PSharp.Remote
                 "PSharpRuntimeContainer.exe");
             process.StartInfo.Arguments = "/id:" + Manager.ContainerIdCounter;
             process.StartInfo.Arguments += " /load:" + Manager.Configuration.RemoteApplicationFilePath;
+            process.StartInfo.Arguments += " /v:" + Manager.Configuration.Verbose;
 
             Manager.Containers.Add(Manager.ContainerIdCounter, process);
 
