@@ -27,6 +27,7 @@ namespace CheckSendEntry
             MachineId mid = CreateMachine(typeof(ReceiveMachine));
             ReceiveMachine.eEnterEvt e = new ReceiveMachine.eEnterEvt(4);
             Send(mid, e);
+            e.val = 7;
         }
         #endregion
     }

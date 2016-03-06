@@ -20,7 +20,6 @@ namespace FailureDetector
             configuration.Verbose = 2;
             configuration.SchedulingIterations = 1;
             configuration.SchedulingStrategy = SchedulingStrategy.Random;
-            configuration.ScheduleIntraMachineConcurrency = true;
 
             var engine = TestingEngine.Create(configuration, Test.Execute).Run();
         }

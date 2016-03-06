@@ -24,6 +24,7 @@ using Microsoft.PSharp.Utilities;
 using System.IO;
 using System.Collections.Generic;
 using OfflineRaceDetection;
+using System.Threading;
 
 namespace Microsoft.PSharp
 {
@@ -134,8 +135,7 @@ namespace Microsoft.PSharp
             process.Start();
             process.WaitForExit();
 
-            IO.PrintLine("Done monitoring process; Press enter to continue");
-            Console.ReadLine();
+            //Thread.Sleep(10000);
             //OfflineRaceDetection.Program.findRaces();
             OfflineRaces.Program.findRaces();
         }

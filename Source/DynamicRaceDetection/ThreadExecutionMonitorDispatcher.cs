@@ -187,7 +187,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
             {
                 ThreadTrace obj = thTrace[thTrace.Count - 1];
                 obj.accesses.Add(new ActionInstr(false, location, objH, objO, GetSourceLocation(location)));
-                trace.Add("load: " + objH + " " + objO + " " + callStack.Peek());
+                //trace.Add("load: " + objH + " " + objO + " " + callStack.Peek());
             }
             else if (!callStack.Peek().FullName.Contains("Microsoft.PSharp") && objH != null)
             {
@@ -199,7 +199,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
                         ThreadTrace obj = new ThreadTrace(m.Item2, m.Item1.ShortName);
                         obj.accesses.Add(new ActionInstr(false, location, objH, objO, GetSourceLocation(location)));
                         thTrace.Add(obj);
-                        trace.Add("load: " + objH + " " + objO + " " + callStack.Peek());
+                        //trace.Add("load: " + objH + " " + objO + " " + callStack.Peek());
                     }
                 }
             }
@@ -276,7 +276,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
                 //trace.Add("got object handle: " + objH + " offset: " + objO);
                 ThreadTrace obj = thTrace[thTrace.Count - 1];
                 obj.accesses.Add(new ActionInstr(true, location, objH, objO, GetSourceLocation(location)));
-                trace.Add("store: " + location + " " + objH + " " + objO + " " + callStack.Peek() + " " + (objH == UIntPtr.Zero));
+                //trace.Add("store: " + location + " " + objH + " " + objO + " " + callStack.Peek() + " " + (objH == UIntPtr.Zero));
             }
             else if(!callStack.Peek().FullName.Contains("Microsoft.PSharp") && objH != null)
             {
@@ -288,7 +288,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
                         ThreadTrace obj = new ThreadTrace(m.Item2, m.Item1.ShortName);
                         obj.accesses.Add(new ActionInstr(true, location, objH, objO, GetSourceLocation(location)));
                         thTrace.Add(obj);
-                        trace.Add("store: " + location + " " + objH + " " + objO + " " + callStack.Peek() + " " + m.Item2);
+                        //trace.Add("store: " + location + " " + objH + " " + objO + " " + callStack.Peek() + " " + m.Item2);
                     }
                 }
             }
@@ -301,7 +301,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
             {
                 //ThreadTrace obj = thTrace[thTrace.Count - 1];
                 //obj.accesses[obj.accesses.Count - 1].srcLocation += ";val: " + value.ToString() + " = " + value.GetHashCode();
-                trace.Add("stored value: " + value + " " + value.GetHashCode());
+                //trace.Add("stored value: " + value + " " + value.GetHashCode());
                 //thTrace[thTrace.Count - 1].accesses[thTrace[thTrace.Count - 1].accesses.Count - 1].set(value.GetHashCode());
             }
         }
@@ -378,7 +378,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
         /// <remarks>Only one to push on callstack.</remarks>
         public override bool EnterMethod(Method method)
         {
-            trace.Add("Entering: " + method.FullName);
+            //trace.Add("Entering: " + method.FullName);
             callStack.Push(method);
             if (isAction && !method.FullName.Contains("Microsoft.PSharp"))
             {
@@ -429,7 +429,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
         /// <remarks>Only method allowed to pop from callstack.</remarks>
         public override void LeaveMethod()
         {
-            trace.Add("Leaving: " + callStack.Peek());
+            //trace.Add("Leaving: " + callStack.Peek());
             Method leaving = callStack.Pop();
             if (leaving.FullName.Equals(currentAction))
             {
@@ -587,10 +587,12 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
                 if (actionIds.ContainsKey(mcID))
                 {
                     actionIds[mcID]++;
+                    trace.Add("action id: " + actionIds[mcID]);
                 }
                 else
                 {
                     actionIds.Add(mcID, 1);
+                    trace.Add("action id: 1");
                 }
 
                 obj.set(actionIds[mcID]);
