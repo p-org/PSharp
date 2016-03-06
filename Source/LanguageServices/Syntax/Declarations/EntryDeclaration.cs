@@ -45,9 +45,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Constructor.
         /// </summary>
         /// <param name="program">Program</param>
-        /// <param name="isModel">Is a model</param>
-        internal EntryDeclaration(IPSharpProgram program, bool isModel)
-            : base(program, isModel)
+        internal EntryDeclaration(IPSharpProgram program)
+            : base(program)
         {
 
         }
@@ -60,20 +59,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         internal override void Rewrite()
         {
             this.StatementBlock.Rewrite();
-
-            var text = "protected override void OnEntry()";
-            text += StatementBlock.TextUnit.Text;
-
-            base.TextUnit = new TextUnit(text, this.EntryKeyword.TextUnit.Line);
-        }
-
-        /// <summary>
-        /// Rewrites the syntax node declaration to the intermediate C#
-        /// representation using any given program models.
-        /// </summary>
-        internal override void Model()
-        {
-            this.StatementBlock.Model();
 
             var text = "protected override void OnEntry()";
             text += StatementBlock.TextUnit.Text;

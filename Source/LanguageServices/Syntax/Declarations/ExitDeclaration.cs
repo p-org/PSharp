@@ -45,9 +45,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Constructor.
         /// </summary>
         /// <param name="program">Program</param>
-        /// <param name="isModel">Is a model</param>
-        internal ExitDeclaration(IPSharpProgram program, bool isModel)
-            : base(program, isModel)
+        internal ExitDeclaration(IPSharpProgram program)
+            : base(program)
         {
 
         }
@@ -62,20 +61,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             var text = "protected override void OnExit()";
 
             this.StatementBlock.Rewrite();
-            text += StatementBlock.TextUnit.Text;
-
-            base.TextUnit = new TextUnit(text, this.ExitKeyword.TextUnit.Line);
-        }
-
-        /// <summary>
-        /// Rewrites the syntax node declaration to the intermediate C#
-        /// representation using any given program models.
-        /// </summary>
-        internal override void Model()
-        {
-            var text = "protected override void OnExit()";
-
-            this.StatementBlock.Model();
             text += StatementBlock.TextUnit.Text;
 
             base.TextUnit = new TextUnit(text, this.ExitKeyword.TextUnit.Line);

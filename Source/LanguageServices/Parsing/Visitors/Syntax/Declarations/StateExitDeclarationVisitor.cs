@@ -46,7 +46,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     new List<TokenType>());
             }
 
-            var node = new ExitDeclaration(base.TokenStream.Program, parentNode.IsModel);
+            var node = new ExitDeclaration(base.TokenStream.Program);
             node.ExitKeyword = base.TokenStream.Peek();
 
             base.TokenStream.Index++;
@@ -62,8 +62,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 });
             }
 
-            var blockNode = new BlockSyntax(base.TokenStream.Program, parentNode.Machine,
-                parentNode, node.IsModel);
+            var blockNode = new BlockSyntax(base.TokenStream.Program, parentNode.Machine, parentNode);
             new BlockSyntaxVisitor(base.TokenStream).Visit(blockNode);
             node.StatementBlock = blockNode;
 

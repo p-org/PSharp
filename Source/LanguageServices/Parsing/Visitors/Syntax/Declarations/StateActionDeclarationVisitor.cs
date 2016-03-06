@@ -133,7 +133,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 if (base.TokenStream.Peek().Type == TokenType.LeftCurlyBracket)
                 {
                     var blockNode = new BlockSyntax(base.TokenStream.Program,
-                        parentNode.Machine, null, parentNode.IsModel);
+                        parentNode.Machine, null);
                     new BlockSyntaxVisitor(base.TokenStream).Visit(blockNode);
 
                     base.TokenStream.Index++;
@@ -225,8 +225,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         });
                     }
 
-                    var blockNode = new BlockSyntax(base.TokenStream.Program, parentNode.Machine,
-                        null, parentNode.IsModel);
+                    var blockNode = new BlockSyntax(base.TokenStream.Program, parentNode.Machine, null);
                     new BlockSyntaxVisitor(base.TokenStream).Visit(blockNode);
 
                     base.TokenStream.Index++;

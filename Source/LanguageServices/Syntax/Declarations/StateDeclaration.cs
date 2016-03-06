@@ -33,6 +33,16 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         internal readonly bool IsStart;
 
         /// <summary>
+        /// True if the state is a hot state.
+        /// </summary>
+        internal readonly bool IsHot;
+
+        /// <summary>
+        /// True if the state is a cold state.
+        /// </summary>
+        internal readonly bool IsCold;
+
+        /// <summary>
         /// The machine parent node.
         /// </summary>
         internal readonly MachineDeclaration Machine;
@@ -117,12 +127,15 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <param name="program">Program</param>
         /// <param name="machineNode">PMachineDeclarationNode</param>
         /// <param name="isStart">Is start state</param>
-        /// <param name="isModel">Is a model</param>
+        /// <param name="isHot">Is hot state</param>
+        /// <param name="isCold">Is cold state</param>
         internal StateDeclaration(IPSharpProgram program, MachineDeclaration machineNode,
-            bool isStart, bool isModel)
-            : base(program, isModel)
+            bool isStart, bool isHot, bool isCold)
+            : base(program)
         {
             this.IsStart = isStart;
+            this.IsHot = isHot;
+            this.IsCold = isCold;
             this.Machine = machineNode;
             this.GotoStateTransitions = new Dictionary<Token, Token>();
             this.PushStateTransitions = new Dictionary<Token, Token>();
@@ -288,27 +301,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             base.TextUnit = new TextUnit(text, this.StateKeyword.TextUnit.Line);
         }
 
-        /// <summary>
-        /// Rewrites the syntax node declaration to the intermediate C#
-        /// representation using any given program models.
-        /// </summary>
-        internal override void Model()
-        {
-            if (this.EntryDeclaration != null)
-            {
-                this.EntryDeclaration.Model();
-            }
-
-            if (this.ExitDeclaration != null)
-            {
-                this.ExitDeclaration.Model();
-            }
-
-            var text = this.GetRewrittenStateDeclaration();
-
-            base.TextUnit = new TextUnit(text, this.StateKeyword.TextUnit.Line);
-        }
-
         #endregion
 
         #region private methods
@@ -324,6 +316,15 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             if (this.IsStart)
             {
                 text += "[Microsoft.PSharp.Start]\n";
+            }
+
+            if (this.IsHot)
+            {
+                text += "[Microsoft.PSharp.Hot]\n";
+            }
+            else if (this.IsCold)
+            {
+                text += "[Microsoft.PSharp.Cold]\n";
             }
 
             text += this.InstrumentGotoStateTransitions();

@@ -219,10 +219,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     this.Tokens.Add(new Token(unit, TokenType.MachineDecl));
                     break;
 
-                case "model":
-                    this.Tokens.Add(new Token(unit, TokenType.ModelDecl));
-                    break;
-
                 case "monitor":
                     this.Tokens.Add(new Token(unit, TokenType.Monitor));
                     break;
@@ -237,6 +233,14 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
 
                 case "start":
                     this.Tokens.Add(new Token(unit, TokenType.StartState));
+                    break;
+
+                case "hot":
+                    this.Tokens.Add(new Token(unit, TokenType.HotState));
+                    break;
+
+                case "cold":
+                    this.Tokens.Add(new Token(unit, TokenType.ColdState));
                     break;
 
                 case "on":
@@ -395,10 +399,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     this.Tokens.Add(new Token(unit, TokenType.RaiseEvent));
                     break;
 
-                case "models":
-                    this.Tokens.Add(new Token(unit, TokenType.Models));
-                    break;
-
                 case "assert":
                     this.Tokens.Add(new Token(unit, TokenType.Assert));
                     break;
@@ -513,10 +513,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 @"%|\$|" +
                 @"{|}|\(|\)|\[|\]|" +
                 @"\busing\b|\bnamespace\b|\bclass\b|\bstruct\b|" +
-                @"\bmachine\b|\bmodel\b|\bmonitor\b|\bstate\b|\bevent\b|\baction\b|" +
-                @"\bstart\b|" +
+                @"\bmachine\b|\bmonitor\b|\bstate\b|\bevent\b|\baction\b|" +
+                @"\bstart\b|\bhot\b|\bcold\b|" +
                 @"\bdefer\b|\bignore\b|\bentry\b|\bexit\b|" +
-                @"\bcreate\b|\braise\b|\bsend\b|\bto\b|\bmodels\b|" +
+                @"\bcreate\b|\braise\b|\bsend\b|\bto\b|" +
                 @"\bon\b|\bdo\b|\bgoto\b|\bpush\b|\bwith\b|" +
                 @"\bprivate\b|\bprotected\b|\binternal\b|\bpublic\b|" +
                 @"\babstract\b|\bvirtual\b|\boverride\b|" +

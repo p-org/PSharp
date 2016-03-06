@@ -29,20 +29,6 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
     /// </summary>
     internal sealed class CreateRemoteMachineRewriter : PSharpRewriter
     {
-        #region fields
-
-        /// <summary>
-        /// Nodes to be replaced.
-        /// </summary>
-        private List<SyntaxNode> ToReplace;
-
-        /// <summary>
-        /// Nodes to be removed.
-        /// </summary>
-        private List<SyntaxNode> ToRemove;
-
-        #endregion
-
         #region public API
 
         /// <summary>
@@ -52,8 +38,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         internal CreateRemoteMachineRewriter(PSharpProject project)
             : base(project)
         {
-            this.ToReplace = new List<SyntaxNode>();
-            this.ToRemove = new List<SyntaxNode>();
+
         }
 
         /// <summary>
@@ -77,16 +62,6 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
                 nodes: statements,
                 computeReplacementNode: (node, rewritten) => this.RewriteStatement(rewritten));
 
-            var models = root.DescendantNodes().
-                Where(val => val is LocalDeclarationStatementSyntax).
-                Where(val => this.ToReplace.Any(n => n.IsEquivalentTo(val)));
-
-            root = root.ReplaceNodes(
-                nodes: models,
-                computeReplacementNode: (node, rewritten) => SyntaxFactory.ParseStatement(";"));
-
-            root = root.RemoveNodes(this.ToRemove, SyntaxRemoveOptions.KeepNoTrivia);
-
             return base.UpdateSyntaxTree(tree, root.ToString());
         }
 
@@ -104,63 +79,15 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
             var arguments = new List<ArgumentSyntax>(node.ArgumentList.Arguments);
             var machineIdentifier = arguments[0].ToString();
 
-            SyntaxNode models = null;
-
-            var parent = node.FirstAncestorOrSelf<ExpressionStatementSyntax>();
-            if (parent != null)
-            {
-                models = base.GetNextStatement(parent);
-                if (models != null &&
-                    (models is LocalDeclarationStatementSyntax) &&
-                    (models as LocalDeclarationStatementSyntax).Declaration.
-                    Type.ToString().Equals("models"))
-                {
-                    if (this.Project.CompilationContext.ActiveCompilationTarget != CompilationTarget.Testing)
-                    {
-                        machineIdentifier = (models as LocalDeclarationStatementSyntax).
-                            Declaration.Variables[0].Identifier.ValueText;
-                    }
-                }
-                else
-                {
-                    models = null;
-                }
-            }
-
             arguments[0] = SyntaxFactory.Argument(SyntaxFactory.TypeOfExpression(
                 SyntaxFactory.IdentifierName(machineIdentifier)));
 
-            var text = "";
-            if (base.IsMonitor(machineIdentifier))
-            {
-                if (this.Project.CompilationContext.ActiveCompilationTarget != CompilationTarget.Testing)
-                {
-                    this.ToRemove.Add(node);
-                    if (models != null)
-                    {
-                        this.ToRemove.Add(models);
-                    }
-
-                    return node;
-                }
-
-                text += "this.CreateMonitor";
-            }
-            else
-            {
-                text += "this.CreateRemoteMachine";
-            }
+            var text = "this.CreateRemoteMachine";
 
             var rewritten = node.
                 WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments))).
                 WithExpression(SyntaxFactory.IdentifierName(text)).
                 WithTriviaFrom(node);
-
-            if (models != null)
-            {
-                node = node.WithoutTrailingTrivia();
-                this.ToReplace.Add(models);
-            }
 
             return rewritten;
         }

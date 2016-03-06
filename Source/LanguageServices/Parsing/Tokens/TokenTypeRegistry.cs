@@ -197,10 +197,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     text = "machine";
                     break;
 
-                case TokenType.ModelDecl:
-                    text = "model";
-                    break;
-
                 case TokenType.Monitor:
                     text = "monitor";
                     break;
@@ -223,6 +219,14 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
 
                 case TokenType.StartState:
                     text = "start";
+                    break;
+
+                case TokenType.HotState:
+                    text = "hot";
+                    break;
+
+                case TokenType.ColdState:
+                    text = "cold";
                     break;
 
                 case TokenType.OnAction:
@@ -407,14 +411,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
 
                 case TokenType.DefaultEvent:
                     text = "default";
-                    break;
-
-                case TokenType.ColdState:
-                    text = "cold";
-                    break;
-
-                case TokenType.HotState:
-                    text = "state";
                     break;
 
                 case TokenType.Var:

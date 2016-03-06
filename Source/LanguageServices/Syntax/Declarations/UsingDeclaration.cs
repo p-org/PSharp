@@ -51,7 +51,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         /// <param name="program">Program</param>
         internal UsingDeclaration(IPSharpProgram program)
-            : base(program, false)
+            : base(program)
         {
             this.IdentifierTokens = new List<Token>();
         }
@@ -61,16 +61,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// representation.
         /// </summary>
         internal override void Rewrite()
-        {
-            var text = this.GetRewrittenUsingDeclaration();
-            base.TextUnit = new TextUnit(text, this.UsingKeyword.TextUnit.Line);
-        }
-
-        /// <summary>
-        /// Rewrites the syntax node declaration to the intermediate C#
-        /// representation using any given program models.
-        /// </summary>
-        internal override void Model()
         {
             var text = this.GetRewrittenUsingDeclaration();
             base.TextUnit = new TextUnit(text, this.UsingKeyword.TextUnit.Line);

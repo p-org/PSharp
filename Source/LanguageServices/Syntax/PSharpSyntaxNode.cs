@@ -29,11 +29,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         protected IPSharpProgram Program;
 
         /// <summary>
-        /// True if the node is a model.
-        /// </summary>
-        internal readonly bool IsModel;
-
-        /// <summary>
         /// The text unit.
         /// </summary>
         internal protected TextUnit TextUnit
@@ -49,11 +44,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Constructor.
         /// </summary>
         /// <param name="program">Program</param>
-        /// <param name="isModel">Is a model</param>
-        protected PSharpSyntaxNode(IPSharpProgram program, bool isModel)
+        protected PSharpSyntaxNode(IPSharpProgram program)
         {
             this.Program = program;
-            this.IsModel = isModel;
         }
 
         #endregion
@@ -65,12 +58,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// representation.
         /// </summary>
         internal abstract void Rewrite();
-
-        /// <summary>
-        /// Rewrites the syntax node declaration to the intermediate C#
-        /// representation using any given program models.
-        /// </summary>
-        internal abstract void Model();
 
         #endregion
     }

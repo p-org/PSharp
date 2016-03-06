@@ -66,7 +66,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         /// <param name="program">Program</param>
         internal NamespaceDeclaration(IPSharpProgram program)
-            : base(program, false)
+            : base(program)
         {
             this.IdentifierTokens = new List<Token>();
             this.EventDeclarations = new List<EventDeclaration>();
@@ -91,50 +91,10 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             
             var text = this.GetRewrittenNamespaceDeclaration();
 
-            var realMachines = this.MachineDeclarations.FindAll(m => !m.IsModel && !m.IsMonitor);
-
-            foreach (var node in realMachines)
-            {
-                text += node.TextUnit.Text;
-            }
-
-            text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
-
-            base.TextUnit = new TextUnit(text, this.NamespaceKeyword.TextUnit.Line);
-        }
-
-        /// <summary>
-        /// Rewrites the syntax node declaration to the intermediate C#
-        /// representation using any given program models.
-        /// </summary>
-        internal override void Model()
-        {
-            foreach (var node in this.EventDeclarations)
-            {
-                node.Model();
-            }
-
-            foreach (var node in this.MachineDeclarations)
-            {
-                node.Model();
-            }
-
-            var text = this.GetRewrittenNamespaceDeclaration();
-
-            var realMachines = this.MachineDeclarations.FindAll(m => !m.IsModel && !m.IsMonitor);
-            var modelMachines = this.MachineDeclarations.FindAll(m => m.IsModel);
+            var realMachines = this.MachineDeclarations.FindAll(m => !m.IsMonitor);
             var monitors = this.MachineDeclarations.FindAll(m => m.IsMonitor);
 
             foreach (var node in realMachines)
-            {
-                if (!modelMachines.Any(m => m.Identifier.TextUnit.Text.Equals(
-                    node.Identifier.TextUnit.Text)))
-                {
-                    text += node.TextUnit.Text;
-                }
-            }
-
-            foreach (var node in modelMachines)
             {
                 text += node.TextUnit.Text;
             }

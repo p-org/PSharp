@@ -105,9 +105,7 @@
     <Compile Include="Parsing\Visitors\Syntax\Blocks\BlockSyntaxVisitor.cs" />
     <Compile Include="Parsing\Visitors\Syntax\Declarations\DeferEventsDeclarationVisitor.cs" />
     <Compile Include="Parsing\Visitors\Syntax\Declarations\EventDeclarationVisitor.cs" />
-    <Compile Include="Parsing\Visitors\Syntax\Declarations\FieldDeclarationVisitor.cs" />
     <Compile Include="Parsing\Visitors\Syntax\Declarations\FieldOrMethodDeclarationVisitor.cs" />
-    <Compile Include="Parsing\Visitors\Syntax\Declarations\FunctionDeclarationVisitor.cs" />
     <Compile Include="Parsing\Visitors\Syntax\Declarations\IgnoreEventsDeclarationVisitor.cs" />
     <Compile Include="Parsing\Visitors\Syntax\Declarations\MachineDeclarationVisitor.cs" />
     <Compile Include="Parsing\Visitors\Syntax\Declarations\MethodDeclarationVisitor.cs" />
@@ -158,8 +156,6 @@
     <Compile Include="Programs\IPSharpProgram.cs" />
     <Compile Include="Syntax\Modifiers\AccessModifier.cs" />
     <Compile Include="Syntax\Modifiers\InheritanceModifier.cs" />
-    <Compile Include="Syntax\PDeclarations\PFieldDeclaration.cs" />
-    <Compile Include="Syntax\PDeclarations\PFunctionDeclaration.cs" />
     <Compile Include="Programs\PSharpProgram.cs" />
     <Compile Include="Syntax\PSharpSyntaxNode.cs" />
     <Compile Include="Syntax\PTypes\PBaseType.cs" />

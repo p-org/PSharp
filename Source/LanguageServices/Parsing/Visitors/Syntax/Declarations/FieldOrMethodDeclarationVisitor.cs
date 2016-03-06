@@ -38,11 +38,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         /// Visits the syntax node.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        /// <param name="isModel">Is model</param>
         /// <param name="accMod">Access modifier</param>
         /// <param name="inhMod">Inheritance modifier</param>
         /// <param name="isAsync">Is async</param>
-        internal void Visit(MachineDeclaration parentNode, bool isModel, AccessModifier accMod,
+        internal void Visit(MachineDeclaration parentNode, AccessModifier accMod,
             InheritanceModifier inhMod, bool isAsync)
         {
             TextUnit textUnit = null;
@@ -79,7 +78,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             if (base.TokenStream.Peek().Type == TokenType.LeftParenthesis)
             {
                 new MethodDeclarationVisitor(base.TokenStream).Visit(parentNode, typeIdentifier,
-                    identifierToken, isModel, accMod, inhMod, isAsync);
+                    identifierToken, accMod, inhMod, isAsync);
             }
             else if (base.TokenStream.Peek().Type == TokenType.Semicolon)
             {
@@ -99,20 +98,13 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         new List<TokenType>());
                 }
 
-                if (isModel)
-                {
-                    throw new ParsingException("A field cannot be a model.",
-                        new List<TokenType>());
-                }
-
                 if (isAsync)
                 {
                     throw new ParsingException("A field cannot be async.",
                         new List<TokenType>());
                 }
 
-                var node = new FieldDeclaration(base.TokenStream.Program, parentNode,
-                    parentNode.IsModel);
+                var node = new FieldDeclaration(base.TokenStream.Program, parentNode);
                 node.AccessModifier = accMod;
                 node.TypeIdentifier = typeIdentifier;
                 node.Identifier = identifierToken;

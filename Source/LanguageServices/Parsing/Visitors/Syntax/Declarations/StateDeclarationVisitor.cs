@@ -39,11 +39,14 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         /// </summary>
         /// <param name="parentNode">Node</param>
         /// <param name="isStart">Is start state</param>
+        /// <param name="isHot">Is start state</param>
+        /// <param name="isCold">Is start state</param>
         /// <param name="accMod">Access modifier</param>
-        internal void Visit(MachineDeclaration parentNode, bool isStart, AccessModifier accMod)
+        internal void Visit(MachineDeclaration parentNode, bool isStart, bool isHot, bool isCold,
+            AccessModifier accMod)
         {
             var node = new StateDeclaration(base.TokenStream.Program, parentNode,
-                isStart, parentNode.IsModel);
+                isStart, isHot, isCold);
             node.AccessModifier = accMod;
             node.StateKeyword = base.TokenStream.Peek();
 

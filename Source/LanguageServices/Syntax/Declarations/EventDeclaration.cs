@@ -94,7 +94,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         /// <param name="program">Program</param>
         internal EventDeclaration(IPSharpProgram program)
-            : base(program, false)
+            : base(program)
         {
             this.PayloadTypes = new List<Token>();
             this.PayloadIdentifiers = new List<Token>();
@@ -105,16 +105,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// representation.
         /// </summary>
         internal override void Rewrite()
-        {
-            var text = this.GetRewrittenEventDeclaration();
-            base.TextUnit = new TextUnit(text, this.EventKeyword.TextUnit.Line);
-        }
-
-        /// <summary>
-        /// Rewrites the syntax node declaration to the intermediate C#
-        /// representation using any given program models.
-        /// </summary>
-        internal override void Model()
         {
             var text = this.GetRewrittenEventDeclaration();
             base.TextUnit = new TextUnit(text, this.EventKeyword.TextUnit.Line);

@@ -140,11 +140,12 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         #region P#-specific tokens
 
         MachineDecl,
-        ModelDecl,
         Monitor,
         StateDecl,
         EventDecl,
         StartState,
+        HotState,
+        ColdState,
 
         EventIdentifier,
         MachineIdentifier,
@@ -157,7 +158,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         SendEvent,
         ToMachine,
         RaiseEvent,
-        Models,
         Assert,
         Assume,
         Pop,
@@ -190,9 +190,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         SizeOf,
         Keys,
         Values,
-
-        ColdState,
-        HotState,
 
         Foreign,
         Any,

@@ -61,9 +61,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         /// <param name="program">Program</param>
         /// <param name="machineNode">MachineDeclarationNode</param>
-        /// <param name="isModel">Is a model</param>
-        internal FieldDeclaration(IPSharpProgram program, MachineDeclaration machineNode, bool isModel)
-            : base(program, isModel)
+        internal FieldDeclaration(IPSharpProgram program, MachineDeclaration machineNode)
+            : base(program)
         {
             this.Machine = machineNode;
         }
@@ -74,16 +73,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         /// <param name="program">Program</param>
         internal override void Rewrite()
-        {
-            var text = this.GetRewrittenFieldDeclaration();
-            base.TextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Line);
-        }
-
-        /// <summary>
-        /// Rewrites the syntax node declaration to the intermediate C#
-        /// representation using any given program models.
-        /// </summary>
-        internal override void Model()
         {
             var text = this.GetRewrittenFieldDeclaration();
             base.TextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Line);

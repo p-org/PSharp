@@ -65,33 +65,17 @@ namespace Microsoft.PSharp.LanguageServices
         public override void Rewrite()
         {
             var text = "";
-            if (base.Project.CompilationContext.ActiveCompilationTarget == CompilationTarget.Testing)
-            {
-                foreach (var node in this.UsingDeclarations)
-                {
-                    node.Model();
-                    text += node.TextUnit.Text;
-                }
 
-                foreach (var node in this.NamespaceDeclarations)
-                {
-                    node.Model();
-                    text += node.TextUnit.Text;
-                }
+            foreach (var node in this.UsingDeclarations)
+            {
+                node.Rewrite();
+                text += node.TextUnit.Text;
             }
-            else
-            {
-                foreach (var node in this.UsingDeclarations)
-                {
-                    node.Rewrite();
-                    text += node.TextUnit.Text;
-                }
 
-                foreach (var node in this.NamespaceDeclarations)
-                {
-                    node.Rewrite();
-                    text += node.TextUnit.Text;
-                }
+            foreach (var node in this.NamespaceDeclarations)
+            {
+                node.Rewrite();
+                text += node.TextUnit.Text;
             }
 
             base.UpdateSyntaxTree(text);

@@ -64,10 +64,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <param name="program">Program</param>
         /// <param name="machineNode">MachineDeclarationNode</param>
         /// <param name="stateNode">StateDeclarationNode</param>
-        /// <param name="isModel">Is a model</param>
         internal BlockSyntax(IPSharpProgram program, MachineDeclaration machineNode,
-            StateDeclaration stateNode, bool isModel)
-            : base(program, isModel)
+            StateDeclaration stateNode)
+            : base(program)
         {
             this.Machine = machineNode;
             this.State = stateNode;
@@ -79,16 +78,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         /// <param name="program">Program</param>
         internal override void Rewrite()
-        {
-            var text = this.Block.ToString();
-            base.TextUnit = new TextUnit(text, this.OpenBraceToken.TextUnit.Line);
-        }
-
-        /// <summary>
-        /// Rewrites the syntax node declaration to the intermediate C#
-        /// representation using any given program models.
-        /// </summary>
-        internal override void Model()
         {
             var text = this.Block.ToString();
             base.TextUnit = new TextUnit(text, this.OpenBraceToken.TextUnit.Line);

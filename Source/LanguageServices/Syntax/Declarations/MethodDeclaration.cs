@@ -85,9 +85,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Constructor.
         /// </summary>
         /// <param name="program">Program</param>
-        /// <param name="isModel">Is a model</param>
-        internal MethodDeclaration(IPSharpProgram program, bool isModel)
-            : base(program, isModel)
+        internal MethodDeclaration(IPSharpProgram program)
+            : base(program)
         {
             this.Parameters = new List<Token>();
         }
@@ -98,22 +97,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         /// <param name="program">Program</param>
         internal override void Rewrite()
-        {
-            if (this.IsModel)
-            {
-                base.TextUnit = new TextUnit("", 0);
-                return;
-            }
-
-            var text = this.GetRewrittenMethodDeclaration();
-            base.TextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Line);
-        }
-
-        /// <summary>
-        /// Rewrites the syntax node declaration to the intermediate C#
-        /// representation using any given program models.
-        /// </summary>
-        internal override void Model()
         {
             var text = this.GetRewrittenMethodDeclaration();
             base.TextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Line);
@@ -130,12 +113,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         private string GetRewrittenMethodDeclaration()
         {
             var text = "";
-
-            if (base.IsModel)
-            {
-                text += "[Model]\n";
-            }
-
+            
             if (this.AccessModifier == AccessModifier.Protected)
             {
                 text += "protected ";

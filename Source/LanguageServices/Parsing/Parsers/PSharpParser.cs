@@ -266,7 +266,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     TokenType.Virtual,
                     TokenType.EventDecl,
                     TokenType.MachineDecl,
-                    TokenType.ModelDecl,
                     TokenType.Monitor,
                     TokenType.LeftSquareBracket,
                     TokenType.RightCurlyBracket
@@ -294,7 +293,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
 
                 case TokenType.EventDecl:
                 case TokenType.MachineDecl:
-                case TokenType.ModelDecl:
                 case TokenType.Monitor:
                 case TokenType.Internal:
                 case TokenType.Public:
@@ -345,7 +343,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             while (!base.TokenStream.Done &&
                 base.TokenStream.Peek().Type != TokenType.EventDecl &&
                 base.TokenStream.Peek().Type != TokenType.MachineDecl &&
-                base.TokenStream.Peek().Type != TokenType.ModelDecl &&
                 base.TokenStream.Peek().Type != TokenType.Monitor)
             {
                 if (am != AccessModifier.None &&
@@ -392,15 +389,13 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             if (base.TokenStream.Done ||
                 (base.TokenStream.Peek().Type != TokenType.EventDecl &&
                 base.TokenStream.Peek().Type != TokenType.MachineDecl &&
-                base.TokenStream.Peek().Type != TokenType.ModelDecl &&
                 base.TokenStream.Peek().Type != TokenType.Monitor))
             {
-                throw new ParsingException("Expected event, machine, model or monitor declaration.",
+                throw new ParsingException("Expected event, machine or monitor declaration.",
                     new List<TokenType>
                 {
                     TokenType.EventDecl,
                     TokenType.MachineDecl,
-                    TokenType.ModelDecl,
                     TokenType.Monitor
                 });
             }
@@ -426,8 +421,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
 
                 new EventDeclarationVisitor(base.TokenStream).Visit(null, parentNode, am);
             }
-            else if (base.TokenStream.Peek().Type == TokenType.MachineDecl ||
-                base.TokenStream.Peek().Type == TokenType.ModelDecl)
+            else if (base.TokenStream.Peek().Type == TokenType.MachineDecl)
             {
                 if (am == AccessModifier.Private)
                 {
@@ -440,16 +434,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                         new List<TokenType>());
                 }
 
-                if (base.TokenStream.Peek().Type == TokenType.MachineDecl)
-                {
-                    new MachineDeclarationVisitor(base.TokenStream).Visit(null, parentNode,
-                        false, false, false, am, im);
-                }
-                else if (base.TokenStream.Peek().Type == TokenType.ModelDecl)
-                {
-                    new MachineDeclarationVisitor(base.TokenStream).Visit(null, parentNode,
-                        false, true, false, am, im);
-                }
+                new MachineDeclarationVisitor(base.TokenStream).Visit(null, parentNode,
+                    false, false, am, im);
             }
             else if (base.TokenStream.Peek().Type == TokenType.Monitor)
             {
@@ -465,7 +451,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 }
 
                 new MachineDeclarationVisitor(base.TokenStream).Visit(null, parentNode,
-                    false, false, true, am, im);
+                    false, true, am, im);
             }
         }
 

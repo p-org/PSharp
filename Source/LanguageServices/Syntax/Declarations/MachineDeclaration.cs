@@ -88,11 +88,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         internal List<MethodDeclaration> MethodDeclarations;
 
         /// <summary>
-        /// List of function declarations.
-        /// </summary>
-        internal List<PFunctionDeclaration> FunctionDeclarations;
-
-        /// <summary>
         /// The right curly bracket token.
         /// </summary>
         internal Token RightCurlyBracketToken;
@@ -107,10 +102,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <param name="program">Program</param>
         /// <param name="isPSharp">Is P# machine</param>
         /// <param name="isMain">Is main machine</param>
-        /// <param name="isModel">Is a model</param>
         /// <param name="isMonitor">Is a monitor</param>
-        internal MachineDeclaration(IPSharpProgram program, bool isMain, bool isModel, bool isMonitor)
-            : base(program, isModel)
+        internal MachineDeclaration(IPSharpProgram program, bool isMain, bool isMonitor)
+            : base(program)
         {
             this.IsMain = isMain;
             this.IsMonitor = isMonitor;
@@ -118,7 +112,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             this.FieldDeclarations = new List<FieldDeclaration>();
             this.StateDeclarations = new List<StateDeclaration>();
             this.MethodDeclarations = new List<MethodDeclaration>();
-            this.FunctionDeclarations = new List<PFunctionDeclaration>();
         }
 
         /// <summary>
@@ -128,12 +121,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <param name="program">Program</param>
         internal override void Rewrite()
         {
-            if (this.IsModel || this.IsMonitor)
-            {
-                base.TextUnit = new TextUnit("", 0);
-                return;
-            }
-
             foreach (var node in this.FieldDeclarations)
             {
                 node.Rewrite();
@@ -149,98 +136,17 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 node.Rewrite();
             }
 
-            foreach (var node in this.FunctionDeclarations)
-            {
-                node.Rewrite();
-            }
-
             var text = this.GetRewrittenMachineDeclaration();
-
-            var realMethods = this.MethodDeclarations.FindAll(m => !m.IsModel);
-            var realFuctions = this.FunctionDeclarations.FindAll(m => !m.IsModel);
-
-            foreach (var node in realMethods)
-            {
-                text += node.TextUnit.Text;
-            }
-
-            foreach (var node in realFuctions)
-            {
-                text += node.TextUnit.Text;
-            }
-
-            text += this.GetRewrittenWithActions();
-
-            text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
-
-            base.TextUnit = new TextUnit(text, this.MachineKeyword.TextUnit.Line);
-        }
-
-        /// <summary>
-        /// Rewrites the syntax node declaration to the intermediate C#
-        /// representation using any given program models.
-        /// </summary>
-        internal override void Model()
-        {
-            foreach (var node in this.FieldDeclarations)
-            {
-                node.Model();
-            }
-
-            foreach (var node in this.StateDeclarations)
-            {
-                node.Model();
-            }
 
             foreach (var node in this.MethodDeclarations)
             {
-                node.Model();
-            }
-
-            foreach (var node in this.FunctionDeclarations)
-            {
-                node.Model();
-            }
-
-            var text = this.GetRewrittenMachineDeclaration();
-
-            var realMethods = this.MethodDeclarations.FindAll(m => !m.IsModel);
-            var realFuctions = this.FunctionDeclarations.FindAll(m => !m.IsModel);
-            var modelMethods = this.MethodDeclarations.FindAll(m => m.IsModel);
-            var modelFunctions = this.FunctionDeclarations.FindAll(m => m.IsModel);
-
-            foreach (var node in realMethods)
-            {
-                if (!modelMethods.Any(m => m.Identifier.TextUnit.Text.Equals(
-                    node.Identifier.TextUnit.Text)))
-                {
-                    text += node.TextUnit.Text;
-                }
-            }
-
-            foreach (var node in realFuctions)
-            {
-                if (!modelFunctions.Any(m => m.Identifier.TextUnit.Text.Equals(
-                    node.Identifier.TextUnit.Text)))
-                {
-                    text += node.TextUnit.Text;
-                }
-            }
-
-            foreach (var node in modelMethods)
-            {
-                text += node.TextUnit.Text;
-            }
-
-            foreach (var node in modelFunctions)
-            {
                 text += node.TextUnit.Text;
             }
 
             text += this.GetRewrittenWithActions();
 
             text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
-            
+
             base.TextUnit = new TextUnit(text, this.MachineKeyword.TextUnit.Line);
         }
 
@@ -259,11 +165,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             if (this.IsMain)
             {
                 text += "[Main]\n";
-            }
-
-            if (base.IsModel)
-            {
-                text += "[Model]\n";
             }
 
             if (this.AccessModifier == AccessModifier.Public)

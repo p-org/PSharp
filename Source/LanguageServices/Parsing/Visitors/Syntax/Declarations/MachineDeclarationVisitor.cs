@@ -41,14 +41,13 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         /// <param name="program">Program</param>
         /// <param name="parentNode">Node</param>
         /// <param name="isMain">Is main machine</param>
-        /// <param name="isModel">Is a model</param>
         /// <param name="isMonitor">Is a monitor</param>
         /// <param name="accMod">Access modifier</param>
         /// <param name="inhMod">Inheritance modifier</param>
         internal void Visit(IPSharpProgram program, NamespaceDeclaration parentNode, bool isMain,
-            bool isModel, bool isMonitor, AccessModifier accMod, InheritanceModifier inhMod)
+            bool isMonitor, AccessModifier accMod, InheritanceModifier inhMod)
         {
-            var node = new MachineDeclaration(base.TokenStream.Program, isMain, isModel, isMonitor);
+            var node = new MachineDeclaration(base.TokenStream.Program, isMain, isMonitor);
             node.AccessModifier = accMod;
             node.InheritanceModifier = inhMod;
             node.MachineKeyword = base.TokenStream.Peek();
@@ -199,8 +198,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         break;
 
                     case TokenType.StartState:
+                    case TokenType.HotState:
+                    case TokenType.ColdState:
                     case TokenType.StateDecl:
-                    case TokenType.ModelDecl:
                     case TokenType.Void:
                     case TokenType.MachineDecl:
                     case TokenType.Object:
@@ -256,8 +256,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                             TokenType.Private,
                             TokenType.Protected,
                             TokenType.StartState,
+                            TokenType.HotState,
+                            TokenType.ColdState,
                             TokenType.StateDecl,
-                            TokenType.ModelDecl,
                             TokenType.LeftSquareBracket,
                             TokenType.RightCurlyBracket
                     });
@@ -274,7 +275,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             AccessModifier am = AccessModifier.None;
             InheritanceModifier im = InheritanceModifier.None;
             bool isStart = false;
-            bool isModel = false;
+            bool isHot = false;
+            bool isCold = false;
             bool isAsync = false;
 
             while (!base.TokenStream.Done &&
@@ -319,10 +321,24 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     throw new ParsingException("Duplicate start state modifier.",
                         new List<TokenType>());
                 }
-                else if (isModel &&
-                    base.TokenStream.Peek().Type == TokenType.ModelDecl)
+                else if (isHot &&
+                    base.TokenStream.Peek().Type == TokenType.HotState)
                 {
-                    throw new ParsingException("Duplicate model method modifier.",
+                    throw new ParsingException("Duplicate hot state modifier.",
+                        new List<TokenType>());
+                }
+                else if (isCold &&
+                    base.TokenStream.Peek().Type == TokenType.ColdState)
+                {
+                    throw new ParsingException("Duplicate cold state modifier.",
+                        new List<TokenType>());
+                }
+                else if ((isCold &&
+                    base.TokenStream.Peek().Type == TokenType.HotState) ||
+                    (isHot &&
+                    base.TokenStream.Peek().Type == TokenType.ColdState))
+                {
+                    throw new ParsingException("State cannot be both hot and cold.",
                         new List<TokenType>());
                 }
                 else if (isAsync &&
@@ -364,9 +380,13 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 {
                     isStart = true;
                 }
-                else if (base.TokenStream.Peek().Type == TokenType.ModelDecl)
+                else if (base.TokenStream.Peek().Type == TokenType.HotState)
                 {
-                    isModel = true;
+                    isHot = true;
+                }
+                else if (base.TokenStream.Peek().Type == TokenType.ColdState)
+                {
+                    isCold = true;
                 }
                 else if (base.TokenStream.Peek().Type == TokenType.Async)
                 {
@@ -452,19 +472,13 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         new List<TokenType>());
                 }
 
-                if (isModel)
-                {
-                    throw new ParsingException("A state cannot be a model.",
-                        new List<TokenType>());
-                }
-
                 if (isAsync)
                 {
                     throw new ParsingException("A state cannot be async.",
                         new List<TokenType>());
                 }
 
-                new StateDeclarationVisitor(base.TokenStream).Visit(parentNode, isStart, am);
+                new StateDeclarationVisitor(base.TokenStream).Visit(parentNode, isStart, isHot, isCold, am);
             }
             else
             {
@@ -479,8 +493,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         new List<TokenType>());
                 }
 
-                new FieldOrMethodDeclarationVisitor(base.TokenStream).Visit(parentNode,
-                    isModel, am, im, isAsync);
+                new FieldOrMethodDeclarationVisitor(base.TokenStream).Visit(parentNode, am, im, isAsync);
             }
         }
     }

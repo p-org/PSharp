@@ -57,7 +57,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <param name="program">Program</param>
         /// <param name="node">Node</param>
         internal ExpressionNode(IPSharpProgram program, BlockSyntax node)
-            : base(program, node.IsModel)
+            : base(program)
         {
             this.Parent = node;
             this.StmtTokens = new List<Token>();
@@ -89,15 +89,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             }
 
             base.TextUnit = new TextUnit(text, this.StmtTokens.First().TextUnit.Line);
-        }
-
-        /// <summary>
-        /// Rewrites the syntax node declaration to the intermediate C#
-        /// representation using any given program models.
-        /// </summary>
-        internal override void Model()
-        {
-            this.Rewrite();
         }
 
         #endregion

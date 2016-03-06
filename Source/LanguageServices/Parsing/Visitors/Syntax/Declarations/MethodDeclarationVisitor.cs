@@ -40,19 +40,13 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         /// <param name="parentNode">Node</param>
         /// <param name="typeIdentifier">Type identifier</param>
         /// <param name="identifier">Identifier</param>
-        /// <param name="isModel">Is model</param>
         /// <param name="accMod">Access modifier</param>
         /// <param name="inhMod">Inheritance modifier</param>
         /// <param name="isAsync">Is async</param>
         internal void Visit(MachineDeclaration parentNode, Token typeIdentifier, Token identifier,
-            bool isModel, AccessModifier accMod, InheritanceModifier inhMod, bool isAsync)
+            AccessModifier accMod, InheritanceModifier inhMod, bool isAsync)
         {
-            if (parentNode.IsModel)
-            {
-                isModel = true;
-            }
-
-            var node = new MethodDeclaration(base.TokenStream.Program, isModel);
+            var node = new MethodDeclaration(base.TokenStream.Program);
             node.AccessModifier = accMod;
             node.InheritanceModifier = inhMod;
             node.TypeIdentifier = typeIdentifier;
@@ -94,8 +88,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 
             if (base.TokenStream.Peek().Type == TokenType.LeftCurlyBracket)
             {
-                var blockNode = new BlockSyntax(base.TokenStream.Program, parentNode,
-                    null, parentNode.IsModel);
+                var blockNode = new BlockSyntax(base.TokenStream.Program, parentNode, null);
                 new BlockSyntaxVisitor(base.TokenStream).Visit(blockNode);
                 node.StatementBlock = blockNode;
             }
