@@ -29,15 +29,6 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
     /// </summary>
     internal sealed class MonitorRewriter : PSharpRewriter
     {
-        #region fields
-
-        /// <summary>
-        /// Nodes to be removed.
-        /// </summary>
-        private List<SyntaxNode> ToRemove;
-
-        #endregion
-
         #region public API
 
         /// <summary>
@@ -47,7 +38,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         internal MonitorRewriter(PSharpProject project)
             : base(project)
         {
-            this.ToRemove = new List<SyntaxNode>();
+
         }
 
         /// <summary>
@@ -71,8 +62,6 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
                 nodes: statements,
                 computeReplacementNode: (node, rewritten) => this.RewriteStatement(rewritten));
 
-            root = root.RemoveNodes(this.ToRemove, SyntaxRemoveOptions.KeepNoTrivia);
-
             return base.UpdateSyntaxTree(tree, root.ToString());
         }
 
@@ -87,12 +76,6 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// <returns>StatementSyntax</returns>
         private SyntaxNode RewriteStatement(InvocationExpressionSyntax node)
         {
-            if (this.Project.CompilationContext.ActiveCompilationTarget != CompilationTarget.Testing)
-            {
-                this.ToRemove.Add(node.Parent);
-                return node;
-            }
-
             var arguments = new List<ArgumentSyntax>();
             arguments.Add(node.ArgumentList.Arguments[0]);
 

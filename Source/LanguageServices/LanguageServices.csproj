@@ -115,9 +115,6 @@
     <Compile Include="Parsing\Visitors\Syntax\Declarations\StateExitDeclarationVisitor.cs" />
     <Compile Include="Parsing\Visitors\Syntax\Expressions\ArgumentsListVisitor.cs" />
     <Compile Include="Parsing\Visitors\Syntax\Expressions\AttributeListVisitor.cs" />
-    <Compile Include="Parsing\Visitors\Syntax\Types\MapTypeIdentifierVisitor.cs" />
-    <Compile Include="Parsing\Visitors\Syntax\Types\SeqTypeIdentifierVisitor.cs" />
-    <Compile Include="Parsing\Visitors\Syntax\Types\TupleTypeIdentifierVisitor.cs" />
     <Compile Include="Parsing\Visitors\Syntax\Types\TypeIdentifierVisitor.cs" />
     <Compile Include="Parsing\ParsingEngine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -158,11 +155,6 @@
     <Compile Include="Syntax\Modifiers\InheritanceModifier.cs" />
     <Compile Include="Programs\PSharpProgram.cs" />
     <Compile Include="Syntax\PSharpSyntaxNode.cs" />
-    <Compile Include="Syntax\PTypes\PBaseType.cs" />
-    <Compile Include="Syntax\PTypes\PMapType.cs" />
-    <Compile Include="Syntax\PTypes\PSeqType.cs" />
-    <Compile Include="Syntax\PTypes\PTupleType.cs" />
-    <Compile Include="Syntax\PTypes\PType.cs" />
     <Compile Include="Parsing\Tokens\TextUnit.cs" />
     <Compile Include="Parsing\Tokens\Token.cs" />
     <Compile Include="Parsing\Tokens\TokenStream.cs" />

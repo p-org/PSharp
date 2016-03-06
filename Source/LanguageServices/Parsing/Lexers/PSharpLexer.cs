@@ -306,17 +306,17 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 case "false":
                     this.Tokens.Add(new Token(unit, TokenType.False));
                     break;
-
-                case "sizeof":
-                    this.Tokens.Add(new Token(unit, TokenType.SizeOf));
-                    break;
-
+                    
                 case "in":
                     this.Tokens.Add(new Token(unit, TokenType.In));
                     break;
 
                 case "as":
                     this.Tokens.Add(new Token(unit, TokenType.As));
+                    break;
+
+                case "sizeof":
+                    this.Tokens.Add(new Token(unit, TokenType.SizeOf));
                     break;
 
                 case "if":

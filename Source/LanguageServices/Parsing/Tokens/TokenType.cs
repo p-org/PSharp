@@ -99,6 +99,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
 
         In,
         As,
+        SizeOf,
 
         IfCondition,
         ElseCondition,
@@ -179,23 +180,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
 
         NonDeterministic,
 
-        #endregion
-
-        #region P-specific tokens
-
-        FunDecl,
-
-        MainMachine,
-
-        SizeOf,
-        Keys,
-        Values,
-
-        Foreign,
-        Any,
-        Seq,
-        Map
-            
         #endregion
     }
 }

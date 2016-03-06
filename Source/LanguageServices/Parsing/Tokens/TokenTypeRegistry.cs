@@ -209,14 +209,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     text = "event";
                     break;
 
-                case TokenType.FunDecl:
-                    text = "fun";
-                    break;
-
-                case TokenType.MainMachine:
-                    text = "main";
-                    break;
-
                 case TokenType.StartState:
                     text = "start";
                     break;
@@ -293,10 +285,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     text = "false";
                     break;
 
-                case TokenType.SizeOf:
-                    text = "sizeof";
-                    break;
-
                 case TokenType.In:
                     text = "in";
                     break;
@@ -305,12 +293,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     text = "as";
                     break;
 
-                case TokenType.Keys:
-                    text = "keys";
-                    break;
-
-                case TokenType.Values:
-                    text = "values";
+                case TokenType.SizeOf:
+                    text = "sizeof";
                     break;
 
                 case TokenType.IfCondition:
@@ -479,22 +463,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
 
                 case TokenType.Double:
                     text = "double";
-                    break;
-
-                case TokenType.Foreign:
-                    text = "foreign";
-                    break;
-
-                case TokenType.Any:
-                    text = "any";
-                    break;
-
-                case TokenType.Seq:
-                    text = "seq";
-                    break;
-
-                case TokenType.Map:
-                    text = "map";
                     break;
 
                 default:
