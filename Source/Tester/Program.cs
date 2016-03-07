@@ -99,6 +99,8 @@ namespace Microsoft.PSharp
                 }
             }
 
+            Profiler.StartMeasuringExecutionTime();
+
             ProcessStartInfo info = ControllerSetUp.GetMonitorableProcessStartInfo(
                 AppDomain.CurrentDomain.BaseDirectory + "\\Microsoft.PSharp.DynamicRaceDetection.exe", // filename
                 new String[] { WrapString(input), configuration.DirectoryPath }, // arguments
@@ -134,10 +136,22 @@ namespace Microsoft.PSharp
             process.StartInfo = info;
             process.Start();
             process.WaitForExit();
+            Console.WriteLine("Instrumented Program time: " + Profiler.Results());
+            Profiler.StopMeasuringExecutionTime();
 
-            //Thread.Sleep(10000);
-            //OfflineRaceDetection.Program.findRaces();
+            /*Thread.Sleep(10000);
+            Profiler.StartMeasuringExecutionTime();
+            OfflineRaceDetection.Program.findRaces();
+            Console.WriteLine("Offline time: " + Profiler.Results());
+            Profiler.StopMeasuringExecutionTime();
+            */
+            
+
+            Profiler.StartMeasuringExecutionTime();
             OfflineRaces.Program.findRaces();
+            Console.WriteLine("Offline time with compressed graph: " + Profiler.Results());
+            Profiler.StopMeasuringExecutionTime();
+
         }
 
         /// <summary>

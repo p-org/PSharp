@@ -7,7 +7,7 @@ namespace TaskParallelismCheck
 {
     public class Test
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             /*var runtime = PSharpRuntime.Create();
             Test.Execute(runtime);
@@ -21,6 +21,7 @@ namespace TaskParallelismCheck
             configuration.Verbose = 2;
             configuration.SchedulingIterations = 1;
             configuration.SchedulingStrategy = SchedulingStrategy.Random;
+            configuration.ScheduleIntraMachineConcurrency = true;
 
             var engine = Microsoft.PSharp.SystematicTesting.TestingEngine.Create(configuration, Test.Execute).Run();
         }

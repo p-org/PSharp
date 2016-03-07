@@ -207,7 +207,17 @@ namespace OfflineRaces
 
                     //cPrintGraph();
                    
-                    //Console.WriteLine("Number of nodes in the new graph = " + cGraph.VertexCount);
+                    /*Console.WriteLine("Number of nodes = " + cGraph.VertexCount);
+                    int accesses = 0;
+                    foreach(Node n in cGraph.Vertices)
+                    {
+                        if (n.GetType().ToString().Contains("cActBegin"))
+                        {
+                            accesses += ((cActBegin)n).addresses.Count;
+                        }
+                    }
+                    Console.WriteLine("Number of accesses: " + accesses);
+                    */
 
                     detectRacesAgain();
 
@@ -218,8 +228,9 @@ namespace OfflineRaces
 
             }
 
-            Console.WriteLine("Press enter to exit");
+            /*Console.WriteLine("Press enter to exit");
             Console.ReadLine();
+            */
         }
 
         static void updateTasks(List<MachineTrace> machineTrace)
@@ -253,8 +264,6 @@ namespace OfflineRaces
 
         static void updateGraph(List<MachineTrace> machineTrace)
         {
-            Node latestAction = null;
-
             Node cLatestAction = null;
             foreach (MachineTrace mt in machineTrace)
             {
@@ -268,8 +277,10 @@ namespace OfflineRaces
                     }
                     catch (Exception)
                     {
-                        Console.WriteLine("crashing: " + mt.machineID + " " + mt.actionID);
+                        /*Console.WriteLine("crashing: " + mt.machineID + " " + mt.actionID);
                         Environment.Exit(0);
+                        */
+                        continue;
                     }
 
                     Node cn = new cActBegin(matching.machineID, matching.actionName, matching.actionID, mt.eventName, mt.eventID);
@@ -305,8 +316,7 @@ namespace OfflineRaces
                         if (ins.isSend)
                         {
                             MachineTrace machineSend = machineTrace.Where(item => item.machineID == matching.machineID && item.sendID == ins.sendID).Single();
-                            nd1 = new SendEvent(machineSend.machineID, machineSend.sendID, machineSend.toMachine, machineSend.sendEventName, machineSend.sendEventID);
-
+   
                             cn1 = new SendEvent(machineSend.machineID, machineSend.sendID, machineSend.toMachine, machineSend.sendEventName, machineSend.sendEventID);
                             cGraph.AddVertex(cn1);
                             cGraph.AddEdge(new Edge(cLatest, cn1));
@@ -318,8 +328,6 @@ namespace OfflineRaces
                         //user trace create machine 
                         else if (ins.isCreate)
                         {
-                            nd1 = new CreateMachine(ins.createMachineID);
-
                             cn1 = new CreateMachine(ins.createMachineID);
                             cGraph.AddVertex(cn1);
                             cGraph.AddEdge(new Edge(cLatest, cn1));
@@ -331,8 +339,6 @@ namespace OfflineRaces
                         //user trace task creation
                         else if (ins.isTask)
                         {
-                            nd1 = new CreateTask(ins.taskId);
-
                             cn1 = new CreateTask(ins.taskId);
                             cGraph.AddVertex(cn1);
                             cGraph.AddEdge(new Edge(cLatest, cn1));
@@ -344,13 +350,10 @@ namespace OfflineRaces
                         //user trace reads/writes
                         else
                         {
-                            nd1 = new MemAccess(ins.isWrite, ins.location, ins.objHandle, ins.offset, ins.srcLocation, mt.machineID);
-
                             ((cActBegin)cn).addresses.Add(new MemAccess(ins.isWrite, ins.location, ins.objHandle, ins.offset, ins.srcLocation, mt.machineID));
                             cn1 = cn;
-                            
+           
                         }
-                        latestAction = nd1;
 
                         cLatest = cn1;
                         cLatestAction = cn1;
@@ -444,7 +447,7 @@ namespace OfflineRaces
             Console.WriteLine("DETECTING RACES");
 
             List<Tuple<cActBegin, cActBegin>> checkRaces = new List<Tuple<cActBegin, cActBegin>>();
-            List<Tuple<cActBegin, cActBegin>> pathExists = new List<Tuple<cActBegin, cActBegin>>();
+            //List<Tuple<cActBegin, cActBegin>> pathExists = new List<Tuple<cActBegin, cActBegin>>();
 
             foreach (Node n1 in cGraph.Vertices)
             {
@@ -476,33 +479,32 @@ namespace OfflineRaces
 
                             if (found == false)
                                 continue;
-
-                            if (pathExists.Where(item => item.Item1.Equals(v1) && item.Item2.Equals(v2)).Any()) //Contains(new Tuple<cActBegin, cActBegin>(v1, v2)))
+                                
+                            /*if (pathExists.Where(item => item.Item1.Equals(v1) && item.Item2.Equals(v2)).Any()) //Contains(new Tuple<cActBegin, cActBegin>(v1, v2)))
                             {
-                                if (checkRaces.Contains(new Tuple<cActBegin, cActBegin>(v1, v2)))
+                                if (checkRaces.Where(item => item.Item1.Equals(v1) && item.Item2.Equals(v2)).Any())            //Contains(new Tuple<cActBegin, cActBegin>(v1, v2))
                                 {
                                     Tuple<cActBegin, cActBegin> remove = checkRaces.Where(item => item.Item1.Equals(v1)
                                     && item.Item2.Equals(v2)).Single();
                                     checkRaces.Remove(remove);
                                 }
                                 continue;
-                            }
+                            }*/
 
-                            if (cExistsPath(v1, v2))
+                            if (cExistsPath(v1, v2) || cExistsPath(v2, v1))
                             {
-                                pathExists.Add(new Tuple<cActBegin, cActBegin>(v2, v1));
-                                if (checkRaces.Contains(new Tuple<cActBegin, cActBegin>(v1, v2)))
+                                /*pathExists.Add(new Tuple<cActBegin, cActBegin>(v2, v1));
+                                if (checkRaces.Where(item => item.Item1.Equals(v1) && item.Item2.Equals(v2)).Any())    //Contains(new Tuple<cActBegin, cActBegin>(v1, v2))
                                 {
                                     Tuple<cActBegin, cActBegin> remove = checkRaces.Where(item => item.Item1.Equals(v1)
                                     && item.Item2.Equals(v2)).Single();
                                     checkRaces.Remove(remove);
                                     continue;
-                                }
+                                }*/
                             }
                             else
                             {
-                                if(!checkRaces.Where(item => item.Item2.GetHashCode() == v1.GetHashCode() && item.Item1.GetHashCode() == v2.GetHashCode()).Any())
-                                    checkRaces.Add(new Tuple<cActBegin, cActBegin>(v1, v2));
+                                checkRaces.Add(new Tuple<cActBegin, cActBegin>(v1, v2));
                             }
                         }
                     }
@@ -531,7 +533,7 @@ namespace OfflineRaces
 
                         if (m.objHandle == n.objHandle && m.offset == n.offset)
                         {
-                            Console.WriteLine("RACE: " + m.srcLocation + ";" + m.isWrite + " AND " + n.srcLocation + ";" + n.isWrite);
+                            Console.WriteLine("RACE: " + checking.Item1.GetHashCode() + " " + m.location + " " + checking.Item2.GetHashCode() + " " + n.location + " " + m.srcLocation + ";" + m.isWrite + " AND " + n.srcLocation + ";" + n.isWrite);
                             reportedRaces.Add(new Tuple<string, string>(m.srcLocation + ";" + m.isWrite, n.srcLocation + ";" + n.isWrite));
                         }
                     }

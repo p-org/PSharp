@@ -7,7 +7,7 @@ namespace TwoPhaseCommit
 {
     public class Test
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             /*var runtime = PSharpRuntime.Create();
             Test.Execute(runtime);

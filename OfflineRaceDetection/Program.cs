@@ -198,8 +198,9 @@ namespace OfflineRaceDetection
                 
             }
             
-            Console.WriteLine("Press enter to exit");
+            /*Console.WriteLine("Press enter to exit");
             Console.ReadLine();
+            */
         }
 
         static void updateTasks(List<MachineTrace> machineTrace)
