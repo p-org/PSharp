@@ -136,6 +136,8 @@ namespace Microsoft.PSharp
         /// </summary>
         private int SendId = 0;
 
+        private Event ExitEvent = null;
+
         #endregion
 
         #region machine constructors and destructors
@@ -711,6 +713,12 @@ namespace Microsoft.PSharp
                 // Checks if the event can trigger a goto state transition.
                 if (this.GotoTransitions.ContainsKey(e.GetType()))
                 {
+
+                    if (base.Runtime.Configuration.CheckDataRaces)
+                    {
+                        ExitEvent = e;
+                    }
+
                     var transition = this.GotoTransitions[e.GetType()];
                     Type targetState = transition.Item1;
                     Action onExitAction = transition.Item2;
@@ -1032,7 +1040,11 @@ namespace Microsoft.PSharp
                 {
                     this.ActionId++;
                     //MachineTrace trace = new MachineTrace(this.Id.GetHashCode(), action.Method.Name, this.ActionId, e.ToString(), e.GetHashCode());
-                    MachineTrace trace = new MachineTrace(this.Id.GetHashCode(), null, this.ActionId, null, 0);
+                    int eventCode = 0;
+                    if (ExitEvent != null)
+                        eventCode = ExitEvent.GetHashCode();
+                    MachineTrace trace = new MachineTrace(this.Id.GetHashCode(), null, this.ActionId, null, eventCode);
+                    ExitEvent = null;
                     this.RuntimeTrace.Add(trace);
                 }
 

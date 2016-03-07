@@ -136,7 +136,7 @@ namespace Microsoft.PSharp
             process.StartInfo = info;
             process.Start();
             process.WaitForExit();
-            Console.WriteLine("Instrumented Program time: " + Profiler.Results());
+            //Console.WriteLine("Instrumented Program time: " + Profiler.Results() + "s");
             Profiler.StopMeasuringExecutionTime();
 
             /*Thread.Sleep(10000);
@@ -146,12 +146,10 @@ namespace Microsoft.PSharp
             Profiler.StopMeasuringExecutionTime();
             */
             
-
             Profiler.StartMeasuringExecutionTime();
             OfflineRaces.Program.findRaces();
-            Console.WriteLine("Offline time with compressed graph: " + Profiler.Results());
-            Profiler.StopMeasuringExecutionTime();
-
+            //Console.WriteLine("Offline time with compressed graph: " + Profiler.Results() + "s");
+            Profiler.StopMeasuringExecutionTime();            
         }
 
         /// <summary>

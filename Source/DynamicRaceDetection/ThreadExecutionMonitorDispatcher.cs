@@ -185,15 +185,20 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
 
             if (recordRW && !callStack.Peek().FullName.Contains("Microsoft.PSharp") && objH != null)
             {
+                //Hack
+                if (callStack.Peek().ToString().Contains("Monitor"))
+                    return;
+                //end hack
+
                 ThreadTrace obj = thTrace[thTrace.Count - 1];
                 obj.accesses.Add(new ActionInstr(false, location, objH, objO, GetSourceLocation(location)));
-                //trace.Add("load: " + objH + " " + objO + " " + callStack.Peek());
+                trace.Add("load: " + objH + " " + objO + " " + callStack.Peek() + " " + GetSourceLocation(location));
             }
             else if (!callStack.Peek().FullName.Contains("Microsoft.PSharp") && objH != null)
             {
                 foreach (Tuple<Method, int> m in taskMethods)
                 {
-                    //TODO: This is fragile
+                    //TODO: This is fragile (for tasks)
                     if (callStack.Peek().ShortName.Contains(m.Item1.ShortName))
                     {
                         ThreadTrace obj = new ThreadTrace(m.Item2, m.Item1.ShortName);
@@ -273,10 +278,15 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
             //trace.Add("storing outside: " + location + " " + objH + " " + objO + " " + callStack.Peek() + recordRW);
             if (recordRW && !callStack.Peek().FullName.Contains("Microsoft.PSharp") && objH != null)
             {
+                //Hack
+                if (callStack.Peek().ToString().Contains("Monitor"))
+                    return;
+                //end hack
+
                 //trace.Add("got object handle: " + objH + " offset: " + objO);
                 ThreadTrace obj = thTrace[thTrace.Count - 1];
                 obj.accesses.Add(new ActionInstr(true, location, objH, objO, GetSourceLocation(location)));
-                //trace.Add("store: " + location + " " + objH + " " + objO + " " + callStack.Peek() + " " + (objH == UIntPtr.Zero));
+                trace.Add("store: " + location + " " + objH + " " + objO + " " + callStack.Peek() + " " + GetSourceLocation(location));
             }
             else if(!callStack.Peek().FullName.Contains("Microsoft.PSharp") && objH != null)
             {
@@ -378,7 +388,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
         /// <remarks>Only one to push on callstack.</remarks>
         public override bool EnterMethod(Method method)
         {
-            //trace.Add("Entering: " + method.FullName);
+            trace.Add("Entering: " + method.FullName);
             callStack.Push(method);
             if (isAction && !method.FullName.Contains("Microsoft.PSharp"))
             {
