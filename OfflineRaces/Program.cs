@@ -223,7 +223,7 @@ namespace OfflineRaces
 
                     cGraph.Clear();
                     allThreadTraces.Clear();
-                    Console.WriteLine("*************************************");
+                    Console.WriteLine("---------------------------------------------");
                 }
 
             }
@@ -444,7 +444,7 @@ namespace OfflineRaces
 
         static void detectRacesAgain()
         {
-            Console.WriteLine("DETECTING RACES");
+            Console.WriteLine("\nDETECTING RACES");
 
             List<Tuple<cActBegin, cActBegin>> checkRaces = new List<Tuple<cActBegin, cActBegin>>();
             //List<Tuple<cActBegin, cActBegin>> pathExists = new List<Tuple<cActBegin, cActBegin>>();
@@ -533,7 +533,7 @@ namespace OfflineRaces
 
                         if (m.objHandle == n.objHandle && m.offset == n.offset)
                         {
-                            Console.WriteLine("RACE: " + checking.Item1.GetHashCode() + " " + m.location + " " + checking.Item2.GetHashCode() + " " + n.location + " " + m.srcLocation + ";" + m.isWrite + " AND " + n.srcLocation + ";" + n.isWrite);
+                            Console.WriteLine("RACE: " + m.srcLocation + ";" + m.isWrite + " AND " + n.srcLocation + ";" + n.isWrite);
                             reportedRaces.Add(new Tuple<string, string>(m.srcLocation + ";" + m.isWrite, n.srcLocation + ";" + n.isWrite));
                         }
                     }

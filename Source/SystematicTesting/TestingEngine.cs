@@ -347,6 +347,7 @@ namespace Microsoft.PSharp.SystematicTesting
                     {
                         break;
                     }
+                    
 
                     this.Strategy.ConfigureNextIteration();
 
