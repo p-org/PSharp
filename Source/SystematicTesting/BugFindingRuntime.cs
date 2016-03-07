@@ -125,18 +125,6 @@ namespace Microsoft.PSharp.SystematicTesting
             this.IsRunning = true;
         }
 
-        // <summary>
-        /// Creates a new remote machine of the given type. The
-        /// remote machine is created locally for testing.
-        /// </summary>
-        /// <param name="type">Type of the machine</param>
-        /// <param name="endpoint">Endpoint</param>
-        /// <returns>MachineId</returns>
-        public override MachineId RemoteCreateMachine(Type type, string endpoint)
-        {
-            return this.TryCreateMachine(type);
-        }
-
         /// <summary>
         /// Sends an asynchronous event to a machine.
         /// </summary>
@@ -242,67 +230,75 @@ namespace Microsoft.PSharp.SystematicTesting
         /// Tries to create a new machine of the given type.
         /// </summary>
         /// <param name="type">Type of the machine</param>
+        /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        internal override MachineId TryCreateMachine(Type type)
+        internal override MachineId TryCreateMachine(Type type, Event e)
         {
-            if (type.IsSubclassOf(typeof(Machine)))
+            this.Assert(type.IsSubclassOf(typeof(Machine)), "Type '{0}' is not a machine.", type.Name);
+
+            MachineId mid = new MachineId(type, this);
+            Object machine = Activator.CreateInstance(type);
+            (machine as Machine).SetMachineId(mid);
+            (machine as Machine).InitializeStateInformation();
+
+            bool result = this.MachineMap.TryAdd(mid.Value, machine as Machine);
+            this.Assert(result, "Machine {0}({1}) was already created.", type.Name, mid.Value);
+
+            IO.Log("<CreateLog> Machine {0}({1}) is created.", type.Name, mid.MVal);
+
+            Task task = new Task(() =>
             {
-                MachineId mid = new MachineId(type, this);
-                Object machine = Activator.CreateInstance(type);
-                (machine as Machine).SetMachineId(mid);
-                (machine as Machine).InitializeStateInformation();
-                
-                if (!this.MachineMap.TryAdd(mid.Value, machine as Machine))
-                {
-                    this.Assert(false, "Machine {0}({1}) was already created.", type.Name, mid.Value);
-                }
+                this.BugFinder.NotifyTaskStarted();
 
-                IO.Log("<CreateLog> Machine {0}({1}) is created.", type.Name, mid.MVal);
+                (machine as Machine).GotoStartState(e);
+                (machine as Machine).RunEventHandler();
 
-                Task task = new Task(() =>
-                {
-                    this.BugFinder.NotifyTaskStarted();
-                    
-                    (machine as Machine).GotoStartState();
-                    (machine as Machine).RunEventHandler();
+                this.BugFinder.NotifyTaskCompleted();
+            });
 
-                    this.BugFinder.NotifyTaskCompleted();
-                });
+            lock (this.Lock)
+            {
+                this.MachineTasks.Add(task);
+                this.TaskMap.TryAdd(task.Id, machine as Machine);
+            }
 
-                lock (this.Lock)
-                {
-                    this.MachineTasks.Add(task);
-                    this.TaskMap.TryAdd(task.Id, machine as Machine);
-                }
+            this.BugFinder.NotifyNewTaskCreated(task.Id, machine as Machine);
 
-                this.BugFinder.NotifyNewTaskCreated(task.Id, machine as Machine);
-
-                if (this.Configuration.ScheduleIntraMachineConcurrency)
-                {
-                    task.Start(this.TaskScheduler);
-                }
-                else
-                {
-                    task.Start();
-                }
-
-                this.BugFinder.WaitForTaskToStart(task.Id);
-                this.BugFinder.Schedule();
-
-                return mid;
+            if (this.Configuration.ScheduleIntraMachineConcurrency)
+            {
+                task.Start(this.TaskScheduler);
             }
             else
             {
-                this.Assert(false, "Type '{0}' is not a machine.", type.Name);
-                return null;
+                task.Start();
             }
+
+            this.BugFinder.WaitForTaskToStart(task.Id);
+            this.BugFinder.Schedule();
+
+            return mid;
+        }
+
+        /// <summary>
+        /// Tries to create a new remote machine of the given type.
+        /// The remote machine is created locally for testing.
+        /// </summary>
+        /// <param name="type">Type of the machine</param>
+        /// <param name="endpoint">Endpoint</param>
+        /// <param name="e">Event</param>
+        /// <returns>MachineId</returns>
+        internal override MachineId TryCreateRemoteMachine(Type type, string endpoint, Event e)
+        {
+            this.Assert(type.IsSubclassOf(typeof(Machine)), "Type '{0}' is not a machine.", type.Name);
+            return this.TryCreateMachine(type, e);
         }
 
         /// <summary>
         /// Tries to create a new monitor of the given type.
         /// </summary>
         /// <param name="type">Type of the monitor</param>
-        internal override void TryCreateMonitor(Type type)
+        /// <param name="e">Event</param>
+        internal override void TryCreateMonitor(Type type, Event e)
         {
             this.Assert(type.IsSubclassOf(typeof(Monitor)), "Type '{0}' is not a " +
                 "subclass of Monitor.\n", type.Name);
@@ -321,7 +317,7 @@ namespace Microsoft.PSharp.SystematicTesting
                 this.LivenessChecker.RegisterMonitor(monitor as Monitor);
             }
             
-            (monitor as Monitor).GotoStartState();
+            (monitor as Monitor).GotoStartState(e);
         }
 
         /// <summary>

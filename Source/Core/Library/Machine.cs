@@ -136,33 +136,42 @@ namespace Microsoft.PSharp
         #region P# API methods
 
         /// <summary>
-        /// Creates a new machine of the given type.
+        /// Creates a new machine of the given type and with the
+        /// given optional event. This event can only be used to
+        /// access its payload, and cannot be handled.
         /// </summary>
         /// <param name="type">Type of the machine</param>
+        /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        protected internal MachineId CreateMachine(Type type)
+        protected internal MachineId CreateMachine(Type type, Event e = null)
         {
-            return base.Runtime.TryCreateMachine(type);
+            return base.Runtime.TryCreateMachine(type, e);
         }
 
         /// <summary>
-        /// Creates a new remote machine of the given type.
+        /// Creates a new remote machine of the given type and with
+        /// the given optional event. This event can only be used to
+        /// access its payload, and cannot be handled.
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="endpoint">Endpoint</param>
+        /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        protected internal MachineId CreateRemoteMachine(Type type, string endpoint)
+        protected internal MachineId CreateRemoteMachine(Type type, string endpoint, Event e = null)
         {
-            return base.Runtime.TryCreateRemoteMachine(type, endpoint);
+            return base.Runtime.TryCreateRemoteMachine(type, endpoint, e);
         }
 
         /// <summary>
-        /// Creates a new monitor of the given type.
+        /// Creates a new monitor of the given type and with the
+        /// given optional event. This event can only be used to
+        /// access its payload, and cannot be handled.
         /// </summary>
         /// <param name="type">Type of the monitor</param>
-        protected internal void CreateMonitor(Type type)
+        /// <param name="e">Event</param>
+        protected internal void CreateMonitor(Type type, Event e = null)
         {
-            base.Runtime.TryCreateMonitor(type);
+            base.Runtime.TryCreateMonitor(type, e);
         }
 
         /// <summary>
@@ -347,11 +356,13 @@ namespace Microsoft.PSharp
         #region internal methods
 
         /// <summary>
-        /// Transitions to the start state and executes the
+        /// Transitions to the start state, and executes the
         /// entry action, if there is any.
         /// </summary>
-        internal void GotoStartState()
+        /// <param name="e">Event</param>
+        internal void GotoStartState(Event e)
         {
+            this.ReceivedEvent = e;
             this.ExecuteCurrentStateOnEntry();
         }
 

@@ -123,11 +123,13 @@ namespace Microsoft.PSharp
         #region internal methods
 
         /// <summary>
-        /// Transitions to the start state and executes the
+        /// Transitions to the start state, and executes the
         /// entry action, if there is any.
         /// </summary>
-        internal void GotoStartState()
+        /// <param name="e">Event</param>
+        internal void GotoStartState(Event e)
         {
+            this.ReceivedEvent = e;
             this.ExecuteCurrentStateOnEntry();
         }
 

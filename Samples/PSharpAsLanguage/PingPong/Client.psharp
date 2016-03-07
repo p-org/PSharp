@@ -9,15 +9,14 @@ namespace PingPong
 
         private start state Init
         {
-            on Unit goto Playing;
-			on Config do Configure;
-        }
+			entry
+			{
+				this.Server = (trigger as Config).target;
+				this.Counter = 0;
+				raise(Unit);
+			}
 
-		private void Configure()
-        {
-            this.Server = (trigger as Config).target;
-			this.Counter = 0;
-			raise(Unit);
+            on Unit goto Playing;
         }
 
         private state Playing

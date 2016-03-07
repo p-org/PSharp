@@ -8,8 +8,7 @@
         {
             entry
             {
-				this.Client = create(Client);
-				send(this.Client, Config, this);
+				this.Client = create(Client , Config, this);
                 raise(Unit);
             }
 

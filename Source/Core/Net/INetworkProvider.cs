@@ -24,12 +24,14 @@ namespace Microsoft.PSharp.Net
     public interface INetworkProvider
     {
         /// <summary>
-        /// Creates a new remote machine of the given type.
+        /// Creates a new remote machine of the given
+        /// type and with the given event.
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="endpoint">Endpoint</param>
+        /// <param name="e">Event</param>
         /// <returns>MachineId</returns> 
-        MachineId RemoteCreateMachine(Type type, string endpoint);
+        MachineId RemoteCreateMachine(Type type, string endpoint, Event e);
 
         /// <summary>
         /// Sends an event to a remote machine.

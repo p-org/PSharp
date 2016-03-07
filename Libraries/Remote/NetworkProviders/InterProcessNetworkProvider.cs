@@ -108,14 +108,16 @@ namespace Microsoft.PSharp.Remote
         #region network provider methods
 
         /// <summary>
-        /// Creates a new remote machine of the given type.
+        /// Creates a new remote machine of the given
+        /// type and with the given event.
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="endpoint">Endpoint</param>
+        /// <param name="e">Event</param>
         /// <returns>MachineId</returns> 
-        MachineId INetworkProvider.RemoteCreateMachine(Type type, string endpoint)
+        MachineId INetworkProvider.RemoteCreateMachine(Type type, string endpoint, Event e)
         {
-            return this.Channel.CreateMachine(type.FullName);
+            return this.Channel.CreateMachine(type.FullName, e);
         }
 
         /// <summary>
@@ -142,15 +144,17 @@ namespace Microsoft.PSharp.Remote
         #region remote communication methods
 
         /// <summary>
-        /// Creates a new machine of the given type.
+        /// Creates a new machine of the given type and with
+        /// the given event.
         /// </summary>
         /// <param name="typeName">Type of the machine</param>
+        /// <param name="e">Event</param>
         /// <returns>MachineId</returns> 
-        MachineId IRemoteCommunication.CreateMachine(string typeName)
+        MachineId IRemoteCommunication.CreateMachine(string typeName, Event e)
         {
             this.Runtime.Log("<RemoteLog> Received request to create remote machine of type {0}", typeName);
             var resolvedType = this.GetMachineType(typeName);
-            return this.Runtime.CreateMachine(resolvedType);
+            return this.Runtime.CreateMachine(resolvedType, e);
         }
 
         /// <summary>

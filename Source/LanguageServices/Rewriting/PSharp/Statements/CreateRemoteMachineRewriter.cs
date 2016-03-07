@@ -20,8 +20,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-using Microsoft.PSharp.Utilities;
-
 namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 {
     /// <summary>
@@ -77,8 +75,31 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         private SyntaxNode RewriteStatement(InvocationExpressionSyntax node)
         {
             var arguments = new List<ArgumentSyntax>(node.ArgumentList.Arguments);
-            var machineIdentifier = arguments[0].ToString();
+            arguments.Add(node.ArgumentList.Arguments[0]);
+            arguments.Add(node.ArgumentList.Arguments[1]);
 
+            if (node.ArgumentList.Arguments.Count > 2)
+            {
+                arguments.Add(node.ArgumentList.Arguments[2]);
+
+                string payload = "";
+                for (int i = 3; i < node.ArgumentList.Arguments.Count; i++)
+                {
+                    if (i == node.ArgumentList.Arguments.Count - 1)
+                    {
+                        payload += node.ArgumentList.Arguments[i].ToString();
+                    }
+                    else
+                    {
+                        payload += node.ArgumentList.Arguments[i].ToString() + ", ";
+                    }
+                }
+
+                arguments[2] = SyntaxFactory.Argument(SyntaxFactory.ParseExpression(
+                    "new " + arguments[2].ToString() + "(" + payload + ")"));
+            }
+
+            var machineIdentifier = arguments[0].ToString();
             arguments[0] = SyntaxFactory.Argument(SyntaxFactory.TypeOfExpression(
                 SyntaxFactory.IdentifierName(machineIdentifier)));
 

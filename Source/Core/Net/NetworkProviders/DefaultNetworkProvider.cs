@@ -54,12 +54,14 @@ namespace Microsoft.PSharp.Net
         #region methods
 
         /// <summary>
-        /// Creates a new machine of the given type.
+        /// Creates a new remote machine of the given
+        /// type and with the given event.
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="endpoint">Endpoint</param>
+        /// <param name="e">Event</param>
         /// <returns>MachineId</returns> 
-        MachineId INetworkProvider.RemoteCreateMachine(Type type, string endpoint)
+        MachineId INetworkProvider.RemoteCreateMachine(Type type, string endpoint, Event e)
         {
             return this.Runtime.CreateMachine(type);
         }

@@ -14,8 +14,8 @@ namespace PingPong
 
 		void InitOnEntry()
         {
-            this.Client = this.CreateRemoteMachine(typeof(Client), "localhost:8000");
-            this.RemoteSend(this.Client, new Config(this.Id));
+            this.Client = this.CreateRemoteMachine(typeof(Client),
+                "localhost:8000", new Config(this.Id));
             this.Raise(new Unit());
         }
 

@@ -18,8 +18,7 @@ namespace FailureDetector
 
 				create(Safety);
 
-                this.FailureDetector = create(FailureDetector);
-				send(this.FailureDetector, FailureDetectorConfig, this.NodeSeq);
+                this.FailureDetector = create(FailureDetector, FailureDetectorConfig, this.NodeSeq);
 				send(this.FailureDetector, RegisterClient, this);
 
 				this.Fail();

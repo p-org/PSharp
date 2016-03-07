@@ -13,7 +13,7 @@ namespace FailureDetector
 
 		start state Init
         {
-			on FailureDetectorConfig do
+			entry
 			{
 				this.Nodes = new List<machine>();
 				this.Clients = new Dictionary<machine, bool>();
@@ -27,7 +27,7 @@ namespace FailureDetector
 				send(this.Timer, TimerConfig, this);
 
                 raise(Unit);
-			};
+			}
 
 			on RegisterClient do
 			{

@@ -222,33 +222,42 @@ namespace Microsoft.PSharp
         protected virtual void OnExit() { }
 
         /// <summary>
-        /// Creates a new machine of the given type.
+        /// Creates a new machine of the given type and with the
+        /// given optional event. This event can only be used to
+        /// access its payload, and cannot be handled.
         /// </summary>
         /// <param name="type">Type of the machine</param>
+        /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        protected internal MachineId CreateMachine(Type type)
+        protected internal MachineId CreateMachine(Type type, Event e = null)
         {
-            return this.Machine.CreateMachine(type);
+            return this.Machine.CreateMachine(type, e);
         }
 
         /// <summary>
-        /// Creates a new remote machine of the given type.
+        /// Creates a new remote machine of the given type and with
+        /// the given optional event. This event can only be used to
+        /// access its payload, and cannot be handled.
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="endpoint">Endpoint</param>
+        /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        protected internal MachineId CreateRemoteMachine(Type type, string endpoint)
+        protected internal MachineId CreateRemoteMachine(Type type, string endpoint, Event e = null)
         {
-            return this.Machine.CreateRemoteMachine(type, endpoint);
+            return this.Machine.CreateRemoteMachine(type, endpoint, e);
         }
 
         /// <summary>
-        /// Creates a new monitor of the given type.
+        /// Creates a new monitor of the given type and with the
+        /// given optional event. This event can only be used to
+        /// access its payload, and cannot be handled.
         /// </summary>
         /// <param name="type">Type of the monitor</param>
-        protected internal void CreateMonitor(Type type)
+        /// <param name="e">Event</param>
+        protected internal void CreateMonitor(Type type, Event e = null)
         {
-            this.Machine.CreateMonitor(type);
+            this.Machine.CreateMonitor(type, e);
         }
 
         /// <summary>
