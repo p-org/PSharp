@@ -9,7 +9,7 @@ namespace PingPong
         public MachineId Id;
 
         public Config(MachineId id)
-            : base(-1, -1)
+            : base()
         {
             this.Id = id;
         }
