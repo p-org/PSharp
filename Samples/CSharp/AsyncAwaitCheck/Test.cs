@@ -19,7 +19,7 @@ namespace AsyncAwaitCheck
             configuration.CheckDataRaces = true;
             configuration.SuppressTrace = true;
             configuration.Verbose = 2;
-            configuration.SchedulingIterations = 10;
+            configuration.SchedulingIterations = 20;
             configuration.SchedulingStrategy = SchedulingStrategy.Random;
             configuration.ScheduleIntraMachineConcurrency = true;
             configuration.FullExploration = true;
