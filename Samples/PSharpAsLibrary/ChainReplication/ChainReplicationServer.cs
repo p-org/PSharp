@@ -322,11 +322,11 @@ namespace ChainReplication
             this.History.Add(this.NextSeqId);
 
             this.Monitor<InvariantMonitor>(
-                new InvariantMonitor.HistoryUpdate(this.Id, this.History));
+                new InvariantMonitor.HistoryUpdate(this.Id, new List<int>(this.History)));
 
             this.SentHistory.Add(new SentLog(this.NextSeqId, client, key, value));
             this.Monitor<InvariantMonitor>(
-                new InvariantMonitor.SentUpdate(this.Id, this.SentHistory));
+                new InvariantMonitor.SentUpdate(this.Id, new List<SentLog>(this.SentHistory)));
 
             this.Send(this.Successor, new ForwardUpdate(this.Id, this.NextSeqId, client, key, value));
 
@@ -361,13 +361,13 @@ namespace ChainReplication
                 if (!this.IsTail)
                 {
                     this.History.Add(nextSeqId);
-
+                    
                     this.Monitor<InvariantMonitor>(
-                        new InvariantMonitor.HistoryUpdate(this.Id, this.History));
+                        new InvariantMonitor.HistoryUpdate(this.Id, new List<int>(this.History)));
 
                     this.SentHistory.Add(new SentLog(this.NextSeqId, client, key, value));
                     this.Monitor<InvariantMonitor>(
-                        new InvariantMonitor.SentUpdate(this.Id, this.SentHistory));
+                        new InvariantMonitor.SentUpdate(this.Id, new List<SentLog>(this.SentHistory)));
 
                     this.Send(this.Successor, new ForwardUpdate(this.Id, this.NextSeqId, client, key, value));
                 }
