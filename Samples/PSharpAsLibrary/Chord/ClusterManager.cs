@@ -9,6 +9,7 @@ namespace Chord
         #region events
 
         internal class CreateNewNode : Event { }
+        internal class TerminateNode : Event { }
         private class Local : Event { }
 
         #endregion
@@ -64,6 +65,7 @@ namespace Chord
 
         [OnEventDoAction(typeof(ChordNode.FindSuccessor), nameof(ForwardFindSuccessor))]
         [OnEventDoAction(typeof(CreateNewNode), nameof(ProcessCreateNewNode))]
+        [OnEventDoAction(typeof(TerminateNode), nameof(ProcessTerminateNode))]
         [OnEventDoAction(typeof(ChordNode.JoinAck), nameof(QueryStabilize))]
         class Waiting : MachineState { }
 
@@ -75,7 +77,6 @@ namespace Chord
         void ProcessCreateNewNode()
         {
             int newId = -1;
-            Random random = new Random(0);
             while ((newId < 0 || this.NodeIds.Contains(newId)) &&
                 this.NodeIds.Count < this.NumOfIds)
             {
@@ -98,6 +99,32 @@ namespace Chord
 
             this.Send(newNode, new ChordNode.Join(newId, new List<MachineId>(this.ChordNodes),
                 new List<int>(this.NodeIds), this.NumOfIds, this.Id));
+        }
+
+        void ProcessTerminateNode()
+        {
+            int endId = -1;
+            while ((endId < 0 || !this.NodeIds.Contains(endId)) &&
+                this.NodeIds.Count > 0)
+            {
+                for (int i = 0; i < this.ChordNodes.Count; i++)
+                {
+                    if (this.Random())
+                    {
+                        endId = i;
+                    }
+                }
+            }
+
+            this.Assert(endId >= 0, "Cannot find a node to terminate.");
+
+            var endNode = this.ChordNodes[endId];
+
+            this.NumOfNodes--;
+            this.NodeIds.Remove(endId);
+            this.ChordNodes.Remove(endNode);
+
+            this.Send(endNode, new ChordNode.Terminate());
         }
 
         void QueryStabilize()

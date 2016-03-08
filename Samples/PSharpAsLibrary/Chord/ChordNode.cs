@@ -156,6 +156,7 @@ namespace Chord
 
         internal class JoinAck : Event { }
         internal class Stabilize : Event { }
+        internal class Terminate : Event { }
         private class Local : Event { }
 
         #endregion
@@ -253,6 +254,7 @@ namespace Chord
         [OnEventDoAction(typeof(AskForKeysResp), nameof(UpdateKeys))]
         [OnEventDoAction(typeof(NotifySuccessor), nameof(UpdatePredecessor))]
         [OnEventDoAction(typeof(Stabilize), nameof(ProcessStabilize))]
+        [OnEventDoAction(typeof(Terminate), nameof(ProcessTerminate))]
         class Waiting : MachineState { }
 
         void ProcessFindSuccessor()
@@ -410,6 +412,11 @@ namespace Chord
             {
                 this.Keys.Add(key);
             }
+        }
+
+        void ProcessTerminate()
+        {
+            this.Raise(new Halt());
         }
 
         int GetSuccessorNodeId(int start, List<int> nodeIds)

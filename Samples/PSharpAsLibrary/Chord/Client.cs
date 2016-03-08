@@ -63,9 +63,13 @@ namespace Chord
                     var key = this.GetNextQueryKey();
                     this.Send(this.ClusterManager, new ChordNode.FindSuccessor(this.Id, key));
                 }
-                else
+                else if (this.Random())
                 {
                     this.Send(this.ClusterManager, new ClusterManager.CreateNewNode());
+                }
+                else
+                {
+                    this.Send(this.ClusterManager, new ClusterManager.TerminateNode());
                 }
 
                 this.QueryCounter++;
