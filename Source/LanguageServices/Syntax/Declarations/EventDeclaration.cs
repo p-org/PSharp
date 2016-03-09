@@ -153,7 +153,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             {
                 text += " internal ";
             }
-            else
+            else if (this.AccessModifier == AccessModifier.Public)
             {
                 text += " public ";
             }

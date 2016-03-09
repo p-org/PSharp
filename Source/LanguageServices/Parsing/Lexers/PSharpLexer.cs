@@ -187,6 +187,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     this.Tokens.Add(new Token(unit, TokenType.Public));
                     break;
 
+                case "partial":
+                    this.Tokens.Add(new Token(unit, TokenType.Partial));
+                    break;
+
                 case "abstract":
                     this.Tokens.Add(new Token(unit, TokenType.Abstract));
                     break;
@@ -519,7 +523,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 @"\bcreate\b|\braise\b|\bsend\b|\bto\b|" +
                 @"\bon\b|\bdo\b|\bgoto\b|\bpush\b|\bwith\b|" +
                 @"\bprivate\b|\bprotected\b|\binternal\b|\bpublic\b|" +
-                @"\babstract\b|\bvirtual\b|\boverride\b|" +
+                @"\bpartial\b|\babstract\b|\bvirtual\b|\boverride\b|" +
                 @"\block\b|\btry\b|\bcatch\b|" +
                 @"\basync\b|bawait\b|" +
                 @"\bvar\b|" +

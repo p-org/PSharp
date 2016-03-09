@@ -85,6 +85,17 @@ namespace Microsoft.PSharp.Utilities
         }
 
         /// <summary>
+        /// Reports a generic message to the user.
+        /// </summary>
+        /// <param name="s">String</param>
+        /// <param name="args">Parameters</param>
+        public static void WriteLine(string s, params object[] args)
+        {
+            string message = IO.Format(s, args);
+            Console.WriteLine(message);
+        }
+
+        /// <summary>
         /// Reports a generic message to the user and exits.
         /// </summary>
         /// <param name="s">String</param>

@@ -52,7 +52,7 @@ class M : Machine
 class S : MachineState
 {
 }
-private void Bar(){ }
+void Bar(){ }
 
 }
 }";

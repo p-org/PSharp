@@ -81,6 +81,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         Protected,
         Internal,
         Public,
+        Partial,
         Abstract,
         Virtual,
         Override,

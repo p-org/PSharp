@@ -165,6 +165,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     text = "public";
                     break;
 
+                case TokenType.Partial:
+                    text = "partial";
+                    break;
+
                 case TokenType.Abstract:
                     text = "abstract";
                     break;

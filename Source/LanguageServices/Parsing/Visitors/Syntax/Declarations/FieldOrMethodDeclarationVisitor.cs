@@ -41,8 +41,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         /// <param name="accMod">Access modifier</param>
         /// <param name="inhMod">Inheritance modifier</param>
         /// <param name="isAsync">Is async</param>
+        /// <param name="isPartial">Is partial</param>
         internal void Visit(MachineDeclaration parentNode, AccessModifier accMod,
-            InheritanceModifier inhMod, bool isAsync)
+            InheritanceModifier inhMod, bool isAsync, bool isPartial)
         {
             TextUnit textUnit = null;
             new TypeIdentifierVisitor(base.TokenStream).Visit(ref textUnit);
@@ -78,7 +79,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             if (base.TokenStream.Peek().Type == TokenType.LeftParenthesis)
             {
                 new MethodDeclarationVisitor(base.TokenStream).Visit(parentNode, typeIdentifier,
-                    identifierToken, accMod, inhMod, isAsync);
+                    identifierToken, accMod, inhMod, isAsync, isPartial);
             }
             else if (base.TokenStream.Peek().Type == TokenType.Semicolon)
             {
@@ -101,6 +102,12 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 if (isAsync)
                 {
                     throw new ParsingException("A field cannot be async.",
+                        new List<TokenType>());
+                }
+
+                if (isPartial)
+                {
+                    throw new ParsingException("A field cannot be partial.",
                         new List<TokenType>());
                 }
 

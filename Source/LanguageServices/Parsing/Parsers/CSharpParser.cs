@@ -36,6 +36,11 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         private List<Tuple<SyntaxToken, string>> ErrorLog;
 
         /// <summary>
+        /// The warning log.
+        /// </summary>
+        private List<Tuple<SyntaxToken, string>> WarningLog;
+
+        /// <summary>
         /// Skips error checking.
         /// </summary>
         private bool SkipErrorChecking;
@@ -51,6 +56,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             : base()
         {
             this.ErrorLog = new List<Tuple<SyntaxToken, string>>();
+            this.WarningLog = new List<Tuple<SyntaxToken, string>>();
             this.SkipErrorChecking = false;
         }
 
@@ -63,6 +69,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             : base(project, tree, true)
         {
             this.ErrorLog = new List<Tuple<SyntaxToken, string>>();
+            this.WarningLog = new List<Tuple<SyntaxToken, string>>();
             this.SkipErrorChecking = false;
         }
 
@@ -76,6 +83,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
             : base(project, tree, false)
         {
             this.ErrorLog = new List<Tuple<SyntaxToken, string>>();
+            this.WarningLog = new List<Tuple<SyntaxToken, string>>();
             this.SkipErrorChecking = skipErrorChecking;
         }
 
@@ -92,12 +100,28 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 this.ParseSyntaxTree();
             }
 
+            if (this.WarningLog.Count > 0 &&
+                (base.Project.CompilationContext.Configuration.ShowWarnings ||
+                base.Project.CompilationContext.Configuration.Verbose > 1))
+            {
+                this.ReportParsingWarnings();
+            }
+
             if (this.ErrorLog.Count > 0)
             {
                 this.ReportParsingErrors();
             }
 
             return this.Program;
+        }
+
+        /// <summary>
+        /// Returns the parsing warning log.
+        /// </summary>
+        /// <returns>Parsing warning log</returns>
+        public List<Tuple<SyntaxToken, string>> GetParsingWarningLog()
+        {
+            return this.WarningLog;
         }
 
         /// <summary>
@@ -131,14 +155,43 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// </summary>
         private void ParseSyntaxTree()
         {
-            new MachineDeclarationParser(base.Project, this.ErrorLog).
+            new MachineDeclarationParser(base.Project, this.ErrorLog, this.WarningLog).
                 Parse(base.SyntaxTree);
-            new MonitorDeclarationParser(base.Project, this.ErrorLog).
+            new MonitorDeclarationParser(base.Project, this.ErrorLog, this.WarningLog).
                 Parse(base.SyntaxTree);
-            new MachineStateDeclarationParser(base.Project, this.ErrorLog).
+            new MachineStateDeclarationParser(base.Project, this.ErrorLog, this.WarningLog).
                 Parse(base.SyntaxTree);
-            new MonitorStateDeclarationParser(base.Project, this.ErrorLog).
+            new MonitorStateDeclarationParser(base.Project, this.ErrorLog, this.WarningLog).
                 Parse(base.SyntaxTree);
+        }
+
+        /// <summary>
+        /// Reports the parsing warnings. Only works if the parser is
+        /// running internally.
+        /// </summary>
+        private void ReportParsingWarnings()
+        {
+            if (!base.IsRunningInternally)
+            {
+                return;
+            }
+
+            foreach (var warning in this.WarningLog)
+            {
+                var report = warning.Item2;
+                var warningLine = base.SyntaxTree.GetLineSpan(warning.Item1.Span).StartLinePosition.Line + 1;
+
+                var root = base.SyntaxTree.GetRoot();
+                var lines = System.Text.RegularExpressions.Regex.Split(root.ToFullString(), "\r\n|\r|\n");
+
+                report += "\nIn " + this.SyntaxTree.FilePath + " (line " + warningLine + "):\n";
+                report += " " + lines[warningLine - 1];
+
+                ErrorReporter.ReportWarning(report);
+            }
+
+            ErrorReporter.WriteLine("Found {0} parsing warnings{1}.", this.WarningLog.Count,
+                this.WarningLog.Count == 1 ? "" : "s");
         }
 
         /// <summary>

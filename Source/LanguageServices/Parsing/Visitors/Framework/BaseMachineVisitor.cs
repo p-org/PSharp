@@ -55,8 +55,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// </summary>
         /// <param name="project">PSharpProject</param>
         /// <param name="errorLog">Error log</param>
-        internal BaseMachineVisitor(PSharpProject project, List<Tuple<SyntaxToken, string>> errorLog)
-            : base(project, errorLog)
+        /// <param name="warningLog">Warning log</param>
+        internal BaseMachineVisitor(PSharpProject project, List<Tuple<SyntaxToken, string>> errorLog,
+            List<Tuple<SyntaxToken, string>> warningLog)
+            : base(project, errorLog, warningLog)
         {
             this.Actions = new Dictionary<ClassDeclarationSyntax, List<MethodDeclarationSyntax>>();
             this.ActionsThatRaise = new Dictionary<ClassDeclarationSyntax, List<MethodDeclarationSyntax>>();
@@ -351,8 +353,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
             if (states.Count == 0)
             {
-                base.ErrorLog.Add(Tuple.Create(machine.Identifier, this.GetTypeOfMachine().ToLower() + " '" +
-                    machine.Identifier.ValueText + "' must declare at least one state."));
+                base.WarningLog.Add(Tuple.Create(machine.Identifier, this.GetTypeOfMachine().ToLower() + " '" +
+                    machine.Identifier.ValueText + "' must declare at least one state (unless the machine is " +
+                    "partial, and one state has been already declared in another part of the declaration)."));
             }
         }
 
@@ -412,8 +415,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
             if (stateAttributes.Count == 0)
             {
-                base.ErrorLog.Add(Tuple.Create(machine.Identifier, this.GetTypeOfMachine().ToLower() + " '" +
-                    machine.Identifier.ValueText + "' must declare a start state."));
+                base.WarningLog.Add(Tuple.Create(machine.Identifier, this.GetTypeOfMachine().ToLower() + " '" +
+                    machine.Identifier.ValueText + "' must declare a start state (unless the machine is " +
+                    "partial, and one state has been already declared in another part of the declaration)."));
             }
             else if (stateAttributes.Count > 1)
             {
@@ -448,7 +452,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
                 if (hasNestedRaise)
                 {
-                    base.ErrorLog.Add(Tuple.Create(action.Identifier, "Method '" + action.Identifier.ValueText +
+                    base.WarningLog.Add(Tuple.Create(action.Identifier, "Method '" + action.Identifier.ValueText +
                         "' of " + this.GetTypeOfMachine().ToLower() + " `" + machine.Identifier.ValueText +
                         "` must not call a method that raises an event."));
                 }
@@ -481,7 +485,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
                 if (hasNestedPop)
                 {
-                    base.ErrorLog.Add(Tuple.Create(action.Identifier, "Method '" + action.Identifier.ValueText +
+                    base.WarningLog.Add(Tuple.Create(action.Identifier, "Method '" + action.Identifier.ValueText +
                         "' of " + this.GetTypeOfMachine().ToLower() + " `" + machine.Identifier.ValueText +
                         "` must not call a method that pops a state."));
                 }
@@ -515,7 +519,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
                 if (hasRaise)
                 {
-                    base.ErrorLog.Add(Tuple.Create(method.Identifier, "Method '" + method.Identifier.ValueText +
+                    base.WarningLog.Add(Tuple.Create(method.Identifier, "Method '" + method.Identifier.ValueText +
                         "' of " + this.GetTypeOfMachine().ToLower() + " `" + machine.Identifier.ValueText +
                         "` must not raise an event."));
                 }
@@ -537,7 +541,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
                 if (hasNestedRaise)
                 {
-                    base.ErrorLog.Add(Tuple.Create(method.Identifier, "Method '" + method.Identifier.ValueText +
+                    base.WarningLog.Add(Tuple.Create(method.Identifier, "Method '" + method.Identifier.ValueText +
                         "' of " + this.GetTypeOfMachine().ToLower() + " `" + machine.Identifier.ValueText +
                         "` must not call a method that raises an event."));
                 }
@@ -571,7 +575,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
                 if (hasPop)
                 {
-                    base.ErrorLog.Add(Tuple.Create(method.Identifier, "Method '" + method.Identifier.ValueText +
+                    base.WarningLog.Add(Tuple.Create(method.Identifier, "Method '" + method.Identifier.ValueText +
                         "' of " + this.GetTypeOfMachine().ToLower() + " `" + machine.Identifier.ValueText +
                         "` must not pop a state."));
                 }
@@ -593,7 +597,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
                 if (hasNestedPop)
                 {
-                    base.ErrorLog.Add(Tuple.Create(method.Identifier, "Method '" + method.Identifier.ValueText +
+                    base.WarningLog.Add(Tuple.Create(method.Identifier, "Method '" + method.Identifier.ValueText +
                         "' of " + this.GetTypeOfMachine().ToLower() + " `" + machine.Identifier.ValueText +
                         "` must not call a method that pops a state."));
                 }

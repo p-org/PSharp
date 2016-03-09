@@ -48,7 +48,7 @@ namespace Foo
 {
 class M : Machine
 {
-private int k;
+int k;
 [Microsoft.PSharp.Start]
 class S : MachineState
 {
@@ -82,7 +82,7 @@ namespace Foo
 {
 class M : Machine
 {
-private MachineId N;
+MachineId N;
 [Microsoft.PSharp.Start]
 class S : MachineState
 {
@@ -116,7 +116,7 @@ namespace Foo
 {
 class M : Machine
 {
-private List<int> k;
+List<int> k;
 [Microsoft.PSharp.Start]
 class S : MachineState
 {

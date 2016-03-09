@@ -40,14 +40,14 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         /// </summary>
         /// <param name="program">Program</param>
         /// <param name="parentNode">Node</param>
-        /// <param name="isMain">Is main machine</param>
         /// <param name="isMonitor">Is a monitor</param>
+        /// <param name="isPartial">Is partial</param>
         /// <param name="accMod">Access modifier</param>
         /// <param name="inhMod">Inheritance modifier</param>
-        internal void Visit(IPSharpProgram program, NamespaceDeclaration parentNode, bool isMain,
-            bool isMonitor, AccessModifier accMod, InheritanceModifier inhMod)
+        internal void Visit(IPSharpProgram program, NamespaceDeclaration parentNode, bool isMonitor,
+            bool isPartial, AccessModifier accMod, InheritanceModifier inhMod)
         {
-            var node = new MachineDeclaration(base.TokenStream.Program, isMain, isMonitor);
+            var node = new MachineDeclaration(base.TokenStream.Program, isMonitor, isPartial);
             node.AccessModifier = accMod;
             node.InheritanceModifier = inhMod;
             node.MachineKeyword = base.TokenStream.Peek();
@@ -224,6 +224,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     case TokenType.Internal:
                     case TokenType.Public:
                     case TokenType.Async:
+                    case TokenType.Partial:
                         this.VisitMachineLevelDeclaration(node);
                         base.TokenStream.Index++;
                         break;
@@ -278,6 +279,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             bool isHot = false;
             bool isCold = false;
             bool isAsync = false;
+            bool isPartial = false;
 
             while (!base.TokenStream.Done &&
                 base.TokenStream.Peek().Type != TokenType.StateDecl &&
@@ -347,6 +349,12 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     throw new ParsingException("Duplicate async method modifier.",
                         new List<TokenType>());
                 }
+                else if (isPartial &&
+                    base.TokenStream.Peek().Type == TokenType.Partial)
+                {
+                    throw new ParsingException("Duplicate partial method modifier.",
+                        new List<TokenType>());
+                }
 
                 if (base.TokenStream.Peek().Type == TokenType.Public)
                 {
@@ -391,6 +399,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 else if (base.TokenStream.Peek().Type == TokenType.Async)
                 {
                     isAsync = true;
+                }
+                else if (base.TokenStream.Peek().Type == TokenType.Partial)
+                {
+                    isPartial = true;
                 }
 
                 base.TokenStream.Index++;
@@ -478,6 +490,12 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         new List<TokenType>());
                 }
 
+                if (isPartial)
+                {
+                    throw new ParsingException("A state cannot be partial.",
+                        new List<TokenType>());
+                }
+
                 new StateDeclarationVisitor(base.TokenStream).Visit(parentNode, isStart, isHot, isCold, am);
             }
             else
@@ -493,7 +511,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         new List<TokenType>());
                 }
 
-                new FieldOrMethodDeclarationVisitor(base.TokenStream).Visit(parentNode, am, im, isAsync);
+                new FieldOrMethodDeclarationVisitor(base.TokenStream).Visit(parentNode, am, im, isAsync, isPartial);
             }
         }
     }

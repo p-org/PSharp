@@ -70,6 +70,10 @@ namespace Microsoft.PSharp.Utilities
                         "where [x] is 'all', 'exe', 'lib' or 'test'.");
                 }
             }
+            else if (option.ToLower().Equals("/warnings"))
+            {
+                base.Configuration.ShowWarnings = true;
+            }
             else if (option.ToLower().Equals("/analyze"))
             {
                 base.Configuration.RunStaticAnalysis = true;
@@ -131,6 +135,7 @@ namespace Microsoft.PSharp.Utilities
             help += "\n  /o:[x]\t Path for output files";
             help += "\n  /timeout:[x]\t Timeout for the tool (default is no timeout)";
             help += "\n  /v:[x]\t Enable verbose mode (values from '1' to '3')";
+            help += "\n  /warnings\t Show warnings";
             help += "\n  /debug\t Enable debugging";
 
             help += "\n\n--------------------";

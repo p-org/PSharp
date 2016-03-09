@@ -1,0 +1,38 @@
+﻿using System;
+
+namespace PartialPingPong
+{
+    partial machine Client
+    {
+        machine Server;
+        int Counter;
+
+        start state Init
+        {
+			entry
+			{
+				this.Server = (trigger as Config).target;
+				this.Counter = 0;
+				raise(Unit);
+			}
+
+            on Unit goto Playing;
+        }
+
+        state Playing
+        {
+            entry
+            {
+                if (this.Counter == 5)
+                {
+					raise(halt);
+                }
+            }
+
+            on Unit goto Playing;
+            on Pong do SendPing;
+        }
+
+        partial void SendPing();
+    }
+}

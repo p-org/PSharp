@@ -14,14 +14,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-
-using Microsoft.PSharp.LanguageServices.Syntax;
 
 namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 {
@@ -42,6 +36,11 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// </summary>
         protected List<Tuple<SyntaxToken, string>> ErrorLog;
 
+        /// <summary>
+        /// The warning log.
+        /// </summary>
+        protected List<Tuple<SyntaxToken, string>> WarningLog;
+
         #endregion
 
         #region protected API
@@ -51,10 +50,13 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// </summary>
         /// <param name="project">PSharpProject</param>
         /// <param name="errorLog">Error log</param>
-        protected BaseVisitor(PSharpProject project, List<Tuple<SyntaxToken, string>> errorLog)
+        /// <param name="warningLog">Warning log</param>
+        protected BaseVisitor(PSharpProject project, List<Tuple<SyntaxToken, string>> errorLog,
+            List<Tuple<SyntaxToken, string>> warningLog)
         {
             this.Project = project;
             this.ErrorLog = errorLog;
+            this.WarningLog = warningLog;
         }
 
         #endregion

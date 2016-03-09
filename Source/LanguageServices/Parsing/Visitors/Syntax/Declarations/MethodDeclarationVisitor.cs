@@ -43,8 +43,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         /// <param name="accMod">Access modifier</param>
         /// <param name="inhMod">Inheritance modifier</param>
         /// <param name="isAsync">Is async</param>
+        /// <param name="isPartial">Is partial</param>
         internal void Visit(MachineDeclaration parentNode, Token typeIdentifier, Token identifier,
-            AccessModifier accMod, InheritanceModifier inhMod, bool isAsync)
+            AccessModifier accMod, InheritanceModifier inhMod, bool isAsync, bool isPartial)
         {
             var node = new MethodDeclaration(base.TokenStream.Program);
             node.AccessModifier = accMod;
@@ -52,6 +53,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             node.TypeIdentifier = typeIdentifier;
             node.Identifier = identifier;
             node.IsAsync = isAsync;
+            node.IsPartial = isPartial;
 
             node.LeftParenthesisToken = base.TokenStream.Peek();
 

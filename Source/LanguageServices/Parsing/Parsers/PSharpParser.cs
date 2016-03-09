@@ -102,6 +102,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
 
                     case TokenType.Internal:
                     case TokenType.Public:
+                    case TokenType.Partial:
                     case TokenType.Abstract:
                     case TokenType.Virtual:
                     case TokenType.EventDecl:
@@ -262,6 +263,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 {
                     TokenType.Internal,
                     TokenType.Public,
+                    TokenType.Partial,
                     TokenType.Abstract,
                     TokenType.Virtual,
                     TokenType.EventDecl,
@@ -296,6 +298,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 case TokenType.Monitor:
                 case TokenType.Internal:
                 case TokenType.Public:
+                case TokenType.Partial:
                 case TokenType.Abstract:
                 case TokenType.Virtual:
                     this.VisitEventOrMachineDeclaration(node);
@@ -339,6 +342,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         {
             AccessModifier am = AccessModifier.None;
             InheritanceModifier im = InheritanceModifier.None;
+            bool isPartial = false;
 
             while (!base.TokenStream.Done &&
                 base.TokenStream.Peek().Type != TokenType.EventDecl &&
@@ -358,6 +362,12 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     base.TokenStream.Peek().Type == TokenType.Abstract)
                 {
                     throw new ParsingException("Duplicate abstract modifier.",
+                        new List<TokenType>());
+                }
+                else if (isPartial &&
+                    base.TokenStream.Peek().Type == TokenType.Partial)
+                {
+                    throw new ParsingException("Duplicate partial modifier.",
                         new List<TokenType>());
                 }
 
@@ -380,6 +390,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 else if (base.TokenStream.Peek().Type == TokenType.Abstract)
                 {
                     im = InheritanceModifier.Abstract;
+                }
+                else if (base.TokenStream.Peek().Type == TokenType.Partial)
+                {
+                    isPartial = true;
                 }
 
                 base.TokenStream.Index++;
@@ -419,6 +433,12 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                         new List<TokenType>());
                 }
 
+                if (isPartial)
+                {
+                    throw new ParsingException("An event cannot be declared as partial.",
+                        new List<TokenType>());
+                }
+
                 new EventDeclarationVisitor(base.TokenStream).Visit(null, parentNode, am);
             }
             else if (base.TokenStream.Peek().Type == TokenType.MachineDecl)
@@ -435,7 +455,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 }
 
                 new MachineDeclarationVisitor(base.TokenStream).Visit(null, parentNode,
-                    false, false, am, im);
+                    false, isPartial, am, im);
             }
             else if (base.TokenStream.Peek().Type == TokenType.Monitor)
             {
@@ -451,7 +471,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 }
 
                 new MachineDeclarationVisitor(base.TokenStream).Visit(null, parentNode,
-                    false, true, am, im);
+                    true, isPartial, am, im);
             }
         }
 

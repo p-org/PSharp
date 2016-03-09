@@ -20,8 +20,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-using Microsoft.PSharp.Utilities;
-
 namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 {
     /// <summary>
@@ -36,8 +34,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// </summary>
         /// <param name="project">PSharpProject</param>
         /// <param name="errorLog">Error log</param>
-        internal MachineStateDeclarationParser(PSharpProject project, List<Tuple<SyntaxToken, string>> errorLog)
-            : base(project, errorLog)
+        /// <param name="warningLog">Warning log</param>
+        internal MachineStateDeclarationParser(PSharpProject project, List<Tuple<SyntaxToken, string>> errorLog,
+            List<Tuple<SyntaxToken, string>> warningLog)
+            : base(project, errorLog, warningLog)
         {
 
         }

@@ -66,6 +66,11 @@ namespace Microsoft.PSharp.Utilities
         public HashSet<CompilationTarget> CompilationTargets;
 
         /// <summary>
+        /// If true, then show warnings.
+        /// </summary>
+        public bool ShowWarnings;
+
+        /// <summary>
         /// Run the analysis stage of the compiler.
         /// </summary>
         public bool RunStaticAnalysis;
@@ -244,6 +249,7 @@ namespace Microsoft.PSharp.Utilities
             this.CompilationTargets = new HashSet<CompilationTarget>();
             this.CompilationTargets.Add(CompilationTarget.Execution);
 
+            this.ShowWarnings = false;
             this.RunStaticAnalysis = false;
             this.ShowGivesUpInformation = false;
             this.ShowRuntimeResults = false;

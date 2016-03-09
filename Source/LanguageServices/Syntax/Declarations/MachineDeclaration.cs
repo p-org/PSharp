@@ -28,14 +28,14 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         #region fields
 
         /// <summary>
-        /// True if the machine is the main machine.
-        /// </summary>
-        internal readonly bool IsMain;
-
-        /// <summary>
         /// True if the machine is a monitor.
         /// </summary>
         internal readonly bool IsMonitor;
+
+        /// <summary>
+        /// True if the machine is partial.
+        /// </summary>
+        internal bool IsPartial;
 
         /// <summary>
         /// The machine keyword.
@@ -100,14 +100,13 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Constructor.
         /// </summary>
         /// <param name="program">Program</param>
-        /// <param name="isPSharp">Is P# machine</param>
-        /// <param name="isMain">Is main machine</param>
         /// <param name="isMonitor">Is a monitor</param>
-        internal MachineDeclaration(IPSharpProgram program, bool isMain, bool isMonitor)
+        /// <param name="isPartial">Is partial</param>
+        internal MachineDeclaration(IPSharpProgram program, bool isMonitor, bool isPartial)
             : base(program)
         {
-            this.IsMain = isMain;
             this.IsMonitor = isMonitor;
+            this.IsPartial = isPartial;
             this.BaseNameTokens = new List<Token>();
             this.FieldDeclarations = new List<FieldDeclaration>();
             this.StateDeclarations = new List<StateDeclaration>();
@@ -162,11 +161,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         {
             var text = "";
 
-            if (this.IsMain)
-            {
-                text += "[Main]\n";
-            }
-
             if (this.AccessModifier == AccessModifier.Public)
             {
                 text += "public ";
@@ -174,6 +168,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             else if (this.AccessModifier == AccessModifier.Internal)
             {
                 text += "internal ";
+            }
+
+            if (this.IsPartial)
+            {
+                text += "partial ";
             }
 
             if (this.InheritanceModifier == InheritanceModifier.Abstract)

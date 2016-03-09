@@ -43,6 +43,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         internal bool IsAsync;
 
         /// <summary>
+        /// Is the method partial.
+        /// </summary>
+        internal bool IsPartial;
+
+        /// <summary>
         /// The type identifier.
         /// </summary>
         internal Token TypeIdentifier;
@@ -118,9 +123,14 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             {
                 text += "protected ";
             }
-            else
+            else if (this.AccessModifier == AccessModifier.Private)
             {
                 text += "private ";
+            }
+
+            if (this.IsPartial)
+            {
+                text += "partial ";
             }
 
             if (this.IsAsync)

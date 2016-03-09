@@ -94,7 +94,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             {
                 text += "protected ";
             }
-            else
+            else if (this.AccessModifier == AccessModifier.Private)
             {
                 text += "private ";
             }

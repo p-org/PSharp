@@ -47,7 +47,7 @@ namespace Foo
 {
 class e1 : Event
 {
- public e1()
+e1()
   : base()
  { }
 }
