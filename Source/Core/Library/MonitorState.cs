@@ -145,6 +145,12 @@ namespace Microsoft.PSharp
             {
                 var method = this.Monitor.GetType().GetMethod(attr.Action,
                     BindingFlags.NonPublic | BindingFlags.Instance);
+
+                this.Assert(method.GetParameters().Length == 0, "Action '{0}' in monitor '{1}' " +
+                    "must have 0 formal parameters.", method.Name, this.Monitor.GetType().Name);
+                this.Assert(method.ReturnType == typeof(void), "Action '{0}' in monitor '{1}' " +
+                    "must have 'void' return type.", method.Name, this.Monitor.GetType().Name);
+
                 var action = (Action)Delegate.CreateDelegate(typeof(Action), this.Monitor, method);
                 this.ActionBindings.Add(attr.Event, action);
             }

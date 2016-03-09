@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.SystematicTesting.Scheduling;
@@ -290,7 +291,17 @@ namespace Microsoft.PSharp.SystematicTesting
                     }
                     else
                     {
-                        this.TestMethod.Invoke(null, new object[] { runtime });
+                        try
+                        {
+                            this.TestMethod.Invoke(null, new object[] { runtime });
+                        }
+                        catch (TargetInvocationException ex)
+                        {
+                            if (!(ex.InnerException is TaskCanceledException))
+                            {
+                                ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+                            }
+                        }
                     }
 
                     // Wait for test to terminate.
@@ -361,17 +372,22 @@ namespace Microsoft.PSharp.SystematicTesting
                     task.Wait();
                 }
             }
-            catch (AggregateException ex)
+            catch (AggregateException aex)
             {
                 if (this.HasRedirectedConsoleOutput)
                 {
                     this.ResetOutput();
                 }
 
-                IO.Debug(ex.Message);
-                IO.Debug(ex.StackTrace);
-                ErrorReporter.ReportAndExit("Internal systematic testing exception. " +
-                    "Please send a bug report to the developers.");
+                aex.Handle((ex) =>
+                {
+                    IO.Debug(ex.Message);
+                    IO.Debug(ex.StackTrace);
+                    return true;
+                });
+
+                ErrorReporter.ReportAndExit("Exception thrown during systematic testing. Please " +
+                    "use /debug to print more information, and contact the developer team.");
             }
             finally
             {

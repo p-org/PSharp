@@ -908,9 +908,9 @@ namespace Microsoft.PSharp
             {
                 a();
             }
-            catch (TaskCanceledException)
+            catch (OperationCanceledException)
             {
-                base.Runtime.Log("<Exception> TaskCanceledException was thrown from " +
+                base.Runtime.Log("<Exception> OperationCanceledException was thrown from " +
                     "Machine '{0}({1})'.", this, base.Id.MVal);
                 this.IsHalted = true;
             }
@@ -950,9 +950,9 @@ namespace Microsoft.PSharp
                 // Performs the on entry statements of the new state.
                 this.StateStack.Peek().ExecuteEntryFunction();
             }
-            catch (TaskCanceledException)
+            catch (OperationCanceledException)
             {
-                base.Runtime.Log("<Exception> TaskCanceledException was thrown from " +
+                base.Runtime.Log("<Exception> OperationCanceledException was thrown from " +
                     "Machine '{0}({1})'.", this, base.Id.MVal);
                 this.IsHalted = true;
             }
@@ -993,9 +993,9 @@ namespace Microsoft.PSharp
                     onExit();
                 }
             }
-            catch (TaskCanceledException)
+            catch (OperationCanceledException)
             {
-                base.Runtime.Log("<Exception> TaskCanceledException was thrown from " +
+                base.Runtime.Log("<Exception> OperationCanceledException was thrown from " +
                     "Machine '{0}({1})'.", this, base.Id.MVal);
                 this.IsHalted = true;
             }

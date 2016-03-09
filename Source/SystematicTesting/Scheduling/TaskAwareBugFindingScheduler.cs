@@ -74,7 +74,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                 IO.Debug("<ScheduleDebug> Depth bound of {0} reached.",
                     this.Strategy.GetDepthBound());
                 this.KillRemainingMachines();
-                throw new TaskCanceledException();
+                throw new OperationCanceledException();
             }
 
             foreach (var task in base.MachineInfos.Where(val => val.IsBlocked))
@@ -121,7 +121,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             {
                 IO.Debug("<ScheduleDebug> Unable to schedule task {0}.", id);
                 this.KillRemainingMachines();
-                throw new TaskCanceledException();
+                throw new OperationCanceledException();
             }
 
             MachineInfo next = null;
@@ -129,7 +129,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             {
                 IO.Debug("<ScheduleDebug> Schedule explored.");
                 this.KillRemainingMachines();
-                throw new TaskCanceledException();
+                throw new OperationCanceledException();
             }
 
             base.Runtime.ProgramTrace.AddSchedulingChoice(next.Machine);
@@ -170,7 +170,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
 
                     if (!machineInfo.IsEnabled)
                     {
-                        throw new TaskCanceledException();
+                        throw new OperationCanceledException();
                     }
                 }
             }
@@ -241,7 +241,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
 
                 if (!machineInfo.IsEnabled)
                 {
-                    throw new TaskCanceledException();
+                    throw new OperationCanceledException();
                 }
             }
         }

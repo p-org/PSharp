@@ -320,7 +320,7 @@ namespace Microsoft.PSharp
             {
                 a();
             }
-            catch (TaskCanceledException ex)
+            catch (OperationCanceledException ex)
             {
                 throw ex;
             }
@@ -368,7 +368,7 @@ namespace Microsoft.PSharp
                 // Performs the on entry statements of the new state.
                 this.State.ExecuteEntryFunction();
             }
-            catch (TaskCanceledException ex)
+            catch (OperationCanceledException ex)
             {
                 throw ex;
             }
@@ -407,7 +407,7 @@ namespace Microsoft.PSharp
                     onExit();
                 }
             }
-            catch (TaskCanceledException ex)
+            catch (OperationCanceledException ex)
             {
                 throw ex;
             }

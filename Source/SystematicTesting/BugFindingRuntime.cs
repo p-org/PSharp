@@ -141,9 +141,9 @@ namespace Microsoft.PSharp.SystematicTesting
             {
                 this.Send(null, target, e, false);
             }
-            catch (TaskCanceledException)
+            catch (OperationCanceledException)
             {
-                IO.Debug("<Exception> TaskCanceledException was thrown.");
+                IO.Debug("<Exception> OperationCanceledException was thrown.");
             }
         }
 
@@ -179,14 +179,8 @@ namespace Microsoft.PSharp.SystematicTesting
         {
             if (!predicate)
             {
-                bool killTasks = true;
-                if (Task.CurrentId == this.RootTaskId)
-                {
-                    killTasks = false;
-                }
-
                 string message = "Assertion failure.";
-                this.BugFinder.NotifyAssertionFailure(message, killTasks);
+                this.BugFinder.NotifyAssertionFailure(message);
             }
         }
 
@@ -201,14 +195,8 @@ namespace Microsoft.PSharp.SystematicTesting
         {
             if (!predicate)
             {
-                bool killTasks = true;
-                if (Task.CurrentId == this.RootTaskId)
-                {
-                    killTasks = false;
-                }
-
                 string message = IO.Format(s, args);
-                this.BugFinder.NotifyAssertionFailure(message, killTasks);
+                this.BugFinder.NotifyAssertionFailure(message);
             }
         }
 
