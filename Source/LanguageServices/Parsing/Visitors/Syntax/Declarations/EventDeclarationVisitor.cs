@@ -199,7 +199,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 {
                     throw new ParsingException("The payload type of event '" + node.Identifier.TextUnit.Text +
                         "' was not declared correctly.\n" +
-                        "  Both a type and a name must be given. For example:\n\n" +
+                        "  You must declare both a type and a name identifier, for example:\n\n" +
                         "    event e (a:int, b:bool)\n",
                         new List<TokenType>
                     {
