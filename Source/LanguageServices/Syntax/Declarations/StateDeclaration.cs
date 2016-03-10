@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.PSharp.LanguageServices.Parsing;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.LanguageServices.Syntax
 {
@@ -286,6 +287,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <param name="program">Program</param>
         internal override void Rewrite()
         {
+            string text = "";
+
             if (this.EntryDeclaration != null)
             {
                 this.EntryDeclaration.Rewrite();
@@ -296,8 +299,19 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 this.ExitDeclaration.Rewrite();
             }
 
-            var text = this.GetRewrittenStateDeclaration();
-
+            try
+            {
+                text = this.GetRewrittenStateDeclaration();
+            }
+            catch (Exception ex)
+            {
+                IO.Debug("Exception was thrown during rewriting:");
+                IO.Debug(ex.Message);
+                IO.Debug(ex.StackTrace);
+                ErrorReporter.ReportAndExit("Failed to rewrite state '{0}' of machine '{1}'.",
+                    this.Identifier.TextUnit.Text, this.Machine.Identifier.TextUnit.Text);
+            }
+            
             base.TextUnit = new TextUnit(text, this.StateKeyword.TextUnit.Line);
         }
 
@@ -311,7 +325,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <returns>Text</returns>
         private string GetRewrittenStateDeclaration()
         {
-            var text = "";
+            string text = "";
 
             if (this.IsStart)
             {

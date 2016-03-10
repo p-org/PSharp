@@ -47,7 +47,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         internal void Visit(MachineDeclaration parentNode, Token typeIdentifier, Token identifier,
             AccessModifier accMod, InheritanceModifier inhMod, bool isAsync, bool isPartial)
         {
-            var node = new MethodDeclaration(base.TokenStream.Program);
+            var node = new MethodDeclaration(base.TokenStream.Program, parentNode);
             node.AccessModifier = accMod;
             node.InheritanceModifier = inhMod;
             node.TypeIdentifier = typeIdentifier;

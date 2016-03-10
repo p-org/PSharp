@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.PSharp.LanguageServices.Parsing;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.LanguageServices.Syntax
 {
@@ -26,6 +27,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
     internal sealed class ExitDeclaration : PSharpSyntaxNode
     {
         #region fields
+
+        /// <summary>
+        /// The state parent node.
+        /// </summary>
+        internal readonly StateDeclaration State;
 
         /// <summary>
         /// The exit keyword.
@@ -45,10 +51,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Constructor.
         /// </summary>
         /// <param name="program">Program</param>
-        internal ExitDeclaration(IPSharpProgram program)
+        /// <param name="stateNode">StateDeclaration</param>
+        internal ExitDeclaration(IPSharpProgram program, StateDeclaration stateNode)
             : base(program)
         {
-
+            this.State = stateNode;
         }
 
         /// <summary>
@@ -58,9 +65,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <param name="program">Program</param>
         internal override void Rewrite()
         {
-            var text = "protected override void OnExit()";
-
             this.StatementBlock.Rewrite();
+
+            string text = "protected override void OnExit()";
             text += StatementBlock.TextUnit.Text;
 
             base.TextUnit = new TextUnit(text, this.ExitKeyword.TextUnit.Line);

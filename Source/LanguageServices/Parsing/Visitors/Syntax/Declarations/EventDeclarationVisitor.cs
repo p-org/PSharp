@@ -195,6 +195,18 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     }
                 }
 
+                if (node.PayloadIdentifiers.Count != node.PayloadTypes.Count)
+                {
+                    throw new ParsingException("The payload type of event '" + node.Identifier.TextUnit.Text +
+                        "' was not declared correctly.\n" +
+                        "  Both a type and a name must be given. For example:\n\n" +
+                        "    event e (a:int, b:bool)\n",
+                        new List<TokenType>
+                    {
+                            TokenType.RightParenthesis
+                    });
+                }
+
                 if (base.TokenStream.Done ||
                     base.TokenStream.Peek().Type != TokenType.RightParenthesis)
                 {

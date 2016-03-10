@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.PSharp.LanguageServices.Parsing;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.LanguageServices.Syntax
 {
@@ -74,7 +75,21 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <param name="program">Program</param>
         internal override void Rewrite()
         {
-            var text = this.GetRewrittenFieldDeclaration();
+            string text = "";
+
+            try
+            {
+                text = this.GetRewrittenFieldDeclaration();
+            }
+            catch (Exception ex)
+            {
+                IO.Debug("Exception was thrown during rewriting:");
+                IO.Debug(ex.Message);
+                IO.Debug(ex.StackTrace);
+                ErrorReporter.ReportAndExit("Failed to rewrite field '{0}' of machine '{1}'.",
+                    this.Identifier.TextUnit.Text, this.Machine.Identifier.TextUnit.Text);
+            }
+
             base.TextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Line);
         }
 
@@ -88,7 +103,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <returns>Text</returns>
         private string GetRewrittenFieldDeclaration()
         {
-            var text = "";
+            string text = "";
 
             if (this.AccessModifier == AccessModifier.Protected)
             {

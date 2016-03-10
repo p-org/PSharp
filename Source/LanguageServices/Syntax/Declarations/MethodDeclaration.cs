@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.PSharp.LanguageServices.Parsing;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.LanguageServices.Syntax
 {
@@ -26,6 +27,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
     internal sealed class MethodDeclaration : PSharpSyntaxNode
     {
         #region fields
+
+        /// <summary>
+        /// The machine parent node.
+        /// </summary>
+        internal readonly MachineDeclaration Machine;
 
         /// <summary>
         /// The access modifier.
@@ -90,10 +96,12 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Constructor.
         /// </summary>
         /// <param name="program">Program</param>
-        internal MethodDeclaration(IPSharpProgram program)
+        /// <param name="machineNode">PMachineDeclarationNode</param>
+        internal MethodDeclaration(IPSharpProgram program, MachineDeclaration machineNode)
             : base(program)
         {
             this.Parameters = new List<Token>();
+            this.Machine = machineNode;
         }
 
         /// <summary>
@@ -103,7 +111,21 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <param name="program">Program</param>
         internal override void Rewrite()
         {
-            var text = this.GetRewrittenMethodDeclaration();
+            string text = "";
+
+            try
+            {
+                text = this.GetRewrittenMethodDeclaration();
+            }
+            catch (Exception ex)
+            {
+                IO.Debug("Exception was thrown during rewriting:");
+                IO.Debug(ex.Message);
+                IO.Debug(ex.StackTrace);
+                ErrorReporter.ReportAndExit("Failed to rewrite method '{0}' of machine '{1}'.",
+                    this.Identifier.TextUnit.Text, this.Machine.Identifier.TextUnit.Text);
+            }
+
             base.TextUnit = new TextUnit(text, this.TypeIdentifier.TextUnit.Line);
         }
 
@@ -117,7 +139,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <returns>Text</returns>
         private string GetRewrittenMethodDeclaration()
         {
-            var text = "";
+            string text = "";
             
             if (this.AccessModifier == AccessModifier.Protected)
             {

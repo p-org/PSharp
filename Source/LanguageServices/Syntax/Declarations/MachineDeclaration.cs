@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.PSharp.LanguageServices.Parsing;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.LanguageServices.Syntax
 {
@@ -120,11 +121,13 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <param name="program">Program</param>
         internal override void Rewrite()
         {
+            string text = "";
+
             foreach (var node in this.FieldDeclarations)
             {
                 node.Rewrite();
             }
-            
+
             foreach (var node in this.StateDeclarations)
             {
                 node.Rewrite();
@@ -135,7 +138,18 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 node.Rewrite();
             }
 
-            var text = this.GetRewrittenMachineDeclaration();
+            try
+            {
+                text = this.GetRewrittenMachineDeclaration();
+            }
+            catch (Exception ex)
+            {
+                IO.Debug("Exception was thrown during rewriting:");
+                IO.Debug(ex.Message);
+                IO.Debug(ex.StackTrace);
+                ErrorReporter.ReportAndExit("Failed to rewrite {0} '{1}'.",
+                    this.IsMonitor ? "monitor" : "machine", this.Identifier.TextUnit.Text);
+            }
 
             foreach (var node in this.MethodDeclarations)
             {
@@ -159,7 +173,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <returns>Text</returns>
         private string GetRewrittenMachineDeclaration()
         {
-            var text = "";
+            string text = "";
 
             if (this.AccessModifier == AccessModifier.Public)
             {

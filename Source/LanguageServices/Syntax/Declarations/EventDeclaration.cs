@@ -12,7 +12,9 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
+
 using Microsoft.PSharp.LanguageServices.Parsing;
 using Microsoft.PSharp.Utilities;
 
@@ -106,7 +108,21 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         internal override void Rewrite()
         {
-            var text = this.GetRewrittenEventDeclaration();
+            string text = "";
+
+            try
+            {
+                text = this.GetRewrittenEventDeclaration();
+            }
+            catch (Exception ex)
+            {
+                IO.Debug("Exception was thrown during rewriting:");
+                IO.Debug(ex.Message);
+                IO.Debug(ex.StackTrace);
+                ErrorReporter.ReportAndExit("Failed to rewrite event '{0}'.",
+                    this.Identifier.TextUnit.Text);
+            }
+
             base.TextUnit = new TextUnit(text, this.EventKeyword.TextUnit.Line);
         }
 
@@ -120,7 +136,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <returns>Text</returns>
         private string GetRewrittenEventDeclaration()
         {
-            var text = "";
+            string text = "";
 
             if ((this.Program as AbstractPSharpProgram).Project.CompilationContext.
                 ActiveCompilationTarget == CompilationTarget.Remote)

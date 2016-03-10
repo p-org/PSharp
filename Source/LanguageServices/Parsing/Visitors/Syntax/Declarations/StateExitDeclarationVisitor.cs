@@ -46,7 +46,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     new List<TokenType>());
             }
 
-            var node = new ExitDeclaration(base.TokenStream.Program);
+            var node = new ExitDeclaration(base.TokenStream.Program, parentNode);
             node.ExitKeyword = base.TokenStream.Peek();
 
             base.TokenStream.Index++;

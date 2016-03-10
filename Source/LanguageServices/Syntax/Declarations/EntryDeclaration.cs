@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.PSharp.LanguageServices.Parsing;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.LanguageServices.Syntax
 {
@@ -26,6 +27,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
     internal sealed class EntryDeclaration : PSharpSyntaxNode
     {
         #region fields
+
+        /// <summary>
+        /// The state parent node.
+        /// </summary>
+        internal readonly StateDeclaration State;
 
         /// <summary>
         /// The entry keyword.
@@ -45,10 +51,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Constructor.
         /// </summary>
         /// <param name="program">Program</param>
-        internal EntryDeclaration(IPSharpProgram program)
+        /// <param name="stateNode">StateDeclaration</param>
+        internal EntryDeclaration(IPSharpProgram program, StateDeclaration stateNode)
             : base(program)
         {
-
+            this.State = stateNode;
         }
 
         /// <summary>
@@ -60,7 +67,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         {
             this.StatementBlock.Rewrite();
 
-            var text = "protected override void OnEntry()";
+            string text = "protected override void OnEntry()";
             text += StatementBlock.TextUnit.Text;
 
             base.TextUnit = new TextUnit(text, this.EntryKeyword.TextUnit.Line);

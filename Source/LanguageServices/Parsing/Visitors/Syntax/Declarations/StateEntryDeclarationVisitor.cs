@@ -46,7 +46,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     new List<TokenType>());
             }
 
-            var node = new EntryDeclaration(base.TokenStream.Program);
+            var node = new EntryDeclaration(base.TokenStream.Program, parentNode);
             node.EntryKeyword = base.TokenStream.Peek();
 
             base.TokenStream.Index++;
