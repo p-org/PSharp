@@ -14,7 +14,6 @@ namespace MultiPaxos
 
 		void Configure()
         {
-            create(ValMachineCheck);
 			Servers = (trigger as clientConfig).nodes;
 			raise(local);
         }
