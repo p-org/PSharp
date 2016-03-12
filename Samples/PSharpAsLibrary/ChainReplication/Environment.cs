@@ -47,9 +47,9 @@ namespace ChainReplication
                 this.Servers.Add(server);
             }
 
-            this.CreateMonitor(typeof(InvariantMonitor),
+            this.Monitor<InvariantMonitor>(
                 new InvariantMonitor.Config(this.Servers));
-            this.CreateMonitor(typeof(ServerResponseSeqMonitor),
+            this.Monitor<ServerResponseSeqMonitor>(
                 new ServerResponseSeqMonitor.Config(this.Servers));
             
             for (int i = 0; i < this.NumOfServers; i++)

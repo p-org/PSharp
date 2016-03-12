@@ -60,8 +60,7 @@ namespace Raft
         {
             this.NumberOfServers = 5;
             this.LeaderTerm = 0;
-
-            this.CreateMonitor(typeof(SafetyMonitor));
+            
             this.Servers = new MachineId[this.NumberOfServers];
 
             for (int idx = 0; idx < this.NumberOfServers; idx++)

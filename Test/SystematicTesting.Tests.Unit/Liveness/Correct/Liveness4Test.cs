@@ -38,7 +38,6 @@ namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
 
             void InitOnEntry()
             {
-                this.CreateMonitor(typeof(WatchDog));
                 this.CreateMachine(typeof(Loop));
                 this.Raise(new Unit());
             }
@@ -96,6 +95,7 @@ namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
             [Test]
             public static void Execute(PSharpRuntime runtime)
             {
+                runtime.RegisterMonitor(typeof(WatchDog));
                 runtime.CreateMachine(typeof(EventHandler));
             }
         }

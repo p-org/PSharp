@@ -16,6 +16,7 @@ namespace Raft
         [Microsoft.PSharp.Test]
         public static void Execute(PSharpRuntime runtime)
         {
+            runtime.RegisterMonitor(typeof(SafetyMonitor));
             runtime.CreateMachine(typeof(ClusterManager));
         }
     }

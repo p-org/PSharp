@@ -126,10 +126,8 @@ namespace Microsoft.PSharp
         /// Transitions to the start state, and executes the
         /// entry action, if there is any.
         /// </summary>
-        /// <param name="e">Event</param>
-        internal void GotoStartState(Event e)
+        internal void GotoStartState()
         {
-            this.ReceivedEvent = e;
             this.ExecuteCurrentStateOnEntry();
         }
 

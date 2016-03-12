@@ -185,6 +185,15 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Registers a new specification monitor of the given type.
+        /// </summary>
+        /// <param name="type">Type of the monitor</param>
+        public virtual void RegisterMonitor(Type type)
+        {
+            this.TryCreateMonitor(type);
+        }
+
+        /// <summary>
         /// Invokes the specified monitor with the given event.
         /// </summary>
         /// <typeparam name="T">Type of the monitor</typeparam>
@@ -390,8 +399,7 @@ namespace Microsoft.PSharp
         /// Tries to create a new monitor of the given type.
         /// </summary>
         /// <param name="type">Type of the monitor</param>
-        /// <param name="e">Event</param>
-        internal virtual void TryCreateMonitor(Type type, Event e)
+        internal virtual void TryCreateMonitor(Type type)
         {
             // No-op for real execution.
         }

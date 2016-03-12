@@ -19,7 +19,6 @@ namespace NodeManager
 
 		void InitOnEntry()
         {
-            this.CreateMonitor(typeof(M));
             this.NodeManagerMachine = this.CreateMachine(typeof(NodeManagerMachine));
             this.Send(this.NodeManagerMachine, new Events.NodeManagerConfigEvent(this.Id));
         }

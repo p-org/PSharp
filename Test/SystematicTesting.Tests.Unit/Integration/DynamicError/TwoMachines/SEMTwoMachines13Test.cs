@@ -38,7 +38,6 @@ namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
 
             void EntryInit()
             {
-                this.CreateMonitor(typeof(M));
                 this.Monitor<M>(new Config(test));
             }
         }
@@ -60,6 +59,7 @@ namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
             [Test]
             public static void Execute(PSharpRuntime runtime)
             {
+                runtime.RegisterMonitor(typeof(M));
                 runtime.CreateMachine(typeof(Real1));
             }
         }

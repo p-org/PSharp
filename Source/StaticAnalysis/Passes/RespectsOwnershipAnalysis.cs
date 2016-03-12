@@ -1388,7 +1388,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
             else if ((opSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.Machine") ||
                 opSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.MachineState")) &&
-                (opSymbol.Name.Equals("CreateMachine") || opSymbol.Name.Equals("CreateMonitor")))
+                opSymbol.Name.Equals("CreateMachine"))
             {
                 if (operation.ArgumentList.Arguments.Count == 0)
                 {

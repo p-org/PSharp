@@ -43,7 +43,6 @@ namespace FailureDetector
 
             this.Initialize();
 
-            this.CreateMonitor(typeof(Safety));
             this.FailureDetector = this.CreateMachine(typeof(FailureDetector));
 
             this.Send(this.FailureDetector, new FailureDetector.Config(this.NodeSeq));

@@ -102,15 +102,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
             arguments[0] = SyntaxFactory.Argument(SyntaxFactory.TypeOfExpression(
                 SyntaxFactory.IdentifierName(machineIdentifier)));
 
-            var text = "";
-            if (base.IsMonitor(machineIdentifier))
-            {
-                text += "this.CreateMonitor";
-            }
-            else
-            {
-                text += "this.CreateMachine";
-            }
+            string text = "this.CreateMachine";
 
             var rewritten = node.
                 WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments))).

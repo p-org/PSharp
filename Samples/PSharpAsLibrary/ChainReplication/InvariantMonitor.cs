@@ -77,11 +77,11 @@ namespace ChainReplication
         #region states
 
         [Start]
-        [OnEntry(nameof(InitOnEntry))]
         [OnEventGotoState(typeof(Local), typeof(WaitForUpdateMessage))]
+        [OnEventDoAction(typeof(Config), nameof(Configure))]
         class Init : MonitorState { }
 
-        void InitOnEntry()
+        void Configure()
         {
             this.Servers = (this.ReceivedEvent as Config).Servers;
             this.History = new Dictionary<MachineId, List<int>>();

@@ -56,8 +56,7 @@ namespace ReplicatingStorage
             this.NumberOfReplicas = 3;
             this.NumberOfFaults = 1;
             this.AliveNodes = new List<MachineId>();
-
-            this.CreateMonitor(typeof(LivenessMonitor));
+            
             this.Monitor<LivenessMonitor>(new LivenessMonitor.ConfigureEvent(this.NumberOfReplicas));
 
             this.NodeManager = this.CreateMachine(typeof(NodeManager));

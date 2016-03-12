@@ -166,7 +166,7 @@ namespace Microsoft.PSharp.SystematicTesting
         public override void InvokeMonitor<T>(Event e)
         {
             // If the event is null then report an error and exit.
-            this.Assert(e != null, "Cannot send a null event.");
+            this.Assert(e != null, "Cannot monitor a null event.");
             this.Monitor<T>(null, e);
         }
 
@@ -285,8 +285,7 @@ namespace Microsoft.PSharp.SystematicTesting
         /// Tries to create a new monitor of the given type.
         /// </summary>
         /// <param name="type">Type of the monitor</param>
-        /// <param name="e">Event</param>
-        internal override void TryCreateMonitor(Type type, Event e)
+        internal override void TryCreateMonitor(Type type)
         {
             this.Assert(type.IsSubclassOf(typeof(Monitor)), "Type '{0}' is not a " +
                 "subclass of Monitor.\n", type.Name);
@@ -305,7 +304,7 @@ namespace Microsoft.PSharp.SystematicTesting
                 this.LivenessChecker.RegisterMonitor(monitor as Monitor);
             }
             
-            (monitor as Monitor).GotoStartState(e);
+            (monitor as Monitor).GotoStartState();
         }
 
         /// <summary>

@@ -23,8 +23,7 @@ namespace LivenessCheck
                 this.Send(worker, new Config(this.Id));
                 this.Workers.Add(worker);
             }
-
-            this.CreateMonitor(typeof(M));
+            
             this.Monitor<M>(new MConfig(this.Workers));
             
             this.Raise(new Unit());

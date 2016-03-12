@@ -16,6 +16,8 @@ namespace ChainReplication
         [Microsoft.PSharp.Test]
         public static void Execute(PSharpRuntime runtime)
         {
+            runtime.RegisterMonitor(typeof(InvariantMonitor));
+            runtime.RegisterMonitor(typeof(ServerResponseSeqMonitor));
             runtime.CreateMachine(typeof(Environment));
         }
     }

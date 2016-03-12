@@ -16,6 +16,7 @@ namespace LivenessCheck
         [Microsoft.PSharp.Test]
         public static void Execute(PSharpRuntime runtime)
         {
+            runtime.RegisterMonitor(typeof(M));
             runtime.CreateMachine(typeof(Master));
         }
     }

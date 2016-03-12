@@ -163,18 +163,6 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Creates a new monitor of the given type and with the
-        /// given optional event. This event can only be used to
-        /// access its payload, and cannot be handled.
-        /// </summary>
-        /// <param name="type">Type of the monitor</param>
-        /// <param name="e">Event</param>
-        protected internal void CreateMonitor(Type type, Event e = null)
-        {
-            base.Runtime.TryCreateMonitor(type, e);
-        }
-
-        /// <summary>
         /// Sends an asynchronous event to a machine.
         /// </summary>
         /// <param name="m">MachineId</param>

@@ -20,15 +20,9 @@ namespace MultiPaxos
         List<MachineId> Servers;
 
         [Start]
-        [OnEntry(nameof(InitOnEntry))]
         [OnEventGotoState(typeof(local), typeof(PumpRequestOne))]
         [OnEventDoAction(typeof(Client.Config), nameof(Configure))]
         class Init : MachineState { }
-
-        void InitOnEntry()
-        {
-            this.CreateMonitor(typeof(ValidityCheck));
-        }
 
         void Configure()
         {

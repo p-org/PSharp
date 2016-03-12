@@ -16,6 +16,7 @@ namespace FailureDetector
         [Microsoft.PSharp.Test]
         public static void Execute(PSharpRuntime runtime)
         {
+            runtime.RegisterMonitor(typeof(Safety));
             runtime.CreateMachine(typeof(Driver));
         }
     }
