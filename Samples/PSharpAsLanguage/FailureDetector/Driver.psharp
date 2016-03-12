@@ -16,8 +16,6 @@ namespace FailureDetector
 				this.NodeMap = new Dictionary<machine, bool>();
 				this.Initialize();
 
-				create(Safety);
-
                 this.FailureDetector = create(FailureDetector, FailureDetectorConfig, this.NodeSeq);
 				send(this.FailureDetector, RegisterClient, this);
 

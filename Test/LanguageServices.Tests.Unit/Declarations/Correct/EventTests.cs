@@ -47,13 +47,13 @@ namespace Foo
 {
 class e1 : Event
 {
-e1()
+ public e1()
   : base()
  { }
 }
 internal class e2 : Event
 {
- internal e2()
+ public e2()
   : base()
  { }
 }

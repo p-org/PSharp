@@ -165,15 +165,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 text += this.PayloadIdentifiers[i].TextUnit.Text + ";\n";
             }
 
-            if (this.AccessModifier == AccessModifier.Internal)
-            {
-                text += " internal ";
-            }
-            else if (this.AccessModifier == AccessModifier.Public)
-            {
-                text += " public ";
-            }
-
+            text += " public ";
             text += this.Identifier.TextUnit.Text + "(";
 
             for (int i = 0; i < this.PayloadIdentifiers.Count; i++)
