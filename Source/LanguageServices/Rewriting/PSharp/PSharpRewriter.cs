@@ -161,7 +161,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
                 SelectMany(n => n.MachineDeclarations).
                 FirstOrDefault(s => s.Identifier.TextUnit.Text.Equals(machineIdentifier));
 
-            if (machine.IsMonitor)
+            if (machine != null && machine.IsMonitor)
             {
                 result = true;
             }
