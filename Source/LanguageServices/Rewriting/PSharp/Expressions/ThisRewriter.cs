@@ -76,39 +76,11 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         {
             SyntaxNode rewritten = node;
 
-            MachineDeclaration machine = null;
-            if (!base.TryGetParentMachine(rewritten, out machine))
-            {
-                return rewritten;
-            }
-
-            var isMonitor = base.IsMonitor(machine.Identifier.TextUnit.Text);
-            if (!isMonitor && (rewritten.Parent is ArgumentSyntax ||
+            if (rewritten.Parent is ArgumentSyntax ||
                 (rewritten.Parent is AssignmentExpressionSyntax &&
-                (rewritten.Parent as AssignmentExpressionSyntax).Right.IsEquivalentTo(node))))
+                (rewritten.Parent as AssignmentExpressionSyntax).Right.IsEquivalentTo(node)))
             {
                 var text = "this.Id";
-
-                rewritten = SyntaxFactory.ParseExpression(text);
-                rewritten = rewritten.WithTriviaFrom(node);
-            }
-            else if (rewritten.Parent is MemberAccessExpressionSyntax &&
-                base.IsInStateScope(rewritten) &&
-                (base.IsMachineField((rewritten.Parent as MemberAccessExpressionSyntax).Name) ||
-                base.IsMachineMethod((rewritten.Parent as MemberAccessExpressionSyntax).Name)))
-            {
-                var text = "(";
-
-                if (isMonitor)
-                {
-                    text += "this.Monitor";
-                }
-                else
-                {
-                    text += "this.Machine";
-                }
-
-                text += " as " + machine.Identifier.TextUnit.Text + ")";
 
                 rewritten = SyntaxFactory.ParseExpression(text);
                 rewritten = rewritten.WithTriviaFrom(node);

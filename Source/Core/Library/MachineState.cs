@@ -16,7 +16,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Reflection;
 
 namespace Microsoft.PSharp
@@ -29,14 +28,19 @@ namespace Microsoft.PSharp
         #region fields
 
         /// <summary>
+        /// Handle to the machine that owns this state instance.
+        /// </summary>
+        private Machine Machine;
+
+        /// <summary>
         /// The entry action, if the OnEntry is not overriden.
         /// </summary>
-        internal Action EntryAction;
+        private Action EntryAction;
 
         /// <summary>
         /// The exit action, if the OnExit is not overriden.
         /// </summary>
-        internal Action ExitAction;
+        private Action ExitAction;
 
         /// <summary>
         /// Dictionary containing all the goto state transitions.
@@ -62,28 +66,6 @@ namespace Microsoft.PSharp
         /// Set of deferred event types.
         /// </summary>
         internal HashSet<Type> DeferredEvents;
-
-        /// <summary>
-        /// Unique machine ID.
-        /// </summary>
-        protected MachineId Id
-        {
-            get { return this.Machine.Id; }
-        }
-
-        /// <summary>
-        /// Handle to the machine that owns this state instance.
-        /// </summary>
-        protected Machine Machine { get; private set; }
-
-        /// <summary>
-        /// Gets the latest received event, or null if no event
-        /// has been received.
-        /// </summary>
-        protected Event ReceivedEvent
-        {
-            get { return this.Machine.ReceivedEvent; }
-        }
 
         #endregion
 
@@ -115,7 +97,8 @@ namespace Microsoft.PSharp
             if (entryAttribute != null)
             {
                 var method = this.Machine.GetType().GetMethod(entryAttribute.Action,
-                    BindingFlags.NonPublic | BindingFlags.Instance);
+                    BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
+
                 var action = (Action)Delegate.CreateDelegate(typeof(Action), this.Machine, method);
                 this.EntryAction = action;
             }
@@ -123,7 +106,7 @@ namespace Microsoft.PSharp
             if (exitAttribute != null)
             {
                 var method = this.Machine.GetType().GetMethod(exitAttribute.Action,
-                    BindingFlags.NonPublic | BindingFlags.Instance);
+                    BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
                 var action = (Action)Delegate.CreateDelegate(typeof(Action), this.Machine, method);
                 this.ExitAction = action;
             }
@@ -144,7 +127,7 @@ namespace Microsoft.PSharp
                 else
                 {
                     var method = this.Machine.GetType().GetMethod(attr.Action,
-                        BindingFlags.NonPublic | BindingFlags.Instance);
+                        BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
                     var action = (Action)Delegate.CreateDelegate(typeof(Action), this.Machine, method);
                     this.GotoTransitions.Add(attr.Event, attr.State, action);
                 }
@@ -158,11 +141,11 @@ namespace Microsoft.PSharp
             foreach (var attr in doAttributes)
             {
                 var method = this.Machine.GetType().GetMethod(attr.Action,
-                    BindingFlags.NonPublic | BindingFlags.Instance);
+                    BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
 
-                this.Assert(method.GetParameters().Length == 0, "Action '{0}' in machine '{1}' " +
+                this.Machine.Assert(method.GetParameters().Length == 0, "Action '{0}' in machine '{1}' " +
                     "must have 0 formal parameters.", method.Name, this.Machine.GetType().Name);
-                this.Assert(method.ReturnType == typeof(void), "Action '{0}' in machine '{1}' " +
+                this.Machine.Assert(method.ReturnType == typeof(void), "Action '{0}' in machine '{1}' " +
                     "must have 'void' return type.", method.Name, this.Machine.GetType().Name);
 
                 var action = (Action)Delegate.CreateDelegate(typeof(Action), this.Machine, method);
@@ -192,10 +175,6 @@ namespace Microsoft.PSharp
             {
                 this.EntryAction();
             }
-            else
-            {
-                this.OnEntry();
-            }
         }
 
         /// <summary>
@@ -207,170 +186,6 @@ namespace Microsoft.PSharp
             {
                 this.ExitAction();
             }
-            else
-            {
-                this.OnExit();
-            }
-        }
-
-        #endregion
-
-        #region P# API methods
-
-        /// <summary>
-        /// Method to be executed when entering the state.
-        /// </summary>
-        protected virtual void OnEntry() { }
-
-        /// <summary>
-        /// Method to be executed when exiting the state.
-        /// </summary>
-        protected virtual void OnExit() { }
-
-        /// <summary>
-        /// Creates a new machine of the given type and with the
-        /// given optional event. This event can only be used to
-        /// access its payload, and cannot be handled.
-        /// </summary>
-        /// <param name="type">Type of the machine</param>
-        /// <param name="e">Event</param>
-        /// <returns>MachineId</returns>
-        protected internal MachineId CreateMachine(Type type, Event e = null)
-        {
-            return this.Machine.CreateMachine(type, e);
-        }
-
-        /// <summary>
-        /// Creates a new remote machine of the given type and with
-        /// the given optional event. This event can only be used to
-        /// access its payload, and cannot be handled.
-        /// </summary>
-        /// <param name="type">Type of the machine</param>
-        /// <param name="endpoint">Endpoint</param>
-        /// <param name="e">Event</param>
-        /// <returns>MachineId</returns>
-        protected internal MachineId CreateRemoteMachine(Type type, string endpoint, Event e = null)
-        {
-            return this.Machine.CreateRemoteMachine(type, endpoint, e);
-        }
-
-        /// <summary>
-        /// Sends an asynchronous event to a machine.
-        /// </summary>
-        /// <param name="mid">MachineId</param>
-        /// <param name="e">Event</param>
-        protected void Send(MachineId mid, Event e)
-        {
-            this.Machine.Send(mid, e);
-        }
-
-        /// <summary>
-        /// Sends an asynchronous event to a remote machine.
-        /// </summary>
-        /// <param name="m">MachineId</param>
-        /// <param name="e">Event</param>
-        /// <param name="isStarter">Is starting a new operation</param>
-        protected internal void RemoteSend(MachineId mid, Event e, bool isStarter = false)
-        {
-            this.Machine.RemoteSend(mid, e);
-        }
-
-        /// <summary>
-        /// Invokes the specified monitor with the given event.
-        /// </summary>
-        /// <typeparam name="T">Type of the monitor</typeparam>
-        /// <param name="e">Event</param>
-        protected internal void Monitor<T>(Event e)
-        {
-            this.Machine.Monitor<T>(e);
-        }
-
-        /// <summary>
-        /// Raises an event internally and returns from the execution context.
-        /// </summary>
-        /// <param name="e">Event</param>
-        protected void Raise(Event e)
-        {
-            this.Machine.Raise(e);
-        }
-
-        /// <summary>
-        /// Blocks and waits to receive an event of the given types.
-        /// </summary>
-        protected internal void Receive(params Type[] events)
-        {
-            this.Machine.Receive(events);
-        }
-
-        /// <summary>
-        /// Blocks and waits to receive an event of the given types, and
-        /// executes a given action on receiving the event.
-        /// </summary>
-        protected internal void Receive(params Tuple<Type, Action>[] events)
-        {
-            this.Machine.Receive(events);
-        }
-
-        /// <summary>
-        /// Pops the current state from the push state stack.
-        /// </summary>
-        protected void Pop()
-        {
-            this.Machine.Pop();
-        }
-
-        /// <summary>
-        /// Returns a nondeterministic boolean choice, that can be
-        /// controlled during analysis or testing.
-        /// </summary>
-        /// <returns>Boolean</returns>
-        protected internal bool Random()
-        {
-            return this.Machine.Random();
-        }
-
-        /// <summary>
-        /// Returns a fair nondeterministic boolean choice, that can be
-        /// controlled during analysis or testing.
-        /// </summary>
-        /// <returns>Boolean</returns>
-        protected internal bool FairRandom()
-        {
-            return this.Machine.FairRandom();
-        }
-
-        /// <summary>
-        /// Returns a fair nondeterministic boolean choice, that can be
-        /// controlled during analysis or testing.
-        /// </summary>
-        /// <param name="uniqueId">Unique id</param>
-        /// <returns>Boolean</returns>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        protected internal bool FairRandom(int uniqueId)
-        {
-            return this.Machine.FairRandom(uniqueId);
-        }
-
-        /// <summary>
-        /// Checks if the assertion holds, and if not it reports
-        /// an error and exits.
-        /// </summary>
-        /// <param name="predicate">Predicate</param>
-        protected void Assert(bool predicate)
-        {
-            this.Machine.Assert(predicate);
-        }
-
-        /// <summary>
-        /// Checks if the assertion holds, and if not it reports
-        /// an error and exits.
-        /// </summary>
-        /// <param name="predicate">Predicate</param>
-        /// <param name="s">Message</param>
-        /// <param name="args">Message arguments</param>
-        protected void Assert(bool predicate, string s, params object[] args)
-        {
-            this.Machine.Assert(predicate, s, args);
         }
 
         #endregion

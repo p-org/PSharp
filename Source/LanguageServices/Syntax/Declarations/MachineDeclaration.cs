@@ -156,6 +156,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 text += node.TextUnit.Text;
             }
 
+            text += this.GetRewrittenStateOnEntryAndExitActions();
             text += this.GetRewrittenWithActions();
 
             text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
@@ -228,11 +229,38 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         }
 
         /// <summary>
+        /// Returns the rewritten state on entry and on exit actions.
+        /// </summary>
+        /// <returns>Text</returns>
+        private string GetRewrittenStateOnEntryAndExitActions()
+        {
+            string text = "";
+
+            foreach (var state in this.StateDeclarations)
+            {
+                if (state.EntryDeclaration != null)
+                {
+                    state.EntryDeclaration.Rewrite();
+                    text += state.EntryDeclaration.TextUnit.Text + "\n";
+                }
+
+                if (state.ExitDeclaration != null)
+                {
+                    state.ExitDeclaration.Rewrite();
+                    text += state.ExitDeclaration.TextUnit.Text + "\n";
+                }
+            }
+
+            return text;
+        }
+
+        /// <summary>
         /// Returns the rewritten with actions.
         /// </summary>
+        /// <returns>Text</returns>
         private string GetRewrittenWithActions()
         {
-            var text = "";
+            string text = "";
 
             foreach (var state in this.StateDeclarations)
             {
@@ -240,9 +268,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 {
                     var onExitAction = withAction.Value;
                     onExitAction.Rewrite();
-                    text += "void psharp_" + state.Identifier.TextUnit.Text + "_" +
+                    text += "protected void psharp_" + state.Identifier.TextUnit.Text + "_" +
                         withAction.Key.TextUnit.Text + "_action()";
-                    text += onExitAction.TextUnit.Text;
+                    text += onExitAction.TextUnit.Text + "\n";
                 }
             }
 
@@ -252,9 +280,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 {
                     var onExitAction = withAction.Value;
                     onExitAction.Rewrite();
-                    text += "void psharp_" + state.Identifier.TextUnit.Text + "_" +
+                    text += "protected void psharp_" + state.Identifier.TextUnit.Text + "_" +
                         withAction.Key.TextUnit.Text + "_action()";
-                    text += onExitAction.TextUnit.Text;
+                    text += onExitAction.TextUnit.Text + "\n";
                 }
             }
 

@@ -289,16 +289,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         {
             string text = "";
 
-            if (this.EntryDeclaration != null)
-            {
-                this.EntryDeclaration.Rewrite();
-            }
-
-            if (this.ExitDeclaration != null)
-            {
-                this.ExitDeclaration.Rewrite();
-            }
-
             try
             {
                 text = this.GetRewrittenStateDeclaration();
@@ -341,6 +331,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 text += "[Microsoft.PSharp.Cold]\n";
             }
 
+            text += this.InstrumentOnEntryAction();
+            text += this.InstrumentOnExitAction();
             text += this.InstrumentGotoStateTransitions();
             text += this.InstrumentPushStateTransitions();
             text += this.InstrumentActionsBindings();
@@ -367,18 +359,45 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             }
 
             text += "\n" + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
-
-            if (this.EntryDeclaration != null)
-            {
-                text += this.EntryDeclaration.TextUnit.Text;
-            }
-
-            if (this.ExitDeclaration != null)
-            {
-                text += this.ExitDeclaration.TextUnit.Text;
-            }
-
             text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
+
+            return text;
+        }
+
+        /// <summary>
+        /// Instruments the on entry action.
+        /// </summary>
+        /// <returns>Text</returns>
+        private string InstrumentOnEntryAction()
+        {
+            if (this.EntryDeclaration == null)
+            {
+                return "";
+            }
+
+            string text = "[OnEntry(nameof(";
+
+            text += "psharp_" + this.Identifier.TextUnit.Text + "_on_entry_action";
+            text += "))]\n";
+
+            return text;
+        }
+
+        /// <summary>
+        /// Instruments the on exit action.
+        /// </summary>
+        /// <returns>Text</returns>
+        private string InstrumentOnExitAction()
+        {
+            if (this.ExitDeclaration == null)
+            {
+                return "";
+            }
+
+            string text = "[OnExit(nameof(";
+
+            text += "psharp_" + this.Identifier.TextUnit.Text + "_on_exit_action";
+            text += "))]\n";
 
             return text;
         }
@@ -394,7 +413,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 return "";
             }
 
-            var text = "";
+            string text = "";
 
             foreach (var transition in this.GotoStateTransitions)
             {
@@ -444,7 +463,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 return "";
             }
 
-            var text = "";
+            string text = "";
 
             foreach (var transition in this.PushStateTransitions)
             {
@@ -482,7 +501,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 return "";
             }
 
-            var text = "";
+            string text = "";
 
             foreach (var binding in this.ActionBindings)
             {
@@ -534,7 +553,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 return "";
             }
 
-            var text = "[IgnoreEvents(";
+            string text = "[IgnoreEvents(";
 
             var eventIds = this.IgnoredEvents.ToList();
             for (int idx = 0; idx < eventIds.Count; idx++)
@@ -574,7 +593,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 return "";
             }
 
-            var text = "[DeferEvents(";
+            string text = "[DeferEvents(";
 
             var eventIds = this.DeferredEvents.ToList();
             for (int idx = 0; idx < eventIds.Count; idx++)

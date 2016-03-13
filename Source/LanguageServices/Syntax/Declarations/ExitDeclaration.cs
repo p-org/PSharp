@@ -67,7 +67,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         {
             this.StatementBlock.Rewrite();
 
-            string text = "protected override void OnExit()";
+            string text = "protected void psharp_" + this.State.Identifier.TextUnit.Text + 
+                "_on_exit_action()";
             text += StatementBlock.TextUnit.Text;
 
             base.TextUnit = new TextUnit(text, this.ExitKeyword.TextUnit.Line);

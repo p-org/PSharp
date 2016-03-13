@@ -87,9 +87,13 @@ namespace Foo
 class M : Machine
 {
 [Microsoft.PSharp.Start]
+[OnEntry(nameof(psharp_S_on_entry_action))]
 class S : MachineState
 {
-protected override void OnEntry(){}}
+}
+protected void psharp_S_on_entry_action()
+{
+}
 }
 }";
 
@@ -122,9 +126,13 @@ namespace Foo
 class M : Machine
 {
 [Microsoft.PSharp.Start]
+[OnExit(nameof(psharp_S_on_exit_action))]
 class S : MachineState
 {
-protected override void OnExit(){}}
+}
+protected void psharp_S_on_exit_action()
+{
+}
 }
 }";
 
@@ -158,14 +166,16 @@ namespace Foo
 class M : Machine
 {
 [Microsoft.PSharp.Start]
+[OnEntry(nameof(psharp_S_on_entry_action))]
+[OnExit(nameof(psharp_S_on_exit_action))]
 class S : MachineState
 {
-protected override void OnEntry()
+}
+protected void psharp_S_on_entry_action()
 {
 }
-protected override void OnExit()
+protected void psharp_S_on_exit_action()
 {
-}
 }
 }
 }";
@@ -277,7 +287,7 @@ class M : Machine
 class S1 : MachineState
 {
 }
-void psharp_S1_e_action()
+protected void psharp_S1_e_action()
 {
 }
 }
@@ -390,7 +400,7 @@ class M : Machine
 class S1 : MachineState
 {
 }
-void psharp_S1_e_action()
+protected void psharp_S1_e_action()
 {
 }
 }

@@ -67,7 +67,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         {
             this.StatementBlock.Rewrite();
 
-            string text = "protected override void OnEntry()";
+            string text = "protected void psharp_" + this.State.Identifier.TextUnit.Text +
+                "_on_entry_action()";
             text += StatementBlock.TextUnit.Text;
 
             base.TextUnit = new TextUnit(text, this.EntryKeyword.TextUnit.Line);

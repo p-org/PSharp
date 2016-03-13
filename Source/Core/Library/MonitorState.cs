@@ -28,6 +28,11 @@ namespace Microsoft.PSharp
         #region fields
 
         /// <summary>
+        /// Handle to the monitor that owns this state instance.
+        /// </summary>
+        private Monitor Monitor;
+
+        /// <summary>
         /// The entry action, if the OnEntry is not overriden.
         /// </summary>
         private Action EntryAction;
@@ -62,20 +67,6 @@ namespace Microsoft.PSharp
         /// </summary>
         internal bool IsCold { get; private set; }
 
-        /// <summary>
-        /// Handle to the monitor that owns this state instance.
-        /// </summary>
-        protected Monitor Monitor { get; private set; }
-
-        /// <summary>
-        /// Gets the latest received event, or null if no event
-        /// has been received.
-        /// </summary>
-        protected internal Event ReceivedEvent
-        {
-            get { return this.Monitor.ReceivedEvent; }
-        }
-
         #endregion
 
         #region P# internal methods
@@ -108,7 +99,7 @@ namespace Microsoft.PSharp
             if (entryAttribute != null)
             {
                 var method = this.Monitor.GetType().GetMethod(entryAttribute.Action,
-                    BindingFlags.NonPublic | BindingFlags.Instance);
+                    BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
                 var action = (Action)Delegate.CreateDelegate(typeof(Action), this.Monitor, method);
                 this.EntryAction = action;
             }
@@ -116,7 +107,7 @@ namespace Microsoft.PSharp
             if (exitAttribute != null)
             {
                 var method = this.Monitor.GetType().GetMethod(exitAttribute.Action,
-                    BindingFlags.NonPublic | BindingFlags.Instance);
+                    BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
                 var action = (Action)Delegate.CreateDelegate(typeof(Action), this.Monitor, method);
                 this.ExitAction = action;
             }
@@ -135,7 +126,7 @@ namespace Microsoft.PSharp
                 else
                 {
                     var method = this.Monitor.GetType().GetMethod(attr.Action,
-                        BindingFlags.NonPublic | BindingFlags.Instance);
+                        BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
                     var action = (Action)Delegate.CreateDelegate(typeof(Action), this.Monitor, method);
                     this.GotoTransitions.Add(attr.Event, attr.State, action);
                 }
@@ -144,11 +135,11 @@ namespace Microsoft.PSharp
             foreach (var attr in doAttributes)
             {
                 var method = this.Monitor.GetType().GetMethod(attr.Action,
-                    BindingFlags.NonPublic | BindingFlags.Instance);
+                    BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
 
-                this.Assert(method.GetParameters().Length == 0, "Action '{0}' in monitor '{1}' " +
+                this.Monitor.Assert(method.GetParameters().Length == 0, "Action '{0}' in monitor '{1}' " +
                     "must have 0 formal parameters.", method.Name, this.Monitor.GetType().Name);
-                this.Assert(method.ReturnType == typeof(void), "Action '{0}' in monitor '{1}' " +
+                this.Monitor.Assert(method.ReturnType == typeof(void), "Action '{0}' in monitor '{1}' " +
                     "must have 'void' return type.", method.Name, this.Monitor.GetType().Name);
 
                 var action = (Action)Delegate.CreateDelegate(typeof(Action), this.Monitor, method);
@@ -172,10 +163,6 @@ namespace Microsoft.PSharp
             {
                 this.EntryAction();
             }
-            else
-            {
-                this.OnEntry();
-            }
         }
 
         /// <summary>
@@ -187,55 +174,6 @@ namespace Microsoft.PSharp
             {
                 this.ExitAction();
             }
-            else
-            {
-                this.OnExit();
-            }
-        }
-
-        #endregion
-
-        #region P# API methods
-
-        /// <summary>
-        /// Method to be executed when entering the state.
-        /// </summary>
-        protected virtual void OnEntry() { }
-
-        /// <summary>
-        /// Method to be executed when exiting the state.
-        /// </summary>
-        protected virtual void OnExit() { }
-
-        /// <summary>
-        /// Raises an event internally and returns from the execution context.
-        /// </summary>
-        /// <param name="e">Event</param>
-        protected void Raise(Event e)
-        {
-            this.Monitor.Raise(e);
-        }
-
-        /// <summary>
-        /// Checks if the assertion holds, and if not it reports
-        /// an error and exits.
-        /// </summary>
-        /// <param name="predicate">Predicate</param>
-        protected void Assert(bool predicate)
-        {
-            this.Monitor.Assert(predicate);
-        }
-
-        /// <summary>
-        /// Checks if the assertion holds, and if not it reports
-        /// an error and exits.
-        /// </summary>
-        /// <param name="predicate">Predicate</param>
-        /// <param name="s">Message</param>
-        /// <param name="args">Message arguments</param>
-        protected void Assert(bool predicate, string s, params object[] args)
-        {
-            this.Monitor.Assert(predicate, s, args);
         }
 
         #endregion

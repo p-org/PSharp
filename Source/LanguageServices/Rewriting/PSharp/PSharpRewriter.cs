@@ -73,33 +73,6 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         }
 
         /// <summary>
-        /// True if the given syntax node is in the scope of a state.
-        /// </summary>
-        /// <param name="node">SyntaxNode</param>
-        /// <returns>Boolean</returns>
-        protected bool IsInStateScope(SyntaxNode node)
-        {
-            var result = false;
-
-            var ancestors = node.Ancestors().OfType<ClassDeclarationSyntax>().ToList();
-            foreach (var ancestor in ancestors)
-            {
-                result = this.Project.PSharpPrograms.
-                    SelectMany(p => p.NamespaceDeclarations).
-                    SelectMany(n => n.MachineDeclarations).
-                    SelectMany(m => m.StateDeclarations).
-                    Any(s => s.Identifier.TextUnit.Text.Equals(ancestor.Identifier.ValueText));
-
-                if (result)
-                {
-                    break;
-                }
-            }
-
-            return result;
-        }
-
-        /// <summary>
         /// True if the given syntax node is a machine field.
         /// </summary>
         /// <param name="node">SyntaxNode</param>
@@ -142,28 +115,6 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
             {
                 result = machine.FieldDeclarations.
                     Any(s => s.Identifier.TextUnit.Text.Equals(node.ToString()));
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// True if the machine is a monitor.
-        /// </summary>
-        /// <param name="machineIdentifier">MachineIdentifier</param>
-        /// <returns>Boolean</returns>
-        protected bool IsMonitor(string machineIdentifier)
-        {
-            var result = false;
-
-            var machine = this.Project.PSharpPrograms.
-                SelectMany(p => p.NamespaceDeclarations).
-                SelectMany(n => n.MachineDeclarations).
-                FirstOrDefault(s => s.Identifier.TextUnit.Text.Equals(machineIdentifier));
-
-            if (machine != null && machine.IsMonitor)
-            {
-                result = true;
             }
 
             return result;
