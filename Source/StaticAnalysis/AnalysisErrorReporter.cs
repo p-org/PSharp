@@ -12,8 +12,6 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.StaticAnalysis
@@ -21,36 +19,36 @@ namespace Microsoft.PSharp.StaticAnalysis
     /// <summary>
     /// Reports static analysis errors and warnings to the user.
     /// </summary>
-    public class AnalysisErrorReporter : ErrorReporter
+    public static class AnalysisErrorReporter
     {
-        #region Fields
+        #region fields
 
         /// <summary>
         /// Number of errors discovered in the analysis.
         /// </summary>
-        protected static int ErrorCount = 0;
+        private static int ErrorCount = 0;
 
         /// <summary>
         /// Number of warnings reported by the analysis.
         /// </summary>
-        protected static int WarningCount = 0;
+        private static int WarningCount = 0;
 
         #endregion
 
         #region public API
 
         /// <summary>
-        /// Prints static analysis error statistics.
+        /// Prints the static analysis error statistics.
         /// </summary>
         public static void PrintStats()
         {
-            var errorStr = "error";
+            string errorStr = "error";
             if (AnalysisErrorReporter.ErrorCount > 1)
             {
                 errorStr = "errors";
             }
 
-            var warningStr = "warning";
+            string warningStr = "warning";
             if (AnalysisErrorReporter.WarningCount > 1)
             {
                 warningStr = "warnings";
@@ -73,74 +71,157 @@ namespace Microsoft.PSharp.StaticAnalysis
                 IO.PrintLine("... No static analysis errors detected (but absolutely no warranty provided)");
             }
         }
-        
-        #endregion
-
-        #region generic errors API
 
         /// <summary>
-        /// Reports use of external asynchrony.
+        /// Returns the static analysis error statistics.
         /// </summary>
-        /// <param name="log">Log</param>
-        internal static void ReportExternalAsynchronyUsage(Log log)
+        public static string GetStats()
         {
-            AnalysisErrorReporter.ReportGenericError(log,
-                "Machine '{0}' is trying to use non-P# asynchronous operations. " +
-                "This can lead to data races and is *strictly* not allowed.",
-                log.Machine);
-            Environment.Exit(1);
-        }
-
-        /// <summary>
-        /// Reports a runtime only method access error.
-        /// </summary>
-        /// <param name="log">Log</param>
-        internal static void ReportRuntimeOnlyMethodAccess(Log log)
-        {
-            if (log.State == null)
+            string errorStr = "error";
+            if (AnalysisErrorReporter.ErrorCount > 1)
             {
-                AnalysisErrorReporter.ReportGenericError(log,
-                    "Method '{0}' of machine '{1}' is trying to access a P# " +
-                    "runtime only method.", log.Method, log.Machine);
+                errorStr = "errors";
+            }
+
+            string warningStr = "warning";
+            if (AnalysisErrorReporter.WarningCount > 1)
+            {
+                warningStr = "warnings";
+            }
+
+            if ((AnalysisErrorReporter.ErrorCount > 0 || AnalysisErrorReporter.WarningCount > 0) &&
+                ErrorReporter.ShowWarnings)
+            {
+                return "... Static analysis detected '" + AnalysisErrorReporter.ErrorCount + "' " + errorStr +
+                    " and reported '" + AnalysisErrorReporter.WarningCount + "' " + warningStr;
+            }
+            else if (AnalysisErrorReporter.ErrorCount > 0)
+            {
+                return "... Static analysis detected '" + AnalysisErrorReporter.ErrorCount + "' " + errorStr;
             }
             else
             {
-                AnalysisErrorReporter.ReportGenericError(log,
-                    "Method '{0}' in state {1} of machine '{2}' is trying to " +
-                    "access a P# runtime only method.",
-                    log.Method, log.State, log.Machine);
+                return "... No static analysis errors detected (but absolutely no warranty provided)";
             }
-
-            Environment.Exit(1);
-        }
-
-        /// <summary>
-        /// Reports an explicit state initialisation error.
-        /// </summary>
-        /// <param name="log">Log</param>
-        internal static void ReportExplicitStateInitialisation(Log log)
-        {
-            if (log.State == null)
-            {
-                AnalysisErrorReporter.ReportGenericError(log,
-                    "Method '{0}' of machine '{1}' is trying to explicitly " +
-                    "initialize a machine state.",
-                    log.Method, log.Machine);
-            }
-            else
-            {
-                AnalysisErrorReporter.ReportGenericError(log,
-                    "Method '{0}' in state {1} of machine '{2}' is trying to " +
-                    "explicitly initialize a machine state.",
-                    log.Method, log.State, log.Machine);
-            }
-
-            Environment.Exit(1);
         }
 
         #endregion
 
-        #region data race source errors API
+        #region error reporting
+
+        /// <summary>
+        /// Reports an error to the user.
+        /// </summary>
+        /// <param name="s">String</param>
+        internal static void Report(string s)
+        {
+            ErrorReporter.Report(s);
+            AnalysisErrorReporter.ErrorCount++;
+        }
+
+        /// <summary>
+        /// Reports an error to the user.
+        /// </summary>
+        /// <param name="s">String</param>
+        /// <param name="args">Parameters</param>
+        internal static void Report(string s, params object[] args)
+        {
+            ErrorReporter.Report(s, args);
+            AnalysisErrorReporter.ErrorCount++;
+        }
+
+        /// <summary>
+        /// Reports an error to the user.
+        /// </summary>
+        /// <param name="log">Log</param>
+        /// <param name="s">String</param>
+        internal static void Report(Log log, string s)
+        {
+            ErrorReporter.Report(s);
+
+            for (int idx = log.ErrorTrace.Count - 1; idx >= 0; idx--)
+            {
+                IO.Print("   at '{0}' ", log.ErrorTrace[idx].Item1);
+                IO.Print("in {0}:", log.ErrorTrace[idx].Item2);
+                IO.PrintLine("line {0}", log.ErrorTrace[idx].Item3);
+            }
+
+            AnalysisErrorReporter.ErrorCount++;
+        }
+
+        /// <summary>
+        /// Reports an error to the user.
+        /// </summary>
+        /// <param name="log">Log</param>
+        /// <param name="s">String</param>
+        /// <param name="args">Parameters</param>
+        internal static void Report(Log log, string s, params object[] args)
+        {
+            ErrorReporter.Report(s, args);
+
+            for (int idx = log.ErrorTrace.Count - 1; idx >= 0; idx--)
+            {
+                IO.Print("   at '{0}' ", log.ErrorTrace[idx].Item1);
+                IO.Print("in {0}:", log.ErrorTrace[idx].Item2);
+                IO.PrintLine("line {0}", log.ErrorTrace[idx].Item3);
+            }
+
+            AnalysisErrorReporter.ErrorCount++;
+        }
+
+        /// <summary>
+        /// Reports a warning to the user.
+        /// </summary>
+        /// <param name="s">String</param>
+        internal static void ReportWarning(string s)
+        {
+            ErrorReporter.ReportWarning(s);
+            AnalysisErrorReporter.WarningCount++;
+        }
+
+        /// <summary>
+        /// Reports a warning to the user.
+        /// </summary>
+        /// <param name="s">String</param>
+        /// <param name="args">Parameters</param>
+        internal static void ReportWarning(string s, params object[] args)
+        {
+            ErrorReporter.ReportWarning(s, args);
+            AnalysisErrorReporter.WarningCount++;
+        }
+
+        /// <summary>
+        /// Reports a warning to the user.
+        /// </summary>
+        /// <param name="log">Log</param>
+        /// <param name="s">String</param>
+        internal static void ReportWarning(Log log, string s)
+        {
+            ErrorReporter.ReportWarning(s);
+
+            IO.Print("   at '{0}' ", log.ErrorTrace[log.ErrorTrace.Count - 1].Item1);
+            IO.Print("in {0}:", log.ErrorTrace[log.ErrorTrace.Count - 1].Item2);
+            IO.PrintLine("line {0}", log.ErrorTrace[log.ErrorTrace.Count - 1].Item3);
+
+            AnalysisErrorReporter.WarningCount++;
+        }
+
+        /// <summary>
+        /// Reports a warning to the user.
+        /// </summary>
+        /// <param name="log">Log</param>
+        /// <param name="s">String</param>
+        /// <param name="args">Parameters</param>
+        internal static void ReportWarning(Log log, string s, params object[] args)
+        {
+            ErrorReporter.ReportWarning(s, args);
+
+            IO.Print("   at '{0}' ", log.ErrorTrace[log.ErrorTrace.Count - 1].Item1);
+            IO.Print("in {0}:", log.ErrorTrace[log.ErrorTrace.Count - 1].Item2);
+            IO.PrintLine("line {0}", log.ErrorTrace[log.ErrorTrace.Count - 1].Item3);
+
+            AnalysisErrorReporter.WarningCount++;
+        }
 
         /// <summary>
         /// Reports a given up field ownership error.
@@ -185,10 +266,6 @@ namespace Microsoft.PSharp.StaticAnalysis
                     log.Method, log.State, log.Machine);
             }
         }
-
-        #endregion
-
-        #region ownership errors API
 
         /// <summary>
         /// Reports assignment of given up ownership to a machine field.
@@ -256,10 +333,6 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
         }
 
-        #endregion
-
-        #region warnings API
-
         /// <summary>
         /// Reports calling a method with unavailable source code,
         /// thus cannot be further analysed.
@@ -319,10 +392,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         private static void ReportDataRaceSource(Log log, string s, params object[] args)
         {
             string message = IO.Format(s, args);
-            ConsoleColor previous = Console.ForegroundColor;
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.Write("Error: Potential source for data race detected. ");
-            Console.ForegroundColor = previous;
+            IO.Print("Error: Potential source for data race detected. ");
             IO.PrintLine(message);
 
             for (int idx = log.ErrorTrace.Count - 1; idx >= 0; idx--)
@@ -330,14 +400,14 @@ namespace Microsoft.PSharp.StaticAnalysis
                 if (idx == 0)
                 {
                     IO.PrintLine("   --- Point of sending the payload ---");
-                    Console.Write("   at '{0}' ", log.ErrorTrace[idx].Item1);
-                    Console.Write("in {0}:", log.ErrorTrace[idx].Item2);
+                    IO.Print("   at '{0}' ", log.ErrorTrace[idx].Item1);
+                    IO.Print("in {0}:", log.ErrorTrace[idx].Item2);
                     IO.PrintLine("line {0}", log.ErrorTrace[idx].Item3);
                 }
                 else
                 {
-                    Console.Write("   at '{0}' ", log.ErrorTrace[idx].Item1);
-                    Console.Write("in {0}:", log.ErrorTrace[idx].Item2);
+                    IO.Print("   at '{0}' ", log.ErrorTrace[idx].Item1);
+                    IO.Print("in {0}:", log.ErrorTrace[idx].Item2);
                     IO.PrintLine("line {0}", log.ErrorTrace[idx].Item3);
                 }
             }
@@ -354,10 +424,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         private static void ReportOwnershipError(Log log, string s, params object[] args)
         {
             string message = IO.Format(s, args);
-            ConsoleColor previous = Console.ForegroundColor;
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.Write("Error: Potential data race detected. ");
-            Console.ForegroundColor = previous;
+            IO.Print("Error: Potential data race detected. ");
             IO.PrintLine(message);
 
             for (int idx = log.ErrorTrace.Count - 1; idx >= 0; idx--)
@@ -365,68 +432,16 @@ namespace Microsoft.PSharp.StaticAnalysis
                 if (idx == 0)
                 {
                     IO.PrintLine("   --- Source of giving up ownership ---");
-                    Console.Write("   at '{0}' ", log.ErrorTrace[idx].Item1);
-                    Console.Write("in {0}:", log.ErrorTrace[idx].Item2);
+                    IO.Print("   at '{0}' ", log.ErrorTrace[idx].Item1);
+                    IO.Print("in {0}:", log.ErrorTrace[idx].Item2);
                     IO.PrintLine("line {0}", log.ErrorTrace[idx].Item3);
                 }
                 else
                 {
-                    Console.Write("   at '{0}' ", log.ErrorTrace[idx].Item1);
-                    Console.Write("in {0}:", log.ErrorTrace[idx].Item2);
+                    IO.Print("   at '{0}' ", log.ErrorTrace[idx].Item1);
+                    IO.Print("in {0}:", log.ErrorTrace[idx].Item2);
                     IO.PrintLine("line {0}", log.ErrorTrace[idx].Item3);
                 }
-            }
-
-            AnalysisErrorReporter.ErrorCount++;
-        }
-
-        /// <summary>
-        /// Reports a warning to the user.
-        /// </summary>
-        /// <param name="log">Log</param>
-        /// <param name="s">String</param>
-        /// <param name="args">Parameters</param>
-        private static void ReportWarning(Log log, string s, params object[] args)
-        {
-            if (!ErrorReporter.ShowWarnings)
-            {
-                return;
-            }
-
-            string message = IO.Format(s, args);
-            ConsoleColor previous = Console.ForegroundColor;
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.Write("Warning: ");
-            Console.ForegroundColor = previous;
-            IO.PrintLine(message);
-
-            Console.Write("   at '{0}' ", log.ErrorTrace[log.ErrorTrace.Count - 1].Item1);
-            Console.Write("in {0}:", log.ErrorTrace[log.ErrorTrace.Count - 1].Item2);
-            IO.PrintLine("line {0}", log.ErrorTrace[log.ErrorTrace.Count - 1].Item3);
-
-            AnalysisErrorReporter.WarningCount++;
-        }
-
-        /// <summary>
-        /// Reports a generic error to the user.
-        /// </summary>
-        /// <param name="log">Log</param>
-        /// <param name="s">String</param>
-        /// <param name="args">Parameters</param>
-        private static void ReportGenericError(Log log, string s, params object[] args)
-        {
-            string message = IO.Format(s, args);
-            ConsoleColor previous = Console.ForegroundColor;
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.Write("Error: ");
-            Console.ForegroundColor = previous;
-            IO.PrintLine(message);
-
-            for (int idx = log.ErrorTrace.Count - 1; idx >= 0; idx--)
-            {
-                Console.Write("   at '{0}' ", log.ErrorTrace[idx].Item1);
-                Console.Write("in {0}:", log.ErrorTrace[idx].Item2);
-                IO.PrintLine("line {0}", log.ErrorTrace[idx].Item3);
             }
 
             AnalysisErrorReporter.ErrorCount++;

@@ -13,7 +13,6 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.PSharp.LanguageServices.Compilation;
-using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.LanguageServices.Parsing
 {

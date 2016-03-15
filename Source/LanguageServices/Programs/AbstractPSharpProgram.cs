@@ -68,7 +68,7 @@ namespace Microsoft.PSharp.LanguageServices
         public abstract void Rewrite();
 
         /// <summary>
-        /// Rewrites the P# program to the C#-IR.
+        /// Returns the syntax tree of the P# program.
         /// </summary>
         /// <returns>SyntaxTree</returns>
         public SyntaxTree GetSyntaxTree()

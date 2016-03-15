@@ -341,7 +341,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                 IO.PrintLine("Index: " + idx);
                 foreach (var sc in this.ScheduleStack[idx])
                 {
-                    Console.Write(sc.Id + " [" + sc.IsDone + "], ");
+                    IO.Print(sc.Id + " [" + sc.IsDone + "], ");
                 }
                 IO.PrintLine("");
             }
@@ -353,7 +353,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                 IO.PrintLine("Index: " + idx);
                 foreach (var nc in this.NondetStack[idx])
                 {
-                    Console.Write(nc.Value + " [" + nc.IsDone + "], ");
+                    IO.Print(nc.Value + " [" + nc.IsDone + "], ");
                 }
                 IO.PrintLine("");
             }

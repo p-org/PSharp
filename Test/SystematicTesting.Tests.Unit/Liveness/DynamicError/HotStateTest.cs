@@ -21,7 +21,7 @@ using System.Collections.Generic;
 namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
 {
     [TestClass]
-    public class HotStateTest : BasePSharpTest
+    public class HotStateTest
     {
         class Config : Event
         {

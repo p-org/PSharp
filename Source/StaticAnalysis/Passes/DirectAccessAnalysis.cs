@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="RuntimeOnlyDirectAccessAnalysis.cs">
+// <copyright file="DirectAccessAnalysis.cs">
 //      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -15,8 +15,6 @@
 using System;
 using System.Linq;
 
-using Microsoft.PSharp.Utilities;
-
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -25,12 +23,10 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Microsoft.PSharp.StaticAnalysis
 {
     /// <summary>
-    /// This analysis reports a warning if a machine has any fields that are
-    /// neither private or protected. We also report an error if a machine
-    /// has any public methods. Any exposed outside of the class methods
-    /// must only be accessed by the P# runtime.
+    /// This analysis reports an error if a machine has any fields
+    /// or methods that can be publicly accessed.
     /// </summary>
-    public sealed class RuntimeOnlyDirectAccessAnalysis
+    public sealed class DirectAccessAnalysis
     {
         #region fields
 
@@ -44,13 +40,13 @@ namespace Microsoft.PSharp.StaticAnalysis
         #region public API
 
         /// <summary>
-        /// Creates a new runtime only direct access analysis pass.
+        /// Creates a new direct access analysis pass.
         /// </summary>
         /// <param name="context">AnalysisContext</param>
-        /// <returns>RuntimeOnlyDirectAccessAnalysis</returns>
-        public static RuntimeOnlyDirectAccessAnalysis Create(AnalysisContext context)
+        /// <returns>DirectAccessAnalysis</returns>
+        public static DirectAccessAnalysis Create(AnalysisContext context)
         {
-            return new RuntimeOnlyDirectAccessAnalysis(context);
+            return new DirectAccessAnalysis(context);
         }
 
         /// <summary>
@@ -70,7 +66,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Constructor.
         /// </summary>
         /// <param name="context">AnalysisContext</param>
-        private RuntimeOnlyDirectAccessAnalysis(AnalysisContext context)
+        private DirectAccessAnalysis(AnalysisContext context)
         {
             this.AnalysisContext = context;
         }
@@ -81,19 +77,19 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         private void CheckFields()
         {
-            foreach (var classDecl in AnalysisContext.Machines)
+            foreach (var machineDecl in AnalysisContext.Machines)
             {
-                foreach (var field in classDecl.ChildNodes().OfType<FieldDeclarationSyntax>())
+                foreach (var field in machineDecl.ChildNodes().OfType<FieldDeclarationSyntax>())
                 {
                     if (field.Modifiers.Any(SyntaxKind.PublicKeyword))
                     {
-                        ErrorReporter.ReportAndExit("Field '{0}' of machine '{1}' is declared as " +
-                            "'public'.", field.Declaration.ToString(), classDecl.Identifier.ValueText);
+                        AnalysisErrorReporter.Report("Field '{0}' of machine '{1}' is declared as " +
+                            "'public'.", field.Declaration.ToString(), machineDecl.Identifier.ValueText);
                     }
                     else if (field.Modifiers.Any(SyntaxKind.InternalKeyword))
                     {
-                        ErrorReporter.ReportAndExit("Field '{0}' of machine '{1}' is declared as " +
-                            "'internal'.", field.Declaration.ToString(), classDecl.Identifier.ValueText);
+                        AnalysisErrorReporter.Report("Field '{0}' of machine '{1}' is declared as " +
+                            "'internal'.", field.Declaration.ToString(), machineDecl.Identifier.ValueText);
                     }
                 }
             }
@@ -106,21 +102,21 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         private void CheckMethods()
         {
-            foreach (var classDecl in AnalysisContext.Machines)
+            foreach (var machineDecl in AnalysisContext.Machines)
             {
-                foreach (var method in classDecl.ChildNodes().OfType<MethodDeclarationSyntax>())
+                foreach (var method in machineDecl.ChildNodes().OfType<MethodDeclarationSyntax>())
                 {
                     if (method.Modifiers.Any(SyntaxKind.PublicKeyword))
                     {
-                        ErrorReporter.ReportAndExit("Method '{0}' of machine '{1}' is " +
+                        AnalysisErrorReporter.Report("Method '{0}' of machine '{1}' is " +
                             "declared as 'public'.", method.Identifier.ValueText,
-                            classDecl.Identifier.ValueText);
+                            machineDecl.Identifier.ValueText);
                     }
                     else if (method.Modifiers.Any(SyntaxKind.InternalKeyword))
                     {
-                        ErrorReporter.ReportAndExit("Method '{0}' of machine '{1}' is " +
+                        AnalysisErrorReporter.Report("Method '{0}' of machine '{1}' is " +
                             "declared as 'internal'.", method.Identifier.ValueText,
-                            classDecl.Identifier.ValueText);
+                            machineDecl.Identifier.ValueText);
                     }
                 }
             }

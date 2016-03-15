@@ -42,7 +42,7 @@ namespace Microsoft.PSharp.LanguageServices
 
             var model = compilation.GetSemanticModel(classDecl.SyntaxTree);
             var symbol = model.GetDeclaredSymbol(classDecl);
-
+            
             while (true)
             {
                 if (symbol.ToString() == typeof(Machine).FullName)

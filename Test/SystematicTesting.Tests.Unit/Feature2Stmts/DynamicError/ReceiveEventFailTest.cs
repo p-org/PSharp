@@ -22,7 +22,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
 {
     [TestClass]
-    public class ReceiveEventFailTest : BasePSharpTest
+    public class ReceiveEventFailTest
     {
         class Config : Event
         {

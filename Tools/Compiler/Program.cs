@@ -44,8 +44,11 @@ namespace Microsoft.PSharp
             // Creates and starts a compilation process.
             CompilationProcess.Create(context).Start();
 
-            // Creates and starts a static analysis process.
-            StaticAnalysisProcess.Create(context).Start();
+            if (context.Configuration.RunStaticAnalysis)
+            {
+                // Creates and starts a static analysis process.
+                StaticAnalysisProcess.Create(context).Start();
+            }
 
             IO.PrintLine(". Done");
         }

@@ -22,7 +22,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\Binaries\Debug\</OutputPath>
+    <OutputPath>..\..\Binaries\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -30,7 +30,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\Binaries\Release\</OutputPath>
+    <OutputPath>..\..\Binaries\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -92,7 +92,6 @@
   </Choose>
   <ItemGroup>
     <Compile Include="AsyncAwait\DynamicError\SimpleAsyncAwaitFailTest.cs" />
-    <Compile Include="BasePSharpTest.cs" />
     <Compile Include="Feature1SMLevelDecls\Correct\MaxInstances2Test.cs" />
     <Compile Include="Feature1SMLevelDecls\Correct\MethodCallTest.cs" />
     <Compile Include="Feature1SMLevelDecls\Correct\BugRepro1Test.cs" />

@@ -707,7 +707,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     continue;
                 }
-
+                
                 // Get the tree's semantic model.
                 var model = this.Compilation.GetSemanticModel(tree);
 

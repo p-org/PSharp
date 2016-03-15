@@ -52,7 +52,6 @@ namespace Microsoft.PSharp
             foreach (var target in this.CompilationContext.Configuration.CompilationTargets)
             {
                 IO.PrintLine(". Compiling target '" + target + "'");
-
                 this.CompilationContext.ActiveCompilationTarget = target;
 
                 // Creates and runs a P# compilation engine.

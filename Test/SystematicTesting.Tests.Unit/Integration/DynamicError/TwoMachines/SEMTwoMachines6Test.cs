@@ -20,7 +20,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
 {
     [TestClass]
-    public class SEMTwoMachines6Test : BasePSharpTest
+    public class SEMTwoMachines6Test
     {
         class Ping : Event
         {

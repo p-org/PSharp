@@ -20,7 +20,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
 {
     [TestClass]
-    public class AlonBugTest : BasePSharpTest
+    public class AlonBugTest
     {
         class E : Event { }
 

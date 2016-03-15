@@ -19,7 +19,7 @@ namespace Microsoft.PSharp.Utilities
     /// <summary>
     /// Reports errors and warnings to the user.
     /// </summary>
-    public class ErrorReporter
+    public static class ErrorReporter
     {
         #region fields
 
@@ -46,8 +46,8 @@ namespace Microsoft.PSharp.Utilities
         /// <param name="s">String</param>
         public static void Report(string s)
         {
-            Console.Write("Error: ");
-            Console.WriteLine(s);
+            IO.Print("Error: ");
+            IO.PrintLine(s);
         }
 
         /// <summary>
@@ -57,9 +57,8 @@ namespace Microsoft.PSharp.Utilities
         /// <param name="args">Parameters</param>
         public static void Report(string s, params object[] args)
         {
-            string message = IO.Format(s, args);
-            Console.Write("Error: ");
-            Console.WriteLine(message);
+            IO.Print("Error: ");
+            IO.PrettyPrintLine(s, args);
         }
 
         /// <summary>
@@ -68,8 +67,11 @@ namespace Microsoft.PSharp.Utilities
         /// <param name="s">String</param>
         public static void ReportWarning(string s)
         {
-            Console.Write("Warning: ");
-            Console.WriteLine(s);
+            if (ErrorReporter.ShowWarnings)
+            {
+                IO.Print("Warning: ");
+                IO.PrintLine(s);
+            }
         }
 
         /// <summary>
@@ -79,9 +81,11 @@ namespace Microsoft.PSharp.Utilities
         /// <param name="args">Parameters</param>
         public static void ReportWarning(string s, params object[] args)
         {
-            string message = IO.Format(s, args);
-            Console.Write("Warning: ");
-            Console.WriteLine(message);
+            if (ErrorReporter.ShowWarnings)
+            {
+                IO.Print("Warning: ");
+                IO.PrettyPrintLine(s, args);
+            }
         }
 
         /// <summary>
@@ -90,8 +94,8 @@ namespace Microsoft.PSharp.Utilities
         /// <param name="s">String</param>
         public static void ReportAndExit(string s)
         {
-            Console.Write("Error: ");
-            Console.WriteLine(s);
+            IO.Print("Error: ");
+            IO.PrintLine(s);
             Environment.Exit(1);
         }
 
@@ -102,32 +106,8 @@ namespace Microsoft.PSharp.Utilities
         /// <param name="args">Parameters</param>
         public static void ReportAndExit(string s, params object[] args)
         {
-            string message = IO.Format(s, args);
-            Console.Write("Error: ");
-            Console.WriteLine(message);
-            Environment.Exit(1);
-        }
-
-        /// <summary>
-        /// Reports a generic message to the user.
-        /// </summary>
-        /// <param name="s">String</param>
-        /// <param name="args">Parameters</param>
-        public static void WriteLine(string s, params object[] args)
-        {
-            string message = IO.Format(s, args);
-            Console.WriteLine(message);
-        }
-
-        /// <summary>
-        /// Reports a generic message to the user and exits.
-        /// </summary>
-        /// <param name="s">String</param>
-        /// <param name="args">Parameters</param>
-        public static void WriteLineAndExit(string s, params object[] args)
-        {
-            string message = IO.Format(s, args);
-            Console.WriteLine(message);
+            IO.Print("Error: ");
+            IO.PrettyPrintLine(s, args);
             Environment.Exit(1);
         }
 

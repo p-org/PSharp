@@ -19,6 +19,8 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.PSharp.Utilities;
+
 namespace Microsoft.PSharp.SystematicTesting.Threading
 {
     /// <summary>
@@ -90,7 +92,7 @@ namespace Microsoft.PSharp.SystematicTesting.Threading
         /// <returns>Task</returns>
         public static Task<TResult> RunOnPSharpScheduler<TResult>(this Task<TResult> @this)
         {
-            Console.WriteLine("[RunOnPSharpScheduler]");
+            IO.PrintLine("[RunOnPSharpScheduler]");
             return @this.ContinueWith(val => val,
                 CancellationToken.None,
                 TaskContinuationOptions.ExecuteSynchronously,

@@ -21,7 +21,7 @@ using System.Collections.Generic;
 namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
 {
     [TestClass]
-    public class FairNondet1Test : BasePSharpTest
+    public class FairNondet1Test
     {
         class Unit : Event { }
         class UserEvent : Event { }

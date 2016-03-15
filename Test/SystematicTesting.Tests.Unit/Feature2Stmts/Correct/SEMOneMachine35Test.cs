@@ -22,7 +22,7 @@ using System.Collections.Generic;
 namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
 {
     [TestClass]
-    public class SEMOneMachine35Test : BasePSharpTest
+    public class SEMOneMachine35Test
     {
         class Entry : Machine
         {

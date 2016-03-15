@@ -20,7 +20,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
 {
     [TestClass]
-    public class MaxInstances2Test : BasePSharpTest
+    public class MaxInstances2Test
     {
         class Config : Event
         {

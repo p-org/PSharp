@@ -102,16 +102,16 @@ namespace Microsoft.PSharp.StaticAnalysis
                     methodName = (summary.Key as ConstructorDeclarationSyntax).Identifier.ValueText;
                 }
 
-                Console.Write("   > Method '{0}' gives_up set:", methodName);
+                IO.Print("   > Method '{0}' gives_up set:", methodName);
                 foreach (var index in summary.Value.GivesUpSet)
                 {
-                    Console.Write(" '{0}'", index);
+                    IO.Print(" '{0}'", index);
                 }
 
-                Console.Write("\n");
+                IO.Print("\n");
             }
 
-            Console.Write("\n");
+            IO.Print("\n");
         }
 
         #endregion

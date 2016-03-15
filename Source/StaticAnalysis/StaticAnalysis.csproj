@@ -84,10 +84,10 @@
     <Compile Include="DataStructures\StateTransitionGraphNode.cs" />
     <Compile Include="AnalysisErrorReporter.cs" />
     <Compile Include="Log.cs" />
+    <Compile Include="StaticAnalysisEngine.cs" />
     <Compile Include="Passes\MethodSummaryAnalysis.cs" />
     <Compile Include="Passes\RespectsOwnershipAnalysis.cs" />
-    <Compile Include="Passes\RuntimeOnlyDirectAccessAnalysis.cs" />
-    <Compile Include="Passes\SanityCheckingAnalysis.cs" />
+    <Compile Include="Passes\DirectAccessAnalysis.cs" />
     <Compile Include="Passes\StateTransitionAnalysis.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

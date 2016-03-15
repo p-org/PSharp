@@ -14,7 +14,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 using Microsoft.CodeAnalysis;
 
@@ -100,9 +99,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 this.ParseSyntaxTree();
             }
 
-            if (this.WarningLog.Count > 0 &&
-                (base.Project.CompilationContext.Configuration.ShowWarnings ||
-                base.Project.CompilationContext.Configuration.Verbose > 1))
+            if (this.WarningLog.Count > 0)
             {
                 this.ReportParsingWarnings();
             }
@@ -166,12 +163,12 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         }
 
         /// <summary>
-        /// Reports the parsing warnings. Only works if the parser is
-        /// running internally.
+        /// Reports the parsing warnings. Only works if the
+        /// parser is running internally.
         /// </summary>
         private void ReportParsingWarnings()
         {
-            if (!base.IsRunningInternally)
+            if (!base.IsRunningInternally || !ErrorReporter.ShowWarnings)
             {
                 return;
             }
@@ -190,13 +187,13 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 ErrorReporter.ReportWarning(report);
             }
 
-            ErrorReporter.WriteLine("Found {0} parsing warnings{1}.", this.WarningLog.Count,
+            IO.PrettyPrint("Found {0} parsing warnings{1}.", this.WarningLog.Count,
                 this.WarningLog.Count == 1 ? "" : "s");
         }
 
         /// <summary>
-        /// Reports the parsing errors. Only works if the parser is
-        /// running internally.
+        /// Reports the parsing errors and exits. Only works if the
+        /// parser is running internally.
         /// </summary>
         private void ReportParsingErrors()
         {
@@ -219,8 +216,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 ErrorReporter.Report(report);
             }
 
-            ErrorReporter.WriteLineAndExit("Found {0} parsing error{1}.", this.ErrorLog.Count,
+            IO.PrettyPrint("Found {0} parsing error{1}.", this.ErrorLog.Count,
                 this.ErrorLog.Count == 1 ? "" : "s");
+            Environment.Exit(1);
         }
 
         #endregion

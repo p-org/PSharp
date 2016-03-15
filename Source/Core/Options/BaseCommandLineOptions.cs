@@ -20,8 +20,14 @@ namespace Microsoft.PSharp.Utilities
     {
         #region fields
 
+        /// <summary>
+        /// Configuration.
+        /// </summary>
         protected Configuration Configuration;
 
+        /// <summary>
+        /// Command line options.
+        /// </summary>
         protected string[] Options;
 
         #endregion
@@ -34,6 +40,7 @@ namespace Microsoft.PSharp.Utilities
         /// <param name="args">Array of arguments</param>
         public BaseCommandLineOptions(string[] args)
         {
+            this.Configuration = Configuration.Create();
             this.Options = args;
         }
 
@@ -94,7 +101,7 @@ namespace Microsoft.PSharp.Utilities
             {
                 IO.Debugging = true;
             }
-            else if (option.ToLower().Equals("/showwarnings"))
+            else if (option.ToLower().Equals("/warnings"))
             {
                 ErrorReporter.ShowWarnings = true;
             }

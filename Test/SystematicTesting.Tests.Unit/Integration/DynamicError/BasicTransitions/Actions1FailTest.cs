@@ -21,7 +21,7 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
 {
     [TestClass]
-    public class Actions1FailTest : BasePSharpTest
+    public class Actions1FailTest
     {
         class Config : Event
         {

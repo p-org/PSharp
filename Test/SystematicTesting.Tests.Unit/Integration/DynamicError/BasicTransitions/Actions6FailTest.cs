@@ -23,7 +23,7 @@ namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
     /// Tests that event payload works correctly with a push transition.
     /// </summary>
     [TestClass]
-    public class Actions6FailTest : BasePSharpTest
+    public class Actions6FailTest
     {
         class Config : Event
         {

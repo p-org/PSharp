@@ -82,7 +82,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         }
 
         /// <summary>
-        /// Loads the solution.
+        /// Loads the user-specified solution.
         /// </summary>
         public CompilationContext LoadSolution()
         {
@@ -117,6 +117,20 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
                 }
             }
             
+            this.HasInitialized = true;
+
+            return this;
+        }
+
+        /// <summary>
+        /// Loads the given solution.
+        /// </summary>
+        public CompilationContext LoadSolution(Solution solution)
+        {
+            // Create a new workspace.
+            var workspace = MSBuildWorkspace.Create();
+
+            this.InstallCompilationTargets(solution);
             this.HasInitialized = true;
 
             return this;

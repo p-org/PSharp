@@ -21,7 +21,7 @@ using System.Threading.Tasks;
 namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
 {
     [TestClass]
-    public class SimpleTaskFailTest : BasePSharpTest
+    public class SimpleTaskFailTest
     {
         class Unit : Event { }
 

@@ -20,7 +20,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
 {
     [TestClass]
-    public class SEMOneMachine17Test : BasePSharpTest
+    public class SEMOneMachine17Test
     {
         class E1 : Event
         {

@@ -23,7 +23,7 @@ namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
     /// Tests the semantics of push transitions and inheritance of actions.
     /// </summary>
     [TestClass]
-    public class Actions5FailTest : BasePSharpTest
+    public class Actions5FailTest
     {
         class Config : Event
         {

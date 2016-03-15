@@ -12,11 +12,6 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-
-using Microsoft.CodeAnalysis;
-
 using Microsoft.PSharp.LanguageServices.Compilation;
 using Microsoft.PSharp.StaticAnalysis;
 using Microsoft.PSharp.Utilities;
@@ -54,15 +49,12 @@ namespace Microsoft.PSharp
         /// </summary>
         public void Start()
         {
-            if (!this.CompilationContext.Configuration.RunStaticAnalysis)
-            {
-                return;
-            }
+            IO.PrintLine(". Analyzing");
 
-            foreach (var project in this.CompilationContext.GetSolution().Projects)
+            foreach (var target in this.CompilationContext.Configuration.CompilationTargets)
             {
-                IO.PrintLine(". Analyzing " + project.Name);
-                this.AnalyzeProject(project);
+                // Creates and runs a P# static analysis engine.
+                StaticAnalysisEngine.Create(this.CompilationContext).Run();
             }
 
             // Prints error statistics and profiling results.
@@ -80,63 +72,6 @@ namespace Microsoft.PSharp
         private StaticAnalysisProcess(CompilationContext context)
         {
             this.CompilationContext = context;
-        }
-
-        /// <summary>
-        /// Analyzes the given P# project.
-        /// </summary>
-        /// <param name="project">Project</param>
-        private void AnalyzeProject(Project project)
-        {
-            // Starts profiling the analysis.
-            if (this.CompilationContext.Configuration.ShowRuntimeResults)
-            {
-                Profiler.StartMeasuringExecutionTime();
-            }
-
-            // Create a P# static analysis context.
-            var context = AnalysisContext.Create(this.CompilationContext.Configuration, project);
-
-            // Creates and runs an analysis that performs an initial sanity
-            // checking to see if machine code behaves as it should.
-            SanityCheckingAnalysis.Create(context).Run();
-
-            // Creates and runs an analysis that finds if a machine exposes
-            // any fields or methods to other machines.
-            RuntimeOnlyDirectAccessAnalysis.Create(context).Run();
-
-            // Creates and runs an analysis that computes the summary
-            // for every method in each machine.
-            var methodSummaryAnalysis = MethodSummaryAnalysis.Create(context);
-            methodSummaryAnalysis.Run();
-            if (this.CompilationContext.Configuration.ShowGivesUpInformation)
-            {
-                methodSummaryAnalysis.PrintGivesUpResults();
-            }
-
-            // Creates and runs an analysis that constructs the
-            // state transition graph for each machine.
-            if (this.CompilationContext.Configuration.DoStateTransitionAnalysis)
-            {
-                StateTransitionAnalysis.Create(context).Run();
-            }
-
-            // Creates and runs an analysis that detects if all methods
-            // in each machine respect given up ownerships.
-            RespectsOwnershipAnalysis.Create(context).Run();
-
-            // Stops profiling the analysis.
-            if (this.CompilationContext.Configuration.ShowRuntimeResults)
-            {
-                Profiler.StopMeasuringExecutionTime();
-            }
-
-            if (this.CompilationContext.Configuration.ShowRuntimeResults ||
-                this.CompilationContext.Configuration.ShowDFARuntimeResults ||
-                this.CompilationContext.Configuration.ShowROARuntimeResults)
-            {
-                Profiler.PrintResults();
-            }
         }
 
         #endregion

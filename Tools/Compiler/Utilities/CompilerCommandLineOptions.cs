@@ -29,7 +29,7 @@ namespace Microsoft.PSharp.Utilities
         public CompilerCommandLineOptions(string[] args)
             : base (args)
         {
-            base.Configuration = Configuration.Create();
+            
         }
 
         #endregion
@@ -69,10 +69,6 @@ namespace Microsoft.PSharp.Utilities
                     ErrorReporter.ReportAndExit("Please give a valid compilation target '/t:[x]', " +
                         "where [x] is 'all', 'exe', 'lib' or 'test'.");
                 }
-            }
-            else if (option.ToLower().Equals("/warnings"))
-            {
-                base.Configuration.ShowWarnings = true;
             }
             else if (option.ToLower().Equals("/analyze"))
             {

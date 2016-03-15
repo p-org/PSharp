@@ -20,7 +20,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
 {
     [TestClass]
-    public class SendInterleavingsTest : BasePSharpTest
+    public class SendInterleavingsTest
     {
         class Config : Event
         {

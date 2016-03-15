@@ -909,7 +909,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             Console.Write("predecessors of {0}:", this.Id);
             foreach (var node in this.IPredecessors)
             {
-                Console.Write(" " + node.Id);
+                IO.Print(" " + node.Id);
             }
 
             IO.PrintLine("");
@@ -937,7 +937,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             Console.Write("successors of {0}:", this.Id);
             foreach (var node in this.ISuccessors)
             {
-                Console.Write(" " + node.Id);
+                IO.Print(" " + node.Id);
             }
 
             IO.PrintLine("");

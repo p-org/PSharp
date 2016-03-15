@@ -15,48 +15,40 @@
 //-----------------------------------------------------------------------
 
 using System.Linq;
-using System.IO;
-using System.Reflection;
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
+namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
 {
     public abstract class BasePSharpTest
     {
         /// <summary>
-        /// Get assembly from the given text.
+        /// Get solution from the given text.
         /// </summary>
-        /// <param name="tree">SyntaxTree</param>
-        /// <returns>Assembly</returns>
-        protected Assembly GetAssembly(SyntaxTree tree)
+        /// <param name="text">Text</param>
+        /// <returns>Solution</returns>
+        protected Solution GetSolution(string text)
         {
-            Assembly assembly = null;
-            
+            var workspace = new AdhocWorkspace();
+            var solutionInfo = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create());
+            var solution = workspace.AddSolution(solutionInfo);
+            var project = workspace.AddProject("Test", "C#");
+
             var references = new MetadataReference[]
             {
                 MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(Machine).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(PSharpBugFindingRuntime).Assembly.Location)
+                MetadataReference.CreateFromFile(typeof(Machine).Assembly.Location)
             };
 
-            var compilation = CSharpCompilation.Create(
-                "PSharpTestAssembly", new[] { tree }, references,
-                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+            project = project.AddMetadataReferences(references);
+            workspace.TryApplyChanges(project.Solution);
 
-            using (var ms = new MemoryStream())
-            {
-                var result = compilation.Emit(ms);
-                if (result.Success)
-                {
-                    ms.Seek(0, SeekOrigin.Begin);
-                    assembly = Assembly.Load(ms.ToArray());
-                }
-            }
+            var sourceText = SourceText.From(text);
+            var doc = project.AddDocument("Program", sourceText, null, "Program.cs");
 
-            return assembly;
+            return doc.Project.Solution;
         }
     }
 }
