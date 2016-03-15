@@ -83,6 +83,11 @@ namespace Microsoft.PSharp
         private bool IsHalted;
 
         /// <summary>
+        /// Is machine waiting to receive an event.
+        /// </summary>
+        internal bool IsWaiting;
+
+        /// <summary>
         /// Inbox of the state machine. Incoming events are queued here.
         /// Events are dequeued to be processed.
         /// </summary>
@@ -129,6 +134,7 @@ namespace Microsoft.PSharp
 
             this.IsRunning = true;
             this.IsHalted = false;
+            this.IsWaiting = false;
         }
 
         #endregion
@@ -721,20 +727,25 @@ namespace Microsoft.PSharp
                         break;
                     }
                 }
+
+                if (this.ReceivedEventHandler == null)
+                {
+                    var events = "";
+                    foreach (var ew in this.EventWaiters)
+                    {
+                        events += " '" + ew.Key.Name + "'";
+                    }
+
+                    base.Runtime.Log("<ReceiveLog> Machine '{0}({1})' is waiting on events:{2}.",
+                        this, base.Id.MVal, events);
+                    this.IsWaiting = true;
+                }
             }
 
-            if (this.ReceivedEventHandler == null)
+            if (this.IsWaiting)
             {
-                var events = "";
-                foreach (var ew in this.EventWaiters)
-                {
-                    events += " '" + ew.Key.Name + "'";
-                }
-
-                base.Runtime.Log("<ReceiveLog> Machine '{0}({1})' is waiting on events:{2}.",
-                    this, base.Id.MVal, events);
-
                 base.Runtime.NotifyWaitEvent(this);
+                this.IsWaiting = false;
             }
             
             this.HandleReceivedEvent();

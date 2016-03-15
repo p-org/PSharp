@@ -84,8 +84,12 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                 m => m.IsEnabled && !m.IsBlocked && !m.IsWaiting).ToList();
             if (availableMachines.Count == 0)
             {
-                next = null;
-                return false;
+                availableMachines = choices.Where(m => m.IsWaiting).ToList();
+                if (availableMachines.Count == 0)
+                {
+                    next = null;
+                    return false;
+                }
             }
 
             int idx = this.Random.Next(availableMachines.Count);

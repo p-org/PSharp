@@ -543,7 +543,10 @@ namespace Microsoft.PSharp
         {
             lock (machine)
             {
-                System.Threading.Monitor.Wait(machine);
+                while (machine.IsWaiting)
+                {
+                    System.Threading.Monitor.Wait(machine);
+                }
             }
         }
 
@@ -557,6 +560,7 @@ namespace Microsoft.PSharp
             lock (machine)
             {
                 System.Threading.Monitor.Pulse(machine);
+                machine.IsWaiting = false;
             }
         }
 

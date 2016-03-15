@@ -102,6 +102,8 @@
     <Compile Include="Feature2Stmts\Correct\SEMOneMachine35Test.cs" />
     <Compile Include="Feature2Stmts\Correct\SEMOneMachine34Test.cs" />
     <Compile Include="Feature2Stmts\Correct\SEMOneMachine33Test.cs" />
+    <Compile Include="Feature2Stmts\Correct\ReceiveEventTest.cs" />
+    <Compile Include="Feature2Stmts\DynamicError\ReceiveEventFailTest.cs" />
     <Compile Include="Integration\Correct\OneMachine\SEMOneMachine42Test.cs" />
     <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine38Test.cs" />
     <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine37Test.cs" />

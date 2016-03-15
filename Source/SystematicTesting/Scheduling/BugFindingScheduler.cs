@@ -138,7 +138,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                 this.KillRemainingMachines();
                 throw new TaskCanceledException();
             }
-            
+
             MachineInfo next = null;
             if (!this.Strategy.TryGetNext(out next, this.MachineInfos, machineInfo))
             {

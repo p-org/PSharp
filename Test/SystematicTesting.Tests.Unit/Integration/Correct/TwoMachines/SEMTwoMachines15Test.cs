@@ -68,7 +68,7 @@ namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
         }
 
         [TestMethod]
-        public void TestNewMonitor3()
+        public void TestSEMTwoMachines15()
         {
             var configuration = Configuration.Create();
             configuration.SuppressTrace = true;

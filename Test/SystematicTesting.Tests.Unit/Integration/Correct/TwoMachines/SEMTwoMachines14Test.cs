@@ -69,7 +69,7 @@ namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
         /// P# semantics test: two machines, monitor instantiation parameter.
         /// </summary>
         [TestMethod]
-        public void TestNewMonitor2()
+        public void TestSEMTwoMachines14()
         {
             var configuration = Configuration.Create();
             configuration.SuppressTrace = true;
