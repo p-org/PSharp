@@ -1,6 +1,6 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="ControlFlowGraphNode.cs">
-//      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
+//      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 
+using Microsoft.PSharp.LanguageServices;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.StaticAnalysis
@@ -813,7 +814,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <returns>Boolean</returns>
         private bool IsGivesUpOperation(InvocationExpressionSyntax call)
         {
-            var callee = this.AnalysisContext.GetCallee(call);
+            var callee = Querying.GetCalleeOfInvocation(call);
             var model = this.AnalysisContext.Compilation.GetSemanticModel(call.SyntaxTree);
             var callSymbol = model.GetSymbolInfo(call).Symbol;
             if (callSymbol == null)
@@ -821,7 +822,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 return false;
             }
 
-            if (this.AnalysisContext.IsSourceOfGivingUpOwnership(call, model, callee))
+            if (Querying.IsEventSenderInvocation(call, callee, model))
             {
                 return true;
             }

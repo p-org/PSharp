@@ -1,6 +1,6 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="StateTransitionAnalysis.cs">
-//      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
+// <copyright file="StateTransitionAnalysisPass.cs">
+//      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
@@ -25,14 +25,9 @@ using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.StaticAnalysis
 {
-    public sealed class StateTransitionAnalysis
+    public sealed class StateTransitionAnalysisPass : AnalysisPass
     {
         #region fields
-
-        /// <summary>
-        /// The analysis context.
-        /// </summary>
-        private AnalysisContext AnalysisContext;
 
         /// <summary>
         /// Number of machines in the program.
@@ -57,21 +52,24 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Creates a new state transition analysis pass.
         /// </summary>
         /// <param name="context">AnalysisContext</param>
-        /// <returns>StateTransitionAnalysis</returns>
-        public static StateTransitionAnalysis Create(AnalysisContext context)
+        /// <returns>StateTransitionAnalysisPass</returns>
+        public static StateTransitionAnalysisPass Create(AnalysisContext context)
         {
-            return new StateTransitionAnalysis(context);
+            return new StateTransitionAnalysisPass(context);
         }
 
         /// <summary>
         /// Runs the analysis.
         /// </summary>
-        public void Run()
+        /// <returns>StateTransitionAnalysisPass</returns>
+        public StateTransitionAnalysisPass Run()
         {
             foreach (var machine in this.AnalysisContext.Machines)
             {
                 this.ConstructGraphForMachine(machine);
             }
+
+            return this;
         }
 
         #endregion
@@ -82,9 +80,10 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Constructor.
         /// </summary>
         /// <param name="context">AnalysisContext</param>
-        private StateTransitionAnalysis(AnalysisContext context)
+        private StateTransitionAnalysisPass(AnalysisContext context)
+            : base(context)
         {
-            this.AnalysisContext = context;
+
         }
 
         /// <summary>

@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------
 // <copyright file="AnalysisContext.cs">
-//      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
+//      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
@@ -491,57 +491,6 @@ namespace Microsoft.PSharp.StaticAnalysis
         }
 
         /// <summary>
-        /// Returns true if the given call is source of giving up ownership of data.
-        /// Returns false if it is not.
-        /// </summary>
-        /// <param name="call">Call</param>
-        /// <param name="model">Semantic model</param>
-        /// <param name="callee">Callee (optional)</param>
-        /// <returns>Boolean</returns>
-        internal bool IsSourceOfGivingUpOwnership(InvocationExpressionSyntax call, SemanticModel model,
-            string callee = null)
-        {
-            if (callee == null)
-            {
-                callee = this.GetCallee(call);
-            }
-
-            if (!(callee.Equals("Send") || callee.Equals("CreateMachine")))
-            {
-                return false;
-            }
-
-            var suffix = model.GetSymbolInfo(call).Symbol.ContainingSymbol.ToString();
-            if (!(suffix.Equals("Microsoft.PSharp.Machine") ||
-                suffix.Equals("Microsoft.PSharp.MachineState")))
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        /// <summary>
-        /// Checks if the analysis should consider the given method.
-        /// </summary>
-        /// <param name="method">Method</param>
-        /// <returns>Boolean</returns>
-        internal bool ShouldAnalyseMethod(MethodDeclarationSyntax method)
-        {
-            if (method.Modifiers.Any(SyntaxKind.AbstractKeyword) ||
-                method.Identifier.ValueText.Equals("DefineIgnoredEvents") ||
-                method.Identifier.ValueText.Equals("DefineDeferredEvents") ||
-                method.Identifier.ValueText.Equals("DefineGotoStateTransitions") ||
-                method.Identifier.ValueText.Equals("DefinePushStateTransitions") ||
-                method.Identifier.ValueText.Equals("DefineActionBindings"))
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        /// <summary>
         /// Checks if the given method is an entry point to the given machine.
         /// </summary>
         /// <param name="method">Method</param>
@@ -603,36 +552,6 @@ namespace Microsoft.PSharp.StaticAnalysis
             NamespaceDeclarationSyntax namespaceDecl = null;
             this.TryGetNamespaceDeclarationOfSyntaxNode(machine, out namespaceDecl);
             return namespaceDecl.Name + "." + name;
-        }
-
-        /// <summary>
-        /// Returns the callee of the given call expression.
-        /// </summary>
-        /// <param name="call">Call expression</param>
-        /// <returns>Callee</returns>
-        internal string GetCallee(InvocationExpressionSyntax call)
-        {
-            string callee = "";
-
-            if (call.Expression is MemberAccessExpressionSyntax)
-            {
-                var memberAccessExpr = call.Expression as MemberAccessExpressionSyntax;
-                if (memberAccessExpr.Name is IdentifierNameSyntax)
-                {
-                    callee = (memberAccessExpr.Name as IdentifierNameSyntax).Identifier.ValueText;
-                }
-                else if (memberAccessExpr.Name is GenericNameSyntax)
-                {
-                    callee = (memberAccessExpr.Name as GenericNameSyntax).Identifier.ValueText;
-                }
-            }
-            else
-            {
-                callee = call.Expression.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>().
-                    First().Identifier.ValueText;
-            }
-
-            return callee;
         }
 
         /// <summary>

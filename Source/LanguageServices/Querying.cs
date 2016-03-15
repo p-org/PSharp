@@ -1,6 +1,6 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="Querying.cs">
-//      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
+//      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
@@ -26,6 +26,8 @@ namespace Microsoft.PSharp.LanguageServices
     /// </summary>
     internal static class Querying
     {
+        #region state-machine specific queries
+
         /// <summary>
         /// Returns true if the given class declaration is a P# machine.
         /// </summary>
@@ -205,5 +207,71 @@ namespace Microsoft.PSharp.LanguageServices
 
             return result;
         }
+
+        /// <summary>
+        /// Returns true if the given invocation is able to send
+        /// an event to another machine. Returns false if not.
+        /// </summary>
+        /// <param name="invocation">Invocation</param>
+        /// <param name="callee">Callee</param>
+        /// <param name="model">Semantic model</param>
+        /// <returns>Boolean</returns>
+        internal static bool IsEventSenderInvocation(InvocationExpressionSyntax invocation,
+            string callee, SemanticModel model)
+        {
+            if (callee == null)
+            {
+                callee = Querying.GetCalleeOfInvocation(invocation);
+            }
+
+            if (!(callee.Equals("Send") || callee.Equals("CreateMachine")))
+            {
+                return false;
+            }
+
+            string qualifier = model.GetSymbolInfo(invocation).Symbol.ContainingSymbol.ToString();
+            if (!qualifier.Equals("Microsoft.PSharp.Machine"))
+            {
+                return false;
+            }
+
+            return true;
+        }
+        
+        #endregion
+
+        #region generic queries
+
+        /// <summary>
+        /// Returns the callee of the given call expression.
+        /// </summary>
+        /// <param name="invocation">Invocation</param>
+        /// <returns>Callee</returns>
+        internal static string GetCalleeOfInvocation(InvocationExpressionSyntax invocation)
+        {
+            string callee = "";
+
+            if (invocation.Expression is MemberAccessExpressionSyntax)
+            {
+                var memberAccessExpr = invocation.Expression as MemberAccessExpressionSyntax;
+                if (memberAccessExpr.Name is IdentifierNameSyntax)
+                {
+                    callee = (memberAccessExpr.Name as IdentifierNameSyntax).Identifier.ValueText;
+                }
+                else if (memberAccessExpr.Name is GenericNameSyntax)
+                {
+                    callee = (memberAccessExpr.Name as GenericNameSyntax).Identifier.ValueText;
+                }
+            }
+            else
+            {
+                callee = invocation.Expression.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>().
+                    First().Identifier.ValueText;
+            }
+
+            return callee;
+        }
+
+        #endregion
     }
 }

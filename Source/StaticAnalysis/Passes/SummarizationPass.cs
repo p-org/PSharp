@@ -1,6 +1,6 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="MethodSummaryAnalysis.cs">
-//      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
+// <copyright file="SummarizationPass.cs">
+//      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
@@ -21,43 +21,36 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 
+using Microsoft.PSharp.LanguageServices;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.StaticAnalysis
 {
     /// <summary>
-    /// This analysis computes the method summaries for every method
-    /// in each machine of a P# program.
+    /// This analysis pass computes the summaries
+    /// for each machine of a P# program.
     /// </summary>
-    public sealed class MethodSummaryAnalysis
+    public sealed class SummarizationPass : AnalysisPass
     {
-        #region fields
-
-        /// <summary>
-        /// The analysis context.
-        /// </summary>
-        private AnalysisContext AnalysisContext;
-
-        #endregion
-
         #region public API
 
         /// <summary>
         /// Creates a new method summary analysis pass.
         /// </summary>
         /// <param name="context">AnalysisContext</param>
-        /// <returns>MethodSummaryAnalysis</returns>
-        public static MethodSummaryAnalysis Create(AnalysisContext context)
+        /// <returns>SummarizationPass</returns>
+        public static SummarizationPass Create(AnalysisContext context)
         {
-            return new MethodSummaryAnalysis(context);
+            return new SummarizationPass(context);
         }
 
         /// <summary>
         /// Runs the analysis.
         /// </summary>
-        public void Run()
+        /// <returns>SummarizationPass</returns>
+        public SummarizationPass Run()
         {
-            // Starts profiling the data flow analysis.
+            // Starts profiling the summarization.
             if (this.AnalysisContext.Configuration.ShowDFARuntimeResults &&
                 !this.AnalysisContext.Configuration.ShowRuntimeResults &&
                 !this.AnalysisContext.Configuration.ShowROARuntimeResults)
@@ -67,16 +60,18 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             foreach (var machine in this.AnalysisContext.Machines)
             {
-                this.AnalyseMethodsInMachine(machine);
+                this.SummarizeStateMachine(machine);
             }
 
-            // Stops profiling the data flow analysis.
+            // Stops profiling the summarization.
             if (this.AnalysisContext.Configuration.ShowDFARuntimeResults &&
                 !this.AnalysisContext.Configuration.ShowRuntimeResults &&
                 !this.AnalysisContext.Configuration.ShowROARuntimeResults)
             {
                 Profiler.StopMeasuringExecutionTime();
             }
+
+            return this;
         }
 
         /// <summary>
@@ -122,47 +117,30 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Constructor.
         /// </summary>
         /// <param name="context">AnalysisContext</param>
-        private MethodSummaryAnalysis(AnalysisContext context)
+        private SummarizationPass(AnalysisContext context)
+            : base(context)
         {
-            this.AnalysisContext = context;
+
         }
 
         /// <summary>
-        /// Analyses all the eligible methods of the given machine to compute each
-        /// method summary. This process continues until it reaches a fix point.
+        /// Analyses all eligible methods of the given state-machine to compute the
+        /// method summaries. This process repeats until it reaches a fix-point.
         /// </summary>
         /// <param name="machine">Machine</param>
-        private void AnalyseMethodsInMachine(ClassDeclarationSyntax machine)
+        private void SummarizeStateMachine(ClassDeclarationSyntax machine)
         {
             int fixPoint = 0;
-
-            foreach (var nestedClass in machine.ChildNodes().OfType<ClassDeclarationSyntax>())
-            {
-                foreach (var method in nestedClass.ChildNodes().OfType<MethodDeclarationSyntax>())
-                {
-                    if (!this.AnalysisContext.ShouldAnalyseMethod(method) ||
-                        this.AnalysisContext.Summaries.ContainsKey(method))
-                    {
-                        continue;
-                    }
-
-                    this.ComputeSummaryForMethod(method, machine, nestedClass);
-                    if (!this.AnalysisContext.Summaries.ContainsKey(method))
-                    {
-                        fixPoint++;
-                    }
-                }
-            }
-
+            
             foreach (var method in machine.ChildNodes().OfType<MethodDeclarationSyntax>())
             {
-                if (!this.AnalysisContext.ShouldAnalyseMethod(method) ||
-                    this.AnalysisContext.Summaries.ContainsKey(method))
+                if (this.AnalysisContext.Summaries.ContainsKey(method) ||
+                    method.Modifiers.Any(SyntaxKind.AbstractKeyword))
                 {
                     continue;
                 }
 
-                this.ComputeSummaryForMethod(method, machine, null);
+                this.SummarizeMethod(method, machine);
                 if (!this.AnalysisContext.Summaries.ContainsKey(method))
                 {
                     fixPoint++;
@@ -171,7 +149,8 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             if (fixPoint > 0)
             {
-                this.AnalyseMethodsInMachine(machine);
+                // If fix-point has not been reached, repeat.
+                this.SummarizeStateMachine(machine);
             }
         }
 
@@ -180,9 +159,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="method">Method</param>
         /// <param name="machine">Machine</param>
-        /// <param name="state">State</param>
-        private void ComputeSummaryForMethod(MethodDeclarationSyntax method,
-            ClassDeclarationSyntax machine, ClassDeclarationSyntax state)
+        private void SummarizeMethod(MethodDeclarationSyntax method, ClassDeclarationSyntax machine)
         {
             List<InvocationExpressionSyntax> givesUpSources = new List<InvocationExpressionSyntax>();
             foreach (var call in method.DescendantNodes().OfType<InvocationExpressionSyntax>())
@@ -202,11 +179,11 @@ namespace Microsoft.PSharp.StaticAnalysis
                     continue;
                 }
 
-                var callee = this.AnalysisContext.GetCallee(call);
+                var callee = Querying.GetCalleeOfInvocation(call);
                 var calleeMethod = definition.DeclaringSyntaxReferences.First().GetSyntax()
                     as BaseMethodDeclarationSyntax;
 
-                if (this.AnalysisContext.IsSourceOfGivingUpOwnership(call, model, callee) ||
+                if (Querying.IsEventSenderInvocation(call, callee, model) ||
                     this.AnalysisContext.Summaries.ContainsKey(calleeMethod))
                 {
                     givesUpSources.Add(call);
@@ -219,7 +196,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 }
             }
 
-            MethodSummary summary = MethodSummary.Factory.Summarize(this.AnalysisContext, method, machine, state);
+            MethodSummary summary = MethodSummary.Factory.Summarize(this.AnalysisContext, method, machine);
             foreach (var givesUpNode in summary.GivesUpNodes)
             {
                 this.TryComputeGivesUpSetForSendControlFlowGraphNode(givesUpNode, summary);
@@ -230,7 +207,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
         #endregion
 
-        #region give up ownership source analysis methods
+        #region gives-up ownership analysis methods
 
         /// <summary>
         /// Tries to compute the 'gives_up' set of indexes for the given control flow graph node.

@@ -1,6 +1,6 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="StaticAnalysisEngine.cs">
-//      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
+//      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
@@ -110,29 +110,28 @@ namespace Microsoft.PSharp.StaticAnalysis
             // Create a P# static analysis context.
             var context = AnalysisContext.Create(this.CompilationContext.Configuration, project);
 
-            // Creates and runs an analysis that finds if a machine exposes
+            // Creates and runs an analysis pass that finds if a machine exposes
             // any fields or methods to other machines.
-            DirectAccessAnalysis.Create(context).Run();
-            return;
-            // Creates and runs an analysis that computes the summary
-            // for every method in each machine.
-            var methodSummaryAnalysis = MethodSummaryAnalysis.Create(context);
-            methodSummaryAnalysis.Run();
+            DirectAccessAnalysisPass.Create(context).Run();
+
+            // Creates and runs an analysis pass that computes the
+            // summary for every P# machine.
+            var methodSummaryAnalysis = SummarizationPass.Create(context).Run();
             if (this.CompilationContext.Configuration.ShowGivesUpInformation)
             {
                 methodSummaryAnalysis.PrintGivesUpResults();
             }
 
-            // Creates and runs an analysis that constructs the
+            // Creates and runs an analysis pass that constructs the
             // state transition graph for each machine.
             if (this.CompilationContext.Configuration.DoStateTransitionAnalysis)
             {
-                StateTransitionAnalysis.Create(context).Run();
+                StateTransitionAnalysisPass.Create(context).Run();
             }
 
-            // Creates and runs an analysis that detects if all methods
+            // Creates and runs an analysis pass that detects if all methods
             // in each machine respect given up ownerships.
-            RespectsOwnershipAnalysis.Create(context).Run();
+            RespectsOwnershipAnalysisPass.Create(context).Run();
 
             // Stops profiling the analysis.
             if (this.CompilationContext.Configuration.ShowRuntimeResults)

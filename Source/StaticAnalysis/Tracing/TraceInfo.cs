@@ -1,6 +1,6 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="Log.cs">
-//      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
+// <copyright file="TraceInfo.cs">
+//      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
@@ -18,37 +18,40 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.PSharp.StaticAnalysis
 {
-    internal class Log
+    /// <summary>
+    /// Static trace information.
+    /// </summary>
+    internal class TraceInfo
     {
         #region fields
 
         /// <summary>
         /// Error trace.
         /// </summary>
-        internal List<Tuple<string, string, int>> ErrorTrace;
+        internal List<ErrorTraceStep> ErrorTrace;
 
         /// <summary>
         /// Call trace.
         /// </summary>
-        internal List<Tuple<BaseMethodDeclarationSyntax, ExpressionSyntax>> CallTrace;
+        internal List<CallTraceStep> CallTrace;
 
         /// <summary>
-        /// The method where the log begins.
+        /// The method where the trace begins.
         /// </summary>
         internal string Method;
 
         /// <summary>
-        /// The machine where the log begins.
+        /// The machine where the trace begins.
         /// </summary>
         internal string Machine;
 
         /// <summary>
-        /// The state where the log begins.
+        /// The state where the trace begins.
         /// </summary>
         internal string State;
 
         /// <summary>
-        /// The corresponding payload of the log.
+        /// The corresponding payload of the trace.
         /// </summary>
         internal string Payload;
 
@@ -57,12 +60,12 @@ namespace Microsoft.PSharp.StaticAnalysis
         #region methods
 
         /// <summary>
-        /// Default constructor.
+        /// Constructor.
         /// </summary>
-        internal Log()
+        internal TraceInfo()
         {
-            this.ErrorTrace = new List<Tuple<string, string, int>>();
-            this.CallTrace = new List<Tuple<BaseMethodDeclarationSyntax, ExpressionSyntax>>();
+            this.ErrorTrace = new List<ErrorTraceStep>();
+            this.CallTrace = new List<CallTraceStep>();
         }
 
         /// <summary>
@@ -72,11 +75,11 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="machine">Machine</param>
         /// <param name="state">State</param>
         /// <param name="payload">Payload</param>
-        internal Log(MethodDeclarationSyntax method, ClassDeclarationSyntax machine,
+        internal TraceInfo(MethodDeclarationSyntax method, ClassDeclarationSyntax machine,
             ClassDeclarationSyntax state, ExpressionSyntax payload)
         {
-            this.ErrorTrace = new List<Tuple<string, string, int>>();
-            this.CallTrace = new List<Tuple<BaseMethodDeclarationSyntax, ExpressionSyntax>>();
+            this.ErrorTrace = new List<ErrorTraceStep>();
+            this.CallTrace = new List<CallTraceStep>();
 
             if (method == null)
             {
@@ -116,50 +119,48 @@ namespace Microsoft.PSharp.StaticAnalysis
         }
 
         /// <summary>
-        /// Adds new trace to the log's error trace.
+        /// Adds new error trace information to the trace.
         /// </summary>
         /// <param name="expr">Expression</param>
         /// <param name="file">File</param>
         /// <param name="line">Line</param>
-        internal void AddTrace(string expr, string file, int line)
+        internal void AddErrorTrace(string expr, string file, int line)
         {
-            this.ErrorTrace.Add(new Tuple<string, string, int>(expr, file, line));
+            this.ErrorTrace.Add(new ErrorTraceStep(expr, file, line));
         }
 
         /// <summary>
-        /// Inserts a new call to the log's call trace.
+        /// Inserts a new call to the trace.
         /// </summary>
         /// <param name="method">Method</param>
         /// <param name="call">Call</param>
         internal void InsertCall(BaseMethodDeclarationSyntax method, InvocationExpressionSyntax call)
         {
-            this.CallTrace.Insert(0, new Tuple<BaseMethodDeclarationSyntax,
-                ExpressionSyntax>(method, call));
+            this.CallTrace.Insert(0, new CallTraceStep(method, call));
         }
 
         /// <summary>
-        /// Inserts a new call to the log's call trace.
+        /// Inserts a new call to the trace.
         /// </summary>
         /// <param name="method">Method</param>
         /// <param name="call">Call</param>
         internal void InsertCall(BaseMethodDeclarationSyntax method, ObjectCreationExpressionSyntax call)
         {
-            this.CallTrace.Insert(0, new Tuple<BaseMethodDeclarationSyntax,
-                ExpressionSyntax>(method, call));
+            this.CallTrace.Insert(0, new CallTraceStep(method, call));
         }
 
         /// <summary>
-        /// Merges another log to the current log.
+        /// Merges the given trace to the current trace.
         /// </summary>
         /// <param name="log">Log</param>
-        internal void Merge(Log log)
+        internal void Merge(TraceInfo traceInfo)
         {
-            this.ErrorTrace.AddRange(log.ErrorTrace);
-            this.CallTrace.AddRange(log.CallTrace);
-            this.Method = log.Method;
-            this.Machine = log.Machine;
-            this.State = log.State;
-            this.Payload = log.Payload;
+            this.ErrorTrace.AddRange(traceInfo.ErrorTrace);
+            this.CallTrace.AddRange(traceInfo.CallTrace);
+            this.Method = traceInfo.Method;
+            this.Machine = traceInfo.Machine;
+            this.State = traceInfo.State;
+            this.Payload = traceInfo.Payload;
         }
 
         #endregion

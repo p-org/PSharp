@@ -1,16 +1,14 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="GotoStateTransitions.cs" company="Microsoft">
+// <copyright file="GotoStateTransitions.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
-//      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
-//      EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES 
-//      OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
-// ----------------------------------------------------------------------------------
-//      The example companies, organizations, products, domain names,
-//      e-mail addresses, logos, people, places, and events depicted
-//      herein are fictitious.  No association with any real company,
-//      organization, product, domain name, email address, logo, person,
-//      places, or events is intended or should be inferred.
+//      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+//      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+//      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+//      IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+//      CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+//      TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // </copyright>
 //-----------------------------------------------------------------------
 

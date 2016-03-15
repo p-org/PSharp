@@ -1,6 +1,6 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="InheritanceAnalysis.cs">
-//      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
+//      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
@@ -20,6 +20,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
+
+using Microsoft.PSharp.LanguageServices;
 
 namespace Microsoft.PSharp.StaticAnalysis
 {
@@ -151,7 +153,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 as ClassDeclarationSyntax;
             foreach (var m in calleeClass.ChildNodes().OfType<MethodDeclarationSyntax>())
             {
-                if (m.Identifier.ValueText.Equals(context.GetCallee(virtualCall)))
+                if (m.Identifier.ValueText.Equals(Querying.GetCalleeOfInvocation(virtualCall)))
                 {
                     method = m;
                     break;

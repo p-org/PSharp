@@ -82,13 +82,16 @@
     <Compile Include="DataStructures\DataFlowMap.cs" />
     <Compile Include="DataStructures\MethodSummary.cs" />
     <Compile Include="DataStructures\StateTransitionGraphNode.cs" />
-    <Compile Include="AnalysisErrorReporter.cs" />
-    <Compile Include="Log.cs" />
+    <Compile Include="Tracing\CallTraceStep.cs" />
+    <Compile Include="Tracing\ErrorTraceStep.cs" />
+    <Compile Include="Utilities\AnalysisErrorReporter.cs" />
+    <Compile Include="Tracing\TraceInfo.cs" />
+    <Compile Include="Passes\AnalysisPass.cs" />
     <Compile Include="StaticAnalysisEngine.cs" />
-    <Compile Include="Passes\MethodSummaryAnalysis.cs" />
-    <Compile Include="Passes\RespectsOwnershipAnalysis.cs" />
-    <Compile Include="Passes\DirectAccessAnalysis.cs" />
-    <Compile Include="Passes\StateTransitionAnalysis.cs" />
+    <Compile Include="Passes\SummarizationPass.cs" />
+    <Compile Include="Passes\RespectsOwnershipAnalysisPass.cs" />
+    <Compile Include="Passes\DirectAccessAnalysisPass.cs" />
+    <Compile Include="Passes\StateTransitionAnalysisPass.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

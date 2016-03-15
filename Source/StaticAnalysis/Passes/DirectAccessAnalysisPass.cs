@@ -1,6 +1,6 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="DirectAccessAnalysis.cs">
-//      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
+// <copyright file="DirectAccessAnalysisPass.cs">
+//      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
@@ -23,39 +23,32 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Microsoft.PSharp.StaticAnalysis
 {
     /// <summary>
-    /// This analysis reports an error if a machine has any fields
+    /// This analysis pass checks if any P# machine contains fields
     /// or methods that can be publicly accessed.
     /// </summary>
-    public sealed class DirectAccessAnalysis
+    public sealed class DirectAccessAnalysisPass : AnalysisPass
     {
-        #region fields
-
-        /// <summary>
-        /// The analysis context.
-        /// </summary>
-        private AnalysisContext AnalysisContext;
-
-        #endregion
-
         #region public API
 
         /// <summary>
         /// Creates a new direct access analysis pass.
         /// </summary>
         /// <param name="context">AnalysisContext</param>
-        /// <returns>DirectAccessAnalysis</returns>
-        public static DirectAccessAnalysis Create(AnalysisContext context)
+        /// <returns>DirectAccessAnalysisPass</returns>
+        public static DirectAccessAnalysisPass Create(AnalysisContext context)
         {
-            return new DirectAccessAnalysis(context);
+            return new DirectAccessAnalysisPass(context);
         }
 
         /// <summary>
         /// Runs the analysis.
         /// </summary>
-        public void Run()
+        /// <returns>DirectAccessAnalysisPass</returns>
+        public DirectAccessAnalysisPass Run()
         {
             this.CheckFields();
             this.CheckMethods();
+            return this;
         }
 
         #endregion
@@ -66,9 +59,10 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Constructor.
         /// </summary>
         /// <param name="context">AnalysisContext</param>
-        private DirectAccessAnalysis(AnalysisContext context)
+        private DirectAccessAnalysisPass(AnalysisContext context)
+            : base(context)
         {
-            this.AnalysisContext = context;
+
         }
 
         /// <summary>

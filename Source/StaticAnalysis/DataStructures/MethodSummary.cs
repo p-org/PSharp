@@ -1,6 +1,6 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="MethodSummary.cs">
-//      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
+//      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
@@ -50,13 +50,6 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// object is null.
         /// </summary>
         internal ClassDeclarationSyntax Machine;
-
-        /// <summary>
-        /// State of a machine that the method of this summary belongs
-        /// to. If the method does not belong to a state of a machine,
-        /// the object is null.
-        /// </summary>
-        internal ClassDeclarationSyntax State;
 
         /// <summary>
         /// The entry node of the control flow graph of the
@@ -144,17 +137,16 @@ namespace Microsoft.PSharp.StaticAnalysis
             /// <param name="context">AnalysisContext</param>
             /// <param name="method">Method</param>
             /// <param name="machine">Machine</param>
-            /// <param name="state">State</param>
             /// <returns>MethodSummary</returns>
             internal static MethodSummary Summarize(AnalysisContext context, BaseMethodDeclarationSyntax method,
-                ClassDeclarationSyntax machine, ClassDeclarationSyntax state)
+                ClassDeclarationSyntax machine)
             {
                 if (context.Summaries.ContainsKey(method))
                 {
                     return context.Summaries[method];
                 }
 
-                return new MethodSummary(context, method, machine, state);
+                return new MethodSummary(context, method, machine);
             }
         }
 
@@ -372,7 +364,6 @@ namespace Microsoft.PSharp.StaticAnalysis
             this.AnalysisContext = context;
             this.Method = method;
             this.Machine = null;
-            this.State = null;
             this.Initialize();
         }
 
@@ -382,14 +373,12 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="context">AnalysisContext</param>
         /// <param name="method">Method</param>
         /// <param name="machine">Machine</param>
-        /// <param name="state">State</param>
         private MethodSummary(AnalysisContext context, BaseMethodDeclarationSyntax method,
-            ClassDeclarationSyntax machine, ClassDeclarationSyntax state)
+            ClassDeclarationSyntax machine)
         {
             this.AnalysisContext = context;
             this.Method = method;
             this.Machine = machine;
-            this.State = state;
             this.Initialize();
         }
 

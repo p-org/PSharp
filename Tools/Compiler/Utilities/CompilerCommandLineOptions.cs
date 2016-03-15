@@ -1,6 +1,6 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="CompilerCommandLineOptions.cs">
-//      Copyright (c) 2015 Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
+//      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
@@ -74,7 +74,7 @@ namespace Microsoft.PSharp.Utilities
             {
                 base.Configuration.RunStaticAnalysis = true;
             }
-            else if (option.ToLower().Equals("/showgivesup"))
+            else if (option.ToLower().Equals("/show-gives-up"))
             {
                 base.Configuration.ShowGivesUpInformation = true;
             }
@@ -82,19 +82,19 @@ namespace Microsoft.PSharp.Utilities
             {
                 base.Configuration.ShowRuntimeResults = true;
             }
-            else if (option.ToLower().Equals("/timedfa"))
+            else if (option.ToLower().Equals("/time-dfa"))
             {
                 base.Configuration.ShowDFARuntimeResults = true;
             }
-            else if (option.ToLower().Equals("/timeroa"))
+            else if (option.ToLower().Equals("/time-roa"))
             {
                 base.Configuration.ShowROARuntimeResults = true;
             }
-            else if (option.ToLower().Equals("/nostatetransitionanalysis"))
+            else if (option.ToLower().Equals("/no-state-transition-analysis"))
             {
                 base.Configuration.DoStateTransitionAnalysis = false;
             }
-            else if (option.ToLower().Equals("/analyzeexceptions"))
+            else if (option.ToLower().Equals("/analyze-exceptions"))
             {
                 base.Configuration.AnalyzeExceptionHandling = true;
             }
