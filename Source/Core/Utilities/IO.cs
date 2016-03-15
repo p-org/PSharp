@@ -16,6 +16,7 @@
 
 using System;
 using System.Globalization;
+using System.IO;
 
 namespace Microsoft.PSharp.Utilities
 {
@@ -26,6 +27,19 @@ namespace Microsoft.PSharp.Utilities
     {
         #region fields
 
+        /// <summary>
+        /// Text writer.
+        /// </summary>
+        private static StringWriter TextWriter;
+
+        /// <summary>
+        /// Enable writting to memory.
+        /// </summary>
+        private static bool WriteToMemory;
+
+        /// <summary>
+        /// Enables debug information.
+        /// </summary>
         internal static bool Debugging;
 
         #endregion
@@ -75,7 +89,14 @@ namespace Microsoft.PSharp.Utilities
         /// <param name="s">String</param>
         internal static void Print(string s)
         {
-            Console.Write(s);
+            if (IO.WriteToMemory)
+            {
+                IO.TextWriter.Write(s);
+            }
+            else
+            {
+                Console.Write(s);
+            }
         }
 
         /// <summary>
@@ -86,7 +107,14 @@ namespace Microsoft.PSharp.Utilities
         /// <param name="args">Arguments</param>
         internal static void Print(string s, params object[] args)
         {
-            Console.Write(s, args);
+            if (IO.WriteToMemory)
+            {
+                IO.TextWriter.Write(s, args);
+            }
+            else
+            {
+                Console.Write(s, args);
+            }
         }
 
         /// <summary>
@@ -96,7 +124,14 @@ namespace Microsoft.PSharp.Utilities
         /// <param name="s">String</param>
         internal static void PrintLine(string s)
         {
-            Console.WriteLine(s);
+            if (IO.WriteToMemory)
+            {
+                IO.TextWriter.WriteLine(s);
+            }
+            else
+            {
+                Console.WriteLine(s);
+            }
         }
 
         /// <summary>
@@ -108,7 +143,14 @@ namespace Microsoft.PSharp.Utilities
         /// <param name="args">Arguments</param>
         internal static void PrintLine(string s, params object[] args)
         {
-            Console.WriteLine(s, args);
+            if (IO.WriteToMemory)
+            {
+                IO.TextWriter.WriteLine(s, args);
+            }
+            else
+            {
+                Console.WriteLine(s, args);
+            }
         }
 
         /// <summary>
@@ -120,7 +162,7 @@ namespace Microsoft.PSharp.Utilities
         internal static void PrettyPrint(string s, params object[] args)
         {
             string message = IO.Format(s, args);
-            Console.Write(message);
+            IO.Print(message);
         }
 
         /// <summary>
@@ -133,7 +175,7 @@ namespace Microsoft.PSharp.Utilities
         internal static void PrettyPrintLine(string s, params object[] args)
         {
             string message = IO.Format(s, args);
-            Console.WriteLine(message);
+            IO.PrintLine(message);
         }
 
         /// <summary>
@@ -145,7 +187,7 @@ namespace Microsoft.PSharp.Utilities
         internal static void Log(string s, params object[] args)
         {
             string message = IO.Format(s, args);
-            Console.WriteLine(message);
+            IO.PrintLine(message);
         }
 
         /// <summary>
@@ -163,7 +205,34 @@ namespace Microsoft.PSharp.Utilities
             }
 
             string message = IO.Format(s, args);
-            Console.WriteLine(message);
+            IO.PrintLine(message);
+        }
+
+        /// <summary>
+        /// Returns the output that was written to memory.
+        /// </summary>
+        internal static string GetOutput()
+        {
+            return IO.TextWriter.ToString();
+        }
+
+        /// <summary>
+        /// Starts writing all output to memory.
+        /// </summary>
+        internal static void StartWritingToMemory()
+        {
+            IO.WriteToMemory = true;
+            IO.TextWriter = new StringWriter();
+        }
+
+        /// <summary>
+        /// Stops writing all output to memory.
+        /// </summary>
+        internal static void StopWritingToMemory()
+        {
+            IO.WriteToMemory = false;
+            IO.TextWriter.Dispose();
+            IO.TextWriter = null;
         }
 
         #endregion

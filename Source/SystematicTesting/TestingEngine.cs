@@ -277,7 +277,7 @@ namespace Microsoft.PSharp.SystematicTesting
                     var runtime = new PSharpBugFindingRuntime(this.Configuration, this.Strategy);
 
                     StringWriter sw = null;
-                    if (this.Configuration.RedirectConsoleOutput &&
+                    if (this.Configuration.RedirectTestConsoleOutput &&
                         this.Configuration.Verbose < 2)
                     {
                         sw = this.RedirectConsoleOutput();

@@ -125,9 +125,9 @@ namespace Microsoft.PSharp.Utilities
         internal int? RandomSchedulingSeed;
 
         /// <summary>
-        /// Redirects the console output.
+        /// Redirects the testing console output.
         /// </summary>
-        public bool RedirectConsoleOutput;
+        public bool RedirectTestConsoleOutput;
 
         /// <summary>
         /// If true, then the P# tester will print the trace
@@ -238,7 +238,6 @@ namespace Microsoft.PSharp.Utilities
             this.Timeout = 0;
 
             this.PauseOnAssertionFailure = false;
-
             this.InteroperationEnabled = true;
 
             this.CompilationTargets = new HashSet<CompilationTarget>();
@@ -258,7 +257,7 @@ namespace Microsoft.PSharp.Utilities
             this.SchedulingIterations = 1;
             this.RandomSchedulingSeed = null;
 
-            this.RedirectConsoleOutput = true;
+            this.RedirectTestConsoleOutput = true;
             this.PrintTrace = false;
             this.SuppressTrace = false;
 

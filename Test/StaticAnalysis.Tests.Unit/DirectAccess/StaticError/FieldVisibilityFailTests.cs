@@ -55,6 +55,7 @@ class M : Machine
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
             configuration.Verbose = 2;
+            IO.StartWritingToMemory();
 
             var context = CompilationContext.Create(configuration).LoadSolution(solution);
 
@@ -64,8 +65,13 @@ class M : Machine
 
             var stats = AnalysisErrorReporter.GetStats();
             var expected = "... Static analysis detected '1' error";
-
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
+
+            var error = "Error: Field 'int Num' of machine 'M' is declared as 'public'.";
+            Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
+                IO.GetOutput().Replace(Environment.NewLine, string.Empty));
+
+            IO.StopWritingToMemory();
         }
     }
 }
