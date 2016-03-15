@@ -59,6 +59,7 @@ namespace Microsoft.PSharp
 
             // Prints error statistics and profiling results.
             AnalysisErrorReporter.PrintStats();
+            AnalysisErrorReporter.ResetStats();
         }
 
         #endregion

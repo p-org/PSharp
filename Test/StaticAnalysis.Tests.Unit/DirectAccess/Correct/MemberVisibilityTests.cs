@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="FieldVisibilityFailTests.cs" company="Microsoft">
+// <copyright file="MemberVisibilityTests.cs" company="Microsoft">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, 
@@ -15,7 +15,6 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Linq;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -26,18 +25,16 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
 {
     [TestClass]
-    public class FieldVisibilityFailTests : BasePSharpTest
+    public class MemberVisibilityTests : BasePSharpTest
     {
         [TestMethod, Timeout(3000)]
-        public void TestPublicFieldVisibility()
+        public void TestMemberVisibility()
         {
             var test = @"
-using Microsoft.PSharp;
-
 namespace Foo {
 class M : Machine
 {
- public int Num;
+ int Num;
 
  [Start]
  [OnEntry(nameof(FirstOnEntryAction))]
@@ -50,13 +47,10 @@ class M : Machine
 }
 }";
 
-            var solution = base.GetSolution(test);
-
             var configuration = Configuration.Create();
-            configuration.ProjectName = "Test";
             configuration.Verbose = 2;
-            IO.StartWritingToMemory();
 
+            var solution = base.GetSolution(test);
             var context = CompilationContext.Create(configuration).LoadSolution(solution);
 
             ParsingEngine.Create(context).Run();
@@ -64,14 +58,11 @@ class M : Machine
             StaticAnalysisEngine.Create(context).Run();
 
             var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... Static analysis detected '1' error";
+            var expected = "... No static analysis errors detected (but absolutely no warranty provided)";
+
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
-            var error = "Error: Field 'int Num' of machine 'M' is declared as 'public'.";
-            Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
-                IO.GetOutput().Replace(Environment.NewLine, string.Empty));
-
-            IO.StopWritingToMemory();
+            AnalysisErrorReporter.ResetStats();
         }
     }
 }

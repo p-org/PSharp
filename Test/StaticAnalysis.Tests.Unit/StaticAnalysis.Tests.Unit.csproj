@@ -89,8 +89,8 @@
   </Choose>
   <ItemGroup>
     <Compile Include="BasePSharpTest.cs" />
-    <Compile Include="DirectAccess\Correct\FieldVisibilityTests.cs" />
-    <Compile Include="DirectAccess\StaticError\FieldVisibilityFailTests.cs" />
+    <Compile Include="DirectAccess\Correct\MemberVisibilityTests.cs" />
+    <Compile Include="DirectAccess\StaticError\MemberVisibilityFailTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

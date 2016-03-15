@@ -19,7 +19,7 @@ namespace Microsoft.PSharp.StaticAnalysis
     /// <summary>
     /// Reports static analysis errors and warnings to the user.
     /// </summary>
-    public static class AnalysisErrorReporter
+    internal static class AnalysisErrorReporter
     {
         #region fields
 
@@ -105,9 +105,18 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
         }
 
+        /// <summary>
+        /// Resets the error statistics.
+        /// </summary>
+        public static void ResetStats()
+        {
+            AnalysisErrorReporter.ErrorCount = 0;
+            AnalysisErrorReporter.WarningCount = 0;
+        }
+
         #endregion
 
-        #region error reporting
+        #region error reporting methods
 
         /// <summary>
         /// Reports an error to the user.
