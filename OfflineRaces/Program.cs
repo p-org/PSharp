@@ -3,10 +3,12 @@ using QuickGraph;
 using RuntimeTrace;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace OfflineRaces
@@ -14,36 +16,14 @@ namespace OfflineRaces
     internal abstract class Node
     {
         public bool visited;
-    }
-
-    internal class ActBegin : Node
-    {
         public int machineID = -1;
-        public String actionName;
-        public int actionID = -1;
-        public String eventName;
-        public int eventID;
 
-        public int taskId = -1;
-
-        public ActBegin(int machineID, String actionName, int actionID, String eventName, int eventID)
-        {
-            this.machineID = machineID;
-            this.actionName = actionName;
-            this.actionID = actionID;
-            this.eventName = eventName;
-            this.eventID = eventID;
-        }
-
-        public ActBegin(int taskId)
-        {
-            this.taskId = taskId;
-        }
+        //chain decomposition
+        public int[] VectorClock;
     }
 
     internal class cActBegin : Node
     {
-        public int machineID = -1;
         public String actionName;
         public int actionID = -1;
         public String eventName;
@@ -53,6 +33,8 @@ namespace OfflineRaces
         public bool isTask;
 
         public List<MemAccess> addresses = new List<MemAccess>();
+
+        public bool isStart = false;
 
         public cActBegin(int machineID, String actionName, int actionID, String eventName, int eventID)
         {
@@ -64,8 +46,9 @@ namespace OfflineRaces
             this.isTask = false;
         }
 
-        public cActBegin(int taskId)
+        public cActBegin(int machineId, int taskId)
         {
+            this.machineID = machineId;
             this.taskId = taskId;
             this.isTask = true;
         }
@@ -93,7 +76,6 @@ namespace OfflineRaces
 
     internal class SendEvent : Node
     {
-        public int machineID;
         public int sendID;
         public int toMachine;
         public String sendEventName;
@@ -161,52 +143,70 @@ namespace OfflineRaces
         //HB graph
         static List<ThreadTrace> allThreadTraces = new List<ThreadTrace>();                     //can be simplified?
 
-        static QuickGraph.AdjacencyGraph<Node, Edge> cGraph = new AdjacencyGraph<Node, Edge>();
+        //static QuickGraph.AdjacencyGraph<Node, Edge> cGraph = new AdjacencyGraph<Node, Edge>();
+        static QuickGraph.BidirectionalGraph<Node, Edge> cGraph = new BidirectionalGraph<Node, Edge>();
+
+        static int vcCount = 0;
 
         //static void Main(String[] args)
         public static void findRaces()
         {
+            //Thread.Sleep(5000);
             string[] dirNames = Directory.GetDirectories(".\\");
             foreach (string dirName in dirNames)
             {
                 if (dirName.Contains("InstrTrace"))
                 {
-                    string[] fileEntries = Directory.GetFiles(dirName);
+                    Stopwatch swatch = new Stopwatch();
+                    swatch.Start();
+
+                    string[] fileEntries = Directory.GetFiles(dirName, "*thTrace*");
                     foreach (string fileName in fileEntries)
                     {
                         //Deserialize thread traces
-                        if (fileName.Contains("thTrace"))
-                        {
-                            //Open the file written above and read values from it.
-                            Stream stream = File.Open(fileName, FileMode.Open);
-                            BinaryFormatter bformatter = new BinaryFormatter();
-                            List<ThreadTrace> tt = (List<ThreadTrace>)bformatter.Deserialize(stream);
+                        //Open the file written above and read values from it.
+                        Stream stream = File.Open(fileName, FileMode.Open);
+                        BinaryFormatter bformatter = new BinaryFormatter();
+                        List<ThreadTrace> tt = (List<ThreadTrace>)bformatter.Deserialize(stream);
 
-                            for (int i = 0; i < tt.Count; i++)
-                            {
-                                allThreadTraces.Add(tt[i]);
-                                //Console.WriteLine(tt[i].machineID + " " + tt[i].actionID);
-                            }
-                            stream.Close();
+                        for (int i = 0; i < tt.Count; i++)
+                        {
+                            allThreadTraces.Add(tt[i]);
+                            //Console.WriteLine(tt[i].machineID + " " + tt[i].actionID);
                         }
+                        stream.Close();
                     }
-                    foreach (string fileName in fileEntries)
+
+                    string[] mFileEntries = Directory.GetFiles(dirName, "*rtTrace*");
+
+                    //chain decomposition
+                    vcCount = mFileEntries.Count();
+                    //TODO: check this
+                    vcCount += 5;
+
+                    foreach (string fileName in mFileEntries)
                     {
-                        if (fileName.Contains("rtTrace"))
-                        {
-                            Stream stream = File.Open(fileName, FileMode.Open);
-                            BinaryFormatter bformatter = new BinaryFormatter();
-                            List<MachineTrace> machineTrace = ((List<MachineTrace>)bformatter.Deserialize(stream));
-                            stream.Close();
+                        Stream stream = File.Open(fileName, FileMode.Open);
+                        BinaryFormatter bformatter = new BinaryFormatter();
+                        List<MachineTrace> machineTrace = ((List<MachineTrace>)bformatter.Deserialize(stream));
+                        stream.Close();
 
-                            updateTasks(machineTrace);
-                            updateGraph(machineTrace);
-                            updateGraphCrossEdges();
-                        }
+                        updateTasks(machineTrace);
+                        updateGraph(machineTrace);
                     }
+
+                    updateGraphCrossEdges();
+
+                    Console.WriteLine("Graph construction time: " + swatch.Elapsed.TotalSeconds + "s");
+                    swatch.Restart();
 
                     //cPrintGraph();
-                   
+                    //updateVectors();
+                    updateVectorsT();
+
+                    Console.WriteLine("Topological sort time: " + swatch.Elapsed.TotalSeconds + "s");
+                    swatch.Restart();
+
                     /*Console.WriteLine("Number of nodes = " + cGraph.VertexCount);
                     int accesses = 0;
                     foreach(Node n in cGraph.Vertices)
@@ -219,13 +219,17 @@ namespace OfflineRaces
                     Console.WriteLine("Number of accesses: " + accesses);
                     */
 
-                    detectRacesAgain();
+                    //detectRacesAgain();
+
+                    detectRacesFast();
+
+                    Console.WriteLine("Race detection time: " + swatch.Elapsed.TotalSeconds + "s");
+                    swatch.Restart();
 
                     cGraph.Clear();
                     allThreadTraces.Clear();
                     Console.WriteLine("---------------------------------------------");
                 }
-
             }
 
             /*Console.WriteLine("Press enter to exit");
@@ -235,6 +239,8 @@ namespace OfflineRaces
 
         static void updateTasks(List<MachineTrace> machineTrace)
         {
+            int currentMachineVC = 0;
+
             foreach (MachineTrace mt in machineTrace)
             {
                 if (mt.isTaskMachine)
@@ -245,7 +251,20 @@ namespace OfflineRaces
                     if (matching.Count() == 0)
                         continue;
 
-                    Node cn = new cActBegin(mt.taskId);
+                    Node cn = new cActBegin(mt.machineID, mt.taskId);
+                    ((cActBegin)cn).isStart = true;
+                    cn.VectorClock = new int[vcCount];
+                    currentMachineVC++;
+                    try
+                    {
+                        cn.VectorClock[mt.machineID] = currentMachineVC;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("failed: " + vcCount + " " + mt.machineID);
+                        Console.WriteLine(ex);
+                        Environment.Exit(Environment.ExitCode);
+                    }
                     cGraph.AddVertex(cn);
 
                     foreach (var m in matching)
@@ -264,6 +283,8 @@ namespace OfflineRaces
 
         static void updateGraph(List<MachineTrace> machineTrace)
         {
+            int currentMachineVC = 0;
+
             Node cLatestAction = null;
             foreach (MachineTrace mt in machineTrace)
             {
@@ -277,6 +298,7 @@ namespace OfflineRaces
                     }
                     catch (Exception)
                     {
+                        //TODO: check this
                         /*Console.WriteLine("crashing: " + mt.machineID + " " + mt.actionID);
                         Environment.Exit(0);
                         */
@@ -284,6 +306,22 @@ namespace OfflineRaces
                     }
 
                     Node cn = new cActBegin(matching.machineID, matching.actionName, matching.actionID, mt.eventName, mt.eventID);
+                    if(matching.actionID == 1)
+                    {
+                        ((cActBegin)cn).isStart = true;
+                    }
+                    cn.VectorClock = new int[vcCount];
+                    currentMachineVC++;
+                    try
+                    {
+                        cn.VectorClock[mt.machineID] = currentMachineVC;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("failed: " + vcCount + " " + mt.machineID);
+                        Console.WriteLine(ex);
+                        Environment.Exit(Environment.ExitCode);
+                    }
                     cGraph.AddVertex(cn);
                     
                     if(cLatestAction != null)
@@ -300,13 +338,25 @@ namespace OfflineRaces
                     foreach (ActionInstr ins in matching.accesses)
                     {
                         //user trace send event
-                        Node nd1;
                         Node cn1;
 
                         if (createNew)
                         {
                             Node cnn = new cActBegin(matching.machineID, matching.actionName, matching.actionID, mt.eventName, mt.eventID);
+                            cnn.VectorClock = new int[vcCount];
+                            currentMachineVC++;
+                            try
+                            {
+                                cnn.VectorClock[mt.machineID] = currentMachineVC;
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine("failed: " + vcCount + " " + mt.machineID);
+                                Console.WriteLine(ex);
+                                Environment.Exit(Environment.ExitCode);
+                            }
                             cGraph.AddVertex(cnn);
+
                             cn = cnn;
                             cGraph.AddEdge(new Edge(cLatest, cn));
                             createNew = false;
@@ -318,6 +368,18 @@ namespace OfflineRaces
                             MachineTrace machineSend = machineTrace.Where(item => item.machineID == matching.machineID && item.sendID == ins.sendID).Single();
    
                             cn1 = new SendEvent(machineSend.machineID, machineSend.sendID, machineSend.toMachine, machineSend.sendEventName, machineSend.sendEventID);
+                            cn1.VectorClock = new int[vcCount];
+                            currentMachineVC++;
+                            try
+                            {
+                                cn1.VectorClock[mt.machineID] = currentMachineVC;
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine("failed: " + vcCount + " " + mt.machineID);
+                                Console.WriteLine(ex);
+                                Environment.Exit(Environment.ExitCode);
+                            }
                             cGraph.AddVertex(cn1);
                             cGraph.AddEdge(new Edge(cLatest, cn1));
                             
@@ -329,6 +391,18 @@ namespace OfflineRaces
                         else if (ins.isCreate)
                         {
                             cn1 = new CreateMachine(ins.createMachineID);
+                            cn1.VectorClock = new int[vcCount];
+                            currentMachineVC++;
+                            try
+                            {
+                                cn1.VectorClock[mt.machineID] = currentMachineVC;
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine("failed: " + vcCount + " " + mt.machineID);
+                                Console.WriteLine(ex);
+                                Environment.Exit(Environment.ExitCode);
+                            }
                             cGraph.AddVertex(cn1);
                             cGraph.AddEdge(new Edge(cLatest, cn1));
                             
@@ -340,6 +414,18 @@ namespace OfflineRaces
                         else if (ins.isTask)
                         {
                             cn1 = new CreateTask(ins.taskId);
+                            cn1.VectorClock = new int[vcCount];
+                            currentMachineVC++;
+                            try
+                            {
+                                cn1.VectorClock[mt.machineID] = currentMachineVC;
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine("failed: " + vcCount + " " + mt.machineID);
+                                Console.WriteLine(ex);
+                                Environment.Exit(Environment.ExitCode);
+                            }
                             cGraph.AddVertex(cn1);
                             cGraph.AddEdge(new Edge(cLatest, cn1));
                             
@@ -375,7 +461,13 @@ namespace OfflineRaces
                         SendEvent sendNode = (SendEvent)n;
                         cActBegin beginNode = (cActBegin)n1;
                         if (sendNode.toMachine == beginNode.machineID && sendNode.sendEventID == beginNode.eventID)
+                        {
                             cGraph.AddEdge(new Edge(sendNode, beginNode));
+                            for(int i = 0; i < vcCount; i++)
+                            {
+                                beginNode.VectorClock[i] = Math.Max(beginNode.VectorClock[i], sendNode.VectorClock[i]);
+                            }
+                        }
                     }
                 }
 
@@ -387,7 +479,13 @@ namespace OfflineRaces
                         CreateMachine createNode = (CreateMachine)n;
                         cActBegin beginNode = (cActBegin)n1;
                         if (createNode.createMachineId == beginNode.machineID && beginNode.actionID == 1)
+                        {
                             cGraph.AddEdge(new Edge(createNode, beginNode));
+                            for (int i = 0; i < vcCount; i++)
+                            {
+                                beginNode.VectorClock[i] = Math.Max(beginNode.VectorClock[i], createNode.VectorClock[i]);
+                            }
+                        }    
                     }
                 }
 
@@ -399,11 +497,108 @@ namespace OfflineRaces
                         CreateTask createNode = (CreateTask)n;
                         cActBegin beginNode = (cActBegin)n1;
                         if (createNode.taskId == beginNode.taskId)
+                        {
                             cGraph.AddEdge(new Edge(createNode, beginNode));
+                            for (int i = 0; i < vcCount; i++)
+                            {
+                                beginNode.VectorClock[i] = Math.Max(beginNode.VectorClock[i], createNode.VectorClock[i]);
+                            }
+                        }
                     }
                 }
             }
-            
+        }
+
+        static void updateVectors()
+        {
+            IEnumerable<Node> startNodes = cGraph.Vertices.Where(item => item.GetType().ToString().Contains("cActBegin") 
+                                                                    && ((cActBegin)item).isStart == true);
+            for(int m = 0; m < vcCount; m++)
+            {
+                Node curr = null;
+                if (startNodes.Where(item => ((cActBegin)item).machineID == m).Any())
+                    curr = startNodes.Where(item => ((cActBegin)item).machineID == m).Single();
+
+                if (curr == null)
+                    continue;
+                while (true)
+                {
+                    if (cGraph.OutEdges(curr).Count() == 0)
+                    {
+                        break;
+                    }
+
+                    IEnumerable<Edge> outEdges = cGraph.Edges.Where(item => item.src.Equals(curr));
+                    Node next = null;
+
+                    foreach (Edge outEdge in outEdges)
+                    {
+                        Node successor = outEdge.trg;
+
+                        if (successor.machineID == m)
+                            next = successor;
+
+                        for(int i = 0; i < vcCount; i++)
+                        {
+                            successor.VectorClock[i] = Math.Max(successor.VectorClock[i], curr.VectorClock[i]);
+                        }
+                    }
+                    curr = next;
+
+                    if (next == null)
+                        break;
+                }
+            }
+        }
+
+        static void updateVectorsT()
+        {
+            BidirectionalGraph<Node, Edge> topoGraph = cGraph.Clone(); 
+
+            while (topoGraph.VertexCount > 0)
+            {
+                Node current = topoGraph.Vertices.Where(item => topoGraph.InDegree(item) == 0).First();
+                IEnumerable<Edge> outEdges = topoGraph.Edges.Where(item => item.src.Equals(current));
+                foreach (Edge outEdge in outEdges)
+                {
+                    Node succ = outEdge.trg;
+                    Node successor = cGraph.Vertices.Where(v => v.Equals(succ)).Single();
+                    for (int i = 0; i < vcCount; i++)
+                    {
+                        succ.VectorClock[i] = Math.Max(succ.VectorClock[i], current.VectorClock[i]);
+                        successor.VectorClock[i] = Math.Max(successor.VectorClock[i], current.VectorClock[i]);
+                    }
+                }
+                topoGraph.RemoveVertex(current);
+            }
+        }
+
+        static void updateVectorsBFS()
+        {
+            IEnumerable<Node> startNodes = cGraph.Vertices.Where(item => item.GetType().ToString().Contains("cActBegin")
+                                                                    && ((cActBegin)item).isStart == true && ((cActBegin)item).machineID == 0);
+
+            Queue<Node> updateNodes = new Queue<Node>();
+            foreach(Node n in startNodes)
+            {
+                updateNodes.Enqueue(n);
+            }
+
+            while(updateNodes.Count > 0)
+            {
+                Node curr = updateNodes.Dequeue();
+
+                IEnumerable<Edge> outEdges = cGraph.Edges.Where(item => item.src.Equals(curr));
+                foreach (Edge outEdge in outEdges)
+                {
+                    Node successor = outEdge.trg;
+                    for (int i = 0; i < vcCount; i++)
+                    {
+                        successor.VectorClock[i] = Math.Max(successor.VectorClock[i], curr.VectorClock[i]);
+                    }
+                    updateNodes.Enqueue(successor);
+                }
+            }
         }
 
         static void cPrintGraph()
@@ -414,7 +609,8 @@ namespace OfflineRaces
                 if (n.GetType().ToString().Contains("cActBegin"))
                 {
                     Console.WriteLine(n.GetHashCode() + " " + n.ToString() + " " + ((cActBegin)n).machineID + " " + ((cActBegin)n).actionID + " " + ((cActBegin)n).actionName + " " + ((cActBegin)n).isTask);
-                    foreach(MemAccess m in ((cActBegin)n).addresses)
+                    Console.WriteLine("[{0}]", string.Join(", ", n.VectorClock));
+                    foreach (MemAccess m in ((cActBegin)n).addresses)
                     {
                         Console.WriteLine(m.isWrite + " " + m.location);
                     }
@@ -422,14 +618,17 @@ namespace OfflineRaces
                 else if (n.GetType().ToString().Contains("SendEvent"))
                 {
                     Console.WriteLine(n.GetHashCode() + " " + n.ToString() + " " + ((SendEvent)n).machineID + " " + ((SendEvent)n).toMachine);
+                    Console.WriteLine("[{0}]", string.Join(", ", n.VectorClock));
                 }
                 else if (n.GetType().ToString().Contains("CreateMachine"))
                 {
                     Console.WriteLine(n.GetHashCode() + " " + n.ToString() + " " + ((CreateMachine)n).createMachineId);
+                    Console.WriteLine("[{0}]", string.Join(", ", n.VectorClock));
                 }
                 else if (n.GetType().ToString().Contains("CreateTask"))
                 {
                     Console.WriteLine(n.GetHashCode() + " " + n.ToString() + " " + ((CreateTask)n).taskId);
+                    Console.WriteLine("[{0}]", string.Join(", ", n.VectorClock));
                 }
             }
 
@@ -479,30 +678,8 @@ namespace OfflineRaces
 
                             if (found == false)
                                 continue;
-                                
-                            /*if (pathExists.Where(item => item.Item1.Equals(v1) && item.Item2.Equals(v2)).Any()) //Contains(new Tuple<cActBegin, cActBegin>(v1, v2)))
-                            {
-                                if (checkRaces.Where(item => item.Item1.Equals(v1) && item.Item2.Equals(v2)).Any())            //Contains(new Tuple<cActBegin, cActBegin>(v1, v2))
-                                {
-                                    Tuple<cActBegin, cActBegin> remove = checkRaces.Where(item => item.Item1.Equals(v1)
-                                    && item.Item2.Equals(v2)).Single();
-                                    checkRaces.Remove(remove);
-                                }
-                                continue;
-                            }*/
 
-                            if (cExistsPath(v1, v2) || cExistsPath(v2, v1))
-                            {
-                                /*pathExists.Add(new Tuple<cActBegin, cActBegin>(v2, v1));
-                                if (checkRaces.Where(item => item.Item1.Equals(v1) && item.Item2.Equals(v2)).Any())    //Contains(new Tuple<cActBegin, cActBegin>(v1, v2))
-                                {
-                                    Tuple<cActBegin, cActBegin> remove = checkRaces.Where(item => item.Item1.Equals(v1)
-                                    && item.Item2.Equals(v2)).Single();
-                                    checkRaces.Remove(remove);
-                                    continue;
-                                }*/
-                            }
-                            else
+                            if (!(cExistsPath(v1, v2) || cExistsPath(v2, v1)))
                             {
                                 checkRaces.Add(new Tuple<cActBegin, cActBegin>(v1, v2));
                             }
@@ -534,6 +711,104 @@ namespace OfflineRaces
                         if (m.objHandle == n.objHandle && m.offset == n.offset)
                         {
                             Console.WriteLine("RACE: " + m.srcLocation + ";" + m.isWrite + " AND " + n.srcLocation + ";" + n.isWrite);
+                            reportedRaces.Add(new Tuple<string, string>(m.srcLocation + ";" + m.isWrite, n.srcLocation + ";" + n.isWrite));
+                        }
+                    }
+                }
+            }
+        }
+
+        static void detectRacesFast()
+        {
+            Console.WriteLine("\nDETECTING RACES FAST");
+
+            List<Tuple<cActBegin, cActBegin>> checkRaces = new List<Tuple<cActBegin, cActBegin>>();
+            //List<Tuple<cActBegin, cActBegin>> pathExists = new List<Tuple<cActBegin, cActBegin>>();
+
+            foreach (Node n1 in cGraph.Vertices)
+            {
+                if (n1.GetType().ToString().Contains("cActBegin"))
+                {
+                    cActBegin v1 = (cActBegin)n1;
+                    foreach (Node n2 in cGraph.Vertices)
+                    {
+                        if (n2.GetType().ToString().Contains("cActBegin"))
+                        {
+                            if (n1.Equals(n2))
+                                continue;
+
+                            cActBegin v2 = (cActBegin)n2;
+
+                            if (v1.machineID == v2.machineID)
+                                continue;
+
+                            bool found = false;
+                            foreach (MemAccess ma in v1.addresses)
+                            {
+                                var list = v2.addresses.Where(item => item.objHandle == ma.objHandle && item.offset == ma.offset);
+                                if (list.Count() > 0)
+                                {
+                                    found = true;
+                                    break;
+                                }
+                            }
+
+                            if (found == false)
+                                continue;
+
+                            bool ordered = true;
+                            for(int i = 0; i < vcCount; i++)
+                            {
+                                if(v1.VectorClock[i] > v2.VectorClock[i])
+                                {
+                                    ordered = false;
+                                    break;
+                                }
+                            }
+                            if (ordered == true)
+                                continue;
+
+                            bool orderedR = true;
+                            for (int i = 0; i < vcCount; i++)
+                            {
+                                if (v2.VectorClock[i] > v1.VectorClock[i])
+                                {
+                                    orderedR = false;
+                                    break;
+                                }
+                            }
+                            if (orderedR == true)
+                                continue;
+
+                            checkRaces.Add(new Tuple<cActBegin, cActBegin>(v1, v2));
+                        }
+                    }
+                }
+            }
+
+            List<Tuple<string, string>> reportedRaces = new List<Tuple<string, string>>();
+            foreach (Tuple<cActBegin, cActBegin> checking in checkRaces)
+            {
+                List<MemAccess> addressList1 = checking.Item1.addresses;
+                List<MemAccess> addressList2 = checking.Item2.addresses;
+
+                foreach (MemAccess m in addressList1)
+                {
+                    foreach (MemAccess n in addressList2)
+                    {
+                        if (!(m.isWrite || n.isWrite))
+                            continue;
+
+                        if (m.objHandle == UIntPtr.Zero && m.offset == UIntPtr.Zero && n.objHandle == UIntPtr.Zero && n.offset == UIntPtr.Zero)
+                            continue;
+
+                        if (reportedRaces.Where(item => item.Item1.Equals(m.srcLocation + ";" + m.isWrite) && item.Item2.Equals(n.srcLocation + ";" + n.isWrite)).Any()
+                                        || reportedRaces.Where(item => item.Item1.Equals(n.srcLocation + ";" + n.isWrite) && item.Item2.Equals(m.srcLocation + ";" + m.isWrite)).Any())
+                            continue;
+
+                        if (m.objHandle == n.objHandle && m.offset == n.offset)
+                        {
+                            Console.WriteLine("RACE: " + checking.Item1.GetHashCode() + " " + checking.Item2.GetHashCode() + " " + m.srcLocation + ";" + m.isWrite + " AND " + n.srcLocation + ";" + n.isWrite);
                             reportedRaces.Add(new Tuple<string, string>(m.srcLocation + ";" + m.isWrite, n.srcLocation + ";" + n.isWrite));
                         }
                     }

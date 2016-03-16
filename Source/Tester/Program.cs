@@ -148,7 +148,7 @@ namespace Microsoft.PSharp
             
             Profiler.StartMeasuringExecutionTime();
             OfflineRaces.Program.findRaces();
-            //Console.WriteLine("Offline time with compressed graph: " + Profiler.Results() + "s");
+            Console.WriteLine("Offline time with compressed graph: " + Profiler.Results() + "s");
             Profiler.StopMeasuringExecutionTime();            
         }
 
