@@ -74,7 +74,11 @@ namespace Microsoft.PSharp.Utilities
             {
                 base.Configuration.RunStaticAnalysis = true;
             }
-            else if (option.ToLower().Equals("/show-data-flow"))
+            else if (option.ToLower().Equals("/emit-control-flow"))
+            {
+                base.Configuration.ShowControlFlowInformation = true;
+            }
+            else if (option.ToLower().Equals("/emit-data-flow"))
             {
                 base.Configuration.ShowDataFlowInformation = true;
             }

@@ -121,7 +121,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         }
 
         /// <summary>
-        /// Gets the first non machine identifier.
+        /// Gets the first non-machine identifier.
         /// </summary>
         /// <param name="expr">Expression</param>
         /// <param name="model">SemanticModel</param>

@@ -51,19 +51,19 @@ namespace Microsoft.PSharp.StaticAnalysis
         internal ClassDeclarationSyntax Machine;
 
         /// <summary>
-        /// The entry node of the control flow graph of the
+        /// The entry node of the control-flow graph of the
         /// method of this summary.
         /// </summary>
         internal ControlFlowGraphNode EntryNode;
 
         /// <summary>
-        /// Set of all gives-up ownership nodes in the control flow
+        /// Set of all gives-up ownership nodes in the control-flow
         /// graph of the method of this summary.
         /// </summary>
         internal HashSet<ControlFlowGraphNode> GivesUpOwnershipNodes;
 
         /// <summary>
-        /// Set of all exit nodes in the control flow graph of the
+        /// Set of all exit nodes in the control-flow graph of the
         /// method of this summary.
         /// </summary>
         internal HashSet<ControlFlowGraphNode> ExitNodes;
@@ -399,8 +399,14 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             this.AnalyzeDataFlow();
-            this.ComputeAnySideEffects();
+            this.ComputeSideEffects();
+
             AnalysisContext.Summaries.Add(this.Method, this);
+
+            if (this.AnalysisContext.Configuration.ShowControlFlowInformation)
+            {
+                this.PrintControlFlowInformation();
+            }
 
             if (this.AnalysisContext.Configuration.ShowDataFlowInformation)
             {
@@ -409,7 +415,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         }
 
         /// <summary>
-        /// Tries to construct the control flow graph of the method.
+        /// Tries to construct the control-flow graph of the method.
         /// </summary>
         /// <returns>Boolean</returns>
         private bool AnalyzeControlFlow()
@@ -429,12 +435,10 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 return false;
             }
-
-            //IO.Print("Printing method: {0}", this.Method);
+            
             this.EntryNode.Construct(this.Method.Body.Statements, 0, false, null);
             this.EntryNode.CleanEmptySuccessors();
             this.ExitNodes = this.EntryNode.GetExitNodes();
-            //this.DebugPrint();
 
             return true;
         }
@@ -444,33 +448,15 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         private void AnalyzeDataFlow()
         {
-            this.DataFlowAnalysis = new DataFlowAnalysis();
             var model = this.AnalysisContext.Compilation.GetSemanticModel(this.Method.SyntaxTree);
-
-            // Compute the data-flow for each parameter of the method.
-            foreach (var param in this.Method.ParameterList.Parameters)
-            {
-                var declType = model.GetTypeInfo(param.Type).Type;
-                if (this.AnalysisContext.IsTypeAllowedToBeSend(declType) ||
-                    this.AnalysisContext.IsMachineIdType(declType, model))
-                {
-                    continue;
-                }
-
-                var paramSymbol = model.GetDeclaredSymbol(param);
-                this.DataFlowAnalysis.MapRefToSymbol(paramSymbol, paramSymbol,
-                    this.Method.ParameterList, this.EntryNode, false);
-            }
-
-            DataFlowAnalysis.Analyze(this.EntryNode, this.EntryNode, this.Method.ParameterList,
-                this.DataFlowAnalysis, model, this.AnalysisContext);
+            this.DataFlowAnalysis = DataFlowAnalysis.Analyze(this, this.AnalysisContext, model);
         }
 
         /// <summary>
-        /// Tries to compute any side effects in the control flow graph using
+        /// Computes side effects in the control-flow graph using
         /// information from the data-flow analysis.
         /// </summary>
-        private void ComputeAnySideEffects()
+        private void ComputeSideEffects()
         {
             foreach (var exitNode in this.ExitNodes)
             {
@@ -523,16 +509,37 @@ namespace Microsoft.PSharp.StaticAnalysis
 
         #endregion
 
-        #region debug methods
+        #region summary printing methods
 
         /// <summary>
-        /// Prints the summary information.
+        /// Prints the control-flow information.
+        /// </summary>
+        private void PrintControlFlowInformation()
+        {
+            IO.PrintLine("..");
+            IO.PrintLine("... ==================================================");
+            IO.PrintLine("... =============== ControlFlow Summary ===============");
+            IO.PrintLine("... ==================================================");
+            IO.PrintLine("... |");
+            IO.PrintLine("... | Method: '{0}'", Querying.GetFullMethodName(
+                this.Method, this.Machine));
+
+            this.EntryNode.DebugPrint();
+            this.EntryNode.DebugPrintPredecessors();
+            this.EntryNode.DebugPrintSuccessors();
+
+            IO.PrintLine("... |");
+            IO.PrintLine("... ==================================================");
+        }
+
+        /// <summary>
+        /// Prints the data-flow information.
         /// </summary>
         private void PrintDataFlowInformation()
         {
             IO.PrintLine("..");
             IO.PrintLine("... ==================================================");
-            IO.PrintLine("... ================ Dataflow summary ================");
+            IO.PrintLine("... ================ DataFlow Summary ================");
             IO.PrintLine("... ==================================================");
             IO.PrintLine("... |");
             IO.PrintLine("... | Method: '{0}'", Querying.GetFullMethodName(
@@ -543,20 +550,6 @@ namespace Microsoft.PSharp.StaticAnalysis
             this.DataFlowAnalysis.PrintReferenceTypes();
             this.DataFlowAnalysis.PrintStatementsThatResetReferences();
 
-            this.PrintAccesses();
-            this.PrintFieldAccesses();
-            this.PrintSideEffects();
-            this.PrintReturnSet();
-            this.PrintReturnTypeSet();
-            IO.PrintLine("... |");
-            IO.PrintLine("... ==================================================");
-        }
-
-        /// <summary>
-        /// Prints the accesses.
-        /// </summary>
-        internal void PrintAccesses()
-        {
             if (this.AccessSet.Count > 0)
             {
                 IO.PrintLine("..... Access set");
@@ -568,13 +561,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     }
                 }
             }
-        }
 
-        /// <summary>
-        /// Prints the field accesses.
-        /// </summary>
-        internal void PrintFieldAccesses()
-        {
             if (this.FieldAccessSet.Count > 0)
             {
                 IO.PrintLine("..... Field access set");
@@ -586,13 +573,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     }
                 }
             }
-        }
 
-        /// <summary>
-        /// Prints the accesses.
-        /// </summary>
-        internal void PrintSideEffects()
-        {
             if (this.SideEffects.Count > 0)
             {
                 IO.PrintLine("..... Side effects");
@@ -604,13 +585,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     }
                 }
             }
-        }
 
-        /// <summary>
-        /// Prints the return set.
-        /// </summary>
-        internal void PrintReturnSet()
-        {
             if (this.ReturnSet.Item1.Count > 0 ||
                 this.ReturnSet.Item2.Count > 0)
             {
@@ -625,13 +600,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     IO.PrintLine("....... " + field.Name);
                 }
             }
-        }
 
-        /// <summary>
-        /// Prints the return type set.
-        /// </summary>
-        internal void PrintReturnTypeSet()
-        {
             if (this.ReturnTypeSet.Count > 0)
             {
                 IO.PrintLine("..... Return type set");
@@ -640,17 +609,9 @@ namespace Microsoft.PSharp.StaticAnalysis
                     IO.PrintLine("....... " + type.Name);
                 }
             }
-        }
 
-        /// <summary>
-        /// Print debug information.
-        /// </summary>
-        private void DebugPrint()
-        {
-            IO.PrintLine("DebugPrint");
-            this.EntryNode.DebugPrint();
-            //this.Node.DebugPrintPredecessors();
-            this.EntryNode.DebugPrintSuccessors();
+            IO.PrintLine("... |");
+            IO.PrintLine("... ==================================================");
         }
 
         #endregion

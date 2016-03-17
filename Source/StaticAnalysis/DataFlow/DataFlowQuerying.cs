@@ -19,7 +19,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.FindSymbols;
 
 namespace Microsoft.PSharp.StaticAnalysis
 {
@@ -96,7 +95,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 return false;
             }
 
-            if (symbol.Equals(target) && cfgNode.Summary.DataFlowAnalysis.DoesSymbolReset(
+            if (symbol.Equals(target) && cfgNode.Summary.DataFlowAnalysis.DoesReferenceResetUntilCFGNode(
                 symbol, syntaxNode, cfgNode, targetSyntaxNode, targetCfgNode))
             {
                 return false;
@@ -127,7 +126,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 foreach (var reference in dataFlowAnalysis[target])
                 {
-                    if (!cfgNode.Summary.DataFlowAnalysis.DoesSymbolReset(symbol, syntaxNode,
+                    if (!cfgNode.Summary.DataFlowAnalysis.DoesReferenceResetUntilCFGNode(symbol, syntaxNode,
                         cfgNode, targetSyntaxNode, targetCfgNode))
                     {
                         if (reference.Equals(symbol))
@@ -216,7 +215,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 return false;
             }
 
-            if (symbol.Equals(target) && cfgNode.Summary.DataFlowAnalysis.DoesSymbolReset(
+            if (symbol.Equals(target) && cfgNode.Summary.DataFlowAnalysis.DoesReferenceResetUntilCFGNode(
                 symbol, targetSyntaxNode, targetCfgNode, syntaxNode, cfgNode))
             {
                 return false;
@@ -253,7 +252,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 foreach (var reference in dataFlowAnalysis[target])
                 {
-                    if (!cfgNode.Summary.DataFlowAnalysis.DoesSymbolReset(symbol, targetSyntaxNode,
+                    if (!cfgNode.Summary.DataFlowAnalysis.DoesReferenceResetUntilCFGNode(symbol, targetSyntaxNode,
                         targetCfgNode, syntaxNode, cfgNode))
                     {
                         if (reference.Equals(symbol))
@@ -277,8 +276,8 @@ namespace Microsoft.PSharp.StaticAnalysis
 
         /// <summary>
         /// Returns true if the given expression resets when flowing from the
-        /// target in the given loop body control flow graph nodes. The given
-        /// control flow graph nodes must be equal.
+        /// target in the given loop body control-flow graph nodes. The given
+        /// control-flow graph nodes must be equal.
         /// </summary>
         /// <param name="expr">Expression</param>
         /// <param name="syntaxNode">SyntaxNode</param>
@@ -305,8 +304,8 @@ namespace Microsoft.PSharp.StaticAnalysis
 
         /// <summary>
         /// Returns true if the given symbol resets when flowing from the
-        /// target in the given loop body control flow graph nodes. The
-        /// given control flow graph nodes must be equal.
+        /// target in the given loop body control-flow graph nodes. The
+        /// given control-flow graph nodes must be equal.
         /// </summary>
         /// <param name="symbol">Symbol</param>
         /// <param name="syntaxNode">SyntaxNode</param>
@@ -337,17 +336,17 @@ namespace Microsoft.PSharp.StaticAnalysis
                 }
             }
 
-            var backwards = cfgNode.Summary.DataFlowAnalysis.DoesSymbolReset(symbol,
+            var backwards = cfgNode.Summary.DataFlowAnalysis.DoesReferenceResetUntilCFGNode(symbol,
                 syntaxNode, cfgNode, successor.SyntaxNodes.First(), successor);
-            var forwards = cfgNode.Summary.DataFlowAnalysis.DoesSymbolReset(symbol,
+            var forwards = cfgNode.Summary.DataFlowAnalysis.DoesReferenceResetUntilCFGNode(symbol,
                 successor.SyntaxNodes.First(), successor, syntaxNode, cfgNode);
 
             return backwards || forwards;
         }
 
         /// <summary>
-        /// Returns true if the given expression resets in successor
-        /// control flow graph nodes.
+        /// Returns true if the given expression resets in
+        /// successor control-flow graph nodes.
         /// </summary>
         /// <param name="expr">Expression</param>
         /// <param name="target">Target</param>
@@ -356,7 +355,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="model">SemanticModel</param>
         /// <param name="context">AnalysisContext</param>
         /// <returns>Boolean</returns>
-        internal static bool DoesResetInSuccessors(ExpressionSyntax expr, ISymbol target,
+        internal static bool DoesResetInSuccessorCFGNodes(ExpressionSyntax expr, ISymbol target,
             SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode, SemanticModel model,
             AnalysisContext context)
         {
@@ -366,22 +365,22 @@ namespace Microsoft.PSharp.StaticAnalysis
                 return false;
             }
 
-            return DataFlowQuerying.DoesResetInSuccessors(reference, target, syntaxNode, cfgNode);
+            return DataFlowQuerying.DoesResetInSuccessorCFGNodes(reference, target, syntaxNode, cfgNode);
         }
 
         /// <summary>
-        /// Returns true if the given symbol resets in successor
-        /// control flow graph nodes.
+        /// Returns true if the given symbol resets
+        /// in successor control-flow graph nodes.
         /// </summary>
         /// <param name="symbol">Symbol</param>
         /// <param name="target">Target</param>
         /// <param name="syntaxNode">SyntaxNode</param>
         /// <param name="cfgNode">ControlFlowGraphNode</param>
         /// <returns>Boolean</returns>
-        internal static bool DoesResetInSuccessors(ISymbol symbol, ISymbol target,
+        internal static bool DoesResetInSuccessorCFGNodes(ISymbol symbol, ISymbol target,
             SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode)
         {
-            return DataFlowQuerying.DoesResetInSuccessors(symbol, target, syntaxNode,
+            return DataFlowQuerying.DoesSymbolResetInSuccessorCFGNodes(symbol, target, syntaxNode,
                 cfgNode, cfgNode, new HashSet<ControlFlowGraphNode>());
         }
 
@@ -417,8 +416,8 @@ namespace Microsoft.PSharp.StaticAnalysis
         #region private methods
 
         /// <summary>
-        /// Returns true if the given symbol resets in successor
-        /// control flow graph nodes.
+        /// Returns true if the given symbol resets
+        /// in successor control-flow graph nodes.
         /// </summary>
         /// <param name="symbol">Symbol</param>
         /// <param name="target">Target</param>
@@ -427,7 +426,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="targetCfgNode">Target controlFlowGraphNode</param>
         /// <param name="visited">Already visited cfgNodes</param>
         /// <returns>Boolean</returns>
-        private static bool DoesResetInSuccessors(ISymbol symbol, ISymbol target,
+        private static bool DoesSymbolResetInSuccessorCFGNodes(ISymbol symbol, ISymbol target,
             SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode, ControlFlowGraphNode targetCfgNode,
             HashSet<ControlFlowGraphNode> visited, bool track = false)
         {
@@ -437,7 +436,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 if (track)
                 {
-                    if (targetCfgNode.Summary.DataFlowAnalysis.DoesSymbolReset(symbol,
+                    if (targetCfgNode.Summary.DataFlowAnalysis.DoesReferenceResetUntilCFGNode(symbol,
                         syntaxNode, cfgNode, node, targetCfgNode) &&
                         !DataFlowQuerying.FlowsIntoTarget(symbol, target, syntaxNode, cfgNode,
                         node, targetCfgNode))
@@ -460,7 +459,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             List<bool> results = new List<bool>();
             foreach (var successor in targetCfgNode.ISuccessors.Where(v => !visited.Contains(v)))
             {
-                results.Add(DataFlowQuerying.DoesResetInSuccessors(symbol, target,
+                results.Add(DataFlowQuerying.DoesSymbolResetInSuccessorCFGNodes(symbol, target,
                     syntaxNode, cfgNode, successor, visited, true));
             }
 

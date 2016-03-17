@@ -26,7 +26,7 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.StaticAnalysis
 {
     /// <summary>
-    /// Class implementing a control flow graph node.
+    /// Class implementing a control-flow graph node.
     /// </summary>
     internal class ControlFlowGraphNode
     {
@@ -407,7 +407,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         }
 
         /// <summary>
-        /// Returns all exit nodes in the control flow graph.
+        /// Returns all exit nodes in the control-flow graph.
         /// </summary>
         /// <returns>Set of exit nodes</returns>
         internal HashSet<ControlFlowGraphNode> GetExitNodes()
@@ -781,7 +781,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         }
 
         /// <summary>
-        /// Returns all exit nodes in the control flow graph.
+        /// Returns all exit nodes in the control-flow graph.
         /// </summary>
         /// <param name="visited">Already visited cfgNodes</param>
         /// <returns>Set of exit nodes</returns>

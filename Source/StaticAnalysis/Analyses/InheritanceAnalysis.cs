@@ -102,19 +102,19 @@ namespace Microsoft.PSharp.StaticAnalysis
                 return false;
             }
 
-            Dictionary<ISymbol, HashSet<ITypeSymbol>> objectTypeMap = null;
+            Dictionary<ISymbol, HashSet<ITypeSymbol>> referenceTypeMap = null;
             if (!cfgNode.Summary.DataFlowAnalysis.TryGetReferenceTypeMapForSyntaxNode(
-                syntaxNode, cfgNode, out objectTypeMap))
+                syntaxNode, cfgNode, out referenceTypeMap))
             {
                 return false;
             }
 
-            if (!objectTypeMap.ContainsKey(calleeSymbol))
+            if (!referenceTypeMap.ContainsKey(calleeSymbol))
             {
                 return false;
             }
 
-            foreach (var objectType in objectTypeMap[calleeSymbol])
+            foreach (var objectType in referenceTypeMap[calleeSymbol])
             {
                 MethodDeclarationSyntax m = null;
                 if (InheritanceAnalysis.TryGetMethodFromType(out m, objectType, virtualCall, context))

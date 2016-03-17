@@ -200,7 +200,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         #region gives-up ownership analysis methods
 
         /// <summary>
-        /// Tries to compute the 'gives_up' set of indexes for the given control flow graph node.
+        /// Tries to compute the 'gives_up' set of indexes for the given control-flow graph node.
         /// If the node does not contain a 'Send' operation, then it returns false.
         /// </summary>
         /// <param name="cfgNode">ControlFlowGraphNode</param>
@@ -265,7 +265,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         }
 
         /// <summary>
-        /// Tries to compute the gives-up ownership set of indexes for the given control flow graph node.
+        /// Tries to compute the gives-up ownership set of indexes for the given control-flow graph node.
         /// If the node does not contain a 'Create' operation, then it returns false.
         /// </summary>
         /// <param name="cfgNode">ControlFlowGraphNode</param>
@@ -341,7 +341,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         }
 
         /// <summary>
-        /// Tries to compute the gives-up ownership set of indexes for the given control flow graph node.
+        /// Tries to compute the gives-up ownership set of indexes for the given control-flow graph node.
         /// If the node does not contain a generic 'gives_up' operation, then it returns false.
         /// </summary>
         /// <param name="cfgNode">ControlFlowGraphNode</param>

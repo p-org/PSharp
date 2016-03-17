@@ -33,6 +33,16 @@ namespace Microsoft.PSharp.StaticAnalysis
         #region fields
 
         /// <summary>
+        /// The analysis context.
+        /// </summary>
+        private AnalysisContext AnalysisContext;
+
+        /// <summary>
+        /// The semantic model.
+        /// </summary>
+        private SemanticModel SemanticModel;
+
+        /// <summary>
         /// DataFlowMap containing data-flow values.
         /// </summary>
         private Dictionary<ControlFlowGraphNode, Dictionary<SyntaxNode,
@@ -61,9 +71,22 @@ namespace Microsoft.PSharp.StaticAnalysis
         #region constructors
 
         /// <summary>
+        /// Creates a new data-flow analysis.
+        /// </summary>
+        /// <param name="context">AnalysisContext</param>
+        /// <param name="model">SemanticModel</param>
+        /// <returns>DataFlowAnalysis</returns>
+        public static DataFlowAnalysis Create(AnalysisContext context, SemanticModel model)
+        {
+            return new DataFlowAnalysis(context, model);
+        }
+
+        /// <summary>
         /// Constructor.
         /// </summary>
-        internal DataFlowAnalysis()
+        /// <param name="context">AnalysisContext</param>
+        /// <param name="model">SemanticModel</param>
+        private DataFlowAnalysis(AnalysisContext context, SemanticModel model)
         {
             this.DataFlowMap = new Dictionary<ControlFlowGraphNode, Dictionary<SyntaxNode,
                 Dictionary<ISymbol, HashSet<ISymbol>>>>();
@@ -73,6 +96,9 @@ namespace Microsoft.PSharp.StaticAnalysis
                 Dictionary<ISymbol, HashSet<ITypeSymbol>>>>();
             this.ReferenceResetMap = new Dictionary<ControlFlowGraphNode, Dictionary<SyntaxNode,
                 HashSet<ISymbol>>>();
+
+            this.AnalysisContext = context;
+            this.SemanticModel = model;
         }
 
         #endregion
@@ -80,18 +106,176 @@ namespace Microsoft.PSharp.StaticAnalysis
         #region public analysis API
 
         /// <summary>
-        /// Analyzes the data-flow analysis on the given control flow graph node.
+        /// Analyzes the data-flow of the given method.
+        /// </summary>
+        /// <param name="methodSummary">MethodSummary</param>
+        /// <param name="context">AnalysisContext</param>
+        /// <param name="model">SemanticModel</param>
+        /// <returns>DataFlowAnalysis</returns>
+        public static DataFlowAnalysis Analyze(MethodSummary methodSummary, AnalysisContext context, SemanticModel model)
+        {
+            DataFlowAnalysis dataFlowAnalysis = new DataFlowAnalysis(context, model);
+
+            foreach (var param in methodSummary.Method.ParameterList.Parameters)
+            {
+                ITypeSymbol declType = dataFlowAnalysis.SemanticModel.GetTypeInfo(param.Type).Type;
+                if (dataFlowAnalysis.AnalysisContext.IsTypeAllowedToBeSend(declType) ||
+                    dataFlowAnalysis.AnalysisContext.IsMachineIdType(declType, dataFlowAnalysis.SemanticModel))
+                {
+                    continue;
+                }
+
+                IParameterSymbol paramSymbol = dataFlowAnalysis.SemanticModel.GetDeclaredSymbol(param);
+                dataFlowAnalysis.MapRefToSymbol(paramSymbol, paramSymbol,
+                    methodSummary.Method.ParameterList, methodSummary.EntryNode, false);
+            }
+
+            dataFlowAnalysis.Analyze(methodSummary.EntryNode, methodSummary.EntryNode,
+                methodSummary.Method.ParameterList);
+
+            return dataFlowAnalysis;
+        }
+
+        /// <summary>
+        /// Tries to return the map for the given syntax node.
+        /// Returns false and a null, if it cannot find such map.
+        /// </summary>
+        /// <param name="syntaxNode">SyntaxNode</param>
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        /// <param name="map">DataFlowMap</param>
+        /// <returns>Boolean</returns>
+        public bool TryGetDataFlowMapForSyntaxNode(SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode,
+            out Dictionary<ISymbol, HashSet<ISymbol>> map)
+        {
+            if (cfgNode == null || syntaxNode == null)
+            {
+                map = null;
+                return false;
+            }
+
+            if (this.DataFlowMap.ContainsKey(cfgNode))
+            {
+                if (this.DataFlowMap[cfgNode].ContainsKey(syntaxNode))
+                {
+                    map = this.DataFlowMap[cfgNode][syntaxNode];
+                    return true;
+                }
+                else
+                {
+                    map = null;
+                    return false;
+                }
+            }
+            else
+            {
+                map = null;
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Tries to return the reachability map for the given syntax node.
+        /// Returns false and a null, if it cannot find such map.
+        /// </summary>
+        /// <param name="syntaxNode">SyntaxNode</param>
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        /// <param name="map">DataFlowMap</param>
+        /// <returns>Boolean</returns>
+        public bool TryGetReachabilityMapForSyntaxNode(SyntaxNode syntaxNode,
+            ControlFlowGraphNode cfgNode, out Dictionary<ISymbol, HashSet<ISymbol>> map)
+        {
+            if (cfgNode == null || syntaxNode == null)
+            {
+                map = null;
+                return false;
+            }
+
+            if (this.ReachabilityMap.ContainsKey(cfgNode))
+            {
+                if (this.ReachabilityMap[cfgNode].ContainsKey(syntaxNode))
+                {
+                    map = this.ReachabilityMap[cfgNode][syntaxNode];
+                    return true;
+                }
+                else
+                {
+                    map = null;
+                    return false;
+                }
+            }
+            else
+            {
+                map = null;
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Tries to return the reference type map for the given syntax node.
+        /// Returns false and a null, if it cannot find such map.
+        /// </summary>
+        /// <param name="syntaxNode">SyntaxNode</param>
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        /// <param name="map">DataFlowMap</param>
+        /// <returns>Boolean</returns>
+        public bool TryGetReferenceTypeMapForSyntaxNode(SyntaxNode syntaxNode,
+            ControlFlowGraphNode cfgNode, out Dictionary<ISymbol, HashSet<ITypeSymbol>> map)
+        {
+            if (cfgNode == null || syntaxNode == null)
+            {
+                map = null;
+                return false;
+            }
+
+            if (this.ReferenceTypeMap.ContainsKey(cfgNode))
+            {
+                if (this.ReferenceTypeMap[cfgNode].ContainsKey(syntaxNode))
+                {
+                    map = this.ReferenceTypeMap[cfgNode][syntaxNode];
+                    return true;
+                }
+                else
+                {
+                    map = null;
+                    return false;
+                }
+            }
+            else
+            {
+                map = null;
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the given reference resets until it
+        /// reaches the target control-flow graph node.
+        /// </summary>
+        /// <param name="reference">Reference</param>
+        /// <param name="refSyntaxNode">Reference SyntaxNode</param>
+        /// <param name="refCfgNode">Reference ControlFlowGraphNode</param>
+        /// <param name="targetSyntaxNode">Target syntaxNode</param>
+        /// <param name="targetCfgNode">Target controlFlowGraphNode</param>
+        /// <returns>Boolean</returns>
+        public bool DoesReferenceResetUntilCFGNode(ISymbol reference, SyntaxNode refSyntaxNode,
+            ControlFlowGraphNode refCfgNode, SyntaxNode targetSyntaxNode, ControlFlowGraphNode targetCfgNode)
+        {
+            return this.DoesReferenceResetUntilCFGNode(reference, refSyntaxNode, refCfgNode,
+                targetSyntaxNode, targetCfgNode, false);
+        }
+
+        #endregion
+
+        #region private analysis API
+
+        /// <summary>
+        /// Analyzes the data-flow of the given control-flow graph node.
         /// </summary>
         /// <param name="cfgNode">ControlFlowGraphNode</param>
         /// <param name="previousCfgNode">Previous controlFlowGraphNode</param>
         /// <param name="previousSyntaxNode">Previous syntaxNode</param>
-        /// <param name="dataFlowAnalysis">DataFlowAnalysis</param>
-        /// <param name="model">SemanticModel</param>
-        /// <param name="context">AnalysisContext</param>
-        /// <returns>Boolean</returns>
-        public void Analyze(ControlFlowGraphNode cfgNode, ControlFlowGraphNode previousCfgNode,
-            SyntaxNode previousSyntaxNode, DataFlowAnalysis dataFlowAnalysis, SemanticModel model,
-            AnalysisContext context)
+        private void Analyze(ControlFlowGraphNode cfgNode, ControlFlowGraphNode previousCfgNode,
+            SyntaxNode previousSyntaxNode)
         {
             if (!cfgNode.IsJumpNode && !cfgNode.IsLoopHeadNode)
             {
@@ -114,29 +298,27 @@ namespace Microsoft.PSharp.StaticAnalysis
                                 continue;
                             }
 
-                            this.TryCaptureParameterAccess(variable.Initializer.Value, syntaxNode,
-                                cfgNode, model, context);
-                            this.TryCaptureFieldAccess(variable.Initializer.Value, syntaxNode,
-                                cfgNode, model, context);
+                            this.TryCaptureParameterAccess(variable.Initializer.Value, syntaxNode, cfgNode);
+                            this.TryCaptureFieldAccess(variable.Initializer.Value, syntaxNode, cfgNode);
 
                             ITypeSymbol declType = null;
                             if (variable.Initializer.Value is LiteralExpressionSyntax &&
                                 variable.Initializer.Value.IsKind(SyntaxKind.NullLiteralExpression))
                             {
-                                declType = model.GetTypeInfo(varDecl.Type).Type;
+                                declType = this.SemanticModel.GetTypeInfo(varDecl.Type).Type;
                             }
                             else
                             {
-                                declType = model.GetTypeInfo(variable.Initializer.Value).Type;
+                                declType = this.SemanticModel.GetTypeInfo(variable.Initializer.Value).Type;
                             }
 
-                            if (context.IsTypeAllowedToBeSend(declType) ||
-                                context.IsMachineIdType(declType, model))
+                            if (this.AnalysisContext.IsTypeAllowedToBeSend(declType) ||
+                                this.AnalysisContext.IsMachineIdType(declType, this.SemanticModel))
                             {
                                 continue;
                             }
 
-                            var declSymbol = model.GetDeclaredSymbol(variable);
+                            var declSymbol = this.SemanticModel.GetDeclaredSymbol(variable);
 
                             if (variable.Initializer.Value is IdentifierNameSyntax ||
                                 variable.Initializer.Value is MemberAccessExpressionSyntax)
@@ -144,105 +326,105 @@ namespace Microsoft.PSharp.StaticAnalysis
                                 ISymbol varSymbol = null;
                                 if (variable.Initializer.Value is IdentifierNameSyntax)
                                 {
-                                    varSymbol = model.GetSymbolInfo(variable.Initializer.Value
+                                    varSymbol = this.SemanticModel.GetSymbolInfo(variable.Initializer.Value
                                         as IdentifierNameSyntax).Symbol;
                                 }
                                 else if (variable.Initializer.Value is MemberAccessExpressionSyntax)
                                 {
-                                    varSymbol = model.GetSymbolInfo((variable.Initializer.Value
+                                    varSymbol = this.SemanticModel.GetSymbolInfo((variable.Initializer.Value
                                         as MemberAccessExpressionSyntax).Name).Symbol;
                                 }
 
-                                dataFlowAnalysis.MapRefToSymbol(varSymbol, declSymbol, syntaxNode, cfgNode);
+                                this.MapRefToSymbol(varSymbol, declSymbol, syntaxNode, cfgNode);
 
                                 HashSet<ITypeSymbol> referenceTypes = null;
                                 if (this.ResolveReferenceType(out referenceTypes, varSymbol, syntaxNode, cfgNode))
                                 {
-                                    dataFlowAnalysis.MapReferenceTypesToSymbol(referenceTypes, declSymbol, syntaxNode, cfgNode);
+                                    this.MapReferenceTypesToSymbol(referenceTypes, declSymbol, syntaxNode, cfgNode);
                                 }
                                 else
                                 {
-                                    dataFlowAnalysis.EraseReferenceTypesFromSymbol(declSymbol, syntaxNode, cfgNode);
+                                    this.EraseReferenceTypesFromSymbol(declSymbol, syntaxNode, cfgNode);
                                 }
                             }
                             else if (variable.Initializer.Value is LiteralExpressionSyntax &&
                                 variable.Initializer.Value.IsKind(SyntaxKind.NullLiteralExpression))
                             {
-                                dataFlowAnalysis.ResetSymbol(declSymbol, syntaxNode, cfgNode);
+                                this.ResetSymbol(declSymbol, syntaxNode, cfgNode);
                             }
                             else if (variable.Initializer.Value is InvocationExpressionSyntax)
                             {
                                 var invocation = variable.Initializer.Value as InvocationExpressionSyntax;
-                                var summary = MethodSummary.TryGetSummary(invocation, model, context);
+                                var summary = MethodSummary.TryGetSummary(invocation, this.SemanticModel, this.AnalysisContext);
                                 var reachableSymbols = this.ResolveSideEffectsInCall(invocation,
-                                    summary, syntaxNode, cfgNode, model);
-                                var returnSymbols = this.GetReturnSymbols(invocation, summary, model);
+                                    summary, syntaxNode, cfgNode);
+                                var returnSymbols = this.GetReturnSymbols(invocation, summary);
 
                                 if (returnSymbols.Count == 0)
                                 {
-                                    dataFlowAnalysis.ResetSymbol(declSymbol, syntaxNode, cfgNode);
+                                    this.ResetSymbol(declSymbol, syntaxNode, cfgNode);
                                 }
                                 else if (returnSymbols.Contains(declSymbol))
                                 {
-                                    dataFlowAnalysis.MapRefsToSymbol(returnSymbols, declSymbol, syntaxNode, cfgNode, false);
+                                    this.MapRefsToSymbol(returnSymbols, declSymbol, syntaxNode, cfgNode, false);
                                 }
                                 else
                                 {
-                                    dataFlowAnalysis.MapRefsToSymbol(returnSymbols, declSymbol, syntaxNode, cfgNode);
+                                    this.MapRefsToSymbol(returnSymbols, declSymbol, syntaxNode, cfgNode);
                                 }
 
                                 if (reachableSymbols.Count > 0)
                                 {
-                                    dataFlowAnalysis.MapReachableFieldsToSymbol(reachableSymbols, declSymbol,
+                                    this.MapReachableFieldsToSymbol(reachableSymbols, declSymbol,
                                         syntaxNode, cfgNode);
                                 }
 
                                 if (summary != null && summary.ReturnTypeSet.Count > 0)
                                 {
-                                    dataFlowAnalysis.MapReferenceTypesToSymbol(summary.ReturnTypeSet,
+                                    this.MapReferenceTypesToSymbol(summary.ReturnTypeSet,
                                         declSymbol, syntaxNode, cfgNode);
                                 }
                                 else
                                 {
-                                    dataFlowAnalysis.EraseReferenceTypesFromSymbol(declSymbol, syntaxNode, cfgNode);
+                                    this.EraseReferenceTypesFromSymbol(declSymbol, syntaxNode, cfgNode);
                                 }
                             }
                             else if (variable.Initializer.Value is ObjectCreationExpressionSyntax)
                             {
                                 var objCreation = variable.Initializer.Value as ObjectCreationExpressionSyntax;
-                                var summary = MethodSummary.TryGetSummary(objCreation, model, context);
+                                var summary = MethodSummary.TryGetSummary(objCreation, this.SemanticModel, this.AnalysisContext);
                                 var reachableSymbols = this.ResolveSideEffectsInCall(objCreation,
-                                    summary, syntaxNode, cfgNode, model);
-                                var returnSymbols = this.GetReturnSymbols(objCreation, summary, model);
+                                    summary, syntaxNode, cfgNode);
+                                var returnSymbols = this.GetReturnSymbols(objCreation, summary);
 
                                 if (returnSymbols.Count == 0)
                                 {
-                                    dataFlowAnalysis.ResetSymbol(declSymbol, syntaxNode, cfgNode);
+                                    this.ResetSymbol(declSymbol, syntaxNode, cfgNode);
                                 }
                                 else if (returnSymbols.Contains(declSymbol))
                                 {
-                                    dataFlowAnalysis.MapRefsToSymbol(returnSymbols, declSymbol, syntaxNode, cfgNode, false);
+                                    this.MapRefsToSymbol(returnSymbols, declSymbol, syntaxNode, cfgNode, false);
                                 }
                                 else
                                 {
-                                    dataFlowAnalysis.MapRefsToSymbol(returnSymbols, declSymbol, syntaxNode, cfgNode);
+                                    this.MapRefsToSymbol(returnSymbols, declSymbol, syntaxNode, cfgNode);
                                 }
 
                                 if (reachableSymbols.Count > 0)
                                 {
-                                    dataFlowAnalysis.MapReachableFieldsToSymbol(reachableSymbols, declSymbol,
+                                    this.MapReachableFieldsToSymbol(reachableSymbols, declSymbol,
                                         syntaxNode, cfgNode);
                                 }
 
-                                var typeSymbol = model.GetSymbolInfo(objCreation.Type).Symbol as ITypeSymbol;
+                                var typeSymbol = this.SemanticModel.GetSymbolInfo(objCreation.Type).Symbol as ITypeSymbol;
                                 if (typeSymbol != null)
                                 {
-                                    dataFlowAnalysis.MapReferenceTypesToSymbol(new HashSet<ITypeSymbol> { typeSymbol },
+                                    this.MapReferenceTypesToSymbol(new HashSet<ITypeSymbol> { typeSymbol },
                                         declSymbol, syntaxNode, cfgNode);
                                 }
                                 else
                                 {
-                                    dataFlowAnalysis.EraseReferenceTypesFromSymbol(declSymbol, syntaxNode, cfgNode);
+                                    this.EraseReferenceTypesFromSymbol(declSymbol, syntaxNode, cfgNode);
                                 }
                             }
                         }
@@ -253,19 +435,19 @@ namespace Microsoft.PSharp.StaticAnalysis
                         {
                             var binaryExpr = expr.Expression as BinaryExpressionSyntax;
 
-                            this.TryCaptureParameterAccess(binaryExpr.Left, syntaxNode, cfgNode, model, context);
-                            this.TryCaptureParameterAccess(binaryExpr.Right, syntaxNode, cfgNode, model, context);
-                            this.TryCaptureFieldAccess(binaryExpr.Left, syntaxNode, cfgNode, model, context);
-                            this.TryCaptureFieldAccess(binaryExpr.Right, syntaxNode, cfgNode, model, context);
+                            this.TryCaptureParameterAccess(binaryExpr.Left, syntaxNode, cfgNode);
+                            this.TryCaptureParameterAccess(binaryExpr.Right, syntaxNode, cfgNode);
+                            this.TryCaptureFieldAccess(binaryExpr.Left, syntaxNode, cfgNode);
+                            this.TryCaptureFieldAccess(binaryExpr.Right, syntaxNode, cfgNode);
 
                             IdentifierNameSyntax lhs = null;
                             ISymbol lhsFieldSymbol = null;
                             if (binaryExpr.Left is IdentifierNameSyntax)
                             {
                                 lhs = binaryExpr.Left as IdentifierNameSyntax;
-                                var lhsType = model.GetTypeInfo(lhs).Type;
-                                if (context.IsTypeAllowedToBeSend(lhsType) ||
-                                    context.IsMachineIdType(lhsType, model))
+                                var lhsType = this.SemanticModel.GetTypeInfo(lhs).Type;
+                                if (this.AnalysisContext.IsTypeAllowedToBeSend(lhsType) ||
+                                    this.AnalysisContext.IsMachineIdType(lhsType, this.SemanticModel))
                                 {
                                     previousSyntaxNode = syntaxNode;
                                     previousCfgNode = cfgNode;
@@ -275,17 +457,17 @@ namespace Microsoft.PSharp.StaticAnalysis
                             else if (binaryExpr.Left is MemberAccessExpressionSyntax)
                             {
                                 var name = (binaryExpr.Left as MemberAccessExpressionSyntax).Name;
-                                var lhsType = model.GetTypeInfo(name).Type;
-                                if (context.IsTypeAllowedToBeSend(lhsType) ||
-                                    context.IsMachineIdType(lhsType, model))
+                                var lhsType = this.SemanticModel.GetTypeInfo(name).Type;
+                                if (this.AnalysisContext.IsTypeAllowedToBeSend(lhsType) ||
+                                    this.AnalysisContext.IsMachineIdType(lhsType, this.SemanticModel))
                                 {
                                     previousSyntaxNode = syntaxNode;
                                     previousCfgNode = cfgNode;
                                     continue;
                                 }
 
-                                lhs = context.GetFirstNonMachineIdentifier(binaryExpr.Left, model);
-                                lhsFieldSymbol = model.GetSymbolInfo(name as IdentifierNameSyntax).Symbol;
+                                lhs = this.AnalysisContext.GetFirstNonMachineIdentifier(binaryExpr.Left, this.SemanticModel);
+                                lhsFieldSymbol = this.SemanticModel.GetSymbolInfo(name as IdentifierNameSyntax).Symbol;
                             }
                             else if (binaryExpr.Left is ElementAccessExpressionSyntax)
                             {
@@ -293,9 +475,9 @@ namespace Microsoft.PSharp.StaticAnalysis
                                 if (memberAccess.Expression is IdentifierNameSyntax)
                                 {
                                     lhs = memberAccess.Expression as IdentifierNameSyntax;
-                                    var lhsType = model.GetTypeInfo(lhs).Type;
-                                    if (context.IsTypeAllowedToBeSend(lhsType) ||
-                                        context.IsMachineIdType(lhsType, model))
+                                    var lhsType = this.SemanticModel.GetTypeInfo(lhs).Type;
+                                    if (this.AnalysisContext.IsTypeAllowedToBeSend(lhsType) ||
+                                        this.AnalysisContext.IsMachineIdType(lhsType, this.SemanticModel))
                                     {
                                         previousSyntaxNode = syntaxNode;
                                         previousCfgNode = cfgNode;
@@ -305,21 +487,21 @@ namespace Microsoft.PSharp.StaticAnalysis
                                 else if (memberAccess.Expression is MemberAccessExpressionSyntax)
                                 {
                                     var name = (memberAccess.Expression as MemberAccessExpressionSyntax).Name;
-                                    var lhsType = model.GetTypeInfo(name).Type;
-                                    if (context.IsTypeAllowedToBeSend(lhsType) ||
-                                        context.IsMachineIdType(lhsType, model))
+                                    var lhsType = this.SemanticModel.GetTypeInfo(name).Type;
+                                    if (this.AnalysisContext.IsTypeAllowedToBeSend(lhsType) ||
+                                        this.AnalysisContext.IsMachineIdType(lhsType, this.SemanticModel))
                                     {
                                         previousSyntaxNode = syntaxNode;
                                         previousCfgNode = cfgNode;
                                         continue;
                                     }
 
-                                    lhs = context.GetFirstNonMachineIdentifier(memberAccess.Expression, model);
-                                    lhsFieldSymbol = model.GetSymbolInfo(name as IdentifierNameSyntax).Symbol;
+                                    lhs = this.AnalysisContext.GetFirstNonMachineIdentifier(memberAccess.Expression, this.SemanticModel);
+                                    lhsFieldSymbol = this.SemanticModel.GetSymbolInfo(name as IdentifierNameSyntax).Symbol;
                                 }
                             }
 
-                            var leftSymbol = model.GetSymbolInfo(lhs).Symbol;
+                            var leftSymbol = this.SemanticModel.GetSymbolInfo(lhs).Symbol;
 
                             if (binaryExpr.Right is IdentifierNameSyntax ||
                                 binaryExpr.Right is MemberAccessExpressionSyntax)
@@ -331,148 +513,147 @@ namespace Microsoft.PSharp.StaticAnalysis
                                 }
                                 else if (binaryExpr.Right is MemberAccessExpressionSyntax)
                                 {
-                                    rhs = context.GetFirstNonMachineIdentifier(binaryExpr.Right, model);
+                                    rhs = this.AnalysisContext.GetFirstNonMachineIdentifier(binaryExpr.Right, this.SemanticModel);
                                 }
 
-                                var rightSymbol = model.GetSymbolInfo(rhs).Symbol;
-                                dataFlowAnalysis.MapRefToSymbol(rightSymbol, leftSymbol, syntaxNode, cfgNode);
+                                var rightSymbol = this.SemanticModel.GetSymbolInfo(rhs).Symbol;
+                                this.MapRefToSymbol(rightSymbol, leftSymbol, syntaxNode, cfgNode);
                                 if (lhsFieldSymbol != null && !lhsFieldSymbol.Equals(leftSymbol))
                                 {
-                                    dataFlowAnalysis.MapRefToSymbol(rightSymbol, lhsFieldSymbol, syntaxNode, cfgNode);
+                                    this.MapRefToSymbol(rightSymbol, lhsFieldSymbol, syntaxNode, cfgNode);
                                 }
 
                                 HashSet<ITypeSymbol> referenceTypes = null;
                                 if (this.ResolveReferenceType(out referenceTypes, rightSymbol, syntaxNode, cfgNode))
                                 {
-                                    dataFlowAnalysis.MapReferenceTypesToSymbol(referenceTypes, leftSymbol, syntaxNode, cfgNode);
+                                    this.MapReferenceTypesToSymbol(referenceTypes, leftSymbol, syntaxNode, cfgNode);
                                 }
                                 else
                                 {
-                                    dataFlowAnalysis.EraseReferenceTypesFromSymbol(leftSymbol, syntaxNode, cfgNode);
+                                    this.EraseReferenceTypesFromSymbol(leftSymbol, syntaxNode, cfgNode);
                                 }
                             }
                             else if (binaryExpr.Right is LiteralExpressionSyntax &&
                                 binaryExpr.Right.IsKind(SyntaxKind.NullLiteralExpression))
                             {
-                                dataFlowAnalysis.ResetSymbol(leftSymbol, syntaxNode, cfgNode);
+                                this.ResetSymbol(leftSymbol, syntaxNode, cfgNode);
                                 if (lhsFieldSymbol != null && !lhsFieldSymbol.Equals(leftSymbol))
                                 {
-                                    dataFlowAnalysis.ResetSymbol(lhsFieldSymbol, syntaxNode, cfgNode);
+                                    this.ResetSymbol(lhsFieldSymbol, syntaxNode, cfgNode);
                                 }
                             }
                             else if (binaryExpr.Right is InvocationExpressionSyntax)
                             {
                                 var invocation = binaryExpr.Right as InvocationExpressionSyntax;
-                                var summary = MethodSummary.TryGetSummary(invocation, model, context);
+                                var summary = MethodSummary.TryGetSummary(invocation, this.SemanticModel, this.AnalysisContext);
                                 var reachableSymbols = this.ResolveSideEffectsInCall(invocation,
-                                    summary, syntaxNode, cfgNode, model);
-                                var returnSymbols = this.GetReturnSymbols(invocation,
-                                    summary, model);
-                                this.CheckForNonMappedFieldSymbol(invocation, cfgNode, model, context);
+                                    summary, syntaxNode, cfgNode);
+                                var returnSymbols = this.GetReturnSymbols(invocation, summary);
+                                this.CheckForNonMappedFieldSymbol(invocation, cfgNode);
 
                                 if (returnSymbols.Count == 0)
                                 {
-                                    dataFlowAnalysis.ResetSymbol(leftSymbol, syntaxNode, cfgNode);
+                                    this.ResetSymbol(leftSymbol, syntaxNode, cfgNode);
                                     if (lhsFieldSymbol != null && !lhsFieldSymbol.Equals(leftSymbol))
                                     {
-                                        dataFlowAnalysis.ResetSymbol(lhsFieldSymbol, syntaxNode, cfgNode);
+                                        this.ResetSymbol(lhsFieldSymbol, syntaxNode, cfgNode);
                                     }
                                 }
                                 else if (returnSymbols.Contains(leftSymbol))
                                 {
-                                    dataFlowAnalysis.MapRefsToSymbol(returnSymbols, leftSymbol, syntaxNode, cfgNode, false);
+                                    this.MapRefsToSymbol(returnSymbols, leftSymbol, syntaxNode, cfgNode, false);
                                     if (lhsFieldSymbol != null && !lhsFieldSymbol.Equals(leftSymbol))
                                     {
-                                        dataFlowAnalysis.MapRefsToSymbol(returnSymbols, lhsFieldSymbol,
+                                        this.MapRefsToSymbol(returnSymbols, lhsFieldSymbol,
                                             syntaxNode, cfgNode, false);
                                     }
                                 }
                                 else
                                 {
-                                    dataFlowAnalysis.MapRefsToSymbol(returnSymbols, leftSymbol, syntaxNode, cfgNode);
+                                    this.MapRefsToSymbol(returnSymbols, leftSymbol, syntaxNode, cfgNode);
                                     if (lhsFieldSymbol != null && !lhsFieldSymbol.Equals(leftSymbol))
                                     {
-                                        dataFlowAnalysis.MapRefsToSymbol(returnSymbols, lhsFieldSymbol,
+                                        this.MapRefsToSymbol(returnSymbols, lhsFieldSymbol,
                                             syntaxNode, cfgNode);
                                     }
                                 }
 
                                 if (lhsFieldSymbol != null && reachableSymbols.Count > 0)
                                 {
-                                    dataFlowAnalysis.MapReachableFieldsToSymbol(reachableSymbols, lhsFieldSymbol,
+                                    this.MapReachableFieldsToSymbol(reachableSymbols, lhsFieldSymbol,
                                         syntaxNode, cfgNode);
                                 }
 
                                 if (summary != null && summary.ReturnTypeSet.Count > 0)
                                 {
-                                    dataFlowAnalysis.MapReferenceTypesToSymbol(summary.ReturnTypeSet,
+                                    this.MapReferenceTypesToSymbol(summary.ReturnTypeSet,
                                         leftSymbol, syntaxNode, cfgNode);
                                 }
                                 else
                                 {
-                                    dataFlowAnalysis.EraseReferenceTypesFromSymbol(leftSymbol, syntaxNode, cfgNode);
+                                    this.EraseReferenceTypesFromSymbol(leftSymbol, syntaxNode, cfgNode);
                                 }
                             }
                             else if (binaryExpr.Right is ObjectCreationExpressionSyntax)
                             {
                                 var objCreation = binaryExpr.Right as ObjectCreationExpressionSyntax;
-                                var summary = MethodSummary.TryGetSummary(objCreation, model, context);
+                                var summary = MethodSummary.TryGetSummary(objCreation, this.SemanticModel, this.AnalysisContext);
                                 var reachableSymbols = this.ResolveSideEffectsInCall(objCreation,
-                                    summary, syntaxNode, cfgNode, model);
-                                var returnSymbols = this.GetReturnSymbols(objCreation, summary, model);
+                                    summary, syntaxNode, cfgNode);
+                                var returnSymbols = this.GetReturnSymbols(objCreation, summary);
 
                                 if (returnSymbols.Count == 0)
                                 {
-                                    dataFlowAnalysis.ResetSymbol(leftSymbol, syntaxNode, cfgNode);
+                                    this.ResetSymbol(leftSymbol, syntaxNode, cfgNode);
                                     if (lhsFieldSymbol != null && !lhsFieldSymbol.Equals(leftSymbol))
                                     {
-                                        dataFlowAnalysis.ResetSymbol(lhsFieldSymbol, syntaxNode, cfgNode);
+                                        this.ResetSymbol(lhsFieldSymbol, syntaxNode, cfgNode);
                                     }
                                 }
                                 else if (returnSymbols.Contains(leftSymbol))
                                 {
-                                    dataFlowAnalysis.MapRefsToSymbol(returnSymbols, leftSymbol, syntaxNode, cfgNode, false);
+                                    this.MapRefsToSymbol(returnSymbols, leftSymbol, syntaxNode, cfgNode, false);
                                     if (lhsFieldSymbol != null && !lhsFieldSymbol.Equals(leftSymbol))
                                     {
-                                        dataFlowAnalysis.MapRefsToSymbol(returnSymbols, lhsFieldSymbol,
+                                        this.MapRefsToSymbol(returnSymbols, lhsFieldSymbol,
                                             syntaxNode, cfgNode, false);
                                     }
                                 }
                                 else
                                 {
-                                    dataFlowAnalysis.MapRefsToSymbol(returnSymbols, leftSymbol, syntaxNode, cfgNode);
+                                    this.MapRefsToSymbol(returnSymbols, leftSymbol, syntaxNode, cfgNode);
                                     if (lhsFieldSymbol != null && !lhsFieldSymbol.Equals(leftSymbol))
                                     {
-                                        dataFlowAnalysis.MapRefsToSymbol(returnSymbols, lhsFieldSymbol,
+                                        this.MapRefsToSymbol(returnSymbols, lhsFieldSymbol,
                                             syntaxNode, cfgNode);
                                     }
                                 }
 
                                 if (lhsFieldSymbol != null && reachableSymbols.Count > 0)
                                 {
-                                    dataFlowAnalysis.MapReachableFieldsToSymbol(reachableSymbols, lhsFieldSymbol,
+                                    this.MapReachableFieldsToSymbol(reachableSymbols, lhsFieldSymbol,
                                         syntaxNode, cfgNode);
                                 }
 
-                                var typeSymbol = model.GetSymbolInfo(objCreation.Type).Symbol as ITypeSymbol;
+                                var typeSymbol = this.SemanticModel.GetSymbolInfo(objCreation.Type).Symbol as ITypeSymbol;
                                 if (typeSymbol != null)
                                 {
-                                    dataFlowAnalysis.MapReferenceTypesToSymbol(new HashSet<ITypeSymbol> { typeSymbol },
+                                    this.MapReferenceTypesToSymbol(new HashSet<ITypeSymbol> { typeSymbol },
                                         leftSymbol, syntaxNode, cfgNode);
                                 }
                                 else
                                 {
-                                    dataFlowAnalysis.EraseReferenceTypesFromSymbol(leftSymbol, syntaxNode, cfgNode);
+                                    this.EraseReferenceTypesFromSymbol(leftSymbol, syntaxNode, cfgNode);
                                 }
                             }
                         }
                         else if (expr.Expression is InvocationExpressionSyntax)
                         {
                             var invocation = expr.Expression as InvocationExpressionSyntax;
-                            var summary = MethodSummary.TryGetSummary(invocation, model, context);
-                            this.ResolveSideEffectsInCall(invocation, summary, syntaxNode, cfgNode, model);
-                            this.GetReturnSymbols(invocation, summary, model);
-                            this.CheckForNonMappedFieldSymbol(invocation, cfgNode, model, context);
+                            var summary = MethodSummary.TryGetSummary(invocation, this.SemanticModel, this.AnalysisContext);
+                            this.ResolveSideEffectsInCall(invocation, summary, syntaxNode, cfgNode);
+                            this.GetReturnSymbols(invocation, summary);
+                            this.CheckForNonMappedFieldSymbol(invocation, cfgNode);
                         }
                     }
                     else if (ret != null)
@@ -488,10 +669,10 @@ namespace Microsoft.PSharp.StaticAnalysis
                             }
                             else if (ret.Expression is MemberAccessExpressionSyntax)
                             {
-                                rhs = context.GetFirstNonMachineIdentifier(ret.Expression, model);
+                                rhs = this.AnalysisContext.GetFirstNonMachineIdentifier(ret.Expression, this.SemanticModel);
                             }
 
-                            var rightSymbol = model.GetSymbolInfo(rhs).Symbol;
+                            var rightSymbol = this.SemanticModel.GetSymbolInfo(rhs).Symbol;
                             returnSymbols = new HashSet<ISymbol> { rightSymbol };
 
                             HashSet<ITypeSymbol> referenceTypes = null;
@@ -506,9 +687,9 @@ namespace Microsoft.PSharp.StaticAnalysis
                         else if (ret.Expression is InvocationExpressionSyntax)
                         {
                             var invocation = ret.Expression as InvocationExpressionSyntax;
-                            var summary = MethodSummary.TryGetSummary(invocation, model, context);
-                            this.ResolveSideEffectsInCall(invocation, summary, syntaxNode, cfgNode, model);
-                            returnSymbols = this.GetReturnSymbols(invocation, summary, model);
+                            var summary = MethodSummary.TryGetSummary(invocation, this.SemanticModel, this.AnalysisContext);
+                            this.ResolveSideEffectsInCall(invocation, summary, syntaxNode, cfgNode);
+                            returnSymbols = this.GetReturnSymbols(invocation, summary);
 
                             if (summary != null)
                             {
@@ -521,18 +702,18 @@ namespace Microsoft.PSharp.StaticAnalysis
                         else if (ret.Expression is ObjectCreationExpressionSyntax)
                         {
                             var objCreation = ret.Expression as ObjectCreationExpressionSyntax;
-                            var summary = MethodSummary.TryGetSummary(objCreation, model, context);
-                            this.ResolveSideEffectsInCall(objCreation, summary, syntaxNode, cfgNode, model);
-                            returnSymbols = this.GetReturnSymbols(objCreation, summary, model);
+                            var summary = MethodSummary.TryGetSummary(objCreation, this.SemanticModel, this.AnalysisContext);
+                            this.ResolveSideEffectsInCall(objCreation, summary, syntaxNode, cfgNode);
+                            returnSymbols = this.GetReturnSymbols(objCreation, summary);
 
-                            var referenceType = model.GetSymbolInfo(objCreation.Type).Symbol as ITypeSymbol;
+                            var referenceType = this.SemanticModel.GetSymbolInfo(objCreation.Type).Symbol as ITypeSymbol;
                             if (referenceType != null)
                             {
                                 cfgNode.Summary.ReturnTypeSet.Add(referenceType);
                             }
                         }
 
-                        this.TryCaptureReturnSymbols(returnSymbols, syntaxNode, cfgNode, model);
+                        this.TryCaptureReturnSymbols(returnSymbols, syntaxNode, cfgNode);
                     }
 
                     previousSyntaxNode = syntaxNode;
@@ -541,7 +722,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
             else
             {
-                dataFlowAnalysis.Transfer(previousSyntaxNode, previousCfgNode, cfgNode.SyntaxNodes[0], cfgNode);
+                this.Transfer(previousSyntaxNode, previousCfgNode, cfgNode.SyntaxNodes[0], cfgNode);
                 previousSyntaxNode = cfgNode.SyntaxNodes[0];
                 previousCfgNode = cfgNode;
             }
@@ -553,7 +734,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     continue;
                 }
 
-                this.Analyze(successor, cfgNode, previousSyntaxNode, dataFlowAnalysis, model, context);
+                this.Analyze(successor, cfgNode, previousSyntaxNode);
             }
         }
 
@@ -638,11 +819,11 @@ namespace Microsoft.PSharp.StaticAnalysis
                 this.ReferenceTypeMap[cfgNode].Add(syntaxNode, new Dictionary<ISymbol, HashSet<ITypeSymbol>>());
             }
 
-            Dictionary<ISymbol, HashSet<ITypeSymbol>> previousObjectTypeMap = null;
+            Dictionary<ISymbol, HashSet<ITypeSymbol>> previousReferenceTypeMap = null;
             if (this.TryGetReferenceTypeMapForSyntaxNode(previousSyntaxNode, previousCfgNode,
-                out previousObjectTypeMap))
+                out previousReferenceTypeMap))
             {
-                foreach (var pair in previousObjectTypeMap)
+                foreach (var pair in previousReferenceTypeMap)
                 {
                     if (!this.ReferenceTypeMap[cfgNode][syntaxNode].ContainsKey(pair.Key))
                     {
@@ -719,7 +900,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="syntaxNode">SyntaxNode</param>
         /// <param name="cfgNode">CfgNode</param>
         /// <param name="markReset">Should mark symbol as reset</param>
-        internal void MapRefToSymbol(ISymbol reference, ISymbol symbol, SyntaxNode syntaxNode,
+        private void MapRefToSymbol(ISymbol reference, ISymbol symbol, SyntaxNode syntaxNode,
             ControlFlowGraphNode cfgNode, bool markReset = true)
         {
             if (!this.DataFlowMap.ContainsKey(cfgNode))
@@ -953,10 +1134,9 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="summary">MethodSummary</param>
         /// <param name="syntaxNode">SyntaxNode</param>
         /// <param name="cfgNode">ControlFlowGraphNode</param>
-        /// <param name="model">SemanticModel</param>
         /// <returns>Set of reachable field symbols</returns>
         private HashSet<ISymbol> ResolveSideEffectsInCall(ObjectCreationExpressionSyntax call, MethodSummary summary,
-            SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode, SemanticModel model)
+            SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode)
         {
             if (summary == null)
             {
@@ -964,7 +1144,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             HashSet<ISymbol> reachableFields = new HashSet<ISymbol>();
-            var sideEffects = summary.GetResolvedSideEffects(call.ArgumentList, model);
+            var sideEffects = summary.GetResolvedSideEffects(call.ArgumentList, this.SemanticModel);
             foreach (var sideEffect in sideEffects)
             {
                 this.MapRefsToSymbol(sideEffect.Value, sideEffect.Key, syntaxNode, cfgNode);
@@ -997,10 +1177,9 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="summary">MethodSummary</param>
         /// <param name="syntaxNode">SyntaxNode</param>
         /// <param name="cfgNode">ControlFlowGraphNode</param>
-        /// <param name="model">SemanticModel</param>
         /// <returns>Set of reachable field symbols</returns>
         private HashSet<ISymbol> ResolveSideEffectsInCall(InvocationExpressionSyntax call, MethodSummary summary,
-            SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode, SemanticModel model)
+            SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode)
         {
             if (summary == null)
             {
@@ -1008,7 +1187,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             HashSet<ISymbol> reachableFields = new HashSet<ISymbol>();
-            var sideEffects = summary.GetResolvedSideEffects(call.ArgumentList, model);
+            var sideEffects = summary.GetResolvedSideEffects(call.ArgumentList, this.SemanticModel);
             foreach (var sideEffect in sideEffects)
             {
                 this.MapRefsToSymbol(sideEffect.Value, sideEffect.Key, syntaxNode, cfgNode);
@@ -1069,11 +1248,8 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="expr">Expression</param>
         /// <param name="syntaxNode">SyntaxNode</param>
         /// <param name="cfgNode">ControlFlowGraphNode</param>
-        /// <param name="model">SemanticModel</param>
-        /// <param name="context">AnalysisContext</param>
         private void TryCaptureParameterAccess(ExpressionSyntax expr, SyntaxNode syntaxNode,
-            ControlFlowGraphNode cfgNode, SemanticModel model,
-            AnalysisContext context)
+            ControlFlowGraphNode cfgNode)
         {
             if (!(expr is MemberAccessExpressionSyntax))
             {
@@ -1081,21 +1257,21 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             var name = (expr as MemberAccessExpressionSyntax).Name;
-            var identifier = context.GetFirstNonMachineIdentifier(expr, model);
+            var identifier = this.AnalysisContext.GetFirstNonMachineIdentifier(expr, this.SemanticModel);
             if (identifier == null || name == null)
             {
                 return;
             }
 
-            var type = model.GetTypeInfo(identifier).Type;
-            if (context.IsTypeAllowedToBeSend(type) ||
-                context.IsMachineIdType(type, model) ||
+            var type = this.SemanticModel.GetTypeInfo(identifier).Type;
+            if (this.AnalysisContext.IsTypeAllowedToBeSend(type) ||
+                this.AnalysisContext.IsMachineIdType(type, this.SemanticModel) ||
                 name.Equals(identifier))
             {
                 return;
             }
 
-            var symbol = model.GetSymbolInfo(identifier).Symbol;
+            var symbol = this.SemanticModel.GetSymbolInfo(identifier).Symbol;
             if (symbol == null)
             {
                 return;
@@ -1111,7 +1287,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             var parameterList = cfgNode.Summary.Method.ParameterList.Parameters;
             for (int idx = 0; idx < parameterList.Count; idx++)
             {
-                var paramSymbol = model.GetDeclaredSymbol(parameterList[idx]);
+                var paramSymbol = this.SemanticModel.GetDeclaredSymbol(parameterList[idx]);
                 indexMap.Add(paramSymbol, idx);
             }
 
@@ -1121,7 +1297,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     if (reference.Kind == SymbolKind.Parameter)
                     {
-                        if (reference.Equals(symbol) && this.DoesSymbolReset(reference,
+                        if (reference.Equals(symbol) && this.DoesReferenceResetUntilCFGNode(reference,
                             cfgNode.Summary.EntryNode.SyntaxNodes.First(),
                             cfgNode.Summary.EntryNode, syntaxNode, cfgNode, true))
                         {
@@ -1149,10 +1325,8 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="expr">Expression</param>
         /// <param name="syntaxNode">SyntaxNode</param>
         /// <param name="cfgNode">ControlFlowGraphNode</param>
-        /// <param name="model">SemanticModel</param>
-        /// <param name="context">AnalysisContext</param>
         private void TryCaptureFieldAccess(ExpressionSyntax expr, SyntaxNode syntaxNode,
-            ControlFlowGraphNode cfgNode, SemanticModel model, AnalysisContext context)
+            ControlFlowGraphNode cfgNode)
         {
             if (!(expr is MemberAccessExpressionSyntax))
             {
@@ -1160,23 +1334,23 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             var name = (expr as MemberAccessExpressionSyntax).Name;
-            var identifier = context.GetFirstNonMachineIdentifier(expr, model);
+            var identifier = this.AnalysisContext.GetFirstNonMachineIdentifier(expr, this.SemanticModel);
             if (identifier == null || name == null)
             {
                 return;
             }
 
-            var type = model.GetTypeInfo(identifier).Type;
-            if (context.IsTypeAllowedToBeSend(type) ||
-                context.IsMachineIdType(type, model) ||
+            var type = this.SemanticModel.GetTypeInfo(identifier).Type;
+            if (this.AnalysisContext.IsTypeAllowedToBeSend(type) ||
+                this.AnalysisContext.IsMachineIdType(type, this.SemanticModel) ||
                 name.Equals(identifier))
             {
                 return;
             }
 
-            var symbol = model.GetSymbolInfo(identifier).Symbol;
+            var symbol = this.SemanticModel.GetSymbolInfo(identifier).Symbol;
             var definition = SymbolFinder.FindSourceDefinitionAsync(symbol,
-                context.Solution).Result;
+                this.AnalysisContext.Solution).Result;
             if (!(definition is IFieldSymbol))
             {
                 return;
@@ -1184,7 +1358,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             var fieldDecl = definition.DeclaringSyntaxReferences.First().GetSyntax().
                 AncestorsAndSelf().OfType<FieldDeclarationSyntax>().First();
-            if (this.DoesSymbolReset(symbol, cfgNode.Summary.EntryNode.SyntaxNodes.First(),
+            if (this.DoesReferenceResetUntilCFGNode(symbol, cfgNode.Summary.EntryNode.SyntaxNodes.First(),
                 cfgNode.Summary.EntryNode, syntaxNode, cfgNode, true))
             {
                 return;
@@ -1207,9 +1381,8 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="returnSymbols">Set of return symbols</param>
         /// <param name="syntaxNode">SyntaxNode</param>
         /// <param name="cfgNode">ControlFlowGraphNode</param>
-        /// <param name="model">SemanticModel</param>
         private void TryCaptureReturnSymbols(HashSet<ISymbol> returnSymbols, SyntaxNode syntaxNode,
-            ControlFlowGraphNode cfgNode, SemanticModel model)
+            ControlFlowGraphNode cfgNode)
         {
             Dictionary<ISymbol, HashSet<ISymbol>> map = null;
             if (returnSymbols == null ||
@@ -1222,7 +1395,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             var parameterList = cfgNode.Summary.Method.ParameterList.Parameters;
             for (int idx = 0; idx < parameterList.Count; idx++)
             {
-                var paramSymbol = model.GetDeclaredSymbol(parameterList[idx]);
+                var paramSymbol = this.SemanticModel.GetDeclaredSymbol(parameterList[idx]);
                 indexMap.Add(paramSymbol, idx);
             }
 
@@ -1230,7 +1403,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 if (symbol.Kind == SymbolKind.Parameter)
                 {
-                    if (this.DoesSymbolReset(symbol, cfgNode.Summary.EntryNode.SyntaxNodes.
+                    if (this.DoesReferenceResetUntilCFGNode(symbol, cfgNode.Summary.EntryNode.SyntaxNodes.
                         First(), cfgNode.Summary.EntryNode, syntaxNode, cfgNode, true))
                     {
                         continue;
@@ -1253,15 +1426,13 @@ namespace Microsoft.PSharp.StaticAnalysis
         }
 
         /// <summary>
-        /// Checks if the gives up call has a field symbol argument that is not
-        /// already mapped and, if yes, maps it.
+        /// Checks if the gives-up ownership call has a field symbol argument
+        /// that is not already mapped and, if yes, maps it.
         /// </summary>
         /// <param name="call">Call</param>
         /// <param name="cfgNode">ControlFlowGraphNode</param>
-        /// <param name="model">SemanticModel</param>
-        /// <param name="context">AnalysisContext</param>
         private void CheckForNonMappedFieldSymbol(InvocationExpressionSyntax call,
-            ControlFlowGraphNode cfgNode, SemanticModel model, AnalysisContext context)
+            ControlFlowGraphNode cfgNode)
         {
             if (!cfgNode.IsGivesUpNode)
             {
@@ -1282,13 +1453,13 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             foreach (var access in accesses)
             {
-                IdentifierNameSyntax id = context.GetFirstNonMachineIdentifier(access, model);
+                IdentifierNameSyntax id = this.AnalysisContext.GetFirstNonMachineIdentifier(access, this.SemanticModel);
                 if (id == null)
                 {
                     continue;
                 }
 
-                var accessSymbol = model.GetSymbolInfo(id).Symbol;
+                var accessSymbol = this.SemanticModel.GetSymbolInfo(id).Symbol;
                 this.MapSymbolIfNotExists(accessSymbol, cfgNode.SyntaxNodes[0], cfgNode);
             }
         }
@@ -1298,17 +1469,15 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="call">Call</param>
         /// <param name="summary">MethodSummary</param>
-        /// <param name="model">SemanticModel</param>
         /// <returns>Set of return symbols</returns>
-        private HashSet<ISymbol> GetReturnSymbols(ObjectCreationExpressionSyntax call, MethodSummary summary,
-            SemanticModel model)
+        private HashSet<ISymbol> GetReturnSymbols(ObjectCreationExpressionSyntax call, MethodSummary summary)
         {
             if (summary == null)
             {
                 return new HashSet<ISymbol>();
             }
 
-            return summary.GetResolvedReturnSymbols(call.ArgumentList, model);
+            return summary.GetResolvedReturnSymbols(call.ArgumentList, this.SemanticModel);
         }
 
         /// <summary>
@@ -1316,17 +1485,15 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="call">Call</param>
         /// <param name="summary">MethodSummary</param>
-        /// <param name="model">SemanticModel</param>
         /// <returns>Set of return symbols</returns>
-        private HashSet<ISymbol> GetReturnSymbols(InvocationExpressionSyntax call, MethodSummary summary,
-            SemanticModel model)
+        private HashSet<ISymbol> GetReturnSymbols(InvocationExpressionSyntax call, MethodSummary summary)
         {
             if (summary == null)
             {
                 return new HashSet<ISymbol>();
             }
 
-            return summary.GetResolvedReturnSymbols(call.ArgumentList, model);
+            return summary.GetResolvedReturnSymbols(call.ArgumentList, this.SemanticModel);
         }
 
         /// <summary>
@@ -1351,41 +1518,59 @@ namespace Microsoft.PSharp.StaticAnalysis
         }
 
         /// <summary>
-        /// Returns true if the given symbol resets until it reaches the
-        /// target control flow graph node.
+        /// Returns true if the given reference resets until it
+        /// reaches the target control-flow graph node.
         /// </summary>
-        /// <param name="symbol">Symbol</param>
-        /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        /// <param name="reference">Reference</param>
+        /// <param name="refSyntaxNode">Reference SyntaxNode</param>
+        /// <param name="refCfgNode">Reference ControlFlowGraphNode</param>
+        /// <param name="targetSyntaxNode">Target syntaxNode</param>
+        /// <param name="targetCfgNode">Target controlFlowGraphNode</param>
+        /// <param name="track">Tracking</param>
+        /// <returns>Boolean</returns>
+        private bool DoesReferenceResetUntilCFGNode(ISymbol reference, SyntaxNode refSyntaxNode, ControlFlowGraphNode refCfgNode,
+            SyntaxNode targetSyntaxNode, ControlFlowGraphNode targetCfgNode, bool track)
+        {
+            return this.DoesReferenceResetUntilCFGNode(reference, refSyntaxNode, refCfgNode, targetSyntaxNode,
+                targetCfgNode, new HashSet<ControlFlowGraphNode>(), track);
+        }
+
+        /// <summary>
+        /// Returns true if the given reference resets until it
+        /// reaches the target control-flow graph node.
+        /// </summary>
+        /// <param name="reference">Reference</param>
+        /// <param name="refSyntaxNode">Reference SyntaxNode</param>
+        /// <param name="refCfgNode">Reference ControlFlowGraphNode</param>
         /// <param name="targetSyntaxNode">Target syntaxNode</param>
         /// <param name="targetCfgNode">Target controlFlowGraphNode</param>
         /// <param name="visited">Already visited cfgNodes</param>
         /// <param name="track">Tracking</param>
         /// <returns>Boolean</returns>
-        private bool DoesSymbolReset(ISymbol symbol, SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode,
+        private bool DoesReferenceResetUntilCFGNode(ISymbol reference, SyntaxNode refSyntaxNode,ControlFlowGraphNode refCfgNode,
             SyntaxNode targetSyntaxNode, ControlFlowGraphNode targetCfgNode, HashSet<ControlFlowGraphNode> visited,
             bool track)
         {
-            visited.Add(cfgNode);
+            visited.Add(refCfgNode);
 
             bool result = false;
-            if (syntaxNode.Equals(targetSyntaxNode) && cfgNode.Equals(targetCfgNode) &&
+            if (refSyntaxNode.Equals(targetSyntaxNode) && refCfgNode.Equals(targetCfgNode) &&
                 !track)
             {
                 return result;
             }
 
-            foreach (var node in cfgNode.SyntaxNodes)
+            foreach (var node in refCfgNode.SyntaxNodes)
             {
-                if (track && this.ReferenceResetMap.ContainsKey(cfgNode) &&
-                    this.ReferenceResetMap[cfgNode].ContainsKey(node) &&
-                    this.ReferenceResetMap[cfgNode][node].Contains(symbol))
+                if (track && this.ReferenceResetMap.ContainsKey(refCfgNode) &&
+                    this.ReferenceResetMap[refCfgNode].ContainsKey(node) &&
+                    this.ReferenceResetMap[refCfgNode][node].Contains(reference))
                 {
                     result = true;
                     break;
                 }
 
-                if (!track && node.Equals(syntaxNode))
+                if (!track && node.Equals(refSyntaxNode))
                 {
                     track = true;
                 }
@@ -1393,11 +1578,11 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             if (!result)
             {
-                foreach (var successor in cfgNode.ISuccessors.Where(v => !visited.Contains(v)))
+                foreach (var successor in refCfgNode.ISuccessors.Where(v => !visited.Contains(v)))
                 {
                     if ((successor.Equals(targetCfgNode) ||
                         successor.IsPredecessorOf(targetCfgNode)) &&
-                        this.DoesSymbolReset(symbol, successor.SyntaxNodes.First(),
+                        this.DoesReferenceResetUntilCFGNode(reference, successor.SyntaxNodes.First(),
                         successor, targetSyntaxNode, targetCfgNode, visited, true))
                     {
                         result = true;
@@ -1446,139 +1631,6 @@ namespace Microsoft.PSharp.StaticAnalysis
 
         #endregion
 
-        #region data-flow query methods
-
-        /// <summary>
-        /// Tries to return the map for the given syntax node. Returns false and
-        /// a null map, if it cannot find such map.
-        /// </summary>
-        /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">ControlFlowGraphNode</param>
-        /// <param name="map">DataFlowMap</param>
-        /// <returns>Boolean</returns>
-        internal bool TryGetDataFlowMapForSyntaxNode(SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode,
-            out Dictionary<ISymbol, HashSet<ISymbol>> map)
-        {
-            if (cfgNode == null || syntaxNode == null)
-            {
-                map = null;
-                return false;
-            }
-
-            if (this.DataFlowMap.ContainsKey(cfgNode))
-            {
-                if (this.DataFlowMap[cfgNode].ContainsKey(syntaxNode))
-                {
-                    map = this.DataFlowMap[cfgNode][syntaxNode];
-                    return true;
-                }
-                else
-                {
-                    map = null;
-                    return false;
-                }
-            }
-            else
-            {
-                map = null;
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// Tries to return the reachability map for the given syntax node. Returns false
-        /// and a null map, if it cannot find such map.
-        /// </summary>
-        /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">ControlFlowGraphNode</param>
-        /// <param name="map">DataFlowMap</param>
-        /// <returns>Boolean</returns>
-        internal bool TryGetReachabilityMapForSyntaxNode(SyntaxNode syntaxNode,
-            ControlFlowGraphNode cfgNode, out Dictionary<ISymbol, HashSet<ISymbol>> map)
-        {
-            if (cfgNode == null || syntaxNode == null)
-            {
-                map = null;
-                return false;
-            }
-
-            if (this.ReachabilityMap.ContainsKey(cfgNode))
-            {
-                if (this.ReachabilityMap[cfgNode].ContainsKey(syntaxNode))
-                {
-                    map = this.ReachabilityMap[cfgNode][syntaxNode];
-                    return true;
-                }
-                else
-                {
-                    map = null;
-                    return false;
-                }
-            }
-            else
-            {
-                map = null;
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// Tries to return the reference type map for the given syntax node. Returns false
-        /// and a null map, if it cannot find such map.
-        /// </summary>
-        /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">ControlFlowGraphNode</param>
-        /// <param name="map">DataFlowMap</param>
-        /// <returns>Boolean</returns>
-        internal bool TryGetReferenceTypeMapForSyntaxNode(SyntaxNode syntaxNode,
-            ControlFlowGraphNode cfgNode, out Dictionary<ISymbol, HashSet<ITypeSymbol>> map)
-        {
-            if (cfgNode == null || syntaxNode == null)
-            {
-                map = null;
-                return false;
-            }
-
-            if (this.ReferenceTypeMap.ContainsKey(cfgNode))
-            {
-                if (this.ReferenceTypeMap[cfgNode].ContainsKey(syntaxNode))
-                {
-                    map = this.ReferenceTypeMap[cfgNode][syntaxNode];
-                    return true;
-                }
-                else
-                {
-                    map = null;
-                    return false;
-                }
-            }
-            else
-            {
-                map = null;
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// Returns true if the given symbol resets until it reaches the
-        /// target control flow graph node.
-        /// </summary>
-        /// <param name="symbol">Symbol</param>
-        /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">ControlFlowGraphNode</param>
-        /// <param name="targetSyntaxNode">Target syntaxNode</param>
-        /// <param name="targetCfgNode">Target controlFlowGraphNode</param>
-        /// <param name="track">Tracking</param>
-        /// <returns>Boolean</returns>
-        internal bool DoesSymbolReset(ISymbol symbol, SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode,
-            SyntaxNode targetSyntaxNode, ControlFlowGraphNode targetCfgNode, bool track = false)
-        {
-            return this.DoesSymbolReset(symbol, syntaxNode, cfgNode, targetSyntaxNode,
-                targetCfgNode, new HashSet<ControlFlowGraphNode>(), track);
-        }
-
-        #endregion
-
         #region data-flow summary printing methods
 
         /// <summary>
@@ -1589,17 +1641,25 @@ namespace Microsoft.PSharp.StaticAnalysis
             if (this.DataFlowMap.Count > 0)
             {
                 IO.PrintLine("... |");
-                IO.PrintLine("... | . Data flow map");
+                IO.PrintLine("... | . Data-flow map");
                 foreach (var cfgNode in this.DataFlowMap)
                 {
                     foreach (var syntaxNode in cfgNode.Value)
                     {
-                        IO.PrintLine("... | ... Statement: '{0}'", syntaxNode.Key);
+                        if (this.AnalysisContext.Configuration.ShowControlFlowInformation)
+                        {
+                            IO.PrintLine("... | ... cfg '{0}' - '{1}'", cfgNode.Key.Id, syntaxNode.Key);
+                        }
+                        else
+                        {
+                            IO.PrintLine("... | ... '{0}'", syntaxNode.Key);
+                        }
+
                         foreach (var pair in syntaxNode.Value)
                         {
                             foreach (var symbol in pair.Value)
                             {
-                                IO.PrintLine("... | ..... " + pair.Key.Name + " ::= " + symbol.Name);
+                                IO.PrintLine("... | ..... '{0}' flows into '{1}'", symbol.Name, pair.Key.Name);
                             }
                         }
                     }
@@ -1620,12 +1680,20 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     foreach (var syntaxNode in cfgNode.Value)
                     {
-                        IO.PrintLine("... | ... Statement: '{0}'", syntaxNode.Key);
+                        if (this.AnalysisContext.Configuration.ShowControlFlowInformation)
+                        {
+                            IO.PrintLine("... | ... cfg '{0}' - '{1}'", cfgNode.Key.Id, syntaxNode.Key);
+                        }
+                        else
+                        {
+                            IO.PrintLine("... | ... '{0}'", syntaxNode.Key);
+                        }
+
                         foreach (var pair in syntaxNode.Value)
                         {
                             foreach (var symbol in pair.Value)
                             {
-                                IO.PrintLine("... | ..... " + pair.Key.Name + " ::= " + symbol.Name);
+                                IO.PrintLine("... | ..... '{0}' ::= '{1}'", pair.Key.Name, symbol.Name);
                             }
                         }
                     }
@@ -1638,7 +1706,8 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         internal void PrintReferenceTypes()
         {
-            if (this.ReferenceTypeMap.Count > 0)
+            if (this.ReferenceTypeMap.SelectMany(cfg => cfg.Value.SelectMany(node
+                => node.Value.SelectMany(symbol => symbol.Value))).Count() > 0)
             {
                 IO.PrintLine("... |");
                 IO.PrintLine("... | . Types of references");
@@ -1646,12 +1715,21 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     foreach (var syntaxNode in cfgNode.Value)
                     {
-                        IO.PrintLine("... | ... Statement: '{0}'", syntaxNode.Key);
+                        if (syntaxNode.Value.Count > 0 &&
+                            this.AnalysisContext.Configuration.ShowControlFlowInformation)
+                        {
+                            IO.PrintLine("... | ... cfg '{0}' - '{1}'", cfgNode.Key.Id, syntaxNode.Key);
+                        }
+                        else if (syntaxNode.Value.Count > 0)
+                        {
+                            IO.PrintLine("... | ... '{0}'", syntaxNode.Key);
+                        }
+
                         foreach (var pair in syntaxNode.Value)
                         {
                             foreach (var symbol in pair.Value)
                             {
-                                IO.PrintLine("... | ..... " + pair.Key.Name + " ::= " + symbol.Name);
+                                IO.PrintLine("... | ..... '{0}' has type '{1}'", pair.Key.Name, symbol.Name);
                             }
                         }
                     }
@@ -1672,10 +1750,18 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     foreach (var syntaxNode in cfgNode.Value)
                     {
-                        IO.PrintLine("... | ... Statement: '{0}'", syntaxNode.Key);
+                        if (this.AnalysisContext.Configuration.ShowControlFlowInformation)
+                        {
+                            IO.PrintLine("... | ... cfg '{0}' - '{1}'", cfgNode.Key.Id, syntaxNode.Key);
+                        }
+                        else
+                        {
+                            IO.PrintLine("... | ... '{0}'", syntaxNode.Key);
+                        }
+                        
                         foreach (var symbol in syntaxNode.Value)
                         {
-                            IO.PrintLine("... | ..... Reference: '{0}'", symbol.Name);
+                            IO.PrintLine("... | ..... Resets '{0}'", symbol.Name);
                         }
                     }
                 }

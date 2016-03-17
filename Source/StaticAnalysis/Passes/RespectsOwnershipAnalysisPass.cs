@@ -451,7 +451,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         #region predecessor analysis methods
 
         /// <summary>
-        /// Analyses the given control flow graph node to find if it gives up ownership of
+        /// Analyses the given control-flow graph node to find if it gives up ownership of
         /// data from a machine field.
         /// </summary>
         /// <param name="cfgNode">Control flow graph node</param>
@@ -547,7 +547,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                                         this.AnalysisContext.DoesFieldBelongToMachine(rightDef, cfgNode.Summary) &&
                                         !this.AnalysisContext.IsTypeAllowedToBeSend(type) &&
                                         !this.AnalysisContext.IsExprEnum(variable.Initializer.Value, model) &&
-                                        !DataFlowQuerying.DoesResetInSuccessors(rightSymbol,
+                                        !DataFlowQuerying.DoesResetInSuccessorCFGNodes(rightSymbol,
                                         target, syntaxNode, cfgNode) &&
                                         FieldUsageAnalysis.IsAccessedBeforeBeingReset(rightDef,
                                         cfgNode.Summary, this.AnalysisContext))
@@ -668,7 +668,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                                     this.AnalysisContext.DoesFieldBelongToMachine(rightDef, cfgNode.Summary) &&
                                     !this.AnalysisContext.IsTypeAllowedToBeSend(rightType) &&
                                     !this.AnalysisContext.IsExprEnum(binaryExpr.Right, model) &&
-                                    !DataFlowQuerying.DoesResetInSuccessors(rightSymbol,
+                                    !DataFlowQuerying.DoesResetInSuccessorCFGNodes(rightSymbol,
                                     target, syntaxNode, cfgNode) &&
                                     FieldUsageAnalysis.IsAccessedBeforeBeingReset(rightDef,
                                     cfgNode.Summary, this.AnalysisContext))
@@ -691,7 +691,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                                         if (leftDef != null && leftDef.Kind == SymbolKind.Field &&
                                             !this.AnalysisContext.IsTypeAllowedToBeSend(leftType) &&
                                             !this.AnalysisContext.IsExprEnum(binaryExpr.Left, model) &&
-                                            !DataFlowQuerying.DoesResetInSuccessors(leftSymbol,
+                                            !DataFlowQuerying.DoesResetInSuccessorCFGNodes(leftSymbol,
                                             target, syntaxNode, cfgNode) &&
                                             FieldUsageAnalysis.IsAccessedBeforeBeingReset(leftDef,
                                             cfgNode.Summary, this.AnalysisContext))
@@ -1500,7 +1500,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     if (shouldReportError && definition != null && definition.Kind == SymbolKind.Field &&
                         !this.AnalysisContext.IsTypeAllowedToBeSend(varDecl.Type, model) &&
                         !this.AnalysisContext.IsExprEnum(arg, model) &&
-                        !DataFlowQuerying.DoesResetInSuccessors(symbol, symbol,
+                        !DataFlowQuerying.DoesResetInSuccessorCFGNodes(symbol, symbol,
                         givesUpNode.SyntaxNodes.First(), givesUpNode) &&
                         FieldUsageAnalysis.IsAccessedBeforeBeingReset(definition,
                         givesUpNode.Summary, this.AnalysisContext))

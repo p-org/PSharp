@@ -71,6 +71,11 @@ namespace Microsoft.PSharp.Utilities
         public bool RunStaticAnalysis;
 
         /// <summary>
+        /// Reports the control-flow information.
+        /// </summary>
+        public bool ShowControlFlowInformation;
+
+        /// <summary>
         /// Reports the data-flow information.
         /// </summary>
         public bool ShowDataFlowInformation;
@@ -249,6 +254,8 @@ namespace Microsoft.PSharp.Utilities
             this.CompilationTargets.Add(CompilationTarget.Execution);
             
             this.RunStaticAnalysis = false;
+            this.ShowControlFlowInformation = false;
+            this.ShowDataFlowInformation = false;
             this.ShowSummarizationInformation = false;
             this.ShowRuntimeResults = false;
             this.ShowDFARuntimeResults = false;
