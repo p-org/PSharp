@@ -524,9 +524,9 @@ namespace Microsoft.PSharp.StaticAnalysis
             IO.PrintLine("... | Method: '{0}'", Querying.GetFullMethodName(
                 this.Method, this.Machine));
 
-            this.EntryNode.DebugPrint();
-            this.EntryNode.DebugPrintPredecessors();
-            this.EntryNode.DebugPrintSuccessors();
+            this.EntryNode.PrintCFGNodes();
+            this.EntryNode.PrintCFGSuccessors();
+            this.EntryNode.PrintCFGPredecessors();
 
             IO.PrintLine("... |");
             IO.PrintLine("... ==================================================");

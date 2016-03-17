@@ -850,9 +850,43 @@ namespace Microsoft.PSharp.StaticAnalysis
 
         #endregion
 
-        #region debug methods
+        #region control-flow summary printing methods
 
-        internal void DebugPrint(HashSet<ControlFlowGraphNode> visited = null)
+        /// <summary>
+        /// Prints the control-flow graph nodes.
+        /// </summary>
+        internal void PrintCFGNodes()
+        {
+            IO.PrintLine("... |");
+            IO.PrintLine("... | . List of CFG nodes");
+            this.PrintCFGNodes(null);
+        }
+
+        /// <summary>
+        /// Prints the control-flow graph successor nodes.
+        /// </summary>
+        internal void PrintCFGSuccessors()
+        {
+            IO.PrintLine("... |");
+            IO.PrintLine("... | . Successor CFG nodes");
+            this.PrintCFGSuccessors(null);
+        }
+
+        /// <summary>
+        /// Prints the control-flow graph predecessor nodes.
+        /// </summary>
+        internal void PrintCFGPredecessors()
+        {
+            IO.PrintLine("... |");
+            IO.PrintLine("... | . Predecessor CFG nodes");
+            this.PrintCFGPredecessors(null);
+        }
+
+        /// <summary>
+        /// Prints the control-flow graph nodes.
+        /// </summary>
+        /// <param name="visited">Set of visited CFG nodes</param>
+        private void PrintCFGNodes(HashSet<ControlFlowGraphNode> visited)
         {
             if (visited == null)
             {
@@ -869,33 +903,37 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             if (this.IsGivesUpNode)
             {
-                IO.PrintLine("printing [GivesUp] node {0}:", this.Id);
+                IO.PrintLine("... | ... [GivesUp] '{0}'", this.Id);
             }
             else if (this.IsJumpNode)
             {
-                IO.PrintLine("printing [Jump] node {0}:", this.Id);
+                IO.PrintLine("... | ... [Jump] '{0}'", this.Id);
             }
             else if (this.IsLoopHeadNode)
             {
-                IO.PrintLine("printing [LoopHead] node {0}:", this.Id);
+                IO.PrintLine("... | ... [LoopHead] '{0}'", this.Id);
             }
             else
             {
-                IO.PrintLine("printing node {0}:", this.Id);
+                IO.PrintLine("... | ... cfg '{0}'", this.Id);
             }
 
             foreach (var node in this.SyntaxNodes)
             {
-                IO.PrintLine(" > syntax node: " + node);
+                IO.PrintLine("... | ..... '{0}'", node);
             }
 
             foreach (var node in this.ISuccessors)
             {
-                node.DebugPrint(visited);
+                node.PrintCFGNodes(visited);
             }
         }
 
-        internal void DebugPrintPredecessors(HashSet<ControlFlowGraphNode> visited = null)
+        /// <summary>
+        /// Prints the control-flow graph successor nodes.
+        /// </summary>
+        /// <param name="visited">Set of visited CFG nodes</param>
+        private void PrintCFGSuccessors(HashSet<ControlFlowGraphNode> visited)
         {
             if (visited == null)
             {
@@ -910,44 +948,48 @@ namespace Microsoft.PSharp.StaticAnalysis
                 visited.Add(this);
             }
 
-            Console.Write("predecessors of {0}:", this.Id);
+            IO.Print("... | ... cfg '{0}': ", this.Id);
+            foreach (var node in this.ISuccessors)
+            {
+                IO.Print(" '{0}'", node.Id);
+            }
+
+            IO.PrintLine("");
+            foreach (var node in this.ISuccessors)
+            {
+                node.PrintCFGSuccessors(visited);
+            }
+        }
+
+        /// <summary>
+        /// Prints the control-flow graph predecessor nodes.
+        /// </summary>
+        /// <param name="visited">Set of visited CFG nodes</param>
+        private void PrintCFGPredecessors(HashSet<ControlFlowGraphNode> visited)
+        {
+            if (visited == null)
+            {
+                visited = new HashSet<ControlFlowGraphNode> { this };
+            }
+            else if (visited.Contains(this))
+            {
+                return;
+            }
+            else
+            {
+                visited.Add(this);
+            }
+
+            IO.Print("... | ... cfg '{0}': ", this.Id);
             foreach (var node in this.IPredecessors)
             {
-                IO.Print(" " + node.Id);
+                IO.Print(" '{0}'", node.Id);
             }
 
             IO.PrintLine("");
             foreach (var node in this.ISuccessors)
             {
-                node.DebugPrintPredecessors(visited);
-            }
-        }
-
-        internal void DebugPrintSuccessors(HashSet<ControlFlowGraphNode> visited = null)
-        {
-            if (visited == null)
-            {
-                visited = new HashSet<ControlFlowGraphNode> { this };
-            }
-            else if (visited.Contains(this))
-            {
-                return;
-            }
-            else
-            {
-                visited.Add(this);
-            }
-
-            Console.Write("successors of {0}:", this.Id);
-            foreach (var node in this.ISuccessors)
-            {
-                IO.Print(" " + node.Id);
-            }
-
-            IO.PrintLine("");
-            foreach (var node in this.ISuccessors)
-            {
-                node.DebugPrintSuccessors(visited);
+                node.PrintCFGPredecessors(visited);
             }
         }
 
