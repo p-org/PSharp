@@ -74,9 +74,13 @@ namespace Microsoft.PSharp.Utilities
             {
                 base.Configuration.RunStaticAnalysis = true;
             }
-            else if (option.ToLower().Equals("/show-gives-up"))
+            else if (option.ToLower().Equals("/show-data-flow"))
             {
-                base.Configuration.ShowGivesUpInformation = true;
+                base.Configuration.ShowDataFlowInformation = true;
+            }
+            else if (option.ToLower().Equals("/show-summaries"))
+            {
+                base.Configuration.ShowSummarizationInformation = true;
             }
             else if (option.ToLower().Equals("/time"))
             {

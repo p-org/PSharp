@@ -117,7 +117,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             // Creates and runs an analysis pass that computes the
             // summary for every P# machine.
             var methodSummaryAnalysis = SummarizationPass.Create(context).Run();
-            if (this.CompilationContext.Configuration.ShowGivesUpInformation)
+            if (this.CompilationContext.Configuration.ShowSummarizationInformation)
             {
                 methodSummaryAnalysis.PrintGivesUpResults();
             }

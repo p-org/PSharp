@@ -71,22 +71,27 @@ namespace Microsoft.PSharp.Utilities
         public bool RunStaticAnalysis;
 
         /// <summary>
-        /// Reports gives up information.
+        /// Reports the data-flow information.
         /// </summary>
-        public bool ShowGivesUpInformation;
+        public bool ShowDataFlowInformation;
 
         /// <summary>
-        /// Reports runtime results for the whole execution.
+        /// Reports the summarization information.
+        /// </summary>
+        public bool ShowSummarizationInformation;
+
+        /// <summary>
+        /// Reports the runtime results for the whole execution.
         /// </summary>
         public bool ShowRuntimeResults;
 
         /// <summary>
-        /// Reports runtime results for the dataflow analysis.
+        /// Reports the runtime results for the dataflow analysis.
         /// </summary>
         public bool ShowDFARuntimeResults;
 
         /// <summary>
-        /// Reports runtime results for the respects ownership analysis.
+        /// Reports the runtime results for the respects ownership analysis.
         /// </summary>
         public bool ShowROARuntimeResults;
 
@@ -244,7 +249,7 @@ namespace Microsoft.PSharp.Utilities
             this.CompilationTargets.Add(CompilationTarget.Execution);
             
             this.RunStaticAnalysis = false;
-            this.ShowGivesUpInformation = false;
+            this.ShowSummarizationInformation = false;
             this.ShowRuntimeResults = false;
             this.ShowDFARuntimeResults = false;
             this.ShowROARuntimeResults = false;

@@ -194,7 +194,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
                 emitResult = compilation.Emit(outputFile, outputPdbFile);
                 if (emitResult.Success)
                 {
-                    IO.PrintLine("... Writing " + fileName);
+                    IO.PrintLine("... Writing {0}", fileName);
                     return fileName;
                 }
             }

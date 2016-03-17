@@ -103,7 +103,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             Dictionary<ISymbol, HashSet<ITypeSymbol>> objectTypeMap = null;
-            if (!cfgNode.Summary.DataFlowMap.TryGetObjectTypeMapForSyntaxNode(
+            if (!cfgNode.Summary.DataFlowAnalysis.TryGetReferenceTypeMapForSyntaxNode(
                 syntaxNode, cfgNode, out objectTypeMap))
             {
                 return false;

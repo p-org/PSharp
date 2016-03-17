@@ -237,7 +237,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     if (machineNode is ClassDeclarationSyntax)
                     {
                         NamespaceDeclarationSyntax machineNamespace = null;
-                        this.TryGetNamespaceDeclarationOfSyntaxNode(
+                        Querying.TryGetNamespaceDeclarationOfSyntaxNode(
                             machineNode, out machineNamespace);
                         string machineName = machineNamespace.Name + "." + (machineNode
                             as ClassDeclarationSyntax).Identifier.ValueText;
@@ -245,7 +245,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                         foreach (var knownMachine in this.Machines)
                         {
                             NamespaceDeclarationSyntax knownMachineNamespace = null;
-                            this.TryGetNamespaceDeclarationOfSyntaxNode(
+                            Querying.TryGetNamespaceDeclarationOfSyntaxNode(
                                 knownMachine, out knownMachineNamespace);
                             string knownMachineName = knownMachineNamespace.Name + "." +
                                 (knownMachine as ClassDeclarationSyntax).Identifier.ValueText;
@@ -284,15 +284,15 @@ namespace Microsoft.PSharp.StaticAnalysis
         }
 
         /// <summary>
-        /// Returns true if the given type symbol is a machine.
+        /// Returns true if the given type symbol is a machine id.
         /// Returns false if it is not.
         /// </summary>
         /// <param name="identifier">Identifier</param>
         /// <param name="model">SemanticModel</param>
         /// <returns>Boolean</returns>
-        internal bool IsMachineType(ITypeSymbol typeSymbol, SemanticModel model)
+        internal bool IsMachineIdType(ITypeSymbol typeSymbol, SemanticModel model)
         {
-            if (typeSymbol != null && typeSymbol.ToString().Equals("Microsoft.PSharp.Machine"))
+            if (typeSymbol != null && typeSymbol.ToString().Equals("Microsoft.PSharp.MachineId"))
             {
                 return true;
             }
@@ -305,14 +305,14 @@ namespace Microsoft.PSharp.StaticAnalysis
                     if (machineNode is ClassDeclarationSyntax)
                     {
                         NamespaceDeclarationSyntax machineNamespace = null;
-                        this.TryGetNamespaceDeclarationOfSyntaxNode(
+                        Querying.TryGetNamespaceDeclarationOfSyntaxNode(
                             machineNode, out machineNamespace);
                         string machineName = machineNamespace.Name + "." + (machineNode
                             as ClassDeclarationSyntax).Identifier.ValueText;
                         foreach (var knownMachine in this.Machines)
                         {
                             NamespaceDeclarationSyntax knownMachineNamespace = null;
-                            this.TryGetNamespaceDeclarationOfSyntaxNode(
+                            Querying.TryGetNamespaceDeclarationOfSyntaxNode(
                                 knownMachine, out knownMachineNamespace);
                             string knownMachineName = knownMachineNamespace.Name + "." +
                                 knownMachine.Identifier.ValueText;
@@ -427,7 +427,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
         /// <summary>
         /// Returns true if the given type is allowed to be send
-        /// through and event to another machine.
+        /// via an event to another machine.
         /// </summary>
         /// <param name="type">Type</param>
         /// <returns>Boolean</returns>
@@ -441,7 +441,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 typeName.Equals("uint") || typeName.Equals("long") ||
                 typeName.Equals("ulong") || typeName.Equals("short") ||
                 typeName.Equals("ushort") || typeName.Equals("string") ||
-                typeName.Equals("Microsoft.PSharp.Machine"))
+                typeName.Equals("Microsoft.PSharp.MachineId"))
             {
                 return true;
             }
@@ -505,82 +505,13 @@ namespace Microsoft.PSharp.StaticAnalysis
                 return true;
             }
 
-            var methodName = this.GetFullMethodName(method, machine, null);
+            var methodName = Querying.GetFullMethodName(method, machine);
             if (this.MachineActions[machine].Contains(methodName))
             {
                 return true;
             }
 
             return false;
-        }
-
-        /// <summary>
-        /// Returns the full name of the given method (including namespace if it
-        /// can detect it). If the method does not belong to a state then the
-        /// state paremeter should be the null value.
-        /// </summary>
-        /// <param name="method">Method</param>
-        /// <param name="machine">Machine</param>
-        /// <param name="state">State</param>
-        /// <returns>Full name of the method</returns>
-        internal string GetFullMethodName(BaseMethodDeclarationSyntax method,
-            ClassDeclarationSyntax machine, ClassDeclarationSyntax state)
-        {
-            string name = null;
-            if (method is MethodDeclarationSyntax)
-            {
-                name = (method as MethodDeclarationSyntax).Identifier.ValueText;
-            }
-            else if (method is ConstructorDeclarationSyntax)
-            {
-                name = (method as ConstructorDeclarationSyntax).Identifier.ValueText;
-            }
-
-            if (state != null)
-            {
-                name = state.Identifier.ValueText + "." + name;
-            }
-
-            name = machine.Identifier.ValueText + "." + name;
-
-            var syntaxNode = machine.Parent;
-            if (syntaxNode == null)
-            {
-                return name;
-            }
-
-            NamespaceDeclarationSyntax namespaceDecl = null;
-            this.TryGetNamespaceDeclarationOfSyntaxNode(machine, out namespaceDecl);
-            return namespaceDecl.Name + "." + name;
-        }
-
-        /// <summary>
-        /// Tries to get the namespace declaration for the given syntax
-        /// node. Returns false if it cannot find a namespace.
-        /// </summary>
-        internal bool TryGetNamespaceDeclarationOfSyntaxNode(SyntaxNode syntaxNode,
-            out NamespaceDeclarationSyntax result)
-        {
-            result = null;
-
-            if (syntaxNode == null)
-            {
-                return false;
-            }
-
-            syntaxNode = syntaxNode.Parent;
-            if (syntaxNode == null)
-            {
-                return false;
-            }
-
-            if (syntaxNode.GetType() == typeof(NamespaceDeclarationSyntax))
-            {
-                result = syntaxNode as NamespaceDeclarationSyntax;
-                return true;
-            }
-
-            return this.TryGetNamespaceDeclarationOfSyntaxNode(syntaxNode, out result);
         }
 
         #endregion
@@ -657,7 +588,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 foreach (var type in types)
                 {
                     var typeSymbol = model.GetTypeInfo(type).Type;
-                    if (this.IsMachineType(typeSymbol, model))
+                    if (this.IsMachineIdType(typeSymbol, model))
                     {
                         if (!typeSymbol.Name.Equals("Machine"))
                         {
@@ -708,7 +639,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                         SingleOrDefault(m => m.Identifier.ValueText.Equals(
                             (actionFunc as IdentifierNameSyntax).Identifier.ValueText) &&
                             m.ParameterList.Parameters.Count == 0);
-                    var methodName = this.GetFullMethodName(method, machine, null);
+                    var methodName = Querying.GetFullMethodName(method, machine);
                     actionNames.Add(methodName);
                 }
 

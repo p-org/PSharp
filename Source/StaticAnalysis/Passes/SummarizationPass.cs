@@ -79,7 +79,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         public void PrintGivesUpResults()
         {
-            IO.PrintLine("\n > Printing gives up ownership information:\n");
+            IO.PrintLine("... Gives-up ownership summaries");
             foreach (var summary in this.AnalysisContext.Summaries)
             {
                 if (summary.Value.GivesUpSet.Count == 0)
@@ -87,26 +87,16 @@ namespace Microsoft.PSharp.StaticAnalysis
                     continue;
                 }
 
-                string methodName = null;
-                if (summary.Key is MethodDeclarationSyntax)
-                {
-                    methodName = (summary.Key as MethodDeclarationSyntax).Identifier.ValueText;
-                }
-                else if (summary.Key is ConstructorDeclarationSyntax)
-                {
-                    methodName = (summary.Key as ConstructorDeclarationSyntax).Identifier.ValueText;
-                }
+                string methodName = Querying.GetFullMethodName(summary.Key, summary.Value.Machine);
 
-                IO.Print("   > Method '{0}' gives_up set:", methodName);
+                IO.Print("..... '{0}' gives up parameters:", methodName);
                 foreach (var index in summary.Value.GivesUpSet)
                 {
                     IO.Print(" '{0}'", index);
                 }
 
-                IO.Print("\n");
+                IO.PrintLine("");
             }
-
-            IO.Print("\n");
         }
 
         #endregion
@@ -196,11 +186,11 @@ namespace Microsoft.PSharp.StaticAnalysis
                 }
             }
 
-            MethodSummary summary = MethodSummary.Factory.Summarize(this.AnalysisContext, method, machine);
-            foreach (var givesUpNode in summary.GivesUpNodes)
+            MethodSummary summary = MethodSummary.Create(this.AnalysisContext, method, machine);
+            foreach (var givesUpNode in summary.GivesUpOwnershipNodes)
             {
                 this.TryComputeGivesUpSetForSendControlFlowGraphNode(givesUpNode, summary);
-                this.TryComputeGivesUpSetForCreateControlFlowGraphNode(givesUpNode, summary);
+                this.TryComputeGivesUpSetForCreateMachineControlFlowGraphNode(givesUpNode, summary);
                 this.TryComputeGivesUpSetForGenericControlFlowGraphNode(givesUpNode, summary);
             }
         }
@@ -275,13 +265,13 @@ namespace Microsoft.PSharp.StaticAnalysis
         }
 
         /// <summary>
-        /// Tries to compute the 'gives_up' set of indexes for the given control flow graph node.
+        /// Tries to compute the gives-up ownership set of indexes for the given control flow graph node.
         /// If the node does not contain a 'Create' operation, then it returns false.
         /// </summary>
         /// <param name="cfgNode">ControlFlowGraphNode</param>
         /// <param name="summary">MethodSummary</param>
         /// <returns>Boolean</returns>
-        private bool TryComputeGivesUpSetForCreateControlFlowGraphNode(ControlFlowGraphNode cfgNode,
+        private bool TryComputeGivesUpSetForCreateMachineControlFlowGraphNode(ControlFlowGraphNode cfgNode,
             MethodSummary summary)
         {
             var createExpr = cfgNode.SyntaxNodes.First() as ExpressionStatementSyntax;
@@ -351,7 +341,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         }
 
         /// <summary>
-        /// Tries to compute the 'gives_up' set of indexes for the given control flow graph node.
+        /// Tries to compute the gives-up ownership set of indexes for the given control flow graph node.
         /// If the node does not contain a generic 'gives_up' operation, then it returns false.
         /// </summary>
         /// <param name="cfgNode">ControlFlowGraphNode</param>
@@ -409,7 +399,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 this.AnalysisContext.Solution).Result;
             var calleeMethod = definition.DeclaringSyntaxReferences.First().GetSyntax()
                 as BaseMethodDeclarationSyntax;
-            var calleeSummary = MethodSummary.Factory.Summarize(this.AnalysisContext, calleeMethod);
+            var calleeSummary = MethodSummary.Create(this.AnalysisContext, calleeMethod);
 
             foreach (int idx in calleeSummary.GivesUpSet)
             {
@@ -453,7 +443,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         }
 
         /// <summary>
-        /// Computes the 'gives_up' set for the given argument.
+        /// Computes the gives-up ownership set for the given argument.
         /// </summary>
         /// <param name="arg">Argument</param>
         /// <param name="cfgNode">ControlFlowGraphNode</param>
@@ -473,8 +463,8 @@ namespace Microsoft.PSharp.StaticAnalysis
                     }
 
                     var paramSymbol = model.GetDeclaredSymbol(summary.Method.ParameterList.Parameters[idx]);
-                    if (DataFlowAnalysis.FlowsFromTarget(arg, paramSymbol, summary.Node.SyntaxNodes.First(),
-                        summary.Node, cfgNode.SyntaxNodes.First(), cfgNode, model, this.AnalysisContext))
+                    if (DataFlowQuerying.FlowsFromTarget(arg, paramSymbol, summary.EntryNode.SyntaxNodes.First(),
+                        summary.EntryNode, cfgNode.SyntaxNodes.First(), cfgNode, model, this.AnalysisContext))
                     {
                         summary.GivesUpSet.Add(idx);
                     }

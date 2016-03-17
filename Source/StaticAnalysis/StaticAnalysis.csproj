@@ -74,12 +74,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Analyses\DataFlowAnalysis.cs" />
+    <Compile Include="DataFlow\DataFlowQuerying.cs" />
     <Compile Include="Analyses\FieldUsageAnalysis.cs" />
     <Compile Include="Analyses\InheritanceAnalysis.cs" />
     <Compile Include="AnalysisContext.cs" />
     <Compile Include="DataStructures\ControlFlowGraphNode.cs" />
-    <Compile Include="DataStructures\DataFlowMap.cs" />
+    <Compile Include="DataFlow\DataFlowAnalysis.cs" />
     <Compile Include="DataStructures\MethodSummary.cs" />
     <Compile Include="DataStructures\StateTransitionGraphNode.cs" />
     <Compile Include="Tracing\CallTraceStep.cs" />

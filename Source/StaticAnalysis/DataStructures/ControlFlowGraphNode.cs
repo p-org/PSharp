@@ -25,6 +25,9 @@ using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.StaticAnalysis
 {
+    /// <summary>
+    /// Class implementing a control flow graph node.
+    /// </summary>
     internal class ControlFlowGraphNode
     {
         #region fields
@@ -155,7 +158,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                             }
                             
                             givesUpNode.IsGivesUpNode = true;
-                            this.Summary.GivesUpNodes.Add(givesUpNode);
+                            this.Summary.GivesUpOwnershipNodes.Add(givesUpNode);
                             givesUpNode.SyntaxNodes.Add(stmtList[idx]);
 
                             if (idx < boundary - 1 &&
@@ -837,7 +840,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             var calleeMethod = definition.DeclaringSyntaxReferences.First().GetSyntax()
                 as BaseMethodDeclarationSyntax;
             if (this.AnalysisContext.Summaries.ContainsKey(calleeMethod) &&
-                MethodSummary.Factory.Summarize(this.AnalysisContext, calleeMethod).GivesUpSet.Count > 0)
+                MethodSummary.Create(this.AnalysisContext, calleeMethod).GivesUpSet.Count > 0)
             {
                 return true;
             }

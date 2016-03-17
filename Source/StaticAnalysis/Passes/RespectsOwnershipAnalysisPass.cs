@@ -60,7 +60,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <returns>RespectsOwnershipAnalysisPass</returns>
         public RespectsOwnershipAnalysisPass Run()
         {
-            // Starts profiling the data flow analysis.
+            // Starts profiling the data-flow analysis.
             if (this.AnalysisContext.Configuration.ShowROARuntimeResults &&
                 !this.AnalysisContext.Configuration.ShowRuntimeResults &&
                 !this.AnalysisContext.Configuration.ShowDFARuntimeResults)
@@ -73,7 +73,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 this.AnalyseMethodsInMachine(machine);
             }
 
-            // Stops profiling the data flow analysis.
+            // Stops profiling the data-flow analysis.
             if (this.AnalysisContext.Configuration.ShowROARuntimeResults &&
                 !this.AnalysisContext.Configuration.ShowRuntimeResults &&
                 !this.AnalysisContext.Configuration.ShowDFARuntimeResults)
@@ -139,8 +139,8 @@ namespace Microsoft.PSharp.StaticAnalysis
         private void AnalyseMethod(MethodDeclarationSyntax method, ClassDeclarationSyntax machine,
             ClassDeclarationSyntax state, ClassDeclarationSyntax originalMachine)
         {
-            MethodSummary summary = MethodSummary.Factory.Summarize(this.AnalysisContext, method);
-            foreach (var givesUpNode in summary.GivesUpNodes)
+            MethodSummary summary = MethodSummary.Create(this.AnalysisContext, method);
+            foreach (var givesUpNode in summary.GivesUpOwnershipNodes)
             {
                 var givesUpSource = givesUpNode.SyntaxNodes[0].DescendantNodesAndSelf().
                     OfType<InvocationExpressionSyntax>().First();
@@ -337,7 +337,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 this.AnalysisContext.Solution).Result;
             var calleeMethod = definition.DeclaringSyntaxReferences.First().GetSyntax()
                 as BaseMethodDeclarationSyntax;
-            var calleeSummary = MethodSummary.Factory.Summarize(this.AnalysisContext, calleeMethod);
+            var calleeSummary = MethodSummary.Create(this.AnalysisContext, calleeMethod);
 
             foreach (int idx in calleeSummary.GivesUpSet)
             {
@@ -423,7 +423,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     givesUpNode, argSymbol, call, new HashSet<ControlFlowGraphNode>(),
                     originalMachine, model, trace);
 
-                var aliases = DataFlowAnalysis.GetAliases(argSymbol, givesUpNode.SyntaxNodes.First(), givesUpNode);
+                var aliases = DataFlowQuerying.GetAliases(argSymbol, givesUpNode.SyntaxNodes.First(), givesUpNode);
                 foreach (var alias in aliases)
                 {
                     trace.Payload = alias.Name;
@@ -485,7 +485,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                             if (variable.Initializer.Value is IdentifierNameSyntax ||
                                 variable.Initializer.Value is MemberAccessExpressionSyntax)
                             {
-                                if (DataFlowAnalysis.FlowsIntoTarget(variable, target, syntaxNode, cfgNode,
+                                if (DataFlowQuerying.FlowsIntoTarget(variable, target, syntaxNode, cfgNode,
                                     givesUpNode.SyntaxNodes.First(), givesUpNode, model))
                                 {
                                     IdentifierNameSyntax identifier = null;
@@ -514,7 +514,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                                     invocation, target, syntaxNode, cfgNode, givesUpNode.SyntaxNodes.First(),
                                     givesUpNode, originalMachine, model, trace);
 
-                                if (DataFlowAnalysis.FlowsIntoTarget(variable, target, syntaxNode, cfgNode,
+                                if (DataFlowQuerying.FlowsIntoTarget(variable, target, syntaxNode, cfgNode,
                                     givesUpNode.SyntaxNodes.First(), givesUpNode, model))
                                 {
                                     rightSymbols = returnSymbols;
@@ -528,7 +528,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                                     objCreation, target, syntaxNode, cfgNode, givesUpNode.SyntaxNodes.First(),
                                     givesUpNode, model, trace);
 
-                                if (DataFlowAnalysis.FlowsIntoTarget(variable, target, syntaxNode, cfgNode,
+                                if (DataFlowQuerying.FlowsIntoTarget(variable, target, syntaxNode, cfgNode,
                                     givesUpNode.SyntaxNodes.First(), givesUpNode, model))
                                 {
                                     rightSymbols = returnSymbols;
@@ -547,7 +547,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                                         this.AnalysisContext.DoesFieldBelongToMachine(rightDef, cfgNode.Summary) &&
                                         !this.AnalysisContext.IsTypeAllowedToBeSend(type) &&
                                         !this.AnalysisContext.IsExprEnum(variable.Initializer.Value, model) &&
-                                        !DataFlowAnalysis.DoesResetInSuccessors(rightSymbol,
+                                        !DataFlowQuerying.DoesResetInSuccessors(rightSymbol,
                                         target, syntaxNode, cfgNode) &&
                                         FieldUsageAnalysis.IsAccessedBeforeBeingReset(rightDef,
                                         cfgNode.Summary, this.AnalysisContext))
@@ -592,7 +592,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                             if (binaryExpr.Right is IdentifierNameSyntax ||
                                 binaryExpr.Right is MemberAccessExpressionSyntax)
                             {
-                                if (DataFlowAnalysis.FlowsIntoTarget(binaryExpr.Left, target, syntaxNode,
+                                if (DataFlowQuerying.FlowsIntoTarget(binaryExpr.Left, target, syntaxNode,
                                     cfgNode, givesUpNode.SyntaxNodes.First(), givesUpNode,
                                     model, this.AnalysisContext))
                                 {
@@ -622,7 +622,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                                     invocation, target, syntaxNode, cfgNode, givesUpNode.SyntaxNodes.First(),
                                     givesUpNode, originalMachine, model, trace);
 
-                                if (DataFlowAnalysis.FlowsIntoTarget(binaryExpr.Left, target, syntaxNode,
+                                if (DataFlowQuerying.FlowsIntoTarget(binaryExpr.Left, target, syntaxNode,
                                     cfgNode, givesUpNode.SyntaxNodes.First(), givesUpNode,
                                     model, this.AnalysisContext))
                                 {
@@ -641,7 +641,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                                     objCreation, target, syntaxNode, cfgNode, givesUpNode.SyntaxNodes.First(),
                                     givesUpNode, model, trace);
 
-                                if (DataFlowAnalysis.FlowsIntoTarget(binaryExpr.Left, target, syntaxNode,
+                                if (DataFlowQuerying.FlowsIntoTarget(binaryExpr.Left, target, syntaxNode,
                                     cfgNode, givesUpNode.SyntaxNodes.First(), givesUpNode,
                                     model, this.AnalysisContext))
                                 {
@@ -668,7 +668,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                                     this.AnalysisContext.DoesFieldBelongToMachine(rightDef, cfgNode.Summary) &&
                                     !this.AnalysisContext.IsTypeAllowedToBeSend(rightType) &&
                                     !this.AnalysisContext.IsExprEnum(binaryExpr.Right, model) &&
-                                    !DataFlowAnalysis.DoesResetInSuccessors(rightSymbol,
+                                    !DataFlowQuerying.DoesResetInSuccessors(rightSymbol,
                                     target, syntaxNode, cfgNode) &&
                                     FieldUsageAnalysis.IsAccessedBeforeBeingReset(rightDef,
                                     cfgNode.Summary, this.AnalysisContext))
@@ -682,7 +682,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
                                 if (leftSymbol != null && !rightSymbol.Equals(leftSymbol))
                                 {
-                                    if (DataFlowAnalysis.FlowsIntoTarget(rightSymbol, target, syntaxNode,
+                                    if (DataFlowQuerying.FlowsIntoTarget(rightSymbol, target, syntaxNode,
                                         cfgNode, givesUpNode.SyntaxNodes.First(), givesUpNode))
                                     {
                                         var leftDef = SymbolFinder.FindSourceDefinitionAsync(leftSymbol,
@@ -691,7 +691,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                                         if (leftDef != null && leftDef.Kind == SymbolKind.Field &&
                                             !this.AnalysisContext.IsTypeAllowedToBeSend(leftType) &&
                                             !this.AnalysisContext.IsExprEnum(binaryExpr.Left, model) &&
-                                            !DataFlowAnalysis.DoesResetInSuccessors(leftSymbol,
+                                            !DataFlowQuerying.DoesResetInSuccessors(leftSymbol,
                                             target, syntaxNode, cfgNode) &&
                                             FieldUsageAnalysis.IsAccessedBeforeBeingReset(leftDef,
                                             cfgNode.Summary, this.AnalysisContext))
@@ -790,12 +790,12 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             var constructorCall = definition.DeclaringSyntaxReferences.First().GetSyntax()
                 as ConstructorDeclarationSyntax;
-            var constructorSummary = MethodSummary.Factory.Summarize(this.AnalysisContext, constructorCall);
+            var constructorSummary = MethodSummary.Create(this.AnalysisContext, constructorCall);
             var arguments = call.ArgumentList.Arguments;
 
             for (int idx = 0; idx < arguments.Count; idx++)
             {
-                if (DataFlowAnalysis.FlowsIntoTarget(arguments[idx].Expression, target,
+                if (DataFlowQuerying.FlowsIntoTarget(arguments[idx].Expression, target,
                     syntaxNode, cfgNode, givesUpSyntaxNode, givesUpCfgNode,
                     model, this.AnalysisContext))
                 {
@@ -881,12 +881,12 @@ namespace Microsoft.PSharp.StaticAnalysis
             HashSet<ISymbol> potentialReturnSymbols = new HashSet<ISymbol>();
             foreach (var potentialCall in potentialCalls)
             {
-                var invocationSummary = MethodSummary.Factory.Summarize(this.AnalysisContext, potentialCall);
+                var invocationSummary = MethodSummary.Create(this.AnalysisContext, potentialCall);
                 var arguments = call.ArgumentList.Arguments;
 
                 for (int idx = 0; idx < arguments.Count; idx++)
                 {
-                    if (DataFlowAnalysis.FlowsIntoTarget(arguments[idx].Expression, target,
+                    if (DataFlowQuerying.FlowsIntoTarget(arguments[idx].Expression, target,
                         syntaxNode, cfgNode, givesUpSyntaxNode, givesUpCfgNode,
                         model, this.AnalysisContext))
                     {
@@ -949,7 +949,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                         {
                             if (variable.Initializer.Value is MemberAccessExpressionSyntax)
                             {
-                                if (DataFlowAnalysis.FlowsFromTarget(variable.Initializer.Value, target,
+                                if (DataFlowQuerying.FlowsFromTarget(variable.Initializer.Value, target,
                                     syntaxNode, cfgNode, givesUpNode.SyntaxNodes.First(), givesUpNode,
                                     model, this.AnalysisContext))
                                 {
@@ -988,7 +988,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                             }
 
                             if (binaryExpr.Right is IdentifierNameSyntax &&
-                                DataFlowAnalysis.FlowsFromTarget(binaryExpr.Right, target, syntaxNode, cfgNode,
+                                DataFlowQuerying.FlowsFromTarget(binaryExpr.Right, target, syntaxNode, cfgNode,
                                 givesUpNode.SyntaxNodes.First(), givesUpNode, model, this.AnalysisContext))
                             {
                                 ISymbol leftSymbol = null;
@@ -1021,7 +1021,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                                 continue;
                             }
                             else if (binaryExpr.Right is MemberAccessExpressionSyntax &&
-                                DataFlowAnalysis.FlowsFromTarget(binaryExpr.Right, target, syntaxNode, cfgNode,
+                                DataFlowQuerying.FlowsFromTarget(binaryExpr.Right, target, syntaxNode, cfgNode,
                                 givesUpNode.SyntaxNodes.First(), givesUpNode, model, this.AnalysisContext))
                             {
                                 TraceInfo newTrace = new TraceInfo();
@@ -1050,7 +1050,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                             if (binaryExpr.Left is MemberAccessExpressionSyntax)
                             {
                                 if (!this.AnalysisContext.IsExprNonMachineMemberAccess(binaryExpr.Left, model) &&
-                                    DataFlowAnalysis.FlowsFromTarget(binaryExpr.Left, target, syntaxNode, cfgNode,
+                                    DataFlowQuerying.FlowsFromTarget(binaryExpr.Left, target, syntaxNode, cfgNode,
                                     givesUpNode.SyntaxNodes.First(), givesUpNode, model, this.AnalysisContext))
                                 {
                                     TraceInfo newTrace = new TraceInfo();
@@ -1119,15 +1119,15 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             var constructorCall = definition.DeclaringSyntaxReferences.First().GetSyntax()
                 as ConstructorDeclarationSyntax;
-            var constructorSummary = MethodSummary.Factory.Summarize(this.AnalysisContext, constructorCall);
+            var constructorSummary = MethodSummary.Create(this.AnalysisContext, constructorCall);
             var arguments = call.ArgumentList.Arguments;
 
             for (int idx = 0; idx < arguments.Count; idx++)
             {
                 if (!this.AnalysisContext.IsExprEnum(arguments[idx].Expression, model) &&
-                    DataFlowAnalysis.FlowsFromTarget(arguments[idx].Expression, target, syntaxNode,
+                    DataFlowQuerying.FlowsFromTarget(arguments[idx].Expression, target, syntaxNode,
                     cfgNode, givesUpSyntaxNode, givesUpCfgNode, model, this.AnalysisContext) &&
-                    !DataFlowAnalysis.DoesResetInLoop(arguments[idx].Expression, syntaxNode, cfgNode,
+                    !DataFlowQuerying.DoesResetInLoop(arguments[idx].Expression, syntaxNode, cfgNode,
                     givesUpSyntaxNode, givesUpCfgNode, model, this.AnalysisContext))
                 {
                     if (constructorSummary.AccessSet.ContainsKey(idx))
@@ -1158,7 +1158,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             foreach (var fieldAccess in constructorSummary.FieldAccessSet)
             {
-                if (DataFlowAnalysis.FlowsFromTarget(fieldAccess.Key, target, syntaxNode,
+                if (DataFlowQuerying.FlowsFromTarget(fieldAccess.Key, target, syntaxNode,
                     cfgNode, givesUpSyntaxNode, givesUpCfgNode))
                 {
                     foreach (var access in fieldAccess.Value)
@@ -1212,9 +1212,9 @@ namespace Microsoft.PSharp.StaticAnalysis
                 if (call.Expression is MemberAccessExpressionSyntax)
                 {
                     var callee = (call.Expression as MemberAccessExpressionSyntax).Expression;
-                    if (DataFlowAnalysis.FlowsFromTarget(callee, target, syntaxNode, cfgNode,
+                    if (DataFlowQuerying.FlowsFromTarget(callee, target, syntaxNode, cfgNode,
                         givesUpSyntaxNode, givesUpCfgNode, model, this.AnalysisContext) &&
-                        !DataFlowAnalysis.DoesResetInLoop(callee, syntaxNode, cfgNode,
+                        !DataFlowQuerying.DoesResetInLoop(callee, syntaxNode, cfgNode,
                         givesUpSyntaxNode, givesUpCfgNode, model, this.AnalysisContext))
                     {
                         var typeSymbol = model.GetTypeInfo(callee).Type;
@@ -1262,15 +1262,15 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             foreach (var potentialCall in potentialCalls)
             {
-                var invocationSummary = MethodSummary.Factory.Summarize(this.AnalysisContext, potentialCall);
+                var invocationSummary = MethodSummary.Create(this.AnalysisContext, potentialCall);
                 var arguments = call.ArgumentList.Arguments;
 
                 for (int idx = 0; idx < arguments.Count; idx++)
                 {
                     if (!this.AnalysisContext.IsExprEnum(arguments[idx].Expression, model) &&
-                        DataFlowAnalysis.FlowsFromTarget(arguments[idx].Expression, target, syntaxNode,
+                        DataFlowQuerying.FlowsFromTarget(arguments[idx].Expression, target, syntaxNode,
                         cfgNode, givesUpSyntaxNode, givesUpCfgNode, model, this.AnalysisContext) &&
-                        !DataFlowAnalysis.DoesResetInLoop(arguments[idx].Expression, syntaxNode, cfgNode,
+                        !DataFlowQuerying.DoesResetInLoop(arguments[idx].Expression, syntaxNode, cfgNode,
                         givesUpSyntaxNode, givesUpCfgNode, model, this.AnalysisContext))
                     {
                         if (invocationSummary.AccessSet.ContainsKey(idx))
@@ -1301,7 +1301,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
                 foreach (var fieldAccess in invocationSummary.FieldAccessSet)
                 {
-                    if (DataFlowAnalysis.FlowsFromTarget(fieldAccess.Key, target, syntaxNode,
+                    if (DataFlowQuerying.FlowsFromTarget(fieldAccess.Key, target, syntaxNode,
                         cfgNode, givesUpSyntaxNode, givesUpCfgNode))
                     {
                         foreach (var access in fieldAccess.Value)
@@ -1417,9 +1417,9 @@ namespace Microsoft.PSharp.StaticAnalysis
             foreach (var arg in extractedArgs)
             {
                 if (!this.AnalysisContext.IsExprEnum(arg, model) &&
-                    DataFlowAnalysis.FlowsFromTarget(arg, target, syntaxNode, cfgNode,
+                    DataFlowQuerying.FlowsFromTarget(arg, target, syntaxNode, cfgNode,
                     givesUpSyntaxNode, givesUpCfgNode, model, this.AnalysisContext) &&
-                    !DataFlowAnalysis.DoesResetInLoop(arg, syntaxNode, cfgNode,
+                    !DataFlowQuerying.DoesResetInLoop(arg, syntaxNode, cfgNode,
                     givesUpSyntaxNode, givesUpCfgNode, model, this.AnalysisContext))
                 {
                     AnalysisErrorReporter.ReportGivenUpOwnershipSending(trace);
@@ -1500,7 +1500,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     if (shouldReportError && definition != null && definition.Kind == SymbolKind.Field &&
                         !this.AnalysisContext.IsTypeAllowedToBeSend(varDecl.Type, model) &&
                         !this.AnalysisContext.IsExprEnum(arg, model) &&
-                        !DataFlowAnalysis.DoesResetInSuccessors(symbol, symbol,
+                        !DataFlowQuerying.DoesResetInSuccessors(symbol, symbol,
                         givesUpNode.SyntaxNodes.First(), givesUpNode) &&
                         FieldUsageAnalysis.IsAccessedBeforeBeingReset(definition,
                         givesUpNode.Summary, this.AnalysisContext))
