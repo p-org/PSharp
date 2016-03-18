@@ -111,6 +111,22 @@ namespace Microsoft.PSharp
         private Tuple<Event, Action> ReceivedEventHandler;
 
         /// <summary>
+        /// Gets the current state.
+        /// </summary>
+        protected Type CurrentState
+        {
+            get
+            {
+                if (this.StateStack.Count == 0)
+                {
+                    return null;
+                }
+
+                return this.StateStack.Peek().GetType();
+            }
+        }
+
+        /// <summary>
         /// Gets the latest received event, or null if no event
         /// has been received.
         /// </summary>
@@ -262,14 +278,14 @@ namespace Microsoft.PSharp
 
             this.StateStack.Pop();
             
-            if (this.StateStack.Count == 0)
+            if (this.CurrentState == null)
             {
                 base.Runtime.Log("<PopLog> Machine '{0}({1})' popped.", this, base.Id.MVal);
             }
             else
             {
                 base.Runtime.Log("<PopLog> Machine '{0}({1})' popped and reentered state '{2}'.",
-                    this, base.Id.MVal, this.StateStack.Peek().GetType().Name);
+                    this, base.Id.MVal, this.CurrentState.Name);
                 this.ConfigureStateTransitions(this.StateStack.Peek());
             }
         }
@@ -316,8 +332,7 @@ namespace Microsoft.PSharp
         [EditorBrowsable(EditorBrowsableState.Never)]
         protected internal bool FairRandom(int uniqueId)
         {
-            var havocId = this.GetType().Name + "_" + this.StateStack.Peek().
-                GetType().Name + "_" + uniqueId;
+            var havocId = this.GetType().Name + "_" + this.CurrentState.Name + "_" + uniqueId;
             return base.Runtime.GetFairNondeterministicChoice(this, havocId);
         }
 
@@ -435,7 +450,7 @@ namespace Microsoft.PSharp
                         {
                             base.Runtime.Log("<DefaultLog> Machine '{0}({1})' is executing the " +
                                 "default handler in state '{2}'.", this, base.Id.MVal,
-                                this.StateStack.Peek().GetType().Name);
+                                this.CurrentState.Name);
 
                             nextEvent = new Default();
                             defaultHandling = true;
@@ -629,7 +644,7 @@ namespace Microsoft.PSharp
         {
             while (true)
             {
-                if (this.StateStack.Count == 0)
+                if (this.CurrentState == null)
                 {
                     // If the stack of states is empty and the event
                     // is halt, then terminate the machine.
@@ -663,7 +678,7 @@ namespace Microsoft.PSharp
 
                     this.StateStack.Pop();
 
-                    if (this.StateStack.Count == 0)
+                    if (this.CurrentState == null)
                     {
                         base.Runtime.Log("<PopLog> Machine '{0}({1})' popped with unhandled event '{2}'.",
                             this, base.Id.MVal, e.GetType().FullName);
@@ -672,7 +687,7 @@ namespace Microsoft.PSharp
                     {
                         base.Runtime.Log("<PopLog> Machine '{0}({1})' popped with unhandled event '{2}' " +
                             "and reentered state '{3}.", this, base.Id.MVal, e.GetType().FullName,
-                            this.StateStack.Peek().GetType().Name);
+                            this.CurrentState.Name);
                         this.ConfigureStateTransitions(this.StateStack.Peek());
                     }
                     
@@ -899,7 +914,7 @@ namespace Microsoft.PSharp
         private void Do(Action a)
         {
             base.Runtime.Log("<ActionLog> Machine '{0}({1})' executed action '{2}' in state '{3}'.",
-                this, base.Id.MVal, a.Method.Name, this.StateStack.Peek().GetType().Name);
+                this, base.Id.MVal, a.Method.Name, this.CurrentState.Name);
             
             try
             {
@@ -940,7 +955,7 @@ namespace Microsoft.PSharp
         private void ExecuteCurrentStateOnEntry()
         {
             base.Runtime.Log("<StateLog> Machine '{0}({1})' entering state '{2}'.",
-                this, base.Id.MVal, this.StateStack.Peek().GetType().Name);
+                this, base.Id.MVal, this.CurrentState.Name);
 
             try
             {
@@ -979,7 +994,7 @@ namespace Microsoft.PSharp
         private void ExecuteCurrentStateOnExit(Action onExit)
         {
             base.Runtime.Log("<ExitLog> Machine '{0}({1})' exiting state '{2}'.",
-                this, base.Id.MVal, this.StateStack.Peek().GetType().Name);
+                this, base.Id.MVal, this.CurrentState.Name);
 
             try
             {

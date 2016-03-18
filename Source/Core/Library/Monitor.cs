@@ -59,6 +59,22 @@ namespace Microsoft.PSharp
         private HashSet<Type> IgnoredEvents;
 
         /// <summary>
+        /// Gets the current state.
+        /// </summary>
+        protected Type CurrentState
+        {
+            get
+            {
+                if (this.State == null)
+                {
+                    return null;
+                }
+
+                return this.State.GetType();
+            }
+        }
+
+        /// <summary>
         /// Gets the latest received event, or null if no event
         /// has been received.
         /// </summary>
@@ -157,7 +173,7 @@ namespace Microsoft.PSharp
         /// <returns>Boolean</returns>
         internal bool IsInHotState(out string stateName)
         {
-            stateName = this.State.GetType().Name;
+            stateName = this.CurrentState.Name;
             return this.State.IsHot;
         }
 
@@ -178,7 +194,7 @@ namespace Microsoft.PSharp
         /// <returns>Boolean</returns>
         internal bool IsInColdState(out string stateName)
         {
-            stateName = this.State.GetType().Name;
+            stateName = this.CurrentState.Name;
             return this.State.IsCold;
         }
 
@@ -214,7 +230,7 @@ namespace Microsoft.PSharp
                 if (!this.CanHandleEvent(e.GetType()))
                 {
                     base.Runtime.Log("<MonitorLog> Monitor '{0}' exiting state '{1}'.",
-                        this, this.State.GetType().Name);
+                        this, this.CurrentState.Name);
                     this.State = null;
                     continue;
                 }
@@ -310,7 +326,7 @@ namespace Microsoft.PSharp
         private void Do(Action a)
         {
             base.Runtime.Log("<MonitorLog> Monitor '{0}' executed action '{1}' in state '{2}'.",
-                this, a.Method.Name, this.State.GetType().Name);
+                this, a.Method.Name, this.CurrentState.Name);
 
             try
             {
@@ -357,7 +373,7 @@ namespace Microsoft.PSharp
             }
 
             base.Runtime.Log("<MonitorLog> Monitor '{0}' entering " + liveness +
-                "state '{1}'.", this, this.State.GetType().Name);
+                "state '{1}'.", this, this.CurrentState.Name);
 
             try
             {
@@ -392,7 +408,7 @@ namespace Microsoft.PSharp
         private void ExecuteCurrentStateOnExit(Action onExit)
         {
             base.Runtime.Log("<MonitorLog> Monitor '{0}' exiting state '{1}'.",
-                this, this.State.GetType().Name);
+                this, this.CurrentState.Name);
 
             try
             {
@@ -447,7 +463,7 @@ namespace Microsoft.PSharp
                 var hash = 19;
 
                 hash = hash + 31 * this.GetType().GetHashCode();
-                hash = hash + 31 * this.State.GetType().GetHashCode();
+                hash = hash + 31 * this.CurrentState.GetHashCode();
 
                 // Adds the user-defined hashed state.
                 hash = hash + 31 * this.GetHashedState(); 
