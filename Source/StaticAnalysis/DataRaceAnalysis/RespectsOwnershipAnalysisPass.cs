@@ -1044,8 +1044,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
                             if (binaryExpr.Left is MemberAccessExpressionSyntax)
                             {
-                                if (!this.AnalysisContext.IsExprNonMachineMemberAccess(binaryExpr.Left, model) &&
-                                    DataFlowQuerying.FlowsFromTarget(binaryExpr.Left, target, syntaxNode, cfgNode,
+                                if (DataFlowQuerying.FlowsFromTarget(binaryExpr.Left, target, syntaxNode, cfgNode,
                                     givesUpCfgNode.SyntaxNodes.First(), givesUpCfgNode, model, this.AnalysisContext))
                                 {
                                     TraceInfo newTrace = new TraceInfo();

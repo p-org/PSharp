@@ -45,12 +45,13 @@ namespace Microsoft.PSharp.StaticAnalysis
             SyntaxNode syntaxNode, CFGNode cfgNode, SyntaxNode targetSyntaxNode,
             CFGNode targetCfgNode, SemanticModel model, AnalysisContext context)
         {
-            ISymbol reference = null;
-            if (!context.TryGetSymbolFromExpression(out reference, expr, model))
+            IdentifierNameSyntax identifier = context.GetTopLevelIdentifier(expr, model);
+            if (identifier == null)
             {
                 return false;
             }
 
+            ISymbol reference = model.GetSymbolInfo(identifier).Symbol;
             return DataFlowQuerying.FlowsIntoTarget(reference, target, syntaxNode,
                 cfgNode, targetSyntaxNode, targetCfgNode);
         }
@@ -164,13 +165,13 @@ namespace Microsoft.PSharp.StaticAnalysis
             SyntaxNode syntaxNode, CFGNode cfgNode, SyntaxNode targetSyntaxNode,
             CFGNode targetCfgNode, SemanticModel model, AnalysisContext context)
         {
-
-            ISymbol reference = null;
-            if (!context.TryGetSymbolFromExpression(out reference, expr, model))
+            IdentifierNameSyntax identifier = context.GetTopLevelIdentifier(expr, model);
+            if (identifier == null)
             {
                 return false;
             }
 
+            ISymbol reference = model.GetSymbolInfo(identifier).Symbol;
             return DataFlowQuerying.FlowsFromTarget(reference, target, syntaxNode,
                 cfgNode, targetSyntaxNode, targetCfgNode);
         }
@@ -291,13 +292,13 @@ namespace Microsoft.PSharp.StaticAnalysis
             CFGNode cfgNode, SyntaxNode targetSyntaxNode,
             CFGNode targetCfgNode, SemanticModel model, AnalysisContext context)
         {
-            ISymbol reference = null;
-            if (!cfgNode.Equals(targetCfgNode) ||
-                !context.TryGetSymbolFromExpression(out reference, expr, model))
+            IdentifierNameSyntax identifier = context.GetTopLevelIdentifier(expr, model);
+            if (!cfgNode.Equals(targetCfgNode) || identifier == null)
             {
                 return false;
             }
 
+            ISymbol reference = model.GetSymbolInfo(identifier).Symbol;
             return DataFlowQuerying.DoesResetInLoop(reference, syntaxNode, cfgNode,
                 targetSyntaxNode, targetCfgNode);
         }
@@ -356,15 +357,15 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="context">AnalysisContext</param>
         /// <returns>Boolean</returns>
         public static bool DoesResetInSuccessorCFGNodes(ExpressionSyntax expr, ISymbol target,
-            SyntaxNode syntaxNode, CFGNode cfgNode, SemanticModel model,
-            AnalysisContext context)
+            SyntaxNode syntaxNode, CFGNode cfgNode, SemanticModel model, AnalysisContext context)
         {
-            ISymbol reference = null;
-            if (!context.TryGetSymbolFromExpression(out reference, expr, model))
+            IdentifierNameSyntax identifier = context.GetTopLevelIdentifier(expr, model);
+            if (identifier == null)
             {
                 return false;
             }
 
+            ISymbol reference = model.GetSymbolInfo(identifier).Symbol;
             return DataFlowQuerying.DoesResetInSuccessorCFGNodes(reference, target, syntaxNode, cfgNode);
         }
 

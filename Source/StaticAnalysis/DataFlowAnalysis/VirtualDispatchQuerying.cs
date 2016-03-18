@@ -61,8 +61,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     OfType<IdentifierNameSyntax>().Last();
                 calleeSymbol = model.GetSymbolInfo(identifier).Symbol;
                 
-                if (expr.Expression is ThisExpressionSyntax ||
-                    context.IsMachineType(identifier, model))
+                if (expr.Expression is ThisExpressionSyntax)
                 {
                     callee = expr.Name;
                     isThis = true;

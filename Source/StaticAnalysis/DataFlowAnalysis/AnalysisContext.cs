@@ -230,40 +230,6 @@ namespace Microsoft.PSharp.StaticAnalysis
         }
 
         /// <summary>
-        /// Returns true if the given expression is a non machine member access
-        /// Returns false if it is.
-        /// </summary>
-        /// <param name="expr">Expression</param>
-        /// <param name="model">SemanticModel</param>
-        /// <returns>Boolean</returns>
-        internal bool IsExprNonMachineMemberAccess(ExpressionSyntax expr, SemanticModel model)
-        {
-            IdentifierNameSyntax identifier = null;
-            bool isMemberAccess = false;
-
-            if (expr is MemberAccessExpressionSyntax)
-            {
-                foreach (var id in (expr as MemberAccessExpressionSyntax).DescendantNodes().
-                    OfType<IdentifierNameSyntax>())
-                {
-                    if (!this.IsMachineType(id, model))
-                    {
-                        identifier = id;
-                        break;
-                    }
-                }
-
-                if (identifier != null && identifier.Identifier.ValueText.Equals((expr
-                    as MemberAccessExpressionSyntax).Name.Identifier.ValueText))
-                {
-                    isMemberAccess = true;
-                }
-            }
-
-            return isMemberAccess;
-        }
-
-        /// <summary>
         /// Returns true if the type of the expression is an enum.
         /// Returns false if it is not
         /// </summary>
@@ -280,59 +246,6 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             return false;
-        }
-
-        /// <summary>
-        /// Returns true if the given identifier is a machine.
-        /// Returns false if it is not.
-        /// </summary>
-        /// <param name="identifier">Identifier</param>
-        /// <param name="model">SemanticModel</param>
-        /// <returns>Boolean</returns>
-        internal virtual bool IsMachineType(IdentifierNameSyntax identifier, SemanticModel model)
-        {
-            return false;
-        }
-
-        /// <summary>
-        /// Tries to get the symbol from the given expression. Returns
-        /// true if it succeeds. Returns false if not.
-        /// </summary>
-        /// <param name="symbol">Symbol</param>
-        /// <param name="expr">Expression</param>
-        /// <param name="model">SemanticModel</param>
-        /// <returns>Boolean</returns>
-        internal bool TryGetSymbolFromExpression(out ISymbol symbol, ExpressionSyntax expr,
-            SemanticModel model)
-        {
-            IdentifierNameSyntax identifier = null;
-            bool result = false;
-            symbol = null;
-
-            if (expr is IdentifierNameSyntax)
-            {
-                identifier = expr as IdentifierNameSyntax;
-            }
-            else if (expr is MemberAccessExpressionSyntax)
-            {
-                foreach (var id in (expr as MemberAccessExpressionSyntax).DescendantNodes().
-                    OfType<IdentifierNameSyntax>())
-                {
-                    if (!this.IsMachineType(id, model))
-                    {
-                        identifier = id;
-                        break;
-                    }
-                }
-            }
-
-            if (identifier != null)
-            {
-                symbol = model.GetSymbolInfo(identifier).Symbol;
-                result = true;
-            }
-
-            return result;
         }
 
         #endregion
