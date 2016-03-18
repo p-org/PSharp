@@ -120,6 +120,7 @@ namespace Microsoft.PSharp.LanguageServices
         private void RewriteExpressions()
         {
             this.SyntaxTree = new TriggerRewriter(this.Project).Rewrite(this.SyntaxTree);
+            this.SyntaxTree = new CurrentStateRewriter(this.Project).Rewrite(this.SyntaxTree);
             this.SyntaxTree = new ThisRewriter(this.Project).Rewrite(this.SyntaxTree);
             this.SyntaxTree = new NondeterministicChoiceRewriter(this.Project).Rewrite(this.SyntaxTree);
         }

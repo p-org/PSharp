@@ -98,6 +98,7 @@
     <Compile Include="Feature1SMLevelDecls\Correct\AlonBugTest.cs" />
     <Compile Include="Feature1SMLevelDecls\DynamicError\AlonBugFailTest.cs" />
     <Compile Include="Feature1SMLevelDecls\DynamicError\MaxInstances1FailTest.cs" />
+    <Compile Include="Feature2Stmts\Correct\CurrentStateTest.cs" />
     <Compile Include="Feature2Stmts\Correct\SEMOneMachine35Test.cs" />
     <Compile Include="Feature2Stmts\Correct\SEMOneMachine34Test.cs" />
     <Compile Include="Feature2Stmts\Correct\SEMOneMachine33Test.cs" />

@@ -125,6 +125,7 @@
     <Compile Include="Rewriting\CSharp\Statements\RaiseRewriter.cs" />
     <Compile Include="Rewriting\PSharp\Expressions\NondeterministicChoiceRewriter.cs" />
     <Compile Include="Rewriting\PSharp\Expressions\ThisRewriter.cs" />
+    <Compile Include="Rewriting\PSharp\Expressions\CurrentStateRewriter.cs" />
     <Compile Include="Rewriting\PSharp\Expressions\TriggerRewriter.cs" />
     <Compile Include="Rewriting\PSharp\PSharpRewriter.cs" />
     <Compile Include="Rewriting\PSharp\Statements\AssertRewriter.cs" />
