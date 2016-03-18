@@ -21,8 +21,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 
-using Microsoft.PSharp.Utilities;
-
 namespace Microsoft.PSharp.StaticAnalysis
 {
     public sealed class StateTransitionAnalysisPass : AnalysisPass
@@ -53,7 +51,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="context">AnalysisContext</param>
         /// <returns>StateTransitionAnalysisPass</returns>
-        public static StateTransitionAnalysisPass Create(AnalysisContext context)
+        public static StateTransitionAnalysisPass Create(PSharpAnalysisContext context)
         {
             return new StateTransitionAnalysisPass(context);
         }
@@ -80,7 +78,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Constructor.
         /// </summary>
         /// <param name="context">AnalysisContext</param>
-        private StateTransitionAnalysisPass(AnalysisContext context)
+        private StateTransitionAnalysisPass(PSharpAnalysisContext context)
             : base(context)
         {
 

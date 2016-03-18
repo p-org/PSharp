@@ -74,24 +74,27 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DataFlow\DataFlowQuerying.cs" />
-    <Compile Include="Analyses\FieldUsageAnalysis.cs" />
-    <Compile Include="Analyses\InheritanceAnalysis.cs" />
-    <Compile Include="AnalysisContext.cs" />
-    <Compile Include="DataStructures\ControlFlowGraphNode.cs" />
-    <Compile Include="DataFlow\DataFlowAnalysis.cs" />
+    <Compile Include="DataFlowAnalysis\PSharpDataFlowAnalysis.cs" />
+    <Compile Include="DataStructures\PSharpMethodSummary.cs" />
+    <Compile Include="DataStructures\PSharpCFGNode.cs" />
+    <Compile Include="PSharpAnalysisContext.cs" />
+    <Compile Include="DataFlowAnalysis\DataFlowQuerying.cs" />
+    <Compile Include="DataFlowAnalysis\VirtualDispatchQuerying.cs" />
+    <Compile Include="DataFlowAnalysis\AnalysisContext.cs" />
+    <Compile Include="DataStructures\CFGNode.cs" />
+    <Compile Include="DataFlowAnalysis\DataFlowAnalysis.cs" />
     <Compile Include="DataStructures\MethodSummary.cs" />
     <Compile Include="DataStructures\StateTransitionGraphNode.cs" />
     <Compile Include="Tracing\CallTraceStep.cs" />
     <Compile Include="Tracing\ErrorTraceStep.cs" />
     <Compile Include="Utilities\AnalysisErrorReporter.cs" />
     <Compile Include="Tracing\TraceInfo.cs" />
-    <Compile Include="Passes\AnalysisPass.cs" />
+    <Compile Include="DataRaceAnalysis\AnalysisPass.cs" />
     <Compile Include="StaticAnalysisEngine.cs" />
-    <Compile Include="Passes\SummarizationPass.cs" />
-    <Compile Include="Passes\RespectsOwnershipAnalysisPass.cs" />
-    <Compile Include="Passes\DirectAccessAnalysisPass.cs" />
-    <Compile Include="Passes\StateTransitionAnalysisPass.cs" />
+    <Compile Include="DataRaceAnalysis\SummarizationPass.cs" />
+    <Compile Include="DataRaceAnalysis\RespectsOwnershipAnalysisPass.cs" />
+    <Compile Include="DataRaceAnalysis\DirectAccessAnalysisPass.cs" />
+    <Compile Include="DataRaceAnalysis\StateTransitionAnalysisPass.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

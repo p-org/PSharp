@@ -107,8 +107,8 @@ namespace Microsoft.PSharp.StaticAnalysis
                 Profiler.StartMeasuringExecutionTime();
             }
 
-            // Create a P# static analysis context.
-            var context = AnalysisContext.Create(this.CompilationContext.Configuration, project);
+            // Create a state-machine static analysis context.
+            var context = PSharpAnalysisContext.Create(this.CompilationContext.Configuration, project);
 
             // Creates and runs an analysis pass that finds if a machine exposes
             // any fields or methods to other machines.

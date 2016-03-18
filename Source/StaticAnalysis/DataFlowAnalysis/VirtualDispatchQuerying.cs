@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="InheritanceAnalysis.cs">
+// <copyright file="VirtualDispatchQuerying.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -25,7 +25,10 @@ using Microsoft.PSharp.LanguageServices;
 
 namespace Microsoft.PSharp.StaticAnalysis
 {
-    internal static class InheritanceAnalysis
+    /// <summary>
+    /// Virtual dispatch querying API.
+    /// </summary>
+    internal static class VirtualDispatchQuerying
     {
         #region internal API
 
@@ -36,13 +39,13 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="overriders">List of overrider methods</param>
         /// <param name="virtualCall">Virtual call</param>
         /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        /// <param name="cfgNode">CFGNode</param>
         /// <param name="originalMachine">Original machine</param>
         /// <param name="model">SemanticModel</param>
         /// <param name="context">AnalysisContext</param>
         /// <returns>Boolean</returns>
         internal static bool TryGetPotentialMethodOverriders(out HashSet<MethodDeclarationSyntax> overriders,
-            InvocationExpressionSyntax virtualCall, SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode,
+            InvocationExpressionSyntax virtualCall, SyntaxNode syntaxNode, CFGNode cfgNode,
             ClassDeclarationSyntax originalMachine, SemanticModel model, AnalysisContext context)
         {
             overriders = new HashSet<MethodDeclarationSyntax>();
@@ -103,7 +106,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             Dictionary<ISymbol, HashSet<ITypeSymbol>> referenceTypeMap = null;
-            if (!cfgNode.Summary.DataFlowAnalysis.TryGetReferenceTypeMapForSyntaxNode(
+            if (!cfgNode.GetMethodSummary().DataFlowAnalysis.TryGetReferenceTypeMapForSyntaxNode(
                 syntaxNode, cfgNode, out referenceTypeMap))
             {
                 return false;
@@ -117,7 +120,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             foreach (var objectType in referenceTypeMap[calleeSymbol])
             {
                 MethodDeclarationSyntax m = null;
-                if (InheritanceAnalysis.TryGetMethodFromType(out m, objectType, virtualCall, context))
+                if (VirtualDispatchQuerying.TryGetMethodFromType(out m, objectType, virtualCall, context))
                 {
                     overriders.Add(m);
                 }

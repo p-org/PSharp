@@ -29,7 +29,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// The analysis context.
         /// </summary>
-        private AnalysisContext AnalysisContext;
+        private PSharpAnalysisContext AnalysisContext;
 
         /// <summary>
         /// The unique ID of the node.
@@ -94,7 +94,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="context">AnalysisContext</param>
         /// <param name="machine">Machine</param>
-        internal StateTransitionGraphNode(AnalysisContext context, ClassDeclarationSyntax state,
+        internal StateTransitionGraphNode(PSharpAnalysisContext context, ClassDeclarationSyntax state,
             ClassDeclarationSyntax machine)
         {
             this.AnalysisContext = context;
@@ -161,7 +161,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             foreach (var method in this.State.ChildNodes().OfType<MethodDeclarationSyntax>())
             {
-                var summary = MethodSummary.Create(this.AnalysisContext, method);
+                var summary = PSharpMethodSummary.Create(this.AnalysisContext, method);
                 if (method.Modifiers.Any(SyntaxKind.OverrideKeyword) &&
                     method.Identifier.ValueText.Equals("OnEntry"))
                 {
@@ -182,7 +182,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             foreach (var action in actions)
             {
-                var actionSummary = MethodSummary.Create(this.AnalysisContext, action);
+                var actionSummary = PSharpMethodSummary.Create(this.AnalysisContext, action);
                 this.Actions.Add(actionSummary);
             }
 

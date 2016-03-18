@@ -21,7 +21,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 
-using Microsoft.PSharp.LanguageServices;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.StaticAnalysis
@@ -29,14 +28,14 @@ namespace Microsoft.PSharp.StaticAnalysis
     /// <summary>
     /// Class implementing a method summary.
     /// </summary>
-    internal class MethodSummary
+    public class MethodSummary
     {
         #region fields
 
         /// <summary>
         /// The analysis context.
         /// </summary>
-        private AnalysisContext AnalysisContext;
+        protected AnalysisContext AnalysisContext;
 
         /// <summary>
         /// Method that this summary represents.
@@ -44,40 +43,21 @@ namespace Microsoft.PSharp.StaticAnalysis
         internal BaseMethodDeclarationSyntax Method;
 
         /// <summary>
-        /// Machine that the method of this summary belongs to.
-        /// If the method does not belong to a machine, the
-        /// object is null.
-        /// </summary>
-        internal ClassDeclarationSyntax Machine;
-
-        /// <summary>
         /// The entry node of the control-flow graph of the
         /// method of this summary.
         /// </summary>
-        internal ControlFlowGraphNode EntryNode;
-
-        /// <summary>
-        /// Set of all gives-up ownership nodes in the control-flow
-        /// graph of the method of this summary.
-        /// </summary>
-        internal HashSet<ControlFlowGraphNode> GivesUpOwnershipNodes;
+        internal CFGNode EntryNode;
 
         /// <summary>
         /// Set of all exit nodes in the control-flow graph of the
         /// method of this summary.
         /// </summary>
-        internal HashSet<ControlFlowGraphNode> ExitNodes;
+        internal HashSet<CFGNode> ExitNodes;
 
         /// <summary>
         /// The data-flow of the method of this summary.
         /// </summary>
         internal DataFlowAnalysis DataFlowAnalysis;
-
-        /// <summary>
-        /// Set of the indexes of parameters that the original method
-        /// gives up during its execution.
-        /// </summary>
-        internal HashSet<int> GivesUpSet;
 
         /// <summary>
         /// Dictionary containing all read and write accesses in regards
@@ -109,7 +89,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
         #endregion
 
-        #region public API
+        #region constructors
 
         /// <summary>
         /// Creates the summary of the given method.
@@ -117,33 +97,33 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="context">AnalysisContext</param>
         /// <param name="method">Method</param>
         /// <returns>MethodSummary</returns>
-        internal static MethodSummary Create(AnalysisContext context, BaseMethodDeclarationSyntax method)
+        public static MethodSummary Create(AnalysisContext context, BaseMethodDeclarationSyntax method)
         {
             if (context.Summaries.ContainsKey(method))
             {
                 return context.Summaries[method];
             }
 
-            return new MethodSummary(context, method);
+            var summary = new MethodSummary(context, method);
+            summary.BuildSummary();
+
+            return summary;
         }
 
         /// <summary>
-        /// Creates the summary of the given method.
+        /// Constructor.
         /// </summary>
         /// <param name="context">AnalysisContext</param>
         /// <param name="method">Method</param>
-        /// <param name="machine">Machine</param>
-        /// <returns>MethodSummary</returns>
-        internal static MethodSummary Create(AnalysisContext context, BaseMethodDeclarationSyntax method,
-            ClassDeclarationSyntax machine)
+        protected MethodSummary(AnalysisContext context, BaseMethodDeclarationSyntax method)
         {
-            if (context.Summaries.ContainsKey(method))
-            {
-                return context.Summaries[method];
-            }
-
-            return new MethodSummary(context, method, machine);
+            this.AnalysisContext = context;
+            this.Method = method;
         }
+
+        #endregion
+
+        #region public methods
 
         /// <summary>
         /// Tries to get the method summary of the given object creation. Returns
@@ -153,8 +133,8 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="model">SemanticModel</param>
         /// <param name="context">AnalysisContext</param>
         /// <returns>MethodSummary</returns>
-        internal static MethodSummary TryGetSummary(ObjectCreationExpressionSyntax call, SemanticModel model,
-            AnalysisContext context)
+        internal static MethodSummary TryGet(ObjectCreationExpressionSyntax call,
+            SemanticModel model, AnalysisContext context)
         {
             var callSymbol = model.GetSymbolInfo(call).Symbol;
             if (callSymbol == null)
@@ -186,17 +166,11 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="model">SemanticModel</param>
         /// <param name="context">AnalysisContext</param>
         /// <returns>MethodSummary</returns>
-        internal static MethodSummary TryGetSummary(InvocationExpressionSyntax call, SemanticModel model,
-            AnalysisContext context)
+        internal static MethodSummary TryGet(InvocationExpressionSyntax call,
+            SemanticModel model, AnalysisContext context)
         {
             var callSymbol = model.GetSymbolInfo(call).Symbol;
             if (callSymbol == null)
-            {
-                return null;
-            }
-
-            if (callSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.Machine") ||
-                callSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.MachineState"))
             {
                 return null;
             }
@@ -234,8 +208,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     {
                         arg = argExpr as IdentifierNameSyntax;
                         var argType = model.GetTypeInfo(arg).Type;
-                        if (this.AnalysisContext.IsTypeAllowedToBeSend(argType) ||
-                            this.AnalysisContext.IsMachineIdType(argType, model))
+                        if (this.AnalysisContext.IsTypePassedByValueOrImmutable(argType))
                         {
                             continue;
                         }
@@ -246,19 +219,18 @@ namespace Microsoft.PSharp.StaticAnalysis
                     {
                         var name = (argExpr as MemberAccessExpressionSyntax).Name;
                         var argType = model.GetTypeInfo(name).Type;
-                        if (this.AnalysisContext.IsTypeAllowedToBeSend(argType) ||
-                            this.AnalysisContext.IsMachineIdType(argType, model))
+                        if (this.AnalysisContext.IsTypePassedByValueOrImmutable(argType))
                         {
                             continue;
                         }
 
-                        arg = this.AnalysisContext.GetFirstNonMachineIdentifier(argExpr, model);
+                        arg = this.AnalysisContext.GetTopLevelIdentifier(argExpr, model);
                         argSymbols.Add(model.GetSymbolInfo(arg).Symbol);
                     }
                     else if (argExpr is ObjectCreationExpressionSyntax)
                     {
                         var objCreation = argExpr as ObjectCreationExpressionSyntax;
-                        var summary = MethodSummary.TryGetSummary(objCreation, model, this.AnalysisContext);
+                        var summary = MethodSummary.TryGet(objCreation, model, this.AnalysisContext);
                         if (summary == null)
                         {
                             continue;
@@ -274,7 +246,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     else if (argExpr is InvocationExpressionSyntax)
                     {
                         var invocation = argExpr as InvocationExpressionSyntax;
-                        var summary = MethodSummary.TryGetSummary(invocation, model, this.AnalysisContext);
+                        var summary = this.AnalysisContext.TryGetSummary(invocation, model);
                         if (summary == null)
                         {
                             continue;
@@ -315,8 +287,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     arg = argExpr as IdentifierNameSyntax;
                     var argType = model.GetTypeInfo(arg).Type;
-                    if (this.AnalysisContext.IsTypeAllowedToBeSend(argType) ||
-                        this.AnalysisContext.IsMachineIdType(argType, model))
+                    if (this.AnalysisContext.IsTypePassedByValueOrImmutable(argType))
                     {
                         continue;
                     }
@@ -325,13 +296,12 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     var name = (argExpr as MemberAccessExpressionSyntax).Name;
                     var argType = model.GetTypeInfo(name).Type;
-                    if (this.AnalysisContext.IsTypeAllowedToBeSend(argType) ||
-                        this.AnalysisContext.IsMachineIdType(argType, model))
+                    if (this.AnalysisContext.IsTypePassedByValueOrImmutable(argType))
                     {
                         continue;
                     }
 
-                    arg = this.AnalysisContext.GetFirstNonMachineIdentifier(argExpr, model);
+                    arg = this.AnalysisContext.GetTopLevelIdentifier(argExpr, model);
                 }
 
                 returnSymbols.Add(model.GetSymbolInfo(arg).Symbol);
@@ -347,45 +317,18 @@ namespace Microsoft.PSharp.StaticAnalysis
 
         #endregion
 
-        #region private methods
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="context">AnalysisContext</param>
-        /// <param name="method">Method</param>
-        private MethodSummary(AnalysisContext context, BaseMethodDeclarationSyntax method)
-        {
-            this.AnalysisContext = context;
-            this.Method = method;
-            this.Machine = null;
-            this.BuildSummary();
-        }
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="context">AnalysisContext</param>
-        /// <param name="method">Method</param>
-        /// <param name="machine">Machine</param>
-        private MethodSummary(AnalysisContext context, BaseMethodDeclarationSyntax method,
-            ClassDeclarationSyntax machine)
-        {
-            this.AnalysisContext = context;
-            this.Method = method;
-            this.Machine = machine;
-            this.BuildSummary();
-        }
+        #region protected methods
 
         /// <summary>
         /// Builds the summary.
         /// </summary>
-        private void BuildSummary()
+        protected void BuildSummary()
         {
-            this.EntryNode = new ControlFlowGraphNode(this.AnalysisContext, this);
-            this.GivesUpOwnershipNodes = new HashSet<ControlFlowGraphNode>();
-            this.ExitNodes = new HashSet<ControlFlowGraphNode>();
-            this.GivesUpSet = new HashSet<int>();
+            if (!this.BuildControlFlowGraph())
+            {
+                return;
+            }
+
             this.AccessSet = new Dictionary<int, HashSet<SyntaxNode>>();
             this.FieldAccessSet = new Dictionary<IFieldSymbol, HashSet<SyntaxNode>>();
             this.SideEffects = new Dictionary<IFieldSymbol, HashSet<int>>();
@@ -393,32 +336,39 @@ namespace Microsoft.PSharp.StaticAnalysis
                 new HashSet<int>(), new HashSet<IFieldSymbol>());
             this.ReturnTypeSet = new HashSet<ITypeSymbol>();
 
-            if (!this.AnalyzeControlFlow())
-            {
-                return;
-            }
-
             this.AnalyzeDataFlow();
             this.ComputeSideEffects();
 
             AnalysisContext.Summaries.Add(this.Method, this);
-
-            if (this.AnalysisContext.Configuration.ShowControlFlowInformation)
-            {
-                this.PrintControlFlowInformation();
-            }
-
-            if (this.AnalysisContext.Configuration.ShowDataFlowInformation)
-            {
-                this.PrintDataFlowInformation();
-            }
         }
 
         /// <summary>
-        /// Tries to construct the control-flow graph of the method.
+        /// Creates a new control-flow graph node.
+        /// </summary>
+        /// <returns>CFGNode</returns>
+        protected virtual CFGNode CreateNewControlFlowGraphNode()
+        {
+            return new CFGNode(this.AnalysisContext, this);
+        }
+
+        /// <summary>
+        /// Analyzes the data-flow of the method.
+        /// </summary>
+        protected virtual void AnalyzeDataFlow()
+        {
+            var model = this.AnalysisContext.Compilation.GetSemanticModel(this.Method.SyntaxTree);
+            this.DataFlowAnalysis = DataFlowAnalysis.Analyze(this, this.AnalysisContext, model);
+        }
+
+        #endregion
+
+        #region private methods
+
+        /// <summary>
+        /// Builds the control-flow graph of the method.
         /// </summary>
         /// <returns>Boolean</returns>
-        private bool AnalyzeControlFlow()
+        private bool BuildControlFlowGraph()
         {
             if (this.Method.Modifiers.Any(SyntaxKind.AbstractKeyword))
             {
@@ -429,27 +379,20 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             try
             {
-                model = AnalysisContext.Compilation.GetSemanticModel(this.Method.SyntaxTree);
+                model = this.AnalysisContext.Compilation.GetSemanticModel(this.Method.SyntaxTree);
             }
             catch
             {
                 return false;
             }
-            
-            this.EntryNode.Construct(this.Method.Body.Statements, 0, false, null);
+
+            this.EntryNode = this.CreateNewControlFlowGraphNode();
+            this.ExitNodes = new HashSet<CFGNode>();
+            this.EntryNode.Construct(this.Method);
             this.EntryNode.CleanEmptySuccessors();
             this.ExitNodes = this.EntryNode.GetExitNodes();
 
             return true;
-        }
-
-        /// <summary>
-        /// Analyzes the data-flow of the method.
-        /// </summary>
-        private void AnalyzeDataFlow()
-        {
-            var model = this.AnalysisContext.Compilation.GetSemanticModel(this.Method.SyntaxTree);
-            this.DataFlowAnalysis = DataFlowAnalysis.Analyze(this, this.AnalysisContext, model);
         }
 
         /// <summary>
@@ -514,15 +457,14 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Prints the control-flow information.
         /// </summary>
-        private void PrintControlFlowInformation()
+        public void PrintControlFlowInformation()
         {
             IO.PrintLine("..");
             IO.PrintLine("... ==================================================");
             IO.PrintLine("... =============== ControlFlow Summary ===============");
             IO.PrintLine("... ==================================================");
             IO.PrintLine("... |");
-            IO.PrintLine("... | Method: '{0}'", Querying.GetFullMethodName(
-                this.Method, this.Machine));
+            IO.PrintLine("... | Method: '{0}'", this.AnalysisContext.GetFullMethodName(this.Method));
 
             this.EntryNode.PrintCFGNodes();
             this.EntryNode.PrintCFGSuccessors();
@@ -535,15 +477,14 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Prints the data-flow information.
         /// </summary>
-        private void PrintDataFlowInformation()
+        public void PrintDataFlowInformation()
         {
             IO.PrintLine("..");
             IO.PrintLine("... ==================================================");
             IO.PrintLine("... ================ DataFlow Summary ================");
             IO.PrintLine("... ==================================================");
             IO.PrintLine("... |");
-            IO.PrintLine("... | Method: '{0}'", Querying.GetFullMethodName(
-                this.Method, this.Machine));
+            IO.PrintLine("... | Method: '{0}'", this.AnalysisContext.GetFullMethodName(this.Method));
 
             this.DataFlowAnalysis.PrintDataFlowMap();
             this.DataFlowAnalysis.PrintReachabilityMap();
@@ -576,12 +517,14 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             if (this.SideEffects.Count > 0)
             {
-                IO.PrintLine("..... Side effects");
+                IO.PrintLine("... |");
+                IO.PrintLine("... | . Side effects");
                 foreach (var pair in this.SideEffects)
                 {
                     foreach (var index in pair.Value)
                     {
-                        IO.PrintLine("....... " + pair.Key.Name + " " + index);
+                        IO.PrintLine("... | ... parameter at index '{0}' flows into field '{1}'",
+                            index, pair.Key.Name);
                     }
                 }
             }

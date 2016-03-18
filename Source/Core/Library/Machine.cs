@@ -23,7 +23,7 @@ using System.Threading.Tasks;
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Abstract class representing a P# state machine.
+    /// Abstract class representing a state-machine.
     /// </summary>
     public abstract class Machine : AbstractMachine
     {
@@ -86,7 +86,7 @@ namespace Microsoft.PSharp
         internal bool IsWaiting;
 
         /// <summary>
-        /// Inbox of the state machine. Incoming events are queued here.
+        /// Inbox of the state-machine. Incoming events are queued here.
         /// Events are dequeued to be processed.
         /// </summary>
         private List<Event> Inbox;

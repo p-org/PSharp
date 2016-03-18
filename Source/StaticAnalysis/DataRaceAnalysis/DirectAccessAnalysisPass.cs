@@ -35,7 +35,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="context">AnalysisContext</param>
         /// <returns>DirectAccessAnalysisPass</returns>
-        public static DirectAccessAnalysisPass Create(AnalysisContext context)
+        public static DirectAccessAnalysisPass Create(PSharpAnalysisContext context)
         {
             return new DirectAccessAnalysisPass(context);
         }
@@ -59,7 +59,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Constructor.
         /// </summary>
         /// <param name="context">AnalysisContext</param>
-        private DirectAccessAnalysisPass(AnalysisContext context)
+        private DirectAccessAnalysisPass(PSharpAnalysisContext context)
             : base(context)
         {
 

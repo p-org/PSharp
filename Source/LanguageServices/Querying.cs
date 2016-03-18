@@ -16,7 +16,6 @@ using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.PSharp.LanguageServices
@@ -238,44 +237,6 @@ namespace Microsoft.PSharp.LanguageServices
             return true;
         }
 
-        /// <summary>
-        /// Returns the full name of the given method (including
-        /// namespace if it can detect it).
-        /// </summary>
-        /// <param name="method">Method</param>
-        /// <param name="machine">Machine</param>
-        /// <returns>Full name of the method</returns>
-        internal static string GetFullMethodName(BaseMethodDeclarationSyntax method,
-            ClassDeclarationSyntax machine = null)
-        {
-            string name = null;
-            if (method is MethodDeclarationSyntax)
-            {
-                name = (method as MethodDeclarationSyntax).Identifier.ValueText;
-            }
-            else if (method is ConstructorDeclarationSyntax)
-            {
-                name = (method as ConstructorDeclarationSyntax).Identifier.ValueText;
-            }
-
-            if (machine == null)
-            {
-                return name;
-            }
-
-            name = machine.Identifier.ValueText + "." + name;
-
-            SyntaxNode node = machine.Parent;
-            if (node == null)
-            {
-                return name;
-            }
-
-            NamespaceDeclarationSyntax namespaceDecl = null;
-            Querying.TryGetNamespaceDeclarationOfSyntaxNode(machine, out namespaceDecl);
-            return namespaceDecl.Name + "." + name;
-        }
-
         #endregion
 
         #region generic queries
@@ -308,35 +269,6 @@ namespace Microsoft.PSharp.LanguageServices
             }
 
             return callee;
-        }
-
-        /// <summary>
-        /// Tries to get the namespace declaration for the given syntax
-        /// node. Returns false if it cannot find a namespace.
-        /// </summary>
-        internal static bool TryGetNamespaceDeclarationOfSyntaxNode(SyntaxNode syntaxNode,
-            out NamespaceDeclarationSyntax result)
-        {
-            result = null;
-
-            if (syntaxNode == null)
-            {
-                return false;
-            }
-
-            syntaxNode = syntaxNode.Parent;
-            if (syntaxNode == null)
-            {
-                return false;
-            }
-
-            if (syntaxNode.GetType() == typeof(NamespaceDeclarationSyntax))
-            {
-                result = syntaxNode as NamespaceDeclarationSyntax;
-                return true;
-            }
-
-            return Querying.TryGetNamespaceDeclarationOfSyntaxNode(syntaxNode, out result);
         }
 
         #endregion

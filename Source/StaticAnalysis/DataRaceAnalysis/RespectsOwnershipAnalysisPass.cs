@@ -49,7 +49,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="context">AnalysisContext</param>
         /// <returns>RespectsOwnershipAnalysisPass</returns>
-        public static RespectsOwnershipAnalysisPass Create(AnalysisContext context)
+        public static RespectsOwnershipAnalysisPass Create(PSharpAnalysisContext context)
         {
             return new RespectsOwnershipAnalysisPass(context);
         }
@@ -92,7 +92,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Constructor.
         /// </summary>
         /// <param name="context">AnalysisContext</param>
-        private RespectsOwnershipAnalysisPass(AnalysisContext context)
+        private RespectsOwnershipAnalysisPass(PSharpAnalysisContext context)
             : base(context)
         {
 
@@ -139,16 +139,16 @@ namespace Microsoft.PSharp.StaticAnalysis
         private void AnalyseMethod(MethodDeclarationSyntax method, ClassDeclarationSyntax machine,
             ClassDeclarationSyntax state, ClassDeclarationSyntax originalMachine)
         {
-            MethodSummary summary = MethodSummary.Create(this.AnalysisContext, method);
-            foreach (var givesUpNode in summary.GivesUpOwnershipNodes)
+            var summary = PSharpMethodSummary.Create(this.AnalysisContext, method);
+            foreach (var givesUpCfgNode in summary.GivesUpOwnershipNodes)
             {
-                var givesUpSource = givesUpNode.SyntaxNodes[0].DescendantNodesAndSelf().
+                var givesUpSource = givesUpCfgNode.SyntaxNodes[0].DescendantNodesAndSelf().
                     OfType<InvocationExpressionSyntax>().First();
-                this.AnalyseSendExpression(givesUpSource, givesUpNode,
+                this.AnalyseSendExpression(givesUpSource, givesUpCfgNode,
                     machine, state, originalMachine);
-                this.AnalyseCreateExpression(givesUpSource, givesUpNode,
+                this.AnalyseCreateExpression(givesUpSource, givesUpCfgNode,
                     machine, state, originalMachine);
-                this.AnalyseGenericCallExpression(givesUpSource, givesUpNode,
+                this.AnalyseGenericCallExpression(givesUpSource, givesUpCfgNode,
                     machine, state, originalMachine);
             }
         }
@@ -162,11 +162,11 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// given up ownerships.
         /// </summary>
         /// <param name="send">Send call</param>
-        /// <param name="givesUpNode">Gives up node</param>
+        /// <param name="givesUpCfgNode">Gives up node</param>
         /// <param name="machine">Machine</param>
         /// <param name="state">State</param>
         /// <param name="originalMachine">Original machine</param>
-        private void AnalyseSendExpression(InvocationExpressionSyntax send, ControlFlowGraphNode givesUpNode,
+        private void AnalyseSendExpression(InvocationExpressionSyntax send, PSharpCFGNode givesUpCfgNode,
             ClassDeclarationSyntax machine, ClassDeclarationSyntax state, ClassDeclarationSyntax originalMachine)
         {
             if (!((send.Expression is MemberAccessExpressionSyntax) ||
@@ -192,7 +192,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 foreach (var arg in objCreation.ArgumentList.Arguments)
                 {
                     this.AnalyseArgumentSyntax(arg.Expression,
-                        send, givesUpNode, machine, state, originalMachine);
+                        send, givesUpCfgNode, machine, state, originalMachine);
                 }
             }
             else if (send.ArgumentList.Arguments[1].Expression is BinaryExpressionSyntax &&
@@ -203,7 +203,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 if ((binExpr.Left is IdentifierNameSyntax) || (binExpr.Left is MemberAccessExpressionSyntax))
                 {
                     this.AnalyseArgumentSyntax(binExpr.Left,
-                        send, givesUpNode, machine, state, originalMachine);
+                        send, givesUpCfgNode, machine, state, originalMachine);
                 }
                 else if (binExpr.Left is InvocationExpressionSyntax)
                 {
@@ -211,7 +211,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     for (int i = 1; i < invocation.ArgumentList.Arguments.Count; i++)
                     {
                         this.AnalyseArgumentSyntax(invocation.ArgumentList.Arguments[i].
-                            Expression, send, givesUpNode, machine, state, originalMachine);
+                            Expression, send, givesUpCfgNode, machine, state, originalMachine);
                     }
                 }
             }
@@ -222,11 +222,11 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// given up ownerships.
         /// </summary>
         /// <param name="send">Create call</param>
-        /// <param name="givesUpNode">Gives up node</param>
+        /// <param name="givesUpCfgNode">Gives up node</param>
         /// <param name="machine">Machine</param>
         /// <param name="state">State</param>
         /// <param name="originalMachine">Original machine</param>
-        private void AnalyseCreateExpression(InvocationExpressionSyntax create, ControlFlowGraphNode givesUpNode,
+        private void AnalyseCreateExpression(InvocationExpressionSyntax create, PSharpCFGNode givesUpCfgNode,
             ClassDeclarationSyntax machine, ClassDeclarationSyntax state, ClassDeclarationSyntax originalMachine)
         {
             if (!((create.Expression is MemberAccessExpressionSyntax) ||
@@ -257,7 +257,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 foreach (var arg in objCreation.ArgumentList.Arguments)
                 {
                     this.AnalyseArgumentSyntax(arg.Expression,
-                        create, givesUpNode, machine, state, originalMachine);
+                        create, givesUpCfgNode, machine, state, originalMachine);
                 }
             }
             else if (create.ArgumentList.Arguments[0].Expression is BinaryExpressionSyntax &&
@@ -268,7 +268,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 if ((binExpr.Left is IdentifierNameSyntax) || (binExpr.Left is MemberAccessExpressionSyntax))
                 {
                     this.AnalyseArgumentSyntax(binExpr.Left,
-                        create, givesUpNode, machine, state, originalMachine);
+                        create, givesUpCfgNode, machine, state, originalMachine);
                 }
                 else if (binExpr.Left is InvocationExpressionSyntax)
                 {
@@ -276,7 +276,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     for (int i = 1; i < invocation.ArgumentList.Arguments.Count; i++)
                     {
                         this.AnalyseArgumentSyntax(invocation.ArgumentList.Arguments[i].
-                            Expression, create, givesUpNode, machine, state, originalMachine);
+                            Expression, create, givesUpCfgNode, machine, state, originalMachine);
                     }
                 }
             }
@@ -284,7 +284,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 (create.ArgumentList.Arguments[0].Expression is MemberAccessExpressionSyntax))
             {
                 this.AnalyseArgumentSyntax(create.ArgumentList.Arguments[0].
-                    Expression, create, givesUpNode, machine, state, originalMachine);
+                    Expression, create, givesUpCfgNode, machine, state, originalMachine);
             }
         }
 
@@ -293,11 +293,11 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// given up ownerships.
         /// </summary>
         /// <param name="call">Call</param>
-        /// <param name="givesUpNode">Gives up node</param>
+        /// <param name="givesUpCfgNode">Gives up node</param>
         /// <param name="machine">Machine</param>
         /// <param name="state">State</param>
         /// <param name="originalMachine">Original machine</param>
-        private void AnalyseGenericCallExpression(InvocationExpressionSyntax call, ControlFlowGraphNode givesUpNode,
+        private void AnalyseGenericCallExpression(InvocationExpressionSyntax call, PSharpCFGNode givesUpCfgNode,
             ClassDeclarationSyntax machine, ClassDeclarationSyntax state, ClassDeclarationSyntax originalMachine)
         {
             if (!((call.Expression is MemberAccessExpressionSyntax) ||
@@ -337,7 +337,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 this.AnalysisContext.Solution).Result;
             var calleeMethod = definition.DeclaringSyntaxReferences.First().GetSyntax()
                 as BaseMethodDeclarationSyntax;
-            var calleeSummary = MethodSummary.Create(this.AnalysisContext, calleeMethod);
+            var calleeSummary = PSharpMethodSummary.Create(this.AnalysisContext, calleeMethod);
 
             foreach (int idx in calleeSummary.GivesUpSet)
             {
@@ -348,7 +348,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     foreach (var arg in objCreation.ArgumentList.Arguments)
                     {
                         this.AnalyseArgumentSyntax(arg.Expression,
-                            call, givesUpNode, machine, state, originalMachine);
+                            call, givesUpCfgNode, machine, state, originalMachine);
                     }
                 }
                 else if (call.ArgumentList.Arguments[idx].Expression is BinaryExpressionSyntax &&
@@ -359,7 +359,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     if ((binExpr.Left is IdentifierNameSyntax) || (binExpr.Left is MemberAccessExpressionSyntax))
                     {
                         this.AnalyseArgumentSyntax(binExpr.Left,
-                            call, givesUpNode, machine, state, originalMachine);
+                            call, givesUpCfgNode, machine, state, originalMachine);
                     }
                     else if (binExpr.Left is InvocationExpressionSyntax)
                     {
@@ -367,7 +367,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                         for (int i = 1; i < invocation.ArgumentList.Arguments.Count; i++)
                         {
                             this.AnalyseArgumentSyntax(invocation.ArgumentList.Arguments[i].
-                                Expression, call, givesUpNode, machine, state, originalMachine);
+                                Expression, call, givesUpCfgNode, machine, state, originalMachine);
                         }
                     }
                 }
@@ -375,7 +375,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     (call.ArgumentList.Arguments[idx].Expression is MemberAccessExpressionSyntax))
                 {
                     this.AnalyseArgumentSyntax(call.ArgumentList.Arguments[idx].
-                        Expression, call, givesUpNode, machine, state, originalMachine);
+                        Expression, call, givesUpCfgNode, machine, state, originalMachine);
                 }
             }
         }
@@ -385,23 +385,23 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="arg">Argument</param>
         /// <param name="call">Call</param>
-        /// <param name="givesUpNode">Gives up node</param>
+        /// <param name="givesUpCfgNode">Gives up node</param>
         /// <param name="machine">Machine</param>
         /// <param name="state">State</param>
         /// <param name="originalMachine">Original machine</param>
         private void AnalyseArgumentSyntax(ExpressionSyntax arg, InvocationExpressionSyntax call,
-            ControlFlowGraphNode givesUpNode, ClassDeclarationSyntax machine, ClassDeclarationSyntax state,
+            PSharpCFGNode givesUpCfgNode, ClassDeclarationSyntax machine, ClassDeclarationSyntax state,
             ClassDeclarationSyntax originalMachine)
         {
             var model = this.AnalysisContext.Compilation.GetSemanticModel(arg.SyntaxTree);
             
             if (arg is MemberAccessExpressionSyntax || arg is IdentifierNameSyntax)
             {
-                TraceInfo trace = new TraceInfo(givesUpNode.Summary.Method as MethodDeclarationSyntax, machine, state, arg);
+                TraceInfo trace = new TraceInfo(givesUpCfgNode.GetMethodSummary().Method as MethodDeclarationSyntax, machine, state, arg);
                 trace.AddErrorTrace(call.ToString(), call.SyntaxTree.FilePath, call.SyntaxTree.
                     GetLineSpan(call.Span).StartLinePosition.Line + 1);
 
-                if (this.IsArgumentSafeToAccess(arg, givesUpNode, model, trace, true))
+                if (this.IsArgumentSafeToAccess(arg, givesUpCfgNode, model, trace, true))
                 {
                     return;
                 }
@@ -416,22 +416,22 @@ namespace Microsoft.PSharp.StaticAnalysis
                     argSymbol = model.GetSymbolInfo((arg as MemberAccessExpressionSyntax).Name).Symbol;
                 }
                 
-                this.DetectGivenUpFieldOwnershipInControlFlowGraph(givesUpNode,
-                    givesUpNode, argSymbol, call, new HashSet<ControlFlowGraphNode>(),
+                this.DetectGivenUpFieldOwnershipInCFG(givesUpCfgNode,
+                    givesUpCfgNode, argSymbol, call, new HashSet<CFGNode>(),
                     originalMachine, model, trace);
-                this.DetectPotentialDataRacesInControlFlowGraph(givesUpNode,
-                    givesUpNode, argSymbol, call, new HashSet<ControlFlowGraphNode>(),
+                this.DetectPotentialDataRacesInCFG(givesUpCfgNode,
+                    givesUpCfgNode, argSymbol, call, new HashSet<CFGNode>(),
                     originalMachine, model, trace);
 
-                var aliases = DataFlowQuerying.GetAliases(argSymbol, givesUpNode.SyntaxNodes.First(), givesUpNode);
+                var aliases = DataFlowQuerying.GetAliases(argSymbol, givesUpCfgNode.SyntaxNodes.First(), givesUpCfgNode);
                 foreach (var alias in aliases)
                 {
                     trace.Payload = alias.Name;
-                    this.DetectGivenUpFieldOwnershipInControlFlowGraph(givesUpNode,
-                        givesUpNode, alias, call, new HashSet<ControlFlowGraphNode>(),
+                    this.DetectGivenUpFieldOwnershipInCFG(givesUpCfgNode,
+                        givesUpCfgNode, alias, call, new HashSet<CFGNode>(),
                         originalMachine, model, trace);
-                    this.DetectPotentialDataRacesInControlFlowGraph(givesUpNode,
-                        givesUpNode, alias, call, new HashSet<ControlFlowGraphNode>(),
+                    this.DetectPotentialDataRacesInCFG(givesUpCfgNode,
+                        givesUpCfgNode, alias, call, new HashSet<CFGNode>(),
                         originalMachine, model, trace);
                 }
             }
@@ -441,7 +441,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 foreach (var item in payload.ArgumentList.Arguments)
                 {
                     this.AnalyseArgumentSyntax(item.Expression,
-                        call, givesUpNode, machine, state, originalMachine);
+                        call, givesUpCfgNode, machine, state, originalMachine);
                 }
             }
         }
@@ -455,20 +455,20 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// data from a machine field.
         /// </summary>
         /// <param name="cfgNode">Control flow graph node</param>
-        /// <param name="givesUpNode">Gives up node</param>
+        /// <param name="givesUpCfgNode">Gives up node</param>
         /// <param name="target">Target</param>
         /// <param name="giveUpSource">Give up source</param>
         /// <param name="visited">Already visited cfgNodes</param>
         /// <param name="originalMachine">Original machine</param>
         /// <param name="model">SemanticModel</param>
         /// <param name="trace">TraceInfo</param>
-        private void DetectGivenUpFieldOwnershipInControlFlowGraph(ControlFlowGraphNode cfgNode,
-            ControlFlowGraphNode givesUpNode, ISymbol target, InvocationExpressionSyntax giveUpSource,
-            HashSet<ControlFlowGraphNode> visited, ClassDeclarationSyntax originalMachine,
+        private void DetectGivenUpFieldOwnershipInCFG(PSharpCFGNode cfgNode,
+            PSharpCFGNode givesUpCfgNode, ISymbol target, InvocationExpressionSyntax giveUpSource,
+            HashSet<CFGNode> visited, ClassDeclarationSyntax originalMachine,
             SemanticModel model, TraceInfo trace)
         {
             if (!cfgNode.IsJumpNode && !cfgNode.IsLoopHeadNode &&
-                visited.Contains(givesUpNode))
+                visited.Contains(givesUpCfgNode))
             {
                 foreach (var syntaxNode in cfgNode.SyntaxNodes)
                 {
@@ -486,7 +486,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                                 variable.Initializer.Value is MemberAccessExpressionSyntax)
                             {
                                 if (DataFlowQuerying.FlowsIntoTarget(variable, target, syntaxNode, cfgNode,
-                                    givesUpNode.SyntaxNodes.First(), givesUpNode, model))
+                                    givesUpCfgNode.SyntaxNodes.First(), givesUpCfgNode, model))
                                 {
                                     IdentifierNameSyntax identifier = null;
                                     if (variable.Initializer.Value is IdentifierNameSyntax)
@@ -495,7 +495,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                                     }
                                     else if (variable.Initializer.Value is MemberAccessExpressionSyntax)
                                     {
-                                        identifier = this.AnalysisContext.GetFirstNonMachineIdentifier(
+                                        identifier = this.AnalysisContext.GetTopLevelIdentifier(
                                             variable.Initializer.Value, model);
                                     }
 
@@ -509,13 +509,13 @@ namespace Microsoft.PSharp.StaticAnalysis
                             else if (variable.Initializer.Value is InvocationExpressionSyntax)
                             {
                                 var invocation = variable.Initializer.Value as InvocationExpressionSyntax;
-                                trace.InsertCall(cfgNode.Summary.Method, invocation);
+                                trace.InsertCall(cfgNode.GetMethodSummary().Method, invocation);
                                 var returnSymbols = this.DetectGivenUpFieldOwnershipInInvocation(
-                                    invocation, target, syntaxNode, cfgNode, givesUpNode.SyntaxNodes.First(),
-                                    givesUpNode, originalMachine, model, trace);
+                                    invocation, target, syntaxNode, cfgNode, givesUpCfgNode.SyntaxNodes.First(),
+                                    givesUpCfgNode, originalMachine, model, trace);
 
                                 if (DataFlowQuerying.FlowsIntoTarget(variable, target, syntaxNode, cfgNode,
-                                    givesUpNode.SyntaxNodes.First(), givesUpNode, model))
+                                    givesUpCfgNode.SyntaxNodes.First(), givesUpCfgNode, model))
                                 {
                                     rightSymbols = returnSymbols;
                                 }
@@ -523,13 +523,13 @@ namespace Microsoft.PSharp.StaticAnalysis
                             else if (variable.Initializer.Value is ObjectCreationExpressionSyntax)
                             {
                                 var objCreation = variable.Initializer.Value as ObjectCreationExpressionSyntax;
-                                trace.InsertCall(cfgNode.Summary.Method, objCreation);
+                                trace.InsertCall(cfgNode.GetMethodSummary().Method, objCreation);
                                 var returnSymbols = this.DetectGivenUpFieldOwnershipInObjectCreation(
-                                    objCreation, target, syntaxNode, cfgNode, givesUpNode.SyntaxNodes.First(),
-                                    givesUpNode, model, trace);
+                                    objCreation, target, syntaxNode, cfgNode, givesUpCfgNode.SyntaxNodes.First(),
+                                    givesUpCfgNode, model, trace);
 
                                 if (DataFlowQuerying.FlowsIntoTarget(variable, target, syntaxNode, cfgNode,
-                                    givesUpNode.SyntaxNodes.First(), givesUpNode, model))
+                                    givesUpCfgNode.SyntaxNodes.First(), givesUpCfgNode, model))
                                 {
                                     rightSymbols = returnSymbols;
                                 }
@@ -544,13 +544,12 @@ namespace Microsoft.PSharp.StaticAnalysis
                                         this.AnalysisContext.Solution).Result;
                                     var type = model.GetTypeInfo(variable.Initializer.Value).Type;
                                     if (rightDef != null && rightDef.Kind == SymbolKind.Field &&
-                                        this.AnalysisContext.DoesFieldBelongToMachine(rightDef, cfgNode.Summary) &&
-                                        !this.AnalysisContext.IsTypeAllowedToBeSend(type) &&
+                                        this.AnalysisContext.DoesFieldBelongToMachine(rightDef, cfgNode.GetMethodSummary()) &&
+                                        !this.AnalysisContext.IsTypePassedByValueOrImmutable(type) &&
                                         !this.AnalysisContext.IsExprEnum(variable.Initializer.Value, model) &&
                                         !DataFlowQuerying.DoesResetInSuccessorCFGNodes(rightSymbol,
                                         target, syntaxNode, cfgNode) &&
-                                        FieldUsageAnalysis.IsAccessedBeforeBeingReset(rightDef,
-                                        cfgNode.Summary, this.AnalysisContext))
+                                        this.IsFieldAccessedBeforeBeingReset(rightDef, cfgNode.GetMethodSummary()))
                                     {
                                         TraceInfo newTrace = new TraceInfo();
                                         newTrace.Merge(trace);
@@ -580,7 +579,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                             }
                             else if (binaryExpr.Left is MemberAccessExpressionSyntax)
                             {
-                                var leftIdentifier = this.AnalysisContext.GetFirstNonMachineIdentifier(
+                                var leftIdentifier = this.AnalysisContext.GetTopLevelIdentifier(
                                     binaryExpr.Left, model);
                                 if (leftIdentifier != null)
                                 {
@@ -593,7 +592,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                                 binaryExpr.Right is MemberAccessExpressionSyntax)
                             {
                                 if (DataFlowQuerying.FlowsIntoTarget(binaryExpr.Left, target, syntaxNode,
-                                    cfgNode, givesUpNode.SyntaxNodes.First(), givesUpNode,
+                                    cfgNode, givesUpCfgNode.SyntaxNodes.First(), givesUpCfgNode,
                                     model, this.AnalysisContext))
                                 {
                                     IdentifierNameSyntax rightIdentifier = null;
@@ -603,7 +602,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                                     }
                                     else if (binaryExpr.Right is MemberAccessExpressionSyntax)
                                     {
-                                        rightIdentifier = this.AnalysisContext.GetFirstNonMachineIdentifier(
+                                        rightIdentifier = this.AnalysisContext.GetTopLevelIdentifier(
                                             binaryExpr.Right, model);
                                     }
 
@@ -617,13 +616,13 @@ namespace Microsoft.PSharp.StaticAnalysis
                             else if (binaryExpr.Right is InvocationExpressionSyntax)
                             {
                                 var invocation = binaryExpr.Right as InvocationExpressionSyntax;
-                                trace.InsertCall(cfgNode.Summary.Method, invocation);
+                                trace.InsertCall(cfgNode.GetMethodSummary().Method, invocation);
                                 var returnSymbols = this.DetectGivenUpFieldOwnershipInInvocation(
-                                    invocation, target, syntaxNode, cfgNode, givesUpNode.SyntaxNodes.First(),
-                                    givesUpNode, originalMachine, model, trace);
+                                    invocation, target, syntaxNode, cfgNode, givesUpCfgNode.SyntaxNodes.First(),
+                                    givesUpCfgNode, originalMachine, model, trace);
 
                                 if (DataFlowQuerying.FlowsIntoTarget(binaryExpr.Left, target, syntaxNode,
-                                    cfgNode, givesUpNode.SyntaxNodes.First(), givesUpNode,
+                                    cfgNode, givesUpCfgNode.SyntaxNodes.First(), givesUpCfgNode,
                                     model, this.AnalysisContext))
                                 {
                                     rightSymbols = returnSymbols;
@@ -636,13 +635,13 @@ namespace Microsoft.PSharp.StaticAnalysis
                             else if (binaryExpr.Right is ObjectCreationExpressionSyntax)
                             {
                                 var objCreation = binaryExpr.Right as ObjectCreationExpressionSyntax;
-                                trace.InsertCall(cfgNode.Summary.Method, objCreation);
+                                trace.InsertCall(cfgNode.GetMethodSummary().Method, objCreation);
                                 var returnSymbols = this.DetectGivenUpFieldOwnershipInObjectCreation(
-                                    objCreation, target, syntaxNode, cfgNode, givesUpNode.SyntaxNodes.First(),
-                                    givesUpNode, model, trace);
+                                    objCreation, target, syntaxNode, cfgNode, givesUpCfgNode.SyntaxNodes.First(),
+                                    givesUpCfgNode, model, trace);
 
                                 if (DataFlowQuerying.FlowsIntoTarget(binaryExpr.Left, target, syntaxNode,
-                                    cfgNode, givesUpNode.SyntaxNodes.First(), givesUpNode,
+                                    cfgNode, givesUpCfgNode.SyntaxNodes.First(), givesUpCfgNode,
                                     model, this.AnalysisContext))
                                 {
                                     rightSymbols = returnSymbols;
@@ -665,13 +664,12 @@ namespace Microsoft.PSharp.StaticAnalysis
                                     this.AnalysisContext.Solution).Result;
                                 var rightType = model.GetTypeInfo(binaryExpr.Right).Type;
                                 if (rightDef != null && rightDef.Kind == SymbolKind.Field &&
-                                    this.AnalysisContext.DoesFieldBelongToMachine(rightDef, cfgNode.Summary) &&
-                                    !this.AnalysisContext.IsTypeAllowedToBeSend(rightType) &&
+                                    this.AnalysisContext.DoesFieldBelongToMachine(rightDef, cfgNode.GetMethodSummary()) &&
+                                    !this.AnalysisContext.IsTypePassedByValueOrImmutable(rightType) &&
                                     !this.AnalysisContext.IsExprEnum(binaryExpr.Right, model) &&
                                     !DataFlowQuerying.DoesResetInSuccessorCFGNodes(rightSymbol,
                                     target, syntaxNode, cfgNode) &&
-                                    FieldUsageAnalysis.IsAccessedBeforeBeingReset(rightDef,
-                                    cfgNode.Summary, this.AnalysisContext))
+                                    this.IsFieldAccessedBeforeBeingReset(rightDef, cfgNode.GetMethodSummary()))
                                 {
                                     TraceInfo newTrace = new TraceInfo();
                                     newTrace.Merge(trace);
@@ -683,18 +681,17 @@ namespace Microsoft.PSharp.StaticAnalysis
                                 if (leftSymbol != null && !rightSymbol.Equals(leftSymbol))
                                 {
                                     if (DataFlowQuerying.FlowsIntoTarget(rightSymbol, target, syntaxNode,
-                                        cfgNode, givesUpNode.SyntaxNodes.First(), givesUpNode))
+                                        cfgNode, givesUpCfgNode.SyntaxNodes.First(), givesUpCfgNode))
                                     {
                                         var leftDef = SymbolFinder.FindSourceDefinitionAsync(leftSymbol,
                                             this.AnalysisContext.Solution).Result;
                                         var leftType = model.GetTypeInfo(binaryExpr.Left).Type;
                                         if (leftDef != null && leftDef.Kind == SymbolKind.Field &&
-                                            !this.AnalysisContext.IsTypeAllowedToBeSend(leftType) &&
+                                            !this.AnalysisContext.IsTypePassedByValueOrImmutable(leftType) &&
                                             !this.AnalysisContext.IsExprEnum(binaryExpr.Left, model) &&
                                             !DataFlowQuerying.DoesResetInSuccessorCFGNodes(leftSymbol,
                                             target, syntaxNode, cfgNode) &&
-                                            FieldUsageAnalysis.IsAccessedBeforeBeingReset(leftDef,
-                                            cfgNode.Summary, this.AnalysisContext))
+                                            this.IsFieldAccessedBeforeBeingReset(leftDef, cfgNode.GetMethodSummary()))
                                         {
                                             TraceInfo newTrace = new TraceInfo();
                                             newTrace.Merge(trace);
@@ -709,9 +706,9 @@ namespace Microsoft.PSharp.StaticAnalysis
                         else if (expr.Expression is InvocationExpressionSyntax)
                         {
                             var invocation = expr.Expression as InvocationExpressionSyntax;
-                            trace.InsertCall(cfgNode.Summary.Method, invocation);
+                            trace.InsertCall(cfgNode.GetMethodSummary().Method, invocation);
                             this.DetectGivenUpFieldOwnershipInInvocation(invocation,
-                                target, syntaxNode, cfgNode, givesUpNode.SyntaxNodes.First(), givesUpNode,
+                                target, syntaxNode, cfgNode, givesUpCfgNode.SyntaxNodes.First(), givesUpCfgNode,
                                 originalMachine, model, trace);
                         }
                     }
@@ -725,20 +722,20 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             visited.Add(cfgNode);
 
-            if (givesUpNode != null)
+            if (givesUpCfgNode != null)
             {
-                foreach (var predecessor in cfgNode.IPredecessors)
+                foreach (var predecessor in cfgNode.GetImmediatePredecessors())
                 {
-                    this.DetectGivenUpFieldOwnershipInControlFlowGraph(predecessor,
-                        givesUpNode, target, giveUpSource, visited, originalMachine, model, trace);
+                    this.DetectGivenUpFieldOwnershipInCFG(predecessor,
+                        givesUpCfgNode, target, giveUpSource, visited, originalMachine, model, trace);
                 }
             }
             else
             {
-                foreach (var successor in cfgNode.ISuccessors)
+                foreach (var successor in cfgNode.GetImmediateSuccessors())
                 {
-                    this.DetectGivenUpFieldOwnershipInControlFlowGraph(successor,
-                        givesUpNode, target, giveUpSource, visited, originalMachine, model, trace);
+                    this.DetectGivenUpFieldOwnershipInCFG(successor,
+                        givesUpCfgNode, target, giveUpSource, visited, originalMachine, model, trace);
                 }
             }
         }
@@ -750,15 +747,15 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="call">Call</param>
         /// <param name="target">Target</param>
         /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        /// <param name="cfgNode">CFGNode</param>
         /// <param name="givesUpSyntaxNode">Gives up syntaxNode</param>
         /// <param name="givesUpCfgNode">Gives up controlFlowGraphNode</param>
         /// <param name="model">SemanticModel</param>
         /// <param name="trace">TraceInfo</param>
         /// <returns>Set of return symbols</returns>
         private HashSet<ISymbol> DetectGivenUpFieldOwnershipInObjectCreation(ObjectCreationExpressionSyntax call,
-            ISymbol target, SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode, SyntaxNode givesUpSyntaxNode,
-            ControlFlowGraphNode givesUpCfgNode, SemanticModel model, TraceInfo trace)
+            ISymbol target, SyntaxNode syntaxNode, PSharpCFGNode cfgNode, SyntaxNode givesUpSyntaxNode,
+            PSharpCFGNode givesUpCfgNode, SemanticModel model, TraceInfo trace)
         {
             TraceInfo callTrace = new TraceInfo();
             callTrace.Merge(trace);
@@ -790,7 +787,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             var constructorCall = definition.DeclaringSyntaxReferences.First().GetSyntax()
                 as ConstructorDeclarationSyntax;
-            var constructorSummary = MethodSummary.Create(this.AnalysisContext, constructorCall);
+            var constructorSummary = PSharpMethodSummary.Create(this.AnalysisContext, constructorCall);
             var arguments = call.ArgumentList.Arguments;
 
             for (int idx = 0; idx < arguments.Count; idx++)
@@ -801,9 +798,8 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     if (constructorSummary.SideEffects.Any(
                         v => v.Value.Contains(idx) &&
-                        this.AnalysisContext.DoesFieldBelongToMachine(v.Key, cfgNode.Summary) &&
-                        FieldUsageAnalysis.IsAccessedBeforeBeingReset(v.Key,
-                        cfgNode.Summary, this.AnalysisContext)))
+                        this.AnalysisContext.DoesFieldBelongToMachine(v.Key, cfgNode.GetMethodSummary()) &&
+                        this.IsFieldAccessedBeforeBeingReset(v.Key, cfgNode.GetMethodSummary())))
                     {
                         AnalysisErrorReporter.ReportGivenUpFieldOwnershipError(callTrace);
                     }
@@ -820,7 +816,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="call">Call</param>
         /// <param name="target">Target</param>
         /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        /// <param name="cfgNode">CFGNode</param>
         /// <param name="givesUpSyntaxNode">Gives up syntaxNode</param>
         /// <param name="givesUpCfgNode">Gives up controlFlowGraphNode</param>
         /// <param name="originalMachine">Original machine</param>
@@ -828,8 +824,8 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="trace">TraceInfo</param>
         /// <returns>Set of return symbols</returns>
         private HashSet<ISymbol> DetectGivenUpFieldOwnershipInInvocation(InvocationExpressionSyntax call,
-            ISymbol target, SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode, SyntaxNode givesUpSyntaxNode,
-            ControlFlowGraphNode givesUpCfgNode, ClassDeclarationSyntax originalMachine, SemanticModel model,
+            ISymbol target, SyntaxNode syntaxNode, PSharpCFGNode cfgNode, SyntaxNode givesUpSyntaxNode,
+            PSharpCFGNode givesUpCfgNode, ClassDeclarationSyntax originalMachine, SemanticModel model,
             TraceInfo trace)
         {
             TraceInfo callTrace = new TraceInfo();
@@ -861,7 +857,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 invocationCall.Modifiers.Any(SyntaxKind.OverrideKeyword))
             {
                 HashSet<MethodDeclarationSyntax> overriders = null;
-                if (!InheritanceAnalysis.TryGetPotentialMethodOverriders(out overriders,
+                if (!VirtualDispatchQuerying.TryGetPotentialMethodOverriders(out overriders,
                     call, syntaxNode, cfgNode, originalMachine, model, this.AnalysisContext))
                 {
                     AnalysisErrorReporter.ReportUnknownVirtualCall(callTrace);
@@ -881,7 +877,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             HashSet<ISymbol> potentialReturnSymbols = new HashSet<ISymbol>();
             foreach (var potentialCall in potentialCalls)
             {
-                var invocationSummary = MethodSummary.Create(this.AnalysisContext, potentialCall);
+                var invocationSummary = PSharpMethodSummary.Create(this.AnalysisContext, potentialCall);
                 var arguments = call.ArgumentList.Arguments;
 
                 for (int idx = 0; idx < arguments.Count; idx++)
@@ -892,9 +888,8 @@ namespace Microsoft.PSharp.StaticAnalysis
                     {
                         if (invocationSummary.SideEffects.Any(
                             v => v.Value.Contains(idx) &&
-                            this.AnalysisContext.DoesFieldBelongToMachine(v.Key, cfgNode.Summary) &&
-                            FieldUsageAnalysis.IsAccessedBeforeBeingReset(v.Key,
-                            cfgNode.Summary, this.AnalysisContext)))
+                            this.AnalysisContext.DoesFieldBelongToMachine(v.Key, cfgNode.GetMethodSummary()) &&
+                            this.IsFieldAccessedBeforeBeingReset(v.Key, cfgNode.GetMethodSummary())))
                         {
                             AnalysisErrorReporter.ReportGivenUpFieldOwnershipError(callTrace);
                         }
@@ -921,20 +916,20 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// and reports any potential data races.
         /// </summary>
         /// <param name="cfgNode">Control flow graph node</param>
-        /// <param name="givesUpNode">Gives up node</param>
+        /// <param name="givesUpCfgNode">Gives up node</param>
         /// <param name="target">Target</param>
         /// <param name="giveUpSource">Give up source</param>
         /// <param name="visited">Already visited cfgNodes</param>
         /// <param name="originalMachine">Original machine</param>
         /// <param name="model">SemanticModel</param>
         /// <param name="trace">TraceInfo</param>
-        private void DetectPotentialDataRacesInControlFlowGraph(ControlFlowGraphNode cfgNode,
-            ControlFlowGraphNode givesUpNode, ISymbol target, InvocationExpressionSyntax giveUpSource,
-            HashSet<ControlFlowGraphNode> visited, ClassDeclarationSyntax originalMachine,
+        private void DetectPotentialDataRacesInCFG(PSharpCFGNode cfgNode,
+            PSharpCFGNode givesUpCfgNode, ISymbol target, InvocationExpressionSyntax giveUpSource,
+            HashSet<CFGNode> visited, ClassDeclarationSyntax originalMachine,
             SemanticModel model, TraceInfo trace)
         {
             if (!cfgNode.IsJumpNode && !cfgNode.IsLoopHeadNode &&
-                visited.Contains(givesUpNode))
+                visited.Contains(givesUpCfgNode))
             {
                 foreach (var syntaxNode in cfgNode.SyntaxNodes)
                 {
@@ -950,7 +945,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                             if (variable.Initializer.Value is MemberAccessExpressionSyntax)
                             {
                                 if (DataFlowQuerying.FlowsFromTarget(variable.Initializer.Value, target,
-                                    syntaxNode, cfgNode, givesUpNode.SyntaxNodes.First(), givesUpNode,
+                                    syntaxNode, cfgNode, givesUpCfgNode.SyntaxNodes.First(), givesUpCfgNode,
                                     model, this.AnalysisContext))
                                 {
                                     TraceInfo newTrace = new TraceInfo();
@@ -963,17 +958,17 @@ namespace Microsoft.PSharp.StaticAnalysis
                             else if (variable.Initializer.Value is InvocationExpressionSyntax)
                             {
                                 var invocation = variable.Initializer.Value as InvocationExpressionSyntax;
-                                trace.InsertCall(cfgNode.Summary.Method, invocation);
+                                trace.InsertCall(cfgNode.GetMethodSummary().Method, invocation);
                                 this.DetectPotentialDataRaceInInvocation(invocation,
-                                    target, syntaxNode, cfgNode, givesUpNode.SyntaxNodes.First(),
-                                    givesUpNode, originalMachine, model, trace);
+                                    target, syntaxNode, cfgNode, givesUpCfgNode.SyntaxNodes.First(),
+                                    givesUpCfgNode, originalMachine, model, trace);
                             }
                             else if (variable.Initializer.Value is ObjectCreationExpressionSyntax)
                             {
                                 var objCreation = variable.Initializer.Value as ObjectCreationExpressionSyntax;
-                                trace.InsertCall(cfgNode.Summary.Method, objCreation);
+                                trace.InsertCall(cfgNode.GetMethodSummary().Method, objCreation);
                                 this.DetectPotentialDataRaceInObjectCreation(objCreation, target,
-                                    syntaxNode, cfgNode, givesUpNode.SyntaxNodes.First(), givesUpNode, model, trace);
+                                    syntaxNode, cfgNode, givesUpCfgNode.SyntaxNodes.First(), givesUpCfgNode, model, trace);
                             }
                         }
                     }
@@ -989,7 +984,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
                             if (binaryExpr.Right is IdentifierNameSyntax &&
                                 DataFlowQuerying.FlowsFromTarget(binaryExpr.Right, target, syntaxNode, cfgNode,
-                                givesUpNode.SyntaxNodes.First(), givesUpNode, model, this.AnalysisContext))
+                                givesUpCfgNode.SyntaxNodes.First(), givesUpCfgNode, model, this.AnalysisContext))
                             {
                                 ISymbol leftSymbol = null;
                                 if (binaryExpr.Left is IdentifierNameSyntax)
@@ -1007,8 +1002,8 @@ namespace Microsoft.PSharp.StaticAnalysis
                                     this.AnalysisContext.Solution).Result;
                                 var type = model.GetTypeInfo(binaryExpr.Right).Type;
                                 if (leftDef != null && leftDef.Kind == SymbolKind.Field &&
-                                    this.AnalysisContext.DoesFieldBelongToMachine(leftDef, cfgNode.Summary) &&
-                                    !this.AnalysisContext.IsTypeAllowedToBeSend(type) &&
+                                    this.AnalysisContext.DoesFieldBelongToMachine(leftDef, cfgNode.GetMethodSummary()) &&
+                                    !this.AnalysisContext.IsTypePassedByValueOrImmutable(type) &&
                                     !this.AnalysisContext.IsExprEnum(binaryExpr.Right, model))
                                 {
                                     TraceInfo newTrace = new TraceInfo();
@@ -1022,7 +1017,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                             }
                             else if (binaryExpr.Right is MemberAccessExpressionSyntax &&
                                 DataFlowQuerying.FlowsFromTarget(binaryExpr.Right, target, syntaxNode, cfgNode,
-                                givesUpNode.SyntaxNodes.First(), givesUpNode, model, this.AnalysisContext))
+                                givesUpCfgNode.SyntaxNodes.First(), givesUpCfgNode, model, this.AnalysisContext))
                             {
                                 TraceInfo newTrace = new TraceInfo();
                                 newTrace.Merge(trace);
@@ -1034,24 +1029,24 @@ namespace Microsoft.PSharp.StaticAnalysis
                             else if (binaryExpr.Right is InvocationExpressionSyntax)
                             {
                                 var invocation = binaryExpr.Right as InvocationExpressionSyntax;
-                                trace.InsertCall(cfgNode.Summary.Method, invocation);
+                                trace.InsertCall(cfgNode.GetMethodSummary().Method, invocation);
                                 this.DetectPotentialDataRaceInInvocation(invocation,
-                                    target, syntaxNode, cfgNode, givesUpNode.SyntaxNodes.First(),
-                                    givesUpNode, originalMachine, model, trace);
+                                    target, syntaxNode, cfgNode, givesUpCfgNode.SyntaxNodes.First(),
+                                    givesUpCfgNode, originalMachine, model, trace);
                             }
                             else if (binaryExpr.Right is ObjectCreationExpressionSyntax)
                             {
                                 var objCreation = binaryExpr.Right as ObjectCreationExpressionSyntax;
-                                trace.InsertCall(cfgNode.Summary.Method, objCreation);
+                                trace.InsertCall(cfgNode.GetMethodSummary().Method, objCreation);
                                 this.DetectPotentialDataRaceInObjectCreation(objCreation, target,
-                                    syntaxNode, cfgNode, givesUpNode.SyntaxNodes.First(), givesUpNode, model, trace);
+                                    syntaxNode, cfgNode, givesUpCfgNode.SyntaxNodes.First(), givesUpCfgNode, model, trace);
                             }
 
                             if (binaryExpr.Left is MemberAccessExpressionSyntax)
                             {
                                 if (!this.AnalysisContext.IsExprNonMachineMemberAccess(binaryExpr.Left, model) &&
                                     DataFlowQuerying.FlowsFromTarget(binaryExpr.Left, target, syntaxNode, cfgNode,
-                                    givesUpNode.SyntaxNodes.First(), givesUpNode, model, this.AnalysisContext))
+                                    givesUpCfgNode.SyntaxNodes.First(), givesUpCfgNode, model, this.AnalysisContext))
                                 {
                                     TraceInfo newTrace = new TraceInfo();
                                     newTrace.Merge(trace);
@@ -1064,10 +1059,10 @@ namespace Microsoft.PSharp.StaticAnalysis
                         else if (expr.Expression is InvocationExpressionSyntax)
                         {
                             var invocation = expr.Expression as InvocationExpressionSyntax;
-                            trace.InsertCall(cfgNode.Summary.Method, invocation);
+                            trace.InsertCall(cfgNode.GetMethodSummary().Method, invocation);
                             this.DetectPotentialDataRaceInInvocation(invocation,
-                                target, syntaxNode, cfgNode, givesUpNode.SyntaxNodes.First(),
-                                givesUpNode, originalMachine, model, trace);
+                                target, syntaxNode, cfgNode, givesUpCfgNode.SyntaxNodes.First(),
+                                givesUpCfgNode, originalMachine, model, trace);
                         }
                     }
                 }
@@ -1080,10 +1075,10 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             visited.Add(cfgNode);
 
-            foreach (var successor in cfgNode.ISuccessors)
+            foreach (var successor in cfgNode.GetImmediateSuccessors())
             {
-                this.DetectPotentialDataRacesInControlFlowGraph(successor,
-                    givesUpNode, target, giveUpSource, visited, originalMachine, model, trace);
+                this.DetectPotentialDataRacesInCFG(successor,
+                    givesUpCfgNode, target, giveUpSource, visited, originalMachine, model, trace);
             }
         }
 
@@ -1094,14 +1089,14 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="invocation">Invocation</param>
         /// <param name="target">Target</param>
         /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        /// <param name="cfgNode">CFGNode</param>
         /// <param name="givesUpSyntaxNode">Gives up syntaxNode</param>
         /// <param name="givesUpCfgNode">Gives up controlFlowGraphNode</param>
         /// <param name="model">SemanticModel</param>
         /// <param name="trace">TraceInfo</param>
         private void DetectPotentialDataRaceInObjectCreation(ObjectCreationExpressionSyntax call,
-            ISymbol target, SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode, SyntaxNode givesUpSyntaxNode,
-            ControlFlowGraphNode givesUpCfgNode, SemanticModel model, TraceInfo trace)
+            ISymbol target, SyntaxNode syntaxNode, PSharpCFGNode cfgNode, SyntaxNode givesUpSyntaxNode,
+            PSharpCFGNode givesUpCfgNode, SemanticModel model, TraceInfo trace)
         {
             TraceInfo callTrace = new TraceInfo();
             callTrace.Merge(trace);
@@ -1119,7 +1114,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             var constructorCall = definition.DeclaringSyntaxReferences.First().GetSyntax()
                 as ConstructorDeclarationSyntax;
-            var constructorSummary = MethodSummary.Create(this.AnalysisContext, constructorCall);
+            var constructorSummary = PSharpMethodSummary.Create(this.AnalysisContext, constructorCall);
             var arguments = call.ArgumentList.Arguments;
 
             for (int idx = 0; idx < arguments.Count; idx++)
@@ -1144,7 +1139,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
                     if (constructorSummary.SideEffects.Any(
                         v => v.Value.Contains(idx) &&
-                        this.AnalysisContext.DoesFieldBelongToMachine(v.Key, cfgNode.Summary)))
+                        this.AnalysisContext.DoesFieldBelongToMachine(v.Key, cfgNode.GetMethodSummary())))
                     {
                         AnalysisErrorReporter.ReportGivenUpOwnershipFieldAssignment(callTrace);
                     }
@@ -1180,15 +1175,15 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="invocation">Invocation</param>
         /// <param name="target">Target</param>
         /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        /// <param name="cfgNode">CFGNode</param>
         /// <param name="givesUpSyntaxNode">Gives up syntaxNode</param>
         /// <param name="givesUpCfgNode">Gives up controlFlowGraphNode</param>
         /// <param name="originalMachine">Original machine</param>
         /// <param name="model">SemanticModel</param>
         /// <param name="trace">TraceInfo</param>
         private void DetectPotentialDataRaceInInvocation(InvocationExpressionSyntax call,
-            ISymbol target, SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode, SyntaxNode givesUpSyntaxNode,
-            ControlFlowGraphNode givesUpCfgNode, ClassDeclarationSyntax originalMachine, SemanticModel model,
+            ISymbol target, SyntaxNode syntaxNode, PSharpCFGNode cfgNode, SyntaxNode givesUpSyntaxNode,
+            PSharpCFGNode givesUpCfgNode, ClassDeclarationSyntax originalMachine, SemanticModel model,
             TraceInfo trace)
         {
             TraceInfo callTrace = new TraceInfo();
@@ -1243,7 +1238,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 invocationCall.Modifiers.Any(SyntaxKind.OverrideKeyword))
             {
                 HashSet<MethodDeclarationSyntax> overriders = null;
-                if (!InheritanceAnalysis.TryGetPotentialMethodOverriders(out overriders,
+                if (!VirtualDispatchQuerying.TryGetPotentialMethodOverriders(out overriders,
                     call, syntaxNode, cfgNode, originalMachine, model, this.AnalysisContext))
                 {
                     AnalysisErrorReporter.ReportUnknownVirtualCall(callTrace);
@@ -1262,7 +1257,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             foreach (var potentialCall in potentialCalls)
             {
-                var invocationSummary = MethodSummary.Create(this.AnalysisContext, potentialCall);
+                var invocationSummary = PSharpMethodSummary.Create(this.AnalysisContext, potentialCall);
                 var arguments = call.ArgumentList.Arguments;
 
                 for (int idx = 0; idx < arguments.Count; idx++)
@@ -1287,7 +1282,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
                         if (invocationSummary.SideEffects.Any(
                             v => v.Value.Contains(idx) &&
-                            this.AnalysisContext.DoesFieldBelongToMachine(v.Key, cfgNode.Summary)))
+                            this.AnalysisContext.DoesFieldBelongToMachine(v.Key, cfgNode.GetMethodSummary())))
                         {
                             AnalysisErrorReporter.ReportGivenUpOwnershipFieldAssignment(callTrace);
                         }
@@ -1324,14 +1319,14 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="operation">Send-related operation</param>
         /// <param name="target">Target</param>
         /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        /// <param name="cfgNode">CFGNode</param>
         /// <param name="givesUpSyntaxNode">Gives up syntaxNode</param>
         /// <param name="givesUpCfgNode">Gives up controlFlowGraphNode</param>
         /// <param name="model">SemanticModel</param>
         /// <param name="trace">TraceInfo</param>
         private void DetectPotentialDataRaceInGivesUpOperation(InvocationExpressionSyntax operation,
-            ISymbol target, SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode, SyntaxNode givesUpSyntaxNode,
-            ControlFlowGraphNode givesUpCfgNode, SemanticModel model, TraceInfo trace)
+            ISymbol target, SyntaxNode syntaxNode, PSharpCFGNode cfgNode, SyntaxNode givesUpSyntaxNode,
+            PSharpCFGNode givesUpCfgNode, SemanticModel model, TraceInfo trace)
         {
             List<ExpressionSyntax> arguments = new List<ExpressionSyntax>();
             var opSymbol = model.GetSymbolInfo(operation).Symbol;
@@ -1437,12 +1432,12 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Returns false if it cannot be accessed.
         /// </summary>
         /// <param name="arg">Argument</param>
-        /// <param name="givesUpNode">Gives up node</param>
+        /// <param name="givesUpCfgNode">Gives up node</param>
         /// <param name="model">SemanticModel</param>
         /// <param name="trace">TraceInfo</param>
         /// <param name="shouldReportError">Should report error</param>
         /// <returns>Boolean</returns>
-        private bool IsArgumentSafeToAccess(ExpressionSyntax arg, ControlFlowGraphNode givesUpNode,
+        private bool IsArgumentSafeToAccess(ExpressionSyntax arg, PSharpCFGNode givesUpCfgNode,
             SemanticModel model, TraceInfo trace, bool shouldReportError)
         {
             ISymbol symbol = null;
@@ -1473,7 +1468,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 var str = (arg as MemberAccessExpressionSyntax).Name.ToString();
                 int idx = Int32.Parse(str.Substring(4));
-                return this.AnalysisContext.IsTypeAllowedToBeSend(
+                return this.AnalysisContext.IsTypePassedByValueOrImmutable(
                     symbol.ContainingType.TypeArguments[idx - 1]);
             }
             else
@@ -1491,28 +1486,117 @@ namespace Microsoft.PSharp.StaticAnalysis
                         GetSyntax().Parent as ParameterListSyntax;
                     var parameter = parameterList.Parameters.First(v =>
                         v.Identifier.ValueText.Equals(arg.ToString()));
-                    return this.AnalysisContext.IsTypeAllowedToBeSend(parameter.Type, model);
+                    TypeInfo typeInfo = model.GetTypeInfo(parameter.Type);
+                    return this.AnalysisContext.IsTypePassedByValueOrImmutable(typeInfo.Type);
                 }
                 else if (definition.DeclaringSyntaxReferences.First().GetSyntax().Parent is VariableDeclarationSyntax)
                 {
                     var varDecl = definition.DeclaringSyntaxReferences.First().GetSyntax().Parent
                         as VariableDeclarationSyntax;
+                    TypeInfo typeInfo = model.GetTypeInfo(varDecl.Type);
+
                     if (shouldReportError && definition != null && definition.Kind == SymbolKind.Field &&
-                        !this.AnalysisContext.IsTypeAllowedToBeSend(varDecl.Type, model) &&
+                        !this.AnalysisContext.IsTypePassedByValueOrImmutable(typeInfo.Type) &&
                         !this.AnalysisContext.IsExprEnum(arg, model) &&
                         !DataFlowQuerying.DoesResetInSuccessorCFGNodes(symbol, symbol,
-                        givesUpNode.SyntaxNodes.First(), givesUpNode) &&
-                        FieldUsageAnalysis.IsAccessedBeforeBeingReset(definition,
-                        givesUpNode.Summary, this.AnalysisContext))
+                        givesUpCfgNode.SyntaxNodes.First(), givesUpCfgNode) &&
+                        this.IsFieldAccessedBeforeBeingReset(definition, givesUpCfgNode.GetMethodSummary()))
                     {
                         AnalysisErrorReporter.ReportGivenUpFieldOwnershipError(trace);
                     }
                     
-                    return this.AnalysisContext.IsTypeAllowedToBeSend(varDecl.Type, model);
+                    return this.AnalysisContext.IsTypePassedByValueOrImmutable(typeInfo.Type);
                 }
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Returns true if the given field symbol is being accessed
+        /// before being reset.
+        /// </summary>
+        /// <param name="field">Field</param>
+        /// <param name="summary">MethodSummary</param>
+        /// <returns>Boolean</returns>
+        private bool IsFieldAccessedBeforeBeingReset(ISymbol field, MethodSummary summary)
+        {
+            StateTransitionGraphNode stateTransitionNode = null;
+            if (!this.AnalysisContext.StateTransitionGraphs.ContainsKey((summary as PSharpMethodSummary).Machine))
+            {
+                return true;
+            }
+
+            stateTransitionNode = this.AnalysisContext.StateTransitionGraphs[(summary as PSharpMethodSummary).Machine].
+                GetGraphNodeForSummary(summary);
+            if (stateTransitionNode == null)
+            {
+                return true;
+            }
+
+            var result = stateTransitionNode.VisitSelfAndSuccessors(
+                this.IsFieldAccessedBeforeBeingReset, new Tuple<MethodSummary, ISymbol>(summary, field));
+
+            return false;
+        }
+
+        /// <summary>
+        /// Query checking if the field is accessed before being reset
+        /// in the given state transition node.
+        /// </summary>
+        /// <param name="node">StateTransitionGraphNode</param>
+        /// <param name="input">Input</param>
+        /// <param name="isFirstVisit">True if first node to visit</param>
+        /// <returns>Boolean</returns>
+        private bool IsFieldAccessedBeforeBeingReset(StateTransitionGraphNode node,
+            object input, bool isFirstVisit)
+        {
+            var summary = ((Tuple<MethodSummary, ISymbol>)input).Item1;
+            var fieldSymbol = ((Tuple<MethodSummary, ISymbol>)input).Item2;
+            var result = false;
+
+            if (isFirstVisit && node.OnExit != null && !summary.Equals(node.OnExit))
+            {
+                foreach (var action in node.Actions)
+                {
+                    result = action.FieldAccessSet.ContainsKey(fieldSymbol as IFieldSymbol);
+                    if (result)
+                    {
+                        break;
+                    }
+                }
+
+                if (!result && node.OnExit != null)
+                {
+                    result = node.OnExit.FieldAccessSet.ContainsKey(fieldSymbol as IFieldSymbol);
+                }
+            }
+            else if (!isFirstVisit)
+            {
+                if (node.OnEntry != null)
+                {
+                    result = node.OnEntry.FieldAccessSet.ContainsKey(fieldSymbol as IFieldSymbol);
+                }
+
+                if (!result)
+                {
+                    foreach (var action in node.Actions)
+                    {
+                        result = action.FieldAccessSet.ContainsKey(fieldSymbol as IFieldSymbol);
+                        if (result)
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                if (!result && node.OnExit != null)
+                {
+                    result = node.OnExit.FieldAccessSet.ContainsKey(fieldSymbol as IFieldSymbol);
+                }
+            }
+
+            return result;
         }
 
         /// <summary>

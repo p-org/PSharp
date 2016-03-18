@@ -15,7 +15,7 @@
 namespace Microsoft.PSharp.StaticAnalysis
 {
     /// <summary>
-    /// Implementation of an abstract analysis pass.
+    /// Implementation of an abstract state-machine analysis pass.
     /// </summary>
     public abstract class AnalysisPass
     {
@@ -24,7 +24,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// The analysis context.
         /// </summary>
-        protected AnalysisContext AnalysisContext;
+        protected PSharpAnalysisContext AnalysisContext;
 
         #endregion
 
@@ -34,7 +34,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Constructor.
         /// </summary>
         /// <param name="context">AnalysisContext</param>
-        protected AnalysisPass(AnalysisContext context)
+        protected AnalysisPass(PSharpAnalysisContext context)
         {
             this.AnalysisContext = context;
         }
