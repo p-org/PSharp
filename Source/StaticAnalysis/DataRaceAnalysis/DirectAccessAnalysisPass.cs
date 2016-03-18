@@ -73,17 +73,17 @@ namespace Microsoft.PSharp.StaticAnalysis
         {
             foreach (var machineDecl in AnalysisContext.Machines)
             {
-                foreach (var field in machineDecl.ChildNodes().OfType<FieldDeclarationSyntax>())
+                foreach (var field in machineDecl.Declaration.ChildNodes().OfType<FieldDeclarationSyntax>())
                 {
                     if (field.Modifiers.Any(SyntaxKind.PublicKeyword))
                     {
                         AnalysisErrorReporter.Report("Field '{0}' of machine '{1}' is declared as " +
-                            "'public'.", field.Declaration.ToString(), machineDecl.Identifier.ValueText);
+                            "'public'.", field.Declaration.ToString(), machineDecl.Name);
                     }
                     else if (field.Modifiers.Any(SyntaxKind.InternalKeyword))
                     {
                         AnalysisErrorReporter.Report("Field '{0}' of machine '{1}' is declared as " +
-                            "'internal'.", field.Declaration.ToString(), machineDecl.Identifier.ValueText);
+                            "'internal'.", field.Declaration.ToString(), machineDecl.Name);
                     }
                 }
             }
@@ -98,19 +98,19 @@ namespace Microsoft.PSharp.StaticAnalysis
         {
             foreach (var machineDecl in AnalysisContext.Machines)
             {
-                foreach (var method in machineDecl.ChildNodes().OfType<MethodDeclarationSyntax>())
+                foreach (var method in machineDecl.Declaration.ChildNodes().OfType<MethodDeclarationSyntax>())
                 {
                     if (method.Modifiers.Any(SyntaxKind.PublicKeyword))
                     {
                         AnalysisErrorReporter.Report("Method '{0}' of machine '{1}' is " +
                             "declared as 'public'.", method.Identifier.ValueText,
-                            machineDecl.Identifier.ValueText);
+                            machineDecl.Name);
                     }
                     else if (method.Modifiers.Any(SyntaxKind.InternalKeyword))
                     {
                         AnalysisErrorReporter.Report("Method '{0}' of machine '{1}' is " +
                             "declared as 'internal'.", method.Identifier.ValueText,
-                            machineDecl.Identifier.ValueText);
+                            machineDecl.Name);
                     }
                 }
             }

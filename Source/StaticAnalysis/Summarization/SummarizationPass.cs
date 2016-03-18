@@ -121,11 +121,11 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// method summaries. This process repeats until it reaches a fix-point.
         /// </summary>
         /// <param name="machine">Machine</param>
-        private void SummarizeStateMachine(ClassDeclarationSyntax machine)
+        private void SummarizeStateMachine(StateMachine machine)
         {
             int fixPoint = 0;
             
-            foreach (var method in machine.ChildNodes().OfType<MethodDeclarationSyntax>())
+            foreach (var method in machine.Declaration.ChildNodes().OfType<MethodDeclarationSyntax>())
             {
                 if (this.AnalysisContext.Summaries.ContainsKey(method) ||
                     method.Modifiers.Any(SyntaxKind.AbstractKeyword))
@@ -152,7 +152,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="method">Method</param>
         /// <param name="machine">Machine</param>
-        private void SummarizeMethod(MethodDeclarationSyntax method, ClassDeclarationSyntax machine)
+        private void SummarizeMethod(MethodDeclarationSyntax method, StateMachine machine)
         {
             List<InvocationExpressionSyntax> givesUpSources = new List<InvocationExpressionSyntax>();
             foreach (var call in method.DescendantNodes().OfType<InvocationExpressionSyntax>())
@@ -181,7 +181,8 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     givesUpSources.Add(call);
                 }
-                else if (machine.ChildNodes().OfType<BaseMethodDeclarationSyntax>().Contains(calleeMethod) &&
+                else if (machine.Declaration.ChildNodes().OfType<BaseMethodDeclarationSyntax>().
+                    Contains(calleeMethod) &&
                     !this.AnalysisContext.Summaries.ContainsKey(calleeMethod) &&
                     !calleeMethod.Modifiers.Any(SyntaxKind.AbstractKeyword))
                 {

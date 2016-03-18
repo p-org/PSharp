@@ -206,16 +206,34 @@ namespace Microsoft.PSharp.StaticAnalysis
         #region internal API
 
         /// <summary>
+        /// Gets the identifier from the expression.
+        /// </summary>
+        /// <param name="expr">Expression</param>
+        /// <returns>Identifier</returns>
+        internal IdentifierNameSyntax GetIdentifier(ExpressionSyntax expr)
+        {
+            IdentifierNameSyntax identifier = null;
+            if (expr is IdentifierNameSyntax)
+            {
+                identifier = expr as IdentifierNameSyntax;
+            }
+            else if (expr is MemberAccessExpressionSyntax)
+            {
+                identifier = (expr as MemberAccessExpressionSyntax).Name
+                    as IdentifierNameSyntax;
+            }
+
+            return identifier;
+        }
+
+        /// <summary>
         /// Gets the top-level identifier.
         /// </summary>
         /// <param name="expr">Expression</param>
-        /// <param name="model">SemanticModel</param>
         /// <returns>Identifier</returns>
-        internal IdentifierNameSyntax GetTopLevelIdentifier(ExpressionSyntax expr,
-            SemanticModel model)
+        internal IdentifierNameSyntax GetTopLevelIdentifier(ExpressionSyntax expr)
         {
             IdentifierNameSyntax identifier = null;
-
             if (expr is IdentifierNameSyntax)
             {
                 identifier = expr as IdentifierNameSyntax;

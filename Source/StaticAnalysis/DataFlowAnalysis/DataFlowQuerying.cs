@@ -45,7 +45,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             SyntaxNode syntaxNode, CFGNode cfgNode, SyntaxNode targetSyntaxNode,
             CFGNode targetCfgNode, SemanticModel model, AnalysisContext context)
         {
-            IdentifierNameSyntax identifier = context.GetTopLevelIdentifier(expr, model);
+            IdentifierNameSyntax identifier = context.GetTopLevelIdentifier(expr);
             if (identifier == null)
             {
                 return false;
@@ -165,7 +165,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             SyntaxNode syntaxNode, CFGNode cfgNode, SyntaxNode targetSyntaxNode,
             CFGNode targetCfgNode, SemanticModel model, AnalysisContext context)
         {
-            IdentifierNameSyntax identifier = context.GetTopLevelIdentifier(expr, model);
+            IdentifierNameSyntax identifier = context.GetTopLevelIdentifier(expr);
             if (identifier == null)
             {
                 return false;
@@ -292,7 +292,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             CFGNode cfgNode, SyntaxNode targetSyntaxNode,
             CFGNode targetCfgNode, SemanticModel model, AnalysisContext context)
         {
-            IdentifierNameSyntax identifier = context.GetTopLevelIdentifier(expr, model);
+            IdentifierNameSyntax identifier = context.GetTopLevelIdentifier(expr);
             if (!cfgNode.Equals(targetCfgNode) || identifier == null)
             {
                 return false;
@@ -359,7 +359,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         public static bool DoesResetInSuccessorCFGNodes(ExpressionSyntax expr, ISymbol target,
             SyntaxNode syntaxNode, CFGNode cfgNode, SemanticModel model, AnalysisContext context)
         {
-            IdentifierNameSyntax identifier = context.GetTopLevelIdentifier(expr, model);
+            IdentifierNameSyntax identifier = context.GetTopLevelIdentifier(expr);
             if (identifier == null)
             {
                 return false;

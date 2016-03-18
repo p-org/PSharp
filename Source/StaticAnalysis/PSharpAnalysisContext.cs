@@ -35,24 +35,19 @@ namespace Microsoft.PSharp.StaticAnalysis
         #region fields
 
         /// <summary>
-        /// List of machine class declerations in the project.
+        /// List of state-machines in the project.
         /// </summary>
-        internal List<ClassDeclarationSyntax> Machines;
-
-        /// <summary>
-        /// Dictionary containing machine inheritance information.
-        /// </summary>
-        internal Dictionary<ClassDeclarationSyntax, ClassDeclarationSyntax> MachineInheritance;
-
-        /// <summary>
-        /// List of machine actions per machine in the project.
-        /// </summary>
-        internal Dictionary<ClassDeclarationSyntax, List<string>> MachineActions;
+        internal List<StateMachine> Machines;
 
         /// <summary>
         /// Dictionary of state transition graphs in the project.
         /// </summary>
-        internal Dictionary<ClassDeclarationSyntax, StateTransitionGraphNode> StateTransitionGraphs;
+        internal Dictionary<StateMachine, StateTransitionGraphNode> StateTransitionGraphs;
+
+        /// <summary>
+        /// Dictionary containing machine inheritance information.
+        /// </summary>
+        internal Dictionary<StateMachine, StateMachine> MachineInheritanceMap;
 
         #endregion
 
@@ -102,7 +97,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         {
             var typeName = type.ContainingNamespace.ToString() + "." + type.Name;
             if (base.IsTypePassedByValueOrImmutable(type) ||
-                typeName.Equals(typeof(MachineId).FullName))
+                typeName.Equals(typeof(Microsoft.PSharp.MachineId).FullName))
             {
                 return true;
             }
@@ -122,14 +117,12 @@ namespace Microsoft.PSharp.StaticAnalysis
         private PSharpAnalysisContext(Configuration configuration, Project project)
             : base(configuration, project)
         {
-            this.Machines = new List<ClassDeclarationSyntax>();
-            this.MachineInheritance = new Dictionary<ClassDeclarationSyntax, ClassDeclarationSyntax>();
-            this.MachineActions = new Dictionary<ClassDeclarationSyntax, List<string>>();
-            this.StateTransitionGraphs = new Dictionary<ClassDeclarationSyntax, StateTransitionGraphNode>();
-            
+            this.Machines = new List<StateMachine>();
+            this.StateTransitionGraphs = new Dictionary<StateMachine, StateTransitionGraphNode>();
+            this.MachineInheritanceMap = new Dictionary<StateMachine, StateMachine>();
+
             this.FindAllStateMachines();
             this.FindStateMachineInheritanceInformation();
-            this.FindAllStateMachineActions();
         }
 
         #endregion
@@ -155,31 +148,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             var fieldDecl = definition.DeclaringSyntaxReferences.First().GetSyntax().
                 AncestorsAndSelf().OfType<FieldDeclarationSyntax>().First();
 
-            if (summary.Machine.ChildNodes().OfType<FieldDeclarationSyntax>().Contains(fieldDecl))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Checks if the given method is an entry point to the given machine.
-        /// </summary>
-        /// <param name="method">Method</param>
-        /// <param name="machine">Machine</param>
-        /// <returns>Boolean</returns>
-        internal bool IsEntryPointMethod(MethodDeclarationSyntax method, ClassDeclarationSyntax machine)
-        {
-            if (method.Modifiers.Any(SyntaxKind.OverrideKeyword) ||
-                method.Identifier.ValueText.Equals("OnEntry") ||
-                method.Identifier.ValueText.Equals("OnExit"))
-            {
-                return true;
-            }
-
-            var methodName = base.GetFullMethodName(method);
-            if (this.MachineActions[machine].Contains(methodName))
+            if (summary.Machine.Declaration.ChildNodes().OfType<FieldDeclarationSyntax>().Contains(fieldDecl))
             {
                 return true;
             }
@@ -215,7 +184,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     if (Querying.IsMachine(base.Compilation, classDecl))
                     {
-                        this.Machines.Add(classDecl);
+                        this.Machines.Add(new StateMachine(classDecl, this));
                     }
                 }
             }
@@ -227,67 +196,21 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         private void FindStateMachineInheritanceInformation()
         {
-            foreach (var machine in this.Machines)
-            {
-                IList<INamedTypeSymbol> baseTypes = base.GetBaseTypes(machine);
-                foreach (var type in baseTypes)
-                {
-                    if (type.ToString().Equals(typeof(Machine).FullName))
-                    {
-                        break;
-                    }
+            //foreach (var machine in this.Machines)
+            //{
+            //    IList<INamedTypeSymbol> baseTypes = base.GetBaseTypes(machine);
+            //    foreach (var type in baseTypes)
+            //    {
+            //        if (type.ToString().Equals(typeof(Microsoft.PSharp.Machine).FullName))
+            //        {
+            //            break;
+            //        }
 
-                    var inheritedMachine = this.Machines.Find(m
-                        => base.GetFullClassName(m).Equals(type.ToString()));
-                    this.MachineInheritance.Add(machine, inheritedMachine);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Finds all state-machine actions for each state-machine in the project.
-        /// </summary>
-        private void FindAllStateMachineActions()
-        {
-            foreach (var machine in this.Machines)
-            {
-                var actionBindingFunc = machine.ChildNodes().OfType<MethodDeclarationSyntax>().
-                    SingleOrDefault(m => m.Modifiers.Any(SyntaxKind.OverrideKeyword) &&
-                    m.Identifier.ValueText.Equals("DefineActionBindings"));
-                if (actionBindingFunc == null)
-                {
-                    this.MachineActions.Add(machine, new List<string>());
-                    continue;
-                }
-
-                var model = base.Compilation.GetSemanticModel(machine.SyntaxTree);
-
-                List<string> actionNames = new List<string>();
-                foreach (var action in actionBindingFunc.DescendantNodesAndSelf().
-                    OfType<ObjectCreationExpressionSyntax>())
-                {
-                    var type = model.GetTypeInfo(action).Type;
-                    if (!type.ToString().Equals("System.Action"))
-                    {
-                        continue;
-                    }
-
-                    var actionFunc = action.ArgumentList.Arguments[0].Expression;
-                    if (!(actionFunc is IdentifierNameSyntax))
-                    {
-                        continue;
-                    }
-
-                    var method = machine.ChildNodes().OfType<MethodDeclarationSyntax>().
-                        SingleOrDefault(m => m.Identifier.ValueText.Equals(
-                            (actionFunc as IdentifierNameSyntax).Identifier.ValueText) &&
-                            m.ParameterList.Parameters.Count == 0);
-                    var methodName = base.GetFullMethodName(method);
-                    actionNames.Add(methodName);
-                }
-
-                this.MachineActions.Add(machine, actionNames);
-            }
+            //        var inheritedMachine = this.Machines.Find(m
+            //            => base.GetFullClassName(m).Equals(type.ToString()));
+            //        this.MachineInheritance.Add(machine, inheritedMachine);
+            //    }
+            //}
         }
 
         #endregion

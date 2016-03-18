@@ -75,23 +75,31 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataFlowAnalysis\PSharpDataFlowAnalysis.cs" />
-    <Compile Include="DataStructures\PSharpMethodSummary.cs" />
-    <Compile Include="DataStructures\PSharpCFGNode.cs" />
+    <Compile Include="Library\OnEventPushMachineAction.cs" />
+    <Compile Include="Library\OnEventGotoMachineAction.cs" />
+    <Compile Include="Library\OnEventDoMachineAction.cs" />
+    <Compile Include="Library\OnExitMachineAction.cs" />
+    <Compile Include="Library\OnEntryMachineAction.cs" />
+    <Compile Include="Library\MachineAction.cs" />
+    <Compile Include="Library\MachineState.cs" />
+    <Compile Include="Library\StateMachine.cs" />
+    <Compile Include="Summarization\PSharpMethodSummary.cs" />
+    <Compile Include="ControlFlowAnalysis\PSharpCFGNode.cs" />
     <Compile Include="PSharpAnalysisContext.cs" />
     <Compile Include="DataFlowAnalysis\DataFlowQuerying.cs" />
     <Compile Include="DataFlowAnalysis\VirtualDispatchQuerying.cs" />
     <Compile Include="DataFlowAnalysis\AnalysisContext.cs" />
-    <Compile Include="DataStructures\CFGNode.cs" />
+    <Compile Include="DataFlowAnalysis\CFGNode.cs" />
     <Compile Include="DataFlowAnalysis\DataFlowAnalysis.cs" />
-    <Compile Include="DataStructures\MethodSummary.cs" />
-    <Compile Include="DataStructures\StateTransitionGraphNode.cs" />
+    <Compile Include="DataFlowAnalysis\MethodSummary.cs" />
+    <Compile Include="ControlFlowAnalysis\StateTransitionGraphNode.cs" />
     <Compile Include="Tracing\CallTraceStep.cs" />
     <Compile Include="Tracing\ErrorTraceStep.cs" />
     <Compile Include="Utilities\AnalysisErrorReporter.cs" />
     <Compile Include="Tracing\TraceInfo.cs" />
     <Compile Include="DataRaceAnalysis\AnalysisPass.cs" />
     <Compile Include="StaticAnalysisEngine.cs" />
-    <Compile Include="DataRaceAnalysis\SummarizationPass.cs" />
+    <Compile Include="Summarization\SummarizationPass.cs" />
     <Compile Include="DataRaceAnalysis\RespectsOwnershipAnalysisPass.cs" />
     <Compile Include="DataRaceAnalysis\DirectAccessAnalysisPass.cs" />
     <Compile Include="DataRaceAnalysis\StateTransitionAnalysisPass.cs" />

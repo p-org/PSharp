@@ -88,9 +88,9 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Tries to construct the state transition graph for the given machine.
         /// </summary>
         /// <param name="machine">Machine</param>
-        private void ConstructGraphForMachine(ClassDeclarationSyntax machine)
+        private void ConstructGraphForMachine(StateMachine machine)
         {
-            var model = AnalysisContext.Compilation.GetSemanticModel(machine.SyntaxTree);
+            var model = AnalysisContext.Compilation.GetSemanticModel(machine.Declaration.SyntaxTree);
 
             Dictionary<ClassDeclarationSyntax, HashSet<ClassDeclarationSyntax>> stateTransitions = null;
             this.TryParseStateTransitions(out stateTransitions, machine, model);
@@ -135,12 +135,12 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="model">SemanticModel</param>
         /// <returns>Boolean</returns>
         private bool TryParseStateTransitions(out Dictionary<ClassDeclarationSyntax,
-            HashSet<ClassDeclarationSyntax>> stateTransitions, ClassDeclarationSyntax machine,
+            HashSet<ClassDeclarationSyntax>> stateTransitions, StateMachine machine,
             SemanticModel model)
         {
             stateTransitions = new Dictionary<ClassDeclarationSyntax, HashSet<ClassDeclarationSyntax>>();
 
-            var defineGotoStateTransitionsMethod = machine.ChildNodes().
+            var defineGotoStateTransitionsMethod = machine.Declaration.ChildNodes().
                 OfType<MethodDeclarationSyntax>().FirstOrDefault(v
                 => v.Identifier.ValueText.Equals("DefineGotoStateTransitions") &&
                 v.Modifiers.Any(SyntaxKind.OverrideKeyword) && v.ReturnType.ToString().
@@ -192,12 +192,12 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="model">SemanticModel</param>
         /// <returns>Boolean</returns>
         private bool TryParseActionBindings(out Dictionary<ClassDeclarationSyntax,
-            HashSet<MethodDeclarationSyntax>> actionBindings, ClassDeclarationSyntax machine,
+            HashSet<MethodDeclarationSyntax>> actionBindings, StateMachine machine,
             SemanticModel model)
         {
             actionBindings = new Dictionary<ClassDeclarationSyntax, HashSet<MethodDeclarationSyntax>>();
 
-            var defineActionBindingsMethod = machine.ChildNodes().
+            var defineActionBindingsMethod = machine.Declaration.ChildNodes().
                 OfType<MethodDeclarationSyntax>().FirstOrDefault(v
                 => v.Identifier.ValueText.Equals("DefineActionBindings") &&
                 v.Modifiers.Any(SyntaxKind.OverrideKeyword) && v.ReturnType.ToString().

@@ -92,7 +92,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             foreach (var access in accesses)
             {
-                IdentifierNameSyntax id = this.AnalysisContext.GetTopLevelIdentifier(access, this.SemanticModel);
+                IdentifierNameSyntax id = this.AnalysisContext.GetTopLevelIdentifier(access);
                 if (id == null)
                 {
                     continue;

@@ -44,7 +44,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Handle to the machine which owns this node.
         /// </summary>
-        internal ClassDeclarationSyntax Machine;
+        internal StateMachine Machine;
 
         /// <summary>
         /// The summary of the OnEntry method of the state
@@ -95,7 +95,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="context">AnalysisContext</param>
         /// <param name="machine">Machine</param>
         internal StateTransitionGraphNode(PSharpAnalysisContext context, ClassDeclarationSyntax state,
-            ClassDeclarationSyntax machine)
+            StateMachine machine)
         {
             this.AnalysisContext = context;
             this.Id = StateTransitionGraphNode.IdCounter++;

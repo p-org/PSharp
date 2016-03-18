@@ -40,13 +40,13 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="virtualCall">Virtual call</param>
         /// <param name="syntaxNode">SyntaxNode</param>
         /// <param name="cfgNode">CFGNode</param>
-        /// <param name="originalMachine">Original machine</param>
+        /// <param name="originalClass">Original class</param>
         /// <param name="model">SemanticModel</param>
         /// <param name="context">AnalysisContext</param>
         /// <returns>Boolean</returns>
         internal static bool TryGetPotentialMethodOverriders(out HashSet<MethodDeclarationSyntax> overriders,
             InvocationExpressionSyntax virtualCall, SyntaxNode syntaxNode, CFGNode cfgNode,
-            ClassDeclarationSyntax originalMachine, SemanticModel model, AnalysisContext context)
+            ClassDeclarationSyntax originalClass, SemanticModel model, AnalysisContext context)
         {
             overriders = new HashSet<MethodDeclarationSyntax>();
 
@@ -75,7 +75,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             if (isThis)
             {
-                foreach (var nestedClass in originalMachine.ChildNodes().OfType<ClassDeclarationSyntax>())
+                foreach (var nestedClass in originalClass.ChildNodes().OfType<ClassDeclarationSyntax>())
                 {
                     foreach (var method in nestedClass.ChildNodes().OfType<MethodDeclarationSyntax>())
                     {
@@ -87,7 +87,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     }
                 }
 
-                foreach (var method in originalMachine.ChildNodes().OfType<MethodDeclarationSyntax>())
+                foreach (var method in originalClass.ChildNodes().OfType<MethodDeclarationSyntax>())
                 {
                     if (method.Identifier.ToString().Equals(callee.Identifier.ToString()))
                     {

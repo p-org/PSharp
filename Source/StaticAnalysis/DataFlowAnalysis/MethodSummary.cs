@@ -224,7 +224,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                             continue;
                         }
 
-                        arg = this.AnalysisContext.GetTopLevelIdentifier(argExpr, model);
+                        arg = this.AnalysisContext.GetTopLevelIdentifier(argExpr);
                         argSymbols.Add(model.GetSymbolInfo(arg).Symbol);
                     }
                     else if (argExpr is ObjectCreationExpressionSyntax)
@@ -301,7 +301,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                         continue;
                     }
 
-                    arg = this.AnalysisContext.GetTopLevelIdentifier(argExpr, model);
+                    arg = this.AnalysisContext.GetTopLevelIdentifier(argExpr);
                 }
 
                 returnSymbols.Add(model.GetSymbolInfo(arg).Symbol);

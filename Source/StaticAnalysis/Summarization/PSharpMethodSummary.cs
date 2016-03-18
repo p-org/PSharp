@@ -35,7 +35,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// If the method does not belong to a machine, the
         /// object is null.
         /// </summary>
-        internal ClassDeclarationSyntax Machine;
+        internal StateMachine Machine;
 
         /// <summary>
         /// Set of all gives-up ownership nodes in the control-flow
@@ -81,7 +81,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="machine">Machine</param>
         /// <returns>MethodSummary</returns>
         public static PSharpMethodSummary Create(PSharpAnalysisContext context,
-            BaseMethodDeclarationSyntax method, ClassDeclarationSyntax machine)
+            BaseMethodDeclarationSyntax method, StateMachine machine)
         {
             if (context.Summaries.ContainsKey(method))
             {
@@ -114,7 +114,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="method">Method</param>
         /// <param name="machine">Machine</param>
         private PSharpMethodSummary(AnalysisContext context, BaseMethodDeclarationSyntax method,
-            ClassDeclarationSyntax machine)
+            StateMachine machine)
             : base(context, method)
         {
             this.Machine = machine;

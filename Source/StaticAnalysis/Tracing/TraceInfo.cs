@@ -75,8 +75,8 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="machine">Machine</param>
         /// <param name="state">State</param>
         /// <param name="payload">Payload</param>
-        internal TraceInfo(MethodDeclarationSyntax method, ClassDeclarationSyntax machine,
-            ClassDeclarationSyntax state, ExpressionSyntax payload)
+        internal TraceInfo(MethodDeclarationSyntax method, StateMachine machine,
+            MachineState state, ExpressionSyntax payload)
         {
             this.ErrorTrace = new List<ErrorTraceStep>();
             this.CallTrace = new List<CallTraceStep>();
@@ -96,7 +96,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
             else
             {
-                this.Machine = machine.Identifier.ValueText;
+                this.Machine = machine.Name;
             }
 
             if (state == null)
@@ -105,7 +105,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
             else
             {
-                this.State = state.Identifier.ValueText;
+                this.State = state.Name;
             }
 
             if (payload == null)

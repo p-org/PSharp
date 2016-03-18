@@ -522,7 +522,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     return;
                 }
 
-                lhs = this.AnalysisContext.GetTopLevelIdentifier(assignment.Left, this.SemanticModel);
+                lhs = this.AnalysisContext.GetTopLevelIdentifier(assignment.Left);
                 lhsFieldSymbol = this.SemanticModel.GetSymbolInfo(name as IdentifierNameSyntax).Symbol;
             }
             else if (assignment.Left is ElementAccessExpressionSyntax)
@@ -546,7 +546,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                         return;
                     }
 
-                    lhs = this.AnalysisContext.GetTopLevelIdentifier(memberAccess.Expression, this.SemanticModel);
+                    lhs = this.AnalysisContext.GetTopLevelIdentifier(memberAccess.Expression);
                     lhsFieldSymbol = this.SemanticModel.GetSymbolInfo(name as IdentifierNameSyntax).Symbol;
                 }
             }
@@ -563,7 +563,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 }
                 else if (assignment.Right is MemberAccessExpressionSyntax)
                 {
-                    rhs = this.AnalysisContext.GetTopLevelIdentifier(assignment.Right, this.SemanticModel);
+                    rhs = this.AnalysisContext.GetTopLevelIdentifier(assignment.Right);
                 }
 
                 var rightSymbol = this.SemanticModel.GetSymbolInfo(rhs).Symbol;
@@ -731,7 +731,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 }
                 else if (retStmt.Expression is MemberAccessExpressionSyntax)
                 {
-                    rhs = this.AnalysisContext.GetTopLevelIdentifier(retStmt.Expression, this.SemanticModel);
+                    rhs = this.AnalysisContext.GetTopLevelIdentifier(retStmt.Expression);
                 }
 
                 var rightSymbol = this.SemanticModel.GetSymbolInfo(rhs).Symbol;
@@ -897,7 +897,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             var name = (expr as MemberAccessExpressionSyntax).Name;
-            var identifier = this.AnalysisContext.GetTopLevelIdentifier(expr, this.SemanticModel);
+            var identifier = this.AnalysisContext.GetTopLevelIdentifier(expr);
             if (identifier == null || name == null)
             {
                 return;
@@ -973,7 +973,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             var name = (expr as MemberAccessExpressionSyntax).Name;
-            var identifier = this.AnalysisContext.GetTopLevelIdentifier(expr, this.SemanticModel);
+            var identifier = this.AnalysisContext.GetTopLevelIdentifier(expr);
             if (identifier == null || name == null)
             {
                 return;
