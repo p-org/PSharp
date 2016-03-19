@@ -103,8 +103,8 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             Dictionary<ISymbol, HashSet<ISymbol>> reachabilityMap = null;
-            if (targetCfgNode.GetMethodSummary().DataFlowAnalysis.TryGetReachabilityMapForSyntaxNode(targetSyntaxNode,
-                targetCfgNode, out reachabilityMap) && reachabilityMap.ContainsKey(symbol))
+            if (targetCfgNode.GetMethodSummary().DataFlowAnalysis.TryGetFieldReachabilityMapForSyntaxNode(
+                targetSyntaxNode, targetCfgNode, out reachabilityMap) && reachabilityMap.ContainsKey(symbol))
             {
                 foreach (var field in reachabilityMap[symbol])
                 {
@@ -223,8 +223,8 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
             
             Dictionary<ISymbol, HashSet<ISymbol>> reachabilityMap = null;
-            if (targetCfgNode.GetMethodSummary().DataFlowAnalysis.TryGetReachabilityMapForSyntaxNode(syntaxNode,
-                cfgNode, out reachabilityMap) && reachabilityMap.ContainsKey(symbol))
+            if (targetCfgNode.GetMethodSummary().DataFlowAnalysis.TryGetFieldReachabilityMapForSyntaxNode(
+                syntaxNode, cfgNode, out reachabilityMap) && reachabilityMap.ContainsKey(symbol))
             {
                 foreach (var field in reachabilityMap[symbol])
                 {

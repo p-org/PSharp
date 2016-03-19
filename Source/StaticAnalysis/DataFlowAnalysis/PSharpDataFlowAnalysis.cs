@@ -99,7 +99,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 }
 
                 var accessSymbol = this.SemanticModel.GetSymbolInfo(id).Symbol;
-                this.MapSymbol(accessSymbol, cfgNode.SyntaxNodes[0], cfgNode);
+                base.MapDataFlowInSymbols(accessSymbol, accessSymbol, cfgNode.SyntaxNodes[0], cfgNode);
             }
         }
 

@@ -487,7 +487,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             IO.PrintLine("... | Method: '{0}'", this.AnalysisContext.GetFullMethodName(this.Method));
 
             this.DataFlowAnalysis.PrintDataFlowMap();
-            this.DataFlowAnalysis.PrintReachabilityMap();
+            this.DataFlowAnalysis.PrintFieldReachabilityMap();
             this.DataFlowAnalysis.PrintReferenceTypes();
             this.DataFlowAnalysis.PrintStatementsThatResetReferences();
 
