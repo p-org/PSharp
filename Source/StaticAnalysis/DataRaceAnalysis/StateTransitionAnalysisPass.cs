@@ -59,15 +59,12 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Runs the analysis.
         /// </summary>
-        /// <returns>StateTransitionAnalysisPass</returns>
-        public StateTransitionAnalysisPass Run()
+        public override void Run()
         {
             foreach (var machine in this.AnalysisContext.Machines)
             {
                 this.ConstructGraphForMachine(machine);
             }
-
-            return this;
         }
 
         #endregion

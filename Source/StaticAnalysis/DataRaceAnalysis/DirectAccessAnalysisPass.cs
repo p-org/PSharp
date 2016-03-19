@@ -43,12 +43,10 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Runs the analysis.
         /// </summary>
-        /// <returns>DirectAccessAnalysisPass</returns>
-        public DirectAccessAnalysisPass Run()
+        public override void Run()
         {
             this.CheckFields();
             this.CheckMethods();
-            return this;
         }
 
         #endregion

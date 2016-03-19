@@ -28,6 +28,15 @@ namespace Microsoft.PSharp.StaticAnalysis
 
         #endregion
 
+        #region public methods
+
+        /// <summary>
+        /// Runs the analysis.
+        /// </summary>
+        public abstract void Run();
+
+        #endregion
+
         #region protected methods
 
         /// <summary>

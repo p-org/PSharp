@@ -27,10 +27,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 {
     /// <summary>
     /// This analysis checks that all methods in each machine of a P#
-    /// program respect given up ownerships. The analysis uses data
-    /// computed by the 'GivesUpOwnershipAnalysis'.
-    /// 
-    /// In more detail:
+    /// program respect given up ownerships. In more detail:
     /// 
     /// - The analysis checks that no object can be accessed by a method
     /// after the call to another method, if the callee has given up
@@ -58,7 +55,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Runs the analysis.
         /// </summary>
         /// <returns>RespectsOwnershipAnalysisPass</returns>
-        public RespectsOwnershipAnalysisPass Run()
+        public override void Run()
         {
             // Starts profiling the data-flow analysis.
             if (this.AnalysisContext.Configuration.ShowROARuntimeResults &&
@@ -70,7 +67,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             foreach (var machine in this.AnalysisContext.Machines)
             {
-                this.AnalyseMethodsInMachine(machine);
+                this.AnalyzeMethodsInMachine(machine);
             }
 
             // Stops profiling the data-flow analysis.
@@ -80,8 +77,6 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 Profiler.StopMeasuringExecutionTime();
             }
-
-            return this;
         }
 
         #endregion
@@ -99,55 +94,49 @@ namespace Microsoft.PSharp.StaticAnalysis
         }
 
         /// <summary>
-        /// Analyses the methods of the given machine to check if each method
+        /// Analyzes the methods of the given machine to check if each method
         /// respects given up ownerships.
         /// </summary>
         /// <param name="machine">Machine</param>
-        /// <param name="machineToAnalyse">Machine to analyse</param>
-        private void AnalyseMethodsInMachine(StateMachine machine, StateMachine machineToAnalyse = null)
+        /// <param name="machineToAnalyze">Machine to analyse</param>
+        private void AnalyzeMethodsInMachine(StateMachine machine, StateMachine machineToAnalyze = null)
         {
-            if (machineToAnalyse == null)
+            if (machineToAnalyze == null)
             {
-                machineToAnalyse = machine;
+                machineToAnalyze = machine;
             }
 
-            foreach (var method in machineToAnalyse.Declaration.ChildNodes().OfType<MethodDeclarationSyntax>())
+            foreach (var method in machineToAnalyze.Declaration.ChildNodes().OfType<MethodDeclarationSyntax>())
             {
-                if (machineToAnalyse.ContainsMachineAction(method) &&
+                if (machineToAnalyze.ContainsMachineAction(method) &&
                     !method.Modifiers.Any(SyntaxKind.AbstractKeyword))
                 {
-                    this.AnalyseMethod(method, machineToAnalyse, null, machine);
+                    this.AnalyzeMethod(method, machineToAnalyze, null, machine);
                 }
             }
 
-            if (this.AnalysisContext.MachineInheritanceMap.ContainsKey(machineToAnalyse))
+            if (this.AnalysisContext.MachineInheritanceMap.ContainsKey(machineToAnalyze))
             {
-                this.AnalyseMethodsInMachine(machine, this.AnalysisContext.
-                    MachineInheritanceMap[machineToAnalyse]);
+                this.AnalyzeMethodsInMachine(machine, this.AnalysisContext.
+                    MachineInheritanceMap[machineToAnalyze]);
             }
         }
 
         /// <summary>
-        /// Analyses the given method to check if it respects the given up
-        /// ownerships.
+        /// Analyzes the given method to check if it
+        /// respects the given up ownerships.
         /// </summary>
         /// <param name="method">Method</param>
         /// <param name="machine">Machine</param>
         /// <param name="state">MachineState</param>
         /// <param name="originalMachine">Original machine</param>
-        private void AnalyseMethod(MethodDeclarationSyntax method, StateMachine machine,
+        private void AnalyzeMethod(MethodDeclarationSyntax method, StateMachine machine,
             MachineState state, StateMachine originalMachine)
         {
             var summary = PSharpMethodSummary.Create(this.AnalysisContext, method);
             foreach (var givesUpCfgNode in summary.GivesUpOwnershipNodes)
             {
-                var givesUpSource = givesUpCfgNode.SyntaxNodes[0].DescendantNodesAndSelf().
-                    OfType<InvocationExpressionSyntax>().First();
-                this.AnalyseSendExpression(givesUpSource, givesUpCfgNode,
-                    machine, state, originalMachine);
-                this.AnalyseCreateExpression(givesUpSource, givesUpCfgNode,
-                    machine, state, originalMachine);
-                this.AnalyseGenericCallExpression(givesUpSource, givesUpCfgNode,
+                this.AnalyzeGivesUpCFGNode(givesUpCfgNode, summary,
                     machine, state, originalMachine);
             }
         }
@@ -157,51 +146,75 @@ namespace Microsoft.PSharp.StaticAnalysis
         #region give up ownership source analysis methods
 
         /// <summary>
-        /// Analyse the given 'Send' expression to check if it respects the
-        /// given up ownerships.
+        /// Analyzes the given gives-up control-flow graph node
+        /// to check if it respects the given up ownerships.
         /// </summary>
-        /// <param name="send">Send call</param>
-        /// <param name="givesUpCfgNode">Gives up node</param>
+        /// <param name="givesUpCfgNode">Gives-up CFG node</param>
+        /// <param name="summary">MethodSummary</param>
         /// <param name="machine">Machine</param>
         /// <param name="state">MachineState</param>
         /// <param name="originalMachine">Original machine</param>
-        private void AnalyseSendExpression(InvocationExpressionSyntax send, PSharpCFGNode givesUpCfgNode,
+        private void AnalyzeGivesUpCFGNode(PSharpCFGNode givesUpCfgNode, PSharpMethodSummary summary,
             StateMachine machine, MachineState state, StateMachine originalMachine)
         {
-            if (!((send.Expression is MemberAccessExpressionSyntax) ||
-                (send.Expression is IdentifierNameSyntax)))
+            var givesUpSource = givesUpCfgNode.SyntaxNodes[0].DescendantNodesAndSelf().
+                OfType<InvocationExpressionSyntax>().FirstOrDefault();
+
+            if (givesUpSource == null || !(givesUpSource.Expression is MemberAccessExpressionSyntax ||
+                givesUpSource.Expression is IdentifierNameSyntax))
             {
                 return;
             }
 
-            if (((send.Expression is MemberAccessExpressionSyntax) &&
-                !(send.Expression as MemberAccessExpressionSyntax).
-                Name.Identifier.ValueText.Equals("Send")) ||
-                ((send.Expression is IdentifierNameSyntax) &&
-                !(send.Expression as IdentifierNameSyntax).
-                Identifier.ValueText.Equals("Send")))
-            {
-                return;
-            }
+            var model = this.AnalysisContext.Compilation.GetSemanticModel(givesUpSource.SyntaxTree);
+            ISymbol symbol = model.GetSymbolInfo(givesUpSource).Symbol;
+            string methodName = symbol.ContainingNamespace.ToString() + "." + symbol.Name;
 
-            if (send.ArgumentList.Arguments[1].Expression is ObjectCreationExpressionSyntax)
+            if (methodName.Equals("Microsoft.PSharp.Send"))
             {
-                var objCreation = send.ArgumentList.Arguments[1].Expression
-                    as ObjectCreationExpressionSyntax;
+                this.AnalyzeSendExpression(givesUpSource, givesUpCfgNode,
+                    machine, state, originalMachine);
+            }
+            else if (methodName.Equals("Microsoft.PSharp.CreateMachine"))
+            {
+                this.AnalyzeCreateExpression(givesUpSource, givesUpCfgNode,
+                    machine, state, originalMachine);
+            }
+            else
+            {
+                this.AnalyzeGenericCallExpression(givesUpSource, givesUpCfgNode,
+                    machine, state, originalMachine);
+            }
+        }
+        
+        /// <summary>
+        /// Analyzes the given 'Send' expression to check if it respects the
+        /// given up ownerships.
+        /// </summary>
+        /// <param name="send">Send call</param>
+        /// <param name="givesUpCfgNode">Gives-up CFG node</param>
+        /// <param name="machine">Machine</param>
+        /// <param name="state">MachineState</param>
+        /// <param name="originalMachine">Original machine</param>
+        private void AnalyzeSendExpression(InvocationExpressionSyntax send, PSharpCFGNode givesUpCfgNode,
+            StateMachine machine, MachineState state, StateMachine originalMachine)
+        {
+            var expr = send.ArgumentList.Arguments[1].Expression;
+            if (expr is ObjectCreationExpressionSyntax)
+            {
+                var objCreation = expr as ObjectCreationExpressionSyntax;
                 foreach (var arg in objCreation.ArgumentList.Arguments)
                 {
-                    this.AnalyseArgumentSyntax(arg.Expression,
+                    this.AnalyzeArgumentSyntax(arg.Expression,
                         send, givesUpCfgNode, machine, state, originalMachine);
                 }
             }
-            else if (send.ArgumentList.Arguments[1].Expression is BinaryExpressionSyntax &&
-                send.ArgumentList.Arguments[1].Expression.IsKind(SyntaxKind.AsExpression))
+            else if (expr is BinaryExpressionSyntax && expr.IsKind(SyntaxKind.AsExpression))
             {
-                var binExpr = send.ArgumentList.Arguments[1].Expression
-                    as BinaryExpressionSyntax;
+                var binExpr = expr as BinaryExpressionSyntax;
                 if ((binExpr.Left is IdentifierNameSyntax) || (binExpr.Left is MemberAccessExpressionSyntax))
                 {
-                    this.AnalyseArgumentSyntax(binExpr.Left,
+                    this.AnalyzeArgumentSyntax(binExpr.Left,
                         send, givesUpCfgNode, machine, state, originalMachine);
                 }
                 else if (binExpr.Left is InvocationExpressionSyntax)
@@ -209,64 +222,51 @@ namespace Microsoft.PSharp.StaticAnalysis
                     var invocation = binExpr.Left as InvocationExpressionSyntax;
                     for (int i = 1; i < invocation.ArgumentList.Arguments.Count; i++)
                     {
-                        this.AnalyseArgumentSyntax(invocation.ArgumentList.Arguments[i].
+                        this.AnalyzeArgumentSyntax(invocation.ArgumentList.Arguments[i].
                             Expression, send, givesUpCfgNode, machine, state, originalMachine);
                     }
                 }
             }
+            else if (expr is IdentifierNameSyntax || expr is MemberAccessExpressionSyntax)
+            {
+                this.AnalyzeArgumentSyntax(expr, send, givesUpCfgNode,
+                    machine, state, originalMachine);
+            }
         }
 
         /// <summary>
-        /// Analyse the given 'Create' expression to check if it respects the
+        /// Analyzes the given 'Create' expression to check if it respects the
         /// given up ownerships.
         /// </summary>
         /// <param name="send">Create call</param>
-        /// <param name="givesUpCfgNode">Gives up node</param>
+        /// <param name="givesUpCfgNode">Gives-up CFG node</param>
         /// <param name="machine">Machine</param>
         /// <param name="state">MachineState</param>
         /// <param name="originalMachine">Original machine</param>
-        private void AnalyseCreateExpression(InvocationExpressionSyntax create, PSharpCFGNode givesUpCfgNode,
+        private void AnalyzeCreateExpression(InvocationExpressionSyntax create, PSharpCFGNode givesUpCfgNode,
             StateMachine machine, MachineState state, StateMachine originalMachine)
         {
-            if (!((create.Expression is MemberAccessExpressionSyntax) ||
-                (create.Expression is IdentifierNameSyntax)))
+            if (create.ArgumentList.Arguments.Count != 2)
             {
                 return;
             }
 
-            if (((create.Expression is MemberAccessExpressionSyntax) &&
-                !(create.Expression as MemberAccessExpressionSyntax).
-                Name.Identifier.ValueText.Equals("CreateMachine")) ||
-                ((create.Expression is IdentifierNameSyntax) &&
-                !(create.Expression as IdentifierNameSyntax).
-                Identifier.ValueText.Equals("CreateMachine")))
+            var expr = create.ArgumentList.Arguments[1].Expression;
+            if (expr is ObjectCreationExpressionSyntax)
             {
-                return;
-            }
-
-            if (create.ArgumentList.Arguments.Count == 0)
-            {
-                return;
-            }
-
-            if (create.ArgumentList.Arguments[0].Expression is ObjectCreationExpressionSyntax)
-            {
-                var objCreation = create.ArgumentList.Arguments[0].Expression
-                    as ObjectCreationExpressionSyntax;
+                var objCreation = expr as ObjectCreationExpressionSyntax;
                 foreach (var arg in objCreation.ArgumentList.Arguments)
                 {
-                    this.AnalyseArgumentSyntax(arg.Expression,
+                    this.AnalyzeArgumentSyntax(arg.Expression,
                         create, givesUpCfgNode, machine, state, originalMachine);
                 }
             }
-            else if (create.ArgumentList.Arguments[0].Expression is BinaryExpressionSyntax &&
-                create.ArgumentList.Arguments[0].Expression.IsKind(SyntaxKind.AsExpression))
+            else if (expr is BinaryExpressionSyntax && expr.IsKind(SyntaxKind.AsExpression))
             {
-                var binExpr = create.ArgumentList.Arguments[0].Expression
-                    as BinaryExpressionSyntax;
+                var binExpr = expr as BinaryExpressionSyntax;
                 if ((binExpr.Left is IdentifierNameSyntax) || (binExpr.Left is MemberAccessExpressionSyntax))
                 {
-                    this.AnalyseArgumentSyntax(binExpr.Left,
+                    this.AnalyzeArgumentSyntax(binExpr.Left,
                         create, givesUpCfgNode, machine, state, originalMachine);
                 }
                 else if (binExpr.Left is InvocationExpressionSyntax)
@@ -274,62 +274,36 @@ namespace Microsoft.PSharp.StaticAnalysis
                     var invocation = binExpr.Left as InvocationExpressionSyntax;
                     for (int i = 1; i < invocation.ArgumentList.Arguments.Count; i++)
                     {
-                        this.AnalyseArgumentSyntax(invocation.ArgumentList.Arguments[i].
+                        this.AnalyzeArgumentSyntax(invocation.ArgumentList.Arguments[i].
                             Expression, create, givesUpCfgNode, machine, state, originalMachine);
                     }
                 }
             }
-            else if ((create.ArgumentList.Arguments[0].Expression is IdentifierNameSyntax) ||
-                (create.ArgumentList.Arguments[0].Expression is MemberAccessExpressionSyntax))
+            else if (expr is IdentifierNameSyntax || expr is MemberAccessExpressionSyntax)
             {
-                this.AnalyseArgumentSyntax(create.ArgumentList.Arguments[0].
-                    Expression, create, givesUpCfgNode, machine, state, originalMachine);
+                this.AnalyzeArgumentSyntax(expr, create, givesUpCfgNode,
+                    machine, state, originalMachine);
             }
         }
 
         /// <summary>
-        /// Analyse the given call expression to check if it respects the
+        /// Analyzes the given call expression to check if it respects the
         /// given up ownerships.
         /// </summary>
         /// <param name="call">Call</param>
-        /// <param name="givesUpCfgNode">Gives up node</param>
+        /// <param name="givesUpCfgNode">Gives-up CFG node</param>
         /// <param name="machine">Machine</param>
         /// <param name="state">MachineState</param>
         /// <param name="originalMachine">Original machine</param>
-        private void AnalyseGenericCallExpression(InvocationExpressionSyntax call, PSharpCFGNode givesUpCfgNode,
+        private void AnalyzeGenericCallExpression(InvocationExpressionSyntax call, PSharpCFGNode givesUpCfgNode,
             StateMachine machine, MachineState state, StateMachine originalMachine)
         {
-            if (!((call.Expression is MemberAccessExpressionSyntax) ||
-                (call.Expression is IdentifierNameSyntax)))
+            if (call.ArgumentList.Arguments.Count == 0)
             {
                 return;
             }
 
             var model = this.AnalysisContext.Compilation.GetSemanticModel(call.SyntaxTree);
-
-            if (call.Expression is MemberAccessExpressionSyntax)
-            {
-                var callStmt = call.Expression as MemberAccessExpressionSyntax;
-                if (callStmt.Name.Identifier.ValueText.Equals("Send") ||
-                    callStmt.Name.Identifier.ValueText.Equals("CreateMachine"))
-                {
-                    return;
-                }
-            }
-            else if (call.Expression is IdentifierNameSyntax)
-            {
-                var callStmt = call.Expression as IdentifierNameSyntax;
-                if (callStmt.Identifier.ValueText.Equals("Send") ||
-                    callStmt.Identifier.ValueText.Equals("CreateMachine"))
-                {
-                    return;
-                }
-            }
-
-            if (call.ArgumentList.Arguments.Count == 0)
-            {
-                return;
-            }
 
             var callSymbol = model.GetSymbolInfo(call).Symbol;
             var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol,
@@ -340,62 +314,60 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             foreach (int idx in calleeSummary.GivesUpSet)
             {
-                if (call.ArgumentList.Arguments[idx].Expression is ObjectCreationExpressionSyntax)
+                var expr = call.ArgumentList.Arguments[idx].Expression;
+                if (expr is ObjectCreationExpressionSyntax)
                 {
-                    var objCreation = call.ArgumentList.Arguments[idx].Expression
-                        as ObjectCreationExpressionSyntax;
+                    var objCreation = expr as ObjectCreationExpressionSyntax;
                     foreach (var arg in objCreation.ArgumentList.Arguments)
                     {
-                        this.AnalyseArgumentSyntax(arg.Expression,
-                            call, givesUpCfgNode, machine, state, originalMachine);
+                        this.AnalyzeArgumentSyntax(arg.Expression, call,
+                            givesUpCfgNode, machine, state, originalMachine);
                     }
                 }
-                else if (call.ArgumentList.Arguments[idx].Expression is BinaryExpressionSyntax &&
-                    call.ArgumentList.Arguments[idx].Expression.IsKind(SyntaxKind.AsExpression))
+                else if (expr is BinaryExpressionSyntax && expr.IsKind(SyntaxKind.AsExpression))
                 {
-                    var binExpr = call.ArgumentList.Arguments[idx].Expression
-                        as BinaryExpressionSyntax;
+                    var binExpr = expr as BinaryExpressionSyntax;
                     if ((binExpr.Left is IdentifierNameSyntax) || (binExpr.Left is MemberAccessExpressionSyntax))
                     {
-                        this.AnalyseArgumentSyntax(binExpr.Left,
-                            call, givesUpCfgNode, machine, state, originalMachine);
+                        this.AnalyzeArgumentSyntax(binExpr.Left, call,
+                            givesUpCfgNode, machine, state, originalMachine);
                     }
                     else if (binExpr.Left is InvocationExpressionSyntax)
                     {
                         var invocation = binExpr.Left as InvocationExpressionSyntax;
                         for (int i = 1; i < invocation.ArgumentList.Arguments.Count; i++)
                         {
-                            this.AnalyseArgumentSyntax(invocation.ArgumentList.Arguments[i].
+                            this.AnalyzeArgumentSyntax(invocation.ArgumentList.Arguments[i].
                                 Expression, call, givesUpCfgNode, machine, state, originalMachine);
                         }
                     }
                 }
-                else if ((call.ArgumentList.Arguments[idx].Expression is IdentifierNameSyntax) ||
-                    (call.ArgumentList.Arguments[idx].Expression is MemberAccessExpressionSyntax))
+                else if (expr is IdentifierNameSyntax || expr is MemberAccessExpressionSyntax)
                 {
-                    this.AnalyseArgumentSyntax(call.ArgumentList.Arguments[idx].
-                        Expression, call, givesUpCfgNode, machine, state, originalMachine);
+                    this.AnalyzeArgumentSyntax(expr, call, givesUpCfgNode,
+                        machine, state, originalMachine);
                 }
             }
         }
 
         /// <summary>
-        /// Analyse the given argument to see if it respects the given up ownerships.
+        /// Analyzes the given argument to see if it respects the given up ownerships.
         /// </summary>
         /// <param name="arg">Argument</param>
         /// <param name="call">Call</param>
-        /// <param name="givesUpCfgNode">Gives up node</param>
+        /// <param name="givesUpCfgNode">Gives-up CFG node</param>
         /// <param name="machine">Machine</param>
         /// <param name="state">MachineState</param>
         /// <param name="originalMachine">Original machine</param>
-        private void AnalyseArgumentSyntax(ExpressionSyntax arg, InvocationExpressionSyntax call,
+        private void AnalyzeArgumentSyntax(ExpressionSyntax arg, InvocationExpressionSyntax call,
             PSharpCFGNode givesUpCfgNode, StateMachine machine, MachineState state, StateMachine originalMachine)
         {
             var model = this.AnalysisContext.Compilation.GetSemanticModel(arg.SyntaxTree);
             
             if (arg is MemberAccessExpressionSyntax || arg is IdentifierNameSyntax)
             {
-                TraceInfo trace = new TraceInfo(givesUpCfgNode.GetMethodSummary().Method as MethodDeclarationSyntax, machine, state, arg);
+                TraceInfo trace = new TraceInfo(givesUpCfgNode.GetMethodSummary().Method
+                    as MethodDeclarationSyntax, machine, state, arg);
                 trace.AddErrorTrace(call.ToString(), call.SyntaxTree.FilePath, call.SyntaxTree.
                     GetLineSpan(call.Span).StartLinePosition.Line + 1);
 
@@ -438,7 +410,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 var payload = arg as ObjectCreationExpressionSyntax;
                 foreach (var item in payload.ArgumentList.Arguments)
                 {
-                    this.AnalyseArgumentSyntax(item.Expression,
+                    this.AnalyzeArgumentSyntax(item.Expression,
                         call, givesUpCfgNode, machine, state, originalMachine);
                 }
             }
@@ -449,11 +421,11 @@ namespace Microsoft.PSharp.StaticAnalysis
         #region predecessor analysis methods
 
         /// <summary>
-        /// Analyses the given control-flow graph node to find if it gives up ownership of
+        /// Analyzes the given control-flow graph node to find if it gives up ownership of
         /// data from a machine field.
         /// </summary>
         /// <param name="cfgNode">Control flow graph node</param>
-        /// <param name="givesUpCfgNode">Gives up node</param>
+        /// <param name="givesUpCfgNode">Gives-up CFG node</param>
         /// <param name="target">Target</param>
         /// <param name="giveUpSource">Give up source</param>
         /// <param name="visited">Already visited cfgNodes</param>
@@ -738,7 +710,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         }
 
         /// <summary>
-        /// Analyses the summary of the given object creation to find if it gives up ownership
+        /// Analyzes the summary of the given object creation to find if it gives up ownership
         /// of data from a machine field.
         /// </summary>
         /// <param name="call">Call</param>
@@ -807,7 +779,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         }
 
         /// <summary>
-        /// Analyses the summary of the given invocation to find if it gives up ownership
+        /// Analyzes the summary of the given invocation to find if it gives up ownership
         /// of data from a machine field.
         /// </summary>
         /// <param name="call">Call</param>
@@ -908,11 +880,11 @@ namespace Microsoft.PSharp.StaticAnalysis
         #region successor analysis methods
 
         /// <summary>
-        /// Analyses the given method to find if it respects the given up ownerships
+        /// Analyzes the given method to find if it respects the given up ownerships
         /// and reports any potential data races.
         /// </summary>
         /// <param name="cfgNode">Control flow graph node</param>
-        /// <param name="givesUpCfgNode">Gives up node</param>
+        /// <param name="givesUpCfgNode">Gives-up CFG node</param>
         /// <param name="target">Target</param>
         /// <param name="giveUpSource">Give up source</param>
         /// <param name="visited">Already visited cfgNodes</param>
@@ -1077,7 +1049,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         }
 
         /// <summary>
-        /// Analyses the summary of the given object creation to find if it respects the
+        /// Analyzes the summary of the given object creation to find if it respects the
         /// given up ownerships and reports any potential data races.
         /// </summary>
         /// <param name="invocation">Invocation</param>
@@ -1163,7 +1135,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         }
 
         /// <summary>
-        /// Analyses the summary of the given invocation to find if it respects the
+        /// Analyzes the summary of the given invocation to find if it respects the
         /// given up ownerships and reports any potential data races.
         /// </summary>
         /// <param name="invocation">Invocation</param>
@@ -1306,7 +1278,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         }
 
         /// <summary>
-        /// Analyses the arguments of the gives up operation to find if it respects
+        /// Analyzes the arguments of the gives up operation to find if it respects
         /// the given up ownerships and reports any potential data races.
         /// </summary>
         /// <param name="operation">Send-related operation</param>
@@ -1425,7 +1397,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Returns false if it cannot be accessed.
         /// </summary>
         /// <param name="arg">Argument</param>
-        /// <param name="givesUpCfgNode">Gives up node</param>
+        /// <param name="givesUpCfgNode">Gives-up CFG node</param>
         /// <param name="model">SemanticModel</param>
         /// <param name="trace">TraceInfo</param>
         /// <param name="shouldReportError">Should report error</param>

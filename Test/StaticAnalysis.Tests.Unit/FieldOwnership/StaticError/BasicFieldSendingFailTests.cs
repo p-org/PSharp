@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="MemberVisibilityFailTests.cs">
+// <copyright file="BasicFieldSendingFailTests.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -24,18 +24,40 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
 {
     [TestClass]
-    public class MemberVisibilityFailTests : BasePSharpTest
+    public class BasicFieldSendingFailTests : BasePSharpTest
     {
         [TestMethod, Timeout(3000)]
-        public void TestPublicFieldVisibility()
+        public void TestBasicFieldSendingViaSendFail()
         {
             var test = @"
 using Microsoft.PSharp;
 
 namespace Foo {
+class eUnit : Event
+{
+ public Letter Letter;
+ 
+ public eUnit(Letter letter)
+  : base()
+ {
+  this.Letter = letter;
+ }
+}
+
+struct Letter
+{
+ public string Text;
+
+ public Letter(string text)
+ {
+  this.Text = text;
+ }
+}
+
 class M : Machine
 {
- public int Num;
+ MachineId Target;
+ Letter Letter;
 
  [Start]
  [OnEntry(nameof(FirstOnEntryAction))]
@@ -43,7 +65,9 @@ class M : Machine
 
  void FirstOnEntryAction()
  {
-  this.Num = 1;
+  this.Letter = new Letter(\""test\"");
+  this.Target = this.CreateMachine(typeof(M));
+  this.Send(this.Target, new eUnit(this.Letter));
  }
 }
 }";
@@ -68,7 +92,11 @@ class M : Machine
             var expected = "... Static analysis detected '1' error";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
-            var error = "Error: Field 'int Num' of machine 'Foo.M' is declared as 'public'.";
+            var error = "Error: Potential source for data race detected. " +
+                "Method 'FirstOnEntryAction' of machine 'Foo.M' sends payload " +
+                "'this.Letter', which contains data from a machine field." +
+                "   --- Point of sending the payload ---   at 'this.Send(this.Target, " +
+                "new eUnit(this.Letter))' in Program.cs:line 39";
             Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
                 IO.GetOutput().Replace(Environment.NewLine, string.Empty));
 
@@ -76,23 +104,46 @@ class M : Machine
         }
 
         [TestMethod, Timeout(3000)]
-        public void TestPublicMethodVisibility()
+        public void TestBasicFieldSendingViaCreateMachineFail()
         {
             var test = @"
 using Microsoft.PSharp;
 
 namespace Foo {
+class eUnit : Event
+{
+ public Letter Letter;
+ 
+ public eUnit(Letter letter)
+  : base()
+ {
+  this.Letter = letter;
+ }
+}
+
+struct Letter
+{
+ public string Text;
+
+ public Letter(string text)
+ {
+  this.Text = text;
+ }
+}
+
 class M : Machine
 {
- int Num;
+ MachineId Target;
+ Letter Letter;
 
  [Start]
  [OnEntry(nameof(FirstOnEntryAction))]
  class First : MachineState { }
 
- public void FirstOnEntryAction()
+ void FirstOnEntryAction()
  {
-  this.Num = 1;
+  this.Letter = new Letter(\""test\"");
+  this.Target = this.CreateMachine(typeof(M), new eUnit(this.Letter));
  }
 }
 }";
@@ -117,7 +168,11 @@ class M : Machine
             var expected = "... Static analysis detected '1' error";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
-            var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' is declared as 'public'.";
+            var error = "Error: Potential source for data race detected. Method " +
+                "'FirstOnEntryAction' of machine 'Foo.M' sends payload 'this.Letter', " +
+                "which contains data from a machine field.   --- Point of sending " +
+                "the payload ---   at 'this.CreateMachine(typeof(M), " +
+                "new eUnit(this.Letter))' in Program.cs:line 38";
             Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
                 IO.GetOutput().Replace(Environment.NewLine, string.Empty));
 
