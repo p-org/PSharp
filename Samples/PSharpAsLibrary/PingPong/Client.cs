@@ -10,7 +10,6 @@ namespace PingPong
 
         [Start]
         [OnEventDoAction(typeof(Config), nameof(Configure))]
-        [OnEventGotoState(typeof(Unit), typeof(Active))]
         class Init : MachineState { }
 
         void Configure()
@@ -21,7 +20,6 @@ namespace PingPong
         }
 
         [OnEntry(nameof(ActiveOnEntry))]
-        [OnEventGotoState(typeof(Unit), typeof(Active))]
         [OnEventDoAction(typeof(Pong), nameof(SendPing))]
         class Active : MachineState { }
 

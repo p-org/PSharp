@@ -44,14 +44,13 @@ namespace MultiPaxos
 
         [Start]
         [OnEntry(nameof(InitOnEntry))]
-        [OnEventGotoState(typeof(local), typeof(Wait))]
         class Init : MonitorState { }
 
         void InitOnEntry()
         {
             this.ClientSet = new Dictionary<int, int>();
             this.ProposedSet = new Dictionary<int, int>();
-            this.Raise(new local());
+            this.Goto(typeof(Wait));
         }
         
         [OnEventDoAction(typeof(ValidityCheck.monitor_client_sent), nameof(AddClientSet))]

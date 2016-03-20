@@ -98,6 +98,19 @@ namespace Microsoft.PSharp
         #region P# user API
 
         /// <summary>
+        /// Returns from the execution context, and transitions
+        /// the monitor to the given state.
+        /// </summary>
+        /// <param name="s">Type of the state</param>
+        protected void Goto(Type s)
+        {
+            // If the state is not a state of the monitor, then report an error and exit.
+            this.Assert(this.StateTypes.Contains(s), "Monitor '{0}' is trying to transition " +
+                " to non-existing state '{1}'.", this.GetType().Name, s.Name);
+            this.Raise(new GotoStateEvent(s));
+        }
+
+        /// <summary>
         /// Raises an event internally and returns from the execution context.
         /// </summary>
         /// <param name="e">Event</param>
@@ -235,8 +248,14 @@ namespace Microsoft.PSharp
                     continue;
                 }
 
+                // Checks if the event is a goto state event.
+                if (e.GetType() == typeof(GotoStateEvent))
+                {
+                    Type targetState = (e as GotoStateEvent).State;
+                    this.GotoState(targetState, null);
+                }
                 // Checks if the event can trigger a goto state transition.
-                if (this.GotoTransitions.ContainsKey(e.GetType()))
+                else if (this.GotoTransitions.ContainsKey(e.GetType()))
                 {
                     var transition = this.GotoTransitions[e.GetType()];
                     Type targetState = transition.Item1;
@@ -257,14 +276,15 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Checks if the state can handle the given event type. An event
         /// can be handled if it is deferred, or leads to a transition or
-        /// action binding. Ignored events have been removed.
+        /// action binding.
         /// </summary>
         /// <param name="e">Event type</param>
         /// <returns>Boolean</returns>
         private bool CanHandleEvent(Type e)
         {
             if (this.GotoTransitions.ContainsKey(e) ||
-                this.ActionBindings.ContainsKey(e))
+                this.ActionBindings.ContainsKey(e) ||
+                e == typeof(GotoStateEvent))
             {
                 return true;
             }

@@ -44,13 +44,12 @@ namespace MultiPaxos
 
         [Start]
         [OnEntry(nameof(InitOnEntry))]
-        [OnEventGotoState(typeof(local), typeof(WaitForValueChosen))]
         class Init : MonitorState { }
 
         void InitOnEntry()
         {
             this.LastValueChosen = new Dictionary<int, Tuple<int, int, int>>();
-            this.Raise(new local());
+            this.Goto(typeof(WaitForValueChosen));
         }
 
         [OnEventGotoState(typeof(BasicPaxosInvariant_P2b.monitor_valueChosen), typeof(CheckValueProposed), nameof(WaitForValueChosenAction))]
