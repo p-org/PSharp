@@ -13,10 +13,8 @@ namespace PingPong
 			{
 				this.Server = (trigger as Config).target;
 				this.Counter = 0;
-				raise(Unit);
+				jump(Playing);
 			}
-
-            on Unit goto Playing;
         }
 
         private state Playing
@@ -29,7 +27,6 @@ namespace PingPong
                 }
             }
 
-            on Unit goto Playing;
             on Pong do SendPing;
         }
 
@@ -38,7 +35,7 @@ namespace PingPong
             this.Counter++;
             Console.WriteLine("\nTurns: {0} / 5\n", this.Counter);
 			send(this.Server, Ping);
-            raise(Unit);
+            jump(Playing);
         }
     }
 }

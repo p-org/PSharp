@@ -160,6 +160,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         SendEvent,
         ToMachine,
         RaiseEvent,
+        Jump,
         Assert,
         Assume,
         Pop,

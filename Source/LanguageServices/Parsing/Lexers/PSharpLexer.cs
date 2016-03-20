@@ -403,6 +403,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     this.Tokens.Add(new Token(unit, TokenType.RaiseEvent));
                     break;
 
+                case "jump":
+                    this.Tokens.Add(new Token(unit, TokenType.Jump));
+                    break;
+
                 case "assert":
                     this.Tokens.Add(new Token(unit, TokenType.Assert));
                     break;

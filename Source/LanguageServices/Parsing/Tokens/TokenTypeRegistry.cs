@@ -385,6 +385,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     text = "raise";
                     break;
 
+                case TokenType.Jump:
+                    text = "jump";
+                    break;
+
                 case TokenType.Assert:
                     text = "assert";
                     break;

@@ -9,10 +9,8 @@
             entry
             {
 				this.Client = create(Client , Config, this);
-                raise(Unit);
+				jump(Playing);
             }
-
-            on Unit goto Playing;
         }
 		
         state Playing

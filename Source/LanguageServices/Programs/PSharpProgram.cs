@@ -114,6 +114,7 @@ namespace Microsoft.PSharp.LanguageServices
             new SendRewriter(this).Rewrite();
             new MonitorRewriter(this).Rewrite();
             new RaiseRewriter(this).Rewrite();
+            new GotoStateRewriter(this).Rewrite();
             new PopRewriter(this).Rewrite();
             new AssertRewriter(this).Rewrite();
         }
