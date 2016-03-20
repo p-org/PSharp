@@ -16,7 +16,6 @@ using System;
 using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Microsoft.PSharp.LanguageServices.Rewriting.CSharp;
@@ -63,6 +62,11 @@ namespace Microsoft.PSharp.LanguageServices
         public override void Rewrite()
         {
             this.RewriteStatements();
+
+            if (IO.Debugging)
+            {
+                base.GetProject().CompilationContext.PrintSyntaxTree(base.GetSyntaxTree());
+            }
         }
 
         #endregion
@@ -74,9 +78,10 @@ namespace Microsoft.PSharp.LanguageServices
         /// </summary>
         private void RewriteStatements()
         {
-            this.SyntaxTree = new RaiseRewriter(this.Project).Rewrite(this.SyntaxTree);
-            this.SyntaxTree = new PopRewriter(this.Project).Rewrite(this.SyntaxTree);
-            this.SyntaxTree = new FairNondetRewriter(this.Project).Rewrite(this.SyntaxTree);
+            new RaiseRewriter(this).Rewrite();
+            new GotoStateRewriter(this).Rewrite();
+            new PopRewriter(this).Rewrite();
+            new FairNondetRewriter(this).Rewrite();
         }
 
         #endregion

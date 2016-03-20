@@ -31,7 +31,7 @@ namespace Microsoft.PSharp
         private Dictionary<Type, Type> Dictionary;
 
         /// <summary>
-        /// Default constructor of the PushStateTransitions class.
+        /// Constructor of the PushStateTransitions class.
         /// </summary>
         public PushStateTransitions()
         {

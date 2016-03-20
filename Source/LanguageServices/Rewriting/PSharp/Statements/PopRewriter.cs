@@ -32,35 +32,33 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="project">PSharpProject</param>
-        internal PopRewriter(PSharpProject project)
-            : base(project)
+        /// <param name="program">IPSharpProgram</param>
+        internal PopRewriter(IPSharpProgram program)
+            : base(program)
         {
 
         }
 
         /// <summary>
-        /// Rewrites the syntax tree with pop statements.
+        /// Rewrites the pop statements in the program.
         /// </summary>
-        /// <param name="tree">SyntaxTree</param>
-        /// <returns>SyntaxTree</returns>
-        internal SyntaxTree Rewrite(SyntaxTree tree)
+        internal void Rewrite()
         {
-            var statements = tree.GetRoot().DescendantNodes().OfType<ExpressionStatementSyntax>().
+            var statements = base.Program.GetSyntaxTree().GetRoot().DescendantNodes().OfType<ExpressionStatementSyntax>().
                 Where(val => val.Expression is IdentifierNameSyntax).
                 Where(val => (val.Expression as IdentifierNameSyntax).Identifier.ValueText.Equals("pop")).
                 ToList();
 
             if (statements.Count == 0)
             {
-                return tree;
+                return;
             }
 
-            var root = tree.GetRoot().ReplaceNodes(
+            var root = base.Program.GetSyntaxTree().GetRoot().ReplaceNodes(
                 nodes: statements,
                 computeReplacementNode: (node, rewritten) => this.RewriteStatement(rewritten));
 
-            return base.UpdateSyntaxTree(tree, root.ToString());
+            base.UpdateSyntaxTree(root.ToString());
         }
 
         #endregion

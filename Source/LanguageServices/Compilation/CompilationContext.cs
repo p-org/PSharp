@@ -19,6 +19,7 @@ using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
+using Microsoft.CodeAnalysis.Text;
 
 using Microsoft.PSharp.Utilities;
 
@@ -169,26 +170,42 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         }
 
         /// <summary>
-        /// Replaces an existing syntax tree with the given one.
+        /// Replaces the syntax tree with the given text in the project.
         /// </summary>
         /// <param name="tree">SyntaxTree</param>
+        /// <param name="text">Text</param>
         /// <param name="project">Project</param>
-        public void ReplaceSyntaxTree(SyntaxTree tree, Project project)
+        /// <returns>SyntaxTree</returns>
+        public SyntaxTree ReplaceSyntaxTree(SyntaxTree tree, string text, Project project)
         {
             if (!this.HasInitialized)
             {
                 throw new PSharpGenericException("ProgramInfo has not been initialized.");
             }
-
+            
             var doc = project.Documents.First(val => val.FilePath.Equals(tree.FilePath));
+            var source = SourceText.From(text);
+
+            tree = tree.WithChangedText(source);
             doc = doc.WithSyntaxRoot(tree.GetRoot());
             project = doc.Project;
 
             this.SolutionMap[this.ActiveCompilationTarget] = project.Solution;
 
-            if (IO.Debugging)
+            return doc.GetSyntaxTreeAsync().Result;
+        }
+
+        /// <summary>
+        /// Prints the syntax tree.
+        /// </summary>
+        /// <param name="tree">SyntaxTree</param>
+        public void PrintSyntaxTree(SyntaxTree tree)
+        {
+            var root = (CodeAnalysis.CSharp.Syntax.CompilationUnitSyntax)tree.GetRoot();
+            var lines = System.Text.RegularExpressions.Regex.Split(root.ToFullString(), "\r\n|\r|\n");
+            for (int idx = 0; idx < lines.Length; idx++)
             {
-                this.PrintSyntaxTree(tree);
+                IO.PrintLine(idx + 1 + " " + lines[idx]);
             }
         }
 
@@ -240,20 +257,6 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
             {
                 this.SolutionMap.Add(target, solution);
                 this.PSharpProjectMap.Add(target, new List<PSharpProject>());
-            }
-        }
-
-        /// <summary>
-        /// Print the syntax tree for debug.
-        /// </summary>
-        /// <param name="tree">SyntaxTree</param>
-        private void PrintSyntaxTree(SyntaxTree tree)
-        {
-            var root = (CodeAnalysis.CSharp.Syntax.CompilationUnitSyntax)tree.GetRoot();
-            var lines = System.Text.RegularExpressions.Regex.Split(root.ToFullString(), "\r\n|\r|\n");
-            for (int idx = 0; idx < lines.Length; idx++)
-            {
-                IO.PrintLine(idx + 1 + " " + lines[idx]);
             }
         }
 

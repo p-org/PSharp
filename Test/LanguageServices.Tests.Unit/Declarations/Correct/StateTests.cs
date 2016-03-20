@@ -14,15 +14,16 @@
 
 using System;
 
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using Microsoft.PSharp.LanguageServices.Compilation;
 using Microsoft.PSharp.LanguageServices.Parsing;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.LanguageServices.Tests.Unit
 {
     [TestClass]
-    public class StateTests
+    public class StateTests : BasePSharpTest
     {
         [TestMethod, Timeout(3000)]
         public void TestStateDeclaration()
@@ -35,10 +36,16 @@ state S2 { }
 }
 }";
 
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), false).ParseTokens(tokens);
-            program.Rewrite();
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+
+            var solution = base.GetSolution(test);
+            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
 
             var expected = @"
 using Microsoft.PSharp;
@@ -57,7 +64,7 @@ class S2 : MachineState
 }";
 
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
-                program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
+                syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
         [TestMethod, Timeout(3000)]
@@ -73,10 +80,16 @@ entry{}
 }
 }";
 
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), false).ParseTokens(tokens);
-            program.Rewrite();
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+
+            var solution = base.GetSolution(test);
+            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
 
             var expected = @"
 using Microsoft.PSharp;
@@ -96,7 +109,7 @@ protected void psharp_S_on_entry_action()
 }";
 
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
-                program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
+                syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
         [TestMethod, Timeout(3000)]
@@ -112,10 +125,16 @@ exit{}
 }
 }";
 
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), false).ParseTokens(tokens);
-            program.Rewrite();
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+
+            var solution = base.GetSolution(test);
+            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
 
             var expected = @"
 using Microsoft.PSharp;
@@ -135,7 +154,7 @@ protected void psharp_S_on_exit_action()
 }";
 
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
-                program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
+                syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
         [TestMethod, Timeout(3000)]
@@ -152,10 +171,16 @@ exit {}
 }
 }";
 
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), false).ParseTokens(tokens);
-            program.Rewrite();
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+
+            var solution = base.GetSolution(test);
+            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
 
             var expected = @"
 using Microsoft.PSharp;
@@ -179,7 +204,7 @@ protected void psharp_S_on_exit_action()
 }";
 
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
-                program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
+                syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
         [TestMethod, Timeout(3000)]
@@ -195,10 +220,16 @@ on e goto S2;
 }
 }";
 
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), false).ParseTokens(tokens);
-            program.Rewrite();
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+
+            var solution = base.GetSolution(test);
+            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
 
             var expected = @"
 using Microsoft.PSharp;
@@ -215,7 +246,7 @@ class S1 : MachineState
 }";
 
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
-                program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
+                syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
         [TestMethod, Timeout(3000)]
@@ -232,10 +263,16 @@ on e2 goto S3;
 }
 }";
 
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), false).ParseTokens(tokens);
-            program.Rewrite();
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+
+            var solution = base.GetSolution(test);
+            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
 
             var expected = @"
 using Microsoft.PSharp;
@@ -253,7 +290,7 @@ class S1 : MachineState
 }";
 
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
-                program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
+                syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
         [TestMethod, Timeout(3000)]
@@ -269,10 +306,16 @@ on e goto S2 with {};
 }
 }";
 
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), false).ParseTokens(tokens);
-            program.Rewrite();
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+
+            var solution = base.GetSolution(test);
+            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
 
             var expected = @"
 using Microsoft.PSharp;
@@ -292,7 +335,7 @@ protected void psharp_S1_e_action()
 }";
 
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
-                program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
+                syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
         [TestMethod, Timeout(3000)]
@@ -308,10 +351,16 @@ on e do Bar;
 }
 }";
 
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), false).ParseTokens(tokens);
-            program.Rewrite();
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+
+            var solution = base.GetSolution(test);
+            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
 
             var expected = @"
 using Microsoft.PSharp;
@@ -328,7 +377,7 @@ class S1 : MachineState
 }";
 
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
-                program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
+                syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
         [TestMethod, Timeout(3000)]
@@ -345,10 +394,16 @@ on e2 do Baz;
 }
 }";
 
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), false).ParseTokens(tokens);
-            program.Rewrite();
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+
+            var solution = base.GetSolution(test);
+            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
 
             var expected = @"
 using Microsoft.PSharp;
@@ -366,7 +421,7 @@ class S1 : MachineState
 }";
 
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
-                program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
+                syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
         [TestMethod, Timeout(3000)]
@@ -382,10 +437,16 @@ on e do {};
 }
 }";
 
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), false).ParseTokens(tokens);
-            program.Rewrite();
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+
+            var solution = base.GetSolution(test);
+            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
 
             var expected = @"
 using Microsoft.PSharp;
@@ -405,7 +466,7 @@ protected void psharp_S1_e_action()
 }";
 
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
-                program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
+                syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
         [TestMethod, Timeout(3000)]
@@ -422,10 +483,16 @@ on e2 do Bar;
 }
 }";
 
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), false).ParseTokens(tokens);
-            program.Rewrite();
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+
+            var solution = base.GetSolution(test);
+            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
 
             var expected = @"
 using Microsoft.PSharp;
@@ -443,7 +510,7 @@ class S1 : MachineState
 }";
 
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
-                program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
+                syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
         [TestMethod, Timeout(3000)]
@@ -459,10 +526,16 @@ ignore e;
 }
 }";
 
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), false).ParseTokens(tokens);
-            program.Rewrite();
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+
+            var solution = base.GetSolution(test);
+            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
 
             var expected = @"
 using Microsoft.PSharp;
@@ -479,7 +552,7 @@ class S : MachineState
 }";
 
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
-                program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
+                syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
         [TestMethod, Timeout(3000)]
@@ -495,10 +568,16 @@ ignore e1, e2;
 }
 }";
 
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), false).ParseTokens(tokens);
-            program.Rewrite();
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+
+            var solution = base.GetSolution(test);
+            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
 
             var expected = @"
 using Microsoft.PSharp;
@@ -514,7 +593,7 @@ class S : MachineState
 }
 }";
 
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
         [TestMethod, Timeout(3000)]
@@ -530,10 +609,16 @@ defer e;
 }
 }";
 
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), false).ParseTokens(tokens);
-            program.Rewrite();
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+
+            var solution = base.GetSolution(test);
+            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
 
             var expected = @"
 using Microsoft.PSharp;
@@ -550,7 +635,7 @@ class S : MachineState
 }";
 
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
-                program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
+                syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
         [TestMethod, Timeout(3000)]
@@ -566,10 +651,16 @@ defer e1,e2;
 }
 }";
 
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), false).ParseTokens(tokens);
-            program.Rewrite();
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+
+            var solution = base.GetSolution(test);
+            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
 
             var expected = @"
 using Microsoft.PSharp;
@@ -586,7 +677,7 @@ class S : MachineState
 }";
 
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
-                program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
+                syntaxTree.ToString().Replace("\n", string.Empty));
         }
     }
 }

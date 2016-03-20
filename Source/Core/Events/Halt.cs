@@ -23,10 +23,10 @@ namespace Microsoft.PSharp
     public sealed class Halt : Event
     {
         /// <summary>
-        /// Default constructor.
+        /// Constructor.
         /// </summary>
         public Halt()
-            : base(-1, -1)
+            : base()
         {
             
         }

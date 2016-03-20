@@ -34,35 +34,33 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="project">PSharpProject</param>
-        internal MonitorRewriter(PSharpProject project)
-            : base(project)
+        /// <param name="project">IPSharpProgram</param>
+        internal MonitorRewriter(IPSharpProgram program)
+            : base(program)
         {
 
         }
 
         /// <summary>
-        /// Rewrites the syntax tree with monitor statements.
+        /// Rewrites the monitor statements in the program.
         /// </summary>
-        /// <param name="tree">SyntaxTree</param>
-        /// <returns>SyntaxTree</returns>
-        internal SyntaxTree Rewrite(SyntaxTree tree)
+        internal void Rewrite()
         {
-            var statements = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().
+            var statements = base.Program.GetSyntaxTree().GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().
                 Where(val => val.Expression is GenericNameSyntax).
                 Where(val => (val.Expression as GenericNameSyntax).Identifier.ValueText.Equals("monitor")).
                 ToList();
 
             if (statements.Count == 0)
             {
-                return tree;
+                return;
             }
 
-            var root = tree.GetRoot().ReplaceNodes(
+            var root = base.Program.GetSyntaxTree().GetRoot().ReplaceNodes(
                 nodes: statements,
                 computeReplacementNode: (node, rewritten) => this.RewriteStatement(rewritten));
 
-            return base.UpdateSyntaxTree(tree, root.ToString());
+            base.UpdateSyntaxTree(root.ToString());
         }
 
         #endregion

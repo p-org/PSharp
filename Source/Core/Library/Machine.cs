@@ -153,7 +153,7 @@ namespace Microsoft.PSharp
 
         #endregion
 
-        #region P# API methods
+        #region P# user API
 
         /// <summary>
         /// Creates a new machine of the given type and with the
@@ -163,7 +163,7 @@ namespace Microsoft.PSharp
         /// <param name="type">Type of the machine</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        protected internal MachineId CreateMachine(Type type, Event e = null)
+        protected MachineId CreateMachine(Type type, Event e = null)
         {
             return base.Runtime.TryCreateMachine(type, e);
         }
@@ -177,7 +177,7 @@ namespace Microsoft.PSharp
         /// <param name="endpoint">Endpoint</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        protected internal MachineId CreateRemoteMachine(Type type, string endpoint, Event e = null)
+        protected MachineId CreateRemoteMachine(Type type, string endpoint, Event e = null)
         {
             return base.Runtime.TryCreateRemoteMachine(type, endpoint, e);
         }
@@ -188,11 +188,11 @@ namespace Microsoft.PSharp
         /// <param name="m">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="isStarter">Is starting a new operation</param>
-        protected internal void Send(MachineId mid, Event e, bool isStarter = false)
+        protected void Send(MachineId mid, Event e, bool isStarter = false)
         {
-            // If the target machine is null then report an error and exit.
+            // If the target machine is null, then report an error and exit.
             this.Assert(mid != null, "Machine '{0}' is sending to a null machine.", this.GetType().Name);
-            // If the event is null then report an error and exit.
+            // If the event is null, then report an error and exit.
             this.Assert(e != null, "Machine '{0}' is sending a null event.", this.GetType().Name);
             base.Runtime.Send(this, mid, e, isStarter);
         }
@@ -203,11 +203,11 @@ namespace Microsoft.PSharp
         /// <param name="m">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="isStarter">Is starting a new operation</param>
-        protected internal void RemoteSend(MachineId mid, Event e, bool isStarter = false)
+        protected void RemoteSend(MachineId mid, Event e, bool isStarter = false)
         {
-            // If the target machine is null then report an error and exit.
+            // If the target machine is null, then report an error and exit.
             this.Assert(mid != null, "Machine '{0}' is sending to a null machine.", this.GetType().Name);
-            // If the event is null then report an error and exit.
+            // If the event is null, then report an error and exit.
             this.Assert(e != null, "Machine '{0}' is sending a null event.", this.GetType().Name);
             base.Runtime.SendRemotely(this, mid, e, isStarter);
         }
@@ -217,11 +217,24 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <typeparam name="T">Type of the monitor</typeparam>
         /// <param name="e">Event</param>
-        protected internal void Monitor<T>(Event e)
+        protected void Monitor<T>(Event e)
         {
-            // If the event is null then report an error and exit.
+            // If the event is null, then report an error and exit.
             this.Assert(e != null, "Machine '{0}' is sending a null event.", this.GetType().Name);
             base.Runtime.Monitor<T>(this, e);
+        }
+
+        /// <summary>
+        /// Returns from the execution context, and transitions
+        /// the machine to the given state.
+        /// </summary>
+        /// <param name="s">Type of the state</param>
+        protected void Goto(Type s)
+        {
+            // If the state is not a state of the machine, then report an error and exit.
+            this.Assert(this.StateTypes.Contains(s), "Machine '{0}' is trying to transition " +
+                " to non-existing state '{1}'.", this.GetType().Name, s.Name);
+            this.Raise(new GotoStateEvent(s));
         }
 
         /// <summary>
@@ -229,9 +242,9 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="e">Event</param>
         /// <param name="isStarter">Is starting a new operation</param>
-        protected internal void Raise(Event e, bool isStarter = false)
+        protected void Raise(Event e, bool isStarter = false)
         {
-            // If the event is null then report an error and exit.
+            // If the event is null, then report an error and exit.
             this.Assert(e != null, "Machine '{0}' is raising a null event.", this.GetType().Name);
             this.RaisedEvent = e;
             base.Runtime.Raise(this, e, isStarter);
@@ -267,7 +280,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Pops the current state from the state stack.
         /// </summary>
-        protected internal void Pop()
+        protected void Pop()
         {
             // The machine performs the on exit action of the current state.
             this.ExecuteCurrentStateOnExit(null);
@@ -295,7 +308,7 @@ namespace Microsoft.PSharp
         /// controlled during analysis or testing.
         /// </summary>
         /// <returns>Boolean</returns>
-        protected internal bool Random()
+        protected bool Random()
         {
             return base.Runtime.GetNondeterministicChoice(this, 2);
         }
@@ -308,7 +321,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="maxValue">Max value</param>
         /// <returns>Boolean</returns>
-        protected internal bool Random(int maxValue)
+        protected bool Random(int maxValue)
         {
             return base.Runtime.GetNondeterministicChoice(this, maxValue);
         }
@@ -318,7 +331,7 @@ namespace Microsoft.PSharp
         /// controlled during analysis or testing.
         /// </summary>
         /// <returns>Boolean</returns>
-        protected internal bool FairRandom()
+        protected bool FairRandom()
         {
             return base.Runtime.GetNondeterministicChoice(this, 2);
         }
@@ -330,7 +343,7 @@ namespace Microsoft.PSharp
         /// <param name="uniqueId">Unique id</param>
         /// <returns>Boolean</returns>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        protected internal bool FairRandom(int uniqueId)
+        protected bool FairRandom(int uniqueId)
         {
             var havocId = this.GetType().Name + "_" + this.CurrentState.Name + "_" + uniqueId;
             return base.Runtime.GetFairNondeterministicChoice(this, havocId);
@@ -341,7 +354,7 @@ namespace Microsoft.PSharp
         /// an error and exits.
         /// </summary>
         /// <param name="predicate">Predicate</param>
-        protected internal void Assert(bool predicate)
+        protected void Assert(bool predicate)
         {
             base.Runtime.Assert(predicate);
         }
@@ -353,7 +366,7 @@ namespace Microsoft.PSharp
         /// <param name="predicate">Predicate</param>
         /// <param name="s">Message</param>
         /// <param name="args">Message arguments</param>
-        protected internal void Assert(bool predicate, string s, params object[] args)
+        protected void Assert(bool predicate, string s, params object[] args)
         {
             base.Runtime.Assert(predicate, s, args);
         }
@@ -694,8 +707,14 @@ namespace Microsoft.PSharp
                     continue;
                 }
 
+                // Checks if the event is a goto state event.
+                if (e.GetType() == typeof(GotoStateEvent))
+                {
+                    Type targetState = (e as GotoStateEvent).State;
+                    this.GotoState(targetState, null);
+                }
                 // Checks if the event can trigger a goto state transition.
-                if (this.GotoTransitions.ContainsKey(e.GetType()))
+                else if (this.GotoTransitions.ContainsKey(e.GetType()))
                 {
                     var transition = this.GotoTransitions[e.GetType()];
                     Type targetState = transition.Item1;
@@ -785,7 +804,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Checks if the machine can handle the given event type. An event
         /// can be handled if it is deferred, or leads to a transition or
-        /// action binding. Ignored events have been removed.
+        /// action binding.
         /// </summary>
         /// <param name="e">Event type</param>
         /// <returns>Boolean</returns>
@@ -794,7 +813,8 @@ namespace Microsoft.PSharp
             if (this.DeferredEvents.Contains(e) ||
                 this.GotoTransitions.ContainsKey(e) ||
                 this.PushTransitions.ContainsKey(e) ||
-                this.ActionBindings.ContainsKey(e))
+                this.ActionBindings.ContainsKey(e) ||
+                e == typeof(GotoStateEvent))
             {
                 return true;
             }

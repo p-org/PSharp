@@ -48,7 +48,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// Runs the P# parsing engine.
         /// </summary>
-        public void Run()
+        /// <returns>ParsingEngine</returns>
+        public ParsingEngine Run()
         {
             // Parse the projects.
             if (this.CompilationContext.Configuration.ProjectName.Equals(""))
@@ -81,6 +82,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     this.CompilationContext.GetProjects().Add(psharpProject);
                 }
             }
+
+            return this;
         }
 
         #endregion

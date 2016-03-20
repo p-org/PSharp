@@ -32,34 +32,32 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="project">PSharpProject</param>
-        internal HaltEventRewriter(PSharpProject project)
-            : base(project)
+        /// <param name="program">IPSharpProgram</param>
+        internal HaltEventRewriter(IPSharpProgram program)
+            : base(program)
         {
 
         }
 
         /// <summary>
-        /// Rewrites the syntax tree with halt event types.
+        /// Rewrites the halt event types in the program.
         /// </summary>
-        /// <param name="tree">SyntaxTree</param>
-        /// <returns>SyntaxTree</returns>
-        internal SyntaxTree Rewrite(SyntaxTree tree)
+        internal void Rewrite()
         {
-            var types = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().
+            var types = base.Program.GetSyntaxTree().GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().
                 Where(val => val.Identifier.ValueText.Equals("halt")).
                 ToList();
 
             if (types.Count == 0)
             {
-                return tree;
+                return;
             }
 
-            var root = tree.GetRoot().ReplaceNodes(
+            var root = base.Program.GetSyntaxTree().GetRoot().ReplaceNodes(
                 nodes: types,
                 computeReplacementNode: (node, rewritten) => this.RewriteType(rewritten));
 
-            return base.UpdateSyntaxTree(tree, root.ToString());
+            base.UpdateSyntaxTree(root.ToString());
         }
 
         #endregion

@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-using Microsoft.PSharp.LanguageServices.Compilation;
 using Microsoft.PSharp.LanguageServices.Syntax;
 using Microsoft.PSharp.LanguageServices.Rewriting.PSharp;
 using Microsoft.PSharp.Utilities;
@@ -85,6 +84,11 @@ namespace Microsoft.PSharp.LanguageServices
             this.RewriteExpressions();
 
             this.InsertLibraries();
+
+            if (IO.Debugging)
+            {
+                base.GetProject().CompilationContext.PrintSyntaxTree(base.GetSyntaxTree());
+            }
         }
 
         #endregion
@@ -96,8 +100,8 @@ namespace Microsoft.PSharp.LanguageServices
         /// </summary>
         private void RewriteTypes()
         {
-            this.SyntaxTree = new MachineTypeRewriter(this.Project).Rewrite(this.SyntaxTree);
-            this.SyntaxTree = new HaltEventRewriter(this.Project).Rewrite(this.SyntaxTree);
+            new MachineTypeRewriter(this).Rewrite();
+            new HaltEventRewriter(this).Rewrite();
         }
 
         /// <summary>
@@ -105,13 +109,13 @@ namespace Microsoft.PSharp.LanguageServices
         /// </summary>
         private void RewriteStatements()
         {
-            this.SyntaxTree = new CreateMachineRewriter(this.Project).Rewrite(this.SyntaxTree);
-            this.SyntaxTree = new CreateRemoteMachineRewriter(this.Project).Rewrite(this.SyntaxTree);
-            this.SyntaxTree = new SendRewriter(this.Project).Rewrite(this.SyntaxTree);
-            this.SyntaxTree = new MonitorRewriter(this.Project).Rewrite(this.SyntaxTree);
-            this.SyntaxTree = new RaiseRewriter(this.Project).Rewrite(this.SyntaxTree);
-            this.SyntaxTree = new PopRewriter(this.Project).Rewrite(this.SyntaxTree);
-            this.SyntaxTree = new AssertRewriter(this.Project).Rewrite(this.SyntaxTree);
+            new CreateMachineRewriter(this).Rewrite();
+            new CreateRemoteMachineRewriter(this).Rewrite();
+            new SendRewriter(this).Rewrite();
+            new MonitorRewriter(this).Rewrite();
+            new RaiseRewriter(this).Rewrite();
+            new PopRewriter(this).Rewrite();
+            new AssertRewriter(this).Rewrite();
         }
 
         /// <summary>
@@ -119,10 +123,10 @@ namespace Microsoft.PSharp.LanguageServices
         /// </summary>
         private void RewriteExpressions()
         {
-            this.SyntaxTree = new TriggerRewriter(this.Project).Rewrite(this.SyntaxTree);
-            this.SyntaxTree = new CurrentStateRewriter(this.Project).Rewrite(this.SyntaxTree);
-            this.SyntaxTree = new ThisRewriter(this.Project).Rewrite(this.SyntaxTree);
-            this.SyntaxTree = new NondeterministicChoiceRewriter(this.Project).Rewrite(this.SyntaxTree);
+            new TriggerRewriter(this).Rewrite();
+            new CurrentStateRewriter(this).Rewrite();
+            new ThisRewriter(this).Rewrite();
+            new NondeterministicChoiceRewriter(this).Rewrite();
         }
 
         /// <summary>
@@ -131,16 +135,14 @@ namespace Microsoft.PSharp.LanguageServices
         private void InsertLibraries()
         {
             var list = new List<UsingDirectiveSyntax>();
-            
             var psharpLib = base.CreateLibrary("Microsoft.PSharp");
             
             list.Add(psharpLib);
+            list.AddRange(base.GetSyntaxTree().GetCompilationUnitRoot().Usings);
 
-            list.AddRange(base.SyntaxTree.GetCompilationUnitRoot().Usings);
-
-            var root = base.SyntaxTree.GetCompilationUnitRoot().WithUsings(SyntaxFactory.List(list));
-
-            this.UpdateSyntaxTree(root.SyntaxTree.ToString());
+            var root = base.GetSyntaxTree().GetCompilationUnitRoot().
+                WithUsings(SyntaxFactory.List(list));
+            base.UpdateSyntaxTree(root.SyntaxTree.ToString());
         }
 
         #endregion

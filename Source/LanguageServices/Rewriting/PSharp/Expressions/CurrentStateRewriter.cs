@@ -32,34 +32,33 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="project">PSharpProject</param>
-        internal CurrentStateRewriter(PSharpProject project)
-            : base(project)
+        /// <param name="program">IPSharpProgram</param>
+        internal CurrentStateRewriter(IPSharpProgram program)
+            : base(program)
         {
 
         }
 
         /// <summary>
-        /// Rewrites the syntax tree with trigger expressions.
+        /// Rewrites the trigger expressions in the program.
         /// </summary>
-        /// <param name="tree">SyntaxTree</param>
-        /// <returns>SyntaxTree</returns>
-        internal SyntaxTree Rewrite(SyntaxTree tree)
+        internal void Rewrite()
         {
-            var expressions = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().
+            var expressions = base.Program.GetSyntaxTree().GetRoot().DescendantNodes().
+                OfType<IdentifierNameSyntax>().
                 Where(val => val.Identifier.ValueText.Equals("state")).
                 ToList();
 
             if (expressions.Count == 0)
             {
-                return tree;
+                return;
             }
 
-            var root = tree.GetRoot().ReplaceNodes(
+            var root = base.Program.GetSyntaxTree().GetRoot().ReplaceNodes(
                 nodes: expressions,
                 computeReplacementNode: (node, rewritten) => this.RewriteExpression(rewritten));
 
-            return base.UpdateSyntaxTree(tree, root.ToString());
+            base.UpdateSyntaxTree(root.ToString());
         }
 
         #endregion

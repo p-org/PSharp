@@ -90,7 +90,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         #region public API
 
         /// <summary>
-        /// Default constructor.
+        /// Constructor.
         /// </summary>
         /// <param name="context">AnalysisContext</param>
         /// <param name="machine">Machine</param>

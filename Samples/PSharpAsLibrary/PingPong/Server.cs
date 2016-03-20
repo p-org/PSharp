@@ -9,14 +9,13 @@ namespace PingPong
 
 		[Start]
         [OnEntry(nameof(InitOnEntry))]
-        [OnEventGotoState(typeof(Unit), typeof(Active))]
         class Init : MachineState { }
 
 		void InitOnEntry()
         {
             this.Client = this.CreateMachine(typeof(Client));
             this.Send(this.Client, new Config(this.Id));
-            this.Raise(new Unit());
+            this.Goto(typeof(Active));
         }
 
         [OnEntry(nameof(ActiveOnEntry))]

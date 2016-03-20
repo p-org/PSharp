@@ -17,7 +17,7 @@ namespace PingPong
         {
             this.Server = (this.ReceivedEvent as Config).Id;
             this.Counter = 0;
-            this.Raise(new Unit());
+            this.Goto(typeof(Active));
         }
 
         [OnEntry(nameof(ActiveOnEntry))]
@@ -38,7 +38,7 @@ namespace PingPong
             this.Counter++;
             Console.WriteLine("\nTurns: {0} / 5\n", this.Counter);
             this.Send(this.Server, new Ping());
-            this.Raise(new Unit());
+            this.Goto(typeof(Active));
         }
     }
 }

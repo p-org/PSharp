@@ -32,47 +32,36 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.CSharp
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="project">PSharpProject</param>
-        internal RaiseRewriter(PSharpProject project)
-            : base(project)
+        /// <param name="program">IPSharpProgram</param>
+        internal RaiseRewriter(IPSharpProgram program)
+            : base(program)
         {
 
         }
 
         /// <summary>
-        /// Rewrites the syntax tree with raise statements.
+        /// Rewrites the raise statements in the program.
         /// </summary>
-        /// <param name="tree">SyntaxTree</param>
-        /// <returns>SyntaxTree</returns>
-        internal SyntaxTree Rewrite(SyntaxTree tree)
+        internal void Rewrite()
         {
-            var stmts1 = tree.GetRoot().DescendantNodes().OfType<ExpressionStatementSyntax>().
-                Where(val => val.Expression is InvocationExpressionSyntax).
-                Where(val => (val.Expression as InvocationExpressionSyntax).Expression is IdentifierNameSyntax).
-                Where(val => ((val.Expression as InvocationExpressionSyntax).Expression as IdentifierNameSyntax).
-                    Identifier.ValueText.Equals("Raise")).
-                ToList();
+            var compilation = base.Program.GetProject().GetCompilation();
+            var model = compilation.GetSemanticModel(base.Program.GetSyntaxTree());
 
-            var stmts2 = tree.GetRoot().DescendantNodes().OfType<ExpressionStatementSyntax>().
+            var statements = this.Program.GetSyntaxTree().GetRoot().DescendantNodes().OfType<ExpressionStatementSyntax>().
                 Where(val => val.Expression is InvocationExpressionSyntax).
-                Where(val => (val.Expression as InvocationExpressionSyntax).Expression is MemberAccessExpressionSyntax).
-                Where(val => ((val.Expression as InvocationExpressionSyntax).Expression as MemberAccessExpressionSyntax).
-                    Name.Identifier.ValueText.Equals("Raise")).
+                Where(val => base.IsExpectedExpression(val.Expression, "Microsoft.PSharp.Raise", model)).
                 ToList();
-
-            var statements = stmts1;
-            statements.AddRange(stmts2);
             
             if (statements.Count == 0)
             {
-                return tree;
+                return;
             }
 
-            var root = tree.GetRoot().ReplaceNodes(
+            var root = this.Program.GetSyntaxTree().GetRoot().ReplaceNodes(
                 nodes: statements,
                 computeReplacementNode: (node, rewritten) => this.RewriteStatement(rewritten));
 
-            return base.UpdateSyntaxTree(tree, root.ToString());
+            base.UpdateSyntaxTree(root.ToString());
         }
 
         #endregion

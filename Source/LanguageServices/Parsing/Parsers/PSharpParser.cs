@@ -30,7 +30,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         #region public API
 
         /// <summary>
-        /// Default constructor.
+        /// Constructor.
         /// </summary>
         public PSharpParser()
             : base()

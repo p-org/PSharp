@@ -17,8 +17,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-using Microsoft.PSharp.Utilities;
-
 namespace Microsoft.PSharp.LanguageServices
 {
     /// <summary>
@@ -31,17 +29,12 @@ namespace Microsoft.PSharp.LanguageServices
         /// <summary>
         /// The project that this program belongs to.
         /// </summary>
-        internal PSharpProject Project;
+        private PSharpProject Project;
 
         /// <summary>
         /// The syntax tree.
         /// </summary>
-        protected SyntaxTree SyntaxTree;
-
-        /// <summary>
-        /// File path of the P# program.
-        /// </summary>
-        protected readonly string FilePath;
+        private SyntaxTree SyntaxTree;
 
         #endregion
 
@@ -68,12 +61,31 @@ namespace Microsoft.PSharp.LanguageServices
         public abstract void Rewrite();
 
         /// <summary>
+        /// Returns the project of the P# program.
+        /// </summary>
+        /// <returns>PSharpProject</returns>
+        public PSharpProject GetProject()
+        {
+            return this.Project;
+        }
+
+        /// <summary>
         /// Returns the syntax tree of the P# program.
         /// </summary>
         /// <returns>SyntaxTree</returns>
         public SyntaxTree GetSyntaxTree()
         {
             return this.SyntaxTree;
+        }
+
+        /// <summary>
+        /// Updates the syntax tree of the P# program.
+        /// </summary>
+        /// <param name="text">Text</param>
+        public void UpdateSyntaxTree(string text)
+        {
+            var project = this.Project.CompilationContext.GetProjectWithName(this.Project.Name);
+            this.SyntaxTree = this.Project.CompilationContext.ReplaceSyntaxTree(this.SyntaxTree, text, project);
         }
 
         #endregion
@@ -98,16 +110,6 @@ namespace Microsoft.PSharp.LanguageServices
                 WithTrailingTrivia(SyntaxFactory.TriviaList(SyntaxFactory.Whitespace("\n"))));
 
             return usingDirective;
-        }
-
-        /// <summary>
-        /// Updates the syntax tree.
-        /// </summary>
-        /// <param name="text">Text</param>
-        protected void UpdateSyntaxTree(string text)
-        {
-            var source = SourceText.From(text);
-            this.SyntaxTree = this.SyntaxTree.WithChangedText(source);
         }
 
         #endregion

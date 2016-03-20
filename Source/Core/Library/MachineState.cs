@@ -141,10 +141,10 @@ namespace Microsoft.PSharp
                 var method = this.Machine.GetType().GetMethod(attr.Action,
                     BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
 
-                this.Machine.Assert(method.GetParameters().Length == 0, "Action '{0}' in machine '{1}' " +
-                    "must have 0 formal parameters.", method.Name, this.Machine.GetType().Name);
-                this.Machine.Assert(method.ReturnType == typeof(void), "Action '{0}' in machine '{1}' " +
-                    "must have 'void' return type.", method.Name, this.Machine.GetType().Name);
+                this.Machine.Runtime.Assert(method.GetParameters().Length == 0, "Action '{0}' in machine " +
+                    "'{1}' must have 0 formal parameters.", method.Name, this.Machine.GetType().Name);
+                this.Machine.Runtime.Assert(method.ReturnType == typeof(void), "Action '{0}' in machine " +
+                    "'{1}' must have 'void' return type.", method.Name, this.Machine.GetType().Name);
 
                 var action = (Action)Delegate.CreateDelegate(typeof(Action), this.Machine, method);
                 this.ActionBindings.Add(attr.Event, action);

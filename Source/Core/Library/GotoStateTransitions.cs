@@ -33,7 +33,7 @@ namespace Microsoft.PSharp
         private Dictionary<Type, Tuple<Type, Action>> Dictionary;
 
         /// <summary>
-        /// Default constructor of the GotoStateTransitions class.
+        /// Constructor of the GotoStateTransitions class.
         /// </summary>
         public GotoStateTransitions()
         {

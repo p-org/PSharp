@@ -14,15 +14,16 @@
 
 using System;
 
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using Microsoft.PSharp.LanguageServices.Compilation;
 using Microsoft.PSharp.LanguageServices.Parsing;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.LanguageServices.Tests.Unit
 {
     [TestClass]
-    public class EventTests
+    public class EventTests : BasePSharpTest
     {
         [TestMethod, Timeout(3000)]
         public void TestEventDeclaration()
@@ -34,10 +35,16 @@ internal event e2;
 public event e3;
 }";
 
-            var tokens = new PSharpLexer().Tokenize(test);
-            var program = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), false).ParseTokens(tokens);
-            program.Rewrite();
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+
+            var solution = base.GetSolution(test);
+            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
 
             var expected = @"
 using Microsoft.PSharp;
@@ -64,7 +71,7 @@ public class e3 : Event
 }";
 
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
-                program.GetSyntaxTree().ToString().Replace("\n", string.Empty));
+                syntaxTree.ToString().Replace("\n", string.Empty));
         }
     }
 }

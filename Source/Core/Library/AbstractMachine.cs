@@ -41,7 +41,7 @@ namespace Microsoft.PSharp
         #region generic public and override methods
 
         /// <summary>
-        /// Default constructor.
+        /// Constructor.
         /// </summary>
         public AbstractMachine()
         {

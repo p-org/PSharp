@@ -32,21 +32,19 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="project">PSharpProject</param>
-        internal RaiseRewriter(PSharpProject project)
-            : base(project)
+        /// <param name="program">IPSharpProgram</param>
+        internal RaiseRewriter(IPSharpProgram program)
+            : base(program)
         {
 
         }
 
         /// <summary>
-        /// Rewrites the syntax tree with raise statements.
+        /// Rewrites the raise statements in the program.
         /// </summary>
-        /// <param name="tree">SyntaxTree</param>
-        /// <returns>SyntaxTree</returns>
-        internal SyntaxTree Rewrite(SyntaxTree tree)
+        internal void Rewrite()
         {
-            var statements = tree.GetRoot().DescendantNodes().OfType<ExpressionStatementSyntax>().
+            var statements = base.Program.GetSyntaxTree().GetRoot().DescendantNodes().OfType<ExpressionStatementSyntax>().
                 Where(val => val.Expression is InvocationExpressionSyntax).
                 Where(val => (val.Expression as InvocationExpressionSyntax).Expression is IdentifierNameSyntax).
                 Where(val => ((val.Expression as InvocationExpressionSyntax).Expression as IdentifierNameSyntax).
@@ -55,14 +53,14 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 
             if (statements.Count == 0)
             {
-                return tree;
+                return;
             }
 
-            var root = tree.GetRoot().ReplaceNodes(
+            var root = base.Program.GetSyntaxTree().GetRoot().ReplaceNodes(
                 nodes: statements,
                 computeReplacementNode: (node, rewritten) => this.RewriteStatement(rewritten));
 
-            return base.UpdateSyntaxTree(tree, root.ToString());
+            base.UpdateSyntaxTree(root.ToString());
         }
 
         #endregion

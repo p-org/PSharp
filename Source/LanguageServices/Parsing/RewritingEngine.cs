@@ -45,13 +45,16 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// Runs the P# rewriting engine.
         /// </summary>
-        public void Run()
+        /// <returns>RewritingEngine</returns>
+        public RewritingEngine Run()
         {
             // Rewrite the projects for the active compilation target.
             for (int idx = 0; idx < this.CompilationContext.GetProjects().Count; idx++)
             {
                 this.CompilationContext.GetProjects()[idx].Rewrite();
             }
+
+            return this;
         }
 
         #endregion

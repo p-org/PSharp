@@ -95,15 +95,15 @@ namespace Microsoft.PSharp
 
         #endregion
 
-        #region P# API methods
+        #region P# user API
 
         /// <summary>
         /// Raises an event internally and returns from the execution context.
         /// </summary>
         /// <param name="e">Event</param>
-        protected internal void Raise(Event e)
+        protected void Raise(Event e)
         {
-            // If the event is null then report an error and exit.
+            // If the event is null, then report an error and exit.
             this.Assert(e != null, "Monitor '{0}' is raising a null event.", this.GetType().Name);
             base.Runtime.Log("<MonitorLog> Monitor '{0}' raised event '{1}'.",
                 this, e.GetType().FullName);
@@ -115,7 +115,7 @@ namespace Microsoft.PSharp
         /// an error and exits.
         /// </summary>
         /// <param name="predicate">Predicate</param>
-        protected internal void Assert(bool predicate)
+        protected void Assert(bool predicate)
         {
             base.Runtime.Assert(predicate);
         }
@@ -127,7 +127,7 @@ namespace Microsoft.PSharp
         /// <param name="predicate">Predicate</param>
         /// <param name="s">Message</param>
         /// <param name="args">Message arguments</param>
-        protected internal void Assert(bool predicate, string s, params object[] args)
+        protected void Assert(bool predicate, string s, params object[] args)
         {
             base.Runtime.Assert(predicate, s, args);
         }
@@ -221,7 +221,7 @@ namespace Microsoft.PSharp
             {
                 if (this.State == null)
                 {
-                    // If the event cannot be handled then report an error and exit.
+                    // If the event cannot be handled, then report an error and exit.
                     this.Assert(false, "Monitor '{0}' received event '{1}' that cannot be handled.",
                         this.GetType().Name, e.GetType().FullName);
                 }

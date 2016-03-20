@@ -122,6 +122,7 @@
     <Compile Include="Rewriting\CSharp\CSharpRewriter.cs" />
     <Compile Include="Rewriting\CSharp\Statements\PopRewriter.cs" />
     <Compile Include="Rewriting\CSharp\Statements\FairNondetRewriter.cs" />
+    <Compile Include="Rewriting\CSharp\Statements\GotoStateRewriter.cs" />
     <Compile Include="Rewriting\CSharp\Statements\RaiseRewriter.cs" />
     <Compile Include="Rewriting\PSharp\Expressions\NondeterministicChoiceRewriter.cs" />
     <Compile Include="Rewriting\PSharp\Expressions\ThisRewriter.cs" />

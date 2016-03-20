@@ -13,7 +13,7 @@
 //-----------------------------------------------------------------------
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.PSharp.LanguageServices.Rewriting.CSharp
 {
@@ -25,9 +25,9 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.CSharp
         #region fields
 
         /// <summary>
-        /// The P# project.
+        /// The P# program.
         /// </summary>
-        protected PSharpProject Project;
+        protected IPSharpProgram Program;
 
         #endregion
 
@@ -36,22 +36,39 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.CSharp
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="project">PSharpProject</param>
-        protected CSharpRewriter(PSharpProject project)
+        /// <param name="program">IPSharpProgram</param>
+        protected CSharpRewriter(IPSharpProgram program)
         {
-            this.Project = project;
+            this.Program = program;
         }
 
         /// <summary>
         /// Updates the syntax tree.
         /// </summary>
-        /// <param name="tree">SyntaxTree</param>
         /// <param name="text">Text</param>
-        /// <returns>SyntaxTree</returns>
-        protected SyntaxTree UpdateSyntaxTree(SyntaxTree tree, string text)
+        protected void UpdateSyntaxTree(string text)
         {
-            var source = SourceText.From(text);
-            return tree.WithChangedText(source);
+            this.Program.UpdateSyntaxTree(text);
+        }
+
+        /// <summary>
+        /// Returns true if the given expression is the expected one.
+        /// </summary>
+        /// <param name="expression">ExpressionSyntax</param>
+        /// <param name="expectedName">Text</param>
+        /// <param name="model">SemanticModel</param>
+        /// <returns>Boolean</returns>
+        protected bool IsExpectedExpression(ExpressionSyntax expression,
+            string expectedName, SemanticModel model)
+        {
+            var symbol = model.GetSymbolInfo(expression).Symbol;
+            var name = symbol.ContainingNamespace.ToString() + "." + symbol.Name;
+            if (expectedName.Equals(name))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         #endregion

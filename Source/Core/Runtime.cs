@@ -284,7 +284,7 @@ namespace Microsoft.PSharp
         #region initialization
 
         /// <summary>
-        /// Default constructor.
+        /// Constructor.
         /// </summary>
         protected PSharpRuntime()
         {
@@ -294,7 +294,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Default constructor.
+        /// Constructor.
         /// </summary>
         /// <param name="netProvider">NetworkProvider</param>
         protected PSharpRuntime(INetworkProvider netProvider)

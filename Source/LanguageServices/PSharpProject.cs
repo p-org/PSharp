@@ -130,6 +130,22 @@ namespace Microsoft.PSharp.LanguageServices
         }
 
         /// <summary>
+        /// Returns the compilation of the project.
+        /// </summary>
+        /// <param name="name">Project name</param>
+        /// <returns>Compilation</returns>
+        public CodeAnalysis.Compilation GetCompilation()
+        {
+            var project = this.CompilationContext.GetProjectWithName(this.Name);
+            if (project != null)
+            {
+                return project.GetCompilationAsync().Result;
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Is the identifier a machine type.
         /// </summary>
         /// <param name="identifier">IdentifierNameSyntax</param>
@@ -178,16 +194,13 @@ namespace Microsoft.PSharp.LanguageServices
         }
 
         /// <summary>
-        /// Rewrites a P# or P program to C#.
+        /// Rewrites a P# program to C#.
         /// </summary>
         /// <param name="program">Program</param>
         /// <param name="tree">SyntaxTree</param>
         private void RewriteProgram(IPSharpProgram program, SyntaxTree tree)
         {
             program.Rewrite();
-
-            var project = this.CompilationContext.GetProjectWithName(this.Name);
-            this.CompilationContext.ReplaceSyntaxTree(program.GetSyntaxTree(), project);
         }
 
         #endregion

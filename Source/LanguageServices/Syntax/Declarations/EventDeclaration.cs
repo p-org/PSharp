@@ -138,7 +138,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         {
             string text = "";
 
-            if ((this.Program as AbstractPSharpProgram).Project.CompilationContext.
+            if ((this.Program as AbstractPSharpProgram).GetProject().CompilationContext.
                 ActiveCompilationTarget == CompilationTarget.Remote)
             {
                 text += "[System.Runtime.Serialization.DataContract]\n";

@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="Default.cs">
+// <copyright file="GotoStateEvent.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,23 +12,30 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
 using System.Runtime.Serialization;
 
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// The default event.
+    /// The goto state event.
     /// </summary>
     [DataContract]
-    public sealed class Default : Event
+    internal sealed class GotoStateEvent : Event
     {
+        /// <summary>
+        /// Type of the state to transition to.
+        /// </summary>
+        public Type State;
+
         /// <summary>
         /// Constructor.
         /// </summary>
-        public Default()
+        /// <param name="s">Type of the state</param>
+        public GotoStateEvent(Type s)
             : base()
         {
-
+            this.State = s;
         }
     }
 }

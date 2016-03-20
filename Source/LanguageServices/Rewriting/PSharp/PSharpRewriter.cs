@@ -17,7 +17,6 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
@@ -33,9 +32,9 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         #region fields
 
         /// <summary>
-        /// The P# project.
+        /// The P# program.
         /// </summary>
-        protected PSharpProject Project;
+        protected IPSharpProgram Program;
 
         #endregion
 
@@ -44,10 +43,10 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="project">PSharpProject</param>
-        protected PSharpRewriter(PSharpProject project)
+        /// <param name="program">IPSharpProgram</param>
+        protected PSharpRewriter(IPSharpProgram program)
         {
-            this.Project = project;
+            this.Program = program;
         }
 
         /// <summary>
@@ -134,7 +133,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
             var ancestors = node.Ancestors().OfType<ClassDeclarationSyntax>().ToList();
             foreach (var ancestor in ancestors)
             {
-                machine = this.Project.PSharpPrograms.
+                machine = this.Program.GetProject().PSharpPrograms.
                     SelectMany(p => p.NamespaceDeclarations).
                     SelectMany(n => n.MachineDeclarations).
                     FirstOrDefault(s => s.Identifier.TextUnit.Text.Equals(ancestor.Identifier.ValueText));
@@ -152,13 +151,10 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// <summary>
         /// Updates the syntax tree.
         /// </summary>
-        /// <param name="tree">SyntaxTree</param>
         /// <param name="text">Text</param>
-        /// <returns>SyntaxTree</returns>
-        protected SyntaxTree UpdateSyntaxTree(SyntaxTree tree, string text)
+        protected void UpdateSyntaxTree(string text)
         {
-            var source = SourceText.From(text);
-            return tree.WithChangedText(source);
+            this.Program.UpdateSyntaxTree(text);
         }
 
         #endregion

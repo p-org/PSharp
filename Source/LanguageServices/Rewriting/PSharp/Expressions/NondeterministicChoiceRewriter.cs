@@ -32,35 +32,34 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="project">PSharpProject</param>
-        internal NondeterministicChoiceRewriter(PSharpProject project)
-            : base(project)
+        /// <param name="program">IPSharpProgram</param>
+        internal NondeterministicChoiceRewriter(IPSharpProgram program)
+            : base(program)
         {
 
         }
 
         /// <summary>
-        /// Rewrites the syntax tree with nondetermnistic choice expressions.
+        /// Rewrites the nondetermnistic choice expressions in the program.
         /// </summary>
-        /// <param name="tree">SyntaxTree</param>
-        /// <returns>SyntaxTree</returns>
-        internal SyntaxTree Rewrite(SyntaxTree tree)
+        internal void Rewrite()
         {
-            var expressions = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().
+            var expressions = base.Program.GetSyntaxTree().GetRoot().DescendantNodes().
+                OfType<PrefixUnaryExpressionSyntax>().
                 Where(val => val.Kind() == SyntaxKind.PointerIndirectionExpression).
                 Where(val => val.Parent is IfStatementSyntax).
                 ToList();
 
             if (expressions.Count == 0)
             {
-                return tree;
+                return;
             }
 
-            var root = tree.GetRoot().ReplaceNodes(
+            var root = base.Program.GetSyntaxTree().GetRoot().ReplaceNodes(
                 nodes: expressions,
                 computeReplacementNode: (node, rewritten) => this.RewriteExpression(rewritten));
 
-            return base.UpdateSyntaxTree(tree, root.ToString());
+            base.UpdateSyntaxTree(root.ToString());
         }
 
         #endregion

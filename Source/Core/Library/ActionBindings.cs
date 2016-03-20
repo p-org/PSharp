@@ -31,7 +31,7 @@ namespace Microsoft.PSharp
         private Dictionary<Type, Action> Dictionary;
 
         /// <summary>
-        /// Default constructor of the ActionBindings class.
+        /// Constructor of the ActionBindings class.
         /// </summary>
         public ActionBindings()
         {

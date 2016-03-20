@@ -51,7 +51,8 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Runs the P# static analysis engine.
         /// </summary>
-        public void Run()
+        /// <returns>StaticAnalysisEngine</returns>
+        public StaticAnalysisEngine Run()
         {
             // Parse the projects.
             if (this.CompilationContext.Configuration.ProjectName.Equals(""))
@@ -80,6 +81,8 @@ namespace Microsoft.PSharp.StaticAnalysis
                     this.AnalyzeProject(project);
                 }
             }
+
+            return this;
         }
 
         #endregion

@@ -90,6 +90,7 @@
     <Compile Include="Attributes\Start.cs" />
     <Compile Include="Events\Default.cs" />
     <Compile Include="Events\Event.cs" />
+    <Compile Include="Events\GotoStateEvent.cs" />
     <Compile Include="Events\Halt.cs" />
     <Compile Include="Exceptions.cs" />
     <Compile Include="Net\NetworkProviders\DefaultNetworkProvider.cs" />
