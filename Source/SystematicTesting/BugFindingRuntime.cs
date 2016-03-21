@@ -356,8 +356,11 @@ namespace Microsoft.PSharp.SystematicTesting
         /// <param name="isStarter">Is starting a new operation</param>
         internal override void Send(AbstractMachine sender, MachineId mid, Event e, bool isStarter)
         {
-            e.SetSenderMachine(sender.Id);
-            this.SetOperationIdForEvent(e, sender, isStarter);
+            if (sender != null)
+            {
+                e.SetSenderMachine(sender.Id);
+                this.SetOperationIdForEvent(e, sender, isStarter);
+            }
 
             if (this.Configuration.BoundOperations && sender != null)
             {
