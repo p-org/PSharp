@@ -118,8 +118,8 @@ namespace Microsoft.PSharp.StaticAnalysis
             DirectAccessAnalysisPass.Create(context).Run();
 
             // Creates and runs an analysis pass that computes the
-            // summary for every P# machine.
-            SummarizationPass.Create(context).Run();
+            // gives-up ownership summaries for every P# machine.
+            GivesUpOwnershipAnalysisPass.Create(context).Run();
 
             // Creates and runs an analysis pass that constructs the
             // state transition graph for each machine.

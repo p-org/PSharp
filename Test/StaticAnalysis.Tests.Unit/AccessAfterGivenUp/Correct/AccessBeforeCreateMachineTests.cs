@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="BasicFieldSendingFailTests.cs">
+// <copyright file="AccessBeforeCreateMachineTests.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -24,10 +24,10 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
 {
     [TestClass]
-    public class BasicFieldSendingFailTests : BasePSharpTest
+    public class AccessBeforeCreateMachineTests : BasePSharpTest
     {
         [TestMethod, Timeout(3000)]
-        public void TestBasicFieldSendingViaSendFail()
+        public void TestAccessBeforeCreateMachine()
         {
             var test = @"
 using Microsoft.PSharp;
@@ -65,9 +65,9 @@ class M : Machine
 
  void FirstOnEntryAction()
  {
-  this.Letter = new Letter(""test"");
-  this.Target = this.CreateMachine(typeof(M));
-  this.Send(this.Target, new eUnit(this.Letter));
+  var letter = new Letter(""test"");
+  letter.Text = ""changed"";
+  this.Target = this.CreateMachine(typeof(M), new eUnit(letter));
  }
 }
 }";
@@ -89,21 +89,14 @@ class M : Machine
             StaticAnalysisEngine.Create(context).Run();
 
             var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... Static analysis detected '1' error";
+            var expected = "... No static analysis errors detected (but absolutely no warranty provided)";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
-
-            var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends payload " +
-                "'this.Letter', which contains data from a machine field.";
-            var actual = IO.GetOutput();
-
-            Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
-               actual.Substring(0, actual.IndexOf(Environment.NewLine)));
 
             IO.StopWritingToMemory();
         }
 
         [TestMethod, Timeout(3000)]
-        public void TestBasicFieldSendingViaCreateMachineFail()
+        public void TestAccessBeforeCreateMachineInCallee()
         {
             var test = @"
 using Microsoft.PSharp;
@@ -141,8 +134,14 @@ class M : Machine
 
  void FirstOnEntryAction()
  {
-  this.Letter = new Letter(""test"");
-  this.Target = this.CreateMachine(typeof(M), new eUnit(this.Letter));
+  var letter = new Letter(""test"");
+  this.Foo(letter);
+ }
+
+ void Foo(Letter letter)
+ {
+  letter.Text = ""changed"";
+  this.Target = this.CreateMachine(typeof(M), new eUnit(letter));
  }
 }
 }";
@@ -164,15 +163,8 @@ class M : Machine
             StaticAnalysisEngine.Create(context).Run();
 
             var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... Static analysis detected '1' error";
+            var expected = "... No static analysis errors detected (but absolutely no warranty provided)";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
-
-            var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
-                "payload 'this.Letter', which contains data from a machine field.";
-            var actual = IO.GetOutput();
-
-            Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
-               actual.Substring(0, actual.IndexOf(Environment.NewLine)));
 
             IO.StopWritingToMemory();
         }

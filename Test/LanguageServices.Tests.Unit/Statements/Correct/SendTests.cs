@@ -161,7 +161,7 @@ start state S
 {
 entry
 {
-string s = \""hello\"";
+string s = ""hello"";
 send(this.Target, e1, 10, s);
 }
 }
@@ -205,7 +205,7 @@ class S : MachineState
 }
 protected void psharp_S_on_entry_action()
 {
-string s = \""hello\"";
+string s = ""hello"";
 this.Send(this.Target,new e1(10, s));
 }
 }

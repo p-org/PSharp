@@ -99,7 +99,7 @@
     <Compile Include="Tracing\TraceInfo.cs" />
     <Compile Include="DataRaceAnalysis\AnalysisPass.cs" />
     <Compile Include="StaticAnalysisEngine.cs" />
-    <Compile Include="Summarization\SummarizationPass.cs" />
+    <Compile Include="DataRaceAnalysis\GivesUpOwnershipAnalysisPass.cs" />
     <Compile Include="DataRaceAnalysis\RespectsOwnershipAnalysisPass.cs" />
     <Compile Include="DataRaceAnalysis\DirectAccessAnalysisPass.cs" />
     <Compile Include="DataRaceAnalysis\StateTransitionAnalysisPass.cs" />

@@ -88,6 +88,10 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="AccessAfterGivenUp\Correct\AccessBeforeCreateMachineTests.cs" />
+    <Compile Include="AccessAfterGivenUp\Correct\AccessBeforeSendTests.cs" />
+    <Compile Include="AccessAfterGivenUp\StaticError\AccessAfterCreateMachineFailTests.cs" />
+    <Compile Include="AccessAfterGivenUp\StaticError\AccessAfterSendFailTests.cs" />
     <Compile Include="BasePSharpTest.cs" />
     <Compile Include="DirectAccess\Correct\MemberVisibilityTests.cs" />
     <Compile Include="DirectAccess\StaticError\MemberVisibilityFailTests.cs" />

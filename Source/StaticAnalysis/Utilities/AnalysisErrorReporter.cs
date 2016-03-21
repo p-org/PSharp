@@ -12,6 +12,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.StaticAnalysis
@@ -401,8 +403,9 @@ namespace Microsoft.PSharp.StaticAnalysis
         private static void ReportDataRaceSource(TraceInfo trace, string s, params object[] args)
         {
             string message = IO.Format(s, args);
-            IO.Print("Error: Potential source for data race detected. ");
-            IO.PrintLine(message);
+            IO.Print(ConsoleColor.Red, "Error: ");
+            IO.Print(ConsoleColor.Yellow, message);
+            IO.PrintLine();
 
             for (int idx = trace.ErrorTrace.Count - 1; idx >= 0; idx--)
             {
@@ -433,8 +436,9 @@ namespace Microsoft.PSharp.StaticAnalysis
         private static void ReportOwnershipError(TraceInfo trace, string s, params object[] args)
         {
             string message = IO.Format(s, args);
-            IO.Print("Error: Potential data race detected. ");
-            IO.PrintLine(message);
+            IO.Print(System.ConsoleColor.Red, "Error: ");
+            IO.Print(System.ConsoleColor.Yellow, message);
+            IO.PrintLine();
 
             for (int idx = trace.ErrorTrace.Count - 1; idx >= 0; idx--)
             {

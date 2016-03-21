@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="BasicFieldSendingFailTests.cs">
+// <copyright file="AccessAfterSendFailTests.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -24,10 +24,10 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
 {
     [TestClass]
-    public class BasicFieldSendingFailTests : BasePSharpTest
+    public class AccessAfterSendFailTests : BasePSharpTest
     {
         [TestMethod, Timeout(3000)]
-        public void TestBasicFieldSendingViaSendFail()
+        public void TestAccessAfterSendFail()
         {
             var test = @"
 using Microsoft.PSharp;
@@ -65,9 +65,10 @@ class M : Machine
 
  void FirstOnEntryAction()
  {
-  this.Letter = new Letter(""test"");
+  var letter = new Letter(""test"");
   this.Target = this.CreateMachine(typeof(M));
-  this.Send(this.Target, new eUnit(this.Letter));
+  this.Send(this.Target, new eUnit(letter));
+  letter.Text = ""changed"";
  }
 }
 }";
@@ -92,18 +93,18 @@ class M : Machine
             var expected = "... Static analysis detected '1' error";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
-            var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends payload " +
-                "'this.Letter', which contains data from a machine field.";
+            var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' " +
+                "accesses 'letter' after giving up its ownership.";
             var actual = IO.GetOutput();
 
-            Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
-               actual.Substring(0, actual.IndexOf(Environment.NewLine)));
+             Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
+                actual.Substring(0, actual.IndexOf(Environment.NewLine)));
 
             IO.StopWritingToMemory();
         }
 
         [TestMethod, Timeout(3000)]
-        public void TestBasicFieldSendingViaCreateMachineFail()
+        public void TestAccessAfterSendInCalleeFail()
         {
             var test = @"
 using Microsoft.PSharp;
@@ -141,8 +142,15 @@ class M : Machine
 
  void FirstOnEntryAction()
  {
-  this.Letter = new Letter(""test"");
-  this.Target = this.CreateMachine(typeof(M), new eUnit(this.Letter));
+  var letter = new Letter(""test"");
+  this.Target = this.CreateMachine(typeof(M));
+  this.Foo(letter);
+ }
+
+ void Foo(Letter letter)
+ {
+  this.Send(this.Target, new eUnit(letter));
+  letter.Text = ""changed"";
  }
 }
 }";
@@ -167,8 +175,8 @@ class M : Machine
             var expected = "... Static analysis detected '1' error";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
-            var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
-                "payload 'this.Letter', which contains data from a machine field.";
+            var error = "Error: Method 'Foo' of machine 'Foo.M' " +
+                "accesses 'letter' after giving up its ownership.";
             var actual = IO.GetOutput();
 
             Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),

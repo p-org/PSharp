@@ -60,8 +60,8 @@ namespace Microsoft.PSharp.StaticAnalysis
         internal DataFlowAnalysis DataFlowAnalysis;
 
         /// <summary>
-        /// Dictionary containing all read and write accesses in regards
-        /// to the parameters of the original method.
+        /// Dictionary containing all read and write accesses
+        /// of the parameters of the original method.
         /// </summary>
         internal Dictionary<int, HashSet<SyntaxNode>> AccessSet;
 

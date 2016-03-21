@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="SummarizationPass.cs">
+// <copyright file="GivesUpOwnershipAnalysisPass.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -27,21 +27,21 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.StaticAnalysis
 {
     /// <summary>
-    /// This analysis pass computes the summaries
-    /// for each machine of a P# program.
+    /// This analysis pass computes the gives-up ownership
+    /// summaries for each machine of a P# program.
     /// </summary>
-    public sealed class SummarizationPass : AnalysisPass
+    public sealed class GivesUpOwnershipAnalysisPass : AnalysisPass
     {
         #region public API
 
         /// <summary>
-        /// Creates a new method summary analysis pass.
+        /// Creates a new gives-up ownership analysis pass.
         /// </summary>
         /// <param name="context">AnalysisContext</param>
-        /// <returns>SummarizationPass</returns>
-        public static SummarizationPass Create(PSharpAnalysisContext context)
+        /// <returns>GivesUpOwnershipAnalysisPass</returns>
+        public static GivesUpOwnershipAnalysisPass Create(PSharpAnalysisContext context)
         {
-            return new SummarizationPass(context);
+            return new GivesUpOwnershipAnalysisPass(context);
         }
 
         /// <summary>
@@ -82,25 +82,33 @@ namespace Microsoft.PSharp.StaticAnalysis
         public void PrintGivesUpResults()
         {
             IO.PrintLine("... Gives-up ownership summaries");
-            foreach (var kvp in this.AnalysisContext.Summaries)
+            if (this.AnalysisContext.Summaries.Any(val
+                => (val.Value as PSharpMethodSummary).GivesUpSet.Count > 0))
             {
-                var method = kvp.Key;
-                var summary = kvp.Value as PSharpMethodSummary;
-
-                if (summary.GivesUpSet.Count == 0)
+                foreach (var kvp in this.AnalysisContext.Summaries)
                 {
-                    continue;
+                    var method = kvp.Key;
+                    var summary = kvp.Value as PSharpMethodSummary;
+
+                    if (summary.GivesUpSet.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    string methodName = this.AnalysisContext.GetFullMethodName(method);
+
+                    IO.Print("..... '{0}' gives up parameters:", methodName);
+                    foreach (var index in summary.GivesUpSet)
+                    {
+                        IO.Print(" '{0}'", index);
+                    }
+
+                    IO.PrintLine("");
                 }
-
-                string methodName = this.AnalysisContext.GetFullMethodName(method);
-
-                IO.Print("..... '{0}' gives up parameters:", methodName);
-                foreach (var index in summary.GivesUpSet)
-                {
-                    IO.Print(" '{0}'", index);
-                }
-
-                IO.PrintLine("");
+            }
+            else
+            {
+                IO.PrintLine("..... None");
             }
         }
 
@@ -112,7 +120,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Constructor.
         /// </summary>
         /// <param name="context">AnalysisContext</param>
-        private SummarizationPass(PSharpAnalysisContext context)
+        private GivesUpOwnershipAnalysisPass(PSharpAnalysisContext context)
             : base(context)
         {
 

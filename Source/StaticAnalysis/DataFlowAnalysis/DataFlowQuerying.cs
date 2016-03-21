@@ -89,9 +89,9 @@ namespace Microsoft.PSharp.StaticAnalysis
         public static bool FlowsIntoTarget(ISymbol symbol, ISymbol target, SyntaxNode syntaxNode,
             CFGNode cfgNode, SyntaxNode targetSyntaxNode, CFGNode targetCfgNode)
         {
-            Dictionary<ISymbol, HashSet<ISymbol>> dataFlowAnalysis = null;
+            Dictionary<ISymbol, HashSet<ISymbol>> dataFlowMap = null;
             if (!targetCfgNode.GetMethodSummary().DataFlowAnalysis.TryGetDataFlowMapForSyntaxNode(targetSyntaxNode,
-                targetCfgNode, out dataFlowAnalysis) || !dataFlowAnalysis.ContainsKey(symbol))
+                targetCfgNode, out dataFlowMap) || !dataFlowMap.ContainsKey(symbol))
             {
                 return false;
             }
@@ -108,14 +108,14 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 foreach (var field in reachabilityMap[symbol])
                 {
-                    foreach (var reference in dataFlowAnalysis[field])
+                    foreach (var reference in dataFlowMap[field])
                     {
-                        dataFlowAnalysis[symbol].Add(reference);
+                        dataFlowMap[symbol].Add(reference);
                     }
                 }
             }
 
-            foreach (var reference in dataFlowAnalysis[symbol])
+            foreach (var reference in dataFlowMap[symbol])
             {
                 if (reference.Equals(target))
                 {
@@ -123,9 +123,9 @@ namespace Microsoft.PSharp.StaticAnalysis
                 }
             }
 
-            if (dataFlowAnalysis.ContainsKey(target))
+            if (dataFlowMap.ContainsKey(target))
             {
-                foreach (var reference in dataFlowAnalysis[target])
+                foreach (var reference in dataFlowMap[target])
                 {
                     if (!cfgNode.GetMethodSummary().DataFlowAnalysis.DoesReferenceResetUntilCFGNode(symbol, syntaxNode,
                         cfgNode, targetSyntaxNode, targetCfgNode))
@@ -135,7 +135,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                             return true;
                         }
 
-                        foreach (var symbolRef in dataFlowAnalysis[symbol])
+                        foreach (var symbolRef in dataFlowMap[symbol])
                         {
                             if (reference.Equals(symbolRef))
                             {
@@ -161,9 +161,9 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="model">SemanticModel</param>
         /// <param name="context">AnalysisContext</param>
         /// <returns>Boolean</returns>
-        public static bool FlowsFromTarget(ExpressionSyntax expr, ISymbol target,
-            SyntaxNode syntaxNode, CFGNode cfgNode, SyntaxNode targetSyntaxNode,
-            CFGNode targetCfgNode, SemanticModel model, AnalysisContext context)
+        public static bool FlowsFromTarget(ExpressionSyntax expr, ISymbol target, SyntaxNode syntaxNode,
+            CFGNode cfgNode, SyntaxNode targetSyntaxNode, CFGNode targetCfgNode, SemanticModel model,
+            AnalysisContext context)
         {
             IdentifierNameSyntax identifier = context.GetTopLevelIdentifier(expr);
             if (identifier == null)
@@ -172,26 +172,6 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             ISymbol reference = model.GetSymbolInfo(identifier).Symbol;
-            return DataFlowQuerying.FlowsFromTarget(reference, target, syntaxNode,
-                cfgNode, targetSyntaxNode, targetCfgNode);
-        }
-
-        /// <summary>
-        /// Returns true if the given variable flows from the target.
-        /// </summary>
-        /// <param name="variable">Variable</param>
-        /// <param name="target">Target</param>
-        /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">CFGNode</param>
-        /// <param name="targetSyntaxNode">Target syntaxNode</param>
-        /// <param name="targetCfgNode">Target controlFlowGraphNode</param>
-        /// <param name="model">SemanticModel</param>
-        /// <returns>Boolean</returns>
-        public static bool FlowsFromTarget(VariableDeclaratorSyntax variable, ISymbol target,
-            SyntaxNode syntaxNode, CFGNode cfgNode, SyntaxNode targetSyntaxNode,
-            CFGNode targetCfgNode, SemanticModel model)
-        {
-            ISymbol reference = model.GetDeclaredSymbol(variable);
             return DataFlowQuerying.FlowsFromTarget(reference, target, syntaxNode,
                 cfgNode, targetSyntaxNode, targetCfgNode);
         }
@@ -209,9 +189,9 @@ namespace Microsoft.PSharp.StaticAnalysis
         public static bool FlowsFromTarget(ISymbol symbol, ISymbol target, SyntaxNode syntaxNode,
             CFGNode cfgNode, SyntaxNode targetSyntaxNode, CFGNode targetCfgNode)
         {
-            Dictionary<ISymbol, HashSet<ISymbol>> dataFlowAnalysis = null;
+            Dictionary<ISymbol, HashSet<ISymbol>> dataFlowMap = null;
             if (!cfgNode.GetMethodSummary().DataFlowAnalysis.TryGetDataFlowMapForSyntaxNode(syntaxNode,
-                cfgNode, out dataFlowAnalysis) || !dataFlowAnalysis.ContainsKey(symbol))
+                cfgNode, out dataFlowMap) || !dataFlowMap.ContainsKey(symbol))
             {
                 return false;
             }
@@ -228,9 +208,9 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 foreach (var field in reachabilityMap[symbol])
                 {
-                    foreach (var reference in dataFlowAnalysis[field])
+                    foreach (var reference in dataFlowMap[field])
                     {
-                        dataFlowAnalysis[symbol].Add(reference);
+                        dataFlowMap[symbol].Add(reference);
                     }
                 }
             }
@@ -241,7 +221,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 return false;
             }
 
-            foreach (var reference in dataFlowAnalysis[symbol])
+            foreach (var reference in dataFlowMap[symbol])
             {
                 if (reference.Equals(target))
                 {
@@ -249,9 +229,9 @@ namespace Microsoft.PSharp.StaticAnalysis
                 }
             }
             
-            if (dataFlowAnalysis.ContainsKey(target))
+            if (dataFlowMap.ContainsKey(target))
             {
-                foreach (var reference in dataFlowAnalysis[target])
+                foreach (var reference in dataFlowMap[target])
                 {
                     if (!cfgNode.GetMethodSummary().DataFlowAnalysis.DoesReferenceResetUntilCFGNode(symbol, targetSyntaxNode,
                         targetCfgNode, syntaxNode, cfgNode))
@@ -261,7 +241,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                             return true;
                         }
 
-                        foreach (var symbolRef in dataFlowAnalysis[symbol])
+                        foreach (var symbolRef in dataFlowMap[symbol])
                         {
                             if (reference.Equals(symbolRef))
                             {
@@ -397,14 +377,14 @@ namespace Microsoft.PSharp.StaticAnalysis
         {
             HashSet<ISymbol> aliases = new HashSet<ISymbol>();
 
-            Dictionary<ISymbol, HashSet<ISymbol>> dataFlowAnalysis = null;
+            Dictionary<ISymbol, HashSet<ISymbol>> dataFlowMap = null;
             if (!cfgNode.GetMethodSummary().DataFlowAnalysis.TryGetDataFlowMapForSyntaxNode(syntaxNode,
-                cfgNode, out dataFlowAnalysis) || !dataFlowAnalysis.ContainsKey(symbol))
+                cfgNode, out dataFlowMap) || !dataFlowMap.ContainsKey(symbol))
             {
                 return aliases;
             }
 
-            foreach (var reference in dataFlowAnalysis[symbol].Where(v => !v.Equals(symbol)))
+            foreach (var reference in dataFlowMap[symbol].Where(v => !v.Equals(symbol)))
             {
                 aliases.Add(reference);
             }

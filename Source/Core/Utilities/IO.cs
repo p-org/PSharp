@@ -110,9 +110,10 @@ namespace Microsoft.PSharp.Utilities
             }
             else
             {
+                var previousForegroundColor = Console.ForegroundColor;
                 Console.ForegroundColor = color;
                 Console.Write(s);
-                Console.ForegroundColor = ConsoleColor.White;
+                Console.ForegroundColor = previousForegroundColor;
             }
         }
 
@@ -149,9 +150,25 @@ namespace Microsoft.PSharp.Utilities
             }
             else
             {
+                var previousForegroundColor = Console.ForegroundColor;
                 Console.ForegroundColor = color;
                 Console.Write(s, args);
-                Console.ForegroundColor = ConsoleColor.White;
+                Console.ForegroundColor = previousForegroundColor;
+            }
+        }
+
+        /// <summary>
+        /// Writes a new line, to the output stream.
+        /// </summary>
+        internal static void PrintLine()
+        {
+            if (IO.WriteToMemory)
+            {
+                IO.TextWriter.WriteLine();
+            }
+            else
+            {
+                Console.WriteLine();
             }
         }
 
@@ -173,26 +190,6 @@ namespace Microsoft.PSharp.Utilities
         }
 
         /// <summary>
-        /// Writes the specified string value, followed by the
-        /// current line terminator, to the output stream.
-        /// </summary>
-        /// <param name="color">ConsoleColor</param>
-        /// <param name="s">String</param>
-        internal static void PrintLine(ConsoleColor color, string s)
-        {
-            if (IO.WriteToMemory)
-            {
-                IO.TextWriter.WriteLine(s);
-            }
-            else
-            {
-                Console.ForegroundColor = color;
-                Console.WriteLine(s);
-                Console.ForegroundColor = ConsoleColor.White;
-            }
-        }
-
-        /// <summary>
         /// Writes the text representation of the specified array
         /// of objects, followed by the current line terminator, to
         /// the output stream.
@@ -208,28 +205,6 @@ namespace Microsoft.PSharp.Utilities
             else
             {
                 Console.WriteLine(s, args);
-            }
-        }
-
-        /// <summary>
-        /// Writes the text representation of the specified array
-        /// of objects, followed by the current line terminator, to
-        /// the output stream.
-        /// </summary>
-        /// <param name="color">ConsoleColor</param>
-        /// <param name="s">String</param>
-        /// <param name="args">Arguments</param>
-        internal static void PrintLine(ConsoleColor color, string s, params object[] args)
-        {
-            if (IO.WriteToMemory)
-            {
-                IO.TextWriter.WriteLine(s, args);
-            }
-            else
-            {
-                Console.ForegroundColor = color;
-                Console.WriteLine(s, args);
-                Console.ForegroundColor = ConsoleColor.White;
             }
         }
 
