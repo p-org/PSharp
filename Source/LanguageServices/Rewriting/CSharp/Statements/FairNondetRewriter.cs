@@ -61,28 +61,13 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.CSharp
         /// </summary>
         internal void Rewrite()
         {
-            //var compilation = base.Program.GetProject().GetCompilation();
-            //var model = compilation.GetSemanticModel(base.Program.GetSyntaxTree());
+            var compilation = base.Program.GetProject().GetCompilation();
+            var model = compilation.GetSemanticModel(base.Program.GetSyntaxTree());
 
-            //var statements = this.Program.GetSyntaxTree().GetRoot().DescendantNodes().OfType<ExpressionStatementSyntax>().
-            //    Where(val => val.Expression is InvocationExpressionSyntax).
-            //    Where(val => base.IsExpectedExpression(val.Expression, "Microsoft.PSharp.FairNondet", model)).
-            //    ToList();
-
-            var stmts1 = this.Program.GetSyntaxTree().GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().
-                Where(val => val.Expression is IdentifierNameSyntax).
-                Where(val => (val.Expression as IdentifierNameSyntax).
-                    Identifier.ValueText.Equals("FairNondet")).
+            var statements = this.Program.GetSyntaxTree().GetRoot().DescendantNodes().OfType<ExpressionStatementSyntax>().
+                Where(val => val.Expression is InvocationExpressionSyntax).
+                Where(val => base.IsExpectedExpression(val.Expression, "Microsoft.PSharp.FairNondet", model)).
                 ToList();
-            
-            var stmts2 = this.Program.GetSyntaxTree().GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().
-                Where(val => val.Expression is MemberAccessExpressionSyntax).
-                Where(val => (val.Expression as MemberAccessExpressionSyntax).
-                    Name.Identifier.ValueText.Equals("FairNondet")).
-                ToList();
-
-            var statements = stmts1;
-            statements.AddRange(stmts2);
 
             if (statements.Count == 0)
             {
@@ -103,9 +88,9 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.CSharp
         /// <summary>
         /// Rewrites the fair nondet statement.
         /// </summary>
-        /// <param name="node">InvocationExpressionSyntax</param>
+        /// <param name="node">ExpressionStatementSyntax</param>
         /// <returns>SyntaxNode</returns>
-        private SyntaxNode RewriteStatement(InvocationExpressionSyntax node)
+        private SyntaxNode RewriteStatement(ExpressionStatementSyntax node)
         {
             var uniqueId = FairNondetRewriter.IdCounter;
             FairNondetRewriter.IdCounter++;

@@ -12,6 +12,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System.Collections.Generic;
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -62,15 +64,42 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.CSharp
             string expectedName, SemanticModel model)
         {
             var symbol = model.GetSymbolInfo(expression).Symbol;
-            if (symbol == null)
-            {
-                return false;
-            }
-            
-            var name = symbol.ContainingNamespace.ToString() + "." + symbol.Name;
-            if (expectedName.Equals(name))
+            if (this.IsExpectedSymbol(symbol, expectedName))
             {
                 return true;
+            }
+
+            var candidateSymbols = model.GetSymbolInfo(expression).CandidateSymbols;
+            foreach (var candidate in candidateSymbols)
+            {
+                if (this.IsExpectedSymbol(candidate, expectedName))
+                {
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+
+        #endregion
+
+        #region private methods
+
+        /// <summary>
+        /// Returns true if the given symbol is the expected one.
+        /// </summary>
+        /// <param name="symbol">ISymbol</param>
+        /// <param name="expectedName">Text</param>
+        /// <returns>Boolean</returns>
+        private bool IsExpectedSymbol(ISymbol symbol, string expectedName)
+        {
+            if (symbol != null)
+            {
+                string name = symbol.ContainingNamespace.ToString() + "." + symbol.Name;
+                if (name.Equals(expectedName))
+                {
+                    return true;
+                }
             }
 
             return false;
