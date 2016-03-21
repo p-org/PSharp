@@ -122,8 +122,8 @@ namespace Microsoft.PSharp.StaticAnalysis
         }
 
         /// <summary>
-        /// Analyzes the given method to check if it
-        /// respects the given-up ownerships.
+        /// Analyzes the given method to check if it respects
+        /// the given-up ownerships.
         /// </summary>
         /// <param name="method">Method</param>
         /// <param name="machine">Machine</param>
@@ -141,11 +141,11 @@ namespace Microsoft.PSharp.StaticAnalysis
 
         #endregion
 
-        #region give up ownership source analysis methods
+        #region gives-up ownership analysis methods
 
         /// <summary>
-        /// Analyzes the given gives-up control-flow graph node
-        /// to check if it respects the given-up ownerships.
+        /// Analyzes the given control-flow graph node to check
+        /// if it respects the given-up ownerships.
         /// </summary>
         /// <param name="givesUpCfgNode">Gives-up CFG node</param>
         /// <param name="summary">MethodSummary</param>

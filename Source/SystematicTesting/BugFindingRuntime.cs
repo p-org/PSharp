@@ -482,8 +482,16 @@ namespace Microsoft.PSharp.SystematicTesting
         internal override bool GetNondeterministicChoice(AbstractMachine machine, int maxValue)
         {
             var choice = this.BugFinder.GetNextNondeterministicChoice(maxValue);
-            IO.Log("<RandomLog> Machine '{0}({1})' nondeterministically chose '{2}'.",
-                machine, machine.Id.MVal, choice);
+            if (machine != null)
+            {
+                IO.Log("<RandomLog> Machine '{0}({1})' nondeterministically chose '{2}'.",
+                    machine, machine.Id.MVal, choice);
+            }
+            else
+            {
+                IO.Log("<RandomLog> Runtime nondeterministically chose '{0}'.", choice);
+            }
+            
             return choice;
         }
 
@@ -497,8 +505,16 @@ namespace Microsoft.PSharp.SystematicTesting
         internal override bool GetFairNondeterministicChoice(AbstractMachine machine, string uniqueId)
         {
             var choice = this.BugFinder.GetNextNondeterministicChoice(2, uniqueId);
-            IO.Log("<RandomLog> Machine '{0}({1})' nondeterministically chose '{2}'.",
-                machine, machine.Id.MVal, choice);
+            if (machine != null)
+            {
+                IO.Log("<RandomLog> Machine '{0}({1})' nondeterministically chose '{2}'.",
+                    machine, machine.Id.MVal, choice);
+            }
+            else
+            {
+                IO.Log("<RandomLog> Runtime nondeterministically chose '{0}'.", choice);
+            }
+
             return choice;
         }
 
