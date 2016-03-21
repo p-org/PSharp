@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="EventTests.cs">
+// <copyright file="SendTests.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -23,16 +23,25 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.LanguageServices.Tests.Unit
 {
     [TestClass]
-    public class EventTests : BasePSharpTest
+    public class SendTests : BasePSharpTest
     {
         [TestMethod, Timeout(3000)]
-        public void TestEventDeclaration()
+        public void TestSendStatement()
         {
             var test = @"
 namespace Foo {
 event e1;
-internal event e2;
-public event e3;
+
+machine M {
+machine Target;
+start state S
+{
+entry
+{
+send(this.Target, e1);
+}
+}
+}
 }";
 
             var configuration = Configuration.Create();
@@ -56,17 +65,19 @@ class e1 : Event
   : base()
  { }
 }
-internal class e2 : Event
+
+class M : Machine
 {
- public e2()
-  : base()
- { }
+MachineId Target;
+[Microsoft.PSharp.Start]
+[OnEntry(nameof(psharp_S_on_entry_action))]
+class S : MachineState
+{
 }
-public class e3 : Event
+protected void psharp_S_on_entry_action()
 {
- public e3()
-  : base()
- { }
+this.Send(this.Target,new e1());
+}
 }
 }";
 
@@ -75,13 +86,22 @@ public class e3 : Event
         }
 
         [TestMethod, Timeout(3000)]
-        public void TestEventDeclarationWithPayload()
+        public void TestSendStatementWithSinglePayload()
         {
             var test = @"
 namespace Foo {
-event e1 (m:string, n:int);
-internal event e2 (m:string);
-public event e3 (n:int);
+event e1 (k:int);
+
+machine M {
+machine Target;
+start state S
+{
+entry
+{
+send(this.Target, e1, 10);
+}
+}
+}
 }";
 
             var configuration = Configuration.Create();
@@ -101,32 +121,93 @@ namespace Foo
 {
 class e1 : Event
 {
- public string m;
- public int n;
- public e1(string m, int n)
+ public int k;
+ public e1(int k)
   : base()
  {
-  this.m = m;
-  this.n = n;
+  this.k = k;
  }
 }
-internal class e2 : Event
+
+class M : Machine
 {
- public string m;
- public e2(string m)
+MachineId Target;
+[Microsoft.PSharp.Start]
+[OnEntry(nameof(psharp_S_on_entry_action))]
+class S : MachineState
+{
+}
+protected void psharp_S_on_entry_action()
+{
+this.Send(this.Target,new e1(10));
+}
+}
+}";
+
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
+                syntaxTree.ToString().Replace("\n", string.Empty));
+        }
+
+        [TestMethod, Timeout(3000)]
+        public void TestSendStatementWithDoublePayload()
+        {
+            var test = @"
+namespace Foo {
+event e1 (k:int, s:string);
+
+machine M {
+machine Target;
+start state S
+{
+entry
+{
+string s = \""hello\"";
+send(this.Target, e1, 10, s);
+}
+}
+}
+}";
+
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+
+            var solution = base.GetSolution(test);
+            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
+
+            var expected = @"
+using Microsoft.PSharp;
+namespace Foo
+{
+class e1 : Event
+{
+ public int k;
+ public string s;
+ public e1(int k, string s)
   : base()
  {
-  this.m = m;
+  this.k = k;
+  this.s = s;
  }
 }
-public class e3 : Event
+
+class M : Machine
 {
- public int n;
- public e3(int n)
-  : base()
- {
-  this.n = n;
- }
+MachineId Target;
+[Microsoft.PSharp.Start]
+[OnEntry(nameof(psharp_S_on_entry_action))]
+class S : MachineState
+{
+}
+protected void psharp_S_on_entry_action()
+{
+string s = \""hello\"";
+this.Send(this.Target,new e1(10, s));
+}
 }
 }";
 

@@ -26,7 +26,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
         /// </summary>
         /// <param name="text">Text</param>
         /// <returns>Solution</returns>
-        protected Solution GetSolution(string text)
+        protected Solution GetSolution(string text, string suffix = "psharp")
         {
             var workspace = new AdhocWorkspace();
             var solutionInfo = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create());
@@ -44,7 +44,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
             workspace.TryApplyChanges(project.Solution);
 
             var sourceText = SourceText.From(text);
-            var doc = project.AddDocument("Program", sourceText, null, "Program.psharp");
+            var doc = project.AddDocument("Program", sourceText, null, "Program." + suffix);
 
             return doc.Project.Solution;
         }
