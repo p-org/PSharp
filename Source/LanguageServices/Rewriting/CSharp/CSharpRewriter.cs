@@ -62,6 +62,11 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.CSharp
             string expectedName, SemanticModel model)
         {
             var symbol = model.GetSymbolInfo(expression).Symbol;
+            if (symbol == null)
+            {
+                return false;
+            }
+            
             var name = symbol.ContainingNamespace.ToString() + "." + symbol.Name;
             if (expectedName.Equals(name))
             {

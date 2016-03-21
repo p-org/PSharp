@@ -44,13 +44,30 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.CSharp
         /// </summary>
         internal void Rewrite()
         {
-            var compilation = base.Program.GetProject().GetCompilation();
-            var model = compilation.GetSemanticModel(base.Program.GetSyntaxTree());
+            //var compilation = base.Program.GetProject().GetCompilation();
+            //var model = compilation.GetSemanticModel(base.Program.GetSyntaxTree());
 
-            var statements = this.Program.GetSyntaxTree().GetRoot().DescendantNodes().OfType<ExpressionStatementSyntax>().
+            //var statements = this.Program.GetSyntaxTree().GetRoot().DescendantNodes().OfType<ExpressionStatementSyntax>().
+            //    Where(val => val.Expression is InvocationExpressionSyntax).
+            //    Where(val => base.IsExpectedExpression(val.Expression, "Microsoft.PSharp.Pop", model)).
+            //    ToList();
+
+            var stmts1 = this.Program.GetSyntaxTree().GetRoot().DescendantNodes().OfType<ExpressionStatementSyntax>().
                 Where(val => val.Expression is InvocationExpressionSyntax).
-                Where(val => base.IsExpectedExpression(val.Expression, "Microsoft.PSharp.Pop", model)).
+                Where(val => (val.Expression as InvocationExpressionSyntax).Expression is IdentifierNameSyntax).
+                Where(val => ((val.Expression as InvocationExpressionSyntax).Expression as IdentifierNameSyntax).
+                    Identifier.ValueText.Equals("Pop")).
                 ToList();
+
+            var stmts2 = this.Program.GetSyntaxTree().GetRoot().DescendantNodes().OfType<ExpressionStatementSyntax>().
+                Where(val => val.Expression is InvocationExpressionSyntax).
+                Where(val => (val.Expression as InvocationExpressionSyntax).Expression is MemberAccessExpressionSyntax).
+                Where(val => ((val.Expression as InvocationExpressionSyntax).Expression as MemberAccessExpressionSyntax).
+                    Name.Identifier.ValueText.Equals("Pop")).
+                ToList();
+
+            var statements = stmts1;
+            statements.AddRange(stmts2);
 
             if (statements.Count == 0)
             {
