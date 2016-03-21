@@ -386,6 +386,11 @@ namespace Microsoft.PSharp.SystematicTesting
                     return true;
                 });
 
+                if (this.Configuration.ThrowInternalExceptions)
+                {
+                    throw aex;
+                }
+
                 ErrorReporter.ReportAndExit("Exception thrown during systematic testing. Please " +
                     "use /debug to print more information, and contact the developer team.");
             }

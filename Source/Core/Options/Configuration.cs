@@ -135,23 +135,6 @@ namespace Microsoft.PSharp.Utilities
         internal int? RandomSchedulingSeed;
 
         /// <summary>
-        /// Redirects the testing console output.
-        /// </summary>
-        public bool RedirectTestConsoleOutput;
-
-        /// <summary>
-        /// If true, then the P# tester will print the trace
-        /// to a file, even if a bug is not found.
-        /// </summary>
-        public bool PrintTrace;
-
-        /// <summary>
-        /// If true, then the P# tester will not output the
-        /// error trace to a file.
-        /// </summary>
-        public bool SuppressTrace;
-
-        /// <summary>
         /// Systematic tester does not stop when it finds a bug.
         /// </summary>
         public bool FullExploration;
@@ -233,6 +216,32 @@ namespace Microsoft.PSharp.Utilities
 
         #endregion
 
+        #region debugging options
+
+        /// <summary>
+        /// Redirects the testing console output.
+        /// </summary>
+        public bool RedirectTestConsoleOutput;
+
+        /// <summary>
+        /// If true, then the P# tester will print the trace
+        /// to a file, even if a bug is not found.
+        /// </summary>
+        public bool PrintTrace;
+
+        /// <summary>
+        /// If true, then the P# tester will not output the
+        /// error trace to a file.
+        /// </summary>
+        public bool SuppressTrace;
+
+        /// <summary>
+        /// If true, then P# will throw any internal exceptions.
+        /// </summary>
+        public bool ThrowInternalExceptions;
+
+        #endregion
+
         #region constructor
 
         /// <summary>
@@ -269,10 +278,6 @@ namespace Microsoft.PSharp.Utilities
             this.SchedulingIterations = 1;
             this.RandomSchedulingSeed = null;
 
-            this.RedirectTestConsoleOutput = true;
-            this.PrintTrace = false;
-            this.SuppressTrace = false;
-
             this.FullExploration = false;
             this.DepthBound = 10000;
             this.ConsiderDepthBoundHitAsBug = false;
@@ -289,6 +294,11 @@ namespace Microsoft.PSharp.Utilities
             this.NumberOfContainers = 1;
             this.ContainerId = 0;
             this.RemoteApplicationFilePath = "";
+
+            this.RedirectTestConsoleOutput = true;
+            this.PrintTrace = false;
+            this.SuppressTrace = false;
+            this.ThrowInternalExceptions = false;
         }
 
         #endregion

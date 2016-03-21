@@ -359,8 +359,9 @@ namespace Microsoft.PSharp.SystematicTesting
             if (sender != null)
             {
                 e.SetSenderMachine(sender.Id);
-                this.SetOperationIdForEvent(e, sender, isStarter);
             }
+
+            this.SetOperationIdForEvent(e, sender, isStarter);
 
             if (this.Configuration.BoundOperations && sender != null)
             {
