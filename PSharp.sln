@@ -35,6 +35,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StaticAnalysis.Tests.Unit",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LanguageServices.Tests.Unit", "Test\LanguageServices.Tests.Unit\LanguageServices.Tests.Unit.csproj", "{9C634793-A03A-4CE2-B2FC-782D859F48D3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PSharpVisualizer", "Source\PSharpVisualizer\PSharpVisualizer.csproj", "{E80DB647-D926-4CD1-80DF-989998B9A5EF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -189,6 +191,18 @@ Global
 		{9C634793-A03A-4CE2-B2FC-782D859F48D3}.Release|x64.Build.0 = Release|x64
 		{9C634793-A03A-4CE2-B2FC-782D859F48D3}.Release|x86.ActiveCfg = Release|Any CPU
 		{9C634793-A03A-4CE2-B2FC-782D859F48D3}.Release|x86.Build.0 = Release|Any CPU
+		{E80DB647-D926-4CD1-80DF-989998B9A5EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E80DB647-D926-4CD1-80DF-989998B9A5EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E80DB647-D926-4CD1-80DF-989998B9A5EF}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{E80DB647-D926-4CD1-80DF-989998B9A5EF}.Debug|x64.Build.0 = Debug|Any CPU
+		{E80DB647-D926-4CD1-80DF-989998B9A5EF}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{E80DB647-D926-4CD1-80DF-989998B9A5EF}.Debug|x86.Build.0 = Debug|Any CPU
+		{E80DB647-D926-4CD1-80DF-989998B9A5EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E80DB647-D926-4CD1-80DF-989998B9A5EF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E80DB647-D926-4CD1-80DF-989998B9A5EF}.Release|x64.ActiveCfg = Release|Any CPU
+		{E80DB647-D926-4CD1-80DF-989998B9A5EF}.Release|x64.Build.0 = Release|Any CPU
+		{E80DB647-D926-4CD1-80DF-989998B9A5EF}.Release|x86.ActiveCfg = Release|Any CPU
+		{E80DB647-D926-4CD1-80DF-989998B9A5EF}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -208,5 +222,6 @@ Global
 		{13008B9E-32F1-416F-A0E5-81B23A226D73} = {A40ADE08-182B-4570-982B-F16DD3CE04E1}
 		{76083D7A-E51C-4267-8DED-86E7A4FBDF58} = {8A2AF4EE-D9F8-4BD4-B858-F144C8448303}
 		{9C634793-A03A-4CE2-B2FC-782D859F48D3} = {8A2AF4EE-D9F8-4BD4-B858-F144C8448303}
+		{E80DB647-D926-4CD1-80DF-989998B9A5EF} = {6F835BCA-788A-4C38-933B-DBE71F40797F}
 	EndGlobalSection
 EndGlobal
