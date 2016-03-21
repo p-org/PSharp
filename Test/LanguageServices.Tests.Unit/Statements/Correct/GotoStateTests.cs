@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="EventTests.cs">
+// <copyright file="GotoStateTests.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -23,16 +23,25 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.LanguageServices.Tests.Unit
 {
     [TestClass]
-    public class EventTests : BasePSharpTest
+    public class GotoStateTests : BasePSharpTest
     {
         [TestMethod, Timeout(3000)]
-        public void TestEventDeclaration()
+        public void TestGotoStateStatement()
         {
             var test = @"
 namespace Foo {
-event e1;
-internal event e2;
-public event e3;
+machine M {
+start state S1
+{
+entry
+{
+jump(S2);
+}
+}
+state S2
+{
+}
+}
 }";
 
             var configuration = Configuration.Create();
@@ -50,23 +59,20 @@ public event e3;
 using Microsoft.PSharp;
 namespace Foo
 {
-class e1 : Event
+class M : Machine
 {
- public e1()
-  : base()
- { }
+[Microsoft.PSharp.Start]
+[OnEntry(nameof(psharp_S1_on_entry_action))]
+class S1 : MachineState
+{
 }
-internal class e2 : Event
+class S2 : MachineState
 {
- public e2()
-  : base()
- { }
 }
-public class e3 : Event
+protected void psharp_S1_on_entry_action()
 {
- public e3()
-  : base()
- { }
+{ this.Goto(typeof(S2));return; }
+}
 }
 }";
 
@@ -75,63 +81,63 @@ public class e3 : Event
         }
 
         [TestMethod, Timeout(3000)]
-        public void TestEventDeclarationWithPayload()
+        public void TestGotoStateStatementWithPSharpAPI()
         {
             var test = @"
-namespace Foo {
-event e1 (m:string, n:int);
-internal event e2 (m:string);
-public event e3 (n:int);
+using Microsoft.PSharp;
+namespace Foo
+{
+class M : Machine
+{
+[Microsoft.PSharp.Start]
+[OnEntry(nameof(psharp_S1_on_entry_action))]
+class S1 : MachineState
+{
+}
+class S2 : MachineState
+{
+}
+protected void psharp_S1_on_entry_action()
+{
+this.Goto(typeof(S2));
+}
+}
 }";
 
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
 
-            var solution = base.GetSolution(test);
+            var solution = base.GetSolution(test, "cs");
             var context = CompilationContext.Create(configuration).LoadSolution(solution);
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();
 
-            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
+            var syntaxTree = context.GetProjects()[0].CSharpPrograms[0].GetSyntaxTree();
 
             var expected = @"
 using Microsoft.PSharp;
 namespace Foo
 {
-class e1 : Event
+class M : Machine
 {
- public string m;
- public int n;
- public e1(string m, int n)
-  : base()
- {
-  this.m = m;
-  this.n = n;
- }
+[Microsoft.PSharp.Start]
+[OnEntry(nameof(psharp_S1_on_entry_action))]
+class S1 : MachineState
+{
 }
-internal class e2 : Event
+class S2 : MachineState
 {
- public string m;
- public e2(string m)
-  : base()
- {
-  this.m = m;
- }
 }
-public class e3 : Event
+protected void psharp_S1_on_entry_action()
 {
- public int n;
- public e3(int n)
-  : base()
- {
-  this.n = n;
- }
+{ this.Goto(typeof(S2));return; }
+}
 }
 }";
 
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
-                syntaxTree.ToString().Replace("\n", string.Empty));
+                syntaxTree.ToString().Replace(Environment.NewLine, string.Empty));
         }
     }
 }

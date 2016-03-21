@@ -90,6 +90,9 @@
   <ItemGroup>
     <Compile Include="BasePSharpTest.cs" />
     <Compile Include="Declarations\Correct\FieldTests.cs" />
+    <Compile Include="Statements\Correct\SendTests.cs" />
+    <Compile Include="Statements\Correct\GotoStateTests.cs" />
+    <Compile Include="Statements\Correct\RaiseTests.cs" />
     <Compile Include="Declarations\Correct\MethodTests.cs" />
     <Compile Include="Declarations\Correct\StateTests.cs" />
     <Compile Include="Declarations\Correct\MachineTests.cs" />
