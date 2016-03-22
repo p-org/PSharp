@@ -10,42 +10,51 @@ using Microsoft.Msagl;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
-namespace CoverageGraph
+namespace PSharpVisualizer
 {
     class Driver
     {
         static void Main(string[] args)
         {
-            var rg = new ProgramVisualizer();
+            IProgramVisualizer rg = new ProgramVisualizer();
+
             var t = rg.StartAsync();
 
-            //Console.ReadLine();
+            /*
             rg.AddMachine("server");
             rg.AddState("server", "Init");
             rg.AddState("server", "Playing");
-            rg.refresh();
 
-            //Console.ReadLine();
             rg.AddMachine("client");
             rg.AddState("client", "Init");
             rg.AddState("client", "Playing");
-            rg.refresh();
+            */
 
-            //Console.ReadLine();
             rg.AddTransition("server", "Init", "goto", "server", "Playing");
             rg.AddTransition("server", "Playing", "Pong", "client", "Playing");
-            rg.refresh();
 
-            //Console.ReadLine();
             rg.AddTransition("client", "Init", "goto", "client", "Playing");
             rg.AddTransition("client", "Playing", "Ping", "server", "Playing");
-            rg.refresh();
+
+            rg.Refresh();
 
             t.Wait();
         }
     }
 
-    class ProgramVisualizer
+    interface IProgramVisualizer
+    {
+        // Start the visualizer
+        Task StartAsync();
+
+        // Refresh Visualizer display
+        void Refresh();
+
+        // Report a transition
+        void AddTransition(string machine_from, string state_from, string edge_label, string machine_to, string state_to);
+    }
+
+    class ProgramVisualizer : IProgramVisualizer
     {
         // Form controls
         System.Windows.Forms.Form form;
@@ -216,7 +225,7 @@ namespace CoverageGraph
                     lock(graph)
                     {
                         form.SuspendLayout();
-                        form.Invoke(new RefreshDelegate(refresh));
+                        form.Invoke(new RefreshDelegate(Refresh));
                         form.ResumeLayout();
                     }
                 }
@@ -238,7 +247,7 @@ namespace CoverageGraph
             Console.WriteLine(e.NewValue);
         }
 
-        public void refresh()
+        public void Refresh()
         {
             if (!form.IsHandleCreated) return;
 
