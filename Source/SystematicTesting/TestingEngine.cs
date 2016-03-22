@@ -22,6 +22,7 @@ using System.Threading.Tasks;
 
 using Microsoft.PSharp.SystematicTesting.Scheduling;
 using Microsoft.PSharp.Utilities;
+using Microsoft.PSharp.Visualization;
 
 namespace Microsoft.PSharp.SystematicTesting
 {
@@ -56,6 +57,11 @@ namespace Microsoft.PSharp.SystematicTesting
         /// The bug-finding scheduling strategy.
         /// </summary>
         private ISchedulingStrategy Strategy;
+
+        /// <summary>
+        /// The program visualizer.
+        /// </summary>
+        private IProgramVisualizer Visualizer;
 
         /// <summary>
         /// Explored schedules so far.
@@ -251,6 +257,11 @@ namespace Microsoft.PSharp.SystematicTesting
                 this.Configuration.CacheProgramState = false;
             }
 
+            if (this.Configuration.EnableVisualization)
+            {
+                this.Visualizer = new PSharpProgramVisualizer();
+            }
+
             this.HasRedirectedConsoleOutput = false;
         }
 
@@ -265,6 +276,12 @@ namespace Microsoft.PSharp.SystematicTesting
         {
             IO.PrintLine("... Using '{0}' strategy", this.Configuration.SchedulingStrategy);
 
+            Task visualizationTask = null;
+            if (this.Configuration.EnableVisualization)
+            {
+                visualizationTask = this.StartVisualizing();
+            }
+
             Task task = new Task(() =>
             {
                 for (int i = 0; i < this.Configuration.SchedulingIterations; i++)
@@ -274,7 +291,8 @@ namespace Microsoft.PSharp.SystematicTesting
                         IO.PrintLine("..... Iteration #{0}", i + 1);
                     }
 
-                    var runtime = new PSharpBugFindingRuntime(this.Configuration, this.Strategy);
+                    var runtime = new PSharpBugFindingRuntime(this.Configuration,
+                        this.Strategy, this.Visualizer);
 
                     StringWriter sw = null;
                     if (this.Configuration.RedirectTestConsoleOutput &&
@@ -306,6 +324,11 @@ namespace Microsoft.PSharp.SystematicTesting
 
                     // Wait for test to terminate.
                     runtime.WaitMachines();
+
+                    if (this.Configuration.EnableVisualization)
+                    {
+                        this.Visualizer.Refresh();
+                    }
 
                     // Runs the liveness checker to find any liveness property violations.
                     // Requires that no bug has been found, the scheduler terminated before
@@ -371,6 +394,11 @@ namespace Microsoft.PSharp.SystematicTesting
                 {
                     task.Wait();
                 }
+
+                if (this.Configuration.EnableVisualization)
+                {
+                    visualizationTask.Wait();
+                }
             }
             catch (AggregateException aex)
             {
@@ -398,6 +426,17 @@ namespace Microsoft.PSharp.SystematicTesting
             {
                 Profiler.StopMeasuringExecutionTime();
             }
+        }
+
+        /// <summary>
+        /// Starts visualizing the P# program being tested,
+        /// and returns the visualization task.
+        /// </summary>
+        /// <returns>Task</returns>
+        private Task StartVisualizing()
+        {
+            Task visualizationTask = this.Visualizer.StartAsync();
+            return visualizationTask;
         }
 
         /// <summary>

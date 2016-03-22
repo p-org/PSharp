@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{81980F5A-06A4-47F0-86F3-B72F50BAE572}</ProjectGuid>
+    <ProjectGuid>{D88418AB-C8B8-4FB2-9FBA-F0E994E42F37}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Microsoft.PSharp.SystematicTesting</RootNamespace>
@@ -92,6 +92,10 @@
     <ProjectReference Include="..\Core\Core.csproj">
       <Project>{2e330c40-60ea-4a94-8813-9747b93a1795}</Project>
       <Name>Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Visualization\Visualization.csproj">
+      <Project>{81980f5a-06a4-47f0-86f3-b72f50bae572}</Project>
+      <Name>Visualization</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

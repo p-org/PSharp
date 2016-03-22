@@ -64,10 +64,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CodeAnalysis">
-      <HintPath>..\..\..\Roslyn\Microsoft.CodeAnalysis.dll</HintPath>
+      <HintPath>..\..\..\References\Roslyn\Microsoft.CodeAnalysis.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CodeAnalysis.Workspaces">
-      <HintPath>..\..\..\Roslyn\Microsoft.CodeAnalysis.Workspaces.dll</HintPath>
+      <HintPath>..\..\..\References\Roslyn\Microsoft.CodeAnalysis.Workspaces.dll</HintPath>
     </Reference>
     <Reference Include="System" />
   </ItemGroup>
@@ -95,7 +95,7 @@
       <Name>Core</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Source\SystematicTesting\SystematicTesting.csproj">
-      <Project>{81980f5a-06a4-47f0-86f3-b72f50bae572}</Project>
+      <Project>{d88418ab-c8b8-4fb2-9fba-f0e994e42f37}</Project>
       <Name>SystematicTesting</Name>
     </ProjectReference>
   </ItemGroup>

@@ -66,7 +66,7 @@ namespace Microsoft.PSharp.Utilities
         public HashSet<CompilationTarget> CompilationTargets;
 
         /// <summary>
-        /// Run the analysis stage of the compiler.
+        /// Runs the analysis stage of the compiler.
         /// </summary>
         public bool RunStaticAnalysis;
 
@@ -197,6 +197,15 @@ namespace Microsoft.PSharp.Utilities
 
         #endregion
 
+        #region visualization options
+
+        /// <summary>
+        /// Enables visualization of a P# program.
+        /// </summary>
+        public bool EnableVisualization;
+
+        #endregion
+
         #region remote manager options
 
         /// <summary>
@@ -291,8 +300,10 @@ namespace Microsoft.PSharp.Utilities
             this.BoundOperations = false;
             this.DynamicEventQueuePrioritization = false;
 
-            this.NumberOfContainers = 1;
+            this.EnableVisualization = false;
+
             this.ContainerId = 0;
+            this.NumberOfContainers = 1;
             this.RemoteApplicationFilePath = "";
 
             this.RedirectTestConsoleOutput = true;

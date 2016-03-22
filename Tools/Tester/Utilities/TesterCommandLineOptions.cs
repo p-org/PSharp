@@ -98,6 +98,10 @@ namespace Microsoft.PSharp.Utilities
 
                 base.Configuration.SchedulingIterations = i;
             }
+            else if (option.ToLower().Equals("/visualize"))
+            {
+                base.Configuration.EnableVisualization = true;
+            }
             else if (option.ToLower().Equals("/explore"))
             {
                 base.Configuration.FullExploration = true;
