@@ -71,7 +71,7 @@ namespace PSharpVisualizer
         HashSet<string> Machines;
         Dictionary<string, HashSet<string>> States;
         Dictionary<Transition, Edge> Transitions;
-        HashSet<Transition> PendingTransitions;
+        System.Collections.Concurrent.ConcurrentBag<Transition> PendingTransitions;
 
         Dictionary<string, Subgraph> MachineToSubgraph;
         Dictionary<Tuple<string, string>, Node> StateToNode;
@@ -87,7 +87,7 @@ namespace PSharpVisualizer
             StateToNode = new Dictionary<Tuple<string, string>, Node>();
             CollapsedMachines = new HashSet<string>();
             Transitions = new Dictionary<Transition, Edge>();
-            PendingTransitions = new HashSet<Transition>();
+            PendingTransitions = new System.Collections.Concurrent.ConcurrentBag<Transition>();
         }
 
         public void AddMachine(string machine)
@@ -100,7 +100,7 @@ namespace PSharpVisualizer
             }
         }
 
-        public void AddMachineInternal(string machine)
+        void AddMachineInternal(string machine)
         {
             if (Machines.Contains(machine)) return;
             Machines.Add(machine);
@@ -124,7 +124,7 @@ namespace PSharpVisualizer
             }
         }
 
-        public void AddStateInternal(string machine, string state)
+        void AddStateInternal(string machine, string state)
         {
             AddMachineInternal(machine);
             if (States[machine].Contains(state)) return;
@@ -142,25 +142,20 @@ namespace PSharpVisualizer
 
         public void AddTransition(string machine_from, string state_from, string edgeLabel, string machine_to, string state_to)
         {
-            PendingTransitions.Add(new Transition(machine_from, state_from, edgeLabel, machine_to, state_to));
-        }
+            //PendingTransitions.Add(new Transition(machine_from, state_from, edgeLabel, machine_to, state_to));
+            var tr = new Transition(machine_from, state_from, edgeLabel, machine_to, state_to);
+            if (Transitions.ContainsKey(tr)) return;
 
-        void AddPendingTransitionsToGraph()
-        {
-            foreach (var tr in PendingTransitions)
+            lock (graph)
             {
-                if (Transitions.ContainsKey(tr)) continue;
-
-                AddState(tr.machine_from, tr.state_from);
-                AddState(tr.machine_to, tr.state_to);
+                AddStateInternal(tr.machine_from, tr.state_from);
+                AddStateInternal(tr.machine_to, tr.state_to);
 
                 var edge = graph.AddEdge(GetNode(tr.state_from, tr.machine_from).Id, tr.edge_label, GetNode(tr.state_to, tr.machine_to).Id);
                 edge.Label.FontSize = EdgeFontSize;
 
                 Transitions.Add(tr, edge);
             }
-
-            PendingTransitions.Clear();
         }
 
         public Task StartAsync()
@@ -253,8 +248,6 @@ namespace PSharpVisualizer
 
             lock(graph)
             {
-                AddPendingTransitionsToGraph();
-
                 // Save viewer state
                 var z = viewer.ZoomF;
                 // refresh
