@@ -75,17 +75,8 @@ namespace Microsoft.PSharp.StaticAnalysis
                 return;
             }
 
-            List<MemberAccessExpressionSyntax> accesses;
-            if ((cfgNode.GetMethodSummary() as PSharpMethodSummary).GivesUpSet.Count == 0 && call.Expression.DescendantNodesAndSelf().
-                OfType<IdentifierNameSyntax>().Last().ToString().Equals("Send"))
-            {
-                accesses = call.ArgumentList.Arguments[1].DescendantNodesAndSelf().
-                    OfType<MemberAccessExpressionSyntax>().ToList();
-            }
-            else
-            {
-                accesses = call.ArgumentList.DescendantNodesAndSelf().OfType<MemberAccessExpressionSyntax>().ToList();
-            }
+            List<MemberAccessExpressionSyntax> accesses = call.ArgumentList.
+                DescendantNodesAndSelf().OfType<MemberAccessExpressionSyntax>().ToList();
 
             foreach (var access in accesses)
             {

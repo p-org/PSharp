@@ -96,6 +96,9 @@
     <Compile Include="DirectAccess\Correct\MemberVisibilityTests.cs" />
     <Compile Include="DirectAccess\StaticError\MemberVisibilityFailTests.cs" />
     <Compile Include="FieldOwnership\StaticError\BasicFieldSendingFailTests.cs" />
+    <Compile Include="ControlFlow\Correct\NoStatementsWithLoopTest.cs" />
+    <Compile Include="ControlFlow\Correct\NoStatementsTest.cs" />
+    <Compile Include="Loops\Correct\BasicLoopTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
