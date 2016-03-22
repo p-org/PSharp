@@ -120,7 +120,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             // Creates and runs an analysis pass that computes the
             // gives-up ownership summaries for every P# machine.
             GivesUpOwnershipAnalysisPass.Create(context).Run();
-
+            
             // Creates and runs an analysis pass that constructs the
             // state transition graph for each machine.
             if (this.CompilationContext.Configuration.DoStateTransitionAnalysis)
