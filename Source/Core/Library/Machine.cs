@@ -1047,7 +1047,6 @@ namespace Microsoft.PSharp
                     ExitEvent = null;
                     this.RuntimeTrace.Add(trace);
                 }
-
             }
             catch (TaskCanceledException)
             {

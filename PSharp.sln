@@ -35,6 +35,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RuntimeTrace", "RuntimeTrac
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OfflineRaces", "OfflineRaces\OfflineRaces.csproj", "{EA1C888D-A373-49BE-89F3-2069321733E3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OfflRaces", "OfflRaces\OfflRaces.csproj", "{7CBD6344-765D-4E60-9BB3-167738863F2D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -213,6 +215,18 @@ Global
 		{EA1C888D-A373-49BE-89F3-2069321733E3}.Release|x64.Build.0 = Release|Any CPU
 		{EA1C888D-A373-49BE-89F3-2069321733E3}.Release|x86.ActiveCfg = Release|Any CPU
 		{EA1C888D-A373-49BE-89F3-2069321733E3}.Release|x86.Build.0 = Release|Any CPU
+		{7CBD6344-765D-4E60-9BB3-167738863F2D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7CBD6344-765D-4E60-9BB3-167738863F2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7CBD6344-765D-4E60-9BB3-167738863F2D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{7CBD6344-765D-4E60-9BB3-167738863F2D}.Debug|x64.Build.0 = Debug|Any CPU
+		{7CBD6344-765D-4E60-9BB3-167738863F2D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{7CBD6344-765D-4E60-9BB3-167738863F2D}.Debug|x86.Build.0 = Debug|Any CPU
+		{7CBD6344-765D-4E60-9BB3-167738863F2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7CBD6344-765D-4E60-9BB3-167738863F2D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7CBD6344-765D-4E60-9BB3-167738863F2D}.Release|x64.ActiveCfg = Release|Any CPU
+		{7CBD6344-765D-4E60-9BB3-167738863F2D}.Release|x64.Build.0 = Release|Any CPU
+		{7CBD6344-765D-4E60-9BB3-167738863F2D}.Release|x86.ActiveCfg = Release|Any CPU
+		{7CBD6344-765D-4E60-9BB3-167738863F2D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

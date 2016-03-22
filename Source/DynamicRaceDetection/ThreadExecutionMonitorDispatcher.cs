@@ -272,6 +272,8 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
         [DebuggerNonUserCodeAttribute]
         public override void Store(UIntPtr location, uint size, int codeLabel, bool is_volatile)
         {
+            //TODO: Do not record writes within a constructor (BoundedAsyncRacy)
+
             UIntPtr objH, objO;
             ObjectTracking.GetObjectHandle(location, out objH, out objO);
 

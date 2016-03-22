@@ -211,6 +211,7 @@ namespace Microsoft.PSharp.SystematicTesting
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Random)
             {
                 this.Strategy = new RandomStrategy(this.Configuration);
+                this.Configuration.Verbose = 1;
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.DFS)
             {
