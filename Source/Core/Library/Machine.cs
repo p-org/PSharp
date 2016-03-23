@@ -127,6 +127,19 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Name of the current state (for debugging)
+        /// </summary>
+        public string CurrentStateName
+        {
+            get
+            {
+                var state = CurrentState;
+                if (state == null) return null;
+                return state.Name;
+            }
+        }
+
+        /// <summary>
         /// Gets the latest received event, or null if no event
         /// has been received.
         /// </summary>

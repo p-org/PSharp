@@ -84,6 +84,11 @@ namespace Microsoft.PSharp.SystematicTesting
         internal IProgramVisualizer Visualizer;
 
         /// <summary>
+        /// For each event, the (sender machine, sender state) pair (for visualization only)
+        /// </summary>
+        internal Dictionary<Event, Tuple<string, string>> EventToSenderState;
+
+        /// <summary>
         /// Monotonically increasing machine id counter.
         /// </summary>
         private int OperationIdCounter;
@@ -126,6 +131,7 @@ namespace Microsoft.PSharp.SystematicTesting
             this.StateCache = new StateCache(this);
             this.LivenessChecker = new LivenessChecker(this);
             this.Visualizer = visualizer;
+            this.EventToSenderState = new Dictionary<Event, Tuple<string, string>>();
 
             this.OperationIdCounter = 0;
 
@@ -388,6 +394,22 @@ namespace Microsoft.PSharp.SystematicTesting
                     e.GetType().FullName, mid.Type, mid.MVal);
             }
 
+            // Record sender's current state before it changes it
+            if (this.Configuration.EnableVisualization)
+            {
+                if (sender == null || !(sender is Machine))
+                {
+                    // Message comes from outside P#
+                    // Can it come from a monitor? I guess not.
+                    EventToSenderState.Add(e, Tuple.Create("Env", "Env"));
+                }
+                else {
+                    EventToSenderState.Add(e, Tuple.Create(
+                        (sender as Machine).GetType().Name,
+                        (sender as Machine).CurrentStateName));
+                }
+            }
+
             Machine machine = this.MachineMap[mid.Value];
 
             bool runNewHandler = false;
@@ -547,6 +569,16 @@ namespace Microsoft.PSharp.SystematicTesting
             
             var prevMachineOpId = machine.OperationId;
             machine.SetOperationId(e.OperationId);
+
+            if (this.Configuration.EnableVisualization)
+            {
+                var originMachine = EventToSenderState[e].Item1;
+                var originState = EventToSenderState[e].Item2;
+                var destMachine = machine.GetType().Name;
+                var destState = machine.CurrentStateName;
+                this.Visualizer.AddTransition(originMachine, originState, e.GetType().Name, destMachine, destState);
+            }
+
             //if (this.Configuration.BoundOperations && prevMachineOpId != machine.OperationId)
             //{
             //    this.BugFinder.Schedule();
@@ -562,6 +594,28 @@ namespace Microsoft.PSharp.SystematicTesting
         {
             var prevMachineOpId = machine.OperationId;
             machine.SetOperationId(e.OperationId);
+
+            // Capture a Goto transition
+            if (this.Configuration.EnableVisualization)
+            {
+                if (e is GotoStateEvent)
+                {
+                    var originMachine = machine.GetType().Name;
+                    var originState = machine.CurrentStateName;
+                    var destMachine = machine.GetType().Name;
+                    var destState = (e as GotoStateEvent).State.Name;
+                    this.Visualizer.AddTransition(originMachine, originState, "goto", destMachine, destState);
+                }
+                else
+                {
+                    var originMachine = machine.GetType().Name;
+                    var originState = machine.CurrentStateName;
+                    var destMachine = machine.GetType().Name;
+                    var destState = machine.CurrentStateName;
+                    this.Visualizer.AddTransition(originMachine, originState, e.GetType().Name, destMachine, destState);
+                }
+            }
+
             //if (this.Configuration.BoundOperations && prevMachineOpId != machine.OperationId)
             //{
             //    this.BugFinder.Schedule();
