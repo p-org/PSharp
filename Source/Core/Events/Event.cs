@@ -97,4 +97,30 @@ namespace Microsoft.PSharp
 
         #endregion
     }
+
+    public class EventOriginInfo 
+    {
+        /// <summary>
+        /// Sender machine
+        /// </summary>
+        public string machine
+        {
+            get; private set;
+        }
+
+        /// <summary>
+        /// Sender machine's state
+        /// </summary>
+        public string state
+        {
+            get; private set;
+        }
+
+        public EventOriginInfo(string machine, string state)
+        {
+            this.machine = machine;
+            this.state = state;
+        }
+    }
+
 }

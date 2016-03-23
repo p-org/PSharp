@@ -84,11 +84,6 @@ namespace Microsoft.PSharp.SystematicTesting
         internal IProgramVisualizer Visualizer;
 
         /// <summary>
-        /// For each event, the (sender machine, sender state) pair (for visualization only)
-        /// </summary>
-        internal Dictionary<Event, Tuple<string, string>> EventToSenderState;
-
-        /// <summary>
         /// Monotonically increasing machine id counter.
         /// </summary>
         private int OperationIdCounter;
@@ -131,7 +126,6 @@ namespace Microsoft.PSharp.SystematicTesting
             this.StateCache = new StateCache(this);
             this.LivenessChecker = new LivenessChecker(this);
             this.Visualizer = visualizer;
-            this.EventToSenderState = new Dictionary<Event, Tuple<string, string>>();
 
             this.OperationIdCounter = 0;
 
@@ -394,6 +388,8 @@ namespace Microsoft.PSharp.SystematicTesting
                     e.GetType().FullName, mid.Type, mid.MVal);
             }
 
+            EventOriginInfo originInfo = null;
+
             // Record sender's current state before it changes it
             if (this.Configuration.EnableVisualization)
             {
@@ -401,19 +397,19 @@ namespace Microsoft.PSharp.SystematicTesting
                 {
                     // Message comes from outside P#
                     // Can it come from a monitor? I guess not.
-                    EventToSenderState.Add(e, Tuple.Create("Env", "Env"));
+                    originInfo = new EventOriginInfo("Env", "Env");
                 }
                 else {
-                    EventToSenderState.Add(e, Tuple.Create(
+                    originInfo = new EventOriginInfo(
                         (sender as Machine).GetType().Name,
-                        (sender as Machine).CurrentStateName));
+                        (sender as Machine).CurrentStateName);
                 }
             }
 
             Machine machine = this.MachineMap[mid.Value];
 
             bool runNewHandler = false;
-            machine.Enqueue(e, ref runNewHandler);
+            machine.Enqueue(e, ref runNewHandler, originInfo);
             
             if (!runNewHandler)
             {
@@ -554,7 +550,7 @@ namespace Microsoft.PSharp.SystematicTesting
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="e">Event</param>
-        internal override void NotifyDequeuedEvent(Machine machine, Event e)
+        internal override void NotifyDequeuedEvent(Machine machine, Event e, EventOriginInfo eInfo)
         {
             if (this.Configuration.BoundOperations)
             {
@@ -572,8 +568,8 @@ namespace Microsoft.PSharp.SystematicTesting
 
             if (this.Configuration.EnableVisualization)
             {
-                var originMachine = EventToSenderState[e].Item1;
-                var originState = EventToSenderState[e].Item2;
+                var originMachine = eInfo.machine;
+                var originState = eInfo.state;
                 var destMachine = machine.GetType().Name;
                 var destState = machine.CurrentStateName;
                 this.Visualizer.AddTransition(originMachine, originState, e.GetType().Name, destMachine, destState);
@@ -590,7 +586,7 @@ namespace Microsoft.PSharp.SystematicTesting
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="e">Event</param>
-        internal override void NotifyRaisedEvent(Machine machine, Event e)
+        internal override void NotifyRaisedEvent(Machine machine, Event e, EventOriginInfo eInfo)
         {
             var prevMachineOpId = machine.OperationId;
             machine.SetOperationId(e.OperationId);
