@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="AccessBeforeSendTests.cs">
+// <copyright file="AccessAfterCreateMachineTests.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -24,10 +24,10 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
 {
     [TestClass]
-    public class AccessBeforeSendTests : BasePSharpTest
+    public class AccessAfterCreateMachineTests : BasePSharpTest
     {
         [TestMethod, Timeout(3000)]
-        public void TestAccessBeforeSend()
+        public void TestAccessAfterCreateMachine()
         {
             var test = @"
 using Microsoft.PSharp;
@@ -35,29 +35,18 @@ using Microsoft.PSharp;
 namespace Foo {
 class eUnit : Event
 {
- public Letter Letter;
+ public int Value;
  
- public eUnit(Letter letter)
+ public eUnit(int value)
   : base()
  {
-  this.Letter = letter;
- }
-}
-
-struct Letter
-{
- public string Text;
-
- public Letter(string text)
- {
-  this.Text = text;
+  this.Value = value;
  }
 }
 
 class M : Machine
 {
  MachineId Target;
- Letter Letter;
 
  [Start]
  [OnEntry(nameof(FirstOnEntryAction))]
@@ -65,10 +54,9 @@ class M : Machine
 
  void FirstOnEntryAction()
  {
-  var letter = new Letter(""test"");
-  this.Target = this.CreateMachine(typeof(M));
-  letter.Text = ""changed"";
-  this.Send(this.Target, new eUnit(letter));
+  int value = 0;
+  this.Target = this.CreateMachine(typeof(M), new eUnit(value));
+  value = 1;
  }
 }
 }";
@@ -97,7 +85,7 @@ class M : Machine
         }
 
         [TestMethod, Timeout(3000)]
-        public void TestAccessBeforeSendInCallee()
+        public void TestAccessAfterCreateMachineInCallee()
         {
             var test = @"
 using Microsoft.PSharp;
@@ -105,29 +93,18 @@ using Microsoft.PSharp;
 namespace Foo {
 class eUnit : Event
 {
- public Letter Letter;
+ public int Value;
  
- public eUnit(Letter letter)
+ public eUnit(int value)
   : base()
  {
-  this.Letter = letter;
- }
-}
-
-struct Letter
-{
- public string Text;
-
- public Letter(string text)
- {
-  this.Text = text;
+  this.Value = value;
  }
 }
 
 class M : Machine
 {
  MachineId Target;
- Letter Letter;
 
  [Start]
  [OnEntry(nameof(FirstOnEntryAction))]
@@ -135,15 +112,14 @@ class M : Machine
 
  void FirstOnEntryAction()
  {
-  var letter = new Letter(""test"");
-  this.Target = this.CreateMachine(typeof(M));
+  int value = 0;
   this.Foo(letter);
  }
 
- void Foo(Letter letter)
+ void Foo(int value)
  {
-  letter.Text = ""changed"";
-  this.Send(this.Target, new eUnit(letter));
+  this.Target = this.CreateMachine(typeof(M), new eUnit(value));
+  value = 1;
  }
 }
 }";

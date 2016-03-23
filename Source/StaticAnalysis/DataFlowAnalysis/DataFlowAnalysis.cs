@@ -566,11 +566,12 @@ namespace Microsoft.PSharp.StaticAnalysis
             else if (assignment.Right is InvocationExpressionSyntax)
             {
                 var invocation = assignment.Right as InvocationExpressionSyntax;
+                this.MapSymbolsInInvocation(invocation, cfgNode);
+
                 var summary = this.AnalysisContext.TryGetSummary(invocation, this.SemanticModel);
                 var reachableSymbols = this.ResolveSideEffectsInCall(invocation,
                     summary, syntaxNode, cfgNode);
                 var returnSymbols = this.GetReturnSymbols(invocation, summary);
-                this.MapSymbolsInInvocation(invocation, cfgNode);
 
                 if (returnSymbols.Count == 0)
                 {

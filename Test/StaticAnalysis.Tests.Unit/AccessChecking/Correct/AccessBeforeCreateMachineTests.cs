@@ -57,7 +57,6 @@ struct Letter
 class M : Machine
 {
  MachineId Target;
- Letter Letter;
 
  [Start]
  [OnEntry(nameof(FirstOnEntryAction))]
@@ -126,7 +125,6 @@ struct Letter
 class M : Machine
 {
  MachineId Target;
- Letter Letter;
 
  [Start]
  [OnEntry(nameof(FirstOnEntryAction))]

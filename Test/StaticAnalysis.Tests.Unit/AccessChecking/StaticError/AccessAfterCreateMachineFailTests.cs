@@ -57,7 +57,6 @@ struct Letter
 class M : Machine
 {
  MachineId Target;
- Letter Letter;
 
  [Start]
  [OnEntry(nameof(FirstOnEntryAction))]
@@ -133,7 +132,6 @@ struct Letter
 class M : Machine
 {
  MachineId Target;
- Letter Letter;
 
  [Start]
  [OnEntry(nameof(FirstOnEntryAction))]
@@ -141,7 +139,7 @@ class M : Machine
 
  void FirstOnEntryAction()
  {
-  var letter = new Letter(""test"");;
+  var letter = new Letter(""test"");
   this.Foo(letter);
  }
 
