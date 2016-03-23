@@ -90,7 +90,6 @@ namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
             var configuration = Configuration.Create();
             configuration.SuppressTrace = true;
             configuration.Verbose = 2;
-            configuration.CheckLiveness = true;
             configuration.CacheProgramState = true;
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
 

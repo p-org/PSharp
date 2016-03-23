@@ -102,7 +102,6 @@ namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
             var configuration = Configuration.Create();
             configuration.SuppressTrace = true;
             configuration.Verbose = 2;
-            configuration.CheckLiveness = true;
             configuration.SchedulingIterations = 100;
 
             var engine = TestingEngine.Create(configuration, TestProgram.Execute).Run();

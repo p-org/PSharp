@@ -253,7 +253,6 @@ namespace Microsoft.PSharp.SystematicTesting
             {
                 this.Strategy = new MaceMCStrategy(this.Configuration);
                 this.Configuration.FullExploration = false;
-                this.Configuration.CheckLiveness = true;
                 this.Configuration.CacheProgramState = false;
             }
 
@@ -330,14 +329,12 @@ namespace Microsoft.PSharp.SystematicTesting
                         this.Visualizer.Refresh();
                     }
 
-                    // Runs the liveness checker to find any liveness property violations.
-                    // Requires that no bug has been found, the scheduler terminated before
-                    // reaching the depth bound, and there is state caching is not active.
-                    if (this.Configuration.CheckLiveness &&
-                        !this.Configuration.CacheProgramState &&
-                        !runtime.BugFinder.BugFound)
+                    // Checks for any liveness property violations. Requires
+                    // that the program has terminated and no safety property
+                    // violations have been found.
+                    if (!runtime.BugFinder.BugFound)
                     {
-                        runtime.LivenessChecker.Run();
+                        runtime.LivenessChecker.CheckLivenessAtTermination();
                     }
 
                     if (this.HasRedirectedConsoleOutput)

@@ -81,7 +81,7 @@ namespace Microsoft.PSharp.SystematicTesting.StateCaching
             var stateExists = this.StateMap.Values.Any(val => val.Fingerprint.Equals(fingerprint));
             this.StateMap.Add(traceStep, state);
 
-            if (stateExists && this.Runtime.Configuration.CheckLiveness)
+            if (stateExists)
             {
                 IO.Debug("<LivenessDebug> Detected potential infinite execution.");
                 this.Runtime.LivenessChecker.CheckLivenessAtTraceCycle(state.Fingerprint, this.StateMap);
