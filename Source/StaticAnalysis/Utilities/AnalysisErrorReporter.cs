@@ -243,14 +243,14 @@ namespace Microsoft.PSharp.StaticAnalysis
             if (trace.State == null)
             {
                 AnalysisErrorReporter.ReportDataRaceSource(trace,
-                    "Method '{0}' of machine '{1}' sends payload '{2}', which " +
+                    "Method '{0}' of machine '{1}' sends '{2}', which " +
                     "contains data from a machine field.",
                     trace.Method, trace.Machine, trace.Payload);
             }
             else
             {
                 AnalysisErrorReporter.ReportDataRaceSource(trace,
-                    "Method '{0}' in state '{1}' of machine '{2}' sends payload " +
+                    "Method '{0}' in state '{1}' of machine '{2}' sends " +
                     "'{3}', which contains data from a machine field.",
                     trace.Method, trace.State, trace.Machine, trace.Payload);
             }
@@ -266,14 +266,14 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 AnalysisErrorReporter.ReportDataRaceSource(trace,
                     "Method '{0}' of machine '{1}' assigns the latest received " +
-                    "payload to a machine field.",
+                    "event payload to a machine field.",
                     trace.Method, trace.Machine);
             }
             else
             {
                 AnalysisErrorReporter.ReportDataRaceSource(trace,
                     "Method '{0}' in state '{1}' of machine '{2}' assigns " +
-                    "the latest received payload to a machine field.",
+                    "the latest received event payload to a machine field.",
                     trace.Method, trace.State, trace.Machine);
             }
         }
@@ -411,7 +411,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 if (idx == 0)
                 {
-                    IO.PrintLine("   --- Point of sending the payload ---");
+                    IO.PrintLine("   --- Point of sending the event payload ---");
                     IO.Print("   at '{0}' ", trace.ErrorTrace[idx].Expression);
                     IO.Print("in {0}:", trace.ErrorTrace[idx].File);
                     IO.PrintLine("line {0}", trace.ErrorTrace[idx].Line);

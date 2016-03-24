@@ -95,10 +95,13 @@
     <Compile Include="AccessChecking\Correct\AccessBeforeSendTests.cs" />
     <Compile Include="AccessChecking\StaticError\AccessAfterCreateMachineFailTests.cs" />
     <Compile Include="AccessChecking\StaticError\ReadAccessAfterSendFailTests.cs" />
+    <Compile Include="AccessChecking\StaticError\AliasAccessAfterSendFailTests.cs" />
     <Compile Include="AccessChecking\StaticError\WriteAccessAfterSendFailTests.cs" />
     <Compile Include="BasePSharpTest.cs" />
     <Compile Include="DirectAccess\Correct\MemberVisibilityTests.cs" />
     <Compile Include="DirectAccess\StaticError\MemberVisibilityFailTests.cs" />
+    <Compile Include="FieldOwnership\StaticError\FieldSendAliasFailTests.cs" />
+    <Compile Include="FieldOwnership\StaticError\FieldAliasAccessAfterSendFailTests.cs" />
     <Compile Include="FieldOwnership\StaticError\FieldGivenUpOwnershipFailTests.cs" />
     <Compile Include="FieldOwnership\StaticError\FieldSendingFailTests.cs" />
     <Compile Include="ControlFlow\Correct\NoStatementsWithLoopTest.cs" />

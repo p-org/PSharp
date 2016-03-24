@@ -92,7 +92,7 @@ class M : Machine
             var expected = "... Static analysis detected '1' error";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
-            var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends payload " +
+            var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
                 "'this.Letter', which contains data from a machine field.";
             var actual = IO.GetOutput();
 
@@ -170,7 +170,7 @@ class M : Machine
             var expected = "... Static analysis detected '1' error";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
-            var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends payload " +
+            var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
                 "'this.Letter', which contains data from a machine field.";
             var actual = IO.GetOutput();
 
@@ -246,7 +246,7 @@ class M : Machine
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
-                "payload 'this.Letter', which contains data from a machine field.";
+                "'this.Letter', which contains data from a machine field.";
             var actual = IO.GetOutput();
 
             Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
@@ -323,7 +323,7 @@ class M : Machine
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
-                "payload 'this.Letter', which contains data from a machine field.";
+                "'this.Letter', which contains data from a machine field.";
             var actual = IO.GetOutput();
 
             Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
