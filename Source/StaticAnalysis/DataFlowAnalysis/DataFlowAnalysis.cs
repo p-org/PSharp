@@ -855,12 +855,12 @@ namespace Microsoft.PSharp.StaticAnalysis
                 }
 
                 int index = indexMap[reference as IParameterSymbol];
-                if (!cfgNode.GetMethodSummary().AccessSet.ContainsKey(index))
+                if (!cfgNode.GetMethodSummary().ParameterAccessSet.ContainsKey(index))
                 {
-                    cfgNode.GetMethodSummary().AccessSet.Add(index, new HashSet<SyntaxNode>());
+                    cfgNode.GetMethodSummary().ParameterAccessSet.Add(index, new HashSet<SyntaxNode>());
                 }
 
-                cfgNode.GetMethodSummary().AccessSet[index].Add(syntaxNode);
+                cfgNode.GetMethodSummary().ParameterAccessSet[index].Add(syntaxNode);
             }
         }
 

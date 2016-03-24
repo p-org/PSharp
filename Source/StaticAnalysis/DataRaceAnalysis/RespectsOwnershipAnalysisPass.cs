@@ -1163,9 +1163,9 @@ namespace Microsoft.PSharp.StaticAnalysis
                     !DataFlowQuerying.DoesResetInLoop(arguments[idx].Expression, syntaxNode, cfgNode,
                     givesUpSyntaxNode, givesUpCfgNode, model, this.AnalysisContext))
                 {
-                    if (constructorSummary.AccessSet.ContainsKey(idx))
+                    if (constructorSummary.ParameterAccessSet.ContainsKey(idx))
                     {
-                        foreach (var access in constructorSummary.AccessSet[idx])
+                        foreach (var access in constructorSummary.ParameterAccessSet[idx])
                         {
                             TraceInfo newTrace = new TraceInfo();
                             newTrace.Merge(callTrace);
@@ -1305,9 +1305,9 @@ namespace Microsoft.PSharp.StaticAnalysis
                         !DataFlowQuerying.DoesResetInLoop(arguments[idx].Expression, syntaxNode, cfgNode,
                         givesUpSyntaxNode, givesUpCfgNode, model, this.AnalysisContext))
                     {
-                        if (invocationSummary.AccessSet.ContainsKey(idx))
+                        if (invocationSummary.ParameterAccessSet.ContainsKey(idx))
                         {
-                            foreach (var access in invocationSummary.AccessSet[idx])
+                            foreach (var access in invocationSummary.ParameterAccessSet[idx])
                             {
                                 TraceInfo newTrace = new TraceInfo();
                                 newTrace.Merge(callTrace);
