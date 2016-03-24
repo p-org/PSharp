@@ -178,10 +178,14 @@ namespace OfflineRaces
 
                     string[] mFileEntries = Directory.GetFiles(dirName, "*rtTrace*");
 
-                    //chain decomposition
-                    vcCount = mFileEntries.Count();
-                    //TODO: check this
-                    vcCount += 5;
+                    foreach (string fileName in mFileEntries)
+                    {
+                        //chain decomposition
+                        int tc = Int32.Parse(fileName.Substring(22, fileName.Length - 4 - 22));
+                        if (tc > vcCount)
+                            vcCount = tc;
+                    }
+                    vcCount = vcCount + 1;
 
                     foreach (string fileName in mFileEntries)
                     {
@@ -193,8 +197,11 @@ namespace OfflineRaces
                         updateTasks(machineTrace);
                         updateGraph(machineTrace);
                     }
-                    //pruneGraph();
+
                     updateGraphCrossEdges();
+                    Console.WriteLine("before pruning: " + cGraph.VertexCount);
+                    pruneGraph();
+                    Console.WriteLine("after pruning: " + cGraph.VertexCount);
                     //cPrintGraph();
                     Console.WriteLine("Graph construction time: " + swatch.Elapsed.TotalSeconds + "s");
                     swatch.Restart();
@@ -228,89 +235,6 @@ namespace OfflineRaces
                     Console.WriteLine("---------------------------------------------");
                 }
             }
-
-
-
-
-            //repeating
-            string[] dirNames1 = Directory.GetDirectories(".\\");
-            foreach (string dirName in dirNames1)
-            {
-                if (dirName.Contains("InstrTrace"))
-                {
-                    Stopwatch swatch = new Stopwatch();
-                    swatch.Start();
-
-                    string[] fileEntries = Directory.GetFiles(dirName, "*thTrace*");
-                    foreach (string fileName in fileEntries)
-                    {
-                        //Deserialize thread traces
-                        //Open the file written above and read values from it.
-                        Stream stream = File.Open(fileName, FileMode.Open);
-                        BinaryFormatter bformatter = new BinaryFormatter();
-                        List<ThreadTrace> tt = (List<ThreadTrace>)bformatter.Deserialize(stream);
-
-                        for (int i = 0; i < tt.Count; i++)
-                        {
-                            allThreadTraces.Add(tt[i]);
-                            //Console.WriteLine(tt[i].machineID + " " + tt[i].actionID);
-                        }
-                        stream.Close();
-                    }
-
-                    string[] mFileEntries = Directory.GetFiles(dirName, "*rtTrace*");
-
-                    //chain decomposition
-                    vcCount = mFileEntries.Count();
-                    //TODO: check this
-                    vcCount += 5;
-
-                    foreach (string fileName in mFileEntries)
-                    {
-                        Stream stream = File.Open(fileName, FileMode.Open);
-                        BinaryFormatter bformatter = new BinaryFormatter();
-                        List<MachineTrace> machineTrace = ((List<MachineTrace>)bformatter.Deserialize(stream));
-                        stream.Close();
-
-                        updateTasks(machineTrace);
-                        updateGraph(machineTrace);
-                    }
-                    updateGraphCrossEdges();
-                    pruneGraph();
-
-                    Console.WriteLine("Graph construction time: " + swatch.Elapsed.TotalSeconds + "s");
-                    swatch.Restart();
-
-                    updateVectorsT();
-                    Console.WriteLine("Topological sort time: " + swatch.Elapsed.TotalSeconds + "s");
-                    swatch.Restart();
-
-
-                    /*Console.WriteLine("Number of nodes = " + cGraph.VertexCount);
-                    int accesses = 0;
-                    foreach(Node n in cGraph.Vertices)
-                    {
-                        if (n.GetType().ToString().Contains("cActBegin"))
-                        {
-                            accesses += ((cActBegin)n).addresses.Count;
-                        }
-                    }
-                    Console.WriteLine("Number of accesses: " + accesses);
-                    */
-
-                    //detectRacesAgain();
-
-                    detectRacesFast();
-
-                    Console.WriteLine("Race detection time: " + swatch.Elapsed.TotalSeconds + "s");
-                    swatch.Restart();
-
-                    cGraph.Clear();
-                    allThreadTraces.Clear();
-                    Console.WriteLine("---------------------------------------------");
-                }
-            }
-
             /*Console.WriteLine("Press enter to exit");
             Console.ReadLine();
             */
@@ -378,10 +302,10 @@ namespace OfflineRaces
                     catch (Exception)
                     {
                         //TODO: check this
-                        /*Console.WriteLine("crashing: " + mt.machineID + " " + mt.actionID);
+                        Console.WriteLine("crashing: " + mt.machineID + " " + mt.actionID);
                         Environment.Exit(0);
-                        */
-                        continue;
+                        
+                        //continue;
                     }
 
                     Node cn = new cActBegin(matching.machineID, matching.actionName, matching.actionID, mt.eventName, mt.eventID);

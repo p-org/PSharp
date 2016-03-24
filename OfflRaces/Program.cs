@@ -187,9 +187,8 @@ namespace OfflRaces
                     string[] mFileEntries = Directory.GetFiles(dirName, "*rtTrace*");
 
                     //chain decomposition
-                    vcCount = mFileEntries.Count();
-                    //TODO: check this
-                    vcCount += 5;
+                    int tc = Int32.Parse(mFileEntries[mFileEntries.Count() - 1].Substring(22, mFileEntries[mFileEntries.Count() - 1].Length - 4 - 22));
+                    vcCount = tc + 1;
 
                     foreach (string fileName in mFileEntries)
                     {

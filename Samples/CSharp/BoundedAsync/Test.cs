@@ -21,7 +21,7 @@ namespace BoundedAsync
             configuration.CheckDataRaces = true;
             configuration.SuppressTrace = true;
             configuration.Verbose = 2;
-            configuration.SchedulingIterations = 1;
+            configuration.SchedulingIterations = 4;
             configuration.SchedulingStrategy = SchedulingStrategy.Random;
 
             var engine = Microsoft.PSharp.SystematicTesting.TestingEngine.Create(configuration, Test.Execute).Run();

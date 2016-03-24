@@ -123,7 +123,6 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         private void CompileProject(Project project)
         {
             var compilation = project.GetCompilationAsync().Result;
-
             try
             {
                 if (this.CompilationContext.ActiveCompilationTarget == CompilationTarget.Testing ||

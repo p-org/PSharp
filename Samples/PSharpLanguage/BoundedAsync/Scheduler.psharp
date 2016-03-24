@@ -7,7 +7,7 @@
         private machine Process3;
         private int Count;
 
-        private start state Init
+        start state Init
         {
             entry
             {
