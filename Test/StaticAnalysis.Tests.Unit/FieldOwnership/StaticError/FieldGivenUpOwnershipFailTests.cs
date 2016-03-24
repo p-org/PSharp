@@ -104,7 +104,7 @@ class M : Machine
         }
 
         [TestMethod, Timeout(3000)]
-        public void TestFieldAccessAfterGivenUpOwnershipFail()
+        public void TestFieldAccessAfterGivenUpOwnership1Fail()
         {
             var test = @"
 using Microsoft.PSharp;
@@ -146,6 +146,80 @@ class M : Machine
  {
   this.Target = this.CreateMachine(typeof(M));
   this.Send(this.Target, new eUnit(this.Letter));
+  int num = this.Letter.Num;
+  this.Letter.Text = ""London"";
+ }
+}
+}";
+
+            var solution = base.GetSolution(test);
+
+            var configuration = Configuration.Create();
+            configuration.ProjectName = "Test";
+            configuration.Verbose = 2;
+
+            IO.StartWritingToMemory();
+
+            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            AnalysisErrorReporter.ResetStats();
+            StaticAnalysisEngine.Create(context).Run();
+
+            var stats = AnalysisErrorReporter.GetStats();
+            var expected = "... Static analysis detected '3' errors";
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
+
+            IO.StopWritingToMemory();
+        }
+
+        [TestMethod, Timeout(3000)]
+        public void TestFieldAccessAfterGivenUpOwnership2Fail()
+        {
+            var test = @"
+using Microsoft.PSharp;
+
+namespace Foo {
+class eUnit : Event
+{
+ public MachineId Target;
+ public Letter Letter;
+ 
+ public eUnit(MachineId target, Letter letter)
+  : base()
+ {
+  this.Target = target;
+  this.Letter = letter;
+ }
+}
+
+struct Letter
+{
+ public string Text;
+ public int Num;
+
+ public Letter(string text, int num)
+ {
+  this.Text = text;
+  this.Num = num;
+ }
+}
+
+class M : Machine
+{
+ MachineId Target;
+ Letter Letter;
+
+ [Start]
+ [OnEntry(nameof(FirstOnEntryAction))]
+ class First : MachineState { }
+
+ void FirstOnEntryAction()
+ {
+  this.Target = this.CreateMachine(typeof(M));
+  this.Send(this.Target, new eUnit(this.Id, this.Letter));
   int num = this.Letter.Num;
   this.Letter.Text = ""London"";
  }
