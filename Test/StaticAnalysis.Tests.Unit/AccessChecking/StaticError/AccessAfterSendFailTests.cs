@@ -27,7 +27,83 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
     public class AccessAfterSendFailTests : BasePSharpTest
     {
         [TestMethod, Timeout(3000)]
-        public void TestAccessAfterSendFail()
+        public void TestAccessAfterSend1Fail()
+        {
+            var test = @"
+using Microsoft.PSharp;
+
+namespace Foo {
+class eUnit : Event
+{
+ public Letter Letter;
+ 
+ public eUnit(Letter letter)
+  : base()
+ {
+  this.Letter = letter;
+ }
+}
+
+struct Letter
+{
+ public string Text;
+
+ public Letter(string text)
+ {
+  this.Text = text;
+ }
+}
+
+class M : Machine
+{
+ MachineId Target;
+
+ [Start]
+ [OnEntry(nameof(FirstOnEntryAction))]
+ class First : MachineState { }
+
+ void FirstOnEntryAction()
+ {
+  this.Target = this.CreateMachine(typeof(M));
+  var letter = new Letter(""test"");
+  this.Send(this.Target, new eUnit(letter));
+  letter.Text = ""changed"";
+ }
+}
+}";
+
+            var solution = base.GetSolution(test);
+
+            var configuration = Configuration.Create();
+            configuration.ProjectName = "Test";
+            configuration.Verbose = 2;
+
+            IO.StartWritingToMemory();
+
+            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            AnalysisErrorReporter.ResetStats();
+            StaticAnalysisEngine.Create(context).Run();
+
+            var stats = AnalysisErrorReporter.GetStats();
+            var expected = "... Static analysis detected '1' error";
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
+
+            var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' " +
+                "accesses 'letter' after giving up its ownership.";
+            var actual = IO.GetOutput();
+
+             Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
+                actual.Substring(0, actual.IndexOf(Environment.NewLine)));
+
+            IO.StopWritingToMemory();
+        }
+
+        [TestMethod, Timeout(3000)]
+        public void TestAccessAfterSend2Fail()
         {
             var test = @"
 using Microsoft.PSharp;
@@ -96,8 +172,8 @@ class M : Machine
                 "accesses 'letter' after giving up its ownership.";
             var actual = IO.GetOutput();
 
-             Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
-                actual.Substring(0, actual.IndexOf(Environment.NewLine)));
+            Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
+               actual.Substring(0, actual.IndexOf(Environment.NewLine)));
 
             IO.StopWritingToMemory();
         }

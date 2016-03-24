@@ -217,7 +217,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 this.MapReferencesToSymbol(new List<ISymbol> { paramSymbol }, paramSymbol,
                     methodSummary.Method.ParameterList, methodSummary.EntryNode, false);
             }
-
+            
             this.AnalyzeCFGNode(methodSummary.EntryNode, methodSummary.Method.ParameterList,
                 methodSummary.EntryNode);
         }
@@ -1372,29 +1372,27 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <returns>Boolean</returns>
         private bool ReachedFixpoint(SyntaxNode syntaxNode, CFGNode cfgNode, CFGNode successorCfgNode)
         {
-            Dictionary<ISymbol, HashSet<ISymbol>> currentMap = null;
-            this.TryGetDataFlowMapForSyntaxNode(syntaxNode, cfgNode, out currentMap);
+            Dictionary<ISymbol, HashSet<ISymbol>> currDataFlowMap = null;
+            this.TryGetDataFlowMapForSyntaxNode(syntaxNode, cfgNode, out currDataFlowMap);
 
-            Dictionary<ISymbol, HashSet<ISymbol>> successorMap = null;
+            Dictionary<ISymbol, HashSet<ISymbol>> succDataFlowMap = null;
             this.TryGetDataFlowMapForSyntaxNode(successorCfgNode.SyntaxNodes.First(),
-                successorCfgNode, out successorMap);
-            
-            if (currentMap != null && successorMap != null)
-            {
-                foreach (var pair in currentMap)
-                {
-                    if (!successorMap.ContainsKey(pair.Key) ||
-                        !successorMap[pair.Key].SetEquals(pair.Value))
-                    {
-                        return false;
-                    }
-                }
-            }
-            else if (currentMap == null ^ successorMap == null)
+                successorCfgNode, out succDataFlowMap);
+
+            if (currDataFlowMap == null || succDataFlowMap == null)
             {
                 return false;
             }
-            
+
+            foreach (var pair in currDataFlowMap)
+            {
+                if (!succDataFlowMap.ContainsKey(pair.Key) ||
+                    !succDataFlowMap[pair.Key].SetEquals(pair.Value))
+                {
+                    return false;
+                }
+            }
+
             return true;
         }
 
