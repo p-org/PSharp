@@ -93,7 +93,8 @@
     <Compile Include="AccessChecking\Correct\AccessBeforeCreateMachineTests.cs" />
     <Compile Include="AccessChecking\Correct\AccessBeforeSendTests.cs" />
     <Compile Include="AccessChecking\StaticError\AccessAfterCreateMachineFailTests.cs" />
-    <Compile Include="AccessChecking\StaticError\AccessAfterSendFailTests.cs" />
+    <Compile Include="AccessChecking\StaticError\ReadAccessAfterSendFailTests.cs" />
+    <Compile Include="AccessChecking\StaticError\WriteAccessAfterSendFailTests.cs" />
     <Compile Include="BasePSharpTest.cs" />
     <Compile Include="DirectAccess\Correct\MemberVisibilityTests.cs" />
     <Compile Include="DirectAccess\StaticError\MemberVisibilityFailTests.cs" />
