@@ -63,12 +63,12 @@ namespace Microsoft.PSharp.SystematicTesting
         }
 
         /// <summary>
-        /// Runs the liveness checker and reports any liveness property violations.
-        /// Requires the P# program to have reached quiescence.
+        /// Checks for any liveness property violations. Requires
+        /// the P# program to have terminated.
         /// </summary>
-        internal void Run()
+        internal void CheckLivenessAtTermination()
         {
-            if (!this.Runtime.Configuration.CheckLiveness)
+            if (this.Runtime.Configuration.CacheProgramState)
             {
                 return;
             }

@@ -146,8 +146,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             }
 
             this.Runtime.ProgramTrace.AddSchedulingChoice(next.Machine);
-            if (this.Runtime.Configuration.CheckLiveness &&
-                this.Runtime.Configuration.CacheProgramState &&
+            if (this.Runtime.Configuration.CacheProgramState &&
                 this.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps)
             {
                 this.Runtime.StateCache.CaptureState(this.Runtime.ProgramTrace.Peek());
@@ -230,8 +229,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                 this.Runtime.ProgramTrace.AddFairNondeterministicChoice(uniqueId, choice);
             }
             
-            if (this.Runtime.Configuration.CheckLiveness &&
-                this.Runtime.Configuration.CacheProgramState &&
+            if (this.Runtime.Configuration.CacheProgramState &&
                 this.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps)
             {
                 this.Runtime.StateCache.CaptureState(this.Runtime.ProgramTrace.Peek());

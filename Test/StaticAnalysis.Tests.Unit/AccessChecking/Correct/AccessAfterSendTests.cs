@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="MemberVisibilityTests.cs">
+// <copyright file="AccessAfterSendTests.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Linq;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -23,16 +24,29 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
 {
     [TestClass]
-    public class MemberVisibilityTests : BasePSharpTest
+    public class AccessAfterSendTests : BasePSharpTest
     {
         [TestMethod, Timeout(3000)]
-        public void TestMemberVisibility()
+        public void TestAccessAfterSend()
         {
             var test = @"
+using Microsoft.PSharp;
+
 namespace Foo {
+class eUnit : Event
+{
+ public int Value;
+ 
+ public eUnit(int value)
+  : base()
+ {
+  this.Value = value;
+ }
+}
+
 class M : Machine
 {
- int Num;
+ MachineId Target;
 
  [Start]
  [OnEntry(nameof(FirstOnEntryAction))]
@@ -40,17 +54,22 @@ class M : Machine
 
  void FirstOnEntryAction()
  {
-  this.Num = 1;
+  int value = 0;
+  this.Target = this.CreateMachine(typeof(M));
+  this.Send(this.Target, new eUnit(value));
+  value = 1;
  }
 }
 }";
 
+            var solution = base.GetSolution(test);
+
             var configuration = Configuration.Create();
+            configuration.ProjectName = "Test";
             configuration.Verbose = 2;
 
             IO.StartWritingToMemory();
 
-            var solution = base.GetSolution(test);
             var context = CompilationContext.Create(configuration).LoadSolution(solution);
 
             ParsingEngine.Create(context).Run();
@@ -61,7 +80,70 @@ class M : Machine
 
             var stats = AnalysisErrorReporter.GetStats();
             var expected = "... No static analysis errors detected (but absolutely no warranty provided)";
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
+            IO.StopWritingToMemory();
+        }
+
+        [TestMethod, Timeout(3000)]
+        public void TestAccessAfterSendInCallee()
+        {
+            var test = @"
+using Microsoft.PSharp;
+
+namespace Foo {
+class eUnit : Event
+{
+ public int Value;
+ 
+ public eUnit(int value)
+  : base()
+ {
+  this.Value = value;
+ }
+}
+
+class M : Machine
+{
+ MachineId Target;
+
+ [Start]
+ [OnEntry(nameof(FirstOnEntryAction))]
+ class First : MachineState { }
+
+ void FirstOnEntryAction()
+ {
+  int value = 0;
+  this.Target = this.CreateMachine(typeof(M));
+  this.Foo(value);
+ }
+
+ void Foo(int value)
+ {
+  this.Send(this.Target, new eUnit(value));
+  value = 1;
+ }
+}
+}";
+
+            var solution = base.GetSolution(test);
+
+            var configuration = Configuration.Create();
+            configuration.ProjectName = "Test";
+            configuration.Verbose = 2;
+
+            IO.StartWritingToMemory();
+
+            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            AnalysisErrorReporter.ResetStats();
+            StaticAnalysisEngine.Create(context).Run();
+
+            var stats = AnalysisErrorReporter.GetStats();
+            var expected = "... No static analysis errors detected (but absolutely no warranty provided)";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             IO.StopWritingToMemory();

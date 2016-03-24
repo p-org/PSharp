@@ -26,8 +26,6 @@ namespace Microsoft.PSharp.SystematicTesting.Tests.Unit
 
         class Server : Machine
         {
-            MachineId Client;
-
             [Start]
             [OnEntry(nameof(InitOnEntry))]
             [OnEventGotoState(typeof(Unit), typeof(Active))]

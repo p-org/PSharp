@@ -66,7 +66,7 @@ namespace Microsoft.PSharp.Utilities
         public HashSet<CompilationTarget> CompilationTargets;
 
         /// <summary>
-        /// Run the analysis stage of the compiler.
+        /// Runs the analysis stage of the compiler.
         /// </summary>
         public bool RunStaticAnalysis;
 
@@ -172,12 +172,6 @@ namespace Microsoft.PSharp.Utilities
         public bool ScheduleIntraMachineConcurrency;
 
         /// <summary>
-        /// If true, then the P# tester will check if any liveness
-        /// properties hold.
-        /// </summary>
-        public bool CheckLiveness;
-
-        /// <summary>
         /// If true, then the P# tester will perform state
         /// caching when checking liveness properties.
         /// </summary>
@@ -194,6 +188,15 @@ namespace Microsoft.PSharp.Utilities
         /// queues dynamically, depending on priorities.
         /// </summary>
         public bool DynamicEventQueuePrioritization;
+
+        #endregion
+
+        #region visualization options
+
+        /// <summary>
+        /// Enables visualization of a P# program.
+        /// </summary>
+        public bool EnableVisualization;
 
         #endregion
 
@@ -286,13 +289,14 @@ namespace Microsoft.PSharp.Utilities
             this.SafetyPrefixBound = 0;
 
             this.ScheduleIntraMachineConcurrency = false;
-            this.CheckLiveness = false;
             this.CacheProgramState = false;
             this.BoundOperations = false;
             this.DynamicEventQueuePrioritization = false;
 
-            this.NumberOfContainers = 1;
+            this.EnableVisualization = false;
+
             this.ContainerId = 0;
+            this.NumberOfContainers = 1;
             this.RemoteApplicationFilePath = "";
 
             this.RedirectTestConsoleOutput = true;
@@ -335,18 +339,6 @@ namespace Microsoft.PSharp.Utilities
         public Configuration WithDebuggingEnabled(bool value = true)
         {
             IO.Debugging = value;
-            return this;
-        }
-
-        /// <summary>
-        /// Updates the configuration with liveness checking enabled
-        /// or disabled and returns it.
-        /// </summary>
-        /// <param name="value">Boolean</param>
-        /// <returns>Configuration</returns>
-        public Configuration WithLivenessCheckingEnabled(bool value = true)
-        {
-            this.CheckLiveness = value;
             return this;
         }
 

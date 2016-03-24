@@ -98,6 +98,10 @@ namespace Microsoft.PSharp.Utilities
 
                 base.Configuration.SchedulingIterations = i;
             }
+            else if (option.ToLower().Equals("/visualize"))
+            {
+                base.Configuration.EnableVisualization = true;
+            }
             else if (option.ToLower().Equals("/explore"))
             {
                 base.Configuration.FullExploration = true;
@@ -168,10 +172,6 @@ namespace Microsoft.PSharp.Utilities
             else if (option.ToLower().Equals("/tpl"))
             {
                 base.Configuration.ScheduleIntraMachineConcurrency = true;
-            }
-            else if (option.ToLower().Equals("/liveness"))
-            {
-                base.Configuration.CheckLiveness = true;
             }
             else if (option.ToLower().Equals("/state-caching"))
             {
@@ -256,7 +256,6 @@ namespace Microsoft.PSharp.Utilities
             help += "\n  /sch:[x]\t\t Choose a systematic testing strategy ('random' by default)";
             help += "\n  /depth-bound:[x]\t Depth bound to be explored ('10000' by default)";
             help += "\n  /delay-bound:[x]\t Delay bound ('2' by default)";
-            help += "\n  /liveness\t\t Enable liveness property checking";
             help += "\n  /sch-seed:[x]\t\t Choose a scheduling seed (signed 32-bit integer)";
 
             help += "\n\n---------------------------";

@@ -8,15 +8,19 @@ using Microsoft.Msagl.Drawing;
 using Microsoft.Msagl.GraphViewerGdi;
 using Microsoft.Msagl;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
-namespace CoverageGraph
+namespace PSharpVisualizer
 {
     class Driver
     {
         static void Main(string[] args)
         {
-            var rg = new ProgramVisualizer();
+            IProgramVisualizer rg = new ProgramVisualizer();
 
+            var t = rg.StartAsync();
+
+            /*
             rg.AddMachine("server");
             rg.AddState("server", "Init");
             rg.AddState("server", "Playing");
@@ -24,6 +28,7 @@ namespace CoverageGraph
             rg.AddMachine("client");
             rg.AddState("client", "Init");
             rg.AddState("client", "Playing");
+            */
 
             rg.AddTransition("server", "Init", "goto", "server", "Playing");
             rg.AddTransition("server", "Playing", "Pong", "client", "Playing");
@@ -31,28 +36,42 @@ namespace CoverageGraph
             rg.AddTransition("client", "Init", "goto", "client", "Playing");
             rg.AddTransition("client", "Playing", "Ping", "server", "Playing");
 
-            rg.run();
+            rg.Refresh();
+
+            t.Wait();
         }
     }
 
-    class ProgramVisualizer
+    interface IProgramVisualizer
     {
+        // Start the visualizer
+        Task StartAsync();
+
+        // Refresh Visualizer display
+        void Refresh();
+
+        // Report a transition
+        void AddTransition(string machine_from, string state_from, string edge_label, string machine_to, string state_to);
+    }
+
+    class ProgramVisualizer : IProgramVisualizer
+    {
+        // Form controls
         System.Windows.Forms.Form form;
         Graph graph;
         GViewer viewer;
+        Control textBox;
 
         // statics
-        double NodeFontSize = 8.0;
-        double SubgraphFontSize = 8.0;
-        double EdgeFontSize = 4.0;
-
-        // flags
-        bool stopped = false;
+        readonly double NodeFontSize = 8.0;
+        readonly double SubgraphFontSize = 8.0;
+        readonly double EdgeFontSize = 4.0;
 
         // P# Program
         HashSet<string> Machines;
         Dictionary<string, HashSet<string>> States;
         Dictionary<Transition, Edge> Transitions;
+        System.Collections.Concurrent.ConcurrentBag<Transition> PendingTransitions;
 
         Dictionary<string, Subgraph> MachineToSubgraph;
         Dictionary<Tuple<string, string>, Node> StateToNode;
@@ -68,11 +87,22 @@ namespace CoverageGraph
             StateToNode = new Dictionary<Tuple<string, string>, Node>();
             CollapsedMachines = new HashSet<string>();
             Transitions = new Dictionary<Transition, Edge>();
+            PendingTransitions = new System.Collections.Concurrent.ConcurrentBag<Transition>();
         }
 
         public void AddMachine(string machine)
         {
-            Debug.Assert(!Machines.Contains(machine));
+            if (Machines.Contains(machine)) return;
+
+            lock (graph)
+            {
+                AddMachineInternal(machine);
+            }
+        }
+
+        void AddMachineInternal(string machine)
+        {
+            if (Machines.Contains(machine)) return;
             Machines.Add(machine);
             States.Add(machine, new HashSet<string>());
 
@@ -85,8 +115,19 @@ namespace CoverageGraph
 
         public void AddState(string machine, string state)
         {
-            Debug.Assert(Machines.Contains(machine));
-            Debug.Assert(!States[machine].Contains(state));
+            AddMachine(machine);
+            if (States[machine].Contains(state)) return;
+
+            lock(graph)
+            {
+                AddStateInternal(machine, state);
+            }
+        }
+
+        void AddStateInternal(string machine, string state)
+        {
+            AddMachineInternal(machine);
+            if (States[machine].Contains(state)) return;
 
             States[machine].Add(state);
 
@@ -101,16 +142,23 @@ namespace CoverageGraph
 
         public void AddTransition(string machine_from, string state_from, string edgeLabel, string machine_to, string state_to)
         {
-            Debug.Assert(Machines.Contains(machine_from) && Machines.Contains(machine_to));
-            Debug.Assert(States[machine_from].Contains(state_from) && States[machine_to].Contains(state_to));
+            //PendingTransitions.Add(new Transition(machine_from, state_from, edgeLabel, machine_to, state_to));
+            var tr = new Transition(machine_from, state_from, edgeLabel, machine_to, state_to);
+            if (Transitions.ContainsKey(tr)) return;
 
-            var edge = graph.AddEdge(StateToNode[Tuple.Create(state_from, machine_from)].Id, edgeLabel, StateToNode[Tuple.Create(state_to, machine_to)].Id);
-            edge.Label.FontSize = EdgeFontSize;
+            lock (graph)
+            {
+                AddStateInternal(tr.machine_from, tr.state_from);
+                AddStateInternal(tr.machine_to, tr.state_to);
 
-            Transitions.Add(new Transition(machine_from, state_from, edgeLabel, machine_to, state_to), edge);
+                var edge = graph.AddEdge(GetNode(tr.state_from, tr.machine_from).Id, tr.edge_label, GetNode(tr.state_to, tr.machine_to).Id);
+                edge.Label.FontSize = EdgeFontSize;
+
+                Transitions.Add(tr, edge);
+            }
         }
 
-        public void run()
+        public Task StartAsync()
         {
             //System.Diagnostics.Debugger.Break();
 
@@ -124,6 +172,11 @@ namespace CoverageGraph
             viewer.AutoScroll = false;
             //viewer.CurrentLayoutMethod = LayoutMethod.MDS;
 
+            // control
+            var b = CreateCommandButton();
+            form.Controls.Add(b);
+            b.BringToFront();
+
             viewer.ObjectUnderMouseCursorChanged += new EventHandler<Microsoft.Msagl.Drawing.ObjectUnderMouseCursorChangedEventArgs>(viewer_ObjectUnderMouseCursorChanged);
             viewer.MouseDown += new MouseEventHandler(viewer_MouseDown);
             viewer.SuspendLayout();
@@ -136,13 +189,44 @@ namespace CoverageGraph
 
             viewer.Graph = graph;
 
-            var thread = new System.Threading.Thread(new System.Threading.ThreadStart(ThreadRunner));
-            thread.Start();
-            form.ShowDialog();
-            thread.Abort();
-            //thread.Join();
+            return Task.Run(() => form.ShowDialog());
+        }
 
-            Console.WriteLine("exit");
+        Control CreateCommandButton()
+        {
+            var button = new TextBox();
+            textBox = button;
+
+            button.Location = new System.Drawing.Point(0, 31);
+            button.Name = "Command";
+            button.Size = new System.Drawing.Size(120, 23);
+
+            button.Multiline = false;
+            button.AcceptsReturn = false;
+            button.KeyUp += Button_KeyUp;
+            
+
+            return button;
+        }
+
+        private void Button_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                ProcessInput(textBox.Text);
+
+                if (form.IsHandleCreated)
+                {
+                    lock(graph)
+                    {
+                        form.SuspendLayout();
+                        form.Invoke(new RefreshDelegate(Refresh));
+                        form.ResumeLayout();
+                    }
+                }
+
+                textBox.Text = "";
+            }
         }
 
         void viewer_ObjectUnderMouseCursorChanged(object sender, Microsoft.Msagl.Drawing.ObjectUnderMouseCursorChangedEventArgs e)
@@ -158,37 +242,81 @@ namespace CoverageGraph
             Console.WriteLine(e.NewValue);
         }
 
-        void refreshGraph()
+        public void Refresh()
         {
             if (!form.IsHandleCreated) return;
 
-            // Save viewer state
-            var z = viewer.ZoomF;
-            // refresh
-            viewer.Graph = graph;
-            // Restore viewer state
-            viewer.ZoomF = z;
+            lock(graph)
+            {
+                // Save viewer state
+                var z = viewer.ZoomF;
+                // refresh
+                viewer.Graph = graph;
+                // Restore viewer state
+                viewer.ZoomF = z;
+            }
         }
 
         private delegate void RefreshDelegate();
 
-        protected void ThreadRunner()
+        private void Expand(string machine)
         {
-            while (true)
-            {
-                if (stopped) break;
-                var line = Console.ReadLine();
-                var quit = ProcessInput(line);
+            if(!CollapsedMachines.Contains(machine))
+                return;
+            CollapsedMachines.Remove(machine);
 
-                if (form.IsHandleCreated)
-                {
-                    form.SuspendLayout();
-                    form.Invoke(new RefreshDelegate(refreshGraph));
-                    form.ResumeLayout();
-                }
-                if(quit) stopped = true;
+            // delete all edges on the subgraph node
+            var outgoing = new List<Transition>(
+                Transitions.Where(tr => tr.Key.machine_from == machine && tr.Key.machine_to != machine)
+                .Select(tr => tr.Key));
+
+            var incoming = new List<Transition>(
+                Transitions.Where(tr => tr.Key.machine_from != machine && tr.Key.machine_to == machine)
+                .Select(tr => tr.Key));
+
+            var self = new List<Transition>(
+                Transitions.Where(tr => tr.Key.machine_from == machine && tr.Key.machine_to == machine)
+                .Select(tr => tr.Key));
+
+            foreach (var t in outgoing.Concat(incoming))
+                graph.RemoveEdge(Transitions[t]);
+
+            graph.RemoveNode(graph.FindNode(machine));
+
+            // re-create subgraph
+            MachineToSubgraph[machine] = new Subgraph(machine);
+            MachineToSubgraph[machine].Label.FontSize = SubgraphFontSize;
+            
+            graph.RootSubgraph.AddSubgraph(MachineToSubgraph[machine]);
+
+            // add machine states
+            foreach (var state in States[machine])
+            {
+                var old_node = StateToNode[Tuple.Create(state, machine)];
+
+                var new_node = graph.AddNode(old_node.Id);
+                new_node.Label.FontSize = NodeFontSize;
+                new_node.LabelText = state;
+
+                MachineToSubgraph[machine].AddNode(new_node);
+                StateToNode[Tuple.Create(state, machine)] = new_node;
             }
-            form.Close();
+
+            // Add intra-machine transitions
+            foreach (var t in self)
+            {
+                var edge = graph.AddEdge(GetNode(t.state_from, t.machine_from).Id, t.edge_label, GetNode(t.state_to, t.machine_to).Id);
+                edge.Label.FontSize = EdgeFontSize;
+                Transitions[t] = edge;
+            }
+
+            // Add inter-machine transitions
+            foreach (var t in outgoing.Concat(incoming))
+            {
+                var edge = graph.AddEdge(GetNode(t.state_from, t.machine_from).Id, t.edge_label, GetNode(t.state_to, t.machine_to).Id);
+                edge.Label.FontSize = EdgeFontSize;
+                Transitions[t] = edge;
+            }
         }
 
         private void Collapse(string machine)
@@ -243,23 +371,29 @@ namespace CoverageGraph
             return MachineToSubgraph[machine];
         }
 
-        protected bool ProcessInput(string line)
+        protected void ProcessInput(string line)
         {
             var tok = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            if (tok.Length == 0) return false;
+            if (tok.Length == 0) return;
 
             switch (tok[0])
             {
-                case "exit":
-                    return true;
                 case "collapse":
-                    Collapse(tok[1]);
+                    lock(graph)
+                    {
+                        Collapse(tok[1]);
+                    }
+                    break;
+                case "expand":
+                    lock (graph)
+                    {
+                        Expand(tok[1]);
+                    }
                     break;
                 default:
                     Console.WriteLine("Unknown command");
                     break;
             }
-            return false;
         }
     }
 

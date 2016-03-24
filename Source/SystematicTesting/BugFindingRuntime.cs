@@ -22,6 +22,7 @@ using Microsoft.PSharp.SystematicTesting.Scheduling;
 using Microsoft.PSharp.SystematicTesting.StateCaching;
 using Microsoft.PSharp.SystematicTesting.Threading;
 using Microsoft.PSharp.Utilities;
+using Microsoft.PSharp.Visualization;
 
 namespace Microsoft.PSharp.SystematicTesting
 {
@@ -78,6 +79,11 @@ namespace Microsoft.PSharp.SystematicTesting
         internal LivenessChecker LivenessChecker;
 
         /// <summary>
+        /// The P# program visualizer.
+        /// </summary>
+        internal IProgramVisualizer Visualizer;
+
+        /// <summary>
         /// Monotonically increasing machine id counter.
         /// </summary>
         private int OperationIdCounter;
@@ -95,7 +101,9 @@ namespace Microsoft.PSharp.SystematicTesting
         /// Constructor.
         /// <param name="configuration">Configuration</param>
         /// <param name="strategy">SchedulingStrategy</param>
-        internal PSharpBugFindingRuntime(Configuration configuration, ISchedulingStrategy strategy)
+        /// <param name="visualizer">Visualizer</param>
+        internal PSharpBugFindingRuntime(Configuration configuration, ISchedulingStrategy strategy,
+            IProgramVisualizer visualizer)
             : base(configuration)
         {
             this.RootTaskId = Task.CurrentId;
@@ -117,6 +125,7 @@ namespace Microsoft.PSharp.SystematicTesting
             this.ProgramTrace = new Trace();
             this.StateCache = new StateCache(this);
             this.LivenessChecker = new LivenessChecker(this);
+            this.Visualizer = visualizer;
 
             this.OperationIdCounter = 0;
 
@@ -296,12 +305,8 @@ namespace Microsoft.PSharp.SystematicTesting
             IO.Log("<CreateLog> Monitor {0} is created.", type.Name);
 
             this.Monitors.Add(monitor as Monitor);
+            this.LivenessChecker.RegisterMonitor(monitor as Monitor);
 
-            if (this.Configuration.CheckLiveness)
-            {
-                this.LivenessChecker.RegisterMonitor(monitor as Monitor);
-            }
-            
             (monitor as Monitor).GotoStartState();
         }
 

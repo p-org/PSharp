@@ -234,6 +234,11 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="previousCfgNode">Previous CFGNode</param>
         private void AnalyzeCFGNode(CFGNode cfgNode, SyntaxNode previousSyntaxNode, CFGNode previousCfgNode)
         {
+            if (cfgNode.SyntaxNodes.Count == 0)
+            {
+                return;
+            }
+
             if (cfgNode.IsJumpNode || cfgNode.IsLoopHeadNode)
             {
                 this.Transfer(previousSyntaxNode, previousCfgNode, cfgNode.SyntaxNodes[0], cfgNode);
@@ -561,11 +566,12 @@ namespace Microsoft.PSharp.StaticAnalysis
             else if (assignment.Right is InvocationExpressionSyntax)
             {
                 var invocation = assignment.Right as InvocationExpressionSyntax;
+                this.MapSymbolsInInvocation(invocation, cfgNode);
+
                 var summary = this.AnalysisContext.TryGetSummary(invocation, this.SemanticModel);
                 var reachableSymbols = this.ResolveSideEffectsInCall(invocation,
                     summary, syntaxNode, cfgNode);
                 var returnSymbols = this.GetReturnSymbols(invocation, summary);
-                this.MapSymbolsInInvocation(invocation, cfgNode);
 
                 if (returnSymbols.Count == 0)
                 {
@@ -1364,31 +1370,31 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="cfgNode">CFGNode</param>
         /// <param name="successorCfgNode">Successor CFGNode</param>
         /// <returns>Boolean</returns>
-        private bool ReachedFixpoint(SyntaxNode syntaxNode, CFGNode cfgNode,
-            CFGNode successorCfgNode)
+        private bool ReachedFixpoint(SyntaxNode syntaxNode, CFGNode cfgNode, CFGNode successorCfgNode)
         {
             Dictionary<ISymbol, HashSet<ISymbol>> currentMap = null;
-            if (!this.TryGetDataFlowMapForSyntaxNode(syntaxNode, cfgNode, out currentMap))
-            {
-                return false;
-            }
+            this.TryGetDataFlowMapForSyntaxNode(syntaxNode, cfgNode, out currentMap);
 
             Dictionary<ISymbol, HashSet<ISymbol>> successorMap = null;
-            if (!this.TryGetDataFlowMapForSyntaxNode(successorCfgNode.SyntaxNodes.First(),
-                successorCfgNode, out successorMap))
+            this.TryGetDataFlowMapForSyntaxNode(successorCfgNode.SyntaxNodes.First(),
+                successorCfgNode, out successorMap);
+            
+            if (currentMap != null && successorMap != null)
+            {
+                foreach (var pair in currentMap)
+                {
+                    if (!successorMap.ContainsKey(pair.Key) ||
+                        !successorMap[pair.Key].SetEquals(pair.Value))
+                    {
+                        return false;
+                    }
+                }
+            }
+            else if (currentMap == null ^ successorMap == null)
             {
                 return false;
             }
-
-            foreach (var pair in currentMap)
-            {
-                if (!successorMap.ContainsKey(pair.Key) ||
-                    !successorMap[pair.Key].SetEquals(pair.Value))
-                {
-                    return false;
-                }
-            }
-
+            
             return true;
         }
 

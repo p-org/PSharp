@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="MemberVisibilityTests.cs">
+// <copyright file="NoStatementsTest.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -23,24 +23,24 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
 {
     [TestClass]
-    public class MemberVisibilityTests : BasePSharpTest
+    public class NoStatementsTest : BasePSharpTest
     {
         [TestMethod, Timeout(3000)]
-        public void TestMemberVisibility()
+        public void TestNoStatements()
         {
             var test = @"
+using Microsoft.PSharp;
+
 namespace Foo {
 class M : Machine
 {
- int Num;
-
  [Start]
  [OnEntry(nameof(FirstOnEntryAction))]
  class First : MachineState { }
 
  void FirstOnEntryAction()
  {
-  this.Num = 1;
+
  }
 }
 }";

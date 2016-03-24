@@ -478,7 +478,7 @@ namespace Microsoft.PSharp
 
                 // Notifies the runtime for a new event to handle. This is only used
                 // during bug-finding and operation bounding, because the runtime has
-                // to schedule a machine between when a new operation is dequeued.
+                // to schedule a machine when a new operation is dequeued.
                 if (dequeued)
                 {
                     base.Runtime.NotifyDequeuedEvent(this, nextEvent);

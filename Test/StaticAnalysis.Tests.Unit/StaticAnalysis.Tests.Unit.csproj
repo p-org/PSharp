@@ -63,15 +63,15 @@
     <Reference Include="Microsoft.CodeAnalysis, Version=42.42.42.42, Culture=neutral, PublicKeyToken=31bf3856ad364e35" />
     <Reference Include="Microsoft.CodeAnalysis.CSharp, Version=42.42.42.42, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Roslyn\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
+      <HintPath>..\..\References\Roslyn\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CodeAnalysis.Workspaces, Version=42.42.42.42, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Roslyn\Microsoft.CodeAnalysis.Workspaces.dll</HintPath>
+      <HintPath>..\..\References\Roslyn\Microsoft.CodeAnalysis.Workspaces.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CodeAnalysis.Workspaces.Desktop, Version=42.42.42.42, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Roslyn\Microsoft.CodeAnalysis.Workspaces.Desktop.dll</HintPath>
+      <HintPath>..\..\References\Roslyn\Microsoft.CodeAnalysis.Workspaces.Desktop.dll</HintPath>
     </Reference>
     <Reference Include="System" />
   </ItemGroup>
@@ -88,14 +88,19 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="AccessAfterGivenUp\Correct\AccessBeforeCreateMachineTests.cs" />
-    <Compile Include="AccessAfterGivenUp\Correct\AccessBeforeSendTests.cs" />
-    <Compile Include="AccessAfterGivenUp\StaticError\AccessAfterCreateMachineFailTests.cs" />
-    <Compile Include="AccessAfterGivenUp\StaticError\AccessAfterSendFailTests.cs" />
+    <Compile Include="AccessChecking\Correct\AccessAfterCreateMachineTests.cs" />
+    <Compile Include="AccessChecking\Correct\AccessAfterSendTests.cs" />
+    <Compile Include="AccessChecking\Correct\AccessBeforeCreateMachineTests.cs" />
+    <Compile Include="AccessChecking\Correct\AccessBeforeSendTests.cs" />
+    <Compile Include="AccessChecking\StaticError\AccessAfterCreateMachineFailTests.cs" />
+    <Compile Include="AccessChecking\StaticError\AccessAfterSendFailTests.cs" />
     <Compile Include="BasePSharpTest.cs" />
     <Compile Include="DirectAccess\Correct\MemberVisibilityTests.cs" />
     <Compile Include="DirectAccess\StaticError\MemberVisibilityFailTests.cs" />
     <Compile Include="FieldOwnership\StaticError\BasicFieldSendingFailTests.cs" />
+    <Compile Include="ControlFlow\Correct\NoStatementsWithLoopTest.cs" />
+    <Compile Include="ControlFlow\Correct\NoStatementsTest.cs" />
+    <Compile Include="Loops\Correct\BasicLoopTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
