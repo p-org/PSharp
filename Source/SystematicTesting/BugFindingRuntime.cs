@@ -591,25 +591,27 @@ namespace Microsoft.PSharp.SystematicTesting
             var prevMachineOpId = machine.OperationId;
             machine.SetOperationId(e.OperationId);
 
-            // Capture a Goto transition
+            // Capture a Goto transition.
             if (this.Configuration.EnableVisualization)
             {
+                var originMachine = machine.GetType().Name;
+                var originState = machine.CurrentStateName;
+                var destMachine = machine.GetType().Name;
+
+                string edgeLabel = "";
+                string destState = "";
                 if (e is GotoStateEvent)
                 {
-                    var originMachine = machine.GetType().Name;
-                    var originState = machine.CurrentStateName;
-                    var destMachine = machine.GetType().Name;
-                    var destState = (e as GotoStateEvent).State.Name;
-                    this.Visualizer.AddTransition(originMachine, originState, "goto", destMachine, destState);
+                    edgeLabel = "goto";
+                    destState = (e as GotoStateEvent).State.Name;
                 }
                 else
                 {
-                    var originMachine = machine.GetType().Name;
-                    var originState = machine.CurrentStateName;
-                    var destMachine = machine.GetType().Name;
-                    var destState = machine.CurrentStateName;
-                    this.Visualizer.AddTransition(originMachine, originState, e.GetType().Name, destMachine, destState);
+                    edgeLabel = e.GetType().Name;
+                    destState = machine.CurrentStateName;
                 }
+
+                this.Visualizer.AddTransition(originMachine, originState, edgeLabel, destMachine, destState);
             }
 
             //if (this.Configuration.BoundOperations && prevMachineOpId != machine.OperationId)
