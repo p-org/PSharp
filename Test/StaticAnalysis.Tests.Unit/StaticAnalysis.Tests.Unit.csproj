@@ -89,6 +89,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="AccessChecking\Correct\AccessAfterCreateMachineTests.cs" />
+    <Compile Include="AccessChecking\Correct\ResetAfterSendTests.cs" />
     <Compile Include="AccessChecking\Correct\AccessAfterSendTests.cs" />
     <Compile Include="AccessChecking\Correct\AccessBeforeCreateMachineTests.cs" />
     <Compile Include="AccessChecking\Correct\AccessBeforeSendTests.cs" />
@@ -98,10 +99,12 @@
     <Compile Include="BasePSharpTest.cs" />
     <Compile Include="DirectAccess\Correct\MemberVisibilityTests.cs" />
     <Compile Include="DirectAccess\StaticError\MemberVisibilityFailTests.cs" />
-    <Compile Include="FieldOwnership\StaticError\BasicFieldSendingFailTests.cs" />
+    <Compile Include="FieldOwnership\StaticError\FieldGivenUpOwnershipFailTests.cs" />
+    <Compile Include="FieldOwnership\StaticError\FieldSendingFailTests.cs" />
     <Compile Include="ControlFlow\Correct\NoStatementsWithLoopTest.cs" />
     <Compile Include="ControlFlow\Correct\NoStatementsTest.cs" />
     <Compile Include="Loops\Correct\BasicLoopTest.cs" />
+    <Compile Include="Loops\StaticError\AccessInLoopFailTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

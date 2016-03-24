@@ -127,7 +127,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 return true;
             }
 
-            map = null;
+            map = new Dictionary<ISymbol, HashSet<ISymbol>>();
             return false;
         }
 
@@ -234,18 +234,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="previousCfgNode">Previous CFGNode</param>
         private void AnalyzeCFGNode(CFGNode cfgNode, SyntaxNode previousSyntaxNode, CFGNode previousCfgNode)
         {
-            if (cfgNode.SyntaxNodes.Count == 0)
-            {
-                return;
-            }
-
-            if (cfgNode.IsJumpNode || cfgNode.IsLoopHeadNode)
-            {
-                this.Transfer(previousSyntaxNode, previousCfgNode, cfgNode.SyntaxNodes[0], cfgNode);
-                previousSyntaxNode = cfgNode.SyntaxNodes[0];
-                previousCfgNode = cfgNode;
-            }
-            else
+            if (cfgNode.SyntaxNodes.Count > 0)
             {
                 this.AnalyzeRegularCFGNode(cfgNode, previousSyntaxNode, previousCfgNode);
                 previousSyntaxNode = cfgNode.SyntaxNodes.Last();
@@ -254,7 +243,8 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             foreach (var successor in previousCfgNode.GetImmediateSuccessors())
             {
-                if (this.ReachedFixpoint(previousSyntaxNode, previousCfgNode, successor))
+                if (successor.IsLoopHeadNode && previousCfgNode.IsSuccessorOf(cfgNode) &&
+                    this.ReachedFixpoint(previousSyntaxNode, previousCfgNode, successor))
                 {
                     continue;
                 }
@@ -276,6 +266,12 @@ namespace Microsoft.PSharp.StaticAnalysis
                 this.Transfer(previousSyntaxNode, previousCfgNode, syntaxNode, cfgNode);
 
                 var stmt = syntaxNode as StatementSyntax;
+                if (stmt == null)
+                {
+                    continue;
+                }
+
+                
                 var localDecl = stmt.DescendantNodesAndSelf().OfType<LocalDeclarationStatementSyntax>().FirstOrDefault();
                 var expr = stmt.DescendantNodesAndSelf().OfType<ExpressionStatementSyntax>().FirstOrDefault();
                 var ret = stmt.DescendantNodesAndSelf().OfType<ReturnStatementSyntax>().FirstOrDefault();

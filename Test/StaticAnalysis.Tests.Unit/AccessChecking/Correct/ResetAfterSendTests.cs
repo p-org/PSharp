@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="ReadAccessAfterSendFailTests.cs">
+// <copyright file="ResetAfterSendTests.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -24,10 +24,10 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
 {
     [TestClass]
-    public class ReadAccessAfterSendFailTests : BasePSharpTest
+    public class ResetAfterSendTests : BasePSharpTest
     {
         [TestMethod, Timeout(3000)]
-        public void TestReadAccessAfterSend1Fail()
+        public void TestResetViaFieldAfterSend1()
         {
             var test = @"
 using Microsoft.PSharp;
@@ -57,6 +57,7 @@ struct Letter
 class M : Machine
 {
  MachineId Target;
+ Letter Letter;
 
  [Start]
  [OnEntry(nameof(FirstOnEntryAction))]
@@ -64,9 +65,294 @@ class M : Machine
 
  void FirstOnEntryAction()
  {
-  var letter = new Letter(""test"");
   this.Target = this.CreateMachine(typeof(M));
+  var letter = new Letter(""London"");
   this.Send(this.Target, new eUnit(letter));
+  letter = this.Letter;
+  this.Letter = letter;
+ }
+}
+}";
+
+            var solution = base.GetSolution(test);
+
+            var configuration = Configuration.Create();
+            configuration.ProjectName = "Test";
+            configuration.Verbose = 2;
+
+            IO.StartWritingToMemory();
+
+            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            AnalysisErrorReporter.ResetStats();
+            StaticAnalysisEngine.Create(context).Run();
+
+            var stats = AnalysisErrorReporter.GetStats();
+            var expected = "... No static analysis errors detected (but absolutely no warranty provided)";
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
+
+            IO.StopWritingToMemory();
+        }
+
+        [TestMethod, Timeout(3000)]
+        public void TestResetViaFieldAfterSend2()
+        {
+            var test = @"
+using Microsoft.PSharp;
+
+namespace Foo {
+class eUnit : Event
+{
+ public Letter Letter;
+ 
+ public eUnit(Letter letter)
+  : base()
+ {
+  this.Letter = letter;
+ }
+}
+
+struct Letter
+{
+ public string Text;
+
+ public Letter(string text)
+ {
+  this.Text = text;
+ }
+}
+
+class M : Machine
+{
+ MachineId Target;
+ Letter Letter;
+
+ [Start]
+ [OnEntry(nameof(FirstOnEntryAction))]
+ class First : MachineState { }
+
+ void FirstOnEntryAction()
+ {
+  this.Target = this.CreateMachine(typeof(M));
+  var letter = new Letter(""London"");
+  this.Send(this.Target, new eUnit(letter));
+  letter = this.Letter;
+  this.Letter.Text = ""Bangalore"";
+ }
+}
+}";
+
+            var solution = base.GetSolution(test);
+
+            var configuration = Configuration.Create();
+            configuration.ProjectName = "Test";
+            configuration.Verbose = 2;
+
+            IO.StartWritingToMemory();
+
+            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            AnalysisErrorReporter.ResetStats();
+            StaticAnalysisEngine.Create(context).Run();
+
+            var stats = AnalysisErrorReporter.GetStats();
+            var expected = "... No static analysis errors detected (but absolutely no warranty provided)";
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
+
+            IO.StopWritingToMemory();
+        }
+
+        [TestMethod, Timeout(3000)]
+        public void TestResetViaFieldAfterSend3()
+        {
+            var test = @"
+using Microsoft.PSharp;
+
+namespace Foo {
+class eUnit : Event
+{
+ public Letter Letter;
+ 
+ public eUnit(Letter letter)
+  : base()
+ {
+  this.Letter = letter;
+ }
+}
+
+struct Letter
+{
+ public string Text;
+
+ public Letter(string text)
+ {
+  this.Text = text;
+ }
+}
+
+class M : Machine
+{
+ MachineId Target;
+ Letter Letter;
+
+ [Start]
+ [OnEntry(nameof(FirstOnEntryAction))]
+ class First : MachineState { }
+
+ void FirstOnEntryAction()
+ {
+  this.Target = this.CreateMachine(typeof(M));
+  var letter = new Letter(""London"");
+  this.Send(this.Target, new eUnit(letter));
+  letter = this.Letter;
+  letter.Text = ""Bangalore"";
+ }
+}
+}";
+
+            var solution = base.GetSolution(test);
+
+            var configuration = Configuration.Create();
+            configuration.ProjectName = "Test";
+            configuration.Verbose = 2;
+
+            IO.StartWritingToMemory();
+
+            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            AnalysisErrorReporter.ResetStats();
+            StaticAnalysisEngine.Create(context).Run();
+
+            var stats = AnalysisErrorReporter.GetStats();
+            var expected = "... No static analysis errors detected (but absolutely no warranty provided)";
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
+
+            IO.StopWritingToMemory();
+        }
+
+        [TestMethod, Timeout(3000)]
+        public void TestResetViaFieldAfterSend4()
+        {
+            var test = @"
+using Microsoft.PSharp;
+
+namespace Foo {
+class eUnit : Event
+{
+ public Letter Letter;
+ 
+ public eUnit(Letter letter)
+  : base()
+ {
+  this.Letter = letter;
+ }
+}
+
+struct Letter
+{
+ public string Text;
+
+ public Letter(string text)
+ {
+  this.Text = text;
+ }
+}
+
+class M : Machine
+{
+ MachineId Target;
+ Letter Letter;
+
+ [Start]
+ [OnEntry(nameof(FirstOnEntryAction))]
+ class First : MachineState { }
+
+ void FirstOnEntryAction()
+ {
+  this.Target = this.CreateMachine(typeof(M));
+  var letter = new Letter(""London"");
+  this.Send(this.Target, new eUnit(letter));
+  letter = this.Letter;
+  var text = this.Letter.Text;
+ }
+}
+}";
+
+            var solution = base.GetSolution(test);
+
+            var configuration = Configuration.Create();
+            configuration.ProjectName = "Test";
+            configuration.Verbose = 2;
+
+            IO.StartWritingToMemory();
+
+            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            AnalysisErrorReporter.ResetStats();
+            StaticAnalysisEngine.Create(context).Run();
+
+            var stats = AnalysisErrorReporter.GetStats();
+            var expected = "... No static analysis errors detected (but absolutely no warranty provided)";
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
+
+            IO.StopWritingToMemory();
+        }
+
+        [TestMethod, Timeout(3000)]
+        public void TestResetViaFieldAfterSend5()
+        {
+            var test = @"
+using Microsoft.PSharp;
+
+namespace Foo {
+class eUnit : Event
+{
+ public Letter Letter;
+ 
+ public eUnit(Letter letter)
+  : base()
+ {
+  this.Letter = letter;
+ }
+}
+
+struct Letter
+{
+ public string Text;
+
+ public Letter(string text)
+ {
+  this.Text = text;
+ }
+}
+
+class M : Machine
+{
+ MachineId Target;
+ Letter Letter;
+
+ [Start]
+ [OnEntry(nameof(FirstOnEntryAction))]
+ class First : MachineState { }
+
+ void FirstOnEntryAction()
+ {
+  this.Target = this.CreateMachine(typeof(M));
+  var letter = new Letter(""London"");
+  this.Send(this.Target, new eUnit(letter));
+  letter = this.Letter;
   var text = letter.Text;
  }
 }
@@ -89,249 +375,8 @@ class M : Machine
             StaticAnalysisEngine.Create(context).Run();
 
             var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... Static analysis detected '1' error";
+            var expected = "... No static analysis errors detected (but absolutely no warranty provided)";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
-
-            var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' " +
-                "accesses 'letter' after giving up its ownership.";
-            var actual = IO.GetOutput();
-
-             Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
-                actual.Substring(0, actual.IndexOf(Environment.NewLine)));
-
-            IO.StopWritingToMemory();
-        }
-
-        [TestMethod, Timeout(3000)]
-        public void TestReadAccessAfterSend2Fail()
-        {
-            var test = @"
-using Microsoft.PSharp;
-
-namespace Foo {
-class eUnit : Event
-{
- public Letter Letter;
- 
- public eUnit(Letter letter)
-  : base()
- {
-  this.Letter = letter;
- }
-}
-
-struct Letter
-{
- public string Text;
-
- public Letter(string text)
- {
-  this.Text = text;
- }
-}
-
-class M : Machine
-{
- MachineId Target;
-
- [Start]
- [OnEntry(nameof(FirstOnEntryAction))]
- class First : MachineState { }
-
- void FirstOnEntryAction()
- {
-  var letter = new Letter(""test"");
-  this.Target = this.CreateMachine(typeof(M));
-  this.Send(this.Target, new eUnit(letter));
-  var text = letter.Text;
- }
-}
-}";
-
-            var solution = base.GetSolution(test);
-
-            var configuration = Configuration.Create();
-            configuration.ProjectName = "Test";
-            configuration.Verbose = 2;
-
-            IO.StartWritingToMemory();
-
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
-
-            ParsingEngine.Create(context).Run();
-            RewritingEngine.Create(context).Run();
-
-            AnalysisErrorReporter.ResetStats();
-            StaticAnalysisEngine.Create(context).Run();
-
-            var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... Static analysis detected '1' error";
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
-
-            var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' " +
-                "accesses 'letter' after giving up its ownership.";
-            var actual = IO.GetOutput();
-
-            Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
-               actual.Substring(0, actual.IndexOf(Environment.NewLine)));
-
-            IO.StopWritingToMemory();
-        }
-
-        [TestMethod, Timeout(3000)]
-        public void TestReadAccessAfterSendStoreInFieldFail()
-        {
-            var test = @"
-using Microsoft.PSharp;
-
-namespace Foo {
-class eUnit : Event
-{
- public Letter Letter;
- 
- public eUnit(Letter letter)
-  : base()
- {
-  this.Letter = letter;
- }
-}
-
-struct Letter
-{
- public string Text;
-
- public Letter(string text)
- {
-  this.Text = text;
- }
-}
-
-class M : Machine
-{
- MachineId Target;
- string Text;
-
- [Start]
- [OnEntry(nameof(FirstOnEntryAction))]
- class First : MachineState { }
-
- void FirstOnEntryAction()
- {
-  var letter = new Letter(""test"");
-  this.Target = this.CreateMachine(typeof(M));
-  this.Send(this.Target, new eUnit(letter));
-  this.Text = letter.Text;
- }
-}
-}";
-
-            var solution = base.GetSolution(test);
-
-            var configuration = Configuration.Create();
-            configuration.ProjectName = "Test";
-            configuration.Verbose = 2;
-
-            IO.StartWritingToMemory();
-
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
-
-            ParsingEngine.Create(context).Run();
-            RewritingEngine.Create(context).Run();
-
-            AnalysisErrorReporter.ResetStats();
-            StaticAnalysisEngine.Create(context).Run();
-
-            var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... Static analysis detected '1' error";
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
-
-            var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' " +
-                "accesses 'letter' after giving up its ownership.";
-            var actual = IO.GetOutput();
-
-            Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
-               actual.Substring(0, actual.IndexOf(Environment.NewLine)));
-
-            IO.StopWritingToMemory();
-        }
-
-        [TestMethod, Timeout(3000)]
-        public void TestReadAccessAfterSendInCalleeFail()
-        {
-            var test = @"
-using Microsoft.PSharp;
-
-namespace Foo {
-class eUnit : Event
-{
- public Letter Letter;
- 
- public eUnit(Letter letter)
-  : base()
- {
-  this.Letter = letter;
- }
-}
-
-struct Letter
-{
- public string Text;
-
- public Letter(string text)
- {
-  this.Text = text;
- }
-}
-
-class M : Machine
-{
- MachineId Target;
-
- [Start]
- [OnEntry(nameof(FirstOnEntryAction))]
- class First : MachineState { }
-
- void FirstOnEntryAction()
- {
-  var letter = new Letter(""test"");
-  this.Target = this.CreateMachine(typeof(M));
-  this.Foo(letter);
- }
-
- void Foo(Letter letter)
- {
-  this.Send(this.Target, new eUnit(letter));
-  var text = letter.Text;
- }
-}
-}";
-
-            var solution = base.GetSolution(test);
-
-            var configuration = Configuration.Create();
-            configuration.ProjectName = "Test";
-            configuration.Verbose = 2;
-
-            IO.StartWritingToMemory();
-
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
-
-            ParsingEngine.Create(context).Run();
-            RewritingEngine.Create(context).Run();
-
-            AnalysisErrorReporter.ResetStats();
-            StaticAnalysisEngine.Create(context).Run();
-
-            var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... Static analysis detected '1' error";
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
-
-            var error = "Error: Method 'Foo' of machine 'Foo.M' " +
-                "accesses 'letter' after giving up its ownership.";
-            var actual = IO.GetOutput();
-
-            Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
-               actual.Substring(0, actual.IndexOf(Environment.NewLine)));
 
             IO.StopWritingToMemory();
         }

@@ -217,8 +217,8 @@ class M : Machine
 
  void FirstOnEntryAction()
  {
-  this.Target = this.CreateMachine(typeof(M));
   var letter = new Letter(""test"");
+  this.Target = this.CreateMachine(typeof(M));
   this.Send(this.Target, new eUnit(letter));
   letter.Text = this.Text;
  }

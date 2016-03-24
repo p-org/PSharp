@@ -162,34 +162,6 @@ namespace Microsoft.PSharp.StaticAnalysis
         }
 
         /// <summary>
-        /// Cleans empty successors.
-        /// </summary>
-        internal void CleanEmptySuccessors()
-        {
-            this.CleanEmptySuccessors(new HashSet<CFGNode>());
-        }
-
-        /// <summary>
-        /// Returns all predecessors of the node.
-        /// </summary>
-        /// <param name="node">Node</param>
-        /// <returns>Set of predecessor nodes</returns>
-        internal HashSet<CFGNode> GetPredecessors()
-        {
-            var predecessors = this.IPredecessors;
-            foreach (var predecessor in predecessors)
-            {
-                var nodes = predecessor.GetPredecessors();
-                foreach (var node in nodes)
-                {
-                    predecessors.Add(node);
-                }
-            }
-
-            return predecessors;
-        }
-
-        /// <summary>
         /// Returns true if the node is a predecessor of the given node.
         /// Returns false if not.
         /// </summary>
@@ -201,12 +173,31 @@ namespace Microsoft.PSharp.StaticAnalysis
         }
 
         /// <summary>
+        /// Returns true if the node is a successor of the given node.
+        /// Returns false if not.
+        /// </summary>
+        /// <param name="node">CFGNode</param>
+        /// <returns>Boolean</returns>
+        internal bool IsSuccessorOf(CFGNode node)
+        {
+            return this.IsSuccessorOf(node, new HashSet<CFGNode>());
+        }
+
+        /// <summary>
         /// Returns all exit nodes in the control-flow graph.
         /// </summary>
         /// <returns>Set of exit nodes</returns>
         internal HashSet<CFGNode> GetExitNodes()
         {
             return this.GetExitNodes(new HashSet<CFGNode>());
+        }
+
+        /// <summary>
+        /// Cleans empty successors.
+        /// </summary>
+        internal void CleanEmptySuccessors()
+        {
+            this.CleanEmptySuccessors(new HashSet<CFGNode>());
         }
 
         #endregion
@@ -746,31 +737,30 @@ namespace Microsoft.PSharp.StaticAnalysis
         }
 
         /// <summary>
-        /// Cleans empty successors.
+        /// Returns true if the node is a successor of the given node.
+        /// Returns false if not.
         /// </summary>
+        /// <param name="node">CFGNode</param>
         /// <param name="visited">Already visited cfgNodes</param>
-        private void CleanEmptySuccessors(HashSet<CFGNode> visited)
+        /// <returns>Boolean</returns>
+        private bool IsSuccessorOf(CFGNode node, HashSet<CFGNode> visited)
         {
             visited.Add(this);
 
-            var toRemove = new List<CFGNode>();
-            foreach (var successor in this.ISuccessors)
+            if (this.IPredecessors.Contains(node))
             {
-                if (successor.SyntaxNodes.Count == 0)
+                return true;
+            }
+
+            foreach (var predecessor in this.IPredecessors.Where(v => !visited.Contains(v)))
+            {
+                if (predecessor.IsSuccessorOf(node, visited))
                 {
-                    toRemove.Add(successor);
+                    return true;
                 }
             }
 
-            foreach (var successor in toRemove)
-            {
-                this.ISuccessors.Remove(successor);
-            }
-
-            foreach (var successor in this.ISuccessors.Where(v => !visited.Contains(v)))
-            {
-                successor.CleanEmptySuccessors(visited);
-            }
+            return false;
         }
 
         /// <summary>
@@ -800,6 +790,34 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             return exitNodes;
+        }
+
+        /// <summary>
+        /// Cleans empty successors.
+        /// </summary>
+        /// <param name="visited">Already visited cfgNodes</param>
+        private void CleanEmptySuccessors(HashSet<CFGNode> visited)
+        {
+            visited.Add(this);
+
+            var toRemove = new List<CFGNode>();
+            foreach (var successor in this.ISuccessors)
+            {
+                if (successor.SyntaxNodes.Count == 0)
+                {
+                    toRemove.Add(successor);
+                }
+            }
+
+            foreach (var successor in toRemove)
+            {
+                this.ISuccessors.Remove(successor);
+            }
+
+            foreach (var successor in this.ISuccessors.Where(v => !visited.Contains(v)))
+            {
+                successor.CleanEmptySuccessors(visited);
+            }
         }
 
         #endregion
