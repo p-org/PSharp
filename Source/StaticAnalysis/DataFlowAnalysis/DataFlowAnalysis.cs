@@ -35,12 +35,12 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// The analysis context.
         /// </summary>
-        protected AnalysisContext AnalysisContext;
+        private AnalysisContext AnalysisContext;
 
         /// <summary>
         /// The semantic model.
         /// </summary>
-        protected SemanticModel SemanticModel;
+        private SemanticModel SemanticModel;
 
         /// <summary>
         /// DataFlowMap containing data-flow values.
@@ -1190,9 +1190,22 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="call">Call</param>
         /// <param name="cfgNode">CFGNode</param>
-        protected virtual void MapSymbolsInInvocation(InvocationExpressionSyntax call, CFGNode cfgNode)
+        private void MapSymbolsInInvocation(InvocationExpressionSyntax call, CFGNode cfgNode)
         {
+            List<MemberAccessExpressionSyntax> accesses = call.ArgumentList.
+                DescendantNodesAndSelf().OfType<MemberAccessExpressionSyntax>().ToList();
 
+            foreach (var access in accesses)
+            {
+                IdentifierNameSyntax id = this.AnalysisContext.GetTopLevelIdentifier(access);
+                if (id == null)
+                {
+                    continue;
+                }
+
+                var accessSymbol = this.SemanticModel.GetSymbolInfo(id).Symbol;
+                this.MapDataFlowInSymbols(accessSymbol, accessSymbol, cfgNode.SyntaxNodes[0], cfgNode);
+            }
         }
 
         /// <summary>

@@ -74,7 +74,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DataFlowAnalysis\PSharpDataFlowAnalysis.cs" />
     <Compile Include="Library\OnEventPushMachineAction.cs" />
     <Compile Include="Library\OnEventGotoMachineAction.cs" />
     <Compile Include="Library\OnEventDoMachineAction.cs" />

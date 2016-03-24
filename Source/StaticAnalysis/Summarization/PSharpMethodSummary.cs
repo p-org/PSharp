@@ -211,7 +211,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         protected override void AnalyzeDataFlow()
         {
             var model = this.AnalysisContext.Compilation.GetSemanticModel(this.Method.SyntaxTree);
-            this.DataFlowAnalysis = PSharpDataFlowAnalysis.Analyze(this, this.AnalysisContext, model);
+            this.DataFlowAnalysis = DataFlowAnalysis.Analyze(this, this.AnalysisContext, model);
         }
 
         #endregion

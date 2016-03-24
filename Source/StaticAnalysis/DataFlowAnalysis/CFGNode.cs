@@ -63,7 +63,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// The node after exiting the loop.
         /// </summary>
-        protected CFGNode LoopExitNode;
+        private CFGNode LoopExitNode;
 
         /// <summary>
         /// True if the node is a jump node. False by default.
@@ -455,13 +455,6 @@ namespace Microsoft.PSharp.StaticAnalysis
             this.IsJumpNode = true;
             this.Description = "Jump";
 
-            if (successor != null)
-            {
-                this.ISuccessors.Add(successor);
-                successor.IPredecessors.Add(this);
-                this.LoopExitNode = successor;
-            }
-
             var ifNode = this.CreateNode(this.AnalysisContext, this.Summary);
             this.ISuccessors.Add(ifNode);
             ifNode.IPredecessors.Add(this);
@@ -496,6 +489,11 @@ namespace Microsoft.PSharp.StaticAnalysis
                         elseNode.Construct(new SyntaxList<StatementSyntax> { stmt.Else.Statement }, 0, successor);
                     }
                 }
+            }
+            else if (successor != null)
+            {
+                this.ISuccessors.Add(successor);
+                successor.IPredecessors.Add(this);
             }
         }
 
