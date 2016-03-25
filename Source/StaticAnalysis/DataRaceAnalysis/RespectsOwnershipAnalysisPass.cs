@@ -835,8 +835,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 GetLineSpan(call.Span).StartLinePosition.Line + 1);
 
             var callSymbol = model.GetSymbolInfo(call).Symbol;
-            if (callSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.Machine") ||
-                callSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.MachineState"))
+            if (callSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.Machine"))
             {
                 return new HashSet<ISymbol>();
             }
@@ -1229,8 +1228,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 GetLineSpan(call.Span).StartLinePosition.Line + 1);
             
             var callSymbol = model.GetSymbolInfo(call).Symbol;
-            if (callSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.Machine") ||
-                callSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.MachineState"))
+            if (callSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.Machine"))
             {
                 this.DetectPotentialDataRaceInGivesUpOperation(call, target,
                     syntaxNode, cfgNode, givesUpSyntaxNode, givesUpCfgNode, model, callTrace);
@@ -1368,24 +1366,21 @@ namespace Microsoft.PSharp.StaticAnalysis
             List<ExpressionSyntax> arguments = new List<ExpressionSyntax>();
             var opSymbol = model.GetSymbolInfo(operation).Symbol;
 
-            if ((opSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.Machine") ||
-                opSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.MachineState")) &&
+            if (opSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.Machine") &&
                 opSymbol.Name.Equals("Send"))
             {
-                if (operation.ArgumentList.Arguments[1].Expression is ObjectCreationExpressionSyntax)
+                var expr = operation.ArgumentList.Arguments[1].Expression;
+                if (expr is ObjectCreationExpressionSyntax)
                 {
-                    var objCreation = operation.ArgumentList.Arguments[1].Expression
-                        as ObjectCreationExpressionSyntax;
+                    var objCreation = expr as ObjectCreationExpressionSyntax;
                     foreach (var arg in objCreation.ArgumentList.Arguments)
                     {
                         arguments.Add(arg.Expression);
                     }
                 }
-                else if (operation.ArgumentList.Arguments[1].Expression is BinaryExpressionSyntax &&
-                    operation.ArgumentList.Arguments[1].Expression.IsKind(SyntaxKind.AsExpression))
+                else if (expr is BinaryExpressionSyntax && expr.IsKind(SyntaxKind.AsExpression))
                 {
-                    var binExpr = operation.ArgumentList.Arguments[1].Expression
-                        as BinaryExpressionSyntax;
+                    var binExpr = expr as BinaryExpressionSyntax;
                     if ((binExpr.Left is IdentifierNameSyntax) ||
                         (binExpr.Left is MemberAccessExpressionSyntax))
                     {
@@ -1401,28 +1396,28 @@ namespace Microsoft.PSharp.StaticAnalysis
                     }
                 }
             }
-            else if ((opSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.Machine") ||
-                opSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.MachineState")) &&
+            else if (opSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.Machine") &&
                 opSymbol.Name.Equals("CreateMachine"))
             {
-                if (operation.ArgumentList.Arguments.Count == 0)
+                if (operation.ArgumentList.Arguments.Count != 2)
                 {
                     return;
                 }
 
-                if (operation.ArgumentList.Arguments[0].Expression is ObjectCreationExpressionSyntax)
+                var expr = operation.ArgumentList.Arguments[1].Expression;
+                if (expr is ObjectCreationExpressionSyntax)
                 {
-                    var objCreation = operation.ArgumentList.Arguments[0].Expression
+                    var objCreation = expr
                         as ObjectCreationExpressionSyntax;
                     foreach (var arg in objCreation.ArgumentList.Arguments)
                     {
                         arguments.Add(arg.Expression);
                     }
                 }
-                else if (operation.ArgumentList.Arguments[0].Expression is BinaryExpressionSyntax &&
-                    operation.ArgumentList.Arguments[0].Expression.IsKind(SyntaxKind.AsExpression))
+                else if (expr is BinaryExpressionSyntax &&
+                    expr.IsKind(SyntaxKind.AsExpression))
                 {
-                    var binExpr = operation.ArgumentList.Arguments[0].Expression
+                    var binExpr = expr
                         as BinaryExpressionSyntax;
                     if ((binExpr.Left is IdentifierNameSyntax) || (binExpr.Left is MemberAccessExpressionSyntax))
                     {
@@ -1437,10 +1432,10 @@ namespace Microsoft.PSharp.StaticAnalysis
                         }
                     }
                 }
-                else if ((operation.ArgumentList.Arguments[0].Expression is IdentifierNameSyntax) ||
-                    (operation.ArgumentList.Arguments[0].Expression is MemberAccessExpressionSyntax))
+                else if ((expr is IdentifierNameSyntax) ||
+                    (expr is MemberAccessExpressionSyntax))
                 {
-                    arguments.Add(operation.ArgumentList.Arguments[0].Expression);
+                    arguments.Add(expr);
                 }
             }
 
@@ -1490,14 +1485,12 @@ namespace Microsoft.PSharp.StaticAnalysis
                 typeSymbol = model.GetTypeInfo(arg).Type;
             }
             
-            if (symbol.ToString().Equals("Microsoft.PSharp.Machine.Payload") ||
-                symbol.ToString().Equals("Microsoft.PSharp.MachineState.Payload"))
+            if (symbol.ToString().Equals("Microsoft.PSharp.Machine.Payload"))
             {
                 return false;
             }
             else if (typeSymbol.ToString().Equals("Microsoft.PSharp.Machine") ||
-                symbol.ToString().Equals("Microsoft.PSharp.Machine") ||
-                symbol.ToString().Equals("Microsoft.PSharp.MachineState.Machine"))
+                symbol.ToString().Equals("Microsoft.PSharp.Machine"))
             {
                 return true;
             }
