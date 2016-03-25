@@ -22,7 +22,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
     [TestClass]
     public class MachineFailTests
     {
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestMachineDeclarationWithoutState()
         {
             var test = @"
@@ -41,7 +41,7 @@ machine M {
                 parser.GetParsingErrorLog());
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestMachineDeclarationWithoutIdentifier()
         {
             var test = @"
@@ -59,7 +59,7 @@ machine{}
                 parser.GetParsingErrorLog());
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestMachineDeclarationWithTwoBodies()
         {
             var test = @"
@@ -81,7 +81,7 @@ start state S { }
                 parser.GetParsingErrorLog());
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestMachineDeclarationWithoutStartState()
         {
             var test = @"
@@ -101,7 +101,7 @@ state S { }
                 parser.GetParsingErrorLog());
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestMachineDeclarationWithoutStartState2()
         {
             var test = "" +
@@ -122,7 +122,7 @@ state S { }
                 parser.GetParsingErrorLog());
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestMachineDeclarationWithoutStartState3()
         {
             var test = @"
@@ -145,7 +145,7 @@ state S3 { }
                 parser.GetParsingErrorLog());
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestMachineDeclarationWithMoreThanOneStartState()
         {
             var test = @"

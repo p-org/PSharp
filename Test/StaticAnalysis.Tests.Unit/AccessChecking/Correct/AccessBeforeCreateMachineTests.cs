@@ -26,7 +26,7 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
     [TestClass]
     public class AccessBeforeCreateMachineTests : BasePSharpTest
     {
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestAccessBeforeCreateMachine()
         {
             var test = @"
@@ -94,7 +94,7 @@ class M : Machine
             IO.StopWritingToMemory();
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestAccessBeforeCreateMachineInCallee()
         {
             var test = @"

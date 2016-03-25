@@ -26,7 +26,7 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
     [TestClass]
     public class FieldSendingTests : BasePSharpTest
     {
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestFieldSending()
         {
             var test = @"

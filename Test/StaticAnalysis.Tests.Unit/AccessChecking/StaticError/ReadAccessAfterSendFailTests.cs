@@ -26,7 +26,7 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
     [TestClass]
     public class ReadAccessAfterSendFailTests : BasePSharpTest
     {
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestReadAccessAfterSend1Fail()
         {
             var test = @"
@@ -102,7 +102,7 @@ class M : Machine
             IO.StopWritingToMemory();
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestReadAccessAfterSend2Fail()
         {
             var test = @"
@@ -178,7 +178,7 @@ class M : Machine
             IO.StopWritingToMemory();
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestReadAccessAfterSendStoreInFieldFail()
         {
             var test = @"
@@ -255,7 +255,7 @@ class M : Machine
             IO.StopWritingToMemory();
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestReadAccessAfterSendInCalleeFail()
         {
             var test = @"

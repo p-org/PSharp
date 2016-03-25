@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="AccessBeforeSendTests.cs">
+// <copyright file="ExternalLibraryCallFailTests.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -24,10 +24,10 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
 {
     [TestClass]
-    public class AccessBeforeSendTests : BasePSharpTest
+    public class ExternalLibraryCallFailTests : BasePSharpTest
     {
         [TestMethod, Timeout(10000)]
-        public void TestAccessBeforeSend()
+        public void TestExternalLibraryCallFail()
         {
             var test = @"
 using Microsoft.PSharp;
@@ -64,10 +64,10 @@ class M : Machine
 
  void FirstOnEntryAction()
  {
-  var letter = new Letter(""test"");
   this.Target = this.CreateMachine(typeof(M));
-  letter.Text = ""changed"";
+  Letter letter = new Letter(""London"");
   this.Send(this.Target, new eUnit(letter));
+  System.Console.WriteLine(letter.Text);
  }
 }
 }";
@@ -79,93 +79,28 @@ class M : Machine
             configuration.Verbose = 2;
 
             IO.StartWritingToMemory();
+            ErrorReporter.ShowWarnings = true;
 
             var context = CompilationContext.Create(configuration).LoadSolution(solution);
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();
-
+            
             AnalysisErrorReporter.ResetStats();
             StaticAnalysisEngine.Create(context).Run();
 
             var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... No static analysis errors detected (but absolutely no warranty provided)";
+            var expected = "... Static analysis detected '0' errors and reported '1' warning";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
-            IO.StopWritingToMemory();
-        }
+            var error = "Warning: Method 'FirstOnEntryAction' of machine 'Foo.M' calls a " +
+                "method with unavailable source code, which might be a source of errors.";
+            var actual = IO.GetOutput();
 
-        [TestMethod, Timeout(10000)]
-        public void TestAccessBeforeSendInCallee()
-        {
-            var test = @"
-using Microsoft.PSharp;
+            Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
+               actual.Substring(0, actual.IndexOf(Environment.NewLine)));
 
-namespace Foo {
-class eUnit : Event
-{
- public Letter Letter;
- 
- public eUnit(Letter letter)
-  : base()
- {
-  this.Letter = letter;
- }
-}
-
-struct Letter
-{
- public string Text;
-
- public Letter(string text)
- {
-  this.Text = text;
- }
-}
-
-class M : Machine
-{
- MachineId Target;
-
- [Start]
- [OnEntry(nameof(FirstOnEntryAction))]
- class First : MachineState { }
-
- void FirstOnEntryAction()
- {
-  var letter = new Letter(""test"");
-  this.Target = this.CreateMachine(typeof(M));
-  this.Foo(letter);
- }
-
- void Foo(Letter letter)
- {
-  letter.Text = ""changed"";
-  this.Send(this.Target, new eUnit(letter));
- }
-}
-}";
-
-            var solution = base.GetSolution(test);
-
-            var configuration = Configuration.Create();
-            configuration.ProjectName = "Test";
-            configuration.Verbose = 2;
-
-            IO.StartWritingToMemory();
-
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
-
-            ParsingEngine.Create(context).Run();
-            RewritingEngine.Create(context).Run();
-
-            AnalysisErrorReporter.ResetStats();
-            StaticAnalysisEngine.Create(context).Run();
-
-            var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... No static analysis errors detected (but absolutely no warranty provided)";
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
-
+            ErrorReporter.ShowWarnings = false;
             IO.StopWritingToMemory();
         }
     }

@@ -26,7 +26,7 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
     [TestClass]
     public class FieldSendingFailTests : BasePSharpTest
     {
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestBasicFieldSendingViaSend1Fail()
         {
             var test = @"
@@ -102,7 +102,7 @@ class M : Machine
             IO.StopWritingToMemory();
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestBasicFieldSendingViaSend2Fail()
         {
             var test = @"
@@ -180,7 +180,7 @@ class M : Machine
             IO.StopWritingToMemory();
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestBasicFieldSendingViaCreateMachine1Fail()
         {
             var test = @"
@@ -255,7 +255,7 @@ class M : Machine
             IO.StopWritingToMemory();
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestBasicFieldSendingViaCreateMachine2Fail()
         {
             var test = @"

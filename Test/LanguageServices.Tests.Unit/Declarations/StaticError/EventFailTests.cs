@@ -22,7 +22,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
     [TestClass]
     public class EventFailTests
     {
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestProtectedEventDeclaration()
         {
             var test = @"
@@ -40,7 +40,7 @@ protected event e;
                 parser.GetParsingErrorLog());
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestPrivateEventDeclaration()
         {
             var test = @"
@@ -58,7 +58,7 @@ private event e;
                 "Event and machine declarations must be internal or public.");
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestEventDeclarationWithoutNamespace()
         {
             var test = "event e;";

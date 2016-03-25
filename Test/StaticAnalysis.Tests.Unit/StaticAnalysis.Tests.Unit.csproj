@@ -97,6 +97,7 @@
     <Compile Include="AccessChecking\StaticError\ReadAccessAfterSendFailTests.cs" />
     <Compile Include="AccessChecking\StaticError\AliasAccessAfterSendFailTests.cs" />
     <Compile Include="AccessChecking\StaticError\WriteAccessAfterSendFailTests.cs" />
+    <Compile Include="Advanced\StaticError\ExternalLibraryCallFailTests.cs" />
     <Compile Include="Advanced\StaticError\DuplicateSendsFailTests.cs" />
     <Compile Include="Advanced\StaticError\ComplexAccessesInCallFailTests.cs" />
     <Compile Include="BasePSharpTest.cs" />

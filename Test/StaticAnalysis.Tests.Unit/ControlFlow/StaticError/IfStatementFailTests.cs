@@ -25,7 +25,7 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
     [TestClass]
     public class IfStatementFailTests : BasePSharpTest
     {
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestIfStatement1Fail()
         {
             var test = @"
@@ -117,7 +117,7 @@ class M : Machine
             IO.StopWritingToMemory();
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestIfStatement2Fail()
         {
             var test = @"
@@ -205,7 +205,7 @@ class M : Machine
             IO.StopWritingToMemory();
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestIfStatement3Fail()
         {
             var test = @"
@@ -297,7 +297,7 @@ class M : Machine
             IO.StopWritingToMemory();
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestIfStatement4Fail()
         {
             var test = @"
@@ -389,7 +389,7 @@ class M : Machine
             IO.StopWritingToMemory();
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestIfStatement5Fail()
         {
             var test = @"
@@ -478,7 +478,7 @@ class M : Machine
             IO.StopWritingToMemory();
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestIfStatement6Fail()
         {
             var test = @"
@@ -567,7 +567,7 @@ class M : Machine
             IO.StopWritingToMemory();
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestIfStatement7Fail()
         {
             var test = @"
@@ -666,7 +666,7 @@ class M : Machine
             IO.StopWritingToMemory();
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestIfStatement8Fail()
         {
             var test = @"

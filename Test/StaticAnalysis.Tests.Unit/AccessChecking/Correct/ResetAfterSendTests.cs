@@ -26,7 +26,7 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
     [TestClass]
     public class ResetAfterSendTests : BasePSharpTest
     {
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestResetGivenUpReferenceAfterSend1()
         {
             var test = @"
@@ -96,7 +96,7 @@ class M : Machine
             IO.StopWritingToMemory();
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestResetGivenUpReferenceAfterSend2()
         {
             var test = @"
@@ -171,7 +171,7 @@ class M : Machine
             IO.StopWritingToMemory();
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestResetViaFieldAfterSend1()
         {
             var test = @"
@@ -242,7 +242,7 @@ class M : Machine
             IO.StopWritingToMemory();
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestResetViaFieldAfterSend2()
         {
             var test = @"
@@ -313,7 +313,7 @@ class M : Machine
             IO.StopWritingToMemory();
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestResetViaFieldAfterSend3()
         {
             var test = @"
@@ -384,7 +384,7 @@ class M : Machine
             IO.StopWritingToMemory();
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestResetViaFieldAfterSend4()
         {
             var test = @"
@@ -455,7 +455,7 @@ class M : Machine
             IO.StopWritingToMemory();
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestResetViaFieldAfterSend5()
         {
             var test = @"

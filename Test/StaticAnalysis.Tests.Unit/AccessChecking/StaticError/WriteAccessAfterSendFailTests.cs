@@ -26,7 +26,7 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
     [TestClass]
     public class WriteAccessAfterSendFailTests : BasePSharpTest
     {
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestWriteAccessAfterSend1Fail()
         {
             var test = @"
@@ -102,7 +102,7 @@ class M : Machine
             IO.StopWritingToMemory();
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestWriteAccessAfterSend2Fail()
         {
             var test = @"
@@ -178,7 +178,7 @@ class M : Machine
             IO.StopWritingToMemory();
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestWriteAccessAfterSend3Fail()
         {
             var test = @"
@@ -250,7 +250,7 @@ class M : Machine
             IO.StopWritingToMemory();
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestWriteAccessAfterSendLoadFromFieldFail()
         {
             var test = @"
@@ -327,7 +327,7 @@ class M : Machine
             IO.StopWritingToMemory();
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestWriteAccessAfterSendInCallee1Fail()
         {
             var test = @"
@@ -408,7 +408,7 @@ class M : Machine
             IO.StopWritingToMemory();
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestWriteAccessAfterSendInCallee2Fail()
         {
             var test = @"
@@ -490,7 +490,7 @@ class M : Machine
             IO.StopWritingToMemory();
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestWriteAccessAfterSendInCallee3Fail()
         {
             var test = @"

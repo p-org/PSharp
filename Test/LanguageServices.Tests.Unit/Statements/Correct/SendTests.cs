@@ -25,7 +25,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
     [TestClass]
     public class SendTests : BasePSharpTest
     {
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestSendStatement()
         {
             var test = @"
@@ -85,7 +85,7 @@ this.Send(this.Target,new e1());
                 syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestSendStatementWithSinglePayload()
         {
             var test = @"
@@ -148,7 +148,7 @@ this.Send(this.Target,new e1(10));
                 syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestSendStatementWithDoublePayload()
         {
             var test = @"

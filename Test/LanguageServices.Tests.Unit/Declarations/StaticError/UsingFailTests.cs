@@ -22,7 +22,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
     [TestClass]
     public class UsingFailTests
     {
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestIncorrectUsingDeclaration()
         {
             var test = "using System.Text";
@@ -37,7 +37,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 parser.GetParsingErrorLog());
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestUsingDeclarationWithoutIdentifier()
         {
             var test = "using;";

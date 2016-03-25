@@ -26,7 +26,7 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
     [TestClass]
     public class FieldGivenUpOwnershipFailTests : BasePSharpTest
     {
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestFieldGivenUpOwnershipFail()
         {
             var test = @"
@@ -103,7 +103,7 @@ class M : Machine
             IO.StopWritingToMemory();
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestFieldAccessAfterGivenUpOwnership1Fail()
         {
             var test = @"
@@ -175,7 +175,7 @@ class M : Machine
             IO.StopWritingToMemory();
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestFieldAccessAfterGivenUpOwnership2Fail()
         {
             var test = @"

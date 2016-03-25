@@ -22,7 +22,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
     [TestClass]
     public class StateFailTests
     {
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestStateDeclarationWithMoreThanOneEntry()
         {
             var test = @"
@@ -46,7 +46,7 @@ entry{}
                 parser.GetParsingErrorLog());
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestStateDeclarationWithMoreThanOneExit()
         {
             var test = @"
@@ -70,7 +70,7 @@ exit {}
                 parser.GetParsingErrorLog());
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestEntryDeclarationWithUnexpectedIdentifier()
         {
             var test = @"
@@ -93,7 +93,7 @@ entry Bar {}
                 parser.GetParsingErrorLog());
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestOnEventGotoStateDeclarationWithoutSemicolon()
         {
             var test = @"
@@ -116,7 +116,7 @@ on e goto S2
                 parser.GetParsingErrorLog());
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestOnEventGotoStateDeclarationWithoutState()
         {
             var test = @"
@@ -139,7 +139,7 @@ on e goto;
                 parser.GetParsingErrorLog());
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestOnEventDoActionDeclarationWithoutSemicolon()
         {
             var test = @"
@@ -162,7 +162,7 @@ on e do Bar
                 parser.GetParsingErrorLog());
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestOnEventDoActionDeclarationWithoutAction()
         {
             var test = @"
@@ -185,7 +185,7 @@ on e do;
                 parser.GetParsingErrorLog());
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestOnEventDeclarationWithoutHandler()
         {
             var test = @"
@@ -208,7 +208,7 @@ on e;
                 parser.GetParsingErrorLog());
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestIgnoreEventDeclarationWithoutComma()
         {
             var test = @"
@@ -231,7 +231,7 @@ ignore e1 e2;
                 parser.GetParsingErrorLog());
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestDeferEventDeclarationWithoutComma()
         {
             var test = @"
