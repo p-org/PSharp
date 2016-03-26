@@ -18,7 +18,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\Binaries\Debug\</OutputPath>
+    <OutputPath>..\Binaries\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -27,23 +27,20 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\Binaries\Release\</OutputPath>
+    <OutputPath>..\Binaries\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.Msagl, Version=1.0.0.0, Culture=neutral, PublicKeyToken=640c57aa40e7ae7d, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\References\AutomaticGraphLayout\Microsoft.Msagl.dll</HintPath>
+    <Reference Include="Microsoft.Msagl">
+      <HintPath>..\..\..\References\AutomaticGraphLayout\Microsoft.Msagl.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Msagl.Drawing, Version=3.0.0.0, Culture=neutral, PublicKeyToken=8a3d7c21d5fa1306, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\References\AutomaticGraphLayout\Microsoft.Msagl.Drawing.dll</HintPath>
+    <Reference Include="Microsoft.Msagl.Drawing">
+      <HintPath>..\..\..\References\AutomaticGraphLayout\Microsoft.Msagl.Drawing.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Msagl.GraphViewerGdi, Version=3.0.0.0, Culture=neutral, PublicKeyToken=fffc27ea4058b3a1, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\References\AutomaticGraphLayout\Microsoft.Msagl.GraphViewerGdi.dll</HintPath>
+    <Reference Include="Microsoft.Msagl.GraphViewerGdi">
+      <HintPath>..\..\..\References\AutomaticGraphLayout\Microsoft.Msagl.GraphViewerGdi.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
