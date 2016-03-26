@@ -534,24 +534,26 @@ namespace Microsoft.PSharp.StaticAnalysis
             if (this.ReturnSet.Item1.Count > 0 ||
                 this.ReturnSet.Item2.Count > 0)
             {
-                IO.PrintLine("..... Return set");
+                IO.PrintLine("... |");
+                IO.PrintLine("... | . Method return set");
                 foreach (var index in this.ReturnSet.Item1)
                 {
-                    IO.PrintLine("....... " + index);
+                    IO.PrintLine("... | ... Parameter at index '{0}' flows into return", index);
                 }
 
                 foreach (var field in this.ReturnSet.Item2)
                 {
-                    IO.PrintLine("....... " + field.Name);
+                    IO.PrintLine("... | ... Field '{0}' flows into return", field.Name);
                 }
             }
 
             if (this.ReturnTypeSet.Count > 0)
             {
-                IO.PrintLine("..... Return type set");
+                IO.PrintLine("... |");
+                IO.PrintLine("... | . Method return types");
                 foreach (var type in this.ReturnTypeSet)
                 {
-                    IO.PrintLine("....... " + type.Name);
+                    IO.PrintLine("... | ... Type '{0}'", type.Name);
                 }
             }
 
