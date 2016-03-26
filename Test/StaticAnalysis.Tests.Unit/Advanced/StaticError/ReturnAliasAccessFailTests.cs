@@ -481,5 +481,199 @@ class M : Machine
 
             IO.StopWritingToMemory();
         }
+
+        [TestMethod, Timeout(10000)]
+        public void TestReturnAliasAccess6Fail()
+        {
+            var test = @"
+using Microsoft.PSharp;
+
+namespace Foo {
+class eUnit : Event
+{
+ public Envelope Envelope;
+ 
+ public eUnit(Envelope envelope)
+  : base()
+ {
+  this.Envelope = envelope;
+ }
+}
+
+struct Envelope
+{
+ public Letter Letter;
+
+ public Envelope(Letter letter)
+ {
+  this.Letter = letter;
+ }
+}
+
+struct Letter
+{
+ public string Text;
+ public int Num;
+
+ public Letter(string text, int num)
+ {
+  this.Text = text;
+  this.Num = num;
+ }
+}
+
+class M : Machine
+{
+ MachineId Target;
+ Letter Letter;
+
+ [Start]
+ [OnEntry(nameof(FirstOnEntryAction))]
+ class First : MachineState { }
+
+ void FirstOnEntryAction()
+ {
+  this.Target = this.CreateMachine(typeof(M));
+  this.Foo();
+ }
+
+ void Foo()
+ {
+   var letter = new Letter(""test"", 0);
+   var envelope = new Envelope(letter);
+   envelope.Letter = this.Bar();
+   this.Send(this.Target, new eUnit(envelope));
+ }
+
+ Letter Bar()
+ {
+  var letter = this.Letter;
+  return letter;
+ }
+}
+}";
+
+            var solution = base.GetSolution(test);
+
+            var configuration = Configuration.Create();
+            configuration.ProjectName = "Test";
+            configuration.Verbose = 2;
+
+            IO.StartWritingToMemory();
+
+            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            AnalysisErrorReporter.ResetStats();
+            StaticAnalysisEngine.Create(context).Run();
+
+            var stats = AnalysisErrorReporter.GetStats();
+            var expected = "... Static analysis detected '2' errors";
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
+
+            IO.StopWritingToMemory();
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestReturnAliasAccess7Fail()
+        {
+            var test = @"
+using Microsoft.PSharp;
+
+namespace Foo {
+class eUnit : Event
+{
+ public Envelope Envelope;
+ 
+ public eUnit(Envelope envelope)
+  : base()
+ {
+  this.Envelope = envelope;
+ }
+}
+
+struct Envelope
+{
+ public Letter Letter;
+
+ public Envelope(Letter letter)
+ {
+  this.Letter = letter;
+ }
+}
+
+struct Letter
+{
+ public string Text;
+ public int Num;
+
+ public Letter(string text, int num)
+ {
+  this.Text = text;
+  this.Num = num;
+ }
+}
+
+class M : Machine
+{
+ MachineId Target;
+ Letter Letter;
+
+ [Start]
+ [OnEntry(nameof(FirstOnEntryAction))]
+ class First : MachineState { }
+
+ void FirstOnEntryAction()
+ {
+  this.Target = this.CreateMachine(typeof(M));
+  this.Foo();
+ }
+
+ void Foo()
+ {
+   var letter = new Letter(""test"", 0);
+   var envelope = new Envelope(letter);
+   envelope.Letter = this.Bar();
+   this.Send(this.Target, new eUnit(envelope));
+ }
+
+ Letter Bar()
+ {
+  return this.Leter;
+ }
+}
+}";
+
+            var solution = base.GetSolution(test);
+
+            var configuration = Configuration.Create();
+            configuration.ProjectName = "Test";
+            configuration.Verbose = 2;
+
+            IO.StartWritingToMemory();
+
+            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            AnalysisErrorReporter.ResetStats();
+            StaticAnalysisEngine.Create(context).Run();
+
+            var stats = AnalysisErrorReporter.GetStats();
+            var expected = "... Static analysis detected '1' error";
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
+
+            var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' " +
+                "accesses 'letter' after giving up its ownership.";
+            var actual = IO.GetOutput();
+
+            Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
+               actual.Substring(0, actual.IndexOf(Environment.NewLine)));
+
+            IO.StopWritingToMemory();
+        }
     }
 }
