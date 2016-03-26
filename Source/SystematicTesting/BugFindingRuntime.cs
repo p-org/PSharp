@@ -590,24 +590,7 @@ namespace Microsoft.PSharp.SystematicTesting
             // Capture a Goto transition.
             if (this.Configuration.EnableVisualization)
             {
-                var originMachine = machine.GetType().Name;
-                var originState = machine.CurrentStateName;
-                var destMachine = machine.GetType().Name;
-
-                string edgeLabel = "";
-                string destState = "";
-                if (e is GotoStateEvent)
-                {
-                    edgeLabel = "goto";
-                    destState = (e as GotoStateEvent).State.Name;
-                }
-                else
-                {
-                    edgeLabel = e.GetType().Name;
-                    destState = machine.CurrentStateName;
-                }
-
-                this.Visualizer.AddTransition(originMachine, originState, edgeLabel, destMachine, destState);
+                this.VisualizeStateTransition(machine, e);
             }
 
             //if (this.Configuration.BoundOperations && prevMachineOpId != machine.OperationId)
@@ -743,6 +726,37 @@ namespace Microsoft.PSharp.SystematicTesting
         #endregion
 
         #region private methods
+
+        /// <summary>
+        /// Visualizes a state transition.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <param name="e">Event</param>
+        private void VisualizeStateTransition(Machine machine, Event e)
+        {
+            var originMachine = machine.GetType().Name;
+            var originState = machine.CurrentStateName;
+            var destMachine = machine.GetType().Name;
+
+            string edgeLabel = "";
+            string destState = "";
+            if (e is GotoStateEvent)
+            {
+                edgeLabel = "goto";
+                destState = (e as GotoStateEvent).State.Name;
+            }
+            else if (machine.GotoTransitions.ContainsKey(e.GetType()))
+            {
+                edgeLabel = e.GetType().Name;
+                destState = machine.GotoTransitions[e.GetType()].Item1.Name;
+            }
+            else
+            {
+                return;
+            }
+
+            this.Visualizer.AddTransition(originMachine, originState, edgeLabel, destMachine, destState);
+        }
 
         /// <summary>
         /// Sets the operation id for the given event.
