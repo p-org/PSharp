@@ -366,6 +366,29 @@ namespace Microsoft.PSharp.Visualization
             }
         }
 
+        protected void HideEvent(string eventname)
+        {
+            // delete transitions of the machine
+            foreach (var t in this.Transitions.Where(tr => tr.Key.EdgeLabel == eventname))
+            {
+                this.Graph.RemoveEdge(t.Value);
+            }
+        }
+
+        protected void UnHideEvent(string eventname)
+        {
+            var trlist = new List<Transition>(this.Transitions.Where(t => t.Key.EdgeLabel == eventname).Select(t => t.Key));
+            // add transitions back
+            foreach (var t in trlist)
+            {
+                var edge = this.Graph.AddEdge(GetNode(t.StateOrigin, t.MachineOrigin).Id,
+                    t.EdgeLabel, GetNode(t.StateTarget, t.MachineTarget).Id);
+                edge.Label.FontSize = this.EdgeFontSize;
+
+                this.Transitions[t] = edge;
+            }
+        }
+
         protected Node GetNode(string state, string machine)
         {
             if (!this.CollapsedMachines.Contains(machine))
@@ -385,13 +408,25 @@ namespace Microsoft.PSharp.Visualization
                 case "collapse":
                     lock(this.Graph)
                     {
-                        Collapse(tok[1]);
+                        if(tok.Length == 2) Collapse(tok[1]);
                     }
                     break;
                 case "expand":
                     lock (this.Graph)
                     {
-                        Expand(tok[1]);
+                        if (tok.Length == 2) Expand(tok[1]);
+                    }
+                    break;
+                case "hide":
+                    lock(this.Graph)
+                    {
+                        if (tok.Length == 2) HideEvent(tok[1]);
+                    }
+                    break;
+                case "unhide":
+                    lock (this.Graph)
+                    {
+                        if (tok.Length == 2) UnHideEvent(tok[1]);
                     }
                     break;
                 default:
