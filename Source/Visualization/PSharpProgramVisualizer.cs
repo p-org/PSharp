@@ -204,10 +204,10 @@ namespace Microsoft.PSharp.Visualization
 
                 if (this.Form.IsHandleCreated)
                 {
-                    lock(this.Graph)
+                    lock(this.Form)
                     {
                         this.Form.SuspendLayout();
-                        this.Form.Invoke(new RefreshDelegate(Refresh));
+                        this.Form.Invoke(new RefreshDelegate(RefreshInternal));
                         this.Form.ResumeLayout();
                     }
                 }
@@ -233,6 +233,17 @@ namespace Microsoft.PSharp.Visualization
         /// Refreshes the visualization.
         /// </summary>
         public void Refresh()
+        {
+            if (!this.Form.IsHandleCreated) return;
+            lock(this.Form)
+            {
+                this.Form.SuspendLayout();
+                this.Form.Invoke(new RefreshDelegate(RefreshInternal));
+                this.Form.ResumeLayout();
+            }
+        }
+
+        void RefreshInternal()
         {
             if (!this.Form.IsHandleCreated) return;
 
