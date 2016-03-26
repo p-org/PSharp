@@ -172,12 +172,6 @@ namespace Microsoft.PSharp.Utilities
         public bool ScheduleIntraMachineConcurrency;
 
         /// <summary>
-        /// If true, then the P# tester will check if any liveness
-        /// properties hold.
-        /// </summary>
-        public bool CheckLiveness;
-
-        /// <summary>
         /// If true, then the P# tester will perform state
         /// caching when checking liveness properties.
         /// </summary>
@@ -295,7 +289,6 @@ namespace Microsoft.PSharp.Utilities
             this.SafetyPrefixBound = 0;
 
             this.ScheduleIntraMachineConcurrency = false;
-            this.CheckLiveness = false;
             this.CacheProgramState = false;
             this.BoundOperations = false;
             this.DynamicEventQueuePrioritization = false;
@@ -346,18 +339,6 @@ namespace Microsoft.PSharp.Utilities
         public Configuration WithDebuggingEnabled(bool value = true)
         {
             IO.Debugging = value;
-            return this;
-        }
-
-        /// <summary>
-        /// Updates the configuration with liveness checking enabled
-        /// or disabled and returns it.
-        /// </summary>
-        /// <param name="value">Boolean</param>
-        /// <returns>Configuration</returns>
-        public Configuration WithLivenessCheckingEnabled(bool value = true)
-        {
-            this.CheckLiveness = value;
             return this;
         }
 

@@ -305,12 +305,8 @@ namespace Microsoft.PSharp.SystematicTesting
             IO.Log("<CreateLog> Monitor {0} is created.", type.Name);
 
             this.Monitors.Add(monitor as Monitor);
+            this.LivenessChecker.RegisterMonitor(monitor as Monitor);
 
-            if (this.Configuration.CheckLiveness)
-            {
-                this.LivenessChecker.RegisterMonitor(monitor as Monitor);
-            }
-            
             (monitor as Monitor).GotoStartState();
         }
 

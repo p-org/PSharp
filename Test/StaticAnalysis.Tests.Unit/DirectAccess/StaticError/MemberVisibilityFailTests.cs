@@ -26,7 +26,7 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
     [TestClass]
     public class MemberVisibilityFailTests : BasePSharpTest
     {
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestPublicFieldVisibility()
         {
             var test = @"
@@ -75,7 +75,7 @@ class M : Machine
             IO.StopWritingToMemory();
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestPublicMethodVisibility()
         {
             var test = @"

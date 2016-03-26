@@ -139,7 +139,7 @@ namespace Microsoft.PSharp.Utilities
             help += "\n  /o:[x]\t Path for output files";
             help += "\n  /timeout:[x]\t Timeout for the tool (default is no timeout)";
             help += "\n  /v:[x]\t Enable verbose mode (values from '1' to '3')";
-            help += "\n  /warnings\t Show warnings";
+            help += "\n  /warnings-on\t Show warnings";
             help += "\n  /debug\t Enable debugging";
 
             help += "\n\n--------------------";
@@ -150,7 +150,7 @@ namespace Microsoft.PSharp.Utilities
             help += "\n\n---------------------------";
             help += "\nExperimental options:";
             help += "\n---------------------------";
-            help += "\n  /tpl\t Enable intra-machine concurrency scheduling";
+            help += "\n  /tpl\t\t Enable intra-machine concurrency scheduling";
 
             help += "\n";
 

@@ -25,7 +25,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
     [TestClass]
     public class FieldTests : BasePSharpTest
     {
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestIntFieldDeclaration()
         {
             var test = @"
@@ -65,7 +65,7 @@ class S : MachineState
                 syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestMachineFieldDeclaration()
         {
             var test = @"
@@ -105,7 +105,7 @@ class S : MachineState
                 syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestListFieldDeclaration()
         {
             var test = @"

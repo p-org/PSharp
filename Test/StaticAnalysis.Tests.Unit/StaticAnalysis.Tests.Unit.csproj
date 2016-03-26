@@ -88,17 +88,32 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="AccessAfterGivenUp\Correct\AccessBeforeCreateMachineTests.cs" />
-    <Compile Include="AccessAfterGivenUp\Correct\AccessBeforeSendTests.cs" />
-    <Compile Include="AccessAfterGivenUp\StaticError\AccessAfterCreateMachineFailTests.cs" />
-    <Compile Include="AccessAfterGivenUp\StaticError\AccessAfterSendFailTests.cs" />
+    <Compile Include="AccessChecking\Correct\AccessAfterCreateMachineTests.cs" />
+    <Compile Include="AccessChecking\Correct\ResetAfterSendTests.cs" />
+    <Compile Include="AccessChecking\Correct\AccessAfterSendTests.cs" />
+    <Compile Include="AccessChecking\Correct\AccessBeforeCreateMachineTests.cs" />
+    <Compile Include="AccessChecking\Correct\AccessBeforeSendTests.cs" />
+    <Compile Include="AccessChecking\StaticError\AccessAfterCreateMachineFailTests.cs" />
+    <Compile Include="AccessChecking\StaticError\ReadAccessAfterSendFailTests.cs" />
+    <Compile Include="AccessChecking\StaticError\AliasAccessAfterSendFailTests.cs" />
+    <Compile Include="AccessChecking\StaticError\WriteAccessAfterSendFailTests.cs" />
+    <Compile Include="Advanced\StaticError\ExternalLibraryCallFailTests.cs" />
+    <Compile Include="Advanced\StaticError\DuplicateSendsFailTests.cs" />
+    <Compile Include="Advanced\StaticError\ComplexAccessesInCallFailTests.cs" />
     <Compile Include="BasePSharpTest.cs" />
+    <Compile Include="ControlFlow\Correct\IfStatementTests.cs" />
+    <Compile Include="ControlFlow\StaticError\IfStatementFailTests.cs" />
     <Compile Include="DirectAccess\Correct\MemberVisibilityTests.cs" />
     <Compile Include="DirectAccess\StaticError\MemberVisibilityFailTests.cs" />
-    <Compile Include="FieldOwnership\StaticError\BasicFieldSendingFailTests.cs" />
+    <Compile Include="FieldOwnership\Correct\FieldSendingTests.cs" />
+    <Compile Include="FieldOwnership\StaticError\FieldSendAliasFailTests.cs" />
+    <Compile Include="FieldOwnership\StaticError\FieldAliasAccessAfterSendFailTests.cs" />
+    <Compile Include="FieldOwnership\StaticError\FieldGivenUpOwnershipFailTests.cs" />
+    <Compile Include="FieldOwnership\StaticError\FieldSendingFailTests.cs" />
     <Compile Include="ControlFlow\Correct\NoStatementsWithLoopTest.cs" />
     <Compile Include="ControlFlow\Correct\NoStatementsTest.cs" />
     <Compile Include="Loops\Correct\BasicLoopTest.cs" />
+    <Compile Include="Loops\StaticError\AccessInLoopFailTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

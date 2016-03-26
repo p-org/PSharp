@@ -25,7 +25,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
     [TestClass]
     public class RaiseTests : BasePSharpTest
     {
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestEventRaiseStatement()
         {
             var test = @"
@@ -91,7 +91,7 @@ protected void psharp_S1_on_entry_action()
                 syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestEventRaiseStatementWithPSharpAPI()
         {
             var test = @"

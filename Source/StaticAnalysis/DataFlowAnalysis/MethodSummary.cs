@@ -63,7 +63,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Dictionary containing all read and write accesses
         /// of the parameters of the original method.
         /// </summary>
-        internal Dictionary<int, HashSet<SyntaxNode>> AccessSet;
+        internal Dictionary<int, HashSet<SyntaxNode>> ParameterAccessSet;
 
         /// <summary>
         /// Dictionary containing all field accesses.
@@ -329,7 +329,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 return;
             }
 
-            this.AccessSet = new Dictionary<int, HashSet<SyntaxNode>>();
+            this.ParameterAccessSet = new Dictionary<int, HashSet<SyntaxNode>>();
             this.FieldAccessSet = new Dictionary<IFieldSymbol, HashSet<SyntaxNode>>();
             this.SideEffects = new Dictionary<IFieldSymbol, HashSet<int>>();
             this.ReturnSet = new Tuple<HashSet<int>, HashSet<IFieldSymbol>>(
@@ -491,14 +491,16 @@ namespace Microsoft.PSharp.StaticAnalysis
             this.DataFlowAnalysis.PrintReferenceTypes();
             this.DataFlowAnalysis.PrintStatementsThatResetReferences();
 
-            if (this.AccessSet.Count > 0)
+            if (this.ParameterAccessSet.Count > 0)
             {
-                IO.PrintLine("..... Access set");
-                foreach (var index in this.AccessSet)
+                IO.PrintLine("... |");
+                IO.PrintLine("... | . Parameter access set");
+                foreach (var index in this.ParameterAccessSet)
                 {
                     foreach (var syntaxNode in index.Value)
                     {
-                        IO.PrintLine("....... " + index.Key + " " + syntaxNode);
+                        IO.PrintLine("... | ... Parameter at index '{0}' is accessed in '{1}'",
+                            index.Key, syntaxNode);
                     }
                 }
             }

@@ -22,7 +22,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
     [TestClass]
     public class FieldFailTests
     {
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestPublicFieldDeclaration()
         {
             var test = @"
@@ -43,7 +43,7 @@ start state S { }
                 parser.GetParsingErrorLog());
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestInternalFieldDeclaration()
         {
             var test = @"
@@ -64,7 +64,7 @@ start state S { }
                 parser.GetParsingErrorLog());
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestIntFieldDeclarationWithoutSemicolon()
         {
             var test = @"
@@ -85,7 +85,7 @@ start state S { }
                 parser.GetParsingErrorLog());
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestMachineFieldDeclarationWithoutSemicolon()
         {
             var test = @"
@@ -106,7 +106,7 @@ start state S { }
                 parser.GetParsingErrorLog());
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestPrivateMachineFieldDeclarationWithoutSemicolon()
         {
             var test = @"

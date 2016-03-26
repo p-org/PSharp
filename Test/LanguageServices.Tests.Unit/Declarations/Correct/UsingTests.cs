@@ -25,7 +25,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
     [TestClass]
     public class UsingTests : BasePSharpTest
     {
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestUsingDeclaration()
         {
             var test = "using System.Text;";

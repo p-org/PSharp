@@ -25,7 +25,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
     [TestClass]
     public class StateTests : BasePSharpTest
     {
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestStateDeclaration()
         {
             var test = @"
@@ -67,7 +67,7 @@ class S2 : MachineState
                 syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestEntryDeclaration()
         {
             var test = @"
@@ -112,7 +112,7 @@ protected void psharp_S_on_entry_action()
                 syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestExitDeclaration()
         {
             var test = @"
@@ -157,7 +157,7 @@ protected void psharp_S_on_exit_action()
                 syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestEntryAndExitDeclaration()
         {
             var test = @"
@@ -207,7 +207,7 @@ protected void psharp_S_on_exit_action()
                 syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestOnEventGotoStateDeclaration()
         {
             var test = @"
@@ -249,7 +249,7 @@ class S1 : MachineState
                 syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestOnEventGotoStateDeclaration2()
         {
             var test = @"
@@ -293,7 +293,7 @@ class S1 : MachineState
                 syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestOnEventGotoStateDeclarationWithBody()
         {
             var test = @"
@@ -338,7 +338,7 @@ protected void psharp_S1_e_action()
                 syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestOnEventDoActionDeclaration()
         {
             var test = @"
@@ -380,7 +380,7 @@ class S1 : MachineState
                 syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestOnEventDoActionDeclaration2()
         {
             var test = @"
@@ -424,7 +424,7 @@ class S1 : MachineState
                 syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestOnEventDoActionDeclarationWithBody()
         {
             var test = @"
@@ -469,7 +469,7 @@ protected void psharp_S1_e_action()
                 syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestOnEventGotoStateAndDoActionDeclaration()
         {
             var test = @"
@@ -513,7 +513,7 @@ class S1 : MachineState
                 syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestIgnoreEventDeclaration()
         {
             var test = @"
@@ -555,7 +555,7 @@ class S : MachineState
                 syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestIgnoreEventDeclaration2()
         {
             var test = @"
@@ -596,7 +596,7 @@ class S : MachineState
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestDeferEventDeclaration()
         {
             var test = @"
@@ -638,7 +638,7 @@ class S : MachineState
                 syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestDeferEventDeclaration2()
         {
             var test = @"

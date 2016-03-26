@@ -44,34 +44,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         public static void PrintStats()
         {
-            string errorStr = "error";
-            if (AnalysisErrorReporter.ErrorCount > 1)
-            {
-                errorStr = "errors";
-            }
-
-            string warningStr = "warning";
-            if (AnalysisErrorReporter.WarningCount > 1)
-            {
-                warningStr = "warnings";
-            }
-
-            if ((AnalysisErrorReporter.ErrorCount > 0 || AnalysisErrorReporter.WarningCount > 0) &&
-                ErrorReporter.ShowWarnings)
-            {
-                IO.PrintLine("... Static analysis detected '{0}' {1} and reported '{2}' {3}",
-                    AnalysisErrorReporter.ErrorCount, errorStr,
-                    AnalysisErrorReporter.WarningCount, warningStr);
-            }
-            else if (AnalysisErrorReporter.ErrorCount > 0)
-            {
-                IO.PrintLine("... Static analysis detected '{0}' {1}",
-                    AnalysisErrorReporter.ErrorCount, errorStr);
-            }
-            else
-            {
-                IO.PrintLine("... No static analysis errors detected (but absolutely no warranty provided)");
-            }
+            IO.PrintLine(AnalysisErrorReporter.GetStats());
         }
 
         /// <summary>
@@ -80,13 +53,13 @@ namespace Microsoft.PSharp.StaticAnalysis
         public static string GetStats()
         {
             string errorStr = "error";
-            if (AnalysisErrorReporter.ErrorCount > 1)
+            if (AnalysisErrorReporter.ErrorCount != 1)
             {
                 errorStr = "errors";
             }
 
             string warningStr = "warning";
-            if (AnalysisErrorReporter.WarningCount > 1)
+            if (AnalysisErrorReporter.WarningCount != 1)
             {
                 warningStr = "warnings";
             }
@@ -126,7 +99,9 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="s">String</param>
         internal static void Report(string s)
         {
-            ErrorReporter.Report(s);
+            IO.Print(ConsoleColor.Red, "Error: ");
+            IO.Print(ConsoleColor.Yellow, s);
+            IO.PrintLine();
             AnalysisErrorReporter.ErrorCount++;
         }
 
@@ -137,7 +112,10 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="args">Parameters</param>
         internal static void Report(string s, params object[] args)
         {
-            ErrorReporter.Report(s, args);
+            string message = IO.Format(s, args);
+            IO.Print(ConsoleColor.Red, "Error: ");
+            IO.Print(ConsoleColor.Yellow, message);
+            IO.PrintLine();
             AnalysisErrorReporter.ErrorCount++;
         }
 
@@ -148,16 +126,13 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="s">String</param>
         internal static void Report(TraceInfo trace, string s)
         {
-            ErrorReporter.Report(s);
-
+            AnalysisErrorReporter.Report(s);
             for (int idx = trace.ErrorTrace.Count - 1; idx >= 0; idx--)
             {
                 IO.Print("   at '{0}' ", trace.ErrorTrace[idx].Expression);
                 IO.Print("in {0}:", trace.ErrorTrace[idx].File);
                 IO.PrintLine("line {0}", trace.ErrorTrace[idx].Line);
             }
-
-            AnalysisErrorReporter.ErrorCount++;
         }
 
         /// <summary>
@@ -168,16 +143,13 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="args">Parameters</param>
         internal static void Report(TraceInfo trace, string s, params object[] args)
         {
-            ErrorReporter.Report(s, args);
-
+            AnalysisErrorReporter.Report(s, args);
             for (int idx = trace.ErrorTrace.Count - 1; idx >= 0; idx--)
             {
                 IO.Print("   at '{0}' ", trace.ErrorTrace[idx].Expression);
                 IO.Print("in {0}:", trace.ErrorTrace[idx].File);
                 IO.PrintLine("line {0}", trace.ErrorTrace[idx].Line);
             }
-
-            AnalysisErrorReporter.ErrorCount++;
         }
 
         /// <summary>
@@ -186,7 +158,13 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="s">String</param>
         internal static void ReportWarning(string s)
         {
-            ErrorReporter.ReportWarning(s);
+            if (ErrorReporter.ShowWarnings)
+            {
+                IO.Print(ConsoleColor.Red, "Warning: ");
+                IO.Print(ConsoleColor.Yellow, s);
+                IO.PrintLine();
+            }
+                
             AnalysisErrorReporter.WarningCount++;
         }
 
@@ -197,7 +175,14 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="args">Parameters</param>
         internal static void ReportWarning(string s, params object[] args)
         {
-            ErrorReporter.ReportWarning(s, args);
+            if (ErrorReporter.ShowWarnings)
+            {
+                string message = IO.Format(s, args);
+                IO.Print(ConsoleColor.Red, "Warning: ");
+                IO.Print(ConsoleColor.Yellow, message);
+                IO.PrintLine();
+            }
+            
             AnalysisErrorReporter.WarningCount++;
         }
 
@@ -208,13 +193,13 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="s">String</param>
         internal static void ReportWarning(TraceInfo trace, string s)
         {
-            ErrorReporter.ReportWarning(s);
-
-            IO.Print("   at '{0}' ", trace.ErrorTrace[trace.ErrorTrace.Count - 1].Expression);
-            IO.Print("in {0}:", trace.ErrorTrace[trace.ErrorTrace.Count - 1].File);
-            IO.PrintLine("line {0}", trace.ErrorTrace[trace.ErrorTrace.Count - 1].Line);
-
-            AnalysisErrorReporter.WarningCount++;
+            AnalysisErrorReporter.ReportWarning(s);
+            if (ErrorReporter.ShowWarnings)
+            {
+                IO.Print("   at '{0}' ", trace.ErrorTrace[trace.ErrorTrace.Count - 1].Expression);
+                IO.Print("in {0}:", trace.ErrorTrace[trace.ErrorTrace.Count - 1].File);
+                IO.PrintLine("line {0}", trace.ErrorTrace[trace.ErrorTrace.Count - 1].Line);
+            }
         }
 
         /// <summary>
@@ -225,13 +210,13 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="args">Parameters</param>
         internal static void ReportWarning(TraceInfo trace, string s, params object[] args)
         {
-            ErrorReporter.ReportWarning(s, args);
-
-            IO.Print("   at '{0}' ", trace.ErrorTrace[trace.ErrorTrace.Count - 1].Expression);
-            IO.Print("in {0}:", trace.ErrorTrace[trace.ErrorTrace.Count - 1].File);
-            IO.PrintLine("line {0}", trace.ErrorTrace[trace.ErrorTrace.Count - 1].Line);
-
-            AnalysisErrorReporter.WarningCount++;
+            AnalysisErrorReporter.ReportWarning(s, args);
+            if (ErrorReporter.ShowWarnings)
+            {
+                IO.Print("   at '{0}' ", trace.ErrorTrace[trace.ErrorTrace.Count - 1].Expression);
+                IO.Print("in {0}:", trace.ErrorTrace[trace.ErrorTrace.Count - 1].File);
+                IO.PrintLine("line {0}", trace.ErrorTrace[trace.ErrorTrace.Count - 1].Line);
+            }
         }
 
         /// <summary>
@@ -243,14 +228,14 @@ namespace Microsoft.PSharp.StaticAnalysis
             if (trace.State == null)
             {
                 AnalysisErrorReporter.ReportDataRaceSource(trace,
-                    "Method '{0}' of machine '{1}' sends payload '{2}', which " +
+                    "Method '{0}' of machine '{1}' sends '{2}', which " +
                     "contains data from a machine field.",
                     trace.Method, trace.Machine, trace.Payload);
             }
             else
             {
                 AnalysisErrorReporter.ReportDataRaceSource(trace,
-                    "Method '{0}' in state '{1}' of machine '{2}' sends payload " +
+                    "Method '{0}' in state '{1}' of machine '{2}' sends " +
                     "'{3}', which contains data from a machine field.",
                     trace.Method, trace.State, trace.Machine, trace.Payload);
             }
@@ -266,14 +251,14 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 AnalysisErrorReporter.ReportDataRaceSource(trace,
                     "Method '{0}' of machine '{1}' assigns the latest received " +
-                    "payload to a machine field.",
+                    "event payload to a machine field.",
                     trace.Method, trace.Machine);
             }
             else
             {
                 AnalysisErrorReporter.ReportDataRaceSource(trace,
                     "Method '{0}' in state '{1}' of machine '{2}' assigns " +
-                    "the latest received payload to a machine field.",
+                    "the latest received event payload to a machine field.",
                     trace.Method, trace.State, trace.Machine);
             }
         }
@@ -402,16 +387,12 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="args">Parameters</param>
         private static void ReportDataRaceSource(TraceInfo trace, string s, params object[] args)
         {
-            string message = IO.Format(s, args);
-            IO.Print(ConsoleColor.Red, "Error: ");
-            IO.Print(ConsoleColor.Yellow, message);
-            IO.PrintLine();
-
+            AnalysisErrorReporter.Report(s, args);
             for (int idx = trace.ErrorTrace.Count - 1; idx >= 0; idx--)
             {
                 if (idx == 0)
                 {
-                    IO.PrintLine("   --- Point of sending the payload ---");
+                    IO.PrintLine("   --- Point of sending the event payload ---");
                     IO.Print("   at '{0}' ", trace.ErrorTrace[idx].Expression);
                     IO.Print("in {0}:", trace.ErrorTrace[idx].File);
                     IO.PrintLine("line {0}", trace.ErrorTrace[idx].Line);
@@ -423,8 +404,6 @@ namespace Microsoft.PSharp.StaticAnalysis
                     IO.PrintLine("line {0}", trace.ErrorTrace[idx].Line);
                 }
             }
-
-            AnalysisErrorReporter.ErrorCount++;
         }
 
         /// <summary>
@@ -435,11 +414,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="args">Parameters</param>
         private static void ReportOwnershipError(TraceInfo trace, string s, params object[] args)
         {
-            string message = IO.Format(s, args);
-            IO.Print(System.ConsoleColor.Red, "Error: ");
-            IO.Print(System.ConsoleColor.Yellow, message);
-            IO.PrintLine();
-
+            AnalysisErrorReporter.Report(s, args);
             for (int idx = trace.ErrorTrace.Count - 1; idx >= 0; idx--)
             {
                 if (idx == 0)
@@ -456,8 +431,6 @@ namespace Microsoft.PSharp.StaticAnalysis
                     IO.PrintLine("line {0}", trace.ErrorTrace[idx].Line);
                 }
             }
-
-            AnalysisErrorReporter.ErrorCount++;
         }
 
         #endregion

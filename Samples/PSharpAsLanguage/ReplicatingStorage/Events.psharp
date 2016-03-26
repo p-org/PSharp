@@ -1,0 +1,37 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ReplicatingStorage
+{
+	#region events
+
+		internal event NotifyNode (Node: machine);
+		internal event FaultInject;
+		internal event CreateFailure;
+		internal event LocalEvent;
+		internal event CConfigureEvent (NodeManager: machine);
+		internal event Request (Client: machine, Command: int);
+		internal event LConfigureEvent (NumberOfReplicas: int);
+		internal event NotifyNodeCreated (NodeId: int);
+		internal event NotifyNodeFail (NodeId: int);
+		internal event NotifyNodeUpdate (NodeId: int, Data: int);
+		internal event NConfigureEvent (Environment: machine, NumberOfReplicas: int);
+		internal event NotifyFailure (Node: machine);
+		internal event ShutDown;
+		internal event SConfigureEvent (Environment: machine, NodeManager: machine, Id: int);
+		internal event StoreRequest (Command: int);
+		internal event SyncReport (NodeId: int, Data: int);
+		internal event SyncRequest (Data: int);
+		internal event SyConfigureEvent (Target: machine);
+        internal event StartTimer;
+        internal event CancelTimer;
+        internal event Timeout;
+		internal event TickEvent;
+		internal event FConfigureEvent (Target: machine); 
+        internal event RConfigureEvent (Target: machine);
+
+	#endregion
+}

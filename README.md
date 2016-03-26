@@ -46,8 +46,6 @@ Where ${DLL\_PATH} is the path to your P# program and ${DLL\_NAME} is the name o
 
 You can optionally give the number of testing iterations to perform using `/i:value`.
 
-To enable liveness checking use the option `/liveness`.
-
 ## Options
 
 To see various available command line options for the P# tools use the option `/?`.

@@ -25,7 +25,7 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
     [TestClass]
     public class NoStatementsWithLoopTest : BasePSharpTest
     {
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestNoStatementsWithLoop()
         {
             var test = @"

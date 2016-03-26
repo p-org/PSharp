@@ -101,7 +101,7 @@ namespace Microsoft.PSharp.Utilities
             {
                 IO.Debugging = true;
             }
-            else if (option.ToLower().Equals("/warnings"))
+            else if (option.ToLower().Equals("/warnings-on"))
             {
                 ErrorReporter.ShowWarnings = true;
             }

@@ -25,7 +25,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
     [TestClass]
     public class NamespaceTests : BasePSharpTest
     {
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestNamespaceDeclaration()
         {
             var test = @"
@@ -52,7 +52,7 @@ namespace Foo
                 syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestNamespaceDeclaration2()
         {
             var test = @"
@@ -83,7 +83,7 @@ namespace Bar
                 syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestNamespaceDeclarationCompact()
         {
             var test = @"

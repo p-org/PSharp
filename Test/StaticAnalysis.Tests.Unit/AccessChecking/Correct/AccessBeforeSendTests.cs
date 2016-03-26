@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="AccessAfterCreateMachineFailTests.cs">
+// <copyright file="AccessBeforeSendTests.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -24,10 +24,10 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
 {
     [TestClass]
-    public class AccessAfterCreateMachineFailTests : BasePSharpTest
+    public class AccessBeforeSendTests : BasePSharpTest
     {
-        [TestMethod, Timeout(3000)]
-        public void TestAccessAfterCreateMachineFail()
+        [TestMethod, Timeout(10000)]
+        public void TestAccessBeforeSend()
         {
             var test = @"
 using Microsoft.PSharp;
@@ -57,7 +57,6 @@ struct Letter
 class M : Machine
 {
  MachineId Target;
- Letter Letter;
 
  [Start]
  [OnEntry(nameof(FirstOnEntryAction))]
@@ -66,8 +65,9 @@ class M : Machine
  void FirstOnEntryAction()
  {
   var letter = new Letter(""test"");
-  this.Target = this.CreateMachine(typeof(M), new eUnit(letter));
+  this.Target = this.CreateMachine(typeof(M));
   letter.Text = ""changed"";
+  this.Send(this.Target, new eUnit(letter));
  }
 }
 }";
@@ -89,21 +89,14 @@ class M : Machine
             StaticAnalysisEngine.Create(context).Run();
 
             var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... Static analysis detected '1' error";
+            var expected = "... No static analysis errors detected (but absolutely no warranty provided)";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
-
-            var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' " +
-                "accesses 'letter' after giving up its ownership.";
-            var actual = IO.GetOutput();
-
-             Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
-                actual.Substring(0, actual.IndexOf(Environment.NewLine)));
 
             IO.StopWritingToMemory();
         }
 
-        [TestMethod, Timeout(3000)]
-        public void TestAccessAfterCreateMachineInCalleeFail()
+        [TestMethod, Timeout(10000)]
+        public void TestAccessBeforeSendInCallee()
         {
             var test = @"
 using Microsoft.PSharp;
@@ -133,7 +126,6 @@ struct Letter
 class M : Machine
 {
  MachineId Target;
- Letter Letter;
 
  [Start]
  [OnEntry(nameof(FirstOnEntryAction))]
@@ -141,14 +133,15 @@ class M : Machine
 
  void FirstOnEntryAction()
  {
-  var letter = new Letter(""test"");;
+  var letter = new Letter(""test"");
+  this.Target = this.CreateMachine(typeof(M));
   this.Foo(letter);
  }
 
  void Foo(Letter letter)
  {
-  this.Target = this.CreateMachine(typeof(M), new eUnit(letter));
   letter.Text = ""changed"";
+  this.Send(this.Target, new eUnit(letter));
  }
 }
 }";
@@ -170,15 +163,8 @@ class M : Machine
             StaticAnalysisEngine.Create(context).Run();
 
             var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... Static analysis detected '1' error";
+            var expected = "... No static analysis errors detected (but absolutely no warranty provided)";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
-
-            var error = "Error: Method 'Foo' of machine 'Foo.M' " +
-                "accesses 'letter' after giving up its ownership.";
-            var actual = IO.GetOutput();
-
-            Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
-               actual.Substring(0, actual.IndexOf(Environment.NewLine)));
 
             IO.StopWritingToMemory();
         }

@@ -22,7 +22,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
     [TestClass]
     public class NamespaceFailTests
     {
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestUnexpectedTokenWithoutNamespace()
         {
             var test = "private";
@@ -37,7 +37,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
                 parser.GetParsingErrorLog());
         }
 
-        [TestMethod, Timeout(3000)]
+        [TestMethod, Timeout(10000)]
         public void TestNamespaceDeclarationWithoutIdentifier()
         {
             var test = "namespace { }";
