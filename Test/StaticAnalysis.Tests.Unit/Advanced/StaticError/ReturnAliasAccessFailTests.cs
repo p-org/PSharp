@@ -237,6 +237,91 @@ class M : Machine
  {
   var letter = new Letter(""test"", 0);
   this.Target = this.CreateMachine(typeof(M));
+  this.Send(this.Target, new eUnit(letter));
+  letter = this.Foo(letter);
+  letter.Num = 1;
+ }
+
+ Letter Foo(Letter letter)
+ {
+  var letter2 = letter;
+  return letter2;
+ }
+}
+}";
+
+            var solution = base.GetSolution(test);
+
+            var configuration = Configuration.Create();
+            configuration.ProjectName = "Test";
+            configuration.Verbose = 2;
+
+            IO.StartWritingToMemory();
+
+            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            AnalysisErrorReporter.ResetStats();
+            StaticAnalysisEngine.Create(context).Run();
+
+            var stats = AnalysisErrorReporter.GetStats();
+            var expected = "... Static analysis detected '1' error";
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
+
+            var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' " +
+                "accesses 'letter' after giving up its ownership.";
+            var actual = IO.GetOutput();
+
+            Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
+               actual.Substring(0, actual.IndexOf(Environment.NewLine)));
+
+            IO.StopWritingToMemory();
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestReturnAliasAccess4Fail()
+        {
+            var test = @"
+using Microsoft.PSharp;
+
+namespace Foo {
+class eUnit : Event
+{
+ public Letter Letter;
+ 
+ public eUnit(Letter letter)
+  : base()
+ {
+  this.Letter = letter;
+ }
+}
+
+struct Letter
+{
+ public string Text;
+ public int Num;
+
+ public Letter(string text, int num)
+ {
+  this.Text = text;
+  this.Num = num;
+ }
+}
+
+class M : Machine
+{
+ MachineId Target;
+
+ [Start]
+ [OnEntry(nameof(FirstOnEntryAction))]
+ class First : MachineState { }
+
+ void FirstOnEntryAction()
+ {
+  var letter = new Letter(""test"", 0);
+  this.Target = this.CreateMachine(typeof(M));
   Letter otherLetter;
   this.Send(this.Target, new eUnit(letter));
   otherLetter = this.Foo(letter);
@@ -288,7 +373,7 @@ class M : Machine
         }
 
         [TestMethod, Timeout(10000)]
-        public void TestReturnAliasAccess4Fail()
+        public void TestReturnAliasAccess5Fail()
         {
             var test = @"
 using Microsoft.PSharp;
@@ -386,7 +471,7 @@ class M : Machine
         }
 
         [TestMethod, Timeout(10000)]
-        public void TestReturnAliasAccess5Fail()
+        public void TestReturnAliasAccess6Fail()
         {
             var test = @"
 using Microsoft.PSharp;
@@ -483,7 +568,7 @@ class M : Machine
         }
 
         [TestMethod, Timeout(10000)]
-        public void TestReturnAliasAccess6Fail()
+        public void TestReturnAliasAccess7Fail()
         {
             var test = @"
 using Microsoft.PSharp;
@@ -577,7 +662,7 @@ class M : Machine
         }
 
         [TestMethod, Timeout(10000)]
-        public void TestReturnAliasAccess7Fail()
+        public void TestReturnAliasAccess8Fail()
         {
             var test = @"
 using Microsoft.PSharp;

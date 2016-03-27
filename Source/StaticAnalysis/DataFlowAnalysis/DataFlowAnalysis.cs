@@ -374,6 +374,8 @@ namespace Microsoft.PSharp.StaticAnalysis
                 else if (variable.Initializer.Value is InvocationExpressionSyntax)
                 {
                     var invocation = variable.Initializer.Value as InvocationExpressionSyntax;
+                    this.MapSymbolsInInvocation(invocation, cfgNode);
+
                     var summary = this.AnalysisContext.TryGetSummary(invocation, this.SemanticModel);
                     var reachableSymbols = this.ResolveSideEffectsInCall(invocation,
                         summary, syntaxNode, cfgNode);
@@ -788,6 +790,18 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 foreach (var symbol in returnSymbols.Where(s => dataFlowMap.ContainsKey(s)))
                 {
+                    foreach (var reference in dataFlowMap[symbol].Where(s => s.Kind == SymbolKind.Parameter))
+                    {
+                        if (this.DoesReferenceResetUntilCFGNode(reference,
+                                cfgNode.GetMethodSummary().EntryNode.SyntaxNodes.First(),
+                                cfgNode.GetMethodSummary().EntryNode, syntaxNode, cfgNode, true))
+                        {
+                            continue;
+                        }
+
+                        cfgNode.GetMethodSummary().ReturnSet.Item1.Add(indexMap[reference]);
+                    }
+
                     foreach (var reference in dataFlowMap[symbol].Where(r => r.Kind == SymbolKind.Field))
                     {
                         cfgNode.GetMethodSummary().ReturnSet.Item2.Add(reference as IFieldSymbol);
