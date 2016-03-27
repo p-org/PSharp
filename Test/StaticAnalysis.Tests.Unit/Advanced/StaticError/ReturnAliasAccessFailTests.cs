@@ -663,15 +663,8 @@ class M : Machine
             StaticAnalysisEngine.Create(context).Run();
 
             var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... Static analysis detected '1' error";
+            var expected = "... Static analysis detected '2' errors";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
-
-            var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' " +
-                "accesses 'letter' after giving up its ownership.";
-            var actual = IO.GetOutput();
-
-            Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
-               actual.Substring(0, actual.IndexOf(Environment.NewLine)));
 
             IO.StopWritingToMemory();
         }
