@@ -349,7 +349,7 @@ class M : Machine
 
  Letter Bar(Letter letter)
  {
-  letter = this.Bar(letter);
+  letter = this.Foo(letter);
   return letter;
  }
 }
@@ -447,7 +447,7 @@ class M : Machine
 
  Letter Bar(Letter letter)
  {
-  return this.Bar(letter);
+  return this.Foo(letter);
  }
 }
 }";
@@ -641,7 +641,7 @@ class M : Machine
 
  Letter Bar()
  {
-  return this.Leter;
+  return this.Letter;
  }
 }
 }";
