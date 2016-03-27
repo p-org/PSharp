@@ -68,7 +68,7 @@ class M : Machine
  {
   var letter = new Letter(""test"", 0);
   this.Target = this.CreateMachine(typeof(M));
-  Letter otherLetter = null;
+  Letter otherLetter;
   this.Send(this.Target, new eUnit(letter));
   otherLetter = this.Foo(letter);
   otherLetter.Num = 1;
@@ -237,7 +237,7 @@ class M : Machine
  {
   var letter = new Letter(""test"", 0);
   this.Target = this.CreateMachine(typeof(M));
-  Letter otherLetter = null;
+  Letter otherLetter;
   this.Send(this.Target, new eUnit(letter));
   otherLetter = this.Foo(letter);
   otherLetter.Num = 1;
@@ -329,7 +329,7 @@ class M : Machine
  {
   var letter = new Letter(""test"", 0);
   this.Target = this.CreateMachine(typeof(M));
-  Letter otherLetter = null;
+  Letter otherLetter;
   this.Send(this.Target, new eUnit(letter));
   otherLetter = this.Bar(letter);
   otherLetter.Num = 1;
@@ -427,7 +427,7 @@ class M : Machine
  {
   var letter = new Letter(""test"", 0);
   this.Target = this.CreateMachine(typeof(M));
-  Letter otherLetter = null;
+  Letter otherLetter;
   this.Send(this.Target, new eUnit(letter));
   otherLetter = this.Bar(letter);
   otherLetter.Num = 1;
