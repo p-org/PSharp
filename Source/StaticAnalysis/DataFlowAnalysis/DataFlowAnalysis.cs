@@ -880,50 +880,53 @@ namespace Microsoft.PSharp.StaticAnalysis
                 return;
             }
 
-            var type = this.SemanticModel.GetTypeInfo(identifier).Type;
-            if (this.AnalysisContext.IsTypePassedByValueOrImmutable(type) ||
-                name.Equals(identifier))
-            {
-                return;
-            }
-
             var symbol = this.SemanticModel.GetSymbolInfo(identifier).Symbol;
             if (symbol == null)
             {
                 return;
             }
 
-            Dictionary<ISymbol, HashSet<ISymbol>> dataFlowMap = null;
-            if (!this.TryGetDataFlowMapForSyntaxNode(syntaxNode, cfgNode, out dataFlowMap) ||
-                !dataFlowMap.ContainsKey(symbol))
+            var type = this.SemanticModel.GetTypeInfo(identifier).Type;
+            if (type == null)
             {
                 return;
             }
 
-            var indexMap = new Dictionary<IParameterSymbol, int>();
-            var parameterList = cfgNode.GetMethodSummary().Method.ParameterList.Parameters;
-            for (int idx = 0; idx < parameterList.Count; idx++)
+            if (!this.AnalysisContext.IsTypePassedByValueOrImmutable(type) &&
+                !name.Equals(identifier))
             {
-                var paramSymbol = this.SemanticModel.GetDeclaredSymbol(parameterList[idx]);
-                indexMap.Add(paramSymbol, idx);
-            }
-
-            foreach (var reference in dataFlowMap[symbol].Where(r => r.Kind == SymbolKind.Parameter))
-            {
-                if (reference.Equals(symbol) && this.DoesReferenceResetUntilCFGNode(reference,
-                        cfgNode.GetMethodSummary().EntryNode.SyntaxNodes.First(),
-                        cfgNode.GetMethodSummary().EntryNode, syntaxNode, cfgNode, true))
+                Dictionary<ISymbol, HashSet<ISymbol>> dataFlowMap = null;
+                if (!this.TryGetDataFlowMapForSyntaxNode(syntaxNode, cfgNode, out dataFlowMap) ||
+                    !dataFlowMap.ContainsKey(symbol))
                 {
-                    continue;
+                    return;
                 }
 
-                int index = indexMap[reference as IParameterSymbol];
-                if (!cfgNode.GetMethodSummary().ParameterAccessSet.ContainsKey(index))
+                var indexMap = new Dictionary<IParameterSymbol, int>();
+                var parameterList = cfgNode.GetMethodSummary().Method.ParameterList.Parameters;
+                for (int idx = 0; idx < parameterList.Count; idx++)
                 {
-                    cfgNode.GetMethodSummary().ParameterAccessSet.Add(index, new HashSet<SyntaxNode>());
+                    var paramSymbol = this.SemanticModel.GetDeclaredSymbol(parameterList[idx]);
+                    indexMap.Add(paramSymbol, idx);
                 }
 
-                cfgNode.GetMethodSummary().ParameterAccessSet[index].Add(syntaxNode);
+                foreach (var reference in dataFlowMap[symbol].Where(r => r.Kind == SymbolKind.Parameter))
+                {
+                    if (reference.Equals(symbol) && this.DoesReferenceResetUntilCFGNode(reference,
+                            cfgNode.GetMethodSummary().EntryNode.SyntaxNodes.First(),
+                            cfgNode.GetMethodSummary().EntryNode, syntaxNode, cfgNode, true))
+                    {
+                        continue;
+                    }
+
+                    int index = indexMap[reference as IParameterSymbol];
+                    if (!cfgNode.GetMethodSummary().ParameterAccessSet.ContainsKey(index))
+                    {
+                        cfgNode.GetMethodSummary().ParameterAccessSet.Add(index, new HashSet<SyntaxNode>());
+                    }
+
+                    cfgNode.GetMethodSummary().ParameterAccessSet[index].Add(syntaxNode);
+                }
             }
         }
 
@@ -948,36 +951,44 @@ namespace Microsoft.PSharp.StaticAnalysis
                 return;
             }
 
-            var type = this.SemanticModel.GetTypeInfo(identifier).Type;
-            if (this.AnalysisContext.IsTypePassedByValueOrImmutable(type) ||
-                name.Equals(identifier))
-            {
-                return;
-            }
-
             var symbol = this.SemanticModel.GetSymbolInfo(identifier).Symbol;
-            var definition = SymbolFinder.FindSourceDefinitionAsync(symbol,
-                this.AnalysisContext.Solution).Result;
-            if (!(definition is IFieldSymbol))
+            if (symbol == null)
             {
                 return;
             }
 
-            var fieldDecl = definition.DeclaringSyntaxReferences.First().GetSyntax().
-                AncestorsAndSelf().OfType<FieldDeclarationSyntax>().First();
-            if (this.DoesReferenceResetUntilCFGNode(symbol,
-                cfgNode.GetMethodSummary().EntryNode.SyntaxNodes.First(),
-                cfgNode.GetMethodSummary().EntryNode, syntaxNode, cfgNode, true))
+            var type = this.SemanticModel.GetTypeInfo(identifier).Type;
+            if (type == null)
             {
                 return;
             }
 
-            if (!cfgNode.GetMethodSummary().FieldAccessSet.ContainsKey(symbol as IFieldSymbol))
+            if (!this.AnalysisContext.IsTypePassedByValueOrImmutable(type) &&
+                !name.Equals(identifier))
             {
-                cfgNode.GetMethodSummary().FieldAccessSet.Add(symbol as IFieldSymbol, new HashSet<SyntaxNode>());
-            }
+                var definition = SymbolFinder.FindSourceDefinitionAsync(symbol,
+                    this.AnalysisContext.Solution).Result;
+                if (!(definition is IFieldSymbol))
+                {
+                    return;
+                }
 
-            cfgNode.GetMethodSummary().FieldAccessSet[symbol as IFieldSymbol].Add(syntaxNode);
+                var fieldDecl = definition.DeclaringSyntaxReferences.First().GetSyntax().
+                    AncestorsAndSelf().OfType<FieldDeclarationSyntax>().First();
+                if (this.DoesReferenceResetUntilCFGNode(symbol,
+                    cfgNode.GetMethodSummary().EntryNode.SyntaxNodes.First(),
+                    cfgNode.GetMethodSummary().EntryNode, syntaxNode, cfgNode, true))
+                {
+                    return;
+                }
+
+                if (!cfgNode.GetMethodSummary().FieldAccessSet.ContainsKey(symbol as IFieldSymbol))
+                {
+                    cfgNode.GetMethodSummary().FieldAccessSet.Add(symbol as IFieldSymbol, new HashSet<SyntaxNode>());
+                }
+
+                cfgNode.GetMethodSummary().FieldAccessSet[symbol as IFieldSymbol].Add(syntaxNode);
+            }
         }
 
         /// <summary>
