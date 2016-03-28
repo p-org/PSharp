@@ -992,34 +992,8 @@ namespace Microsoft.PSharp.StaticAnalysis
         {
             foreach (var variable in varDecl.Variables.Where(v => v.Initializer != null))
             {
-                if (variable.Initializer.Value is MemberAccessExpressionSyntax)
-                {
-                    if (DataFlowQuerying.FlowsFromTarget(variable.Initializer.Value, target,
-                        syntaxNode, cfgNode, givesUpCfgNode.SyntaxNodes.First(), givesUpCfgNode,
-                        model, this.AnalysisContext))
-                    {
-                        TraceInfo newTrace = new TraceInfo();
-                        newTrace.Merge(trace);
-                        newTrace.AddErrorTrace(stmt.ToString(), stmt.SyntaxTree.FilePath, stmt.SyntaxTree.
-                            GetLineSpan(stmt.Span).StartLinePosition.Line + 1);
-                        AnalysisErrorReporter.ReportPotentialDataRace(newTrace);
-                    }
-                }
-                else if (variable.Initializer.Value is InvocationExpressionSyntax)
-                {
-                    var invocation = variable.Initializer.Value as InvocationExpressionSyntax;
-                    trace.InsertCall(cfgNode.GetMethodSummary().Method, invocation);
-                    this.DetectPotentialDataRaceInInvocation(invocation,
-                        target, syntaxNode, cfgNode, givesUpCfgNode.SyntaxNodes.First(),
-                        givesUpCfgNode, originalMachine, model, trace);
-                }
-                else if (variable.Initializer.Value is ObjectCreationExpressionSyntax)
-                {
-                    var objCreation = variable.Initializer.Value as ObjectCreationExpressionSyntax;
-                    trace.InsertCall(cfgNode.GetMethodSummary().Method, objCreation);
-                    this.DetectPotentialDataRaceInObjectCreation(objCreation, target,
-                        syntaxNode, cfgNode, givesUpCfgNode.SyntaxNodes.First(), givesUpCfgNode, model, trace);
-                }
+                this.DetectPotentialDataRacesInRightExpression(variable.Initializer.Value, stmt,
+                    syntaxNode, cfgNode, givesUpCfgNode, target, originalMachine, model, trace);
             }
         }
 
@@ -1120,88 +1094,49 @@ namespace Microsoft.PSharp.StaticAnalysis
         }
 
         /// <summary>
-        /// Analyzes the summary of the given object creation to find if it respects the
-        /// given-up ownerships and reports any potential data races.
+        /// Analyzes the given right-hand side expression to find if it respects
+        /// the given-up ownerships and reports any potential data races.
         /// </summary>
-        /// <param name="invocation">Invocation</param>
-        /// <param name="target">Target</param>
+        /// <param name="expr">ExpressionSyntax</param>
+        /// <param name="stmt">StatementSyntax</param>
         /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">CFGNode</param>
-        /// <param name="givesUpSyntaxNode">Gives up syntaxNode</param>
-        /// <param name="givesUpCfgNode">Gives up controlFlowGraphNode</param>
+        /// <param name="cfgNode">Control flow graph node</param>
+        /// <param name="givesUpCfgNode">Gives-up CFG node</param>
+        /// <param name="target">Target</param>
+        /// <param name="originalMachine">Original machine</param>
         /// <param name="model">SemanticModel</param>
         /// <param name="trace">TraceInfo</param>
-        private void DetectPotentialDataRaceInObjectCreation(ObjectCreationExpressionSyntax call,
-            ISymbol target, SyntaxNode syntaxNode, PSharpCFGNode cfgNode, SyntaxNode givesUpSyntaxNode,
-            PSharpCFGNode givesUpCfgNode, SemanticModel model, TraceInfo trace)
+        private void DetectPotentialDataRacesInRightExpression(ExpressionSyntax expr, StatementSyntax stmt,
+            SyntaxNode syntaxNode, PSharpCFGNode cfgNode, PSharpCFGNode givesUpCfgNode, ISymbol target,
+            StateMachine originalMachine, SemanticModel model, TraceInfo trace)
         {
-            TraceInfo callTrace = new TraceInfo();
-            callTrace.Merge(trace);
-            callTrace.AddErrorTrace(call.ToString(), call.SyntaxTree.FilePath, call.SyntaxTree.
-                GetLineSpan(call.Span).StartLinePosition.Line + 1);
-
-            var callSymbol = model.GetSymbolInfo(call).Symbol;
-            var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol,
-                this.AnalysisContext.Solution).Result;
-            if (definition == null || definition.DeclaringSyntaxReferences.IsEmpty)
+            if (expr is MemberAccessExpressionSyntax)
             {
-                AnalysisErrorReporter.ReportUnknownInvocation(callTrace);
-                return;
-            }
-
-            var constructorCall = definition.DeclaringSyntaxReferences.First().GetSyntax()
-                as ConstructorDeclarationSyntax;
-            var constructorSummary = PSharpMethodSummary.Create(this.AnalysisContext, constructorCall);
-            var arguments = call.ArgumentList.Arguments;
-
-            for (int idx = 0; idx < arguments.Count; idx++)
-            {
-                if (!this.AnalysisContext.IsExprEnum(arguments[idx].Expression, model) &&
-                    DataFlowQuerying.FlowsFromTarget(arguments[idx].Expression, target, syntaxNode,
-                    cfgNode, givesUpSyntaxNode, givesUpCfgNode, model, this.AnalysisContext) &&
-                    !DataFlowQuerying.DoesResetInLoop(arguments[idx].Expression, syntaxNode, cfgNode,
-                    givesUpSyntaxNode, givesUpCfgNode, model, this.AnalysisContext))
+                var access = expr as MemberAccessExpressionSyntax;
+                if (DataFlowQuerying.FlowsFromTarget(access, target, syntaxNode, cfgNode,
+                    givesUpCfgNode.SyntaxNodes.First(), givesUpCfgNode, model, this.AnalysisContext))
                 {
-                    if (constructorSummary.ParameterAccessSet.ContainsKey(idx))
-                    {
-                        foreach (var access in constructorSummary.ParameterAccessSet[idx])
-                        {
-                            TraceInfo newTrace = new TraceInfo();
-                            newTrace.Merge(callTrace);
-                            newTrace.AddErrorTrace(access.ToString(), access.SyntaxTree.FilePath, access.SyntaxTree.
-                                GetLineSpan(access.Span).StartLinePosition.Line + 1);
-                            AnalysisErrorReporter.ReportPotentialDataRace(newTrace);
-                        }
-                    }
-
-                    if (constructorSummary.SideEffects.Any(
-                        v => v.Value.Contains(idx) &&
-                        this.AnalysisContext.DoesFieldBelongToMachine(v.Key, cfgNode.GetMethodSummary())))
-                    {
-                        AnalysisErrorReporter.ReportGivenUpOwnershipFieldAssignment(callTrace);
-                    }
-
-                    if (constructorSummary.GivesUpSet.Contains(idx))
-                    {
-                        AnalysisErrorReporter.ReportGivenUpOwnershipSending(callTrace);
-                    }
+                    TraceInfo newTrace = new TraceInfo();
+                    newTrace.Merge(trace);
+                    newTrace.AddErrorTrace(stmt.ToString(), stmt.SyntaxTree.FilePath, stmt.SyntaxTree.
+                        GetLineSpan(stmt.Span).StartLinePosition.Line + 1);
+                    AnalysisErrorReporter.ReportPotentialDataRace(newTrace);
                 }
             }
-
-            foreach (var fieldAccess in constructorSummary.FieldAccessSet)
+            else if (expr is InvocationExpressionSyntax)
             {
-                if (DataFlowQuerying.FlowsFromTarget(fieldAccess.Key, target, syntaxNode,
-                    cfgNode, givesUpSyntaxNode, givesUpCfgNode))
-                {
-                    foreach (var access in fieldAccess.Value)
-                    {
-                        TraceInfo newTrace = new TraceInfo();
-                        newTrace.Merge(callTrace);
-                        newTrace.AddErrorTrace(access.ToString(), access.SyntaxTree.FilePath, access.SyntaxTree.
-                            GetLineSpan(access.Span).StartLinePosition.Line + 1);
-                        AnalysisErrorReporter.ReportPotentialDataRace(newTrace);
-                    }
-                }
+                var invocation = expr as InvocationExpressionSyntax;
+                trace.InsertCall(cfgNode.GetMethodSummary().Method, invocation);
+                this.DetectPotentialDataRaceInInvocation(invocation, target, syntaxNode,
+                    cfgNode, givesUpCfgNode.SyntaxNodes.First(), givesUpCfgNode,
+                    originalMachine, model, trace);
+            }
+            else if (expr is ObjectCreationExpressionSyntax)
+            {
+                var objCreation = expr as ObjectCreationExpressionSyntax;
+                trace.InsertCall(cfgNode.GetMethodSummary().Method, objCreation);
+                this.DetectPotentialDataRaceInObjectCreation(objCreation, target, syntaxNode,
+                    cfgNode, givesUpCfgNode.SyntaxNodes.First(), givesUpCfgNode, model, trace);
             }
         }
 
@@ -1342,6 +1277,92 @@ namespace Microsoft.PSharp.StaticAnalysis
                                 GetLineSpan(access.Span).StartLinePosition.Line + 1);
                             AnalysisErrorReporter.ReportPotentialDataRace(newTrace);
                         }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Analyzes the summary of the given object creation to find if it respects the
+        /// given-up ownerships and reports any potential data races.
+        /// </summary>
+        /// <param name="invocation">Invocation</param>
+        /// <param name="target">Target</param>
+        /// <param name="syntaxNode">SyntaxNode</param>
+        /// <param name="cfgNode">CFGNode</param>
+        /// <param name="givesUpSyntaxNode">Gives up syntaxNode</param>
+        /// <param name="givesUpCfgNode">Gives up controlFlowGraphNode</param>
+        /// <param name="model">SemanticModel</param>
+        /// <param name="trace">TraceInfo</param>
+        private void DetectPotentialDataRaceInObjectCreation(ObjectCreationExpressionSyntax call,
+            ISymbol target, SyntaxNode syntaxNode, PSharpCFGNode cfgNode, SyntaxNode givesUpSyntaxNode,
+            PSharpCFGNode givesUpCfgNode, SemanticModel model, TraceInfo trace)
+        {
+            TraceInfo callTrace = new TraceInfo();
+            callTrace.Merge(trace);
+            callTrace.AddErrorTrace(call.ToString(), call.SyntaxTree.FilePath, call.SyntaxTree.
+                GetLineSpan(call.Span).StartLinePosition.Line + 1);
+
+            var callSymbol = model.GetSymbolInfo(call).Symbol;
+            var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol,
+                this.AnalysisContext.Solution).Result;
+            if (definition == null || definition.DeclaringSyntaxReferences.IsEmpty)
+            {
+                AnalysisErrorReporter.ReportUnknownInvocation(callTrace);
+                return;
+            }
+
+            var constructorCall = definition.DeclaringSyntaxReferences.First().GetSyntax()
+                as ConstructorDeclarationSyntax;
+            var constructorSummary = PSharpMethodSummary.Create(this.AnalysisContext, constructorCall);
+            var arguments = call.ArgumentList.Arguments;
+
+            for (int idx = 0; idx < arguments.Count; idx++)
+            {
+                if (!this.AnalysisContext.IsExprEnum(arguments[idx].Expression, model) &&
+                    DataFlowQuerying.FlowsFromTarget(arguments[idx].Expression, target, syntaxNode,
+                    cfgNode, givesUpSyntaxNode, givesUpCfgNode, model, this.AnalysisContext) &&
+                    !DataFlowQuerying.DoesResetInLoop(arguments[idx].Expression, syntaxNode, cfgNode,
+                    givesUpSyntaxNode, givesUpCfgNode, model, this.AnalysisContext))
+                {
+                    if (constructorSummary.ParameterAccessSet.ContainsKey(idx))
+                    {
+                        foreach (var access in constructorSummary.ParameterAccessSet[idx])
+                        {
+                            TraceInfo newTrace = new TraceInfo();
+                            newTrace.Merge(callTrace);
+                            newTrace.AddErrorTrace(access.ToString(), access.SyntaxTree.FilePath, access.SyntaxTree.
+                                GetLineSpan(access.Span).StartLinePosition.Line + 1);
+                            AnalysisErrorReporter.ReportPotentialDataRace(newTrace);
+                        }
+                    }
+
+                    if (constructorSummary.SideEffects.Any(
+                        v => v.Value.Contains(idx) &&
+                        this.AnalysisContext.DoesFieldBelongToMachine(v.Key, cfgNode.GetMethodSummary())))
+                    {
+                        AnalysisErrorReporter.ReportGivenUpOwnershipFieldAssignment(callTrace);
+                    }
+
+                    if (constructorSummary.GivesUpSet.Contains(idx))
+                    {
+                        AnalysisErrorReporter.ReportGivenUpOwnershipSending(callTrace);
+                    }
+                }
+            }
+
+            foreach (var fieldAccess in constructorSummary.FieldAccessSet)
+            {
+                if (DataFlowQuerying.FlowsFromTarget(fieldAccess.Key, target, syntaxNode,
+                    cfgNode, givesUpSyntaxNode, givesUpCfgNode))
+                {
+                    foreach (var access in fieldAccess.Value)
+                    {
+                        TraceInfo newTrace = new TraceInfo();
+                        newTrace.Merge(callTrace);
+                        newTrace.AddErrorTrace(access.ToString(), access.SyntaxTree.FilePath, access.SyntaxTree.
+                            GetLineSpan(access.Span).StartLinePosition.Line + 1);
+                        AnalysisErrorReporter.ReportPotentialDataRace(newTrace);
                     }
                 }
             }

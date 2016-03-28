@@ -171,8 +171,8 @@ namespace Microsoft.PSharp.StaticAnalysis
                 return false;
             }
 
-            ISymbol reference = model.GetSymbolInfo(identifier).Symbol;
-            return DataFlowQuerying.FlowsFromTarget(reference, target, syntaxNode,
+            ISymbol symbol = model.GetSymbolInfo(identifier).Symbol;
+            return DataFlowQuerying.FlowsFromTarget(symbol, target, syntaxNode,
                 cfgNode, targetSyntaxNode, targetCfgNode);
         }
 
