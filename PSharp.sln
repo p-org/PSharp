@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Source", "Source", "{6F835BCA-788A-4C38-933B-DBE71F40797F}"
 EndProject
@@ -14,12 +14,18 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LanguageServices", "Source\LanguageServices\LanguageServices.csproj", "{06CCBE95-2E41-4188-BB97-AEE702C1BD25}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SystematicTesting.Tests.Unit", "Test\SystematicTesting.Tests.Unit\SystematicTesting.Tests.Unit.csproj", "{D388CB45-F077-4278-B174-796A8C9BF927}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D88418AB-C8B8-4FB2-9FBA-F0E994E42F37} = {D88418AB-C8B8-4FB2-9FBA-F0E994E42F37}
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Libraries", "Libraries", "{537DE17F-8865-48D0-8B63-E0495F9A7C3E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{A40ADE08-182B-4570-982B-F16DD3CE04E1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tester", "Tools\Tester\Tester.csproj", "{4E2102B1-1172-4DF1-9387-0126089BDAFE}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D88418AB-C8B8-4FB2-9FBA-F0E994E42F37} = {D88418AB-C8B8-4FB2-9FBA-F0E994E42F37}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Compiler", "Tools\Compiler\Compiler.csproj", "{C3EF9C6F-9B39-4A8A-A196-6A403F265E25}"
 EndProject
