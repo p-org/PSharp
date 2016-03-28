@@ -262,7 +262,8 @@ namespace Microsoft.PSharp.Visualization
 
         private void Expand(string machine)
         {
-            if(!this.CollapsedMachines.Contains(machine))
+            if (!Machines.Contains(machine)) return;
+            if (!this.CollapsedMachines.Contains(machine))
                 return;
             this.CollapsedMachines.Remove(machine);
 
@@ -324,6 +325,8 @@ namespace Microsoft.PSharp.Visualization
 
         private void Collapse(string machine)
         {
+            if (!Machines.Contains(machine)) return;
+
             if (this.CollapsedMachines.Contains(machine))
                 return;
 
