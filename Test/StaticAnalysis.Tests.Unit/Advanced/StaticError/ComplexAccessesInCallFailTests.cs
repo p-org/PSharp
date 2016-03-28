@@ -27,7 +27,7 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
     public class ComplexAccessesInCallFailTests : BasePSharpTest
     {
         [TestMethod, Timeout(10000)]
-        public void TestComplexAccessesInCallFail()
+        public void TestComplexAccessesInCall1Fail()
         {
             var test = @"
 using Microsoft.PSharp;
@@ -131,6 +131,422 @@ class M : Machine
             var stats = AnalysisErrorReporter.GetStats();
             var expected = "... Static analysis detected '4' errors";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
+
+            IO.StopWritingToMemory();
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestComplexAccessesInCall2Fail()
+        {
+            var test = @"
+using Microsoft.PSharp;
+
+namespace Foo {
+class eUnit : Event
+{
+ public Letter Letter;
+ 
+ public eUnit(Letter letter)
+  : base()
+ {
+  this.Letter = letter;
+ }
+}
+
+struct Letter
+{
+ public string Text;
+
+ public Letter(string text)
+ {
+  this.Text = text;
+ }
+}
+
+class OtherClass
+{
+ AnotherClass AC;
+
+ internal OtherClass(Letter letter)
+ {
+  this.AC = new AnotherClass(letter);
+ }
+
+ internal void Foo()
+ {
+  AC.Bar();
+ }
+}
+
+class AnotherClass
+{
+ Letter Letter;
+
+ internal AnotherClass(Letter letter)
+ {
+  this.Letter = letter;
+ }
+
+ internal void Bar()
+ {
+  Letter.Text = ""Test""; // ERROR
+ }
+}
+
+class M : Machine
+{
+ MachineId Target;
+ Letter Letter;
+
+ [Start]
+ [OnEntry(nameof(FirstOnEntryAction))]
+ class First : MachineState { }
+
+ void FirstOnEntryAction()
+ {
+  this.Target = this.CreateMachine(typeof(M));
+  Letter letter = new Letter(""London"");
+  OtherClass oc = new OtherClass(letter);
+  this.Send(this.Target, new eUnit(letter));
+  oc.Foo();
+ }
+}
+}";
+
+            var solution = base.GetSolution(test);
+
+            var configuration = Configuration.Create();
+            configuration.ProjectName = "Test";
+            configuration.Verbose = 2;
+
+            IO.StartWritingToMemory();
+
+            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            AnalysisErrorReporter.ResetStats();
+            StaticAnalysisEngine.Create(context).Run();
+
+            var stats = AnalysisErrorReporter.GetStats();
+            var expected = "... Static analysis detected '1' error";
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
+
+            var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' " +
+                "accesses 'letter' after giving up its ownership.";
+            var actual = IO.GetOutput();
+
+            Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
+               actual.Substring(0, actual.IndexOf(Environment.NewLine)));
+
+            IO.StopWritingToMemory();
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestComplexAccessesInCall3Fail()
+        {
+            var test = @"
+using Microsoft.PSharp;
+
+namespace Foo {
+class eUnit : Event
+{
+ public Letter Letter;
+ 
+ public eUnit(Letter letter)
+  : base()
+ {
+  this.Letter = letter;
+ }
+}
+
+struct Letter
+{
+ public string Text;
+
+ public Letter(string text)
+ {
+  this.Text = text;
+ }
+}
+
+class OtherClass
+{
+ AnotherClass AC;
+
+ internal void Foo(Letter letter)
+ {
+  AC = new AnotherClass(letter);
+  this.AC.Bar();
+ }
+}
+
+class AnotherClass
+{
+ Letter Letter;
+
+ internal AnotherClass(Letter letter)
+ {
+  this.Letter = letter;
+ }
+
+ internal void Bar()
+ {
+  Letter.Text = ""Test""; // ERROR
+ }
+}
+
+class M : Machine
+{
+ MachineId Target;
+ Letter Letter;
+
+ [Start]
+ [OnEntry(nameof(FirstOnEntryAction))]
+ class First : MachineState { }
+
+ void FirstOnEntryAction()
+ {
+  this.Target = this.CreateMachine(typeof(M));
+  Letter letter = new Letter(""London"");
+  OtherClass oc = new OtherClass();
+  this.Send(this.Target, new eUnit(letter));
+  oc.Foo(letter);
+ }
+}
+}";
+
+            var solution = base.GetSolution(test);
+
+            var configuration = Configuration.Create();
+            configuration.ProjectName = "Test";
+            configuration.Verbose = 2;
+
+            IO.StartWritingToMemory();
+
+            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            AnalysisErrorReporter.ResetStats();
+            StaticAnalysisEngine.Create(context).Run();
+
+            var stats = AnalysisErrorReporter.GetStats();
+            var expected = "... Static analysis detected '1' error";
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
+
+            var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' " +
+                "accesses 'letter' after giving up its ownership.";
+            var actual = IO.GetOutput();
+
+            Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
+               actual.Substring(0, actual.IndexOf(Environment.NewLine)));
+
+            IO.StopWritingToMemory();
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestComplexAccessesInCall4Fail()
+        {
+            var test = @"
+using Microsoft.PSharp;
+
+namespace Foo {
+class eUnit : Event
+{
+ public Letter Letter;
+ 
+ public eUnit(Letter letter)
+  : base()
+ {
+  this.Letter = letter;
+ }
+}
+
+struct Letter
+{
+ public string Text;
+
+ public Letter(string text)
+ {
+  this.Text = text;
+ }
+}
+
+class OtherClass
+{
+ AnotherClass AC;
+
+ internal OtherClass(Letter letter)
+ {
+  AC = new AnotherClass();
+  AC.Letter = letter;
+ }
+
+ internal void Foo()
+ {
+  this.AC.Bar();
+ }
+}
+
+class AnotherClass
+{
+ internal Letter Letter;
+
+ internal void Bar()
+ {
+  Letter.Text = ""Test""; // ERROR
+ }
+}
+
+class M : Machine
+{
+ MachineId Target;
+ Letter Letter;
+
+ [Start]
+ [OnEntry(nameof(FirstOnEntryAction))]
+ class First : MachineState { }
+
+ void FirstOnEntryAction()
+ {
+  this.Target = this.CreateMachine(typeof(M));
+  Letter letter = new Letter(""London"");
+  OtherClass oc = new OtherClass(letter);
+  this.Send(this.Target, new eUnit(letter));
+  oc.Foo();
+ }
+}
+}";
+
+            var solution = base.GetSolution(test);
+
+            var configuration = Configuration.Create();
+            configuration.ProjectName = "Test";
+            configuration.Verbose = 2;
+
+            IO.StartWritingToMemory();
+
+            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            AnalysisErrorReporter.ResetStats();
+            StaticAnalysisEngine.Create(context).Run();
+
+            var stats = AnalysisErrorReporter.GetStats();
+            var expected = "... Static analysis detected '1' error";
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
+
+            var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' " +
+                "accesses 'letter' after giving up its ownership.";
+            var actual = IO.GetOutput();
+
+            Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
+               actual.Substring(0, actual.IndexOf(Environment.NewLine)));
+
+            IO.StopWritingToMemory();
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestComplexAccessesInCall5Fail()
+        {
+            var test = @"
+using Microsoft.PSharp;
+
+namespace Foo {
+class eUnit : Event
+{
+ public Letter Letter;
+ 
+ public eUnit(Letter letter)
+  : base()
+ {
+  this.Letter = letter;
+ }
+}
+
+struct Letter
+{
+ public string Text;
+
+ public Letter(string text)
+ {
+  this.Text = text;
+ }
+}
+
+class OtherClass
+{
+ AnotherClass AC;
+
+ internal void Foo(Letter letter)
+ {
+  AC = new AnotherClass();
+  AC.Letter = letter;
+  this.AC.Bar();
+ }
+}
+
+class AnotherClass
+{
+ internal Letter Letter;
+
+ internal void Bar()
+ {
+  Letter.Text = ""Test""; // ERROR
+ }
+}
+
+class M : Machine
+{
+ MachineId Target;
+ Letter Letter;
+
+ [Start]
+ [OnEntry(nameof(FirstOnEntryAction))]
+ class First : MachineState { }
+
+ void FirstOnEntryAction()
+ {
+  this.Target = this.CreateMachine(typeof(M));
+  Letter letter = new Letter(""London"");
+  OtherClass oc = new OtherClass();
+  this.Send(this.Target, new eUnit(letter));
+  oc.Foo(letter);
+ }
+}
+}";
+
+            var solution = base.GetSolution(test);
+
+            var configuration = Configuration.Create();
+            configuration.ProjectName = "Test";
+            configuration.Verbose = 2;
+
+            IO.StartWritingToMemory();
+
+            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            AnalysisErrorReporter.ResetStats();
+            StaticAnalysisEngine.Create(context).Run();
+
+            var stats = AnalysisErrorReporter.GetStats();
+            var expected = "... Static analysis detected '1' error";
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
+
+            var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' " +
+                "accesses 'letter' after giving up its ownership.";
+            var actual = IO.GetOutput();
+
+            Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
+               actual.Substring(0, actual.IndexOf(Environment.NewLine)));
 
             IO.StopWritingToMemory();
         }

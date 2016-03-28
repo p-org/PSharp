@@ -328,7 +328,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 return;
             }
-
+            
             this.ParameterAccessSet = new Dictionary<int, HashSet<SyntaxNode>>();
             this.FieldAccessSet = new Dictionary<IFieldSymbol, HashSet<SyntaxNode>>();
             this.SideEffects = new Dictionary<IFieldSymbol, HashSet<int>>();
@@ -507,12 +507,14 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             if (this.FieldAccessSet.Count > 0)
             {
-                IO.PrintLine("..... Field access set");
+                IO.PrintLine("... |");
+                IO.PrintLine("... | . Field access set");
                 foreach (var field in this.FieldAccessSet)
                 {
                     foreach (var syntaxNode in field.Value)
                     {
-                        IO.PrintLine("....... " + field.Key.Name + " " + syntaxNode);
+                        IO.PrintLine("... | ... Field '{0}' is accessed in '{1}'",
+                           field.Key.Name, syntaxNode);
                     }
                 }
             }
