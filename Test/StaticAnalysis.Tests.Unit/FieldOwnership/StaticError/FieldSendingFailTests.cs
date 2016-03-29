@@ -93,7 +93,7 @@ class M : Machine
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
-                "'this.Letter', which contains data from a machine field.";
+                "'this.Letter', which contains data from a field.";
             var actual = IO.GetOutput();
 
             Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
@@ -171,7 +171,7 @@ class M : Machine
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
-                "'this.Letter', which contains data from a machine field.";
+                "'this.Letter', which contains data from a field.";
             var actual = IO.GetOutput();
 
             Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
@@ -246,7 +246,7 @@ class M : Machine
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
-                "'this.Letter', which contains data from a machine field.";
+                "'this.Letter', which contains data from a field.";
             var actual = IO.GetOutput();
 
             Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
@@ -323,7 +323,7 @@ class M : Machine
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
-                "'this.Letter', which contains data from a machine field.";
+                "'this.Letter', which contains data from a field.";
             var actual = IO.GetOutput();
 
             Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),

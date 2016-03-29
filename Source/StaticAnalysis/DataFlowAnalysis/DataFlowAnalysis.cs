@@ -178,6 +178,26 @@ namespace Microsoft.PSharp.StaticAnalysis
         }
 
         /// <summary>
+        /// Returns true if the given reference resets in
+        /// the control-flow graph node.
+        /// </summary>
+        /// <param name="reference">Reference</param>
+        /// <param name="refSyntaxNode">Reference SyntaxNode</param>
+        /// <param name="refCfgNode">Reference CFGNode</param>
+        /// <returns>Boolean</returns>
+        public bool DoesReferenceResetInCFGNode(ISymbol reference, SyntaxNode refSyntaxNode, CFGNode refCfgNode)
+        {
+            if (this.ReferenceResetMap.ContainsKey(refCfgNode) &&
+                this.ReferenceResetMap[refCfgNode].ContainsKey(refSyntaxNode) &&
+                this.ReferenceResetMap[refCfgNode][refSyntaxNode].Contains(reference))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Returns true if the given reference resets until it
         /// reaches the target control-flow graph node.
         /// </summary>
@@ -270,7 +290,6 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     continue;
                 }
-
 
                 var localDecl = stmt.DescendantNodesAndSelf().OfType<LocalDeclarationStatementSyntax>().FirstOrDefault();
                 var expr = stmt.DescendantNodesAndSelf().OfType<ExpressionStatementSyntax>().FirstOrDefault();
@@ -603,7 +622,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                             syntaxNode, cfgNode);
                     }
                 }
-
+                
                 if (lhsFieldSymbol != null && reachableSymbols.Count > 0)
                 {
                     this.MapReachableFieldsToSymbol(reachableSymbols, lhsFieldSymbol,

@@ -14,6 +14,8 @@
 
 using System;
 
+using Microsoft.CodeAnalysis;
+
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.StaticAnalysis
@@ -229,14 +231,14 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 AnalysisErrorReporter.ReportDataRaceSource(trace,
                     "Method '{0}' of machine '{1}' sends '{2}', which " +
-                    "contains data from a machine field.",
+                    "contains data from a field.",
                     trace.Method, trace.Machine, trace.Payload);
             }
             else
             {
                 AnalysisErrorReporter.ReportDataRaceSource(trace,
                     "Method '{0}' in state '{1}' of machine '{2}' sends " +
-                    "'{3}', which contains data from a machine field.",
+                    "'{3}', which contains data from a field.",
                     trace.Method, trace.State, trace.Machine, trace.Payload);
             }
         }
@@ -251,14 +253,14 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 AnalysisErrorReporter.ReportDataRaceSource(trace,
                     "Method '{0}' of machine '{1}' assigns the latest received " +
-                    "event payload to a machine field.",
+                    "event payload to a field.",
                     trace.Method, trace.Machine);
             }
             else
             {
                 AnalysisErrorReporter.ReportDataRaceSource(trace,
                     "Method '{0}' in state '{1}' of machine '{2}' assigns " +
-                    "the latest received event payload to a machine field.",
+                    "the latest received event payload to a field.",
                     trace.Method, trace.State, trace.Machine);
             }
         }
@@ -267,21 +269,22 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Reports assignment of given up ownership to a machine field.
         /// </summary>
         /// <param name="trace">TraceInfo</param>
-        internal static void ReportGivenUpOwnershipFieldAssignment(TraceInfo trace)
+        /// <param name="fieldSymbol">IFieldSymbol</param>
+        internal static void ReportGivenUpOwnershipFieldAssignment(TraceInfo trace, IFieldSymbol fieldSymbol)
         {
             if (trace.State == null)
             {
                 AnalysisErrorReporter.ReportOwnershipError(trace,
-                    "Method '{0}' of machine '{1}' assigns '{2}' to " +
-                    "a machine field after giving up its ownership.",
-                    trace.Method, trace.Machine, trace.Payload);
+                    "Method '{0}' of machine '{1}' assigns '{2}' to field '{3}' " +
+                    "after giving up its ownership.",
+                    trace.Method, trace.Machine, trace.Payload, fieldSymbol);
             }
             else
             {
                 AnalysisErrorReporter.ReportOwnershipError(trace,
-                    "Method '{0}' in state '{1}' of machine '{2}' assigns " +
-                    "'{3}' to a machine field after giving up its ownership.",
-                    trace.Method, trace.State, trace.Machine, trace.Payload);
+                    "Method '{0}' in state '{1}' of machine '{2}' assigns '{3}' to " +
+                    "field '{4}' after giving up its ownership.",
+                    trace.Method, trace.State, trace.Machine, trace.Payload, fieldSymbol);
             }
         }
 

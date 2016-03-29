@@ -201,7 +201,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 return false;
             }
-            
+
             Dictionary<ISymbol, HashSet<ISymbol>> reachabilityMap = null;
             if (targetCfgNode.GetMethodSummary().DataFlowAnalysis.TryGetFieldReachabilityMapForSyntaxNode(
                 syntaxNode, cfgNode, out reachabilityMap) && reachabilityMap.ContainsKey(symbol))
@@ -323,6 +323,20 @@ namespace Microsoft.PSharp.StaticAnalysis
                 successor.SyntaxNodes.First(), successor, syntaxNode, cfgNode);
 
             return backwards || forwards;
+        }
+
+        /// <summary>
+        /// Returns true if the given symbol resets
+        /// in the control-flow graph node.
+        /// </summary>
+        /// <param name="symbol">Symbol</param>
+        /// <param name="syntaxNode">SyntaxNode</param>
+        /// <param name="cfgNode">CFGNode</param>
+        /// <returns>Boolean</returns>
+        public static bool DoesResetInCFGNode(ISymbol symbol, SyntaxNode syntaxNode, CFGNode cfgNode)
+        {
+            return cfgNode.GetMethodSummary().DataFlowAnalysis.DoesReferenceResetInCFGNode(
+                symbol, syntaxNode, cfgNode);
         }
 
         /// <summary>

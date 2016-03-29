@@ -94,7 +94,7 @@ class M : Machine
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' assigns " +
-                "'letter' to a machine field after giving up its ownership.";
+                "'letter' to field 'Foo.M.Letter' after giving up its ownership.";
             var actual = IO.GetOutput();
 
             Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
