@@ -388,16 +388,6 @@ namespace Microsoft.PSharp.StaticAnalysis
                     call, new HashSet<CFGNode>(), originalMachine, model, trace);
                 this.DetectPotentialDataRacesInCFG(givesUpCfgNode, givesUpCfgNode, argSymbol,
                     call, new HashSet<CFGNode>(), originalMachine, model, trace);
-
-                var aliases = DataFlowQuerying.GetAliases(argSymbol, givesUpCfgNode.SyntaxNodes.First(), givesUpCfgNode);
-                foreach (var alias in aliases)
-                {
-                    trace.Payload = alias.Name;
-                    this.DetectGivenUpFieldOwnershipInCFG(givesUpCfgNode, givesUpCfgNode, alias,
-                        call, new HashSet<CFGNode>(), originalMachine, model, trace);
-                    this.DetectPotentialDataRacesInCFG(givesUpCfgNode, givesUpCfgNode, alias,
-                        call, new HashSet<CFGNode>(), originalMachine, model, trace);
-                }
             }
             else if (arg is ObjectCreationExpressionSyntax)
             {

@@ -114,6 +114,7 @@
     <Compile Include="FieldOwnership\StaticError\FieldSendingFailTests.cs" />
     <Compile Include="ControlFlow\Correct\NoStatementsWithLoopTest.cs" />
     <Compile Include="ControlFlow\Correct\NoStatementsTest.cs" />
+    <Compile Include="Loops\Correct\AccessInLoopTests.cs" />
     <Compile Include="Loops\Correct\BasicLoopTest.cs" />
     <Compile Include="Loops\StaticError\AccessInLoopFailTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

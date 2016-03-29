@@ -235,7 +235,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
                 IParameterSymbol paramSymbol = this.SemanticModel.GetDeclaredSymbol(param);
                 this.MapDataFlowInReferences(new List<ISymbol> { paramSymbol }, paramSymbol,
-                    methodSummary.Method.ParameterList, methodSummary.EntryNode, false);
+                    methodSummary.Method.ParameterList, methodSummary.EntryNode);
             }
 
             this.AnalyzeCFGNode(methodSummary.EntryNode, methodSummary.Method.ParameterList,
@@ -261,15 +261,15 @@ namespace Microsoft.PSharp.StaticAnalysis
                 previousCfgNode = cfgNode;
             }
 
-            foreach (var successor in previousCfgNode.GetImmediateSuccessors())
+            foreach (var successor in cfgNode.GetImmediateSuccessors())
             {
-                if (successor.IsLoopHeadNode && previousCfgNode.IsSuccessorOf(cfgNode) &&
-                    this.ReachedFixpoint(previousSyntaxNode, previousCfgNode, successor))
+                if (successor.IsLoopHeadNode && cfgNode.IsSuccessorOf(cfgNode) &&
+                    this.ReachedFixpoint(previousSyntaxNode, cfgNode, successor))
                 {
                     continue;
                 }
 
-                this.AnalyzeCFGNode(successor, previousSyntaxNode, previousCfgNode);
+                this.AnalyzeCFGNode(successor, previousSyntaxNode, cfgNode);
             }
         }
 
@@ -364,6 +364,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     ISymbol varSymbol = this.SemanticModel.GetSymbolInfo(variable.Initializer.Value).Symbol;
                     this.MapDataFlowInReferences(new List<ISymbol> { varSymbol }, declSymbol, syntaxNode, cfgNode);
+                    this.MarkSymbolReassignment(declSymbol, syntaxNode, cfgNode);
 
                     HashSet<ITypeSymbol> referenceTypes = null;
                     if (varSymbol.Kind == SymbolKind.Field)
@@ -406,11 +407,12 @@ namespace Microsoft.PSharp.StaticAnalysis
                     }
                     else if (returnSymbols.Contains(declSymbol))
                     {
-                        this.MapDataFlowInReferences(returnSymbols, declSymbol, syntaxNode, cfgNode, false);
+                        this.MapDataFlowInReferences(returnSymbols, declSymbol, syntaxNode, cfgNode);
                     }
                     else
                     {
                         this.MapDataFlowInReferences(returnSymbols, declSymbol, syntaxNode, cfgNode);
+                        this.MarkSymbolReassignment(declSymbol, syntaxNode, cfgNode);
                     }
 
                     if (reachableSymbols.Count > 0)
@@ -443,11 +445,12 @@ namespace Microsoft.PSharp.StaticAnalysis
                     }
                     else if (returnSymbols.Contains(declSymbol))
                     {
-                        this.MapDataFlowInReferences(returnSymbols, declSymbol, syntaxNode, cfgNode, false);
+                        this.MapDataFlowInReferences(returnSymbols, declSymbol, syntaxNode, cfgNode);
                     }
                     else
                     {
                         this.MapDataFlowInReferences(returnSymbols, declSymbol, syntaxNode, cfgNode);
+                        this.MarkSymbolReassignment(declSymbol, syntaxNode, cfgNode);
                     }
 
                     if (reachableSymbols.Count > 0)
@@ -483,7 +486,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             this.ResolveMethodParameterAccesses(assignment.Right, syntaxNode, cfgNode);
             this.ResolveFieldAccesses(assignment.Left, syntaxNode, cfgNode);
             this.ResolveFieldAccesses(assignment.Right, syntaxNode, cfgNode);
-            
+
             IdentifierNameSyntax lhs = null;
             IFieldSymbol lhsFieldSymbol = null;
             if (assignment.Left is IdentifierNameSyntax)
@@ -547,10 +550,11 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     rhs = this.AnalysisContext.GetTopLevelIdentifier(assignment.Right);
                 }
-
+                
                 var rightSymbol = this.SemanticModel.GetSymbolInfo(rhs).Symbol;
                 this.MapDataFlowInReferences(new List<ISymbol> { rightSymbol },
                     leftSymbol, syntaxNode, cfgNode);
+                this.MarkSymbolReassignment(leftSymbol, syntaxNode, cfgNode);
 
                 if (lhsFieldSymbol != null)
                 {
@@ -569,6 +573,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     {
                         this.MapDataFlowInReferences(new List<ISymbol> { rightSymbol },
                             lhsFieldSymbol, syntaxNode, cfgNode);
+                        this.MarkSymbolReassignment(lhsFieldSymbol, syntaxNode, cfgNode);
                     }
                 }
 
@@ -621,20 +626,22 @@ namespace Microsoft.PSharp.StaticAnalysis
                 }
                 else if (returnSymbols.Contains(leftSymbol))
                 {
-                    this.MapDataFlowInReferences(returnSymbols, leftSymbol, syntaxNode, cfgNode, false);
-                    if (lhsFieldSymbol != null && !lhsFieldSymbol.Equals(leftSymbol))
-                    {
-                        this.MapDataFlowInReferences(returnSymbols, lhsFieldSymbol,
-                            syntaxNode, cfgNode, false);
-                    }
-                }
-                else
-                {
                     this.MapDataFlowInReferences(returnSymbols, leftSymbol, syntaxNode, cfgNode);
                     if (lhsFieldSymbol != null && !lhsFieldSymbol.Equals(leftSymbol))
                     {
                         this.MapDataFlowInReferences(returnSymbols, lhsFieldSymbol,
                             syntaxNode, cfgNode);
+                    }
+                }
+                else
+                {
+                    this.MapDataFlowInReferences(returnSymbols, leftSymbol, syntaxNode, cfgNode);
+                    this.MarkSymbolReassignment(leftSymbol, syntaxNode, cfgNode);
+                    if (lhsFieldSymbol != null && !lhsFieldSymbol.Equals(leftSymbol))
+                    {
+                        this.MapDataFlowInReferences(returnSymbols, lhsFieldSymbol,
+                            syntaxNode, cfgNode);
+                        this.MarkSymbolReassignment(lhsFieldSymbol, syntaxNode, cfgNode);
                     }
                 }
                 
@@ -672,20 +679,22 @@ namespace Microsoft.PSharp.StaticAnalysis
                 }
                 else if (returnSymbols.Contains(leftSymbol))
                 {
-                    this.MapDataFlowInReferences(returnSymbols, leftSymbol, syntaxNode, cfgNode, false);
-                    if (lhsFieldSymbol != null && !lhsFieldSymbol.Equals(leftSymbol))
-                    {
-                        this.MapDataFlowInReferences(returnSymbols, lhsFieldSymbol,
-                            syntaxNode, cfgNode, false);
-                    }
-                }
-                else
-                {
                     this.MapDataFlowInReferences(returnSymbols, leftSymbol, syntaxNode, cfgNode);
                     if (lhsFieldSymbol != null && !lhsFieldSymbol.Equals(leftSymbol))
                     {
                         this.MapDataFlowInReferences(returnSymbols, lhsFieldSymbol,
                             syntaxNode, cfgNode);
+                    }
+                }
+                else
+                {
+                    this.MapDataFlowInReferences(returnSymbols, leftSymbol, syntaxNode, cfgNode);
+                    this.MarkSymbolReassignment(leftSymbol, syntaxNode, cfgNode);
+                    if (lhsFieldSymbol != null && !lhsFieldSymbol.Equals(leftSymbol))
+                    {
+                        this.MapDataFlowInReferences(returnSymbols, lhsFieldSymbol,
+                            syntaxNode, cfgNode);
+                        this.MarkSymbolReassignment(lhsFieldSymbol, syntaxNode, cfgNode);
                     }
                 }
 
@@ -1046,6 +1055,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             foreach (var sideEffect in sideEffects)
             {
                 this.MapDataFlowInReferences(sideEffect.Value, sideEffect.Key, syntaxNode, cfgNode);
+                this.MarkSymbolReassignment(sideEffect.Key, syntaxNode, cfgNode);
                 reachableFields.Add(sideEffect.Key);
             }
 
@@ -1087,6 +1097,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             foreach (var sideEffect in sideEffects)
             {
                 this.MapDataFlowInReferences(sideEffect.Value, sideEffect.Key, syntaxNode, cfgNode);
+                this.MarkSymbolReassignment(sideEffect.Key, syntaxNode, cfgNode);
                 reachableFields.Add(sideEffect.Key);
             }
 
@@ -1185,9 +1196,8 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="symbol">Symbol</param>
         /// <param name="syntaxNode">SyntaxNode</param>
         /// <param name="cfgNode">CfgNode</param>
-        /// <param name="markReset">Should mark symbol as reset</param>
         private void MapDataFlowInReferences(IEnumerable<ISymbol> references, ISymbol symbol,
-            SyntaxNode syntaxNode, CFGNode cfgNode, bool markReset = true)
+            SyntaxNode syntaxNode, CFGNode cfgNode)
         {
             HashSet<ISymbol> additionalRefs = new HashSet<ISymbol>();
             foreach (var reference in references)
@@ -1215,11 +1225,6 @@ namespace Microsoft.PSharp.StaticAnalysis
             else
             {
                 this.DataFlowMap[cfgNode][syntaxNode][symbol].UnionWith(references);
-            }
-
-            if (markReset)
-            {
-                this.MarkSymbolReassignment(symbol, syntaxNode, cfgNode);
             }
         }
 
@@ -1445,26 +1450,26 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="syntaxNode">SyntaxNode</param>
         /// <param name="cfgNode">CFGNode</param>
-        /// <param name="successorCfgNode">Successor CFGNode</param>
+        /// <param name="loopHeadCfgNode">Loop head CFGNode</param>
         /// <returns>Boolean</returns>
-        private bool ReachedFixpoint(SyntaxNode syntaxNode, CFGNode cfgNode, CFGNode successorCfgNode)
+        private bool ReachedFixpoint(SyntaxNode syntaxNode, CFGNode cfgNode, CFGNode loopHeadCfgNode)
         {
-            Dictionary<ISymbol, HashSet<ISymbol>> currDataFlowMap = null;
-            this.TryGetDataFlowMapForSyntaxNode(syntaxNode, cfgNode, out currDataFlowMap);
+            Dictionary<ISymbol, HashSet<ISymbol>> dataFlowMap = null;
+            this.TryGetDataFlowMapForSyntaxNode(syntaxNode, cfgNode, out dataFlowMap);
 
-            Dictionary<ISymbol, HashSet<ISymbol>> succDataFlowMap = null;
-            this.TryGetDataFlowMapForSyntaxNode(successorCfgNode.SyntaxNodes.First(),
-                successorCfgNode, out succDataFlowMap);
+            Dictionary<ISymbol, HashSet<ISymbol>> loopHeadDataFlowMap = null;
+            this.TryGetDataFlowMapForSyntaxNode(loopHeadCfgNode.SyntaxNodes.First(),
+                loopHeadCfgNode, out loopHeadDataFlowMap);
 
-            if (currDataFlowMap == null || succDataFlowMap == null)
+            if (dataFlowMap == null || loopHeadDataFlowMap == null)
             {
                 return false;
             }
 
-            foreach (var pair in currDataFlowMap)
+            foreach (var pair in dataFlowMap)
             {
-                if (!succDataFlowMap.ContainsKey(pair.Key) ||
-                    !succDataFlowMap[pair.Key].SetEquals(pair.Value))
+                if (!loopHeadDataFlowMap.ContainsKey(pair.Key) ||
+                    pair.Value.Any(v => !loopHeadDataFlowMap[pair.Key].Contains(v)))
                 {
                     return false;
                 }

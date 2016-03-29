@@ -980,5 +980,103 @@ class M : Machine
 
             IO.StopWritingToMemory();
         }
+
+        [TestMethod, Timeout(10000)]
+        public void TestComplexAccessesInCall11Fail()
+        {
+            var test = @"
+using Microsoft.PSharp;
+
+namespace Foo {
+class eUnit : Event
+{
+ public Letter Letter;
+ 
+ public eUnit(Letter letter)
+  : base()
+ {
+  this.Letter = letter;
+ }
+}
+
+struct Letter
+{
+ public string Text;
+
+ public Letter(string text)
+ {
+  this.Text = text;
+ }
+}
+
+class OtherClass
+{
+ AnotherClass AC;
+
+ public void Foo(Letter letter)
+ {
+  var ac = new AnotherClass(letter);
+  this.AC = ac;
+  this.AC.Bar();
+ }
+}
+
+class AnotherClass
+{
+ internal Letter Letter;
+
+ public AnotherClass(Letter letter)
+ {
+  this.Letter = letter;
+ }
+
+ public void Bar()
+ {
+  this.Letter.Text = ""Test""; // ERROR
+ }
+}
+
+class M : Machine
+{
+ MachineId Target;
+ Letter Letter;
+
+ [Start]
+ [OnEntry(nameof(FirstOnEntryAction))]
+ class First : MachineState { }
+
+ void FirstOnEntryAction()
+ {
+  this.Target = this.CreateMachine(typeof(M));
+  Letter letter = new Letter(""London"");
+  var oc = new OtherClass();
+  this.Send(this.Target, new eUnit(letter));
+  oc.Foo(letter);
+ }
+}
+}";
+
+            var solution = base.GetSolution(test);
+
+            var configuration = Configuration.Create();
+            configuration.ProjectName = "Test";
+            configuration.Verbose = 2;
+
+            IO.StartWritingToMemory();
+
+            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            AnalysisErrorReporter.ResetStats();
+            StaticAnalysisEngine.Create(context).Run();
+
+            var stats = AnalysisErrorReporter.GetStats();
+            var expected = "... Static analysis detected '2' errors";
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
+
+            IO.StopWritingToMemory();
+        }
     }
 }

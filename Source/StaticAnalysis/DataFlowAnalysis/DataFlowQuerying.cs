@@ -196,56 +196,56 @@ namespace Microsoft.PSharp.StaticAnalysis
                 return false;
             }
 
-            if (symbol.Equals(target) && cfgNode.GetMethodSummary().DataFlowAnalysis.DoesReferenceResetUntilCFGNode(
-                symbol, targetSyntaxNode, targetCfgNode, syntaxNode, cfgNode))
-            {
-                return false;
-            }
+            var aliases = new HashSet<ISymbol> { target };
+            aliases.UnionWith(DataFlowQuerying.GetAliases(target, targetSyntaxNode, targetCfgNode));
 
-            Dictionary<ISymbol, HashSet<ISymbol>> reachabilityMap = null;
-            if (targetCfgNode.GetMethodSummary().DataFlowAnalysis.TryGetFieldReachabilityMapForSyntaxNode(
-                syntaxNode, cfgNode, out reachabilityMap) && reachabilityMap.ContainsKey(symbol))
+            foreach (var alias in aliases)
             {
-                foreach (var field in reachabilityMap[symbol])
+                if (symbol.Equals(alias) && cfgNode.GetMethodSummary().DataFlowAnalysis.DoesReferenceResetUntilCFGNode(
+                symbol, targetSyntaxNode, targetCfgNode, syntaxNode, cfgNode))
                 {
-                    foreach (var reference in dataFlowMap[field])
+                    continue;
+                }
+
+                Dictionary<ISymbol, HashSet<ISymbol>> reachabilityMap = null;
+                if (targetCfgNode.GetMethodSummary().DataFlowAnalysis.TryGetFieldReachabilityMapForSyntaxNode(
+                    syntaxNode, cfgNode, out reachabilityMap) && reachabilityMap.ContainsKey(symbol))
+                {
+                    foreach (var field in reachabilityMap[symbol])
                     {
-                        dataFlowMap[symbol].Add(reference);
+                        foreach (var reference in dataFlowMap[field])
+                        {
+                            dataFlowMap[symbol].Add(reference);
+                        }
                     }
                 }
-            }
 
-            var targetAliases = DataFlowQuerying.GetAliases(target, targetSyntaxNode, targetCfgNode);
-            if (targetAliases.Contains(symbol))
-            {
-                return false;
-            }
-
-            foreach (var reference in dataFlowMap[symbol])
-            {
-                if (reference.Equals(target))
+                foreach (var reference in dataFlowMap[symbol])
                 {
-                    return true;
-                }
-            }
-            
-            if (dataFlowMap.ContainsKey(target))
-            {
-                foreach (var reference in dataFlowMap[target])
-                {
-                    if (!cfgNode.GetMethodSummary().DataFlowAnalysis.DoesReferenceResetUntilCFGNode(symbol, targetSyntaxNode,
-                        targetCfgNode, syntaxNode, cfgNode))
+                    if (reference.Equals(alias))
                     {
-                        if (reference.Equals(symbol))
-                        {
-                            return true;
-                        }
+                        return true;
+                    }
+                }
 
-                        foreach (var symbolRef in dataFlowMap[symbol])
+                if (dataFlowMap.ContainsKey(alias))
+                {
+                    foreach (var reference in dataFlowMap[alias])
+                    {
+                        if (!cfgNode.GetMethodSummary().DataFlowAnalysis.DoesReferenceResetUntilCFGNode(symbol, targetSyntaxNode,
+                            targetCfgNode, syntaxNode, cfgNode))
                         {
-                            if (reference.Equals(symbolRef))
+                            if (reference.Equals(symbol))
                             {
                                 return true;
+                            }
+
+                            foreach (var symbolRef in dataFlowMap[symbol])
+                            {
+                                if (reference.Equals(symbolRef))
+                                {
+                                    return true;
+                                }
                             }
                         }
                     }
@@ -379,33 +379,6 @@ namespace Microsoft.PSharp.StaticAnalysis
                 cfgNode, cfgNode, new HashSet<CFGNode>());
         }
 
-        /// <summary>
-        /// Returns all possible aliases of the given symbol.
-        /// </summary>
-        /// <param name="symbol">Symbol</param>
-        /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">CFGNode</param>
-        /// <returns>Set of aliases</returns>
-        public static HashSet<ISymbol> GetAliases(ISymbol symbol, SyntaxNode syntaxNode,
-            CFGNode cfgNode)
-        {
-            HashSet<ISymbol> aliases = new HashSet<ISymbol>();
-
-            Dictionary<ISymbol, HashSet<ISymbol>> dataFlowMap = null;
-            if (!cfgNode.GetMethodSummary().DataFlowAnalysis.TryGetDataFlowMapForSyntaxNode(syntaxNode,
-                cfgNode, out dataFlowMap) || !dataFlowMap.ContainsKey(symbol))
-            {
-                return aliases;
-            }
-
-            foreach (var reference in dataFlowMap[symbol].Where(v => !v.Equals(symbol)))
-            {
-                aliases.Add(reference);
-            }
-
-            return aliases;
-        }
-
         #endregion
 
         #region private methods
@@ -466,6 +439,32 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Returns all possible aliases of the given symbol.
+        /// </summary>
+        /// <param name="symbol">Symbol</param>
+        /// <param name="syntaxNode">SyntaxNode</param>
+        /// <param name="cfgNode">CFGNode</param>
+        /// <returns>Set of aliases</returns>
+        private static HashSet<ISymbol> GetAliases(ISymbol symbol, SyntaxNode syntaxNode, CFGNode cfgNode)
+        {
+            HashSet<ISymbol> aliases = new HashSet<ISymbol>();
+
+            Dictionary<ISymbol, HashSet<ISymbol>> dataFlowMap = null;
+            if (!cfgNode.GetMethodSummary().DataFlowAnalysis.TryGetDataFlowMapForSyntaxNode(syntaxNode,
+                cfgNode, out dataFlowMap) || !dataFlowMap.ContainsKey(symbol))
+            {
+                return aliases;
+            }
+
+            foreach (var reference in dataFlowMap[symbol].Where(v => !v.Equals(symbol)))
+            {
+                aliases.Add(reference);
+            }
+
+            return aliases;
         }
 
         #endregion

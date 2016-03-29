@@ -655,8 +655,15 @@ class M : Machine
             StaticAnalysisEngine.Create(context).Run();
 
             var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... Static analysis detected '2' errors";
+            var expected = "... Static analysis detected '1' error";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
+
+            var error = "Error: Method 'Foo' of machine 'Foo.M' sends 'envelope', " +
+                "which contains data from a field.";
+            var actual = IO.GetOutput();
+
+            Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
+               actual.Substring(0, actual.IndexOf(Environment.NewLine)));
 
             IO.StopWritingToMemory();
         }
@@ -748,8 +755,15 @@ class M : Machine
             StaticAnalysisEngine.Create(context).Run();
 
             var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... Static analysis detected '2' errors";
+            var expected = "... Static analysis detected '1' error";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
+
+            var error = "Error: Method 'Foo' of machine 'Foo.M' sends 'envelope', " +
+                "which contains data from a field.";
+            var actual = IO.GetOutput();
+
+            Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
+               actual.Substring(0, actual.IndexOf(Environment.NewLine)));
 
             IO.StopWritingToMemory();
         }
