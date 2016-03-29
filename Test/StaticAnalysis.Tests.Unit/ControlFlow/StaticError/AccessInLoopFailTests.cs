@@ -692,7 +692,7 @@ class M : Machine
         }
 
         [TestMethod, Timeout(10000)]
-        public void TestWriteAccessAfterSendInLoopNFail()
+        public void TestWriteAccessAfterSendInLoop10Fail()
         {
             var test = @"
 using Microsoft.PSharp;
@@ -729,16 +729,15 @@ class M : Machine
 
  void FirstOnEntryAction()
  {
+  this.Target = this.CreateMachine(typeof(M));
+  
   int k = 10;
   for (int i = 0; i < k; i++)
   {
-    k = 2;
-    this.Target = this.CreateMachine(typeof(M));
     var letter = new Letter(""London"");
     this.Send(this.Target, new eUnit(letter));
     letter.Text = ""Bangalore"";
   }
-  k = 3;
  }
 }
 }";
