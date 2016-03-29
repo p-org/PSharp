@@ -483,9 +483,9 @@ namespace Microsoft.PSharp.StaticAnalysis
             this.ResolveMethodParameterAccesses(assignment.Right, syntaxNode, cfgNode);
             this.ResolveFieldAccesses(assignment.Left, syntaxNode, cfgNode);
             this.ResolveFieldAccesses(assignment.Right, syntaxNode, cfgNode);
-
+            
             IdentifierNameSyntax lhs = null;
-            ISymbol lhsFieldSymbol = null;
+            IFieldSymbol lhsFieldSymbol = null;
             if (assignment.Left is IdentifierNameSyntax)
             {
                 lhs = assignment.Left as IdentifierNameSyntax;
@@ -505,7 +505,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 }
 
                 lhs = this.AnalysisContext.GetTopLevelIdentifier(assignment.Left);
-                lhsFieldSymbol = this.SemanticModel.GetSymbolInfo(name).Symbol;
+                lhsFieldSymbol = this.SemanticModel.GetSymbolInfo(name).Symbol as IFieldSymbol;
             }
             else if (assignment.Left is ElementAccessExpressionSyntax)
             {
@@ -529,7 +529,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     }
 
                     lhs = this.AnalysisContext.GetTopLevelIdentifier(memberAccess.Expression);
-                    lhsFieldSymbol = this.SemanticModel.GetSymbolInfo(name).Symbol;
+                    lhsFieldSymbol = this.SemanticModel.GetSymbolInfo(name).Symbol as IFieldSymbol;
                 }
             }
 
@@ -551,10 +551,25 @@ namespace Microsoft.PSharp.StaticAnalysis
                 var rightSymbol = this.SemanticModel.GetSymbolInfo(rhs).Symbol;
                 this.MapDataFlowInReferences(new List<ISymbol> { rightSymbol },
                     leftSymbol, syntaxNode, cfgNode);
-                if (lhsFieldSymbol != null && !lhsFieldSymbol.Equals(leftSymbol))
+
+                if (lhsFieldSymbol != null)
                 {
-                    this.MapDataFlowInReferences(new List<ISymbol> { rightSymbol },
-                        lhsFieldSymbol, syntaxNode, cfgNode);
+                    if (lhsFieldSymbol.Equals(leftSymbol))
+                    {
+                        Dictionary<ISymbol, HashSet<ISymbol>> fieldReachabilityMap = null;
+                        if (this.TryGetFieldReachabilityMapForSyntaxNode(syntaxNode, cfgNode,
+                            out fieldReachabilityMap) &&
+                            fieldReachabilityMap.ContainsKey(rightSymbol))
+                        {
+                            this.MapReachableFieldsToSymbol(fieldReachabilityMap[rightSymbol],
+                                lhsFieldSymbol, syntaxNode, cfgNode, false);
+                        }
+                    }
+                    else
+                    {
+                        this.MapDataFlowInReferences(new List<ISymbol> { rightSymbol },
+                            lhsFieldSymbol, syntaxNode, cfgNode);
+                    }
                 }
 
                 HashSet<ITypeSymbol> referenceTypes = null;
@@ -1086,6 +1101,16 @@ namespace Microsoft.PSharp.StaticAnalysis
                     }
 
                     cfgNode.GetMethodSummary().FieldAccessSet[fieldAccess.Key as IFieldSymbol].Add(access);
+                }
+            }
+
+            IdentifierNameSyntax identifier = this.AnalysisContext.GetTopLevelIdentifier(call.Expression);
+            if (identifier != null)
+            {
+                var idSymbol = this.SemanticModel.GetSymbolInfo(identifier).Symbol;
+                if (idSymbol != null)
+                {
+                    this.MapReachableFieldsToSymbol(reachableFields, idSymbol, syntaxNode, cfgNode, false);
                 }
             }
 
