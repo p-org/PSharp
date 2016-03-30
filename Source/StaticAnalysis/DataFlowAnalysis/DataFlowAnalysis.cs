@@ -199,7 +199,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
         /// <summary>
         /// Returns true if the given reference resets until it
-        /// reaches the target control-flow graph node.
+        /// reaches the target syntax node.
         /// </summary>
         /// <param name="reference">Reference</param>
         /// <param name="refSyntaxNode">Reference SyntaxNode</param>
@@ -207,11 +207,11 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="targetSyntaxNode">Target syntaxNode</param>
         /// <param name="targetCfgNode">Target CFGNode</param>
         /// <returns>Boolean</returns>
-        public bool DoesReferenceResetUntilCFGNode(ISymbol reference, SyntaxNode refSyntaxNode,
+        public bool DoesReferenceResetUntilSyntaxNode(ISymbol reference, SyntaxNode refSyntaxNode,
             CFGNode refCfgNode, SyntaxNode targetSyntaxNode, CFGNode targetCfgNode)
         {
-            return this.DoesReferenceResetUntilCFGNode(reference, refSyntaxNode, refCfgNode,
-                targetSyntaxNode, targetCfgNode, false);
+            return this.DoesReferenceResetUntilSyntaxNode(reference, refSyntaxNode,
+                refCfgNode, targetSyntaxNode, targetCfgNode, false);
         }
 
         #endregion
@@ -813,7 +813,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             foreach (var symbol in returnSymbols.Where(s => s.Kind == SymbolKind.Parameter))
             {
-                if (this.DoesReferenceResetUntilCFGNode(symbol,
+                if (this.DoesReferenceResetUntilSyntaxNode(symbol,
                         cfgNode.GetMethodSummary().EntryNode.SyntaxNodes.First(),
                         cfgNode.GetMethodSummary().EntryNode, syntaxNode, cfgNode, true))
                 {
@@ -835,9 +835,9 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     foreach (var reference in dataFlowMap[symbol].Where(s => s.Kind == SymbolKind.Parameter))
                     {
-                        if (this.DoesReferenceResetUntilCFGNode(reference,
-                                cfgNode.GetMethodSummary().EntryNode.SyntaxNodes.First(),
-                                cfgNode.GetMethodSummary().EntryNode, syntaxNode, cfgNode, true))
+                        if (this.DoesReferenceResetUntilSyntaxNode(reference,
+                            cfgNode.GetMethodSummary().EntryNode.SyntaxNodes.First(),
+                            cfgNode.GetMethodSummary().EntryNode, syntaxNode, cfgNode, true))
                         {
                             continue;
                         }
@@ -955,9 +955,9 @@ namespace Microsoft.PSharp.StaticAnalysis
 
                 foreach (var reference in dataFlowMap[symbol].Where(r => r.Kind == SymbolKind.Parameter))
                 {
-                    if (reference.Equals(symbol) && this.DoesReferenceResetUntilCFGNode(reference,
-                            cfgNode.GetMethodSummary().EntryNode.SyntaxNodes.First(),
-                            cfgNode.GetMethodSummary().EntryNode, syntaxNode, cfgNode, true))
+                    if (reference.Equals(symbol) && this.DoesReferenceResetUntilSyntaxNode(reference,
+                        cfgNode.GetMethodSummary().EntryNode.SyntaxNodes.First(),
+                        cfgNode.GetMethodSummary().EntryNode, syntaxNode, cfgNode, true))
                     {
                         continue;
                     }
@@ -1018,7 +1018,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
                 var fieldDecl = definition.DeclaringSyntaxReferences.First().GetSyntax().
                     AncestorsAndSelf().OfType<FieldDeclarationSyntax>().First();
-                if (this.DoesReferenceResetUntilCFGNode(symbol,
+                if (this.DoesReferenceResetUntilSyntaxNode(symbol,
                     cfgNode.GetMethodSummary().EntryNode.SyntaxNodes.First(),
                     cfgNode.GetMethodSummary().EntryNode, syntaxNode, cfgNode, true))
                 {
@@ -1370,7 +1370,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
         /// <summary>
         /// Returns true if the given reference resets until it
-        /// reaches the target control-flow graph node.
+        /// reaches the target syntax node.
         /// </summary>
         /// <param name="reference">Reference</param>
         /// <param name="refSyntaxNode">Reference SyntaxNode</param>
@@ -1379,16 +1379,22 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="targetCfgNode">Target CFGNode</param>
         /// <param name="track">Tracking</param>
         /// <returns>Boolean</returns>
-        private bool DoesReferenceResetUntilCFGNode(ISymbol reference, SyntaxNode refSyntaxNode, CFGNode refCfgNode,
-            SyntaxNode targetSyntaxNode, CFGNode targetCfgNode, bool track)
+        private bool DoesReferenceResetUntilSyntaxNode(ISymbol reference, SyntaxNode refSyntaxNode,
+            CFGNode refCfgNode, SyntaxNode targetSyntaxNode, CFGNode targetCfgNode, bool track)
         {
-            return this.DoesReferenceResetUntilCFGNode(reference, refSyntaxNode, refCfgNode, targetSyntaxNode,
-                targetCfgNode, new HashSet<CFGNode>(), track);
+            if (refSyntaxNode.Equals(targetSyntaxNode) && refCfgNode.Equals(targetCfgNode) &&
+                !track)
+            {
+                return false;
+            }
+
+            return this.DoesReferenceResetUntilSyntaxNode(reference, refSyntaxNode, refCfgNode,
+                targetSyntaxNode, targetCfgNode, new HashSet<CFGNode>(), track);
         }
 
         /// <summary>
         /// Returns true if the given reference resets until it
-        /// reaches the target control-flow graph node.
+        /// reaches the target syntax node.
         /// </summary>
         /// <param name="reference">Reference</param>
         /// <param name="refSyntaxNode">Reference SyntaxNode</param>
@@ -1398,42 +1404,42 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="visited">Already visited cfgNodes</param>
         /// <param name="track">Tracking</param>
         /// <returns>Boolean</returns>
-        private bool DoesReferenceResetUntilCFGNode(ISymbol reference, SyntaxNode refSyntaxNode, CFGNode refCfgNode,
-            SyntaxNode targetSyntaxNode, CFGNode targetCfgNode, HashSet<CFGNode> visited,
-            bool track)
+        private bool DoesReferenceResetUntilSyntaxNode(ISymbol reference, SyntaxNode refSyntaxNode, CFGNode refCfgNode,
+            SyntaxNode targetSyntaxNode, CFGNode targetCfgNode, HashSet<CFGNode> visited, bool track)
         {
             visited.Add(refCfgNode);
 
             bool result = false;
-            if (refSyntaxNode.Equals(targetSyntaxNode) && refCfgNode.Equals(targetCfgNode) &&
-                !track)
-            {
-                return result;
-            }
-
             foreach (var node in refCfgNode.SyntaxNodes)
             {
-                if (track && this.ReferenceResetMap.ContainsKey(refCfgNode) &&
-                    this.ReferenceResetMap[refCfgNode].ContainsKey(node) &&
-                    this.ReferenceResetMap[refCfgNode][node].Contains(reference))
+                if (track)
                 {
-                    result = true;
-                    break;
+                    if (this.ReferenceResetMap.ContainsKey(refCfgNode) &&
+                        this.ReferenceResetMap[refCfgNode].ContainsKey(node) &&
+                        this.ReferenceResetMap[refCfgNode][node].Contains(reference))
+                    {
+                        result = true;
+                        break;
+                    }
+                    else if (refSyntaxNode.Equals(targetSyntaxNode) &&
+                        refCfgNode.Equals(targetCfgNode))
+                    {
+                        return result;
+                    }
                 }
-
-                if (!track && node.Equals(refSyntaxNode))
+                else if (!track && node.Equals(refSyntaxNode))
                 {
                     track = true;
                 }
             }
-
+            
             if (!result)
             {
                 foreach (var successor in refCfgNode.GetImmediateSuccessors().Where(v => !visited.Contains(v)))
                 {
                     if ((successor.Equals(targetCfgNode) ||
                         successor.IsPredecessorOf(targetCfgNode)) &&
-                        this.DoesReferenceResetUntilCFGNode(reference, successor.SyntaxNodes.First(),
+                        this.DoesReferenceResetUntilSyntaxNode(reference, successor.SyntaxNodes.First(),
                         successor, targetSyntaxNode, targetCfgNode, visited, true))
                     {
                         result = true;
