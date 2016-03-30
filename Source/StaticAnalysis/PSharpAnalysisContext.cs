@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 
@@ -31,6 +32,11 @@ namespace Microsoft.PSharp.StaticAnalysis
     public sealed class PSharpAnalysisContext : AnalysisContext
     {
         #region fields
+
+        /// <summary>
+        /// Configuration.
+        /// </summary>
+        internal Configuration Configuration;
 
         /// <summary>
         /// List of state-machines in the project.
@@ -57,7 +63,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="configuration">Configuration</param>
         /// <param name="project">Project</param>
         /// <returns>StateMachineAnalysisContext</returns>
-        public new static PSharpAnalysisContext Create(Configuration configuration, Project project)
+        public static PSharpAnalysisContext Create(Configuration configuration, Project project)
         {
             return new PSharpAnalysisContext(configuration, project);
         }
@@ -113,8 +119,10 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="configuration">Configuration</param>
         /// <param name="project">Project</param>
         private PSharpAnalysisContext(Configuration configuration, Project project)
-            : base(configuration, project)
+            : base(project)
         {
+            this.Configuration = configuration;
+
             this.Machines = new List<StateMachine>();
             this.StateTransitionGraphs = new Dictionary<StateMachine, StateTransitionGraphNode>();
             this.MachineInheritanceMap = new Dictionary<StateMachine, StateMachine>();

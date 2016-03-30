@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 
@@ -28,7 +29,7 @@ namespace Microsoft.PSharp.StaticAnalysis
     /// <summary>
     /// A P# control-flow graph node.
     /// </summary>
-    internal class PSharpCFGNode : CFGNode
+    internal class PSharpCFGNode : ControlFlowGraphNode
     {
         #region fields
 
@@ -57,8 +58,8 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="context">AnalysisContext</param>
         /// <param name="summary">MethodSummary</param>
-        /// <returns>CFGNode</returns>
-        protected override CFGNode CreateNode(AnalysisContext context, MethodSummary summary)
+        /// <returns>ControlFlowGraphNode</returns>
+        protected override ControlFlowGraphNode CreateNode(AnalysisContext context, MethodSummary summary)
         {
             return new PSharpCFGNode(context, summary);
         }
@@ -106,8 +107,8 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// using the given statement.
         /// </summary>
         /// <param name="stmt">Statement</param>
-        /// <returns>CFGNode</returns>
-        protected override CFGNode CreateSingleStatementCFGNode(StatementSyntax stmt)
+        /// <returns>ControlFlowGraphNode</returns>
+        protected override ControlFlowGraphNode CreateSingleStatementControlFlowGraphNode(StatementSyntax stmt)
         {
             PSharpCFGNode givesUpNode = null;
 

@@ -18,6 +18,7 @@ using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 
@@ -39,13 +40,13 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="overriders">List of overrider methods</param>
         /// <param name="virtualCall">Virtual call</param>
         /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">CFGNode</param>
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
         /// <param name="originalClass">Original class</param>
         /// <param name="model">SemanticModel</param>
         /// <param name="context">AnalysisContext</param>
         /// <returns>Boolean</returns>
         internal static bool TryGetPotentialMethodOverriders(out HashSet<MethodDeclarationSyntax> overriders,
-            InvocationExpressionSyntax virtualCall, SyntaxNode syntaxNode, CFGNode cfgNode,
+            InvocationExpressionSyntax virtualCall, SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode,
             ClassDeclarationSyntax originalClass, SemanticModel model, AnalysisContext context)
         {
             overriders = new HashSet<MethodDeclarationSyntax>();

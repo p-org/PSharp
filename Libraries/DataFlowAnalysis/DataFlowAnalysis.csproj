@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{DA00A188-9D9E-4D4F-901C-C2A2CBC84CB6}</ProjectGuid>
+    <ProjectGuid>{6CF10554-1535-4FE0-A949-EEA5025D8604}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Microsoft.PSharp.StaticAnalysis</RootNamespace>
-    <AssemblyName>Microsoft.PSharp.StaticAnalysis</AssemblyName>
+    <RootNamespace>Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis</RootNamespace>
+    <AssemblyName>Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -68,55 +68,22 @@
       <HintPath>..\..\References\Roslyn\Microsoft.CodeAnalysis.Workspaces.dll</HintPath>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Collections.Immutable, Version=1.1.33.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Collections.Immutable, Version=1.1.37.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\References\Roslyn\System.Collections.Immutable.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DataStructures\StateMachines\OnEventPushMachineAction.cs" />
-    <Compile Include="DataStructures\StateMachines\OnEventGotoMachineAction.cs" />
-    <Compile Include="DataStructures\StateMachines\OnEventDoMachineAction.cs" />
-    <Compile Include="DataStructures\StateMachines\OnExitMachineAction.cs" />
-    <Compile Include="DataStructures\StateMachines\OnEntryMachineAction.cs" />
-    <Compile Include="DataStructures\StateMachines\MachineAction.cs" />
-    <Compile Include="DataStructures\StateMachines\MachineState.cs" />
-    <Compile Include="DataStructures\StateMachines\StateMachine.cs" />
-    <Compile Include="DataStructures\Summarization\PSharpMethodSummary.cs" />
-    <Compile Include="DataStructures\ControlFlow\PSharpCFGNode.cs" />
-    <Compile Include="PSharpAnalysisContext.cs" />
-    <Compile Include="DataRaceAnalysis\VirtualDispatchQuerying.cs" />
-    <Compile Include="DataStructures\ControlFlow\StateTransitionGraphNode.cs" />
-    <Compile Include="Tracing\CallTraceStep.cs" />
-    <Compile Include="Tracing\ErrorTraceStep.cs" />
-    <Compile Include="Utilities\AnalysisErrorReporter.cs" />
-    <Compile Include="Tracing\TraceInfo.cs" />
-    <Compile Include="DataRaceAnalysis\AnalysisPass.cs" />
-    <Compile Include="StaticAnalysisEngine.cs" />
-    <Compile Include="DataRaceAnalysis\GivesUpOwnershipAnalysisPass.cs" />
-    <Compile Include="DataRaceAnalysis\RespectsOwnershipAnalysisPass.cs" />
-    <Compile Include="DataRaceAnalysis\DirectAccessAnalysisPass.cs" />
-    <Compile Include="DataRaceAnalysis\StateTransitionAnalysisPass.cs" />
+    <Compile Include="AnalysisContext.cs" />
+    <Compile Include="ControlFlow\ControlFlowGraphNode.cs" />
+    <Compile Include="DataFlow\DataFlowAnalysis.cs" />
+    <Compile Include="DataFlow\DataFlowQuerying.cs" />
+    <Compile Include="Summarization\MethodSummary.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="PSharp.snk" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\Libraries\DataFlowAnalysis\DataFlowAnalysis.csproj">
-      <Project>{6cf10554-1535-4fe0-a949-eea5025d8604}</Project>
-      <Name>DataFlowAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Core\Core.csproj">
-      <Project>{2e330c40-60ea-4a94-8813-9747b93a1795}</Project>
-      <Name>Core</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\LanguageServices\LanguageServices.csproj">
-      <Project>{06ccbe95-2e41-4188-bb97-aee702c1bd25}</Project>
-      <Name>LanguageServices</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

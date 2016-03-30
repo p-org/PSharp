@@ -18,6 +18,7 @@ using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 
@@ -200,7 +201,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Creates a new control-flow graph node.
         /// </summary>
         /// <returns>CFGNode</returns>
-        protected override CFGNode CreateNewControlFlowGraphNode()
+        protected override ControlFlowGraphNode CreateNewControlFlowGraphNode()
         {
             return new PSharpCFGNode(this.AnalysisContext, this);
         }
@@ -211,7 +212,8 @@ namespace Microsoft.PSharp.StaticAnalysis
         protected override void AnalyzeDataFlow()
         {
             var model = this.AnalysisContext.Compilation.GetSemanticModel(this.Method.SyntaxTree);
-            this.DataFlowAnalysis = DataFlowAnalysis.Analyze(this, this.AnalysisContext, model);
+            this.DataFlowAnalysis = CodeAnalysis.CSharp.DataFlowAnalysis.DataFlowAnalysis.Analyze(
+                this, this.AnalysisContext, model);
         }
 
         #endregion

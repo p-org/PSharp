@@ -17,13 +17,10 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 
-using Microsoft.PSharp.Utilities;
-
-namespace Microsoft.PSharp.StaticAnalysis
+namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 {
     /// <summary>
     /// A static analysis context.
@@ -33,24 +30,19 @@ namespace Microsoft.PSharp.StaticAnalysis
         #region fields
 
         /// <summary>
-        /// Configuration.
-        /// </summary>
-        internal Configuration Configuration;
-
-        /// <summary>
         /// The solution of the P# program.
         /// </summary>
-        internal readonly Solution Solution;
+        public readonly Solution Solution;
 
         /// <summary>
         /// The project compilation for this analysis context.
         /// </summary>
-        internal readonly Compilation Compilation;
+        public readonly Compilation Compilation;
 
         /// <summary>
         /// Dictionary of method summaries in the project.
         /// </summary>
-        internal Dictionary<BaseMethodDeclarationSyntax, MethodSummary> Summaries;
+        public Dictionary<BaseMethodDeclarationSyntax, MethodSummary> Summaries;
 
         #endregion
 
@@ -59,12 +51,11 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Create a new static analysis context.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
         /// <param name="project">Project</param>
         /// <returns>AnalysisContext</returns>
-        public static AnalysisContext Create(Configuration configuration, Project project)
+        public static AnalysisContext Create(Project project)
         {
-            return new AnalysisContext(configuration, project);
+            return new AnalysisContext(project);
         }
 
         /// <summary>
@@ -184,33 +175,12 @@ namespace Microsoft.PSharp.StaticAnalysis
             return false;
         }
 
-        #endregion
-
-        #region constructors
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="configuration">Configuration</param>
-        /// <param name="project">Project</param>
-        protected AnalysisContext(Configuration configuration, Project project)
-        {
-            this.Configuration = configuration;
-            this.Solution = project.Solution;
-            this.Compilation = project.GetCompilationAsync().Result;
-            this.Summaries = new Dictionary<BaseMethodDeclarationSyntax, MethodSummary>();
-        }
-
-        #endregion
-
-        #region internal API
-
         /// <summary>
         /// Gets the identifier from the expression.
         /// </summary>
         /// <param name="expr">Expression</param>
         /// <returns>Identifier</returns>
-        internal IdentifierNameSyntax GetIdentifier(ExpressionSyntax expr)
+        public IdentifierNameSyntax GetIdentifier(ExpressionSyntax expr)
         {
             IdentifierNameSyntax identifier = null;
             if (expr is IdentifierNameSyntax)
@@ -231,7 +201,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="expr">Expression</param>
         /// <returns>Identifier</returns>
-        internal IdentifierNameSyntax GetTopLevelIdentifier(ExpressionSyntax expr)
+        public IdentifierNameSyntax GetTopLevelIdentifier(ExpressionSyntax expr)
         {
             IdentifierNameSyntax identifier = null;
             if (expr is IdentifierNameSyntax)
@@ -253,7 +223,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="model">SemanticModel</param>
         /// <returns>Boolean</returns>
-        internal bool IsExprEnum(ExpressionSyntax expr, SemanticModel model)
+        public bool IsExprEnum(ExpressionSyntax expr, SemanticModel model)
         {
             var type = model.GetTypeInfo(expr).Type;
             var typeDef = SymbolFinder.FindSourceDefinitionAsync(type, this.Solution).Result;
@@ -264,6 +234,21 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             return false;
+        }
+
+        #endregion
+
+        #region constructors
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="project">Project</param>
+        protected AnalysisContext(Project project)
+        {
+            this.Solution = project.Solution;
+            this.Compilation = project.GetCompilationAsync().Result;
+            this.Summaries = new Dictionary<BaseMethodDeclarationSyntax, MethodSummary>();
         }
 
         #endregion

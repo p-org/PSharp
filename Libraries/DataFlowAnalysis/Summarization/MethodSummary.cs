@@ -16,14 +16,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 
-using Microsoft.PSharp.Utilities;
-
-namespace Microsoft.PSharp.StaticAnalysis
+namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 {
     /// <summary>
     /// Class implementing a method summary.
@@ -40,52 +36,52 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Method that this summary represents.
         /// </summary>
-        internal BaseMethodDeclarationSyntax Method;
+        public BaseMethodDeclarationSyntax Method;
 
         /// <summary>
         /// The entry node of the control-flow graph of the
         /// method of this summary.
         /// </summary>
-        internal CFGNode EntryNode;
+        public ControlFlowGraphNode EntryNode;
 
         /// <summary>
         /// Set of all exit nodes in the control-flow graph of the
         /// method of this summary.
         /// </summary>
-        internal HashSet<CFGNode> ExitNodes;
+        public HashSet<ControlFlowGraphNode> ExitNodes;
 
         /// <summary>
         /// The data-flow of the method of this summary.
         /// </summary>
-        internal DataFlowAnalysis DataFlowAnalysis;
+        public DataFlowAnalysis DataFlowAnalysis;
 
         /// <summary>
         /// Dictionary containing all read and write accesses
         /// of the parameters of the original method.
         /// </summary>
-        internal Dictionary<int, HashSet<SyntaxNode>> ParameterAccessSet;
+        public Dictionary<int, HashSet<SyntaxNode>> ParameterAccessSet;
 
         /// <summary>
         /// Dictionary containing all field accesses.
         /// </summary>
-        internal Dictionary<IFieldSymbol, HashSet<SyntaxNode>> FieldAccessSet;
+        public Dictionary<IFieldSymbol, HashSet<SyntaxNode>> FieldAccessSet;
 
         /// <summary>
         /// Dictionary containing all side effects in regards to the
         /// parameters of the original method.
         /// </summary>
-        internal Dictionary<IFieldSymbol, HashSet<int>> SideEffects;
+        public Dictionary<IFieldSymbol, HashSet<int>> SideEffects;
 
         /// <summary>
         /// Tuple containing all returns of the original method in regards
         /// to method parameters and fields.
         /// </summary>
-        internal Tuple<HashSet<int>, HashSet<IFieldSymbol>> ReturnSet;
+        public Tuple<HashSet<int>, HashSet<IFieldSymbol>> ReturnSet;
 
         /// <summary>
         /// Set of all return type symbols of the original method.
         /// </summary>
-        internal HashSet<ITypeSymbol> ReturnTypeSet;
+        public HashSet<ITypeSymbol> ReturnTypeSet;
 
         #endregion
 
@@ -133,7 +129,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="model">SemanticModel</param>
         /// <param name="context">AnalysisContext</param>
         /// <returns>MethodSummary</returns>
-        internal static MethodSummary TryGet(ObjectCreationExpressionSyntax call,
+        public static MethodSummary TryGet(ObjectCreationExpressionSyntax call,
             SemanticModel model, AnalysisContext context)
         {
             var callSymbol = model.GetSymbolInfo(call).Symbol;
@@ -166,7 +162,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="model">SemanticModel</param>
         /// <param name="context">AnalysisContext</param>
         /// <returns>MethodSummary</returns>
-        internal static MethodSummary TryGet(InvocationExpressionSyntax call,
+        public static MethodSummary TryGet(InvocationExpressionSyntax call,
             SemanticModel model, AnalysisContext context)
         {
             var callSymbol = model.GetSymbolInfo(call).Symbol;
@@ -193,7 +189,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="argumentList">Argument list</param>
         /// <param name="model">SemanticModel</param>
         /// <returns>Set of side effects</returns>
-        internal Dictionary<ISymbol, HashSet<ISymbol>> GetResolvedSideEffects(ArgumentListSyntax argumentList,
+        public Dictionary<ISymbol, HashSet<ISymbol>> GetResolvedSideEffects(ArgumentListSyntax argumentList,
             SemanticModel model)
         {
             Dictionary<ISymbol, HashSet<ISymbol>> sideEffects = new Dictionary<ISymbol, HashSet<ISymbol>>();
@@ -274,7 +270,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="argumentList">Argument list</param>
         /// <param name="model">SemanticModel</param>
         /// <returns>Set of return symbols</returns>
-        internal HashSet<ISymbol> GetResolvedReturnSymbols(ArgumentListSyntax argumentList,
+        public HashSet<ISymbol> GetResolvedReturnSymbols(ArgumentListSyntax argumentList,
             SemanticModel model)
         {
             HashSet<ISymbol> returnSymbols = new HashSet<ISymbol>();
@@ -345,10 +341,10 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Creates a new control-flow graph node.
         /// </summary>
-        /// <returns>CFGNode</returns>
-        protected virtual CFGNode CreateNewControlFlowGraphNode()
+        /// <returns>ControlFlowGraphNode</returns>
+        protected virtual ControlFlowGraphNode CreateNewControlFlowGraphNode()
         {
-            return new CFGNode(this.AnalysisContext, this);
+            return new ControlFlowGraphNode(this.AnalysisContext, this);
         }
 
         /// <summary>
@@ -387,7 +383,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             this.EntryNode = this.CreateNewControlFlowGraphNode();
-            this.ExitNodes = new HashSet<CFGNode>();
+            this.ExitNodes = new HashSet<ControlFlowGraphNode>();
             this.EntryNode.Construct(this.Method);
             this.EntryNode.CleanEmptySuccessors();
             this.ExitNodes = this.EntryNode.GetExitNodes();
@@ -459,19 +455,19 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         public void PrintControlFlowInformation()
         {
-            IO.PrintLine("..");
-            IO.PrintLine("... ==================================================");
-            IO.PrintLine("... =============== ControlFlow Summary ===============");
-            IO.PrintLine("... ==================================================");
-            IO.PrintLine("... |");
-            IO.PrintLine("... | Method: '{0}'", this.AnalysisContext.GetFullMethodName(this.Method));
+            Console.WriteLine("..");
+            Console.WriteLine("... ==================================================");
+            Console.WriteLine("... =============== ControlFlow Summary ===============");
+            Console.WriteLine("... ==================================================");
+            Console.WriteLine("... |");
+            Console.WriteLine("... | Method: '{0}'", this.AnalysisContext.GetFullMethodName(this.Method));
 
-            this.EntryNode.PrintCFGNodes();
+            this.EntryNode.PrintControlFlowGraphNodes();
             this.EntryNode.PrintCFGSuccessors();
             this.EntryNode.PrintCFGPredecessors();
 
-            IO.PrintLine("... |");
-            IO.PrintLine("... ==================================================");
+            Console.WriteLine("... |");
+            Console.WriteLine("... ==================================================");
         }
 
         /// <summary>
@@ -479,12 +475,12 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         public void PrintDataFlowInformation()
         {
-            IO.PrintLine("..");
-            IO.PrintLine("... ==================================================");
-            IO.PrintLine("... ================ DataFlow Summary ================");
-            IO.PrintLine("... ==================================================");
-            IO.PrintLine("... |");
-            IO.PrintLine("... | Method: '{0}'", this.AnalysisContext.GetFullMethodName(this.Method));
+            Console.WriteLine("..");
+            Console.WriteLine("... ==================================================");
+            Console.WriteLine("... ================ DataFlow Summary ================");
+            Console.WriteLine("... ==================================================");
+            Console.WriteLine("... |");
+            Console.WriteLine("... | Method: '{0}'", this.AnalysisContext.GetFullMethodName(this.Method));
 
             this.DataFlowAnalysis.PrintDataFlowMap();
             this.DataFlowAnalysis.PrintFieldReachabilityMap();
@@ -493,13 +489,13 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             if (this.ParameterAccessSet.Count > 0)
             {
-                IO.PrintLine("... |");
-                IO.PrintLine("... | . Parameter access set");
+                Console.WriteLine("... |");
+                Console.WriteLine("... | . Parameter access set");
                 foreach (var index in this.ParameterAccessSet)
                 {
                     foreach (var syntaxNode in index.Value)
                     {
-                        IO.PrintLine("... | ... Parameter at index '{0}' is accessed in '{1}'",
+                        Console.WriteLine("... | ... Parameter at index '{0}' is accessed in '{1}'",
                             index.Key, syntaxNode);
                     }
                 }
@@ -507,13 +503,13 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             if (this.FieldAccessSet.Count > 0)
             {
-                IO.PrintLine("... |");
-                IO.PrintLine("... | . Field access set");
+                Console.WriteLine("... |");
+                Console.WriteLine("... | . Field access set");
                 foreach (var field in this.FieldAccessSet)
                 {
                     foreach (var syntaxNode in field.Value)
                     {
-                        IO.PrintLine("... | ... Field '{0}' is accessed in '{1}'",
+                        Console.WriteLine("... | ... Field '{0}' is accessed in '{1}'",
                            field.Key.Name, syntaxNode);
                     }
                 }
@@ -521,13 +517,13 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             if (this.SideEffects.Count > 0)
             {
-                IO.PrintLine("... |");
-                IO.PrintLine("... | . Side effects");
+                Console.WriteLine("... |");
+                Console.WriteLine("... | . Side effects");
                 foreach (var pair in this.SideEffects)
                 {
                     foreach (var index in pair.Value)
                     {
-                        IO.PrintLine("... | ... parameter at index '{0}' flows into field '{1}'",
+                        Console.WriteLine("... | ... parameter at index '{0}' flows into field '{1}'",
                             index, pair.Key.Name);
                     }
                 }
@@ -536,31 +532,31 @@ namespace Microsoft.PSharp.StaticAnalysis
             if (this.ReturnSet.Item1.Count > 0 ||
                 this.ReturnSet.Item2.Count > 0)
             {
-                IO.PrintLine("... |");
-                IO.PrintLine("... | . Method return set");
+                Console.WriteLine("... |");
+                Console.WriteLine("... | . Method return set");
                 foreach (var index in this.ReturnSet.Item1)
                 {
-                    IO.PrintLine("... | ... Parameter at index '{0}' flows into return", index);
+                    Console.WriteLine("... | ... Parameter at index '{0}' flows into return", index);
                 }
 
                 foreach (var field in this.ReturnSet.Item2)
                 {
-                    IO.PrintLine("... | ... Field '{0}' flows into return", field.Name);
+                    Console.WriteLine("... | ... Field '{0}' flows into return", field.Name);
                 }
             }
 
             if (this.ReturnTypeSet.Count > 0)
             {
-                IO.PrintLine("... |");
-                IO.PrintLine("... | . Method return types");
+                Console.WriteLine("... |");
+                Console.WriteLine("... | . Method return types");
                 foreach (var type in this.ReturnTypeSet)
                 {
-                    IO.PrintLine("... | ... Type '{0}'", type.Name);
+                    Console.WriteLine("... | ... Type '{0}'", type.Name);
                 }
             }
 
-            IO.PrintLine("... |");
-            IO.PrintLine("... ==================================================");
+            Console.WriteLine("... |");
+            Console.WriteLine("... ==================================================");
         }
 
         #endregion

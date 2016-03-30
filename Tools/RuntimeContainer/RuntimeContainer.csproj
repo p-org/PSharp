@@ -80,7 +80,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Libraries\Remote\Remote.csproj">
-      <Project>{6cf10554-1535-4fe0-a949-eea5025d8604}</Project>
+      <Project>{94adedb2-e404-421d-ba8f-9f77da91d506}</Project>
       <Name>Remote</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Source\Core\Core.csproj">

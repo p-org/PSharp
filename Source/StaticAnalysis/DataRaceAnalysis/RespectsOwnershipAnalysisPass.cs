@@ -18,6 +18,7 @@ using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 
@@ -385,9 +386,9 @@ namespace Microsoft.PSharp.StaticAnalysis
                 }
 
                 this.DetectGivenUpFieldOwnershipInCFG(givesUpCfgNode, givesUpCfgNode, argSymbol,
-                    call, new HashSet<CFGNode>(), originalMachine, model, trace);
+                    call, new HashSet<ControlFlowGraphNode>(), originalMachine, model, trace);
                 this.DetectPotentialDataRacesInCFG(givesUpCfgNode, givesUpCfgNode, argSymbol,
-                    call, new HashSet<CFGNode>(), originalMachine, model, trace);
+                    call, new HashSet<ControlFlowGraphNode>(), originalMachine, model, trace);
             }
             else if (arg is ObjectCreationExpressionSyntax)
             {
@@ -417,7 +418,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="model">SemanticModel</param>
         /// <param name="trace">TraceInfo</param>
         private void DetectGivenUpFieldOwnershipInCFG(PSharpCFGNode cfgNode, PSharpCFGNode givesUpCfgNode,
-            ISymbol target, InvocationExpressionSyntax giveUpSource, HashSet<CFGNode> visited,
+            ISymbol target, InvocationExpressionSyntax giveUpSource, HashSet<ControlFlowGraphNode> visited,
             StateMachine originalMachine, SemanticModel model, TraceInfo trace)
         {
             if (!cfgNode.IsJumpNode && !cfgNode.IsLoopHeadNode &&
@@ -561,8 +562,8 @@ namespace Microsoft.PSharp.StaticAnalysis
                             this.AnalysisContext.DoesFieldBelongToMachine(rightDef, cfgNode.GetMethodSummary()) &&
                             !this.AnalysisContext.IsTypePassedByValueOrImmutable(type) &&
                             !this.AnalysisContext.IsExprEnum(variable.Initializer.Value, model) &&
-                            !DataFlowQuerying.DoesResetInSuccessorCFGNodes(rightSymbol,
-                            target, syntaxNode, cfgNode) &&
+                            !DataFlowQuerying.DoesResetInSuccessorControlFlowGraphNodes(
+                                rightSymbol, target, syntaxNode, cfgNode) &&
                             this.IsFieldAccessedBeforeBeingReset(rightDef, cfgNode.GetMethodSummary()))
                         {
                             TraceInfo newTrace = new TraceInfo();
@@ -695,8 +696,8 @@ namespace Microsoft.PSharp.StaticAnalysis
                     this.AnalysisContext.DoesFieldBelongToMachine(rightDef, cfgNode.GetMethodSummary()) &&
                     !this.AnalysisContext.IsTypePassedByValueOrImmutable(rightType) &&
                     !this.AnalysisContext.IsExprEnum(assignment.Right, model) &&
-                    !DataFlowQuerying.DoesResetInSuccessorCFGNodes(rightSymbol,
-                    target, syntaxNode, cfgNode) &&
+                    !DataFlowQuerying.DoesResetInSuccessorControlFlowGraphNodes(
+                        rightSymbol, target, syntaxNode, cfgNode) &&
                     this.IsFieldAccessedBeforeBeingReset(rightDef, cfgNode.GetMethodSummary()))
                 {
                     TraceInfo newTrace = new TraceInfo();
@@ -717,8 +718,8 @@ namespace Microsoft.PSharp.StaticAnalysis
                         if (leftDef != null && leftDef.Kind == SymbolKind.Field &&
                             !this.AnalysisContext.IsTypePassedByValueOrImmutable(leftType) &&
                             !this.AnalysisContext.IsExprEnum(assignment.Left, model) &&
-                            !DataFlowQuerying.DoesResetInSuccessorCFGNodes(leftSymbol,
-                            target, syntaxNode, cfgNode) &&
+                            !DataFlowQuerying.DoesResetInSuccessorControlFlowGraphNodes(
+                                leftSymbol, target, syntaxNode, cfgNode) &&
                             this.IsFieldAccessedBeforeBeingReset(leftDef, cfgNode.GetMethodSummary()))
                         {
                             TraceInfo newTrace = new TraceInfo();
@@ -739,7 +740,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="call">Call</param>
         /// <param name="target">Target</param>
         /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">CFGNode</param>
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
         /// <param name="givesUpSyntaxNode">Gives up syntaxNode</param>
         /// <param name="givesUpCfgNode">Gives up controlFlowGraphNode</param>
         /// <param name="model">SemanticModel</param>
@@ -807,7 +808,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="call">Call</param>
         /// <param name="target">Target</param>
         /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">CFGNode</param>
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
         /// <param name="givesUpSyntaxNode">Gives up syntaxNode</param>
         /// <param name="givesUpCfgNode">Gives up controlFlowGraphNode</param>
         /// <param name="originalMachine">Original machine</param>
@@ -912,7 +913,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="model">SemanticModel</param>
         /// <param name="trace">TraceInfo</param>
         private void DetectPotentialDataRacesInCFG(PSharpCFGNode cfgNode, PSharpCFGNode givesUpCfgNode,
-            ISymbol target, InvocationExpressionSyntax giveUpSource, HashSet<CFGNode> visited,
+            ISymbol target, InvocationExpressionSyntax giveUpSource, HashSet<ControlFlowGraphNode> visited,
             StateMachine originalMachine, SemanticModel model, TraceInfo trace)
         {
             if (!cfgNode.IsJumpNode && !cfgNode.IsLoopHeadNode &&
@@ -1040,7 +1041,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             if (assignment.Left is MemberAccessExpressionSyntax)
             {
-                if (!DataFlowQuerying.DoesResetInCFGNode(leftSymbol, syntaxNode, cfgNode) &&
+                if (!DataFlowQuerying.DoesResetInControlFlowGraphNode(leftSymbol, syntaxNode, cfgNode) &&
                     DataFlowQuerying.FlowsFromTarget(assignment.Left, target, syntaxNode, cfgNode,
                     givesUpCfgNode.SyntaxNodes.First(), givesUpCfgNode, model, this.AnalysisContext))
                 {
@@ -1107,7 +1108,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="invocation">Invocation</param>
         /// <param name="target">Target</param>
         /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">CFGNode</param>
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
         /// <param name="givesUpSyntaxNode">Gives up syntaxNode</param>
         /// <param name="givesUpCfgNode">Gives up controlFlowGraphNode</param>
         /// <param name="originalMachine">Original machine</param>
@@ -1259,7 +1260,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="invocation">Invocation</param>
         /// <param name="target">Target</param>
         /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">CFGNode</param>
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
         /// <param name="givesUpSyntaxNode">Gives up syntaxNode</param>
         /// <param name="givesUpCfgNode">Gives up controlFlowGraphNode</param>
         /// <param name="model">SemanticModel</param>
@@ -1355,7 +1356,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="operation">Send-related operation</param>
         /// <param name="target">Target</param>
         /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">CFGNode</param>
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
         /// <param name="givesUpSyntaxNode">Gives up syntaxNode</param>
         /// <param name="givesUpCfgNode">Gives up controlFlowGraphNode</param>
         /// <param name="model">SemanticModel</param>
@@ -1529,8 +1530,8 @@ namespace Microsoft.PSharp.StaticAnalysis
                     if (shouldReportError && definition != null && definition.Kind == SymbolKind.Field &&
                         !this.AnalysisContext.IsTypePassedByValueOrImmutable(typeInfo.Type) &&
                         !this.AnalysisContext.IsExprEnum(arg, model) &&
-                        !DataFlowQuerying.DoesResetInSuccessorCFGNodes(symbol, symbol,
-                        givesUpCfgNode.SyntaxNodes.First(), givesUpCfgNode) &&
+                        !DataFlowQuerying.DoesResetInSuccessorControlFlowGraphNodes(
+                            symbol, symbol, givesUpCfgNode.SyntaxNodes.First(), givesUpCfgNode) &&
                         this.IsFieldAccessedBeforeBeingReset(definition, givesUpCfgNode.GetMethodSummary()))
                     {
                         AnalysisErrorReporter.ReportGivenUpFieldOwnershipError(trace);

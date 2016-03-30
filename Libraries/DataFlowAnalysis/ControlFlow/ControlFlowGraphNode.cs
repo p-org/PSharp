@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="CFGNode.cs">
+// <copyright file="ControlFlowGraphNode.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -16,17 +16,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-using Microsoft.PSharp.Utilities;
-
-namespace Microsoft.PSharp.StaticAnalysis
+namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 {
     /// <summary>
     /// A control-flow graph node.
     /// </summary>
-    public class CFGNode
+    public class ControlFlowGraphNode
     {
         #region fields
 
@@ -38,7 +35,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// The unique ID of the node.
         /// </summary>
-        internal int Id;
+        public int Id;
 
         /// <summary>
         /// Handle to the summary of the method which owns this node.
@@ -48,32 +45,32 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// List of syntax nodes.
         /// </summary>
-        internal List<SyntaxNode> SyntaxNodes;
+        public List<SyntaxNode> SyntaxNodes;
 
         /// <summary>
         /// Set of the immediate predecessors of the node.
         /// </summary>
-        protected HashSet<CFGNode> IPredecessors;
+        protected HashSet<ControlFlowGraphNode> IPredecessors;
 
         /// <summary>
         /// Set of the immediate successors of the node.
         /// </summary>
-        protected HashSet<CFGNode> ISuccessors;
+        protected HashSet<ControlFlowGraphNode> ISuccessors;
 
         /// <summary>
         /// The node after exiting the loop.
         /// </summary>
-        private CFGNode LoopExitNode;
+        private ControlFlowGraphNode LoopExitNode;
 
         /// <summary>
         /// True if the node is a jump node. False by default.
         /// </summary>
-        internal bool IsJumpNode;
+        public bool IsJumpNode;
 
         /// <summary>
         /// True if the node is a loop head node. False by default.
         /// </summary>
-        internal bool IsLoopHeadNode;
+        public bool IsLoopHeadNode;
 
         /// <summary>
         /// The description of the node.
@@ -94,14 +91,14 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="context">AnalysisContext</param>
         /// <param name="summary">MethodSummary</param>
-        public CFGNode(AnalysisContext context, MethodSummary summary)
+        public ControlFlowGraphNode(AnalysisContext context, MethodSummary summary)
         {
             this.AnalysisContext = context;
-            this.Id = CFGNode.IdCounter++;
+            this.Id = ControlFlowGraphNode.IdCounter++;
             this.Summary = summary;
             this.SyntaxNodes = new List<SyntaxNode>();
-            this.IPredecessors = new HashSet<CFGNode>();
-            this.ISuccessors = new HashSet<CFGNode>();
+            this.IPredecessors = new HashSet<ControlFlowGraphNode>();
+            this.ISuccessors = new HashSet<ControlFlowGraphNode>();
             this.IsJumpNode = false;
             this.IsLoopHeadNode = false;
             this.Description = "";
@@ -112,8 +109,8 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="context">AnalysisContext</param>
         /// <param name="summary">MethodSummary</param>
-        /// <returns>CFGNode</returns>
-        protected virtual CFGNode CreateNode(AnalysisContext context, MethodSummary summary)
+        /// <returns>ControlFlowGraphNode</returns>
+        protected virtual ControlFlowGraphNode CreateNode(AnalysisContext context, MethodSummary summary)
         {
             return this.CreateNode(context, summary);
         }
@@ -146,7 +143,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// control-flow graph node.
         /// </summary>
         /// <returns>Predecessors</returns>
-        public IEnumerable<CFGNode> GetImmediatePredecessors()
+        public IEnumerable<ControlFlowGraphNode> GetImmediatePredecessors()
         {
             return this.IPredecessors.ToList();
         }
@@ -156,7 +153,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// control-flow graph node.
         /// </summary>
         /// <returns>Successors</returns>
-        public IEnumerable<CFGNode> GetImmediateSuccessors()
+        public IEnumerable<ControlFlowGraphNode> GetImmediateSuccessors()
         {
             return this.ISuccessors.ToList();
         }
@@ -165,31 +162,31 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Returns true if the node is a predecessor of the given node.
         /// Returns false if not.
         /// </summary>
-        /// <param name="node">CFGNode</param>
+        /// <param name="node">ControlFlowGraphNode</param>
         /// <returns>Boolean</returns>
-        internal bool IsPredecessorOf(CFGNode node)
+        internal bool IsPredecessorOf(ControlFlowGraphNode node)
         {
-            return this.IsPredecessorOf(node, new HashSet<CFGNode>());
+            return this.IsPredecessorOf(node, new HashSet<ControlFlowGraphNode>());
         }
 
         /// <summary>
         /// Returns true if the node is a successor of the given node.
         /// Returns false if not.
         /// </summary>
-        /// <param name="node">CFGNode</param>
+        /// <param name="node">ControlFlowGraphNode</param>
         /// <returns>Boolean</returns>
-        internal bool IsSuccessorOf(CFGNode node)
+        internal bool IsSuccessorOf(ControlFlowGraphNode node)
         {
-            return this.IsSuccessorOf(node, new HashSet<CFGNode>());
+            return this.IsSuccessorOf(node, new HashSet<ControlFlowGraphNode>());
         }
 
         /// <summary>
         /// Returns all exit nodes in the control-flow graph.
         /// </summary>
         /// <returns>Set of exit nodes</returns>
-        internal HashSet<CFGNode> GetExitNodes()
+        internal HashSet<ControlFlowGraphNode> GetExitNodes()
         {
-            return this.GetExitNodes(new HashSet<CFGNode>());
+            return this.GetExitNodes(new HashSet<ControlFlowGraphNode>());
         }
 
         /// <summary>
@@ -197,7 +194,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         internal void CleanEmptySuccessors()
         {
-            this.CleanEmptySuccessors(new HashSet<CFGNode>());
+            this.CleanEmptySuccessors(new HashSet<ControlFlowGraphNode>());
         }
 
         #endregion
@@ -211,14 +208,14 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="stmtList">List of statements</param>
         /// <param name="index">Statement index</param>
         /// <param name="successor">Successor</param>
-        protected void Construct(SyntaxList<StatementSyntax> stmtList, int index, CFGNode successor)
+        protected void Construct(SyntaxList<StatementSyntax> stmtList, int index, ControlFlowGraphNode successor)
         {
             for (int idx = index; idx < stmtList.Count; idx++)
             {
-                CFGNode jumpNode = null;
-                CFGNode succNode = null;
+                ControlFlowGraphNode jumpNode = null;
+                ControlFlowGraphNode succNode = null;
                 
-                CFGNode specialNode = this.CreateSingleStatementCFGNode(stmtList[idx]);
+                ControlFlowGraphNode specialNode = this.CreateSingleStatementControlFlowGraphNode(stmtList[idx]);
                 if (specialNode != null)
                 {
                     if (idx < stmtList.Count - 1 &&
@@ -434,8 +431,8 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// using the given statement.
         /// </summary>
         /// <param name="stmt">Statement</param>
-        /// <returns>CFGNode</returns>
-        protected virtual CFGNode CreateSingleStatementCFGNode(StatementSyntax stmt)
+        /// <returns>ControlFlowGraphNode</returns>
+        protected virtual ControlFlowGraphNode CreateSingleStatementControlFlowGraphNode(StatementSyntax stmt)
         {
             return null;
         }
@@ -449,7 +446,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="stmt">Statement</param>
         /// <param name="successor">Successor</param>
-        private void HandleIfStatement(IfStatementSyntax stmt, CFGNode successor)
+        private void HandleIfStatement(IfStatementSyntax stmt, ControlFlowGraphNode successor)
         {
             this.SyntaxNodes.Add(stmt.Condition);
             this.IsJumpNode = true;
@@ -502,7 +499,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="stmt">Statement</param>
         /// <param name="successor">Successor</param>
-        private void HandleForStatement(ForStatementSyntax stmt, CFGNode successor)
+        private void HandleForStatement(ForStatementSyntax stmt, ControlFlowGraphNode successor)
         {
             this.SyntaxNodes.Add(stmt.Condition);
             this.IsLoopHeadNode = true;
@@ -534,7 +531,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="stmt">Statement</param>
         /// <param name="successor">Successor</param>
-        private void HandleWhileStatement(WhileStatementSyntax stmt, CFGNode successor)
+        private void HandleWhileStatement(WhileStatementSyntax stmt, ControlFlowGraphNode successor)
         {
             this.SyntaxNodes.Add(stmt.Condition);
             this.IsLoopHeadNode = true;
@@ -566,7 +563,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="stmt">Statement</param>
         /// <param name="successor">Successor</param>
-        private void HandleDoStatement(DoStatementSyntax stmt, CFGNode successor)
+        private void HandleDoStatement(DoStatementSyntax stmt, ControlFlowGraphNode successor)
         {
             this.SyntaxNodes.Add(stmt.Condition);
             this.IsLoopHeadNode = true;
@@ -598,7 +595,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="stmt">Statement</param>
         /// <param name="successor">Successor</param>
-        private void HandleForeachStatement(ForEachStatementSyntax stmt, CFGNode successor)
+        private void HandleForeachStatement(ForEachStatementSyntax stmt, ControlFlowGraphNode successor)
         {
             this.SyntaxNodes.Add(stmt.Expression);
             this.IsLoopHeadNode = true;
@@ -630,7 +627,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="stmt">Statement</param>
         /// <param name="successor">Successor</param>
-        private void HandleSwitchStatement(SwitchStatementSyntax stmt, CFGNode successor)
+        private void HandleSwitchStatement(SwitchStatementSyntax stmt, ControlFlowGraphNode successor)
         {
             this.SyntaxNodes.Add(stmt.Expression);
             this.IsJumpNode = true;
@@ -677,7 +674,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="stmt">Statement</param>
         /// <param name="successor">Successor</param>
-        private void HandleTryStatement(TryStatementSyntax stmt, CFGNode successor)
+        private void HandleTryStatement(TryStatementSyntax stmt, ControlFlowGraphNode successor)
         {
             this.Construct(stmt.Block.Statements, 0, successor);
         }
@@ -687,7 +684,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="stmt">Statement</param>
         /// <param name="successor">Successor</param>
-        private void HandleUsingStatement(UsingStatementSyntax stmt, CFGNode successor)
+        private void HandleUsingStatement(UsingStatementSyntax stmt, ControlFlowGraphNode successor)
         {
             this.SyntaxNodes.Add(stmt.Declaration);
             this.IsJumpNode = true;
@@ -711,10 +708,10 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Returns true if the node is a predecessor of the given node.
         /// Returns false if not.
         /// </summary>
-        /// <param name="node">CFGNode</param>
+        /// <param name="node">ControlFlowGraphNode</param>
         /// <param name="visited">Already visited cfgNodes</param>
         /// <returns>Boolean</returns>
-        private bool IsPredecessorOf(CFGNode node, HashSet<CFGNode> visited)
+        private bool IsPredecessorOf(ControlFlowGraphNode node, HashSet<ControlFlowGraphNode> visited)
         {
             visited.Add(this);
 
@@ -738,10 +735,10 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Returns true if the node is a successor of the given node.
         /// Returns false if not.
         /// </summary>
-        /// <param name="node">CFGNode</param>
+        /// <param name="node">ControlFlowGraphNode</param>
         /// <param name="visited">Already visited cfgNodes</param>
         /// <returns>Boolean</returns>
-        private bool IsSuccessorOf(CFGNode node, HashSet<CFGNode> visited)
+        private bool IsSuccessorOf(ControlFlowGraphNode node, HashSet<ControlFlowGraphNode> visited)
         {
             visited.Add(this);
 
@@ -766,11 +763,11 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="visited">Already visited cfgNodes</param>
         /// <returns>Set of exit nodes</returns>
-        private HashSet<CFGNode> GetExitNodes(HashSet<CFGNode> visited)
+        private HashSet<ControlFlowGraphNode> GetExitNodes(HashSet<ControlFlowGraphNode> visited)
         {
             visited.Add(this);
 
-            var exitNodes = new HashSet<CFGNode>();
+            var exitNodes = new HashSet<ControlFlowGraphNode>();
             if (this.ISuccessors.Count == 0)
             {
                 exitNodes.Add(this);
@@ -794,11 +791,11 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Cleans empty successors.
         /// </summary>
         /// <param name="visited">Already visited cfgNodes</param>
-        private void CleanEmptySuccessors(HashSet<CFGNode> visited)
+        private void CleanEmptySuccessors(HashSet<ControlFlowGraphNode> visited)
         {
             visited.Add(this);
 
-            var toRemove = new List<CFGNode>();
+            var toRemove = new List<ControlFlowGraphNode>();
             foreach (var successor in this.ISuccessors)
             {
                 if (successor.SyntaxNodes.Count == 0)
@@ -825,11 +822,11 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Prints the control-flow graph nodes.
         /// </summary>
-        internal void PrintCFGNodes()
+        internal void PrintControlFlowGraphNodes()
         {
-            IO.PrintLine("... |");
-            IO.PrintLine("... | . List of CFG nodes");
-            this.PrintCFGNodes(null);
+            Console.WriteLine("... |");
+            Console.WriteLine("... | . List of CFG nodes");
+            this.PrintControlFlowGraphNodes(null);
         }
 
         /// <summary>
@@ -837,8 +834,8 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         internal void PrintCFGSuccessors()
         {
-            IO.PrintLine("... |");
-            IO.PrintLine("... | . Successor CFG nodes");
+            Console.WriteLine("... |");
+            Console.WriteLine("... | . Successor CFG nodes");
             this.PrintCFGSuccessors(null);
         }
 
@@ -847,8 +844,8 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         internal void PrintCFGPredecessors()
         {
-            IO.PrintLine("... |");
-            IO.PrintLine("... | . Predecessor CFG nodes");
+            Console.WriteLine("... |");
+            Console.WriteLine("... | . Predecessor CFG nodes");
             this.PrintCFGPredecessors(null);
         }
 
@@ -856,11 +853,11 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Prints the control-flow graph nodes.
         /// </summary>
         /// <param name="visited">Set of visited CFG nodes</param>
-        private void PrintCFGNodes(HashSet<CFGNode> visited)
+        private void PrintControlFlowGraphNodes(HashSet<ControlFlowGraphNode> visited)
         {
             if (visited == null)
             {
-                visited = new HashSet<CFGNode> { this };
+                visited = new HashSet<ControlFlowGraphNode> { this };
             }
             else if (visited.Contains(this))
             {
@@ -873,21 +870,21 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             if (this.Description.Length > 0)
             {
-                IO.PrintLine("... | ... [{0}] '{1}'", this.Description, this.Id);
+                Console.WriteLine("... | ... [{0}] '{1}'", this.Description, this.Id);
             }
             else
             {
-                IO.PrintLine("... | ... '{0}'", this.Id);
+                Console.WriteLine("... | ... '{0}'", this.Id);
             }
 
             foreach (var node in this.SyntaxNodes)
             {
-                IO.PrintLine("... | ..... '{0}'", node);
+                Console.WriteLine("... | ..... '{0}'", node);
             }
 
             foreach (var node in this.ISuccessors)
             {
-                node.PrintCFGNodes(visited);
+                node.PrintControlFlowGraphNodes(visited);
             }
         }
 
@@ -895,11 +892,11 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Prints the control-flow graph successor nodes.
         /// </summary>
         /// <param name="visited">Set of visited CFG nodes</param>
-        private void PrintCFGSuccessors(HashSet<CFGNode> visited)
+        private void PrintCFGSuccessors(HashSet<ControlFlowGraphNode> visited)
         {
             if (visited == null)
             {
-                visited = new HashSet<CFGNode> { this };
+                visited = new HashSet<ControlFlowGraphNode> { this };
             }
             else if (visited.Contains(this))
             {
@@ -910,13 +907,13 @@ namespace Microsoft.PSharp.StaticAnalysis
                 visited.Add(this);
             }
 
-            IO.Print("... | ... cfg '{0}': ", this.Id);
+            Console.Write("... | ... cfg '{0}': ", this.Id);
             foreach (var node in this.ISuccessors)
             {
-                IO.Print(" '{0}'", node.Id);
+                Console.Write(" '{0}'", node.Id);
             }
 
-            IO.PrintLine("");
+            Console.WriteLine("");
             foreach (var node in this.ISuccessors)
             {
                 node.PrintCFGSuccessors(visited);
@@ -927,11 +924,11 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Prints the control-flow graph predecessor nodes.
         /// </summary>
         /// <param name="visited">Set of visited CFG nodes</param>
-        private void PrintCFGPredecessors(HashSet<CFGNode> visited)
+        private void PrintCFGPredecessors(HashSet<ControlFlowGraphNode> visited)
         {
             if (visited == null)
             {
-                visited = new HashSet<CFGNode> { this };
+                visited = new HashSet<ControlFlowGraphNode> { this };
             }
             else if (visited.Contains(this))
             {
@@ -942,13 +939,13 @@ namespace Microsoft.PSharp.StaticAnalysis
                 visited.Add(this);
             }
 
-            IO.Print("... | ... cfg '{0}': ", this.Id);
+            Console.Write("... | ... cfg '{0}': ", this.Id);
             foreach (var node in this.IPredecessors)
             {
-                IO.Print(" '{0}'", node.Id);
+                Console.Write(" '{0}'", node.Id);
             }
 
-            IO.PrintLine("");
+            Console.WriteLine("");
             foreach (var node in this.ISuccessors)
             {
                 node.PrintCFGPredecessors(visited);

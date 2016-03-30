@@ -17,18 +17,15 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 
-using Microsoft.PSharp.Utilities;
-
-namespace Microsoft.PSharp.StaticAnalysis
+namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 {
     /// <summary>
     /// Class implementing data-flow analysis.
     /// </summary>
-    internal class DataFlowAnalysis
+    public class DataFlowAnalysis
     {
         #region fields
 
@@ -45,25 +42,25 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// DataFlowMap containing data-flow values.
         /// </summary>
-        private Dictionary<CFGNode, Dictionary<SyntaxNode,
+        private Dictionary<ControlFlowGraphNode, Dictionary<SyntaxNode,
             Dictionary<ISymbol, HashSet<ISymbol>>>> DataFlowMap;
 
         /// <summary>
         /// DataFlowMap containing field reachability values.
         /// </summary>
-        private Dictionary<CFGNode, Dictionary<SyntaxNode,
+        private Dictionary<ControlFlowGraphNode, Dictionary<SyntaxNode,
             Dictionary<ISymbol, HashSet<ISymbol>>>> FieldReachabilityMap;
 
         /// <summary>
         /// DataFlowMap containing reference types.
         /// </summary>
-        private Dictionary<CFGNode, Dictionary<SyntaxNode,
+        private Dictionary<ControlFlowGraphNode, Dictionary<SyntaxNode,
             Dictionary<ISymbol, HashSet<ITypeSymbol>>>> ReferenceTypeMap;
 
         /// <summary>
         /// DataFlowMap containing reference resets.
         /// </summary>
-        private Dictionary<CFGNode, Dictionary<SyntaxNode,
+        private Dictionary<ControlFlowGraphNode, Dictionary<SyntaxNode,
             HashSet<ISymbol>>> ReferenceResetMap;
 
         #endregion
@@ -77,13 +74,13 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="model">SemanticModel</param>
         protected DataFlowAnalysis(AnalysisContext context, SemanticModel model)
         {
-            this.DataFlowMap = new Dictionary<CFGNode, Dictionary<SyntaxNode,
+            this.DataFlowMap = new Dictionary<ControlFlowGraphNode, Dictionary<SyntaxNode,
                 Dictionary<ISymbol, HashSet<ISymbol>>>>();
-            this.FieldReachabilityMap = new Dictionary<CFGNode, Dictionary<SyntaxNode,
+            this.FieldReachabilityMap = new Dictionary<ControlFlowGraphNode, Dictionary<SyntaxNode,
                 Dictionary<ISymbol, HashSet<ISymbol>>>>();
-            this.ReferenceTypeMap = new Dictionary<CFGNode, Dictionary<SyntaxNode,
+            this.ReferenceTypeMap = new Dictionary<ControlFlowGraphNode, Dictionary<SyntaxNode,
                 Dictionary<ISymbol, HashSet<ITypeSymbol>>>>();
-            this.ReferenceResetMap = new Dictionary<CFGNode, Dictionary<SyntaxNode,
+            this.ReferenceResetMap = new Dictionary<ControlFlowGraphNode, Dictionary<SyntaxNode,
                 HashSet<ISymbol>>>();
 
             this.AnalysisContext = context;
@@ -113,10 +110,10 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Returns false and a null, if it cannot find such map.
         /// </summary>
         /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">CFGNode</param>
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
         /// <param name="map">DataFlowMap</param>
         /// <returns>Boolean</returns>
-        public bool TryGetDataFlowMapForSyntaxNode(SyntaxNode syntaxNode, CFGNode cfgNode,
+        public bool TryGetDataFlowMapForSyntaxNode(SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode,
             out Dictionary<ISymbol, HashSet<ISymbol>> map)
         {
             if (cfgNode != null && syntaxNode != null &&
@@ -136,11 +133,11 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Returns false and a null, if it cannot find such map.
         /// </summary>
         /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">CFGNode</param>
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
         /// <param name="map">FieldReachabilityMap</param>
         /// <returns>Boolean</returns>
         public bool TryGetFieldReachabilityMapForSyntaxNode(SyntaxNode syntaxNode,
-            CFGNode cfgNode, out Dictionary<ISymbol, HashSet<ISymbol>> map)
+            ControlFlowGraphNode cfgNode, out Dictionary<ISymbol, HashSet<ISymbol>> map)
         {
             if (cfgNode != null && syntaxNode != null &&
                 this.FieldReachabilityMap.ContainsKey(cfgNode) &&
@@ -159,11 +156,11 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Returns false and a null, if it cannot find such map.
         /// </summary>
         /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">CFGNode</param>
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
         /// <param name="map">ReferenceTypeMap</param>
         /// <returns>Boolean</returns>
         public bool TryGetReferenceTypeMapForSyntaxNode(SyntaxNode syntaxNode,
-            CFGNode cfgNode, out Dictionary<ISymbol, HashSet<ITypeSymbol>> map)
+            ControlFlowGraphNode cfgNode, out Dictionary<ISymbol, HashSet<ITypeSymbol>> map)
         {
             if (cfgNode != null && syntaxNode != null &&
                 this.ReferenceTypeMap.ContainsKey(cfgNode) &&
@@ -183,9 +180,10 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="reference">Reference</param>
         /// <param name="refSyntaxNode">Reference SyntaxNode</param>
-        /// <param name="refCfgNode">Reference CFGNode</param>
+        /// <param name="refCfgNode">Reference ControlFlowGraphNode</param>
         /// <returns>Boolean</returns>
-        public bool DoesReferenceResetInCFGNode(ISymbol reference, SyntaxNode refSyntaxNode, CFGNode refCfgNode)
+        public bool DoesReferenceResetInControlFlowGraphNode(ISymbol reference, SyntaxNode refSyntaxNode,
+            ControlFlowGraphNode refCfgNode)
         {
             if (this.ReferenceResetMap.ContainsKey(refCfgNode) &&
                 this.ReferenceResetMap[refCfgNode].ContainsKey(refSyntaxNode) &&
@@ -203,12 +201,12 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="reference">Reference</param>
         /// <param name="refSyntaxNode">Reference SyntaxNode</param>
-        /// <param name="refCfgNode">Reference CFGNode</param>
+        /// <param name="refCfgNode">Reference ControlFlowGraphNode</param>
         /// <param name="targetSyntaxNode">Target syntaxNode</param>
-        /// <param name="targetCfgNode">Target CFGNode</param>
+        /// <param name="targetCfgNode">Target ControlFlowGraphNode</param>
         /// <returns>Boolean</returns>
         public bool DoesReferenceResetUntilSyntaxNode(ISymbol reference, SyntaxNode refSyntaxNode,
-            CFGNode refCfgNode, SyntaxNode targetSyntaxNode, CFGNode targetCfgNode)
+            ControlFlowGraphNode refCfgNode, SyntaxNode targetSyntaxNode, ControlFlowGraphNode targetCfgNode)
         {
             return this.DoesReferenceResetUntilSyntaxNode(reference, refSyntaxNode,
                 refCfgNode, targetSyntaxNode, targetCfgNode, false);
@@ -238,7 +236,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     methodSummary.Method.ParameterList, methodSummary.EntryNode);
             }
 
-            this.AnalyzeCFGNode(methodSummary.EntryNode, methodSummary.Method.ParameterList,
+            this.AnalyzeControlFlowGraphNode(methodSummary.EntryNode, methodSummary.Method.ParameterList,
                 methodSummary.EntryNode);
         }
 
@@ -249,14 +247,15 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Analyzes the data-flow of the given control-flow graph node.
         /// </summary>
-        /// <param name="cfgNode">CFGNode</param>
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
         /// <param name="previousSyntaxNode">Previous SyntaxNode</param>
-        /// <param name="previousCfgNode">Previous CFGNode</param>
-        private void AnalyzeCFGNode(CFGNode cfgNode, SyntaxNode previousSyntaxNode, CFGNode previousCfgNode)
+        /// <param name="previousCfgNode">Previous ControlFlowGraphNode</param>
+        private void AnalyzeControlFlowGraphNode(ControlFlowGraphNode cfgNode, SyntaxNode previousSyntaxNode,
+            ControlFlowGraphNode previousCfgNode)
         {
             if (cfgNode.SyntaxNodes.Count > 0)
             {
-                this.AnalyzeRegularCFGNode(cfgNode, previousSyntaxNode, previousCfgNode);
+                this.AnalyzeRegularControlFlowGraphNode(cfgNode, previousSyntaxNode, previousCfgNode);
                 previousSyntaxNode = cfgNode.SyntaxNodes.Last();
                 previousCfgNode = cfgNode;
             }
@@ -269,17 +268,18 @@ namespace Microsoft.PSharp.StaticAnalysis
                     continue;
                 }
 
-                this.AnalyzeCFGNode(successor, previousSyntaxNode, cfgNode);
+                this.AnalyzeControlFlowGraphNode(successor, previousSyntaxNode, cfgNode);
             }
         }
 
         /// <summary>
         /// Analyzes the data-flow of the given regular control-flow graph node.
         /// </summary>
-        /// <param name="cfgNode">CFGNode</param>
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
         /// <param name="previousSyntaxNode">Previous SyntaxNode</param>
-        /// <param name="previousCfgNode">Previous CFGNode</param>
-        private void AnalyzeRegularCFGNode(CFGNode cfgNode, SyntaxNode previousSyntaxNode, CFGNode previousCfgNode)
+        /// <param name="previousCfgNode">Previous ControlFlowGraphNode</param>
+        private void AnalyzeRegularControlFlowGraphNode(ControlFlowGraphNode cfgNode, SyntaxNode previousSyntaxNode,
+            ControlFlowGraphNode previousCfgNode)
         {
             foreach (var syntaxNode in cfgNode.SyntaxNodes)
             {
@@ -328,8 +328,9 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="varDecl">VariableDeclarationSyntax</param>
         /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">CFGNode</param>
-        private void AnalyzeVariableDeclaration(VariableDeclarationSyntax varDecl, SyntaxNode syntaxNode, CFGNode cfgNode)
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        private void AnalyzeVariableDeclaration(VariableDeclarationSyntax varDecl, SyntaxNode syntaxNode,
+            ControlFlowGraphNode cfgNode)
         {
             foreach (var variable in varDecl.Variables)
             {
@@ -478,9 +479,9 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="binaryExpr">BinaryExpressionSyntax</param>
         /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">CFGNode</param>
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
         private void AnalyzeAssignmentExpression(AssignmentExpressionSyntax assignment,
-            SyntaxNode syntaxNode, CFGNode cfgNode)
+            SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode)
         {
             this.ResolveMethodParameterAccesses(assignment.Left, syntaxNode, cfgNode);
             this.ResolveMethodParameterAccesses(assignment.Right, syntaxNode, cfgNode);
@@ -722,8 +723,9 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="invocation">InvocationExpressionSyntax</param>
         /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">CFGNode</param>
-        private void AnalyzeInvocationExpression(InvocationExpressionSyntax invocation, SyntaxNode syntaxNode, CFGNode cfgNode)
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        private void AnalyzeInvocationExpression(InvocationExpressionSyntax invocation, SyntaxNode syntaxNode,
+            ControlFlowGraphNode cfgNode)
         {
             this.MapSymbolsInInvocation(invocation, cfgNode);
 
@@ -737,8 +739,9 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="retStmt">ReturnStatementSyntax</param>
         /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">CFGNode</param>
-        private void AnalyzeReturnStatement(ReturnStatementSyntax retStmt, SyntaxNode syntaxNode, CFGNode cfgNode)
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        private void AnalyzeReturnStatement(ReturnStatementSyntax retStmt, SyntaxNode syntaxNode,
+            ControlFlowGraphNode cfgNode)
         {
             this.ResolveMethodParameterAccesses(retStmt.Expression, syntaxNode, cfgNode);
             this.ResolveFieldAccesses(retStmt.Expression, syntaxNode, cfgNode);
@@ -864,8 +867,8 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="previousCfgNode">Previous cfgNode</param>
         /// <param name="syntaxNode">SyntaxNode</param>
         /// <param name="cfgNode">CfgNode</param>
-        private void Transfer(SyntaxNode previousSyntaxNode, CFGNode previousCfgNode,
-            SyntaxNode syntaxNode, CFGNode cfgNode)
+        private void Transfer(SyntaxNode previousSyntaxNode, ControlFlowGraphNode previousCfgNode,
+            SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode)
         {
             Dictionary<ISymbol, HashSet<ISymbol>> previousDataFlowMap = null;
             if (this.TryGetDataFlowMapForSyntaxNode(previousSyntaxNode, previousCfgNode,
@@ -907,9 +910,9 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="expr">Expression</param>
         /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">CFGNode</param>
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
         private void ResolveMethodParameterAccesses(ExpressionSyntax expr,
-            SyntaxNode syntaxNode, CFGNode cfgNode)
+            SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode)
         {
             if (!(expr is MemberAccessExpressionSyntax))
             {
@@ -978,9 +981,9 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="expr">Expression</param>
         /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">CFGNode</param>
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
         private void ResolveFieldAccesses(ExpressionSyntax expr, SyntaxNode syntaxNode,
-            CFGNode cfgNode)
+            ControlFlowGraphNode cfgNode)
         {
             if (!(expr is MemberAccessExpressionSyntax))
             {
@@ -1040,10 +1043,10 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="call">Call</param>
         /// <param name="summary">MethodSummary</param>
         /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">CFGNode</param>
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
         /// <returns>Set of reachable field symbols</returns>
-        private HashSet<ISymbol> ResolveSideEffectsInCall(ObjectCreationExpressionSyntax call, MethodSummary summary,
-            SyntaxNode syntaxNode, CFGNode cfgNode)
+        private HashSet<ISymbol> ResolveSideEffectsInCall(ObjectCreationExpressionSyntax call,
+            MethodSummary summary, SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode)
         {
             if (summary == null)
             {
@@ -1082,10 +1085,10 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="call">Call</param>
         /// <param name="summary">MethodSummary</param>
         /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">CFGNode</param>
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
         /// <returns>Set of reachable field symbols</returns>
-        private HashSet<ISymbol> ResolveSideEffectsInCall(InvocationExpressionSyntax call, MethodSummary summary,
-            SyntaxNode syntaxNode, CFGNode cfgNode)
+        private HashSet<ISymbol> ResolveSideEffectsInCall(InvocationExpressionSyntax call,
+            MethodSummary summary, SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode)
         {
             if (summary == null)
             {
@@ -1134,10 +1137,10 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="types">Set of reference type symbols</param>
         /// <param name="symbol">Symbol</param>
         /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">CFGNode</param>
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
         /// <returns>Boolean</returns>
         private bool ResolveReferenceType(out HashSet<ITypeSymbol> types, ISymbol symbol,
-            SyntaxNode syntaxNode, CFGNode cfgNode)
+            SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode)
         {
             types = new HashSet<ITypeSymbol>();
 
@@ -1167,9 +1170,9 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="flowsFromSymbol">Symbol</param>
         /// <param name="flowsIntoSymbol">Symbol</param>
         /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">CFGNode</param>
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
         protected void MapDataFlowInSymbols(ISymbol flowsFromSymbol, ISymbol flowsIntoSymbol,
-            SyntaxNode syntaxNode, CFGNode cfgNode)
+            SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode)
         {
             this.CheckAndInitializeDataFlowMapForSymbol(flowsIntoSymbol, syntaxNode, cfgNode);
             this.DataFlowMap[cfgNode][syntaxNode][flowsIntoSymbol].Add(flowsFromSymbol);
@@ -1181,9 +1184,9 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="flowsFromSymbols">Symbols</param>
         /// <param name="flowsIntoSymbol">Symbol</param>
         /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">CFGNode</param>
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
         protected void MapDataFlowInSymbols(IEnumerable<ISymbol> flowsFromSymbols, ISymbol flowsIntoSymbol,
-            SyntaxNode syntaxNode, CFGNode cfgNode)
+            SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode)
         {
             this.CheckAndInitializeDataFlowMapForSymbol(flowsIntoSymbol, syntaxNode, cfgNode);
             this.DataFlowMap[cfgNode][syntaxNode][flowsIntoSymbol].UnionWith(flowsFromSymbols);
@@ -1197,7 +1200,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="syntaxNode">SyntaxNode</param>
         /// <param name="cfgNode">CfgNode</param>
         private void MapDataFlowInReferences(IEnumerable<ISymbol> references, ISymbol symbol,
-            SyntaxNode syntaxNode, CFGNode cfgNode)
+            SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode)
         {
             HashSet<ISymbol> additionalRefs = new HashSet<ISymbol>();
             foreach (var reference in references)
@@ -1237,7 +1240,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="cfgNode">CfgNode</param>
         /// <param name="reset">Reset map</param>
         private void MapReachableFieldsToSymbol(IEnumerable<ISymbol> fields, ISymbol symbol,
-            SyntaxNode syntaxNode, CFGNode cfgNode, bool reset)
+            SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode, bool reset)
         {
             this.CheckAndInitializeFieldReachabilityMapForSymbol(symbol, syntaxNode, cfgNode, true);
             this.FieldReachabilityMap[cfgNode][syntaxNode][symbol].UnionWith(fields);
@@ -1252,7 +1255,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="cfgNode">CfgNode</param>
         /// <param name="reset">Reset map</param>
         private void MapReferenceTypesToSymbol(IEnumerable<ITypeSymbol> types, ISymbol symbol,
-            SyntaxNode syntaxNode, CFGNode cfgNode, bool reset)
+            SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode, bool reset)
         {
             this.CheckAndInitializeReferenceTypeMapForSymbol(symbol, syntaxNode, cfgNode, reset);
             this.ReferenceTypeMap[cfgNode][syntaxNode][symbol].UnionWith(types);
@@ -1262,8 +1265,8 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Maps symbols in the invocation.
         /// </summary>
         /// <param name="call">Call</param>
-        /// <param name="cfgNode">CFGNode</param>
-        private void MapSymbolsInInvocation(InvocationExpressionSyntax call, CFGNode cfgNode)
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        private void MapSymbolsInInvocation(InvocationExpressionSyntax call, ControlFlowGraphNode cfgNode)
         {
             List<MemberAccessExpressionSyntax> accesses = call.ArgumentList.
                 DescendantNodesAndSelf().OfType<MemberAccessExpressionSyntax>().ToList();
@@ -1288,7 +1291,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="syntaxNode">SyntaxNode</param>
         /// <param name="cfgNode">CfgNode</param>
         private void EraseReferenceTypesForSymbol(ISymbol symbol,
-            SyntaxNode syntaxNode, CFGNode cfgNode)
+            SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode)
         {
             if (this.ReferenceTypeMap.ContainsKey(cfgNode) &&
                 this.ReferenceTypeMap[cfgNode].ContainsKey(syntaxNode) &&
@@ -1304,7 +1307,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="symbol">Symbol</param>
         /// <param name="syntaxNode">SyntaxNode</param>
         /// <param name="cfgNode">CfgNode</param>
-        private void ResetReferences(ISymbol symbol, SyntaxNode syntaxNode, CFGNode cfgNode)
+        private void ResetReferences(ISymbol symbol, SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode)
         {
             this.CheckAndInitializeDataFlowMapForSymbol(symbol, syntaxNode, cfgNode, true);
             this.DataFlowMap[cfgNode][syntaxNode][symbol].Add(symbol);
@@ -1353,7 +1356,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="symbol">Symbol</param>
         /// <param name="syntaxNode">SyntaxNode</param>
         /// <param name="cfgNode">CfgNode</param>
-        private void MarkSymbolReassignment(ISymbol symbol, SyntaxNode syntaxNode, CFGNode cfgNode)
+        private void MarkSymbolReassignment(ISymbol symbol, SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode)
         {
             if (!this.ReferenceResetMap.ContainsKey(cfgNode))
             {
@@ -1374,13 +1377,14 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="reference">Reference</param>
         /// <param name="refSyntaxNode">Reference SyntaxNode</param>
-        /// <param name="refCfgNode">Reference CFGNode</param>
+        /// <param name="refCfgNode">Reference ControlFlowGraphNode</param>
         /// <param name="targetSyntaxNode">Target syntaxNode</param>
-        /// <param name="targetCfgNode">Target CFGNode</param>
+        /// <param name="targetCfgNode">Target ControlFlowGraphNode</param>
         /// <param name="track">Tracking</param>
         /// <returns>Boolean</returns>
         private bool DoesReferenceResetUntilSyntaxNode(ISymbol reference, SyntaxNode refSyntaxNode,
-            CFGNode refCfgNode, SyntaxNode targetSyntaxNode, CFGNode targetCfgNode, bool track)
+            ControlFlowGraphNode refCfgNode, SyntaxNode targetSyntaxNode, ControlFlowGraphNode targetCfgNode,
+            bool track)
         {
             if (refSyntaxNode.Equals(targetSyntaxNode) && refCfgNode.Equals(targetCfgNode) &&
                 !track)
@@ -1389,7 +1393,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             return this.DoesReferenceResetUntilSyntaxNode(reference, refSyntaxNode, refCfgNode,
-                targetSyntaxNode, targetCfgNode, new HashSet<CFGNode>(), track);
+                targetSyntaxNode, targetCfgNode, new HashSet<ControlFlowGraphNode>(), track);
         }
 
         /// <summary>
@@ -1398,14 +1402,15 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="reference">Reference</param>
         /// <param name="refSyntaxNode">Reference SyntaxNode</param>
-        /// <param name="refCfgNode">Reference CFGNode</param>
+        /// <param name="refCfgNode">Reference ControlFlowGraphNode</param>
         /// <param name="targetSyntaxNode">Target syntaxNode</param>
-        /// <param name="targetCfgNode">Target CFGNode</param>
+        /// <param name="targetCfgNode">Target ControlFlowGraphNode</param>
         /// <param name="visited">Already visited cfgNodes</param>
         /// <param name="track">Tracking</param>
         /// <returns>Boolean</returns>
-        private bool DoesReferenceResetUntilSyntaxNode(ISymbol reference, SyntaxNode refSyntaxNode, CFGNode refCfgNode,
-            SyntaxNode targetSyntaxNode, CFGNode targetCfgNode, HashSet<CFGNode> visited, bool track)
+        private bool DoesReferenceResetUntilSyntaxNode(ISymbol reference, SyntaxNode refSyntaxNode,
+            ControlFlowGraphNode refCfgNode, SyntaxNode targetSyntaxNode, ControlFlowGraphNode targetCfgNode,
+            HashSet<ControlFlowGraphNode> visited, bool track)
         {
             visited.Add(refCfgNode);
 
@@ -1455,10 +1460,11 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Checks if the data-flow analysis reached a fixpoint regarding the given successor.
         /// </summary>
         /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">CFGNode</param>
-        /// <param name="loopHeadCfgNode">Loop head CFGNode</param>
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        /// <param name="loopHeadCfgNode">Loop head ControlFlowGraphNode</param>
         /// <returns>Boolean</returns>
-        private bool ReachedFixpoint(SyntaxNode syntaxNode, CFGNode cfgNode, CFGNode loopHeadCfgNode)
+        private bool ReachedFixpoint(SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode,
+            ControlFlowGraphNode loopHeadCfgNode)
         {
             Dictionary<ISymbol, HashSet<ISymbol>> dataFlowMap = null;
             this.TryGetDataFlowMapForSyntaxNode(syntaxNode, cfgNode, out dataFlowMap);
@@ -1494,10 +1500,10 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="flowsIntoSymbol">Symbol</param>
         /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">CFGNode</param>
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
         /// <param name="resetMap">Should reset the map</param>
         private void CheckAndInitializeDataFlowMapForSymbol(ISymbol flowsIntoSymbol,
-            SyntaxNode syntaxNode, CFGNode cfgNode, bool resetMap = false)
+            SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode, bool resetMap = false)
         {
             this.CheckAndInitializeDataFlowMapForSyntaxNode(syntaxNode, cfgNode);
             if (!this.DataFlowMap[cfgNode][syntaxNode].ContainsKey(flowsIntoSymbol))
@@ -1515,8 +1521,9 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// and initializes it, if needed.
         /// </summary>
         /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">CFGNode</param>
-        private void CheckAndInitializeDataFlowMapForSyntaxNode(SyntaxNode syntaxNode, CFGNode cfgNode)
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        private void CheckAndInitializeDataFlowMapForSyntaxNode(SyntaxNode syntaxNode,
+            ControlFlowGraphNode cfgNode)
         {
             if (!this.DataFlowMap.ContainsKey(cfgNode))
             {
@@ -1537,10 +1544,10 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="symbol">Symbol</param>
         /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">CFGNode</param>
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
         /// <param name="resetMap">Should reset the map</param>
         private void CheckAndInitializeReferenceTypeMapForSymbol(ISymbol symbol,
-            SyntaxNode syntaxNode, CFGNode cfgNode, bool resetMap = false)
+            SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode, bool resetMap = false)
         {
             this.CheckAndInitializeReferenceTypeMapForSyntaxNode(syntaxNode, cfgNode);
             if (!this.ReferenceTypeMap[cfgNode][syntaxNode].ContainsKey(symbol))
@@ -1558,8 +1565,9 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// and initializes it, if needed.
         /// </summary>
         /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">CFGNode</param>
-        private void CheckAndInitializeReferenceTypeMapForSyntaxNode(SyntaxNode syntaxNode, CFGNode cfgNode)
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        private void CheckAndInitializeReferenceTypeMapForSyntaxNode(SyntaxNode syntaxNode,
+            ControlFlowGraphNode cfgNode)
         {
             if (!this.ReferenceTypeMap.ContainsKey(cfgNode))
             {
@@ -1583,7 +1591,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="cfgNode">CfgNode</param>
         /// <param name="reset">Reset map</param>
         private void CheckAndInitializeFieldReachabilityMapForSymbol(ISymbol symbol,
-            SyntaxNode syntaxNode, CFGNode cfgNode, bool resetMap = false)
+            SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode, bool resetMap = false)
         {
             this.CheckAndInitializeFieldReachabilityMapForSyntaxNode(syntaxNode, cfgNode);
             if (!this.FieldReachabilityMap[cfgNode][syntaxNode].ContainsKey(symbol))
@@ -1602,7 +1610,8 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="syntaxNode">SyntaxNode</param>
         /// <param name="cfgNode">CfgNode</param>
-        private void CheckAndInitializeFieldReachabilityMapForSyntaxNode(SyntaxNode syntaxNode, CFGNode cfgNode)
+        private void CheckAndInitializeFieldReachabilityMapForSyntaxNode(SyntaxNode syntaxNode,
+            ControlFlowGraphNode cfgNode)
         {
             if (!this.FieldReachabilityMap.ContainsKey(cfgNode))
             {
@@ -1628,8 +1637,8 @@ namespace Microsoft.PSharp.StaticAnalysis
         {
             if (this.DataFlowMap.Count > 0)
             {
-                IO.PrintLine("... |");
-                IO.PrintLine("... | . Data-flow map");
+                Console.WriteLine("... |");
+                Console.WriteLine("... | . Data-flow map");
                 foreach (var cfgNode in this.DataFlowMap)
                 {
                     this.PrintDataFlowMap(cfgNode.Key);
@@ -1644,8 +1653,8 @@ namespace Microsoft.PSharp.StaticAnalysis
         {
             if (this.FieldReachabilityMap.Count > 0)
             {
-                IO.PrintLine("... |");
-                IO.PrintLine("... | . Field reachability map");
+                Console.WriteLine("... |");
+                Console.WriteLine("... | . Field reachability map");
                 foreach (var cfgNode in this.FieldReachabilityMap)
                 {
                     this.PrintFieldReachabilityMap(cfgNode.Key);
@@ -1661,8 +1670,8 @@ namespace Microsoft.PSharp.StaticAnalysis
             if (this.ReferenceTypeMap.SelectMany(cfg => cfg.Value.SelectMany(node
                 => node.Value.SelectMany(symbol => symbol.Value))).Count() > 0)
             {
-                IO.PrintLine("... |");
-                IO.PrintLine("... | . Types of references");
+                Console.WriteLine("... |");
+                Console.WriteLine("... | . Types of references");
                 foreach (var cfgNode in this.ReferenceTypeMap)
                 {
                     this.PrintReferenceTypes(cfgNode.Key);
@@ -1677,8 +1686,8 @@ namespace Microsoft.PSharp.StaticAnalysis
         {
             if (this.ReferenceResetMap.Count > 0)
             {
-                IO.PrintLine("... |");
-                IO.PrintLine("... | . Statements that reset references");
+                Console.WriteLine("... |");
+                Console.WriteLine("... | . Statements that reset references");
                 foreach (var cfgNode in this.ReferenceResetMap)
                 {
                     this.PrintStatementsThatResetReferences(cfgNode.Key);
@@ -1689,12 +1698,12 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Prints the data-flow information.
         /// </summary>
-        /// <param name="cfgNode">CFGNode</param>
-        private void PrintDataFlowMap(CFGNode cfgNode)
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        private void PrintDataFlowMap(ControlFlowGraphNode cfgNode)
         {
             if (this.DataFlowMap.ContainsKey(cfgNode))
             {
-                IO.PrintLine("... | ... CFG node '{0}'", cfgNode.Id);
+                Console.WriteLine("... | ... CFG node '{0}'", cfgNode.Id);
                 foreach (var syntaxNode in this.DataFlowMap[cfgNode])
                 {
                     this.PrintDataFlowMap(syntaxNode.Key, cfgNode);
@@ -1706,18 +1715,18 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Prints the data-flow information.
         /// </summary>
         /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">CFGNode</param>
-        private void PrintDataFlowMap(SyntaxNode syntaxNode, CFGNode cfgNode)
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        private void PrintDataFlowMap(SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode)
         {
             if (this.DataFlowMap.ContainsKey(cfgNode) &&
                 this.DataFlowMap[cfgNode].ContainsKey(syntaxNode))
             {
-                IO.PrintLine("... | ..... '{0}'", syntaxNode);
+                Console.WriteLine("... | ..... '{0}'", syntaxNode);
                 foreach (var pair in this.DataFlowMap[cfgNode][syntaxNode])
                 {
                     foreach (var symbol in pair.Value)
                     {
-                        IO.PrintLine("... | ....... '{0}' flows into '{1}'",
+                        Console.WriteLine("... | ....... '{0}' flows into '{1}'",
                             symbol.Name, pair.Key.Name);
                     }
                 }
@@ -1727,12 +1736,12 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Prints the field reachability map.
         /// </summary>
-        /// <param name="cfgNode">CFGNode</param>
-        private void PrintFieldReachabilityMap(CFGNode cfgNode)
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        private void PrintFieldReachabilityMap(ControlFlowGraphNode cfgNode)
         {
             if (this.FieldReachabilityMap.ContainsKey(cfgNode))
             {
-                IO.PrintLine("... | ... CFG node '{0}'", cfgNode.Id);
+                Console.WriteLine("... | ... CFG node '{0}'", cfgNode.Id);
                 foreach (var syntaxNode in this.FieldReachabilityMap[cfgNode])
                 {
                     this.PrintFieldReachabilityMap(syntaxNode.Key, cfgNode);
@@ -1744,18 +1753,18 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Prints the field reachability map.
         /// </summary>
         /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">CFGNode</param>
-        private void PrintFieldReachabilityMap(SyntaxNode syntaxNode, CFGNode cfgNode)
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        private void PrintFieldReachabilityMap(SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode)
         {
             if (this.FieldReachabilityMap.ContainsKey(cfgNode) &&
                 this.FieldReachabilityMap[cfgNode].ContainsKey(syntaxNode))
             {
-                IO.PrintLine("... | ..... '{0}'", syntaxNode);
+                Console.WriteLine("... | ..... '{0}'", syntaxNode);
                 foreach (var pair in this.FieldReachabilityMap[cfgNode][syntaxNode])
                 {
                     foreach (var symbol in pair.Value)
                     {
-                        IO.PrintLine("... | ....... Field '{0}' is reachable from '{1}'",
+                        Console.WriteLine("... | ....... Field '{0}' is reachable from '{1}'",
                             symbol.Name, pair.Key.Name);
                     }
                 }
@@ -1765,12 +1774,12 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Prints the type of references.
         /// </summary>
-        /// <param name="cfgNode">CFGNode</param>
-        private void PrintReferenceTypes(CFGNode cfgNode)
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        private void PrintReferenceTypes(ControlFlowGraphNode cfgNode)
         {
             if (this.ReferenceTypeMap.ContainsKey(cfgNode))
             {
-                IO.PrintLine("... | ... CFG node '{0}'", cfgNode.Id);
+                Console.WriteLine("... | ... CFG node '{0}'", cfgNode.Id);
                 foreach (var syntaxNode in this.ReferenceTypeMap[cfgNode])
                 {
                     this.PrintReferenceTypes(syntaxNode.Key, cfgNode);
@@ -1782,18 +1791,18 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Prints the type of references.
         /// </summary>
         /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">CFGNode</param>
-        private void PrintReferenceTypes(SyntaxNode syntaxNode, CFGNode cfgNode)
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        private void PrintReferenceTypes(SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode)
         {
             if (this.ReferenceTypeMap.ContainsKey(cfgNode) &&
                 this.ReferenceTypeMap[cfgNode].ContainsKey(syntaxNode))
             {
-                IO.PrintLine("... | ..... '{0}'", syntaxNode);
+                Console.WriteLine("... | ..... '{0}'", syntaxNode);
                 foreach (var pair in this.ReferenceTypeMap[cfgNode][syntaxNode])
                 {
                     foreach (var type in pair.Value)
                     {
-                        IO.PrintLine("... | ....... '{0}' has type '{1}'",
+                        Console.WriteLine("... | ....... '{0}' has type '{1}'",
                             pair.Key.Name, type.Name);
                     }
                 }
@@ -1803,12 +1812,12 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Prints statements that reset references.
         /// </summary>
-        /// <param name="cfgNode">CFGNode</param>
-        private void PrintStatementsThatResetReferences(CFGNode cfgNode)
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        private void PrintStatementsThatResetReferences(ControlFlowGraphNode cfgNode)
         {
             if (this.ReferenceResetMap.ContainsKey(cfgNode))
             {
-                IO.PrintLine("... | ... CFG node '{0}'", cfgNode.Id);
+                Console.WriteLine("... | ... CFG node '{0}'", cfgNode.Id);
                 foreach (var syntaxNode in this.ReferenceResetMap[cfgNode])
                 {
                     this.PrintStatementsThatResetReferences(syntaxNode.Key, cfgNode);
@@ -1820,16 +1829,17 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Prints statements that reset references.
         /// </summary>
         /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">CFGNode</param>
-        private void PrintStatementsThatResetReferences(SyntaxNode syntaxNode, CFGNode cfgNode)
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        private void PrintStatementsThatResetReferences(SyntaxNode syntaxNode,
+            ControlFlowGraphNode cfgNode)
         {
             if (this.ReferenceResetMap.ContainsKey(cfgNode) &&
                 this.ReferenceResetMap[cfgNode].ContainsKey(syntaxNode))
             {
-                IO.PrintLine("... | ..... '{0}'", syntaxNode);
+                Console.WriteLine("... | ..... '{0}'", syntaxNode);
                 foreach (var symbol in this.ReferenceResetMap[cfgNode][syntaxNode])
                 {
-                    IO.PrintLine("... | ....... Resets '{0}'", symbol.Name);
+                    Console.WriteLine("... | ....... Resets '{0}'", symbol.Name);
                 }
             }
         }
