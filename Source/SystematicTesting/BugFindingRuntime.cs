@@ -562,13 +562,12 @@ namespace Microsoft.PSharp.SystematicTesting
             var prevMachineOpId = machine.OperationId;
             machine.SetOperationId(e.OperationId);
 
+            // Visualizes the received event and the state transition,
+            // if there is any.
             if (this.Configuration.EnableVisualization)
             {
-                var originMachine = eInfo.machine;
-                var originState = eInfo.state;
-                var destMachine = machine.GetType().Name;
-                var destState = machine.CurrentStateName;
-                this.Visualizer.AddTransition(originMachine, originState, e.GetType().Name, destMachine, destState);
+                this.VisualizeReceivedEvent(machine, e, eInfo);
+                this.VisualizeStateTransition(machine, e);
             }
 
             //if (this.Configuration.BoundOperations && prevMachineOpId != machine.OperationId)
@@ -582,12 +581,13 @@ namespace Microsoft.PSharp.SystematicTesting
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="e">Event</param>
+        /// <param name="eInfo">EventOriginInfo</param>
         internal override void NotifyRaisedEvent(Machine machine, Event e, EventOriginInfo eInfo)
         {
             var prevMachineOpId = machine.OperationId;
             machine.SetOperationId(e.OperationId);
 
-            // Capture a Goto transition.
+            // Visualizes the state transition, if there is any.
             if (this.Configuration.EnableVisualization)
             {
                 this.VisualizeStateTransition(machine, e);
@@ -728,15 +728,32 @@ namespace Microsoft.PSharp.SystematicTesting
         #region private methods
 
         /// <summary>
+        /// Visualizes a received event.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <param name="e">Event</param>
+        /// <param name="eInfo">EventOriginInfo</param>
+        private void VisualizeReceivedEvent(Machine machine, Event e, EventOriginInfo eInfo)
+        {
+            string originMachine = eInfo.machine;
+            string originState = eInfo.state;
+            string edgeLabel = e.GetType().Name;
+            string destMachine = machine.GetType().Name;
+            string destState = machine.CurrentStateName;
+
+            this.Visualizer.AddTransition(originMachine, originState, edgeLabel, destMachine, destState);
+        }
+
+        /// <summary>
         /// Visualizes a state transition.
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="e">Event</param>
         private void VisualizeStateTransition(Machine machine, Event e)
         {
-            var originMachine = machine.GetType().Name;
-            var originState = machine.CurrentStateName;
-            var destMachine = machine.GetType().Name;
+            string originMachine = machine.GetType().Name;
+            string originState = machine.CurrentStateName;
+            string destMachine = machine.GetType().Name;
 
             string edgeLabel = "";
             string destState = "";
