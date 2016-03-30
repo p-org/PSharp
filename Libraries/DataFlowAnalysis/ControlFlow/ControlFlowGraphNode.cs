@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <param name="method">Method</param>
         public void Construct(BaseMethodDeclarationSyntax method)
         {
-            this.Construct(method.Body.Statements, 0, null);
+            this.Construct(this.GetStatements(method.Body), 0, null);
         }
 
         /// <summary>
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <param name="stmtList">List of statements</param>
         /// <param name="index">Statement index</param>
         /// <param name="successor">Successor</param>
-        protected void Construct(SyntaxList<StatementSyntax> stmtList, int index, ControlFlowGraphNode successor)
+        protected void Construct(List<StatementSyntax> stmtList, int index, ControlFlowGraphNode successor)
         {
             for (int idx = index; idx < stmtList.Count; idx++)
             {
@@ -216,6 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 ControlFlowGraphNode succNode = null;
                 
                 ControlFlowGraphNode specialNode = this.CreateSingleStatementControlFlowGraphNode(stmtList[idx]);
+
                 if (specialNode != null)
                 {
                     if (idx < stmtList.Count - 1 &&
@@ -456,14 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             this.ISuccessors.Add(ifNode);
             ifNode.IPredecessors.Add(this);
 
-            if (stmt.Statement is BlockSyntax)
-            {
-                ifNode.Construct((stmt.Statement as BlockSyntax).Statements, 0, successor);
-            }
-            else
-            {
-                ifNode.Construct(new SyntaxList<StatementSyntax> { stmt.Statement }, 0, successor);
-            }
+            ifNode.Construct(this.GetStatements(stmt.Statement), 0, successor);
 
             if (stmt.Else != null)
             {
@@ -477,14 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 }
                 else
                 {
-                    if (stmt.Else.Statement is BlockSyntax)
-                    {
-                        elseNode.Construct((stmt.Else.Statement as BlockSyntax).Statements, 0, successor);
-                    }
-                    else
-                    {
-                        elseNode.Construct(new SyntaxList<StatementSyntax> { stmt.Else.Statement }, 0, successor);
-                    }
+                    elseNode.Construct(this.GetStatements(stmt.Else.Statement), 0, successor);
                 }
             }
             else if (successor != null)
@@ -516,14 +503,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             this.ISuccessors.Add(forNode);
             forNode.IPredecessors.Add(this);
 
-            if (stmt.Statement is BlockSyntax)
-            {
-                forNode.Construct((stmt.Statement as BlockSyntax).Statements, 0, this);
-            }
-            else
-            {
-                forNode.Construct(new SyntaxList<StatementSyntax> { stmt.Statement }, 0, this);
-            }
+            forNode.Construct(this.GetStatements(stmt.Statement), 0, this);
         }
 
         /// <summary>
@@ -548,14 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             this.ISuccessors.Add(whileNode);
             whileNode.IPredecessors.Add(this);
 
-            if (stmt.Statement is BlockSyntax)
-            {
-                whileNode.Construct((stmt.Statement as BlockSyntax).Statements, 0, this);
-            }
-            else
-            {
-                whileNode.Construct(new SyntaxList<StatementSyntax> { stmt.Statement }, 0, this);
-            }
+            whileNode.Construct(this.GetStatements(stmt.Statement), 0, this);
         }
 
         /// <summary>
@@ -580,14 +553,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             this.ISuccessors.Add(doNode);
             doNode.IPredecessors.Add(this);
 
-            if (stmt.Statement is BlockSyntax)
-            {
-                doNode.Construct((stmt.Statement as BlockSyntax).Statements, 0, this);
-            }
-            else
-            {
-                doNode.Construct(new SyntaxList<StatementSyntax> { stmt.Statement }, 0, this);
-            }
+            doNode.Construct(this.GetStatements(stmt.Statement), 0, this);
         }
 
         /// <summary>
@@ -612,14 +578,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             this.ISuccessors.Add(foreachNode);
             foreachNode.IPredecessors.Add(this);
 
-            if (stmt.Statement is BlockSyntax)
-            {
-                foreachNode.Construct((stmt.Statement as BlockSyntax).Statements, 0, this);
-            }
-            else
-            {
-                foreachNode.Construct(new SyntaxList<StatementSyntax> { stmt.Statement }, 0, this);
-            }
+            foreachNode.Construct(this.GetStatements(stmt.Statement), 0, this);
         }
 
         /// <summary>
@@ -643,7 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 
             for (int idx = 0; idx < stmt.Sections.Count; idx++)
             {
-                var statements = stmt.Sections[idx].Statements;
+                var statements = stmt.Sections[idx].Statements.ToList();
                 bool containsBreak = false;
                 foreach (var s in statements)
                 {
@@ -676,7 +635,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <param name="successor">Successor</param>
         private void HandleTryStatement(TryStatementSyntax stmt, ControlFlowGraphNode successor)
         {
-            this.Construct(stmt.Block.Statements, 0, successor);
+            this.Construct(this.GetStatements(stmt.Block), 0, successor);
         }
 
         /// <summary>
@@ -694,14 +653,22 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             this.ISuccessors.Add(usingNode);
             usingNode.IPredecessors.Add(this);
 
-            if (stmt.Statement is BlockSyntax)
+            usingNode.Construct(this.GetStatements(stmt.Statement), 0, successor);
+        }
+
+        /// <summary>
+        /// Returns a list containing all statements in the given block.
+        /// </summary>
+        /// <param name="statement">StatementSyntax</param>
+        /// <returns>SyntaxList</returns>
+        private List<StatementSyntax> GetStatements(StatementSyntax statement)
+        {
+            if (statement is BlockSyntax)
             {
-                usingNode.Construct((stmt.Statement as BlockSyntax).Statements, 0, successor);
+                return (statement as BlockSyntax).Statements.ToList();
             }
-            else
-            {
-                usingNode.Construct(new SyntaxList<StatementSyntax> { stmt.Statement }, 0, successor);
-            }
+
+            return new List<StatementSyntax> { statement };
         }
 
         /// <summary>

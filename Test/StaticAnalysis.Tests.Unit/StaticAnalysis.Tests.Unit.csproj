@@ -118,6 +118,8 @@
     <Compile Include="ControlFlow\Correct\AccessInLoopTests.cs" />
     <Compile Include="ControlFlow\Correct\BasicLoopTest.cs" />
     <Compile Include="ControlFlow\StaticError\AccessInLoopFailTests.cs" />
+    <Compile Include="Inheritance\Correct\AccessInVirtualMethodTests.cs" />
+    <Compile Include="Inheritance\StaticError\AccessInVirtualMethodFailTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
