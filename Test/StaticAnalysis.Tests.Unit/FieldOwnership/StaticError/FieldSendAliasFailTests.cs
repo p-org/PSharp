@@ -325,7 +325,7 @@ class M : Machine
   this.Send(this.Target, new eUnit(otherLetter));
  }
 
- void Foo(Letter letter)
+ Letter Foo(Letter letter)
  {
    if (letter.Num == 100)
    {

@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                     return;
                 }
 
-                lhs = this.AnalysisContext.GetTopLevelIdentifier(assignment.Left);
+                lhs = DataFlowQuerying.GetTopLevelIdentifier(assignment.Left);
                 lhsFieldSymbol = this.SemanticModel.GetSymbolInfo(name).Symbol as IFieldSymbol;
             }
             else if (assignment.Left is ElementAccessExpressionSyntax)
@@ -546,7 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                         return;
                     }
 
-                    lhs = this.AnalysisContext.GetTopLevelIdentifier(memberAccess.Expression);
+                    lhs = DataFlowQuerying.GetTopLevelIdentifier(memberAccess.Expression);
                     lhsFieldSymbol = this.SemanticModel.GetSymbolInfo(name).Symbol as IFieldSymbol;
                 }
             }
@@ -556,7 +556,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             if (assignment.Right is IdentifierNameSyntax ||
                 assignment.Right is MemberAccessExpressionSyntax)
             {
-                IdentifierNameSyntax rhs = this.AnalysisContext.GetTopLevelIdentifier(assignment.Right);
+                IdentifierNameSyntax rhs = DataFlowQuerying.GetTopLevelIdentifier(assignment.Right);
 
                 var rightSymbol = this.SemanticModel.GetSymbolInfo(rhs).Symbol;
                 this.MapDataFlowInReferences(new List<ISymbol> { rightSymbol },
@@ -1060,7 +1060,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 }
             }
 
-            IdentifierNameSyntax identifier = this.AnalysisContext.GetTopLevelIdentifier(invocation.Expression);
+            IdentifierNameSyntax identifier = DataFlowQuerying.GetTopLevelIdentifier(invocation.Expression);
             if (identifier != null)
             {
                 var idSymbol = this.SemanticModel.GetSymbolInfo(identifier).Symbol;
@@ -1088,7 +1088,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             }
 
             var name = (expr as MemberAccessExpressionSyntax).Name;
-            var identifier = this.AnalysisContext.GetTopLevelIdentifier(expr);
+            var identifier = DataFlowQuerying.GetTopLevelIdentifier(expr);
             if (identifier == null || name == null)
             {
                 return;
@@ -1200,7 +1200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                     continue;
                 }
 
-                var identifier = this.AnalysisContext.GetTopLevelIdentifier(arg.Expression);
+                var identifier = DataFlowQuerying.GetTopLevelIdentifier(arg.Expression);
                 var symbol = this.SemanticModel.GetSymbolInfo(identifier).Symbol;
                 if (symbol == null)
                 {
@@ -1267,7 +1267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             }
 
             var name = (expr as MemberAccessExpressionSyntax).Name;
-            var identifier = this.AnalysisContext.GetTopLevelIdentifier(expr);
+            var identifier = DataFlowQuerying.GetTopLevelIdentifier(expr);
             if (identifier == null || name == null)
             {
                 return;
@@ -1465,7 +1465,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 
             foreach (var access in accesses)
             {
-                IdentifierNameSyntax id = this.AnalysisContext.GetTopLevelIdentifier(access);
+                IdentifierNameSyntax id = DataFlowQuerying.GetTopLevelIdentifier(access);
                 if (id == null)
                 {
                     continue;

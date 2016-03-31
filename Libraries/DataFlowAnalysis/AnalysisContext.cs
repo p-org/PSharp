@@ -197,27 +197,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         }
 
         /// <summary>
-        /// Gets the top-level identifier.
-        /// </summary>
-        /// <param name="expr">Expression</param>
-        /// <returns>Identifier</returns>
-        public IdentifierNameSyntax GetTopLevelIdentifier(ExpressionSyntax expr)
-        {
-            IdentifierNameSyntax identifier = null;
-            if (expr is IdentifierNameSyntax)
-            {
-                identifier = expr as IdentifierNameSyntax;
-            }
-            else if (expr is MemberAccessExpressionSyntax)
-            {
-                identifier = (expr as MemberAccessExpressionSyntax).DescendantNodes().
-                    OfType<IdentifierNameSyntax>().First();
-            }
-
-            return identifier;
-        }
-
-        /// <summary>
         /// Returns true if the type of the expression is an enum.
         /// Returns false if it is not
         /// </summary>

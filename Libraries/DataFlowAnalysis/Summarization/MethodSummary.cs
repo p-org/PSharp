@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                             continue;
                         }
 
-                        arg = this.AnalysisContext.GetTopLevelIdentifier(argExpr);
+                        arg = DataFlowQuerying.GetTopLevelIdentifier(argExpr);
                         argSymbols.Add(model.GetSymbolInfo(arg).Symbol);
                     }
                     else if (argExpr is ObjectCreationExpressionSyntax)
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                         continue;
                     }
 
-                    arg = this.AnalysisContext.GetTopLevelIdentifier(argExpr);
+                    arg = DataFlowQuerying.GetTopLevelIdentifier(argExpr);
                 }
 
                 returnSymbols.Add(model.GetSymbolInfo(arg).Symbol);

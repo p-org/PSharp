@@ -64,34 +64,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             if (!cfgNode.IsJumpNode && !cfgNode.IsLoopHeadNode &&
                 visited.Contains(givesUpCfgNode))
             {
-                foreach (var syntaxNode in cfgNode.SyntaxNodes)
-                {
-                    var stmt = syntaxNode as StatementSyntax;
-                    var localDecl = stmt.DescendantNodesAndSelf().OfType<LocalDeclarationStatementSyntax>().FirstOrDefault();
-                    var expr = stmt.DescendantNodesAndSelf().OfType<ExpressionStatementSyntax>().FirstOrDefault();
-
-                    if (localDecl != null)
-                    {
-                        var varDecl = localDecl.Declaration;
-                        this.AnalyzeOwnershipInLocalDeclaration(varDecl, stmt, syntaxNode, cfgNode,
-                            givesUpCfgNode, target, originalMachine, model, trace);
-                    }
-                    else if (expr != null)
-                    {
-                        if (expr.Expression is AssignmentExpressionSyntax)
-                        {
-                            var assignment = expr.Expression as AssignmentExpressionSyntax;
-                            this.AnalyzeOwnershipInAssignmentExpression(assignment, stmt, syntaxNode,
-                                cfgNode, givesUpCfgNode, target, originalMachine, model, trace);
-                        }
-                        else if (expr.Expression is InvocationExpressionSyntax ||
-                            expr.Expression is ObjectCreationExpressionSyntax)
-                        {
-                            this.AnalyzeOwnershipInExpression(expr.Expression, stmt, syntaxNode,
-                                cfgNode, givesUpCfgNode, target, originalMachine, model, trace);
-                        }
-                    }
-                }
+                this.AnalyzeOwnershipInCFG(cfgNode, givesUpCfgNode, target, originalMachine, model, trace);
             }
 
             if (!visited.Contains(cfgNode))
@@ -117,6 +90,50 @@ namespace Microsoft.PSharp.StaticAnalysis
             : base(context)
         {
 
+        }
+
+        /// <summary>
+        /// Analyzes the ownership of references in the given control-flow graph node.
+        /// </summary>
+        /// <param name="cfgNode">Control flow graph node</param>
+        /// <param name="givesUpCfgNode">Gives-up CFG node</param>
+        /// <param name="target">Target</param>
+        /// <param name="giveUpSource">Give up source</param>
+        /// <param name="visited">Already visited cfgNodes</param>
+        /// <param name="originalMachine">Original machine</param>
+        /// <param name="model">SemanticModel</param>
+        /// <param name="trace">TraceInfo</param>
+        private void AnalyzeOwnershipInCFG(PSharpCFGNode cfgNode, PSharpCFGNode givesUpCfgNode,
+            ISymbol target, StateMachine originalMachine, SemanticModel model, TraceInfo trace)
+        {
+            foreach (var syntaxNode in cfgNode.SyntaxNodes)
+            {
+                var stmt = syntaxNode as StatementSyntax;
+                var localDecl = stmt.DescendantNodesAndSelf().OfType<LocalDeclarationStatementSyntax>().FirstOrDefault();
+                var expr = stmt.DescendantNodesAndSelf().OfType<ExpressionStatementSyntax>().FirstOrDefault();
+
+                if (localDecl != null)
+                {
+                    var varDecl = localDecl.Declaration;
+                    this.AnalyzeOwnershipInLocalDeclaration(varDecl, stmt, syntaxNode, cfgNode,
+                        givesUpCfgNode, target, originalMachine, model, trace);
+                }
+                else if (expr != null)
+                {
+                    if (expr.Expression is AssignmentExpressionSyntax)
+                    {
+                        var assignment = expr.Expression as AssignmentExpressionSyntax;
+                        this.AnalyzeOwnershipInAssignmentExpression(assignment, stmt, syntaxNode,
+                            cfgNode, givesUpCfgNode, target, originalMachine, model, trace);
+                    }
+                    else if (expr.Expression is InvocationExpressionSyntax ||
+                        expr.Expression is ObjectCreationExpressionSyntax)
+                    {
+                        this.AnalyzeOwnershipInExpression(expr.Expression, stmt, syntaxNode,
+                            cfgNode, givesUpCfgNode, target, originalMachine, model, trace);
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -163,12 +180,12 @@ namespace Microsoft.PSharp.StaticAnalysis
                 return;
             }
 
-            var leftIdentifier = this.AnalysisContext.GetTopLevelIdentifier(assignment.Left);
+            var leftIdentifier = DataFlowQuerying.GetTopLevelIdentifier(assignment.Left);
             ISymbol leftSymbol = model.GetSymbolInfo(leftIdentifier).Symbol;
             
             if (assignment.Right is IdentifierNameSyntax &&
                 DataFlowQuerying.FlowsFromTarget(assignment.Right, target, syntaxNode, cfgNode,
-                givesUpCfgNode.SyntaxNodes.First(), givesUpCfgNode, model, this.AnalysisContext))
+                givesUpCfgNode.SyntaxNodes.First(), givesUpCfgNode, model))
             {
                 var type = model.GetTypeInfo(assignment.Right).Type;
                 var fieldSymbol = SymbolFinder.FindSourceDefinitionAsync(leftSymbol,
@@ -200,7 +217,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 if (!DataFlowQuerying.DoesResetInControlFlowGraphNode(leftSymbol, syntaxNode, cfgNode) &&
                     DataFlowQuerying.FlowsFromTarget(assignment.Left, target, syntaxNode, cfgNode,
-                    givesUpCfgNode.SyntaxNodes.First(), givesUpCfgNode, model, this.AnalysisContext))
+                    givesUpCfgNode.SyntaxNodes.First(), givesUpCfgNode, model))
                 {
                     TraceInfo newTrace = new TraceInfo();
                     newTrace.Merge(trace);
@@ -231,7 +248,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 var access = expr as MemberAccessExpressionSyntax;
                 if (DataFlowQuerying.FlowsFromTarget(access, target, syntaxNode, cfgNode,
-                    givesUpCfgNode.SyntaxNodes.First(), givesUpCfgNode, model, this.AnalysisContext))
+                    givesUpCfgNode.SyntaxNodes.First(), givesUpCfgNode, model))
                 {
                     TraceInfo newTrace = new TraceInfo();
                     newTrace.Merge(trace);
@@ -294,9 +311,9 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     var callee = (call.Expression as MemberAccessExpressionSyntax).Expression;
                     if (DataFlowQuerying.FlowsFromTarget(callee, target, syntaxNode, cfgNode,
-                        givesUpSyntaxNode, givesUpCfgNode, model, this.AnalysisContext) &&
+                        givesUpSyntaxNode, givesUpCfgNode, model) &&
                         !DataFlowQuerying.DoesResetInLoop(callee, syntaxNode, cfgNode,
-                        givesUpSyntaxNode, givesUpCfgNode, model, this.AnalysisContext))
+                        givesUpSyntaxNode, givesUpCfgNode, model))
                     {
                         var typeSymbol = model.GetTypeInfo(callee).Type;
                         if (typeSymbol.ContainingNamespace.ToString().Equals("System.Collections.Generic"))
@@ -350,9 +367,9 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     if (!this.AnalysisContext.IsExprEnum(arguments[idx].Expression, model) &&
                         DataFlowQuerying.FlowsFromTarget(arguments[idx].Expression, target, syntaxNode,
-                        cfgNode, givesUpSyntaxNode, givesUpCfgNode, model, this.AnalysisContext) &&
+                        cfgNode, givesUpSyntaxNode, givesUpCfgNode, model) &&
                         !DataFlowQuerying.DoesResetInLoop(arguments[idx].Expression, syntaxNode, cfgNode,
-                        givesUpSyntaxNode, givesUpCfgNode, model, this.AnalysisContext))
+                        givesUpSyntaxNode, givesUpCfgNode, model))
                     {
                         if (invocationSummary.ParameterAccessSet.ContainsKey(idx))
                         {
@@ -454,9 +471,9 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 if (!this.AnalysisContext.IsExprEnum(arguments[idx].Expression, model) &&
                     DataFlowQuerying.FlowsFromTarget(arguments[idx].Expression, target, syntaxNode,
-                    cfgNode, givesUpSyntaxNode, givesUpCfgNode, model, this.AnalysisContext) &&
+                    cfgNode, givesUpSyntaxNode, givesUpCfgNode, model) &&
                     !DataFlowQuerying.DoesResetInLoop(arguments[idx].Expression, syntaxNode, cfgNode,
-                    givesUpSyntaxNode, givesUpCfgNode, model, this.AnalysisContext))
+                    givesUpSyntaxNode, givesUpCfgNode, model))
                 {
                     if (constructorSummary.ParameterAccessSet.ContainsKey(idx))
                     {
@@ -608,9 +625,9 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 if (!this.AnalysisContext.IsExprEnum(arg, model) &&
                     DataFlowQuerying.FlowsFromTarget(arg, target, syntaxNode, cfgNode,
-                    givesUpSyntaxNode, givesUpCfgNode, model, this.AnalysisContext) &&
+                    givesUpSyntaxNode, givesUpCfgNode, model) &&
                     !DataFlowQuerying.DoesResetInLoop(arg, syntaxNode, cfgNode,
-                    givesUpSyntaxNode, givesUpCfgNode, model, this.AnalysisContext))
+                    givesUpSyntaxNode, givesUpCfgNode, model))
                 {
                     AnalysisErrorReporter.ReportGivenUpOwnershipSending(trace);
                     return;

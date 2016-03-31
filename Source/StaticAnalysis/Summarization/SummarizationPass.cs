@@ -431,7 +431,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
                     var paramSymbol = model.GetDeclaredSymbol(summary.Method.ParameterList.Parameters[idx]);
                     if (DataFlowQuerying.FlowsFromTarget(arg, paramSymbol, summary.EntryNode.SyntaxNodes.First(),
-                        summary.EntryNode, cfgNode.SyntaxNodes.First(), cfgNode, model, this.AnalysisContext))
+                        summary.EntryNode, cfgNode.SyntaxNodes.First(), cfgNode, model))
                     {
                         summary.GivesUpSet.Add(idx);
                     }

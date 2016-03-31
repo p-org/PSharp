@@ -39,13 +39,12 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <param name="targetSyntaxNode">Target syntaxNode</param>
         /// <param name="targetCfgNode">Target controlFlowGraphNode</param>
         /// <param name="model">SemanticModel</param>
-        /// <param name="context">AnalysisContext</param>
         /// <returns>Boolean</returns>
         public static bool FlowsIntoTarget(ExpressionSyntax expr, ISymbol target,
             SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode, SyntaxNode targetSyntaxNode,
-            ControlFlowGraphNode targetCfgNode, SemanticModel model, AnalysisContext context)
+            ControlFlowGraphNode targetCfgNode, SemanticModel model)
         {
-            IdentifierNameSyntax identifier = context.GetTopLevelIdentifier(expr);
+            IdentifierNameSyntax identifier = DataFlowQuerying.GetTopLevelIdentifier(expr);
             if (identifier == null)
             {
                 return false;
@@ -159,13 +158,12 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <param name="targetSyntaxNode">Target syntaxNode</param>
         /// <param name="targetCfgNode">Target controlFlowGraphNode</param>
         /// <param name="model">SemanticModel</param>
-        /// <param name="context">AnalysisContext</param>
         /// <returns>Boolean</returns>
         public static bool FlowsFromTarget(ExpressionSyntax expr, ISymbol target, SyntaxNode syntaxNode,
             ControlFlowGraphNode cfgNode, SyntaxNode targetSyntaxNode, ControlFlowGraphNode targetCfgNode,
-            SemanticModel model, AnalysisContext context)
+            SemanticModel model)
         {
-            IdentifierNameSyntax identifier = context.GetTopLevelIdentifier(expr);
+            IdentifierNameSyntax identifier = DataFlowQuerying.GetTopLevelIdentifier(expr);
             if (identifier == null)
             {
                 return false;
@@ -280,12 +278,11 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <param name="syntaxNode">SyntaxNode</param>
         /// <param name="cfgNode">ControlFlowGraphNode</param>
         /// <param name="model">SemanticModel</param>
-        /// <param name="context">AnalysisContext</param>
         /// <returns>Boolean</returns>
         public static bool DoesResetInSuccessorControlFlowGraphNodes(ExpressionSyntax expr, ISymbol target,
-            SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode, SemanticModel model, AnalysisContext context)
+            SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode, SemanticModel model)
         {
-            IdentifierNameSyntax identifier = context.GetTopLevelIdentifier(expr);
+            IdentifierNameSyntax identifier = DataFlowQuerying.GetTopLevelIdentifier(expr);
             if (identifier == null)
             {
                 return false;
@@ -321,13 +318,12 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <param name="targetSyntaxNode">Target syntaxNode</param>
         /// <param name="targetCfgNode">Target ControlFlowGraphNode</param>
         /// <param name="model">SemanticModel</param>
-        /// <param name="context">AnalysisContext</param>
         /// <returns>Boolean</returns>
         public static bool DoesResetInLoop(ExpressionSyntax expr, SyntaxNode syntaxNode,
             ControlFlowGraphNode cfgNode, SyntaxNode targetSyntaxNode, ControlFlowGraphNode targetCfgNode,
-            SemanticModel model, AnalysisContext context)
+            SemanticModel model)
         {
-            IdentifierNameSyntax identifier = context.GetTopLevelIdentifier(expr);
+            IdentifierNameSyntax identifier = DataFlowQuerying.GetTopLevelIdentifier(expr);
             if (!cfgNode.Equals(targetCfgNode) || identifier == null)
             {
                 return false;
@@ -462,6 +458,27 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             }
 
             return callee;
+        }
+
+        /// <summary>
+        /// Gets the top-level identifier.
+        /// </summary>
+        /// <param name="expr">Expression</param>
+        /// <returns>Identifier</returns>
+        public static IdentifierNameSyntax GetTopLevelIdentifier(ExpressionSyntax expr)
+        {
+            IdentifierNameSyntax identifier = null;
+            if (expr is IdentifierNameSyntax)
+            {
+                identifier = expr as IdentifierNameSyntax;
+            }
+            else if (expr is MemberAccessExpressionSyntax)
+            {
+                identifier = (expr as MemberAccessExpressionSyntax).DescendantNodes().
+                    OfType<IdentifierNameSyntax>().First();
+            }
+
+            return identifier;
         }
 
         #endregion
