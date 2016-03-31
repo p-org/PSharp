@@ -49,22 +49,23 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Analyzes the ownership of references in the given control-flow graph node.
         /// </summary>
+        /// <param name="target">Target</param>
         /// <param name="cfgNode">Control flow graph node</param>
         /// <param name="givesUpCfgNode">Gives-up CFG node</param>
-        /// <param name="target">Target</param>
         /// <param name="giveUpSource">Give up source</param>
         /// <param name="visited">Already visited cfgNodes</param>
         /// <param name="originalMachine">Original machine</param>
         /// <param name="model">SemanticModel</param>
         /// <param name="trace">TraceInfo</param>
-        protected override void AnalyzeOwnershipInCFG(PSharpCFGNode cfgNode, PSharpCFGNode givesUpCfgNode,
-            ISymbol target, InvocationExpressionSyntax giveUpSource, HashSet<ControlFlowGraphNode> visited,
-            StateMachine originalMachine, SemanticModel model, TraceInfo trace)
+        protected override void AnalyzeOwnershipInCFG(ISymbol target, PSharpCFGNode cfgNode,
+            PSharpCFGNode givesUpCfgNode, InvocationExpressionSyntax giveUpSource,
+            HashSet<ControlFlowGraphNode> visited, StateMachine originalMachine,
+            SemanticModel model, TraceInfo trace)
         {
             if (!cfgNode.IsJumpNode && !cfgNode.IsLoopHeadNode &&
                 visited.Contains(givesUpCfgNode))
             {
-                this.AnalyzeOwnershipInCFG(cfgNode, givesUpCfgNode, target, originalMachine, model, trace);
+                this.AnalyzeOwnershipInCFG(target, cfgNode, givesUpCfgNode, originalMachine, model, trace);
             }
 
             if (!visited.Contains(cfgNode))
@@ -72,7 +73,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 visited.Add(cfgNode);
                 foreach (var successor in cfgNode.GetImmediateSuccessors())
                 {
-                    this.AnalyzeOwnershipInCFG(successor, givesUpCfgNode, target, giveUpSource,
+                    this.AnalyzeOwnershipInCFG(target, successor, givesUpCfgNode, giveUpSource,
                         visited, originalMachine, model, trace);
                 }
             }
@@ -95,16 +96,16 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Analyzes the ownership of references in the given control-flow graph node.
         /// </summary>
+        /// <param name="target">Target</param>
         /// <param name="cfgNode">Control flow graph node</param>
         /// <param name="givesUpCfgNode">Gives-up CFG node</param>
-        /// <param name="target">Target</param>
         /// <param name="giveUpSource">Give up source</param>
         /// <param name="visited">Already visited cfgNodes</param>
         /// <param name="originalMachine">Original machine</param>
         /// <param name="model">SemanticModel</param>
         /// <param name="trace">TraceInfo</param>
-        private void AnalyzeOwnershipInCFG(PSharpCFGNode cfgNode, PSharpCFGNode givesUpCfgNode,
-            ISymbol target, StateMachine originalMachine, SemanticModel model, TraceInfo trace)
+        private void AnalyzeOwnershipInCFG(ISymbol target, PSharpCFGNode cfgNode, PSharpCFGNode givesUpCfgNode,
+            StateMachine originalMachine, SemanticModel model, TraceInfo trace)
         {
             foreach (var syntaxNode in cfgNode.SyntaxNodes)
             {
@@ -115,22 +116,22 @@ namespace Microsoft.PSharp.StaticAnalysis
                 if (localDecl != null)
                 {
                     var varDecl = localDecl.Declaration;
-                    this.AnalyzeOwnershipInLocalDeclaration(varDecl, stmt, syntaxNode, cfgNode,
-                        givesUpCfgNode, target, originalMachine, model, trace);
+                    this.AnalyzeOwnershipInLocalDeclaration(target, varDecl, stmt, syntaxNode,
+                        cfgNode, givesUpCfgNode, originalMachine, model, trace);
                 }
                 else if (expr != null)
                 {
                     if (expr.Expression is AssignmentExpressionSyntax)
                     {
                         var assignment = expr.Expression as AssignmentExpressionSyntax;
-                        this.AnalyzeOwnershipInAssignmentExpression(assignment, stmt, syntaxNode,
-                            cfgNode, givesUpCfgNode, target, originalMachine, model, trace);
+                        this.AnalyzeOwnershipInAssignment(target, assignment, stmt, syntaxNode,
+                            cfgNode, givesUpCfgNode, originalMachine, model, trace);
                     }
                     else if (expr.Expression is InvocationExpressionSyntax ||
                         expr.Expression is ObjectCreationExpressionSyntax)
                     {
-                        this.AnalyzeOwnershipInExpression(expr.Expression, stmt, syntaxNode,
-                            cfgNode, givesUpCfgNode, target, originalMachine, model, trace);
+                        this.AnalyzeOwnershipInExpression(target, expr.Expression, stmt, syntaxNode,
+                            cfgNode, givesUpCfgNode, originalMachine, model, trace);
                     }
                 }
             }
@@ -139,41 +140,41 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Analyzes the ownership of references in the given variable declaration.
         /// </summary>
+        /// <param name="target">Target</param>
         /// <param name="varDecl">VariableDeclarationSyntax</param>
         /// <param name="stmt">StatementSyntax</param>
         /// <param name="syntaxNode">SyntaxNode</param>
         /// <param name="cfgNode">Control flow graph node</param>
         /// <param name="givesUpCfgNode">Gives-up CFG node</param>
-        /// <param name="target">Target</param>
         /// <param name="originalMachine">Original machine</param>
         /// <param name="model">SemanticModel</param>
         /// <param name="trace">TraceInfo</param>
-        private void AnalyzeOwnershipInLocalDeclaration(VariableDeclarationSyntax varDecl,
+        private void AnalyzeOwnershipInLocalDeclaration(ISymbol target, VariableDeclarationSyntax varDecl,
             StatementSyntax stmt, SyntaxNode syntaxNode, PSharpCFGNode cfgNode, PSharpCFGNode givesUpCfgNode,
-            ISymbol target, StateMachine originalMachine, SemanticModel model, TraceInfo trace)
+            StateMachine originalMachine, SemanticModel model, TraceInfo trace)
         {
             foreach (var variable in varDecl.Variables.Where(v => v.Initializer != null))
             {
-                this.AnalyzeOwnershipInExpression(variable.Initializer.Value, stmt, syntaxNode,
-                    cfgNode, givesUpCfgNode, target, originalMachine, model, trace);
+                this.AnalyzeOwnershipInExpression(target, variable.Initializer.Value, stmt, syntaxNode,
+                    cfgNode, givesUpCfgNode, originalMachine, model, trace);
             }
         }
 
         /// <summary>
         /// Analyzes the ownership of references in the given assignment expression.
         /// </summary>
+        /// <param name="target">Target</param>
         /// <param name="assignment">AssignmentExpressionSyntax</param>
         /// <param name="stmt">StatementSyntax</param>
         /// <param name="syntaxNode">SyntaxNode</param>
         /// <param name="cfgNode">Control flow graph node</param>
         /// <param name="givesUpCfgNode">Gives-up CFG node</param>
-        /// <param name="target">Target</param>
         /// <param name="originalMachine">Original machine</param>
         /// <param name="model">SemanticModel</param>
         /// <param name="trace">TraceInfo</param>
-        private void AnalyzeOwnershipInAssignmentExpression(AssignmentExpressionSyntax assignment,
-            StatementSyntax stmt, SyntaxNode syntaxNode, PSharpCFGNode cfgNode, PSharpCFGNode givesUpCfgNode,
-            ISymbol target, StateMachine originalMachine, SemanticModel model, TraceInfo trace)
+        private void AnalyzeOwnershipInAssignment(ISymbol target, AssignmentExpressionSyntax assignment,
+            StatementSyntax stmt, SyntaxNode syntaxNode, PSharpCFGNode cfgNode, PSharpCFGNode givesUpCfgNode, 
+            StateMachine originalMachine, SemanticModel model, TraceInfo trace)
         {
             if (base.IsPayloadIllegallyAccessed(assignment, stmt, model, trace))
             {
@@ -209,8 +210,8 @@ namespace Microsoft.PSharp.StaticAnalysis
                 assignment.Right is InvocationExpressionSyntax ||
                 assignment.Right is ObjectCreationExpressionSyntax)
             {
-                this.AnalyzeOwnershipInExpression(assignment.Right, stmt, syntaxNode,
-                    cfgNode, givesUpCfgNode, target, originalMachine, model, trace);
+                this.AnalyzeOwnershipInExpression(target, assignment.Right, stmt, syntaxNode,
+                    cfgNode, givesUpCfgNode, originalMachine, model, trace);
             }
 
             if (assignment.Left is MemberAccessExpressionSyntax)
@@ -231,23 +232,22 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Analyzes the ownership of references in the given expression.
         /// </summary>
+        /// <param name="target">Target</param>
         /// <param name="expr">ExpressionSyntax</param>
         /// <param name="stmt">StatementSyntax</param>
         /// <param name="syntaxNode">SyntaxNode</param>
         /// <param name="cfgNode">Control flow graph node</param>
         /// <param name="givesUpCfgNode">Gives-up CFG node</param>
-        /// <param name="target">Target</param>
         /// <param name="originalMachine">Original machine</param>
         /// <param name="model">SemanticModel</param>
         /// <param name="trace">TraceInfo</param>
-        private void AnalyzeOwnershipInExpression(ExpressionSyntax expr, StatementSyntax stmt,
-            SyntaxNode syntaxNode, PSharpCFGNode cfgNode, PSharpCFGNode givesUpCfgNode, ISymbol target,
+        private void AnalyzeOwnershipInExpression(ISymbol target, ExpressionSyntax expr, StatementSyntax stmt,
+            SyntaxNode syntaxNode, PSharpCFGNode cfgNode, PSharpCFGNode givesUpCfgNode,
             StateMachine originalMachine, SemanticModel model, TraceInfo trace)
         {
             if (expr is MemberAccessExpressionSyntax)
             {
-                var access = expr as MemberAccessExpressionSyntax;
-                if (DataFlowQuerying.FlowsFromTarget(access, target, syntaxNode, cfgNode,
+                if (DataFlowQuerying.FlowsFromTarget(expr, target, syntaxNode, cfgNode,
                     givesUpCfgNode.SyntaxNodes.First(), givesUpCfgNode, model))
                 {
                     TraceInfo newTrace = new TraceInfo();
@@ -261,7 +261,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 var invocation = expr as InvocationExpressionSyntax;
                 trace.InsertCall(cfgNode.GetMethodSummary().Method, invocation);
-                this.DetectPotentialDataRaceInInvocation(invocation, target, syntaxNode,
+                this.AnalyzeOwnershipInInvocation(target, invocation, syntaxNode,
                     cfgNode, givesUpCfgNode.SyntaxNodes.First(), givesUpCfgNode,
                     originalMachine, model, trace);
             }
@@ -269,7 +269,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 var objCreation = expr as ObjectCreationExpressionSyntax;
                 trace.InsertCall(cfgNode.GetMethodSummary().Method, objCreation);
-                this.DetectPotentialDataRaceInObjectCreation(objCreation, target, syntaxNode,
+                this.AnalyzeOwnershipInObjectCreation(target, objCreation, syntaxNode,
                     cfgNode, givesUpCfgNode.SyntaxNodes.First(), givesUpCfgNode, model, trace);
             }
         }
@@ -277,8 +277,8 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Analyzes the ownership of references in the given invocation.
         /// </summary>
-        /// <param name="invocation">Invocation</param>
         /// <param name="target">Target</param>
+        /// <param name="invocation">Invocation</param>
         /// <param name="syntaxNode">SyntaxNode</param>
         /// <param name="cfgNode">ControlFlowGraphNode</param>
         /// <param name="givesUpSyntaxNode">Gives up syntaxNode</param>
@@ -286,9 +286,9 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="originalMachine">Original machine</param>
         /// <param name="model">SemanticModel</param>
         /// <param name="trace">TraceInfo</param>
-        private void DetectPotentialDataRaceInInvocation(InvocationExpressionSyntax call, ISymbol target,
-            SyntaxNode syntaxNode, PSharpCFGNode cfgNode, SyntaxNode givesUpSyntaxNode, PSharpCFGNode givesUpCfgNode,
-            StateMachine originalMachine, SemanticModel model, TraceInfo trace)
+        private void AnalyzeOwnershipInInvocation(ISymbol target, InvocationExpressionSyntax call,
+            SyntaxNode syntaxNode, PSharpCFGNode cfgNode, SyntaxNode givesUpSyntaxNode,
+            PSharpCFGNode givesUpCfgNode, StateMachine originalMachine, SemanticModel model, TraceInfo trace)
         {
             TraceInfo callTrace = new TraceInfo();
             callTrace.Merge(trace);
@@ -298,8 +298,8 @@ namespace Microsoft.PSharp.StaticAnalysis
             var calleeSymbol = model.GetSymbolInfo(call).Symbol;
             if (calleeSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.Machine"))
             {
-                this.DetectPotentialDataRaceInGivesUpOperation(call, target,
-                    syntaxNode, cfgNode, givesUpSyntaxNode, givesUpCfgNode, model, callTrace);
+                this.AnalyzeOwnershipInGivesUpOperation(target, call, syntaxNode,
+                    cfgNode, givesUpSyntaxNode, givesUpCfgNode, model, callTrace);
                 return;
             }
             
@@ -387,8 +387,8 @@ namespace Microsoft.PSharp.StaticAnalysis
                             Console.WriteLine(invocationSummary.Method);
                             var paramSymbol = model.GetDeclaredSymbol(invocationSummary.Method.ParameterList.Parameters[idx]);
                             Console.WriteLine("flows arg: " + paramSymbol);
-                            this.AnalyzeOwnershipInCFG(invocationSummary.EntryNode as PSharpCFGNode, givesUpCfgNode,
-                                paramSymbol, call, new HashSet<ControlFlowGraphNode>() { givesUpCfgNode },
+                            this.AnalyzeOwnershipInCFG(paramSymbol, invocationSummary.EntryNode as PSharpCFGNode,
+                                givesUpCfgNode, call, new HashSet<ControlFlowGraphNode>() { givesUpCfgNode },
                                 originalMachine, model, callTrace);
                         }
 
@@ -436,16 +436,16 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Analyzes the ownership of references in the given object creation.
         /// </summary>
-        /// <param name="invocation">Invocation</param>
         /// <param name="target">Target</param>
+        /// <param name="objCreation">ObjectCreationExpressionSyntax</param>
         /// <param name="syntaxNode">SyntaxNode</param>
         /// <param name="cfgNode">ControlFlowGraphNode</param>
         /// <param name="givesUpSyntaxNode">Gives up syntaxNode</param>
         /// <param name="givesUpCfgNode">Gives up controlFlowGraphNode</param>
         /// <param name="model">SemanticModel</param>
         /// <param name="trace">TraceInfo</param>
-        private void DetectPotentialDataRaceInObjectCreation(ObjectCreationExpressionSyntax call,
-            ISymbol target, SyntaxNode syntaxNode, PSharpCFGNode cfgNode, SyntaxNode givesUpSyntaxNode,
+        private void AnalyzeOwnershipInObjectCreation(ISymbol target, ObjectCreationExpressionSyntax call,
+            SyntaxNode syntaxNode, PSharpCFGNode cfgNode, SyntaxNode givesUpSyntaxNode,
             PSharpCFGNode givesUpCfgNode, SemanticModel model, TraceInfo trace)
         {
             TraceInfo callTrace = new TraceInfo();
@@ -531,16 +531,16 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Analyzes the ownership of references in the gives-up operation.
         /// </summary>
-        /// <param name="operation">Send-related operation</param>
         /// <param name="target">Target</param>
+        /// <param name="operation">Send-related operation</param>
         /// <param name="syntaxNode">SyntaxNode</param>
         /// <param name="cfgNode">ControlFlowGraphNode</param>
         /// <param name="givesUpSyntaxNode">Gives up syntaxNode</param>
         /// <param name="givesUpCfgNode">Gives up controlFlowGraphNode</param>
         /// <param name="model">SemanticModel</param>
         /// <param name="trace">TraceInfo</param>
-        private void DetectPotentialDataRaceInGivesUpOperation(InvocationExpressionSyntax operation,
-            ISymbol target, SyntaxNode syntaxNode, PSharpCFGNode cfgNode, SyntaxNode givesUpSyntaxNode,
+        private void AnalyzeOwnershipInGivesUpOperation(ISymbol target, InvocationExpressionSyntax operation,
+            SyntaxNode syntaxNode, PSharpCFGNode cfgNode, SyntaxNode givesUpSyntaxNode,
             PSharpCFGNode givesUpCfgNode, SemanticModel model, TraceInfo trace)
         {
             List<ExpressionSyntax> arguments = new List<ExpressionSyntax>();

@@ -77,17 +77,18 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Analyzes the ownership of references in the given control-flow graph node.
         /// </summary>
+        /// <param name="target">Target</param>
         /// <param name="cfgNode">Control flow graph node</param>
         /// <param name="givesUpCfgNode">Gives-up CFG node</param>
-        /// <param name="target">Target</param>
         /// <param name="giveUpSource">Give up source</param>
         /// <param name="visited">Already visited cfgNodes</param>
         /// <param name="originalMachine">Original machine</param>
         /// <param name="model">SemanticModel</param>
         /// <param name="trace">TraceInfo</param>
-        protected abstract void AnalyzeOwnershipInCFG(PSharpCFGNode cfgNode, PSharpCFGNode givesUpCfgNode,
-            ISymbol target, InvocationExpressionSyntax giveUpSource, HashSet<ControlFlowGraphNode> visited,
-            StateMachine originalMachine, SemanticModel model, TraceInfo trace);
+        protected abstract void AnalyzeOwnershipInCFG(ISymbol target, PSharpCFGNode cfgNode,
+            PSharpCFGNode givesUpCfgNode, InvocationExpressionSyntax giveUpSource,
+            HashSet<ControlFlowGraphNode> visited, StateMachine originalMachine,
+            SemanticModel model, TraceInfo trace);
 
         #endregion
 
@@ -373,7 +374,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 }
                 
                 ISymbol argSymbol = model.GetSymbolInfo(arg).Symbol;
-                this.AnalyzeOwnershipInCFG(givesUpCfgNode, givesUpCfgNode, argSymbol, call,
+                this.AnalyzeOwnershipInCFG(argSymbol, givesUpCfgNode, givesUpCfgNode, call,
                     new HashSet<ControlFlowGraphNode>(), originalMachine, model, trace);
             }
             else if (arg is ObjectCreationExpressionSyntax)
