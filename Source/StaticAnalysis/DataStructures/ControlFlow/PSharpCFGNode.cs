@@ -22,7 +22,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 
 using Microsoft.PSharp.LanguageServices;
-using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.StaticAnalysis
 {
@@ -157,7 +156,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <returns>Boolean</returns>
         private bool IsGivesUpOperation(InvocationExpressionSyntax call)
         {
-            var callee = Querying.GetCalleeOfInvocation(call);
+            var callee = DataFlowQuerying.GetCalleeOfInvocation(call);
             var model = this.AnalysisContext.Compilation.GetSemanticModel(call.SyntaxTree);
             var callSymbol = model.GetSymbolInfo(call).Symbol;
             if (callSymbol == null)

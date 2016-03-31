@@ -239,14 +239,14 @@ namespace Microsoft.PSharp.LanguageServices
 
         #endregion
 
-        #region generic queries
+        #region private methods
 
         /// <summary>
         /// Returns the callee of the given call expression.
         /// </summary>
         /// <param name="invocation">Invocation</param>
         /// <returns>Callee</returns>
-        internal static string GetCalleeOfInvocation(InvocationExpressionSyntax invocation)
+        private static string GetCalleeOfInvocation(InvocationExpressionSyntax invocation)
         {
             string callee = "";
 

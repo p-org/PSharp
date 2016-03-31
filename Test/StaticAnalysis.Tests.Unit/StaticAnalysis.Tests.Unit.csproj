@@ -95,6 +95,7 @@
     <Compile Include="AccessChecking\Correct\AccessBeforeSendTests.cs" />
     <Compile Include="AccessChecking\StaticError\AccessAfterCreateMachineFailTests.cs" />
     <Compile Include="Advanced\Correct\ReturnAliasAccessTests.cs" />
+    <Compile Include="Advanced\StaticError\NestedAccessesInCallFailTests.cs" />
     <Compile Include="Advanced\StaticError\ReturnAliasAccessFailTests.cs" />
     <Compile Include="AccessChecking\StaticError\ReadAccessAfterSendFailTests.cs" />
     <Compile Include="AccessChecking\StaticError\AliasAccessAfterSendFailTests.cs" />

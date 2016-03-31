@@ -319,8 +319,8 @@ namespace Microsoft.PSharp.StaticAnalysis
                     var objCreation = expr as ObjectCreationExpressionSyntax;
                     foreach (var arg in objCreation.ArgumentList.Arguments)
                     {
-                        this.AnalyzeArgumentSyntax(arg.Expression, call,
-                            givesUpCfgNode, machine, state, originalMachine);
+                        this.AnalyzeArgumentSyntax(arg.Expression, call, givesUpCfgNode,
+                            machine, state, originalMachine);
                     }
                 }
                 else if (expr is BinaryExpressionSyntax && expr.IsKind(SyntaxKind.AsExpression))
@@ -328,23 +328,22 @@ namespace Microsoft.PSharp.StaticAnalysis
                     var binExpr = expr as BinaryExpressionSyntax;
                     if ((binExpr.Left is IdentifierNameSyntax) || (binExpr.Left is MemberAccessExpressionSyntax))
                     {
-                        this.AnalyzeArgumentSyntax(binExpr.Left, call,
-                            givesUpCfgNode, machine, state, originalMachine);
+                        this.AnalyzeArgumentSyntax(binExpr.Left, call, givesUpCfgNode,
+                            machine, state, originalMachine);
                     }
                     else if (binExpr.Left is InvocationExpressionSyntax)
                     {
                         var invocation = binExpr.Left as InvocationExpressionSyntax;
                         for (int i = 1; i < invocation.ArgumentList.Arguments.Count; i++)
                         {
-                            this.AnalyzeArgumentSyntax(invocation.ArgumentList.Arguments[i].
-                                Expression, call, givesUpCfgNode, machine, state, originalMachine);
+                            this.AnalyzeArgumentSyntax(invocation.ArgumentList.Arguments[i].Expression,
+                                call, givesUpCfgNode, machine, state, originalMachine);
                         }
                     }
                 }
                 else if (expr is IdentifierNameSyntax || expr is MemberAccessExpressionSyntax)
                 {
-                    this.AnalyzeArgumentSyntax(expr, call, givesUpCfgNode,
-                        machine, state, originalMachine);
+                    this.AnalyzeArgumentSyntax(expr, call, givesUpCfgNode, machine, state, originalMachine);
                 }
             }
         }
@@ -375,20 +374,11 @@ namespace Microsoft.PSharp.StaticAnalysis
                     return;
                 }
                 
-                ISymbol argSymbol = null;
-                if (arg is IdentifierNameSyntax)
-                {
-                    argSymbol = model.GetSymbolInfo(arg as IdentifierNameSyntax).Symbol;
-                }
-                else if (arg is MemberAccessExpressionSyntax)
-                {
-                    argSymbol = model.GetSymbolInfo((arg as MemberAccessExpressionSyntax).Name).Symbol;
-                }
-
-                this.DetectGivenUpFieldOwnershipInCFG(givesUpCfgNode, givesUpCfgNode, argSymbol,
-                    call, new HashSet<ControlFlowGraphNode>(), originalMachine, model, trace);
-                this.DetectPotentialDataRacesInCFG(givesUpCfgNode, givesUpCfgNode, argSymbol,
-                    call, new HashSet<ControlFlowGraphNode>(), originalMachine, model, trace);
+                ISymbol argSymbol = model.GetSymbolInfo(arg).Symbol;
+                this.DetectGivenUpFieldOwnershipInCFG(givesUpCfgNode, givesUpCfgNode, argSymbol, call,
+                    new HashSet<ControlFlowGraphNode>(), originalMachine, model, trace);
+                this.DetectPotentialDataRacesInCFG(givesUpCfgNode, givesUpCfgNode, argSymbol, call,
+                    new HashSet<ControlFlowGraphNode>(), originalMachine, model, trace);
             }
             else if (arg is ObjectCreationExpressionSyntax)
             {
@@ -503,16 +493,8 @@ namespace Microsoft.PSharp.StaticAnalysis
                     if (DataFlowQuerying.FlowsIntoTarget(variable, target, syntaxNode, cfgNode,
                         givesUpCfgNode.SyntaxNodes.First(), givesUpCfgNode, model))
                     {
-                        IdentifierNameSyntax identifier = null;
-                        if (variable.Initializer.Value is IdentifierNameSyntax)
-                        {
-                            identifier = variable.Initializer.Value as IdentifierNameSyntax;
-                        }
-                        else if (variable.Initializer.Value is MemberAccessExpressionSyntax)
-                        {
-                            identifier = this.AnalysisContext.GetTopLevelIdentifier(
-                                variable.Initializer.Value);
-                        }
+                        IdentifierNameSyntax identifier = this.AnalysisContext.
+                            GetTopLevelIdentifier(variable.Initializer.Value);
 
                         if (identifier != null)
                         {
@@ -591,30 +573,16 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="model">SemanticModel</param>
         /// <param name="trace">TraceInfo</param>
         private void DetectGivenUpFieldOwnershipInAssignmentExpression(AssignmentExpressionSyntax assignment,
-            StatementSyntax stmt, SyntaxNode syntaxNode, PSharpCFGNode cfgNode,
-            PSharpCFGNode givesUpCfgNode, ISymbol target, StateMachine originalMachine,
-            SemanticModel model, TraceInfo trace)
+            StatementSyntax stmt, SyntaxNode syntaxNode, PSharpCFGNode cfgNode, PSharpCFGNode givesUpCfgNode,
+            ISymbol target, StateMachine originalMachine, SemanticModel model, TraceInfo trace)
         {
             if (this.IsPayloadIllegallyAccessed(assignment, stmt, model, trace))
             {
                 return;
             }
 
-            ISymbol leftSymbol = null;
-            if (assignment.Left is IdentifierNameSyntax)
-            {
-                leftSymbol = model.GetSymbolInfo(assignment.Left
-                    as IdentifierNameSyntax).Symbol;
-            }
-            else if (assignment.Left is MemberAccessExpressionSyntax)
-            {
-                var leftIdentifier = this.AnalysisContext.GetTopLevelIdentifier(
-                    assignment.Left);
-                if (leftIdentifier != null)
-                {
-                    leftSymbol = model.GetSymbolInfo(leftIdentifier).Symbol;
-                }
-            }
+            var leftIdentifier = this.AnalysisContext.GetTopLevelIdentifier(assignment.Left);
+            ISymbol leftSymbol = model.GetSymbolInfo(leftIdentifier).Symbol;
 
             var rightSymbols = new HashSet<ISymbol>();
             if (assignment.Right is IdentifierNameSyntax ||
@@ -624,16 +592,8 @@ namespace Microsoft.PSharp.StaticAnalysis
                     cfgNode, givesUpCfgNode.SyntaxNodes.First(), givesUpCfgNode,
                     model, this.AnalysisContext))
                 {
-                    IdentifierNameSyntax rightIdentifier = null;
-                    if (assignment.Right is IdentifierNameSyntax)
-                    {
-                        rightIdentifier = assignment.Right as IdentifierNameSyntax;
-                    }
-                    else if (assignment.Right is MemberAccessExpressionSyntax)
-                    {
-                        rightIdentifier = this.AnalysisContext.GetTopLevelIdentifier(
-                            assignment.Right);
-                    }
+                    IdentifierNameSyntax rightIdentifier = this.AnalysisContext.
+                        GetTopLevelIdentifier(assignment.Right);
 
                     if (rightIdentifier != null)
                     {
@@ -847,7 +807,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 invocationCall.Modifiers.Any(SyntaxKind.OverrideKeyword))
             {
                 HashSet<MethodDeclarationSyntax> overriders = null;
-                if (!VirtualDispatchQuerying.TryGetPotentialMethodOverriders(out overriders, call, syntaxNode,
+                if (!DataFlowQuerying.TryGetPotentialMethodOverriders(out overriders, call, syntaxNode,
                     cfgNode, originalMachine.Declaration, model, this.AnalysisContext))
                 {
                     AnalysisErrorReporter.ReportUnknownVirtualCall(callTrace);
@@ -1008,7 +968,9 @@ namespace Microsoft.PSharp.StaticAnalysis
                 return;
             }
 
-            ISymbol leftSymbol = model.GetSymbolInfo(assignment.Left).Symbol;
+            var leftIdentifier = this.AnalysisContext.GetTopLevelIdentifier(assignment.Left);
+            ISymbol leftSymbol = model.GetSymbolInfo(leftIdentifier).Symbol;
+            
             if (assignment.Right is IdentifierNameSyntax &&
                 DataFlowQuerying.FlowsFromTarget(assignment.Right, target, syntaxNode, cfgNode,
                 givesUpCfgNode.SyntaxNodes.First(), givesUpCfgNode, model, this.AnalysisContext))
@@ -1123,15 +1085,15 @@ namespace Microsoft.PSharp.StaticAnalysis
             callTrace.AddErrorTrace(call.ToString(), call.SyntaxTree.FilePath, call.SyntaxTree.
                 GetLineSpan(call.Span).StartLinePosition.Line + 1);
             
-            var callSymbol = model.GetSymbolInfo(call).Symbol;
-            if (callSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.Machine"))
+            var calleeSymbol = model.GetSymbolInfo(call).Symbol;
+            if (calleeSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.Machine"))
             {
                 this.DetectPotentialDataRaceInGivesUpOperation(call, target,
                     syntaxNode, cfgNode, givesUpSyntaxNode, givesUpCfgNode, model, callTrace);
                 return;
             }
             
-            var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol,
+            var definition = SymbolFinder.FindSourceDefinitionAsync(calleeSymbol,
                 this.AnalysisContext.Solution).Result;
             if (definition == null || definition.DeclaringSyntaxReferences.IsEmpty)
             {
@@ -1159,38 +1121,37 @@ namespace Microsoft.PSharp.StaticAnalysis
                 AnalysisErrorReporter.ReportUnknownInvocation(callTrace);
                 return;
             }
-
-            HashSet<MethodDeclarationSyntax> potentialCalls = new HashSet<MethodDeclarationSyntax>();
-            var invocationCall = definition.DeclaringSyntaxReferences.First().GetSyntax()
+            
+            HashSet<MethodDeclarationSyntax> potentialCallees = new HashSet<MethodDeclarationSyntax>();
+            var invocationCallee = definition.DeclaringSyntaxReferences.First().GetSyntax()
                 as MethodDeclarationSyntax;
-            if ((invocationCall.Modifiers.Any(SyntaxKind.AbstractKeyword) &&
+            if ((invocationCallee.Modifiers.Any(SyntaxKind.AbstractKeyword) &&
                 !originalMachine.Declaration.Modifiers.Any(SyntaxKind.AbstractKeyword)) ||
-                invocationCall.Modifiers.Any(SyntaxKind.VirtualKeyword) ||
-                invocationCall.Modifiers.Any(SyntaxKind.OverrideKeyword))
+                invocationCallee.Modifiers.Any(SyntaxKind.VirtualKeyword) ||
+                invocationCallee.Modifiers.Any(SyntaxKind.OverrideKeyword))
             {
                 HashSet<MethodDeclarationSyntax> overriders = null;
-                if (!VirtualDispatchQuerying.TryGetPotentialMethodOverriders(out overriders,
-                    call, syntaxNode, cfgNode, originalMachine.Declaration, model, this.AnalysisContext))
+                if (!DataFlowQuerying.TryGetPotentialMethodOverriders(out overriders, call, syntaxNode,
+                    cfgNode, originalMachine.Declaration, model, this.AnalysisContext))
                 {
                     AnalysisErrorReporter.ReportUnknownVirtualCall(callTrace);
                 }
 
                 foreach (var overrider in overriders)
                 {
-                    potentialCalls.Add(overrider);
+                    potentialCallees.Add(overrider);
                 }
             }
 
-            if (potentialCalls.Count == 0)
+            if (potentialCallees.Count == 0)
             {
-                potentialCalls.Add(invocationCall);
+                potentialCallees.Add(invocationCallee);
             }
 
-            foreach (var potentialCall in potentialCalls)
+            foreach (var potentialCallee in potentialCallees)
             {
-                var invocationSummary = PSharpMethodSummary.Create(this.AnalysisContext, potentialCall);
+                var invocationSummary = PSharpMethodSummary.Create(this.AnalysisContext, potentialCallee);
                 var arguments = call.ArgumentList.Arguments;
-
                 for (int idx = 0; idx < arguments.Count; idx++)
                 {
                     if (!this.AnalysisContext.IsExprEnum(arguments[idx].Expression, model) &&
@@ -1211,8 +1172,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                             }
                         }
 
-                        var fieldSymbols = invocationSummary.SideEffects.
-                            Where(v => v.Value.Contains(idx)).Select(v => v.Key);
+                        var fieldSymbols = invocationSummary.SideEffects.Where(v => v.Value.Contains(idx)).Select(v => v.Key);
                         foreach (var fieldSymbol in fieldSymbols)
                         {
                             if (this.AnalysisContext.DoesFieldBelongToMachine(fieldSymbol, cfgNode.GetMethodSummary()))
@@ -1274,8 +1234,8 @@ namespace Microsoft.PSharp.StaticAnalysis
             callTrace.AddErrorTrace(call.ToString(), call.SyntaxTree.FilePath, call.SyntaxTree.
                 GetLineSpan(call.Span).StartLinePosition.Line + 1);
 
-            var callSymbol = model.GetSymbolInfo(call).Symbol;
-            var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol,
+            var calleeSymbol = model.GetSymbolInfo(call).Symbol;
+            var definition = SymbolFinder.FindSourceDefinitionAsync(calleeSymbol,
                 this.AnalysisContext.Solution).Result;
             if (definition == null || definition.DeclaringSyntaxReferences.IsEmpty)
             {
@@ -1283,9 +1243,9 @@ namespace Microsoft.PSharp.StaticAnalysis
                 return;
             }
 
-            var constructorCall = definition.DeclaringSyntaxReferences.First().GetSyntax()
+            var constructorCallee = definition.DeclaringSyntaxReferences.First().GetSyntax()
                 as ConstructorDeclarationSyntax;
-            var constructorSummary = PSharpMethodSummary.Create(this.AnalysisContext, constructorCall);
+            var constructorSummary = PSharpMethodSummary.Create(this.AnalysisContext, constructorCallee);
             var arguments = call.ArgumentList.Arguments;
 
             for (int idx = 0; idx < arguments.Count; idx++)

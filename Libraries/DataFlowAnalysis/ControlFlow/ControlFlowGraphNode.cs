@@ -181,6 +181,17 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         }
 
         /// <summary>
+        /// Returns true if the node is in the same method as the given node.
+        /// Returns false if not.
+        /// </summary>
+        /// <param name="node">ControlFlowGraphNode</param>
+        /// <returns>Boolean</returns>
+        internal bool IsInSameMethodAs(ControlFlowGraphNode node)
+        {
+            return this.GetMethodSummary().Method.Equals(node.GetMethodSummary().Method);
+        }
+
+        /// <summary>
         /// Returns all exit nodes in the control-flow graph.
         /// </summary>
         /// <returns>Set of exit nodes</returns>

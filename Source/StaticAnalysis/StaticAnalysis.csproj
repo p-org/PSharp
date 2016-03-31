@@ -85,7 +85,6 @@
     <Compile Include="DataStructures\Summarization\PSharpMethodSummary.cs" />
     <Compile Include="DataStructures\ControlFlow\PSharpCFGNode.cs" />
     <Compile Include="PSharpAnalysisContext.cs" />
-    <Compile Include="DataRaceAnalysis\VirtualDispatchQuerying.cs" />
     <Compile Include="DataStructures\ControlFlow\StateTransitionGraphNode.cs" />
     <Compile Include="Tracing\CallTraceStep.cs" />
     <Compile Include="Tracing\ErrorTraceStep.cs" />

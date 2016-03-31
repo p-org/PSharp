@@ -18,6 +18,7 @@ using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.FindSymbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 {
@@ -187,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <returns>Boolean</returns>
         public static bool FlowsFromTarget(ISymbol symbol, ISymbol target, SyntaxNode syntaxNode,
             ControlFlowGraphNode cfgNode, SyntaxNode targetSyntaxNode, ControlFlowGraphNode targetCfgNode)
-        {            
+        {
             Dictionary<ISymbol, HashSet<ISymbol>> dataFlowMap = null;
             if (!cfgNode.GetMethodSummary().DataFlowAnalysis.TryGetDataFlowMapForSyntaxNode(syntaxNode,
                 cfgNode, out dataFlowMap) || !dataFlowMap.ContainsKey(symbol))
@@ -206,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 {
                     continue;
                 }
-                
+
                 Dictionary<ISymbol, HashSet<ISymbol>> reachabilityMap = null;
                 if (targetCfgNode.GetMethodSummary().DataFlowAnalysis.TryGetFieldReachabilityMapForSyntaxNode(
                     syntaxNode, cfgNode, out reachabilityMap) && reachabilityMap.ContainsKey(symbol))
@@ -335,6 +336,132 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             ISymbol reference = model.GetSymbolInfo(identifier).Symbol;
             return DataFlowQuerying.DoesResetInLoop(reference, syntaxNode, cfgNode,
                 targetSyntaxNode, targetCfgNode);
+        }
+
+        /// <summary>
+        /// Tries to get the list of potential methods that can override the given virtual call.
+        /// If it cannot find such methods then it returns false.
+        /// </summary>
+        /// <param name="overriders">List of overrider methods</param>
+        /// <param name="virtualCall">Virtual call</param>
+        /// <param name="syntaxNode">SyntaxNode</param>
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        /// <param name="originalClass">Original class</param>
+        /// <param name="model">SemanticModel</param>
+        /// <param name="context">AnalysisContext</param>
+        /// <returns>Boolean</returns>
+        public static bool TryGetPotentialMethodOverriders(out HashSet<MethodDeclarationSyntax> overriders,
+            InvocationExpressionSyntax virtualCall, SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode,
+            ClassDeclarationSyntax originalClass, SemanticModel model, AnalysisContext context)
+        {
+            overriders = new HashSet<MethodDeclarationSyntax>();
+
+            ISymbol calleeSymbol = null;
+            SimpleNameSyntax callee = null;
+            bool isThis = false;
+
+            if (virtualCall.Expression is MemberAccessExpressionSyntax)
+            {
+                var expr = virtualCall.Expression as MemberAccessExpressionSyntax;
+                var identifier = expr.Expression.DescendantNodesAndSelf().
+                    OfType<IdentifierNameSyntax>().Last();
+                calleeSymbol = model.GetSymbolInfo(identifier).Symbol;
+
+                if (expr.Expression is ThisExpressionSyntax)
+                {
+                    callee = expr.Name;
+                    isThis = true;
+                }
+            }
+            else
+            {
+                callee = virtualCall.Expression as IdentifierNameSyntax;
+                isThis = true;
+            }
+
+            if (isThis)
+            {
+                foreach (var nestedClass in originalClass.ChildNodes().OfType<ClassDeclarationSyntax>())
+                {
+                    foreach (var method in nestedClass.ChildNodes().OfType<MethodDeclarationSyntax>())
+                    {
+                        if (method.Identifier.ToString().Equals(callee.Identifier.ToString()))
+                        {
+                            overriders.Add(method);
+                            return true;
+                        }
+                    }
+                }
+
+                foreach (var method in originalClass.ChildNodes().OfType<MethodDeclarationSyntax>())
+                {
+                    if (method.Identifier.ToString().Equals(callee.Identifier.ToString()))
+                    {
+                        overriders.Add(method);
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            if (calleeSymbol == null)
+            {
+                return false;
+            }
+
+            Dictionary<ISymbol, HashSet<ITypeSymbol>> referenceTypeMap = null;
+            if (!cfgNode.GetMethodSummary().DataFlowAnalysis.TryGetReferenceTypeMapForSyntaxNode(
+                syntaxNode, cfgNode, out referenceTypeMap))
+            {
+                return false;
+            }
+
+            if (!referenceTypeMap.ContainsKey(calleeSymbol))
+            {
+                return false;
+            }
+
+            foreach (var objectType in referenceTypeMap[calleeSymbol])
+            {
+                MethodDeclarationSyntax m = null;
+                if (DataFlowQuerying.TryGetMethodFromType(out m, objectType, virtualCall, context))
+                {
+                    overriders.Add(m);
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Returns the callee of the given call expression.
+        /// </summary>
+        /// <param name="invocation">Invocation</param>
+        /// <returns>Callee</returns>
+        public static string GetCalleeOfInvocation(InvocationExpressionSyntax invocation)
+        {
+            string callee = "";
+
+            if (invocation.Expression is MemberAccessExpressionSyntax)
+            {
+                var memberAccessExpr = invocation.Expression as MemberAccessExpressionSyntax;
+                if (memberAccessExpr.Name is IdentifierNameSyntax)
+                {
+                    callee = (memberAccessExpr.Name as IdentifierNameSyntax).Identifier.ValueText;
+                }
+                else if (memberAccessExpr.Name is GenericNameSyntax)
+                {
+                    callee = (memberAccessExpr.Name as GenericNameSyntax).Identifier.ValueText;
+                }
+            }
+            else
+            {
+                callee = invocation.Expression.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>().
+                    First().Identifier.ValueText;
+            }
+
+            return callee;
         }
 
         #endregion
@@ -466,6 +593,39 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             }
 
             return aliases;
+        }
+
+        /// <summary>
+        /// Tries to get the method from the given type and virtual call.
+        /// </summary>
+        /// <param name="method">Method</param>
+        /// <param name="type">Type</param>
+        /// <param name="virtualCall">Virtual call</param>
+        /// <param name="context">AnalysisContext</param>
+        /// <returns>Boolean</returns>
+        private static bool TryGetMethodFromType(out MethodDeclarationSyntax method, ITypeSymbol type,
+            InvocationExpressionSyntax virtualCall, AnalysisContext context)
+        {
+            method = null;
+
+            var definition = SymbolFinder.FindSourceDefinitionAsync(type, context.Solution).Result;
+            if (definition == null)
+            {
+                return false;
+            }
+
+            var calleeClass = definition.DeclaringSyntaxReferences.First().GetSyntax()
+                as ClassDeclarationSyntax;
+            foreach (var m in calleeClass.ChildNodes().OfType<MethodDeclarationSyntax>())
+            {
+                if (m.Identifier.ValueText.Equals(DataFlowQuerying.GetCalleeOfInvocation(virtualCall)))
+                {
+                    method = m;
+                    break;
+                }
+            }
+
+            return true;
         }
 
         #endregion

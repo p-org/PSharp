@@ -208,6 +208,12 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         public bool DoesReferenceResetUntilSyntaxNode(ISymbol reference, SyntaxNode refSyntaxNode,
             ControlFlowGraphNode refCfgNode, SyntaxNode targetSyntaxNode, ControlFlowGraphNode targetCfgNode)
         {
+            if (!refCfgNode.IsInSameMethodAs(targetCfgNode))
+            {
+                return this.DoesReferenceResetUntilSyntaxNode(reference, targetSyntaxNode,
+                    targetCfgNode, refSyntaxNode, refCfgNode, true);
+            }
+
             return this.DoesReferenceResetUntilSyntaxNode(reference, refSyntaxNode,
                 refCfgNode, targetSyntaxNode, targetCfgNode, false);
         }
@@ -255,7 +261,8 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         {
             if (cfgNode.SyntaxNodes.Count > 0)
             {
-                this.AnalyzeRegularControlFlowGraphNode(cfgNode, previousSyntaxNode, previousCfgNode);
+                this.AnalyzeRegularControlFlowGraphNode(cfgNode, previousSyntaxNode,
+                    previousCfgNode);
                 previousSyntaxNode = cfgNode.SyntaxNodes.Last();
                 previousCfgNode = cfgNode;
             }
@@ -311,6 +318,11 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                     {
                         var invocation = expr.Expression as InvocationExpressionSyntax;
                         this.AnalyzeInvocationExpression(invocation, syntaxNode, cfgNode);
+                    }
+                    else if (expr.Expression is ObjectCreationExpressionSyntax)
+                    {
+                        var invocation = expr.Expression as ObjectCreationExpressionSyntax;
+                        this.AnalyzeObjectCreationExpression(invocation, syntaxNode, cfgNode);
                     }
                 }
                 else if (ret != null)
@@ -395,12 +407,12 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 else if (variable.Initializer.Value is InvocationExpressionSyntax)
                 {
                     var invocation = variable.Initializer.Value as InvocationExpressionSyntax;
-                    this.MapSymbolsInInvocation(invocation, cfgNode);
 
-                    var summary = this.AnalysisContext.TryGetSummary(invocation, this.SemanticModel);
-                    var reachableSymbols = this.ResolveSideEffectsInCall(invocation,
-                        summary, syntaxNode, cfgNode);
-                    var returnSymbols = this.GetReturnSymbols(invocation, summary);
+                    MethodSummary calleeSummary = null;
+                    HashSet<ISymbol> reachableSymbols = null;
+                    HashSet<ISymbol> returnSymbols = null;
+                    this.AnalyzeInvocationExpression(invocation, syntaxNode, cfgNode, out calleeSummary,
+                        out reachableSymbols, out returnSymbols);
 
                     if (returnSymbols.Count == 0)
                     {
@@ -422,9 +434,9 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                             syntaxNode, cfgNode, true);
                     }
 
-                    if (summary != null && summary.ReturnTypeSet.Count > 0)
+                    if (calleeSummary != null && calleeSummary.ReturnTypeSet.Count > 0)
                     {
-                        this.MapReferenceTypesToSymbol(summary.ReturnTypeSet,
+                        this.MapReferenceTypesToSymbol(calleeSummary.ReturnTypeSet,
                             declSymbol, syntaxNode, cfgNode, true);
                     }
                     else
@@ -435,10 +447,12 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 else if (variable.Initializer.Value is ObjectCreationExpressionSyntax)
                 {
                     var objCreation = variable.Initializer.Value as ObjectCreationExpressionSyntax;
-                    var summary = this.AnalysisContext.TryGetSummary(objCreation, this.SemanticModel);
-                    var reachableSymbols = this.ResolveSideEffectsInCall(objCreation,
-                        summary, syntaxNode, cfgNode);
-                    var returnSymbols = this.GetReturnSymbols(objCreation, summary);
+
+                    MethodSummary calleeSummary = null;
+                    HashSet<ISymbol> reachableSymbols = null;
+                    HashSet<ISymbol> returnSymbols = null;
+                    this.AnalyzeObjectCreationExpression(objCreation, syntaxNode, cfgNode, out calleeSummary,
+                        out reachableSymbols, out returnSymbols);
 
                     if (returnSymbols.Count == 0)
                     {
@@ -542,16 +556,8 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             if (assignment.Right is IdentifierNameSyntax ||
                 assignment.Right is MemberAccessExpressionSyntax)
             {
-                IdentifierNameSyntax rhs = null;
-                if (assignment.Right is IdentifierNameSyntax)
-                {
-                    rhs = assignment.Right as IdentifierNameSyntax;
-                }
-                else if (assignment.Right is MemberAccessExpressionSyntax)
-                {
-                    rhs = this.AnalysisContext.GetTopLevelIdentifier(assignment.Right);
-                }
-                
+                IdentifierNameSyntax rhs = this.AnalysisContext.GetTopLevelIdentifier(assignment.Right);
+
                 var rightSymbol = this.SemanticModel.GetSymbolInfo(rhs).Symbol;
                 this.MapDataFlowInReferences(new List<ISymbol> { rightSymbol },
                     leftSymbol, syntaxNode, cfgNode);
@@ -610,12 +616,12 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             else if (assignment.Right is InvocationExpressionSyntax)
             {
                 var invocation = assignment.Right as InvocationExpressionSyntax;
-                this.MapSymbolsInInvocation(invocation, cfgNode);
 
-                var summary = this.AnalysisContext.TryGetSummary(invocation, this.SemanticModel);
-                var reachableSymbols = this.ResolveSideEffectsInCall(invocation,
-                    summary, syntaxNode, cfgNode);
-                var returnSymbols = this.GetReturnSymbols(invocation, summary);
+                MethodSummary calleeSummary = null;
+                HashSet<ISymbol> reachableSymbols = null;
+                HashSet<ISymbol> returnSymbols = null;
+                this.AnalyzeInvocationExpression(invocation, syntaxNode, cfgNode, out calleeSummary,
+                    out reachableSymbols, out returnSymbols);
 
                 if (returnSymbols.Count == 0)
                 {
@@ -652,9 +658,9 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                         syntaxNode, cfgNode, true);
                 }
 
-                if (summary != null && summary.ReturnTypeSet.Count > 0)
+                if (calleeSummary != null && calleeSummary.ReturnTypeSet.Count > 0)
                 {
-                    this.MapReferenceTypesToSymbol(summary.ReturnTypeSet,
+                    this.MapReferenceTypesToSymbol(calleeSummary.ReturnTypeSet,
                         leftSymbol, syntaxNode, cfgNode, true);
                 }
                 else
@@ -665,10 +671,12 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             else if (assignment.Right is ObjectCreationExpressionSyntax)
             {
                 var objCreation = assignment.Right as ObjectCreationExpressionSyntax;
-                var summary = this.AnalysisContext.TryGetSummary(objCreation, this.SemanticModel);
-                var reachableSymbols = this.ResolveSideEffectsInCall(objCreation,
-                    summary, syntaxNode, cfgNode);
-                var returnSymbols = this.GetReturnSymbols(objCreation, summary);
+
+                MethodSummary calleeSummary = null;
+                HashSet<ISymbol> reachableSymbols = null;
+                HashSet<ISymbol> returnSymbols = null;
+                this.AnalyzeObjectCreationExpression(objCreation, syntaxNode, cfgNode, out calleeSummary,
+                    out reachableSymbols, out returnSymbols);
 
                 if (returnSymbols.Count == 0)
                 {
@@ -719,22 +727,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         }
 
         /// <summary>
-        /// Analyzes the data-flow of the given invocation expression.
-        /// </summary>
-        /// <param name="invocation">InvocationExpressionSyntax</param>
-        /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">ControlFlowGraphNode</param>
-        private void AnalyzeInvocationExpression(InvocationExpressionSyntax invocation, SyntaxNode syntaxNode,
-            ControlFlowGraphNode cfgNode)
-        {
-            this.MapSymbolsInInvocation(invocation, cfgNode);
-
-            var summary = this.AnalysisContext.TryGetSummary(invocation, this.SemanticModel);
-            this.ResolveSideEffectsInCall(invocation, summary, syntaxNode, cfgNode);
-            this.GetReturnSymbols(invocation, summary);
-        }
-
-        /// <summary>
         /// Analyzes the data-flow of the given return statement.
         /// </summary>
         /// <param name="retStmt">ReturnStatementSyntax</param>
@@ -775,13 +767,15 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             else if (retStmt.Expression is InvocationExpressionSyntax)
             {
                 var invocation = retStmt.Expression as InvocationExpressionSyntax;
-                var summary = this.AnalysisContext.TryGetSummary(invocation, this.SemanticModel);
-                this.ResolveSideEffectsInCall(invocation, summary, syntaxNode, cfgNode);
-                returnSymbols = this.GetReturnSymbols(invocation, summary);
 
-                if (summary != null)
+                MethodSummary calleeSummary = null;
+                HashSet<ISymbol> reachableSymbols = null;
+                this.AnalyzeInvocationExpression(invocation, syntaxNode, cfgNode, out calleeSummary,
+                    out reachableSymbols, out returnSymbols);
+
+                if (calleeSummary != null)
                 {
-                    foreach (var referenceType in summary.ReturnTypeSet)
+                    foreach (var referenceType in calleeSummary.ReturnTypeSet)
                     {
                         cfgNode.GetMethodSummary().ReturnTypeSet.Add(referenceType);
                     }
@@ -790,9 +784,11 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             else if (retStmt.Expression is ObjectCreationExpressionSyntax)
             {
                 var objCreation = retStmt.Expression as ObjectCreationExpressionSyntax;
-                var summary = this.AnalysisContext.TryGetSummary(objCreation, this.SemanticModel);
-                this.ResolveSideEffectsInCall(objCreation, summary, syntaxNode, cfgNode);
-                returnSymbols = this.GetReturnSymbols(objCreation, summary);
+
+                MethodSummary calleeSummary = null;
+                HashSet<ISymbol> reachableSymbols = null;
+                this.AnalyzeObjectCreationExpression(objCreation, syntaxNode, cfgNode, out calleeSummary,
+                    out reachableSymbols, out returnSymbols);
 
                 var referenceType = this.SemanticModel.GetTypeInfo(objCreation).Type;
                 if (referenceType != null)
@@ -856,6 +852,80 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             }
         }
 
+        /// <summary>
+        /// Analyzes the data-flow of the given object creation expression.
+        /// </summary>
+        /// <param name="objCreation">ObjectCreationExpressionSyntax</param>
+        /// <param name="syntaxNode">SyntaxNode</param>
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        private void AnalyzeObjectCreationExpression(ObjectCreationExpressionSyntax objCreation, SyntaxNode syntaxNode,
+            ControlFlowGraphNode cfgNode)
+        {
+            MethodSummary calleeSummary = null;
+            HashSet<ISymbol> reachableSymbols = null;
+            HashSet<ISymbol> returnSymbols = null;
+
+            this.AnalyzeObjectCreationExpression(objCreation, syntaxNode, cfgNode, out calleeSummary,
+                out reachableSymbols, out returnSymbols);
+        }
+
+        /// <summary>
+        /// Analyzes the data-flow of the given invocation expression.
+        /// </summary>
+        /// <param name="invocation">InvocationExpressionSyntax</param>
+        /// <param name="syntaxNode">SyntaxNode</param>
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        private void AnalyzeInvocationExpression(InvocationExpressionSyntax invocation, SyntaxNode syntaxNode,
+            ControlFlowGraphNode cfgNode)
+        {
+            MethodSummary calleeSummary = null;
+            HashSet<ISymbol> reachableSymbols = null;
+            HashSet<ISymbol> returnSymbols = null;
+
+            this.AnalyzeInvocationExpression(invocation, syntaxNode, cfgNode, out calleeSummary,
+                out reachableSymbols, out returnSymbols);
+        }
+
+        /// <summary>
+        /// Analyzes the data-flow of the given object creation expression.
+        /// </summary>
+        /// <param name="objCreation">ObjectCreationExpressionSyntax</param>
+        /// <param name="syntaxNode">SyntaxNode</param>
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        /// <param name="calleeSummary">MethodSummary</param>
+        /// <param name="reachableSymbols">Reachable symbols</param>
+        /// <param name="returnSymbols">Return symbols</param>
+        private void AnalyzeObjectCreationExpression(ObjectCreationExpressionSyntax objCreation, SyntaxNode syntaxNode,
+            ControlFlowGraphNode cfgNode, out MethodSummary calleeSummary, out HashSet<ISymbol> reachableSymbols,
+            out HashSet<ISymbol> returnSymbols)
+        {
+            this.MapSymbolsInCall(objCreation, cfgNode);
+
+            calleeSummary = this.AnalysisContext.TryGetSummary(objCreation, this.SemanticModel);
+            reachableSymbols = this.ResolveSideEffectsInObjectCreation(objCreation, calleeSummary, syntaxNode, cfgNode);
+            returnSymbols = this.GetReturnSymbols(objCreation, calleeSummary);
+        }
+
+        /// <summary>
+        /// Analyzes the data-flow of the given invocation expression.
+        /// </summary>
+        /// <param name="invocation">InvocationExpressionSyntax</param>
+        /// <param name="syntaxNode">SyntaxNode</param>
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        /// <param name="calleeSummary">MethodSummary</param>
+        /// <param name="reachableSymbols">Reachable symbols</param>
+        /// <param name="returnSymbols">Return symbols</param>
+        private void AnalyzeInvocationExpression(InvocationExpressionSyntax invocation, SyntaxNode syntaxNode,
+            ControlFlowGraphNode cfgNode, out MethodSummary calleeSummary, out HashSet<ISymbol> reachableSymbols,
+            out HashSet<ISymbol> returnSymbols)
+        {
+            this.MapSymbolsInCall(invocation, cfgNode);
+
+            calleeSummary = this.AnalysisContext.TryGetSummary(invocation, this.SemanticModel);
+            reachableSymbols = this.ResolveSideEffectsInInvocation(invocation, calleeSummary, syntaxNode, cfgNode);
+            returnSymbols = this.GetReturnSymbols(invocation, calleeSummary);
+        }
+
         #endregion
 
         #region data-flow transfer methods
@@ -906,13 +976,111 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         #region resolution methods
 
         /// <summary>
+        /// Resolves side effects from the given object creation summary.
+        /// </summary>
+        /// <param name="call">Call</param>
+        /// <param name="calleeSummary">MethodSummary</param>
+        /// <param name="syntaxNode">SyntaxNode</param>
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        /// <returns>Set of reachable field symbols</returns>
+        private HashSet<ISymbol> ResolveSideEffectsInObjectCreation(ObjectCreationExpressionSyntax objCreation,
+            MethodSummary calleeSummary, SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode)
+        {
+            if (calleeSummary == null)
+            {
+                return new HashSet<ISymbol>();
+            }
+
+            HashSet<ISymbol> reachableFields = new HashSet<ISymbol>();
+            var sideEffects = calleeSummary.GetResolvedSideEffects(objCreation.ArgumentList, this.SemanticModel);
+            foreach (var sideEffect in sideEffects)
+            {
+                this.MapDataFlowInReferences(sideEffect.Value, sideEffect.Key, syntaxNode, cfgNode);
+                this.MarkSymbolReassignment(sideEffect.Key, syntaxNode, cfgNode);
+                reachableFields.Add(sideEffect.Key);
+            }
+
+            this.ResolveMethodParameterAccessesInCallee(objCreation, calleeSummary, syntaxNode, cfgNode);
+
+            foreach (var fieldAccess in calleeSummary.FieldAccessSet)
+            {
+                foreach (var access in fieldAccess.Value)
+                {
+                    if (!cfgNode.GetMethodSummary().FieldAccessSet.ContainsKey(fieldAccess.Key as IFieldSymbol))
+                    {
+                        cfgNode.GetMethodSummary().FieldAccessSet.Add(fieldAccess.Key
+                            as IFieldSymbol, new HashSet<SyntaxNode>());
+                    }
+
+                    cfgNode.GetMethodSummary().FieldAccessSet[fieldAccess.Key as IFieldSymbol].Add(access);
+                }
+            }
+
+            return reachableFields;
+        }
+
+        /// <summary>
+        /// Resolves the side effects from the given invocation summary.
+        /// </summary>
+        /// <param name="call">Call</param>
+        /// <param name="calleeSummary">MethodSummary</param>
+        /// <param name="syntaxNode">SyntaxNode</param>
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        /// <returns>Set of reachable field symbols</returns>
+        private HashSet<ISymbol> ResolveSideEffectsInInvocation(InvocationExpressionSyntax invocation,
+            MethodSummary calleeSummary, SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode)
+        {
+            if (calleeSummary == null)
+            {
+                return new HashSet<ISymbol>();
+            }
+
+            HashSet<ISymbol> reachableFields = new HashSet<ISymbol>();
+            var sideEffects = calleeSummary.GetResolvedSideEffects(invocation.ArgumentList, this.SemanticModel);
+            foreach (var sideEffect in sideEffects)
+            {
+                this.MapDataFlowInReferences(sideEffect.Value, sideEffect.Key, syntaxNode, cfgNode);
+                this.MarkSymbolReassignment(sideEffect.Key, syntaxNode, cfgNode);
+                reachableFields.Add(sideEffect.Key);
+            }
+
+            this.ResolveMethodParameterAccessesInCallee(invocation, calleeSummary, syntaxNode, cfgNode);
+
+            foreach (var fieldAccess in calleeSummary.FieldAccessSet)
+            {
+                foreach (var access in fieldAccess.Value)
+                {
+                    if (!cfgNode.GetMethodSummary().FieldAccessSet.ContainsKey(fieldAccess.Key as IFieldSymbol))
+                    {
+                        cfgNode.GetMethodSummary().FieldAccessSet.Add(fieldAccess.Key
+                            as IFieldSymbol, new HashSet<SyntaxNode>());
+                    }
+
+                    cfgNode.GetMethodSummary().FieldAccessSet[fieldAccess.Key as IFieldSymbol].Add(access);
+                }
+            }
+
+            IdentifierNameSyntax identifier = this.AnalysisContext.GetTopLevelIdentifier(invocation.Expression);
+            if (identifier != null)
+            {
+                var idSymbol = this.SemanticModel.GetSymbolInfo(identifier).Symbol;
+                if (idSymbol != null)
+                {
+                    this.MapReachableFieldsToSymbol(reachableFields, idSymbol, syntaxNode, cfgNode, false);
+                }
+            }
+
+            return reachableFields;
+        }
+
+        /// <summary>
         /// Resolves any method parameter acccesses in the given expression.
         /// </summary>
         /// <param name="expr">Expression</param>
         /// <param name="syntaxNode">SyntaxNode</param>
         /// <param name="cfgNode">ControlFlowGraphNode</param>
-        private void ResolveMethodParameterAccesses(ExpressionSyntax expr,
-            SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode)
+        private void ResolveMethodParameterAccesses(ExpressionSyntax expr, SyntaxNode syntaxNode,
+            ControlFlowGraphNode cfgNode)
         {
             if (!(expr is MemberAccessExpressionSyntax))
             {
@@ -977,6 +1145,114 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         }
 
         /// <summary>
+        /// Resolves any method parameter acccesses in the given callee.
+        /// </summary>
+        /// <param name="invocation">ExpressionSyntax</param>
+        /// <param name="calleeSummary">MethodSummary</param>
+        /// <param name="syntaxNode">SyntaxNode</param>
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        private void ResolveMethodParameterAccessesInCallee(ExpressionSyntax invocation,
+            MethodSummary calleeSummary, SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode)
+        {
+            if (!(invocation is InvocationExpressionSyntax) &&
+                !(invocation is ObjectCreationExpressionSyntax))
+            {
+                return;
+            }
+
+            var calleeSymbol = this.SemanticModel.GetSymbolInfo(invocation).Symbol;
+            if (calleeSymbol == null)
+            {
+                return;
+            }
+
+            var definition = SymbolFinder.FindSourceDefinitionAsync(calleeSymbol,
+                this.AnalysisContext.Solution).Result;
+            if (definition == null || definition.DeclaringSyntaxReferences.IsEmpty)
+            {
+                return;
+            }
+
+            ArgumentListSyntax argumentList;
+            if (invocation is InvocationExpressionSyntax)
+            {
+                var invocationCallee = definition.DeclaringSyntaxReferences.First().GetSyntax()
+                as MethodDeclarationSyntax;
+                if (invocationCallee.Modifiers.Any(SyntaxKind.AbstractKeyword) ||
+                    invocationCallee.Modifiers.Any(SyntaxKind.VirtualKeyword) ||
+                    invocationCallee.Modifiers.Any(SyntaxKind.OverrideKeyword))
+                {
+                    return;
+                }
+
+                argumentList = (invocation as InvocationExpressionSyntax).ArgumentList;
+            }
+            else
+            {
+                argumentList = (invocation as ObjectCreationExpressionSyntax).ArgumentList;
+            }
+
+            for (int index = 0; index < argumentList.Arguments.Count; index++)
+            {
+                var arg = argumentList.Arguments[index];
+                if (!calleeSummary.ParameterAccessSet.ContainsKey(index))
+                {
+                    continue;
+                }
+
+                var identifier = this.AnalysisContext.GetTopLevelIdentifier(arg.Expression);
+                var symbol = this.SemanticModel.GetSymbolInfo(identifier).Symbol;
+                if (symbol == null)
+                {
+                    return;
+                }
+
+                var type = this.SemanticModel.GetTypeInfo(identifier).Type;
+                if (type == null)
+                {
+                    return;
+                }
+
+                if (!this.AnalysisContext.IsTypePassedByValueOrImmutable(type))
+                {
+                    Dictionary<ISymbol, HashSet<ISymbol>> dataFlowMap = null;
+                    if (!this.TryGetDataFlowMapForSyntaxNode(syntaxNode, cfgNode, out dataFlowMap) ||
+                        !dataFlowMap.ContainsKey(symbol))
+                    {
+                        return;
+                    }
+
+                    var indexMap = new Dictionary<IParameterSymbol, int>();
+                    var parameterList = cfgNode.GetMethodSummary().Method.ParameterList.Parameters;
+                    for (int idx = 0; idx < parameterList.Count; idx++)
+                    {
+                        var paramSymbol = this.SemanticModel.GetDeclaredSymbol(parameterList[idx]);
+                        indexMap.Add(paramSymbol, idx);
+                    }
+
+                    foreach (var reference in dataFlowMap[symbol].Where(r => r.Kind == SymbolKind.Parameter))
+                    {
+                        if (reference.Equals(symbol) && this.DoesReferenceResetUntilSyntaxNode(reference,
+                            cfgNode.GetMethodSummary().EntryNode.SyntaxNodes.First(),
+                            cfgNode.GetMethodSummary().EntryNode, syntaxNode, cfgNode, true))
+                        {
+                            continue;
+                        }
+
+                        int paramIndex = indexMap[reference as IParameterSymbol];
+                        if (!cfgNode.GetMethodSummary().ParameterAccessSet.ContainsKey(paramIndex))
+                        {
+                            cfgNode.GetMethodSummary().ParameterAccessSet.Add(paramIndex, new HashSet<SyntaxNode>());
+                        }
+
+                        cfgNode.GetMethodSummary().ParameterAccessSet[paramIndex].UnionWith(
+                            calleeSummary.ParameterAccessSet[index]);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Resolves any field acccesses in the given expression.
         /// </summary>
         /// <param name="expr">Expression</param>
@@ -1035,100 +1311,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 
                 cfgNode.GetMethodSummary().FieldAccessSet[symbol as IFieldSymbol].Add(syntaxNode);
             }
-        }
-
-        /// <summary>
-        /// Resolves side effects from the given object creation summary.
-        /// </summary>
-        /// <param name="call">Call</param>
-        /// <param name="summary">MethodSummary</param>
-        /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">ControlFlowGraphNode</param>
-        /// <returns>Set of reachable field symbols</returns>
-        private HashSet<ISymbol> ResolveSideEffectsInCall(ObjectCreationExpressionSyntax call,
-            MethodSummary summary, SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode)
-        {
-            if (summary == null)
-            {
-                return new HashSet<ISymbol>();
-            }
-
-            HashSet<ISymbol> reachableFields = new HashSet<ISymbol>();
-            var sideEffects = summary.GetResolvedSideEffects(call.ArgumentList, this.SemanticModel);
-            foreach (var sideEffect in sideEffects)
-            {
-                this.MapDataFlowInReferences(sideEffect.Value, sideEffect.Key, syntaxNode, cfgNode);
-                this.MarkSymbolReassignment(sideEffect.Key, syntaxNode, cfgNode);
-                reachableFields.Add(sideEffect.Key);
-            }
-
-            foreach (var fieldAccess in summary.FieldAccessSet)
-            {
-                foreach (var access in fieldAccess.Value)
-                {
-                    if (!cfgNode.GetMethodSummary().FieldAccessSet.ContainsKey(fieldAccess.Key as IFieldSymbol))
-                    {
-                        cfgNode.GetMethodSummary().FieldAccessSet.Add(fieldAccess.Key
-                            as IFieldSymbol, new HashSet<SyntaxNode>());
-                    }
-
-                    cfgNode.GetMethodSummary().FieldAccessSet[fieldAccess.Key as IFieldSymbol].Add(access);
-                }
-            }
-
-            return reachableFields;
-        }
-
-        /// <summary>
-        /// Resolves the side effects from the given invocation summary.
-        /// </summary>
-        /// <param name="call">Call</param>
-        /// <param name="summary">MethodSummary</param>
-        /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">ControlFlowGraphNode</param>
-        /// <returns>Set of reachable field symbols</returns>
-        private HashSet<ISymbol> ResolveSideEffectsInCall(InvocationExpressionSyntax call,
-            MethodSummary summary, SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode)
-        {
-            if (summary == null)
-            {
-                return new HashSet<ISymbol>();
-            }
-
-            HashSet<ISymbol> reachableFields = new HashSet<ISymbol>();
-            var sideEffects = summary.GetResolvedSideEffects(call.ArgumentList, this.SemanticModel);
-            foreach (var sideEffect in sideEffects)
-            {
-                this.MapDataFlowInReferences(sideEffect.Value, sideEffect.Key, syntaxNode, cfgNode);
-                this.MarkSymbolReassignment(sideEffect.Key, syntaxNode, cfgNode);
-                reachableFields.Add(sideEffect.Key);
-            }
-
-            foreach (var fieldAccess in summary.FieldAccessSet)
-            {
-                foreach (var access in fieldAccess.Value)
-                {
-                    if (!cfgNode.GetMethodSummary().FieldAccessSet.ContainsKey(fieldAccess.Key as IFieldSymbol))
-                    {
-                        cfgNode.GetMethodSummary().FieldAccessSet.Add(fieldAccess.Key
-                            as IFieldSymbol, new HashSet<SyntaxNode>());
-                    }
-
-                    cfgNode.GetMethodSummary().FieldAccessSet[fieldAccess.Key as IFieldSymbol].Add(access);
-                }
-            }
-
-            IdentifierNameSyntax identifier = this.AnalysisContext.GetTopLevelIdentifier(call.Expression);
-            if (identifier != null)
-            {
-                var idSymbol = this.SemanticModel.GetSymbolInfo(identifier).Symbol;
-                if (idSymbol != null)
-                {
-                    this.MapReachableFieldsToSymbol(reachableFields, idSymbol, syntaxNode, cfgNode, false);
-                }
-            }
-
-            return reachableFields;
         }
 
         /// <summary>
@@ -1262,14 +1444,24 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         }
 
         /// <summary>
-        /// Maps symbols in the invocation.
+        /// Maps symbols in the call.
         /// </summary>
-        /// <param name="call">Call</param>
+        /// <param name="call">ExpressionSyntax</param>
         /// <param name="cfgNode">ControlFlowGraphNode</param>
-        private void MapSymbolsInInvocation(InvocationExpressionSyntax call, ControlFlowGraphNode cfgNode)
+        private void MapSymbolsInCall(ExpressionSyntax call, ControlFlowGraphNode cfgNode)
         {
-            List<MemberAccessExpressionSyntax> accesses = call.ArgumentList.
-                DescendantNodesAndSelf().OfType<MemberAccessExpressionSyntax>().ToList();
+            ArgumentListSyntax argumentList;
+            if (call is InvocationExpressionSyntax)
+            {
+                argumentList = (call as InvocationExpressionSyntax).ArgumentList;
+            }
+            else
+            {
+                argumentList = (call as ObjectCreationExpressionSyntax).ArgumentList;
+            }
+
+            List<MemberAccessExpressionSyntax> accesses = argumentList.DescendantNodesAndSelf().
+                OfType<MemberAccessExpressionSyntax>().ToList();
 
             foreach (var access in accesses)
             {

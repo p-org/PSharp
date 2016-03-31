@@ -21,7 +21,6 @@ using Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 
-using Microsoft.PSharp.LanguageServices;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.StaticAnalysis
@@ -180,7 +179,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     continue;
                 }
 
-                var callee = Querying.GetCalleeOfInvocation(call);
+                var callee = DataFlowQuerying.GetCalleeOfInvocation(call);
                 var calleeMethod = definition.DeclaringSyntaxReferences.First().GetSyntax()
                     as BaseMethodDeclarationSyntax;
 
