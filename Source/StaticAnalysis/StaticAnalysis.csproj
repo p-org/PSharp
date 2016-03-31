@@ -74,6 +74,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="OwnershipAnalysis\OwnershipAnalysisPass.cs" />
+    <Compile Include="OwnershipAnalysis\GivesUpOwnershipAnalysisPass.cs" />
     <Compile Include="DataStructures\StateMachines\OnEventPushMachineAction.cs" />
     <Compile Include="DataStructures\StateMachines\OnEventGotoMachineAction.cs" />
     <Compile Include="DataStructures\StateMachines\OnEventDoMachineAction.cs" />
@@ -82,7 +84,7 @@
     <Compile Include="DataStructures\StateMachines\MachineAction.cs" />
     <Compile Include="DataStructures\StateMachines\MachineState.cs" />
     <Compile Include="DataStructures\StateMachines\StateMachine.cs" />
-    <Compile Include="DataStructures\Summarization\PSharpMethodSummary.cs" />
+    <Compile Include="Summarization\PSharpMethodSummary.cs" />
     <Compile Include="DataStructures\ControlFlow\PSharpCFGNode.cs" />
     <Compile Include="PSharpAnalysisContext.cs" />
     <Compile Include="DataStructures\ControlFlow\StateTransitionGraphNode.cs" />
@@ -90,12 +92,12 @@
     <Compile Include="Tracing\ErrorTraceStep.cs" />
     <Compile Include="Utilities\AnalysisErrorReporter.cs" />
     <Compile Include="Tracing\TraceInfo.cs" />
-    <Compile Include="DataRaceAnalysis\AnalysisPass.cs" />
+    <Compile Include="Analyses\AnalysisPass.cs" />
     <Compile Include="StaticAnalysisEngine.cs" />
-    <Compile Include="DataRaceAnalysis\GivesUpOwnershipAnalysisPass.cs" />
-    <Compile Include="DataRaceAnalysis\RespectsOwnershipAnalysisPass.cs" />
-    <Compile Include="DataRaceAnalysis\DirectAccessAnalysisPass.cs" />
-    <Compile Include="DataRaceAnalysis\StateTransitionAnalysisPass.cs" />
+    <Compile Include="Summarization\SummarizationPass.cs" />
+    <Compile Include="OwnershipAnalysis\RespectsOwnershipAnalysisPass.cs" />
+    <Compile Include="Analyses\DirectAccessAnalysisPass.cs" />
+    <Compile Include="Analyses\StateTransitionAnalysisPass.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

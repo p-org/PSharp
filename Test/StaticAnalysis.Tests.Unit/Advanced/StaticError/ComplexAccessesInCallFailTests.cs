@@ -83,28 +83,28 @@ class M : Machine
   Envelope envelope = new Envelope(""London"", 0);
   Envelope otherEnvelope = envelope;
 
-  this.foo(otherEnvelope);
+  this.Foo(otherEnvelope);
 
   this.Send(this.Target, new eUnit(envelope));
 
-  this.bar(otherEnvelope.Letter);
+  this.Bar(otherEnvelope.Letter);
   otherEnvelope.Letter.Text = ""text"";  // ERROR
 
   envelope = new Envelope();
-  this.foobar(envelope, otherEnvelope.Letter);
+  this.FooBar(envelope, otherEnvelope.Letter);
  }
 
- void foo(Envelope envelope)
+ void Foo(Envelope envelope)
  {
   this.Letter = envelope.Letter;  // ERROR
  }
 
- void bar(Letter letter)
+ void Bar(Letter letter)
  {
   letter.Text = ""text2"";  // ERROR
  }
 
- void foobar(Envelope envelope, Letter letter)
+ void FooBar(Envelope envelope, Letter letter)
  {
   string str = letter.Text;  // ERROR
   envelope.Id = 5;
@@ -334,7 +334,7 @@ class M : Machine
             StaticAnalysisEngine.Create(context).Run();
 
             var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... Static analysis detected '2' errors";
+            var expected = "... Static analysis detected '4' errors";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             IO.StopWritingToMemory();
@@ -531,7 +531,7 @@ class M : Machine
             StaticAnalysisEngine.Create(context).Run();
 
             var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... Static analysis detected '3' errors";
+            var expected = "... Static analysis detected '4' errors";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             IO.StopWritingToMemory();
@@ -1073,7 +1073,7 @@ class M : Machine
             StaticAnalysisEngine.Create(context).Run();
 
             var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... Static analysis detected '2' errors";
+            var expected = "... Static analysis detected '4' errors";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             IO.StopWritingToMemory();

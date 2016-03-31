@@ -23,7 +23,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 
 namespace Microsoft.PSharp.StaticAnalysis
 {
-    public sealed class StateTransitionAnalysisPass : AnalysisPass
+    internal sealed class StateTransitionAnalysisPass : AnalysisPass
     {
         #region fields
 
@@ -44,14 +44,14 @@ namespace Microsoft.PSharp.StaticAnalysis
 
         #endregion
 
-        #region public API
+        #region internal API
 
         /// <summary>
         /// Creates a new state transition analysis pass.
         /// </summary>
         /// <param name="context">AnalysisContext</param>
         /// <returns>StateTransitionAnalysisPass</returns>
-        public static StateTransitionAnalysisPass Create(PSharpAnalysisContext context)
+        internal static StateTransitionAnalysisPass Create(PSharpAnalysisContext context)
         {
             return new StateTransitionAnalysisPass(context);
         }
@@ -59,7 +59,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Runs the analysis.
         /// </summary>
-        public override void Run()
+        internal override void Run()
         {
             foreach (var machine in this.AnalysisContext.Machines)
             {

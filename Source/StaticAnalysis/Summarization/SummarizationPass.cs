@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="GivesUpOwnershipAnalysisPass.cs">
+// <copyright file="SummarizationPass.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -26,27 +26,27 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.StaticAnalysis
 {
     /// <summary>
-    /// This analysis pass computes the gives-up ownership
-    /// summaries for each machine of a P# program.
+    /// This analysis pass computes the summaries for
+    /// each machine of a P# program.
     /// </summary>
-    public sealed class GivesUpOwnershipAnalysisPass : AnalysisPass
+    internal sealed class SummarizationPass : AnalysisPass
     {
-        #region public API
+        #region internal API
 
         /// <summary>
-        /// Creates a new gives-up ownership analysis pass.
+        /// Creates a new summarization pass.
         /// </summary>
         /// <param name="context">AnalysisContext</param>
-        /// <returns>GivesUpOwnershipAnalysisPass</returns>
-        public static GivesUpOwnershipAnalysisPass Create(PSharpAnalysisContext context)
+        /// <returns>SummarizationPass</returns>
+        internal static SummarizationPass Create(PSharpAnalysisContext context)
         {
-            return new GivesUpOwnershipAnalysisPass(context);
+            return new SummarizationPass(context);
         }
 
         /// <summary>
         /// Runs the analysis.
         /// </summary>
-        public override void Run()
+        internal override void Run()
         {
             // Starts profiling the summarization.
             if (this.AnalysisContext.Configuration.ShowDFARuntimeResults &&
@@ -119,7 +119,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Constructor.
         /// </summary>
         /// <param name="context">AnalysisContext</param>
-        private GivesUpOwnershipAnalysisPass(PSharpAnalysisContext context)
+        private SummarizationPass(PSharpAnalysisContext context)
             : base(context)
         {
 

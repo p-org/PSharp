@@ -17,7 +17,7 @@ namespace Microsoft.PSharp.StaticAnalysis
     /// <summary>
     /// Implementation of an abstract state-machine analysis pass.
     /// </summary>
-    public abstract class AnalysisPass
+    internal abstract class AnalysisPass
     {
         #region fields
 
@@ -28,12 +28,12 @@ namespace Microsoft.PSharp.StaticAnalysis
 
         #endregion
 
-        #region public methods
+        #region internal methods
 
         /// <summary>
         /// Runs the analysis.
         /// </summary>
-        public abstract void Run();
+        internal abstract void Run();
 
         #endregion
 

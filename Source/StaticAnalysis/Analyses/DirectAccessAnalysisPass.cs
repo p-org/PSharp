@@ -26,16 +26,16 @@ namespace Microsoft.PSharp.StaticAnalysis
     /// This analysis pass checks if any P# machine contains fields
     /// or methods that can be publicly accessed.
     /// </summary>
-    public sealed class DirectAccessAnalysisPass : AnalysisPass
+    internal sealed class DirectAccessAnalysisPass : AnalysisPass
     {
-        #region public API
+        #region internal API
 
         /// <summary>
         /// Creates a new direct access analysis pass.
         /// </summary>
         /// <param name="context">AnalysisContext</param>
         /// <returns>DirectAccessAnalysisPass</returns>
-        public static DirectAccessAnalysisPass Create(PSharpAnalysisContext context)
+        internal static DirectAccessAnalysisPass Create(PSharpAnalysisContext context)
         {
             return new DirectAccessAnalysisPass(context);
         }
@@ -43,7 +43,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Runs the analysis.
         /// </summary>
-        public override void Run()
+        internal override void Run()
         {
             this.CheckFields();
             this.CheckMethods();
