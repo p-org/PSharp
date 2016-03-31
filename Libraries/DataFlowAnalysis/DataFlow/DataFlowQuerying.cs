@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode, SyntaxNode targetSyntaxNode,
             ControlFlowGraphNode targetCfgNode, SemanticModel model)
         {
-            IdentifierNameSyntax identifier = DataFlowQuerying.GetTopLevelIdentifier(expr);
+            IdentifierNameSyntax identifier = AnalysisContext.GetTopLevelIdentifier(expr);
             if (identifier == null)
             {
                 return false;
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             ControlFlowGraphNode cfgNode, SyntaxNode targetSyntaxNode, ControlFlowGraphNode targetCfgNode,
             SemanticModel model)
         {
-            IdentifierNameSyntax identifier = DataFlowQuerying.GetTopLevelIdentifier(expr);
+            IdentifierNameSyntax identifier = AnalysisContext.GetTopLevelIdentifier(expr);
             if (identifier == null)
             {
                 return false;
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         public static bool DoesResetInSuccessorControlFlowGraphNodes(ExpressionSyntax expr, ISymbol target,
             SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode, SemanticModel model)
         {
-            IdentifierNameSyntax identifier = DataFlowQuerying.GetTopLevelIdentifier(expr);
+            IdentifierNameSyntax identifier = AnalysisContext.GetTopLevelIdentifier(expr);
             if (identifier == null)
             {
                 return false;
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             ControlFlowGraphNode cfgNode, SyntaxNode targetSyntaxNode, ControlFlowGraphNode targetCfgNode,
             SemanticModel model)
         {
-            IdentifierNameSyntax identifier = DataFlowQuerying.GetTopLevelIdentifier(expr);
+            IdentifierNameSyntax identifier = AnalysisContext.GetTopLevelIdentifier(expr);
             if (!cfgNode.Equals(targetCfgNode) || identifier == null)
             {
                 return false;
@@ -428,57 +428,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             }
 
             return true;
-        }
-
-        /// <summary>
-        /// Returns the callee of the given call expression.
-        /// </summary>
-        /// <param name="invocation">Invocation</param>
-        /// <returns>Callee</returns>
-        public static string GetCalleeOfInvocation(InvocationExpressionSyntax invocation)
-        {
-            string callee = "";
-
-            if (invocation.Expression is MemberAccessExpressionSyntax)
-            {
-                var memberAccessExpr = invocation.Expression as MemberAccessExpressionSyntax;
-                if (memberAccessExpr.Name is IdentifierNameSyntax)
-                {
-                    callee = (memberAccessExpr.Name as IdentifierNameSyntax).Identifier.ValueText;
-                }
-                else if (memberAccessExpr.Name is GenericNameSyntax)
-                {
-                    callee = (memberAccessExpr.Name as GenericNameSyntax).Identifier.ValueText;
-                }
-            }
-            else
-            {
-                callee = invocation.Expression.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>().
-                    First().Identifier.ValueText;
-            }
-
-            return callee;
-        }
-
-        /// <summary>
-        /// Gets the top-level identifier.
-        /// </summary>
-        /// <param name="expr">Expression</param>
-        /// <returns>Identifier</returns>
-        public static IdentifierNameSyntax GetTopLevelIdentifier(ExpressionSyntax expr)
-        {
-            IdentifierNameSyntax identifier = null;
-            if (expr is IdentifierNameSyntax)
-            {
-                identifier = expr as IdentifierNameSyntax;
-            }
-            else if (expr is MemberAccessExpressionSyntax)
-            {
-                identifier = (expr as MemberAccessExpressionSyntax).DescendantNodes().
-                    OfType<IdentifierNameSyntax>().First();
-            }
-
-            return identifier;
         }
 
         #endregion
@@ -635,7 +584,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 as ClassDeclarationSyntax;
             foreach (var m in calleeClass.ChildNodes().OfType<MethodDeclarationSyntax>())
             {
-                if (m.Identifier.ValueText.Equals(DataFlowQuerying.GetCalleeOfInvocation(virtualCall)))
+                if (m.Identifier.ValueText.Equals(AnalysisContext.GetCalleeOfInvocation(virtualCall)))
                 {
                     method = m;
                     break;

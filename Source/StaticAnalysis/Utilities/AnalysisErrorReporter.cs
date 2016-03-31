@@ -337,7 +337,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// thus cannot be further analysed.
         /// </summary>
         /// <param name="trace">TraceInfo</param>
-        internal static void ReportUnknownInvocation(TraceInfo trace)
+        internal static void ReportExternalInvocation(TraceInfo trace)
         {
             if (trace.State == null)
             {

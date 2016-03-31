@@ -156,7 +156,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <returns>Boolean</returns>
         private bool IsGivesUpOperation(InvocationExpressionSyntax call)
         {
-            var callee = DataFlowQuerying.GetCalleeOfInvocation(call);
+            var callee = AnalysisContext.GetCalleeOfInvocation(call);
             var model = this.AnalysisContext.Compilation.GetSemanticModel(call.SyntaxTree);
             var callSymbol = model.GetSymbolInfo(call).Symbol;
             if (callSymbol == null)

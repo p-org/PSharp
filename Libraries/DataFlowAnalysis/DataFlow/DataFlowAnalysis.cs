@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                     return;
                 }
 
-                lhs = DataFlowQuerying.GetTopLevelIdentifier(assignment.Left);
+                lhs = AnalysisContext.GetTopLevelIdentifier(assignment.Left);
                 lhsFieldSymbol = this.SemanticModel.GetSymbolInfo(name).Symbol as IFieldSymbol;
             }
             else if (assignment.Left is ElementAccessExpressionSyntax)
@@ -546,7 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                         return;
                     }
 
-                    lhs = DataFlowQuerying.GetTopLevelIdentifier(memberAccess.Expression);
+                    lhs = AnalysisContext.GetTopLevelIdentifier(memberAccess.Expression);
                     lhsFieldSymbol = this.SemanticModel.GetSymbolInfo(name).Symbol as IFieldSymbol;
                 }
             }
@@ -556,7 +556,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             if (assignment.Right is IdentifierNameSyntax ||
                 assignment.Right is MemberAccessExpressionSyntax)
             {
-                IdentifierNameSyntax rhs = DataFlowQuerying.GetTopLevelIdentifier(assignment.Right);
+                IdentifierNameSyntax rhs = AnalysisContext.GetTopLevelIdentifier(assignment.Right);
 
                 var rightSymbol = this.SemanticModel.GetSymbolInfo(rhs).Symbol;
                 this.MapDataFlowInReferences(new List<ISymbol> { rightSymbol },
@@ -1060,7 +1060,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 }
             }
 
-            IdentifierNameSyntax identifier = DataFlowQuerying.GetTopLevelIdentifier(invocation.Expression);
+            IdentifierNameSyntax identifier = AnalysisContext.GetTopLevelIdentifier(invocation.Expression);
             if (identifier != null)
             {
                 var idSymbol = this.SemanticModel.GetSymbolInfo(identifier).Symbol;
@@ -1088,7 +1088,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             }
 
             var name = (expr as MemberAccessExpressionSyntax).Name;
-            var identifier = DataFlowQuerying.GetTopLevelIdentifier(expr);
+            var identifier = AnalysisContext.GetTopLevelIdentifier(expr);
             if (identifier == null || name == null)
             {
                 return;
@@ -1200,7 +1200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                     continue;
                 }
 
-                var identifier = DataFlowQuerying.GetTopLevelIdentifier(arg.Expression);
+                var identifier = AnalysisContext.GetTopLevelIdentifier(arg.Expression);
                 var symbol = this.SemanticModel.GetSymbolInfo(identifier).Symbol;
                 if (symbol == null)
                 {
@@ -1267,7 +1267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             }
 
             var name = (expr as MemberAccessExpressionSyntax).Name;
-            var identifier = DataFlowQuerying.GetTopLevelIdentifier(expr);
+            var identifier = AnalysisContext.GetTopLevelIdentifier(expr);
             if (identifier == null || name == null)
             {
                 return;
@@ -1465,7 +1465,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 
             foreach (var access in accesses)
             {
-                IdentifierNameSyntax id = DataFlowQuerying.GetTopLevelIdentifier(access);
+                IdentifierNameSyntax id = AnalysisContext.GetTopLevelIdentifier(access);
                 if (id == null)
                 {
                     continue;
@@ -1511,35 +1511,19 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         #region helper methods
 
         /// <summary>
-        /// Returns the return symbols fromt he given object creation summary.
+        /// Returns the return symbols fromt he given method summary.
         /// </summary>
-        /// <param name="call">Call</param>
+        /// <param name="call">ExpressionSyntax</param>
         /// <param name="summary">MethodSummary</param>
         /// <returns>Set of return symbols</returns>
-        private HashSet<ISymbol> GetReturnSymbols(ObjectCreationExpressionSyntax call, MethodSummary summary)
+        private HashSet<ISymbol> GetReturnSymbols(ExpressionSyntax call, MethodSummary summary)
         {
             if (summary == null)
             {
                 return new HashSet<ISymbol>();
             }
 
-            return summary.GetResolvedReturnSymbols(call.ArgumentList, this.SemanticModel);
-        }
-
-        /// <summary>
-        /// Returns the return symbols fromt he given invocation summary.
-        /// </summary>
-        /// <param name="call">Call</param>
-        /// <param name="summary">MethodSummary</param>
-        /// <returns>Set of return symbols</returns>
-        private HashSet<ISymbol> GetReturnSymbols(InvocationExpressionSyntax call, MethodSummary summary)
-        {
-            if (summary == null)
-            {
-                return new HashSet<ISymbol>();
-            }
-
-            return summary.GetResolvedReturnSymbols(call.ArgumentList, this.SemanticModel);
+            return summary.GetResolvedReturnSymbols(call, this.SemanticModel);
         }
 
         /// <summary>

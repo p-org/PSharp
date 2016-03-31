@@ -90,6 +90,190 @@ namespace Microsoft.PSharp.StaticAnalysis
             HashSet<ControlFlowGraphNode> visited, StateMachine originalMachine,
             SemanticModel model, TraceInfo trace);
 
+        /// <summary>
+        /// Analyzes the ownership of references in the given variable declaration.
+        /// </summary>
+        /// <param name="target">Target</param>
+        /// <param name="varDecl">VariableDeclarationSyntax</param>
+        /// <param name="stmt">StatementSyntax</param>
+        /// <param name="syntaxNode">SyntaxNode</param>
+        /// <param name="cfgNode">Control flow graph node</param>
+        /// <param name="givesUpCfgNode">Gives-up CFG node</param>
+        /// <param name="originalMachine">Original machine</param>
+        /// <param name="model">SemanticModel</param>
+        /// <param name="trace">TraceInfo</param>
+        protected abstract void AnalyzeOwnershipInLocalDeclaration(ISymbol target, VariableDeclarationSyntax varDecl,
+            StatementSyntax stmt, SyntaxNode syntaxNode, PSharpCFGNode cfgNode, PSharpCFGNode givesUpCfgNode,
+            StateMachine originalMachine, SemanticModel model, TraceInfo trace);
+
+        /// <summary>
+        /// Analyzes the ownership of references in the given assignment expression.
+        /// </summary>
+        /// <param name="target">Target</param>
+        /// <param name="assignment">AssignmentExpressionSyntax</param>
+        /// <param name="stmt">StatementSyntax</param>
+        /// <param name="syntaxNode">SyntaxNode</param>
+        /// <param name="cfgNode">Control flow graph node</param>
+        /// <param name="givesUpCfgNode">Gives-up CFG node</param>
+        /// <param name="originalMachine">Original machine</param>
+        /// <param name="model">SemanticModel</param>
+        /// <param name="trace">TraceInfo</param>
+        protected abstract void AnalyzeOwnershipInAssignment(ISymbol target, AssignmentExpressionSyntax assignment,
+            StatementSyntax stmt, SyntaxNode syntaxNode, PSharpCFGNode cfgNode, PSharpCFGNode givesUpCfgNode,
+            StateMachine originalMachine, SemanticModel model, TraceInfo trace);
+
+        /// <summary>
+        /// Analyzes the ownership of references in the given candidate callee.
+        /// </summary>
+        /// <param name="target">Target</param>
+        /// <param name="calleeSummary">PSharpMethodSummary</param>
+        /// <param name="call">ExpressionSyntax</param>
+        /// <param name="syntaxNode">SyntaxNode</param>
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        /// <param name="givesUpSyntaxNode">Gives up syntaxNode</param>
+        /// <param name="givesUpCfgNode">Gives up controlFlowGraphNode</param>
+        /// <param name="originalMachine">Original machine</param>
+        /// <param name="model">SemanticModel</param>
+        /// <param name="trace">TraceInfo</param>
+        protected abstract void AnalyzeOwnershipInCandidateCallee(ISymbol target, PSharpMethodSummary calleeSummary,
+            ExpressionSyntax call, SyntaxNode syntaxNode, PSharpCFGNode cfgNode, SyntaxNode givesUpSyntaxNode,
+            PSharpCFGNode givesUpCfgNode, StateMachine originalMachine, SemanticModel model, TraceInfo trace);
+
+        /// <summary>
+        /// Analyzes the ownership of references in the gives-up operation.
+        /// </summary>
+        /// <param name="target">Target</param>
+        /// <param name="call">Gives-up call</param>
+        /// <param name="syntaxNode">SyntaxNode</param>
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        /// <param name="givesUpSyntaxNode">Gives up syntaxNode</param>
+        /// <param name="givesUpCfgNode">Gives up controlFlowGraphNode</param>
+        /// <param name="model">SemanticModel</param>
+        /// <param name="trace">TraceInfo</param>
+        protected abstract void AnalyzeOwnershipInGivesUpCall(ISymbol target, InvocationExpressionSyntax call,
+            SyntaxNode syntaxNode, PSharpCFGNode cfgNode, SyntaxNode givesUpSyntaxNode,
+            PSharpCFGNode givesUpCfgNode, SemanticModel model, TraceInfo trace);
+
+        /// <summary>
+        /// Analyzes the ownership of references in the given control-flow graph node.
+        /// </summary>
+        /// <param name="target">Target</param>
+        /// <param name="cfgNode">Control flow graph node</param>
+        /// <param name="givesUpCfgNode">Gives-up CFG node</param>
+        /// <param name="giveUpSource">Give up source</param>
+        /// <param name="visited">Already visited cfgNodes</param>
+        /// <param name="originalMachine">Original machine</param>
+        /// <param name="model">SemanticModel</param>
+        /// <param name="trace">TraceInfo</param>
+        protected void AnalyzeOwnershipInCFG(ISymbol target, PSharpCFGNode cfgNode, PSharpCFGNode givesUpCfgNode,
+            StateMachine originalMachine, SemanticModel model, TraceInfo trace)
+        {
+            foreach (var syntaxNode in cfgNode.SyntaxNodes)
+            {
+                var stmt = syntaxNode as StatementSyntax;
+                var localDecl = stmt.DescendantNodesAndSelf().OfType<LocalDeclarationStatementSyntax>().FirstOrDefault();
+                var expr = stmt.DescendantNodesAndSelf().OfType<ExpressionStatementSyntax>().FirstOrDefault();
+
+                if (localDecl != null)
+                {
+                    var varDecl = localDecl.Declaration;
+                    this.AnalyzeOwnershipInLocalDeclaration(target, varDecl, stmt, syntaxNode,
+                        cfgNode, givesUpCfgNode, originalMachine, model, trace);
+                }
+                else if (expr != null)
+                {
+                    if (expr.Expression is AssignmentExpressionSyntax)
+                    {
+                        var assignment = expr.Expression as AssignmentExpressionSyntax;
+                        this.AnalyzeOwnershipInAssignment(target, assignment, stmt, syntaxNode,
+                            cfgNode, givesUpCfgNode, originalMachine, model, trace);
+                    }
+                    else if (expr.Expression is InvocationExpressionSyntax ||
+                        expr.Expression is ObjectCreationExpressionSyntax)
+                    {
+                        trace.InsertCall(cfgNode.GetMethodSummary().Method, expr.Expression);
+                        this.AnalyzeOwnershipInCall(target, expr.Expression, syntaxNode, cfgNode,
+                            givesUpCfgNode.SyntaxNodes.First(), givesUpCfgNode,
+                            originalMachine, model, trace);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Analyzes the ownership of references in the given call.
+        /// </summary>
+        /// <param name="target">Target</param>
+        /// <param name="call">ExpressionSyntax</param>
+        /// <param name="syntaxNode">SyntaxNode</param>
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        /// <param name="givesUpSyntaxNode">Gives up syntaxNode</param>
+        /// <param name="givesUpCfgNode">Gives up controlFlowGraphNode</param>
+        /// <param name="originalMachine">Original machine</param>
+        /// <param name="model">SemanticModel</param>
+        /// <param name="trace">TraceInfo</param>
+        /// <returns>Set of return symbols</returns>
+        protected HashSet<ISymbol> AnalyzeOwnershipInCall(ISymbol target, ExpressionSyntax call,
+            SyntaxNode syntaxNode, PSharpCFGNode cfgNode, SyntaxNode givesUpSyntaxNode,
+            PSharpCFGNode givesUpCfgNode, StateMachine originalMachine, SemanticModel model,
+            TraceInfo trace)
+        {
+            HashSet<ISymbol> potentialReturnSymbols = new HashSet<ISymbol>();
+
+            var invocation = call as InvocationExpressionSyntax;
+            var objCreation = call as ObjectCreationExpressionSyntax;
+            if (invocation == null && objCreation == null)
+            {
+                return potentialReturnSymbols;
+            }
+
+            TraceInfo callTrace = new TraceInfo();
+            callTrace.Merge(trace);
+            callTrace.AddErrorTrace(call.ToString(), call.SyntaxTree.FilePath, call.SyntaxTree.
+                GetLineSpan(call.Span).StartLinePosition.Line + 1);
+
+            var calleeSymbol = model.GetSymbolInfo(call).Symbol;
+            if (calleeSymbol == null)
+            {
+                AnalysisErrorReporter.ReportExternalInvocation(callTrace);
+                return potentialReturnSymbols;
+            }
+
+            if (invocation != null &&
+                calleeSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.Machine"))
+            {
+                this.AnalyzeOwnershipInGivesUpCall(target, invocation, syntaxNode, cfgNode,
+                    givesUpSyntaxNode, givesUpCfgNode, model, callTrace);
+                return potentialReturnSymbols;
+            }
+
+            var definition = SymbolFinder.FindSourceDefinitionAsync(calleeSymbol,
+                this.AnalysisContext.Solution).Result;
+            if (definition == null || definition.DeclaringSyntaxReferences.IsEmpty)
+            {
+                AnalysisErrorReporter.ReportExternalInvocation(callTrace);
+                return potentialReturnSymbols;
+            }
+
+            var candidateCallees = this.ResolveCandidateCallees(definition, call, syntaxNode,
+                cfgNode, originalMachine, model, callTrace);
+
+            foreach (var candidateCallee in candidateCallees)
+            {
+                var calleeSummary = PSharpMethodSummary.Create(this.AnalysisContext, candidateCallee);
+                this.AnalyzeOwnershipInCandidateCallee(target, calleeSummary, call, syntaxNode,
+                    cfgNode, givesUpSyntaxNode, givesUpCfgNode, originalMachine, model, callTrace);
+
+                var resolvedReturnSymbols = calleeSummary.GetResolvedReturnSymbols(call, model);
+                foreach (var rrs in resolvedReturnSymbols)
+                {
+                    potentialReturnSymbols.Add(rrs);
+                }
+            }
+
+            return potentialReturnSymbols;
+        }
+
         #endregion
 
         #region private methods
@@ -391,6 +575,67 @@ namespace Microsoft.PSharp.StaticAnalysis
         #endregion
 
         #region helper methods
+
+        /// <summary>
+        /// Returns the candidate callees after resolving the given call.
+        /// </summary>
+        /// <param name="definition">Definition symbol</param>
+        /// <param name="call">ExpressionSyntax</param>
+        /// <param name="syntaxNode">SyntaxNode</param>
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        /// <param name="originalMachine">Original machine</param>
+        /// <param name="model">SemanticModel</param>
+        /// <param name="trace">TraceInfo</param>
+        /// <returns>Set of candidate callees</returns>
+        protected HashSet<BaseMethodDeclarationSyntax> ResolveCandidateCallees(ISymbol definition,
+            ExpressionSyntax call, SyntaxNode syntaxNode, PSharpCFGNode cfgNode,
+            StateMachine originalMachine, SemanticModel model, TraceInfo trace)
+        {
+            var candidateCallees = new HashSet<BaseMethodDeclarationSyntax>();
+
+            var invocation = call as InvocationExpressionSyntax;
+            var objCreation = call as ObjectCreationExpressionSyntax;
+            if (invocation == null && objCreation == null)
+            {
+                return candidateCallees;
+            }
+
+            var potentialCallee = definition.DeclaringSyntaxReferences.First().GetSyntax()
+                as BaseMethodDeclarationSyntax;
+
+            if (invocation != null)
+            {
+                if ((potentialCallee.Modifiers.Any(SyntaxKind.AbstractKeyword) &&
+                    !originalMachine.Declaration.Modifiers.Any(SyntaxKind.AbstractKeyword)) ||
+                    potentialCallee.Modifiers.Any(SyntaxKind.VirtualKeyword) ||
+                    potentialCallee.Modifiers.Any(SyntaxKind.OverrideKeyword))
+                {
+                    HashSet<MethodDeclarationSyntax> overriders = null;
+                    if (!DataFlowQuerying.TryGetPotentialMethodOverriders(out overriders,
+                        invocation, syntaxNode, cfgNode, originalMachine.Declaration,
+                        model, this.AnalysisContext))
+                    {
+                        AnalysisErrorReporter.ReportUnknownVirtualCall(trace);
+                    }
+
+                    foreach (var overrider in overriders)
+                    {
+                        candidateCallees.Add(overrider);
+                    }
+                }
+
+                if (candidateCallees.Count == 0)
+                {
+                    candidateCallees.Add(potentialCallee);
+                }
+            }
+            else
+            {
+                candidateCallees.Add(potentialCallee);
+            }
+
+            return candidateCallees;
+        }
 
         /// <summary>
         /// Returns true if the given field symbol is being accessed

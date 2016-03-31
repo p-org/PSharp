@@ -216,6 +216,90 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 
         #endregion
 
+        #region public static API
+
+        /// <summary>
+        /// Returns the callee of the given call expression.
+        /// </summary>
+        /// <param name="invocation">Invocation</param>
+        /// <returns>Callee</returns>
+        public static string GetCalleeOfInvocation(InvocationExpressionSyntax invocation)
+        {
+            string callee = "";
+
+            if (invocation.Expression is MemberAccessExpressionSyntax)
+            {
+                var memberAccessExpr = invocation.Expression as MemberAccessExpressionSyntax;
+                if (memberAccessExpr.Name is IdentifierNameSyntax)
+                {
+                    callee = (memberAccessExpr.Name as IdentifierNameSyntax).Identifier.ValueText;
+                }
+                else if (memberAccessExpr.Name is GenericNameSyntax)
+                {
+                    callee = (memberAccessExpr.Name as GenericNameSyntax).Identifier.ValueText;
+                }
+            }
+            else
+            {
+                callee = invocation.Expression.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>().
+                    First().Identifier.ValueText;
+            }
+
+            return callee;
+        }
+
+        /// <summary>
+        /// Gets the top-level identifier.
+        /// </summary>
+        /// <param name="expr">Expression</param>
+        /// <returns>Identifier</returns>
+        public static IdentifierNameSyntax GetTopLevelIdentifier(ExpressionSyntax expr)
+        {
+            IdentifierNameSyntax identifier = null;
+            if (expr is IdentifierNameSyntax)
+            {
+                identifier = expr as IdentifierNameSyntax;
+            }
+            else if (expr is MemberAccessExpressionSyntax)
+            {
+                identifier = (expr as MemberAccessExpressionSyntax).DescendantNodes().
+                    OfType<IdentifierNameSyntax>().First();
+            }
+
+            return identifier;
+        }
+
+        /// <summary>
+        /// Returns the argument list after resolving
+        /// the given call expression.
+        /// </summary>
+        /// <param name="call">ExpressionSyntax</param>
+        /// <returns>ArgumentListSyntax</returns>
+        public ArgumentListSyntax GetArgumentList(ExpressionSyntax call)
+        {
+            ArgumentListSyntax argumentList = null;
+
+            var invocation = call as InvocationExpressionSyntax;
+            var objCreation = call as ObjectCreationExpressionSyntax;
+            if (invocation == null && objCreation == null)
+            {
+                return argumentList;
+            }
+            
+            if (invocation != null)
+            {
+                argumentList = invocation.ArgumentList;
+            }
+            else
+            {
+                argumentList = objCreation.ArgumentList;
+            }
+
+            return argumentList;
+        }
+
+        #endregion
+
         #region constructors
 
         /// <summary>

@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                             continue;
                         }
 
-                        arg = DataFlowQuerying.GetTopLevelIdentifier(argExpr);
+                        arg = AnalysisContext.GetTopLevelIdentifier(argExpr);
                         argSymbols.Add(model.GetSymbolInfo(arg).Symbol);
                     }
                     else if (argExpr is ObjectCreationExpressionSyntax)
@@ -264,16 +264,22 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         }
 
         /// <summary>
-        /// Resolves and returns all possible return symbols at the point of the
-        /// given call argument list.
+        /// Resolves and returns all possible return symbols at
+        /// the point of the given call.
         /// </summary>
         /// <param name="argumentList">Argument list</param>
         /// <param name="model">SemanticModel</param>
         /// <returns>Set of return symbols</returns>
-        public HashSet<ISymbol> GetResolvedReturnSymbols(ArgumentListSyntax argumentList,
+        public HashSet<ISymbol> GetResolvedReturnSymbols(ExpressionSyntax call,
             SemanticModel model)
         {
             HashSet<ISymbol> returnSymbols = new HashSet<ISymbol>();
+
+            ArgumentListSyntax argumentList = AnalysisContext.GetArgumentList(call);
+            if (argumentList == null)
+            {
+                return returnSymbols;
+            }
 
             foreach (var index in this.ReturnSet.Item1)
             {
@@ -297,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                         continue;
                     }
 
-                    arg = DataFlowQuerying.GetTopLevelIdentifier(argExpr);
+                    arg = AnalysisContext.GetTopLevelIdentifier(argExpr);
                 }
 
                 returnSymbols.Add(model.GetSymbolInfo(arg).Symbol);

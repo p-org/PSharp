@@ -179,7 +179,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     continue;
                 }
 
-                var callee = DataFlowQuerying.GetCalleeOfInvocation(call);
+                var callee = CodeAnalysis.CSharp.DataFlowAnalysis.AnalysisContext.GetCalleeOfInvocation(call);
                 var calleeMethod = definition.DeclaringSyntaxReferences.First().GetSyntax()
                     as BaseMethodDeclarationSyntax;
 
