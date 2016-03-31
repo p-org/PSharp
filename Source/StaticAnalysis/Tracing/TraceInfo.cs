@@ -134,19 +134,13 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="method">Method</param>
         /// <param name="call">Call</param>
-        internal void InsertCall(BaseMethodDeclarationSyntax method, InvocationExpressionSyntax call)
+        internal void InsertCall(BaseMethodDeclarationSyntax method, ExpressionSyntax call)
         {
-            this.CallTrace.Insert(0, new CallTraceStep(method, call));
-        }
-
-        /// <summary>
-        /// Inserts a new call to the trace.
-        /// </summary>
-        /// <param name="method">Method</param>
-        /// <param name="call">Call</param>
-        internal void InsertCall(BaseMethodDeclarationSyntax method, ObjectCreationExpressionSyntax call)
-        {
-            this.CallTrace.Insert(0, new CallTraceStep(method, call));
+            if (call is InvocationExpressionSyntax ||
+                call is ObjectCreationExpressionSyntax)
+            {
+                this.CallTrace.Insert(0, new CallTraceStep(method, call));
+            }
         }
 
         /// <summary>

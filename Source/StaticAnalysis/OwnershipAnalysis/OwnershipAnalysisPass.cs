@@ -480,63 +480,6 @@ namespace Microsoft.PSharp.StaticAnalysis
         }
 
         /// <summary>
-        /// Returns true and reports an error if the payload was illegally accessed.
-        /// </summary>
-        /// <param name="assignment">AssignmentExpressionSyntax</param>
-        /// <param name="stmt">Statement</param>
-        /// <param name="model">SemanticModel</param>
-        /// <param name="trace">TraceInfo</param>
-        /// <returns></returns>
-        protected bool IsPayloadIllegallyAccessed(AssignmentExpressionSyntax assignment,
-            StatementSyntax stmt, SemanticModel model, TraceInfo trace)
-        {
-            ISymbol payloadSymbol = null;
-            if (assignment.Right is MemberAccessExpressionSyntax)
-            {
-                payloadSymbol = model.GetSymbolInfo((assignment.Right as MemberAccessExpressionSyntax).
-                    Name).Symbol;
-            }
-            else if (assignment.Right is IdentifierNameSyntax)
-            {
-                payloadSymbol = model.GetSymbolInfo(assignment.Right).Symbol;
-            }
-            else
-            {
-                return false;
-            }
-
-            if (payloadSymbol != null &&
-                payloadSymbol.ToString().Equals("Microsoft.PSharp.Machine.Payload"))
-            {
-                ISymbol leftSymbol = null;
-                if (assignment.Left is IdentifierNameSyntax)
-                {
-                    leftSymbol = model.GetSymbolInfo(assignment.Left
-                        as IdentifierNameSyntax).Symbol;
-                }
-                else if (assignment.Left is MemberAccessExpressionSyntax)
-                {
-                    leftSymbol = model.GetSymbolInfo((assignment.Left
-                        as MemberAccessExpressionSyntax).Name).Symbol;
-                }
-
-                var leftDef = SymbolFinder.FindSourceDefinitionAsync(leftSymbol,
-                    this.AnalysisContext.Solution).Result;
-                if (leftDef != null && leftDef.Kind == SymbolKind.Field)
-                {
-                    TraceInfo newTrace = new TraceInfo();
-                    newTrace.Merge(trace);
-                    newTrace.AddErrorTrace(stmt.ToString(), stmt.SyntaxTree.FilePath, stmt.SyntaxTree.
-                        GetLineSpan(stmt.Span).StartLinePosition.Line + 1);
-                    AnalysisErrorReporter.ReportPayloadFieldAssignment(newTrace);
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        /// <summary>
         /// Extracts arguments from the given list of arguments.
         /// </summary>
         /// <param name="arguments">List of arguments</param>
@@ -651,10 +594,11 @@ namespace Microsoft.PSharp.StaticAnalysis
                     var varDecl = definition.DeclaringSyntaxReferences.First().GetSyntax().Parent
                         as VariableDeclarationSyntax;
                     TypeInfo typeInfo = model.GetTypeInfo(varDecl.Type);
+                    var argType = model.GetTypeInfo(arg).Type;
 
                     if (shouldReportError && definition != null && definition.Kind == SymbolKind.Field &&
                         !this.AnalysisContext.IsTypePassedByValueOrImmutable(typeInfo.Type) &&
-                        !this.AnalysisContext.IsExprEnum(arg, model) &&
+                        !this.AnalysisContext.IsTypeEnum(argType) &&
                         !DataFlowQuerying.DoesResetInSuccessorControlFlowGraphNodes(
                             symbol, symbol, givesUpCfgNode.SyntaxNodes.First(), givesUpCfgNode) &&
                         this.IsFieldAccessedBeforeBeingReset(definition, givesUpCfgNode.GetMethodSummary()))

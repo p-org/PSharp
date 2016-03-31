@@ -197,14 +197,13 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         }
 
         /// <summary>
-        /// Returns true if the type of the expression is an enum.
-        /// Returns false if it is not
+        /// Returns true if the given type is an enum.
+        /// Returns false if not.
         /// </summary>
-        /// <param name="model">SemanticModel</param>
+        /// <param name="type">ITypeSymbol</param>
         /// <returns>Boolean</returns>
-        public bool IsExprEnum(ExpressionSyntax expr, SemanticModel model)
+        public bool IsTypeEnum(ITypeSymbol type)
         {
-            var type = model.GetTypeInfo(expr).Type;
             var typeDef = SymbolFinder.FindSourceDefinitionAsync(type, this.Solution).Result;
             if (typeDef != null && typeDef.DeclaringSyntaxReferences.First().
                 GetSyntax().IsKind(SyntaxKind.EnumDeclaration))

@@ -176,11 +176,6 @@ namespace Microsoft.PSharp.StaticAnalysis
             StatementSyntax stmt, SyntaxNode syntaxNode, PSharpCFGNode cfgNode, PSharpCFGNode givesUpCfgNode, 
             StateMachine originalMachine, SemanticModel model, TraceInfo trace)
         {
-            if (base.IsPayloadIllegallyAccessed(assignment, stmt, model, trace))
-            {
-                return;
-            }
-
             var leftIdentifier = DataFlowQuerying.GetTopLevelIdentifier(assignment.Left);
             ISymbol leftSymbol = model.GetSymbolInfo(leftIdentifier).Symbol;
             
@@ -195,7 +190,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     this.AnalysisContext.DoesFieldBelongToMachine(fieldSymbol, cfgNode.GetMethodSummary()) &&
                     base.IsFieldAccessedBeforeBeingReset(fieldSymbol, cfgNode.GetMethodSummary()) &&
                     !this.AnalysisContext.IsTypePassedByValueOrImmutable(type) &&
-                    !this.AnalysisContext.IsExprEnum(assignment.Right, model))
+                    !this.AnalysisContext.IsTypeEnum(type))
                 {
                     TraceInfo newTrace = new TraceInfo();
                     newTrace.Merge(trace);
@@ -365,7 +360,8 @@ namespace Microsoft.PSharp.StaticAnalysis
                 invocationSummary.PrintDataFlowInformation();
                 for (int idx = 0; idx < arguments.Count; idx++)
                 {
-                    if (!this.AnalysisContext.IsExprEnum(arguments[idx].Expression, model) &&
+                    var argType = model.GetTypeInfo(arguments[idx].Expression).Type;
+                    if (!this.AnalysisContext.IsTypeEnum(argType) &&
                         DataFlowQuerying.FlowsFromTarget(arguments[idx].Expression, target, syntaxNode,
                         cfgNode, givesUpSyntaxNode, givesUpCfgNode, model) &&
                         !DataFlowQuerying.DoesResetInLoop(arguments[idx].Expression, syntaxNode, cfgNode,
@@ -469,7 +465,8 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             for (int idx = 0; idx < arguments.Count; idx++)
             {
-                if (!this.AnalysisContext.IsExprEnum(arguments[idx].Expression, model) &&
+                var argType = model.GetTypeInfo(arguments[idx].Expression).Type;
+                if (!this.AnalysisContext.IsTypeEnum(argType) &&
                     DataFlowQuerying.FlowsFromTarget(arguments[idx].Expression, target, syntaxNode,
                     cfgNode, givesUpSyntaxNode, givesUpCfgNode, model) &&
                     !DataFlowQuerying.DoesResetInLoop(arguments[idx].Expression, syntaxNode, cfgNode,
@@ -623,7 +620,8 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             foreach (var arg in extractedArgs)
             {
-                if (!this.AnalysisContext.IsExprEnum(arg, model) &&
+                var argType = model.GetTypeInfo(arg).Type;
+                if (!this.AnalysisContext.IsTypeEnum(argType) &&
                     DataFlowQuerying.FlowsFromTarget(arg, target, syntaxNode, cfgNode,
                     givesUpSyntaxNode, givesUpCfgNode, model) &&
                     !DataFlowQuerying.DoesResetInLoop(arg, syntaxNode, cfgNode,
