@@ -317,6 +317,52 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             return returnSymbols;
         }
 
+        /// <summary>
+        /// Updates the summary with the passed argument types
+        /// at the given call site.
+        /// </summary>
+        /// <param name="call">Call</param>
+        /// <param name="syntaxNode">SyntaxNode</param>
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        public void UpdatePassedArgumentTypes(InvocationExpressionSyntax call,
+            SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode)
+        {
+            Dictionary<ISymbol, HashSet<ITypeSymbol>> callerReferenceTypeMap = null;
+            if (!cfgNode.GetMethodSummary().DataFlowAnalysis.TryGetReferenceTypeMapForSyntaxNode(
+                syntaxNode, cfgNode, out callerReferenceTypeMap))
+            {
+                return;
+            }
+
+            Dictionary<ISymbol, HashSet<ITypeSymbol>> referenceTypeMap = null;
+            if (!this.DataFlowAnalysis.TryGetReferenceTypeMapForSyntaxNode(
+                this.Method.ParameterList, this.EntryNode, out referenceTypeMap))
+            {
+                return;
+            }
+
+            bool updated = false;
+            foreach (var argSymbol in callerReferenceTypeMap)
+            {
+                var paramSymbol = referenceTypeMap.FirstOrDefault(val => val.Key.Name.Equals(argSymbol.Key.Name));
+                if (paramSymbol.Equals(default(KeyValuePair<ISymbol, HashSet<ITypeSymbol>>)) ||
+                    argSymbol.Value.SetEquals(paramSymbol.Value))
+                {
+                    continue;
+                }
+
+                referenceTypeMap[paramSymbol.Key].Clear();
+                referenceTypeMap[paramSymbol.Key].UnionWith(argSymbol.Value);
+                updated = true;
+            }
+
+            if (updated)
+            {
+                this.AnalyzeDataFlow(referenceTypeMap);
+                this.ComputeSideEffects();
+            }
+        }
+
         #endregion
 
         #region protected methods
@@ -351,15 +397,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         protected virtual ControlFlowGraphNode CreateNewControlFlowGraphNode()
         {
             return new ControlFlowGraphNode(this.AnalysisContext, this);
-        }
-
-        /// <summary>
-        /// Analyzes the data-flow of the method.
-        /// </summary>
-        protected virtual void AnalyzeDataFlow()
-        {
-            var model = this.AnalysisContext.Compilation.GetSemanticModel(this.Method.SyntaxTree);
-            this.DataFlowAnalysis = DataFlowAnalysis.Analyze(this, this.AnalysisContext, model);
         }
 
         #endregion
@@ -398,6 +435,25 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         }
 
         /// <summary>
+        /// Analyzes the data-flow of the method.
+        /// </summary>
+        private void AnalyzeDataFlow()
+        {
+            var model = this.AnalysisContext.Compilation.GetSemanticModel(this.Method.SyntaxTree);
+            this.DataFlowAnalysis = DataFlowAnalysis.Analyze(this, this.AnalysisContext, model);
+        }
+
+        /// <summary>
+        /// Analyzes the data-flow of the method.
+        /// </summary>
+        /// <param name="callerArgumentTypes">Caller argument types</param>
+        private void AnalyzeDataFlow(Dictionary<ISymbol, HashSet<ITypeSymbol>> callerArgumentTypes)
+        {
+            var model = this.AnalysisContext.Compilation.GetSemanticModel(this.Method.SyntaxTree);
+            this.DataFlowAnalysis = DataFlowAnalysis.Analyze(this, callerArgumentTypes, this.AnalysisContext, model);
+        }
+
+        /// <summary>
         /// Computes side effects in the control-flow graph using
         /// information from the data-flow analysis.
         /// </summary>
@@ -411,10 +467,10 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 }
 
                 var exitSyntaxNode = exitNode.SyntaxNodes.Last();
-                Dictionary<ISymbol, HashSet<ISymbol>> exitMap = null;
-                if (this.DataFlowAnalysis.TryGetDataFlowMapForSyntaxNode(exitSyntaxNode, exitNode, out exitMap))
+                Dictionary<ISymbol, HashSet<ISymbol>> exitDataFlowMap = null;
+                if (this.DataFlowAnalysis.TryGetDataFlowMapForSyntaxNode(exitSyntaxNode, exitNode, out exitDataFlowMap))
                 {
-                    foreach (var pair in exitMap)
+                    foreach (var pair in exitDataFlowMap)
                     {
                         var keyDefinition = SymbolFinder.FindSourceDefinitionAsync(pair.Key,
                             this.AnalysisContext.Solution).Result;

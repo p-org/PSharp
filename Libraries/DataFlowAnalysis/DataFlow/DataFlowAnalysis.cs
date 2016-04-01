@@ -106,6 +106,23 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         }
 
         /// <summary>
+        /// Analyzes the data-flow of the given method, using as input
+        /// the reference type map from the caller.
+        /// </summary>
+        /// <param name="methodSummary">MethodSummary</param>
+        /// <param name="callerArgumentTypes">Caller argument types</param>
+        /// <param name="context">AnalysisContext</param>
+        /// <param name="model">SemanticModel</param>
+        /// <returns>DataFlowAnalysis</returns>
+        public static DataFlowAnalysis Analyze(MethodSummary methodSummary, Dictionary<ISymbol,
+            HashSet<ITypeSymbol>> callerArgumentTypes, AnalysisContext context, SemanticModel model)
+        {
+            var dataFlowAnalysis = new DataFlowAnalysis(context, model);
+            dataFlowAnalysis.Analyze(methodSummary, callerArgumentTypes);
+            return dataFlowAnalysis;
+        }
+
+        /// <summary>
         /// Tries to return the map for the given syntax node.
         /// Returns false and a null, if it cannot find such map.
         /// </summary>
@@ -231,8 +248,8 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         {
             foreach (var param in methodSummary.Method.ParameterList.Parameters)
             {
-                ITypeSymbol declType = this.SemanticModel.GetTypeInfo(param.Type).Type;
-                if (this.AnalysisContext.IsTypePassedByValueOrImmutable(declType))
+                ITypeSymbol paramType = this.SemanticModel.GetTypeInfo(param.Type).Type;
+                if (this.AnalysisContext.IsTypePassedByValueOrImmutable(paramType))
                 {
                     continue;
                 }
@@ -240,6 +257,36 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 IParameterSymbol paramSymbol = this.SemanticModel.GetDeclaredSymbol(param);
                 this.MapDataFlowInReferences(new List<ISymbol> { paramSymbol }, paramSymbol,
                     methodSummary.Method.ParameterList, methodSummary.EntryNode);
+                this.MapReferenceTypesToSymbol(new HashSet<ITypeSymbol> { paramType }, paramSymbol,
+                    methodSummary.Method.ParameterList, methodSummary.EntryNode, false);
+            }
+
+            this.AnalyzeControlFlowGraphNode(methodSummary.EntryNode, methodSummary.Method.ParameterList,
+                methodSummary.EntryNode);
+        }
+
+        /// <summary>
+        /// Analyzes the data-flow of the given method, using as input
+        /// the reference type map from the caller.
+        /// </summary>
+        /// <param name="methodSummary">MethodSummary</param>
+        /// <param name="callerArgumentTypes">Caller argument types</param>
+        /// <returns>DataFlowAnalysis</returns>
+        protected void Analyze(MethodSummary methodSummary, Dictionary<ISymbol, HashSet<ITypeSymbol>> callerArgumentTypes)
+        {
+            foreach (var param in methodSummary.Method.ParameterList.Parameters)
+            {
+                ITypeSymbol paramType = this.SemanticModel.GetTypeInfo(param.Type).Type;
+                if (this.AnalysisContext.IsTypePassedByValueOrImmutable(paramType))
+                {
+                    continue;
+                }
+
+                IParameterSymbol paramSymbol = this.SemanticModel.GetDeclaredSymbol(param);
+                this.MapDataFlowInReferences(new List<ISymbol> { paramSymbol }, paramSymbol,
+                    methodSummary.Method.ParameterList, methodSummary.EntryNode);
+                this.MapReferenceTypesToSymbol(callerArgumentTypes[paramSymbol], paramSymbol,
+                    methodSummary.Method.ParameterList, methodSummary.EntryNode, false);
             }
 
             this.AnalyzeControlFlowGraphNode(methodSummary.EntryNode, methodSummary.Method.ParameterList,

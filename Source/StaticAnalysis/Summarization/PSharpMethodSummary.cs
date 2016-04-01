@@ -206,16 +206,6 @@ namespace Microsoft.PSharp.StaticAnalysis
             return new PSharpCFGNode(this.AnalysisContext, this);
         }
 
-        /// <summary>
-        /// Analyzes the data-flow of the method.
-        /// </summary>
-        protected override void AnalyzeDataFlow()
-        {
-            var model = this.AnalysisContext.Compilation.GetSemanticModel(this.Method.SyntaxTree);
-            this.DataFlowAnalysis = CodeAnalysis.CSharp.DataFlowAnalysis.DataFlowAnalysis.Analyze(
-                this, this.AnalysisContext, model);
-        }
-
         #endregion
     }
 }

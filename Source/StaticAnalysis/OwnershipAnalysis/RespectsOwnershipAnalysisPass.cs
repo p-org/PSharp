@@ -213,9 +213,8 @@ namespace Microsoft.PSharp.StaticAnalysis
                     }
                     else if (invocation != null)
                     {
-                        Console.WriteLine(calleeSummary.Method);
+                        calleeSummary.UpdatePassedArgumentTypes(invocation, syntaxNode, cfgNode);
                         var paramSymbol = model.GetDeclaredSymbol(calleeSummary.Method.ParameterList.Parameters[idx]);
-                        Console.WriteLine("flows arg: " + paramSymbol);
                         this.AnalyzeOwnershipInCFG(paramSymbol, calleeSummary.EntryNode as PSharpCFGNode,
                             givesUpCfgNode, invocation, new HashSet<ControlFlowGraphNode>() { givesUpCfgNode },
                             originalMachine, model, trace);
