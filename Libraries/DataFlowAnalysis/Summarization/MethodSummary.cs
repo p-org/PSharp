@@ -39,6 +39,12 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         public BaseMethodDeclarationSyntax Method;
 
         /// <summary>
+        /// Type declaration that contains the method
+        /// that this summary represents.
+        /// </summary>
+        public TypeDeclarationSyntax TypeDeclaration;
+
+        /// <summary>
         /// The entry node of the control-flow graph of the
         /// method of this summary.
         /// </summary>
@@ -91,16 +97,18 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// Creates the summary of the given method.
         /// </summary>
         /// <param name="context">AnalysisContext</param>
-        /// <param name="method">Method</param>
+        /// <param name="method">BaseMethodDeclarationSyntax</param>
+        /// <param name="typeDeclaration">TypeDeclarationSyntax</param>
         /// <returns>MethodSummary</returns>
-        public static MethodSummary Create(AnalysisContext context, BaseMethodDeclarationSyntax method)
+        public static MethodSummary Create(AnalysisContext context, BaseMethodDeclarationSyntax method,
+            TypeDeclarationSyntax typeDeclaration = null)
         {
             if (context.Summaries.ContainsKey(method))
             {
                 return context.Summaries[method];
             }
 
-            var summary = new MethodSummary(context, method);
+            var summary = new MethodSummary(context, method, typeDeclaration);
             summary.BuildSummary();
 
             return summary;
@@ -110,11 +118,14 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// Constructor.
         /// </summary>
         /// <param name="context">AnalysisContext</param>
-        /// <param name="method">Method</param>
-        protected MethodSummary(AnalysisContext context, BaseMethodDeclarationSyntax method)
+        /// <param name="method">BaseMethodDeclarationSyntax</param>
+        /// <param name="typeDeclaration">TypeDeclarationSyntax</param>
+        protected MethodSummary(AnalysisContext context, BaseMethodDeclarationSyntax method,
+            TypeDeclarationSyntax typeDeclaration)
         {
             this.AnalysisContext = context;
             this.Method = method;
+            this.TypeDeclaration = typeDeclaration;
         }
 
         #endregion

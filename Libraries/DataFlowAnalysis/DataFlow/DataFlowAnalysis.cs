@@ -398,18 +398,20 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                     continue;
                 }
 
-                this.ResolveMethodParameterAccesses(variable.Initializer.Value, syntaxNode, cfgNode);
-                this.ResolveFieldAccesses(variable.Initializer.Value, syntaxNode, cfgNode);
+                var expr = variable.Initializer.Value;
+
+                this.ResolveMethodParameterAccesses(expr, syntaxNode, cfgNode);
+                this.ResolveFieldAccesses(expr, syntaxNode, cfgNode);
 
                 ITypeSymbol declType = null;
-                if (variable.Initializer.Value is LiteralExpressionSyntax &&
-                    variable.Initializer.Value.IsKind(SyntaxKind.NullLiteralExpression))
+                if (expr is LiteralExpressionSyntax &&
+                    expr.IsKind(SyntaxKind.NullLiteralExpression))
                 {
                     declType = this.SemanticModel.GetTypeInfo(varDecl.Type).Type;
                 }
                 else
                 {
-                    declType = this.SemanticModel.GetTypeInfo(variable.Initializer.Value).Type;
+                    declType = this.SemanticModel.GetTypeInfo(expr).Type;
                 }
 
                 if (this.AnalysisContext.IsTypePassedByValueOrImmutable(declType))
@@ -417,121 +419,8 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                     continue;
                 }
 
-                var declSymbol = this.SemanticModel.GetDeclaredSymbol(variable);
-
-                if (variable.Initializer.Value is IdentifierNameSyntax ||
-                    variable.Initializer.Value is MemberAccessExpressionSyntax)
-                {
-                    ISymbol varSymbol = this.SemanticModel.GetSymbolInfo(variable.Initializer.Value).Symbol;
-                    this.MapDataFlowInReferences(new List<ISymbol> { varSymbol }, declSymbol, syntaxNode, cfgNode);
-                    this.MarkSymbolReassignment(declSymbol, syntaxNode, cfgNode);
-
-                    HashSet<ITypeSymbol> referenceTypes = null;
-                    if (varSymbol.Kind == SymbolKind.Field)
-                    {
-                        var typeSymbol = this.SemanticModel.GetTypeInfo(variable.Initializer.Value).Type;
-                        if (typeSymbol != null)
-                        {
-                            this.MapReferenceTypesToSymbol(new HashSet<ITypeSymbol> { typeSymbol },
-                                declSymbol, syntaxNode, cfgNode, true);
-                        }
-                    }
-                    else if (this.ResolveReferenceType(out referenceTypes, varSymbol, syntaxNode, cfgNode))
-                    {
-                        this.MapReferenceTypesToSymbol(referenceTypes, declSymbol,
-                            syntaxNode, cfgNode, true);
-                    }
-                    else
-                    {
-                        this.EraseReferenceTypesForSymbol(declSymbol, syntaxNode, cfgNode);
-                    }
-                }
-                else if (variable.Initializer.Value is LiteralExpressionSyntax &&
-                    variable.Initializer.Value.IsKind(SyntaxKind.NullLiteralExpression))
-                {
-                    this.ResetReferences(declSymbol, syntaxNode, cfgNode);
-                }
-                else if (variable.Initializer.Value is InvocationExpressionSyntax)
-                {
-                    var invocation = variable.Initializer.Value as InvocationExpressionSyntax;
-
-                    MethodSummary calleeSummary = null;
-                    HashSet<ISymbol> reachableSymbols = null;
-                    HashSet<ISymbol> returnSymbols = null;
-                    this.AnalyzeInvocationExpression(invocation, syntaxNode, cfgNode, out calleeSummary,
-                        out reachableSymbols, out returnSymbols);
-
-                    if (returnSymbols.Count == 0)
-                    {
-                        this.ResetReferences(declSymbol, syntaxNode, cfgNode);
-                    }
-                    else if (returnSymbols.Contains(declSymbol))
-                    {
-                        this.MapDataFlowInReferences(returnSymbols, declSymbol, syntaxNode, cfgNode);
-                    }
-                    else
-                    {
-                        this.MapDataFlowInReferences(returnSymbols, declSymbol, syntaxNode, cfgNode);
-                        this.MarkSymbolReassignment(declSymbol, syntaxNode, cfgNode);
-                    }
-
-                    if (reachableSymbols.Count > 0)
-                    {
-                        this.MapReachableFieldsToSymbol(reachableSymbols, declSymbol,
-                            syntaxNode, cfgNode, true);
-                    }
-
-                    if (calleeSummary != null && calleeSummary.ReturnTypeSet.Count > 0)
-                    {
-                        this.MapReferenceTypesToSymbol(calleeSummary.ReturnTypeSet,
-                            declSymbol, syntaxNode, cfgNode, true);
-                    }
-                    else
-                    {
-                        this.EraseReferenceTypesForSymbol(declSymbol, syntaxNode, cfgNode);
-                    }
-                }
-                else if (variable.Initializer.Value is ObjectCreationExpressionSyntax)
-                {
-                    var objCreation = variable.Initializer.Value as ObjectCreationExpressionSyntax;
-
-                    MethodSummary calleeSummary = null;
-                    HashSet<ISymbol> reachableSymbols = null;
-                    HashSet<ISymbol> returnSymbols = null;
-                    this.AnalyzeObjectCreationExpression(objCreation, syntaxNode, cfgNode, out calleeSummary,
-                        out reachableSymbols, out returnSymbols);
-
-                    if (returnSymbols.Count == 0)
-                    {
-                        this.ResetReferences(declSymbol, syntaxNode, cfgNode);
-                    }
-                    else if (returnSymbols.Contains(declSymbol))
-                    {
-                        this.MapDataFlowInReferences(returnSymbols, declSymbol, syntaxNode, cfgNode);
-                    }
-                    else
-                    {
-                        this.MapDataFlowInReferences(returnSymbols, declSymbol, syntaxNode, cfgNode);
-                        this.MarkSymbolReassignment(declSymbol, syntaxNode, cfgNode);
-                    }
-
-                    if (reachableSymbols.Count > 0)
-                    {
-                        this.MapReachableFieldsToSymbol(reachableSymbols, declSymbol,
-                            syntaxNode, cfgNode, true);
-                    }
-
-                    var typeSymbol = this.SemanticModel.GetTypeInfo(objCreation).Type;
-                    if (typeSymbol != null)
-                    {
-                        this.MapReferenceTypesToSymbol(new HashSet<ITypeSymbol> { typeSymbol },
-                            declSymbol, syntaxNode, cfgNode, true);
-                    }
-                    else
-                    {
-                        this.EraseReferenceTypesForSymbol(declSymbol, syntaxNode, cfgNode);
-                    }
-                }
+                var leftSymbol = this.SemanticModel.GetDeclaredSymbol(variable);
+                this.AnalyzeAssignmentExpression(leftSymbol, expr, syntaxNode, cfgNode);
             }
         }
 
@@ -549,85 +438,65 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             this.ResolveFieldAccesses(assignment.Left, syntaxNode, cfgNode);
             this.ResolveFieldAccesses(assignment.Right, syntaxNode, cfgNode);
 
-            IdentifierNameSyntax lhs = null;
-            IFieldSymbol lhsFieldSymbol = null;
-            if (assignment.Left is IdentifierNameSyntax)
+            ExpressionSyntax leftExpr = null;
+            if (assignment.Left is IdentifierNameSyntax ||
+                assignment.Left is MemberAccessExpressionSyntax)
             {
-                lhs = assignment.Left as IdentifierNameSyntax;
-                var lhsType = this.SemanticModel.GetTypeInfo(lhs).Type;
-                if (this.AnalysisContext.IsTypePassedByValueOrImmutable(lhsType))
-                {
-                    return;
-                }
-            }
-            else if (assignment.Left is MemberAccessExpressionSyntax)
-            {
-                var name = (assignment.Left as MemberAccessExpressionSyntax).Name;
-                var lhsType = this.SemanticModel.GetTypeInfo(name).Type;
+                var lhsType = this.SemanticModel.GetTypeInfo(assignment.Left).Type;
                 if (this.AnalysisContext.IsTypePassedByValueOrImmutable(lhsType))
                 {
                     return;
                 }
 
-                lhs = AnalysisContext.GetTopLevelIdentifier(assignment.Left);
-                lhsFieldSymbol = this.SemanticModel.GetSymbolInfo(name).Symbol as IFieldSymbol;
+                leftExpr = assignment.Left;
             }
             else if (assignment.Left is ElementAccessExpressionSyntax)
             {
                 var memberAccess = (assignment.Left as ElementAccessExpressionSyntax);
-                if (memberAccess.Expression is IdentifierNameSyntax)
+                if (memberAccess.Expression is IdentifierNameSyntax ||
+                    memberAccess.Expression is MemberAccessExpressionSyntax)
                 {
-                    lhs = memberAccess.Expression as IdentifierNameSyntax;
-                    var lhsType = this.SemanticModel.GetTypeInfo(lhs).Type;
-                    if (this.AnalysisContext.IsTypePassedByValueOrImmutable(lhsType))
-                    {
-                        return;
-                    }
-                }
-                else if (memberAccess.Expression is MemberAccessExpressionSyntax)
-                {
-                    var name = (memberAccess.Expression as MemberAccessExpressionSyntax).Name;
-                    var lhsType = this.SemanticModel.GetTypeInfo(name).Type;
+                    var lhsType = this.SemanticModel.GetTypeInfo(memberAccess.Expression).Type;
                     if (this.AnalysisContext.IsTypePassedByValueOrImmutable(lhsType))
                     {
                         return;
                     }
 
-                    lhs = AnalysisContext.GetTopLevelIdentifier(memberAccess.Expression);
-                    lhsFieldSymbol = this.SemanticModel.GetSymbolInfo(name).Symbol as IFieldSymbol;
+                    leftExpr = memberAccess.Expression;
                 }
             }
 
-            var leftSymbol = this.SemanticModel.GetSymbolInfo(lhs).Symbol;
+            var leftSymbol = this.SemanticModel.GetSymbolInfo(leftExpr).Symbol;
+            this.AnalyzeAssignmentExpression(leftSymbol, assignment.Right, syntaxNode, cfgNode);
+        }
 
-            if (assignment.Right is IdentifierNameSyntax ||
-                assignment.Right is MemberAccessExpressionSyntax)
+        /// <summary>
+        /// Analyzes the data-flow of the given assignment expression.
+        /// </summary>
+        /// <param name="binaryExpr">BinaryExpressionSyntax</param>
+        /// <param name="syntaxNode">SyntaxNode</param>
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        private void AnalyzeAssignmentExpression(ISymbol leftSymbol, ExpressionSyntax rightExpr,
+            SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode)
+        {
+            if (rightExpr is IdentifierNameSyntax ||
+                rightExpr is MemberAccessExpressionSyntax)
             {
-                IdentifierNameSyntax rhs = AnalysisContext.GetTopLevelIdentifier(assignment.Right);
-
+                IdentifierNameSyntax rhs = AnalysisContext.GetTopLevelIdentifier(rightExpr);
                 var rightSymbol = this.SemanticModel.GetSymbolInfo(rhs).Symbol;
-                this.MapDataFlowInReferences(new List<ISymbol> { rightSymbol },
-                    leftSymbol, syntaxNode, cfgNode);
+
+                this.MapDataFlowInReferences(new List<ISymbol> { rightSymbol }, leftSymbol, syntaxNode, cfgNode);
                 this.MarkSymbolReassignment(leftSymbol, syntaxNode, cfgNode);
 
-                if (lhsFieldSymbol != null)
+                if (leftSymbol.Kind == SymbolKind.Field)
                 {
-                    if (lhsFieldSymbol.Equals(leftSymbol))
+                    Dictionary<ISymbol, HashSet<ISymbol>> fieldReachabilityMap = null;
+                    if (this.TryGetFieldReachabilityMapForSyntaxNode(syntaxNode, cfgNode,
+                        out fieldReachabilityMap) &&
+                        fieldReachabilityMap.ContainsKey(rightSymbol))
                     {
-                        Dictionary<ISymbol, HashSet<ISymbol>> fieldReachabilityMap = null;
-                        if (this.TryGetFieldReachabilityMapForSyntaxNode(syntaxNode, cfgNode,
-                            out fieldReachabilityMap) &&
-                            fieldReachabilityMap.ContainsKey(rightSymbol))
-                        {
-                            this.MapReachableFieldsToSymbol(fieldReachabilityMap[rightSymbol],
-                                lhsFieldSymbol, syntaxNode, cfgNode, false);
-                        }
-                    }
-                    else
-                    {
-                        this.MapDataFlowInReferences(new List<ISymbol> { rightSymbol },
-                            lhsFieldSymbol, syntaxNode, cfgNode);
-                        this.MarkSymbolReassignment(lhsFieldSymbol, syntaxNode, cfgNode);
+                        this.MapReachableFieldsToSymbol(fieldReachabilityMap[rightSymbol],
+                            leftSymbol, syntaxNode, cfgNode, false);
                     }
                 }
 
@@ -651,120 +520,64 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                     this.EraseReferenceTypesForSymbol(leftSymbol, syntaxNode, cfgNode);
                 }
             }
-            else if (assignment.Right is LiteralExpressionSyntax &&
-                assignment.Right.IsKind(SyntaxKind.NullLiteralExpression))
+            else if (rightExpr is LiteralExpressionSyntax &&
+                rightExpr.IsKind(SyntaxKind.NullLiteralExpression))
             {
                 this.ResetReferences(leftSymbol, syntaxNode, cfgNode);
-                if (lhsFieldSymbol != null && !lhsFieldSymbol.Equals(leftSymbol))
-                {
-                    this.ResetReferences(lhsFieldSymbol, syntaxNode, cfgNode);
-                }
             }
-            else if (assignment.Right is InvocationExpressionSyntax)
+            else if (rightExpr is InvocationExpressionSyntax ||
+                rightExpr is ObjectCreationExpressionSyntax)
             {
-                var invocation = assignment.Right as InvocationExpressionSyntax;
-
                 MethodSummary calleeSummary = null;
                 HashSet<ISymbol> reachableSymbols = null;
                 HashSet<ISymbol> returnSymbols = null;
-                this.AnalyzeInvocationExpression(invocation, syntaxNode, cfgNode, out calleeSummary,
-                    out reachableSymbols, out returnSymbols);
 
-                if (returnSymbols.Count == 0)
+                if (rightExpr is InvocationExpressionSyntax)
                 {
-                    this.ResetReferences(leftSymbol, syntaxNode, cfgNode);
-                    if (lhsFieldSymbol != null && !lhsFieldSymbol.Equals(leftSymbol))
-                    {
-                        this.ResetReferences(lhsFieldSymbol, syntaxNode, cfgNode);
-                    }
+                    this.AnalyzeInvocationExpression(rightExpr as InvocationExpressionSyntax, syntaxNode,
+                        cfgNode, out calleeSummary, out reachableSymbols, out returnSymbols);
                 }
-                else if (returnSymbols.Contains(leftSymbol))
+                else if (rightExpr is ObjectCreationExpressionSyntax)
                 {
-                    this.MapDataFlowInReferences(returnSymbols, leftSymbol, syntaxNode, cfgNode);
-                    if (lhsFieldSymbol != null && !lhsFieldSymbol.Equals(leftSymbol))
-                    {
-                        this.MapDataFlowInReferences(returnSymbols, lhsFieldSymbol,
-                            syntaxNode, cfgNode);
-                    }
-                }
-                else
-                {
-                    this.MapDataFlowInReferences(returnSymbols, leftSymbol, syntaxNode, cfgNode);
-                    this.MarkSymbolReassignment(leftSymbol, syntaxNode, cfgNode);
-                    if (lhsFieldSymbol != null && !lhsFieldSymbol.Equals(leftSymbol))
-                    {
-                        this.MapDataFlowInReferences(returnSymbols, lhsFieldSymbol,
-                            syntaxNode, cfgNode);
-                        this.MarkSymbolReassignment(lhsFieldSymbol, syntaxNode, cfgNode);
-                    }
+                    this.AnalyzeObjectCreationExpression(rightExpr as ObjectCreationExpressionSyntax, syntaxNode,
+                        cfgNode, out calleeSummary, out reachableSymbols, out returnSymbols);
                 }
                 
-                if (lhsFieldSymbol != null && reachableSymbols.Count > 0)
-                {
-                    this.MapReachableFieldsToSymbol(reachableSymbols, lhsFieldSymbol,
-                        syntaxNode, cfgNode, true);
-                }
-
-                if (calleeSummary != null && calleeSummary.ReturnTypeSet.Count > 0)
-                {
-                    this.MapReferenceTypesToSymbol(calleeSummary.ReturnTypeSet,
-                        leftSymbol, syntaxNode, cfgNode, true);
-                }
-                else
-                {
-                    this.EraseReferenceTypesForSymbol(leftSymbol, syntaxNode, cfgNode);
-                }
-            }
-            else if (assignment.Right is ObjectCreationExpressionSyntax)
-            {
-                var objCreation = assignment.Right as ObjectCreationExpressionSyntax;
-
-                MethodSummary calleeSummary = null;
-                HashSet<ISymbol> reachableSymbols = null;
-                HashSet<ISymbol> returnSymbols = null;
-                this.AnalyzeObjectCreationExpression(objCreation, syntaxNode, cfgNode, out calleeSummary,
-                    out reachableSymbols, out returnSymbols);
-
                 if (returnSymbols.Count == 0)
                 {
                     this.ResetReferences(leftSymbol, syntaxNode, cfgNode);
-                    if (lhsFieldSymbol != null && !lhsFieldSymbol.Equals(leftSymbol))
-                    {
-                        this.ResetReferences(lhsFieldSymbol, syntaxNode, cfgNode);
-                    }
                 }
                 else if (returnSymbols.Contains(leftSymbol))
                 {
                     this.MapDataFlowInReferences(returnSymbols, leftSymbol, syntaxNode, cfgNode);
-                    if (lhsFieldSymbol != null && !lhsFieldSymbol.Equals(leftSymbol))
-                    {
-                        this.MapDataFlowInReferences(returnSymbols, lhsFieldSymbol,
-                            syntaxNode, cfgNode);
-                    }
                 }
                 else
                 {
                     this.MapDataFlowInReferences(returnSymbols, leftSymbol, syntaxNode, cfgNode);
                     this.MarkSymbolReassignment(leftSymbol, syntaxNode, cfgNode);
-                    if (lhsFieldSymbol != null && !lhsFieldSymbol.Equals(leftSymbol))
-                    {
-                        this.MapDataFlowInReferences(returnSymbols, lhsFieldSymbol,
-                            syntaxNode, cfgNode);
-                        this.MarkSymbolReassignment(lhsFieldSymbol, syntaxNode, cfgNode);
-                    }
                 }
 
-                if (lhsFieldSymbol != null && reachableSymbols.Count > 0)
+                if (reachableSymbols.Count > 0)
                 {
-                    this.MapReachableFieldsToSymbol(reachableSymbols, lhsFieldSymbol,
+                    this.MapReachableFieldsToSymbol(reachableSymbols, leftSymbol,
                         syntaxNode, cfgNode, true);
                 }
 
-                var typeSymbol = this.SemanticModel.GetTypeInfo(objCreation).Type;
-                if (typeSymbol != null)
+                HashSet<ITypeSymbol> returnTypes = null;
+                if (rightExpr is InvocationExpressionSyntax &&
+                    calleeSummary != null && calleeSummary.ReturnTypeSet.Count > 0)
                 {
-                    this.MapReferenceTypesToSymbol(new HashSet<ITypeSymbol> { typeSymbol },
-                        leftSymbol, syntaxNode, cfgNode, true);
+                    returnTypes = calleeSummary.ReturnTypeSet;
+                }
+                else if (rightExpr is ObjectCreationExpressionSyntax)
+                {
+                    ITypeSymbol returnType = this.SemanticModel.GetTypeInfo(rightExpr).Type;
+                    returnTypes = new HashSet<ITypeSymbol> { returnType };
+                }
+
+                if (returnTypes != null)
+                {
+                    this.MapReferenceTypesToSymbol(returnTypes, leftSymbol, syntaxNode, cfgNode, true);
                 }
                 else
                 {
@@ -805,10 +618,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 }
                 else if (this.ResolveReferenceType(out referenceTypes, rightSymbol, syntaxNode, cfgNode))
                 {
-                    foreach (var referenceType in referenceTypes)
-                    {
-                        cfgNode.GetMethodSummary().ReturnTypeSet.Add(referenceType);
-                    }
+                    cfgNode.GetMethodSummary().ReturnTypeSet.UnionWith(referenceTypes);
                 }
             }
             else if (retStmt.Expression is InvocationExpressionSyntax)
@@ -820,12 +630,9 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 this.AnalyzeInvocationExpression(invocation, syntaxNode, cfgNode, out calleeSummary,
                     out reachableSymbols, out returnSymbols);
 
-                if (calleeSummary != null)
+                if (calleeSummary != null && calleeSummary.ReturnTypeSet.Count > 0)
                 {
-                    foreach (var referenceType in calleeSummary.ReturnTypeSet)
-                    {
-                        cfgNode.GetMethodSummary().ReturnTypeSet.Add(referenceType);
-                    }
+                    cfgNode.GetMethodSummary().ReturnTypeSet.UnionWith(calleeSummary.ReturnTypeSet);
                 }
             }
             else if (retStmt.Expression is ObjectCreationExpressionSyntax)
@@ -837,10 +644,10 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 this.AnalyzeObjectCreationExpression(objCreation, syntaxNode, cfgNode, out calleeSummary,
                     out reachableSymbols, out returnSymbols);
 
-                var referenceType = this.SemanticModel.GetTypeInfo(objCreation).Type;
-                if (referenceType != null)
+                var returnType = this.SemanticModel.GetTypeInfo(objCreation).Type;
+                if (returnType != null)
                 {
-                    cfgNode.GetMethodSummary().ReturnTypeSet.Add(referenceType);
+                    cfgNode.GetMethodSummary().ReturnTypeSet.Add(returnType);
                 }
             }
 
@@ -1033,35 +840,14 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         private HashSet<ISymbol> ResolveSideEffectsInObjectCreation(ObjectCreationExpressionSyntax objCreation,
             MethodSummary calleeSummary, SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode)
         {
+            HashSet<ISymbol> reachableFields = new HashSet<ISymbol>();
             if (calleeSummary == null)
             {
-                return new HashSet<ISymbol>();
-            }
-
-            HashSet<ISymbol> reachableFields = new HashSet<ISymbol>();
-            var sideEffects = calleeSummary.GetResolvedSideEffects(objCreation.ArgumentList, this.SemanticModel);
-            foreach (var sideEffect in sideEffects)
-            {
-                this.MapDataFlowInReferences(sideEffect.Value, sideEffect.Key, syntaxNode, cfgNode);
-                this.MarkSymbolReassignment(sideEffect.Key, syntaxNode, cfgNode);
-                reachableFields.Add(sideEffect.Key);
+                return reachableFields;
             }
 
             this.ResolveMethodParameterAccessesInCallee(objCreation, calleeSummary, syntaxNode, cfgNode);
-
-            foreach (var fieldAccess in calleeSummary.FieldAccessSet)
-            {
-                foreach (var access in fieldAccess.Value)
-                {
-                    if (!cfgNode.GetMethodSummary().FieldAccessSet.ContainsKey(fieldAccess.Key as IFieldSymbol))
-                    {
-                        cfgNode.GetMethodSummary().FieldAccessSet.Add(fieldAccess.Key
-                            as IFieldSymbol, new HashSet<SyntaxNode>());
-                    }
-
-                    cfgNode.GetMethodSummary().FieldAccessSet[fieldAccess.Key as IFieldSymbol].Add(access);
-                }
-            }
+            reachableFields = this.ResolveSideEffectsInCallee(objCreation.ArgumentList, calleeSummary, syntaxNode, cfgNode);
 
             return reachableFields;
         }
@@ -1077,21 +863,47 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         private HashSet<ISymbol> ResolveSideEffectsInInvocation(InvocationExpressionSyntax invocation,
             MethodSummary calleeSummary, SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode)
         {
+            HashSet<ISymbol> reachableFields = new HashSet<ISymbol>();
             if (calleeSummary == null)
             {
-                return new HashSet<ISymbol>();
+                return reachableFields;
             }
 
+            this.ResolveMethodParameterAccessesInCallee(invocation, calleeSummary, syntaxNode, cfgNode);
+            reachableFields = this.ResolveSideEffectsInCallee(invocation.ArgumentList, calleeSummary, syntaxNode, cfgNode);
+
+            IdentifierNameSyntax identifier = AnalysisContext.GetTopLevelIdentifier(invocation.Expression);
+            if (identifier != null)
+            {
+                var idSymbol = this.SemanticModel.GetSymbolInfo(identifier).Symbol;
+                if (idSymbol != null)
+                {
+                    this.MapReachableFieldsToSymbol(reachableFields, idSymbol, syntaxNode, cfgNode, false);
+                }
+            }
+
+            return reachableFields;
+        }
+
+        /// <summary>
+        /// Resolves the side effects from the given callee summary.
+        /// </summary>
+        /// <param name="argumentList">ArgumentListSyntax</param>
+        /// <param name="calleeSummary">MethodSummary</param>
+        /// <param name="syntaxNode">SyntaxNode</param>
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        /// <returns>Set of reachable field symbols</returns>
+        private HashSet<ISymbol> ResolveSideEffectsInCallee(ArgumentListSyntax argumentList,
+            MethodSummary calleeSummary, SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode)
+        {
             HashSet<ISymbol> reachableFields = new HashSet<ISymbol>();
-            var sideEffects = calleeSummary.GetResolvedSideEffects(invocation.ArgumentList, this.SemanticModel);
+            var sideEffects = calleeSummary.GetResolvedSideEffects(argumentList, this.SemanticModel);
             foreach (var sideEffect in sideEffects)
             {
                 this.MapDataFlowInReferences(sideEffect.Value, sideEffect.Key, syntaxNode, cfgNode);
                 this.MarkSymbolReassignment(sideEffect.Key, syntaxNode, cfgNode);
                 reachableFields.Add(sideEffect.Key);
             }
-
-            this.ResolveMethodParameterAccessesInCallee(invocation, calleeSummary, syntaxNode, cfgNode);
 
             foreach (var fieldAccess in calleeSummary.FieldAccessSet)
             {
@@ -1104,16 +916,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                     }
 
                     cfgNode.GetMethodSummary().FieldAccessSet[fieldAccess.Key as IFieldSymbol].Add(access);
-                }
-            }
-
-            IdentifierNameSyntax identifier = AnalysisContext.GetTopLevelIdentifier(invocation.Expression);
-            if (identifier != null)
-            {
-                var idSymbol = this.SemanticModel.GetSymbolInfo(identifier).Symbol;
-                if (idSymbol != null)
-                {
-                    this.MapReachableFieldsToSymbol(reachableFields, idSymbol, syntaxNode, cfgNode, false);
                 }
             }
 

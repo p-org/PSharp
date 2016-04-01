@@ -354,8 +354,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
             if (states.Count == 0)
             {
                 base.WarningLog.Add(Tuple.Create(machine.Identifier, this.GetTypeOfMachine().ToLower() + " '" +
-                    machine.Identifier.ValueText + "' must declare at least one state (unless the machine is " +
-                    "partial, and one state has been already declared in another part of the declaration)."));
+                    machine.Identifier.ValueText + "' must declare at least one state (unless the machine " +
+                    "inherits at least one state from a base machine, or is partial, and one state has " +
+                    "been already declared in another part of the declaration)."));
             }
         }
 
@@ -416,8 +417,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
             if (stateAttributes.Count == 0)
             {
                 base.WarningLog.Add(Tuple.Create(machine.Identifier, this.GetTypeOfMachine().ToLower() + " '" +
-                    machine.Identifier.ValueText + "' must declare a start state (unless the machine is " +
-                    "partial, and one state has been already declared in another part of the declaration)."));
+                    machine.Identifier.ValueText + "' must declare a start state (unless the machine " +
+                    "inherits a start state from a base machine, or is partial, and one state has been " +
+                    "already declared in another part of the declaration)."));
             }
             else if (stateAttributes.Count > 1)
             {

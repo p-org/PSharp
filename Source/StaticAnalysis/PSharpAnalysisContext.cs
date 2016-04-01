@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -39,9 +40,14 @@ namespace Microsoft.PSharp.StaticAnalysis
         internal Configuration Configuration;
 
         /// <summary>
-        /// List of state-machines in the project.
+        /// Set of state-machines in the project.
         /// </summary>
-        internal List<StateMachine> Machines;
+        internal HashSet<StateMachine> Machines;
+
+        /// <summary>
+        /// Set of abstract state-machines in the project.
+        /// </summary>
+        internal HashSet<StateMachine> AbstractMachines;
 
         /// <summary>
         /// Dictionary of state transition graphs in the project.
@@ -51,7 +57,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Dictionary containing machine inheritance information.
         /// </summary>
-        internal Dictionary<StateMachine, StateMachine> MachineInheritanceMap;
+        internal Dictionary<StateMachine, HashSet<StateMachine>> MachineInheritanceMap;
 
         #endregion
 
@@ -123,9 +129,10 @@ namespace Microsoft.PSharp.StaticAnalysis
         {
             this.Configuration = configuration;
 
-            this.Machines = new List<StateMachine>();
+            this.Machines = new HashSet<StateMachine>();
+            this.AbstractMachines = new HashSet<StateMachine>();
             this.StateTransitionGraphs = new Dictionary<StateMachine, StateTransitionGraphNode>();
-            this.MachineInheritanceMap = new Dictionary<StateMachine, StateMachine>();
+            this.MachineInheritanceMap = new Dictionary<StateMachine, HashSet<StateMachine>>();
 
             this.FindAllStateMachines();
             this.FindStateMachineInheritanceInformation();
@@ -190,7 +197,14 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     if (Querying.IsMachine(base.Compilation, classDecl))
                     {
-                        this.Machines.Add(new StateMachine(classDecl, this));
+                        if (classDecl.Modifiers.Any(SyntaxKind.AbstractKeyword))
+                        {
+                            this.AbstractMachines.Add(new StateMachine(classDecl, this));
+                        }
+                        else
+                        {
+                            this.Machines.Add(new StateMachine(classDecl, this));
+                        }
                     }
                 }
             }
@@ -202,21 +216,35 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         private void FindStateMachineInheritanceInformation()
         {
-            //foreach (var machine in this.Machines)
-            //{
-            //    IList<INamedTypeSymbol> baseTypes = base.GetBaseTypes(machine);
-            //    foreach (var type in baseTypes)
-            //    {
-            //        if (type.ToString().Equals(typeof(Microsoft.PSharp.Machine).FullName))
-            //        {
-            //            break;
-            //        }
+            foreach (var machine in this.Machines)
+            {
+                var inheritedMachines = new HashSet<StateMachine>();
 
-            //        var inheritedMachine = this.Machines.Find(m
-            //            => base.GetFullClassName(m).Equals(type.ToString()));
-            //        this.MachineInheritance.Add(machine, inheritedMachine);
-            //    }
-            //}
+                IList<INamedTypeSymbol> baseTypes = base.GetBaseTypes(machine.Declaration);
+                foreach (var type in baseTypes)
+                {
+                    if (type.ToString().Equals(typeof(Machine).FullName))
+                    {
+                        break;
+                    }
+
+                    var availableMachines = new List<StateMachine>(this.Machines);
+                    availableMachines.AddRange(this.AbstractMachines);
+                    var inheritedMachine = availableMachines.FirstOrDefault(m
+                        => base.GetFullClassName(m.Declaration).Equals(type.ToString()));
+                    if (inheritedMachine == null)
+                    {
+                        break;
+                    }
+
+                    inheritedMachines.Add(inheritedMachine);
+                }
+
+                if (inheritedMachines.Count > 0)
+                {
+                    this.MachineInheritanceMap.Add(machine, inheritedMachines);
+                }
+            }
         }
 
         #endregion

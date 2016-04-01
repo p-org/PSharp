@@ -58,17 +58,18 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Creates the summary of the given method.
         /// </summary>
         /// <param name="context">AnalysisContext</param>
-        /// <param name="method">Method</param>
+        /// <param name="method">BaseMethodDeclarationSyntax</param>
+        /// <param name="typeDeclaration">TypeDeclarationSyntax</param>
         /// <returns>MethodSummary</returns>
         public static PSharpMethodSummary Create(PSharpAnalysisContext context,
-            BaseMethodDeclarationSyntax method)
+            BaseMethodDeclarationSyntax method, TypeDeclarationSyntax typeDeclaration = null)
         {
             if (context.Summaries.ContainsKey(method))
             {
                 return context.Summaries[method] as PSharpMethodSummary;
             }
 
-            var summary = new PSharpMethodSummary(context, method);
+            var summary = new PSharpMethodSummary(context, method, typeDeclaration);
             summary.BuildSummary();
 
             return summary;
@@ -99,9 +100,11 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Constructor.
         /// </summary>
         /// <param name="context">AnalysisContext</param>
-        /// <param name="method">Method</param>
-        private PSharpMethodSummary(AnalysisContext context, BaseMethodDeclarationSyntax method)
-            :base (context, method)
+        /// <param name="method">BaseMethodDeclarationSyntax</param>
+        /// <param name="typeDeclaration">TypeDeclarationSyntax</param>
+        private PSharpMethodSummary(AnalysisContext context, BaseMethodDeclarationSyntax method,
+            TypeDeclarationSyntax typeDeclaration)
+            : base (context, method, typeDeclaration)
         {
             this.Machine = null;
             this.GivesUpOwnershipNodes = new HashSet<PSharpCFGNode>();
@@ -112,11 +115,11 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Constructor.
         /// </summary>
         /// <param name="context">AnalysisContext</param>
-        /// <param name="method">Method</param>
+        /// <param name="method">BaseMethodDeclarationSyntax</param>
         /// <param name="machine">Machine</param>
         private PSharpMethodSummary(AnalysisContext context, BaseMethodDeclarationSyntax method,
             StateMachine machine)
-            : base(context, method)
+            : base(context, method, machine.Declaration)
         {
             this.Machine = machine;
             this.GivesUpOwnershipNodes = new HashSet<PSharpCFGNode>();

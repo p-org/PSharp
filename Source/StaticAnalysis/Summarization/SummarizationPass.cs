@@ -226,7 +226,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         {
             var localDecl = cfgNode.SyntaxNodes.First() as LocalDeclarationStatementSyntax;
             var expr = cfgNode.SyntaxNodes.First() as ExpressionStatementSyntax;
-
+            
             InvocationExpressionSyntax invocation = null;
             if (localDecl != null)
             {
@@ -236,7 +236,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 invocation = expr.DescendantNodesAndSelf().OfType<InvocationExpressionSyntax>().First();
             }
-
+            
             if (invocation == null || !(invocation.Expression is MemberAccessExpressionSyntax ||
                 invocation.Expression is IdentifierNameSyntax))
             {
@@ -369,6 +369,11 @@ namespace Microsoft.PSharp.StaticAnalysis
             var callSymbol = model.GetSymbolInfo(call).Symbol;
             var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol,
                 this.AnalysisContext.Solution).Result;
+
+            Console.WriteLine(" call " + call);
+            Console.WriteLine(" >> " + definition);
+            Console.WriteLine(definition.ContainingType);
+
             var calleeMethod = definition.DeclaringSyntaxReferences.First().GetSyntax()
                 as BaseMethodDeclarationSyntax;
             var calleeSummary = PSharpMethodSummary.Create(this.AnalysisContext, calleeMethod);

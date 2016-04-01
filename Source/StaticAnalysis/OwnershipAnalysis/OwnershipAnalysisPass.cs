@@ -282,27 +282,26 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Analyzes the methods of the given machine to check if each method
         /// respects given-up ownerships.
         /// </summary>
-        /// <param name="machine">Machine</param>
-        /// <param name="machineToAnalyze">Machine to analyse</param>
-        private void AnalyzeMethodsInMachine(StateMachine machine, StateMachine machineToAnalyze = null)
+        /// <param name="machine">StateMachine</param>
+        private void AnalyzeMethodsInMachine(StateMachine machine)
         {
-            if (machineToAnalyze == null)
+            var machinesToAnalyze = new List<StateMachine> { machine };
+
+            HashSet<StateMachine> baseMachines;
+            if (this.AnalysisContext.MachineInheritanceMap.TryGetValue(machine, out baseMachines))
             {
-                machineToAnalyze = machine;
+                machinesToAnalyze.AddRange(baseMachines);
             }
 
-            foreach (var method in machineToAnalyze.Declaration.ChildNodes().OfType<MethodDeclarationSyntax>())
+            foreach (var machineToAnalyze in machinesToAnalyze)
             {
-                if (!method.Modifiers.Any(SyntaxKind.AbstractKeyword))
+                foreach (var method in machineToAnalyze.Declaration.ChildNodes().OfType<MethodDeclarationSyntax>())
                 {
-                    this.AnalyzeMethod(method, machineToAnalyze, null, machine);
+                    if (!method.Modifiers.Any(SyntaxKind.AbstractKeyword))
+                    {
+                        this.AnalyzeMethod(method, machineToAnalyze, null, machine);
+                    }
                 }
-            }
-
-            if (this.AnalysisContext.MachineInheritanceMap.ContainsKey(machineToAnalyze))
-            {
-                this.AnalyzeMethodsInMachine(machine, this.AnalysisContext.
-                    MachineInheritanceMap[machineToAnalyze]);
             }
         }
 
@@ -317,7 +316,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         private void AnalyzeMethod(MethodDeclarationSyntax method, StateMachine machine,
             MachineState state, StateMachine originalMachine)
         {
-            var summary = PSharpMethodSummary.Create(this.AnalysisContext, method);
+            var summary = PSharpMethodSummary.Create(this.AnalysisContext, method, machine);
             foreach (var givesUpCfgNode in summary.GivesUpOwnershipNodes)
             {
                 this.AnalyzeOwnershipInGivesUpCFGNode(givesUpCfgNode, summary, machine, state, originalMachine);
@@ -611,9 +610,8 @@ namespace Microsoft.PSharp.StaticAnalysis
                     potentialCallee.Modifiers.Any(SyntaxKind.OverrideKeyword))
                 {
                     HashSet<MethodDeclarationSyntax> overriders = null;
-                    if (!DataFlowQuerying.TryGetPotentialMethodOverriders(out overriders,
-                        invocation, syntaxNode, cfgNode, originalMachine.Declaration,
-                        model, this.AnalysisContext))
+                    if (!this.AnalysisContext.TryGetCandidateMethodOverriders(out overriders,
+                        invocation, syntaxNode, cfgNode, originalMachine.Declaration, model))
                     {
                         AnalysisErrorReporter.ReportUnknownVirtualCall(trace);
                     }

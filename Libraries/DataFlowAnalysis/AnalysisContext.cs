@@ -83,6 +83,113 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         }
 
         /// <summary>
+        /// Tries to get the method from the given type and call.
+        /// </summary>
+        /// <param name="method">Method</param>
+        /// <param name="type">Type</param>
+        /// <param name="call">Call</param>
+        /// <returns>Boolean</returns>
+        public bool TryGetMethodFromType(out MethodDeclarationSyntax method, ITypeSymbol type,
+            InvocationExpressionSyntax call)
+        {
+            method = null;
+
+            var definition = SymbolFinder.FindSourceDefinitionAsync(type, this.Solution).Result;
+            if (definition == null)
+            {
+                return false;
+            }
+
+            var calleeClass = definition.DeclaringSyntaxReferences.First().GetSyntax()
+                as ClassDeclarationSyntax;
+            foreach (var m in calleeClass.ChildNodes().OfType<MethodDeclarationSyntax>())
+            {
+                if (m.Identifier.ValueText.Equals(AnalysisContext.GetCalleeOfInvocation(call)))
+                {
+                    method = m;
+                    break;
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Tries to get the list of candidate methods that can override the given virtual call.
+        /// If it cannot find such methods then it returns false.
+        /// </summary>
+        /// <param name="overriders">List of overrider methods</param>
+        /// <param name="virtualCall">Virtual call</param>
+        /// <param name="syntaxNode">SyntaxNode</param>
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        /// <param name="typeDeclaration">TypeDeclarationSyntax</param>
+        /// <param name="model">SemanticModel</param>
+        /// <returns>Boolean</returns>
+        public bool TryGetCandidateMethodOverriders(out HashSet<MethodDeclarationSyntax> overriders,
+            InvocationExpressionSyntax virtualCall, SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode,
+            TypeDeclarationSyntax typeDeclaration, SemanticModel model)
+        {
+            overriders = new HashSet<MethodDeclarationSyntax>();
+
+            ISymbol calleeSymbol = null;
+            SimpleNameSyntax callee = null;
+            bool isThis = false;
+
+            if (virtualCall.Expression is MemberAccessExpressionSyntax)
+            {
+                var expr = virtualCall.Expression as MemberAccessExpressionSyntax;
+                var identifier = expr.Expression.DescendantNodesAndSelf().
+                    OfType<IdentifierNameSyntax>().Last();
+                calleeSymbol = model.GetSymbolInfo(identifier).Symbol;
+
+                if (expr.Expression is ThisExpressionSyntax)
+                {
+                    callee = expr.Name;
+                    isThis = true;
+                }
+            }
+            else
+            {
+                callee = virtualCall.Expression as IdentifierNameSyntax;
+                isThis = true;
+            }
+
+            if (isThis)
+            {
+                foreach (var method in typeDeclaration.Members.OfType<MethodDeclarationSyntax>())
+                {
+                    if (method.Identifier.ToString().Equals(callee.Identifier.ToString()))
+                    {
+                        overriders.Add(method);
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            Dictionary<ISymbol, HashSet<ITypeSymbol>> referenceTypeMap = null;
+            if (calleeSymbol == null ||
+                !cfgNode.GetMethodSummary().DataFlowAnalysis.TryGetReferenceTypeMapForSyntaxNode(
+                syntaxNode, cfgNode, out referenceTypeMap) ||
+                !referenceTypeMap.ContainsKey(calleeSymbol))
+            {
+                return false;
+            }
+
+            foreach (var objectType in referenceTypeMap[calleeSymbol])
+            {
+                MethodDeclarationSyntax m = null;
+                if (this.TryGetMethodFromType(out m, objectType, virtualCall))
+                {
+                    overriders.Add(m);
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
         /// Returns the full name of the given class.
         /// </summary>
         /// <param name="syntaxNode">SyntaxNode</param>
