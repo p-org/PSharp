@@ -115,6 +115,58 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         }
 
         /// <summary>
+        /// Returns the constructor after resolving the given object creation.
+        /// </summary>
+        /// <param name="objCreation">ObjectCreationExpressionSyntax</param>
+        /// <param name="model">SemanticModel</param>
+        /// <returns>Constructor</returns>
+        public ConstructorDeclarationSyntax ResolveConstructor(ObjectCreationExpressionSyntax objCreation,
+            SemanticModel model)
+        {
+            return this.ResolveCallee(objCreation, model) as ConstructorDeclarationSyntax;
+        }
+
+        /// <summary>
+        /// Returns the candidate callees after resolving the given invocation.
+        /// </summary>
+        /// <param name="invocation">InvocationExpressionSyntax</param>
+        /// <param name="syntaxNode">SyntaxNode</param>
+        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        /// <param name="model">SemanticModel</param>
+        /// <returns>Set of candidate callees</returns>
+        public HashSet<MethodDeclarationSyntax> ResolveCandidateMethodsAtCallSite(InvocationExpressionSyntax invocation,
+            SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode, SemanticModel model)
+        {
+            var candidateCallees = new HashSet<MethodDeclarationSyntax>();
+            var potentialCallee = this.ResolveCallee(invocation, model) as MethodDeclarationSyntax;
+            if (potentialCallee == null)
+            {
+                return candidateCallees;
+            }
+
+            if (potentialCallee.Modifiers.Any(SyntaxKind.AbstractKeyword) ||
+                potentialCallee.Modifiers.Any(SyntaxKind.VirtualKeyword) ||
+                potentialCallee.Modifiers.Any(SyntaxKind.OverrideKeyword))
+            {
+                HashSet<MethodDeclarationSyntax> overriders = null;
+                if (!this.TryGetCandidateMethodOverriders(out overriders,
+                    invocation, syntaxNode, cfgNode, model))
+                {
+                    return candidateCallees;
+                }
+
+                candidateCallees.UnionWith(overriders);
+            }
+
+            if (candidateCallees.Count == 0)
+            {
+                candidateCallees.Add(potentialCallee);
+            }
+
+            return candidateCallees;
+        }
+
+        /// <summary>
         /// Tries to get the list of candidate methods that can override the given virtual call.
         /// If it cannot find such methods then it returns false.
         /// </summary>
@@ -122,12 +174,11 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <param name="virtualCall">Virtual call</param>
         /// <param name="syntaxNode">SyntaxNode</param>
         /// <param name="cfgNode">ControlFlowGraphNode</param>
-        /// <param name="typeDeclaration">TypeDeclarationSyntax</param>
         /// <param name="model">SemanticModel</param>
         /// <returns>Boolean</returns>
         public bool TryGetCandidateMethodOverriders(out HashSet<MethodDeclarationSyntax> overriders,
             InvocationExpressionSyntax virtualCall, SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode,
-            TypeDeclarationSyntax typeDeclaration, SemanticModel model)
+            SemanticModel model)
         {
             overriders = new HashSet<MethodDeclarationSyntax>();
 
@@ -156,6 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 
             if (isThis)
             {
+                var typeDeclaration = cfgNode.GetMethodSummary().TypeDeclaration;
                 foreach (var method in typeDeclaration.Members.OfType<MethodDeclarationSyntax>())
                 {
                     if (method.Identifier.ToString().Equals(callee.Identifier.ToString()))
@@ -472,6 +524,41 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             }
 
             return true;
+        }
+
+        #endregion
+
+        #region private methods
+
+        /// <summary>
+        /// Returns the candidate callees after resolving the given call.
+        /// </summary>
+        /// <param name="call">ExpressionSyntax</param>
+        /// <param name="model">SemanticModel</param>
+        /// <returns>Set of candidate callees</returns>
+        private BaseMethodDeclarationSyntax ResolveCallee(ExpressionSyntax call, SemanticModel model)
+        {
+            var calleeSymbol = model.GetSymbolInfo(call).Symbol;
+            if (calleeSymbol == null)
+            {
+                return null;
+            }
+
+            var definition = SymbolFinder.FindSourceDefinitionAsync(calleeSymbol, this.Solution).Result;
+            if (definition == null || definition.DeclaringSyntaxReferences.IsEmpty)
+            {
+                return null;
+            }
+
+            var invocation = call as InvocationExpressionSyntax;
+            var objCreation = call as ObjectCreationExpressionSyntax;
+            if (invocation == null && objCreation == null)
+            {
+                return null;
+            }
+
+            return definition.DeclaringSyntaxReferences.First().GetSyntax()
+                as BaseMethodDeclarationSyntax;
         }
 
         #endregion

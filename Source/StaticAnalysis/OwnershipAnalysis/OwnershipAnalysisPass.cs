@@ -255,8 +255,17 @@ namespace Microsoft.PSharp.StaticAnalysis
                 return potentialReturnSymbols;
             }
 
-            var candidateCallees = this.ResolveCandidateCallees(definition, call, syntaxNode,
-                cfgNode, originalMachine, model, callTrace);
+            var candidateCallees = new HashSet<BaseMethodDeclarationSyntax>();
+            if (invocation != null)
+            {
+                candidateCallees.UnionWith(this.AnalysisContext.ResolveCandidateMethodsAtCallSite(
+                    invocation, syntaxNode, cfgNode, model));
+            }
+            else
+            {
+                var callee = this.AnalysisContext.ResolveConstructor(objCreation, model);
+                candidateCallees.Add(callee);
+            }
 
             foreach (var candidateCallee in candidateCallees)
             {
@@ -368,7 +377,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     machine, state, originalMachine);
             }
         }
-        
+
         /// <summary>
         /// Analyzes the ownership of references in the given 'Send' expression.
         /// </summary>
@@ -543,7 +552,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             PSharpCFGNode givesUpCfgNode, StateMachine machine, MachineState state, StateMachine originalMachine)
         {
             var model = this.AnalysisContext.Compilation.GetSemanticModel(arg.SyntaxTree);
-            
+
             if (arg is MemberAccessExpressionSyntax || arg is IdentifierNameSyntax)
             {
                 TraceInfo trace = new TraceInfo(givesUpCfgNode.GetMethodSummary().Method
@@ -555,7 +564,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     return;
                 }
-                
+
                 ISymbol argSymbol = model.GetSymbolInfo(arg).Symbol;
                 this.AnalyzeOwnershipInCFG(argSymbol, givesUpCfgNode, givesUpCfgNode, call,
                     new HashSet<ControlFlowGraphNode>(), originalMachine, model, trace);
@@ -574,66 +583,6 @@ namespace Microsoft.PSharp.StaticAnalysis
         #endregion
 
         #region helper methods
-
-        /// <summary>
-        /// Returns the candidate callees after resolving the given call.
-        /// </summary>
-        /// <param name="definition">Definition symbol</param>
-        /// <param name="call">ExpressionSyntax</param>
-        /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">ControlFlowGraphNode</param>
-        /// <param name="originalMachine">Original machine</param>
-        /// <param name="model">SemanticModel</param>
-        /// <param name="trace">TraceInfo</param>
-        /// <returns>Set of candidate callees</returns>
-        protected HashSet<BaseMethodDeclarationSyntax> ResolveCandidateCallees(ISymbol definition,
-            ExpressionSyntax call, SyntaxNode syntaxNode, PSharpCFGNode cfgNode,
-            StateMachine originalMachine, SemanticModel model, TraceInfo trace)
-        {
-            var candidateCallees = new HashSet<BaseMethodDeclarationSyntax>();
-
-            var invocation = call as InvocationExpressionSyntax;
-            var objCreation = call as ObjectCreationExpressionSyntax;
-            if (invocation == null && objCreation == null)
-            {
-                return candidateCallees;
-            }
-
-            var potentialCallee = definition.DeclaringSyntaxReferences.First().GetSyntax()
-                as BaseMethodDeclarationSyntax;
-
-            if (invocation != null)
-            {
-                if ((potentialCallee.Modifiers.Any(SyntaxKind.AbstractKeyword) &&
-                    !originalMachine.Declaration.Modifiers.Any(SyntaxKind.AbstractKeyword)) ||
-                    potentialCallee.Modifiers.Any(SyntaxKind.VirtualKeyword) ||
-                    potentialCallee.Modifiers.Any(SyntaxKind.OverrideKeyword))
-                {
-                    HashSet<MethodDeclarationSyntax> overriders = null;
-                    if (!this.AnalysisContext.TryGetCandidateMethodOverriders(out overriders,
-                        invocation, syntaxNode, cfgNode, originalMachine.Declaration, model))
-                    {
-                        AnalysisErrorReporter.ReportUnknownVirtualCall(trace);
-                    }
-
-                    foreach (var overrider in overriders)
-                    {
-                        candidateCallees.Add(overrider);
-                    }
-                }
-
-                if (candidateCallees.Count == 0)
-                {
-                    candidateCallees.Add(potentialCallee);
-                }
-            }
-            else
-            {
-                candidateCallees.Add(potentialCallee);
-            }
-
-            return candidateCallees;
-        }
 
         /// <summary>
         /// Returns true if the given field symbol is being accessed
@@ -797,7 +746,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 symbol = model.GetSymbolInfo(arg).Symbol;
                 typeSymbol = model.GetTypeInfo(arg).Type;
             }
-            
+
             if (symbol.ToString().Equals("Microsoft.PSharp.Machine.Payload"))
             {
                 return false;
@@ -822,7 +771,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     return false;
                 }
-                
+
                 if (definition.DeclaringSyntaxReferences.First().GetSyntax().Parent is ParameterListSyntax)
                 {
                     var parameterList = definition.DeclaringSyntaxReferences.First().
@@ -848,7 +797,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     {
                         AnalysisErrorReporter.ReportGivenUpFieldOwnershipError(trace);
                     }
-                    
+
                     return this.AnalysisContext.IsTypePassedByValueOrImmutable(typeInfo.Type);
                 }
             }

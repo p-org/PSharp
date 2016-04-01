@@ -996,20 +996,20 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <summary>
         /// Resolves any method parameter acccesses in the given callee.
         /// </summary>
-        /// <param name="invocation">ExpressionSyntax</param>
+        /// <param name="call">ExpressionSyntax</param>
         /// <param name="calleeSummary">MethodSummary</param>
         /// <param name="syntaxNode">SyntaxNode</param>
         /// <param name="cfgNode">ControlFlowGraphNode</param>
-        private void ResolveMethodParameterAccessesInCallee(ExpressionSyntax invocation,
-            MethodSummary calleeSummary, SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode)
+        private void ResolveMethodParameterAccessesInCallee(ExpressionSyntax call, MethodSummary calleeSummary,
+            SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode)
         {
-            if (!(invocation is InvocationExpressionSyntax) &&
-                !(invocation is ObjectCreationExpressionSyntax))
+            if (!(call is InvocationExpressionSyntax) &&
+                !(call is ObjectCreationExpressionSyntax))
             {
                 return;
             }
 
-            var calleeSymbol = this.SemanticModel.GetSymbolInfo(invocation).Symbol;
+            var calleeSymbol = this.SemanticModel.GetSymbolInfo(call).Symbol;
             if (calleeSymbol == null)
             {
                 return;
@@ -1023,7 +1023,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             }
 
             ArgumentListSyntax argumentList;
-            if (invocation is InvocationExpressionSyntax)
+            if (call is InvocationExpressionSyntax)
             {
                 var invocationCallee = definition.DeclaringSyntaxReferences.First().GetSyntax()
                 as MethodDeclarationSyntax;
@@ -1034,11 +1034,11 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                     return;
                 }
 
-                argumentList = (invocation as InvocationExpressionSyntax).ArgumentList;
+                argumentList = (call as InvocationExpressionSyntax).ArgumentList;
             }
             else
             {
-                argumentList = (invocation as ObjectCreationExpressionSyntax).ArgumentList;
+                argumentList = (call as ObjectCreationExpressionSyntax).ArgumentList;
             }
 
             for (int index = 0; index < argumentList.Arguments.Count; index++)
