@@ -57,7 +57,6 @@ struct Letter
 class M : Machine
 {
  MachineId Target;
- Letter Letter;
 
  [Start]
  [OnEntry(nameof(FirstOnEntryAction))]
@@ -152,7 +151,6 @@ struct Envelope
 class M : Machine
 {
  MachineId Target;
- Letter Letter;
 
  [Start]
  [OnEntry(nameof(FirstOnEntryAction))]
@@ -255,7 +253,6 @@ struct AnotherEnvelope
 class M : Machine
 {
  MachineId Target;
- Letter Letter;
 
  [Start]
  [OnEntry(nameof(FirstOnEntryAction))]

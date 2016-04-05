@@ -90,7 +90,7 @@ class M : Machine
             StaticAnalysisEngine.Create(context).Run();
 
             var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... Static analysis detected '0' errors and reported '1' warning";
+            var expected = "... Static analysis detected '0' errors and '1' warning";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             var error = "Warning: Method 'FirstOnEntryAction' of machine 'Foo.M' calls a " +

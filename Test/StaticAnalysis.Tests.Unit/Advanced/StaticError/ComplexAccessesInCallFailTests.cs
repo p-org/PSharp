@@ -230,15 +230,8 @@ class M : Machine
             StaticAnalysisEngine.Create(context).Run();
 
             var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... Static analysis detected '1' error";
+            var expected = "... Static analysis detected '2' errors";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
-
-            var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' " +
-                "accesses 'letter' after giving up its ownership.";
-            var actual = IO.GetOutput();
-
-            Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
-               actual.Substring(0, actual.IndexOf(Environment.NewLine)));
 
             IO.StopWritingToMemory();
         }
@@ -334,7 +327,7 @@ class M : Machine
             StaticAnalysisEngine.Create(context).Run();
 
             var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... Static analysis detected '4' errors";
+            var expected = "... Static analysis detected '2' errors";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             IO.StopWritingToMemory();
@@ -431,15 +424,8 @@ class M : Machine
             StaticAnalysisEngine.Create(context).Run();
 
             var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... Static analysis detected '1' error";
+            var expected = "... Static analysis detected '2' errors";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
-
-            var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' " +
-                "accesses 'letter' after giving up its ownership.";
-            var actual = IO.GetOutput();
-
-            Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
-               actual.Substring(0, actual.IndexOf(Environment.NewLine)));
 
             IO.StopWritingToMemory();
         }
@@ -619,15 +605,8 @@ class M : Machine
             StaticAnalysisEngine.Create(context).Run();
 
             var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... Static analysis detected '1' error";
+            var expected = "... Static analysis detected '3' errors";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
-
-            var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' assigns " +
-                "'letter' to field 'Foo.AnotherClass.Letter' after giving up its ownership.";
-            var actual = IO.GetOutput();
-
-            Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
-               actual.Substring(0, actual.IndexOf(Environment.NewLine)));
 
             IO.StopWritingToMemory();
         }
@@ -889,7 +868,7 @@ class M : Machine
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
-                "'letter', which contains data from a field.";
+                "'letter', which contains data from field 'letter'.";
             var actual = IO.GetOutput();
 
             Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
@@ -979,7 +958,7 @@ class M : Machine
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
-                "'letter', which contains data from a field.";
+                "'letter', which contains data from field 'letter'.";
             var actual = IO.GetOutput();
 
             Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
@@ -1080,7 +1059,7 @@ class M : Machine
             StaticAnalysisEngine.Create(context).Run();
 
             var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... Static analysis detected '4' errors";
+            var expected = "... Static analysis detected '2' errors";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             IO.StopWritingToMemory();

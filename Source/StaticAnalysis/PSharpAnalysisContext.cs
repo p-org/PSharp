@@ -75,30 +75,6 @@ namespace Microsoft.PSharp.StaticAnalysis
         }
 
         /// <summary>
-        /// Tries to get the method summary of the given object creation. Returns
-        /// null if such summary cannot be found.
-        /// </summary>
-        /// <param name="call">Call</param>
-        /// <param name="model">SemanticModel</param>
-        /// <returns>MethodSummary</returns>
-        public override MethodSummary TryGetSummary(ObjectCreationExpressionSyntax call, SemanticModel model)
-        {
-            return PSharpMethodSummary.TryGet(call, model, this);
-        }
-
-        /// <summary>
-        /// Tries to get the method summary of the given invocation. Returns
-        /// null if such summary cannot be found.
-        /// </summary>
-        /// <param name="call">Call</param>
-        /// <param name="model">SemanticModel</param>
-        /// <returns>MethodSummary</returns>
-        public override MethodSummary TryGetSummary(InvocationExpressionSyntax call, SemanticModel model)
-        {
-            return PSharpMethodSummary.TryGet(call, model, this);
-        }
-
-        /// <summary>
         /// Returns true if the given type is passed by value or is immutable.
         /// </summary>
         /// <param name="type">Type</param>
@@ -149,9 +125,9 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="symbol">Symbol</param>
         /// <param name="summary">MethodSummary</param>
         /// <returns>Boolean</returns>
-        internal bool DoesFieldBelongToMachine(ISymbol symbol, PSharpMethodSummary summary)
+        internal bool DoesFieldBelongToMachine(ISymbol symbol, MethodSummary summary)
         {
-            if (symbol == null || summary.Machine == null ||
+            if (symbol == null || summary.TypeDeclaration == null ||
                 !(symbol is IFieldSymbol))
             {
                 return false;
@@ -161,7 +137,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             var fieldDecl = definition.DeclaringSyntaxReferences.First().GetSyntax().
                 AncestorsAndSelf().OfType<FieldDeclarationSyntax>().First();
 
-            if (summary.Machine.Declaration.ChildNodes().OfType<FieldDeclarationSyntax>().Contains(fieldDecl))
+            if (summary.TypeDeclaration.ChildNodes().OfType<FieldDeclarationSyntax>().Contains(fieldDecl))
             {
                 return true;
             }

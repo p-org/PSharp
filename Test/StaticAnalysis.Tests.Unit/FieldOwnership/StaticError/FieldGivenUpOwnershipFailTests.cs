@@ -27,7 +27,7 @@ namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
     public class FieldGivenUpOwnershipFailTests : BasePSharpTest
     {
         [TestMethod, Timeout(10000)]
-        public void TestFieldGivenUpOwnershipFail()
+        public void TestFieldGivenUpOwnership1Fail()
         {
             var test = @"
 using Microsoft.PSharp;
@@ -104,6 +104,94 @@ class M : Machine
         }
 
         [TestMethod, Timeout(10000)]
+        public void TestFieldGivenUpOwnership2Fail()
+        {
+            var test = @"
+using Microsoft.PSharp;
+
+namespace Foo {
+class eUnit : Event
+{
+ public Letter Letter;
+ 
+ public eUnit(Letter letter)
+  : base()
+ {
+  this.Letter = letter;
+ }
+}
+
+struct Letter
+{
+ public string Text;
+
+ public Letter(string text)
+ {
+  this.Text = text;
+ }
+}
+
+class M : Machine
+{
+ MachineId Target;
+ Letter Letter;
+
+ [Start]
+ [OnEntry(nameof(FirstOnEntryAction))]
+ class First : MachineState { }
+
+ void FirstOnEntryAction()
+ {
+  this.Target = this.CreateMachine(typeof(M));
+  this.Letter = new Letter(""London"");
+  this.Send(this.Target, new eUnit(this.Letter));
+  this.Foo();
+ }
+
+ void Foo()
+ {
+  this.Bar();
+ }
+
+ void Bar()
+ {
+  this.Letter = new Letter(""Bangalore"");
+  this.Letter.Text = ""text2"";
+ }
+}
+}";
+
+            var solution = base.GetSolution(test);
+
+            var configuration = Configuration.Create();
+            configuration.ProjectName = "Test";
+            configuration.Verbose = 2;
+
+            IO.StartWritingToMemory();
+
+            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            AnalysisErrorReporter.ResetStats();
+            StaticAnalysisEngine.Create(context).Run();
+
+            var stats = AnalysisErrorReporter.GetStats();
+            var expected = "... Static analysis detected '1' error";
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
+
+            var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
+                "'Letter', which contains data from field 'Foo.M.Letter'.";
+            var actual = IO.GetOutput();
+
+            Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
+               actual.Substring(0, actual.IndexOf(Environment.NewLine)));
+
+            IO.StopWritingToMemory();
+        }
+
+        [TestMethod, Timeout(10000)]
         public void TestFieldAccessAfterGivenUpOwnership1Fail()
         {
             var test = @"
@@ -169,7 +257,7 @@ class M : Machine
             StaticAnalysisEngine.Create(context).Run();
 
             var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... Static analysis detected '4' errors";
+            var expected = "... Static analysis detected '3' errors";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             IO.StopWritingToMemory();
@@ -243,7 +331,7 @@ class M : Machine
             StaticAnalysisEngine.Create(context).Run();
 
             var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... Static analysis detected '4' errors";
+            var expected = "... Static analysis detected '3' errors";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             IO.StopWritingToMemory();

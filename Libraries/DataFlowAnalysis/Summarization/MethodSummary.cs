@@ -17,21 +17,25 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.FindSymbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 {
     /// <summary>
     /// Class implementing a method summary.
     /// </summary>
-    public class MethodSummary
+    public sealed class MethodSummary
     {
         #region fields
 
         /// <summary>
         /// The analysis context.
         /// </summary>
-        protected AnalysisContext AnalysisContext;
+        private AnalysisContext AnalysisContext;
+
+        /// <summary>
+        /// The unique id of the summary.
+        /// </summary>
+        internal readonly int Id;
 
         /// <summary>
         /// Method that this summary represents.
@@ -51,30 +55,32 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         public ControlFlowGraphNode EntryNode;
 
         /// <summary>
-        /// Set of all exit nodes in the control-flow graph of the
-        /// method of this summary.
+        /// Set of all exit nodes in the control-flow graph
+        /// of the method of this summary.
         /// </summary>
         public HashSet<ControlFlowGraphNode> ExitNodes;
 
         /// <summary>
-        /// The data-flow of the method of this summary.
+        /// The data-flow analysis engine that is analyzing
+        /// this method summary.
         /// </summary>
-        public DataFlowAnalysis DataFlowAnalysis;
+        internal DataFlowAnalysisEngine DataFlowAnalysisEngine;
 
         /// <summary>
-        /// Dictionary containing all read and write accesses
-        /// of the parameters of the original method.
+        /// Dictionary containing all read and write parameters
+        /// accesses in the original method.
         /// </summary>
-        public Dictionary<int, HashSet<SyntaxNode>> ParameterAccessSet;
+        public Dictionary<int, HashSet<Statement>> ParameterAccesses;
 
         /// <summary>
-        /// Dictionary containing all field accesses.
+        /// Dictionary containing all read and write
+        /// field accesses in the original method.
         /// </summary>
-        public Dictionary<IFieldSymbol, HashSet<SyntaxNode>> FieldAccessSet;
+        public Dictionary<IFieldSymbol, HashSet<Statement>> FieldAccesses;
 
         /// <summary>
-        /// Dictionary containing all side effects in regards to the
-        /// parameters of the original method.
+        /// Dictionary containing all side effects in regards to
+        /// parameters flowing into fields in the original method.
         /// </summary>
         public Dictionary<IFieldSymbol, HashSet<int>> SideEffects;
 
@@ -89,9 +95,47 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// </summary>
         public HashSet<ITypeSymbol> ReturnTypeSet;
 
+        /// <summary>
+        /// Set of the indexes of parameters that the original method
+        /// gives up during its execution.
+        /// </summary>
+        public HashSet<int> GivesUpOwnershipParamIndexes;
+
+        /// <summary>
+        /// A counter for creating unique IDs.
+        /// </summary>
+        private static int IdCounter;
+
         #endregion
 
         #region constructors
+
+        /// <summary>
+        /// Static constructor.
+        /// </summary>
+        static MethodSummary()
+        {
+            MethodSummary.IdCounter = 0;
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="context">AnalysisContext</param>
+        /// <param name="method">BaseMethodDeclarationSyntax</param>
+        /// <param name="typeDeclaration">TypeDeclarationSyntax</param>
+        private MethodSummary(AnalysisContext context, BaseMethodDeclarationSyntax method,
+            TypeDeclarationSyntax typeDeclaration)
+        {
+            this.AnalysisContext = context;
+            this.Method = method;
+            this.TypeDeclaration = typeDeclaration;
+            this.Id = MethodSummary.IdCounter++;
+        }
+
+        #endregion
+
+        #region public methods
 
         /// <summary>
         /// Creates the summary of the given method.
@@ -103,316 +147,146 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         public static MethodSummary Create(AnalysisContext context, BaseMethodDeclarationSyntax method,
             TypeDeclarationSyntax typeDeclaration = null)
         {
-            if (context.Summaries.ContainsKey(method))
-            {
-                return context.Summaries[method];
-            }
-
             var summary = new MethodSummary(context, method, typeDeclaration);
-            summary.BuildSummary();
-
-            return summary;
+            return summary.BuildSummary();
         }
 
         /// <summary>
-        /// Constructor.
+        /// Resolves and returns all possible method summaries
+        /// for the given call symbol.
         /// </summary>
-        /// <param name="context">AnalysisContext</param>
-        /// <param name="method">BaseMethodDeclarationSyntax</param>
-        /// <param name="typeDeclaration">TypeDeclarationSyntax</param>
-        protected MethodSummary(AnalysisContext context, BaseMethodDeclarationSyntax method,
-            TypeDeclarationSyntax typeDeclaration)
+        /// <param name="callSymbol">ISymbol</param>
+        /// <param name="statement">Statement</param>
+        /// <returns>Set of method summaries</returns>
+        public HashSet<MethodSummary> GetResolvedCalleeSummaries(ISymbol callSymbol,
+            Statement statement)
         {
-            this.AnalysisContext = context;
-            this.Method = method;
-            this.TypeDeclaration = typeDeclaration;
-        }
+            var calleeSummaries = new HashSet<MethodSummary>();
 
-        #endregion
-
-        #region public methods
-
-        /// <summary>
-        /// Tries to get the method summary of the given object creation. Returns
-        /// null if such summary cannot be found.
-        /// </summary>
-        /// <param name="call">Call</param>
-        /// <param name="model">SemanticModel</param>
-        /// <param name="context">AnalysisContext</param>
-        /// <returns>MethodSummary</returns>
-        public static MethodSummary TryGet(ObjectCreationExpressionSyntax call,
-            SemanticModel model, AnalysisContext context)
-        {
-            var callSymbol = model.GetSymbolInfo(call).Symbol;
-            if (callSymbol == null)
+            Dictionary<ISymbol, HashSet<MethodSummary>> calleeSummaryMap = null;
+            if (!this.DataFlowAnalysisEngine.TryGetCalleeSummaryMapForStatement(
+                statement, out calleeSummaryMap))
             {
-                return null;
+                return calleeSummaries;
             }
 
-            var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol, context.Solution).Result;
-            if (definition == null)
+            if (!calleeSummaryMap.ContainsKey(callSymbol))
             {
-                return null;
+                return calleeSummaries;
             }
 
-            if (definition.DeclaringSyntaxReferences.IsEmpty)
-            {
-                return null;
-            }
-
-            var constructorCall = definition.DeclaringSyntaxReferences.First().GetSyntax()
-                as ConstructorDeclarationSyntax;
-            return MethodSummary.Create(context, constructorCall);
-        }
-
-        /// <summary>
-        /// Tries to get the method summary of the given invocation. Returns
-        /// null if such summary cannot be found.
-        /// </summary>
-        /// <param name="call">Call</param>
-        /// <param name="model">SemanticModel</param>
-        /// <param name="context">AnalysisContext</param>
-        /// <returns>MethodSummary</returns>
-        public static MethodSummary TryGet(InvocationExpressionSyntax call,
-            SemanticModel model, AnalysisContext context)
-        {
-            var callSymbol = model.GetSymbolInfo(call).Symbol;
-            if (callSymbol == null)
-            {
-                return null;
-            }
-
-            var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol, context.Solution).Result;
-            if (definition == null || definition.DeclaringSyntaxReferences.IsEmpty)
-            {
-                return null;
-            }
-
-            var invocationCall = definition.DeclaringSyntaxReferences.First().GetSyntax()
-                as MethodDeclarationSyntax;
-            return MethodSummary.Create(context, invocationCall);
-        }
-
-        /// <summary>
-        /// Resolves and returns all possible side effects at the point of the
-        /// given call argument list.
-        /// </summary>
-        /// <param name="argumentList">Argument list</param>
-        /// <param name="model">SemanticModel</param>
-        /// <returns>Set of side effects</returns>
-        public Dictionary<ISymbol, HashSet<ISymbol>> GetResolvedSideEffects(ArgumentListSyntax argumentList,
-            SemanticModel model)
-        {
-            Dictionary<ISymbol, HashSet<ISymbol>> sideEffects = new Dictionary<ISymbol, HashSet<ISymbol>>();
-            foreach (var sideEffect in this.SideEffects)
-            {
-                HashSet<ISymbol> argSymbols = new HashSet<ISymbol>();
-                foreach (var index in sideEffect.Value)
-                {
-                    IdentifierNameSyntax arg = null;
-                    var argExpr = argumentList.Arguments[index].Expression;
-                    if (argExpr is IdentifierNameSyntax)
-                    {
-                        arg = argExpr as IdentifierNameSyntax;
-                        var argType = model.GetTypeInfo(arg).Type;
-                        if (this.AnalysisContext.IsTypePassedByValueOrImmutable(argType))
-                        {
-                            continue;
-                        }
-
-                        argSymbols.Add(model.GetSymbolInfo(arg).Symbol);
-                    }
-                    else if (argExpr is MemberAccessExpressionSyntax)
-                    {
-                        var name = (argExpr as MemberAccessExpressionSyntax).Name;
-                        var argType = model.GetTypeInfo(name).Type;
-                        if (this.AnalysisContext.IsTypePassedByValueOrImmutable(argType))
-                        {
-                            continue;
-                        }
-
-                        arg = AnalysisContext.GetTopLevelIdentifier(argExpr);
-                        argSymbols.Add(model.GetSymbolInfo(arg).Symbol);
-                    }
-                    else if (argExpr is ObjectCreationExpressionSyntax)
-                    {
-                        var objCreation = argExpr as ObjectCreationExpressionSyntax;
-                        var summary = MethodSummary.TryGet(objCreation, model, this.AnalysisContext);
-                        if (summary == null)
-                        {
-                            continue;
-                        }
-
-                        var nestedSideEffects = summary.GetResolvedSideEffects(
-                            objCreation.ArgumentList, model);
-                        foreach (var nestedSideEffect in nestedSideEffects)
-                        {
-                            sideEffects.Add(nestedSideEffect.Key, nestedSideEffect.Value);
-                        }
-                    }
-                    else if (argExpr is InvocationExpressionSyntax)
-                    {
-                        var invocation = argExpr as InvocationExpressionSyntax;
-                        var summary = this.AnalysisContext.TryGetSummary(invocation, model);
-                        if (summary == null)
-                        {
-                            continue;
-                        }
-
-                        var nestedSideEffects = summary.GetResolvedSideEffects(
-                            invocation.ArgumentList, model);
-                        foreach (var nestedSideEffect in nestedSideEffects)
-                        {
-                            sideEffects.Add(nestedSideEffect.Key, nestedSideEffect.Value);
-                        }
-                    }
-                }
-
-                sideEffects.Add(sideEffect.Key, argSymbols);
-            }
-
-            return sideEffects;
+            return calleeSummaryMap[callSymbol];
         }
 
         /// <summary>
         /// Resolves and returns all possible return symbols at
-        /// the point of the given call.
+        /// the point of the given invocation.
         /// </summary>
-        /// <param name="argumentList">Argument list</param>
+        /// <param name="invocation">InvocationExpressionSyntax</param>
         /// <param name="model">SemanticModel</param>
         /// <returns>Set of return symbols</returns>
-        public HashSet<ISymbol> GetResolvedReturnSymbols(ExpressionSyntax call,
+        public HashSet<ISymbol> GetResolvedReturnSymbols(InvocationExpressionSyntax invocation,
             SemanticModel model)
         {
-            HashSet<ISymbol> returnSymbols = new HashSet<ISymbol>();
-
-            ArgumentListSyntax argumentList = AnalysisContext.GetArgumentList(call);
-            if (argumentList == null)
-            {
-                return returnSymbols;
-            }
+            var returnSymbols = new HashSet<ISymbol>();
 
             foreach (var index in this.ReturnSet.Item1)
             {
-                IdentifierNameSyntax arg = null;
-                var argExpr = argumentList.Arguments[index].Expression;
-                if (argExpr is IdentifierNameSyntax)
+                var argExpr = invocation.ArgumentList.Arguments[index].Expression;
+                var arg = AnalysisContext.GetTopLevelIdentifier(argExpr);
+                ITypeSymbol argType = model.GetTypeInfo(argExpr).Type;
+                if (this.AnalysisContext.IsTypePassedByValueOrImmutable(argType))
                 {
-                    arg = argExpr as IdentifierNameSyntax;
-                    var argType = model.GetTypeInfo(arg).Type;
-                    if (this.AnalysisContext.IsTypePassedByValueOrImmutable(argType))
-                    {
-                        continue;
-                    }
-                }
-                else if (argExpr is MemberAccessExpressionSyntax)
-                {
-                    var name = (argExpr as MemberAccessExpressionSyntax).Name;
-                    var argType = model.GetTypeInfo(name).Type;
-                    if (this.AnalysisContext.IsTypePassedByValueOrImmutable(argType))
-                    {
-                        continue;
-                    }
-
-                    arg = AnalysisContext.GetTopLevelIdentifier(argExpr);
+                    continue;
                 }
 
-                returnSymbols.Add(model.GetSymbolInfo(arg).Symbol);
+                var returnSymbol = model.GetSymbolInfo(arg).Symbol;
+                returnSymbols.Add(returnSymbol);
             }
 
             foreach (var field in this.ReturnSet.Item2)
             {
-                returnSymbols.Add(field as IFieldSymbol);
+                returnSymbols.Add(field);
             }
 
             return returnSymbols;
         }
 
         /// <summary>
-        /// Updates the summary with the passed argument types
-        /// at the given call site.
+        /// Returns symbols with given-up ownership.
         /// </summary>
-        /// <param name="call">Call</param>
-        /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">ControlFlowGraphNode</param>
-        public void UpdatePassedArgumentTypes(InvocationExpressionSyntax call,
-            SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode)
+        /// <returns>GivenUpOwnershipSymbols</returns>
+        public IEnumerable<GivenUpOwnershipSymbol> GetSymbolsWithGivenUpOwnership()
         {
-            Dictionary<ISymbol, HashSet<ITypeSymbol>> callerReferenceTypeMap = null;
-            if (!cfgNode.GetMethodSummary().DataFlowAnalysis.TryGetReferenceTypeMapForSyntaxNode(
-                syntaxNode, cfgNode, out callerReferenceTypeMap))
-            {
-                return;
-            }
-
-            Dictionary<ISymbol, HashSet<ITypeSymbol>> referenceTypeMap = null;
-            if (!this.DataFlowAnalysis.TryGetReferenceTypeMapForSyntaxNode(
-                this.Method.ParameterList, this.EntryNode, out referenceTypeMap))
-            {
-                return;
-            }
-
-            bool updated = false;
-            foreach (var argSymbol in callerReferenceTypeMap)
-            {
-                var paramSymbol = referenceTypeMap.FirstOrDefault(val => val.Key.Name.Equals(argSymbol.Key.Name));
-                if (paramSymbol.Equals(default(KeyValuePair<ISymbol, HashSet<ITypeSymbol>>)) ||
-                    argSymbol.Value.SetEquals(paramSymbol.Value))
-                {
-                    continue;
-                }
-
-                referenceTypeMap[paramSymbol.Key].Clear();
-                referenceTypeMap[paramSymbol.Key].UnionWith(argSymbol.Value);
-                updated = true;
-            }
-
-            if (updated)
-            {
-                this.AnalyzeDataFlow(referenceTypeMap);
-                this.ComputeSideEffects();
-            }
+            return this.DataFlowAnalysisEngine.GetSymbolsWithGivenUpOwnership();
         }
 
         #endregion
 
-        #region protected methods
+        #region internal methods
 
         /// <summary>
-        /// Builds the summary.
+        /// Resolves and returns all possible side effects at the
+        /// point of the given invocation.
         /// </summary>
-        protected void BuildSummary()
+        /// <param name="invocation">InvocationExpressionSyntax</param>
+        /// <param name="calleeSummary">Callee MethodSummary</param>
+        /// <param name="statement">Statement</param>
+        /// <param name="model">SemanticModel</param>
+        /// <returns>Set of side effects</returns>
+        internal Dictionary<DataFlowSymbol, HashSet<DataFlowSymbol>> GetResolvedSideEffects(
+            InvocationExpressionSyntax invocation, MethodSummary calleeSummary,
+            Statement statement, SemanticModel model)
         {
-            if (!this.BuildControlFlowGraph())
-            {
-                return;
-            }
-            
-            this.ParameterAccessSet = new Dictionary<int, HashSet<SyntaxNode>>();
-            this.FieldAccessSet = new Dictionary<IFieldSymbol, HashSet<SyntaxNode>>();
-            this.SideEffects = new Dictionary<IFieldSymbol, HashSet<int>>();
-            this.ReturnSet = new Tuple<HashSet<int>, HashSet<IFieldSymbol>>(
-                new HashSet<int>(), new HashSet<IFieldSymbol>());
-            this.ReturnTypeSet = new HashSet<ITypeSymbol>();
-
-            this.AnalyzeDataFlow();
-            this.ComputeSideEffects();
-
-            AnalysisContext.Summaries.Add(this.Method, this);
+            return this.GetResolvedSideEffects(invocation.ArgumentList,
+                calleeSummary, statement, model);
         }
 
         /// <summary>
-        /// Creates a new control-flow graph node.
+        /// Resolves and returns all possible side effects at the
+        /// point of the given object creation.
         /// </summary>
-        /// <returns>ControlFlowGraphNode</returns>
-        protected virtual ControlFlowGraphNode CreateNewControlFlowGraphNode()
+        /// <param name="objCreation">ObjectCreationExpressionSyntax</param>
+        /// <param name="calleeSummary">Callee MethodSummary</param>
+        /// <param name="statement">Statement</param>
+        /// <param name="model">SemanticModel</param>
+        /// <returns>Set of side effects</returns>
+        internal Dictionary<DataFlowSymbol, HashSet<DataFlowSymbol>> GetResolvedSideEffects(
+            ObjectCreationExpressionSyntax objCreation, MethodSummary calleeSummary,
+            Statement statement, SemanticModel model)
         {
-            return new ControlFlowGraphNode(this.AnalysisContext, this);
+            return this.GetResolvedSideEffects(objCreation.ArgumentList,
+                calleeSummary, statement, model);
         }
 
         #endregion
 
         #region private methods
+
+        /// <summary>
+        /// Builds the summary.
+        /// </summary>
+        /// <returns>MethodSummary</returns>
+        private MethodSummary BuildSummary()
+        {
+            if (!this.BuildControlFlowGraph())
+            {
+                return this;
+            }
+            
+            this.ParameterAccesses = new Dictionary<int, HashSet<Statement>>();
+            this.FieldAccesses = new Dictionary<IFieldSymbol, HashSet<Statement>>();
+            this.SideEffects = new Dictionary<IFieldSymbol, HashSet<int>>();
+            this.ReturnSet = new Tuple<HashSet<int>, HashSet<IFieldSymbol>>(
+                new HashSet<int>(), new HashSet<IFieldSymbol>());
+            this.ReturnTypeSet = new HashSet<ITypeSymbol>();
+            this.GivesUpOwnershipParamIndexes = new HashSet<int>();
+
+            this.AnalyzeDataFlow();
+            this.ComputeSideEffects();
+
+            return this;
+        }
 
         /// <summary>
         /// Builds the control-flow graph of the method.
@@ -436,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 return false;
             }
 
-            this.EntryNode = this.CreateNewControlFlowGraphNode();
+            this.EntryNode = ControlFlowGraphNode.Create(this.AnalysisContext, this);
             this.ExitNodes = new HashSet<ControlFlowGraphNode>();
             this.EntryNode.Construct(this.Method);
             this.EntryNode.CleanEmptySuccessors();
@@ -451,72 +325,138 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         private void AnalyzeDataFlow()
         {
             var model = this.AnalysisContext.Compilation.GetSemanticModel(this.Method.SyntaxTree);
-            this.DataFlowAnalysis = DataFlowAnalysis.Analyze(this, this.AnalysisContext, model);
+            this.DataFlowAnalysisEngine = DataFlowAnalysisEngine.Create(this, this.AnalysisContext, model);
+            this.DataFlowAnalysisEngine.Run();
         }
 
         /// <summary>
-        /// Analyzes the data-flow of the method.
-        /// </summary>
-        /// <param name="callerArgumentTypes">Caller argument types</param>
-        private void AnalyzeDataFlow(Dictionary<ISymbol, HashSet<ITypeSymbol>> callerArgumentTypes)
-        {
-            var model = this.AnalysisContext.Compilation.GetSemanticModel(this.Method.SyntaxTree);
-            this.DataFlowAnalysis = DataFlowAnalysis.Analyze(this, callerArgumentTypes, this.AnalysisContext, model);
-        }
-
-        /// <summary>
-        /// Computes side effects in the control-flow graph using
-        /// information from the data-flow analysis.
+        /// Computes field access side effects in the exit nodes of the
+        /// control-flow graph using information from the data-flow analysis.
         /// </summary>
         private void ComputeSideEffects()
         {
             foreach (var exitNode in this.ExitNodes)
             {
-                if (exitNode.SyntaxNodes.Count == 0)
+                if (exitNode.Statements.Count == 0)
                 {
                     continue;
                 }
 
-                var exitSyntaxNode = exitNode.SyntaxNodes.Last();
-                Dictionary<ISymbol, HashSet<ISymbol>> exitDataFlowMap = null;
-                if (this.DataFlowAnalysis.TryGetDataFlowMapForSyntaxNode(exitSyntaxNode, exitNode, out exitDataFlowMap))
+                var exitStatement = exitNode.Statements.Last();
+
+                Dictionary<DataFlowSymbol, HashSet<DataFlowSymbol>> exitDataFlowMap = null;
+                if (!this.DataFlowAnalysisEngine.TryGetDataFlowMapForStatement(
+                    exitStatement, out exitDataFlowMap))
                 {
-                    foreach (var pair in exitDataFlowMap)
+                    continue;
+                }
+
+                foreach (var pair in exitDataFlowMap)
+                {
+                    foreach (var value in pair.Value)
                     {
-                        var keyDefinition = SymbolFinder.FindSourceDefinitionAsync(pair.Key,
-                            this.AnalysisContext.Solution).Result;
-                        foreach (var value in pair.Value)
+                        if (pair.Key.Kind != SymbolKind.Field ||
+                            value.ContainingSymbol.Kind != SymbolKind.Parameter)
                         {
-                            var valueDefinition = SymbolFinder.FindSourceDefinitionAsync(value,
-                                this.AnalysisContext.Solution).Result;
-                            if (keyDefinition == null || valueDefinition == null)
-                            {
-                                continue;
-                            }
+                            continue;
+                        }
 
-                            if (keyDefinition.Kind == SymbolKind.Field &&
-                                valueDefinition.Kind == SymbolKind.Parameter)
-                            {
-                                if (!this.SideEffects.ContainsKey(pair.Key as IFieldSymbol))
-                                {
-                                    this.SideEffects.Add(pair.Key as IFieldSymbol, new HashSet<int>());
-                                }
+                        if (!this.SideEffects.ContainsKey(pair.Key.ContainingSymbol as IFieldSymbol))
+                        {
+                            this.SideEffects.Add(pair.Key.ContainingSymbol as IFieldSymbol, new HashSet<int>());
+                        }
 
-                                var parameter = valueDefinition.DeclaringSyntaxReferences.First().
-                                    GetSyntax() as ParameterSyntax;
-                                var parameterList = parameter.Parent as ParameterListSyntax;
-                                for (int idx = 0; idx < parameterList.Parameters.Count; idx++)
-                                {
-                                    if (parameterList.Parameters[idx].Equals(parameter))
-                                    {
-                                        this.SideEffects[pair.Key as IFieldSymbol].Add(idx);
-                                    }
-                                }
+                        var parameter = value.ContainingSymbol.DeclaringSyntaxReferences.
+                            First().GetSyntax() as ParameterSyntax;
+                        var parameterList = parameter.Parent as ParameterListSyntax;
+                        for (int idx = 0; idx < parameterList.Parameters.Count; idx++)
+                        {
+                            if (parameterList.Parameters[idx].Equals(parameter))
+                            {
+                                this.SideEffects[pair.Key.ContainingSymbol as IFieldSymbol].Add(idx);
                             }
                         }
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Resolves and returns all possible side effects at the
+        /// point of the given call argument list.
+        /// </summary>
+        /// <param name="argumentList">Argument list</param>
+        /// <param name="calleeSummary">Callee MethodSummary</param>
+        /// <param name="statement">Statement</param>
+        /// <param name="model">SemanticModel</param>
+        /// <returns>Set of side effects</returns>
+        private Dictionary<DataFlowSymbol, HashSet<DataFlowSymbol>> GetResolvedSideEffects(
+            ArgumentListSyntax argumentList, MethodSummary calleeSummary, Statement statement,
+            SemanticModel model)
+        {
+            var sideEffects = new Dictionary<DataFlowSymbol, HashSet<DataFlowSymbol>>();
+            foreach (var sideEffect in calleeSummary.SideEffects)
+            {
+                var argSymbols = new HashSet<DataFlowSymbol>();
+                foreach (var index in sideEffect.Value)
+                {
+                    var argExpr = argumentList.Arguments[index].Expression;
+                    if (argExpr is IdentifierNameSyntax ||
+                        argExpr is MemberAccessExpressionSyntax)
+                    {
+                        var argType = model.GetTypeInfo(argExpr).Type;
+                        if (this.AnalysisContext.IsTypePassedByValueOrImmutable(argType))
+                        {
+                            continue;
+                        }
+
+                        IdentifierNameSyntax argIdentifier = AnalysisContext.GetTopLevelIdentifier(argExpr);
+                        ISymbol argSymbol = model.GetSymbolInfo(argIdentifier).Symbol;
+                        var argDFSymbols = this.DataFlowAnalysisEngine.GetDataFlowSymbols(
+                            argSymbol, statement);
+                        argSymbols.UnionWith(argDFSymbols);
+
+                        var sideEffectDFSymbols = this.DataFlowAnalysisEngine.GetDataFlowSymbols(
+                            sideEffect.Key, statement);
+                        foreach (var sideEffectDFSymbol in sideEffectDFSymbols)
+                        {
+                            sideEffects.Add(sideEffectDFSymbol, argSymbols);
+                        }
+                    }
+                    else if (argExpr is InvocationExpressionSyntax ||
+                        argExpr is ObjectCreationExpressionSyntax)
+                    {
+                        var invocation = argExpr as InvocationExpressionSyntax;
+                        var objCreation = argExpr as ObjectCreationExpressionSyntax;
+
+                        MethodSummary summary = null;
+                        if (invocation != null)
+                        {
+                            summary = this.AnalysisContext.TryGetCachedSummary(invocation, model);
+                            argumentList = invocation.ArgumentList;
+                        }
+                        else
+                        {
+                            summary = this.AnalysisContext.TryGetCachedSummary(objCreation, model);
+                            argumentList = objCreation.ArgumentList;
+                        }
+
+                        if (summary == null)
+                        {
+                            continue;
+                        }
+
+                        var nestedSideEffects = summary.GetResolvedSideEffects(
+                            argumentList, calleeSummary, statement, model);
+                        foreach (var nestedSideEffect in nestedSideEffects)
+                        {
+                            sideEffects.Add(nestedSideEffect.Key, nestedSideEffect.Value);
+                        }
+                    }
+                }
+            }
+
+            return sideEffects;
         }
 
         #endregion
@@ -533,6 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             Console.WriteLine("... =============== ControlFlow Summary ===============");
             Console.WriteLine("... ==================================================");
             Console.WriteLine("... |");
+            Console.WriteLine("... | Id: '{0}'", this.Id);
             Console.WriteLine("... | Method: '{0}'", this.AnalysisContext.GetFullMethodName(this.Method));
 
             this.EntryNode.PrintControlFlowGraphNodes();
@@ -548,56 +489,72 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// </summary>
         public void PrintDataFlowInformation()
         {
-            Console.WriteLine("..");
-            Console.WriteLine("... ==================================================");
-            Console.WriteLine("... ================ DataFlow Summary ================");
-            Console.WriteLine("... ==================================================");
-            Console.WriteLine("... |");
-            Console.WriteLine("... | Method: '{0}'", this.AnalysisContext.GetFullMethodName(this.Method));
+            this.PrintDataFlowInformation(false);
+        }
 
-            this.DataFlowAnalysis.PrintDataFlowMap();
-            this.DataFlowAnalysis.PrintFieldReachabilityMap();
-            this.DataFlowAnalysis.PrintReferenceTypes();
-            this.DataFlowAnalysis.PrintStatementsThatResetReferences();
-
-            if (this.ParameterAccessSet.Count > 0)
+        /// <summary>
+        /// Prints the data-flow information.
+        /// </summary>
+        /// <param name="isChild">Is child of summary</param>
+        internal void PrintDataFlowInformation(bool isChild)
+        {
+            string indent = "..";
+            if (isChild)
             {
-                Console.WriteLine("... |");
-                Console.WriteLine("... | . Parameter access set");
-                foreach (var index in this.ParameterAccessSet)
+                indent += "....";
+            }
+
+            Console.WriteLine(indent);
+            Console.WriteLine(indent + ". ==================================================");
+            Console.WriteLine(indent + ". ================ DataFlow Summary ================");
+            Console.WriteLine(indent + ". ==================================================");
+            Console.WriteLine(indent + ". |");
+            Console.WriteLine(indent + ". | Id: '{0}'", this.Id);
+            Console.WriteLine(indent + ". | Method: '{0}'", this.AnalysisContext.GetFullMethodName(this.Method));
+
+            this.DataFlowAnalysisEngine.PrintDataFlowMap(indent);
+            this.DataFlowAnalysisEngine.PrintReferenceTypes(indent);
+            this.DataFlowAnalysisEngine.PrintCalleeSummaryMap(indent);
+            this.DataFlowAnalysisEngine.PrintGivesUpOwnershipMap(indent);
+            
+            if (this.ParameterAccesses.Count > 0)
+            {
+                Console.WriteLine(indent + ". |");
+                Console.WriteLine(indent + ". | . Parameter access set");
+                foreach (var index in this.ParameterAccesses)
                 {
-                    foreach (var syntaxNode in index.Value)
+                    foreach (var statement in index.Value)
                     {
-                        Console.WriteLine("... | ... Parameter at index '{0}' is accessed in '{1}'",
-                            index.Key, syntaxNode);
+                        Console.WriteLine(indent + ". | ... Parameter at index '{0}' " +
+                            "is accessed in '{1}'", index.Key, statement.SyntaxNode);
                     }
                 }
             }
 
-            if (this.FieldAccessSet.Count > 0)
+            if (this.FieldAccesses.Count > 0)
             {
-                Console.WriteLine("... |");
-                Console.WriteLine("... | . Field access set");
-                foreach (var field in this.FieldAccessSet)
+                Console.WriteLine(indent + ". |");
+                Console.WriteLine(indent + ". | . Field access set");
+                foreach (var field in this.FieldAccesses)
                 {
-                    foreach (var syntaxNode in field.Value)
+                    foreach (var statement in field.Value)
                     {
-                        Console.WriteLine("... | ... Field '{0}' is accessed in '{1}'",
-                           field.Key.Name, syntaxNode);
+                        Console.WriteLine(indent + ". | ... '{0}' accessed in '{1}'",
+                           field.Key, statement.SyntaxNode);
                     }
                 }
             }
 
             if (this.SideEffects.Count > 0)
             {
-                Console.WriteLine("... |");
-                Console.WriteLine("... | . Side effects");
+                Console.WriteLine(indent + ". |");
+                Console.WriteLine(indent + ". | . Side effects");
                 foreach (var pair in this.SideEffects)
                 {
                     foreach (var index in pair.Value)
                     {
-                        Console.WriteLine("... | ... parameter at index '{0}' flows into field '{1}'",
-                            index, pair.Key.Name);
+                        Console.WriteLine(indent + ". | ... parameter at index '{0}' " +
+                            "flows into field '{1}'", index, pair.Key);
                     }
                 }
             }
@@ -605,31 +562,46 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             if (this.ReturnSet.Item1.Count > 0 ||
                 this.ReturnSet.Item2.Count > 0)
             {
-                Console.WriteLine("... |");
-                Console.WriteLine("... | . Method return set");
+                Console.WriteLine(indent + ". |");
+                Console.WriteLine(indent + ". | . Method return set");
                 foreach (var index in this.ReturnSet.Item1)
                 {
-                    Console.WriteLine("... | ... Parameter at index '{0}' flows into return", index);
+                    Console.WriteLine(indent + ". | ... Parameter at index '{0}'", index);
                 }
 
                 foreach (var field in this.ReturnSet.Item2)
                 {
-                    Console.WriteLine("... | ... Field '{0}' flows into return", field.Name);
+                    Console.WriteLine(indent + ". | ... Field '{0}'", field);
                 }
             }
 
             if (this.ReturnTypeSet.Count > 0)
             {
-                Console.WriteLine("... |");
-                Console.WriteLine("... | . Method return types");
+                Console.WriteLine(indent + ". |");
+                Console.WriteLine(indent + ". | . Method return types");
                 foreach (var type in this.ReturnTypeSet)
                 {
-                    Console.WriteLine("... | ... Type '{0}'", type.Name);
+                    Console.WriteLine(indent + ". | ... Type '{0}'", type);
                 }
             }
 
-            Console.WriteLine("... |");
-            Console.WriteLine("... ==================================================");
+            if (this.GivesUpOwnershipParamIndexes.Count > 0)
+            {
+                Console.WriteLine(indent + ". |");
+                Console.WriteLine(indent + ". | . Gives-up ownership parameter indexes");
+                Console.Write(indent + ". | ...");
+                foreach (var index in this.GivesUpOwnershipParamIndexes)
+                {
+                    Console.Write(" '{0}'", index);
+                }
+
+                Console.WriteLine("");
+            }
+
+            Console.WriteLine(indent + ". |");
+            Console.WriteLine(indent + ". ==================================================");
+            
+            this.DataFlowAnalysisEngine.PrintCalleeSummaries();
         }
 
         #endregion

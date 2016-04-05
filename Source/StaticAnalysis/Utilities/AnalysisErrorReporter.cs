@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 
@@ -30,16 +31,31 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Number of errors discovered in the analysis.
         /// </summary>
-        private static int ErrorCount = 0;
+        private static int ErrorCount;
 
         /// <summary>
         /// Number of warnings reported by the analysis.
         /// </summary>
-        private static int WarningCount = 0;
+        private static int WarningCount;
+
+        /// <summary>
+        /// Set of reported messages;
+        /// </summary>
+        private static HashSet<string> ReportedMessages;
 
         #endregion
 
         #region public API
+
+        /// <summary>
+        /// Static constructor.
+        /// </summary>
+        static AnalysisErrorReporter()
+        {
+            AnalysisErrorReporter.ErrorCount = 0;
+            AnalysisErrorReporter.WarningCount = 0;
+            AnalysisErrorReporter.ReportedMessages = new HashSet<string>();
+        }
 
         /// <summary>
         /// Prints the static analysis error statistics.
@@ -66,11 +82,10 @@ namespace Microsoft.PSharp.StaticAnalysis
                 warningStr = "warnings";
             }
 
-            if ((AnalysisErrorReporter.ErrorCount > 0 || AnalysisErrorReporter.WarningCount > 0) &&
-                ErrorReporter.ShowWarnings)
+            if (AnalysisErrorReporter.WarningCount > 0)
             {
                 return "... Static analysis detected '" + AnalysisErrorReporter.ErrorCount + "' " + errorStr +
-                    " and reported '" + AnalysisErrorReporter.WarningCount + "' " + warningStr;
+                    " and '" + AnalysisErrorReporter.WarningCount + "' " + warningStr;
             }
             else if (AnalysisErrorReporter.ErrorCount > 0)
             {
@@ -89,6 +104,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         {
             AnalysisErrorReporter.ErrorCount = 0;
             AnalysisErrorReporter.WarningCount = 0;
+            AnalysisErrorReporter.ReportedMessages = new HashSet<string>();
         }
 
         #endregion
@@ -138,23 +154,6 @@ namespace Microsoft.PSharp.StaticAnalysis
         }
 
         /// <summary>
-        /// Reports an error to the user.
-        /// </summary>
-        /// <param name="trace">TraceInfo</param>
-        /// <param name="s">String</param>
-        /// <param name="args">Parameters</param>
-        internal static void Report(TraceInfo trace, string s, params object[] args)
-        {
-            AnalysisErrorReporter.Report(s, args);
-            for (int idx = trace.ErrorTrace.Count - 1; idx >= 0; idx--)
-            {
-                IO.Print("   at '{0}' ", trace.ErrorTrace[idx].Expression);
-                IO.Print("in {0}:", trace.ErrorTrace[idx].File);
-                IO.PrintLine("line {0}", trace.ErrorTrace[idx].Line);
-            }
-        }
-
-        /// <summary>
         /// Reports a warning to the user.
         /// </summary>
         /// <param name="s">String</param>
@@ -166,7 +165,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 IO.Print(ConsoleColor.Yellow, s);
                 IO.PrintLine();
             }
-                
+
             AnalysisErrorReporter.WarningCount++;
         }
 
@@ -184,7 +183,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 IO.Print(ConsoleColor.Yellow, message);
                 IO.PrintLine();
             }
-            
+
             AnalysisErrorReporter.WarningCount++;
         }
 
@@ -222,114 +221,100 @@ namespace Microsoft.PSharp.StaticAnalysis
         }
 
         /// <summary>
-        /// Reports a given up field ownership error.
+        /// Reports an access of an object with given-up ownership.
         /// </summary>
         /// <param name="trace">TraceInfo</param>
-        internal static void ReportGivenUpFieldOwnershipError(TraceInfo trace)
+        internal static void ReportGivenUpOwnershipAccess(TraceInfo trace)
         {
+            string message;
             if (trace.State == null)
             {
-                AnalysisErrorReporter.ReportDataRaceSource(trace,
-                    "Method '{0}' of machine '{1}' sends '{2}', which " +
-                    "contains data from a field.",
+                message = IO.Format("Method '{0}' of machine '{1}' " +
+                    "accesses '{2}' after giving up its ownership.",
                     trace.Method, trace.Machine, trace.Payload);
             }
             else
             {
-                AnalysisErrorReporter.ReportDataRaceSource(trace,
-                    "Method '{0}' in state '{1}' of machine '{2}' sends " +
-                    "'{3}', which contains data from a field.",
+                message = IO.Format("Method '{0}' in state '{1}' of machine " +
+                    "'{2}' accesses '{3}' after giving up its ownership.",
                     trace.Method, trace.State, trace.Machine, trace.Payload);
             }
+
+            AnalysisErrorReporter.ReportErrorTrace(trace, message, true);
         }
 
         /// <summary>
-        /// Reports assignment of payload to a machine field.
+        /// Reports a given up field ownership error.
         /// </summary>
         /// <param name="trace">TraceInfo</param>
-        internal static void ReportPayloadFieldAssignment(TraceInfo trace)
+        /// <param name="fieldSymbol">ISymbol</param>
+        internal static void ReportGivenUpFieldOwnershipError(TraceInfo trace,
+            ISymbol fieldSymbol)
         {
+            string message;
             if (trace.State == null)
             {
-                AnalysisErrorReporter.ReportDataRaceSource(trace,
-                    "Method '{0}' of machine '{1}' assigns the latest received " +
-                    "event payload to a field.",
-                    trace.Method, trace.Machine);
+                message = IO.Format("Method '{0}' of machine '{1}' sends '{2}', " +
+                    "which contains data from field '{3}'.", trace.Method,
+                    trace.Machine, trace.Payload, fieldSymbol);
             }
             else
             {
-                AnalysisErrorReporter.ReportDataRaceSource(trace,
-                    "Method '{0}' in state '{1}' of machine '{2}' assigns " +
-                    "the latest received event payload to a field.",
-                    trace.Method, trace.State, trace.Machine);
+                message = IO.Format("Method '{0}' in state '{1}' of machine '{2}' " +
+                    "sends '{3}', which contains data from field '{4}'.", trace.Method,
+                    trace.State, trace.Machine, trace.Payload, fieldSymbol);
             }
+
+            AnalysisErrorReporter.ReportErrorTrace(trace, message);
         }
 
         /// <summary>
         /// Reports assignment of given up ownership to a machine field.
         /// </summary>
         /// <param name="trace">TraceInfo</param>
-        /// <param name="fieldSymbol">IFieldSymbol</param>
-        internal static void ReportGivenUpOwnershipFieldAssignment(TraceInfo trace, IFieldSymbol fieldSymbol)
+        /// <param name="fieldSymbol">ISymbol</param>
+        internal static void ReportGivenUpOwnershipFieldAssignment(TraceInfo trace,
+            ISymbol fieldSymbol)
         {
+            string message;
             if (trace.State == null)
             {
-                AnalysisErrorReporter.ReportOwnershipError(trace,
-                    "Method '{0}' of machine '{1}' assigns '{2}' to field '{3}' " +
-                    "after giving up its ownership.",
-                    trace.Method, trace.Machine, trace.Payload, fieldSymbol);
+                message = IO.Format("Method '{0}' of machine '{1}' assigns '{2}' " +
+                    "to field '{3}' after giving up its ownership.", trace.Method,
+                    trace.Machine, trace.Payload, fieldSymbol);
             }
             else
             {
-                AnalysisErrorReporter.ReportOwnershipError(trace,
-                    "Method '{0}' in state '{1}' of machine '{2}' assigns '{3}' to " +
-                    "field '{4}' after giving up its ownership.",
+                message = IO.Format("Method '{0}' in state '{1}' of machine '{2}' " +
+                    "assigns '{3}' to field '{4}' after giving up its ownership.",
                     trace.Method, trace.State, trace.Machine, trace.Payload, fieldSymbol);
             }
+
+            AnalysisErrorReporter.ReportErrorTrace(trace, message);
         }
 
         /// <summary>
         /// Reports sending data with a given up ownership.
         /// </summary>
         /// <param name="trace">TraceInfo</param>
-        internal static void ReportGivenUpOwnershipSending(TraceInfo trace)
+        /// <param name="argSymbol">ISymbol</param>
+        internal static void ReportGivenUpOwnershipSending(TraceInfo trace, ISymbol argSymbol)
         {
+            string message;
             if (trace.State == null)
             {
-                AnalysisErrorReporter.ReportOwnershipError(trace,
-                    "Method '{0}' of machine '{1}' sends an event that contains " +
-                    "payload with already given up ownership.",
-                    trace.Method, trace.Machine);
+                message = IO.Format("Method '{0}' of machine '{1}' sends '{2}', " +
+                    "the ownership of which has already been given up.", trace.Method,
+                    trace.Machine, argSymbol);
             }
             else
             {
-                AnalysisErrorReporter.ReportOwnershipError(trace,
-                    "Method '{0}' in state '{1}' of machine '{2}' sends an event that " +
-                    "contains payload with already given up ownership.",
-                    trace.Method, trace.State, trace.Machine);
+                message = IO.Format("Method '{0}' in state '{1}' of machine '{2}' " +
+                    "sends '{3}', the ownership of which has already been given up.",
+                    trace.Method, trace.State, trace.Machine, argSymbol);
             }
-        }
 
-        /// <summary>
-        /// Reports a potendial data race.
-        /// </summary>
-        /// <param name="trace">TraceInfo</param>
-        internal static void ReportPotentialDataRace(TraceInfo trace)
-        {
-            if (trace.State == null)
-            {
-                AnalysisErrorReporter.ReportOwnershipError(trace,
-                    "Method '{0}' of machine '{1}' accesses '{2}' after " +
-                    "giving up its ownership.",
-                    trace.Method, trace.Machine, trace.Payload);
-            }
-            else
-            {
-                AnalysisErrorReporter.ReportOwnershipError(trace,
-                    "Method '{0}' in state '{1}' of machine '{2}' accesses " +
-                    "'{3}' after giving up its ownership.",
-                    trace.Method, trace.State, trace.Machine, trace.Payload);
-            }
+            AnalysisErrorReporter.ReportErrorTrace(trace, message);
         }
 
         /// <summary>
@@ -339,20 +324,22 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="trace">TraceInfo</param>
         internal static void ReportExternalInvocation(TraceInfo trace)
         {
+            string message;
             if (trace.State == null)
             {
-                AnalysisErrorReporter.ReportWarning(trace,
-                    "Method '{0}' of machine '{1}' calls a method with unavailable " +
-                    "source code, which might be a source of errors.",
-                    trace.Method, trace.Machine);
+                message = IO.Format("Method '{0}' of machine '{1}' calls " +
+                    "a method with unavailable source code, which might " +
+                    "be a source of errors.", trace.Method, trace.Machine);
             }
             else
             {
-                AnalysisErrorReporter.ReportWarning(trace,
-                    "Method '{0}' in state '{1}' of machine '{2}' calls a method " +
-                    "with unavailable source code, which might be a source of errors.",
-                    trace.Method, trace.State, trace.Machine);
+                message = IO.Format("Method '{0}' in state '{1}' of machine " +
+                    "'{2}' calls a method with unavailable source code, which " +
+                    "might be a source of errors.", trace.Method, trace.State,
+                    trace.Machine);
             }
+
+            AnalysisErrorReporter.ReportWarningTrace(trace, message);
         }
 
         /// <summary>
@@ -362,20 +349,21 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="trace">TraceInfo</param>
         internal static void ReportUnknownVirtualCall(TraceInfo trace)
         {
+            string message;
             if (trace.State == null)
             {
-                AnalysisErrorReporter.ReportWarning(trace,
-                    "Method '{0}' of machine '{1}' calls a virtual method that " +
-                    "cannot be further analysed.",
+                message = IO.Format("Method '{0}' of machine '{1}' calls " +
+                    "a virtual method that cannot be further analysed.",
                     trace.Method, trace.Machine);
             }
             else
             {
-                AnalysisErrorReporter.ReportWarning(trace,
-                    "Method '{0}' in state '{1}' of machine '{2}' calls a virtual " +
-                    "method that cannot be further analysed.",
+                message = IO.Format("Method '{0}' in state '{1}' of machine '{2}' " +
+                    "calls a virtual method that cannot be further analysed.",
                     trace.Method, trace.State, trace.Machine);
             }
+
+            AnalysisErrorReporter.ReportWarningTrace(trace, message);
         }
 
         #endregion
@@ -383,41 +371,48 @@ namespace Microsoft.PSharp.StaticAnalysis
         #region private methods
 
         /// <summary>
-        /// Reports a data race source related error to the user.
+        /// Reports an error to the user.
         /// </summary>
         /// <param name="trace">TraceInfo</param>
-        /// <param name="s">String</param>
-        /// <param name="args">Parameters</param>
-        private static void ReportDataRaceSource(TraceInfo trace, string s, params object[] args)
+        /// <param name="message">Message</param>
+        /// <param name="allowMultiple">Allow multiple messages</param>
+        private static void ReportErrorTrace(TraceInfo trace, string message,
+            bool allowMultiple = false)
         {
-            AnalysisErrorReporter.Report(s, args);
-            for (int idx = trace.ErrorTrace.Count - 1; idx >= 0; idx--)
+            if (!allowMultiple &&
+                AnalysisErrorReporter.ReportedMessages.Contains(message))
             {
-                if (idx == 0)
-                {
-                    IO.PrintLine("   --- Point of sending the event payload ---");
-                    IO.Print("   at '{0}' ", trace.ErrorTrace[idx].Expression);
-                    IO.Print("in {0}:", trace.ErrorTrace[idx].File);
-                    IO.PrintLine("line {0}", trace.ErrorTrace[idx].Line);
-                }
-                else
-                {
-                    IO.Print("   at '{0}' ", trace.ErrorTrace[idx].Expression);
-                    IO.Print("in {0}:", trace.ErrorTrace[idx].File);
-                    IO.PrintLine("line {0}", trace.ErrorTrace[idx].Line);
-                }
+                return;
             }
+            
+            AnalysisErrorReporter.Report(message);
+            AnalysisErrorReporter.PrintTrace(trace);
+            AnalysisErrorReporter.ReportedMessages.Add(message);
         }
 
         /// <summary>
-        /// Reports an ownership related error to the user.
+        /// Reports a warning to the user.
         /// </summary>
         /// <param name="trace">TraceInfo</param>
-        /// <param name="s">String</param>
-        /// <param name="args">Parameters</param>
-        private static void ReportOwnershipError(TraceInfo trace, string s, params object[] args)
+        /// <param name="message">Message</param>
+        private static void ReportWarningTrace(TraceInfo trace, string message)
         {
-            AnalysisErrorReporter.Report(s, args);
+            if (AnalysisErrorReporter.ReportedMessages.Contains(message))
+            {
+                return;
+            }
+
+            AnalysisErrorReporter.ReportWarning(message);
+            AnalysisErrorReporter.PrintTrace(trace);
+            AnalysisErrorReporter.ReportedMessages.Add(message);
+        }
+
+        /// <summary>
+        /// Prints the trace.
+        /// </summary>
+        /// <param name="trace">TraceInfo</param>
+        private static void PrintTrace(TraceInfo trace)
+        {
             for (int idx = trace.ErrorTrace.Count - 1; idx >= 0; idx--)
             {
                 if (idx == 0)

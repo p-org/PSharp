@@ -92,8 +92,8 @@ class M : Machine
             var expected = "... Static analysis detected '1' error";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
-            var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends an " +
-                "event that contains payload with already given up ownership.";
+            var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
+                "'letter', the ownership of which has already been given up.";
             var actual = IO.GetOutput();
 
             Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
@@ -170,11 +170,11 @@ class M : Machine
             StaticAnalysisEngine.Create(context).Run();
 
             var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... Static analysis detected '2' errors";
+            var expected = "... Static analysis detected '1' error";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
-            var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends an " +
-                "event that contains payload with already given up ownership.";
+            var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
+                "'letter', the ownership of which has already been given up.";
             var actual = IO.GetOutput();
 
             Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
@@ -248,8 +248,8 @@ class M : Machine
             var expected = "... Static analysis detected '1' error";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
-            var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends an " +
-                "event that contains payload with already given up ownership.";
+            var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
+                "'letter', the ownership of which has already been given up.";
             var actual = IO.GetOutput();
 
             Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
@@ -324,8 +324,8 @@ class M : Machine
             var expected = "... Static analysis detected '1' error";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
-            var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends an " +
-                "event that contains payload with already given up ownership.";
+            var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
+                "'letter', the ownership of which has already been given up.";
             var actual = IO.GetOutput();
 
             Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
@@ -402,11 +402,11 @@ class M : Machine
             StaticAnalysisEngine.Create(context).Run();
 
             var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... Static analysis detected '2' errors";
+            var expected = "... Static analysis detected '1' error";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
-            var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends an " +
-                "event that contains payload with already given up ownership.";
+            var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
+                "'letter', the ownership of which has already been given up.";
             var actual = IO.GetOutput();
 
             Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),

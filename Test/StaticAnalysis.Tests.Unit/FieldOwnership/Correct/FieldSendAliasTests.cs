@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="FieldAliasAccessAfterSendFailTests.cs">
+// <copyright file="FieldSendAliasTests.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -13,7 +13,6 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Linq;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -24,10 +23,10 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
 {
     [TestClass]
-    public class FieldAliasAccessAfterSendFailTests : BasePSharpTest
+    public class FieldSendAliasTests : BasePSharpTest
     {
         [TestMethod, Timeout(10000)]
-        public void TestFieldAliasAccessAfterSend1Fail()
+        public void TestFieldSendAlias()
         {
             var test = @"
 using Microsoft.PSharp;
@@ -67,13 +66,23 @@ class M : Machine
 
  void FirstOnEntryAction()
  {
-  this.Letter = new Letter(""test"", 0);
+  var letter = new Letter(""test"", 0);
   this.Target = this.CreateMachine(typeof(M));
-  var otherLetter = this.Letter;
-  this.Send(this.Target, new eUnit(this.Letter));
-  otherLetter.Text = ""changed"";
-  otherLetter.Num = 1;
+  var otherLetter = letter;
+  letter = this.Foo(letter);
+  this.Send(this.Target, new eUnit(otherLetter));
  }
+
+ Letter Foo(Letter letter)
+ {
+   return this.Bar(letter);
+ }
+
+ Letter Bar(Letter letter)
+ {
+  Letter otherLetter = new Letter(""test"", 0);
+  otherLetter = this.Letter;
+  return otherLetter;
 }
 }";
 
@@ -94,87 +103,7 @@ class M : Machine
             StaticAnalysisEngine.Create(context).Run();
 
             var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... Static analysis detected '3' errors";
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
-
-            IO.StopWritingToMemory();
-        }
-
-        [TestMethod, Timeout(10000)]
-        public void TestFieldAliasAccessAfterSend2Fail()
-        {
-            var test = @"
-using Microsoft.PSharp;
-
-namespace Foo {
-class eUnit : Event
-{
- public Letter Letter;
- 
- public eUnit(Letter letter)
-  : base()
- {
-  this.Letter = letter;
- }
-}
-
-struct Letter
-{
- public string Text;
-
- public Letter(string text)
- {
-  this.Text = text;
- }
-}
-
-class M : Machine
-{
- MachineId Target;
- Letter Letter;
-
- [Start]
- [OnEntry(nameof(FirstOnEntryAction))]
- class First : MachineState { }
-
- void FirstOnEntryAction()
- {
-  this.Target = this.CreateMachine(typeof(M));
-  this.Letter = new Letter(""London"");
-  this.Send(this.Target, new eUnit(this.Letter));
-  this.Foo(letter);
- }
-
- void Foo()
- {
-  this.Bar();
- }
-
- void Bar()
- {
-  this.Letter.Text = ""text2""; // ERROR
- }
-}
-}";
-
-            var solution = base.GetSolution(test);
-
-            var configuration = Configuration.Create();
-            configuration.ProjectName = "Test";
-            configuration.Verbose = 2;
-
-            IO.StartWritingToMemory();
-
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
-
-            ParsingEngine.Create(context).Run();
-            RewritingEngine.Create(context).Run();
-
-            AnalysisErrorReporter.ResetStats();
-            StaticAnalysisEngine.Create(context).Run();
-
-            var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... Static analysis detected '2' errors";
+            var expected = "... No static analysis errors detected (but absolutely no warranty provided)";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             IO.StopWritingToMemory();

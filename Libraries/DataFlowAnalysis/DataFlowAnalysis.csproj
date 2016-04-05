@@ -55,12 +55,10 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.CodeAnalysis, Version=42.42.42.42, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="Microsoft.CodeAnalysis">
       <HintPath>..\..\References\Roslyn\Microsoft.CodeAnalysis.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.CodeAnalysis.CSharp, Version=42.42.42.42, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="Microsoft.CodeAnalysis.CSharp">
       <HintPath>..\..\References\Roslyn\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CodeAnalysis.Workspaces, Version=42.42.42.42, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -76,8 +74,10 @@
   <ItemGroup>
     <Compile Include="AnalysisContext.cs" />
     <Compile Include="ControlFlow\ControlFlowGraphNode.cs" />
-    <Compile Include="DataFlow\DataFlowAnalysis.cs" />
-    <Compile Include="DataFlow\DataFlowQuerying.cs" />
+    <Compile Include="ControlFlow\Statement.cs" />
+    <Compile Include="DataFlow\DataFlowAnalysisEngine.cs" />
+    <Compile Include="Symbols\GivenUpOwnershipSymbol.cs" />
+    <Compile Include="Symbols\DataFlowSymbol.cs" />
     <Compile Include="Summarization\MethodSummary.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

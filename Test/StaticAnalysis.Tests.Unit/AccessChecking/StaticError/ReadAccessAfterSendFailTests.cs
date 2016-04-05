@@ -326,8 +326,8 @@ class M : Machine
             var expected = "... Static analysis detected '1' error";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
-            var error = "Error: Method 'Foo' of machine 'Foo.M' " +
-                "accesses 'letter' after giving up its ownership.";
+            var error = "Error: Method 'Foo' of machine 'Foo.M' accesses " +
+                "'letter' after giving up its ownership.";
             var actual = IO.GetOutput();
 
             Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),

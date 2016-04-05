@@ -13,7 +13,6 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Linq;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -101,7 +100,7 @@ class M : Machine
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
-                "'letter', which contains data from a field.";
+                "'letter', which contains data from field 'letter'.";
             var actual = IO.GetOutput();
 
             Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
@@ -185,7 +184,7 @@ class M : Machine
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
-                "'letter', which contains data from a field.";
+                "'letter', which contains data from field 'Foo.M.Letter'.";
             var actual = IO.GetOutput();
 
             Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
@@ -269,7 +268,7 @@ class M : Machine
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
-                "'letter', which contains data from a field.";
+                "'letter', which contains data from field 'Foo.M.Letter'.";
             var actual = IO.GetOutput();
 
             Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
@@ -362,7 +361,7 @@ class M : Machine
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
-                "'otherLetter', which contains data from a field.";
+                "'otherLetter', which contains data from field 'Foo.M.Letter'.";
             var actual = IO.GetOutput();
 
             Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
@@ -416,15 +415,15 @@ class M : Machine
   this.Target = this.CreateMachine(typeof(M));
   var otherLetter = letter;
   letter = this.Foo(letter);
-  this.Send(this.Target, new eUnit(otherLetter));
+  this.Send(this.Target, new eUnit(letter));
  }
 
- void Foo(Letter letter)
+ Letter Foo(Letter letter)
  {
    return this.Bar(letter);
  }
 
- void Bar(Letter letter)
+ Letter Bar(Letter letter)
  {
   Letter otherLetter = new Letter(""test"", 0);
   otherLetter = this.Letter; // ERROR
@@ -453,7 +452,7 @@ class M : Machine
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
-                "'otherLetter', which contains data from a field.";
+                "'letter', which contains data from field 'Foo.M.Letter'.";
             var actual = IO.GetOutput();
 
             Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
@@ -527,11 +526,11 @@ class M : Machine
             StaticAnalysisEngine.Create(context).Run();
 
             var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... Static analysis detected '2' errors";
+            var expected = "... Static analysis detected '1' error";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
-                "'(this.ReceivedEvent as eUnit).Letter', which contains data from a field.";
+                "'ReceivedEvent', which contains data from field 'Foo.M.Obj'.";
             var actual = IO.GetOutput();
 
             Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
@@ -598,7 +597,7 @@ class M : Machine
   this.Send(this.Target, new eUnit(envelope));
  }
 
- void Foo(Letter letter)
+ Letter Foo(Letter letter)
  {
   return letter;
  }
@@ -626,7 +625,7 @@ class M : Machine
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' sends " +
-                "'envelope', which contains data from a field.";
+                "'envelope', which contains data from field 'Foo.M.Letter'.";
             var actual = IO.GetOutput();
 
             Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),

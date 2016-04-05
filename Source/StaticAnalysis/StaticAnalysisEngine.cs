@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
@@ -112,6 +113,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             // Create a state-machine static analysis context.
             var context = PSharpAnalysisContext.Create(this.CompilationContext.Configuration, project);
+            this.RegisterGivesUpOwnershipOperations(context);
 
             // Creates and runs an analysis pass that finds if a machine exposes
             // any fields or methods to other machines.
@@ -148,6 +150,18 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 Profiler.PrintResults();
             }
+        }
+
+        /// <summary>
+        /// Registers gives-up ownership operations.
+        /// </summary>
+        /// <param name="context">PSharpAnalysisContext</param>
+        private void RegisterGivesUpOwnershipOperations(PSharpAnalysisContext context)
+        {
+            context.RegisterGivesUpOwnershipMethod("Microsoft.PSharp.Send",
+                new HashSet<int> { 1 });
+            context.RegisterGivesUpOwnershipMethod("Microsoft.PSharp.CreateMachine",
+                new HashSet<int> { 1 });
         }
 
         #endregion

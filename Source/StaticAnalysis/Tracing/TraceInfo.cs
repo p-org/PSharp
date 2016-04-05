@@ -14,6 +14,8 @@
 
 using System;
 using System.Collections.Generic;
+
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.PSharp.StaticAnalysis
@@ -74,9 +76,9 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="method">Method</param>
         /// <param name="machine">Machine</param>
         /// <param name="state">State</param>
-        /// <param name="payload">Payload</param>
+        /// <param name="payload">ISymbol</param>
         internal TraceInfo(MethodDeclarationSyntax method, StateMachine machine,
-            MachineState state, ExpressionSyntax payload)
+            MachineState state, ISymbol payload)
         {
             this.ErrorTrace = new List<ErrorTraceStep>();
             this.CallTrace = new List<CallTraceStep>();
@@ -114,19 +116,21 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
             else
             {
-                this.Payload = payload.ToString();
+                this.Payload = payload.Name;
             }
         }
 
         /// <summary>
-        /// Adds new error trace information to the trace.
+        /// Adds new error trace to the trace for
+        /// the specified syntax node.
         /// </summary>
-        /// <param name="expr">Expression</param>
-        /// <param name="file">File</param>
-        /// <param name="line">Line</param>
-        internal void AddErrorTrace(string expr, string file, int line)
+        /// <param name="syntaxNode">SyntaxNode</param>
+        internal void AddErrorTrace(SyntaxNode syntaxNode)
         {
-            this.ErrorTrace.Add(new ErrorTraceStep(expr, file, line));
+            var errorTraceStep = new ErrorTraceStep(syntaxNode.ToString(),
+                syntaxNode.SyntaxTree.FilePath, syntaxNode.SyntaxTree.GetLineSpan(
+                    syntaxNode.Span).StartLinePosition.Line + 1);
+            this.ErrorTrace.Add(errorTraceStep);
         }
 
         /// <summary>

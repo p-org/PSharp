@@ -68,7 +68,7 @@
       <HintPath>..\..\References\Roslyn\Microsoft.CodeAnalysis.Workspaces.dll</HintPath>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Collections.Immutable, Version=1.1.33.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Collections.Immutable, Version=1.1.37.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\References\Roslyn\System.Collections.Immutable.dll</HintPath>
     </Reference>
@@ -84,8 +84,6 @@
     <Compile Include="DataStructures\StateMachines\MachineAction.cs" />
     <Compile Include="DataStructures\StateMachines\MachineState.cs" />
     <Compile Include="DataStructures\StateMachines\StateMachine.cs" />
-    <Compile Include="Summarization\PSharpMethodSummary.cs" />
-    <Compile Include="DataStructures\ControlFlow\PSharpCFGNode.cs" />
     <Compile Include="PSharpAnalysisContext.cs" />
     <Compile Include="DataStructures\ControlFlow\StateTransitionGraphNode.cs" />
     <Compile Include="Tracing\CallTraceStep.cs" />

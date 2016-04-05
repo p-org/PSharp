@@ -162,7 +162,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             foreach (var method in this.State.ChildNodes().OfType<MethodDeclarationSyntax>())
             {
-                var summary = PSharpMethodSummary.Create(this.AnalysisContext, method);
+                var summary = MethodSummary.Create(this.AnalysisContext, method);
                 if (method.Modifiers.Any(SyntaxKind.OverrideKeyword) &&
                     method.Identifier.ValueText.Equals("OnEntry"))
                 {
@@ -183,7 +183,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             foreach (var action in actions)
             {
-                var actionSummary = PSharpMethodSummary.Create(this.AnalysisContext, action);
+                var actionSummary = MethodSummary.Create(this.AnalysisContext, action);
                 this.Actions.Add(actionSummary);
             }
 

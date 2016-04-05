@@ -160,6 +160,11 @@ class M : Machine
 
  Letter Foo(Letter letter)
  {
+  return this.Bar(letter;
+ }
+
+ Letter Bar(Letter letter)
+ {
   return letter;
  }
 }
@@ -659,7 +664,7 @@ class M : Machine
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             var error = "Error: Method 'Foo' of machine 'Foo.M' sends 'envelope', " +
-                "which contains data from a field.";
+                "which contains data from field 'Foo.M.Letter'.";
             var actual = IO.GetOutput();
 
             Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
@@ -759,7 +764,7 @@ class M : Machine
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             var error = "Error: Method 'Foo' of machine 'Foo.M' sends 'envelope', " +
-                "which contains data from a field.";
+                "which contains data from field 'Foo.M.Letter'.";
             var actual = IO.GetOutput();
 
             Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),

@@ -16,7 +16,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 
@@ -44,6 +43,12 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// </summary>
         public Dictionary<BaseMethodDeclarationSyntax, MethodSummary> Summaries;
 
+        /// <summary>
+        /// Dictionary containing information about
+        /// gives-up ownership methods.
+        /// </summary>
+        internal Dictionary<string, HashSet<int>> GivesUpOwnershipMethods;
+
         #endregion
 
         #region public API
@@ -59,27 +64,84 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         }
 
         /// <summary>
+        /// Caches the given summary.
+        /// </summary>
+        /// <param name="methodSummary">MethodSummary</param>
+        public void CacheSummary(MethodSummary methodSummary)
+        {
+            this.Summaries.Add(methodSummary.Method, methodSummary);
+        }
+
+        /// <summary>
         /// Tries to get the method summary of the given object creation. Returns
         /// null if such summary cannot be found.
         /// </summary>
-        /// <param name="call">Call</param>
+        /// <param name="objCreation">ObjectCreationExpressionSyntax</param>
         /// <param name="model">SemanticModel</param>
         /// <returns>MethodSummary</returns>
-        public virtual MethodSummary TryGetSummary(ObjectCreationExpressionSyntax call, SemanticModel model)
+        public MethodSummary TryGetCachedSummary(ObjectCreationExpressionSyntax objCreation,
+            SemanticModel model)
         {
-            return MethodSummary.TryGet(call, model, this);
+            var constructor = this.ResolveConstructor(objCreation, model);
+            if (constructor == null)
+            {
+                return null;
+            }
+
+            return this.TryGetCachedSummary(constructor);
         }
 
         /// <summary>
         /// Tries to get the method summary of the given invocation. Returns
         /// null if such summary cannot be found.
         /// </summary>
-        /// <param name="call">Call</param>
+        /// <param name="invocation">InvocationExpressionSyntax</param>
         /// <param name="model">SemanticModel</param>
         /// <returns>MethodSummary</returns>
-        public virtual MethodSummary TryGetSummary(InvocationExpressionSyntax call, SemanticModel model)
+        public MethodSummary TryGetCachedSummary(InvocationExpressionSyntax invocation,
+            SemanticModel model)
         {
-            return MethodSummary.TryGet(call, model, this);
+            var method = this.ResolveMethod(invocation, model);
+            if (method == null)
+            {
+                return null;
+            }
+
+            return this.TryGetCachedSummary(method);
+        }
+
+        /// <summary>
+        /// Tries to get the method summary of the given object creation. Returns
+        /// null if such summary cannot be found.
+        /// </summary>
+        /// <param name="constructor">ConstructorDeclarationSyntax</param>
+        /// <returns>MethodSummary</returns>
+        public MethodSummary TryGetCachedSummary(ConstructorDeclarationSyntax constructor)
+        {
+            MethodSummary methodSummary;
+            if (this.Summaries.TryGetValue(constructor, out methodSummary))
+            {
+                return null;
+            }
+
+            return methodSummary;
+        }
+
+        /// <summary>
+        /// Tries to get the method summary of the given method declaration.
+        /// Returns null if such summary cannot be found.
+        /// </summary>
+        /// <param name="method">MethodDeclarationSyntax</param>
+        /// <returns>MethodSummary</returns>
+        public MethodSummary TryGetCachedSummary(MethodDeclarationSyntax method)
+        {
+            MethodSummary methodSummary;
+            if (!this.Summaries.TryGetValue(method, out methodSummary))
+            {
+                return null;
+            }
+
+            return methodSummary;
         }
 
         /// <summary>
@@ -119,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// </summary>
         /// <param name="objCreation">ObjectCreationExpressionSyntax</param>
         /// <param name="model">SemanticModel</param>
-        /// <returns>Constructor</returns>
+        /// <returns>ConstructorDeclarationSyntax</returns>
         public ConstructorDeclarationSyntax ResolveConstructor(ObjectCreationExpressionSyntax objCreation,
             SemanticModel model)
         {
@@ -130,12 +192,23 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// Returns the candidate callees after resolving the given invocation.
         /// </summary>
         /// <param name="invocation">InvocationExpressionSyntax</param>
-        /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        /// <param name="model">SemanticModel</param>
+        /// <returns>MethodDeclarationSyntax</returns>
+        public MethodDeclarationSyntax ResolveMethod(InvocationExpressionSyntax invocation,
+            SemanticModel model)
+        {
+            return this.ResolveCallee(invocation, model) as MethodDeclarationSyntax;
+        }
+
+        /// <summary>
+        /// Returns the candidate callees after resolving the given invocation.
+        /// </summary>
+        /// <param name="invocation">InvocationExpressionSyntax</param>
+        /// <param name="statement">Statement</param>
         /// <param name="model">SemanticModel</param>
         /// <returns>Set of candidate callees</returns>
-        public HashSet<MethodDeclarationSyntax> ResolveCandidateMethodsAtCallSite(InvocationExpressionSyntax invocation,
-            SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode, SemanticModel model)
+        public HashSet<MethodDeclarationSyntax> ResolveCandidateMethodsAtCallSite(
+            InvocationExpressionSyntax invocation, Statement statement, SemanticModel model)
         {
             var candidateCallees = new HashSet<MethodDeclarationSyntax>();
             var potentialCallee = this.ResolveCallee(invocation, model) as MethodDeclarationSyntax;
@@ -150,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             {
                 HashSet<MethodDeclarationSyntax> overriders = null;
                 if (!this.TryGetCandidateMethodOverriders(out overriders,
-                    invocation, syntaxNode, cfgNode, model))
+                    invocation, statement, model))
                 {
                     return candidateCallees;
                 }
@@ -167,79 +240,28 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         }
 
         /// <summary>
-        /// Tries to get the list of candidate methods that can override the given virtual call.
-        /// If it cannot find such methods then it returns false.
+        /// Registers the gives-up ownership method, and its gives-up parameter indexes.
+        /// The method name should include the full namespace.
         /// </summary>
-        /// <param name="overriders">List of overrider methods</param>
-        /// <param name="virtualCall">Virtual call</param>
-        /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">ControlFlowGraphNode</param>
-        /// <param name="model">SemanticModel</param>
-        /// <returns>Boolean</returns>
-        public bool TryGetCandidateMethodOverriders(out HashSet<MethodDeclarationSyntax> overriders,
-            InvocationExpressionSyntax virtualCall, SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode,
-            SemanticModel model)
+        /// <param name="methodName">Method name</param>
+        /// <param name="givesUpParamIndexes">Set of indexes</param>
+        public void RegisterGivesUpOwnershipMethod(string methodName, ISet<int> givesUpParamIndexes)
         {
-            overriders = new HashSet<MethodDeclarationSyntax>();
-
-            ISymbol calleeSymbol = null;
-            SimpleNameSyntax callee = null;
-            bool isThis = false;
-
-            if (virtualCall.Expression is MemberAccessExpressionSyntax)
+            if (this.GivesUpOwnershipMethods.ContainsKey(methodName))
             {
-                var expr = virtualCall.Expression as MemberAccessExpressionSyntax;
-                var identifier = expr.Expression.DescendantNodesAndSelf().
-                    OfType<IdentifierNameSyntax>().Last();
-                calleeSymbol = model.GetSymbolInfo(identifier).Symbol;
-
-                if (expr.Expression is ThisExpressionSyntax)
-                {
-                    callee = expr.Name;
-                    isThis = true;
-                }
+                this.GivesUpOwnershipMethods[methodName].Clear();
             }
             else
             {
-                callee = virtualCall.Expression as IdentifierNameSyntax;
-                isThis = true;
+                this.GivesUpOwnershipMethods.Add(methodName, new HashSet<int>());
             }
 
-            if (isThis)
-            {
-                var typeDeclaration = cfgNode.GetMethodSummary().TypeDeclaration;
-                foreach (var method in typeDeclaration.Members.OfType<MethodDeclarationSyntax>())
-                {
-                    if (method.Identifier.ToString().Equals(callee.Identifier.ToString()))
-                    {
-                        overriders.Add(method);
-                        return true;
-                    }
-                }
-
-                return false;
-            }
-
-            Dictionary<ISymbol, HashSet<ITypeSymbol>> referenceTypeMap = null;
-            if (calleeSymbol == null ||
-                !cfgNode.GetMethodSummary().DataFlowAnalysis.TryGetReferenceTypeMapForSyntaxNode(
-                syntaxNode, cfgNode, out referenceTypeMap) ||
-                !referenceTypeMap.ContainsKey(calleeSymbol))
-            {
-                return false;
-            }
-
-            foreach (var objectType in referenceTypeMap[calleeSymbol])
-            {
-                MethodDeclarationSyntax m = null;
-                if (this.TryGetMethodFromType(out m, objectType, virtualCall))
-                {
-                    overriders.Add(m);
-                }
-            }
-
-            return true;
+            this.GivesUpOwnershipMethods[methodName].UnionWith(givesUpParamIndexes);
         }
+
+        #endregion
+
+        #region public helper methods
 
         /// <summary>
         /// Returns the full name of the given class.
@@ -335,27 +357,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         }
 
         /// <summary>
-        /// Gets the identifier from the expression.
-        /// </summary>
-        /// <param name="expr">Expression</param>
-        /// <returns>Identifier</returns>
-        public IdentifierNameSyntax GetIdentifier(ExpressionSyntax expr)
-        {
-            IdentifierNameSyntax identifier = null;
-            if (expr is IdentifierNameSyntax)
-            {
-                identifier = expr as IdentifierNameSyntax;
-            }
-            else if (expr is MemberAccessExpressionSyntax)
-            {
-                identifier = (expr as MemberAccessExpressionSyntax).Name
-                    as IdentifierNameSyntax;
-            }
-
-            return identifier;
-        }
-
-        /// <summary>
         /// Returns true if the given type is an enum.
         /// Returns false if not.
         /// </summary>
@@ -408,7 +409,28 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         }
 
         /// <summary>
-        /// Gets the top-level identifier.
+        /// Returns the identifier from the expression.
+        /// </summary>
+        /// <param name="expr">Expression</param>
+        /// <returns>Identifier</returns>
+        public IdentifierNameSyntax GetIdentifier(ExpressionSyntax expr)
+        {
+            IdentifierNameSyntax identifier = null;
+            if (expr is IdentifierNameSyntax)
+            {
+                identifier = expr as IdentifierNameSyntax;
+            }
+            else if (expr is MemberAccessExpressionSyntax)
+            {
+                identifier = (expr as MemberAccessExpressionSyntax).Name
+                    as IdentifierNameSyntax;
+            }
+
+            return identifier;
+        }
+
+        /// <summary>
+        /// Returns the top-level identifier.
         /// </summary>
         /// <param name="expr">Expression</param>
         /// <returns>Identifier</returns>
@@ -429,6 +451,27 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         }
 
         /// <summary>
+        /// Returns all identifiers.
+        /// </summary>
+        /// <param name="expr">Expression</param>
+        /// <returns>Identifiers</returns>
+        public static HashSet<IdentifierNameSyntax> GetIdentifiers(ExpressionSyntax expr)
+        {
+            var identifiers = new HashSet<IdentifierNameSyntax>();
+            if (expr is IdentifierNameSyntax)
+            {
+                identifiers.Add(expr as IdentifierNameSyntax);
+            }
+            else if (expr is MemberAccessExpressionSyntax)
+            {
+                identifiers.UnionWith((expr as MemberAccessExpressionSyntax).DescendantNodes().
+                    OfType<IdentifierNameSyntax>());
+            }
+
+            return identifiers;
+        }
+
+        /// <summary>
         /// Returns the argument list after resolving
         /// the given call expression.
         /// </summary>
@@ -437,21 +480,13 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         public ArgumentListSyntax GetArgumentList(ExpressionSyntax call)
         {
             ArgumentListSyntax argumentList = null;
-
-            var invocation = call as InvocationExpressionSyntax;
-            var objCreation = call as ObjectCreationExpressionSyntax;
-            if (invocation == null && objCreation == null)
+            if (call is InvocationExpressionSyntax)
             {
-                return argumentList;
+                argumentList = (call as InvocationExpressionSyntax).ArgumentList;
             }
-            
-            if (invocation != null)
+            else if (call is ObjectCreationExpressionSyntax)
             {
-                argumentList = invocation.ArgumentList;
-            }
-            else
-            {
-                argumentList = objCreation.ArgumentList;
+                argumentList = (call as ObjectCreationExpressionSyntax).ArgumentList;
             }
 
             return argumentList;
@@ -470,6 +505,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             this.Solution = project.Solution;
             this.Compilation = project.GetCompilationAsync().Result;
             this.Summaries = new Dictionary<BaseMethodDeclarationSyntax, MethodSummary>();
+            this.GivesUpOwnershipMethods = new Dictionary<string, HashSet<int>>();
         }
 
         #endregion
@@ -559,6 +595,79 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 
             return definition.DeclaringSyntaxReferences.First().GetSyntax()
                 as BaseMethodDeclarationSyntax;
+        }
+
+        /// <summary>
+        /// Tries to get the list of candidate methods that can override the given virtual call.
+        /// If it cannot find such methods then it returns false.
+        /// </summary>
+        /// <param name="overriders">List of overrider methods</param>
+        /// <param name="virtualCall">Virtual call</param>
+        /// <param name="statement">Statement</param>
+        /// <param name="model">SemanticModel</param>
+        /// <returns>Boolean</returns>
+        private bool TryGetCandidateMethodOverriders(out HashSet<MethodDeclarationSyntax> overriders,
+            InvocationExpressionSyntax virtualCall, Statement statement, SemanticModel model)
+        {
+            overriders = new HashSet<MethodDeclarationSyntax>();
+
+            ISymbol calleeSymbol = null;
+            SimpleNameSyntax callee = null;
+            bool isThis = false;
+
+            if (virtualCall.Expression is MemberAccessExpressionSyntax)
+            {
+                var expr = virtualCall.Expression as MemberAccessExpressionSyntax;
+                var identifier = expr.Expression.DescendantNodesAndSelf().
+                    OfType<IdentifierNameSyntax>().Last();
+                calleeSymbol = model.GetSymbolInfo(identifier).Symbol;
+
+                if (expr.Expression is ThisExpressionSyntax)
+                {
+                    callee = expr.Name;
+                    isThis = true;
+                }
+            }
+            else
+            {
+                callee = virtualCall.Expression as IdentifierNameSyntax;
+                isThis = true;
+            }
+
+            if (isThis)
+            {
+                var typeDeclaration = statement.GetMethodSummary().TypeDeclaration;
+                foreach (var method in typeDeclaration.Members.OfType<MethodDeclarationSyntax>())
+                {
+                    if (method.Identifier.ToString().Equals(callee.Identifier.ToString()))
+                    {
+                        overriders.Add(method);
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            Dictionary<DataFlowSymbol, HashSet<ITypeSymbol>> referenceTypeMap = null;
+            //if (calleeSymbol == null ||
+            //    !cfgNode.GetMethodSummary().DataFlowAnalysis.TryGetReferenceTypeMapForSyntaxNode(
+            //        syntaxNode, cfgNode, out referenceTypeMap) ||
+            //    !referenceTypeMap.ContainsKey(calleeSymbol))
+            //{
+            //    return false;
+            //}
+
+            //foreach (var objectType in referenceTypeMap[calleeSymbol])
+            //{
+            //    MethodDeclarationSyntax m = null;
+            //    if (this.TryGetMethodFromType(out m, objectType, virtualCall))
+            //    {
+            //        overriders.Add(m);
+            //    }
+            //}
+
+            return true;
         }
 
         #endregion
