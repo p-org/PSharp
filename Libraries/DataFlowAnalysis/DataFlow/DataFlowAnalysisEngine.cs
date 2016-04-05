@@ -1362,8 +1362,13 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 
             foreach (var pair in dataFlowMap)
             {
-                if (!loopHeadDataFlowMap.ContainsKey(pair.Key) ||
-                    pair.Value.Any(v => !loopHeadDataFlowMap[pair.Key].Contains(v)))
+                if (!loopHeadDataFlowMap.Keys.Any(v => v.ContainingSymbol.Equals(pair.Key.ContainingSymbol)))
+                {
+                    return false;
+                }
+
+                var loopPair = loopHeadDataFlowMap.First(s => s.Key.ContainingSymbol.Equals(pair.Key.ContainingSymbol));
+                if (pair.Value.Any(v => !loopPair.Value.Any(p => p.ContainingSymbol.Equals(v.ContainingSymbol))))
                 {
                     return false;
                 }

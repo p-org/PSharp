@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// </summary>
         /// <param name="node">ControlFlowGraphNode</param>
         /// <returns>Boolean</returns>
-        internal bool IsPredecessorOf(ControlFlowGraphNode node)
+        public bool IsPredecessorOf(ControlFlowGraphNode node)
         {
             return this.IsPredecessorOf(node, new HashSet<ControlFlowGraphNode>());
         }
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// </summary>
         /// <param name="node">ControlFlowGraphNode</param>
         /// <returns>Boolean</returns>
-        internal bool IsSuccessorOf(ControlFlowGraphNode node)
+        public bool IsSuccessorOf(ControlFlowGraphNode node)
         {
             return this.IsSuccessorOf(node, new HashSet<ControlFlowGraphNode>());
         }

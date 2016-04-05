@@ -48,63 +48,49 @@ namespace Microsoft.PSharp.StaticAnalysis
 
         /// <summary>
         /// Analyzes the ownership of the given-up symbol
-        /// in the control-flow graph node.
+        /// in the control-flow graph.
         /// </summary>
         /// <param name="givenUpSymbol">GivenUpOwnershipSymbol</param>
-        /// <param name="cfgNode">ControlFlowGraphNode</param>
-        /// <param name="visited">ControlFlowGraphNodes</param>
         /// <param name="originalMachine">Original machine</param>
         /// <param name="model">SemanticModel</param>
         /// <param name="trace">TraceInfo</param>
-        protected override void AnalyzeOwnershipInCFG(GivenUpOwnershipSymbol givenUpSymbol,
-            ControlFlowGraphNode cfgNode, HashSet<ControlFlowGraphNode> visited,
+        protected override void AnalyzeOwnershipInControlFlowGraph(GivenUpOwnershipSymbol givenUpSymbol,
             StateMachine originalMachine, SemanticModel model, TraceInfo trace)
         {
-            if (!cfgNode.IsJumpNode && !cfgNode.IsLoopHeadNode)
-            {
-                this.AnalyzeOwnershipInCFG(givenUpSymbol, cfgNode, originalMachine, model, trace);
-            }
+            var queue = new Queue<ControlFlowGraphNode>();
+            queue.Enqueue(givenUpSymbol.Statement.ControlFlowGraphNode);
 
-            if (!visited.Contains(cfgNode))
+            var visitedNodes = new HashSet<ControlFlowGraphNode>();
+            visitedNodes.Add(givenUpSymbol.Statement.ControlFlowGraphNode);
+
+            while (queue.Count > 0)
             {
-                visited.Add(cfgNode);
-                foreach (var successor in cfgNode.GetImmediateSuccessors())
+                ControlFlowGraphNode node = queue.Dequeue();
+                foreach (var successor in node.GetImmediateSuccessors())
                 {
-                    this.AnalyzeOwnershipInCFG(givenUpSymbol, successor,
-                        visited, originalMachine, model, trace);
+                    if (!visitedNodes.Contains(successor))
+                    {
+                        queue.Enqueue(successor);
+                        visitedNodes.Add(successor);
+                    }
                 }
-            }
-        }
 
-        /// <summary>
-        /// Analyzes the ownership of the given-up symbol
-        /// in the control-flow graph node.
-        /// </summary>
-        /// <param name="givenUpSymbol">GivenUpOwnershipSymbol</param>
-        /// <param name="cfgNode">ControlFlowGraphNode</param>
-        /// <param name="visited">ControlFlowGraphNodes</param>
-        /// <param name="originalMachine">Original machine</param>
-        /// <param name="model">SemanticModel</param>
-        /// <param name="trace">TraceInfo</param>
-        protected override void AnalyzeOwnershipInCFG(GivenUpOwnershipSymbol givenUpSymbol,
-            ControlFlowGraphNode cfgNode, StateMachine originalMachine, SemanticModel model,
-            TraceInfo trace)
-        {
-            var statements = new List<Statement>();
-            if (cfgNode.Equals(givenUpSymbol.Statement.ControlFlowGraphNode))
-            {
-                statements.AddRange(cfgNode.Statements.SkipWhile(val => !val.Equals(
-                    givenUpSymbol.Statement)));
-            }
-            else
-            {
-                statements.AddRange(cfgNode.Statements);
-            }
+                var statements = new List<Statement>();
+                if (node.Equals(givenUpSymbol.Statement.ControlFlowGraphNode))
+                {
+                    statements.AddRange(node.Statements.SkipWhile(val
+                        => !val.Equals(givenUpSymbol.Statement)));
+                }
+                else
+                {
+                    statements.AddRange(node.Statements);
+                }
 
-            foreach (var statement in statements)
-            {
-                base.AnalyzeOwnershipInStatement(givenUpSymbol, statement,
-                    originalMachine, model, trace);
+                foreach (var statement in statements)
+                {
+                    base.AnalyzeOwnershipInStatement(givenUpSymbol, statement,
+                        originalMachine, model, trace);
+                }
             }
         }
 
@@ -213,7 +199,9 @@ namespace Microsoft.PSharp.StaticAnalysis
             MethodSummary calleeSummary, ExpressionSyntax call, Statement statement,
             StateMachine originalMachine, SemanticModel model, TraceInfo trace)
         {
-            if (statement.Equals(givenUpSymbol.Statement))
+            if (statement.Equals(givenUpSymbol.Statement) &&
+                !statement.ControlFlowGraphNode.IsSuccessorOf(
+                    givenUpSymbol.Statement.ControlFlowGraphNode))
             {
                 return;
             }
@@ -307,7 +295,9 @@ namespace Microsoft.PSharp.StaticAnalysis
         protected override void AnalyzeOwnershipInGivesUpCall(GivenUpOwnershipSymbol givenUpSymbol,
             InvocationExpressionSyntax call, Statement statement, SemanticModel model, TraceInfo trace)
         {
-            if (statement.Equals(givenUpSymbol.Statement))
+            if (statement.Equals(givenUpSymbol.Statement) &&
+                !statement.ControlFlowGraphNode.IsSuccessorOf(
+                    givenUpSymbol.Statement.ControlFlowGraphNode))
             {
                 return;
             }

@@ -142,7 +142,7 @@ class M : Machine
   this.Target = this.CreateMachine(typeof(M));
   this.Letter = new Letter(""London"");
   this.Send(this.Target, new eUnit(this.Letter));
-  this.Foo(letter);
+  this.Foo();
  }
 
  void Foo()

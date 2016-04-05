@@ -76,31 +76,14 @@ namespace Microsoft.PSharp.StaticAnalysis
 
         /// <summary>
         /// Analyzes the ownership of the given-up symbol
-        /// in the control-flow graph node.
+        /// in the control-flow graph.
         /// </summary>
         /// <param name="givenUpSymbol">GivenUpOwnershipSymbol</param>
-        /// <param name="cfgNode">ControlFlowGraphNode</param>
-        /// <param name="visited">ControlFlowGraphNodes</param>
         /// <param name="originalMachine">Original machine</param>
         /// <param name="model">SemanticModel</param>
         /// <param name="trace">TraceInfo</param>
-        protected abstract void AnalyzeOwnershipInCFG(GivenUpOwnershipSymbol givenUpSymbol,
-            ControlFlowGraphNode cfgNode, HashSet<ControlFlowGraphNode> visited,
+        protected abstract void AnalyzeOwnershipInControlFlowGraph(GivenUpOwnershipSymbol givenUpSymbol,
             StateMachine originalMachine, SemanticModel model, TraceInfo trace);
-
-        /// <summary>
-        /// Analyzes the ownership of the given-up symbol
-        /// in the control-flow graph node.
-        /// </summary>
-        /// <param name="givenUpSymbol">GivenUpOwnershipSymbol</param>
-        /// <param name="cfgNode">ControlFlowGraphNode</param>
-        /// <param name="visited">ControlFlowGraphNodes</param>
-        /// <param name="originalMachine">Original machine</param>
-        /// <param name="model">SemanticModel</param>
-        /// <param name="trace">TraceInfo</param>
-        protected abstract void AnalyzeOwnershipInCFG(GivenUpOwnershipSymbol givenUpSymbol,
-            ControlFlowGraphNode cfgNode, StateMachine originalMachine, SemanticModel model,
-            TraceInfo trace);
 
         /// <summary>
         /// Analyzes the ownership of the given-up symbol
@@ -326,8 +309,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 
                 var model = this.AnalysisContext.Compilation.GetSemanticModel(
                     givenUpSymbol.Statement.SyntaxNode.SyntaxTree);
-                this.AnalyzeOwnershipInCFG(givenUpSymbol, givenUpSymbol.Statement.ControlFlowGraphNode,
-                    new HashSet<ControlFlowGraphNode>(), originalMachine, model, trace);
+                this.AnalyzeOwnershipInControlFlowGraph(givenUpSymbol, originalMachine, model, trace);
             }
         }
 
