@@ -63,20 +63,14 @@ namespace Microsoft.PSharp.StaticAnalysis
             var visitedNodes = new HashSet<ControlFlowGraphNode>();
             visitedNodes.Add(givenUpSymbol.Statement.ControlFlowGraphNode);
 
+            bool repeatGivesUpNode = false;
             while (queue.Count > 0)
             {
                 ControlFlowGraphNode node = queue.Dequeue();
-                foreach (var successor in node.GetImmediateSuccessors())
-                {
-                    if (!visitedNodes.Contains(successor))
-                    {
-                        queue.Enqueue(successor);
-                        visitedNodes.Add(successor);
-                    }
-                }
-
+                
                 var statements = new List<Statement>();
-                if (node.Equals(givenUpSymbol.Statement.ControlFlowGraphNode))
+                if (!repeatGivesUpNode &&
+                    node.Equals(givenUpSymbol.Statement.ControlFlowGraphNode))
                 {
                     statements.AddRange(node.Statements.SkipWhile(val
                         => !val.Equals(givenUpSymbol.Statement)));
@@ -90,6 +84,22 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     base.AnalyzeOwnershipInStatement(givenUpSymbol, statement,
                         originalMachine, model, trace);
+                }
+
+                foreach (var successor in node.GetImmediateSuccessors())
+                {
+                    if (!repeatGivesUpNode &&
+                        successor.Equals(givenUpSymbol.Statement.ControlFlowGraphNode))
+                    {
+                        repeatGivesUpNode = true;
+                        visitedNodes.Remove(givenUpSymbol.Statement.ControlFlowGraphNode);
+                    }
+
+                    if (!visitedNodes.Contains(successor))
+                    {
+                        queue.Enqueue(successor);
+                        visitedNodes.Add(successor);
+                    }
                 }
             }
         }
