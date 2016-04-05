@@ -207,36 +207,6 @@ namespace Microsoft.PSharp.LanguageServices
             return result;
         }
 
-        /// <summary>
-        /// Returns true if the given invocation is able to send
-        /// an event to another machine. Returns false if not.
-        /// </summary>
-        /// <param name="invocation">Invocation</param>
-        /// <param name="callee">Callee</param>
-        /// <param name="model">Semantic model</param>
-        /// <returns>Boolean</returns>
-        internal static bool IsEventSenderInvocation(InvocationExpressionSyntax invocation,
-            string callee, SemanticModel model)
-        {
-            if (callee == null)
-            {
-                callee = Querying.GetCalleeOfInvocation(invocation);
-            }
-
-            if (!(callee.Equals("Send") || callee.Equals("CreateMachine")))
-            {
-                return false;
-            }
-
-            string qualifier = model.GetSymbolInfo(invocation).Symbol.ContainingSymbol.ToString();
-            if (!qualifier.Equals("Microsoft.PSharp.Machine"))
-            {
-                return false;
-            }
-
-            return true;
-        }
-
         #endregion
 
         #region private methods

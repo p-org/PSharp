@@ -82,10 +82,6 @@ namespace Microsoft.PSharp.Utilities
             {
                 base.Configuration.ShowDataFlowInformation = true;
             }
-            else if (option.ToLower().Equals("/show-summaries"))
-            {
-                base.Configuration.ShowSummarizationInformation = true;
-            }
             else if (option.ToLower().Equals("/time"))
             {
                 base.Configuration.ShowRuntimeResults = true;

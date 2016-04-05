@@ -81,11 +81,6 @@ namespace Microsoft.PSharp.Utilities
         public bool ShowDataFlowInformation;
 
         /// <summary>
-        /// Reports the summarization information.
-        /// </summary>
-        public bool ShowSummarizationInformation;
-
-        /// <summary>
         /// Reports the runtime results for the whole execution.
         /// </summary>
         public bool ShowRuntimeResults;
@@ -268,7 +263,6 @@ namespace Microsoft.PSharp.Utilities
             this.RunStaticAnalysis = false;
             this.ShowControlFlowInformation = false;
             this.ShowDataFlowInformation = false;
-            this.ShowSummarizationInformation = false;
             this.ShowRuntimeResults = false;
             this.ShowDFARuntimeResults = false;
             this.ShowROARuntimeResults = false;
