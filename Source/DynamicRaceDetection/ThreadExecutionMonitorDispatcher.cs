@@ -85,11 +85,11 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
 
         ~ThreadExecutionMonitorDispatcher()
         {
-            /*Console.WriteLine("\nDestructor called " + threadIndex);
+            Console.WriteLine("\nDestructor called " + threadIndex);
             foreach (var item in trace)
             {
                 Console.WriteLine(item);
-            }*/
+            }
             /*foreach (var item in thTrace)
             {
                 Console.WriteLine("check: " + item.machineID + " " + item.actionName + " " + item.actionID);
@@ -124,42 +124,6 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
                 }
                 stream.Close();
             }
-
-            /*if(thTrace.Count > 0)
-            {
-                int iters = Int32.Parse(Environment.GetEnvironmentVariable("ITERATION"));
-                for(int i = 0; i <= iters; i++)
-                {
-                    List<ThreadTrace> iTrace = new List<ThreadTrace>();
-                    foreach (ThreadTrace item in thTrace)
-                    {
-                        if (Int32.Parse(item.iteration) == i)
-                        {
-                            iTrace.Add(item);
-                        }
-                    }
-
-                    if (iTrace.Count > 0)
-                    {
-                        string path = Environment.GetEnvironmentVariable("DIRPATH") + "InstrTrace" + i + "\\";
-
-                        path += "thTrace_" + threadIndex + ".osl";
-
-                        Stream stream = File.Open(path, FileMode.Create);
-                        BinaryFormatter bformatter = new BinaryFormatter();
-
-                        try
-                        {
-                            bformatter.Serialize(stream, iTrace);
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine("EXCEPTION: " + ex);
-                        }
-                        stream.Close();
-                    }
-                }
-            }*/
         }
 
         [System.Diagnostics.Conditional("DEBUG")]
@@ -478,7 +442,10 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
             }
 
             else if (method.FullName.Equals("Microsoft.PSharp.Machine.Do"))
+            {
                 isDoCalled = true;
+                trace.Add("do called");
+            }
 
             else if (method.FullName.Equals("Microsoft.PSharp.Machine.ExecuteCurrentStateOnEntry"))
                 isEntryFuntionCalled = true;
@@ -546,7 +513,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
         {
             if (isDoCalled || isEntryFuntionCalled || isExitFuntionCalled)
             {
-                if (!localIter.Equals(Environment.GetEnvironmentVariable("ITERATION")))
+                /*if (!localIter.Equals(Environment.GetEnvironmentVariable("ITERATION")))
                 {
                     //Console.WriteLine("iteration changed for {0} from {1} to {2}", threadIndex, localIter, Environment.GetEnvironmentVariable("ITERATION"));
 
@@ -582,7 +549,7 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
                     }
                     cleared = Int32.Parse(localIter);
                     //Console.ReadLine();
-                }
+                }*/
 
                 Machine mc = (Machine)receiver;
                 int mcID = mc.GetHashCode();
@@ -591,9 +558,9 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
 
                 trace.Add("call receiver: " + mc.GetType() + " " + mcID);
 
-                isDoCalled = isDoCalled & false;
-                isEntryFuntionCalled = isEntryFuntionCalled & false;
-                isExitFuntionCalled = isExitFuntionCalled & false;
+                isDoCalled = false;
+                isEntryFuntionCalled = false;
+                isExitFuntionCalled = false;
 
                 isAction = true;
                 ThreadTrace obj = new ThreadTrace(mcID);

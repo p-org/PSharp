@@ -164,6 +164,7 @@ namespace OfflineRaces
                     {
                         //Deserialize thread traces
                         //Open the file written above and read values from it.
+                        Console.WriteLine(fileName);
                         Stream stream = File.Open(fileName, FileMode.Open);
                         BinaryFormatter bformatter = new BinaryFormatter();
                         List<ThreadTrace> tt = (List<ThreadTrace>)bformatter.Deserialize(stream);
@@ -301,11 +302,9 @@ namespace OfflineRaces
                     }
                     catch (Exception)
                     {
-                        //TODO: check this
-                        Console.WriteLine("crashing: " + mt.machineID + " " + mt.actionID);
-                        Environment.Exit(0);
-                        
-                        //continue;
+                        //In case entry and exit functions not defined.   
+                        Console.WriteLine("Skipping entry/exit actions: " + mt.machineID + " " + mt.actionID + " " + mt.actionName);          
+                        continue;
                     }
 
                     Node cn = new cActBegin(matching.machineID, matching.actionName, matching.actionID, mt.eventName, mt.eventID);

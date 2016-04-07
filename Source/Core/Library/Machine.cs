@@ -739,6 +739,7 @@ namespace Microsoft.PSharp
                         this.ActionId++;
                         //MachineTrace trace = new MachineTrace(this.Id.GetHashCode(), action.Method.Name, this.ActionId, e.ToString(), e.GetHashCode());
                         MachineTrace trace = new MachineTrace(this.Id.GetHashCode(), action.Method.Name, this.ActionId, e.ToString(), e.GetHashCode());
+                        Console.WriteLine("trace from machine1: " + this.Id.GetHashCode() + " " + this.ActionId);
                         this.RuntimeTrace.Add(trace);
                     }
 
@@ -748,7 +749,7 @@ namespace Microsoft.PSharp
                 break;
             }
         }
-
+        
         /// <summary>
         /// Waits for an event to arrive.
         /// </summary>
@@ -991,6 +992,7 @@ namespace Microsoft.PSharp
                     this.ActionId++;
                     //MachineTrace trace = new MachineTrace(this.Id.GetHashCode(), action.Method.Name, this.ActionId, e.ToString(), e.GetHashCode());
                     MachineTrace trace = new MachineTrace(this.Id.GetHashCode(), null, this.ActionId, null, 0);
+                    Console.WriteLine("entry function: " + this.Id.GetHashCode() + " " + this.ActionId);
                     this.RuntimeTrace.Add(trace);
                 }
             }
@@ -1038,14 +1040,26 @@ namespace Microsoft.PSharp
                 }
                 if (base.Runtime.Configuration.CheckDataRaces)
                 {
-                    this.ActionId++;
-                    //MachineTrace trace = new MachineTrace(this.Id.GetHashCode(), action.Method.Name, this.ActionId, e.ToString(), e.GetHashCode());
                     int eventCode = 0;
-                    if (ExitEvent != null)
-                        eventCode = ExitEvent.GetHashCode();
+
+                    this.ActionId++;
                     MachineTrace trace = new MachineTrace(this.Id.GetHashCode(), null, this.ActionId, null, eventCode);
-                    ExitEvent = null;
+                    Console.WriteLine("exit function: " + this.Id.GetHashCode() + " " + this.ActionId);
                     this.RuntimeTrace.Add(trace);
+                    if(onExit == null)
+                    {
+                        ExitEvent = null;
+                    }
+
+                    else
+                    {
+                        this.ActionId++;
+                        eventCode = ExitEvent.GetHashCode();
+                        MachineTrace trace1 = new MachineTrace(this.Id.GetHashCode(), null, this.ActionId, null, eventCode);
+                        Console.WriteLine("exit function extra: " + this.Id.GetHashCode() + " " + this.ActionId);
+                        ExitEvent = null;
+                        this.RuntimeTrace.Add(trace1);
+                    }
                 }
             }
             catch (TaskCanceledException)
