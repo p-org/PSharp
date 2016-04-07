@@ -49,16 +49,9 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         public TypeDeclarationSyntax TypeDeclaration;
 
         /// <summary>
-        /// The entry node of the control-flow graph of the
-        /// method of this summary.
+        /// The control-flow graph of the method of this summary.
         /// </summary>
-        public ControlFlowGraphNode EntryNode;
-
-        /// <summary>
-        /// Set of all exit nodes in the control-flow graph
-        /// of the method of this summary.
-        /// </summary>
-        public HashSet<ControlFlowGraphNode> ExitNodes;
+        public ControlFlowGraph ControlFlowGraph;
 
         /// <summary>
         /// The data-flow analysis engine that is analyzing
@@ -310,12 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 return false;
             }
 
-            this.EntryNode = ControlFlowGraphNode.Create(this.AnalysisContext, this);
-            this.ExitNodes = new HashSet<ControlFlowGraphNode>();
-            this.EntryNode.Construct(this.Method);
-            this.EntryNode.CleanEmptySuccessors();
-            this.ExitNodes = this.EntryNode.GetExitNodes();
-
+            this.ControlFlowGraph = ControlFlowGraph.Create(this.AnalysisContext, this);
             return true;
         }
 
@@ -335,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// </summary>
         private void ComputeSideEffects()
         {
-            foreach (var exitNode in this.ExitNodes)
+            foreach (var exitNode in this.ControlFlowGraph.ExitNodes)
             {
                 if (exitNode.Statements.Count == 0)
                 {
@@ -464,21 +452,20 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         #region summary printing methods
 
         /// <summary>
-        /// Prints the control-flow information.
+        /// Prints the control-flow graph.
         /// </summary>
-        public void PrintControlFlowInformation()
+        public void PrintControlFlowGraph()
         {
             Console.WriteLine("..");
             Console.WriteLine("... ==================================================");
-            Console.WriteLine("... =============== ControlFlow Summary ===============");
+            Console.WriteLine("... ================ ControlFlowGraph ================");
             Console.WriteLine("... ==================================================");
             Console.WriteLine("... |");
-            Console.WriteLine("... | Id: '{0}'", this.Id);
-            Console.WriteLine("... | Method: '{0}'", this.AnalysisContext.GetFullMethodName(this.Method));
+            Console.WriteLine("... | Summary id: '{0}'", this.Id);
+            Console.WriteLine("... | Method: '{0}'", this.AnalysisContext.
+                GetFullMethodName(this.Method));
 
-            this.EntryNode.PrintControlFlowGraphNodes();
-            this.EntryNode.PrintCFGSuccessors();
-            this.EntryNode.PrintCFGPredecessors();
+            this.ControlFlowGraph.EntryNode.PrintNodes();
 
             Console.WriteLine("... |");
             Console.WriteLine("... ==================================================");
@@ -509,8 +496,9 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             Console.WriteLine(indent + ". ================ DataFlow Summary ================");
             Console.WriteLine(indent + ". ==================================================");
             Console.WriteLine(indent + ". |");
-            Console.WriteLine(indent + ". | Id: '{0}'", this.Id);
-            Console.WriteLine(indent + ". | Method: '{0}'", this.AnalysisContext.GetFullMethodName(this.Method));
+            Console.WriteLine(indent + ". | Summary id: '{0}'", this.Id);
+            Console.WriteLine(indent + ". | Method: '{0}'", this.AnalysisContext.
+                GetFullMethodName(this.Method));
 
             this.DataFlowAnalysisEngine.PrintDataFlowMap(indent);
             this.DataFlowAnalysisEngine.PrintReferenceTypes(indent);

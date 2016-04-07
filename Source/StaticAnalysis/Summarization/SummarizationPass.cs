@@ -156,7 +156,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             if (this.AnalysisContext.Configuration.ShowControlFlowInformation)
             {
-                summary.PrintControlFlowInformation();
+                summary.PrintControlFlowGraph();
             }
 
             if (this.AnalysisContext.Configuration.ShowDataFlowInformation)

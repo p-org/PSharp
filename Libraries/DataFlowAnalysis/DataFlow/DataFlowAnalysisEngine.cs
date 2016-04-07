@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 IParameterSymbol paramSymbol = targetStatement.GetMethodSummary().
                     DataFlowAnalysisEngine.SemanticModel.GetDeclaredSymbol(param);
                 if (DataFlowAnalysisEngine.FlowsIntoSymbol(paramSymbol, targetSymbol,
-                    targetStatement.GetMethodSummary().EntryNode.Statements[0],
+                    targetStatement.GetMethodSummary().ControlFlowGraph.EntryNode.Statements[0],
                     targetStatement))
                 {
                     return true;
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             Statement targetStatement)
         {
             return DataFlowAnalysisEngine.FlowsIntoSymbol(paramSymbol, targetSymbol,
-                targetStatement.GetMethodSummary().EntryNode.Statements[0],
+                targetStatement.GetMethodSummary().ControlFlowGraph.EntryNode.Statements[0],
                 targetStatement);
         }
 
@@ -193,13 +193,12 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 DataFlowSymbol paramDFSymbol = new DataFlowSymbol(paramSymbol);
 
                 this.MapDataFlowInSymbols(new List<DataFlowSymbol> { paramDFSymbol },
-                    paramDFSymbol, this.MethodSummary.EntryNode.Statements[0]);
+                    paramDFSymbol, this.MethodSummary.ControlFlowGraph.EntryNode.Statements[0]);
                 this.MapReferenceTypesToSymbol(new HashSet<ITypeSymbol> { paramType },
-                    paramDFSymbol, this.MethodSummary.EntryNode.Statements[0], false);
+                    paramDFSymbol, this.MethodSummary.ControlFlowGraph.EntryNode.Statements[0], false);
             }
 
-            this.AnalyzeControlFlowGraphNode(this.MethodSummary.EntryNode,
-                this.MethodSummary.EntryNode.Statements[0]);
+            this.AnalyzeControlFlowGraph();
         }
 
         /// <summary>
@@ -288,6 +287,11 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         internal bool FlowsIntoSymbol(ISet<DataFlowSymbol> fromSymbols, ISet<DataFlowSymbol> toSymbols,
             Statement fromStatement, Statement toStatement)
         {
+            if (fromStatement.CFGNode.IsSuccessorOf(toStatement.CFGNode))
+            {
+                Console.WriteLine("IS Successor");
+            }
+
             var aliasSymbols = this.ResolveAliasSymbols(fromSymbols, toStatement);
             if (aliasSymbols.Overlaps(toSymbols))
             {
@@ -359,41 +363,61 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         #region data-flow analysis methods
 
         /// <summary>
-        /// Analyzes the data-flow of the control-flow graph node.
+        /// Analyzes the data-flow of the control-flow graph.
         /// </summary>
-        /// <param name="cfgNode">ControlFlowGraphNode</param>
-        /// <param name="statement">Previous Statement</param>
-        private void AnalyzeControlFlowGraphNode(ControlFlowGraphNode cfgNode,
-            Statement previousStatement)
+        private void AnalyzeControlFlowGraph()
         {
-            if (cfgNode.Statements.Count > 0)
-            {
-                this.AnalyzeRegularControlFlowGraphNode(cfgNode, previousStatement);
-                previousStatement = cfgNode.Statements.Last();
-            }
+            var queue = new Queue<Tuple<CFGNode, Statement>>();
+            queue.Enqueue(Tuple.Create(this.MethodSummary.ControlFlowGraph.EntryNode,
+                this.MethodSummary.ControlFlowGraph.EntryNode.Statements[0]));
 
-            foreach (var successor in cfgNode.GetImmediateSuccessors())
+            var visitedNodes = new HashSet<CFGNode>();
+            visitedNodes.Add(this.MethodSummary.ControlFlowGraph.EntryNode);
+
+            while (queue.Count > 0)
             {
-                if (successor.IsLoopHeadNode && cfgNode.IsSuccessorOf(cfgNode) &&
-                    this.ReachedFixpoint(previousStatement, successor))
+                var pair = queue.Dequeue();
+                CFGNode node = pair.Item1;
+                Statement previousStatement = pair.Item2;
+
+                if (node.Statements.Count > 0)
                 {
-                    continue;
+                    this.AnalyzeControlFlowGraphNode(node, previousStatement);
+                    previousStatement = node.Statements.Last();
                 }
 
-                this.AnalyzeControlFlowGraphNode(successor, previousStatement);
+                foreach (var successor in node.GetImmediateSuccessors())
+                {
+                    if (successor is LoopHeadCFGNode && node.IsSuccessorOf(node) &&
+                        this.ReachedFixpoint(previousStatement, successor))
+                    {
+                        if (successor.Statements.Count > 0)
+                        {
+                            this.Transfer(previousStatement, successor.Statements[0]);
+                        }
+
+                        continue;
+                    }
+                    
+                    if (!visitedNodes.Contains(successor))
+                    {
+                        queue.Enqueue(Tuple.Create(successor, previousStatement));
+                        //visitedNodes.Add(successor);
+                    }
+                }
             }
         }
 
         /// <summary>
-        /// Analyzes the data-flow of the regular control-flow graph node.
+        /// Analyzes the data-flow of the control-flow graph node.
         /// </summary>
-        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        /// <param name="cfgNode">CFGNode</param>
         /// <param name="previousStatement">Previous Statement</param>
-        private void AnalyzeRegularControlFlowGraphNode(ControlFlowGraphNode cfgNode,
-            Statement previousStatement)
+        private void AnalyzeControlFlowGraphNode(CFGNode cfgNode, Statement previousStatement)
         {
             foreach (var statement in cfgNode.Statements)
             {
+                Console.WriteLine("stmt: " + statement);
                 this.Transfer(previousStatement, statement);
 
                 var stmt = statement.SyntaxNode as StatementSyntax;
@@ -1344,9 +1368,9 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// regarding the successor.
         /// </summary>
         /// <param name="statement">Statement</param>
-        /// <param name="loopHeadCfgNode">ControlFlowGraphNode</param>
+        /// <param name="loopHeadCfgNode">CFGNode</param>
         /// <returns>Boolean</returns>
-        private bool ReachedFixpoint(Statement statement, ControlFlowGraphNode loopHeadCfgNode)
+        private bool ReachedFixpoint(Statement statement, CFGNode loopHeadCfgNode)
         {
             Dictionary<DataFlowSymbol, HashSet<DataFlowSymbol>> dataFlowMap = null;
             this.TryGetDataFlowMapForStatement(statement, out dataFlowMap);
@@ -1512,11 +1536,11 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 Console.WriteLine(indent + ". |");
                 Console.WriteLine(indent + ". | . Data-flow map");
                 foreach (var cfgNode in this.DataFlowMap.Keys.Select(
-                    val => val.ControlFlowGraphNode).Distinct())
+                    val => val.CFGNode).Distinct())
                 {
-                    Console.WriteLine(indent + ". | ... in CFG node '{0}'", cfgNode.Id);
+                    Console.WriteLine(indent + ". | ... CFG '{0}'", cfgNode.Id);
                     foreach (var statement in this.DataFlowMap.Keys.Where(val
-                        => val.ControlFlowGraphNode.Equals(cfgNode)))
+                        => val.CFGNode.Equals(cfgNode)))
                     {
                         Console.WriteLine(indent + ". | ..... '{0}'", statement.SyntaxNode);
                         foreach (var pair in this.DataFlowMap[statement])
@@ -1544,11 +1568,11 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 Console.WriteLine(indent + ". |");
                 Console.WriteLine(indent + ". | . Types of references");
                 foreach (var cfgNode in this.ReferenceTypeMap.Keys.Select(
-                    val => val.ControlFlowGraphNode).Distinct())
+                    val => val.CFGNode).Distinct())
                 {
-                    Console.WriteLine(indent + ". | ... in CFG node '{0}'", cfgNode.Id);
+                    Console.WriteLine(indent + ". | ... CFG '{0}'", cfgNode.Id);
                     foreach (var statement in this.ReferenceTypeMap.Keys.Where(val
-                        => val.ControlFlowGraphNode.Equals(cfgNode)))
+                        => val.CFGNode.Equals(cfgNode)))
                     {
                         Console.WriteLine(indent + ". | ..... '{0}'", statement.SyntaxNode);
                         foreach (var pair in this.ReferenceTypeMap[statement])
@@ -1575,11 +1599,11 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 Console.WriteLine(indent + ". |");
                 Console.WriteLine(indent + ". | . Available callee summaries");
                 foreach (var cfgNode in this.CalleeSummaryMap.Keys.Select(
-                    val => val.ControlFlowGraphNode).Distinct())
+                    val => val.CFGNode).Distinct())
                 {
                     Console.WriteLine(indent + ". | ... CFG node '{0}'", cfgNode.Id);
                     foreach (var statement in this.CalleeSummaryMap.Keys.Where(val
-                        => val.ControlFlowGraphNode.Equals(cfgNode)))
+                        => val.CFGNode.Equals(cfgNode)))
                     {
                         Console.WriteLine(indent + ". | ..... '{0}'", statement.SyntaxNode);
                         foreach (var pair in this.CalleeSummaryMap[statement])
@@ -1606,11 +1630,11 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 Console.WriteLine(indent + ". |");
                 Console.WriteLine(indent + ". | . Operations giving up ownership");
                 foreach (var cfgNode in this.GivesUpOwnershipMap.Keys.Select(
-                    val => val.ControlFlowGraphNode).Distinct())
+                    val => val.CFGNode).Distinct())
                 {
                     Console.WriteLine(indent + ". | ... CFG node '{0}'", cfgNode.Id);
                     foreach (var statement in this.GivesUpOwnershipMap.Keys.Where(val
-                        => val.ControlFlowGraphNode.Equals(cfgNode)))
+                        => val.CFGNode.Equals(cfgNode)))
                     {
                         Console.WriteLine(indent + ". | ..... '{0}'", statement.SyntaxNode);
                         Console.Write(indent + ". | ....... gives up ownership of");

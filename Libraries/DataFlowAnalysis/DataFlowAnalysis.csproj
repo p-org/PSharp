@@ -73,7 +73,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AnalysisContext.cs" />
-    <Compile Include="ControlFlow\ControlFlowGraphNode.cs" />
+    <Compile Include="ControlFlow\LoopHeadCFGNode.cs" />
+    <Compile Include="ControlFlow\ControlFlowGraph.cs" />
+    <Compile Include="ControlFlow\CFGNode.cs" />
     <Compile Include="ControlFlow\Statement.cs" />
     <Compile Include="DataFlow\DataFlowAnalysisEngine.cs" />
     <Compile Include="Symbols\GivenUpOwnershipSymbol.cs" />

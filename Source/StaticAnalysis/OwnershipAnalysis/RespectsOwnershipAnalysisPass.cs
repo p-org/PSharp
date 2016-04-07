@@ -57,20 +57,20 @@ namespace Microsoft.PSharp.StaticAnalysis
         protected override void AnalyzeOwnershipInControlFlowGraph(GivenUpOwnershipSymbol givenUpSymbol,
             StateMachine originalMachine, SemanticModel model, TraceInfo trace)
         {
-            var queue = new Queue<ControlFlowGraphNode>();
-            queue.Enqueue(givenUpSymbol.Statement.ControlFlowGraphNode);
+            var queue = new Queue<CFGNode>();
+            queue.Enqueue(givenUpSymbol.Statement.CFGNode);
 
-            var visitedNodes = new HashSet<ControlFlowGraphNode>();
-            visitedNodes.Add(givenUpSymbol.Statement.ControlFlowGraphNode);
+            var visitedNodes = new HashSet<CFGNode>();
+            visitedNodes.Add(givenUpSymbol.Statement.CFGNode);
 
             bool repeatGivesUpNode = false;
             while (queue.Count > 0)
             {
-                ControlFlowGraphNode node = queue.Dequeue();
+                CFGNode node = queue.Dequeue();
                 
                 var statements = new List<Statement>();
                 if (!repeatGivesUpNode &&
-                    node.Equals(givenUpSymbol.Statement.ControlFlowGraphNode))
+                    node.Equals(givenUpSymbol.Statement.CFGNode))
                 {
                     statements.AddRange(node.Statements.SkipWhile(val
                         => !val.Equals(givenUpSymbol.Statement)));
@@ -89,10 +89,10 @@ namespace Microsoft.PSharp.StaticAnalysis
                 foreach (var successor in node.GetImmediateSuccessors())
                 {
                     if (!repeatGivesUpNode &&
-                        successor.Equals(givenUpSymbol.Statement.ControlFlowGraphNode))
+                        successor.Equals(givenUpSymbol.Statement.CFGNode))
                     {
                         repeatGivesUpNode = true;
-                        visitedNodes.Remove(givenUpSymbol.Statement.ControlFlowGraphNode);
+                        visitedNodes.Remove(givenUpSymbol.Statement.CFGNode);
                     }
 
                     if (!visitedNodes.Contains(successor))
@@ -210,8 +210,8 @@ namespace Microsoft.PSharp.StaticAnalysis
             StateMachine originalMachine, SemanticModel model, TraceInfo trace)
         {
             if (statement.Equals(givenUpSymbol.Statement) &&
-                !statement.ControlFlowGraphNode.IsSuccessorOf(
-                    givenUpSymbol.Statement.ControlFlowGraphNode))
+                !statement.CFGNode.IsSuccessorOf(
+                    givenUpSymbol.Statement.CFGNode))
             {
                 return;
             }
@@ -239,7 +239,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 if (DataFlowAnalysisEngine.FlowsIntoSymbol(argSymbol, givenUpSymbol.ContainingSymbol,
                     statement, givenUpSymbol.Statement) /*&&
                     !DataFlowQuerying.DoesResetInLoop(argumentList.Arguments[idx].Expression,
-                    syntaxNode, cfgNode, givenUpSymbol.SyntaxNode, givenUpSymbol.ControlFlowGraphNode, model)*/)
+                    syntaxNode, cfgNode, givenUpSymbol.SyntaxNode, givenUpSymbol.CFGNode, model)*/)
                 {
                     if (calleeSummary.ParameterAccesses.ContainsKey(idx))
                     {
@@ -306,8 +306,8 @@ namespace Microsoft.PSharp.StaticAnalysis
             InvocationExpressionSyntax call, Statement statement, SemanticModel model, TraceInfo trace)
         {
             if (statement.Equals(givenUpSymbol.Statement) &&
-                !statement.ControlFlowGraphNode.IsSuccessorOf(
-                    givenUpSymbol.Statement.ControlFlowGraphNode))
+                !statement.CFGNode.IsSuccessorOf(
+                    givenUpSymbol.Statement.CFGNode))
             {
                 return;
             }
@@ -368,7 +368,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     DataFlowAnalysisEngine.FlowsIntoSymbol(argSymbol, givenUpSymbol.ContainingSymbol,
                     statement, givenUpSymbol.Statement) /*&&
                     !DataFlowQuerying.DoesResetInLoop(arg, syntaxNode, cfgNode,
-                    givenUpSymbol.SyntaxNode, givenUpSymbol.ControlFlowGraphNode, model)*/)
+                    givenUpSymbol.SyntaxNode, givenUpSymbol.CFGNode, model)*/)
                 {
                     AnalysisErrorReporter.ReportGivenUpOwnershipSending(trace, argSymbol);
                     return;
@@ -416,7 +416,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     TraceInfo newTrace = new TraceInfo();
                     newTrace.Merge(trace);
                     newTrace.AddErrorTrace(statement.SyntaxNode);
-
+                    
                     AnalysisErrorReporter.ReportGivenUpOwnershipAccess(newTrace);
                 }
             }

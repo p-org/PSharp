@@ -103,7 +103,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 OfType<LocalDeclarationStatementSyntax>().FirstOrDefault();
             var expr = statement.SyntaxNode.DescendantNodesAndSelf().
                 OfType<ExpressionStatementSyntax>().FirstOrDefault();
-            
+
             if (localDecl != null)
             {
                 var varDecl = localDecl.Declaration;

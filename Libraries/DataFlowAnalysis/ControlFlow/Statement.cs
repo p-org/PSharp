@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// The control-flow graph node that contains
         /// the statement.
         /// </summary>
-        public readonly ControlFlowGraphNode ControlFlowGraphNode;
+        public readonly CFGNode CFGNode;
 
         #endregion
 
@@ -40,11 +40,11 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// Constructor.
         /// </summary>
         /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">ControlFlowGraphNode</param>
-        private Statement(SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode)
+        /// <param name="cfgNode">CFGNode</param>
+        private Statement(SyntaxNode syntaxNode, CFGNode cfgNode)
         {
             this.SyntaxNode = syntaxNode;
-            this.ControlFlowGraphNode = cfgNode;
+            this.CFGNode = cfgNode;
         }
 
         #endregion
@@ -55,9 +55,9 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// Creates a new statement.
         /// </summary>
         /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        /// <param name="cfgNode">CFGNode</param>
         /// <returns>Statement</returns>
-        public static Statement Create(SyntaxNode syntaxNode, ControlFlowGraphNode cfgNode)
+        public static Statement Create(SyntaxNode syntaxNode, CFGNode cfgNode)
         {
             return new Statement(syntaxNode, cfgNode);
         }
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <returns>MethodSummary</returns>
         public MethodSummary GetMethodSummary()
         {
-            return this.ControlFlowGraphNode.GetMethodSummary();
+            return this.CFGNode.ControlFlowGraph.GetMethodSummary();
         }
 
         /// <summary>
@@ -87,11 +87,11 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// Checks if the statement is in the same method as
         /// the specified control-flow graph node.
         /// </summary>
-        /// <param name="cfgNode">ControlFlowGraphNode</param>
+        /// <param name="cfgNode">CFGNode</param>
         /// <returns>Boolean</returns>
-        public bool IsInSameMethodAs(ControlFlowGraphNode cfgNode)
+        public bool IsInSameMethodAs(CFGNode cfgNode)
         {
-            return this.GetMethodSummary().Id == cfgNode.GetMethodSummary().Id;
+            return this.GetMethodSummary().Id == cfgNode.ControlFlowGraph.GetMethodSummary().Id;
         }
 
         /// <summary>
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             }
 
             if (!this.SyntaxNode.Equals(stmt.SyntaxNode) ||
-                !this.ControlFlowGraphNode.Equals(stmt.ControlFlowGraphNode))
+                !this.CFGNode.Equals(stmt.CFGNode))
             {
                 return false;
             }
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 var hash = 19;
 
                 hash = hash + 31 * this.SyntaxNode.GetHashCode();
-                hash = hash + 31 * this.ControlFlowGraphNode.GetHashCode();
+                hash = hash + 31 * this.CFGNode.GetHashCode();
 
                 return hash;
             }
@@ -145,8 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <returns>Text</returns>
         public override string ToString()
         {
-            return "[" + this.SyntaxNode + "]::[cfg::" +
-                this.ControlFlowGraphNode.Id + "]";
+            return "[" + this.SyntaxNode + "]::[cfg::" + this.CFGNode.Id + "]";
         }
 
         #endregion
