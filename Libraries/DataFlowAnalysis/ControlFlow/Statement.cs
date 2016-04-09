@@ -30,7 +30,13 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// The control-flow graph node that contains
         /// the statement.
         /// </summary>
-        public readonly CFGNode CFGNode;
+        public readonly IControlFlowNode ControlFlowNode;
+
+        /// <summary>
+        /// Handle to the summary of the method
+        /// that contains the statement.
+        /// </summary>
+        public MethodSummary Summary { get; }
 
         #endregion
 
@@ -40,11 +46,14 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// Constructor.
         /// </summary>
         /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">CFGNode</param>
-        private Statement(SyntaxNode syntaxNode, CFGNode cfgNode)
+        /// <param name="node">IControlFlowNode</param>
+        /// <param name="summary">MethodSummary</param>
+        private Statement(SyntaxNode syntaxNode, IControlFlowNode node,
+            MethodSummary summary)
         {
             this.SyntaxNode = syntaxNode;
-            this.CFGNode = cfgNode;
+            this.ControlFlowNode = node;
+            this.Summary = summary;
         }
 
         #endregion
@@ -55,21 +64,13 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// Creates a new statement.
         /// </summary>
         /// <param name="syntaxNode">SyntaxNode</param>
-        /// <param name="cfgNode">CFGNode</param>
+        /// <param name="node">IControlFlowNode</param>
+        /// <param name="summary">MethodSummary</param>
         /// <returns>Statement</returns>
-        public static Statement Create(SyntaxNode syntaxNode, CFGNode cfgNode)
+        public static Statement Create(SyntaxNode syntaxNode, IControlFlowNode node,
+            MethodSummary summary)
         {
-            return new Statement(syntaxNode, cfgNode);
-        }
-
-        /// <summary>
-        /// Returns the method summary that contains this
-        /// syntax node location.
-        /// </summary>
-        /// <returns>MethodSummary</returns>
-        public MethodSummary GetMethodSummary()
-        {
-            return this.CFGNode.ControlFlowGraph.GetMethodSummary();
+            return new Statement(syntaxNode, node, summary);
         }
 
         /// <summary>
@@ -80,18 +81,18 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <returns>Boolean</returns>
         public bool IsInSameMethodAs(Statement statement)
         {
-            return this.GetMethodSummary().Id == statement.GetMethodSummary().Id;
+            return this.Summary.Id == statement.Summary.Id;
         }
 
         /// <summary>
         /// Checks if the statement is in the same method as
         /// the specified control-flow graph node.
         /// </summary>
-        /// <param name="cfgNode">CFGNode</param>
+        /// <param name="node">IControlFlowNode</param>
         /// <returns>Boolean</returns>
-        public bool IsInSameMethodAs(CFGNode cfgNode)
+        public bool IsInSameMethodAs(IControlFlowNode node)
         {
-            return this.GetMethodSummary().Id == cfgNode.ControlFlowGraph.GetMethodSummary().Id;
+            return this.Summary.Id == node.Summary.Id;
         }
 
         /// <summary>
@@ -114,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             }
 
             if (!this.SyntaxNode.Equals(stmt.SyntaxNode) ||
-                !this.CFGNode.Equals(stmt.CFGNode))
+                !this.ControlFlowNode.Equals(stmt.ControlFlowNode))
             {
                 return false;
             }
@@ -133,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 var hash = 19;
 
                 hash = hash + 31 * this.SyntaxNode.GetHashCode();
-                hash = hash + 31 * this.CFGNode.GetHashCode();
+                hash = hash + 31 * this.ControlFlowNode.GetHashCode();
 
                 return hash;
             }
@@ -145,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <returns>Text</returns>
         public override string ToString()
         {
-            return "[" + this.SyntaxNode + "]::[cfg::" + this.CFGNode.Id + "]";
+            return "[" + this.SyntaxNode + "]::[cfg::" + this.ControlFlowNode + "]";
         }
 
         #endregion

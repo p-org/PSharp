@@ -72,15 +72,27 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Library\IAnalysisPass.cs" />
+    <Compile Include="DataFlow\Analyses\TaintTrackingAnalysis.cs" />
     <Compile Include="AnalysisContext.cs" />
-    <Compile Include="ControlFlow\LoopHeadCFGNode.cs" />
+    <Compile Include="ControlFlow\IControlFlowNode.cs" />
+    <Compile Include="ControlFlow\LoopHeadControlFlowNode.cs" />
     <Compile Include="ControlFlow\ControlFlowGraph.cs" />
-    <Compile Include="ControlFlow\CFGNode.cs" />
+    <Compile Include="ControlFlow\ControlFlowNode.cs" />
     <Compile Include="ControlFlow\Statement.cs" />
-    <Compile Include="DataFlow\DataFlowAnalysisEngine.cs" />
-    <Compile Include="Symbols\GivenUpOwnershipSymbol.cs" />
-    <Compile Include="Symbols\DataFlowSymbol.cs" />
-    <Compile Include="Summarization\MethodSummary.cs" />
+    <Compile Include="DataFlow\DataFlowGraph.cs" />
+    <Compile Include="DataFlow\DataFlowInfo.cs" />
+    <Compile Include="DataFlow\DataFlowNode.cs" />
+    <Compile Include="Library\MethodSummaryResolver.cs" />
+    <Compile Include="Library\SymbolDefinition.cs" />
+    <Compile Include="DataFlow\IDataFlowNode.cs" />
+    <Compile Include="DataFlow\IDataFlowAnalysis.cs" />
+    <Compile Include="Graphs\IGraph.cs" />
+    <Compile Include="Graphs\ITraversable.cs" />
+    <Compile Include="Graphs\INode.cs" />
+    <Compile Include="Graphs\Graph.cs" />
+    <Compile Include="Library\GivenUpOwnershipSymbol.cs" />
+    <Compile Include="Library\MethodSummary.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

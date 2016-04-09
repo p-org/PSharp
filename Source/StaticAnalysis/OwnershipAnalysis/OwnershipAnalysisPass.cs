@@ -121,7 +121,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 else if (expr.Expression is InvocationExpressionSyntax ||
                     expr.Expression is ObjectCreationExpressionSyntax)
                 {
-                    trace.InsertCall(statement.GetMethodSummary().Method, expr.Expression);
+                    trace.InsertCall(statement.Summary.Method, expr.Expression);
                     this.AnalyzeOwnershipInCall(givenUpSymbol, expr.Expression,
                         statement, originalMachine, model, trace);
                 }
@@ -205,9 +205,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 return potentialReturnSymbols;
             }
 
-            var candidateSummaries = statement.GetMethodSummary().GetResolvedCalleeSummaries(
-                callSymbol, statement);
-
+            var candidateSummaries = MethodSummary.GetCachedSummaries(callSymbol, statement);
             foreach (var candidateSummary in candidateSummaries)
             {
                 this.AnalyzeOwnershipInCandidateCallee(givenUpSymbol, candidateSummary,
@@ -218,7 +216,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     var resolvedReturnSymbols = candidateSummary.GetResolvedReturnSymbols(invocation, model);
                     foreach (var rrs in resolvedReturnSymbols)
                     {
-                        potentialReturnSymbols.Add(rrs);
+                        potentialReturnSymbols.Add(rrs.Item1);
                     }
                 }
             }
@@ -298,12 +296,6 @@ namespace Microsoft.PSharp.StaticAnalysis
             var summary = this.AnalysisContext.TryGetCachedSummary(method);
             foreach (var givenUpSymbol in summary.GetSymbolsWithGivenUpOwnership())
             {
-                //if (DataFlowAnalysisEngine.FlowsFromParameterList(givenUpSymbol.ContainingSymbol,
-                //    givenUpSymbol.Statement))
-                //{
-                //    continue;
-                //}
-
                 TraceInfo trace = new TraceInfo(method, machine, state, givenUpSymbol.ContainingSymbol);
                 trace.AddErrorTrace(givenUpSymbol.Statement.SyntaxNode);
                 

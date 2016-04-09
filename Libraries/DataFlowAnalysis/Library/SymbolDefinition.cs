@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="DataFlowSymbol.cs">
+// <copyright file="SymbolDefinition.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,102 +12,78 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System.Collections.Generic;
+
 namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 {
     /// <summary>
-    /// Class implementing a data-flow symbol.
+    /// Class implementing a symbol definition.
     /// </summary>
-    internal class DataFlowSymbol
+    public class SymbolDefinition
     {
         #region fields
+        
+        /// <summary>
+        /// Node that defined the symbol.
+        /// </summary>
+        private readonly DataFlowNode DataFlowNode;
 
         /// <summary>
-        /// The unique id of the symbol.
+        /// The symbol.
         /// </summary>
-        internal readonly int Id;
+        public readonly ISymbol Symbol;
 
         /// <summary>
-        /// Containing assembly
+        /// Types of the symbol.
         /// </summary>
-        public IAssemblySymbol ContainingAssembly { get; }
-
-        /// <summary>
-        /// Containing module.
-        /// </summary>
-        public IModuleSymbol ContainingModule { get; }
-
-        /// <summary>
-        /// Containing namespace.
-        /// </summary>
-        public INamespaceSymbol ContainingNamespace { get; }
-
-        /// <summary>
-        /// Containing symbol.
-        /// </summary>
-        public ISymbol ContainingSymbol { get; }
+        public readonly ISet<ITypeSymbol> Types;
 
         /// <summary>
         /// Kind of the symbol.
         /// </summary>
-        public SymbolKind Kind { get; }
+        public readonly SymbolKind Kind;
 
         /// <summary>
-        /// Name of the data-flow symbol.
+        /// Name of the symbol definition.
         /// </summary>
-        public string Name { get; }
-
-        /// <summary>
-        /// Has symbol been reset after method entry.
-        /// </summary>
-        internal bool HasResetAfterMethodEntry;
-
-        /// <summary>
-        /// A counter for creating unique IDs.
-        /// </summary>
-        private static int IdCounter;
+        public readonly string Name;
 
         #endregion
 
         #region constructors
 
         /// <summary>
-        /// Static constructor.
-        /// </summary>
-        static DataFlowSymbol()
-        {
-            DataFlowSymbol.IdCounter = 0;
-        }
-
-        /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="symbol">ISymbol</param>
-        internal DataFlowSymbol(ISymbol symbol)
+        /// <param name="type">ITypeSymbol</param>
+        /// <param name="dfgNode">DataFlowNode</param>
+        internal SymbolDefinition(ISymbol symbol, ITypeSymbol type, DataFlowNode dfgNode)
         {
-            this.Id = DataFlowSymbol.IdCounter++;
-            this.ContainingAssembly = symbol.ContainingAssembly;
-            this.ContainingModule = symbol.ContainingModule;
-            this.ContainingNamespace = symbol.ContainingNamespace;
-            this.ContainingSymbol = symbol;
+            this.DataFlowNode = dfgNode;
+            this.Symbol = symbol;
+            this.Types = new HashSet<ITypeSymbol> { type };
             this.Kind = symbol.Kind;
 
-            this.HasResetAfterMethodEntry = false;
-
-            string type = "";
+            string kind = "";
             if (this.Kind == SymbolKind.Parameter)
             {
-                type = "Param";
+                kind = "Param";
             }
             else if (this.Kind == SymbolKind.Field)
             {
-                type = "Field";
+                kind = "Field";
+            }
+            else if (this.Kind == SymbolKind.Property)
+            {
+                kind = "Property";
             }
             else
             {
-                type = "LocalVar";
+                kind = "LocalVar";
             }
 
-            this.Name = "[" + this.Id + "," + type + "]::" + symbol.Name;
+            this.Name = $"[{this.DataFlowNode.Id},{kind}]::{symbol.Name}";
         }
 
         #endregion

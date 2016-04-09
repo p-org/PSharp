@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="LoopHeadCFGNode.cs">
+// <copyright file="LoopHeadControlFlowNode.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -17,14 +17,14 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
     /// <summary>
     /// A loop head control-flow graph node.
     /// </summary>
-    internal class LoopHeadCFGNode : CFGNode
+    internal class LoopHeadControlFlowNode : ControlFlowNode
     {
         #region fields
 
         /// <summary>
         /// The node after exiting the loop.
         /// </summary>
-        public CFGNode LoopExitNode;
+        public ControlFlowNode LoopExitNode;
 
         #endregion
 
@@ -34,9 +34,11 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// Constructor.
         /// </summary>
         /// <param name="cfg">ControlFlowGraph</param>
-        /// <param name="loopExitNode">CFGNode</param>
-        internal LoopHeadCFGNode(ControlFlowGraph cfg, CFGNode loopExitNode)
-            : base(cfg)
+        /// <param name="summary">MethodSummary</param>
+        /// <param name="loopExitNode">ControlFlowNode</param>
+        internal LoopHeadControlFlowNode(IGraph<IControlFlowNode> cfg,
+            MethodSummary summary, ControlFlowNode loopExitNode)
+            : base(cfg, summary)
         {
             this.LoopExitNode = loopExitNode;
         }
