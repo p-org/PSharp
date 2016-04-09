@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 
             foreach (var returnSymbol in returnSymbols)
             {
-                var returnDefinitions = node.DataFlowInfo.GetInputDefinitionsOfSymbol(returnSymbol.Item1);
+                var returnDefinitions = node.DataFlowInfo.ResolveAliases(returnSymbol.Item1);
                 foreach (var returnDefinition in returnDefinitions.Where(
                     def => node.DataFlowInfo.TaintedDefinitions.ContainsKey(def)))
                 {

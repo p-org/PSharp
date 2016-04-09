@@ -360,16 +360,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         }
 
         /// <summary>
-        /// Returns the local definitions for the specified symbol.
-        /// </summary>
-        /// <param name="symbol">Symbol</param>
-        /// <returns>SymbolDefinitions</returns>
-        internal ISet<SymbolDefinition> GetLocalDefinitionsOfSymbol(ISymbol symbol)
-        {
-            return this.GetDefinitionsOfSymbol(symbol, this.LocalDefinitions);
-        }
-
-        /// <summary>
         /// Returns the definitions for the specified symbol.
         /// </summary>
         /// <param name="symbol">Symbol</param>

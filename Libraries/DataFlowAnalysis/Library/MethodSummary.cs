@@ -17,7 +17,6 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.FindSymbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 {
@@ -152,6 +151,10 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             return summary.BuildSummary();
         }
 
+        #endregion
+
+        #region public methods
+
         /// <summary>
         /// Returns all cached method summaries for the specified call symbol.
         /// </summary>
@@ -172,10 +175,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 
             return node.MethodSummaryCache[callSymbol];
         }
-
-        #endregion
-
-        #region public methods
 
         /// <summary>
         /// Resolves and returns all possible return symbols at
@@ -244,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             this.ReturnedParameters = new HashSet<Tuple<int, ITypeSymbol>>();
             this.GivesUpOwnershipParamIndexes = new HashSet<int>();
 
-            this.AnalyzeDataFlow();
+            this.BuildDataFlowGraph();
 
             return this;
         }
@@ -276,9 +275,9 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         }
 
         /// <summary>
-        /// Analyzes the data-flow of the method.
+        /// Builds the data-flow graph of the method.
         /// </summary>
-        private void AnalyzeDataFlow()
+        private void BuildDataFlowGraph()
         {
             var dataFlowGraph = new DataFlowGraph(this);
             this.DataFlowGraph = dataFlowGraph;
