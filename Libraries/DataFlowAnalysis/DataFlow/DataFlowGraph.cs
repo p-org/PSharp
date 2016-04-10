@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         {
             var fromAliasDefinitions = fromNode.DataFlowInfo.ResolveAliases(fromSymbol);
             var toAliasDefinitions = toNode.DataFlowInfo.ResolveAliases(fromSymbol);
-            var toDefinitions = toNode.DataFlowInfo.GetInputDefinitionsOfSymbol(toSymbol);
+            var toDefinitions = toNode.DataFlowInfo.ResolveAliases(toSymbol);
             
             if (fromAliasDefinitions.Overlaps(toAliasDefinitions) &&
                 toAliasDefinitions.Overlaps(toDefinitions))

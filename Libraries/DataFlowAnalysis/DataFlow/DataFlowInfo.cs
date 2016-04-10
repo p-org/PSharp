@@ -344,19 +344,9 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// </summary>
         /// <param name="symbol">Symbol</param>
         /// <returns>SymbolDefinitions</returns>
-        internal ISet<SymbolDefinition> GetInputDefinitionsOfSymbol(ISymbol symbol)
+        private ISet<SymbolDefinition> GetInputDefinitionsOfSymbol(ISymbol symbol)
         {
             return this.GetDefinitionsOfSymbol(symbol, this.InputDefinitions);
-        }
-
-        /// <summary>
-        /// Returns the output definitions for the specified symbol.
-        /// </summary>
-        /// <param name="symbol">Symbol</param>
-        /// <returns>SymbolDefinitions</returns>
-        internal ISet<SymbolDefinition> GetOutputDefinitionsOfSymbol(ISymbol symbol)
-        {
-            return this.GetDefinitionsOfSymbol(symbol, this.OutputDefinitions);
         }
 
         /// <summary>
