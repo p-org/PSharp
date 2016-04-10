@@ -107,38 +107,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         }
 
         /// <summary>
-        /// Tries to get the method from the given type and call.
-        /// </summary>
-        /// <param name="method">Method</param>
-        /// <param name="type">Type</param>
-        /// <param name="call">Call</param>
-        /// <returns>Boolean</returns>
-        public bool TryGetMethodFromType(out MethodDeclarationSyntax method, ITypeSymbol type,
-            InvocationExpressionSyntax call)
-        {
-            method = null;
-
-            var definition = SymbolFinder.FindSourceDefinitionAsync(type, this.Solution).Result;
-            if (definition == null)
-            {
-                return false;
-            }
-
-            var calleeClass = definition.DeclaringSyntaxReferences.First().GetSyntax()
-                as ClassDeclarationSyntax;
-            foreach (var m in calleeClass.ChildNodes().OfType<MethodDeclarationSyntax>())
-            {
-                if (m.Identifier.ValueText.Equals(AnalysisContext.GetCalleeOfInvocation(call)))
-                {
-                    method = m;
-                    break;
-                }
-            }
-
-            return true;
-        }
-
-        /// <summary>
         /// Registers the gives-up ownership method, and its gives-up parameter indexes.
         /// The method name should include the full namespace.
         /// </summary>

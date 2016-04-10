@@ -151,30 +151,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         }
 
         /// <summary>
-        /// Returns the candidate callees after resolving the given invocation.
-        /// </summary>
-        /// <param name="invocation">InvocationExpressionSyntax</param>
-        /// <param name="model">SemanticModel</param>
-        /// <returns>MethodDeclarationSyntax</returns>
-        private static MethodDeclarationSyntax ResolveMethod(InvocationExpressionSyntax invocation,
-            IDataFlowNode node)
-        {
-            return MethodSummaryResolver.ResolveCallee(invocation, node) as MethodDeclarationSyntax;
-        }
-
-        /// <summary>
-        /// Returns the constructor after resolving the given object creation.
-        /// </summary>
-        /// <param name="objCreation">ObjectCreationExpressionSyntax</param>
-        /// <param name="model">SemanticModel</param>
-        /// <returns>ConstructorDeclarationSyntax</returns>
-        private static ConstructorDeclarationSyntax ResolveConstructor(ObjectCreationExpressionSyntax objCreation,
-            IDataFlowNode node)
-        {
-            return MethodSummaryResolver.ResolveCallee(objCreation, node) as ConstructorDeclarationSyntax;
-        }
-
-        /// <summary>
         /// Returns the candidate callees after resolving the given call.
         /// </summary>
         /// <param name="call">ExpressionSyntax</param>
@@ -223,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             ISymbol calleeSymbol = null;
             SimpleNameSyntax callee = null;
             bool isThis = false;
-
+            
             if (virtualCall.Expression is MemberAccessExpressionSyntax)
             {
                 var expr = virtualCall.Expression as MemberAccessExpressionSyntax;
@@ -242,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 callee = virtualCall.Expression as IdentifierNameSyntax;
                 isThis = true;
             }
-
+            
             if (isThis)
             {
                 var typeDeclaration = statement.Summary.TypeDeclaration;
@@ -257,24 +233,58 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 
                 return false;
             }
+            
+            var calleeDefinitions = node.DataFlowInfo.ResolveLocalAliases(calleeSymbol);
+            var calleeTypes = calleeDefinitions.SelectMany(def => def.Types);
+            if (!calleeTypes.Any())
+            {
+                return false;
+            }
 
-            Dictionary<ISymbol, HashSet<ITypeSymbol>> referenceTypeMap = null;
-            //if (calleeSymbol == null ||
-            //    !cfgNode.GetMethodSummary().DataFlowAnalysis.TryGetReferenceTypeMapForSyntaxNode(
-            //        syntaxNode, cfgNode, out referenceTypeMap) ||
-            //    !referenceTypeMap.ContainsKey(calleeSymbol))
-            //{
-            //    return false;
-            //}
+            foreach (var calleeType in calleeTypes)
+            {
+                MethodDeclarationSyntax method = null;
+                if (MethodSummaryResolver.TryGetMethodDeclarationFromType(
+                    out method, calleeType, virtualCall, node))
+                {
+                    overriders.Add(method);
+                }
+            }
 
-            //foreach (var objectType in referenceTypeMap[calleeSymbol])
-            //{
-            //    MethodDeclarationSyntax m = null;
-            //    if (this.TryGetMethodFromType(out m, objectType, virtualCall))
-            //    {
-            //        overriders.Add(m);
-            //    }
-            //}
+            return true;
+        }
+
+        /// <summary>
+        /// Tries to get the method declaration from the
+        /// given type and invocation.
+        /// </summary>
+        /// <param name="method">MethodDeclarationSyntax</param>
+        /// <param name="type">Type</param>
+        /// <param name="call">InvocationExpressionSyntax</param>
+        /// <param name="node">IDataFlowNode</param>
+        /// <returns>Boolean</returns>
+        private static bool TryGetMethodDeclarationFromType(out MethodDeclarationSyntax method,
+            ITypeSymbol type, InvocationExpressionSyntax invocation, IDataFlowNode node)
+        {
+            method = null;
+
+            var definition = SymbolFinder.FindSourceDefinitionAsync(type,
+                node.Summary.AnalysisContext.Solution).Result;
+            if (definition == null)
+            {
+                return false;
+            }
+
+            var calleeClass = definition.DeclaringSyntaxReferences.First().GetSyntax()
+                as ClassDeclarationSyntax;
+            foreach (var m in calleeClass.ChildNodes().OfType<MethodDeclarationSyntax>())
+            {
+                if (m.Identifier.ValueText.Equals(AnalysisContext.GetCalleeOfInvocation(invocation)))
+                {
+                    method = m;
+                    break;
+                }
+            }
 
             return true;
         }
