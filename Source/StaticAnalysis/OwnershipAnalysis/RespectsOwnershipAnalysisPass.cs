@@ -20,7 +20,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.FindSymbols;
 
 namespace Microsoft.PSharp.StaticAnalysis
 {
@@ -153,11 +152,8 @@ namespace Microsoft.PSharp.StaticAnalysis
                     givenUpSymbol.ContainingSymbol, statement, givenUpSymbol.Statement))
                 {
                     var type = model.GetTypeInfo(assignment.Right).Type;
-                    var fieldSymbol = SymbolFinder.FindSourceDefinitionAsync(leftSymbol,
-                        base.AnalysisContext.Solution).Result as IFieldSymbol;
-                    if (fieldSymbol != null && fieldSymbol.Kind == SymbolKind.Field &&
-                        base.AnalysisContext.DoesFieldBelongToMachine(fieldSymbol, statement.Summary) &&
-                        base.IsFieldAccessedBeforeBeingReset(fieldSymbol, statement.Summary) &&
+                    if (leftSymbol != null && leftSymbol.Kind == SymbolKind.Field &&
+                        base.IsFieldAccessedBeforeBeingReset(leftSymbol, statement.Summary) &&
                         !base.AnalysisContext.IsTypePassedByValueOrImmutable(type) &&
                         !base.AnalysisContext.IsTypeEnum(type))
                     {
@@ -165,7 +161,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                         newTrace.Merge(trace);
                         newTrace.AddErrorTrace(statement.SyntaxNode);
 
-                        AnalysisErrorReporter.ReportGivenUpOwnershipFieldAssignment(newTrace, fieldSymbol);
+                        AnalysisErrorReporter.ReportGivenUpOwnershipFieldAssignment(newTrace, leftSymbol);
                     }
 
                     return;
@@ -181,7 +177,9 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             if (assignment.Left is MemberAccessExpressionSyntax)
             {
-                if (//!DataFlowQuerying.DoesResetInControlFlowGraphNode(leftSymbol, syntaxNode, cfgNode) &&
+                ISymbol outerLeftMemberSymbol = model.GetSymbolInfo(assignment.Left).Symbol;
+                if (!outerLeftMemberSymbol.Equals(leftSymbol) &&
+                    //!DataFlowQuerying.DoesResetInControlFlowGraphNode(leftSymbol, syntaxNode, cfgNode) &&
                     statement.Summary.DataFlowAnalysis.FlowsIntoSymbol(givenUpSymbol.ContainingSymbol,
                     leftSymbol, givenUpSymbol.Statement, statement))
                 {
@@ -409,7 +407,6 @@ namespace Microsoft.PSharp.StaticAnalysis
                 var identifier = CodeAnalysis.CSharp.DataFlowAnalysis.AnalysisContext.
                     GetTopLevelIdentifier(expr);
                 ISymbol symbol = model.GetSymbolInfo(identifier).Symbol;
-
                 if (statement.Summary.DataFlowAnalysis.FlowsIntoSymbol(symbol,
                     givenUpSymbol.ContainingSymbol, statement, givenUpSymbol.Statement))
                 {
