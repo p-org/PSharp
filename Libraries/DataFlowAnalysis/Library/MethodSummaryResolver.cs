@@ -27,45 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
     internal static class MethodSummaryResolver
     {
         #region internal methods
-
-        /// <summary>
-        /// Tries to get the method summary of the given invocation. Returns
-        /// null if such summary cannot be found.
-        /// </summary>
-        /// <param name="invocation">InvocationExpressionSyntax</param>
-        /// <param name="node">IDataFlowNode</param>
-        /// <returns>MethodSummary</returns>
-        internal static MethodSummary TryGetCachedSummary(InvocationExpressionSyntax invocation,
-            IDataFlowNode node)
-        {
-            var method = MethodSummaryResolver.ResolveMethod(invocation, node);
-            if (method == null)
-            {
-                return null;
-            }
-
-            return node.Summary.AnalysisContext.TryGetCachedSummary(method);
-        }
-
-        /// <summary>
-        /// Tries to get the method summary of the given object creation. Returns
-        /// null if such summary cannot be found.
-        /// </summary>
-        /// <param name="objCreation">ObjectCreationExpressionSyntax</param>
-        /// <param name="node">IDataFlowNode</param>
-        /// <returns>MethodSummary</returns>
-        internal static MethodSummary TryGetCachedSummary(ObjectCreationExpressionSyntax objCreation,
-            IDataFlowNode node)
-        {
-            var constructor = MethodSummaryResolver.ResolveConstructor(objCreation, node);
-            if (constructor == null)
-            {
-                return null;
-            }
-
-            return node.Summary.AnalysisContext.TryGetCachedSummary(constructor);
-        }
-
+        
         /// <summary>
         /// Returns all cached method summaries for the specified invocation.
         /// </summary>

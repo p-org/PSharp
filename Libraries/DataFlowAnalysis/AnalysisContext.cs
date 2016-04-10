@@ -73,23 +73,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         }
 
         /// <summary>
-        /// Tries to get the method summary of the given object creation. Returns
-        /// null if such summary cannot be found.
-        /// </summary>
-        /// <param name="constructor">ConstructorDeclarationSyntax</param>
-        /// <returns>MethodSummary</returns>
-        public MethodSummary TryGetCachedSummary(ConstructorDeclarationSyntax constructor)
-        {
-            MethodSummary methodSummary;
-            if (this.Summaries.TryGetValue(constructor, out methodSummary))
-            {
-                return null;
-            }
-
-            return methodSummary;
-        }
-
-        /// <summary>
         /// Tries to get the method summary of the given method declaration.
         /// Returns null if such summary cannot be found.
         /// </summary>
@@ -99,6 +82,23 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         {
             MethodSummary methodSummary;
             if (!this.Summaries.TryGetValue(method, out methodSummary))
+            {
+                return null;
+            }
+
+            return methodSummary;
+        }
+
+        /// <summary>
+        /// Tries to get the method summary of the given object creation. Returns
+        /// null if such summary cannot be found.
+        /// </summary>
+        /// <param name="constructor">ConstructorDeclarationSyntax</param>
+        /// <returns>MethodSummary</returns>
+        public MethodSummary TryGetCachedSummary(ConstructorDeclarationSyntax constructor)
+        {
+            MethodSummary methodSummary;
+            if (this.Summaries.TryGetValue(constructor, out methodSummary))
             {
                 return null;
             }

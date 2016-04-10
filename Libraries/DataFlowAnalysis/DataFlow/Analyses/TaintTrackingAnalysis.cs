@@ -710,7 +710,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             var sideEffects = new Dictionary<IFieldSymbol, ISet<ISymbol>>();
             foreach (var sideEffect in calleeSummary.SideEffectsInfo.FieldFlowParamIndexes)
             {
-                sideEffects.Add(sideEffect.Key, new HashSet<ISymbol>());
                 foreach (var index in sideEffect.Value)
                 {
                     var argExpr = argumentList.Arguments[index].Expression;
@@ -724,6 +723,11 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                         }
 
                         IdentifierNameSyntax argIdentifier = AnalysisContext.GetTopLevelIdentifier(argExpr);
+                        if (!sideEffects.ContainsKey(sideEffect.Key))
+                        {
+                            sideEffects.Add(sideEffect.Key, new HashSet<ISymbol>());
+                        }
+
                         sideEffects[sideEffect.Key].Add(node.Summary.SemanticModel.GetSymbolInfo(argIdentifier).Symbol);
                     }
                     else if (argExpr is InvocationExpressionSyntax ||
@@ -731,29 +735,26 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                     {
                         var invocation = argExpr as InvocationExpressionSyntax;
                         var objCreation = argExpr as ObjectCreationExpressionSyntax;
-
-                        MethodSummary summary = null;
+                        
                         if (invocation != null)
                         {
-                            summary = MethodSummaryResolver.TryGetCachedSummary(invocation, node);
                             argumentList = invocation.ArgumentList;
                         }
                         else
                         {
-                            summary = MethodSummaryResolver.TryGetCachedSummary(objCreation, node);
                             argumentList = objCreation.ArgumentList;
-                        }
-
-                        if (summary == null)
-                        {
-                            continue;
                         }
 
                         var nestedSideEffects = this.ResolveSideEffectsInCall(
                             argumentList, calleeSummary, node);
                         foreach (var nestedSideEffect in nestedSideEffects)
                         {
-                            sideEffects.Add(nestedSideEffect.Key, nestedSideEffect.Value);
+                            if (!sideEffects.ContainsKey(nestedSideEffect.Key))
+                            {
+                                sideEffects.Add(nestedSideEffect.Key, new HashSet<ISymbol>());
+                            }
+
+                            sideEffects[nestedSideEffect.Key].UnionWith(nestedSideEffect.Value);
                         }
                     }
                 }
