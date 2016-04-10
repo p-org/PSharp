@@ -208,6 +208,21 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         }
 
         /// <summary>
+        /// Resets the type of the symbol with the specified types.
+        /// </summary>
+        /// <param name="types">ITypeSymbols</param>
+        /// <param name="symbol">ISymbol</param>
+        internal void ResetTypeOfSymbol(ISet<ITypeSymbol> types, ISymbol symbol)
+        {
+            var generatedDefinition = this.GetGeneratedDefinitionOfSymbol(symbol);
+            if (generatedDefinition != null && types.Count > 0)
+            {
+                generatedDefinition.Types.Clear();
+                generatedDefinition.Types.UnionWith(types);
+            }
+        }
+
+        /// <summary>
         /// Checks if the symbol is fresh.
         /// </summary>
         /// <param name="symbol">ISymbol</param>
@@ -221,35 +236,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             }
 
             return false;
-        }
-
-        /// <summary>
-        /// Adds the specified type to the symbol.
-        /// </summary>
-        /// <param name="symbol">ISymbol</param>
-        /// <param name="type">ITypeSymbol</param>
-        internal void AddTypeToSymbol(ISymbol symbol, ITypeSymbol type)
-        {
-            var generatedDefinition = this.GetGeneratedDefinitionOfSymbol(symbol);
-            if (generatedDefinition != null && type != null)
-            {
-                generatedDefinition.Types.Add(type);
-            }
-        }
-
-        /// <summary>
-        /// Resets the type of the symbol with the specified type.
-        /// </summary>
-        /// <param name="symbol">ISymbol</param>
-        /// <param name="type">ITypeSymbol</param>
-        internal void ResetTypeOfSymbol(ISymbol symbol, ITypeSymbol type)
-        {
-            var generatedDefinition = this.GetGeneratedDefinitionOfSymbol(symbol);
-            if (generatedDefinition != null && type != null)
-            {
-                generatedDefinition.Types.Clear();
-                generatedDefinition.Types.Add(type);
-            }
         }
 
         /// <summary>

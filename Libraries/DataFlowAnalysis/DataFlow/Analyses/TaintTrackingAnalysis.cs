@@ -314,6 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 }
 
                 node.DataFlowInfo.TaintSymbol(returnSymbols, leftSymbol);
+                node.DataFlowInfo.ResetTypeOfSymbol(returnTypes, leftSymbol);
             }
             else if (rightExpr is ObjectCreationExpressionSyntax)
             {
@@ -321,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 ISet<ITypeSymbol> returnTypes = null;
                 this.AnalyzeMethodCall(rightExpr, node, out returnSymbols, out returnTypes);
                 var type = returnTypes.FirstOrDefault();
-                node.DataFlowInfo.ResetTypeOfSymbol(leftSymbol, type);
+                node.DataFlowInfo.ResetTypeOfSymbol(returnTypes, leftSymbol);
             }
         }
 
