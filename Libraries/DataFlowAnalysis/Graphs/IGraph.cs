@@ -35,11 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// </summary>
         ISet<T> Nodes { get; }
 
-        /// <summary>
-        /// Set of all exit nodes in the graph.
-        /// </summary>
-        ISet<T> ExitNodes { get; }
-
         #endregion
 
         #region methods

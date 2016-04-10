@@ -41,12 +41,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         public ISet<T> Nodes { get; protected set; }
 
         /// <summary>
-        /// Set of all exit nodes in the graph
-        /// of the method of this summary.
-        /// </summary>
-        public ISet<T> ExitNodes { get; protected set; }
-
-        /// <summary>
         /// A counter for creating unique ids.
         /// </summary>
         private static int IdCounter;
@@ -71,7 +65,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         {
             this.Id = Graph<T>.IdCounter++;
             this.Nodes = new HashSet<T>();
-            this.ExitNodes = new HashSet<T>();
         }
 
         #endregion
@@ -144,16 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         #endregion
 
         #region protected methods
-
-        /// <summary>
-        /// Returns all exit nodes in the graph.
-        /// </summary>
-        /// <returns>Set of exit nodes</returns>
-        protected ISet<T> GetExitNodes()
-        {
-            return this.GetExitNodes(this.EntryNode, new HashSet<T>());
-        }
-
+        
         /// <summary>
         /// Merges empty nodes.
         /// </summary>

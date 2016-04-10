@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         {
             base.EntryNode = ControlFlowNode.Create(this, summary);
             base.MergeEmptyNodes();
-            base.ExitNodes = base.GetExitNodes();
         }
 
         #endregion

@@ -14,7 +14,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 {
@@ -51,7 +50,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 
             base.EntryNode = DataFlowNode.Create(this, summary);
             base.MergeEmptyNodes();
-            base.ExitNodes = base.GetExitNodes();
         }
 
         #endregion
@@ -158,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             var fromAliasDefinitions = fromNode.DataFlowInfo.ResolveOutputAliases(fromSymbol);
             var toAliasDefinitions = toNode.DataFlowInfo.ResolveInputAliases(fromSymbol);
             var toDefinitions = toNode.DataFlowInfo.ResolveLocalAliases(toSymbol);
-
+            
             if (fromAliasDefinitions.Overlaps(toAliasDefinitions) &&
                 toAliasDefinitions.Overlaps(toDefinitions))
             {
