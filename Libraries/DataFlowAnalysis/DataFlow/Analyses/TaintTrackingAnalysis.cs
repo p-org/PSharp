@@ -111,7 +111,8 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             }
             else if (node.Statement != null)
             {
-                this.AnalyzeParameters(node.Summary.Method.ParameterList, node);
+                this.InitializeParameters(node);
+                this.InitializeFieldsAndProperties(node);
                 node.DataFlowInfo.AssignOutputDefinitions();
             }
 
@@ -160,17 +161,39 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         }
 
         /// <summary>
-        /// Analyzes the data-flow of the input parameters.
+        /// Initializes the data-flow of the input parameters.
         /// </summary>
-        /// <param name="parameterList">ParameterListSyntax</param>
         /// <param name="node">IDataFlowNode</param>
-        private void AnalyzeParameters(ParameterListSyntax parameterList, IDataFlowNode node)
+        private void InitializeParameters(IDataFlowNode node)
         {
-            foreach (var param in parameterList.Parameters)
+            foreach (var param in node.Summary.Method.ParameterList.Parameters)
             {
                 ITypeSymbol paramType = this.SemanticModel.GetTypeInfo(param.Type).Type;
                 IParameterSymbol paramSymbol = this.SemanticModel.GetDeclaredSymbol(param);
                 node.DataFlowInfo.GenerateDefinition(paramSymbol, paramType);
+            }
+        }
+
+        /// <summary>
+        /// Initializes the data-flow of field and properties.
+        /// </summary>
+        /// <param name="node">IDataFlowNode</param>
+        private void InitializeFieldsAndProperties(IDataFlowNode node)
+        {
+            var symbols = this.Summary.Method.DescendantNodes(n => true).
+                OfType<IdentifierNameSyntax>().Select(id => this.SemanticModel.
+                GetSymbolInfo(id).Symbol).Where(s => s != null).Distinct();
+
+            var fieldSymbols = symbols.Where(val => val.Kind == SymbolKind.Field);
+            foreach (var fieldSymbol in fieldSymbols.Select(s => s as IFieldSymbol))
+            {
+                node.DataFlowInfo.GenerateDefinition(fieldSymbol, fieldSymbol.Type);
+            }
+
+            var propertySymbols = symbols.Where(val => val.Kind == SymbolKind.Property);
+            foreach (var propertySymbol in propertySymbols.Select(s => s as IPropertySymbol))
+            {
+                node.DataFlowInfo.GenerateDefinition(propertySymbol, propertySymbol.Type);
             }
         }
 
@@ -256,7 +279,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 
             foreach (var nestedLeftSymbol in nestedLeftSymbols)
             {
-                node.DataFlowInfo.GenerateDefinition(nestedLeftSymbol, leftType);
                 this.AnalyzeAssignmentExpression(nestedLeftSymbol, assignment.Right, node);
             }
 
@@ -339,6 +361,12 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 this.AnalyzeMethodCall(retStmt.Expression, node, out returnSymbols);
                 foreach (var returnSymbol in returnSymbols)
                 {
+                    var returnAliases = node.DataFlowInfo.ResolveInputAliases(returnSymbol.Item1);
+                    if (returnAliases.Count == 0)
+                    {
+                        node.DataFlowInfo.GenerateDefinition(returnSymbol.Item1, returnSymbol.Item2);
+                    }
+                    
                     node.DataFlowInfo.TaintSymbol(returnSymbol.Item1, returnSymbol.Item2, returnSymbol.Item2);
                 }
             }
@@ -358,14 +386,14 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 
             foreach (var returnSymbol in returnSymbols)
             {
-                var returnDefinitions = node.DataFlowInfo.ResolveAliases(returnSymbol.Item1);
+                var returnDefinitions = node.DataFlowInfo.ResolveLocalAliases(returnSymbol.Item1);
                 foreach (var returnDefinition in returnDefinitions.Where(
                     def => node.DataFlowInfo.TaintedDefinitions.ContainsKey(def)))
                 {
+                    //TODO: check if its reset after method entry
                     foreach (var definition in node.DataFlowInfo.TaintedDefinitions[returnDefinition].
                         Where(s => s.Kind == SymbolKind.Parameter))
                     {
-                        //TODO: check if its reset after method entry
                         this.Summary.ReturnedParameters.Add(Tuple.Create(
                             indexMap[definition.Symbol as IParameterSymbol], returnSymbol.Item2));
                     }
@@ -430,7 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             {
                 argumentList = objCreation.ArgumentList;
             }
-
+            
             this.ResolveGivesUpOwnershipInCall(callSymbol, argumentList, node);
 
             foreach (var candidateCalleeSummary in candidateCalleeSummaries)
@@ -556,11 +584,11 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 return;
             }
 
-            var aliasDefinitions = node.DataFlowInfo.ResolveAliases(fieldSymbol);
+            var aliasDefinitions = node.DataFlowInfo.ResolveInputAliases(fieldSymbol);
             foreach (var aliasDefinition in aliasDefinitions)
             {
-                if (aliasDefinition.Kind == SymbolKind.Field/* &&
-                    !aliasSymbol.HasResetAfterMethodEntry*/)
+                if (aliasDefinition.Kind == SymbolKind.Field &&
+                    this.Summary.DataFlowAnalysis.FlowsFromMethodEntry(aliasDefinition.Symbol, node.Statement))
                 {
                     this.MapFieldAccessInStatement(aliasDefinition.Symbol as IFieldSymbol,
                         node.Statement);

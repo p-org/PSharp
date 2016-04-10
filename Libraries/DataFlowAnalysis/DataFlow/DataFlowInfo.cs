@@ -255,30 +255,59 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         #region definition resolving methods
 
         /// <summary>
-        /// Resolves the aliases of the specified symbol.
+        /// Resolves the aliases of the specified symbol in
+        /// the input definitions of the data-flow node.
         /// </summary>
         /// <param name="symbol">ISymbol</param>
-        /// <returns>DataFlowSymbols</returns>
-        internal ISet<SymbolDefinition> ResolveAliases(ISymbol symbol)
+        /// <returns>SymbolDefinitions</returns>
+        internal ISet<SymbolDefinition> ResolveInputAliases(ISymbol symbol)
         {
             var definitions = this.GetInputDefinitionsOfSymbol(symbol);
-            if (definitions.Count == 0 && symbol.Kind == SymbolKind.Field)
+            return this.ResolveAliases(definitions);
+        }
+
+        /// <summary>
+        /// Resolves the aliases of the specified symbol in
+        /// the output definitions of the data-flow node.
+        /// </summary>
+        /// <param name="symbol">ISymbol</param>
+        /// <returns>SymbolDefinitions</returns>
+        internal ISet<SymbolDefinition> ResolveOutputAliases(ISymbol symbol)
+        {
+            var definitions = this.GetOutputDefinitionsOfSymbol(symbol);
+            return this.ResolveAliases(definitions);
+        }
+
+        /// <summary>
+        /// Resolves the aliases of the specified symbol in
+        /// the local definitions of the data-flow node.
+        /// </summary>
+        /// <param name="symbol">ISymbol</param>
+        /// <returns>SymbolDefinitions</returns>
+        internal ISet<SymbolDefinition> ResolveLocalAliases(ISymbol symbol)
+        {
+            var definitions = new HashSet<SymbolDefinition>();
+            var generatedDefinition = this.GetGeneratedDefinitionOfSymbol(symbol);
+            if (generatedDefinition != null)
             {
-                var fieldSymbol = symbol as IFieldSymbol;
-                this.GenerateDefinition(fieldSymbol, fieldSymbol.Type);
-                definitions.Add(this.GetGeneratedDefinitionOfSymbol(symbol));
-            }
-            else if (definitions.Count == 0 && symbol.Kind == SymbolKind.Property)
-            {
-                var propertySymbol = symbol as IPropertySymbol;
-                this.GenerateDefinition(propertySymbol, propertySymbol.Type);
-                definitions.Add(this.GetGeneratedDefinitionOfSymbol(symbol));
-            }
-            else if (definitions.Count == 0)
-            {
-                definitions.Add(this.GetGeneratedDefinitionOfSymbol(symbol));
+                definitions.Add(generatedDefinition);
             }
 
+            if (definitions.Count == 0)
+            {
+                definitions.UnionWith(this.GetInputDefinitionsOfSymbol(symbol));
+            }
+
+            return this.ResolveAliases(definitions);
+        }
+
+        /// <summary>
+        /// Resolves the aliases of the specified set of definitions.
+        /// </summary>
+        /// <param name="definitions">SymbolDefinitions</param>
+        /// <returns>SymbolDefinitions</returns>
+        private ISet<SymbolDefinition> ResolveAliases(ISet<SymbolDefinition> definitions)
+        {
             var resolvedAliases = new HashSet<SymbolDefinition>(definitions);
             var aliasesToResolve = new List<SymbolDefinition>(definitions);
 
@@ -298,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// Resolves the direct aliases of the specified definition.
         /// </summary>
         /// <param name="definition">SymbolDefinition</param>
-        /// <returns>DataFlowSymbols</returns>
+        /// <returns>SymbolDefinitions</returns>
         private ISet<SymbolDefinition> ResolveDirectAliases(SymbolDefinition definition)
         {
             var aliasDefinitions = new HashSet<SymbolDefinition>();
@@ -318,6 +347,10 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             return aliasDefinitions;
         }
 
+        #endregion
+
+        #region helper methods
+
         /// <summary>
         /// Returns the generated definition for the specified symbol.
         /// </summary>
@@ -329,12 +362,22 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         }
 
         /// <summary>
+        /// Returns the generated definitions for the specified symbol.
+        /// </summary>
+        /// <param name="symbol">Symbol</param>
+        /// <returns>SymbolDefinitions</returns>
+        private ISet<SymbolDefinition> GetGeneratedDefinitionsOfSymbol(ISymbol symbol)
+        {
+            return this.GetDefinitionsOfSymbol(symbol, this.GeneratedDefinitions);
+        }
+
+        /// <summary>
         /// Returns the killed definitions for the specified symbol.
         /// </summary>
         /// <param name="symbol">Symbol</param>
         /// <param name="statement">Statement</param>
         /// <returns>SymbolDefinitions</returns>
-        internal ISet<SymbolDefinition> GetKilledDefinitionsOfSymbol(ISymbol symbol)
+        private ISet<SymbolDefinition> GetKilledDefinitionsOfSymbol(ISymbol symbol)
         {
             return this.GetDefinitionsOfSymbol(symbol, this.KilledDefinitions);
         }
@@ -347,6 +390,16 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         private ISet<SymbolDefinition> GetInputDefinitionsOfSymbol(ISymbol symbol)
         {
             return this.GetDefinitionsOfSymbol(symbol, this.InputDefinitions);
+        }
+
+        /// <summary>
+        /// Returns the output definitions for the specified symbol.
+        /// </summary>
+        /// <param name="symbol">Symbol</param>
+        /// <returns>SymbolDefinitions</returns>
+        private ISet<SymbolDefinition> GetOutputDefinitionsOfSymbol(ISymbol symbol)
+        {
+            return this.GetDefinitionsOfSymbol(symbol, this.OutputDefinitions);
         }
 
         /// <summary>

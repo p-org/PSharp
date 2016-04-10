@@ -22,6 +22,14 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
     public interface IDataFlowAnalysis
     {
         /// <summary>
+        /// Checks if the target symbol flows from the entry of the method.
+        /// </summary>
+        /// <param name="targetSymbol">Target Symbol</param>
+        /// <param name="targetStatement">Target Statement</param>
+        /// <returns>Boolean</returns>
+        bool FlowsFromMethodEntry(ISymbol targetSymbol, Statement targetStatement);
+
+        /// <summary>
         /// Checks if the target symbol flows from the parameter list.
         /// </summary>
         /// <param name="targetSymbol">Target Symbol</param>

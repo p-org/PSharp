@@ -59,13 +59,34 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         #region public methods
 
         /// <summary>
+        /// Checks if the target symbol flows from the entry of the method.
+        /// </summary>
+        /// <param name="targetSymbol">Target Symbol</param>
+        /// <param name="targetStatement">Target Statement</param>
+        /// <returns>Boolean</returns>
+        public bool FlowsFromMethodEntry(ISymbol targetSymbol, Statement targetStatement)
+        {
+            var entryNode = targetStatement.Summary.DataFlowGraph.EntryNode;
+            foreach (var definition in entryNode.DataFlowInfo.GeneratedDefinitions)
+            {
+                if (this.FlowsIntoSymbol(definition.Symbol, targetSymbol,
+                    targetStatement.Summary.DataFlowGraph.EntryNode.Statement,
+                    targetStatement))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Checks if the target symbol flows from the parameter list.
         /// </summary>
         /// <param name="targetSymbol">Target Symbol</param>
         /// <param name="targetStatement">Target Statement</param>
         /// <returns>Boolean</returns>
-        public bool FlowsFromParameterList(ISymbol targetSymbol,
-            Statement targetStatement)
+        public bool FlowsFromParameterList(ISymbol targetSymbol, Statement targetStatement)
         {
             foreach (var param in targetStatement.Summary.Method.ParameterList.Parameters)
             {
@@ -134,10 +155,10 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         private bool FlowsIntoSymbol(ISymbol fromSymbol, ISymbol toSymbol,
             IDataFlowNode fromNode, IDataFlowNode toNode)
         {
-            var fromAliasDefinitions = fromNode.DataFlowInfo.ResolveAliases(fromSymbol);
-            var toAliasDefinitions = toNode.DataFlowInfo.ResolveAliases(fromSymbol);
-            var toDefinitions = toNode.DataFlowInfo.ResolveAliases(toSymbol);
-            
+            var fromAliasDefinitions = fromNode.DataFlowInfo.ResolveOutputAliases(fromSymbol);
+            var toAliasDefinitions = toNode.DataFlowInfo.ResolveInputAliases(fromSymbol);
+            var toDefinitions = toNode.DataFlowInfo.ResolveLocalAliases(toSymbol);
+
             if (fromAliasDefinitions.Overlaps(toAliasDefinitions) &&
                 toAliasDefinitions.Overlaps(toDefinitions))
             {
