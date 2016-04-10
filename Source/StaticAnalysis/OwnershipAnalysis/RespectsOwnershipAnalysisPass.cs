@@ -286,7 +286,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                         newTrace.Merge(trace);
                         newTrace.AddErrorTrace(access.SyntaxNode);
 
-                        AnalysisErrorReporter.ReportGivenUpOwnershipAccess(newTrace);
+                        AnalysisErrorReporter.ReportGivenUpOwnershipFieldAccess(newTrace, fieldAccess.Key);
                     }
                 }
             }

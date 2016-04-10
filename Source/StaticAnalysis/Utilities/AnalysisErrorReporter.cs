@@ -244,6 +244,33 @@ namespace Microsoft.PSharp.StaticAnalysis
         }
 
         /// <summary>
+        /// Reports an access of a field that is alias of
+        /// an object with given-up ownership.
+        /// </summary>
+        /// <param name="trace">TraceInfo</param>
+        /// <param name="fieldSymbol">ISymbol</param>
+        internal static void ReportGivenUpOwnershipFieldAccess(TraceInfo trace,
+            IFieldSymbol fieldSymbol)
+        {
+            string message;
+            if (trace.State == null)
+            {
+                message = IO.Format("Method '{0}' of machine '{1}' accesses " +
+                    "'{2}', via field '{3}', after giving up its ownership.",
+                    trace.Method, trace.Machine, trace.Payload, fieldSymbol);
+            }
+            else
+            {
+                message = IO.Format("Method '{0}' in state '{1}' of machine '{2}' " +
+                    "accesses '{3}', via field '{4}', after giving up its ownership.",
+                    trace.Method, trace.State, trace.Machine, trace.Payload,
+                    fieldSymbol);
+            }
+
+            AnalysisErrorReporter.ReportErrorTrace(trace, message, true);
+        }
+
+        /// <summary>
         /// Reports a given up field ownership error.
         /// </summary>
         /// <param name="trace">TraceInfo</param>

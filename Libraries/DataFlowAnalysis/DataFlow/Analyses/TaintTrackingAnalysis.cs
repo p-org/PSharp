@@ -212,6 +212,13 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 }
 
                 var expr = variable.Initializer.Value;
+                if (expr is MemberAccessExpressionSyntax)
+                {
+                    var memberAccess = expr as MemberAccessExpressionSyntax;
+                    this.ResolveMethodParameterAccesses(memberAccess, node);
+                    this.ResolveFieldAccesses(memberAccess, node);
+                }
+
                 ITypeSymbol declType = null;
                 if (expr is LiteralExpressionSyntax &&
                     expr.IsKind(SyntaxKind.NullLiteralExpression))
@@ -227,13 +234,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 node.DataFlowInfo.GenerateDefinition(leftSymbol, declType);
 
                 this.AnalyzeAssignmentExpression(leftSymbol, expr, node);
-
-                if (expr is MemberAccessExpressionSyntax)
-                {
-                    var memberAccess = expr as MemberAccessExpressionSyntax;
-                    this.ResolveMethodParameterAccesses(memberAccess, node);
-                    this.ResolveFieldAccesses(memberAccess, node);
-                }
             }
         }
 
@@ -244,6 +244,20 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <param name="node">IDataFlowNode</param>
         private void AnalyzeAssignmentExpression(AssignmentExpressionSyntax assignment, IDataFlowNode node)
         {
+            if (assignment.Left is MemberAccessExpressionSyntax)
+            {
+                var memberAccess = assignment.Left as MemberAccessExpressionSyntax;
+                this.ResolveMethodParameterAccesses(memberAccess, node);
+                this.ResolveFieldAccesses(memberAccess, node);
+            }
+
+            if (assignment.Right is MemberAccessExpressionSyntax)
+            {
+                var memberAccess = assignment.Right as MemberAccessExpressionSyntax;
+                this.ResolveMethodParameterAccesses(memberAccess, node);
+                this.ResolveFieldAccesses(memberAccess, node);
+            }
+
             ITypeSymbol leftType = null;
             ISymbol leftSymbol = null;
             ISet<ISymbol> nestedLeftSymbols = new HashSet<ISymbol>();
@@ -280,20 +294,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             foreach (var nestedLeftSymbol in nestedLeftSymbols)
             {
                 this.AnalyzeAssignmentExpression(nestedLeftSymbol, assignment.Right, node);
-            }
-
-            if (assignment.Left is MemberAccessExpressionSyntax)
-            {
-                var memberAccess = assignment.Left as MemberAccessExpressionSyntax;
-                this.ResolveMethodParameterAccesses(memberAccess, node);
-                this.ResolveFieldAccesses(memberAccess, node);
-            }
-
-            if (assignment.Right is MemberAccessExpressionSyntax)
-            {
-                var memberAccess = assignment.Right as MemberAccessExpressionSyntax;
-                this.ResolveMethodParameterAccesses(memberAccess, node);
-                this.ResolveFieldAccesses(memberAccess, node);
             }
         }
 
