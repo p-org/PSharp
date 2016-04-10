@@ -148,6 +148,11 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                     var assignment = expr.Expression as AssignmentExpressionSyntax;
                     this.AnalyzeAssignmentExpression(assignment, node);
                 }
+                else if (expr.Expression is IdentifierNameSyntax ||
+                    expr.Expression is MemberAccessExpressionSyntax)
+                {
+                    this.AnalyzeBinaryExpression(expr.Expression, node);
+                }
                 else if (expr.Expression is InvocationExpressionSyntax ||
                     expr.Expression is ObjectCreationExpressionSyntax)
                 {
@@ -212,12 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 }
 
                 var expr = variable.Initializer.Value;
-                if (expr is MemberAccessExpressionSyntax)
-                {
-                    var memberAccess = expr as MemberAccessExpressionSyntax;
-                    this.ResolveMethodParameterAccesses(memberAccess, node);
-                    this.ResolveFieldAccesses(memberAccess, node);
-                }
+                this.ResolveSideEffectsInExpression(expr, node);
 
                 ITypeSymbol declType = null;
                 if (expr is LiteralExpressionSyntax &&
@@ -244,56 +244,39 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <param name="node">IDataFlowNode</param>
         private void AnalyzeAssignmentExpression(AssignmentExpressionSyntax assignment, IDataFlowNode node)
         {
-            if (assignment.Left is MemberAccessExpressionSyntax)
-            {
-                var memberAccess = assignment.Left as MemberAccessExpressionSyntax;
-                this.ResolveMethodParameterAccesses(memberAccess, node);
-                this.ResolveFieldAccesses(memberAccess, node);
-            }
+            this.ResolveSideEffectsInExpression(assignment.Left, node);
+            this.ResolveSideEffectsInExpression(assignment.Right, node);
 
-            if (assignment.Right is MemberAccessExpressionSyntax)
-            {
-                var memberAccess = assignment.Right as MemberAccessExpressionSyntax;
-                this.ResolveMethodParameterAccesses(memberAccess, node);
-                this.ResolveFieldAccesses(memberAccess, node);
-            }
+            Tuple<ISymbol, ITypeSymbol> leftSymbolInfo;
+            this.GetExpressionSymbol(out leftSymbolInfo, assignment.Left);
+            
+            node.DataFlowInfo.KillDefinitions(leftSymbolInfo.Item1);
+            node.DataFlowInfo.GenerateDefinition(leftSymbolInfo.Item1, leftSymbolInfo.Item2);
 
-            ITypeSymbol leftType = null;
-            ISymbol leftSymbol = null;
-            ISet<ISymbol> nestedLeftSymbols = new HashSet<ISymbol>();
-            if (assignment.Left is IdentifierNameSyntax ||
-                assignment.Left is MemberAccessExpressionSyntax)
-            {
-                leftType = this.SemanticModel.GetTypeInfo(assignment.Left).Type;
-                leftSymbol = this.SemanticModel.GetSymbolInfo(assignment.Left).Symbol;
-                var leftExprs = AnalysisContext.GetIdentifiers(assignment.Left);
-                foreach (var leftExpr in leftExprs)
-                {
-                    nestedLeftSymbols.Add(this.SemanticModel.GetSymbolInfo(leftExpr).Symbol);
-                }
-            }
-            else if (assignment.Left is ElementAccessExpressionSyntax)
-            {
-                var memberAccess = (assignment.Left as ElementAccessExpressionSyntax);
-                if (memberAccess.Expression is IdentifierNameSyntax ||
-                    memberAccess.Expression is MemberAccessExpressionSyntax)
-                {
-                    leftType = this.SemanticModel.GetTypeInfo(memberAccess.Expression).Type;
-                    leftSymbol = this.SemanticModel.GetSymbolInfo(assignment.Left).Symbol;
-                    var leftExprs = AnalysisContext.GetIdentifiers(assignment.Left);
-                    foreach (var leftExpr in leftExprs)
-                    {
-                        nestedLeftSymbols.Add(this.SemanticModel.GetSymbolInfo(leftExpr).Symbol);
-                    }
-                }
-            }
+            ISet<Tuple<ISymbol, ITypeSymbol>> nestedLeftSymbolInfos;
+            this.GetMemberExpressionSymbols(out nestedLeftSymbolInfos, assignment.Left);
 
-            node.DataFlowInfo.KillDefinitions(leftSymbol);
-            node.DataFlowInfo.GenerateDefinition(leftSymbol, leftType);
-
-            foreach (var nestedLeftSymbol in nestedLeftSymbols)
+            foreach (var nestedLeftSymbolInfo in nestedLeftSymbolInfos)
             {
-                this.AnalyzeAssignmentExpression(nestedLeftSymbol, assignment.Right, node);
+                this.AnalyzeAssignmentExpression(nestedLeftSymbolInfo.Item1, assignment.Right, node);
+            }
+        }
+
+        /// <summary>
+        /// Analyzes the data-flow of the binary expression.
+        /// </summary>
+        /// <param name="expr">ExpressionSyntax</param>
+        /// <param name="node">IDataFlowNode</param>
+        private void AnalyzeBinaryExpression(ExpressionSyntax expr, IDataFlowNode node)
+        {
+            this.ResolveSideEffectsInExpression(expr, node);
+
+            Tuple<ISymbol, ITypeSymbol> symbolInfo;
+            this.GetExpressionSymbol(out symbolInfo, expr);
+
+            if (node.DataFlowInfo.IsFreshSymbol(symbolInfo.Item1))
+            {
+                node.DataFlowInfo.GenerateDefinition(symbolInfo.Item1, symbolInfo.Item2);
             }
         }
 
@@ -303,10 +286,9 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <param name="leftSymbol">ISymbol</param>
         /// <param name="rightExpr">ExpressionSyntax</param>
         /// <param name="node">IDataFlowNode</param>
-        private void AnalyzeAssignmentExpression(ISymbol leftSymbol, ExpressionSyntax rightExpr, IDataFlowNode node)
+        private void AnalyzeAssignmentExpression(ISymbol leftSymbol, ExpressionSyntax rightExpr,
+            IDataFlowNode node)
         {
-            var leftDefinition = node.DataFlowInfo.GetGeneratedDefinitionOfSymbol(leftSymbol);
-
             if (rightExpr is IdentifierNameSyntax ||
                 rightExpr is MemberAccessExpressionSyntax)
             {
@@ -316,22 +298,30 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 
                 if (!this.AnalysisContext.IsTypePassedByValueOrImmutable(rightType))
                 {
-                    node.DataFlowInfo.TaintSymbol(rightSymbol, rightType, rightSymbol);
-                    node.DataFlowInfo.TaintSymbol(rightSymbol, rightType, leftSymbol);
+                    node.DataFlowInfo.TaintSymbol(rightSymbol, rightSymbol);
+                    node.DataFlowInfo.TaintSymbol(rightSymbol, leftSymbol);
                 }
             }
-            else if (rightExpr is InvocationExpressionSyntax ||
-                rightExpr is ObjectCreationExpressionSyntax)
+            else if (rightExpr is InvocationExpressionSyntax)
             {
-                ISet<Tuple<ISymbol, ITypeSymbol>> returnSymbols = null;
-                this.AnalyzeMethodCall(rightExpr, node, out returnSymbols);
+                ISet<ISymbol> returnSymbols = null;
+                ISet<ITypeSymbol> returnTypes = null;
+                this.AnalyzeMethodCall(rightExpr, node, out returnSymbols, out returnTypes);
 
                 foreach (var returnSymbol in returnSymbols)
                 {
-                    node.DataFlowInfo.TaintSymbol(returnSymbol.Item1, returnSymbol.Item2, returnSymbol.Item1);
+                    node.DataFlowInfo.TaintSymbol(returnSymbol, returnSymbol);
                 }
 
                 node.DataFlowInfo.TaintSymbol(returnSymbols, leftSymbol);
+            }
+            else if (rightExpr is ObjectCreationExpressionSyntax)
+            {
+                ISet<ISymbol> returnSymbols = null;
+                ISet<ITypeSymbol> returnTypes = null;
+                this.AnalyzeMethodCall(rightExpr, node, out returnSymbols, out returnTypes);
+                var type = returnTypes.FirstOrDefault();
+                node.DataFlowInfo.ResetTypeOfSymbol(leftSymbol, type);
             }
         }
 
@@ -342,38 +332,28 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <param name="node">IDataFlowNode</param>
         private void AnalyzeReturnStatement(ReturnStatementSyntax retStmt, IDataFlowNode node)
         {
-            ISet<Tuple<ISymbol, ITypeSymbol>> returnSymbols = new HashSet<Tuple<ISymbol, ITypeSymbol>>();
+            this.ResolveSideEffectsInExpression(retStmt.Expression, node);
+
+            ISet<ISymbol> returnSymbols = new HashSet<ISymbol>();
+            ISet<ITypeSymbol> returnTypes = new HashSet<ITypeSymbol>();
             if (retStmt.Expression is IdentifierNameSyntax ||
                 retStmt.Expression is MemberAccessExpressionSyntax)
             {
                 ISymbol rightSymbol = this.SemanticModel.GetSymbolInfo(retStmt.Expression).Symbol;
                 ITypeSymbol rightType = this.SemanticModel.GetTypeInfo(retStmt.Expression).Type;
-                returnSymbols.Add(Tuple.Create(rightSymbol, rightType));
+                returnSymbols.Add(rightSymbol);
+                returnTypes.Add(rightType);
 
-                if (!this.AnalysisContext.IsTypePassedByValueOrImmutable(rightType))
-                {
-                    node.DataFlowInfo.TaintSymbol(rightSymbol, rightType, rightSymbol);
-                }
+                this.Summary.SideEffectsInfo.ReturnTypes.Add(rightType);
             }
             else if (retStmt.Expression is InvocationExpressionSyntax ||
                 retStmt.Expression is ObjectCreationExpressionSyntax)
             {
-                this.AnalyzeMethodCall(retStmt.Expression, node, out returnSymbols);
+                this.AnalyzeMethodCall(retStmt.Expression, node, out returnSymbols, out returnTypes);
                 foreach (var returnSymbol in returnSymbols)
                 {
-                    var returnAliases = node.DataFlowInfo.ResolveInputAliases(returnSymbol.Item1);
-                    if (returnAliases.Count == 0)
-                    {
-                        node.DataFlowInfo.GenerateDefinition(returnSymbol.Item1, returnSymbol.Item2);
-                    }
-                    
-                    node.DataFlowInfo.TaintSymbol(returnSymbol.Item1, returnSymbol.Item2, returnSymbol.Item2);
+                    node.DataFlowInfo.TaintSymbol(returnSymbol, returnSymbol);
                 }
-            }
-
-            if (returnSymbols.Count == 0)
-            {
-                return;
             }
 
             var indexMap = new Dictionary<IParameterSymbol, int>();
@@ -386,25 +366,31 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 
             foreach (var returnSymbol in returnSymbols)
             {
-                var returnDefinitions = node.DataFlowInfo.ResolveLocalAliases(returnSymbol.Item1);
+                var returnDefinitions = node.DataFlowInfo.ResolveOutputAliases(returnSymbol);
                 foreach (var returnDefinition in returnDefinitions.Where(
                     def => node.DataFlowInfo.TaintedDefinitions.ContainsKey(def)))
                 {
-                    //TODO: check if its reset after method entry
                     foreach (var definition in node.DataFlowInfo.TaintedDefinitions[returnDefinition].
                         Where(s => s.Kind == SymbolKind.Parameter))
                     {
-                        this.Summary.SideEffectsInfo.ReturnedParameters.Add(Tuple.Create(
-                            indexMap[definition.Symbol as IParameterSymbol], returnSymbol.Item2));
+                        var parameterSymbol = definition.Symbol as IParameterSymbol;
+                        this.Summary.SideEffectsInfo.ReturnedParameters.Add(indexMap[parameterSymbol]);
+                        this.Summary.SideEffectsInfo.ReturnTypes.Add(parameterSymbol.Type);
                     }
 
                     foreach (var definition in node.DataFlowInfo.TaintedDefinitions[returnDefinition].
                         Where(r => r.Kind == SymbolKind.Field))
                     {
-                        this.Summary.SideEffectsInfo.ReturnedFields.Add(Tuple.Create(
-                            definition.Symbol as IFieldSymbol, returnSymbol.Item2));
+                        var fieldSymbol = definition.Symbol as IFieldSymbol;
+                        this.Summary.SideEffectsInfo.ReturnedFields.Add(fieldSymbol);
+                        this.Summary.SideEffectsInfo.ReturnTypes.Add(fieldSymbol.Type);
                     }
                 }
+            }
+
+            foreach (var returnType in returnTypes)
+            {
+                this.Summary.SideEffectsInfo.ReturnTypes.Add(returnType);
             }
         }
 
@@ -415,8 +401,9 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <param name="node">IDataFlowNode</param>
         private void AnalyzeMethodCall(ExpressionSyntax call, IDataFlowNode node)
         {
-            ISet<Tuple<ISymbol, ITypeSymbol>> returnSymbols = null;
-            this.AnalyzeMethodCall(call, node, out returnSymbols);
+            ISet<ISymbol> returnSymbols = null;
+            ISet<ITypeSymbol> returnTypes = null;
+            this.AnalyzeMethodCall(call, node, out returnSymbols, out returnTypes);
         }
 
         /// <summary>
@@ -425,11 +412,13 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <param name="call">ExpressionSyntax</param>
         /// <param name="node">IDataFlowNode</param>
         /// <param name="returnSymbols">Return symbols</param>
+        /// <param name="returnTypes">Return types</param>
         private void AnalyzeMethodCall(ExpressionSyntax call, IDataFlowNode node,
-            out ISet<Tuple<ISymbol, ITypeSymbol>> returnSymbols)
+            out ISet<ISymbol> returnSymbols, out ISet<ITypeSymbol> returnTypes)
         {
-            returnSymbols = new HashSet<Tuple<ISymbol, ITypeSymbol>>();
-            
+            returnSymbols = new HashSet<ISymbol>();
+            returnTypes = new HashSet<ITypeSymbol>();
+
             var callSymbol = this.SemanticModel.GetSymbolInfo(call).Symbol;
             if (callSymbol == null)
             {
@@ -464,7 +453,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             foreach (var candidateCalleeSummary in candidateCalleeSummaries)
             {
                 this.MapCalleeSummaryToCallSymbol(candidateCalleeSummary, callSymbol, node);
-
                 this.ResolveGivesUpOwnershipInCall(callSymbol, candidateCalleeSummary,
                     argumentList, node);
                 this.ResolveSideEffectsInCall(call, candidateCalleeSummary, node);
@@ -474,6 +462,13 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                     returnSymbols.UnionWith(candidateCalleeSummary.GetResolvedReturnSymbols(
                         invocation, this.SemanticModel));
                 }
+
+                returnTypes.UnionWith(candidateCalleeSummary.SideEffectsInfo.ReturnTypes);
+            }
+            
+            if (objCreation != null)
+            {
+                returnTypes.Add(this.SemanticModel.GetTypeInfo(call).Type);
             }
         }
 
@@ -505,6 +500,21 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         #endregion
 
         #region resolution methods
+
+        /// <summary>
+        /// Resolves side-effects in the specified expression.
+        /// </summary>
+        /// <param name="expr">ExpressionSyntax</param>
+        /// <param name="node">IDataFlowNode</param>
+        private void ResolveSideEffectsInExpression(ExpressionSyntax expr, IDataFlowNode node)
+        {
+            if (expr is MemberAccessExpressionSyntax)
+            {
+                var memberAccess = expr as MemberAccessExpressionSyntax;
+                this.ResolveMethodParameterAccesses(memberAccess, node);
+                this.ResolveFieldAccesses(memberAccess, node);
+            }
+        }
 
         /// <summary>
         /// Resolves any method parameter acccesses in the member access expression.
@@ -598,10 +608,10 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 
         #endregion
 
-        #region side effect resolution methods
+        #region side-effect resolution methods
 
         /// <summary>
-        /// Resolves parameters flowing into fields side effects.
+        /// Resolves parameters flowing into fields side-effects.
         /// </summary>
         /// <param name="node">IDataFlowNode</param>
         private void ResolveParameterToFieldFlowSideEffects(IDataFlowNode node)
@@ -637,7 +647,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         }
 
         /// <summary>
-        /// Resolves the side effects in the call.
+        /// Resolves the side-effects in the call.
         /// </summary>
         /// <param name="call">ExpressionSyntax</param>
         /// <param name="calleeSummary">MethodSummary</param>
@@ -670,7 +680,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 node.DataFlowInfo.GenerateDefinition(sideEffect.Key, sideEffect.Key.Type);
                 foreach (var symbol in sideEffect.Value)
                 {
-                    node.DataFlowInfo.TaintSymbol(symbol, sideEffect.Key.Type, sideEffect.Key);
+                    node.DataFlowInfo.TaintSymbol(symbol, sideEffect.Key);
                 }
             }
 
@@ -698,12 +708,12 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         }
 
         /// <summary>
-        /// Resolves the side effects in the call.
+        /// Resolves the side-effects in the call.
         /// </summary>
         /// <param name="argumentList">Argument list</param>
         /// <param name="calleeSummary">Callee MethodSummary</param>
         /// <param name="node">IDataFlowNode</param>
-        /// <returns>Set of side effects</returns>
+        /// <returns>Set of side-effects</returns>
         private IDictionary<IFieldSymbol, ISet<ISymbol>> ResolveSideEffectsInCall(ArgumentListSyntax argumentList,
             MethodSummary calleeSummary, IDataFlowNode node)
         {
@@ -861,6 +871,72 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         #region helper methods
 
         /// <summary>
+        /// Returns the symbol info from the specified expression.
+        /// </summary>
+        /// <param name="symbolInfo">ISymbol</param>
+        /// <param name="expr">ExpressionSyntax</param>
+        /// <returns>ISymbol</returns>
+        private void GetExpressionSymbol(out Tuple<ISymbol, ITypeSymbol> symbolInfo,
+            ExpressionSyntax expr)
+        {
+            ISymbol symbol = null;
+            ITypeSymbol type = null;
+            if (expr is IdentifierNameSyntax ||
+                expr is MemberAccessExpressionSyntax)
+            {
+                symbol = this.SemanticModel.GetSymbolInfo(expr).Symbol;
+                type = this.SemanticModel.GetTypeInfo(expr).Type;
+            }
+            else if (expr is ElementAccessExpressionSyntax)
+            {
+                var memberAccess = (expr as ElementAccessExpressionSyntax);
+                if (memberAccess.Expression is IdentifierNameSyntax ||
+                    memberAccess.Expression is MemberAccessExpressionSyntax)
+                {
+                    symbol = this.SemanticModel.GetSymbolInfo(expr).Symbol;
+                    type = this.SemanticModel.GetTypeInfo(memberAccess.Expression).Type;
+                }
+            }
+
+            symbolInfo = Tuple.Create(symbol, type);
+        }
+
+        /// <summary>
+        /// Returns the symbol infos from the specified member expression.
+        /// </summary>
+        /// <param name="symbolInfos">ISymbols</param>
+        /// <param name="expr">ExpressionSyntax</param>
+        private void GetMemberExpressionSymbols(out ISet<Tuple<ISymbol, ITypeSymbol>> symbolInfos,
+            ExpressionSyntax expr)
+        {
+            symbolInfos = new HashSet<Tuple<ISymbol, ITypeSymbol>>();
+            if (expr is IdentifierNameSyntax ||
+                expr is MemberAccessExpressionSyntax)
+            {
+                var memberExprs = AnalysisContext.GetIdentifiers(expr);
+                foreach (var memberExpr in memberExprs)
+                {
+                    symbolInfos.Add(Tuple.Create(this.SemanticModel.GetSymbolInfo(memberExpr).Symbol,
+                        this.SemanticModel.GetTypeInfo(memberExpr).Type));
+                }
+            }
+            else if (expr is ElementAccessExpressionSyntax)
+            {
+                var memberAccess = (expr as ElementAccessExpressionSyntax);
+                if (memberAccess.Expression is IdentifierNameSyntax ||
+                    memberAccess.Expression is MemberAccessExpressionSyntax)
+                {
+                    var memberExprs = AnalysisContext.GetIdentifiers(expr);
+                    foreach (var memberExpr in memberExprs)
+                    {
+                        symbolInfos.Add(Tuple.Create(this.SemanticModel.GetSymbolInfo(memberExpr).Symbol,
+                            this.SemanticModel.GetTypeInfo(memberExpr).Type));
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Maps the access of the field symbol.
         /// </summary>
         /// <param name="fieldSymbol">IFieldSymbol</param>
@@ -903,6 +979,8 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         {
             if (!oldInfo.GeneratedDefinitions.SetEquals(newInfo.GeneratedDefinitions) ||
                 !oldInfo.KilledDefinitions.SetEquals(newInfo.KilledDefinitions) ||
+                !oldInfo.InputDefinitions.SetEquals(newInfo.InputDefinitions) ||
+                !oldInfo.OutputDefinitions.SetEquals(newInfo.OutputDefinitions) ||
                 !oldInfo.TaintedDefinitions.Keys.SequenceEqual(newInfo.TaintedDefinitions.Keys))
             {
                 return false;

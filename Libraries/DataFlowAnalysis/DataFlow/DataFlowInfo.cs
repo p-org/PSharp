@@ -56,11 +56,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         public ISet<SymbolDefinition> OutputDefinitions { get; private set; }
 
         /// <summary>
-        /// Set of local definitions.
-        /// </summary>
-        private ISet<SymbolDefinition> LocalDefinitions;
-
-        /// <summary>
         /// Map containing tainted definitions.
         /// </summary>
         public IDictionary<SymbolDefinition, ISet<SymbolDefinition>>
@@ -83,7 +78,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             this.KilledDefinitions = new HashSet<SymbolDefinition>();
             this.InputDefinitions = new HashSet<SymbolDefinition>();
             this.OutputDefinitions = new HashSet<SymbolDefinition>();
-            this.LocalDefinitions = new HashSet<SymbolDefinition>();
             this.TaintedDefinitions = new Dictionary<SymbolDefinition, ISet<SymbolDefinition>>();
         }
 
@@ -98,9 +92,10 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <param name="type">ITypeSymbol</param>
         internal void GenerateDefinition(ISymbol symbol, ITypeSymbol type)
         {
-            var definition = this.GetOrCreateLocalDefinition(symbol, type);
-            if (!this.GeneratedDefinitions.Contains(definition))
+            var definition = this.GeneratedDefinitions.FirstOrDefault(def => def.Symbol.Equals(symbol));
+            if (definition == null)
             {
+                definition = new SymbolDefinition(symbol, type, this.DataFlowNode);
                 this.GeneratedDefinitions.Add(definition);
 
                 if (!this.AnalysisContext.IsTypePassedByValueOrImmutable(type))
@@ -134,9 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// </summary>
         internal void AssignOutputDefinitions()
         {
-            var aliveInputDefinitions = this.GetAliveInputDefinitions();
-            var outputDefinitions = this.GeneratedDefinitions.Union(aliveInputDefinitions);
-            this.OutputDefinitions = new HashSet<SymbolDefinition>(outputDefinitions);
+            this.OutputDefinitions.UnionWith(this.GetAliveInputDefinitions());
         }
 
         /// <summary>
@@ -145,10 +138,9 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <param name="taintSymbol">ISymbol</param>
         /// <param name="taintType">ITypeSymbol</param>
         /// <param name="symbol">ISymbol</param>
-        internal void TaintSymbol(ISymbol taintSymbol, ITypeSymbol taintType, ISymbol symbol)
+        internal void TaintSymbol(ISymbol taintSymbol, ISymbol symbol)
         {
-            this.TaintSymbol(new HashSet<Tuple<ISymbol, ITypeSymbol>> {
-                Tuple.Create(taintSymbol, taintType) }, symbol);
+            this.TaintSymbol(new HashSet<ISymbol> { taintSymbol }, symbol);
         }
 
         /// <summary>
@@ -156,40 +148,32 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// </summary>
         /// <param name="taintSymbols">ISymbols</param>
         /// <param name="symbol">ISymbol</param>
-        internal void TaintSymbol(IEnumerable<Tuple<ISymbol, ITypeSymbol>> taintSymbols, ISymbol symbol)
+        internal void TaintSymbol(IEnumerable<ISymbol> taintSymbols, ISymbol symbol)
         {
             var taintDefinitions = new HashSet<SymbolDefinition>();
             foreach (var taintSymbol in taintSymbols)
             {
-                var inputDefinitions = GetInputDefinitionsOfSymbol(taintSymbol.Item1);
-                if (inputDefinitions.Count == 0)
+                if (taintSymbol.Kind == SymbolKind.Field &&
+                    this.IsFreshSymbol(taintSymbol))
                 {
-                    inputDefinitions.Add(GetOrCreateLocalDefinition(taintSymbol.Item1, taintSymbol.Item2));
+                    var fieldSymbol = taintSymbol as IFieldSymbol;
+                    this.GenerateDefinition(fieldSymbol, fieldSymbol.Type);
+                    taintDefinitions.Add(this.GetGeneratedDefinitionOfSymbol(fieldSymbol));
                 }
-
-                taintDefinitions.UnionWith(inputDefinitions);
+                else
+                {
+                    taintDefinitions.UnionWith(this.GetInputDefinitionsOfSymbol(taintSymbol));
+                }
             }
 
             var resolvedDefinitions = new HashSet<SymbolDefinition>(taintDefinitions);
-            foreach (var taintDefinition in taintDefinitions)
+            foreach (var taintDefinition in taintDefinitions.Where(
+                def => this.TaintedDefinitions.ContainsKey(def)))
             {
-                if (this.TaintedDefinitions.ContainsKey(taintDefinition))
-                {
-                    resolvedDefinitions.UnionWith(this.TaintedDefinitions[taintDefinition]);
-                }
-            }
-            
-            var definitions = new HashSet<SymbolDefinition>();
-            var generatedDefinition = GetGeneratedDefinitionOfSymbol(symbol);
-            if (generatedDefinition != null)
-            {
-                definitions.Add(generatedDefinition);
-            }
-            else
-            {
-                definitions.UnionWith(GetInputDefinitionsOfSymbol(symbol));
+                resolvedDefinitions.UnionWith(this.TaintedDefinitions[taintDefinition]);
             }
 
+            var definitions = this.GetOutputDefinitionsOfSymbol(symbol);
             foreach (var definition in definitions)
             {
                 this.TaintDefinition(resolvedDefinitions, definition);
@@ -220,10 +204,51 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 this.TaintedDefinitions.Add(definition, new HashSet<SymbolDefinition>());
             }
 
-            foreach (var taintDefinition in taintDefinitions)
+            this.TaintedDefinitions[definition].UnionWith(taintDefinitions);
+        }
+
+        /// <summary>
+        /// Checks if the symbol is fresh.
+        /// </summary>
+        /// <param name="symbol">ISymbol</param>
+        /// <returns>Boolean</returns>
+        internal bool IsFreshSymbol(ISymbol symbol)
+        {
+            var inputDefinitions = this.GetInputDefinitionsOfSymbol(symbol);
+            if (inputDefinitions.Count == 0)
             {
-                definition.Types.UnionWith(definition.Types);
-                this.TaintedDefinitions[definition].Add(taintDefinition);
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Adds the specified type to the symbol.
+        /// </summary>
+        /// <param name="symbol">ISymbol</param>
+        /// <param name="type">ITypeSymbol</param>
+        internal void AddTypeToSymbol(ISymbol symbol, ITypeSymbol type)
+        {
+            var generatedDefinition = this.GetGeneratedDefinitionOfSymbol(symbol);
+            if (generatedDefinition != null && type != null)
+            {
+                generatedDefinition.Types.Add(type);
+            }
+        }
+
+        /// <summary>
+        /// Resets the type of the symbol with the specified type.
+        /// </summary>
+        /// <param name="symbol">ISymbol</param>
+        /// <param name="type">ITypeSymbol</param>
+        internal void ResetTypeOfSymbol(ISymbol symbol, ITypeSymbol type)
+        {
+            var generatedDefinition = this.GetGeneratedDefinitionOfSymbol(symbol);
+            if (generatedDefinition != null && type != null)
+            {
+                generatedDefinition.Types.Clear();
+                generatedDefinition.Types.Add(type);
             }
         }
 
@@ -236,15 +261,15 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         {
             var newInfo = new DataFlowInfo(this.DataFlowNode, this.AnalysisContext);
 
+            newInfo.GeneratedDefinitions.UnionWith(this.GeneratedDefinitions);
+            newInfo.KilledDefinitions.UnionWith(this.KilledDefinitions);
+            newInfo.InputDefinitions.UnionWith(this.InputDefinitions);
+            newInfo.OutputDefinitions.UnionWith(this.OutputDefinitions);
+
             foreach (var pair in this.TaintedDefinitions)
             {
                 newInfo.TaintedDefinitions.Add(pair.Key, new HashSet<SymbolDefinition>(pair.Value));
             }
-
-            newInfo.GeneratedDefinitions.UnionWith(this.GeneratedDefinitions);
-            newInfo.KilledDefinitions.UnionWith(this.KilledDefinitions);
-            newInfo.InputDefinitions.UnionWith(this.KilledDefinitions);
-            newInfo.KilledDefinitions.UnionWith(this.KilledDefinitions);
 
             return newInfo;
         }
@@ -274,26 +299,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         internal ISet<SymbolDefinition> ResolveOutputAliases(ISymbol symbol)
         {
             var definitions = this.GetOutputDefinitionsOfSymbol(symbol);
-            return this.ResolveAliases(definitions);
-        }
-
-        /// <summary>
-        /// Resolves the aliases of the specified symbol in
-        /// the local definitions of the data-flow node.
-        /// </summary>
-        /// <param name="symbol">ISymbol</param>
-        /// <returns>SymbolDefinitions</returns>
-        internal ISet<SymbolDefinition> ResolveLocalAliases(ISymbol symbol)
-        {
-            var definitions = new HashSet<SymbolDefinition>();
-            var generatedDefinition = this.GetGeneratedDefinitionOfSymbol(symbol);
-            if (generatedDefinition != null)
-            {
-                definitions.Add(generatedDefinition);
-            }
-
-            definitions.UnionWith(this.GetAliveInputDefinitionsOfSymbol(symbol));
-            
             return this.ResolveAliases(definitions);
         }
 
@@ -385,26 +390,16 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <returns>SymbolDefinitions</returns>
         private ISet<SymbolDefinition> GetOutputDefinitionsOfSymbol(ISymbol symbol)
         {
-            return this.GetDefinitionsOfSymbol(symbol, this.OutputDefinitions);
-        }
-
-        /// <summary>
-        /// Returns the alive input definitions for the specified symbol.
-        /// </summary>
-        /// <param name="symbol">Symbol</param>
-        /// <returns>SymbolDefinitions</returns>
-        private ISet<SymbolDefinition> GetAliveInputDefinitionsOfSymbol(ISymbol symbol)
-        {
             return this.GetDefinitionsOfSymbol(symbol, this.GetAliveInputDefinitions());
         }
 
         /// <summary>
         /// Returns the input definitions that have not be killed.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>SymbolDefinitions</returns>
         private ISet<SymbolDefinition> GetAliveInputDefinitions()
         {
-            var definitions = this.InputDefinitions.Union(this.LocalDefinitions).
+            var definitions = this.InputDefinitions.Union(this.GeneratedDefinitions).
                 Except(this.KilledDefinitions);
             return new HashSet<SymbolDefinition>(definitions);
         }
@@ -422,24 +417,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             resolvedDefinitions.UnionWith(definitions.Where(
                 val => val.Symbol.Equals(symbol)));
             return resolvedDefinitions;
-        }
-
-        /// <summary>
-        /// Returns the local definition for the specified symbol.
-        /// </summary>
-        /// <param name="symbol">ISymbol</param>
-        /// <param name="type">ITypeSymbol</param>
-        /// <returns>SymbolDefinition</returns>
-        private SymbolDefinition GetOrCreateLocalDefinition(ISymbol symbol, ITypeSymbol type)
-        {
-            var definition = this.LocalDefinitions.FirstOrDefault(def => def.Symbol.Equals(symbol));
-            if (definition == null)
-            {
-                definition = new SymbolDefinition(symbol, type, this.DataFlowNode);
-                this.LocalDefinitions.Add(definition);
-            }
-
-            return definition;
         }
 
         #endregion

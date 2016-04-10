@@ -384,7 +384,7 @@ class M : Machine
  {
   if (this.Check)
   {
-   return new Box();
+   return new Envelope();
   }
   else
   {
@@ -490,7 +490,7 @@ class M : Machine
  {
   if (this.Check)
   {
-   return new Box();
+   return new Envelope();
   }
   else
   {
@@ -601,7 +601,7 @@ class M : Machine
  {
   if (this.Check)
   {
-   return new Box();
+   return new Envelope();
   }
   else
   {
@@ -724,7 +724,7 @@ class M : Machine
 
   if (this.Check)
   {
-   return new Box();
+   return new Envelope();
   }
   else
   {

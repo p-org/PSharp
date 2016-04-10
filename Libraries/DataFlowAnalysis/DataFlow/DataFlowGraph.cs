@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             IDataFlowNode fromNode, IDataFlowNode toNode)
         {
             var fromAliasDefinitions = fromNode.DataFlowInfo.ResolveOutputAliases(fromSymbol);
-            var toAliasDefinitions = toNode.DataFlowInfo.ResolveLocalAliases(toSymbol);
+            var toAliasDefinitions = toNode.DataFlowInfo.ResolveOutputAliases(toSymbol);
             var commonDefinitions = fromAliasDefinitions.Intersect(toAliasDefinitions);
             
             if (!commonDefinitions.Any())

@@ -234,13 +234,13 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 return false;
             }
             
-            var calleeDefinitions = node.DataFlowInfo.ResolveLocalAliases(calleeSymbol);
+            var calleeDefinitions = node.DataFlowInfo.ResolveOutputAliases(calleeSymbol);
             var calleeTypes = calleeDefinitions.SelectMany(def => def.Types);
             if (!calleeTypes.Any())
             {
                 return false;
             }
-
+            
             foreach (var calleeType in calleeTypes)
             {
                 MethodDeclarationSyntax method = null;

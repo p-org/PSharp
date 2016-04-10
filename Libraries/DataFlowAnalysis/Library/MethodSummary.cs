@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         public IDataFlowAnalysis DataFlowAnalysis { get; private set; }
 
         /// <summary>
-        /// Side effects information.
+        /// Side-effects information.
         /// </summary>
         public MethodSideEffectsInfo SideEffectsInfo;
 
@@ -152,8 +152,8 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <param name="invocation">InvocationExpressionSyntax</param>
         /// <param name="model">SemanticModel</param>
         /// <returns>Set of return symbols</returns>
-        public ISet<Tuple<ISymbol, ITypeSymbol>> GetResolvedReturnSymbols(
-            InvocationExpressionSyntax invocation, SemanticModel model)
+        public ISet<ISymbol> GetResolvedReturnSymbols(InvocationExpressionSyntax invocation,
+            SemanticModel model)
         {
             return this.SideEffectsInfo.GetResolvedReturnSymbols(invocation, model);
         }
@@ -301,6 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             this.PrintParameterAccesses(indent);
             this.PrintReturnedFields(indent);
             this.PrintReturnedParameters(indent);
+            this.PrintReturnedTypes(indent);
             this.PrintGivesUpOwnershipParameterIndexes(indent);
 
             Console.WriteLine(indent + ". |");
@@ -661,8 +662,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 Console.WriteLine(indent + ". | . Returned fields");
                 foreach (var field in this.SideEffectsInfo.ReturnedFields)
                 {
-                    Console.WriteLine(indent + ". | ... Field " +
-                        $"'{field.Item1}' of type '{field.Item2}'");
+                    Console.WriteLine(indent + $". | ... field '{field}'");
                 }
             }
         }
@@ -679,8 +679,25 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 Console.WriteLine(indent + ". | . Returned parameters");
                 foreach (var parameter in this.SideEffectsInfo.ReturnedParameters)
                 {
-                    Console.WriteLine(indent + ". | ... Parameter at index " +
-                        $"'{parameter.Item1}' of type '{parameter.Item2}'");
+                    Console.WriteLine(indent + ". | ... parameter at index " +
+                        $"'{parameter}'");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Prints the returned types.
+        /// </summary>
+        /// <param name="indent">Indent</param>
+        private void PrintReturnedTypes(string indent)
+        {
+            if (this.SideEffectsInfo.ReturnTypes.Count > 0)
+            {
+                Console.WriteLine(indent + ". |");
+                Console.WriteLine(indent + ". | . Return types");
+                foreach (var type in this.SideEffectsInfo.ReturnTypes)
+                {
+                    Console.WriteLine(indent + $". | ... type '{type}'");
                 }
             }
         }

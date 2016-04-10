@@ -214,9 +214,9 @@ namespace Microsoft.PSharp.StaticAnalysis
                 if (invocation != null)
                 {
                     var resolvedReturnSymbols = candidateSummary.GetResolvedReturnSymbols(invocation, model);
-                    foreach (var rrs in resolvedReturnSymbols)
+                    foreach (var resolvedReturnSymbol in resolvedReturnSymbols)
                     {
-                        potentialReturnSymbols.Add(rrs.Item1);
+                        potentialReturnSymbols.Add(resolvedReturnSymbol);
                     }
                 }
             }

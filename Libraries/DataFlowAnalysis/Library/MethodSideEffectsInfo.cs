@@ -21,14 +21,14 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 {
     /// <summary>
-    /// Method side effects information.
+    /// Method side-effects information.
     /// </summary>
     public sealed class MethodSideEffectsInfo
     {
         #region fields
 
         /// <summary>
-        /// Method summary that contains these side effects.
+        /// Method summary that contains these side-effects.
         /// </summary>
         private MethodSummary Summary;
 
@@ -49,18 +49,22 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// accesses in the method.
         /// </summary>
         public IDictionary<int, ISet<Statement>> ParameterAccesses;
-        
-        /// <summary>
-        /// Set of fields and associated types that are
-        /// returned to the caller of the method.
-        /// </summary>
-        public ISet<Tuple<IFieldSymbol, ITypeSymbol>> ReturnedFields;
 
         /// <summary>
-        /// Set of parameter indexes and associated types that are
-        /// returned to the caller of the method.
+        /// Fields that are returned to the caller of the method.
         /// </summary>
-        public ISet<Tuple<int, ITypeSymbol>> ReturnedParameters;
+        public ISet<IFieldSymbol> ReturnedFields;
+
+        /// <summary>
+        /// Indexes of the parameters that are returned
+        /// to the caller of the method.
+        /// </summary>
+        public ISet<int> ReturnedParameters;
+
+        /// <summary>
+        /// Set of return types.
+        /// </summary>
+        public ISet<ITypeSymbol> ReturnTypes;
 
         /// <summary>
         /// Set of the indexes of parameters that the method
@@ -82,8 +86,9 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             this.FieldFlowParamIndexes = new Dictionary<IFieldSymbol, ISet<int>>();
             this.FieldAccesses = new Dictionary<IFieldSymbol, ISet<Statement>>();
             this.ParameterAccesses = new Dictionary<int, ISet<Statement>>();
-            this.ReturnedFields = new HashSet<Tuple<IFieldSymbol, ITypeSymbol>>();
-            this.ReturnedParameters = new HashSet<Tuple<int, ITypeSymbol>>();
+            this.ReturnedFields = new HashSet<IFieldSymbol>();
+            this.ReturnedParameters = new HashSet<int>();
+            this.ReturnTypes = new HashSet<ITypeSymbol>();
             this.GivesUpOwnershipParamIndexes = new HashSet<int>();
         }
 
@@ -98,21 +103,21 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <param name="invocation">InvocationExpressionSyntax</param>
         /// <param name="model">SemanticModel</param>
         /// <returns>Set of return symbols</returns>
-        internal ISet<Tuple<ISymbol, ITypeSymbol>> GetResolvedReturnSymbols(
-            InvocationExpressionSyntax invocation, SemanticModel model)
+        internal ISet<ISymbol> GetResolvedReturnSymbols(InvocationExpressionSyntax invocation,
+            SemanticModel model)
         {
-            var returnSymbols = new HashSet<Tuple<ISymbol, ITypeSymbol>>();
+            var returnSymbols = new HashSet<ISymbol>();
 
             foreach (var parameter in this.ReturnedParameters)
             {
-                var argExpr = invocation.ArgumentList.Arguments[parameter.Item1].Expression;
+                var argExpr = invocation.ArgumentList.Arguments[parameter].Expression;
                 var returnSymbol = model.GetSymbolInfo(argExpr).Symbol;
-                returnSymbols.Add(Tuple.Create(returnSymbol, parameter.Item2));
+                returnSymbols.Add(model.GetSymbolInfo(argExpr).Symbol);
             }
 
             foreach (var field in this.ReturnedFields)
             {
-                returnSymbols.Add(Tuple.Create(field.Item1 as ISymbol, field.Item2));
+                returnSymbols.Add(field as ISymbol);
             }
 
             return returnSymbols;
