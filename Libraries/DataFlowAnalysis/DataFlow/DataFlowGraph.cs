@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 {
@@ -153,16 +154,74 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         private bool FlowsIntoSymbol(ISymbol fromSymbol, ISymbol toSymbol,
             IDataFlowNode fromNode, IDataFlowNode toNode)
         {
+            if (fromNode.IsSuccessorOf(toNode) &&
+                toNode.IsSuccessorOf(fromNode) &&
+                !this.IsSymbolReachingNodeInCycle(fromSymbol, fromNode, toNode))
+            {
+                return false;
+            }
+
             var fromAliasDefinitions = fromNode.DataFlowInfo.ResolveOutputAliases(fromSymbol);
             var toAliasDefinitions = toNode.DataFlowInfo.ResolveLocalAliases(toSymbol);
-            
-            if (fromAliasDefinitions.Overlaps(toAliasDefinitions))
+            if (!fromAliasDefinitions.Overlaps(toAliasDefinitions))
             {
-                return true;
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Checks if the specified symbol is alive in some
+        /// path between the two specified nodes.
+        /// </summary>
+        /// <param name="symbol">ISymbol</param>
+        /// <param name="fromNode">IDataFlowNode</param>
+        /// <param name="toNode">IDataFlowNode</param>
+        /// <returns>Boolean</returns>
+        private bool IsSymbolReachingNodeInCycle(ISymbol symbol,
+            IDataFlowNode fromNode, IDataFlowNode toNode)
+        {
+            var queue = new Queue<IList<IDataFlowNode>>();
+            queue.Enqueue(new List<IDataFlowNode> { fromNode });
+
+            while (queue.Count > 0)
+            {
+                var path = queue.Dequeue();
+                var node = path.Last();
+
+                if (node.Equals(toNode) && path.Count > 1)
+                {
+                    bool isAlive = true;
+                    foreach (var visitedNode in path)
+                    {
+                        var generatedDefinition = visitedNode.DataFlowInfo.
+                            GetGeneratedDefinitionOfSymbol(symbol);
+                        if (generatedDefinition != null)
+                        {
+                            isAlive = false;
+                            break;
+                        }
+                    }
+
+                    if (isAlive)
+                    {
+                        return true;
+                    }
+                }
+
+                foreach (var successor in node.ISuccessors.Where(
+                    n => !path.Skip(1).Contains(n)))
+                {
+                    var nextPath = new List<IDataFlowNode>(path);
+                    nextPath.Add(successor);
+                    queue.Enqueue(nextPath);
+                }
             }
 
             return false;
         }
+
 
         #endregion
 
