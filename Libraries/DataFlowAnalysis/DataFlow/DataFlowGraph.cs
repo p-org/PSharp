@@ -154,17 +154,26 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         private bool FlowsIntoSymbol(ISymbol fromSymbol, ISymbol toSymbol,
             IDataFlowNode fromNode, IDataFlowNode toNode)
         {
-            if (fromNode.IsSuccessorOf(toNode) &&
-                toNode.IsSuccessorOf(fromNode) &&
-                !this.IsSymbolReachingNodeInCycle(fromSymbol, fromNode, toNode))
+            var fromAliasDefinitions = fromNode.DataFlowInfo.ResolveOutputAliases(fromSymbol);
+            var toAliasDefinitions = toNode.DataFlowInfo.ResolveLocalAliases(toSymbol);
+            var commonDefinitions = fromAliasDefinitions.Intersect(toAliasDefinitions);
+            
+            if (!commonDefinitions.Any())
             {
                 return false;
             }
 
-            var fromAliasDefinitions = fromNode.DataFlowInfo.ResolveOutputAliases(fromSymbol);
-            var toAliasDefinitions = toNode.DataFlowInfo.ResolveLocalAliases(toSymbol);
-            if (!fromAliasDefinitions.Overlaps(toAliasDefinitions))
+            if (fromNode.IsSuccessorOf(toNode) &&
+                toNode.IsSuccessorOf(fromNode))
             {
+                foreach (var definition in commonDefinitions)
+                {
+                    if (this.IsDefinitionReachingNodeInCycle(definition, fromNode, toNode))
+                    {
+                        return true;
+                    }
+                }
+
                 return false;
             }
 
@@ -172,14 +181,14 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         }
 
         /// <summary>
-        /// Checks if the specified symbol is alive in some
+        /// Checks if the specified definition is alive in some
         /// path between the two specified nodes.
         /// </summary>
-        /// <param name="symbol">ISymbol</param>
+        /// <param name="definition">SymbolDefinition</param>
         /// <param name="fromNode">IDataFlowNode</param>
         /// <param name="toNode">IDataFlowNode</param>
         /// <returns>Boolean</returns>
-        private bool IsSymbolReachingNodeInCycle(ISymbol symbol,
+        private bool IsDefinitionReachingNodeInCycle(SymbolDefinition definition,
             IDataFlowNode fromNode, IDataFlowNode toNode)
         {
             var queue = new Queue<IList<IDataFlowNode>>();
@@ -196,8 +205,9 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                     foreach (var visitedNode in path)
                     {
                         var generatedDefinition = visitedNode.DataFlowInfo.
-                            GetGeneratedDefinitionOfSymbol(symbol);
-                        if (generatedDefinition != null)
+                            GetGeneratedDefinitionOfSymbol(definition.Symbol);
+                        if (generatedDefinition != null &&
+                            generatedDefinition.Equals(definition))
                         {
                             isAlive = false;
                             break;

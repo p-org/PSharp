@@ -74,6 +74,13 @@ namespace Microsoft.PSharp.StaticAnalysis
                     statements.AddRange(node.Statements.SkipWhile(
                         val => !val.Equals(givenUpSymbol.Statement)));
                 }
+                else if (repeatGivesUpNode &&
+                    node.Equals(givenUpSymbol.Statement.ControlFlowNode))
+                {
+                    statements.AddRange(node.Statements.TakeWhile(
+                        val => !val.Equals(givenUpSymbol.Statement)));
+                    statements.Add(givenUpSymbol.Statement);
+                }
                 else
                 {
                     statements.AddRange(node.Statements);
