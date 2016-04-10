@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 
             if (node.ISuccessors.Count == 0)
             {
-                this.ResolveSideEffectsInExit(node);
+                this.ResolveParameterToFieldFlowSideEffects(node);
             }
         }
 
@@ -394,14 +394,14 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                     foreach (var definition in node.DataFlowInfo.TaintedDefinitions[returnDefinition].
                         Where(s => s.Kind == SymbolKind.Parameter))
                     {
-                        this.Summary.ReturnedParameters.Add(Tuple.Create(
+                        this.Summary.SideEffectsInfo.ReturnedParameters.Add(Tuple.Create(
                             indexMap[definition.Symbol as IParameterSymbol], returnSymbol.Item2));
                     }
 
                     foreach (var definition in node.DataFlowInfo.TaintedDefinitions[returnDefinition].
                         Where(r => r.Kind == SymbolKind.Field))
                     {
-                        this.Summary.ReturnedFields.Add(Tuple.Create(
+                        this.Summary.SideEffectsInfo.ReturnedFields.Add(Tuple.Create(
                             definition.Symbol as IFieldSymbol, returnSymbol.Item2));
                     }
                 }
@@ -550,15 +550,15 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             {
                 if (this.Summary.DataFlowAnalysis.FlowsFromParameter(pair.Key, symbol, node.Statement))
                 {
-                    if (!this.Summary.ParameterAccesses.ContainsKey(pair.Value))
+                    if (!this.Summary.SideEffectsInfo.ParameterAccesses.ContainsKey(pair.Value))
                     {
-                        this.Summary.ParameterAccesses.Add(pair.Value,
+                        this.Summary.SideEffectsInfo.ParameterAccesses.Add(pair.Value,
                             new HashSet<Statement>());
                     }
 
                     foreach (var access in parameterAccesses)
                     {
-                        this.Summary.ParameterAccesses[pair.Value].Add(access);
+                        this.Summary.SideEffectsInfo.ParameterAccesses[pair.Value].Add(access);
                     }
                 }
             }
@@ -601,11 +601,12 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         #region side effect resolution methods
 
         /// <summary>
-        /// Resolves field access side effects.
+        /// Resolves parameters flowing into fields side effects.
         /// </summary>
         /// <param name="node">IDataFlowNode</param>
-        private void ResolveSideEffectsInExit(IDataFlowNode node)
+        private void ResolveParameterToFieldFlowSideEffects(IDataFlowNode node)
         {
+            var fieldFlowSideEffects = node.Summary.SideEffectsInfo.FieldFlowParamIndexes;
             foreach (var pair in node.DataFlowInfo.TaintedDefinitions)
             {
                 foreach (var value in pair.Value)
@@ -616,9 +617,9 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                         continue;
                     }
 
-                    if (!node.Summary.SideEffects.ContainsKey(pair.Key.Symbol as IFieldSymbol))
+                    if (!fieldFlowSideEffects.ContainsKey(pair.Key.Symbol as IFieldSymbol))
                     {
-                        node.Summary.SideEffects.Add(pair.Key.Symbol as IFieldSymbol, new HashSet<int>());
+                        fieldFlowSideEffects.Add(pair.Key.Symbol as IFieldSymbol, new HashSet<int>());
                     }
 
                     var parameter = value.Symbol.DeclaringSyntaxReferences.
@@ -628,7 +629,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                     {
                         if (parameterList.Parameters[idx].Equals(parameter))
                         {
-                            node.Summary.SideEffects[pair.Key.Symbol as IFieldSymbol].Add(idx);
+                            fieldFlowSideEffects[pair.Key.Symbol as IFieldSymbol].Add(idx);
                         }
                     }
                 }
@@ -675,7 +676,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 
             for (int index = 0; index < argumentList.Arguments.Count; index++)
             {
-                if (!calleeSummary.ParameterAccesses.ContainsKey(index))
+                if (!calleeSummary.SideEffectsInfo.ParameterAccesses.ContainsKey(index))
                 {
                     continue;
                 }
@@ -684,10 +685,10 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                     argumentList.Arguments[index].Expression);
 
                 this.ResolveMethodParameterAccesses(argIdentifier,
-                    calleeSummary.ParameterAccesses[index], node);
+                    calleeSummary.SideEffectsInfo.ParameterAccesses[index], node);
             }
 
-            foreach (var fieldAccess in calleeSummary.FieldAccesses)
+            foreach (var fieldAccess in calleeSummary.SideEffectsInfo.FieldAccesses)
             {
                 foreach (var access in fieldAccess.Value)
                 {
@@ -707,7 +708,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             MethodSummary calleeSummary, IDataFlowNode node)
         {
             var sideEffects = new Dictionary<IFieldSymbol, ISet<ISymbol>>();
-            foreach (var sideEffect in calleeSummary.SideEffects)
+            foreach (var sideEffect in calleeSummary.SideEffectsInfo.FieldFlowParamIndexes)
             {
                 sideEffects.Add(sideEffect.Key, new HashSet<ISymbol>());
                 foreach (var index in sideEffect.Value)
@@ -797,7 +798,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         private void ResolveGivesUpOwnershipInCall(ISymbol callSymbol, MethodSummary methodSummary,
             ArgumentListSyntax argumentList, IDataFlowNode node)
         {
-            foreach (var paramIndex in methodSummary.GivesUpOwnershipParamIndexes)
+            foreach (var paramIndex in methodSummary.SideEffectsInfo.GivesUpOwnershipParamIndexes)
             {
                 var argExpr = argumentList.Arguments[paramIndex].Expression;
                 this.ResolveGivesUpOwnershipInArgument(callSymbol, argExpr, node);
@@ -831,7 +832,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                     IParameterSymbol paramSymbol = this.SemanticModel.GetDeclaredSymbol(param);
                     if (this.Summary.DataFlowAnalysis.FlowsFromParameter(paramSymbol, argSymbol, node.Statement))
                     {
-                        this.Summary.GivesUpOwnershipParamIndexes.Add(idx);
+                        this.Summary.SideEffectsInfo.GivesUpOwnershipParamIndexes.Add(idx);
                     }
                 }
 
@@ -865,13 +866,13 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <param name="statement">Statement</param>
         private void MapFieldAccessInStatement(IFieldSymbol fieldSymbol, Statement statement)
         {
-            if (!this.Summary.FieldAccesses.ContainsKey(fieldSymbol))
+            if (!this.Summary.SideEffectsInfo.FieldAccesses.ContainsKey(fieldSymbol))
             {
-                this.Summary.FieldAccesses.Add(fieldSymbol,
+                this.Summary.SideEffectsInfo.FieldAccesses.Add(fieldSymbol,
                     new HashSet<Statement>());
             }
 
-            this.Summary.FieldAccesses[fieldSymbol].Add(statement);
+            this.Summary.SideEffectsInfo.FieldAccesses[fieldSymbol].Add(statement);
         }
 
         /// <summary>

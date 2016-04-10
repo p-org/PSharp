@@ -69,40 +69,9 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         public IDataFlowAnalysis DataFlowAnalysis { get; private set; }
 
         /// <summary>
-        /// Dictionary containing all read and write parameters
-        /// accesses in the method.
+        /// Side effects information.
         /// </summary>
-        public IDictionary<int, ISet<Statement>> ParameterAccesses;
-
-        /// <summary>
-        /// Dictionary containing all read and write
-        /// field accesses in the method.
-        /// </summary>
-        public IDictionary<IFieldSymbol, ISet<Statement>> FieldAccesses;
-
-        /// <summary>
-        /// Dictionary containing all side effects in regards to
-        /// parameters flowing into fields in the method.
-        /// </summary>
-        public IDictionary<IFieldSymbol, ISet<int>> SideEffects;
-
-        /// <summary>
-        /// Set of fields and associated types that are
-        /// returned to the caller of the method.
-        /// </summary>
-        public ISet<Tuple<IFieldSymbol, ITypeSymbol>> ReturnedFields;
-
-        /// <summary>
-        /// Set of parameter indexes and associated types that are
-        /// returned to the caller of the method.
-        /// </summary>
-        public ISet<Tuple<int, ITypeSymbol>> ReturnedParameters;
-
-        /// <summary>
-        /// Set of the indexes of parameters that the method
-        /// gives up during its execution.
-        /// </summary>
-        public ISet<int> GivesUpOwnershipParamIndexes;
+        public MethodSideEffectsInfo SideEffectsInfo;
 
         /// <summary>
         /// A counter for creating unique IDs.
@@ -186,21 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         public ISet<Tuple<ISymbol, ITypeSymbol>> GetResolvedReturnSymbols(
             InvocationExpressionSyntax invocation, SemanticModel model)
         {
-            var returnSymbols = new HashSet<Tuple<ISymbol, ITypeSymbol>>();
-
-            foreach (var parameter in this.ReturnedParameters)
-            {
-                var argExpr = invocation.ArgumentList.Arguments[parameter.Item1].Expression;
-                var returnSymbol = model.GetSymbolInfo(argExpr).Symbol;
-                returnSymbols.Add(Tuple.Create(returnSymbol, parameter.Item2));
-            }
-
-            foreach (var field in this.ReturnedFields)
-            {
-                returnSymbols.Add(Tuple.Create(field.Item1 as ISymbol, field.Item2));
-            }
-
-            return returnSymbols;
+            return this.SideEffectsInfo.GetResolvedReturnSymbols(invocation, model);
         }
 
         /// <summary>
@@ -235,13 +190,8 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             {
                 return this;
             }
-            
-            this.ParameterAccesses = new Dictionary<int, ISet<Statement>>();
-            this.FieldAccesses = new Dictionary<IFieldSymbol, ISet<Statement>>();
-            this.SideEffects = new Dictionary<IFieldSymbol, ISet<int>>();
-            this.ReturnedFields = new HashSet<Tuple<IFieldSymbol, ITypeSymbol>>();
-            this.ReturnedParameters = new HashSet<Tuple<int, ITypeSymbol>>();
-            this.GivesUpOwnershipParamIndexes = new HashSet<int>();
+
+            this.SideEffectsInfo = new MethodSideEffectsInfo(this);
 
             this.BuildDataFlowGraph();
 
@@ -346,83 +296,12 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             this.PrintTaintedDefinitions(indent);
             this.PrintMethodSummaryCache(indent);
             this.PrintGivesUpOwnershipMap(indent);
-
-            if (this.ParameterAccesses.Count > 0)
-            {
-                Console.WriteLine(indent + ". |");
-                Console.WriteLine(indent + ". | . Parameter access set");
-                foreach (var index in this.ParameterAccesses)
-                {
-                    foreach (var statement in index.Value)
-                    {
-                        Console.WriteLine(indent + ". | ... Parameter at index '{0}' " +
-                            "is accessed in '{1}'", index.Key, statement.SyntaxNode);
-                    }
-                }
-            }
-
-            if (this.FieldAccesses.Count > 0)
-            {
-                Console.WriteLine(indent + ". |");
-                Console.WriteLine(indent + ". | . Field access set");
-                foreach (var field in this.FieldAccesses)
-                {
-                    foreach (var statement in field.Value)
-                    {
-                        Console.WriteLine(indent + ". | ... '{0}' accessed in '{1}'",
-                           field.Key, statement.SyntaxNode);
-                    }
-                }
-            }
-
-            if (this.SideEffects.Count > 0)
-            {
-                Console.WriteLine(indent + ". |");
-                Console.WriteLine(indent + ". | . Side effects");
-                foreach (var pair in this.SideEffects)
-                {
-                    foreach (var index in pair.Value)
-                    {
-                        Console.WriteLine(indent + ". | ... parameter at index '{0}' " +
-                            "flows into field '{1}'", index, pair.Key);
-                    }
-                }
-            }
-
-            if (this.ReturnedFields.Count > 0)
-            {
-                Console.WriteLine(indent + ". |");
-                Console.WriteLine(indent + ". | . Returned fields");
-                foreach (var field in this.ReturnedFields)
-                {
-                    Console.WriteLine(indent + ". | ... Field " +
-                        $"'{field.Item1}' of type '{field.Item2}'");
-                }
-            }
-
-            if (this.ReturnedParameters.Count > 0)
-            {
-                Console.WriteLine(indent + ". |");
-                Console.WriteLine(indent + ". | . Returned parameters");
-                foreach (var parameter in this.ReturnedParameters)
-                {
-                    Console.WriteLine(indent + ". | ... Parameter at index " +
-                        $"'{parameter.Item1}' of type '{parameter.Item2}'");
-                }
-            }
-
-            if (this.GivesUpOwnershipParamIndexes.Count > 0)
-            {
-                Console.WriteLine(indent + ". |");
-                Console.WriteLine(indent + ". | . Gives-up ownership parameter indexes");
-                Console.Write(indent + ". | ...");
-                foreach (var index in this.GivesUpOwnershipParamIndexes)
-                {
-                    Console.Write(" '{0}'", index);
-                }
-
-                Console.WriteLine("");
-            }
+            this.PrintFieldFlowParamIndexes(indent);
+            this.PrintFieldAccesses(indent);
+            this.PrintParameterAccesses(indent);
+            this.PrintReturnedFields(indent);
+            this.PrintReturnedParameters(indent);
+            this.PrintGivesUpOwnershipParameterIndexes(indent);
 
             Console.WriteLine(indent + ". |");
             Console.WriteLine(indent + ". ==================================================");
@@ -704,6 +583,125 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                         Console.WriteLine();
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Prints the parameters flowig into fields.
+        /// </summary>
+        /// <param name="indent">Indent</param>
+        private void PrintFieldFlowParamIndexes(string indent)
+        {
+            if (this.SideEffectsInfo.FieldFlowParamIndexes.Count > 0)
+            {
+                Console.WriteLine(indent + ". |");
+                Console.WriteLine(indent + ". | . Parameters flowing into fields");
+                foreach (var pair in this.SideEffectsInfo.FieldFlowParamIndexes)
+                {
+                    foreach (var index in pair.Value)
+                    {
+                        Console.WriteLine(indent + ". | ... from index '{0}' " +
+                            "flows into '{1}'", index, pair.Key);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Prints the field accesses.
+        /// </summary>
+        /// <param name="indent">Indent</param>
+        private void PrintFieldAccesses(string indent)
+        {
+            if (this.SideEffectsInfo.FieldAccesses.Count > 0)
+            {
+                Console.WriteLine(indent + ". |");
+                Console.WriteLine(indent + ". | . Field accesses");
+                foreach (var field in this.SideEffectsInfo.FieldAccesses)
+                {
+                    foreach (var statement in field.Value)
+                    {
+                        Console.WriteLine(indent + ". | ... '{0}' accessed in '{1}'",
+                           field.Key, statement.SyntaxNode);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Prints the parameter accesses.
+        /// </summary>
+        /// <param name="indent">Indent</param>
+        private void PrintParameterAccesses(string indent)
+        {
+            if (this.SideEffectsInfo.ParameterAccesses.Count > 0)
+            {
+                Console.WriteLine(indent + ". |");
+                Console.WriteLine(indent + ". | . Parameter accesses");
+                foreach (var index in this.SideEffectsInfo.ParameterAccesses)
+                {
+                    foreach (var statement in index.Value)
+                    {
+                        Console.WriteLine(indent + ". | ... at index '{0}' " +
+                            "is accessed in '{1}'", index.Key, statement.SyntaxNode);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Prints the returned fields.
+        /// </summary>
+        /// <param name="indent">Indent</param>
+        private void PrintReturnedFields(string indent)
+        {
+            if (this.SideEffectsInfo.ReturnedFields.Count > 0)
+            {
+                Console.WriteLine(indent + ". |");
+                Console.WriteLine(indent + ". | . Returned fields");
+                foreach (var field in this.SideEffectsInfo.ReturnedFields)
+                {
+                    Console.WriteLine(indent + ". | ... Field " +
+                        $"'{field.Item1}' of type '{field.Item2}'");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Prints the returned parameters.
+        /// </summary>
+        /// <param name="indent">Indent</param>
+        private void PrintReturnedParameters(string indent)
+        {
+            if (this.SideEffectsInfo.ReturnedParameters.Count > 0)
+            {
+                Console.WriteLine(indent + ". |");
+                Console.WriteLine(indent + ". | . Returned parameters");
+                foreach (var parameter in this.SideEffectsInfo.ReturnedParameters)
+                {
+                    Console.WriteLine(indent + ". | ... Parameter at index " +
+                        $"'{parameter.Item1}' of type '{parameter.Item2}'");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Prints the gives-up ownership parameter indexes.
+        /// </summary>
+        /// <param name="indent">Indent</param>
+        private void PrintGivesUpOwnershipParameterIndexes(string indent)
+        {
+            if (this.SideEffectsInfo.GivesUpOwnershipParamIndexes.Count > 0)
+            {
+                Console.WriteLine(indent + ". |");
+                Console.WriteLine(indent + ". | . Gives-up ownership parameter indexes");
+                Console.Write(indent + ". | ...");
+                foreach (var index in this.SideEffectsInfo.GivesUpOwnershipParamIndexes)
+                {
+                    Console.Write(" '{0}'", index);
+                }
+
+                Console.WriteLine("");
             }
         }
 

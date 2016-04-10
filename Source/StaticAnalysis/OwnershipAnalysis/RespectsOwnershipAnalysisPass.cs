@@ -71,8 +71,8 @@ namespace Microsoft.PSharp.StaticAnalysis
                 if (!repeatGivesUpNode &&
                     node.Equals(givenUpSymbol.Statement.ControlFlowNode))
                 {
-                    statements.AddRange(node.Statements.SkipWhile(val
-                        => !val.Equals(givenUpSymbol.Statement)));
+                    statements.AddRange(node.Statements.SkipWhile(
+                        val => !val.Equals(givenUpSymbol.Statement)));
                 }
                 else
                 {
@@ -239,9 +239,9 @@ namespace Microsoft.PSharp.StaticAnalysis
                     !DataFlowQuerying.DoesResetInLoop(argumentList.Arguments[idx].Expression,
                     syntaxNode, cfgNode, givenUpSymbol.SyntaxNode, givenUpSymbol.ControlFlowNode, model)*/)
                 {
-                    if (calleeSummary.ParameterAccesses.ContainsKey(idx))
+                    if (calleeSummary.SideEffectsInfo.ParameterAccesses.ContainsKey(idx))
                     {
-                        foreach (var access in calleeSummary.ParameterAccesses[idx])
+                        foreach (var access in calleeSummary.SideEffectsInfo.ParameterAccesses[idx])
                         {
                             TraceInfo newTrace = new TraceInfo();
                             newTrace.Merge(trace);
@@ -251,7 +251,8 @@ namespace Microsoft.PSharp.StaticAnalysis
                         }
                     }
 
-                    var fieldSymbols = calleeSummary.SideEffects.Where(v => v.Value.Contains(idx)).Select(v => v.Key);
+                    var fieldSymbols = calleeSummary.SideEffectsInfo.FieldFlowParamIndexes.Where(
+                        v => v.Value.Contains(idx)).Select(v => v.Key);
                     foreach (var fieldSymbol in fieldSymbols)
                     {
                         if (base.AnalysisContext.DoesFieldBelongToMachine(fieldSymbol, statement.Summary))
@@ -267,14 +268,14 @@ namespace Microsoft.PSharp.StaticAnalysis
                         }
                     }
 
-                    if (calleeSummary.GivesUpOwnershipParamIndexes.Contains(idx))
+                    if (calleeSummary.SideEffectsInfo.GivesUpOwnershipParamIndexes.Contains(idx))
                     {
                         AnalysisErrorReporter.ReportGivenUpOwnershipSending(trace, argSymbol);
                     }
                 }
             }
 
-            foreach (var fieldAccess in calleeSummary.FieldAccesses)
+            foreach (var fieldAccess in calleeSummary.SideEffectsInfo.FieldAccesses)
             {
                 foreach (var access in fieldAccess.Value)
                 {

@@ -71,8 +71,8 @@ namespace Microsoft.PSharp.StaticAnalysis
                 if (!repeatGivesUpNode &&
                     node.Equals(givenUpSymbol.Statement.ControlFlowNode))
                 {
-                    statements.AddRange(node.Statements.TakeWhile(val
-                        => !val.Equals(givenUpSymbol.Statement)));
+                    statements.AddRange(node.Statements.TakeWhile(
+                        val => !val.Equals(givenUpSymbol.Statement)));
                     statements.Add(givenUpSymbol.Statement);
                 }
                 else
@@ -186,7 +186,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 if (statement.Summary.DataFlowAnalysis.FlowsIntoSymbol(argSymbol,
                     givenUpSymbol.ContainingSymbol, statement, givenUpSymbol.Statement))
                 {
-                    if (calleeSummary.SideEffects.Any(v => v.Value.Contains(idx) &&
+                    if (calleeSummary.SideEffectsInfo.FieldFlowParamIndexes.Any(v => v.Value.Contains(idx) &&
                         base.IsFieldAccessedBeforeBeingReset(v.Key, statement.Summary)))
                     {
                         AnalysisErrorReporter.ReportGivenUpFieldOwnershipError(trace, argSymbol);

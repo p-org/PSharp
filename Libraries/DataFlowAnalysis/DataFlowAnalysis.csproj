@@ -83,6 +83,7 @@
     <Compile Include="DataFlow\DataFlowGraph.cs" />
     <Compile Include="DataFlow\DataFlowInfo.cs" />
     <Compile Include="DataFlow\DataFlowNode.cs" />
+    <Compile Include="Library\MethodSideEffectsInfo.cs" />
     <Compile Include="Library\MethodSummaryResolver.cs" />
     <Compile Include="Library\SymbolDefinition.cs" />
     <Compile Include="DataFlow\IDataFlowNode.cs" />

@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <summary>
         /// Set of local definitions.
         /// </summary>
-        public ISet<SymbolDefinition> LocalDefinitions { get; private set; }
+        private ISet<SymbolDefinition> LocalDefinitions;
 
         /// <summary>
         /// Map containing tainted definitions.
@@ -134,9 +134,8 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// </summary>
         internal void AssignOutputDefinitions()
         {
-            var inputDefinitions = this.InputDefinitions.Union(this.LocalDefinitions);
-            var survivingDefinitions = inputDefinitions.Except(this.KilledDefinitions);
-            var outputDefinitions = this.GeneratedDefinitions.Union(survivingDefinitions);
+            var aliveInputDefinitions = this.GetAliveInputDefinitions();
+            var outputDefinitions = this.GeneratedDefinitions.Union(aliveInputDefinitions);
             this.OutputDefinitions = new HashSet<SymbolDefinition>(outputDefinitions);
         }
 
@@ -293,11 +292,8 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 definitions.Add(generatedDefinition);
             }
 
-            if (definitions.Count == 0)
-            {
-                definitions.UnionWith(this.GetInputDefinitionsOfSymbol(symbol));
-            }
-
+            definitions.UnionWith(this.GetAliveInputDefinitionsOfSymbol(symbol));
+            
             return this.ResolveAliases(definitions);
         }
 
@@ -362,16 +358,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         }
 
         /// <summary>
-        /// Returns the generated definitions for the specified symbol.
-        /// </summary>
-        /// <param name="symbol">Symbol</param>
-        /// <returns>SymbolDefinitions</returns>
-        private ISet<SymbolDefinition> GetGeneratedDefinitionsOfSymbol(ISymbol symbol)
-        {
-            return this.GetDefinitionsOfSymbol(symbol, this.GeneratedDefinitions);
-        }
-
-        /// <summary>
         /// Returns the killed definitions for the specified symbol.
         /// </summary>
         /// <param name="symbol">Symbol</param>
@@ -400,6 +386,27 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         private ISet<SymbolDefinition> GetOutputDefinitionsOfSymbol(ISymbol symbol)
         {
             return this.GetDefinitionsOfSymbol(symbol, this.OutputDefinitions);
+        }
+
+        /// <summary>
+        /// Returns the alive input definitions for the specified symbol.
+        /// </summary>
+        /// <param name="symbol">Symbol</param>
+        /// <returns>SymbolDefinitions</returns>
+        private ISet<SymbolDefinition> GetAliveInputDefinitionsOfSymbol(ISymbol symbol)
+        {
+            return this.GetDefinitionsOfSymbol(symbol, this.GetAliveInputDefinitions());
+        }
+
+        /// <summary>
+        /// Returns the input definitions that have not be killed.
+        /// </summary>
+        /// <returns></returns>
+        private ISet<SymbolDefinition> GetAliveInputDefinitions()
+        {
+            var definitions = this.InputDefinitions.Union(this.LocalDefinitions).
+                Except(this.KilledDefinitions);
+            return new HashSet<SymbolDefinition>(definitions);
         }
 
         /// <summary>

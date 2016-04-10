@@ -357,7 +357,8 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 foreach (var action in node.Actions)
                 {
-                    result = action.FieldAccesses.ContainsKey(fieldSymbol as IFieldSymbol);
+                    result = action.SideEffectsInfo.FieldAccesses.ContainsKey(
+                        fieldSymbol as IFieldSymbol);
                     if (result)
                     {
                         break;
@@ -366,21 +367,24 @@ namespace Microsoft.PSharp.StaticAnalysis
 
                 if (!result && node.OnExit != null)
                 {
-                    result = node.OnExit.FieldAccesses.ContainsKey(fieldSymbol as IFieldSymbol);
+                    result = node.OnExit.SideEffectsInfo.FieldAccesses.ContainsKey(
+                        fieldSymbol as IFieldSymbol);
                 }
             }
             else if (!isFirstVisit)
             {
                 if (node.OnEntry != null)
                 {
-                    result = node.OnEntry.FieldAccesses.ContainsKey(fieldSymbol as IFieldSymbol);
+                    result = node.OnEntry.SideEffectsInfo.FieldAccesses.ContainsKey(
+                        fieldSymbol as IFieldSymbol);
                 }
 
                 if (!result)
                 {
                     foreach (var action in node.Actions)
                     {
-                        result = action.FieldAccesses.ContainsKey(fieldSymbol as IFieldSymbol);
+                        result = action.SideEffectsInfo.FieldAccesses.ContainsKey(
+                            fieldSymbol as IFieldSymbol);
                         if (result)
                         {
                             break;
@@ -390,7 +394,8 @@ namespace Microsoft.PSharp.StaticAnalysis
 
                 if (!result && node.OnExit != null)
                 {
-                    result = node.OnExit.FieldAccesses.ContainsKey(fieldSymbol as IFieldSymbol);
+                    result = node.OnExit.SideEffectsInfo.FieldAccesses.ContainsKey(
+                        fieldSymbol as IFieldSymbol);
                 }
             }
 
