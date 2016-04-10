@@ -151,7 +151,8 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             }
 
             var stmt = item as Statement;
-            if (!this.Statement.Equals(stmt))
+            if (this.Statement == null ||
+                !this.Statement.Equals(stmt))
             {
                 return false;
             }
