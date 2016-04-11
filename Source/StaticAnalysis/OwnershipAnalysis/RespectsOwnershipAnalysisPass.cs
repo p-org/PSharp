@@ -262,14 +262,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                         v => v.Value.Contains(idx)).Select(v => v.Key);
                     foreach (var fieldSymbol in fieldSymbols)
                     {
-                        if (base.AnalysisContext.DoesFieldBelongToMachine(fieldSymbol, statement.Summary))
-                        {
-                            if (base.IsFieldAccessedBeforeBeingReset(fieldSymbol, statement.Summary))
-                            {
-                                AnalysisErrorReporter.ReportGivenUpOwnershipFieldAssignment(trace, fieldSymbol);
-                            }
-                        }
-                        else
+                        if (base.IsFieldAccessedBeforeBeingReset(fieldSymbol, statement.Summary))
                         {
                             AnalysisErrorReporter.ReportGivenUpOwnershipFieldAssignment(trace, fieldSymbol);
                         }

@@ -151,7 +151,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 }
             }
             
-            var summary = MethodSummary.Create(this.AnalysisContext, method, machine.Declaration);
+            var summary = MethodSummary.Create(this.AnalysisContext, method);
             this.AnalysisContext.CacheSummary(summary);
 
             if (this.AnalysisContext.Configuration.ShowControlFlowInformation)

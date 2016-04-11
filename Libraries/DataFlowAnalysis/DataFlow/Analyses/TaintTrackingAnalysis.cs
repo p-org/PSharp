@@ -171,11 +171,14 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <param name="node">IDataFlowNode</param>
         private void InitializeParameters(IDataFlowNode node)
         {
-            foreach (var param in node.Summary.Method.ParameterList.Parameters)
+            for (int idx = 0; idx < node.Summary.Method.ParameterList.Parameters.Count; idx++)
             {
-                ITypeSymbol paramType = this.SemanticModel.GetTypeInfo(param.Type).Type;
-                IParameterSymbol paramSymbol = this.SemanticModel.GetDeclaredSymbol(param);
-                node.DataFlowInfo.GenerateDefinition(paramSymbol, paramType);
+                var parameter = node.Summary.Method.ParameterList.Parameters[idx];
+                IParameterSymbol paramSymbol = this.SemanticModel.GetDeclaredSymbol(parameter);
+
+                SymbolDefinition definition = node.DataFlowInfo.GenerateDefinition(paramSymbol);
+                node.DataFlowInfo.AssignTypesToDefinition(node.Summary.ParameterTypes[parameter], definition);
+                node.DataFlowInfo.TaintDefinition(definition, definition);
             }
         }
 
@@ -192,13 +195,17 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             var fieldSymbols = symbols.Where(val => val.Kind == SymbolKind.Field);
             foreach (var fieldSymbol in fieldSymbols.Select(s => s as IFieldSymbol))
             {
-                node.DataFlowInfo.GenerateDefinition(fieldSymbol, fieldSymbol.Type);
+                SymbolDefinition definition = node.DataFlowInfo.GenerateDefinition(fieldSymbol);
+                node.DataFlowInfo.AssignTypeToDefinition(fieldSymbol.Type, definition);
+                node.DataFlowInfo.TaintDefinition(definition, definition);
             }
 
             var propertySymbols = symbols.Where(val => val.Kind == SymbolKind.Property);
             foreach (var propertySymbol in propertySymbols.Select(s => s as IPropertySymbol))
             {
-                node.DataFlowInfo.GenerateDefinition(propertySymbol, propertySymbol.Type);
+                SymbolDefinition definition = node.DataFlowInfo.GenerateDefinition(propertySymbol);
+                node.DataFlowInfo.AssignTypeToDefinition(propertySymbol.Type, definition);
+                node.DataFlowInfo.TaintDefinition(definition, definition);
             }
         }
 
@@ -231,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 }
 
                 ISymbol leftSymbol = this.SemanticModel.GetDeclaredSymbol(variable);
-                node.DataFlowInfo.GenerateDefinition(leftSymbol, declType);
+                node.DataFlowInfo.GenerateDefinition(leftSymbol);
 
                 this.AnalyzeAssignmentExpression(leftSymbol, expr, node);
             }
@@ -251,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             this.GetExpressionSymbol(out leftSymbolInfo, assignment.Left);
             
             node.DataFlowInfo.KillDefinitions(leftSymbolInfo.Item1);
-            node.DataFlowInfo.GenerateDefinition(leftSymbolInfo.Item1, leftSymbolInfo.Item2);
+            node.DataFlowInfo.GenerateDefinition(leftSymbolInfo.Item1);
 
             ISet<Tuple<ISymbol, ITypeSymbol>> nestedLeftSymbolInfos;
             this.GetMemberExpressionSymbols(out nestedLeftSymbolInfos, assignment.Left);
@@ -276,7 +283,9 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 
             if (node.DataFlowInfo.IsFreshSymbol(symbolInfo.Item1))
             {
-                node.DataFlowInfo.GenerateDefinition(symbolInfo.Item1, symbolInfo.Item2);
+                SymbolDefinition definition = node.DataFlowInfo.GenerateDefinition(symbolInfo.Item1);
+                node.DataFlowInfo.AssignTypeToDefinition(symbolInfo.Item2, definition);
+                node.DataFlowInfo.TaintDefinition(definition, definition);
             }
         }
 
@@ -295,35 +304,35 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             {
                 IdentifierNameSyntax rhs = AnalysisContext.GetTopLevelIdentifier(rightExpr);
                 ISymbol rightSymbol = this.SemanticModel.GetSymbolInfo(rhs).Symbol;
-                ITypeSymbol rightType = this.SemanticModel.GetTypeInfo(rhs).Type;
 
-                if (!this.AnalysisContext.IsTypePassedByValueOrImmutable(rightType))
+                assignmentTypes.UnionWith(node.DataFlowInfo.GetCandidateTypesOfSymbol(rightSymbol));
+                if (assignmentTypes.Any(type => !this.AnalysisContext.IsTypePassedByValueOrImmutable(type)))
                 {
                     node.DataFlowInfo.TaintSymbol(rightSymbol, rightSymbol);
                     node.DataFlowInfo.TaintSymbol(rightSymbol, leftSymbol);
                 }
-
-                assignmentTypes.UnionWith(node.DataFlowInfo.GetCandidateTypesOfSymbol(rightSymbol));
             }
-            else if (rightExpr is InvocationExpressionSyntax)
+            else if (rightExpr is InvocationExpressionSyntax ||
+                rightExpr is ObjectCreationExpressionSyntax)
             {
                 ISet<ISymbol> returnSymbols = null;
                 this.AnalyzeMethodCall(rightExpr, node, out returnSymbols, out assignmentTypes);
 
-                foreach (var returnSymbol in returnSymbols)
+                if (returnSymbols.Count > 0)
                 {
-                    node.DataFlowInfo.TaintSymbol(returnSymbol, returnSymbol);
+                    foreach (var returnSymbol in returnSymbols)
+                    {
+                        node.DataFlowInfo.TaintSymbol(returnSymbol, returnSymbol);
+                    }
+
+                    if (assignmentTypes.Any(type => !this.AnalysisContext.IsTypePassedByValueOrImmutable(type)))
+                    {
+                        node.DataFlowInfo.TaintSymbol(returnSymbols, leftSymbol);
+                    }
                 }
-
-                node.DataFlowInfo.TaintSymbol(returnSymbols, leftSymbol);
-            }
-            else if (rightExpr is ObjectCreationExpressionSyntax)
-            {
-                ISet<ISymbol> returnSymbols = null;
-                this.AnalyzeMethodCall(rightExpr, node, out returnSymbols, out assignmentTypes);
             }
 
-            node.DataFlowInfo.ResetTypeOfSymbol(assignmentTypes, leftSymbol);
+            node.DataFlowInfo.AssignTypesToSymbol(assignmentTypes, leftSymbol);
         }
 
         /// <summary>
@@ -675,7 +684,11 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             foreach (var sideEffect in sideEffects)
             {
                 node.DataFlowInfo.KillDefinitions(sideEffect.Key);
-                node.DataFlowInfo.GenerateDefinition(sideEffect.Key, sideEffect.Key.Type);
+
+                SymbolDefinition definition = node.DataFlowInfo.GenerateDefinition(sideEffect.Key);
+                node.DataFlowInfo.AssignTypeToDefinition(sideEffect.Key.Type, definition);
+                node.DataFlowInfo.TaintDefinition(definition, definition);
+                
                 foreach (var symbol in sideEffect.Value)
                 {
                     node.DataFlowInfo.TaintSymbol(symbol, sideEffect.Key);

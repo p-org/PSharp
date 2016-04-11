@@ -116,37 +116,6 @@ namespace Microsoft.PSharp.StaticAnalysis
 
         #endregion
 
-        #region internal API
-
-        /// <summary>
-        /// Returns true if the given field symbol belongs to the machine
-        /// that owns the given method summary. Returns false if not.
-        /// </summary>
-        /// <param name="symbol">Symbol</param>
-        /// <param name="summary">MethodSummary</param>
-        /// <returns>Boolean</returns>
-        internal bool DoesFieldBelongToMachine(ISymbol symbol, MethodSummary summary)
-        {
-            if (symbol == null || summary.TypeDeclaration == null ||
-                !(symbol is IFieldSymbol))
-            {
-                return false;
-            }
-
-            var definition = SymbolFinder.FindSourceDefinitionAsync(symbol, this.Solution).Result;
-            var fieldDecl = definition.DeclaringSyntaxReferences.First().GetSyntax().
-                AncestorsAndSelf().OfType<FieldDeclarationSyntax>().First();
-
-            if (summary.TypeDeclaration.ChildNodes().OfType<FieldDeclarationSyntax>().Contains(fieldDecl))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        #endregion
-
         #region private methods
 
         /// <summary>

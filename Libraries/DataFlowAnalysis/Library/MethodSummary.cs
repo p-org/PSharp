@@ -48,10 +48,9 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         public BaseMethodDeclarationSyntax Method { get; private set; }
 
         /// <summary>
-        /// Type declaration that contains the method
-        /// that this summary represents.
+        /// The types of the input parameters.
         /// </summary>
-        public TypeDeclarationSyntax TypeDeclaration { get; private set; }
+        internal IDictionary<ParameterSyntax, ISet<ITypeSymbol>> ParameterTypes { get; private set; }
 
         /// <summary>
         /// The control-flow graph of this summary.
@@ -95,15 +94,15 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// </summary>
         /// <param name="context">AnalysisContext</param>
         /// <param name="method">BaseMethodDeclarationSyntax</param>
-        /// <param name="typeDeclaration">TypeDeclarationSyntax</param>
+        /// <param name="parameterTypes">ITypeSymbols</param>
         private MethodSummary(AnalysisContext context, BaseMethodDeclarationSyntax method,
-            TypeDeclarationSyntax typeDeclaration)
+            IDictionary<int, ISet<ITypeSymbol>> parameterTypes)
         {
+            this.Id = MethodSummary.IdCounter++;
             this.AnalysisContext = context;
             this.SemanticModel = context.Compilation.GetSemanticModel(method.SyntaxTree);
             this.Method = method;
-            this.TypeDeclaration = typeDeclaration;
-            this.Id = MethodSummary.IdCounter++;
+            this.ResolveMethodParameterTypes(parameterTypes);
         }
 
         /// <summary>
@@ -111,12 +110,25 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// </summary>
         /// <param name="context">AnalysisContext</param>
         /// <param name="method">BaseMethodDeclarationSyntax</param>
-        /// <param name="typeDeclaration">TypeDeclarationSyntax</param>
+        /// <returns>MethodSummary</returns>
+        public static MethodSummary Create(AnalysisContext context, BaseMethodDeclarationSyntax method)
+        {
+            var summary = new MethodSummary(context, method, new Dictionary<int, ISet<ITypeSymbol>>());
+            return summary.BuildSummary();
+        }
+
+        /// <summary>
+        /// Creates the summary of the specified method, using the
+        /// specified parameter types.
+        /// </summary>
+        /// <param name="context">AnalysisContext</param>
+        /// <param name="method">BaseMethodDeclarationSyntax</param>
+        /// <param name="parameterTypes">ITypeSymbols</param>
         /// <returns>MethodSummary</returns>
         public static MethodSummary Create(AnalysisContext context, BaseMethodDeclarationSyntax method,
-            TypeDeclarationSyntax typeDeclaration = null)
+            IDictionary<int, ISet<ITypeSymbol>> parameterTypes)
         {
-            var summary = new MethodSummary(context, method, typeDeclaration);
+            var summary = new MethodSummary(context, method, parameterTypes);
             return summary.BuildSummary();
         }
 
@@ -234,6 +246,31 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             this.DataFlowAnalysis = dataFlowGraph;
 
             new TaintTrackingAnalysis(dataFlowGraph).Run();
+        }
+
+        /// <summary>
+        /// Resolves the parameter types of the method, using the
+        /// specified parameter types.
+        /// </summary>
+        /// <param name="parameterTypes"></param>
+        private void ResolveMethodParameterTypes(IDictionary<int, ISet<ITypeSymbol>> parameterTypes)
+        {
+            this.ParameterTypes = new Dictionary<ParameterSyntax, ISet<ITypeSymbol>>();
+
+            for (int idx = 0; idx < this.Method.ParameterList.Parameters.Count; idx++)
+            {
+                var parameter = this.Method.ParameterList.Parameters[idx];
+
+                if (parameterTypes.ContainsKey(idx))
+                {
+                    this.ParameterTypes.Add(parameter, parameterTypes[idx]);
+                }
+                else
+                {
+                    ITypeSymbol parameterType = this.SemanticModel.GetTypeInfo(parameter.Type).Type;
+                    this.ParameterTypes.Add(parameter, new HashSet<ITypeSymbol> { parameterType });
+                }
+            }
         }
 
         #endregion

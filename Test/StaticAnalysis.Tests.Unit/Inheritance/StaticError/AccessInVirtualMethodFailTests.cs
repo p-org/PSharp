@@ -761,5 +761,239 @@ class M : Machine
 
             IO.StopWritingToMemory();
         }
+
+        [TestMethod, Timeout(10000)]
+        public void TestAccessInVirtualMethod8Fail()
+        {
+            var test = @"
+using Microsoft.PSharp;
+
+namespace Foo {
+class eUnit : Event
+{
+ public Letter Letter;
+ 
+ public eUnit(Letter letter)
+  : base()
+ {
+  this.Letter = letter;
+ }
+}
+
+struct Letter
+{
+ public string Text;
+
+ public Letter(string text)
+ {
+  this.Text = text;
+ }
+}
+
+internal class Envelope
+{
+ internal Letter Letter;
+
+ internal virtual void Foo(Letter letter) { }
+}
+
+internal class SuperEnvelope : Envelope
+{
+ internal override void Foo(Letter letter)
+ {
+  letter.Text = ""Bangalore""; // ERROR
+ }
+}
+
+class M : Machine
+{
+ MachineId Target;
+ bool Check;
+
+ [Start]
+ [OnEntry(nameof(FirstOnEntryAction))]
+ class First : MachineState { }
+
+ void FirstOnEntryAction()
+ {
+  this.Target = this.CreateMachine(typeof(M));
+  var letter = new Letter(""London"");
+  Envelope envelope = this.Foo();
+
+  this.Send(this.Target, new eUnit(letter));
+
+  this.Bar(envelope, letter);
+ }
+
+ Envelope Foo()
+ {
+  Envelope someEnvelope = new SuperEnvelope();
+  Envelope anotherEnvelope;
+  anotherEnvelope = new Envelope();
+  anotherEnvelope = someEnvelope;
+
+  if (this.Check)
+  {
+   return new Envelope();
+  }
+  else
+  {
+   return anotherEnvelope;
+  }
+ }
+
+ void Bar(Envelope envelope, Letter letter)
+ {
+  this.FooBar(envelope, letter);
+ }
+
+ void FooBar(Envelope envelope, Letter letter)
+ {
+  envelope.Foo(letter);
+ }
+}
+}";
+
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+
+            IO.StartWritingToMemory();
+
+            var solution = base.GetSolution(test);
+            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            AnalysisErrorReporter.ResetStats();
+            StaticAnalysisEngine.Create(context).Run();
+
+            var stats = AnalysisErrorReporter.GetStats();
+            var expected = "... Static analysis detected '1' error";
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
+
+            var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' accesses " +
+                "'letter' after giving up its ownership.";
+            var actual = IO.GetOutput();
+
+            Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
+               actual.Substring(0, actual.IndexOf(Environment.NewLine)));
+
+            IO.StopWritingToMemory();
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestAccessInVirtualMethod9Fail()
+        {
+            var test = @"
+using Microsoft.PSharp;
+
+namespace Foo {
+class eUnit : Event
+{
+ public Letter Letter;
+ 
+ public eUnit(Letter letter)
+  : base()
+ {
+  this.Letter = letter;
+ }
+}
+
+struct Letter
+{
+ public string Text;
+
+ public Letter(string text)
+ {
+  this.Text = text;
+ }
+}
+
+internal class Envelope
+{
+ internal Letter Letter;
+
+ internal virtual void Foo(Letter letter) { }
+}
+
+internal class SuperEnvelope : Envelope
+{
+ internal override void Foo(Letter letter)
+ {
+  Letter = letter; // ERROR
+  base.Letter.Text = ""Bangalore""; // ERROR
+ }
+}
+
+class M : Machine
+{
+ MachineId Target;
+ bool Check;
+
+ [Start]
+ [OnEntry(nameof(FirstOnEntryAction))]
+ class First : MachineState { }
+
+ void FirstOnEntryAction()
+ {
+  this.Target = this.CreateMachine(typeof(M));
+  var letter = new Letter(""London"");
+  Envelope envelope = this.Foo();
+
+  this.Send(this.Target, new eUnit(letter));
+
+  this.Bar(envelope, letter);
+ }
+
+ Envelope Foo()
+ {
+  Envelope someEnvelope = new SuperEnvelope();
+  Envelope anotherEnvelope;
+  anotherEnvelope = new Envelope();
+  anotherEnvelope = someEnvelope;
+
+  if (this.Check)
+  {
+   return new Envelope();
+  }
+  else
+  {
+   return anotherEnvelope;
+  }
+ }
+
+ void Bar(Envelope envelope, Letter letter)
+ {
+  this.FooBar(envelope, letter);
+ }
+
+ void FooBar(Envelope envelope, Letter letter)
+ {
+  envelope.Foo(letter);
+ }
+}
+}";
+
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+
+            IO.StartWritingToMemory();
+
+            var solution = base.GetSolution(test);
+            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            AnalysisErrorReporter.ResetStats();
+            StaticAnalysisEngine.Create(context).Run();
+
+            var stats = AnalysisErrorReporter.GetStats();
+            var expected = "... Static analysis detected '3' errors";
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
+
+            IO.StopWritingToMemory();
+        }
     }
 }

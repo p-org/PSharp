@@ -89,20 +89,17 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// Generates a new definition for the specified symbol.
         /// </summary>
         /// <param name="symbol">ISymbol</param>
-        /// <param name="type">ITypeSymbol</param>
-        internal void GenerateDefinition(ISymbol symbol, ITypeSymbol type)
+        /// <returns>SymbolDefinition</returns>
+        internal SymbolDefinition GenerateDefinition(ISymbol symbol)
         {
             var definition = this.GeneratedDefinitions.FirstOrDefault(def => def.Symbol.Equals(symbol));
             if (definition == null)
             {
-                definition = new SymbolDefinition(symbol, type, this.DataFlowNode);
+                definition = new SymbolDefinition(symbol, this.DataFlowNode);
                 this.GeneratedDefinitions.Add(definition);
-
-                if (!this.AnalysisContext.IsTypePassedByValueOrImmutable(type))
-                {
-                    this.TaintDefinition(definition, definition);
-                }
             }
+
+            return definition;
         }
 
         /// <summary>
@@ -137,17 +134,45 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         #region type-tracking methods
 
         /// <summary>
-        /// Resets the type of the symbol with the specified types.
+        /// Assigns the specified types to the symbol.
         /// </summary>
         /// <param name="types">ITypeSymbols</param>
         /// <param name="symbol">ISymbol</param>
-        internal void ResetTypeOfSymbol(ISet<ITypeSymbol> types, ISymbol symbol)
+        internal void AssignTypesToSymbol(ISet<ITypeSymbol> types, ISymbol symbol)
         {
             var generatedDefinition = this.GetGeneratedDefinitionOfSymbol(symbol);
             if (generatedDefinition != null && types.Count > 0)
             {
                 generatedDefinition.CandidateTypes.Clear();
                 generatedDefinition.CandidateTypes.UnionWith(types);
+            }
+        }
+
+        /// <summary>
+        /// Assigns the specified type to the definition.
+        /// </summary>
+        /// <param name="types">ITypeSymbol</param>
+        /// <param name="symbol">ISymbol</param>
+        internal void AssignTypeToDefinition(ITypeSymbol type, SymbolDefinition definition)
+        {
+            if (type != null)
+            {
+                definition.CandidateTypes.Clear();
+                definition.CandidateTypes.Add(type);
+            }
+        }
+
+        /// <summary>
+        /// Assigns the specified types to the definition.
+        /// </summary>
+        /// <param name="types">ITypeSymbols</param>
+        /// <param name="symbol">ISymbol</param>
+        internal void AssignTypesToDefinition(ISet<ITypeSymbol> types, SymbolDefinition definition)
+        {
+            if (types.Count > 0 && !types.Any(type => type == null))
+            {
+                definition.CandidateTypes.Clear();
+                definition.CandidateTypes.UnionWith(types);
             }
         }
 
@@ -196,9 +221,8 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 if (taintSymbol.Kind == SymbolKind.Field &&
                     this.IsFreshSymbol(taintSymbol))
                 {
-                    var fieldSymbol = taintSymbol as IFieldSymbol;
-                    this.GenerateDefinition(fieldSymbol, fieldSymbol.Type);
-                    taintDefinitions.Add(this.GetGeneratedDefinitionOfSymbol(fieldSymbol));
+                    this.GenerateDefinition(taintSymbol);
+                    taintDefinitions.Add(this.GetGeneratedDefinitionOfSymbol(taintSymbol));
                 }
                 else
                 {
@@ -225,8 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// </summary>
         /// <param name="taintDefinition">SymbolDefinition</param>
         /// <param name="definition">SymbolDefinition</param>
-        internal void TaintDefinition(SymbolDefinition taintDefinition,
-            SymbolDefinition definition)
+        internal void TaintDefinition(SymbolDefinition taintDefinition, SymbolDefinition definition)
         {
             this.TaintDefinition(new HashSet<SymbolDefinition> { taintDefinition }, definition);
         }

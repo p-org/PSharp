@@ -81,11 +81,14 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             }
             else if (invocation != null)
             {
+                var parameterTypes = MethodSummaryResolver.GetCandidateParameterTypes(
+                    invocation.ArgumentList, node);
                 var candidateCallees = MethodSummaryResolver.ResolveCandidateMethodsAtCallSite(
                     invocation, node.Statement, node);
                 foreach (var candidateCallee in candidateCallees)
                 {
-                    var calleeSummary = MethodSummary.Create(node.Summary.AnalysisContext, candidateCallee);
+                    var calleeSummary = MethodSummary.Create(node.Summary.AnalysisContext,
+                        candidateCallee, parameterTypes);
                     if (calleeSummary != null)
                     {
                         summaries.Add(calleeSummary);
@@ -94,12 +97,14 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             }
             else
             {
+                var parameterTypes = MethodSummaryResolver.GetCandidateParameterTypes(
+                    objCreation.ArgumentList, node);
                 var constructor = MethodSummaryResolver.ResolveCallee(
                     objCreation, node) as ConstructorDeclarationSyntax;
                 if (constructor != null)
                 {
-                    var calleeSummary = MethodSummary.Create(
-                        node.Summary.AnalysisContext, constructor);
+                    var calleeSummary = MethodSummary.Create(node.Summary.AnalysisContext,
+                        constructor, parameterTypes);
                     if (calleeSummary != null)
                     {
                         summaries.Add(calleeSummary);
@@ -221,13 +226,16 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             
             if (isThis)
             {
-                var typeDeclaration = statement.Summary.TypeDeclaration;
-                foreach (var method in typeDeclaration.Members.OfType<MethodDeclarationSyntax>())
+                var typeDeclaration = statement.Summary.Method.FirstAncestorOrSelf<TypeDeclarationSyntax>();
+                if (typeDeclaration != null)
                 {
-                    if (method.Identifier.ToString().Equals(callee.Identifier.ToString()))
+                    foreach (var method in typeDeclaration.Members.OfType<MethodDeclarationSyntax>())
                     {
-                        overriders.Add(method);
-                        return true;
+                        if (method.Identifier.ToString().Equals(callee.Identifier.ToString()))
+                        {
+                            overriders.Add(method);
+                            return true;
+                        }
                     }
                 }
 
@@ -287,6 +295,30 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Returns the candidate parameter types from the
+        /// specified argument list.
+        /// </summary>
+        /// <param name="argumentList">ArgumentListSyntax</param>
+        /// <param name="node">IDataFlowNode</param>
+        /// <returns>ITypeSymbols</returns>
+        private static IDictionary<int, ISet<ITypeSymbol>> GetCandidateParameterTypes(
+            ArgumentListSyntax argumentList, IDataFlowNode node)
+        {
+            var candidateTypes = new Dictionary<int, ISet<ITypeSymbol>>();
+            for (int idx = 0; idx < argumentList.Arguments.Count; idx++)
+            {
+                var argSymbol = node.Summary.SemanticModel.GetSymbolInfo(
+                    argumentList.Arguments[idx].Expression).Symbol;
+                if (argSymbol != null)
+                {
+                    candidateTypes.Add(idx, node.DataFlowInfo.GetCandidateTypesOfSymbol(argSymbol));
+                }
+            }
+
+            return candidateTypes;
         }
 
         #endregion

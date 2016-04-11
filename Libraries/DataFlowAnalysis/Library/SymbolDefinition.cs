@@ -56,34 +56,14 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// Constructor.
         /// </summary>
         /// <param name="symbol">ISymbol</param>
-        /// <param name="type">ITypeSymbol</param>
         /// <param name="dfgNode">DataFlowNode</param>
-        internal SymbolDefinition(ISymbol symbol, ITypeSymbol type, DataFlowNode dfgNode)
+        internal SymbolDefinition(ISymbol symbol, DataFlowNode dfgNode)
         {
             this.DataFlowNode = dfgNode;
             this.Symbol = symbol;
-            this.CandidateTypes = new HashSet<ITypeSymbol> { type };
+            this.CandidateTypes = new HashSet<ITypeSymbol>();
             this.Kind = symbol.Kind;
-
-            string kind = "";
-            if (this.Kind == SymbolKind.Parameter)
-            {
-                kind = "Param";
-            }
-            else if (this.Kind == SymbolKind.Field)
-            {
-                kind = "Field";
-            }
-            else if (this.Kind == SymbolKind.Property)
-            {
-                kind = "Property";
-            }
-            else
-            {
-                kind = "LocalVar";
-            }
-
-            this.Name = $"[{this.DataFlowNode.Id},{kind}]::{symbol.Name}";
+            this.Name = $"[{this.DataFlowNode.Id},{this.Kind}]::{this.Symbol.Name}";
         }
 
         #endregion
