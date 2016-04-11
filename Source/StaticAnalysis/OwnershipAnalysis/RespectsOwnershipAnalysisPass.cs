@@ -353,15 +353,20 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 arguments.Add(argExpr);
             }
-
+            
             var extractedArgs = base.ExtractArguments(arguments);
             foreach (var arg in extractedArgs)
             {
                 IdentifierNameSyntax argIdentifier = CodeAnalysis.CSharp.DataFlowAnalysis.
                     AnalysisContext.GetTopLevelIdentifier(arg);
-                ISymbol argSymbol = model.GetSymbolInfo(argIdentifier).Symbol;
-                ITypeSymbol argType = model.GetTypeInfo(arg).Type;
+                ITypeSymbol argType = model.GetTypeInfo(argIdentifier).Type;
+                if (base.AnalysisContext.IsTypePassedByValueOrImmutable(argType) ||
+                    base.AnalysisContext.IsTypeEnum(argType))
+                {
+                    continue;
+                }
 
+                ISymbol argSymbol = model.GetSymbolInfo(argIdentifier).Symbol;
                 if (!base.AnalysisContext.IsTypeEnum(argType) &&
                     statement.Summary.DataFlowAnalysis.FlowsIntoSymbol(argSymbol,
                     givenUpSymbol.ContainingSymbol, statement, givenUpSymbol.Statement))

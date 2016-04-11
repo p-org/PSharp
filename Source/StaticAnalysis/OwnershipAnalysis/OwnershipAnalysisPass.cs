@@ -440,7 +440,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                         args.Add(invocationArg);
                     }
                 }
-                else
+                else if (!(arg is LiteralExpressionSyntax))
                 {
                     args.Add(arg);
                 }
