@@ -186,7 +186,6 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 ISymbol outerLeftMemberSymbol = model.GetSymbolInfo(assignment.Left).Symbol;
                 if (!outerLeftMemberSymbol.Equals(leftSymbol) &&
-                    //!DataFlowQuerying.DoesResetInControlFlowGraphNode(leftSymbol, syntaxNode, cfgNode) &&
                     statement.Summary.DataFlowAnalysis.FlowsIntoSymbol(givenUpSymbol.ContainingSymbol,
                     leftSymbol, givenUpSymbol.Statement, statement))
                 {
@@ -242,9 +241,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 ISymbol argSymbol = model.GetSymbolInfo(argIdentifier).Symbol;
 
                 if (statement.Summary.DataFlowAnalysis.FlowsIntoSymbol(argSymbol,
-                    givenUpSymbol.ContainingSymbol, statement, givenUpSymbol.Statement) /*&&
-                    !DataFlowQuerying.DoesResetInLoop(argumentList.Arguments[idx].Expression,
-                    syntaxNode, cfgNode, givenUpSymbol.SyntaxNode, givenUpSymbol.ControlFlowNode, model)*/)
+                    givenUpSymbol.ContainingSymbol, statement, givenUpSymbol.Statement))
                 {
                     if (calleeSummary.SideEffectsInfo.ParameterAccesses.ContainsKey(idx))
                     {
@@ -365,9 +362,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
                 if (!base.AnalysisContext.IsTypeEnum(argType) &&
                     statement.Summary.DataFlowAnalysis.FlowsIntoSymbol(argSymbol,
-                    givenUpSymbol.ContainingSymbol, statement, givenUpSymbol.Statement) /*&&
-                    !DataFlowQuerying.DoesResetInLoop(arg, syntaxNode, cfgNode,
-                    givenUpSymbol.SyntaxNode, givenUpSymbol.ControlFlowNode, model)*/)
+                    givenUpSymbol.ContainingSymbol, statement, givenUpSymbol.Statement))
                 {
                     AnalysisErrorReporter.ReportGivenUpOwnershipSending(trace, argSymbol);
                     return;

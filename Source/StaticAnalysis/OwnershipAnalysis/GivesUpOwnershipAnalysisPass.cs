@@ -215,8 +215,6 @@ namespace Microsoft.PSharp.StaticAnalysis
         {
             if (givenUpSymbol.Statement.Equals(statement) &&
                 givenUpSymbol.ContainingSymbol.Kind == SymbolKind.Field &&
-                //!DataFlowQuerying.DoesResetInSuccessorControlFlowGraphNodes(givenUpSymbol.ContainingSymbol,
-                //givenUpSymbol.ContainingSymbol, statement) &&
                 base.IsFieldAccessedBeforeBeingReset(givenUpSymbol.ContainingSymbol, statement.Summary))
             {
                 AnalysisErrorReporter.ReportGivenUpFieldOwnershipError(trace, givenUpSymbol.ContainingSymbol);
@@ -293,8 +291,6 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             if (symbol.Kind == SymbolKind.Field &&
-                //!DataFlowQuerying.DoesResetInSuccessorControlFlowGraphNodes(symbol,
-                //givenUpSymbol.ContainingSymbol, syntaxNode, cfgNode) &&
                 base.IsFieldAccessedBeforeBeingReset(symbol, statement.Summary))
             {
                 TraceInfo newTrace = new TraceInfo();
