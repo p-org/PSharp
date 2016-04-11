@@ -306,6 +306,10 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             ArgumentListSyntax argumentList, IDataFlowNode node)
         {
             var candidateTypes = new Dictionary<int, ISet<ITypeSymbol>>();
+            {
+                return candidateTypes;
+            }
+
             for (int idx = 0; idx < argumentList.Arguments.Count; idx++)
             {
                 var argSymbol = node.Summary.SemanticModel.GetSymbolInfo(
