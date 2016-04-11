@@ -858,7 +858,11 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                     }
                 }
 
-                node.GivesUpOwnershipMap.Add(argSymbol);
+                var argTypes = node.DataFlowInfo.GetCandidateTypesOfSymbol(argSymbol);
+                if (argTypes.Any(type => !this.AnalysisContext.IsTypePassedByValueOrImmutable(type)))
+                {
+                    node.GivesUpOwnershipMap.Add(argSymbol);
+                }
             }
             else if (argExpr is BinaryExpressionSyntax &&
                 argExpr.IsKind(SyntaxKind.AsExpression))
