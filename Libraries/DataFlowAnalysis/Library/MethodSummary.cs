@@ -216,7 +216,8 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <returns>Boolean</returns>
         private bool BuildControlFlowGraph()
         {
-            if (this.Method.Modifiers.Any(SyntaxKind.AbstractKeyword))
+            if (this.Method.Modifiers.Any(SyntaxKind.AbstractKeyword) ||
+                this.Method.Modifiers.Any(SyntaxKind.PartialKeyword))
             {
                 return false;
             }
