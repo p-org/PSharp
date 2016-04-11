@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             }
             
             var calleeDefinitions = node.DataFlowInfo.ResolveOutputAliases(calleeSymbol);
-            var calleeTypes = calleeDefinitions.SelectMany(def => def.Types);
+            var calleeTypes = calleeDefinitions.SelectMany(def => def.CandidateTypes);
             if (!calleeTypes.Any())
             {
                 return false;

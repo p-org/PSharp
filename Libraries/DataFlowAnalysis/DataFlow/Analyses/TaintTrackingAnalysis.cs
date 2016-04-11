@@ -341,11 +341,8 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 retStmt.Expression is MemberAccessExpressionSyntax)
             {
                 ISymbol rightSymbol = this.SemanticModel.GetSymbolInfo(retStmt.Expression).Symbol;
-                ITypeSymbol rightType = this.SemanticModel.GetTypeInfo(retStmt.Expression).Type;
                 returnSymbols.Add(rightSymbol);
-                returnTypes.Add(rightType);
-
-                this.Summary.SideEffectsInfo.ReturnTypes.Add(rightType);
+                returnTypes.UnionWith(node.DataFlowInfo.GetCandidateTypesOfSymbol(rightSymbol));
             }
             else if (retStmt.Expression is InvocationExpressionSyntax ||
                 retStmt.Expression is ObjectCreationExpressionSyntax)

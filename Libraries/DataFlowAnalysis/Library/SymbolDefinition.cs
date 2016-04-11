@@ -34,9 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         public readonly ISymbol Symbol;
 
         /// <summary>
-        /// Types of the symbol.
+        /// Candidate types of the symbol.
         /// </summary>
-        public readonly ISet<ITypeSymbol> Types;
+        public readonly ISet<ITypeSymbol> CandidateTypes;
 
         /// <summary>
         /// Kind of the symbol.
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         {
             this.DataFlowNode = dfgNode;
             this.Symbol = symbol;
-            this.Types = new HashSet<ITypeSymbol> { type };
+            this.CandidateTypes = new HashSet<ITypeSymbol> { type };
             this.Kind = symbol.Kind;
 
             string kind = "";

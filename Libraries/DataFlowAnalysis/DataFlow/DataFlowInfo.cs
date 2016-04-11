@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 
         #endregion
 
-        #region internal methods
+        #region reaching definitions methods
 
         /// <summary>
         /// Generates a new definition for the specified symbol.
@@ -129,8 +129,48 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// </summary>
         internal void AssignOutputDefinitions()
         {
-            this.OutputDefinitions.UnionWith(this.GetAliveInputDefinitions());
+            this.OutputDefinitions.UnionWith(this.GetOutputDefinitions());
         }
+
+        #endregion
+
+        #region type-tracking methods
+
+        /// <summary>
+        /// Resets the type of the symbol with the specified types.
+        /// </summary>
+        /// <param name="types">ITypeSymbols</param>
+        /// <param name="symbol">ISymbol</param>
+        internal void ResetTypeOfSymbol(ISet<ITypeSymbol> types, ISymbol symbol)
+        {
+            var generatedDefinition = this.GetGeneratedDefinitionOfSymbol(symbol);
+            if (generatedDefinition != null && types.Count > 0)
+            {
+                generatedDefinition.CandidateTypes.Clear();
+                generatedDefinition.CandidateTypes.UnionWith(types);
+            }
+        }
+
+        /// <summary>
+        /// Returns the candidate types of the specified symbol.
+        /// </summary>
+        /// <param name="symbol"></param>
+        /// <returns></returns>
+        internal ISet<ITypeSymbol> GetCandidateTypesOfSymbol(ISymbol symbol)
+        {
+            var candidateTypes = new HashSet<ITypeSymbol>();
+            var definitions = this.GetInputOrGeneratedDefinitionsOfSymbol(symbol);
+            foreach (var definition in definitions)
+            {
+                candidateTypes.UnionWith(definition.CandidateTypes);
+            }
+
+            return candidateTypes;
+        }
+
+        #endregion
+
+        #region taint-tracking methods
 
         /// <summary>
         /// Taints the specified symbol.
@@ -207,62 +247,9 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             this.TaintedDefinitions[definition].UnionWith(taintDefinitions);
         }
 
-        /// <summary>
-        /// Resets the type of the symbol with the specified types.
-        /// </summary>
-        /// <param name="types">ITypeSymbols</param>
-        /// <param name="symbol">ISymbol</param>
-        internal void ResetTypeOfSymbol(ISet<ITypeSymbol> types, ISymbol symbol)
-        {
-            var generatedDefinition = this.GetGeneratedDefinitionOfSymbol(symbol);
-            if (generatedDefinition != null && types.Count > 0)
-            {
-                generatedDefinition.Types.Clear();
-                generatedDefinition.Types.UnionWith(types);
-            }
-        }
-
-        /// <summary>
-        /// Checks if the symbol is fresh.
-        /// </summary>
-        /// <param name="symbol">ISymbol</param>
-        /// <returns>Boolean</returns>
-        internal bool IsFreshSymbol(ISymbol symbol)
-        {
-            var inputDefinitions = this.GetInputDefinitionsOfSymbol(symbol);
-            if (inputDefinitions.Count == 0)
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Creates a new object that is a copy of
-        /// the current instance.
-        /// </summary>
-        /// <returns>DataFlowInfo</returns>
-        internal DataFlowInfo Clone()
-        {
-            var newInfo = new DataFlowInfo(this.DataFlowNode, this.AnalysisContext);
-
-            newInfo.GeneratedDefinitions.UnionWith(this.GeneratedDefinitions);
-            newInfo.KilledDefinitions.UnionWith(this.KilledDefinitions);
-            newInfo.InputDefinitions.UnionWith(this.InputDefinitions);
-            newInfo.OutputDefinitions.UnionWith(this.OutputDefinitions);
-
-            foreach (var pair in this.TaintedDefinitions)
-            {
-                newInfo.TaintedDefinitions.Add(pair.Key, new HashSet<SymbolDefinition>(pair.Value));
-            }
-
-            return newInfo;
-        }
-
         #endregion
 
-        #region definition resolving methods
+        #region alias resolution methods
 
         /// <summary>
         /// Resolves the aliases of the specified symbol in
@@ -336,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 
         #endregion
 
-        #region helper methods
+        #region internal helper methods
 
         /// <summary>
         /// Returns the generated definition for the specified symbol.
@@ -346,6 +333,48 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         internal SymbolDefinition GetGeneratedDefinitionOfSymbol(ISymbol symbol)
         {
             return this.GetDefinitionsOfSymbol(symbol, this.GeneratedDefinitions).FirstOrDefault();
+        }
+
+        /// <summary>
+        /// Checks if the symbol is fresh.
+        /// </summary>
+        /// <param name="symbol">ISymbol</param>
+        /// <returns>Boolean</returns>
+        internal bool IsFreshSymbol(ISymbol symbol)
+        {
+            var inputDefinitions = this.GetInputDefinitionsOfSymbol(symbol);
+            if (inputDefinitions.Count == 0)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        #endregion
+
+        #region private helper methods
+
+        /// <summary>
+        /// Returns the input or generated definitions.
+        /// </summary>
+        /// <returns>SymbolDefinitions</returns>
+        private ISet<SymbolDefinition> GetInputOrGeneratedDefinitions()
+        {
+            var definitions = this.InputDefinitions.Union(this.GeneratedDefinitions);
+            return new HashSet<SymbolDefinition>(definitions);
+        }
+
+        /// <summary>
+        /// Returns the output definitions, which are the generated definitions,
+        /// and the input definitions that have not be killed.
+        /// </summary>
+        /// <returns>SymbolDefinitions</returns>
+        private ISet<SymbolDefinition> GetOutputDefinitions()
+        {
+            var definitions = this.InputDefinitions.Except(this.KilledDefinitions).
+                Union(this.GeneratedDefinitions);
+            return new HashSet<SymbolDefinition>(definitions);
         }
 
         /// <summary>
@@ -370,24 +399,23 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         }
 
         /// <summary>
+        /// Returns the input or generated definitions for the specified symbol.
+        /// </summary>
+        /// <param name="symbol">Symbol</param>
+        /// <returns>SymbolDefinitions</returns>
+        private ISet<SymbolDefinition> GetInputOrGeneratedDefinitionsOfSymbol(ISymbol symbol)
+        {
+            return this.GetDefinitionsOfSymbol(symbol, this.GetInputOrGeneratedDefinitions());
+        }
+
+        /// <summary>
         /// Returns the output definitions for the specified symbol.
         /// </summary>
         /// <param name="symbol">Symbol</param>
         /// <returns>SymbolDefinitions</returns>
         private ISet<SymbolDefinition> GetOutputDefinitionsOfSymbol(ISymbol symbol)
         {
-            return this.GetDefinitionsOfSymbol(symbol, this.GetAliveInputDefinitions());
-        }
-
-        /// <summary>
-        /// Returns the input definitions that have not be killed.
-        /// </summary>
-        /// <returns>SymbolDefinitions</returns>
-        private ISet<SymbolDefinition> GetAliveInputDefinitions()
-        {
-            var definitions = this.InputDefinitions.Union(this.GeneratedDefinitions).
-                Except(this.KilledDefinitions);
-            return new HashSet<SymbolDefinition>(definitions);
+            return this.GetDefinitionsOfSymbol(symbol, this.GetOutputDefinitions());
         }
 
         /// <summary>
@@ -403,6 +431,32 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             resolvedDefinitions.UnionWith(definitions.Where(
                 val => val.Symbol.Equals(symbol)));
             return resolvedDefinitions;
+        }
+
+        #endregion
+
+        #region cloning
+
+        /// <summary>
+        /// Creates a new object that is a copy of
+        /// the current instance.
+        /// </summary>
+        /// <returns>DataFlowInfo</returns>
+        internal DataFlowInfo Clone()
+        {
+            var newInfo = new DataFlowInfo(this.DataFlowNode, this.AnalysisContext);
+
+            newInfo.GeneratedDefinitions.UnionWith(this.GeneratedDefinitions);
+            newInfo.KilledDefinitions.UnionWith(this.KilledDefinitions);
+            newInfo.InputDefinitions.UnionWith(this.InputDefinitions);
+            newInfo.OutputDefinitions.UnionWith(this.OutputDefinitions);
+
+            foreach (var pair in this.TaintedDefinitions)
+            {
+                newInfo.TaintedDefinitions.Add(pair.Key, new HashSet<SymbolDefinition>(pair.Value));
+            }
+
+            return newInfo;
         }
 
         #endregion
