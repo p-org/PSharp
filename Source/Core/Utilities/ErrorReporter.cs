@@ -46,8 +46,9 @@ namespace Microsoft.PSharp.Utilities
         /// <param name="s">String</param>
         public static void Report(string s)
         {
-            IO.Print("Error: ");
-            IO.PrintLine(s);
+            IO.Print(ConsoleColor.Red, "Error: ");
+            IO.Print(ConsoleColor.Yellow, s);
+            IO.PrintLine();
         }
 
         /// <summary>
@@ -57,8 +58,10 @@ namespace Microsoft.PSharp.Utilities
         /// <param name="args">Parameters</param>
         public static void Report(string s, params object[] args)
         {
-            IO.Print("Error: ");
-            IO.PrettyPrintLine(s, args);
+            string message = IO.Format(s, args);
+            IO.Print(ConsoleColor.Red, "Error: ");
+            IO.Print(ConsoleColor.Yellow, message);
+            IO.PrintLine();
         }
 
         /// <summary>
@@ -69,8 +72,9 @@ namespace Microsoft.PSharp.Utilities
         {
             if (ErrorReporter.ShowWarnings)
             {
-                IO.Print("Warning: ");
-                IO.PrintLine(s);
+                IO.Print(ConsoleColor.Red, "Warning: ");
+                IO.Print(ConsoleColor.Yellow, s);
+                IO.PrintLine();
             }
         }
 
@@ -83,8 +87,10 @@ namespace Microsoft.PSharp.Utilities
         {
             if (ErrorReporter.ShowWarnings)
             {
-                IO.Print("Warning: ");
-                IO.PrettyPrintLine(s, args);
+                string message = IO.Format(s, args);
+                IO.Print(ConsoleColor.Red, "Warning: ");
+                IO.Print(ConsoleColor.Yellow, message);
+                IO.PrintLine();
             }
         }
 
@@ -94,8 +100,7 @@ namespace Microsoft.PSharp.Utilities
         /// <param name="s">String</param>
         public static void ReportAndExit(string s)
         {
-            IO.Print("Error: ");
-            IO.PrintLine(s);
+            ErrorReporter.Report(s);
             Environment.Exit(1);
         }
 
@@ -106,8 +111,7 @@ namespace Microsoft.PSharp.Utilities
         /// <param name="args">Parameters</param>
         public static void ReportAndExit(string s, params object[] args)
         {
-            IO.Print("Error: ");
-            IO.PrettyPrintLine(s, args);
+            ErrorReporter.Report(s, args);
             Environment.Exit(1);
         }
 

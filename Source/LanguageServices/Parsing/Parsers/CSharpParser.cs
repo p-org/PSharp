@@ -187,7 +187,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 ErrorReporter.ReportWarning(report);
             }
 
-            IO.PrettyPrint("Found {0} parsing warnings{1}.", this.WarningLog.Count,
+            IO.PrettyPrint("Found {0} parsing warning{1}.", this.WarningLog.Count,
                 this.WarningLog.Count == 1 ? "" : "s");
         }
 
