@@ -105,6 +105,8 @@
     <Compile Include="Advanced\StaticError\ComplexAccessesInCallFailTests.cs" />
     <Compile Include="BasePSharpTest.cs" />
     <Compile Include="ControlFlow\Correct\IfStatementTests.cs" />
+    <Compile Include="ControlFlow\Correct\SwitchStatementTests.cs" />
+    <Compile Include="ControlFlow\StaticError\SwitchStatementFailTests.cs" />
     <Compile Include="ControlFlow\StaticError\UsingStatementFailTests.cs" />
     <Compile Include="ControlFlow\StaticError\IfStatementFailTests.cs" />
     <Compile Include="DirectAccess\Correct\MemberVisibilityTests.cs" />
