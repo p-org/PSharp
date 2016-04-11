@@ -289,6 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         private void AnalyzeAssignmentExpression(ISymbol leftSymbol, ExpressionSyntax rightExpr,
             IDataFlowNode node)
         {
+            ISet<ITypeSymbol> assignmentTypes = new HashSet<ITypeSymbol>();
             if (rightExpr is IdentifierNameSyntax ||
                 rightExpr is MemberAccessExpressionSyntax)
             {
@@ -301,12 +302,13 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                     node.DataFlowInfo.TaintSymbol(rightSymbol, rightSymbol);
                     node.DataFlowInfo.TaintSymbol(rightSymbol, leftSymbol);
                 }
+
+                assignmentTypes.UnionWith(node.DataFlowInfo.GetCandidateTypesOfSymbol(rightSymbol));
             }
             else if (rightExpr is InvocationExpressionSyntax)
             {
                 ISet<ISymbol> returnSymbols = null;
-                ISet<ITypeSymbol> returnTypes = null;
-                this.AnalyzeMethodCall(rightExpr, node, out returnSymbols, out returnTypes);
+                this.AnalyzeMethodCall(rightExpr, node, out returnSymbols, out assignmentTypes);
 
                 foreach (var returnSymbol in returnSymbols)
                 {
@@ -314,16 +316,14 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 }
 
                 node.DataFlowInfo.TaintSymbol(returnSymbols, leftSymbol);
-                node.DataFlowInfo.ResetTypeOfSymbol(returnTypes, leftSymbol);
             }
             else if (rightExpr is ObjectCreationExpressionSyntax)
             {
                 ISet<ISymbol> returnSymbols = null;
-                ISet<ITypeSymbol> returnTypes = null;
-                this.AnalyzeMethodCall(rightExpr, node, out returnSymbols, out returnTypes);
-                var type = returnTypes.FirstOrDefault();
-                node.DataFlowInfo.ResetTypeOfSymbol(returnTypes, leftSymbol);
+                this.AnalyzeMethodCall(rightExpr, node, out returnSymbols, out assignmentTypes);
             }
+
+            node.DataFlowInfo.ResetTypeOfSymbol(assignmentTypes, leftSymbol);
         }
 
         /// <summary>
