@@ -12,6 +12,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using Microsoft.PSharp.Utilities;
+
 namespace Microsoft.PSharp.StaticAnalysis
 {
     /// <summary>
@@ -25,6 +27,11 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// The analysis context.
         /// </summary>
         protected PSharpAnalysisContext AnalysisContext;
+
+        /// <summary>
+        /// The analysis pass profiler.
+        /// </summary>
+        protected Profiler Profiler;
 
         #endregion
 
@@ -45,8 +52,18 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="context">AnalysisContext</param>
         protected AnalysisPass(PSharpAnalysisContext context)
         {
+            this.Profiler = new Profiler();
             this.AnalysisContext = context;
         }
+
+        #endregion
+
+        #region profiling methods
+
+        /// <summary>
+        /// Prints profiling results.
+        /// </summary>
+        protected abstract void PrintProfilingResults();
 
         #endregion
     }

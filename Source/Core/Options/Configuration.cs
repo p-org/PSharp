@@ -86,29 +86,14 @@ namespace Microsoft.PSharp.Utilities
         public bool ShowFullDataFlowInformation;
 
         /// <summary>
-        /// Reports the runtime results for the whole execution.
+        /// Reports the runtime results for the static analysis.
         /// </summary>
-        public bool ShowRuntimeResults;
-
-        /// <summary>
-        /// Reports the runtime results for the dataflow analysis.
-        /// </summary>
-        public bool ShowDFARuntimeResults;
-
-        /// <summary>
-        /// Reports the runtime results for the respects ownership analysis.
-        /// </summary>
-        public bool ShowROARuntimeResults;
+        public bool TimeStaticAnalysis;
 
         /// <summary>
         /// Perform the state transition analysis.
         /// </summary>
         public bool DoStateTransitionAnalysis;
-
-        /// <summary>
-        /// Analyse exception handling.
-        /// </summary>
-        public bool AnalyzeExceptionHandling;
 
         #endregion
 
@@ -269,11 +254,8 @@ namespace Microsoft.PSharp.Utilities
             this.ShowControlFlowInformation = false;
             this.ShowDataFlowInformation = false;
             this.ShowFullDataFlowInformation = false;
-            this.ShowRuntimeResults = false;
-            this.ShowDFARuntimeResults = false;
-            this.ShowROARuntimeResults = false;
+            this.TimeStaticAnalysis = false;
             this.DoStateTransitionAnalysis = true;
-            this.AnalyzeExceptionHandling = false;
 
             this.AssemblyToBeAnalyzed = "";
 

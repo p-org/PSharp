@@ -35,6 +35,11 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         private CompilationContext CompilationContext;
 
+        /// <summary>
+        /// The overall runtime profiler.
+        /// </summary>
+        private Profiler Profiler;
+
         #endregion
 
         #region public API
@@ -88,7 +93,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
         #endregion
 
-        #region private methods
+        #region constructors
 
         /// <summary>
         /// Constructor.
@@ -96,8 +101,13 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="context">CompilationContext</param>
         private StaticAnalysisEngine(CompilationContext context)
         {
+            this.Profiler = new Profiler();
             this.CompilationContext = context;
         }
+
+        #endregion
+
+        #region private methods
 
         /// <summary>
         /// Analyzes the given P# project.
@@ -106,9 +116,9 @@ namespace Microsoft.PSharp.StaticAnalysis
         private void AnalyzeProject(Project project)
         {
             // Starts profiling the analysis.
-            if (this.CompilationContext.Configuration.ShowRuntimeResults)
+            if (this.CompilationContext.Configuration.TimeStaticAnalysis)
             {
-                Profiler.StartMeasuringExecutionTime();
+                this.Profiler.StartMeasuringExecutionTime();
             }
 
             // Create a state-machine static analysis context.
@@ -139,16 +149,11 @@ namespace Microsoft.PSharp.StaticAnalysis
             RespectsOwnershipAnalysisPass.Create(context).Run();
 
             // Stops profiling the analysis.
-            if (this.CompilationContext.Configuration.ShowRuntimeResults)
+            if (this.CompilationContext.Configuration.TimeStaticAnalysis)
             {
-                Profiler.StopMeasuringExecutionTime();
-            }
-
-            if (this.CompilationContext.Configuration.ShowRuntimeResults ||
-                this.CompilationContext.Configuration.ShowDFARuntimeResults ||
-                this.CompilationContext.Configuration.ShowROARuntimeResults)
-            {
-                Profiler.PrintResults();
+                this.Profiler.StopMeasuringExecutionTime();
+                IO.PrintLine("... Total static analysis runtime: '" +
+                    this.Profiler.Results() + "' seconds.");
             }
         }
 

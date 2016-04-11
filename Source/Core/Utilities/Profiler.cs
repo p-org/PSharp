@@ -12,47 +12,38 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
 using System.Diagnostics;
 
 namespace Microsoft.PSharp.Utilities
 {
-    public static class Profiler
+    public sealed class Profiler
     {
-        private static Stopwatch StopWatch = null;
-
+        private Stopwatch StopWatch = null;
+        
         /// <summary>
         /// Starts measuring execution time.
         /// </summary>
-        public static void StartMeasuringExecutionTime()
+        public void StartMeasuringExecutionTime()
         {
-            Profiler.StopWatch = new Stopwatch();
-            Profiler.StopWatch.Start();
+            this.StopWatch = new Stopwatch();
+            this.StopWatch.Start();
         }
 
         /// <summary>
         /// Stops measuring execution time.
         /// </summary>
-        public static void StopMeasuringExecutionTime()
+        public void StopMeasuringExecutionTime()
         {
-            Profiler.StopWatch.Stop();
+            this.StopWatch.Stop();
         }
 
         /// <summary>
         /// Returns profilling results.
         /// </summary>
         /// <returns>Seconds</returns>
-        public static double Results()
+        public double Results()
         {
-            return Profiler.StopWatch.Elapsed.TotalSeconds;
-        }
-
-        /// <summary>
-        /// Prints profiling results.
-        /// </summary>
-        public static void PrintResults()
-        {
-            IO.PrintLine("Total Runtime: " + Profiler.StopWatch.Elapsed.TotalSeconds + " (sec).");
+            return this.StopWatch.Elapsed.TotalSeconds;
         }
     }
 }

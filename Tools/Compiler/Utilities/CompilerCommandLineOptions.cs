@@ -100,23 +100,11 @@ namespace Microsoft.PSharp.Utilities
             }
             else if (option.ToLower().Equals("/time"))
             {
-                base.Configuration.ShowRuntimeResults = true;
-            }
-            else if (option.ToLower().Equals("/time-dfa"))
-            {
-                base.Configuration.ShowDFARuntimeResults = true;
-            }
-            else if (option.ToLower().Equals("/time-roa"))
-            {
-                base.Configuration.ShowROARuntimeResults = true;
+                base.Configuration.TimeStaticAnalysis = true;
             }
             else if (option.ToLower().Equals("/no-state-transition-analysis"))
             {
                 base.Configuration.DoStateTransitionAnalysis = false;
-            }
-            else if (option.ToLower().Equals("/analyze-exceptions"))
-            {
-                base.Configuration.AnalyzeExceptionHandling = true;
             }
             else
             {

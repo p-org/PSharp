@@ -50,11 +50,9 @@ namespace Microsoft.PSharp.StaticAnalysis
         internal override void Run()
         {
             // Starts profiling the summarization.
-            if (this.AnalysisContext.Configuration.ShowDFARuntimeResults &&
-                !this.AnalysisContext.Configuration.ShowRuntimeResults &&
-                !this.AnalysisContext.Configuration.ShowROARuntimeResults)
+            if (this.AnalysisContext.Configuration.TimeStaticAnalysis)
             {
-                Profiler.StartMeasuringExecutionTime();
+                this.Profiler.StartMeasuringExecutionTime();
             }
             
             foreach (var machine in this.AnalysisContext.Machines)
@@ -63,11 +61,10 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             // Stops profiling the summarization.
-            if (this.AnalysisContext.Configuration.ShowDFARuntimeResults &&
-                !this.AnalysisContext.Configuration.ShowRuntimeResults &&
-                !this.AnalysisContext.Configuration.ShowROARuntimeResults)
+            if (this.AnalysisContext.Configuration.TimeStaticAnalysis)
             {
-                Profiler.StopMeasuringExecutionTime();
+                this.Profiler.StopMeasuringExecutionTime();
+                this.PrintProfilingResults();
             }
         }
 
@@ -191,6 +188,19 @@ namespace Microsoft.PSharp.StaticAnalysis
             //}
 
             return methods;
+        }
+
+        #endregion
+
+        #region profiling methods
+
+        /// <summary>
+        /// Prints profiling results.
+        /// </summary>
+        protected override void PrintProfilingResults()
+        {
+            IO.PrintLine("... Data-flow analysis runtime: '" +
+                base.Profiler.Results() + "' seconds.");
         }
 
         #endregion

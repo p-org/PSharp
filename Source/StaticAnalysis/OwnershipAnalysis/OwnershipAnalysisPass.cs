@@ -38,12 +38,10 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         internal override void Run()
         {
-            // Starts profiling the data-flow analysis.
-            if (this.AnalysisContext.Configuration.ShowROARuntimeResults &&
-                !this.AnalysisContext.Configuration.ShowRuntimeResults &&
-                !this.AnalysisContext.Configuration.ShowDFARuntimeResults)
+            // Starts profiling the ownership analysis.
+            if (this.AnalysisContext.Configuration.TimeStaticAnalysis)
             {
-                Profiler.StartMeasuringExecutionTime();
+                base.Profiler.StartMeasuringExecutionTime();
             }
 
             foreach (var machine in this.AnalysisContext.Machines)
@@ -51,12 +49,11 @@ namespace Microsoft.PSharp.StaticAnalysis
                 this.AnalyzeMethodsInMachine(machine);
             }
 
-            // Stops profiling the data-flow analysis.
-            if (this.AnalysisContext.Configuration.ShowROARuntimeResults &&
-                !this.AnalysisContext.Configuration.ShowRuntimeResults &&
-                !this.AnalysisContext.Configuration.ShowDFARuntimeResults)
+            // Stops profiling the ownership analysis.
+            if (this.AnalysisContext.Configuration.TimeStaticAnalysis)
             {
-                Profiler.StopMeasuringExecutionTime();
+                base.Profiler.StopMeasuringExecutionTime();
+                this.PrintProfilingResults();
             }
         }
 

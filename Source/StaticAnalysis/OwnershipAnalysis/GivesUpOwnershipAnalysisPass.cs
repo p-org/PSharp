@@ -21,6 +21,8 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Microsoft.PSharp.Utilities;
+
 namespace Microsoft.PSharp.StaticAnalysis
 {
     /// <summary>
@@ -301,6 +303,19 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
         }
 
-        #endregion 
+        #endregion
+
+        #region profiling methods
+
+        /// <summary>
+        /// Prints profiling results.
+        /// </summary>
+        protected override void PrintProfilingResults()
+        {
+            IO.PrintLine("... Gives-up ownership analysis runtime: '" +
+                base.Profiler.Results() + "' seconds.");
+        }
+
+        #endregion
     }
 }

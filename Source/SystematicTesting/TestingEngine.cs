@@ -93,6 +93,11 @@ namespace Microsoft.PSharp.SystematicTesting
         /// </summary>
         public string BugReport { get; private set; }
 
+        /// <summary>
+        /// The profiler.
+        /// </summary>
+        private Profiler Profiler;
+
         #endregion
 
         #region public API
@@ -143,7 +148,7 @@ namespace Microsoft.PSharp.SystematicTesting
 
         #endregion
 
-        #region initialization methods
+        #region constructors
 
         /// <summary>
         /// Constructor.
@@ -152,6 +157,7 @@ namespace Microsoft.PSharp.SystematicTesting
         /// <param name="action">Action</param>
         private TestingEngine(Configuration configuration, Action<PSharpRuntime> action)
         {
+            this.Profiler = new Profiler();
             this.Configuration = configuration;
             this.TestAction = action;
             this.Initialize();
@@ -164,6 +170,7 @@ namespace Microsoft.PSharp.SystematicTesting
         /// <param name="assembly">Assembly</param>
         private TestingEngine(Configuration configuration, Assembly assembly)
         {
+            this.Profiler = new Profiler();
             this.Configuration = configuration;
             this.Assembly = assembly;
             this.FindEntryPoint();
@@ -177,6 +184,7 @@ namespace Microsoft.PSharp.SystematicTesting
         /// <param name="assemblyName">Assembly name</param>
         private TestingEngine(Configuration configuration, string assemblyName)
         {
+            this.Profiler = new Profiler();
             this.Configuration = configuration;
 
             try
@@ -191,6 +199,10 @@ namespace Microsoft.PSharp.SystematicTesting
             this.FindEntryPoint();
             this.Initialize();
         }
+
+        #endregion
+
+        #region core methods
 
         /// <summary>
         /// Initialized the testing engine.
@@ -263,10 +275,6 @@ namespace Microsoft.PSharp.SystematicTesting
 
             this.HasRedirectedConsoleOutput = false;
         }
-
-        #endregion
-
-        #region core methods
 
         /// <summary>
         /// Explores the P# program for bugs.
@@ -378,7 +386,7 @@ namespace Microsoft.PSharp.SystematicTesting
                 }
             });
 
-            Profiler.StartMeasuringExecutionTime();
+            this.Profiler.StartMeasuringExecutionTime();
             task.Start();
 
             try
@@ -421,7 +429,7 @@ namespace Microsoft.PSharp.SystematicTesting
             }
             finally
             {
-                Profiler.StopMeasuringExecutionTime();
+                this.Profiler.StopMeasuringExecutionTime();
             }
         }
 
@@ -460,7 +468,7 @@ namespace Microsoft.PSharp.SystematicTesting
                 IO.PrintLine("... Used depth bound of {0}.", this.Configuration.DepthBound);
             }
 
-            IO.PrintLine("... Elapsed {0} sec.", Profiler.Results());
+            IO.PrintLine("... Elapsed {0} sec.", this.Profiler.Results());
         }
 
         /// <summary>
