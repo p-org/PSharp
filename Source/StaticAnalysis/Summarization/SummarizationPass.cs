@@ -83,72 +83,31 @@ namespace Microsoft.PSharp.StaticAnalysis
         }
 
         /// <summary>
-        /// Analyses all eligible methods of the given state-machine to compute the
-        /// method summaries. This process repeats until it reaches a fix-point.
+        /// Analyzes all eligible methods of the specified state-machine
+        /// to compute the method summaries.
         /// </summary>
         /// <param name="machine">Machine</param>
         private void SummarizeStateMachine(StateMachine machine)
         {
-            int fixPoint = 0;
-            
             foreach (var method in this.GetMachineMethods(machine))
             {
-                if (this.AnalysisContext.Summaries.ContainsKey(method) ||
-                    method.Modifiers.Any(SyntaxKind.AbstractKeyword))
+                if (method.Body == null ||
+                    this.AnalysisContext.Summaries.ContainsKey(method))
                 {
                     continue;
                 }
 
                 this.SummarizeMethod(method, machine);
-                if (!this.AnalysisContext.Summaries.ContainsKey(method))
-                {
-                    fixPoint++;
-                }
-            }
-
-            if (fixPoint > 0)
-            {
-                // If fix-point has not been reached, repeat.
-                this.SummarizeStateMachine(machine);
             }
         }
 
         /// <summary>
-        /// Computes the summary for the given method.
+        /// Computes the summary for the specified method.
         /// </summary>
         /// <param name="method">Method</param>
         /// <param name="machine">Machine</param>
         private void SummarizeMethod(MethodDeclarationSyntax method, StateMachine machine)
         {
-            foreach (var call in method.DescendantNodes().OfType<InvocationExpressionSyntax>())
-            {
-                var model = this.AnalysisContext.Compilation.GetSemanticModel(call.SyntaxTree);
-                var callSymbol = model.GetSymbolInfo(call).Symbol;
-                if (callSymbol == null)
-                {
-                    continue;
-                }
-
-                var definition = SymbolFinder.FindSourceDefinitionAsync(callSymbol,
-                    this.AnalysisContext.Solution).Result;
-                if (definition == null)
-                {
-                    continue;
-                }
-
-                var callee = CodeAnalysis.CSharp.DataFlowAnalysis.AnalysisContext.GetCalleeOfInvocation(call);
-                var calleeMethod = definition.DeclaringSyntaxReferences.First().GetSyntax()
-                    as BaseMethodDeclarationSyntax;
-
-                if (machine.Declaration.ChildNodes().OfType<BaseMethodDeclarationSyntax>().
-                    Contains(calleeMethod) &&
-                    !this.AnalysisContext.Summaries.ContainsKey(calleeMethod) &&
-                    !calleeMethod.Modifiers.Any(SyntaxKind.AbstractKeyword))
-                {
-                    return;
-                }
-            }
-            
             var summary = MethodSummary.Create(this.AnalysisContext, method);
             this.AnalysisContext.CacheSummary(summary);
 

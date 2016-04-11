@@ -346,7 +346,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
         /// <summary>
         /// Reports calling a method with unavailable source code,
-        /// thus cannot be further analysed.
+        /// thus cannot be further analyzed.
         /// </summary>
         /// <param name="trace">TraceInfo</param>
         internal static void ReportExternalInvocation(TraceInfo trace)
@@ -371,7 +371,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
         /// <summary>
         /// Reports calling a virtual method with unknown overrider,
-        /// thus cannot be further analysed.
+        /// thus cannot be further analyzed.
         /// </summary>
         /// <param name="trace">TraceInfo</param>
         internal static void ReportUnknownVirtualCall(TraceInfo trace)
@@ -380,13 +380,13 @@ namespace Microsoft.PSharp.StaticAnalysis
             if (trace.State == null)
             {
                 message = IO.Format("Method '{0}' of machine '{1}' calls " +
-                    "a virtual method that cannot be further analysed.",
+                    "a virtual method that cannot be further analyzed.",
                     trace.Method, trace.Machine);
             }
             else
             {
                 message = IO.Format("Method '{0}' in state '{1}' of machine '{2}' " +
-                    "calls a virtual method that cannot be further analysed.",
+                    "calls a virtual method that cannot be further analyzed.",
                     trace.Method, trace.State, trace.Machine);
             }
 

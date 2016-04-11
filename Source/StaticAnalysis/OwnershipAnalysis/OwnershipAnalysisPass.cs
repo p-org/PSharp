@@ -271,7 +271,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 foreach (var method in machineToAnalyze.Declaration.ChildNodes().OfType<MethodDeclarationSyntax>())
                 {
-                    if (!method.Modifiers.Any(SyntaxKind.AbstractKeyword))
+                    if (method.Body != null)
                     {
                         this.AnalyzeMethod(method, machineToAnalyze, null, machine);
                     }

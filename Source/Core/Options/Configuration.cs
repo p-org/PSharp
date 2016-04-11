@@ -32,7 +32,7 @@ namespace Microsoft.PSharp.Utilities
         public string OutputFilePath;
 
         /// <summary>
-        /// The name of the project to analyse.
+        /// The name of the project to analyze.
         /// </summary>
         public string ProjectName;
 
