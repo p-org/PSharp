@@ -160,7 +160,11 @@ namespace Microsoft.PSharp.StaticAnalysis
                 summary.PrintControlFlowGraph();
             }
 
-            if (this.AnalysisContext.Configuration.ShowDataFlowInformation)
+            if (this.AnalysisContext.Configuration.ShowFullDataFlowInformation)
+            {
+                summary.PrintDataFlowInformation(true);
+            }
+            else if (this.AnalysisContext.Configuration.ShowDataFlowInformation)
             {
                 summary.PrintDataFlowInformation();
             }

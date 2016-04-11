@@ -300,16 +300,18 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <summary>
         /// Prints the data-flow information.
         /// </summary>
-        public void PrintDataFlowInformation()
+        /// <param name="showDetails">Shows detailed information</param>
+        public void PrintDataFlowInformation(bool showDetails = false)
         {
-            this.PrintDataFlowInformation(false);
+            this.PrintDataFlowInformation(showDetails, false);
         }
 
         /// <summary>
         /// Prints the data-flow information.
         /// </summary>
+        /// <param name="showDetails">Shows detailed information</param>
         /// <param name="isChild">Is child of summary</param>
-        private void PrintDataFlowInformation(bool isChild)
+        private void PrintDataFlowInformation(bool showDetails, bool isChild)
         {
             string indent = "..";
             if (isChild)
@@ -328,23 +330,31 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 
             this.PrintGeneratedDefinitions(indent);
             this.PrintKilledDefinitions(indent);
-            this.PrintInputDefinitions(indent);
-            this.PrintOutputDefinitions(indent);
+
+            if (showDetails)
+            {
+                this.PrintInputDefinitions(indent);
+                this.PrintOutputDefinitions(indent);
+            }
+
             this.PrintTaintedDefinitions(indent);
-            this.PrintMethodSummaryCache(indent);
-            this.PrintGivesUpOwnershipMap(indent);
+            
             this.PrintFieldFlowParamIndexes(indent);
             this.PrintFieldAccesses(indent);
             this.PrintParameterAccesses(indent);
             this.PrintReturnedFields(indent);
             this.PrintReturnedParameters(indent);
             this.PrintReturnedTypes(indent);
+
+            this.PrintGivesUpOwnershipMap(indent);
             this.PrintGivesUpOwnershipParameterIndexes(indent);
+
+            this.PrintMethodSummaryCache(indent);
 
             Console.WriteLine(indent + ". |");
             Console.WriteLine(indent + ". ==================================================");
 
-            this.PrintCachedMethodSummaries();
+            this.PrintCachedMethodSummaries(showDetails);
         }
 
         /// <summary>
@@ -762,7 +772,8 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <summary>
         /// Prints all cached method summaries.
         /// </summary>
-        internal void PrintCachedMethodSummaries()
+        /// <param name="showDetails">Shows detailed information</param>
+        internal void PrintCachedMethodSummaries(bool showDetails)
         {
             foreach (var dfgNode in this.DataFlowGraph.Nodes)
             {
@@ -770,7 +781,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 {
                     foreach (var summary in symbol.Value)
                     {
-                        summary.PrintDataFlowInformation(true);
+                        summary.PrintDataFlowInformation(showDetails, true);
                     }
                 }
             }

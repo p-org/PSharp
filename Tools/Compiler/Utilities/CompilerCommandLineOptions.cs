@@ -82,6 +82,22 @@ namespace Microsoft.PSharp.Utilities
             {
                 base.Configuration.ShowDataFlowInformation = true;
             }
+            else if (option.ToLower().StartsWith("/emit-data-flow:") && option.Length > 16)
+            {
+                if (option.ToLower().Substring(16).Equals("default"))
+                {
+                    base.Configuration.ShowDataFlowInformation = true;
+                }
+                else if (option.ToLower().Substring(16).Equals("full"))
+                {
+                    base.Configuration.ShowFullDataFlowInformation = true;
+                }
+                else
+                {
+                    ErrorReporter.ReportAndExit("Please give a valid data-flow information " +
+                        "level '/emit-data-flow:[x]', where [x] is 'default' or 'full'.");
+                }
+            }
             else if (option.ToLower().Equals("/time"))
             {
                 base.Configuration.ShowRuntimeResults = true;
