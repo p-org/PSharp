@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <summary>
         /// Side-effects information.
         /// </summary>
-        public MethodSideEffectsInfo SideEffectsInfo;
+        public MethodSideEffectsInfo SideEffectsInfo { get; private set; }
 
         /// <summary>
         /// A counter for creating unique IDs.
@@ -102,6 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             this.AnalysisContext = context;
             this.SemanticModel = context.Compilation.GetSemanticModel(method.SyntaxTree);
             this.Method = method;
+            this.SideEffectsInfo = new MethodSideEffectsInfo(this);
             this.ResolveMethodParameterTypes(parameterTypes);
         }
 
@@ -113,8 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <returns>MethodSummary</returns>
         public static MethodSummary Create(AnalysisContext context, BaseMethodDeclarationSyntax method)
         {
-            var summary = new MethodSummary(context, method, new Dictionary<int, ISet<ITypeSymbol>>());
-            return summary.BuildSummary();
+            return MethodSummary.Create(context, method, new Dictionary<int, ISet<ITypeSymbol>>());
         }
 
         /// <summary>
@@ -128,8 +128,16 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         public static MethodSummary Create(AnalysisContext context, BaseMethodDeclarationSyntax method,
             IDictionary<int, ISet<ITypeSymbol>> parameterTypes)
         {
+            if (method.Body == null)
+            {
+                return null;
+            }
+
             var summary = new MethodSummary(context, method, parameterTypes);
-            return summary.BuildSummary();
+            summary.BuildSummary();
+            summary.AnalyzeSummary();
+
+            return summary;
         }
 
         #endregion
@@ -195,57 +203,21 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <summary>
         /// Builds the summary.
         /// </summary>
-        /// <returns>MethodSummary</returns>
-        private MethodSummary BuildSummary()
+        private void BuildSummary()
         {
-            if (!this.BuildControlFlowGraph())
-            {
-                return this;
-            }
-
-            this.SideEffectsInfo = new MethodSideEffectsInfo(this);
-
-            this.BuildDataFlowGraph();
-
-            return this;
-        }
-
-        /// <summary>
-        /// Builds the control-flow graph of the method.
-        /// </summary>
-        /// <returns>Boolean</returns>
-        private bool BuildControlFlowGraph()
-        {
-            if (this.Method.Body == null)
-            {
-                return false;
-            }
-
-            SemanticModel model = null;
-
-            try
-            {
-                model = this.AnalysisContext.Compilation.GetSemanticModel(this.Method.SyntaxTree);
-            }
-            catch
-            {
-                return false;
-            }
-
             this.ControlFlowGraph = new ControlFlowGraph(this);
-            return true;
-        }
 
-        /// <summary>
-        /// Builds the data-flow graph of the method.
-        /// </summary>
-        private void BuildDataFlowGraph()
-        {
             var dataFlowGraph = new DataFlowGraph(this);
             this.DataFlowGraph = dataFlowGraph;
             this.DataFlowAnalysis = dataFlowGraph;
+        }
 
-            new TaintTrackingAnalysis(dataFlowGraph).Run();
+        /// <summary>
+        /// Analyzes the summary.
+        /// </summary>
+        private void AnalyzeSummary()
+        {
+            new TaintTrackingAnalysis(this.DataFlowGraph).Run();
         }
 
         /// <summary>

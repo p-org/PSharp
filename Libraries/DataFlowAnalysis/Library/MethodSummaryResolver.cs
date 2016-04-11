@@ -83,12 +83,12 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             {
                 var parameterTypes = MethodSummaryResolver.GetCandidateParameterTypes(
                     invocation.ArgumentList, node);
-                var candidateCallees = MethodSummaryResolver.ResolveCandidateMethodsAtCallSite(
-                    invocation, node);
-                foreach (var candidateCallee in candidateCallees)
+                var candidateCalleeDeclarations = MethodSummaryResolver.
+                    ResolveCandidateMethodsAtCallSite(invocation, node);
+                foreach (var candidateCalleeDeclaration in candidateCalleeDeclarations)
                 {
                     var calleeSummary = MethodSummary.Create(node.Summary.AnalysisContext,
-                        candidateCallee, parameterTypes);
+                        candidateCalleeDeclaration, parameterTypes);
                     if (calleeSummary != null)
                     {
                         summaries.Add(calleeSummary);
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             {
                 var parameterTypes = MethodSummaryResolver.GetCandidateParameterTypes(
                     objCreation.ArgumentList, node);
-                var constructor = MethodSummaryResolver.ResolveCallee(
+                var constructor = MethodSummaryResolver.ResolveMethodDeclaration(
                     objCreation, node) as ConstructorDeclarationSyntax;
                 if (constructor != null)
                 {
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         }
 
         /// <summary>
-        /// Returns the candidate callees after resolving the given invocation.
+        /// Returns the candidate callees after resolving the specified invocation.
         /// </summary>
         /// <param name="invocation">InvocationExpressionSyntax</param>
         /// <param name="node">IDataFlowNode</param>
@@ -125,16 +125,16 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             InvocationExpressionSyntax invocation, IDataFlowNode node)
         {
             var candidateCallees = new HashSet<MethodDeclarationSyntax>();
-            var potentialCallee = MethodSummaryResolver.ResolveCallee(
+            var candidateMethodDeclaration = MethodSummaryResolver.ResolveMethodDeclaration(
                 invocation, node) as MethodDeclarationSyntax;
-            if (potentialCallee == null)
+            if (candidateMethodDeclaration == null)
             {
                 return candidateCallees;
             }
-
-            if (potentialCallee.Modifiers.Any(SyntaxKind.AbstractKeyword) ||
-                potentialCallee.Modifiers.Any(SyntaxKind.VirtualKeyword) ||
-                potentialCallee.Modifiers.Any(SyntaxKind.OverrideKeyword))
+            
+            if (candidateMethodDeclaration.Modifiers.Any(SyntaxKind.AbstractKeyword) ||
+                candidateMethodDeclaration.Modifiers.Any(SyntaxKind.VirtualKeyword) ||
+                candidateMethodDeclaration.Modifiers.Any(SyntaxKind.OverrideKeyword))
             {
                 HashSet<MethodDeclarationSyntax> overriders = null;
                 if (!MethodSummaryResolver.TryGetCandidateMethodOverriders(out overriders,
@@ -148,19 +148,20 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 
             if (candidateCallees.Count == 0)
             {
-                candidateCallees.Add(potentialCallee);
+                candidateCallees.Add(candidateMethodDeclaration);
             }
 
             return candidateCallees;
         }
 
         /// <summary>
-        /// Returns the candidate callees after resolving the given call.
+        /// Returns the method declaration after resolving the specified call.
         /// </summary>
         /// <param name="call">ExpressionSyntax</param>
         /// <param name="node">IDataFlowNode</param>
-        /// <returns>Set of candidate callees</returns>
-        private static BaseMethodDeclarationSyntax ResolveCallee(ExpressionSyntax call, IDataFlowNode node)
+        /// <returns>BaseMethodDeclarationSyntax</returns>
+        private static BaseMethodDeclarationSyntax ResolveMethodDeclaration(
+            ExpressionSyntax call, IDataFlowNode node)
         {
             var calleeSymbol = node.Summary.SemanticModel.GetSymbolInfo(call).Symbol;
             if (calleeSymbol == null)
@@ -169,26 +170,30 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             }
 
             var definition = SymbolFinder.FindSourceDefinitionAsync(calleeSymbol,
-                node.Summary.AnalysisContext.Solution).Result;
+                node.Summary.AnalysisContext.Solution).Result as IMethodSymbol;
             if (definition == null || definition.DeclaringSyntaxReferences.IsEmpty)
             {
                 return null;
             }
 
-            var invocation = call as InvocationExpressionSyntax;
-            var objCreation = call as ObjectCreationExpressionSyntax;
-            if (invocation == null && objCreation == null)
+            BaseMethodDeclarationSyntax methodDeclaration;
+            if (definition.PartialImplementationPart != null)
             {
-                return null;
+                methodDeclaration = definition.PartialImplementationPart.DeclaringSyntaxReferences.
+                    First().GetSyntax() as BaseMethodDeclarationSyntax;
+            }
+            else
+            {
+                methodDeclaration = definition.DeclaringSyntaxReferences.First().
+                    GetSyntax() as BaseMethodDeclarationSyntax;
             }
 
-            return definition.DeclaringSyntaxReferences.First().GetSyntax()
-                as BaseMethodDeclarationSyntax;
+            return methodDeclaration;
         }
 
         /// <summary>
-        /// Tries to get the list of candidate methods that can override the given virtual call.
-        /// If it cannot find such methods then it returns false.
+        /// Tries to get the list of candidate methods that can
+        /// override the specified virtual call.
         /// </summary>
         /// <param name="overriders">List of overrider methods</param>
         /// <param name="virtualCall">Virtual call</param>
@@ -262,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 
         /// <summary>
         /// Tries to get the method declaration from the
-        /// given type and invocation.
+        /// specified type and invocation.
         /// </summary>
         /// <param name="method">MethodDeclarationSyntax</param>
         /// <param name="type">Type</param>
