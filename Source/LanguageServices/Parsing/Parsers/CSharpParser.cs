@@ -187,7 +187,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 ErrorReporter.ReportWarning(report);
             }
 
-            IO.PrettyPrint("Found {0} parsing warning{1}.", this.WarningLog.Count,
+            IO.PrettyPrintLine("Found {0} parsing warning{1}.", this.WarningLog.Count,
                 this.WarningLog.Count == 1 ? "" : "s");
         }
 
@@ -216,7 +216,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 ErrorReporter.Report(report);
             }
 
-            IO.PrettyPrint("Found {0} parsing error{1}.", this.ErrorLog.Count,
+            IO.PrettyPrintLine("Found {0} parsing error{1}.", this.ErrorLog.Count,
                 this.ErrorLog.Count == 1 ? "" : "s");
             Environment.Exit(1);
         }
