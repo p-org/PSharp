@@ -148,13 +148,13 @@ namespace Microsoft.PSharp.StaticAnalysis
             SemanticModel model, TraceInfo trace)
         {
             var leftIdentifier = CodeAnalysis.CSharp.DataFlowAnalysis.AnalysisContext.
-                GetTopLevelIdentifier(assignment.Left);
+                GetRootIdentifier(assignment.Left);
             ISymbol leftSymbol = model.GetSymbolInfo(leftIdentifier).Symbol;
             
             if (assignment.Right is IdentifierNameSyntax)
             {
                 var rightIdentifier = CodeAnalysis.CSharp.DataFlowAnalysis.AnalysisContext.
-                    GetTopLevelIdentifier(assignment.Right);
+                    GetRootIdentifier(assignment.Right);
                 ISymbol rightSymbol = model.GetSymbolInfo(rightIdentifier).Symbol;
 
                 if (statement.Summary.DataFlowAnalysis.FlowsIntoSymbol(rightSymbol,
@@ -163,8 +163,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     var type = model.GetTypeInfo(assignment.Right).Type;
                     if (leftSymbol != null && leftSymbol.Kind == SymbolKind.Field &&
                         base.IsFieldAccessedBeforeBeingReset(leftSymbol, statement.Summary) &&
-                        !base.AnalysisContext.IsTypePassedByValueOrImmutable(type) &&
-                        !base.AnalysisContext.IsTypeEnum(type))
+                        !base.AnalysisContext.IsTypePassedByValueOrImmutable(type))
                     {
                         TraceInfo newTrace = new TraceInfo();
                         newTrace.Merge(trace);
@@ -232,14 +231,13 @@ namespace Microsoft.PSharp.StaticAnalysis
             for (int idx = 0; idx < argumentList.Arguments.Count; idx++)
             {
                 var argType = model.GetTypeInfo(argumentList.Arguments[idx].Expression).Type;
-                if (base.AnalysisContext.IsTypePassedByValueOrImmutable(argType) ||
-                    base.AnalysisContext.IsTypeEnum(argType))
+                if (base.AnalysisContext.IsTypePassedByValueOrImmutable(argType))
                 {
                     continue;
                 }
                 
                 var argIdentifier = CodeAnalysis.CSharp.DataFlowAnalysis.AnalysisContext.
-                    GetTopLevelIdentifier(argumentList.Arguments[idx].Expression);
+                    GetRootIdentifier(argumentList.Arguments[idx].Expression);
                 ISymbol argSymbol = model.GetSymbolInfo(argIdentifier).Symbol;
 
                 if (statement.Summary.DataFlowAnalysis.FlowsIntoSymbol(argSymbol,
@@ -358,17 +356,15 @@ namespace Microsoft.PSharp.StaticAnalysis
             foreach (var arg in extractedArgs)
             {
                 IdentifierNameSyntax argIdentifier = CodeAnalysis.CSharp.DataFlowAnalysis.
-                    AnalysisContext.GetTopLevelIdentifier(arg);
+                    AnalysisContext.GetRootIdentifier(arg);
                 ITypeSymbol argType = model.GetTypeInfo(argIdentifier).Type;
-                if (base.AnalysisContext.IsTypePassedByValueOrImmutable(argType) ||
-                    base.AnalysisContext.IsTypeEnum(argType))
+                if (base.AnalysisContext.IsTypePassedByValueOrImmutable(argType))
                 {
                     continue;
                 }
 
                 ISymbol argSymbol = model.GetSymbolInfo(argIdentifier).Symbol;
-                if (!base.AnalysisContext.IsTypeEnum(argType) &&
-                    statement.Summary.DataFlowAnalysis.FlowsIntoSymbol(argSymbol,
+                if (statement.Summary.DataFlowAnalysis.FlowsIntoSymbol(argSymbol,
                     givenUpSymbol.ContainingSymbol, statement, givenUpSymbol.Statement))
                 {
                     AnalysisErrorReporter.ReportGivenUpOwnershipSending(trace, argSymbol);
@@ -408,7 +404,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             if (expr is MemberAccessExpressionSyntax)
             {
                 var identifier = CodeAnalysis.CSharp.DataFlowAnalysis.AnalysisContext.
-                    GetTopLevelIdentifier(expr);
+                    GetRootIdentifier(expr);
                 ISymbol symbol = model.GetSymbolInfo(identifier).Symbol;
                 if (statement.Summary.DataFlowAnalysis.FlowsIntoSymbol(symbol,
                     givenUpSymbol.ContainingSymbol, statement, givenUpSymbol.Statement))

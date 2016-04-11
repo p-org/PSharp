@@ -254,12 +254,12 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             this.ResolveSideEffectsInExpression(assignment.Left, node);
             this.ResolveSideEffectsInExpression(assignment.Right, node);
 
-            Tuple<ISymbol, ITypeSymbol> leftSymbolInfo;
-            this.GetExpressionSymbol(out leftSymbolInfo, assignment.Left);
+            var leftIdentifier = this.AnalysisContext.GetIdentifier(assignment.Left);
+            ISymbol leftSymbol = this.SemanticModel.GetSymbolInfo(leftIdentifier).Symbol;
             
-            node.DataFlowInfo.KillDefinitions(leftSymbolInfo.Item1);
-            node.DataFlowInfo.GenerateDefinition(leftSymbolInfo.Item1);
-
+            node.DataFlowInfo.KillDefinitions(leftSymbol);
+            node.DataFlowInfo.GenerateDefinition(leftSymbol);
+            
             ISet<Tuple<ISymbol, ITypeSymbol>> nestedLeftSymbolInfos;
             this.GetMemberExpressionSymbols(out nestedLeftSymbolInfos, assignment.Left);
 
@@ -278,13 +278,14 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         {
             this.ResolveSideEffectsInExpression(expr, node);
 
-            Tuple<ISymbol, ITypeSymbol> symbolInfo;
-            this.GetExpressionSymbol(out symbolInfo, expr);
+            var identifier = this.AnalysisContext.GetIdentifier(expr);
+            ISymbol symbol = this.SemanticModel.GetSymbolInfo(expr).Symbol;
+            ITypeSymbol type = this.SemanticModel.GetTypeInfo(expr).Type;
 
-            if (node.DataFlowInfo.IsFreshSymbol(symbolInfo.Item1))
+            if (node.DataFlowInfo.IsFreshSymbol(symbol))
             {
-                SymbolDefinition definition = node.DataFlowInfo.GenerateDefinition(symbolInfo.Item1);
-                node.DataFlowInfo.AssignTypeToDefinition(symbolInfo.Item2, definition);
+                SymbolDefinition definition = node.DataFlowInfo.GenerateDefinition(symbol);
+                node.DataFlowInfo.AssignTypeToDefinition(type, definition);
                 node.DataFlowInfo.TaintDefinition(definition, definition);
             }
         }
@@ -305,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 ISymbol rightSymbol = this.SemanticModel.GetSymbolInfo(rightExpr).Symbol;
                 ITypeSymbol rightType = this.SemanticModel.GetTypeInfo(rightExpr).Type;
 
-                IdentifierNameSyntax rhs = AnalysisContext.GetTopLevelIdentifier(rightExpr);
+                IdentifierNameSyntax rhs = AnalysisContext.GetRootIdentifier(rightExpr);
                 ISymbol rightMemberSymbol = this.SemanticModel.GetSymbolInfo(rhs).Symbol;
 
                 if (rightSymbol.Equals(rightMemberSymbol))
@@ -316,7 +317,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 {
                     assignmentTypes.Add(rightType);
                 }
-
                 if (!this.AnalysisContext.IsTypePassedByValueOrImmutable(rightType))
                 {
                     node.DataFlowInfo.TaintSymbol(rightMemberSymbol, rightMemberSymbol);
@@ -542,7 +542,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         private void ResolveMethodParameterAccesses(MemberAccessExpressionSyntax expr, IDataFlowNode node)
         {
             var name = (expr as MemberAccessExpressionSyntax).Name;
-            var identifier = AnalysisContext.GetTopLevelIdentifier(expr);
+            var identifier = AnalysisContext.GetRootIdentifier(expr);
             if (identifier == null || name == null || name.Equals(identifier))
             {
                 return;
@@ -600,7 +600,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         private void ResolveFieldAccesses(MemberAccessExpressionSyntax expr, IDataFlowNode node)
         {
             var name = (expr as MemberAccessExpressionSyntax).Name;
-            var identifier = AnalysisContext.GetTopLevelIdentifier(expr);
+            var identifier = AnalysisContext.GetRootIdentifier(expr);
             if (identifier == null || name == null || name.Equals(identifier))
             {
                 return;
@@ -713,9 +713,8 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                     continue;
                 }
 
-                var argIdentifier = AnalysisContext.GetTopLevelIdentifier(
+                var argIdentifier = AnalysisContext.GetRootIdentifier(
                     argumentList.Arguments[index].Expression);
-
                 this.ResolveMethodParameterAccesses(argIdentifier,
                     calleeSummary.SideEffectsInfo.ParameterAccesses[index], node);
             }
@@ -754,7 +753,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                             continue;
                         }
 
-                        IdentifierNameSyntax argIdentifier = AnalysisContext.GetTopLevelIdentifier(argExpr);
+                        IdentifierNameSyntax argIdentifier = AnalysisContext.GetRootIdentifier(argExpr);
                         if (!sideEffects.ContainsKey(sideEffect.Key))
                         {
                             sideEffects.Add(sideEffect.Key, new HashSet<ISymbol>());
@@ -850,7 +849,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             if (argExpr is IdentifierNameSyntax ||
                 argExpr is MemberAccessExpressionSyntax)
             {
-                IdentifierNameSyntax argIdentifier = AnalysisContext.GetTopLevelIdentifier(argExpr);
+                IdentifierNameSyntax argIdentifier = AnalysisContext.GetRootIdentifier(argExpr);
                 ISymbol argSymbol = this.SemanticModel.GetSymbolInfo(argIdentifier).Symbol;
 
                 for (int idx = 0; idx < this.Summary.Method.ParameterList.Parameters.Count; idx++)
@@ -895,37 +894,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         #endregion
 
         #region helper methods
-
-        /// <summary>
-        /// Returns the symbol info from the specified expression.
-        /// </summary>
-        /// <param name="symbolInfo">ISymbol</param>
-        /// <param name="expr">ExpressionSyntax</param>
-        /// <returns>ISymbol</returns>
-        private void GetExpressionSymbol(out Tuple<ISymbol, ITypeSymbol> symbolInfo,
-            ExpressionSyntax expr)
-        {
-            ISymbol symbol = null;
-            ITypeSymbol type = null;
-            if (expr is IdentifierNameSyntax ||
-                expr is MemberAccessExpressionSyntax)
-            {
-                symbol = this.SemanticModel.GetSymbolInfo(expr).Symbol;
-                type = this.SemanticModel.GetTypeInfo(expr).Type;
-            }
-            else if (expr is ElementAccessExpressionSyntax)
-            {
-                var memberAccess = (expr as ElementAccessExpressionSyntax);
-                if (memberAccess.Expression is IdentifierNameSyntax ||
-                    memberAccess.Expression is MemberAccessExpressionSyntax)
-                {
-                    symbol = this.SemanticModel.GetSymbolInfo(expr).Symbol;
-                    type = this.SemanticModel.GetTypeInfo(memberAccess.Expression).Type;
-                }
-            }
-
-            symbolInfo = Tuple.Create(symbol, type);
-        }
 
         /// <summary>
         /// Returns the symbol infos from the specified member expression.

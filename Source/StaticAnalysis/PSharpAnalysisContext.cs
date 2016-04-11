@@ -81,9 +81,13 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <returns>Boolean</returns>
         public override bool IsTypePassedByValueOrImmutable(ITypeSymbol type)
         {
-            var typeName = type.ContainingNamespace.ToString() + "." + type.Name;
-            if (base.IsTypePassedByValueOrImmutable(type) ||
-                typeName.Equals(typeof(Microsoft.PSharp.MachineId).FullName))
+            if (base.IsTypePassedByValueOrImmutable(type))
+            {
+                return true;
+            }
+
+            var typeName = type.ContainingNamespace?.ToString() + "." + type.Name;
+            if (typeName.Equals(typeof(Microsoft.PSharp.MachineId).FullName))
             {
                 return true;
             }

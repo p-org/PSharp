@@ -152,7 +152,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             SemanticModel model, TraceInfo trace)
         {
             IdentifierNameSyntax leftIdentifier = CodeAnalysis.CSharp.DataFlowAnalysis.
-                AnalysisContext.GetTopLevelIdentifier(assignment.Left);
+                AnalysisContext.GetRootIdentifier(assignment.Left);
             ISymbol leftSymbol = model.GetSymbolInfo(leftIdentifier).Symbol;
             
             this.AnalyzeGivingUpFieldOwnership(givenUpSymbol, leftSymbol, statement, trace);
@@ -184,7 +184,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             for (int idx = 0; idx < argumentList.Arguments.Count; idx++)
             {
                 var argIdentifier = CodeAnalysis.CSharp.DataFlowAnalysis.AnalysisContext.
-                    GetTopLevelIdentifier(argumentList.Arguments[idx].Expression);
+                    GetRootIdentifier(argumentList.Arguments[idx].Expression);
                 if (argIdentifier == null)
                 {
                     continue;
@@ -255,7 +255,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 expr is MemberAccessExpressionSyntax)
             {
                 IdentifierNameSyntax rightIdentifier = CodeAnalysis.CSharp.DataFlowAnalysis.
-                    AnalysisContext.GetTopLevelIdentifier(expr);
+                    AnalysisContext.GetRootIdentifier(expr);
                 if (rightIdentifier != null)
                 {
                     var rightSymbol = model.GetSymbolInfo(rightIdentifier).Symbol;

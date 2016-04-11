@@ -17,7 +17,6 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.FindSymbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 {
@@ -201,6 +200,15 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <returns>Boolean</returns>
         public virtual bool IsTypePassedByValueOrImmutable(ITypeSymbol type)
         {
+            if (type.TypeKind == TypeKind.Array)
+            {
+                return false;
+            }
+            else if (type.TypeKind == TypeKind.Enum)
+            {
+                return true;
+            }
+
             var typeName = type.ContainingNamespace.ToString() + "." + type.Name;
             if (typeName.Equals(typeof(bool).FullName) ||
                 typeName.Equals(typeof(byte).FullName) ||
@@ -216,24 +224,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 typeName.Equals(typeof(short).FullName) ||
                 typeName.Equals(typeof(ushort).FullName) ||
                 typeName.Equals(typeof(string).FullName))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Returns true if the given type is an enum.
-        /// Returns false if not.
-        /// </summary>
-        /// <param name="type">ITypeSymbol</param>
-        /// <returns>Boolean</returns>
-        public bool IsTypeEnum(ITypeSymbol type)
-        {
-            var typeDef = SymbolFinder.FindSourceDefinitionAsync(type, this.Solution).Result;
-            if (typeDef != null && typeDef.DeclaringSyntaxReferences.First().
-                GetSyntax().IsKind(SyntaxKind.EnumDeclaration))
             {
                 return true;
             }
@@ -283,28 +273,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         public IdentifierNameSyntax GetIdentifier(ExpressionSyntax expr)
         {
             IdentifierNameSyntax identifier = null;
-            if (expr is IdentifierNameSyntax)
-            {
-                identifier = expr as IdentifierNameSyntax;
-            }
-            else if (expr is MemberAccessExpressionSyntax)
-            {
-                identifier = (expr as MemberAccessExpressionSyntax).Name
-                    as IdentifierNameSyntax;
-            }
-
-            return identifier;
-        }
-
-        /// <summary>
-        /// Returns the top-level identifier.
-        /// </summary>
-        /// <param name="expr">Expression</param>
-        /// <returns>Identifier</returns>
-        public static IdentifierNameSyntax GetTopLevelIdentifier(ExpressionSyntax expr)
-        {
-            IdentifierNameSyntax identifier = null;
-
             ExpressionSyntax exprToParse = expr;
             while (identifier == null)
             {
@@ -314,12 +282,54 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 }
                 else if (exprToParse is MemberAccessExpressionSyntax)
                 {
-                    identifier = (exprToParse as MemberAccessExpressionSyntax).DescendantNodes().
-                        OfType<IdentifierNameSyntax>().First();
+                    exprToParse = (exprToParse as MemberAccessExpressionSyntax).Name;
                 }
                 else if (exprToParse is ElementAccessExpressionSyntax)
                 {
                     exprToParse = (exprToParse as ElementAccessExpressionSyntax).Expression;
+                }
+                else if (exprToParse is BinaryExpressionSyntax &&
+                    (exprToParse as BinaryExpressionSyntax).IsKind(SyntaxKind.AsExpression))
+                {
+                    exprToParse = (exprToParse as BinaryExpressionSyntax).Left;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            return identifier;
+        }
+
+        /// <summary>
+        /// Returns the root identifier from the expression.
+        /// </summary>
+        /// <param name="expr">Expression</param>
+        /// <returns>Identifier</returns>
+        public static IdentifierNameSyntax GetRootIdentifier(ExpressionSyntax expr)
+        {
+            IdentifierNameSyntax identifier = null;
+            ExpressionSyntax exprToParse = expr;
+            while (identifier == null)
+            {
+                if (exprToParse is IdentifierNameSyntax)
+                {
+                    identifier = exprToParse as IdentifierNameSyntax;
+                }
+                else if (exprToParse is MemberAccessExpressionSyntax)
+                {
+                    exprToParse = (exprToParse as MemberAccessExpressionSyntax).DescendantNodes().
+                        OfType<IdentifierNameSyntax>().FirstOrDefault();
+                }
+                else if (exprToParse is ElementAccessExpressionSyntax)
+                {
+                    exprToParse = (exprToParse as ElementAccessExpressionSyntax).Expression;
+                }
+                else if (exprToParse is BinaryExpressionSyntax &&
+                    (exprToParse as BinaryExpressionSyntax).IsKind(SyntaxKind.AsExpression))
+                {
+                    exprToParse = (exprToParse as BinaryExpressionSyntax).Left;
                 }
                 else
                 {
@@ -337,18 +347,8 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <returns>Identifiers</returns>
         public static HashSet<IdentifierNameSyntax> GetIdentifiers(ExpressionSyntax expr)
         {
-            var identifiers = new HashSet<IdentifierNameSyntax>();
-            if (expr is IdentifierNameSyntax)
-            {
-                identifiers.Add(expr as IdentifierNameSyntax);
-            }
-            else if (expr is MemberAccessExpressionSyntax)
-            {
-                identifiers.UnionWith((expr as MemberAccessExpressionSyntax).DescendantNodes().
+            return new HashSet<IdentifierNameSyntax>(expr.DescendantNodesAndSelf().
                     OfType<IdentifierNameSyntax>());
-            }
-
-            return identifiers;
         }
 
         /// <summary>
