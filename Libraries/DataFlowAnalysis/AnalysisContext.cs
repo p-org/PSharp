@@ -304,14 +304,27 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         public static IdentifierNameSyntax GetTopLevelIdentifier(ExpressionSyntax expr)
         {
             IdentifierNameSyntax identifier = null;
-            if (expr is IdentifierNameSyntax)
+
+            ExpressionSyntax exprToParse = expr;
+            while (identifier == null)
             {
-                identifier = expr as IdentifierNameSyntax;
-            }
-            else if (expr is MemberAccessExpressionSyntax)
-            {
-                identifier = (expr as MemberAccessExpressionSyntax).DescendantNodes().
-                    OfType<IdentifierNameSyntax>().First();
+                if (exprToParse is IdentifierNameSyntax)
+                {
+                    identifier = exprToParse as IdentifierNameSyntax;
+                }
+                else if (exprToParse is MemberAccessExpressionSyntax)
+                {
+                    identifier = (exprToParse as MemberAccessExpressionSyntax).DescendantNodes().
+                        OfType<IdentifierNameSyntax>().First();
+                }
+                else if (exprToParse is ElementAccessExpressionSyntax)
+                {
+                    exprToParse = (exprToParse as ElementAccessExpressionSyntax).Expression;
+                }
+                else
+                {
+                    break;
+                }
             }
 
             return identifier;

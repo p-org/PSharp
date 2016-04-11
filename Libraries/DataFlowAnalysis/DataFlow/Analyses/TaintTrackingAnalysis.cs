@@ -302,14 +302,25 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             if (rightExpr is IdentifierNameSyntax ||
                 rightExpr is MemberAccessExpressionSyntax)
             {
-                IdentifierNameSyntax rhs = AnalysisContext.GetTopLevelIdentifier(rightExpr);
-                ISymbol rightSymbol = this.SemanticModel.GetSymbolInfo(rhs).Symbol;
+                ISymbol rightSymbol = this.SemanticModel.GetSymbolInfo(rightExpr).Symbol;
+                ITypeSymbol rightType = this.SemanticModel.GetTypeInfo(rightExpr).Type;
 
-                assignmentTypes.UnionWith(node.DataFlowInfo.GetCandidateTypesOfSymbol(rightSymbol));
-                if (assignmentTypes.Any(type => !this.AnalysisContext.IsTypePassedByValueOrImmutable(type)))
+                IdentifierNameSyntax rhs = AnalysisContext.GetTopLevelIdentifier(rightExpr);
+                ISymbol rightMemberSymbol = this.SemanticModel.GetSymbolInfo(rhs).Symbol;
+
+                if (rightSymbol.Equals(rightMemberSymbol))
                 {
-                    node.DataFlowInfo.TaintSymbol(rightSymbol, rightSymbol);
-                    node.DataFlowInfo.TaintSymbol(rightSymbol, leftSymbol);
+                    assignmentTypes.UnionWith(node.DataFlowInfo.GetCandidateTypesOfSymbol(rightMemberSymbol));
+                }
+                else
+                {
+                    assignmentTypes.Add(rightType);
+                }
+
+                if (!this.AnalysisContext.IsTypePassedByValueOrImmutable(rightType))
+                {
+                    node.DataFlowInfo.TaintSymbol(rightMemberSymbol, rightMemberSymbol);
+                    node.DataFlowInfo.TaintSymbol(rightMemberSymbol, leftSymbol);
                 }
             }
             else if (rightExpr is InvocationExpressionSyntax ||
@@ -857,7 +868,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                         this.Summary.SideEffectsInfo.GivesUpOwnershipParamIndexes.Add(idx);
                     }
                 }
-
+                
                 var argTypes = node.DataFlowInfo.GetCandidateTypesOfSymbol(argSymbol);
                 if (argTypes.Any(type => !this.AnalysisContext.IsTypePassedByValueOrImmutable(type)))
                 {
