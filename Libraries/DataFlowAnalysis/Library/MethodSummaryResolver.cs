@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             ArgumentListSyntax argumentList, IDataFlowNode node)
         {
             var candidateTypes = new Dictionary<int, ISet<ITypeSymbol>>();
-            if (argumentList != null)
+            if (argumentList == null)
             {
                 return candidateTypes;
             }
