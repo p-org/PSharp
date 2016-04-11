@@ -21,6 +21,8 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 
+using Microsoft.PSharp.Utilities;
+
 namespace Microsoft.PSharp.StaticAnalysis
 {
     internal sealed class StateTransitionAnalysisPass : AnalysisPass
@@ -431,6 +433,19 @@ namespace Microsoft.PSharp.StaticAnalysis
                     this.NumOfActionBindings += state.Value.Count;
                 }
             }
+        }
+
+        #endregion
+
+        #region profiling methods
+
+        /// <summary>
+        /// Prints profiling results.
+        /// </summary>
+        protected override void PrintProfilingResults()
+        {
+            IO.PrintLine("... State-transition analysis runtime: '" +
+                base.Profiler.Results() + "' seconds.");
         }
 
         #endregion
