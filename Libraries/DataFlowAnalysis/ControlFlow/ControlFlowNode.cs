@@ -185,6 +185,11 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                     this.ConstructUsingBlock(stmtList, successor, innerLoopHead);
                     return;
                 }
+                else if (stmtList[0] is BlockSyntax)
+                {
+                    this.ConstructNakedCodeBlock(stmtList, successor, innerLoopHead);
+                    return;
+                }
                 else if (stmtList[0] is ReturnStatementSyntax)
                 {
                     this.Statements.Add(Statement.Create(stmtList[0], this, this.Summary));
@@ -405,6 +410,28 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 
             usingNode.ISuccessors.Add(bodyNode);
             bodyNode.IPredecessors.Add(usingNode);
+        }
+
+        /// <summary>
+        /// Constructs a naked code block.
+        /// </summary>
+        /// <param name="stmtList">List of statements</param>
+        /// <param name="successor">ControlFlowNode</param>
+        /// <param name="innerLoopHead">LoopHeadControlFlowNode</param>
+        private void ConstructNakedCodeBlock(List<StatementSyntax> stmtList,
+            ControlFlowNode successor, LoopHeadControlFlowNode innerLoopHead)
+        {
+            var blockStmt = stmtList[0] as BlockSyntax;
+            stmtList.RemoveAt(0);
+
+            var afterBlockNode = new ControlFlowNode(this.Graph, this.Summary);
+            afterBlockNode.Construct(stmtList, successor, innerLoopHead);
+
+            var blockNode = new ControlFlowNode(this.Graph, this.Summary);
+            blockNode.Construct(this.GetStatements(blockStmt), afterBlockNode, innerLoopHead);
+
+            this.ISuccessors.Add(blockNode);
+            blockNode.IPredecessors.Add(this);
         }
 
         #endregion
