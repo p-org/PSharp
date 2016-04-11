@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 var parameterTypes = MethodSummaryResolver.GetCandidateParameterTypes(
                     invocation.ArgumentList, node);
                 var candidateCallees = MethodSummaryResolver.ResolveCandidateMethodsAtCallSite(
-                    invocation, node.Statement, node);
+                    invocation, node);
                 foreach (var candidateCallee in candidateCallees)
                 {
                     var calleeSummary = MethodSummary.Create(node.Summary.AnalysisContext,
@@ -119,11 +119,10 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// Returns the candidate callees after resolving the given invocation.
         /// </summary>
         /// <param name="invocation">InvocationExpressionSyntax</param>
-        /// <param name="statement">Statement</param>
         /// <param name="node">IDataFlowNode</param>
         /// <returns>Set of candidate callees</returns>
         private static HashSet<MethodDeclarationSyntax> ResolveCandidateMethodsAtCallSite(
-            InvocationExpressionSyntax invocation, Statement statement, IDataFlowNode node)
+            InvocationExpressionSyntax invocation, IDataFlowNode node)
         {
             var candidateCallees = new HashSet<MethodDeclarationSyntax>();
             var potentialCallee = MethodSummaryResolver.ResolveCallee(
@@ -139,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             {
                 HashSet<MethodDeclarationSyntax> overriders = null;
                 if (!MethodSummaryResolver.TryGetCandidateMethodOverriders(out overriders,
-                    invocation, statement, node))
+                    invocation, node))
                 {
                     return candidateCallees;
                 }
@@ -193,11 +192,10 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// </summary>
         /// <param name="overriders">List of overrider methods</param>
         /// <param name="virtualCall">Virtual call</param>
-        /// <param name="statement">Statement</param>
         /// <param name="node">IDataFlowNode</param>
         /// <returns>Boolean</returns>
         private static bool TryGetCandidateMethodOverriders(out HashSet<MethodDeclarationSyntax> overriders,
-            InvocationExpressionSyntax virtualCall, Statement statement, IDataFlowNode node)
+            InvocationExpressionSyntax virtualCall, IDataFlowNode node)
         {
             overriders = new HashSet<MethodDeclarationSyntax>();
 
@@ -226,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             
             if (isThis)
             {
-                var typeDeclaration = statement.Summary.Method.FirstAncestorOrSelf<TypeDeclarationSyntax>();
+                var typeDeclaration = node.Summary.Method.FirstAncestorOrSelf<TypeDeclarationSyntax>();
                 if (typeDeclaration != null)
                 {
                     foreach (var method in typeDeclaration.Members.OfType<MethodDeclarationSyntax>())

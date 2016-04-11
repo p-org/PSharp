@@ -263,12 +263,12 @@ namespace Microsoft.PSharp.StaticAnalysis
         private void AnalyzeMethodsInMachine(StateMachine machine)
         {
             var machinesToAnalyze = new List<StateMachine> { machine };
-
-            HashSet<StateMachine> baseMachines;
-            if (this.AnalysisContext.MachineInheritanceMap.TryGetValue(machine, out baseMachines))
-            {
-                machinesToAnalyze.AddRange(baseMachines);
-            }
+            
+            //HashSet<StateMachine> baseMachines;
+            //if (this.AnalysisContext.MachineInheritanceMap.TryGetValue(machine, out baseMachines))
+            //{
+            //    machinesToAnalyze.AddRange(baseMachines);
+            //}
 
             foreach (var machineToAnalyze in machinesToAnalyze)
             {

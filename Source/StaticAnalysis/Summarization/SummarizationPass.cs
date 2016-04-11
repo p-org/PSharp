@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
@@ -55,7 +56,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 Profiler.StartMeasuringExecutionTime();
             }
-
+            
             foreach (var machine in this.AnalysisContext.Machines)
             {
                 this.SummarizeStateMachine(machine);
@@ -93,7 +94,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         {
             int fixPoint = 0;
             
-            foreach (var method in machine.Declaration.ChildNodes().OfType<MethodDeclarationSyntax>())
+            foreach (var method in this.GetMachineMethods(machine))
             {
                 if (this.AnalysisContext.Summaries.ContainsKey(method) ||
                     method.Modifiers.Any(SyntaxKind.AbstractKeyword))
@@ -163,6 +164,29 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 summary.PrintDataFlowInformation();
             }
+        }
+
+        /// <summary>
+        /// Returns all available machine method declarations.
+        /// </summary>
+        /// <param name="machine">StateMachine</param>
+        /// <returns>MethodDeclarationSyntaxs</returns>
+        private ISet<MethodDeclarationSyntax> GetMachineMethods(StateMachine machine)
+        {
+            var methods = new HashSet<MethodDeclarationSyntax>(
+                machine.Declaration.ChildNodes().OfType<MethodDeclarationSyntax>());
+
+            //HashSet<StateMachine> baseMachines;
+            //if (this.AnalysisContext.MachineInheritanceMap.TryGetValue(machine, out baseMachines))
+            //{
+            //    foreach (var baseMachine in baseMachines)
+            //    {
+            //        methods.UnionWith(baseMachine.Declaration.ChildNodes().OfType<MethodDeclarationSyntax>().
+            //            Where(method => !method.Modifiers.Any(SyntaxKind.AbstractKeyword)));
+            //    }
+            //}
+
+            return methods;
         }
 
         #endregion
