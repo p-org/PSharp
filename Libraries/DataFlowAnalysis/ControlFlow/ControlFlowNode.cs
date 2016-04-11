@@ -228,6 +228,10 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                     this.Statements.Add(Statement.Create(stmtList[0], this, this.Summary));
                     stmtList.RemoveAt(0);
                 }
+                else if (stmtList[0] is EmptyStatementSyntax)
+                {
+                    stmtList.RemoveAt(0);
+                }
             }
 
             if (stmtList.Count == 0 && successor != null)
