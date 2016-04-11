@@ -162,22 +162,27 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 }
                 else if (stmtList[0] is ForStatementSyntax)
                 {
-                    this.ConstructForLoop(stmtList, successor);
+                    this.ConstructForLoop(stmtList, successor, innerLoopHead);
                     return;
                 }
                 else if (stmtList[0] is WhileStatementSyntax)
                 {
-                    this.ConstructWhileLoop(stmtList, successor);
+                    this.ConstructWhileLoop(stmtList, successor, innerLoopHead);
                     return;
                 }
                 else if (stmtList[0] is ForEachStatementSyntax)
                 {
-                    this.ConstructForeachLoop(stmtList, successor);
+                    this.ConstructForeachLoop(stmtList, successor, innerLoopHead);
                     return;
                 }
                 else if (stmtList[0] is DoStatementSyntax)
                 {
-                    this.ConstructDoWhileLoop(stmtList, successor);
+                    this.ConstructDoWhileLoop(stmtList, successor, innerLoopHead);
+                    return;
+                }
+                else if (stmtList[0] is SwitchStatementSyntax)
+                {
+                    this.ConstructSwitchBlock(stmtList, successor, innerLoopHead);
                     return;
                 }
                 else if (stmtList[0] is UsingStatementSyntax)
@@ -206,9 +211,16 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 else if (stmtList[0] is BreakStatementSyntax)
                 {
                     stmtList.RemoveAt(0);
-                    this.ISuccessors.Add(innerLoopHead.LoopExitNode);
-                    innerLoopHead.LoopExitNode.IPredecessors.Add(this);
-                    return;
+                    if (innerLoopHead != null)
+                    {
+                        this.ISuccessors.Add(innerLoopHead.LoopExitNode);
+                        innerLoopHead.LoopExitNode.IPredecessors.Add(this);
+                        return;
+                    }
+                    else
+                    {
+                        stmtList.Clear();
+                    }
                 }
                 else if (stmtList[0] is ExpressionStatementSyntax ||
                     stmtList[0] is LocalDeclarationStatementSyntax)
@@ -277,13 +289,15 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// </summary>
         /// <param name="stmtList">List of statements</param>
         /// <param name="successor">ControlFlowNode</param>
-        private void ConstructForLoop(List<StatementSyntax> stmtList, ControlFlowNode successor)
+        /// <param name="innerLoopHead">LoopHeadControlFlowNode</param>
+        private void ConstructForLoop(List<StatementSyntax> stmtList, ControlFlowNode successor,
+            LoopHeadControlFlowNode innerLoopHead)
         {
             var loopHeadStmt = stmtList[0] as ForStatementSyntax;
             stmtList.RemoveAt(0);
 
             this.ConstructLoop(loopHeadStmt.Condition, loopHeadStmt.Statement,
-                stmtList, successor);
+                stmtList, successor, innerLoopHead);
         }
 
         /// <summary>
@@ -291,13 +305,15 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// </summary>
         /// <param name="stmtList">List of statements</param>
         /// <param name="successor">ControlFlowNode</param>
-        private void ConstructWhileLoop(List<StatementSyntax> stmtList, ControlFlowNode successor)
+        /// <param name="innerLoopHead">LoopHeadControlFlowNode</param>
+        private void ConstructWhileLoop(List<StatementSyntax> stmtList, ControlFlowNode successor,
+            LoopHeadControlFlowNode innerLoopHead)
         {
             var loopHeadStmt = stmtList[0] as WhileStatementSyntax;
             stmtList.RemoveAt(0);
 
             this.ConstructLoop(loopHeadStmt.Condition, loopHeadStmt.Statement,
-                stmtList, successor);
+                stmtList, successor, innerLoopHead);
         }
 
         /// <summary>
@@ -305,13 +321,15 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// </summary>
         /// <param name="stmtList">List of statements</param>
         /// <param name="successor">ControlFlowNode</param>
-        private void ConstructForeachLoop(List<StatementSyntax> stmtList, ControlFlowNode successor)
+        /// <param name="innerLoopHead">LoopHeadControlFlowNode</param>
+        private void ConstructForeachLoop(List<StatementSyntax> stmtList, ControlFlowNode successor,
+            LoopHeadControlFlowNode innerLoopHead)
         {
             var loopHeadStmt = stmtList[0] as ForEachStatementSyntax;
             stmtList.RemoveAt(0);
 
             this.ConstructLoop(loopHeadStmt.Expression, loopHeadStmt.Statement,
-                stmtList, successor);
+                stmtList, successor, innerLoopHead);
         }
 
         /// <summary>
@@ -321,8 +339,10 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <param name="loopBody">StatementSyntax</param>
         /// <param name="stmtList">List of statements</param>
         /// <param name="successor">ControlFlowNode</param>
+        /// <param name="innerLoopHead">LoopHeadControlFlowNode</param>
         private void ConstructLoop(ExpressionSyntax loopGuard, StatementSyntax loopBody,
-            List<StatementSyntax> stmtList, ControlFlowNode successor)
+            List<StatementSyntax> stmtList, ControlFlowNode successor,
+            LoopHeadControlFlowNode innerLoopHead)
         {
             var falseNode = new ControlFlowNode(this.Graph, this.Summary);
             var trueNode = new ControlFlowNode(this.Graph, this.Summary);
@@ -330,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 
             loopHeadNode.Statements.Add(Statement.Create(loopGuard,
                 loopHeadNode, this.Summary));
-            falseNode.Construct(stmtList, successor, loopHeadNode);
+            falseNode.Construct(stmtList, successor, innerLoopHead);
             trueNode.Construct(this.GetStatements(loopBody), loopHeadNode, loopHeadNode);
 
             this.ISuccessors.Add(loopHeadNode);
@@ -348,7 +368,9 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// </summary>
         /// <param name="stmtList">List of statements</param>
         /// <param name="successor">ControlFlowNode</param>
-        private void ConstructDoWhileLoop(List<StatementSyntax> stmtList, ControlFlowNode successor)
+        /// <param name="innerLoopHead">LoopHeadControlFlowNode</param>
+        private void ConstructDoWhileLoop(List<StatementSyntax> stmtList, ControlFlowNode successor,
+            LoopHeadControlFlowNode innerLoopHead)
         {
             var loopHeadStmt = stmtList[0] as DoStatementSyntax;
             stmtList.RemoveAt(0);
@@ -361,7 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 loopHeadNode, loopHeadNode);
             loopHeadNode.Statements.Add(Statement.Create(loopHeadStmt.Condition,
                 loopHeadNode, this.Summary));
-            falseNode.Construct(stmtList, successor, loopHeadNode);
+            falseNode.Construct(stmtList, successor, innerLoopHead);
 
             this.ISuccessors.Add(trueNode);
             trueNode.IPredecessors.Add(this);
@@ -371,6 +393,39 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 
             loopHeadNode.ISuccessors.Add(trueNode);
             trueNode.IPredecessors.Add(loopHeadNode);
+        }
+
+        /// <summary>
+        /// Constructs a switch block.
+        /// </summary>
+        /// <param name="stmtList">List of statements</param>
+        /// <param name="successor">ControlFlowNode</param>
+        /// <param name="innerLoopHead">LoopHeadControlFlowNode</param>
+        private void ConstructSwitchBlock(List<StatementSyntax> stmtList,
+            ControlFlowNode successor, LoopHeadControlFlowNode innerLoopHead)
+        {
+            var switchStmt = stmtList[0] as SwitchStatementSyntax;
+            stmtList.RemoveAt(0);
+
+            var switchNode = new ControlFlowNode(this.Graph, this.Summary);
+            switchNode.Statements.Add(Statement.Create(switchStmt.Expression,
+                switchNode, this.Summary));
+
+            var afterSwitchNode = new ControlFlowNode(this.Graph, this.Summary);
+            afterSwitchNode.Construct(stmtList, successor, innerLoopHead);
+
+            foreach (var section in switchStmt.Sections)
+            {
+                var sectionNode = new ControlFlowNode(this.Graph, this.Summary);
+                sectionNode.Construct(section.Statements.ToList(),
+                    afterSwitchNode, null);
+
+                switchNode.ISuccessors.Add(sectionNode);
+                sectionNode.IPredecessors.Add(switchNode);
+            }
+
+            this.ISuccessors.Add(switchNode);
+            switchNode.IPredecessors.Add(this);
         }
 
         /// <summary>
