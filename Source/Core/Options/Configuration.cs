@@ -125,7 +125,7 @@ namespace Microsoft.PSharp.Utilities
         public bool FullExploration;
 
         /// <summary>
-        /// Depth bound. By default it is 1000.
+        /// Depth bound. By default it is 10000.
         /// </summary>
         public int DepthBound;
 
