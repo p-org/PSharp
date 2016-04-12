@@ -135,12 +135,12 @@ namespace TwoPhaseCommit
 
             if (this.Data.ContainsKey(idx))
             {
-                this.Monitor<Monitor>(new Monitor.MonitorReadSuccess(idx, this.Data[idx]));
+                this.Monitor<SafetyMonitor>(new SafetyMonitor.MonitorReadSuccess(idx, this.Data[idx]));
                 this.Send(client, new ReadSuccess(this.Data[idx]));
             }
             else
             {
-                this.Monitor<Monitor>(new Monitor.MonitorReadUnavailable(idx));
+                this.Monitor<SafetyMonitor>(new SafetyMonitor.MonitorReadUnavailable(idx));
                 this.Send(client, new ReadFail());
             }
         }
@@ -174,7 +174,8 @@ namespace TwoPhaseCommit
                     this.Data[this.PendingWriteReq.Idx] = this.PendingWriteReq.Val;
                 }
 
-                this.Monitor<Monitor>(new Monitor.MonitorWrite(this.PendingWriteReq.Idx, PendingWriteReq.Val));
+                this.Monitor<SafetyMonitor>(new SafetyMonitor.MonitorWrite(
+                    this.PendingWriteReq.Idx, PendingWriteReq.Val));
 
                 this.Send(this.PendingWriteReq.Client, new WriteSuccess());
                 this.Send(this.Timer, new Timer.CancelTimer());

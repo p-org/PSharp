@@ -7,11 +7,11 @@ namespace PingPong
     {
         MachineId Client;
 
-		[Start]
+        [Start]
         [OnEntry(nameof(InitOnEntry))]
         class Init : MachineState { }
 
-		void InitOnEntry()
+        void InitOnEntry()
         {
             this.Client = this.CreateMachine(typeof(Client));
             this.Send(this.Client, new Config(this.Id));

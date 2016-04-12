@@ -4,7 +4,7 @@ using Microsoft.PSharp;
 
 namespace TwoPhaseCommit
 {
-    internal class Monitor : Machine
+    internal class SafetyMonitor : Monitor
     {
         internal class Config : Event
         {
@@ -63,7 +63,7 @@ namespace TwoPhaseCommit
         [OnEventDoAction(typeof(MonitorWrite), nameof(MonitorWriteAction))]
         [OnEventDoAction(typeof(MonitorReadSuccess), nameof(MonitorReadSuccessAction))]
         [OnEventDoAction(typeof(MonitorReadUnavailable), nameof(MonitorReadUnavailableAction))]
-        class Init : MachineState { }
+        class Init : MonitorState { }
 
         void InitOnEntry()
         {
