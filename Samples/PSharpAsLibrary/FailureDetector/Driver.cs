@@ -51,7 +51,7 @@ namespace FailureDetector
             this.Fail();
         }
 
-		void Initialize()
+        void Initialize()
         {
             for (int i = 0; i < 2; i++)
             {
@@ -61,7 +61,7 @@ namespace FailureDetector
             }
         }
 
-		void Fail()
+        void Fail()
         {
             for (int i = 0; i < 2; i++)
             {
