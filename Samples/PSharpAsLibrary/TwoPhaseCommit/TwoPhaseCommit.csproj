@@ -40,7 +40,7 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Monitor.cs" />
+    <Compile Include="SafetyMonitor.cs" />
     <Compile Include="Client.cs" />
     <Compile Include="TwoPhaseCommit.cs" />
     <Compile Include="Replica.cs" />
