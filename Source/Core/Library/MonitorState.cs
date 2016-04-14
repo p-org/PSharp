@@ -96,18 +96,12 @@ namespace Microsoft.PSharp
 
             if (entryAttribute != null)
             {
-                var method = this.Monitor.GetType().GetMethod(entryAttribute.Action,
-                    BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
-                var action = (Action)Delegate.CreateDelegate(typeof(Action), this.Monitor, method);
-                this.EntryAction = action;
+                this.EntryAction = this.GetActionWithName(entryAttribute.Action);
             }
 
             if (exitAttribute != null)
             {
-                var method = this.Monitor.GetType().GetMethod(exitAttribute.Action,
-                    BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
-                var action = (Action)Delegate.CreateDelegate(typeof(Action), this.Monitor, method);
-                this.ExitAction = action;
+                this.ExitAction = this.GetActionWithName(exitAttribute.Action);
             }
 
             var gotoAttributes = this.GetType().GetCustomAttributes(typeof(OnEventGotoState), false)
@@ -123,24 +117,14 @@ namespace Microsoft.PSharp
                 }
                 else
                 {
-                    var method = this.Monitor.GetType().GetMethod(attr.Action,
-                        BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
-                    var action = (Action)Delegate.CreateDelegate(typeof(Action), this.Monitor, method);
+                    Action action = this.GetActionWithName(attr.Action);
                     this.GotoTransitions.Add(attr.Event, attr.State, action);
                 }
             }
 
             foreach (var attr in doAttributes)
             {
-                var method = this.Monitor.GetType().GetMethod(attr.Action,
-                    BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
-
-                this.Monitor.Runtime.Assert(method.GetParameters().Length == 0, "Action '{0}' in monitor " +
-                    "'{1}' must have 0 formal parameters.", method.Name, this.Monitor.GetType().Name);
-                this.Monitor.Runtime.Assert(method.ReturnType == typeof(void), "Action '{0}' in monitor " +
-                    "'{1}' must have 'void' return type.", method.Name, this.Monitor.GetType().Name);
-
-                var action = (Action)Delegate.CreateDelegate(typeof(Action), this.Monitor, method);
+                Action action = this.GetActionWithName(attr.Action);
                 this.ActionBindings.Add(attr.Event, action);
             }
 
@@ -172,6 +156,38 @@ namespace Microsoft.PSharp
             {
                 this.ExitAction();
             }
+        }
+
+        #endregion
+
+        #region private methods
+
+        /// <summary>
+        /// Returns the action with the specified name.
+        /// </summary>
+        /// <param name="actionName">Action name</param>
+        /// <returns>Action</returns>
+        private Action GetActionWithName(string actionName)
+        {
+            MethodInfo method = null;
+            Type monitorType = this.Monitor.GetType();
+
+            do
+            {
+                method = monitorType.GetMethod(actionName, BindingFlags.NonPublic |
+                    BindingFlags.Instance | BindingFlags.FlattenHierarchy);
+                monitorType = monitorType.BaseType;
+            }
+            while (method == null && monitorType != typeof(Monitor));
+
+            this.Monitor.Runtime.Assert(method != null, "Cannot detect action declaration '{0}' " +
+                "in monitor '{1}'.", actionName, this.Monitor.GetType().Name);
+            this.Monitor.Runtime.Assert(method.GetParameters().Length == 0, "Action '{0}' in monitor " +
+                "'{1}' must have 0 formal parameters.", method.Name, this.Monitor.GetType().Name);
+            this.Monitor.Runtime.Assert(method.ReturnType == typeof(void), "Action '{0}' in monitor " +
+                "'{1}' must have 'void' return type.", method.Name, this.Monitor.GetType().Name);
+
+            return (Action)Delegate.CreateDelegate(typeof(Action), this.Monitor, method);
         }
 
         #endregion

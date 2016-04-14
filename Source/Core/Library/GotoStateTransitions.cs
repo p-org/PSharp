@@ -21,7 +21,7 @@ namespace Microsoft.PSharp
     /// <summary>
     /// Class representing a collection of goto state transitions.
     /// </summary>
-    public sealed class GotoStateTransitions : IEnumerable<KeyValuePair<Type, Tuple<Type, Action>>>
+    internal sealed class GotoStateTransitions : IEnumerable<KeyValuePair<Type, Tuple<Type, Action>>>
     {
         /// <summary>
         /// A dictionary of goto state transitions. A key represents

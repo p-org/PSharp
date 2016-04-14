@@ -21,7 +21,7 @@ namespace Microsoft.PSharp
     /// <summary>
     /// Class representing a collection of action bindings.
     /// </summary>
-    public sealed class ActionBindings : IEnumerable<KeyValuePair<Type, Action>>
+    internal sealed class ActionBindings : IEnumerable<KeyValuePair<Type, Action>>
     {
         /// <summary>
         /// A dictionary of action bindings. A key represents

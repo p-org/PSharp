@@ -94,19 +94,12 @@ namespace Microsoft.PSharp
 
             if (entryAttribute != null)
             {
-                var method = this.Machine.GetType().GetMethod(entryAttribute.Action,
-                    BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
-
-                var action = (Action)Delegate.CreateDelegate(typeof(Action), this.Machine, method);
-                this.EntryAction = action;
+                this.EntryAction = this.GetActionWithName(entryAttribute.Action);
             }
 
             if (exitAttribute != null)
             {
-                var method = this.Machine.GetType().GetMethod(exitAttribute.Action,
-                    BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
-                var action = (Action)Delegate.CreateDelegate(typeof(Action), this.Machine, method);
-                this.ExitAction = action;
+                this.ExitAction = this.GetActionWithName(exitAttribute.Action);
             }
 
             var gotoAttributes = this.GetType().GetCustomAttributes(typeof(OnEventGotoState), false)
@@ -124,9 +117,7 @@ namespace Microsoft.PSharp
                 }
                 else
                 {
-                    var method = this.Machine.GetType().GetMethod(attr.Action,
-                        BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
-                    var action = (Action)Delegate.CreateDelegate(typeof(Action), this.Machine, method);
+                    Action action = this.GetActionWithName(attr.Action);
                     this.GotoTransitions.Add(attr.Event, attr.State, action);
                 }
             }
@@ -138,25 +129,7 @@ namespace Microsoft.PSharp
 
             foreach (var attr in doAttributes)
             {
-                MethodInfo method = null;
-                Type machineType = this.Machine.GetType();
-
-                do
-                {
-                    method = machineType.GetMethod(attr.Action, BindingFlags.NonPublic |
-                        BindingFlags.Instance | BindingFlags.FlattenHierarchy);
-                    machineType = machineType.BaseType;
-                }
-                while (method == null && machineType != typeof(Machine));
-
-                this.Machine.Runtime.Assert(method != null, "Cannot detect action declaration '{0}' " +
-                    "in machine '{1}'.", attr.Action, this.Machine.GetType().Name);
-                this.Machine.Runtime.Assert(method.GetParameters().Length == 0, "Action '{0}' in machine " +
-                    "'{1}' must have 0 formal parameters.", method.Name, this.Machine.GetType().Name);
-                this.Machine.Runtime.Assert(method.ReturnType == typeof(void), "Action '{0}' in machine " +
-                    "'{1}' must have 'void' return type.", method.Name, this.Machine.GetType().Name);
-
-                var action = (Action)Delegate.CreateDelegate(typeof(Action), this.Machine, method);
+                Action action = this.GetActionWithName(attr.Action);
                 this.ActionBindings.Add(attr.Event, action);
             }
 
@@ -194,6 +167,38 @@ namespace Microsoft.PSharp
             {
                 this.ExitAction();
             }
+        }
+
+        #endregion
+
+        #region private methods
+
+        /// <summary>
+        /// Returns the action with the specified name.
+        /// </summary>
+        /// <param name="actionName">Action name</param>
+        /// <returns>Action</returns>
+        private Action GetActionWithName(string actionName)
+        {
+            MethodInfo method = null;
+            Type machineType = this.Machine.GetType();
+
+            do
+            {
+                method = machineType.GetMethod(actionName, BindingFlags.NonPublic |
+                    BindingFlags.Instance | BindingFlags.FlattenHierarchy);
+                machineType = machineType.BaseType;
+            }
+            while (method == null && machineType != typeof(Machine));
+
+            this.Machine.Runtime.Assert(method != null, "Cannot detect action declaration '{0}' " +
+                "in machine '{1}'.", actionName, this.Machine.GetType().Name);
+            this.Machine.Runtime.Assert(method.GetParameters().Length == 0, "Action '{0}' in machine " +
+                "'{1}' must have 0 formal parameters.", method.Name, this.Machine.GetType().Name);
+            this.Machine.Runtime.Assert(method.ReturnType == typeof(void), "Action '{0}' in machine " +
+                "'{1}' must have 'void' return type.", method.Name, this.Machine.GetType().Name);
+
+            return (Action)Delegate.CreateDelegate(typeof(Action), this.Machine, method);
         }
 
         #endregion

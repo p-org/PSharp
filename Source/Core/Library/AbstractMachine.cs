@@ -12,11 +12,15 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System.ComponentModel;
+
 namespace Microsoft.PSharp
 {
     /// <summary>
     /// Abstract class representing a P# machine.
     /// </summary>
+    [Browsable(false)]
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public abstract class AbstractMachine
     {
         #region fields

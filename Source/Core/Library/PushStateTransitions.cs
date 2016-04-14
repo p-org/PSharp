@@ -21,7 +21,7 @@ namespace Microsoft.PSharp
     /// <summary>
     /// Class representing a collection of push state transitions.
     /// </summary>
-    public sealed class PushStateTransitions : IEnumerable<KeyValuePair<Type, Type>>
+    internal sealed class PushStateTransitions : IEnumerable<KeyValuePair<Type, Type>>
     {
         /// <summary>
         /// A dictionary of push state transitions. A key represents
