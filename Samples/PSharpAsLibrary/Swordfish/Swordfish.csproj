@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{4C7FAAD4-4D14-4442-88B4-9D77A8713A43}</ProjectGuid>
+    <ProjectGuid>{6AAB11A2-4D40-4FB5-B75C-B5C9C921393A}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>LeaderElection</RootNamespace>
-    <AssemblyName>LeaderElection</AssemblyName>
+    <RootNamespace>Swordfish</RootNamespace>
+    <AssemblyName>Swordfish</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -40,8 +40,18 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Bank.cs" />
+    <Compile Include="Account.cs" />
+    <Compile Include="String.cs" />
+    <Compile Include="Responses.cs" />
+    <Compile Include="SavingsAccount.cs" />
+    <Compile Include="CheckingAccount.cs" />
+    <Compile Include="Double.cs" />
+    <Compile Include="Transaction.cs" />
+    <Compile Include="Integer.cs" />
+    <Compile Include="Boolean.cs" />
     <Compile Include="Driver.cs" />
-    <Compile Include="LeaderElectionProcess.cs" />
+    <Compile Include="ATM.cs" />
     <Compile Include="Test.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

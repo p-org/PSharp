@@ -29,7 +29,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PiCompute", "PiCompute\PiCo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chameneos", "Chameneos\Chameneos.csproj", "{3532A6E8-E854-4088-8B0B-B1AFA21D671A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LeaderElection", "LeaderElection\LeaderElection.csproj", "{6AAB11A2-4D40-4FB5-B75C-B5C9C921393A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Swordfish", "Swordfish\Swordfish.csproj", "{6AAB11A2-4D40-4FB5-B75C-B5C9C921393A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LeaderElection", "LeaderElection\LeaderElection.csproj", "{4C7FAAD4-4D14-4442-88B4-9D77A8713A43}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -89,6 +91,10 @@ Global
 		{6AAB11A2-4D40-4FB5-B75C-B5C9C921393A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6AAB11A2-4D40-4FB5-B75C-B5C9C921393A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6AAB11A2-4D40-4FB5-B75C-B5C9C921393A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4C7FAAD4-4D14-4442-88B4-9D77A8713A43}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4C7FAAD4-4D14-4442-88B4-9D77A8713A43}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4C7FAAD4-4D14-4442-88B4-9D77A8713A43}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4C7FAAD4-4D14-4442-88B4-9D77A8713A43}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -107,5 +113,6 @@ Global
 		{1F3C8513-160E-4980-95DE-A6A2AD80ABA5} = {9F303C8B-A686-4BB2-BE75-29B00CF1DBA3}
 		{3532A6E8-E854-4088-8B0B-B1AFA21D671A} = {9F303C8B-A686-4BB2-BE75-29B00CF1DBA3}
 		{6AAB11A2-4D40-4FB5-B75C-B5C9C921393A} = {9F303C8B-A686-4BB2-BE75-29B00CF1DBA3}
+		{4C7FAAD4-4D14-4442-88B4-9D77A8713A43} = {9F303C8B-A686-4BB2-BE75-29B00CF1DBA3}
 	EndGlobalSection
 EndGlobal
