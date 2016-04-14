@@ -228,9 +228,20 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                     this.Statements.Add(Statement.Create(stmtList[0], this, this.Summary));
                     stmtList.RemoveAt(0);
                 }
+                // NOTE: exceptions not supported yet
+                else if (stmtList[0] is ThrowStatementSyntax)
+                {
+                    this.Statements.Add(Statement.Create(stmtList[0], this, this.Summary));
+                    stmtList.RemoveAt(0);
+                }
                 else if (stmtList[0] is EmptyStatementSyntax)
                 {
                     stmtList.RemoveAt(0);
+                }
+                else
+                {
+                    throw new NotSupportedException($"CFG construction for statement '{stmtList[0]}' " +
+                        "is not yet supported. Please report this to the developers.");
                 }
             }
 

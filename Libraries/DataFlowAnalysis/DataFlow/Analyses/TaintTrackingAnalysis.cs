@@ -766,33 +766,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 
                         sideEffects[sideEffect.Key].Add(node.Summary.SemanticModel.GetSymbolInfo(argIdentifier).Symbol);
                     }
-                    else if (argExpr is InvocationExpressionSyntax ||
-                        argExpr is ObjectCreationExpressionSyntax)
-                    {
-                        var invocation = argExpr as InvocationExpressionSyntax;
-                        var objCreation = argExpr as ObjectCreationExpressionSyntax;
-                        
-                        if (invocation != null)
-                        {
-                            argumentList = invocation.ArgumentList;
-                        }
-                        else
-                        {
-                            argumentList = objCreation.ArgumentList;
-                        }
-
-                        var nestedSideEffects = this.ResolveSideEffectsInCall(
-                            argumentList, calleeSummary, node);
-                        foreach (var nestedSideEffect in nestedSideEffects)
-                        {
-                            if (!sideEffects.ContainsKey(nestedSideEffect.Key))
-                            {
-                                sideEffects.Add(nestedSideEffect.Key, new HashSet<ISymbol>());
-                            }
-
-                            sideEffects[nestedSideEffect.Key].UnionWith(nestedSideEffect.Value);
-                        }
-                    }
                 }
             }
 
