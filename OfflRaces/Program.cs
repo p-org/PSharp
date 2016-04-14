@@ -660,7 +660,7 @@ namespace OfflRaces
 
                         if (m.objHandle == n.objHandle && m.offset == n.offset)
                         {
-                            Console.WriteLine("RACE: " + checking.Item1.GetHashCode() + " " + checking.Item2.GetHashCode() + " " + m.srcLocation + ";" + m.isWrite + " AND " + n.srcLocation + ";" + n.isWrite);
+                            Console.WriteLine("RACE: " + m.srcLocation + ";" + m.isWrite + " AND " + n.srcLocation + ";" + n.isWrite);
                             reportedRaces.Add(new Tuple<string, string>(m.srcLocation + ";" + m.isWrite, n.srcLocation + ";" + n.isWrite));
                         }
                     }

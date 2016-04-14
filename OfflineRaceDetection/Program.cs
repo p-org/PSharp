@@ -399,7 +399,7 @@ namespace OfflineRaceDetection
                                     if (!(reportedRaces.Where(item => item.Item1.Equals(loc1.srcLocation + ";" + loc1.isWrite) && item.Item2.Equals(loc2.srcLocation + ";" + loc2.isWrite)).Any())
                                         && !(reportedRaces.Where(item => item.Item1.Equals(loc2.srcLocation + ";" + loc2.isWrite) && item.Item2.Equals(loc1.srcLocation + ";" + loc1.isWrite)).Any()))
                                     {
-                                        Console.WriteLine("RACE DETECTED: " + loc1.GetHashCode() + " and " + loc2.GetHashCode() + " i.e " + loc1.srcLocation + ";" + loc1.isWrite + " and " + loc2.srcLocation + ";" + loc2.isWrite + "\n");
+                                        Console.WriteLine("RACE DETECTED: " + loc1.srcLocation + ";" + loc1.isWrite + " and " + loc2.srcLocation + ";" + loc2.isWrite + "\n");
 
                                         reportedRaces.Add(new Tuple<string, string>(loc1.srcLocation + ";" + loc1.isWrite, loc2.srcLocation + ";" + loc2.isWrite));
                                     }

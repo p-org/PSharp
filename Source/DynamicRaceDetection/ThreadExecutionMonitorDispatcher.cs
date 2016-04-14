@@ -85,12 +85,12 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
 
         ~ThreadExecutionMonitorDispatcher()
         {
-            Console.WriteLine("\nDestructor called " + threadIndex);
+            /*Console.WriteLine("\nDestructor called " + threadIndex);
             foreach (var item in trace)
             {
                 Console.WriteLine(item);
             }
-            /*foreach (var item in thTrace)
+            foreach (var item in thTrace)
             {
                 Console.WriteLine("check: " + item.machineID + " " + item.actionName + " " + item.actionID);
                 Console.WriteLine("memory accesses");
