@@ -138,9 +138,19 @@ namespace Microsoft.PSharp
 
             foreach (var attr in doAttributes)
             {
-                var method = this.Machine.GetType().GetMethod(attr.Action,
-                    BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
+                MethodInfo method = null;
+                Type machineType = this.Machine.GetType();
 
+                do
+                {
+                    method = machineType.GetMethod(attr.Action, BindingFlags.NonPublic |
+                        BindingFlags.Instance | BindingFlags.FlattenHierarchy);
+                    machineType = machineType.BaseType;
+                }
+                while (method == null && machineType != typeof(Machine));
+
+                this.Machine.Runtime.Assert(method != null, "Cannot detect action declaration '{0}' " +
+                    "in machine '{1}'.", attr.Action, this.Machine.GetType().Name);
                 this.Machine.Runtime.Assert(method.GetParameters().Length == 0, "Action '{0}' in machine " +
                     "'{1}' must have 0 formal parameters.", method.Name, this.Machine.GetType().Name);
                 this.Machine.Runtime.Assert(method.ReturnType == typeof(void), "Action '{0}' in machine " +
