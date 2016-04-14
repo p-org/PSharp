@@ -251,6 +251,162 @@ class M : Machine
         }
 
         [TestMethod, Timeout(10000)]
+        public void TestWriteAccessAfterSend4Fail()
+        {
+            var test = @"
+using Microsoft.PSharp;
+
+namespace Foo {
+class eUnit : Event
+{
+ public Letter Letter;
+ 
+ public eUnit(Letter letter)
+  : base()
+ {
+  this.Letter = letter;
+ }
+}
+
+struct Letter
+{
+ public string Text;
+
+ public Letter(string text)
+ {
+  this.Text = text;
+ }
+
+ public void Check() { }
+}
+
+class M : Machine
+{
+ MachineId Target;
+
+ [Start]
+ [OnEntry(nameof(FirstOnEntryAction))]
+ class First : MachineState { }
+
+ void FirstOnEntryAction()
+ {
+  var letter = new Letter(""test"");
+  this.Target = this.CreateMachine(typeof(M));
+  this.Send(this.Target, new eUnit(letter));
+  letter.Check(); // ERROR
+ }
+}
+}";
+
+            var solution = base.GetSolution(test);
+
+            var configuration = Configuration.Create();
+            configuration.ProjectName = "Test";
+            configuration.Verbose = 2;
+
+            IO.StartWritingToMemory();
+
+            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            AnalysisErrorReporter.ResetStats();
+            StaticAnalysisEngine.Create(context).Run();
+
+            var stats = AnalysisErrorReporter.GetStats();
+            var expected = "... Static analysis detected '1' error";
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
+
+            var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' " +
+                "accesses 'letter' after giving up its ownership.";
+            var actual = IO.GetOutput();
+
+            Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
+               actual.Substring(0, actual.IndexOf(Environment.NewLine)));
+
+            IO.StopWritingToMemory();
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestWriteAccessAfterSend5Fail()
+        {
+            var test = @"
+using Microsoft.PSharp;
+
+namespace Foo {
+class eUnit : Event
+{
+ public Letter Letter;
+ 
+ public eUnit(Letter letter)
+  : base()
+ {
+  this.Letter = letter;
+ }
+}
+
+struct Letter
+{
+ public string Text;
+
+ public Letter(string text)
+ {
+  this.Text = text;
+ }
+
+ public int Get() { return 0; }
+}
+
+class M : Machine
+{
+ MachineId Target;
+
+ [Start]
+ [OnEntry(nameof(FirstOnEntryAction))]
+ class First : MachineState { }
+
+ void FirstOnEntryAction()
+ {
+  var letter = new Letter(""test"");
+  this.Target = this.CreateMachine(typeof(M));
+  this.Send(this.Target, new eUnit(letter));
+  var k = letter.Get(); // ERROR
+ }
+}
+}";
+
+            var solution = base.GetSolution(test);
+
+            var configuration = Configuration.Create();
+            configuration.ProjectName = "Test";
+            configuration.Verbose = 2;
+
+            IO.StartWritingToMemory();
+
+            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            AnalysisErrorReporter.ResetStats();
+            StaticAnalysisEngine.Create(context).Run();
+
+            var stats = AnalysisErrorReporter.GetStats();
+            var expected = "... Static analysis detected '1' error";
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
+
+            var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' " +
+                "accesses 'letter' after giving up its ownership.";
+            var actual = IO.GetOutput();
+
+            Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
+               actual.Substring(0, actual.IndexOf(Environment.NewLine)));
+
+            IO.StopWritingToMemory();
+        }
+
+        [TestMethod, Timeout(10000)]
         public void TestWriteAccessAfterSendLoadFromFieldFail()
         {
             var test = @"
@@ -568,6 +724,178 @@ class M : Machine
             var stats = AnalysisErrorReporter.GetStats();
             var expected = "... Static analysis detected '7' errors";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
+
+            IO.StopWritingToMemory();
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestWriteAccessAfterSendInCallee4Fail()
+        {
+            var test = @"
+using Microsoft.PSharp;
+
+namespace Foo {
+class eUnit : Event
+{
+ public Letter Letter;
+ 
+ public eUnit(Letter letter)
+  : base()
+ {
+  this.Letter = letter;
+ }
+}
+
+struct Letter
+{
+ public string Text;
+ public int Num;
+
+ public Letter(string text, int num)
+ {
+  this.Text = text;
+  this.Num = num;
+ }
+
+ public void Check() { }
+}
+
+class M : Machine
+{
+ MachineId Target;
+ Letter Letter;
+
+ [Start]
+ [OnEntry(nameof(FirstOnEntryAction))]
+ class First : MachineState { }
+
+ void FirstOnEntryAction()
+ {
+  var letter = new Letter(""test"", 0);
+  this.Target = this.CreateMachine(typeof(M));
+  this.Send(this.Target, new eUnit(letter));
+  this.Foo(letter);
+ }
+
+ void Foo(Letter letter)
+ {
+  letter.Check(); // ERROR
+ }
+}
+}";
+
+            var solution = base.GetSolution(test);
+
+            var configuration = Configuration.Create();
+            configuration.ProjectName = "Test";
+            configuration.Verbose = 2;
+
+            IO.StartWritingToMemory();
+
+            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            AnalysisErrorReporter.ResetStats();
+            StaticAnalysisEngine.Create(context).Run();
+
+            var stats = AnalysisErrorReporter.GetStats();
+            var expected = "... Static analysis detected '1' error";
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
+
+            var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' " +
+                "accesses 'letter' after giving up its ownership.";
+            var actual = IO.GetOutput();
+
+            Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
+               actual.Substring(0, actual.IndexOf(Environment.NewLine)));
+
+            IO.StopWritingToMemory();
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestWriteAccessAfterSendInCallee5Fail()
+        {
+            var test = @"
+using Microsoft.PSharp;
+
+namespace Foo {
+class eUnit : Event
+{
+ public Letter Letter;
+ 
+ public eUnit(Letter letter)
+  : base()
+ {
+  this.Letter = letter;
+ }
+}
+
+struct Letter
+{
+ public string Text;
+ public int Num;
+
+ public Letter(string text, int num)
+ {
+  this.Text = text;
+  this.Num = num;
+ }
+
+ public int Get() { return 0; }
+}
+
+class M : Machine
+{
+ MachineId Target;
+ Letter Letter;
+
+ [Start]
+ [OnEntry(nameof(FirstOnEntryAction))]
+ class First : MachineState { }
+
+ void FirstOnEntryAction()
+ {
+  var letter = new Letter(""test"", 0);
+  this.Target = this.CreateMachine(typeof(M));
+  this.Send(this.Target, new eUnit(letter));
+  this.Foo(letter);
+ }
+
+ void Foo(Letter letter)
+ {
+  var k = letter.Get(); // ERROR
+ }
+}
+}";
+
+            var solution = base.GetSolution(test);
+
+            var configuration = Configuration.Create();
+            configuration.ProjectName = "Test";
+            configuration.Verbose = 2;
+
+            IO.StartWritingToMemory();
+
+            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            AnalysisErrorReporter.ResetStats();
+            StaticAnalysisEngine.Create(context).Run();
+
+            var stats = AnalysisErrorReporter.GetStats();
+            var expected = "... Static analysis detected '1' error";
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
+
+            var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' " +
+                "accesses 'letter' after giving up its ownership.";
+            var actual = IO.GetOutput();
+
+            Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
+               actual.Substring(0, actual.IndexOf(Environment.NewLine)));
 
             IO.StopWritingToMemory();
         }

@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// </summary>
         /// <param name="expr">Expression</param>
         /// <returns>Identifier</returns>
-        public static IdentifierNameSyntax GetRootIdentifier(ExpressionSyntax expr)
+        public IdentifierNameSyntax GetRootIdentifier(ExpressionSyntax expr)
         {
             IdentifierNameSyntax identifier = null;
             ExpressionSyntax exprToParse = expr;
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// </summary>
         /// <param name="expr">Expression</param>
         /// <returns>Identifiers</returns>
-        public static HashSet<IdentifierNameSyntax> GetIdentifiers(ExpressionSyntax expr)
+        public HashSet<IdentifierNameSyntax> GetIdentifiers(ExpressionSyntax expr)
         {
             return new HashSet<IdentifierNameSyntax>(expr.DescendantNodesAndSelf().
                     OfType<IdentifierNameSyntax>());

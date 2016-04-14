@@ -128,8 +128,20 @@ namespace Microsoft.PSharp.StaticAnalysis
         {
             foreach (var variable in varDecl.Variables.Where(v => v.Initializer != null))
             {
-                this.AnalyzeOwnershipInExpression(givenUpSymbol, variable.Initializer.Value,
-                    statement, originalMachine, model, trace);
+                var expr = variable.Initializer.Value;
+                if (expr is IdentifierNameSyntax ||
+                    expr is MemberAccessExpressionSyntax)
+                {
+                    this.AnalyzeOwnershipInExpression(givenUpSymbol, expr, statement,
+                        originalMachine, model, trace);
+                }
+                else if (expr is InvocationExpressionSyntax ||
+                    expr is ObjectCreationExpressionSyntax)
+                {
+                    trace.InsertCall(statement.Summary.Method, expr);
+                    base.AnalyzeOwnershipInCall(givenUpSymbol, expr, statement,
+                        originalMachine, model, trace);
+                }
             }
         }
 
@@ -147,14 +159,12 @@ namespace Microsoft.PSharp.StaticAnalysis
             AssignmentExpressionSyntax assignment, Statement statement, StateMachine originalMachine,
             SemanticModel model, TraceInfo trace)
         {
-            var leftIdentifier = CodeAnalysis.CSharp.DataFlowAnalysis.AnalysisContext.
-                GetRootIdentifier(assignment.Left);
+            var leftIdentifier = base.AnalysisContext.GetRootIdentifier(assignment.Left);
             ISymbol leftSymbol = model.GetSymbolInfo(leftIdentifier).Symbol;
             
             if (assignment.Right is IdentifierNameSyntax)
             {
-                var rightIdentifier = CodeAnalysis.CSharp.DataFlowAnalysis.AnalysisContext.
-                    GetRootIdentifier(assignment.Right);
+                var rightIdentifier = base.AnalysisContext.GetRootIdentifier(assignment.Right);
                 ISymbol rightSymbol = model.GetSymbolInfo(rightIdentifier).Symbol;
 
                 if (statement.Summary.DataFlowAnalysis.FlowsIntoSymbol(rightSymbol,
@@ -175,13 +185,19 @@ namespace Microsoft.PSharp.StaticAnalysis
                     return;
                 }
             }
-            else if (assignment.Right is MemberAccessExpressionSyntax ||
-                assignment.Right is InvocationExpressionSyntax ||
+            else if (assignment.Right is MemberAccessExpressionSyntax)
+            {
+                this.AnalyzeOwnershipInExpression(givenUpSymbol, assignment.Right, statement,
+                    originalMachine, model, trace);
+            }
+            else if (assignment.Right is InvocationExpressionSyntax ||
                 assignment.Right is ObjectCreationExpressionSyntax)
             {
-                this.AnalyzeOwnershipInExpression(givenUpSymbol, assignment.Right,
-                    statement, originalMachine, model, trace);
+                trace.InsertCall(statement.Summary.Method, assignment.Right);
+                base.AnalyzeOwnershipInCall(givenUpSymbol, assignment.Right, statement,
+                    originalMachine, model, trace);
             }
+
 
             if (assignment.Left is MemberAccessExpressionSyntax)
             {
@@ -220,54 +236,58 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 return;
             }
-
+            
             var invocation = call as InvocationExpressionSyntax;
-            ArgumentListSyntax argumentList = base.AnalysisContext.GetArgumentList(call);
-            if (argumentList == null)
+            if (invocation != null)
             {
-                return;
+                this.AnalyzeOwnershipInExpression(givenUpSymbol, invocation.Expression, statement,
+                    originalMachine, model, trace);
             }
 
-            for (int idx = 0; idx < argumentList.Arguments.Count; idx++)
+            ArgumentListSyntax argumentList = base.AnalysisContext.GetArgumentList(call);
+            if (argumentList != null)
             {
-                var argType = model.GetTypeInfo(argumentList.Arguments[idx].Expression).Type;
-                if (base.AnalysisContext.IsTypePassedByValueOrImmutable(argType))
+                for (int idx = 0; idx < argumentList.Arguments.Count; idx++)
                 {
-                    continue;
-                }
-                
-                var argIdentifier = CodeAnalysis.CSharp.DataFlowAnalysis.AnalysisContext.
-                    GetRootIdentifier(argumentList.Arguments[idx].Expression);
-                ISymbol argSymbol = model.GetSymbolInfo(argIdentifier).Symbol;
-
-                if (statement.Summary.DataFlowAnalysis.FlowsIntoSymbol(argSymbol,
-                    givenUpSymbol.ContainingSymbol, statement, givenUpSymbol.Statement))
-                {
-                    if (calleeSummary.SideEffectsInfo.ParameterAccesses.ContainsKey(idx))
+                    var argType = model.GetTypeInfo(argumentList.Arguments[idx].Expression).Type;
+                    if (base.AnalysisContext.IsTypePassedByValueOrImmutable(argType))
                     {
-                        foreach (var access in calleeSummary.SideEffectsInfo.ParameterAccesses[idx])
-                        {
-                            TraceInfo newTrace = new TraceInfo();
-                            newTrace.Merge(trace);
-                            newTrace.AddErrorTrace(access.SyntaxNode);
-
-                            AnalysisErrorReporter.ReportGivenUpOwnershipAccess(newTrace);
-                        }
+                        continue;
                     }
 
-                    var fieldSymbols = calleeSummary.SideEffectsInfo.FieldFlowParamIndexes.Where(
-                        v => v.Value.Contains(idx)).Select(v => v.Key);
-                    foreach (var fieldSymbol in fieldSymbols)
-                    {
-                        if (base.IsFieldAccessedBeforeBeingReset(fieldSymbol, statement.Summary))
-                        {
-                            AnalysisErrorReporter.ReportGivenUpOwnershipFieldAssignment(trace, fieldSymbol);
-                        }
-                    }
+                    var argIdentifier = base.AnalysisContext.GetRootIdentifier(
+                        argumentList.Arguments[idx].Expression);
+                    ISymbol argSymbol = model.GetSymbolInfo(argIdentifier).Symbol;
 
-                    if (calleeSummary.SideEffectsInfo.GivesUpOwnershipParamIndexes.Contains(idx))
+                    if (statement.Summary.DataFlowAnalysis.FlowsIntoSymbol(argSymbol,
+                        givenUpSymbol.ContainingSymbol, statement, givenUpSymbol.Statement))
                     {
-                        AnalysisErrorReporter.ReportGivenUpOwnershipSending(trace, argSymbol);
+                        if (calleeSummary.SideEffectsInfo.ParameterAccesses.ContainsKey(idx))
+                        {
+                            foreach (var access in calleeSummary.SideEffectsInfo.ParameterAccesses[idx])
+                            {
+                                TraceInfo newTrace = new TraceInfo();
+                                newTrace.Merge(trace);
+                                newTrace.AddErrorTrace(access.SyntaxNode);
+
+                                AnalysisErrorReporter.ReportGivenUpOwnershipAccess(newTrace);
+                            }
+                        }
+
+                        var fieldSymbols = calleeSummary.SideEffectsInfo.FieldFlowParamIndexes.Where(
+                            v => v.Value.Contains(idx)).Select(v => v.Key);
+                        foreach (var fieldSymbol in fieldSymbols)
+                        {
+                            if (base.IsFieldAccessedBeforeBeingReset(fieldSymbol, statement.Summary))
+                            {
+                                AnalysisErrorReporter.ReportGivenUpOwnershipFieldAssignment(trace, fieldSymbol);
+                            }
+                        }
+
+                        if (calleeSummary.SideEffectsInfo.GivesUpOwnershipParamIndexes.Contains(idx))
+                        {
+                            AnalysisErrorReporter.ReportGivenUpOwnershipSending(trace, argSymbol);
+                        }
                     }
                 }
             }
@@ -355,8 +375,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             var extractedArgs = base.ExtractArguments(arguments);
             foreach (var arg in extractedArgs)
             {
-                IdentifierNameSyntax argIdentifier = CodeAnalysis.CSharp.DataFlowAnalysis.
-                    AnalysisContext.GetRootIdentifier(arg);
+                IdentifierNameSyntax argIdentifier = base.AnalysisContext.GetRootIdentifier(arg);
                 ITypeSymbol argType = model.GetTypeInfo(argIdentifier).Type;
                 if (base.AnalysisContext.IsTypePassedByValueOrImmutable(argType))
                 {
@@ -403,8 +422,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         {
             if (expr is MemberAccessExpressionSyntax)
             {
-                var identifier = CodeAnalysis.CSharp.DataFlowAnalysis.AnalysisContext.
-                    GetRootIdentifier(expr);
+                var identifier = base.AnalysisContext.GetRootIdentifier(expr);
                 ISymbol symbol = model.GetSymbolInfo(identifier).Symbol;
                 if (statement.Summary.DataFlowAnalysis.FlowsIntoSymbol(symbol,
                     givenUpSymbol.ContainingSymbol, statement, givenUpSymbol.Statement))
@@ -415,13 +433,6 @@ namespace Microsoft.PSharp.StaticAnalysis
                     
                     AnalysisErrorReporter.ReportGivenUpOwnershipAccess(newTrace);
                 }
-            }
-            else if (expr is InvocationExpressionSyntax ||
-                expr is ObjectCreationExpressionSyntax)
-            {
-                trace.InsertCall(statement.Summary.Method, expr);
-                base.AnalyzeOwnershipInCall(givenUpSymbol, expr, statement,
-                    originalMachine, model, trace);
             }
         }
 

@@ -424,7 +424,7 @@ class M : Machine
             StaticAnalysisEngine.Create(context).Run();
 
             var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... Static analysis detected '2' errors";
+            var expected = "... Static analysis detected '3' errors";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             IO.StopWritingToMemory();
@@ -517,7 +517,7 @@ class M : Machine
             StaticAnalysisEngine.Create(context).Run();
 
             var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... Static analysis detected '3' errors";
+            var expected = "... Static analysis detected '6' errors";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             IO.StopWritingToMemory();
