@@ -12,7 +12,8 @@ class Options:
 
 class Samples(object):
     psharpAsLibrary = ['BoundedAsync', 'ChainReplication', 'Chord', 'FailureDetector', 'German', 'MultiPaxos',
-                       'PingPong', 'Raft', 'ReplicatingStorage', 'TwoPhaseCommit']
+                       'PingPong', 'Raft', 'ReplicatingStorage', 'TwoPhaseCommit', 'LeaderElection', 'PiCompute',
+                       'Chameneos', 'Swordfish']
     psharpAsLanguage = ['AbstractPong', 'BoundedAsync', 'FailureDetector', 'German', 'MultiPaxos', 'PartialPingPong',
                         'PingPong', 'SimpleAsyncAwait', 'TypesAndGenerics']
 
