@@ -39,7 +39,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="context">AnalysisContext</param>
         /// <param name="configuration">Configuration</param>
         /// <returns>GivesUpOwnershipAnalysisPass</returns>
-        internal static GivesUpOwnershipAnalysisPass Create(PSharpAnalysisContext context,
+        internal static GivesUpOwnershipAnalysisPass Create(AnalysisContext context,
             Configuration configuration)
         {
             return new GivesUpOwnershipAnalysisPass(context, configuration);
@@ -233,7 +233,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="context">AnalysisContext</param>
         /// <param name="configuration">Configuration</param>
-        private GivesUpOwnershipAnalysisPass(PSharpAnalysisContext context, Configuration configuration)
+        private GivesUpOwnershipAnalysisPass(AnalysisContext context, Configuration configuration)
             : base(context, configuration)
         {
 

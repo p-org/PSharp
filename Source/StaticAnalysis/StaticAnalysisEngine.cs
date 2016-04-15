@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis;
 
 using Microsoft.PSharp.LanguageServices.Compilation;
 using Microsoft.PSharp.Utilities;
@@ -122,32 +123,38 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             // Create a state-machine static analysis context.
-            var context = PSharpAnalysisContext.Create(project);
+            var context = AnalysisContext.Create(project);
             this.RegisterImmutableTypes(context);
             this.RegisterGivesUpOwnershipOperations(context);
 
             // Creates and runs an analysis pass that computes the
             // summaries for every P# machine.
-            MachineSummarizationPass.Create(context, this.CompilationContext.Configuration).Run();
+            ISet<StateMachine> machines = new HashSet<StateMachine>();
+            MachineSummarizationPass.Create(context, this.CompilationContext.Configuration).
+                Run(machines);
 
             // Creates and runs an analysis pass that finds if a machine exposes
             // any fields or methods to other machines.
-            DirectAccessAnalysisPass.Create(context, this.CompilationContext.Configuration).Run();
+            DirectAccessAnalysisPass.Create(context, this.CompilationContext.Configuration).
+                Run(machines);
             
             // Creates and runs an analysis pass that constructs the
             // state transition graph for each machine.
             if (this.CompilationContext.Configuration.DoStateTransitionAnalysis)
             {
-                StateTransitionAnalysisPass.Create(context, this.CompilationContext.Configuration).Run();
+                StateTransitionAnalysisPass.Create(context, this.CompilationContext.Configuration).
+                    Run(machines);
             }
 
             // Creates and runs an analysis pass that detects if any method
             // in each machine is erroneously giving up ownership.
-            GivesUpOwnershipAnalysisPass.Create(context, this.CompilationContext.Configuration).Run();
+            GivesUpOwnershipAnalysisPass.Create(context, this.CompilationContext.Configuration).
+                Run(machines);
 
             // Creates and runs an analysis pass that detects if all methods
             // in each machine respect given up ownerships.
-            RespectsOwnershipAnalysisPass.Create(context, this.CompilationContext.Configuration).Run();
+            RespectsOwnershipAnalysisPass.Create(context, this.CompilationContext.Configuration).
+                Run(machines);
 
             // Stops profiling the analysis.
             if (this.CompilationContext.Configuration.TimeStaticAnalysis)
@@ -161,8 +168,8 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Registers immutable types.
         /// </summary>
-        /// <param name="context">PSharpAnalysisContext</param>
-        private void RegisterImmutableTypes(PSharpAnalysisContext context)
+        /// <param name="context">AnalysisContext</param>
+        private void RegisterImmutableTypes(AnalysisContext context)
         {
             context.RegisterImmutableType(typeof(Microsoft.PSharp.MachineId));
         }
@@ -170,8 +177,8 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Registers gives-up ownership operations.
         /// </summary>
-        /// <param name="context">PSharpAnalysisContext</param>
-        private void RegisterGivesUpOwnershipOperations(PSharpAnalysisContext context)
+        /// <param name="context">AnalysisContext</param>
+        private void RegisterGivesUpOwnershipOperations(AnalysisContext context)
         {
             context.RegisterGivesUpOwnershipMethod("Microsoft.PSharp.Send",
                 new HashSet<int> { 1 });

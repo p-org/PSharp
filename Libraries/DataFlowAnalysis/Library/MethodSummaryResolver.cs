@@ -290,7 +290,8 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 as ClassDeclarationSyntax;
             foreach (var m in calleeClass.ChildNodes().OfType<MethodDeclarationSyntax>())
             {
-                if (m.Identifier.ValueText.Equals(AnalysisContext.GetCalleeOfInvocation(invocation)))
+                if (m.Identifier.ValueText.Equals(node.Summary.AnalysisContext.
+                    GetCalleeOfInvocation(invocation)))
                 {
                     method = m;
                     break;

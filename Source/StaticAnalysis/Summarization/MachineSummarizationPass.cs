@@ -16,8 +16,8 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis;
 
 using Microsoft.PSharp.LanguageServices;
 using Microsoft.PSharp.Utilities;
@@ -28,7 +28,7 @@ namespace Microsoft.PSharp.StaticAnalysis
     /// This analysis pass computes the summaries for
     /// each machine of a P# program.
     /// </summary>
-    internal sealed class MachineSummarizationPass : AnalysisPass
+    internal sealed class MachineSummarizationPass : StateMachineAnalysisPass
     {
         #region internal API
 
@@ -38,16 +38,17 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="context">AnalysisContext</param>
         /// <param name="configuration">Configuration</param>
         /// <returns>MachineSummarizationPass</returns>
-        internal static MachineSummarizationPass Create(PSharpAnalysisContext context,
+        internal static MachineSummarizationPass Create(AnalysisContext context,
             Configuration configuration)
         {
             return new MachineSummarizationPass(context, configuration);
         }
 
         /// <summary>
-        /// Runs the analysis.
+        /// Runs the analysis on the specified machines.
         /// </summary>
-        internal override void Run()
+        /// <param name="machines">StateMachines</param>
+        internal override void Run(ISet<StateMachine> machines)
         {
             // Starts profiling the summarization.
             if (base.Configuration.TimeStaticAnalysis)
@@ -55,8 +56,8 @@ namespace Microsoft.PSharp.StaticAnalysis
                 this.Profiler.StartMeasuringExecutionTime();
             }
 
-            this.SummarizeStateMachines();
-            this.ComputeStateMachineInheritanceInformation();
+            this.SummarizeStateMachines(machines);
+            this.ComputeStateMachineInheritanceInformation(machines);
 
             // Stops profiling the summarization.
             if (base.Configuration.TimeStaticAnalysis)
@@ -65,7 +66,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 this.PrintProfilingResults();
             }
 
-            this.PrintSummarizationInformation();
+            this.PrintSummarizationInformation(machines);
         }
 
         #endregion
@@ -77,7 +78,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="context">AnalysisContext</param>
         /// <param name="configuration">Configuration</param>
-        private MachineSummarizationPass(PSharpAnalysisContext context, Configuration configuration)
+        private MachineSummarizationPass(AnalysisContext context, Configuration configuration)
             : base(context, configuration)
         {
 
@@ -90,7 +91,8 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Summarizes the state-machines in the project.
         /// </summary>
-        private void SummarizeStateMachines()
+        /// <param name="machines">StateMachines</param>
+        private void SummarizeStateMachines(ISet<StateMachine> machines)
         {
             // Iterate the syntax trees for each project file.
             foreach (var tree in base.AnalysisContext.Compilation.SyntaxTrees)
@@ -106,7 +108,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     if (Querying.IsMachine(base.AnalysisContext.Compilation, classDecl))
                     {
-                        base.AnalysisContext.Machines.Add(new StateMachine(classDecl, base.AnalysisContext));
+                        machines.Add(new StateMachine(classDecl, base.AnalysisContext));
                     }
                 }
             }
@@ -116,20 +118,39 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Computes the state-machine inheritance information for all
         /// state-machines in the project.
         /// </summary>
-        private void ComputeStateMachineInheritanceInformation()
+        /// <param name="machines">StateMachines</param>
+        private void ComputeStateMachineInheritanceInformation(ISet<StateMachine> machines)
         {
-            foreach (var machine in base.AnalysisContext.Machines)
+            foreach (var machine in machines)
             {
-                machine.ComputeInheritanceInformation();
+                IList<INamedTypeSymbol> baseTypes = this.AnalysisContext.GetBaseTypes(machine.Declaration);
+                foreach (var type in baseTypes)
+                {
+                    if (type.ToString().Equals(typeof(Machine).FullName))
+                    {
+                        break;
+                    }
+
+                    var availableMachines = new List<StateMachine>(machines);
+                    var inheritedMachine = availableMachines.FirstOrDefault(m
+                        => base.AnalysisContext.GetFullClassName(m.Declaration).Equals(type.ToString()));
+                    if (inheritedMachine == null)
+                    {
+                        break;
+                    }
+
+                    machine.BaseMachines.Add(inheritedMachine);
+                }
             }
         }
 
         /// <summary>
         /// Prints summarization information.
         /// </summary>
-        private void PrintSummarizationInformation()
+        /// <param name="machines">StateMachines</param>
+        private void PrintSummarizationInformation(ISet<StateMachine> machines)
         {
-            foreach (var machine in base.AnalysisContext.Machines)
+            foreach (var machine in machines)
             {
                 foreach (var summary in machine.MethodSummaries.Values)
                 {

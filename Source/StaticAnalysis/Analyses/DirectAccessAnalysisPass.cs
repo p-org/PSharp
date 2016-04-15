@@ -13,10 +13,12 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -28,7 +30,7 @@ namespace Microsoft.PSharp.StaticAnalysis
     /// This analysis pass checks if any P# machine contains fields
     /// or methods that can be publicly accessed.
     /// </summary>
-    internal sealed class DirectAccessAnalysisPass : AnalysisPass
+    internal sealed class DirectAccessAnalysisPass : StateMachineAnalysisPass
     {
         #region internal API
 
@@ -38,19 +40,20 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="context">AnalysisContext</param>
         /// <param name="configuration">Configuration</param>
         /// <returns>DirectAccessAnalysisPass</returns>
-        internal static DirectAccessAnalysisPass Create(PSharpAnalysisContext context,
+        internal static DirectAccessAnalysisPass Create(AnalysisContext context,
             Configuration configuration)
         {
             return new DirectAccessAnalysisPass(context, configuration);
         }
 
         /// <summary>
-        /// Runs the analysis.
+        /// Runs the analysis on the specified machines.
         /// </summary>
-        internal override void Run()
+        /// <param name="machines">StateMachines</param>
+        internal override void Run(ISet<StateMachine> machines)
         {
-            this.CheckFields();
-            this.CheckMethods();
+            this.CheckFields(machines);
+            this.CheckMethods(machines);
         }
 
         #endregion
@@ -62,7 +65,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="context">AnalysisContext</param>
         /// <param name="configuration">Configuration</param>
-        private DirectAccessAnalysisPass(PSharpAnalysisContext context, Configuration configuration)
+        private DirectAccessAnalysisPass(AnalysisContext context, Configuration configuration)
             : base(context, configuration)
         {
 
@@ -72,21 +75,22 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Checks the fields of each machine and report warnings if
         /// any field is not private or protected.
         /// </summary>
-        private void CheckFields()
+        /// <param name="machines">StateMachines</param>
+        private void CheckFields(ISet<StateMachine> machines)
         {
-            foreach (var machineDecl in AnalysisContext.Machines)
+            foreach (var machine in machines)
             {
-                foreach (var field in machineDecl.Declaration.ChildNodes().OfType<FieldDeclarationSyntax>())
+                foreach (var field in machine.Declaration.ChildNodes().OfType<FieldDeclarationSyntax>())
                 {
                     if (field.Modifiers.Any(SyntaxKind.PublicKeyword))
                     {
                         AnalysisErrorReporter.Report("Field '{0}' of machine '{1}' is declared as " +
-                            "'public'.", field.Declaration.ToString(), machineDecl.Name);
+                            "'public'.", field.Declaration.ToString(), machine.Name);
                     }
                     else if (field.Modifiers.Any(SyntaxKind.InternalKeyword))
                     {
                         AnalysisErrorReporter.Report("Field '{0}' of machine '{1}' is declared as " +
-                            "'internal'.", field.Declaration.ToString(), machineDecl.Name);
+                            "'internal'.", field.Declaration.ToString(), machine.Name);
                     }
                 }
             }
@@ -97,23 +101,24 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// any method is directly accessed by anything else than the
         /// P# runtime.
         /// </summary>
-        private void CheckMethods()
+        /// <param name="machines">StateMachines</param>
+        private void CheckMethods(ISet<StateMachine> machines)
         {
-            foreach (var machineDecl in AnalysisContext.Machines)
+            foreach (var machine in machines)
             {
-                foreach (var method in machineDecl.Declaration.ChildNodes().OfType<MethodDeclarationSyntax>())
+                foreach (var method in machine.Declaration.ChildNodes().OfType<MethodDeclarationSyntax>())
                 {
                     if (method.Modifiers.Any(SyntaxKind.PublicKeyword))
                     {
                         AnalysisErrorReporter.Report("Method '{0}' of machine '{1}' is " +
                             "declared as 'public'.", method.Identifier.ValueText,
-                            machineDecl.Name);
+                            machine.Name);
                     }
                     else if (method.Modifiers.Any(SyntaxKind.InternalKeyword))
                     {
                         AnalysisErrorReporter.Report("Method '{0}' of machine '{1}' is " +
                             "declared as 'internal'.", method.Identifier.ValueText,
-                            machineDecl.Name);
+                            machine.Name);
                     }
                 }
             }

@@ -85,13 +85,12 @@
     <Compile Include="DataStructures\StateMachines\MachineAction.cs" />
     <Compile Include="DataStructures\StateMachines\MachineState.cs" />
     <Compile Include="DataStructures\StateMachines\StateMachine.cs" />
-    <Compile Include="PSharpAnalysisContext.cs" />
     <Compile Include="DataStructures\ControlFlow\StateTransitionGraphNode.cs" />
     <Compile Include="Tracing\CallTraceStep.cs" />
     <Compile Include="Tracing\ErrorTraceStep.cs" />
     <Compile Include="Utilities\AnalysisErrorReporter.cs" />
     <Compile Include="Tracing\TraceInfo.cs" />
-    <Compile Include="Analyses\AnalysisPass.cs" />
+    <Compile Include="Analyses\StateMachineAnalysisPass.cs" />
     <Compile Include="StaticAnalysisEngine.cs" />
     <Compile Include="Summarization\MachineSummarizationPass.cs" />
     <Compile Include="OwnershipAnalysis\RespectsOwnershipAnalysisPass.cs" />

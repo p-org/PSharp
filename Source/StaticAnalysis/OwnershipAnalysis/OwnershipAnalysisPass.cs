@@ -29,14 +29,15 @@ namespace Microsoft.PSharp.StaticAnalysis
     /// <summary>
     /// Implementation of an abstract ownership analysis pass.
     /// </summary>
-    internal abstract class OwnershipAnalysisPass : AnalysisPass
+    internal abstract class OwnershipAnalysisPass : StateMachineAnalysisPass
     {
         #region internal API
 
         /// <summary>
-        /// Runs the analysis.
+        /// Runs the analysis on the specified machines.
         /// </summary>
-        internal override void Run()
+        /// <param name="machines">StateMachines</param>
+        internal override void Run(ISet<StateMachine> machines)
         {
             // Starts profiling the ownership analysis.
             if (base.Configuration.TimeStaticAnalysis)
@@ -44,7 +45,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 base.Profiler.StartMeasuringExecutionTime();
             }
 
-            foreach (var machine in this.AnalysisContext.Machines)
+            foreach (var machine in machines)
             {
                 this.AnalyzeMethodSummariesInMachine(machine);
             }
@@ -66,7 +67,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="context">AnalysisContext</param>
         /// <param name="configuration">Configuration</param>
-        protected OwnershipAnalysisPass(PSharpAnalysisContext context, Configuration configuration)
+        protected OwnershipAnalysisPass(AnalysisContext context, Configuration configuration)
             : base(context, configuration)
         {
 

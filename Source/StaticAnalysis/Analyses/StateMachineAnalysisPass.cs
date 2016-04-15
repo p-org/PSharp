@@ -12,6 +12,10 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System.Collections.Generic;
+
+using Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis;
+
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.StaticAnalysis
@@ -19,14 +23,14 @@ namespace Microsoft.PSharp.StaticAnalysis
     /// <summary>
     /// Implementation of an abstract state-machine analysis pass.
     /// </summary>
-    internal abstract class AnalysisPass
+    internal abstract class StateMachineAnalysisPass
     {
         #region fields
 
         /// <summary>
         /// The analysis context.
         /// </summary>
-        protected PSharpAnalysisContext AnalysisContext;
+        protected AnalysisContext AnalysisContext;
 
         /// <summary>
         /// Configuration.
@@ -43,9 +47,10 @@ namespace Microsoft.PSharp.StaticAnalysis
         #region internal methods
 
         /// <summary>
-        /// Runs the analysis.
+        /// Runs the analysis on the specified machines.
         /// </summary>
-        internal abstract void Run();
+        /// <param name="machines">StateMachines</param>
+        internal abstract void Run(ISet<StateMachine> machines);
 
         #endregion
 
@@ -56,7 +61,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="context">AnalysisContext</param>
         /// <param name="configuration">Configuration</param>
-        protected AnalysisPass(PSharpAnalysisContext context, Configuration configuration)
+        protected StateMachineAnalysisPass(AnalysisContext context, Configuration configuration)
         {
             this.Profiler = new Profiler();
             this.AnalysisContext = context;

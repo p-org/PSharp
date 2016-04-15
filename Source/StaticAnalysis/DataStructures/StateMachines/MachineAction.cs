@@ -12,6 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.PSharp.StaticAnalysis
@@ -26,7 +27,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// The analysis context.
         /// </summary>
-        private PSharpAnalysisContext AnalysisContext;
+        private AnalysisContext AnalysisContext;
 
         /// <summary>
         /// The parent state.
@@ -54,7 +55,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="state">MachineState</param>
         /// <param name="context">AnalysisContext</param>
         internal MachineAction(MethodDeclarationSyntax methodDecl, MachineState state,
-            PSharpAnalysisContext context)
+            AnalysisContext context)
         {
             this.AnalysisContext = context;
             this.State = state;

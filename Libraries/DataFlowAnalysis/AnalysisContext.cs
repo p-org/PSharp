@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
     /// <summary>
     /// A static analysis context.
     /// </summary>
-    public class AnalysisContext
+    public sealed class AnalysisContext
     {
         #region fields
 
@@ -50,7 +50,19 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 
         #endregion
 
-        #region public API
+        #region constructors
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="project">Project</param>
+        private AnalysisContext(Project project)
+        {
+            this.Solution = project.Solution;
+            this.Compilation = project.GetCompilationAsync().Result;
+            this.RegisteredImmutableTypes = new HashSet<Type>();
+            this.GivesUpOwnershipMethods = new Dictionary<string, ISet<int>>();
+        }
 
         /// <summary>
         /// Create a new static analysis context.
@@ -61,6 +73,10 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         {
             return new AnalysisContext(project);
         }
+
+        #endregion
+
+        #region public methods
 
         /// <summary>
         /// Registers the specified immutable type.
@@ -90,10 +106,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 
             this.GivesUpOwnershipMethods[methodName].UnionWith(givesUpParamIndexes);
         }
-
-        #endregion
-
-        #region public helper methods
 
         /// <summary>
         /// Returns the full name of the given class.
@@ -202,40 +214,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             return false;
         }
 
-        #endregion
-
-        #region public static API
-
-        /// <summary>
-        /// Returns the callee of the given call expression.
-        /// </summary>
-        /// <param name="invocation">Invocation</param>
-        /// <returns>Callee</returns>
-        public static string GetCalleeOfInvocation(InvocationExpressionSyntax invocation)
-        {
-            string callee = "";
-
-            if (invocation.Expression is MemberAccessExpressionSyntax)
-            {
-                var memberAccessExpr = invocation.Expression as MemberAccessExpressionSyntax;
-                if (memberAccessExpr.Name is IdentifierNameSyntax)
-                {
-                    callee = (memberAccessExpr.Name as IdentifierNameSyntax).Identifier.ValueText;
-                }
-                else if (memberAccessExpr.Name is GenericNameSyntax)
-                {
-                    callee = (memberAccessExpr.Name as GenericNameSyntax).Identifier.ValueText;
-                }
-            }
-            else
-            {
-                callee = invocation.Expression.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>().
-                    First().Identifier.ValueText;
-            }
-
-            return callee;
-        }
-
         /// <summary>
         /// Returns the identifier from the expression.
         /// </summary>
@@ -323,6 +301,36 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         }
 
         /// <summary>
+        /// Returns the callee of the given call expression.
+        /// </summary>
+        /// <param name="invocation">Invocation</param>
+        /// <returns>Callee</returns>
+        public string GetCalleeOfInvocation(InvocationExpressionSyntax invocation)
+        {
+            string callee = "";
+
+            if (invocation.Expression is MemberAccessExpressionSyntax)
+            {
+                var memberAccessExpr = invocation.Expression as MemberAccessExpressionSyntax;
+                if (memberAccessExpr.Name is IdentifierNameSyntax)
+                {
+                    callee = (memberAccessExpr.Name as IdentifierNameSyntax).Identifier.ValueText;
+                }
+                else if (memberAccessExpr.Name is GenericNameSyntax)
+                {
+                    callee = (memberAccessExpr.Name as GenericNameSyntax).Identifier.ValueText;
+                }
+            }
+            else
+            {
+                callee = invocation.Expression.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>().
+                    First().Identifier.ValueText;
+            }
+
+            return callee;
+        }
+
+        /// <summary>
         /// Returns the argument list after resolving
         /// the given call expression.
         /// </summary>
@@ -345,30 +353,14 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
 
         #endregion
 
-        #region constructors
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="project">Project</param>
-        protected AnalysisContext(Project project)
-        {
-            this.Solution = project.Solution;
-            this.Compilation = project.GetCompilationAsync().Result;
-            this.RegisteredImmutableTypes = new HashSet<Type>();
-            this.GivesUpOwnershipMethods = new Dictionary<string, ISet<int>>();
-        }
-
-        #endregion
-
-        #region protected methods
+        #region private methods
 
         /// <summary>
         /// Returns the full qualifier name of the given syntax node.
         /// </summary>
         /// <param name="syntaxNode">SyntaxNode</param>
         /// <returns>string</returns>
-        protected string GetFullQualifierNameOfSyntaxNode(SyntaxNode syntaxNode)
+        private string GetFullQualifierNameOfSyntaxNode(SyntaxNode syntaxNode)
         {
             string result = "";
 

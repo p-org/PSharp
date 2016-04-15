@@ -35,7 +35,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// The analysis context.
         /// </summary>
-        private PSharpAnalysisContext AnalysisContext;
+        private AnalysisContext AnalysisContext;
 
         /// <summary>
         /// Name of the state-machine.
@@ -76,7 +76,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="classDecl">ClassDeclarationSyntax</param>
         /// <param name="context">AnalysisContext</param>
-        internal StateMachine(ClassDeclarationSyntax classDecl, PSharpAnalysisContext context)
+        internal StateMachine(ClassDeclarationSyntax classDecl, AnalysisContext context)
         {
             this.AnalysisContext = context;
             this.Name = this.AnalysisContext.GetFullClassName(classDecl);
@@ -98,31 +98,6 @@ namespace Microsoft.PSharp.StaticAnalysis
         #endregion
 
         #region internal methods
-
-        /// <summary>
-        /// Computes the inheritance information of the state-machine.
-        /// </summary>
-        internal void ComputeInheritanceInformation()
-        {
-            IList<INamedTypeSymbol> baseTypes = this.AnalysisContext.GetBaseTypes(this.Declaration);
-            foreach (var type in baseTypes)
-            {
-                if (type.ToString().Equals(typeof(Machine).FullName))
-                {
-                    break;
-                }
-
-                var availableMachines = new List<StateMachine>(this.AnalysisContext.Machines);
-                var inheritedMachine = availableMachines.FirstOrDefault(m
-                    => this.AnalysisContext.GetFullClassName(m.Declaration).Equals(type.ToString()));
-                if (inheritedMachine == null)
-                {
-                    break;
-                }
-
-                this.BaseMachines.Add(inheritedMachine);
-            }
-        }
 
         /// <summary>
         /// Returns true if the given method is an action of the machine.
