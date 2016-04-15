@@ -37,10 +37,12 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Creates a new gives-up ownership analysis pass.
         /// </summary>
         /// <param name="context">AnalysisContext</param>
+        /// <param name="configuration">Configuration</param>
         /// <returns>GivesUpOwnershipAnalysisPass</returns>
-        internal static GivesUpOwnershipAnalysisPass Create(PSharpAnalysisContext context)
+        internal static GivesUpOwnershipAnalysisPass Create(PSharpAnalysisContext context,
+            Configuration configuration)
         {
-            return new GivesUpOwnershipAnalysisPass(context);
+            return new GivesUpOwnershipAnalysisPass(context, configuration);
         }
 
         #endregion
@@ -230,8 +232,9 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Constructor.
         /// </summary>
         /// <param name="context">AnalysisContext</param>
-        private GivesUpOwnershipAnalysisPass(PSharpAnalysisContext context)
-            : base(context)
+        /// <param name="configuration">Configuration</param>
+        private GivesUpOwnershipAnalysisPass(PSharpAnalysisContext context, Configuration configuration)
+            : base(context, configuration)
         {
 
         }

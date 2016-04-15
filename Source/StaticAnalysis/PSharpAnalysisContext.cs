@@ -27,12 +27,7 @@ namespace Microsoft.PSharp.StaticAnalysis
     public sealed class PSharpAnalysisContext : AnalysisContext
     {
         #region fields
-
-        /// <summary>
-        /// Configuration.
-        /// </summary>
-        internal Configuration Configuration;
-
+        
         /// <summary>
         /// Set of state-machines in the project.
         /// </summary>
@@ -53,30 +48,9 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="configuration">Configuration</param>
         /// <param name="project">Project</param>
         /// <returns>StateMachineAnalysisContext</returns>
-        public static PSharpAnalysisContext Create(Configuration configuration, Project project)
+        public static new PSharpAnalysisContext Create(Project project)
         {
-            return new PSharpAnalysisContext(configuration, project);
-        }
-
-        /// <summary>
-        /// Returns true if the given type is passed by value or is immutable.
-        /// </summary>
-        /// <param name="type">Type</param>
-        /// <returns>Boolean</returns>
-        public override bool IsTypePassedByValueOrImmutable(ITypeSymbol type)
-        {
-            if (base.IsTypePassedByValueOrImmutable(type))
-            {
-                return true;
-            }
-
-            var typeName = type.ContainingNamespace?.ToString() + "." + type.Name;
-            if (typeName.Equals(typeof(Microsoft.PSharp.MachineId).FullName))
-            {
-                return true;
-            }
-
-            return false;
+            return new PSharpAnalysisContext(project);
         }
 
         #endregion
@@ -86,13 +60,10 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="configuration">Configuration</param>
         /// <param name="project">Project</param>
-        private PSharpAnalysisContext(Configuration configuration, Project project)
+        private PSharpAnalysisContext(Project project)
             : base(project)
         {
-            this.Configuration = configuration;
-
             this.Machines = new HashSet<StateMachine>();
             this.StateTransitionGraphs = new Dictionary<StateMachine, StateTransitionGraphNode>();
         }

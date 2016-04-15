@@ -39,7 +39,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         internal override void Run()
         {
             // Starts profiling the ownership analysis.
-            if (this.AnalysisContext.Configuration.TimeStaticAnalysis)
+            if (base.Configuration.TimeStaticAnalysis)
             {
                 base.Profiler.StartMeasuringExecutionTime();
             }
@@ -50,7 +50,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             // Stops profiling the ownership analysis.
-            if (this.AnalysisContext.Configuration.TimeStaticAnalysis)
+            if (base.Configuration.TimeStaticAnalysis)
             {
                 base.Profiler.StopMeasuringExecutionTime();
                 this.PrintProfilingResults();
@@ -65,8 +65,9 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Constructor.
         /// </summary>
         /// <param name="context">AnalysisContext</param>
-        protected OwnershipAnalysisPass(PSharpAnalysisContext context)
-            : base(context)
+        /// <param name="configuration">Configuration</param>
+        protected OwnershipAnalysisPass(PSharpAnalysisContext context, Configuration configuration)
+            : base(context, configuration)
         {
 
         }

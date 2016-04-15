@@ -29,6 +29,11 @@ namespace Microsoft.PSharp.StaticAnalysis
         protected PSharpAnalysisContext AnalysisContext;
 
         /// <summary>
+        /// Configuration.
+        /// </summary>
+        protected Configuration Configuration;
+
+        /// <summary>
         /// The analysis pass profiler.
         /// </summary>
         protected Profiler Profiler;
@@ -50,10 +55,12 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Constructor.
         /// </summary>
         /// <param name="context">AnalysisContext</param>
-        protected AnalysisPass(PSharpAnalysisContext context)
+        /// <param name="configuration">Configuration</param>
+        protected AnalysisPass(PSharpAnalysisContext context, Configuration configuration)
         {
             this.Profiler = new Profiler();
             this.AnalysisContext = context;
+            this.Configuration = configuration;
         }
 
         #endregion

@@ -122,31 +122,32 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             // Create a state-machine static analysis context.
-            var context = PSharpAnalysisContext.Create(this.CompilationContext.Configuration, project);
+            var context = PSharpAnalysisContext.Create(project);
+            this.RegisterImmutableTypes(context);
             this.RegisterGivesUpOwnershipOperations(context);
 
             // Creates and runs an analysis pass that computes the
             // summaries for every P# machine.
-            MachineSummarizationPass.Create(context).Run();
+            MachineSummarizationPass.Create(context, this.CompilationContext.Configuration).Run();
 
             // Creates and runs an analysis pass that finds if a machine exposes
             // any fields or methods to other machines.
-            DirectAccessAnalysisPass.Create(context).Run();
+            DirectAccessAnalysisPass.Create(context, this.CompilationContext.Configuration).Run();
             
             // Creates and runs an analysis pass that constructs the
             // state transition graph for each machine.
             if (this.CompilationContext.Configuration.DoStateTransitionAnalysis)
             {
-                StateTransitionAnalysisPass.Create(context).Run();
+                StateTransitionAnalysisPass.Create(context, this.CompilationContext.Configuration).Run();
             }
 
             // Creates and runs an analysis pass that detects if any method
             // in each machine is erroneously giving up ownership.
-            GivesUpOwnershipAnalysisPass.Create(context).Run();
+            GivesUpOwnershipAnalysisPass.Create(context, this.CompilationContext.Configuration).Run();
 
             // Creates and runs an analysis pass that detects if all methods
             // in each machine respect given up ownerships.
-            RespectsOwnershipAnalysisPass.Create(context).Run();
+            RespectsOwnershipAnalysisPass.Create(context, this.CompilationContext.Configuration).Run();
 
             // Stops profiling the analysis.
             if (this.CompilationContext.Configuration.TimeStaticAnalysis)
@@ -155,6 +156,15 @@ namespace Microsoft.PSharp.StaticAnalysis
                 IO.PrintLine("... Total static analysis runtime: '" +
                     this.Profiler.Results() + "' seconds.");
             }
+        }
+
+        /// <summary>
+        /// Registers immutable types.
+        /// </summary>
+        /// <param name="context">PSharpAnalysisContext</param>
+        private void RegisterImmutableTypes(PSharpAnalysisContext context)
+        {
+            context.RegisterImmutableType(typeof(Microsoft.PSharp.MachineId));
         }
 
         /// <summary>

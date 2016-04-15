@@ -196,20 +196,6 @@ namespace Microsoft.PSharp.StaticAnalysis
         {
             var summary = MethodSummary.Create(this.AnalysisContext, method);
             this.MethodSummaries.Add(method, summary);
-
-            if (this.AnalysisContext.Configuration.ShowControlFlowInformation)
-            {
-                summary.PrintControlFlowGraph();
-            }
-
-            if (this.AnalysisContext.Configuration.ShowFullDataFlowInformation)
-            {
-                summary.PrintDataFlowInformation(true);
-            }
-            else if (this.AnalysisContext.Configuration.ShowDataFlowInformation)
-            {
-                summary.PrintDataFlowInformation();
-            }
         }
 
         /// <summary>

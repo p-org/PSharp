@@ -36,10 +36,12 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Creates a new machine summarization pass.
         /// </summary>
         /// <param name="context">AnalysisContext</param>
+        /// <param name="configuration">Configuration</param>
         /// <returns>MachineSummarizationPass</returns>
-        internal static MachineSummarizationPass Create(PSharpAnalysisContext context)
+        internal static MachineSummarizationPass Create(PSharpAnalysisContext context,
+            Configuration configuration)
         {
-            return new MachineSummarizationPass(context);
+            return new MachineSummarizationPass(context, configuration);
         }
 
         /// <summary>
@@ -48,7 +50,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         internal override void Run()
         {
             // Starts profiling the summarization.
-            if (this.AnalysisContext.Configuration.TimeStaticAnalysis)
+            if (base.Configuration.TimeStaticAnalysis)
             {
                 this.Profiler.StartMeasuringExecutionTime();
             }
@@ -57,11 +59,13 @@ namespace Microsoft.PSharp.StaticAnalysis
             this.ComputeStateMachineInheritanceInformation();
 
             // Stops profiling the summarization.
-            if (this.AnalysisContext.Configuration.TimeStaticAnalysis)
+            if (base.Configuration.TimeStaticAnalysis)
             {
                 this.Profiler.StopMeasuringExecutionTime();
                 this.PrintProfilingResults();
             }
+
+            this.PrintSummarizationInformation();
         }
 
         #endregion
@@ -72,8 +76,9 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Constructor.
         /// </summary>
         /// <param name="context">AnalysisContext</param>
-        private MachineSummarizationPass(PSharpAnalysisContext context)
-            : base(context)
+        /// <param name="configuration">Configuration</param>
+        private MachineSummarizationPass(PSharpAnalysisContext context, Configuration configuration)
+            : base(context, configuration)
         {
 
         }
@@ -116,6 +121,32 @@ namespace Microsoft.PSharp.StaticAnalysis
             foreach (var machine in base.AnalysisContext.Machines)
             {
                 machine.ComputeInheritanceInformation();
+            }
+        }
+
+        /// <summary>
+        /// Prints summarization information.
+        /// </summary>
+        private void PrintSummarizationInformation()
+        {
+            foreach (var machine in base.AnalysisContext.Machines)
+            {
+                foreach (var summary in machine.MethodSummaries.Values)
+                {
+                    if (base.Configuration.ShowControlFlowInformation)
+                    {
+                        summary.PrintControlFlowGraph();
+                    }
+
+                    if (base.Configuration.ShowFullDataFlowInformation)
+                    {
+                        summary.PrintDataFlowInformation(true);
+                    }
+                    else if (base.Configuration.ShowDataFlowInformation)
+                    {
+                        summary.PrintDataFlowInformation();
+                    }
+                }
             }
         }
 

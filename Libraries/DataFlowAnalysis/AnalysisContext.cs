@@ -38,10 +38,15 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         public readonly Compilation Compilation;
 
         /// <summary>
+        /// Set of registered immutable types.
+        /// </summary>
+        private ISet<Type> RegisteredImmutableTypes;
+
+        /// <summary>
         /// Dictionary containing information about
         /// gives-up ownership methods.
         /// </summary>
-        internal Dictionary<string, HashSet<int>> GivesUpOwnershipMethods;
+        internal IDictionary<string, ISet<int>> GivesUpOwnershipMethods;
 
         #endregion
 
@@ -55,6 +60,15 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         public static AnalysisContext Create(Project project)
         {
             return new AnalysisContext(project);
+        }
+
+        /// <summary>
+        /// Registers the specified immutable type.
+        /// </summary>
+        /// <param name="type"></param>
+        public void RegisterImmutableType(Type type)
+        {
+            this.RegisteredImmutableTypes.Add(type);
         }
 
         /// <summary>
@@ -150,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// </summary>
         /// <param name="type">Type</param>
         /// <returns>Boolean</returns>
-        public virtual bool IsTypePassedByValueOrImmutable(ITypeSymbol type)
+        public bool IsTypePassedByValueOrImmutable(ITypeSymbol type)
         {
             if (type.TypeKind == TypeKind.Array)
             {
@@ -176,6 +190,11 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
                 typeName.Equals(typeof(short).FullName) ||
                 typeName.Equals(typeof(ushort).FullName) ||
                 typeName.Equals(typeof(string).FullName))
+            {
+                return true;
+            }
+            
+            if (this.RegisteredImmutableTypes.Any(t => t.FullName.Equals(typeName)))
             {
                 return true;
             }
@@ -336,7 +355,8 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         {
             this.Solution = project.Solution;
             this.Compilation = project.GetCompilationAsync().Result;
-            this.GivesUpOwnershipMethods = new Dictionary<string, HashSet<int>>();
+            this.RegisteredImmutableTypes = new HashSet<Type>();
+            this.GivesUpOwnershipMethods = new Dictionary<string, ISet<int>>();
         }
 
         #endregion
