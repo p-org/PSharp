@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -46,6 +47,11 @@ namespace Microsoft.PSharp.StaticAnalysis
         internal ClassDeclarationSyntax Declaration;
 
         /// <summary>
+        /// Set of base machines.
+        /// </summary>
+        internal ISet<StateMachine> BaseMachines;
+
+        /// <summary>
         /// Set of states in the machine.
         /// </summary>
         internal ISet<MachineState> MachineStates;
@@ -69,10 +75,13 @@ namespace Microsoft.PSharp.StaticAnalysis
             this.AnalysisContext = context;
             this.Name = this.AnalysisContext.GetFullClassName(classDecl);
             this.Declaration = classDecl;
+            this.BaseMachines = new HashSet<StateMachine>();
             this.MachineStates = new HashSet<MachineState>();
             this.MethodSummaries = new Dictionary<BaseMethodDeclarationSyntax, MethodSummary>();
+
             this.FindAllStates();
             this.AnalyzeAllStates();
+            this.Summarize();
         }
 
         #endregion
@@ -80,19 +89,28 @@ namespace Microsoft.PSharp.StaticAnalysis
         #region internal methods
 
         /// <summary>
-        /// Summarizes the state-machine.
+        /// Computes the inheritance information of the state-machine.
         /// </summary>
-        internal void Summarize()
+        internal void ComputeInheritanceInformation()
         {
-            foreach (var method in this.GetMethodDeclarations())
+            IList<INamedTypeSymbol> baseTypes = this.AnalysisContext.GetBaseTypes(this.Declaration);
+            foreach (var type in baseTypes)
             {
-                if (method.Body == null ||
-                    this.MethodSummaries.ContainsKey(method))
+                if (type.ToString().Equals(typeof(Machine).FullName))
                 {
-                    continue;
+                    break;
                 }
 
-                this.SummarizeMethod(method);
+                var availableMachines = new List<StateMachine>(this.AnalysisContext.Machines);
+                availableMachines.AddRange(this.AnalysisContext.AbstractMachines);
+                var inheritedMachine = availableMachines.FirstOrDefault(m
+                    => this.AnalysisContext.GetFullClassName(m.Declaration).Equals(type.ToString()));
+                if (inheritedMachine == null)
+                {
+                    break;
+                }
+
+                this.BaseMachines.Add(inheritedMachine);
             }
         }
 
@@ -140,6 +158,23 @@ namespace Microsoft.PSharp.StaticAnalysis
             foreach (var state in this.MachineStates)
             {
                 state.Analyze();
+            }
+        }
+
+        /// <summary>
+        /// Summarizes the state-machine.
+        /// </summary>
+        private void Summarize()
+        {
+            foreach (var method in this.GetMethodDeclarations())
+            {
+                if (method.Body == null ||
+                    this.MethodSummaries.ContainsKey(method))
+                {
+                    continue;
+                }
+
+                this.SummarizeMethod(method);
             }
         }
 

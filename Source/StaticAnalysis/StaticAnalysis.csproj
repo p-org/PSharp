@@ -93,7 +93,7 @@
     <Compile Include="Tracing\TraceInfo.cs" />
     <Compile Include="Analyses\AnalysisPass.cs" />
     <Compile Include="StaticAnalysisEngine.cs" />
-    <Compile Include="Summarization\SummarizationPass.cs" />
+    <Compile Include="Summarization\MachineSummarizationPass.cs" />
     <Compile Include="OwnershipAnalysis\RespectsOwnershipAnalysisPass.cs" />
     <Compile Include="Analyses\DirectAccessAnalysisPass.cs" />
     <Compile Include="Analyses\StateTransitionAnalysisPass.cs" />

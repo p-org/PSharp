@@ -376,23 +376,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             return result;
         }
 
-        /// <summary>
-        /// Returns true if the syntax tree belongs to the P# program.
-        /// Else returns false.
-        /// </summary>
-        /// <param name="tree">SyntaxTree</param>
-        /// <returns>Boolean</returns>
-        protected bool IsProgramSyntaxTree(SyntaxTree tree)
-        {
-            if (tree.FilePath.Contains("\\AssemblyInfo.cs") ||
-                    tree.FilePath.Contains(".NETFramework,"))
-            {
-                return false;
-            }
-
-            return true;
-        }
-
         #endregion
     }
 }

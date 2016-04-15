@@ -12,17 +12,11 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.FindSymbols;
 
-using Microsoft.PSharp.LanguageServices;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.StaticAnalysis
@@ -53,11 +47,6 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// Dictionary of state transition graphs in the project.
         /// </summary>
         internal Dictionary<StateMachine, StateTransitionGraphNode> StateTransitionGraphs;
-
-        /// <summary>
-        /// Dictionary containing machine inheritance information.
-        /// </summary>
-        internal Dictionary<StateMachine, HashSet<StateMachine>> MachineInheritanceMap;
 
         #endregion
 
@@ -112,88 +101,6 @@ namespace Microsoft.PSharp.StaticAnalysis
             this.Machines = new HashSet<StateMachine>();
             this.AbstractMachines = new HashSet<StateMachine>();
             this.StateTransitionGraphs = new Dictionary<StateMachine, StateTransitionGraphNode>();
-            this.MachineInheritanceMap = new Dictionary<StateMachine, HashSet<StateMachine>>();
-
-            this.FindAllStateMachines();
-            this.FindStateMachineInheritanceInformation();
-        }
-
-        #endregion
-
-        #region private methods
-
-        /// <summary>
-        /// Finds all state-machines in the project.
-        /// </summary>
-        private void FindAllStateMachines()
-        {
-            // Iterate the syntax trees for each project file.
-            foreach (var tree in base.Compilation.SyntaxTrees)
-            {
-                if (!base.IsProgramSyntaxTree(tree))
-                {
-                    continue;
-                }
-                
-                // Get the tree's semantic model.
-                var model = base.Compilation.GetSemanticModel(tree);
-
-                // Get the tree's root node compilation unit.
-                var root = (CompilationUnitSyntax)tree.GetRoot();
-
-                // Iterate the class declerations only if they are machines.
-                foreach (var classDecl in root.DescendantNodes().OfType<ClassDeclarationSyntax>())
-                {
-                    if (Querying.IsMachine(base.Compilation, classDecl))
-                    {
-                        if (classDecl.Modifiers.Any(SyntaxKind.AbstractKeyword))
-                        {
-                            this.AbstractMachines.Add(new StateMachine(classDecl, this));
-                        }
-                        else
-                        {
-                            this.Machines.Add(new StateMachine(classDecl, this));
-                        }
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Finds state-machine inheritance information for all
-        /// state-machines in the project.
-        /// </summary>
-        private void FindStateMachineInheritanceInformation()
-        {
-            foreach (var machine in this.Machines)
-            {
-                var inheritedMachines = new HashSet<StateMachine>();
-
-                IList<INamedTypeSymbol> baseTypes = base.GetBaseTypes(machine.Declaration);
-                foreach (var type in baseTypes)
-                {
-                    if (type.ToString().Equals(typeof(Machine).FullName))
-                    {
-                        break;
-                    }
-
-                    var availableMachines = new List<StateMachine>(this.Machines);
-                    availableMachines.AddRange(this.AbstractMachines);
-                    var inheritedMachine = availableMachines.FirstOrDefault(m
-                        => base.GetFullClassName(m.Declaration).Equals(type.ToString()));
-                    if (inheritedMachine == null)
-                    {
-                        break;
-                    }
-
-                    inheritedMachines.Add(inheritedMachine);
-                }
-
-                if (inheritedMachines.Count > 0)
-                {
-                    this.MachineInheritanceMap.Add(machine, inheritedMachines);
-                }
-            }
         }
 
         #endregion
