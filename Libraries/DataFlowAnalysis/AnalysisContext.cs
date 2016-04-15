@@ -38,11 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         public readonly Compilation Compilation;
 
         /// <summary>
-        /// Dictionary of method summaries in the project.
-        /// </summary>
-        public Dictionary<BaseMethodDeclarationSyntax, MethodSummary> Summaries;
-
-        /// <summary>
         /// Dictionary containing information about
         /// gives-up ownership methods.
         /// </summary>
@@ -60,49 +55,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         public static AnalysisContext Create(Project project)
         {
             return new AnalysisContext(project);
-        }
-
-        /// <summary>
-        /// Caches the given summary.
-        /// </summary>
-        /// <param name="methodSummary">MethodSummary</param>
-        public void CacheSummary(MethodSummary methodSummary)
-        {
-            this.Summaries.Add(methodSummary.Method, methodSummary);
-        }
-
-        /// <summary>
-        /// Tries to get the method summary of the given method declaration.
-        /// Returns null if such summary cannot be found.
-        /// </summary>
-        /// <param name="method">MethodDeclarationSyntax</param>
-        /// <returns>MethodSummary</returns>
-        public MethodSummary TryGetCachedSummary(MethodDeclarationSyntax method)
-        {
-            MethodSummary methodSummary;
-            if (!this.Summaries.TryGetValue(method, out methodSummary))
-            {
-                return null;
-            }
-
-            return methodSummary;
-        }
-
-        /// <summary>
-        /// Tries to get the method summary of the given object creation. Returns
-        /// null if such summary cannot be found.
-        /// </summary>
-        /// <param name="constructor">ConstructorDeclarationSyntax</param>
-        /// <returns>MethodSummary</returns>
-        public MethodSummary TryGetCachedSummary(ConstructorDeclarationSyntax constructor)
-        {
-            MethodSummary methodSummary;
-            if (this.Summaries.TryGetValue(constructor, out methodSummary))
-            {
-                return null;
-            }
-
-            return methodSummary;
         }
 
         /// <summary>
@@ -384,7 +336,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         {
             this.Solution = project.Solution;
             this.Compilation = project.GetCompilationAsync().Result;
-            this.Summaries = new Dictionary<BaseMethodDeclarationSyntax, MethodSummary>();
             this.GivesUpOwnershipMethods = new Dictionary<string, HashSet<int>>();
         }
 

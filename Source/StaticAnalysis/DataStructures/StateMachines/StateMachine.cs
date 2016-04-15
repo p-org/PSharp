@@ -87,7 +87,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             foreach (var method in this.GetMethodDeclarations())
             {
                 if (method.Body == null ||
-                    this.AnalysisContext.Summaries.ContainsKey(method))
+                    this.MethodSummaries.ContainsKey(method))
                 {
                     continue;
                 }
@@ -150,7 +150,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         private void SummarizeMethod(MethodDeclarationSyntax method)
         {
             var summary = MethodSummary.Create(this.AnalysisContext, method);
-            this.AnalysisContext.CacheSummary(summary);
+            this.MethodSummaries.Add(method, summary);
 
             if (this.AnalysisContext.Configuration.ShowControlFlowInformation)
             {

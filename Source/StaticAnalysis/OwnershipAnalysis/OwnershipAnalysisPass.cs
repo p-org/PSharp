@@ -269,31 +269,27 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             foreach (var machineToAnalyze in machinesToAnalyze)
             {
-                foreach (var method in machineToAnalyze.Declaration.ChildNodes().OfType<MethodDeclarationSyntax>())
+                foreach (var summary in machineToAnalyze.MethodSummaries)
                 {
-                    if (method.Body != null)
-                    {
-                        this.AnalyzeMethod(method, machineToAnalyze, null, machine);
-                    }
+                    this.AnalyzeMethodSummary(summary.Value, machineToAnalyze, null, machine);
                 }
             }
         }
 
         /// <summary>
-        /// Analyzes the method to check if it respects
+        /// Analyzes the method summary to check if it respects
         /// the given-up ownerships.
         /// </summary>
         /// <param name="method">Method</param>
         /// <param name="machine">Machine</param>
         /// <param name="state">MachineState</param>
         /// <param name="originalMachine">Original machine</param>
-        private void AnalyzeMethod(MethodDeclarationSyntax method, StateMachine machine,
+        private void AnalyzeMethodSummary(MethodSummary summary, StateMachine machine,
             MachineState state, StateMachine originalMachine)
         {
-            var summary = this.AnalysisContext.TryGetCachedSummary(method);
             foreach (var givenUpSymbol in summary.GetSymbolsWithGivenUpOwnership())
             {
-                TraceInfo trace = new TraceInfo(method, machine, state, givenUpSymbol.ContainingSymbol);
+                TraceInfo trace = new TraceInfo(summary.Method, machine, state, givenUpSymbol.ContainingSymbol);
                 trace.AddErrorTrace(givenUpSymbol.Statement.SyntaxNode);
                 
                 var model = this.AnalysisContext.Compilation.GetSemanticModel(
