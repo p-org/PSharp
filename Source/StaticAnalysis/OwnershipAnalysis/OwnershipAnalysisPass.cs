@@ -343,7 +343,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="input">Input</param>
         /// <param name="isFirstVisit">True if first node to visit</param>
         /// <returns>Boolean</returns>
-        protected bool IsFieldAccessedBeforeBeingReset(StateTransitionGraphNode node,
+        private bool IsFieldAccessedBeforeBeingReset(StateTransitionGraphNode node,
             object input, bool isFirstVisit)
         {
             var summary = ((Tuple<MethodSummary, ISymbol>)input).Item1;

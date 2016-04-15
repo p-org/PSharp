@@ -50,9 +50,19 @@ namespace Microsoft.PSharp.StaticAnalysis
         internal ClassDeclarationSyntax Declaration;
 
         /// <summary>
+        /// List of state-transitions in the state.
+        /// </summary>
+        internal List<StateTransition> StateTransitions;
+
+        /// <summary>
         /// List of actions in the state.
         /// </summary>
         internal List<MachineAction> MachineActions;
+
+        /// <summary>
+        /// True if this is the start state.
+        /// </summary>
+        internal bool IsStart;
 
         #endregion
 
@@ -71,13 +81,44 @@ namespace Microsoft.PSharp.StaticAnalysis
             this.Machine = machine;
             this.Name = this.AnalysisContext.GetFullClassName(classDecl);
             this.Declaration = classDecl;
+            this.StateTransitions = new List<StateTransition>();
             this.MachineActions = new List<MachineAction>();
+            this.IsStart = this.IsStartState();
+        }
+
+        /// <summary>
+        /// Analyzes the state.
+        /// </summary>
+        internal void Analyze()
+        {
             this.FindAllActions();
+            this.FindAllTransitions();
         }
 
         #endregion
 
         #region private methods
+
+        /// <summary>
+        /// Checks if this is the start state.
+        /// </summary>
+        /// <returns>Boolean</returns>
+        private bool IsStartState()
+        {
+            var model = this.AnalysisContext.Compilation.GetSemanticModel(this.Machine.Declaration.SyntaxTree);
+
+            var attributes = this.Declaration.AttributeLists.SelectMany(var => var.Attributes);
+            foreach (var attribute in attributes)
+            {
+                var type = model.GetTypeInfo(attribute.Name).Type;
+                if (type.ToString().Equals(typeof(Microsoft.PSharp.Start).FullName))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         /// <summary>
         /// Finds all state-machine actions for each state-machine in the project.
@@ -94,7 +135,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     attribute.ArgumentList.Arguments.Count == 1)
                 {
                     var arg = attribute.ArgumentList.Arguments[0];
-                    var action = this.GetActionFromAttributeArgument(arg);
+                    var action = this.GetActionFromExpression(arg.Expression);
                     if (action == null)
                     {
                         continue;
@@ -106,7 +147,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     attribute.ArgumentList.Arguments.Count == 1)
                 {
                     var arg = attribute.ArgumentList.Arguments[0];
-                    var action = this.GetActionFromAttributeArgument(arg);
+                    var action = this.GetActionFromExpression(arg.Expression);
                     if (action == null)
                     {
                         continue;
@@ -118,7 +159,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     attribute.ArgumentList.Arguments.Count == 2)
                 {
                     var arg = attribute.ArgumentList.Arguments[1];
-                    var action = this.GetActionFromAttributeArgument(arg);
+                    var action = this.GetActionFromExpression(arg.Expression);
                     if (action == null)
                     {
                         continue;
@@ -130,7 +171,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     attribute.ArgumentList.Arguments.Count == 3)
                 {
                     var arg = attribute.ArgumentList.Arguments[2];
-                    var action = this.GetActionFromAttributeArgument(arg);
+                    var action = this.GetActionFromExpression(arg.Expression);
                     if (action == null)
                     {
                         continue;
@@ -142,7 +183,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     attribute.ArgumentList.Arguments.Count == 3)
                 {
                     var arg = attribute.ArgumentList.Arguments[2];
-                    var action = this.GetActionFromAttributeArgument(arg);
+                    var action = this.GetActionFromExpression(arg.Expression);
                     if (action == null)
                     {
                         continue;
@@ -154,18 +195,78 @@ namespace Microsoft.PSharp.StaticAnalysis
         }
 
         /// <summary>
-        /// Returns the action from the given attribute argument.
+        /// Finds all state-transitions for each state-machine in the project.
         /// </summary>
-        /// <param name="attribute">AttributeArgumentSyntax</param>
+        private void FindAllTransitions()
+        {
+            var model = this.AnalysisContext.Compilation.GetSemanticModel(this.Machine.Declaration.SyntaxTree);
+
+            var attributes = this.Declaration.AttributeLists.SelectMany(var => var.Attributes);
+            foreach (var attribute in attributes)
+            {
+                var type = model.GetTypeInfo(attribute.Name).Type;
+                if (type.ToString().Equals(typeof(Microsoft.PSharp.OnEventGotoState).FullName) &&
+                    attribute.ArgumentList.Arguments.Count == 2)
+                {
+                    var arg = attribute.ArgumentList.Arguments[1];
+                    var state = this.GetStateFromExpression(arg.Expression, model);
+                    if (state == null)
+                    {
+                        continue;
+                    }
+
+                    this.StateTransitions.Add(new StateTransition(state, this, this.AnalysisContext));
+                }
+                else if (type.ToString().Equals(typeof(Microsoft.PSharp.OnEventPushState).FullName) &&
+                    attribute.ArgumentList.Arguments.Count == 2)
+                {
+                    var arg = attribute.ArgumentList.Arguments[1];
+                    var state = this.GetStateFromExpression(arg.Expression, model);
+                    if (state == null)
+                    {
+                        continue;
+                    }
+
+                    this.StateTransitions.Add(new StateTransition(state, this, this.AnalysisContext));
+                }
+            }
+
+            foreach (var action in this.MachineActions)
+            {
+                var invocations = action.MethodDeclaration.Body.DescendantNodesAndSelf(val => true).
+                    OfType<InvocationExpressionSyntax>();
+                foreach (var invocation in invocations)
+                {
+                    var callSymbol = model.GetSymbolInfo(invocation).Symbol;
+                    if (callSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.Machine") &&
+                        callSymbol.Name.Equals("Goto"))
+                    {
+                        var arg = invocation.ArgumentList.Arguments[0];
+                        var state = this.GetStateFromExpression(arg.Expression, model);
+                        if (state == null)
+                        {
+                            continue;
+                        }
+
+                        this.StateTransitions.Add(new StateTransition(state, this, this.AnalysisContext));
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns the action from the given expression.
+        /// </summary>
+        /// <param name="expr">ExpressionSyntax</param>
         /// <returns>MethodDeclarationSyntax</returns>
-        private MethodDeclarationSyntax GetActionFromAttributeArgument(AttributeArgumentSyntax arg)
+        private MethodDeclarationSyntax GetActionFromExpression(ExpressionSyntax expr)
         {
             MethodDeclarationSyntax action = null;
 
             string actionName = "";
-            if (arg.Expression is InvocationExpressionSyntax)
+            if (expr is InvocationExpressionSyntax)
             {
-                var invocation = arg.Expression as InvocationExpressionSyntax;
+                var invocation = expr as InvocationExpressionSyntax;
                 if (!(invocation.Expression is IdentifierNameSyntax) ||
                     !(invocation.Expression as IdentifierNameSyntax).Identifier.ValueText.Equals("nameof") ||
                     invocation.ArgumentList.Arguments.Count != 1)
@@ -177,9 +278,9 @@ namespace Microsoft.PSharp.StaticAnalysis
                 var identifier = this.AnalysisContext.GetIdentifier(param.Expression);
                 actionName = identifier.Identifier.ValueText;
             }
-            else if (arg.Expression is LiteralExpressionSyntax)
+            else if (expr is LiteralExpressionSyntax)
             {
-                var literal = arg.Expression as LiteralExpressionSyntax;
+                var literal = expr as LiteralExpressionSyntax;
                 actionName = literal.ToString();
             }
 
@@ -187,6 +288,25 @@ namespace Microsoft.PSharp.StaticAnalysis
                 Where(m => m.Identifier.ValueText.Equals(actionName)).FirstOrDefault();
 
             return action;
+        }
+
+        /// <summary>
+        /// Returns the state from the given expression.
+        /// </summary>
+        /// <param name="expr">ExpressionSyntax</param>
+        /// <param name="model">SemanticModel</param>
+        /// <returns>MachineState</returns>
+        private MachineState GetStateFromExpression(ExpressionSyntax expr, SemanticModel model)
+        {
+            MachineState state = null;
+
+            if (expr is TypeOfExpressionSyntax)
+            {
+                var type = model.GetTypeInfo((expr as TypeOfExpressionSyntax).Type).Type;
+                state = this.Machine.MachineStates.FirstOrDefault(val => val.Name.Equals(type.ToString()));
+            }
+
+            return state;
         }
 
         #endregion
