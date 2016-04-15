@@ -174,7 +174,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     var type = model.GetTypeInfo(assignment.Right).Type;
                     if (leftSymbol != null && leftSymbol.Kind == SymbolKind.Field &&
-                        base.IsFieldAccessedBeforeBeingReset(leftSymbol, statement.Summary, machine) &&
+                        base.IsFieldAccessedInSuccessor(leftSymbol as IFieldSymbol, statement.Summary, machine) &&
                         !base.AnalysisContext.IsTypePassedByValueOrImmutable(type))
                     {
                         TraceInfo newTrace = new TraceInfo();
@@ -280,7 +280,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                             v => v.Value.Contains(idx)).Select(v => v.Key);
                         foreach (var fieldSymbol in fieldSymbols)
                         {
-                            if (base.IsFieldAccessedBeforeBeingReset(fieldSymbol, statement.Summary, machine))
+                            if (base.IsFieldAccessedInSuccessor(fieldSymbol, statement.Summary, machine))
                             {
                                 AnalysisErrorReporter.ReportGivenUpOwnershipFieldAssignment(trace, fieldSymbol);
                             }

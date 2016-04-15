@@ -196,7 +196,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     givenUpSymbol.ContainingSymbol, statement, givenUpSymbol.Statement))
                 {
                     if (calleeSummary.SideEffectsInfo.FieldFlowParamIndexes.Any(v => v.Value.Contains(idx) &&
-                        base.IsFieldAccessedBeforeBeingReset(v.Key, statement.Summary, machine)))
+                        base.IsFieldAccessedInSuccessor(v.Key, statement.Summary, machine)))
                     {
                         AnalysisErrorReporter.ReportGivenUpFieldOwnershipError(trace, argSymbol);
                     }
@@ -220,7 +220,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         {
             if (givenUpSymbol.Statement.Equals(statement) &&
                 givenUpSymbol.ContainingSymbol.Kind == SymbolKind.Field &&
-                base.IsFieldAccessedBeforeBeingReset(givenUpSymbol.ContainingSymbol, statement.Summary, machine))
+                base.IsFieldAccessedInSuccessor(givenUpSymbol.ContainingSymbol as IFieldSymbol, statement.Summary, machine))
             {
                 AnalysisErrorReporter.ReportGivenUpFieldOwnershipError(trace, givenUpSymbol.ContainingSymbol);
             }
@@ -297,7 +297,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             if (symbol.Kind == SymbolKind.Field &&
-                base.IsFieldAccessedBeforeBeingReset(symbol, statement.Summary, machine))
+                base.IsFieldAccessedInSuccessor(symbol as IFieldSymbol, statement.Summary, machine))
             {
                 TraceInfo newTrace = new TraceInfo();
                 newTrace.Merge(trace);

@@ -283,100 +283,32 @@ namespace Microsoft.PSharp.StaticAnalysis
 
         /// <summary>
         /// Returns true if the field symbol is being accessed
-        /// before being reset.
+        /// in a successor summary.
         /// </summary>
-        /// <param name="field">Field</param>
+        /// <param name="fieldSymbol">IFieldSymbol</param>
         /// <param name="summary">MethodSummary</param>
         /// <param name="machine">StateMachine</param>
         /// <returns>Boolean</returns>
-        protected bool IsFieldAccessedBeforeBeingReset(ISymbol field, MethodSummary summary,
+        protected bool IsFieldAccessedInSuccessor(IFieldSymbol fieldSymbol, MethodSummary summary,
             StateMachine machine)
         {
-            machine.GetSuccessorSummaries(summary);
+            if (!base.Configuration.DoStateTransitionAnalysis)
+            {
+                return true;
+            }
 
-            return true;
-            //StateTransitionGraphNode stateTransitionNode = null;
-            //if (!this.AnalysisContext.StateTransitionGraphs.ContainsKey((summary).Machine))
-            //{
-            //    return true;
-            //}
+            var successors = machine.GetSuccessorSummaries(summary);
 
-            //stateTransitionNode = this.AnalysisContext.StateTransitionGraphs[(summary).Machine].
-            //    GetGraphNodeForSummary(summary);
-            //if (stateTransitionNode == null)
-            //{
-            //    return true;
-            //}
-
-            //var result = stateTransitionNode.VisitSelfAndSuccessors(
-            //    this.IsFieldAccessedBeforeBeingReset, new Tuple<MethodSummary, ISymbol>(summary, field));
-
-            //return false;
+            foreach (var successor in successors)
+            {
+                if (successor.SideEffectsInfo.FieldAccesses.ContainsKey(fieldSymbol))
+                {
+                    return true;
+                }
+            }
+            
+            return false;
         }
-
-        /// <summary>
-        /// Query checking if the field is accessed before being reset
-        /// in the state transition node.
-        /// </summary>
-        /// <param name="node">StateTransitionGraphNode</param>
-        /// <param name="input">Input</param>
-        /// <param name="isFirstVisit">True if first node to visit</param>
-        /// <returns>Boolean</returns>
-        //private bool IsFieldAccessedBeforeBeingReset(StateTransitionGraphNode node,
-        //    object input, bool isFirstVisit)
-        //{
-        //    var summary = ((Tuple<MethodSummary, ISymbol>)input).Item1;
-        //    var fieldSymbol = ((Tuple<MethodSummary, ISymbol>)input).Item2;
-        //    var result = false;
-
-        //    if (isFirstVisit && node.OnExit != null && !summary.Equals(node.OnExit))
-        //    {
-        //        foreach (var action in node.Actions)
-        //        {
-        //            result = action.SideEffectsInfo.FieldAccesses.ContainsKey(
-        //                fieldSymbol as IFieldSymbol);
-        //            if (result)
-        //            {
-        //                break;
-        //            }
-        //        }
-
-        //        if (!result && node.OnExit != null)
-        //        {
-        //            result = node.OnExit.SideEffectsInfo.FieldAccesses.ContainsKey(
-        //                fieldSymbol as IFieldSymbol);
-        //        }
-        //    }
-        //    else if (!isFirstVisit)
-        //    {
-        //        if (node.OnEntry != null)
-        //        {
-        //            result = node.OnEntry.SideEffectsInfo.FieldAccesses.ContainsKey(
-        //                fieldSymbol as IFieldSymbol);
-        //        }
-
-        //        if (!result)
-        //        {
-        //            foreach (var action in node.Actions)
-        //            {
-        //                result = action.SideEffectsInfo.FieldAccesses.ContainsKey(
-        //                    fieldSymbol as IFieldSymbol);
-        //                if (result)
-        //                {
-        //                    break;
-        //                }
-        //            }
-        //        }
-
-        //        if (!result && node.OnExit != null)
-        //        {
-        //            result = node.OnExit.SideEffectsInfo.FieldAccesses.ContainsKey(
-        //                fieldSymbol as IFieldSymbol);
-        //        }
-        //    }
-
-        //    return result;
-        //}
 
         /// <summary>
         /// Extracts arguments from the list of arguments.

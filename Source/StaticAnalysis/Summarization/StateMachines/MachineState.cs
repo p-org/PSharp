@@ -87,6 +87,10 @@ namespace Microsoft.PSharp.StaticAnalysis
             this.IsStart = this.IsStartState();
         }
 
+        #endregion
+
+        #region internal methods
+
         /// <summary>
         /// Analyzes the state.
         /// </summary>
@@ -94,6 +98,32 @@ namespace Microsoft.PSharp.StaticAnalysis
         {
             this.FindAllActions();
             this.FindAllTransitions();
+        }
+
+        /// <summary>
+        /// Returns the successor states.
+        /// </summary>
+        /// <returns>MachineStates</returns>
+        internal HashSet<MachineState> GetSuccessorStates()
+        {
+            var successors = new HashSet<MachineState>();
+
+            var queue = new Queue<MachineState>();
+            queue.Enqueue(this);
+
+            while (queue.Count > 0)
+            {
+                var state = queue.Dequeue();
+
+                foreach (var transition in state.StateTransitions.Where(
+                    val => !successors.Contains(val.TargetState)))
+                {
+                    successors.Add(transition.TargetState);
+                    queue.Enqueue(transition.TargetState);
+                }
+            }
+
+            return successors;
         }
 
         #endregion

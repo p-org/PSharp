@@ -106,16 +106,44 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <returns>MethodSummarys</returns>
         internal ISet<MethodSummary> GetSuccessorSummaries(MethodSummary summary)
         {
-            Console.WriteLine("get successors of: " + summary.Method);
             var summaries = new HashSet<MethodSummary>();
+            var fromStates = new HashSet<MachineState>();
+
             foreach (var state in this.MachineStates)
             {
-                if (!state.MachineActions.Any(action => action.MethodDeclaration.Equals(summary.Method)))
+                var summaryActions = state.MachineActions.FindAll(action
+                    => action.MethodDeclaration.Equals(summary.Method));
+                if (summaryActions.Count == 0)
                 {
                     continue;
                 }
 
-                Console.WriteLine("   state: " + state.Name);
+                foreach (var summaryAction in summaryActions)
+                {
+                    if (!(summaryAction is OnExitMachineAction))
+                    {
+                        summaries.UnionWith(state.MachineActions.FindAll(action
+                            => action is OnEventDoMachineAction || action is OnEventGotoMachineAction ||
+                            action is OnEventPushMachineAction || action is OnExitMachineAction).
+                            Select(action => action.MethodDeclaration).
+                            Select(method => this.MethodSummaries[method]));
+                    }
+                }
+
+                fromStates.Add(state);
+            }
+
+            foreach (var state in fromStates)
+            {
+                foreach (var successor in state.GetSuccessorStates())
+                {
+                    summaries.UnionWith(successor.MachineActions.FindAll(action
+                        => action is OnEntryMachineAction || action is OnEventDoMachineAction ||
+                        action is OnEventGotoMachineAction || action is OnEventPushMachineAction ||
+                        action is OnExitMachineAction).
+                        Select(action => action.MethodDeclaration).
+                        Select(method => this.MethodSummaries[method]));
+                }
             }
 
             return summaries;

@@ -137,14 +137,6 @@ namespace Microsoft.PSharp.StaticAnalysis
             // any fields or methods to other machines.
             DirectAccessAnalysisPass.Create(context, this.CompilationContext.Configuration).
                 Run(machines);
-            
-            // Creates and runs an analysis pass that constructs the
-            // state transition graph for each machine.
-            if (this.CompilationContext.Configuration.DoStateTransitionAnalysis)
-            {
-                //StateTransitionAnalysisPass.Create(context, this.CompilationContext.Configuration).
-                //    Run(machines);
-            }
 
             // Creates and runs an analysis pass that detects if any method
             // in each machine is erroneously giving up ownership.

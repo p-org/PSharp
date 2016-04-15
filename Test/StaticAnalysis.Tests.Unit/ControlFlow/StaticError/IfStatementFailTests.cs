@@ -742,6 +742,7 @@ class M : Machine
 
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
+            configuration.DoStateTransitionAnalysis = false;
 
             IO.StartWritingToMemory();
 

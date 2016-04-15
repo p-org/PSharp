@@ -255,7 +255,7 @@ namespace Microsoft.PSharp.Utilities
             this.ShowDataFlowInformation = false;
             this.ShowFullDataFlowInformation = false;
             this.TimeStaticAnalysis = false;
-            this.DoStateTransitionAnalysis = true;
+            this.DoStateTransitionAnalysis = false;
 
             this.AssemblyToBeAnalyzed = "";
 

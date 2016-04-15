@@ -102,9 +102,9 @@ namespace Microsoft.PSharp.Utilities
             {
                 base.Configuration.TimeStaticAnalysis = true;
             }
-            else if (option.ToLower().Equals("/no-state-transition-analysis"))
+            else if (option.ToLower().Equals("/xsa"))
             {
-                base.Configuration.DoStateTransitionAnalysis = false;
+                base.Configuration.DoStateTransitionAnalysis = true;
             }
             else
             {
