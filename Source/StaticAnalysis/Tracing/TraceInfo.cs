@@ -73,11 +73,11 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="method">Method</param>
-        /// <param name="machine">Machine</param>
-        /// <param name="state">State</param>
+        /// <param name="method">BaseMethodDeclarationSyntax</param>
+        /// <param name="machine">StateMachine</param>
+        /// <param name="state">MachineState</param>
         /// <param name="payload">ISymbol</param>
-        internal TraceInfo(MethodDeclarationSyntax method, StateMachine machine,
+        internal TraceInfo(BaseMethodDeclarationSyntax method, StateMachine machine,
             MachineState state, ISymbol payload)
         {
             this.ErrorTrace = new List<ErrorTraceStep>();
@@ -87,9 +87,13 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 this.Method = null;
             }
-            else
+            else if (method is MethodDeclarationSyntax)
             {
-                this.Method = method.Identifier.ValueText;
+                this.Method = (method as MethodDeclarationSyntax).Identifier.ValueText;
+            }
+            else if (method is ConstructorDeclarationSyntax)
+            {
+                this.Method = (method as ConstructorDeclarationSyntax).Identifier.ValueText;
             }
 
             if (machine == null)
