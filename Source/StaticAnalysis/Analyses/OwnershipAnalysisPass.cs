@@ -78,11 +78,11 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// in the control-flow graph.
         /// </summary>
         /// <param name="givenUpSymbol">GivenUpOwnershipSymbol</param>
-        /// <param name="originalMachine">Original machine</param>
+        /// <param name="machine">StateMachine</param>
         /// <param name="model">SemanticModel</param>
         /// <param name="trace">TraceInfo</param>
         protected abstract void AnalyzeOwnershipInControlFlowGraph(GivenUpOwnershipSymbol givenUpSymbol,
-            StateMachine originalMachine, SemanticModel model, TraceInfo trace);
+            StateMachine machine, SemanticModel model, TraceInfo trace);
 
         /// <summary>
         /// Analyzes the ownership of the given-up symbol
@@ -91,11 +91,11 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="givenUpSymbol">GivenUpOwnershipSymbol</param>
         /// <param name="statement">Statement</param>
         /// <param name="visited">ControlFlowGraphNodes</param>
-        /// <param name="originalMachine">Original machine</param>
+        /// <param name="machine">StateMachine</param>
         /// <param name="model">SemanticModel</param>
         /// <param name="trace">TraceInfo</param>
         protected void AnalyzeOwnershipInStatement(GivenUpOwnershipSymbol givenUpSymbol,
-            Statement statement, StateMachine originalMachine, SemanticModel model,
+            Statement statement, StateMachine machine, SemanticModel model,
             TraceInfo trace)
         {
             var localDecl = statement.SyntaxNode.DescendantNodesAndSelf().
@@ -107,7 +107,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             {
                 var varDecl = localDecl.Declaration;
                 this.AnalyzeOwnershipInLocalDeclaration(givenUpSymbol, varDecl,
-                    statement, originalMachine, model, trace);
+                    statement, machine, model, trace);
             }
             else if (expr != null)
             {
@@ -115,14 +115,14 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     var assignment = expr.Expression as AssignmentExpressionSyntax;
                     this.AnalyzeOwnershipInAssignment(givenUpSymbol, assignment,
-                        statement, originalMachine, model, trace);
+                        statement, machine, model, trace);
                 }
                 else if (expr.Expression is InvocationExpressionSyntax ||
                     expr.Expression is ObjectCreationExpressionSyntax)
                 {
                     trace.InsertCall(statement.Summary.Method, expr.Expression);
                     this.AnalyzeOwnershipInCall(givenUpSymbol, expr.Expression,
-                        statement, originalMachine, model, trace);
+                        statement, machine, model, trace);
                 }
             }
         }
@@ -134,11 +134,11 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="givenUpSymbol">GivenUpOwnershipSymbol</param>
         /// <param name="varDecl">VariableDeclarationSyntax</param>
         /// <param name="statement">Statement</param>
-        /// <param name="originalMachine">Original machine</param>
+        /// <param name="machine">StateMachine</param>
         /// <param name="model">SemanticModel</param>
         /// <param name="trace">TraceInfo</param>
         protected abstract void AnalyzeOwnershipInLocalDeclaration(GivenUpOwnershipSymbol givenUpSymbol,
-            VariableDeclarationSyntax varDecl, Statement statement, StateMachine originalMachine,
+            VariableDeclarationSyntax varDecl, Statement statement, StateMachine machine,
             SemanticModel model, TraceInfo trace);
 
         /// <summary>
@@ -148,11 +148,11 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="givenUpSymbol">GivenUpOwnershipSymbol</param>
         /// <param name="assignment">AssignmentExpressionSyntax</param>
         /// <param name="statement">Statement</param>
-        /// <param name="originalMachine">Original machine</param>
+        /// <param name="machine">StateMachine</param>
         /// <param name="model">SemanticModel</param>
         /// <param name="trace">TraceInfo</param>
         protected abstract void AnalyzeOwnershipInAssignment(GivenUpOwnershipSymbol givenUpSymbol,
-            AssignmentExpressionSyntax assignment, Statement statement, StateMachine originalMachine,
+            AssignmentExpressionSyntax assignment, Statement statement, StateMachine machine,
             SemanticModel model, TraceInfo trace);
 
         /// <summary>
@@ -162,12 +162,12 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="givenUpSymbol">GivenUpOwnershipSymbol</param>
         /// <param name="call">ExpressionSyntax</param>
         /// <param name="statement">Statement</param>
-        /// <param name="originalMachine">Original machine</param>
+        /// <param name="machine">StateMachine</param>
         /// <param name="model">SemanticModel</param>
         /// <param name="trace">TraceInfo</param>
         /// <returns>Set of return symbols</returns>
         protected HashSet<ISymbol> AnalyzeOwnershipInCall(GivenUpOwnershipSymbol givenUpSymbol,
-            ExpressionSyntax call, Statement statement, StateMachine originalMachine,
+            ExpressionSyntax call, Statement statement, StateMachine machine,
             SemanticModel model, TraceInfo trace)
         {
             var potentialReturnSymbols = new HashSet<ISymbol>();
@@ -193,7 +193,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             if (callSymbol.ContainingType.ToString().Equals("Microsoft.PSharp.Machine"))
             {
                 this.AnalyzeOwnershipInGivesUpCall(givenUpSymbol, invocation,
-                    statement, model, callTrace);
+                    statement, machine, model, callTrace);
                 return potentialReturnSymbols;
             }
 
@@ -208,7 +208,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             foreach (var candidateSummary in candidateSummaries)
             {
                 this.AnalyzeOwnershipInCandidateCallee(givenUpSymbol, candidateSummary,
-                    call, statement, originalMachine, model, callTrace);
+                    call, statement, machine, model, callTrace);
 
                 if (invocation != null)
                 {
@@ -231,12 +231,12 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="calleeSummary">MethodSummary</param>
         /// <param name="call">ExpressionSyntax</param>
         /// <param name="statement">Statement</param>
-        /// <param name="originalMachine">Original machine</param>
+        /// <param name="machine">StateMachine</param>
         /// <param name="model">SemanticModel</param>
         /// <param name="trace">TraceInfo</param>
         protected abstract void AnalyzeOwnershipInCandidateCallee(GivenUpOwnershipSymbol givenUpSymbol,
             MethodSummary calleeSummary, ExpressionSyntax call, Statement statement,
-            StateMachine originalMachine, SemanticModel model, TraceInfo trace);
+            StateMachine machine, SemanticModel model, TraceInfo trace);
 
         /// <summary>
         /// Analyzes the ownership of the given-up symbol
@@ -245,10 +245,12 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="givenUpSymbol">GivenUpOwnershipSymbol</param>
         /// <param name="call">Gives-up call</param>
         /// <param name="statement">Statement</param>
+        /// <param name="machine">StateMachine</param>
         /// <param name="model">SemanticModel</param>
         /// <param name="trace">TraceInfo</param>
         protected abstract void AnalyzeOwnershipInGivesUpCall(GivenUpOwnershipSymbol givenUpSymbol,
-            InvocationExpressionSyntax call, Statement statement, SemanticModel model, TraceInfo trace);
+            InvocationExpressionSyntax call, Statement statement, StateMachine machine,
+            SemanticModel model, TraceInfo trace);
 
         #endregion
 
@@ -285,9 +287,13 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="field">Field</param>
         /// <param name="summary">MethodSummary</param>
+        /// <param name="machine">StateMachine</param>
         /// <returns>Boolean</returns>
-        protected bool IsFieldAccessedBeforeBeingReset(ISymbol field, MethodSummary summary)
+        protected bool IsFieldAccessedBeforeBeingReset(ISymbol field, MethodSummary summary,
+            StateMachine machine)
         {
+            machine.GetSuccessorSummaries(summary);
+
             return true;
             //StateTransitionGraphNode stateTransitionNode = null;
             //if (!this.AnalysisContext.StateTransitionGraphs.ContainsKey((summary).Machine))
@@ -305,7 +311,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             //var result = stateTransitionNode.VisitSelfAndSuccessors(
             //    this.IsFieldAccessedBeforeBeingReset, new Tuple<MethodSummary, ISymbol>(summary, field));
 
-            return false;
+            //return false;
         }
 
         /// <summary>
@@ -316,61 +322,61 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="input">Input</param>
         /// <param name="isFirstVisit">True if first node to visit</param>
         /// <returns>Boolean</returns>
-        private bool IsFieldAccessedBeforeBeingReset(StateTransitionGraphNode node,
-            object input, bool isFirstVisit)
-        {
-            var summary = ((Tuple<MethodSummary, ISymbol>)input).Item1;
-            var fieldSymbol = ((Tuple<MethodSummary, ISymbol>)input).Item2;
-            var result = false;
+        //private bool IsFieldAccessedBeforeBeingReset(StateTransitionGraphNode node,
+        //    object input, bool isFirstVisit)
+        //{
+        //    var summary = ((Tuple<MethodSummary, ISymbol>)input).Item1;
+        //    var fieldSymbol = ((Tuple<MethodSummary, ISymbol>)input).Item2;
+        //    var result = false;
 
-            if (isFirstVisit && node.OnExit != null && !summary.Equals(node.OnExit))
-            {
-                foreach (var action in node.Actions)
-                {
-                    result = action.SideEffectsInfo.FieldAccesses.ContainsKey(
-                        fieldSymbol as IFieldSymbol);
-                    if (result)
-                    {
-                        break;
-                    }
-                }
+        //    if (isFirstVisit && node.OnExit != null && !summary.Equals(node.OnExit))
+        //    {
+        //        foreach (var action in node.Actions)
+        //        {
+        //            result = action.SideEffectsInfo.FieldAccesses.ContainsKey(
+        //                fieldSymbol as IFieldSymbol);
+        //            if (result)
+        //            {
+        //                break;
+        //            }
+        //        }
 
-                if (!result && node.OnExit != null)
-                {
-                    result = node.OnExit.SideEffectsInfo.FieldAccesses.ContainsKey(
-                        fieldSymbol as IFieldSymbol);
-                }
-            }
-            else if (!isFirstVisit)
-            {
-                if (node.OnEntry != null)
-                {
-                    result = node.OnEntry.SideEffectsInfo.FieldAccesses.ContainsKey(
-                        fieldSymbol as IFieldSymbol);
-                }
+        //        if (!result && node.OnExit != null)
+        //        {
+        //            result = node.OnExit.SideEffectsInfo.FieldAccesses.ContainsKey(
+        //                fieldSymbol as IFieldSymbol);
+        //        }
+        //    }
+        //    else if (!isFirstVisit)
+        //    {
+        //        if (node.OnEntry != null)
+        //        {
+        //            result = node.OnEntry.SideEffectsInfo.FieldAccesses.ContainsKey(
+        //                fieldSymbol as IFieldSymbol);
+        //        }
 
-                if (!result)
-                {
-                    foreach (var action in node.Actions)
-                    {
-                        result = action.SideEffectsInfo.FieldAccesses.ContainsKey(
-                            fieldSymbol as IFieldSymbol);
-                        if (result)
-                        {
-                            break;
-                        }
-                    }
-                }
+        //        if (!result)
+        //        {
+        //            foreach (var action in node.Actions)
+        //            {
+        //                result = action.SideEffectsInfo.FieldAccesses.ContainsKey(
+        //                    fieldSymbol as IFieldSymbol);
+        //                if (result)
+        //                {
+        //                    break;
+        //                }
+        //            }
+        //        }
 
-                if (!result && node.OnExit != null)
-                {
-                    result = node.OnExit.SideEffectsInfo.FieldAccesses.ContainsKey(
-                        fieldSymbol as IFieldSymbol);
-                }
-            }
+        //        if (!result && node.OnExit != null)
+        //        {
+        //            result = node.OnExit.SideEffectsInfo.FieldAccesses.ContainsKey(
+        //                fieldSymbol as IFieldSymbol);
+        //        }
+        //    }
 
-            return result;
-        }
+        //    return result;
+        //}
 
         /// <summary>
         /// Extracts arguments from the list of arguments.

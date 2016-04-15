@@ -100,21 +100,25 @@ namespace Microsoft.PSharp.StaticAnalysis
         #region internal methods
 
         /// <summary>
-        /// Returns true if the given method is an action of the machine.
+        /// Returns all the successor summaries.
         /// </summary>
-        /// <param name="method">MethodDeclarationSyntax</param>
-        /// <returns>Boolean</returns>
-        internal bool ContainsMachineAction(MethodDeclarationSyntax method)
+        /// <param name="summary">MethodSummary</param>
+        /// <returns>MethodSummarys</returns>
+        internal ISet<MethodSummary> GetSuccessorSummaries(MethodSummary summary)
         {
+            Console.WriteLine("get successors of: " + summary.Method);
+            var summaries = new HashSet<MethodSummary>();
             foreach (var state in this.MachineStates)
             {
-                if (state.MachineActions.Any(action => action.MethodDeclaration.Equals(method)))
+                if (!state.MachineActions.Any(action => action.MethodDeclaration.Equals(summary.Method)))
                 {
-                    return true;
+                    continue;
                 }
+
+                Console.WriteLine("   state: " + state.Name);
             }
 
-            return false;
+            return summaries;
         }
 
         #endregion

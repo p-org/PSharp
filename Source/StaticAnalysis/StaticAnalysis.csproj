@@ -74,18 +74,17 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DataStructures\StateMachines\StateTransition.cs" />
-    <Compile Include="OwnershipAnalysis\OwnershipAnalysisPass.cs" />
-    <Compile Include="OwnershipAnalysis\GivesUpOwnershipAnalysisPass.cs" />
-    <Compile Include="DataStructures\StateMachines\OnEventPushMachineAction.cs" />
-    <Compile Include="DataStructures\StateMachines\OnEventGotoMachineAction.cs" />
-    <Compile Include="DataStructures\StateMachines\OnEventDoMachineAction.cs" />
-    <Compile Include="DataStructures\StateMachines\OnExitMachineAction.cs" />
-    <Compile Include="DataStructures\StateMachines\OnEntryMachineAction.cs" />
-    <Compile Include="DataStructures\StateMachines\MachineAction.cs" />
-    <Compile Include="DataStructures\StateMachines\MachineState.cs" />
-    <Compile Include="DataStructures\StateMachines\StateMachine.cs" />
-    <Compile Include="DataStructures\ControlFlow\StateTransitionGraphNode.cs" />
+    <Compile Include="Summarization\StateMachines\StateTransition.cs" />
+    <Compile Include="Analyses\OwnershipAnalysisPass.cs" />
+    <Compile Include="Analyses\GivesUpOwnershipAnalysisPass.cs" />
+    <Compile Include="Summarization\StateMachines\OnEventPushMachineAction.cs" />
+    <Compile Include="Summarization\StateMachines\OnEventGotoMachineAction.cs" />
+    <Compile Include="Summarization\StateMachines\OnEventDoMachineAction.cs" />
+    <Compile Include="Summarization\StateMachines\OnExitMachineAction.cs" />
+    <Compile Include="Summarization\StateMachines\OnEntryMachineAction.cs" />
+    <Compile Include="Summarization\StateMachines\MachineAction.cs" />
+    <Compile Include="Summarization\StateMachines\MachineState.cs" />
+    <Compile Include="Summarization\StateMachines\StateMachine.cs" />
     <Compile Include="Tracing\CallTraceStep.cs" />
     <Compile Include="Tracing\ErrorTraceStep.cs" />
     <Compile Include="Utilities\AnalysisErrorReporter.cs" />
@@ -93,9 +92,8 @@
     <Compile Include="Analyses\StateMachineAnalysisPass.cs" />
     <Compile Include="StaticAnalysisEngine.cs" />
     <Compile Include="Summarization\MachineSummarizationPass.cs" />
-    <Compile Include="OwnershipAnalysis\RespectsOwnershipAnalysisPass.cs" />
+    <Compile Include="Analyses\RespectsOwnershipAnalysisPass.cs" />
     <Compile Include="Analyses\DirectAccessAnalysisPass.cs" />
-    <Compile Include="Analyses\StateTransitionAnalysisPass.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -142,8 +142,8 @@ namespace Microsoft.PSharp.StaticAnalysis
             // state transition graph for each machine.
             if (this.CompilationContext.Configuration.DoStateTransitionAnalysis)
             {
-                StateTransitionAnalysisPass.Create(context, this.CompilationContext.Configuration).
-                    Run(machines);
+                //StateTransitionAnalysisPass.Create(context, this.CompilationContext.Configuration).
+                //    Run(machines);
             }
 
             // Creates and runs an analysis pass that detects if any method
