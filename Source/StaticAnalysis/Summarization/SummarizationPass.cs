@@ -12,16 +12,6 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.FindSymbols;
-
-using Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.StaticAnalysis
@@ -57,7 +47,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             
             foreach (var machine in this.AnalysisContext.Machines)
             {
-                this.SummarizeStateMachine(machine);
+                machine.Summarize();
             }
 
             // Stops profiling the summarization.
@@ -80,73 +70,6 @@ namespace Microsoft.PSharp.StaticAnalysis
             : base(context)
         {
 
-        }
-
-        /// <summary>
-        /// Analyzes all eligible methods of the specified state-machine
-        /// to compute the method summaries.
-        /// </summary>
-        /// <param name="machine">Machine</param>
-        private void SummarizeStateMachine(StateMachine machine)
-        {
-            foreach (var method in this.GetMachineMethods(machine))
-            {
-                if (method.Body == null ||
-                    this.AnalysisContext.Summaries.ContainsKey(method))
-                {
-                    continue;
-                }
-
-                this.SummarizeMethod(method, machine);
-            }
-        }
-
-        /// <summary>
-        /// Computes the summary for the specified method.
-        /// </summary>
-        /// <param name="method">Method</param>
-        /// <param name="machine">Machine</param>
-        private void SummarizeMethod(MethodDeclarationSyntax method, StateMachine machine)
-        {
-            var summary = MethodSummary.Create(this.AnalysisContext, method);
-            this.AnalysisContext.CacheSummary(summary);
-
-            if (this.AnalysisContext.Configuration.ShowControlFlowInformation)
-            {
-                summary.PrintControlFlowGraph();
-            }
-
-            if (this.AnalysisContext.Configuration.ShowFullDataFlowInformation)
-            {
-                summary.PrintDataFlowInformation(true);
-            }
-            else if (this.AnalysisContext.Configuration.ShowDataFlowInformation)
-            {
-                summary.PrintDataFlowInformation();
-            }
-        }
-
-        /// <summary>
-        /// Returns all available machine method declarations.
-        /// </summary>
-        /// <param name="machine">StateMachine</param>
-        /// <returns>MethodDeclarationSyntaxs</returns>
-        private ISet<MethodDeclarationSyntax> GetMachineMethods(StateMachine machine)
-        {
-            var methods = new HashSet<MethodDeclarationSyntax>(
-                machine.Declaration.ChildNodes().OfType<MethodDeclarationSyntax>());
-
-            //HashSet<StateMachine> baseMachines;
-            //if (this.AnalysisContext.MachineInheritanceMap.TryGetValue(machine, out baseMachines))
-            //{
-            //    foreach (var baseMachine in baseMachines)
-            //    {
-            //        methods.UnionWith(baseMachine.Declaration.ChildNodes().OfType<MethodDeclarationSyntax>().
-            //            Where(method => !method.Modifiers.Any(SyntaxKind.AbstractKeyword)));
-            //    }
-            //}
-
-            return methods;
         }
 
         #endregion
