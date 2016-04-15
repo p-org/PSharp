@@ -74,6 +74,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DataStructures\StateMachines\StateTransition.cs" />
     <Compile Include="OwnershipAnalysis\OwnershipAnalysisPass.cs" />
     <Compile Include="OwnershipAnalysis\GivesUpOwnershipAnalysisPass.cs" />
     <Compile Include="DataStructures\StateMachines\OnEventPushMachineAction.cs" />
