@@ -113,7 +113,7 @@ class M : Machine
  void FirstOnEntryAction()
  {
   int value = 0;
-  this.Foo(letter);
+  this.Foo(value);
  }
 
  void Foo(int value)
