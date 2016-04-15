@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -61,6 +62,11 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         internal IDictionary<BaseMethodDeclarationSyntax, MethodSummary> MethodSummaries;
 
+        /// <summary>
+        /// True if the machine is abstract.
+        /// </summary>
+        internal bool IsAbstract;
+
         #endregion
 
         #region constructors
@@ -78,6 +84,11 @@ namespace Microsoft.PSharp.StaticAnalysis
             this.BaseMachines = new HashSet<StateMachine>();
             this.MachineStates = new HashSet<MachineState>();
             this.MethodSummaries = new Dictionary<BaseMethodDeclarationSyntax, MethodSummary>();
+
+            if (this.Declaration.Modifiers.Any(SyntaxKind.AbstractKeyword))
+            {
+                this.IsAbstract = true;
+            }
 
             this.FindAllStates();
             this.AnalyzeAllStates();
@@ -102,7 +113,6 @@ namespace Microsoft.PSharp.StaticAnalysis
                 }
 
                 var availableMachines = new List<StateMachine>(this.AnalysisContext.Machines);
-                availableMachines.AddRange(this.AnalysisContext.AbstractMachines);
                 var inheritedMachine = availableMachines.FirstOrDefault(m
                     => this.AnalysisContext.GetFullClassName(m.Declaration).Equals(type.ToString()));
                 if (inheritedMachine == null)

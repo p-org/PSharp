@@ -39,11 +39,6 @@ namespace Microsoft.PSharp.StaticAnalysis
         internal HashSet<StateMachine> Machines;
 
         /// <summary>
-        /// Set of abstract state-machines in the project.
-        /// </summary>
-        internal HashSet<StateMachine> AbstractMachines;
-
-        /// <summary>
         /// Dictionary of state transition graphs in the project.
         /// </summary>
         internal Dictionary<StateMachine, StateTransitionGraphNode> StateTransitionGraphs;
@@ -99,7 +94,6 @@ namespace Microsoft.PSharp.StaticAnalysis
             this.Configuration = configuration;
 
             this.Machines = new HashSet<StateMachine>();
-            this.AbstractMachines = new HashSet<StateMachine>();
             this.StateTransitionGraphs = new Dictionary<StateMachine, StateTransitionGraphNode>();
         }
 

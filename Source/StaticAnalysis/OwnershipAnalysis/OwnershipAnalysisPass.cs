@@ -46,7 +46,7 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             foreach (var machine in this.AnalysisContext.Machines)
             {
-                this.AnalyzeMethodsInMachine(machine);
+                this.AnalyzeMethodSummariesInMachine(machine);
             }
 
             // Stops profiling the ownership analysis.
@@ -253,48 +253,23 @@ namespace Microsoft.PSharp.StaticAnalysis
         #region private methods
 
         /// <summary>
-        /// Analyzes the methods of the machine to check if each method
-        /// respects given-up ownerships.
+        /// Analyzes the method summaries of the machine to check if
+        /// each summary respects given-up ownerships.
         /// </summary>
         /// <param name="machine">StateMachine</param>
-        private void AnalyzeMethodsInMachine(StateMachine machine)
+        private void AnalyzeMethodSummariesInMachine(StateMachine machine)
         {
-            var machinesToAnalyze = new List<StateMachine> { machine };
-            
-            //HashSet<StateMachine> baseMachines;
-            //if (this.AnalysisContext.MachineInheritanceMap.TryGetValue(machine, out baseMachines))
-            //{
-            //    machinesToAnalyze.AddRange(baseMachines);
-            //}
-
-            foreach (var machineToAnalyze in machinesToAnalyze)
+            foreach (var summary in machine.MethodSummaries.Values)
             {
-                foreach (var summary in machineToAnalyze.MethodSummaries)
+                foreach (var givenUpSymbol in summary.GetSymbolsWithGivenUpOwnership())
                 {
-                    this.AnalyzeMethodSummary(summary.Value, machineToAnalyze, null, machine);
-                }
-            }
-        }
+                    TraceInfo trace = new TraceInfo(summary.Method, machine, null, givenUpSymbol.ContainingSymbol);
+                    trace.AddErrorTrace(givenUpSymbol.Statement.SyntaxNode);
 
-        /// <summary>
-        /// Analyzes the method summary to check if it respects
-        /// the given-up ownerships.
-        /// </summary>
-        /// <param name="method">Method</param>
-        /// <param name="machine">Machine</param>
-        /// <param name="state">MachineState</param>
-        /// <param name="originalMachine">Original machine</param>
-        private void AnalyzeMethodSummary(MethodSummary summary, StateMachine machine,
-            MachineState state, StateMachine originalMachine)
-        {
-            foreach (var givenUpSymbol in summary.GetSymbolsWithGivenUpOwnership())
-            {
-                TraceInfo trace = new TraceInfo(summary.Method, machine, state, givenUpSymbol.ContainingSymbol);
-                trace.AddErrorTrace(givenUpSymbol.Statement.SyntaxNode);
-                
-                var model = this.AnalysisContext.Compilation.GetSemanticModel(
-                    givenUpSymbol.Statement.SyntaxNode.SyntaxTree);
-                this.AnalyzeOwnershipInControlFlowGraph(givenUpSymbol, originalMachine, model, trace);
+                    var model = this.AnalysisContext.Compilation.GetSemanticModel(
+                        givenUpSymbol.Statement.SyntaxNode.SyntaxTree);
+                    this.AnalyzeOwnershipInControlFlowGraph(givenUpSymbol, machine, model, trace);
+                }
             }
         }
 

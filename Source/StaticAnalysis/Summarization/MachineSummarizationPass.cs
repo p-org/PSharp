@@ -101,14 +101,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     if (Querying.IsMachine(base.AnalysisContext.Compilation, classDecl))
                     {
-                        if (classDecl.Modifiers.Any(SyntaxKind.AbstractKeyword))
-                        {
-                            base.AnalysisContext.AbstractMachines.Add(new StateMachine(classDecl, base.AnalysisContext));
-                        }
-                        else
-                        {
-                            base.AnalysisContext.Machines.Add(new StateMachine(classDecl, base.AnalysisContext));
-                        }
+                        base.AnalysisContext.Machines.Add(new StateMachine(classDecl, base.AnalysisContext));
                     }
                 }
             }
