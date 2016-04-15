@@ -264,6 +264,11 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             foreach (var action in this.MachineActions)
             {
+                if (action.MethodDeclaration.Body == null)
+                {
+                    continue;
+                }
+
                 var invocations = action.MethodDeclaration.Body.DescendantNodesAndSelf(val => true).
                     OfType<InvocationExpressionSyntax>();
                 foreach (var invocation in invocations)
