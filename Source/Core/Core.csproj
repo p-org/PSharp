@@ -80,7 +80,7 @@
     <Compile Include="Events\Event.cs" />
     <Compile Include="Events\GotoStateEvent.cs" />
     <Compile Include="Events\Halt.cs" />
-    <Compile Include="Exceptions.cs" />
+    <Compile Include="Exceptions\PSharpGenericException.cs" />
     <Compile Include="Net\NetworkProviders\DefaultNetworkProvider.cs" />
     <Compile Include="Options\CompilationTarget.cs" />
     <Compile Include="Options\SchedulingStrategy.cs" />
@@ -99,7 +99,7 @@
     <Compile Include="Options\BaseCommandLineOptions.cs" />
     <Compile Include="Options\Configuration.cs" />
     <Compile Include="Utilities\Profiler.cs" />
-    <Compile Include="Runtime.cs" />
+    <Compile Include="Runtime\Runtime.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

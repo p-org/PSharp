@@ -653,7 +653,7 @@ namespace Microsoft.PSharp.SystematicTesting
         /// <summary>
         /// Waits until all P# machines have finished execution.
         /// </summary>
-        internal void WaitMachines()
+        internal void Wait()
         {
             Task[] taskArray = null;
 

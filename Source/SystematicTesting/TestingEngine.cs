@@ -330,7 +330,7 @@ namespace Microsoft.PSharp.SystematicTesting
                     }
 
                     // Wait for test to terminate.
-                    runtime.WaitMachines();
+                    runtime.Wait();
 
                     if (this.Configuration.EnableVisualization)
                     {
