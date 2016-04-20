@@ -28,6 +28,10 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         Random,
         /// <summary>
+        /// Random coin-flipping scheduling.
+        /// </summary>
+        RandomCoin,
+        /// <summary>
         /// Depth-first search scheduling.
         /// </summary>
         DFS,

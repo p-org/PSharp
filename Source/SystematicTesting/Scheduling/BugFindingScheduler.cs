@@ -109,10 +109,11 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                 return;
             }
 
-            // Check if the exploration depth-bound has been reached.
+            // Check if the scheduling steps bound has been reached.
             if (this.Strategy.HasReachedDepthBound())
             {
-                var msg = IO.Format("Depth bound of {0} reached.", this.Strategy.GetDepthBound());
+                var msg = IO.Format("Scheduling steps bound of {0} reached.",
+                    this.Strategy.GetDepthBound());
                 if (this.Runtime.Configuration.ConsiderDepthBoundHitAsBug)
                 {
                     this.Runtime.BugFinder.NotifyAssertionFailure(msg, true);
@@ -196,10 +197,11 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// <returns>Boolean</returns>
         internal bool GetNextNondeterministicChoice(int maxValue, string uniqueId = null)
         {
-            // Check if the exploration depth-bound has been reached.
+            // Check if the scheduling steps bound has been reached.
             if (this.Strategy.HasReachedDepthBound())
             {
-                var msg = IO.Format("Depth bound of {0} reached.", this.Strategy.GetDepthBound());
+                var msg = IO.Format("Scheduling steps bound of {0} reached.",
+                    this.Strategy.GetDepthBound());
                 if (this.Runtime.Configuration.ConsiderDepthBoundHitAsBug)
                 {
                     this.Runtime.BugFinder.NotifyAssertionFailure(msg, true);

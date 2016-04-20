@@ -67,9 +67,10 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                 return;
             }
 
+            // Check if the scheduling steps bound has been reached.
             if (this.Strategy.HasReachedDepthBound())
             {
-                IO.Debug("<ScheduleDebug> Depth bound of {0} reached.",
+                IO.Debug("<ScheduleDebug> Scheduling steps bound of {0} reached.",
                     this.Strategy.GetDepthBound());
                 this.KillRemainingMachines();
                 throw new OperationCanceledException();

@@ -125,7 +125,8 @@ namespace Microsoft.PSharp.Utilities
         public bool FullExploration;
 
         /// <summary>
-        /// Depth bound. By default it is 10000.
+        /// Depth bound, in terms of maximum scheduling steps
+        /// to explore. By default it is 10000.
         /// </summary>
         public int DepthBound;
 
@@ -136,14 +137,21 @@ namespace Microsoft.PSharp.Utilities
         public bool ConsiderDepthBoundHitAsBug;
 
         /// <summary>
-        /// The bug depth. By default it is 2.
+        /// The priority switch bound. By default it is 2.
+        /// Used by priority-based schedulers.
         /// </summary>
-        public int BugDepth;
+        public int PrioritySwitchBound;
 
         /// <summary>
         /// Delay bound. By default it is 2.
+        /// Used by delay-bounding schedulers.
         /// </summary>
         public int DelayBound;
+
+        /// <summary>
+        /// Coin-flip bound. By default it is 2.
+        /// </summary>
+        public int CoinFlipBound;
 
         /// <summary>
         /// Safety prefix bound. By default it is 0.
@@ -266,8 +274,9 @@ namespace Microsoft.PSharp.Utilities
             this.FullExploration = false;
             this.DepthBound = 10000;
             this.ConsiderDepthBoundHitAsBug = false;
-            this.BugDepth = 2;
-            this.DelayBound = 2;
+            this.PrioritySwitchBound = 0;
+            this.DelayBound = 0;
+            this.CoinFlipBound = 0;
             this.SafetyPrefixBound = 0;
 
             this.ScheduleIntraMachineConcurrency = false;

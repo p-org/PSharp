@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="RandomStrategy.cs">
+// <copyright file="RandomCoinStrategy.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -21,9 +21,10 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.SystematicTesting.Scheduling
 {
     /// <summary>
-    /// Class representing a random-walk scheduling strategy.
+    /// Class representing a random-walk scheduling strategy,
+    /// which uses coin-flips to guide machine selection.
     /// </summary>
-    public class RandomStrategy : ISchedulingStrategy
+    public class RandomCoinStrategy : ISchedulingStrategy
     {
         #region fields
 
@@ -43,6 +44,11 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         private Random Random;
 
         /// <summary>
+        /// Number of coin flips.
+        /// </summary>
+        private int NumberOfCoinFlips;
+
+        /// <summary>
         /// The maximum number of explored steps.
         /// </summary>
         private int MaxExploredSteps;
@@ -60,13 +66,32 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         /// Constructor.
         /// </summary>
         /// <param name="configuration">Configuration</param>
-        public RandomStrategy(Configuration configuration)
+        /// <param name="numberOfCoinFlips">Number of coin flips</param>
+        public RandomCoinStrategy(Configuration configuration, int numberOfCoinFlips)
         {
             this.Configuration = configuration;
             this.Seed = this.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
             this.Random = new Random(this.Seed);
+            this.NumberOfCoinFlips = numberOfCoinFlips;
             this.MaxExploredSteps = 0;
             this.ExploredSteps = 0;
+        }
+
+        /// <summary>
+        /// Flip the coin a specified number of times.
+        /// </summary>
+        /// <returns>Boolean</returns>
+        private bool ShouldCurrentMachineChange()
+        {
+            for (int idx = 0; idx < this.NumberOfCoinFlips; idx++)
+            {
+                if (this.Random.Next(2) == 1)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -90,11 +115,24 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                 }
             }
 
-            int idx = this.Random.Next(availableMachines.Count);
-            next = availableMachines[idx];
-
             this.ExploredSteps++;
 
+            if (availableMachines.Count > 1)
+            {
+                if (this.ShouldCurrentMachineChange())
+                {
+                    availableMachines.Remove(current);
+                }
+                else if (current.IsEnabled && !current.IsBlocked && !current.IsWaiting)
+                {
+                    next = current;
+                    return true;
+                }
+            }
+
+            int idx = this.Random.Next(availableMachines.Count);
+            next = availableMachines[idx];
+            
             return true;
         }
 

@@ -125,7 +125,7 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         public bool GetNextChoice(int maxValue, out bool next)
         {
             next = false;
-            if (this.PriorityChangePoints.Contains(this.ExploredSteps))
+            if (this.Random.Next(maxValue) == 0)
             {
                 next = true;
             }
@@ -163,8 +163,8 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         }
 
         /// <summary>
-        /// True if the scheduling strategy reached the depth bound
-        /// for the given scheduling iteration.
+        /// True if the scheduling strategy has reached the depth
+        /// bound for the given scheduling iteration.
         /// </summary>
         /// <returns>Depth bound</returns>
         public bool HasReachedDepthBound()

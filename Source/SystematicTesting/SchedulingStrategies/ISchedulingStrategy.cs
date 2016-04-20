@@ -57,8 +57,8 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
         int GetDepthBound();
 
         /// <summary>
-        /// True if the scheduling strategy reached the depth bound
-        /// for the given scheduling iteration.
+        /// True if the scheduling strategy has reached the depth
+        /// bound for the given scheduling iteration.
         /// </summary>
         /// <returns>Depth bound</returns>
         bool HasReachedDepthBound();

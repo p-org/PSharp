@@ -132,7 +132,8 @@ namespace Microsoft.PSharp.SystematicTesting
                 this.Runtime.BugFinder.NotifyAssertionFailure(message, false);
             }
 
-            if (this.Runtime.Configuration.DepthBound == 0 || hotMonitors.Count > 0)
+            if (this.Runtime.Configuration.DepthBound == 0 ||
+                hotMonitors.Count > 0)
             {
                 this.Runtime.BugFinder.Stop();
             }

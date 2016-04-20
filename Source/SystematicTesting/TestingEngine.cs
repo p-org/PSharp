@@ -226,6 +226,11 @@ namespace Microsoft.PSharp.SystematicTesting
             {
                 this.Strategy = new RandomStrategy(this.Configuration);
             }
+            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.RandomCoin)
+            {
+                this.Strategy = new RandomCoinStrategy(this.Configuration,
+                    this.Configuration.CoinFlipBound);
+            }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.DFS)
             {
                 this.Strategy = new DFSStrategy(this.Configuration);
@@ -248,18 +253,16 @@ namespace Microsoft.PSharp.SystematicTesting
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.PCT)
             {
-                this.Strategy = new PCTStrategy(this.Configuration, this.Configuration.BugDepth);
+                this.Strategy = new PCTStrategy(this.Configuration, this.Configuration.PrioritySwitchBound);
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.RandomOperationBounding)
             {
                 this.Strategy = new RandomOperationBoundingStrategy(this.Configuration);
-                this.Configuration.BoundOperations = true;
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.PrioritizedOperationBounding)
             {
                 this.Strategy = new PrioritizedOperationBoundingStrategy(this.Configuration,
-                    this.Configuration.BugDepth);
-                this.Configuration.BoundOperations = true;
+                    this.Configuration.PrioritySwitchBound);
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.MaceMC)
             {
