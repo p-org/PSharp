@@ -284,7 +284,7 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private void FindBugs()
         {
-            IO.PrintLine("... Using '{0}' strategy", this.Configuration.SchedulingStrategy);
+            IO.PrintLine($"... Using '{this.Configuration.SchedulingStrategy}' strategy");
 
             Task visualizationTask = null;
             if (this.Configuration.EnableVisualization)
@@ -298,7 +298,7 @@ namespace Microsoft.PSharp.TestingServices
                 {
                     if (this.ShouldPrintIteration(i + 1))
                     {
-                        IO.PrintLine("..... Iteration #{0}", i + 1);
+                        IO.PrintLine($"..... Iteration #{i + 1}");
                     }
 
                     var runtime = new PSharpBugFindingRuntime(this.Configuration,
@@ -360,6 +360,12 @@ namespace Microsoft.PSharp.TestingServices
                     {
                         this.NumOfFoundBugs++;
                         this.BugReport = runtime.BugFinder.BugReport;
+
+                        if (this.Configuration.PerformFullExploration)
+                        {
+                            IO.PrintLine($"..... Iteration #{i + 1} triggered " +
+                                $"bug #{this.NumOfFoundBugs}");
+                        }
                     }
                     else
                     {
@@ -468,10 +474,10 @@ namespace Microsoft.PSharp.TestingServices
 
             if (this.Configuration.DepthBound > 0)
             {
-                IO.PrintLine("... Used depth bound of {0}.", this.Configuration.DepthBound);
+                IO.PrintLine($"... Used depth bound of {this.Configuration.DepthBound}.");
             }
 
-            IO.PrintLine("... Elapsed {0} sec.", this.Profiler.Results());
+            IO.PrintLine($"... Elapsed {this.Profiler.Results()} sec.");
         }
 
         /// <summary>
@@ -489,7 +495,7 @@ namespace Microsoft.PSharp.TestingServices
             var traces = Directory.GetFiles(directory, name + "*.txt");
             var path = directory + name + "_" + traces.Length + ".txt";
 
-            IO.PrintLine("... Writing {0}", path);
+            IO.PrintLine($"... Writing {path}");
             File.WriteAllText(path, sw.ToString());
         }
 
@@ -513,12 +519,12 @@ namespace Microsoft.PSharp.TestingServices
                     ErrorReporter.Report(le.Message);
                 }
 
-                ErrorReporter.ReportAndExit("Failed to load assembly '{0}'", this.Assembly.FullName);
+                ErrorReporter.ReportAndExit($"Failed to load assembly '{this.Assembly.FullName}'");
             }
             catch (Exception ex)
             {
                 ErrorReporter.Report(ex.Message);
-                ErrorReporter.ReportAndExit("Failed to load assembly '{0}'", this.Assembly.FullName);
+                ErrorReporter.ReportAndExit($"Failed to load assembly '{this.Assembly.FullName}'");
             }
 
             if (testMethods.Count == 0)
@@ -529,7 +535,7 @@ namespace Microsoft.PSharp.TestingServices
             else if (testMethods.Count > 1)
             {
                 ErrorReporter.ReportAndExit("Only one test method to the P# program can be declared. " +
-                    "{0} test methods were found instead.", testMethods.Count);
+                    $"{testMethods.Count} test methods were found instead.");
             }
 
             if (testMethods[0].ReturnType != typeof(void) ||
