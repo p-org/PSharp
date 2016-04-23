@@ -160,7 +160,7 @@ namespace Microsoft.PSharp.Utilities
             //}
             else if (option.ToLower().Equals("/explore"))
             {
-                base.Configuration.FullExploration = true;
+                base.Configuration.PerformFullExploration = true;
             }
             else if (option.ToLower().StartsWith("/sch-seed:") && option.Length > 10)
             {

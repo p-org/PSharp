@@ -12,7 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Microsoft.PSharp.SystematicTesting;
+using Microsoft.PSharp.TestingServices;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp

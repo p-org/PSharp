@@ -120,9 +120,10 @@ namespace Microsoft.PSharp.Utilities
         internal int? RandomSchedulingSeed;
 
         /// <summary>
-        /// Systematic tester does not stop when it finds a bug.
+        /// If true, the P# tester performs a full exploration,
+        /// and does not stop when it finds a bug.
         /// </summary>
-        public bool FullExploration;
+        public bool PerformFullExploration;
 
         /// <summary>
         /// Depth bound, in terms of maximum scheduling steps
@@ -271,7 +272,7 @@ namespace Microsoft.PSharp.Utilities
             this.SchedulingIterations = 1;
             this.RandomSchedulingSeed = null;
 
-            this.FullExploration = false;
+            this.PerformFullExploration = false;
             this.DepthBound = 10000;
             this.ConsiderDepthBoundHitAsBug = false;
             this.PrioritySwitchBound = 0;

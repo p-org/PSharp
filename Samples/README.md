@@ -1,6 +1,6 @@
 P# Samples
 ====================
-A collection of samples that show how to use the P# framework to build or systematically test asynchronous, event-driven applications.
+A collection of samples that show how to use the P# framework to build and systematically test asynchronous, event-driven applications.
 
 ## Where to start
 If you are new to P#, please check out the **PSharpAsLibrary** or **PSharpAsLanguage** samples.
@@ -13,5 +13,5 @@ If you have any questions, please get in touch!
 - **PSharpAsLibrary**, which includes sample applications created using P# as a C# library.
 - **PSharpAsLanguage**, which includes sample applications created using the high-level syntax of P#.
 - **Distributed**, which includes sample P# applications that can run remotely on multiple processes.
-- **Umanaged**, which includes samples of using P# to systematically test unmanaged applications written in C++.
+- **Umanaged**, which includes samples of using P# to test unmanaged applications written in C++.
 - **Experimental**, which contain experimental features of P#, primarily to be used by the P# dev team.

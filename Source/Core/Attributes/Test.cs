@@ -17,8 +17,8 @@ using System;
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Attribute for declaring the entry point to systematically
-    /// test a P# program.
+    /// Attribute for declaring the entry point to
+    /// a P# program test.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method)]
     public sealed class Test : Attribute { }

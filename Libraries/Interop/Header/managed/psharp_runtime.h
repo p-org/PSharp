@@ -20,7 +20,7 @@
 #include <iostream>
 
 #using <Microsoft.PSharp.dll> as_friend
-#using <Microsoft.PSharp.SystematicTesting.dll> as_friend
+#using <Microsoft.PSharp.TestingServices.dll> as_friend
 
 namespace Microsoft
 {
