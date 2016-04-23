@@ -14,9 +14,9 @@
 
 namespace Microsoft.PSharp.Common
 {
-    internal class NoiseMachine : Machine
+    public class NoiseMachine : Machine
     {
-        internal class ConfigureEvent : Event
+        public class ConfigureEvent : Event
         {
             public MachineId Sender;
             public int Duration;
@@ -29,7 +29,7 @@ namespace Microsoft.PSharp.Common
             }
         }
 
-        internal class Done : Event { }
+        public class Done : Event { }
         private class NoiseEvent : Event { }
 
         private MachineId Sender;
@@ -37,9 +37,9 @@ namespace Microsoft.PSharp.Common
 
         [Start]
         [OnEntry(nameof(InitOnEntry))]
-        class Init : MachineState { }
+        private class Init : MachineState { }
 
-        void InitOnEntry()
+        private void InitOnEntry()
         {
             this.Sender = (this.ReceivedEvent as ConfigureEvent).Sender;
             this.Duration = (this.ReceivedEvent as ConfigureEvent).Duration;
@@ -48,9 +48,9 @@ namespace Microsoft.PSharp.Common
 
         [OnEntry(nameof(ActiveOnEntry))]
         [OnEventGotoState(typeof(NoiseEvent), typeof(Active))]
-        class Active : MachineState { }
+        private class Active : MachineState { }
 
-        void ActiveOnEntry()
+        private void ActiveOnEntry()
         {
             this.Send(this.Id, new NoiseEvent());
             this.Duration--;
