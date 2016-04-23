@@ -466,7 +466,7 @@ namespace Microsoft.PSharp.TestingServices
 
             if (this.ExploredSchedules > 0)
             {
-                IO.PrintLine("... Found {0} % buggy schedules.",
+                IO.PrintLine("... Found {0}% buggy schedules.",
                     (this.NumOfFoundBugs * 100 / this.ExploredSchedules));
                 IO.PrintLine("... Instrumented {0} scheduling point{1} (on last iteration).",
                     this.ExploredDepth, this.ExploredDepth == 1 ? "" : "s");
