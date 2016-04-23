@@ -262,14 +262,21 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
                 IO.Debug("<PCTDebug> Detected new machine '{0}({1})' at index '{2}'.",
                     mi.Machine, mi.Machine.Id.MVal, mIndex);
             }
-            
+
             if (this.PriorityChangePoints.Contains(this.ExploredSteps))
             {
-                var priority = this.GetHighestPriorityEnabledMachine(choices);
-                this.PrioritizedMachines.Remove(priority);
-                this.PrioritizedMachines.Add(priority);
-                IO.PrintLine("<PCTLog> Machine '{0}({1})' changes to lowest priority.",
-                    priority.Type, priority.MVal);
+                if (choices.Count == 1)
+                {
+                    this.MovePriorityChangePointForward();
+                }
+                else
+                {
+                    var priority = this.GetHighestPriorityEnabledMachine(choices);
+                    this.PrioritizedMachines.Remove(priority);
+                    this.PrioritizedMachines.Add(priority);
+                    IO.PrintLine("<PCTLog> Machine '{0}({1})' changes to lowest priority.",
+                        priority.Type, priority.MVal);
+                }
             }
 
             var prioritizedMachine = this.GetHighestPriorityEnabledMachine(choices);
@@ -315,6 +322,24 @@ namespace Microsoft.PSharp.SystematicTesting.Scheduling
             }
 
             return prioritizedMachine;
+        }
+
+        /// <summary>
+        /// Moves the current priority change point forward. This is a useful
+        /// optimization when a priority change point is assigned in either a
+        /// sequential execution or a nondeterministic choice.
+        /// </summary>
+        private void MovePriorityChangePointForward()
+        {
+            this.PriorityChangePoints.Remove(this.ExploredSteps);
+            var newPriorityChangePoint = this.ExploredSteps + 1;
+            while (this.PriorityChangePoints.Contains(newPriorityChangePoint))
+            {
+                newPriorityChangePoint++;
+            }
+
+            this.PriorityChangePoints.Add(newPriorityChangePoint);
+            IO.Debug("<PCTDebug> Moving priority change to '{0}'.", newPriorityChangePoint);
         }
 
         #endregion
