@@ -16,12 +16,12 @@ namespace Microsoft.PSharp.Common
 {
     public class NoiseMachine : Machine
     {
-        public class ConfigureEvent : Event
+        public class Configure : Event
         {
             public MachineId Sender;
             public int Duration;
 
-            public ConfigureEvent(MachineId sender, int duration)
+            public Configure(MachineId sender, int duration)
                 : base()
             {
                 this.Sender = sender;
@@ -41,8 +41,8 @@ namespace Microsoft.PSharp.Common
 
         private void InitOnEntry()
         {
-            this.Sender = (this.ReceivedEvent as ConfigureEvent).Sender;
-            this.Duration = (this.ReceivedEvent as ConfigureEvent).Duration;
+            this.Sender = (this.ReceivedEvent as Configure).Sender;
+            this.Duration = (this.ReceivedEvent as Configure).Duration;
             this.Goto(typeof(Active));
         }
 
