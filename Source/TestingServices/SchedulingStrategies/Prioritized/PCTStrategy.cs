@@ -196,9 +196,16 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
             this.PrioritizedMachines.Clear();
             this.PriorityChangePoints.Clear();
-            for (int idx = 0; idx < this.BugDepth - 1; idx++)
+
+            var range = new List<int>();
+            for (int idx = 0; idx < this.MaxExploredSteps; idx++)
             {
-                this.PriorityChangePoints.Add(this.Random.Next(this.MaxExploredSteps));
+                range.Add(idx);
+            }
+
+            foreach (int point in this.Shuffle(range).Take(this.BugDepth))
+            {
+                this.PriorityChangePoints.Add(point);
             }
         }
 
@@ -322,6 +329,26 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             }
 
             return prioritizedMachine;
+        }
+
+        /// <summary>
+        /// Shuffles the specified list using the
+        /// Fisher-Yates algorithm.
+        /// </summary>
+        /// <param name="list">IList</param>
+        /// <returns>IList</returns>
+        private IList<int> Shuffle(IList<int> list)
+        {
+            var result = new List<int>(list);
+            for (int idx = result.Count - 1; idx >= 1; idx--)
+            {
+                int point = this.Random.Next(this.MaxExploredSteps);
+                int temp = result[idx];
+                result[idx] = result[point];
+                result[point] = temp;
+            }
+
+            return result;
         }
 
         /// <summary>
