@@ -164,7 +164,7 @@ namespace OfflineRaces
                     {
                         //Deserialize thread traces
                         //Open the file written above and read values from it.
-                        Console.WriteLine(fileName);
+
                         Stream stream = File.Open(fileName, FileMode.Open);
                         BinaryFormatter bformatter = new BinaryFormatter();
                         List<ThreadTrace> tt = (List<ThreadTrace>)bformatter.Deserialize(stream);
@@ -178,7 +178,9 @@ namespace OfflineRaces
                     }
 
                     string[] mFileEntries = Directory.GetFiles(dirName, "*rtTrace*");
-
+                    vcCount = mFileEntries.Count() + 5;
+                    //TODO: fix this
+                    /*
                     foreach (string fileName in mFileEntries)
                     {
                         //chain decomposition
@@ -187,7 +189,7 @@ namespace OfflineRaces
                             vcCount = tc;
                     }
                     vcCount = vcCount + 1;
-
+                    */
                     foreach (string fileName in mFileEntries)
                     {
                         Stream stream = File.Open(fileName, FileMode.Open);
@@ -200,11 +202,14 @@ namespace OfflineRaces
                     }
 
                     updateGraphCrossEdges();
-                    Console.WriteLine("before pruning: " + cGraph.VertexCount);
-                    pruneGraph();
-                    Console.WriteLine("after pruning: " + cGraph.VertexCount);
-                    //cPrintGraph();
+                    Console.WriteLine("before pruning: " + cGraph.VertexCount + " " + cGraph.EdgeCount);
                     Console.WriteLine("Graph construction time: " + swatch.Elapsed.TotalSeconds + "s");
+                    swatch.Restart();
+
+                    pruneGraph();
+                    Console.WriteLine("after pruning: " + cGraph.VertexCount + " " + cGraph.EdgeCount);
+                    //cPrintGraph();
+                    Console.WriteLine("Graph prune time: " + swatch.Elapsed.TotalSeconds + "s");
                     swatch.Restart();
 
                     updateVectorsT();
@@ -302,8 +307,9 @@ namespace OfflineRaces
                     }
                     catch (Exception)
                     {
+                        //TODO: check correctness
                         //In case entry and exit functions not defined.   
-                        Console.WriteLine("Skipping entry/exit actions: " + mt.machineID + " " + mt.actionID + " " + mt.actionName);          
+                        //Console.WriteLine("Skipping entry/exit actions: " + mt.machineID + " " + mt.actionID + " " + mt.actionName);          
                         continue;
                     }
 
@@ -509,8 +515,8 @@ namespace OfflineRaces
                         {
                             Node to = toEdge.trg;
                             cGraph.AddEdge(new Edge(from, to));
-                            cGraph.RemoveVertex(u);
                         }
+                        cGraph.RemoveVertex(u);
                     }
                 }
             }
@@ -578,6 +584,8 @@ namespace OfflineRaces
 
         static void updateVectorsT()
         {
+            if (cGraph.VertexCount == 0)
+                return;
             BidirectionalGraph<Node, Edge> topoGraph = cGraph.Clone(); 
 
             while (topoGraph.VertexCount > 0)
@@ -718,6 +726,9 @@ namespace OfflineRaces
         static void detectRacesFast()
         {
             Console.WriteLine("\nDETECTING RACES FAST");
+
+            if (cGraph.VertexCount == 0)
+                return;
 
             List<Tuple<cActBegin, cActBegin>> checkRaces = new List<Tuple<cActBegin, cActBegin>>();
             //List<Tuple<cActBegin, cActBegin>> pathExists = new List<Tuple<cActBegin, cActBegin>>();

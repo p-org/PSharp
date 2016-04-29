@@ -143,6 +143,7 @@ namespace Microsoft.PSharp
             OfflineRaces.Program.findRaces();
             Console.WriteLine("Offline time with compressed graph: " + Profiler.Results() + "s");
             Profiler.StopMeasuringExecutionTime();
+
         }
 
         /// <summary>
@@ -172,7 +173,7 @@ namespace Microsoft.PSharp
             var ex = (Exception)args.ExceptionObject;
             IO.Debug(ex.Message);
             IO.Debug(ex.StackTrace);
-            ErrorReporter.ReportAndExit("internal failure: {0}: {1}", ex.GetType().ToString(), ex.Message);
+            ErrorReporter.ReportAndExit("internal failure: {0}: {1}, {2}", ex.GetType().ToString(), ex.Message, ex.StackTrace);
         }
     }
 }

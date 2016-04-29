@@ -151,7 +151,10 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
             {
                 //Hack
                 if (callStack.Peek().ToString().Contains("Monitor"))
+                {
+                    Console.WriteLine("Load in monitor: " + callStack.Peek().ToString());
                     return;
+                }
                 //end hack
 
                 ThreadTrace obj = thTrace[thTrace.Count - 1];
@@ -248,7 +251,10 @@ namespace Microsoft.PSharp.DynamicRaceDetection.AllCallbacks
             {
                 //Hack
                 if (callStack.Peek().ToString().Contains("Monitor"))
+                {
+                    Console.WriteLine("store in monitor: " + callStack.Peek().ToString());
                     return;
+                }
                 //end hack
 
                 //trace.Add("got object handle: " + objH + " offset: " + objO);

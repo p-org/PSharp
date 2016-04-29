@@ -18,7 +18,7 @@ namespace German
             var configuration = Configuration.Create();
             configuration.CheckDataRaces = true;
             configuration.SuppressTrace = true;
-            configuration.Verbose = 2;
+            //configuration.Verbose = 2;
             configuration.SchedulingIterations = 1;
             configuration.SchedulingStrategy = SchedulingStrategy.Random;
 
