@@ -61,7 +61,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Is machine waiting to receive an event.
         /// </summary>
-        public bool IsWaiting
+        public bool IsWaitingToReceive
         {
             get; internal set;
         }
@@ -112,7 +112,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.Id = id;
             this.Machine = machine;
             this.IsEnabled = true;
-            this.IsWaiting = false;
+            this.IsWaitingToReceive = false;
             this.IsBlocked = false;
             this.IsActive = false;
             this.HasStarted = false;
@@ -156,6 +156,18 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         public override int GetHashCode()
         {
             return this.Id.GetHashCode();
+        }
+
+        /// <summary>
+        /// Returns a string that represents the current machine id.
+        /// </summary>
+        /// <returns>string</returns>
+        public override string ToString()
+        {
+            var text = $"Task {this.Id} of machine {this.Machine.GetType()}({this.Machine.Id.MVal})::" +
+                $"enabled[{this.IsEnabled}], waiting[{this.IsWaitingToReceive}], blocked[{this.IsBlocked}], " +
+                $"active[{this.IsActive}], started[{this.HasStarted}], completed[{this.IsCompleted}]";
+            return text;
         }
 
         #endregion

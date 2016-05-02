@@ -572,9 +572,6 @@ namespace Microsoft.PSharp.TestingServices
         {
             this.BugFinder.NotifyTaskBlockedOnEvent(Task.CurrentId);
             this.BugFinder.Schedule();
-
-            this.Assert(!machine.IsWaiting, "Machine {0}({1}) is waiting for an event that will not be received.",
-                machine, machine.Id.Value);
         }
 
         /// <summary>

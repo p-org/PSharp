@@ -99,10 +99,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         public bool TryGetNext(out MachineInfo next, IList<MachineInfo> choices, MachineInfo current)
         {
             var availableMachines = choices.Where(
-                mi => mi.IsEnabled && !mi.IsBlocked && !mi.IsWaiting).ToList();
+                mi => mi.IsEnabled && !mi.IsBlocked && !mi.IsWaitingToReceive).ToList();
             if (availableMachines.Count == 0)
             {
-                availableMachines = choices.Where(m => m.IsWaiting).ToList();
+                availableMachines = choices.Where(m => m.IsWaitingToReceive).ToList();
                 if (availableMachines.Count == 0)
                 {
                     next = null;
