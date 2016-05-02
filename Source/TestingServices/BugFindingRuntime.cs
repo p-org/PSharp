@@ -593,7 +593,7 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             this.BugFinder.NotifyTaskReceivedEvent(machine);
-            machine.IsWaiting = false;
+            machine.IsWaitingToReceive = false;
         }
 
         /// <summary>

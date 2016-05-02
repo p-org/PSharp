@@ -83,7 +83,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Is machine waiting to receive an event.
         /// </summary>
-        internal bool IsWaiting;
+        internal bool IsWaitingToReceive;
 
         /// <summary>
         /// Inbox of the state-machine. Incoming events are queued here.
@@ -148,7 +148,7 @@ namespace Microsoft.PSharp
 
             this.IsRunning = true;
             this.IsHalted = false;
-            this.IsWaiting = false;
+            this.IsWaitingToReceive = false;
         }
 
         #endregion
@@ -770,14 +770,14 @@ namespace Microsoft.PSharp
 
                     base.Runtime.Log("<ReceiveLog> Machine '{0}({1})' is waiting on events:{2}.",
                         this, base.Id.MVal, events);
-                    this.IsWaiting = true;
+                    this.IsWaitingToReceive = true;
                 }
             }
 
-            if (this.IsWaiting)
+            if (this.IsWaitingToReceive)
             {
                 base.Runtime.NotifyWaitEvent(this);
-                this.IsWaiting = false;
+                this.IsWaitingToReceive = false;
             }
             
             this.HandleReceivedEvent();

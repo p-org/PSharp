@@ -541,7 +541,7 @@ namespace Microsoft.PSharp
         {
             lock (machine)
             {
-                while (machine.IsWaiting)
+                while (machine.IsWaitingToReceive)
                 {
                     System.Threading.Monitor.Wait(machine);
                 }
@@ -558,7 +558,7 @@ namespace Microsoft.PSharp
             lock (machine)
             {
                 System.Threading.Monitor.Pulse(machine);
-                machine.IsWaiting = false;
+                machine.IsWaitingToReceive = false;
             }
         }
 

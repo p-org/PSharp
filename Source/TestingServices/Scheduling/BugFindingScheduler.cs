@@ -330,12 +330,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         internal void NotifyTaskBlockedOnEvent(int? id)
         {
             var machineInfo = this.TaskMap[(int)id];
+            machineInfo.IsWaitingToReceive = true;
 
             IO.Debug($"<ScheduleDebug> Task {machineInfo.Id} of machine " +
                 $"{machineInfo.Machine.GetType()}({machineInfo.Machine.Id.MVal}) " +
                 "is waiting to receive an event.");
-
-            machineInfo.IsWaitingToReceive = true;
         }
 
         /// <summary>
@@ -344,13 +343,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <param name="machine">Machine</param>
         internal void NotifyTaskReceivedEvent(AbstractMachine machine)
         {
-            var machineInfo = this.GetInfoFromMachine(machine);
+            var machineInfo = this.MachineInfos.First(mi => mi.Machine.Equals(machine) && !mi.IsCompleted);
+            machineInfo.IsWaitingToReceive = false;
 
             IO.Debug($"<ScheduleDebug> Task {machineInfo.Id} of machine " +
                 $"{machineInfo.Machine.GetType()}({machineInfo.Machine.Id.MVal}) " +
                 "received an event and unblocked.");
-
-            machineInfo.IsWaitingToReceive = false;
         }
 
         /// <summary>
@@ -444,26 +442,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         #endregion
 
         #region protected methods
-
-        /// <summary>
-        /// Returns the info of the given machine.
-        /// </summary>
-        /// <param name="machine">Machine</param>
-        /// <returns>TaskId</returns>
-        protected MachineInfo GetInfoFromMachine(AbstractMachine machine)
-        {
-            MachineInfo machineInfo = null;
-            foreach (var mi in this.MachineInfos)
-            {
-                if (mi.Machine.Equals(machine))
-                {
-                    machineInfo = mi;
-                    break;
-                }
-            }
-
-            return machineInfo;
-        }
 
         /// <summary>
         /// Kills any remaining machines at the end of the schedule.
