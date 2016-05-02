@@ -70,8 +70,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             // Check if the scheduling steps bound has been reached.
             if (this.Strategy.HasReachedDepthBound())
             {
-                IO.Debug("<ScheduleDebug> Scheduling steps bound of {0} reached.",
-                    this.Strategy.GetDepthBound());
+                IO.Debug("<ScheduleDebug> Scheduling steps bound of " +
+                    $"{this.Strategy.GetDepthBound()} reached.");
                 this.KillRemainingMachines();
                 throw new OperationCanceledException();
             }
@@ -102,8 +102,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
                 if (!task.IsBlocked)
                 {
-                    IO.Debug("<ScheduleDebug> Unblocked task {0} of " +
-                        "machine {1}({2}).", task.Id, task.Machine.GetType(), task.Machine.Id.MVal);
+                    IO.Debug($"<ScheduleDebug> Unblocked task {task.Id} of machine " +
+                        $"{task.Machine.GetType()}({task.Machine.Id.MVal}).");
                 }
             }
 
@@ -118,7 +118,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             }
             else
             {
-                IO.Debug("<ScheduleDebug> Unable to schedule task {0}.", id);
+                IO.Debug($"<ScheduleDebug> Unable to schedule task {id}.");
                 this.KillRemainingMachines();
                 throw new OperationCanceledException();
             }
@@ -138,8 +138,16 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 base.Runtime.StateCache.CaptureState(base.Runtime.ProgramTrace.Peek());
             }
 
-            IO.Debug("<ScheduleDebug> Schedule task {0} of machine {1}({2}).",
-                next.Id, next.Machine.GetType(), next.Machine.Id.MVal);
+            IO.Debug($"<ScheduleDebug> Schedule task {next.Id} of machine " +
+                $"{next.Machine.GetType()}({next.Machine.Id.MVal}).");
+
+            if (next.IsWaitingToReceive)
+            {
+                string message = IO.Format("Livelock detected. Machine " +
+                    $"'{next.Machine.GetType()}({next.Machine.Id.MVal})' is " +
+                    "waiting for an event, but no other machine is enabled.");
+                base.Runtime.BugFinder.NotifyAssertionFailure(message, true);
+            }
 
             if (machineInfo != next)
             {
@@ -159,11 +167,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     
                     while (!machineInfo.IsActive)
                     {
-                        IO.Debug("<ScheduleDebug> Sleep task {0} of machine {1}({2}).",
-                            machineInfo.Id, machineInfo.Machine.GetType(), machineInfo.Machine.Id.MVal);
+                        IO.Debug($"<ScheduleDebug> Sleep task {machineInfo.Id} of machine " +
+                            $"{machineInfo.Machine.GetType()}({machineInfo.Machine.Id.MVal}).");
                         System.Threading.Monitor.Wait(machineInfo);
-                        IO.Debug("<ScheduleDebug> Wake up task {0} of machine {1}({2}).",
-                            machineInfo.Id, machineInfo.Machine.GetType(), machineInfo.Machine.Id.MVal);
+                        IO.Debug($"<ScheduleDebug> Wake up task {machineInfo.Id} of machine " +
+                            $"{machineInfo.Machine.GetType()}({machineInfo.Machine.Id.MVal}).");
                     }
 
                     if (!machineInfo.IsEnabled)
@@ -183,8 +191,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             var machineInfo = new MachineInfo(id, machine);
 
-            IO.Debug("<ScheduleDebug> Created task {0} for machine {1}({2}).",
-                machineInfo.Id, machineInfo.Machine.GetType(), machineInfo.Machine.Id.MVal);
+            IO.Debug($"<ScheduleDebug> Created task {machineInfo.Id} for machine " +
+                $"{machineInfo.Machine.GetType()}({machineInfo.Machine.Id.MVal}).");
 
             if (base.MachineInfos.Count == 0)
             {
@@ -221,8 +229,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 machineInfo = this.WrappedTaskMap[(int)id];
             }
 
-            IO.Debug("<ScheduleDebug> Started task {0} of machine {1}({2}).",
-                machineInfo.Id, machineInfo.Machine.GetType(), machineInfo.Machine.Id.MVal);
+            IO.Debug($"<ScheduleDebug> Started task {machineInfo.Id} of machine " +
+                $"{machineInfo.Machine.GetType()}({machineInfo.Machine.Id.MVal}).");
 
             lock (machineInfo)
             {
@@ -230,11 +238,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 System.Threading.Monitor.PulseAll(machineInfo);
                 while (!machineInfo.IsActive)
                 {
-                    IO.Debug("<ScheduleDebug> Sleep task {0} of machine {1}({2}).",
-                        machineInfo.Id, machineInfo.Machine.GetType(), machineInfo.Machine.Id.MVal);
+                    IO.Debug($"<ScheduleDebug> Sleep task {machineInfo.Id} of machine " +
+                        $"{machineInfo.Machine.GetType()}({machineInfo.Machine.Id.MVal}).");
                     System.Threading.Monitor.Wait(machineInfo);
-                    IO.Debug("<ScheduleDebug> Wake up task {0} of machine {1}({2}).",
-                        machineInfo.Id, machineInfo.Machine.GetType(), machineInfo.Machine.Id.MVal);
+                    IO.Debug($"<ScheduleDebug> Wake up task {machineInfo.Id} of machine " +
+                        $"{machineInfo.Machine.GetType()}({machineInfo.Machine.Id.MVal}).");
                 }
 
                 if (!machineInfo.IsEnabled)
@@ -259,8 +267,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             
             var machineInfo = this.WrappedTaskMap[(int)id];
 
-            IO.Debug("<ScheduleDebug> Blocked task {0} of machine {1}({2}).",
-                machineInfo.Id, machineInfo.Machine.GetType(), machineInfo.Machine.Id.MVal);
+            IO.Debug($"<ScheduleDebug> Blocked task {machineInfo.Id} of machine " +
+                $"{machineInfo.Machine.GetType()}({machineInfo.Machine.Id.MVal}).");
 
             var blockingWrappedTasks = new List<MachineInfo>();
             var blockingUnwrappedTasks = new List<Task>();
@@ -296,8 +304,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             
             var machineInfo = base.TaskMap[(int)id];
 
-            IO.Debug("<ScheduleDebug> Completed task {0} of machine {1}({2}).",
-                machineInfo.Id, machineInfo.Machine.GetType(), machineInfo.Machine.Id.MVal);
+            IO.Debug($"<ScheduleDebug> Completed task {machineInfo.Id} of machine " +
+                $"{machineInfo.Machine.GetType()}({machineInfo.Machine.Id.MVal}).");
 
             machineInfo.IsEnabled = false;
             machineInfo.IsCompleted = true;
@@ -312,16 +320,16 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                         mi.BlockingWrappedTasks.Clear();
                         mi.BlockingUnwrappedTasks.Clear();
                         mi.IsBlocked = false;
-                        IO.Debug("<ScheduleDebug> Unblocked task {0} of " +
-                            "machine {1}({2}).", mi.Id, mi.Machine.GetType(), mi.Machine.Id.MVal);
+                        IO.Debug($"<ScheduleDebug> Unblocked task {mi.Id} of machine " +
+                            $"{mi.Machine.GetType()}({mi.Machine.Id.MVal}).");
                     }
                 }
             }
 
             this.Schedule();
 
-            IO.Debug("<ScheduleDebug> Exit task {0} of machine {1}({2}).",
-                machineInfo.Id, machineInfo.Machine.GetType(), machineInfo.Machine.Id.MVal);
+            IO.Debug($"<ScheduleDebug> Exit task {machineInfo.Id} of machine " +
+                $"{machineInfo.Machine.GetType()}({machineInfo.Machine.Id.MVal}).");
         }
 
         #endregion
