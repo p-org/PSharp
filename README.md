@@ -18,6 +18,8 @@ Optional: Get the [Visual Studio 2015 SDK](https://www.microsoft.com/en-us/downl
 ## How to use
 A good way to start is by reading the [manual](https://github.com/p-org/PSharp/blob/master/Docs/Manual/manual.pdf) (which is not feature complete yet, but please also feel free to contact the P# dev team with specific questions).
 
+Next, feel free to check out the P# [samples](https://github.com/p-org/PSharp/tree/master/Samples).
+
 ## Compilation
 The P# compiler can be used to parse a P# program, rewrite it to C# and finally compile it to an executable. To invoke the compiler use the following command:
 
