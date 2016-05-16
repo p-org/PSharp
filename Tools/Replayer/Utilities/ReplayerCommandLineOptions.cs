@@ -44,6 +44,13 @@ namespace Microsoft.PSharp.Utilities
             }
             else if (option.ToLower().StartsWith("/trace:") && option.Length > 7)
             {
+                string extension = System.IO.Path.GetExtension(option.Substring(7));
+                if (!extension.Equals(".pstrace"))
+                {
+                    ErrorReporter.ReportAndExit("Please give a valid trace file " +
+                        "'/trace:[x]', where [x] has extension '.pstrace'.");
+                }
+
                 base.Configuration.TraceFile = option.Substring(7);
             }
             else if (option.ToLower().Equals("/attach-debugger") ||
@@ -80,7 +87,14 @@ namespace Microsoft.PSharp.Utilities
         {
             if (base.Configuration.AssemblyToBeAnalyzed.Equals(""))
             {
-                ErrorReporter.ReportAndExit("Please give a valid path to a P# program's dll.");
+                ErrorReporter.ReportAndExit("Please give a valid path to a P# " +
+                    "program's dll using '/test:[x]'.");
+            }
+
+            if (base.Configuration.TraceFile.Equals(""))
+            {
+                ErrorReporter.ReportAndExit("Please give a valid path to a P# trace " +
+                    "file using '/trace:[x]', where [x] has extension '.pstrace'.");
             }
         }
 

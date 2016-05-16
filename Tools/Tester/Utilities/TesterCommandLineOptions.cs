@@ -232,7 +232,8 @@ namespace Microsoft.PSharp.Utilities
         {
             if (base.Configuration.AssemblyToBeAnalyzed.Equals(""))
             {
-                ErrorReporter.ReportAndExit("Please give a valid path to a P# program's dll.");
+                ErrorReporter.ReportAndExit("Please give a valid path to a P# " +
+                    "program's dll using '/test:[x]'.");
             }
 
             if (base.Configuration.SchedulingStrategy != SchedulingStrategy.Interactive &&
