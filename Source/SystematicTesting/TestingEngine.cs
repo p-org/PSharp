@@ -258,7 +258,8 @@ namespace Microsoft.PSharp.SystematicTesting
 
             if (this.Configuration.EnableVisualization)
             {
-                this.Visualizer = new PSharpProgramVisualizer();
+                //this.Visualizer = new PSharpProgramVisualizer();
+                this.Visualizer = new PSharpDgmlVisualizer("trace.dgml");
             }
 
             this.HasRedirectedConsoleOutput = false;
@@ -323,11 +324,6 @@ namespace Microsoft.PSharp.SystematicTesting
 
                     // Wait for test to terminate.
                     runtime.WaitMachines();
-
-                    if (this.Configuration.EnableVisualization)
-                    {
-                        this.Visualizer.Refresh();
-                    }
 
                     // Checks for any liveness property violations. Requires
                     // that the program has terminated and no safety property

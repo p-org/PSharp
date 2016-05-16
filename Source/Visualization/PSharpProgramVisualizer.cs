@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml;
 
 using Microsoft.Msagl.Drawing;
 using Microsoft.Msagl.GraphViewerGdi;
@@ -437,5 +438,140 @@ namespace Microsoft.PSharp.Visualization
                     break;
             }
         }
+    }
+
+
+    class PSharpDgmlVisualizer : IProgramVisualizer
+    {
+        private readonly string logfile;
+        private XmlTextWriter writer;
+
+        // summary of the P# program
+        Dictionary<string, HashSet<string>> machineToStates;
+        HashSet<Transition> transitions;
+
+        public PSharpDgmlVisualizer(string logfile)
+        {
+            this.logfile = logfile;
+            this.writer = null;
+
+            this.machineToStates = new Dictionary<string, HashSet<string>>();
+            this.transitions = new HashSet<Transition>();
+        }
+
+        public void AddTransition(string machineOrigin, string stateOrigin, string edgeLabel, string machineTarget, string stateTarget)
+        {
+            AddState(machineOrigin, stateOrigin);
+            AddState(machineTarget, stateTarget);
+            transitions.Add(new Transition(machineOrigin, stateOrigin, edgeLabel, machineTarget, stateTarget));
+        }
+
+        public void Refresh()
+        {
+            writer = new XmlTextWriter(logfile, System.Text.Encoding.UTF8);
+            Dump();
+            writer.Close();
+        }
+
+        public Task StartAsync()
+        {
+            return Task.CompletedTask;
+        }
+
+        ~PSharpDgmlVisualizer()
+        {
+            Refresh();
+        }
+
+
+        /// private methods
+        /// 
+
+        void Dump()
+        {
+            writer.WriteStartDocument(true);
+            writer.Formatting = Formatting.Indented;
+            writer.Indentation = 2;
+
+            // <DirectedGraph>
+            writer.WriteStartElement("DirectedGraph", @"http://schemas.microsoft.com/vs/2009/dgml");
+
+            // Nodes
+            writer.WriteStartElement("Nodes");
+
+            // iterate machines
+            foreach (var machine in machineToStates.Keys)
+            {
+                writer.WriteStartElement("Node");
+                writer.WriteAttributeString("Id", machine);
+                writer.WriteAttributeString("Group", "Expanded");
+                writer.WriteEndElement();
+            }
+
+            // iterate states
+            foreach (var tup in machineToStates)
+            {
+                var machine = tup.Key;
+                foreach (var state in tup.Value)
+                {
+                    writer.WriteStartElement("Node");
+                    writer.WriteAttributeString("Id", GetStateId(machine, state));
+                    writer.WriteAttributeString("Label", state);
+                    writer.WriteEndElement();
+                }
+            }
+
+            // Nodes
+            writer.WriteEndElement();
+
+            // Links
+            writer.WriteStartElement("Links");
+
+            // iterate states
+            foreach (var tup in machineToStates)
+            {
+                var machine = tup.Key;
+                foreach (var state in tup.Value)
+                {
+                    writer.WriteStartElement("Link");
+                    writer.WriteAttributeString("Source", machine);
+                    writer.WriteAttributeString("Target", GetStateId(machine, state));
+                    writer.WriteAttributeString("Category", "Contains");
+                    writer.WriteEndElement();
+                }
+            }
+
+
+            // iterate transitions
+            foreach (var transition in transitions)
+            {
+                writer.WriteStartElement("Link");
+                writer.WriteAttributeString("Source", GetStateId(transition.MachineOrigin, transition.StateOrigin));
+                writer.WriteAttributeString("Target", GetStateId(transition.MachineTarget, transition.StateTarget));
+                writer.WriteAttributeString("Label", transition.EdgeLabel);
+                writer.WriteEndElement();
+            }
+
+            // Links
+            writer.WriteEndElement();
+
+            // </DirectedGraph>
+            writer.WriteEndElement();
+
+
+            writer.WriteEndDocument();
+        }
+
+        string GetStateId(string machine, string state)
+        {
+            return string.Format("{0}::{1}", state, machine);
+        }
+        void AddState(string machine, string state)
+        {
+            if (!machineToStates.ContainsKey(machine))
+                machineToStates.Add(machine, new HashSet<string>());
+            machineToStates[machine].Add(state);
+        }
+
     }
 }
