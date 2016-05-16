@@ -105,6 +105,11 @@ namespace Microsoft.PSharp.Utilities
         public string AssemblyToBeAnalyzed;
 
         /// <summary>
+        /// The trace file to be replayed.
+        /// </summary>
+        public string TraceFile;
+
+        /// <summary>
         /// Scheduling strategy to use with the P# tester.
         /// </summary>
         public SchedulingStrategy SchedulingStrategy;
@@ -158,6 +163,11 @@ namespace Microsoft.PSharp.Utilities
         /// Safety prefix bound. By default it is 0.
         /// </summary>
         public int SafetyPrefixBound;
+
+        /// <summary>
+        /// Attaches the debugger during trace replay.
+        /// </summary>
+        public bool AttachDebugger;
 
         /// <summary>
         /// If true, then the P# tester will try to schedule
@@ -267,6 +277,7 @@ namespace Microsoft.PSharp.Utilities
             this.DoStateTransitionAnalysis = false;
 
             this.AssemblyToBeAnalyzed = "";
+            this.TraceFile = "";
 
             this.SchedulingStrategy = SchedulingStrategy.Random;
             this.SchedulingIterations = 1;
@@ -280,6 +291,7 @@ namespace Microsoft.PSharp.Utilities
             this.CoinFlipBound = 0;
             this.SafetyPrefixBound = 0;
 
+            this.AttachDebugger = false;
             this.ScheduleIntraMachineConcurrency = false;
             this.CacheProgramState = false;
             this.BoundOperations = false;

@@ -63,6 +63,28 @@ namespace Microsoft.PSharp.TestingServices.Exploration
             this.Steps = new List<TraceStep>();
         }
 
+        internal Trace(string[] traceDump)
+        {
+            this.Steps = new List<TraceStep>();
+
+            foreach (var step in traceDump)
+            {
+                if (step.Equals("True"))
+                {
+                    this.AddNondeterministicChoice(true);
+                }
+                else if (step.Equals("False"))
+                {
+                    this.AddNondeterministicChoice(false);
+                }
+                else
+                {
+                    string[] machineId = step.TrimStart('[').TrimEnd(']').Split(',');
+                    this.AddSchedulingChoice(machineId[0], int.Parse(machineId[1]));
+                }
+            }
+        }
+
         /// <summary>
         /// Adds a scheduling choice.
         /// </summary>
@@ -70,6 +92,18 @@ namespace Microsoft.PSharp.TestingServices.Exploration
         internal void AddSchedulingChoice(AbstractMachine scheduledMachine)
         {
             var traceStep = TraceStep.CreateSchedulingChoice(this.Count, scheduledMachine);
+            this.Push(traceStep);
+        }
+
+        /// <summary>
+        /// Adds a scheduling choice.
+        /// </summary>
+        /// <param name="scheduledMachineType">Scheduled machine type</param>
+        /// <param name="scheduledMachineId">Scheduled machine id</param>
+        internal void AddSchedulingChoice(string scheduledMachineType, int scheduledMachineId)
+        {
+            var traceStep = TraceStep.CreateSchedulingChoice(this.Count,
+                scheduledMachineType, scheduledMachineId);
             this.Push(traceStep);
         }
 
@@ -150,18 +184,18 @@ namespace Microsoft.PSharp.TestingServices.Exploration
         #region private methods
 
         /// <summary>
-        /// Pushes a new program state to the trace.
+        /// Pushes a new step to the trace.
         /// </summary>
-        /// <param name="state">Program state</param>
-        private void Push(TraceStep state)
+        /// <param name="step">TraceStep</param>
+        private void Push(TraceStep step)
         {
             if (this.Count > 0)
             {
-                this.Steps[this.Count - 1].Next = state;
-                state.Previous = this.Steps[this.Count - 1];
+                this.Steps[this.Count - 1].Next = step;
+                step.Previous = this.Steps[this.Count - 1];
             }
 
-            this.Steps.Add(state);
+            this.Steps.Add(step);
         }
 
         #endregion

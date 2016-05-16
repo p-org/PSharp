@@ -24,6 +24,10 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         Interactive = 0,
         /// <summary>
+        /// Replay scheduling.
+        /// </summary>
+        Replay,
+        /// <summary>
         /// Random scheduling.
         /// </summary>
         Random,

@@ -424,6 +424,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
             this.BugFound = true;
 
+            if (this.Runtime.Configuration.AttachDebugger)
+            {
+                System.Diagnostics.Debugger.Break();
+            }
+
             if (killTasks)
             {
                 this.Stop();

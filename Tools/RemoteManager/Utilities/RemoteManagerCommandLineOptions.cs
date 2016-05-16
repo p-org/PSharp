@@ -38,7 +38,7 @@ namespace Microsoft.PSharp.Remote
         #region protected methods
 
         /// <summary>
-        /// Parse the given option.
+        /// Parses the given option.
         /// </summary>
         /// <param name="option">Option</param>
         protected override void ParseOption(string option)

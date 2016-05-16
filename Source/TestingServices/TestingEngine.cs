@@ -18,8 +18,10 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
+using System.Text;
 using System.Threading.Tasks;
 
+using Microsoft.PSharp.TestingServices.Exploration;
 using Microsoft.PSharp.TestingServices.Scheduling;
 using Microsoft.PSharp.Utilities;
 using Microsoft.PSharp.Visualization;
@@ -141,7 +143,20 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>TestingEngine</returns>
         public TestingEngine Run()
         {
-            this.FindBugs();
+            Task task = this.CreateBugFindingTask();
+            this.Execute(task);
+            this.Report();
+            return this;
+        }
+
+        /// <summary>
+        /// Runs the P# testing engine in replay mode.
+        /// </summary>
+        /// <returns>TestingEngine</returns>
+        public TestingEngine Replay()
+        {
+            Task task = this.CreateBugReproductionTask();
+            this.Execute(task);
             this.Report();
             return this;
         }
@@ -222,6 +237,12 @@ namespace Microsoft.PSharp.TestingServices
                 this.Configuration.PerformFullExploration = false;
                 this.Configuration.Verbose = 2;
             }
+            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Replay)
+            {
+                string[] traceDump = File.ReadAllLines(this.Configuration.TraceFile);
+                Trace trace = new Trace(traceDump);
+                this.Strategy = new ReplayStrategy(this.Configuration, trace);
+            }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Random)
             {
                 this.Strategy = new RandomStrategy(this.Configuration);
@@ -280,17 +301,86 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Explores the P# program for bugs.
+        /// Executes the specified testing task.
         /// </summary>
-        private void FindBugs()
+        private void Execute(Task task)
         {
-            IO.PrintLine($"... Using '{this.Configuration.SchedulingStrategy}' strategy");
-
             Task visualizationTask = null;
             if (this.Configuration.EnableVisualization)
             {
                 visualizationTask = this.StartVisualizing();
             }
+
+            if (this.Configuration.AttachDebugger)
+            {
+                System.Diagnostics.Debugger.Launch();
+            }
+
+            this.Profiler.StartMeasuringExecutionTime();
+            task.Start();
+
+            try
+            {
+                if (this.Configuration.Timeout > 0)
+                {
+                    task.Wait(this.Configuration.Timeout * 1000);
+                }
+                else
+                {
+                    task.Wait();
+                }
+
+                if (this.Configuration.EnableVisualization)
+                {
+                    visualizationTask.Wait();
+                }
+            }
+            catch (AggregateException aex)
+            {
+                if (this.HasRedirectedConsoleOutput)
+                {
+                    this.ResetOutput();
+                }
+
+                aex.Handle((ex) =>
+                {
+                    IO.Debug(ex.Message);
+                    IO.Debug(ex.StackTrace);
+                    return true;
+                });
+
+                if (this.Configuration.ThrowInternalExceptions)
+                {
+                    throw aex;
+                }
+
+                ErrorReporter.ReportAndExit("Exception thrown during testing. Please use " +
+                    "/debug to print more information, and contact the developer team.");
+            }
+            finally
+            {
+                this.Profiler.StopMeasuringExecutionTime();
+            }
+        }
+
+        /// <summary>
+        /// Starts visualizing the P# program being tested,
+        /// and returns the visualization task.
+        /// </summary>
+        /// <returns>Task</returns>
+        private Task StartVisualizing()
+        {
+            Task visualizationTask = this.Visualizer.StartAsync();
+            return visualizationTask;
+        }
+
+        /// <summary>
+        /// Creates a bug-finding task.
+        /// </summary>
+        /// <returns>Task</returns>
+        private Task CreateBugFindingTask()
+        {
+            IO.PrintLine($"... Using '{this.Configuration.SchedulingStrategy}' strategy");
 
             Task task = new Task(() =>
             {
@@ -383,74 +473,98 @@ namespace Microsoft.PSharp.TestingServices
                     {
                         if (sw != null && !this.Configuration.SuppressTrace)
                         {
-                            this.PrintTrace(sw);
+                            this.PrintReadableTrace(sw);
+                            this.PrintReproducableTrace(runtime);
                         }
-                        
+
                         break;
                     }
                     else if (sw != null && this.Configuration.PrintTrace)
                     {
-                        this.PrintTrace(sw);
+                        this.PrintReadableTrace(sw);
+                        this.PrintReproducableTrace(runtime);
                     }
                 }
             });
 
-            this.Profiler.StartMeasuringExecutionTime();
-            task.Start();
+            return task;
+        }
 
-            try
-            {
-                if (this.Configuration.Timeout > 0)
+        /// <summary>
+        /// Creates a bug-reproduction task.
+        /// </summary>
+        /// <returns>Task</returns>
+        private Task CreateBugReproductionTask()
+        {
+            Task task = new Task(() =>
+            {   
+                var runtime = new PSharpBugFindingRuntime(this.Configuration,
+                    this.Strategy, this.Visualizer);
+
+                StringWriter sw = null;
+                if (this.Configuration.RedirectTestConsoleOutput &&
+                    this.Configuration.Verbose < 2)
                 {
-                    task.Wait(this.Configuration.Timeout * 1000);
+                    sw = this.RedirectConsoleOutput();
+                    this.HasRedirectedConsoleOutput = true;
+                }
+
+                // Start the test.
+                if (this.TestAction != null)
+                {
+                    this.TestAction(runtime);
                 }
                 else
                 {
-                    task.Wait();
+                    try
+                    {
+                        this.TestMethod.Invoke(null, new object[] { runtime });
+                    }
+                    catch (TargetInvocationException ex)
+                    {
+                        if (!(ex.InnerException is TaskCanceledException))
+                        {
+                            ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+                        }
+                    }
                 }
+
+                // Wait for test to terminate.
+                runtime.Wait();
 
                 if (this.Configuration.EnableVisualization)
                 {
-                    visualizationTask.Wait();
+                    this.Visualizer.Refresh();
                 }
-            }
-            catch (AggregateException aex)
-            {
+
+                // Checks for any liveness property violations. Requires
+                // that the program has terminated and no safety property
+                // violations have been found.
+                if (!runtime.BugFinder.BugFound)
+                {
+                    runtime.LivenessChecker.CheckLivenessAtTermination();
+                }
+
                 if (this.HasRedirectedConsoleOutput)
                 {
                     this.ResetOutput();
                 }
 
-                aex.Handle((ex) =>
-                {
-                    IO.Debug(ex.Message);
-                    IO.Debug(ex.StackTrace);
-                    return true;
-                });
+                this.ExploredSchedules++;
+                this.ExploredDepth = runtime.BugFinder.ExploredSteps;
 
-                if (this.Configuration.ThrowInternalExceptions)
+                if (runtime.BugFinder.BugFound)
                 {
-                    throw aex;
+                    this.NumOfFoundBugs++;
+                    this.BugReport = runtime.BugFinder.BugReport;
                 }
+                else
+                {
+                    this.BugReport = "";
+                }
+            });
 
-                ErrorReporter.ReportAndExit("Exception thrown during testing. Please use " +
-                    "/debug to print more information, and contact the developer team.");
-            }
-            finally
-            {
-                this.Profiler.StopMeasuringExecutionTime();
-            }
-        }
-
-        /// <summary>
-        /// Starts visualizing the P# program being tested,
-        /// and returns the visualization task.
-        /// </summary>
-        /// <returns>Task</returns>
-        private Task StartVisualizing()
-        {
-            Task visualizationTask = this.Visualizer.StartAsync();
-            return visualizationTask;
+            return task;
         }
 
         /// <summary>
@@ -481,22 +595,60 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Writes the trace in an output file.
+        /// Outputs a readable trace.
         /// </summary>
         /// <param name="sw">StringWriter</param>
-        private void PrintTrace(StringWriter sw)
+        private void PrintReadableTrace(StringWriter sw)
         {
             var name = Path.GetFileNameWithoutExtension(this.Assembly.Location);
-            var directory = Path.GetDirectoryName(this.Assembly.Location) +
+            var directoryPath = Path.GetDirectoryName(this.Assembly.Location) +
                 Path.DirectorySeparatorChar + "traces" + Path.DirectorySeparatorChar;
 
-            Directory.CreateDirectory(directory);
+            Directory.CreateDirectory(directoryPath);
 
-            var traces = Directory.GetFiles(directory, name + "*.txt");
-            var path = directory + name + "_" + traces.Length + ".txt";
+            var traces = Directory.GetFiles(directoryPath, name + "*.txt");
+            var path = directoryPath + name + "_" + traces.Length + ".txt";
 
             IO.PrintLine($"... Writing {path}");
             File.WriteAllText(path, sw.ToString());
+        }
+
+        /// <summary>
+        /// Outputs a reproducable trace.
+        /// </summary>
+        /// <param name="runtime">Runtime</param>
+        private void PrintReproducableTrace(PSharpBugFindingRuntime runtime)
+        {
+            var name = Path.GetFileNameWithoutExtension(this.Assembly.Location);
+            var directoryPath = Path.GetDirectoryName(this.Assembly.Location) +
+                Path.DirectorySeparatorChar + "traces" + Path.DirectorySeparatorChar;
+
+            Directory.CreateDirectory(directoryPath);
+
+            var traces = Directory.GetFiles(directoryPath, name + "*.pstrace");
+            var path = directoryPath + name + "_" + traces.Length + ".pstrace";
+
+            StringBuilder stringBuilder = new StringBuilder();
+            for (int idx = 0; idx < runtime.ProgramTrace.Count; idx++)
+            {
+                TraceStep step = runtime.ProgramTrace[idx];
+                if (step.Type == TraceStepType.SchedulingChoice)
+                {
+                    stringBuilder.Append(step.ScheduledMachine.Id);
+                }
+                else
+                {
+                    stringBuilder.Append(step.Choice);
+                }
+
+                if (idx < runtime.ProgramTrace.Count - 1)
+                {
+                    stringBuilder.Append(Environment.NewLine);
+                }
+            }
+
+            IO.PrintLine($"... Writing {path}");
+            File.WriteAllText(path, stringBuilder.ToString());
         }
 
         /// <summary>

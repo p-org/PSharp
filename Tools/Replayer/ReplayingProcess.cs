@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="TestingProcess.cs">
+// <copyright file="ReplayingProcess.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -18,9 +18,9 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// A P# testing process.
+    /// A P# replaying process.
     /// </summary>
-    internal sealed class TestingProcess
+    internal sealed class ReplayingProcess
     {
         #region fields
 
@@ -34,21 +34,21 @@ namespace Microsoft.PSharp
         #region API
 
         /// <summary>
-        /// Creates a P# testing process.
+        /// Creates a P# replaying process.
         /// </summary>
         /// <param name="configuration">Configuration</param>
-        /// <returns>TestingProcess</returns>
-        public static TestingProcess Create(Configuration configuration)
+        /// <returns>ReplayingProcess</returns>
+        public static ReplayingProcess Create(Configuration configuration)
         {
-            return new TestingProcess(configuration);
+            return new ReplayingProcess(configuration);
         }
 
         /// <summary>
-        /// Starts the P# testing process.
+        /// Starts the P# replaying process.
         /// </summary>
         public void Start()
         {
-            IO.PrintLine(". Testing " + this.Configuration.AssemblyToBeAnalyzed);
+            IO.PrintLine(". Reproducing trace in " + this.Configuration.AssemblyToBeAnalyzed);
             this.TestAssembly(this.Configuration.AssemblyToBeAnalyzed);
         }
 
@@ -60,8 +60,9 @@ namespace Microsoft.PSharp
         /// Constructor.
         /// </summary>
         /// <param name="configuration">Configuration</param>
-        private TestingProcess(Configuration configuration)
+        private ReplayingProcess(Configuration configuration)
         {
+            configuration.SchedulingStrategy = SchedulingStrategy.Replay;
             this.Configuration = configuration;
         }
         
@@ -73,7 +74,7 @@ namespace Microsoft.PSharp
         {
             // Creates and runs the P# testing engine
             // to find bugs in the P# program.
-            TestingEngine.Create(this.Configuration, dll).Run();
+            TestingEngine.Create(this.Configuration, dll).Replay();
         }
 
         #endregion

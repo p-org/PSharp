@@ -72,6 +72,7 @@
     <Compile Include="SchedulingStrategies\Prioritized\PCTStrategy.cs" />
     <Compile Include="SchedulingStrategies\Special\InteractiveStrategy.cs" />
     <Compile Include="SchedulingStrategies\OperationBounded\OperationBoundingStrategy.cs" />
+    <Compile Include="SchedulingStrategies\Special\ReplayStrategy.cs" />
     <Compile Include="Scheduling\BugFindingScheduler.cs" />
     <Compile Include="Scheduling\TaskAwareBugFindingScheduler.cs" />
     <Compile Include="SchedulingStrategies\ISchedulingStrategy.cs" />

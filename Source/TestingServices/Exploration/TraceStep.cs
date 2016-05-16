@@ -32,10 +32,22 @@ namespace Microsoft.PSharp.TestingServices.Exploration
         internal TraceStepType Type { get; private set; }
 
         /// <summary>
-        /// The scheduled machine. Only relevant if this is a scheduling
-        /// trace step.
+        /// The scheduled machine. Only relevant if this is
+        /// a scheduling trace step.
         /// </summary>
         internal AbstractMachine ScheduledMachine;
+
+        /// <summary>
+        /// The scheduled machine type. Only relevant if this is
+        /// a scheduling trace step.
+        /// </summary>
+        internal string ScheduledMachineType;
+
+        /// <summary>
+        /// The scheduled machine id. Only relevant if this is
+        /// a scheduling trace step.
+        /// </summary>
+        internal int ScheduledMachineId;
 
         /// <summary>
         /// The non-deterministic choice id. Only relevant if
@@ -76,6 +88,31 @@ namespace Microsoft.PSharp.TestingServices.Exploration
             traceStep.Index = index;
             traceStep.Type = TraceStepType.SchedulingChoice;
             traceStep.ScheduledMachine = scheduledMachine;
+            traceStep.ScheduledMachineType = scheduledMachine.Id.Type.ToString();
+            traceStep.ScheduledMachineId = scheduledMachine.Id.Value;
+
+            traceStep.Previous = null;
+            traceStep.Next = null;
+
+            return traceStep;
+        }
+
+        /// <summary>
+        /// Creates a scheduling choice trace step.
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="scheduledMachineType">Scheduled machine type</param>
+        /// <param name="scheduledMachineId">Scheduled machine id</param>
+        /// <returns>TraceStep</returns>
+        internal static TraceStep CreateSchedulingChoice(int index, string scheduledMachineType,
+            int scheduledMachineId)
+        {
+            var traceStep = new TraceStep();
+
+            traceStep.Index = index;
+            traceStep.Type = TraceStepType.SchedulingChoice;
+            traceStep.ScheduledMachineType = scheduledMachineType;
+            traceStep.ScheduledMachineId = scheduledMachineId;
 
             traceStep.Previous = null;
             traceStep.Next = null;
