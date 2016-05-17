@@ -123,7 +123,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             configuration.Verbose = 2;
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
 
-            var engine = TestingEngine.Create(configuration, TestProgram.Execute).Run();
+            var engine = TestingEngineFactory.CreateBugFindingEngine(configuration, TestProgram.Execute).Run();
             Assert.AreEqual(1, engine.NumOfFoundBugs);
             var bugReport = "Livelock detected. Machine 'Microsoft.PSharp.TestingServices." +
                 "Tests.Unit.ReceiveEventFailTest+Client(0)' is waiting for an event, but " +

@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="IProgramVisualizer.cs">
+// <copyright file="TestingEngine.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,35 +12,45 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System.Threading.Tasks;
-
-namespace Microsoft.PSharp.Visualization
+namespace Microsoft.PSharp.TestingServices
 {
     /// <summary>
-    /// Interface of a program visualizer.
+    /// Interface of a P# testing engine.
     /// </summary>
-    public interface IProgramVisualizer
+    public interface ITestingEngine
     {
-        /// <summary>
-        /// Starts the visualisation asynchronously.
-        /// </summary>
-        /// <returns>Task</returns>
-        Task StartAsync();
-        
-        /// <summary>
-        /// Refreshes the visualization.
-        /// </summary>
-        void Refresh();
+        #region properties
 
         /// <summary>
-        /// Adds a new transition.
+        /// The latest bug report, if any.
         /// </summary>
-        /// <param name="machineOrigin">Origin machine</param>
-        /// <param name="stateOrigin">Origin state</param>
-        /// <param name="edgeLabel">Edge label</param>
-        /// <param name="machineTarget">Target machine</param>
-        /// <param name="stateTarget">Target state</param>
-        void AddTransition(string machineOrigin, string stateOrigin, string edgeLabel,
-            string machineTarget, string stateTarget);
+        string BugReport { get; }
+
+        /// <summary>
+        /// Number of found bugs.
+        /// </summary>
+        int NumOfFoundBugs { get; }
+
+        /// <summary>
+        /// Explored depth of scheduling decisions.
+        /// </summary>
+        int ExploredDepth { get; }
+
+        #endregion
+
+        #region methods
+
+        /// <summary>
+        /// Runs the P# testing engine.
+        /// </summary>
+        /// <returns>ITestingEngine</returns>
+        ITestingEngine Run();
+
+        /// <summary>
+        /// Reports the testing results.
+        /// </summary>
+        void Report();
+
+        #endregion
     }
 }

@@ -95,8 +95,8 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Creates a new machine of the given type and with
-        /// the given optional event. This event can only be
+        /// Creates a new machine of the specified type and with
+        /// the specified optional event. This event can only be
         /// used to access its payload, and cannot be handled.
         /// </summary>
         /// <param name="type">Type of the machine</param>
@@ -108,8 +108,8 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Creates a new remote machine of the given type and with
-        /// the given optional event. This event can only be used
+        /// Creates a new remote machine of the specified type and with
+        /// the specified optional event. This event can only be used
         /// to access its payload, and cannot be handled.
         /// </summary>
         /// <param name="type">Type of the machine</param>
@@ -150,11 +150,85 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Blocks and waits to receive an event of the given types. Returns
-        /// the received event.
+        /// Blocks and waits to receive an event of the specified types.
+        /// Returns the received event.
         /// </summary>
+        /// <param name="eventTypes">Event types</param>
         /// <returns>Received event</returns>
-        public virtual Event Receive(params Type[] events)
+        public virtual Event Receive(params Type[] eventTypes)
+        {
+            this.Assert(Task.CurrentId != null, "Only machines can wait to receive an event.");
+            this.Assert(this.TaskMap.ContainsKey((int)Task.CurrentId),
+                "Only machines can wait to receive an event; task {0} does not belong to a machine.",
+                (int)Task.CurrentId);
+            Machine machine = this.TaskMap[(int)Task.CurrentId];
+            machine.Receive(eventTypes);
+            return machine.ReceivedEvent;
+        }
+
+        /// <summary>
+        /// Blocks and waits to receive an event of the specified types that satisfies
+        /// the specified predicate. Returns the received event.
+        /// </summary>
+        /// <param name="eventType">Event type</param>
+        /// <param name="predicate">Predicate</param>
+        /// <returns>Received event</returns>
+        public virtual Event Receive(Type eventType, Func<Event, bool> predicate)
+        {
+            this.Assert(Task.CurrentId != null, "Only machines can wait to receive an event.");
+            this.Assert(this.TaskMap.ContainsKey((int)Task.CurrentId),
+                "Only machines can wait to receive an event; task {0} does not belong to a machine.",
+                (int)Task.CurrentId);
+            Machine machine = this.TaskMap[(int)Task.CurrentId];
+            machine.Receive(eventType, predicate);
+            return machine.ReceivedEvent;
+        }
+
+        /// <summary>
+        /// Blocks and waits to receive an event of the specified types, and
+        /// executes a specified action on receiving the event.
+        /// </summary>
+        /// <param name="eventType">Event type</param>
+        /// <param name="action">Action</param>
+        /// <returns>Received event</returns>
+        public virtual Event Receive(Type eventType, Action action)
+        {
+            this.Assert(Task.CurrentId != null, "Only machines can wait to receive an event.");
+            this.Assert(this.TaskMap.ContainsKey((int)Task.CurrentId),
+                "Only machines can wait to receive an event; task {0} does not belong to a machine.",
+                (int)Task.CurrentId);
+            Machine machine = this.TaskMap[(int)Task.CurrentId];
+            machine.Receive(eventType, action);
+            return machine.ReceivedEvent;
+        }
+
+        /// <summary>
+        /// Blocks and waits to receive an event of the specified types that satisfies
+        /// the specified predicate, and executes a specified action on receiving the
+        /// event. Returns the received event.
+        /// </summary>
+        /// <param name="eventType">Event type</param>
+        /// <param name="predicate">Predicate</param>
+        /// <param name="action">Action</param>
+        /// <returns>Received event</returns>
+        public virtual Event Receive(Type eventType, Func<Event, bool> predicate, Action action)
+        {
+            this.Assert(Task.CurrentId != null, "Only machines can wait to receive an event.");
+            this.Assert(this.TaskMap.ContainsKey((int)Task.CurrentId),
+                "Only machines can wait to receive an event; task {0} does not belong to a machine.",
+                (int)Task.CurrentId);
+            Machine machine = this.TaskMap[(int)Task.CurrentId];
+            machine.Receive(eventType, predicate, action);
+            return machine.ReceivedEvent;
+        }
+
+        /// <summary>
+        /// Blocks and waits to receive an event of the specified types that satisfy
+        /// the specified predicates. Returns the received event.
+        /// </summary>
+        /// <param name="events">Event types and predicates</param>
+        /// <returns>Received event</returns>
+        public virtual Event Receive(params Tuple<Type, Func<Event, bool>>[] events)
         {
             this.Assert(Task.CurrentId != null, "Only machines can wait to receive an event.");
             this.Assert(this.TaskMap.ContainsKey((int)Task.CurrentId),
@@ -166,10 +240,11 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Blocks and waits to receive an event of the given types, and
-        /// executes a given action on receiving the event. Returns the
+        /// Blocks and waits to receive an event of the specified types, and
+        /// executes a specified action on receiving the event. Returns the
         /// received event.
         /// </summary>
+        /// <param name="events">Event types and handlers</param>
         /// <returns>Received event</returns>
         public virtual Event Receive(params Tuple<Type, Action>[] events)
         {
@@ -183,7 +258,25 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Registers a new specification monitor of the given type.
+        /// Blocks and waits to receive an event of the specified types that satisfy
+        /// the specified predicates, and executes a specified action upon receiving
+        /// the event. Returns the received event.
+        /// </summary>
+        /// <param name="events">Event types, predicates and handlers</param>
+        /// <returns>Received event</returns>
+        public virtual Event Receive(params Tuple<Type, Func<Event, bool>, Action>[] events)
+        {
+            this.Assert(Task.CurrentId != null, "Only machines can wait to receive an event.");
+            this.Assert(this.TaskMap.ContainsKey((int)Task.CurrentId),
+                "Only machines can wait to receive an event; task {0} does not belong to a machine.",
+                (int)Task.CurrentId);
+            Machine machine = this.TaskMap[(int)Task.CurrentId];
+            machine.Receive(events);
+            return machine.ReceivedEvent;
+        }
+
+        /// <summary>
+        /// Registers a new specification monitor of the specified type.
         /// </summary>
         /// <param name="type">Type of the monitor</param>
         public virtual void RegisterMonitor(Type type)
@@ -192,7 +285,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Invokes the specified monitor with the given event.
+        /// Invokes the specified monitor with the specified event.
         /// </summary>
         /// <typeparam name="T">Type of the monitor</typeparam>
         /// <param name="e">Event</param>
@@ -267,7 +360,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Logs the given text.
+        /// Logs the specified text.
         /// </summary>
         /// <param name="s">String</param>
         /// <param name="args">Arguments</param>
@@ -343,7 +436,7 @@ namespace Microsoft.PSharp
         #region internal API
 
         /// <summary>
-        /// Tries to create a new machine of the given type.
+        /// Tries to create a new machine of the specified type.
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="e">Event</param>
@@ -381,7 +474,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Tries to create a new remote machine of the given type.
+        /// Tries to create a new remote machine of the specified type.
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="endpoint">Endpoint</param>
@@ -394,7 +487,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Tries to create a new monitor of the given type.
+        /// Tries to create a new monitor of the specified type.
         /// </summary>
         /// <param name="type">Type of the monitor</param>
         internal virtual void TryCreateMonitor(Type type)
@@ -460,7 +553,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Invokes the specified monitor with the given event.
+        /// Invokes the specified monitor with the specified event.
         /// </summary>
         /// <param name="sender">Sender machine</param>
         /// <typeparam name="T">Type of the monitor</typeparam>

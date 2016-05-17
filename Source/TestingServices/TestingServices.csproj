@@ -59,6 +59,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BugFindingRuntime.cs" />
+    <Compile Include="Engines\TestingEngineFactory.cs" />
+    <Compile Include="Engines\ITestingEngine.cs" />
     <Compile Include="Exploration\Trace.cs" />
     <Compile Include="Exploration\TraceStep.cs" />
     <Compile Include="Exploration\TraceStepType.cs" />
@@ -85,7 +87,9 @@
     <Compile Include="SchedulingStrategies\DFS\IterativeDeepeningDFSStrategy.cs" />
     <Compile Include="SchedulingStrategies\DFS\DFSStrategy.cs" />
     <Compile Include="SchedulingStrategies\Fuzzing\RandomStrategy.cs" />
-    <Compile Include="TestingEngine.cs" />
+    <Compile Include="Engines\ReplayEngine.cs" />
+    <Compile Include="Engines\AbstractTestingEngine.cs" />
+    <Compile Include="Engines\BugFindingEngine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Threading\TaskMachine.cs" />
     <Compile Include="Threading\TaskWrapperScheduler.cs" />

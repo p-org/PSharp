@@ -98,11 +98,13 @@ namespace Microsoft.PSharp
         private Event RaisedEvent;
 
         /// <summary>
-        /// A map from event types, which the machine is currently waiting to
-        /// arrive, to optional actions that must execute when the corresponding
-        /// event arrives.
+        /// A list of event wait handlers. They denote the types of events that
+        /// the machine is currently waiting to arrive. Each handler contains an
+        /// optional predicate and an optional action. If the predicate evaluates
+        /// to false, then the received event is deferred. The optional action
+        /// executes when the event is received.
         /// </summary>
-        private Dictionary<Type, Action> EventWaiters;
+        private List<EventWaitHandler> EventWaitHandlers;
 
         /// <summary>
         /// Gets the received event and an optional associated action. If no event
@@ -144,7 +146,7 @@ namespace Microsoft.PSharp
         {
             this.Inbox = new List<Event>();
             this.StateStack = new Stack<MachineState>();
-            this.EventWaiters = new Dictionary<Type, Action>();
+            this.EventWaitHandlers = new List<EventWaitHandler>();
 
             this.IsRunning = true;
             this.IsHalted = false;
@@ -156,8 +158,8 @@ namespace Microsoft.PSharp
         #region P# user API
 
         /// <summary>
-        /// Creates a new machine of the given type and with the
-        /// given optional event. This event can only be used to
+        /// Creates a new machine of the specified type and with the
+        /// specified optional event. This event can only be used to
         /// access its payload, and cannot be handled.
         /// </summary>
         /// <param name="type">Type of the machine</param>
@@ -169,8 +171,8 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Creates a new remote machine of the given type and with
-        /// the given optional event. This event can only be used to
+        /// Creates a new remote machine of the specified type and with
+        /// the specified optional event. This event can only be used to
         /// access its payload, and cannot be handled.
         /// </summary>
         /// <param name="type">Type of the machine</param>
@@ -213,7 +215,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Invokes the specified monitor with the given event.
+        /// Invokes the specified monitor with the specified event.
         /// </summary>
         /// <typeparam name="T">Type of the monitor</typeparam>
         /// <param name="e">Event</param>
@@ -226,7 +228,7 @@ namespace Microsoft.PSharp
 
         /// <summary>
         /// Returns from the execution context, and transitions
-        /// the machine to the given state.
+        /// the machine to the specified state.
         /// </summary>
         /// <param name="s">Type of the state</param>
         protected void Goto(Type s)
@@ -251,27 +253,97 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Blocks and waits to receive an event of the given types.
+        /// Blocks and waits to receive an event of the specified types.
         /// </summary>
-        protected internal void Receive(params Type[] events)
+        /// <param name="eventTypes">Event types</param>
+        protected internal void Receive(params Type[] eventTypes)
         {
-            foreach (var e in events)
+            foreach (var type in eventTypes)
             {
-                this.EventWaiters.Add(e, null);
+                this.EventWaitHandlers.Add(new EventWaitHandler(type));
             }
 
             this.WaitOnEvent();
         }
 
         /// <summary>
-        /// Blocks and waits to receive an event of the given types, and
-        /// executes a given action on receiving the event.
+        /// Blocks and waits to receive an event of the specified type
+        /// that satisfies the specified predicate.
         /// </summary>
+        /// <param name="eventType">Event type</param>
+        /// <param name="predicate">Predicate</param>
+        protected internal void Receive(Type eventType, Func<Event, bool> predicate)
+        {
+            this.EventWaitHandlers.Add(new EventWaitHandler(eventType, predicate));
+            this.WaitOnEvent();
+        }
+
+        /// <summary>
+        /// Blocks and waits to receive an event of the specified type, and
+        /// executes a specified action upon receiving the event.
+        /// </summary>
+        /// <param name="eventType">Event type</param>
+        /// <param name="action">Action</param>
+        protected internal void Receive(Type eventType, Action action)
+        {
+            this.EventWaitHandlers.Add(new EventWaitHandler(eventType, action));
+            this.WaitOnEvent();
+        }
+
+        /// <summary>
+        /// Blocks and waits to receive an event of the specified type, and
+        /// executes a specified action upon receiving the event.
+        /// </summary>
+        /// <param name="eventType">Event type</param>
+        /// <param name="predicate">Predicate</param>
+        /// <param name="action">Action</param>
+        protected internal void Receive(Type eventType, Func<Event, bool> predicate, Action action)
+        {
+            this.EventWaitHandlers.Add(new EventWaitHandler(eventType, predicate, action));
+            this.WaitOnEvent();
+        }
+
+        /// <summary>
+        /// Blocks and waits to receive an event of the specified types
+        /// that satisfy the specified predicates.
+        /// </summary>
+        /// <param name="events">Event types and predicates</param>
+        protected internal void Receive(params Tuple<Type, Func<Event, bool>>[] events)
+        {
+            foreach (var e in events)
+            {
+                this.EventWaitHandlers.Add(new EventWaitHandler(e.Item1, e.Item2));
+            }
+
+            this.WaitOnEvent();
+        }
+
+        /// <summary>
+        /// Blocks and waits to receive an event of the specified types, and
+        /// executes a specified action upon receiving the event.
+        /// </summary>
+        /// <param name="events">Event types and handlers</param>
         protected internal void Receive(params Tuple<Type, Action>[] events)
         {
             foreach (var e in events)
             {
-                this.EventWaiters.Add(e.Item1, e.Item2);
+                this.EventWaitHandlers.Add(new EventWaitHandler(e.Item1, e.Item2));
+            }
+
+            this.WaitOnEvent();
+        }
+
+        /// <summary>
+        /// Blocks and waits to receive an event of the specified types
+        /// that satisfy the specified predicates, and executes a specified
+        /// action upon receiving the event.
+        /// </summary>
+        /// <param name="events">Event types, predicates and handlers</param>
+        protected internal void Receive(params Tuple<Type, Func<Event, bool>, Action>[] events)
+        {
+            foreach (var e in events)
+            {
+                this.EventWaitHandlers.Add(new EventWaitHandler(e.Item1, e.Item2, e.Item3));
             }
 
             this.WaitOnEvent();
@@ -400,11 +472,13 @@ namespace Microsoft.PSharp
                     return;
                 }
 
-                if (this.EventWaiters.ContainsKey(e.GetType()))
+                EventWaitHandler eventWaitHandler = this.EventWaitHandlers.FirstOrDefault(val
+                    => val.EventType == e.GetType() && val.Predicate(e));
+                if (eventWaitHandler != null)
                 {
                     this.ReceivedEventHandler = new Tuple<Event, Action>(
-                        e, this.EventWaiters[e.GetType()]);
-                    this.EventWaiters.Clear();
+                        e, eventWaitHandler.Action);
+                    this.EventWaitHandlers.Clear();
                     base.Runtime.NotifyReceivedEvent(this, e);
                     return;
                 }
@@ -505,7 +579,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Sets the operation priority of the queue to the given operation id.
+        /// Sets the operation priority of the queue to the specified operation id.
         /// </summary>
         /// <param name="opid">OperationId</param>
         internal void SetQueueOperationPriority(int opid)
@@ -513,7 +587,7 @@ namespace Microsoft.PSharp
             lock (this.Inbox)
             {
                 // Iterate through the events in the inbox, and give priority
-                // to the first event with the given operation id.
+                // to the first event with the specified operation id.
                 for (int idx = 0; idx < this.Inbox.Count; idx++)
                 {
                     if (idx == 0 && this.Inbox[idx].OperationId == opid)
@@ -544,7 +618,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Returns true if the given operation id is pending
+        /// Returns true if the specified operation id is pending
         /// execution by the machine.
         /// </summary>
         /// <param name="opid">OperationId</param>
@@ -650,7 +724,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Handles the given event.
+        /// Handles the specified event.
         /// </summary>
         /// <param name="e">Event to handle</param>
         private void HandleEvent(Event e)
@@ -750,11 +824,13 @@ namespace Microsoft.PSharp
                 {
                     // Dequeues the first event that the machine waits
                     // to receive, if there is one in the inbox.
-                    if (this.EventWaiters.ContainsKey(this.Inbox[idx].GetType()))
+                    EventWaitHandler eventWaitHandler = this.EventWaitHandlers.FirstOrDefault(val
+                        => val.EventType == this.Inbox[idx].GetType() && val.Predicate(this.Inbox[idx]));
+                    if (eventWaitHandler != null)
                     {
                         this.ReceivedEventHandler = new Tuple<Event, Action>(
-                            this.Inbox[idx], this.EventWaiters[this.Inbox[idx].GetType()]);
-                        this.EventWaiters.Clear();
+                            this.Inbox[idx], eventWaitHandler.Action);
+                        this.EventWaitHandlers.Clear();
                         this.Inbox.RemoveAt(idx);
                         break;
                     }
@@ -763,9 +839,9 @@ namespace Microsoft.PSharp
                 if (this.ReceivedEventHandler == null)
                 {
                     var events = "";
-                    foreach (var ew in this.EventWaiters)
+                    foreach (var ewh in this.EventWaitHandlers)
                     {
-                        events += " '" + ew.Key.Name + "'";
+                        events += " '" + ewh.EventType.Name + "'";
                     }
 
                     base.Runtime.Log("<ReceiveLog> Machine '{0}({1})' is waiting on events:{2}.",
@@ -802,7 +878,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Checks if the machine can handle the given event type. An event
+        /// Checks if the machine can handle the specified event type. An event
         /// can be handled if it is deferred, or leads to a transition or
         /// action binding.
         /// </summary>
@@ -883,7 +959,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Performs a goto transition to the given state.
+        /// Performs a goto transition to the specified state.
         /// </summary>
         /// <param name="s">Type of the state</param>
         /// <param name="onExit">Goto on exit action</param>
@@ -909,7 +985,7 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Performs a push transition to the given state.
+        /// Performs a push transition to the specified state.
         /// </summary>
         /// <param name="s">Type of the state</param>
         private void PushState(Type s)
@@ -1138,7 +1214,7 @@ namespace Microsoft.PSharp
         {
             this.StateTypes.Clear();
             this.Inbox.Clear();
-            this.EventWaiters.Clear();
+            this.EventWaitHandlers.Clear();
 
             this.ReceivedEvent = null;
         }

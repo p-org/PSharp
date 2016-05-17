@@ -71,7 +71,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             configuration.SchedulingIterations = 2;
             configuration.ScheduleIntraMachineConcurrency = true;
 
-            var engine = TestingEngine.Create(configuration, TestProgram.Execute).Run();
+            var engine = TestingEngineFactory.CreateBugFindingEngine(configuration, TestProgram.Execute).Run();
             var bugReport = "Value is '1' (expected '0').";
             Assert.AreEqual(bugReport, engine.BugReport);
         }
