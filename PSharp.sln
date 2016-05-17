@@ -22,6 +22,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RemoteManager", "Tools\RemoteManager\RemoteManager.csproj", "{00ADC66D-16B6-4830-B65B-7585CC9206DC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RuntimeContainer", "Tools\RuntimeContainer\RuntimeContainer.csproj", "{13008B9E-32F1-416F-A0E5-81B23A226D73}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1297AD2C-6883-4844-B643-A132BE3D5CF4} = {1297AD2C-6883-4844-B643-A132BE3D5CF4}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StaticAnalysis.Tests.Unit", "Test\StaticAnalysis.Tests.Unit\StaticAnalysis.Tests.Unit.csproj", "{76083D7A-E51C-4267-8DED-86E7A4FBDF58}"
 EndProject
