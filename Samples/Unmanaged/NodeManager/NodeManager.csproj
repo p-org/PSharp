@@ -37,13 +37,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.PSharp">
-      <HintPath>..\..\..\Binaries\Release\Microsoft.PSharp.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.PSharp.Interop">
-      <HintPath>..\..\..\Binaries\Release\Microsoft.PSharp.Interop.dll</HintPath>
+      <HintPath>..\..\..\Binaries\Microsoft.PSharp.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.PSharp.TestingServices">
-      <HintPath>..\..\..\Binaries\Release\Microsoft.PSharp.TestingServices.dll</HintPath>
+      <HintPath>..\..\..\Binaries\Microsoft.PSharp.TestingServices.dll</HintPath>
     </Reference>
     <Reference Include="System" />
   </ItemGroup>
