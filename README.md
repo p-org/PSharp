@@ -48,6 +48,17 @@ Where ${DLL\_PATH} is the path to your P# program and ${DLL\_NAME} is the name o
 
 You can optionally give the number of testing iterations to perform using `/i:value`.
 
+## Replay and debug buggy executions
+The P# replayer can be used to reproduce and debug buggy executions (found by `PSharpTester.exe`). To invoke the replayer use the following command:
+
+```
+.\PSharpReplayer.exe /test:${DLL_PATH}\${DLL_NAME}.dll /trace:${TRACE_PATH}\${TRACE_NAME}.pstrace
+```
+
+Where ${TRACE\_PATH} is the path to the buggy trace (dumped by `PSharpTester.exe`) and ${TRACE\_NAME} is the name of the buggy trace.
+
+You can attach the Visual Studio debugger on this buggy execution, to get the familiar VS debugging experience, by using `/break`. When using this flag, P# will automatically instrument a breakpoint when the bug is found. You can also insert your own breakpoints in the source code.
+
 ## Options
 
 To see various available command line options for the P# tools use the option `/?`.
