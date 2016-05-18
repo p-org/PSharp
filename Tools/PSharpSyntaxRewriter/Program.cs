@@ -13,8 +13,8 @@ using Microsoft.CodeAnalysis.Text;
 
 using Microsoft.Build.Framework;
 
-//using Microsoft.VisualStudio;
-//using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace PSharpSyntaxRewriter
 {
@@ -96,20 +96,74 @@ namespace PSharpSyntaxRewriter
         }
     }
 
-    /*
-    public class PSharpCodeGenerator : Microsoft.VisualStudio.Shell.Interop.IVsSingleFileGenerator
+    
+    public class PSharpCodeGenerator : IVsSingleFileGenerator
     {
+#pragma warning disable 0414
+        //The name of this generator (use for 'Custom Tool' property of project item)
+        internal static string name = "PSharpCodeGenerator";
+#pragma warning restore 0414
+
         public int DefaultExtension(out string pbstrDefaultExtension)
         {
-            throw new NotImplementedException();
+            pbstrDefaultExtension = ".cs";
+            return VSConstants.S_OK;
         }
 
         public int Generate(string wszInputFilePath, string bstrInputFileContents, string wszDefaultNamespace, IntPtr[] rgbOutputFileContents, out uint pcbOutput, IVsGeneratorProgress pGenerateProgress)
         {
-            throw new NotImplementedException();
+            if (bstrInputFileContents == null)
+            {
+                throw new ArgumentNullException(bstrInputFileContents);
+            }
+
+            var bytes = GenerateCode(bstrInputFileContents);
+
+            if (bytes == null)
+            {
+                rgbOutputFileContents = null;
+                pcbOutput = 0;
+                return VSConstants.E_FAIL;
+            }
+
+            int outputLength = bytes.Length;
+            rgbOutputFileContents[0] = System.Runtime.InteropServices.Marshal.AllocCoTaskMem(outputLength);
+            System.Runtime.InteropServices.Marshal.Copy(bytes, 0, rgbOutputFileContents[0], outputLength);
+            pcbOutput = (uint)outputLength;
+            return VSConstants.S_OK;
         }
+
+        byte[] GenerateCode(string input)
+        {
+            var output = Program.Translate(input);
+            if (output == null) return null;
+
+            using (System.IO.StringWriter writer = new System.IO.StringWriter(new StringBuilder()))
+            {
+                writer.WriteLine("{0}", output);
+
+                //Get the Encoding used by the writer. We're getting the WindowsCodePage encoding, 
+                //which may not work with all languages
+                var enc = Encoding.GetEncoding(writer.Encoding.WindowsCodePage);
+
+                //Get the preamble (byte-order mark) for our encoding
+                byte[] preamble = enc.GetPreamble();
+                int preambleLength = preamble.Length;
+
+                //Convert the writer contents to a byte array
+                byte[] body = enc.GetBytes(writer.ToString());
+
+                //Prepend the preamble to body (store result in resized preamble array)
+                Array.Resize<byte>(ref preamble, preambleLength + body.Length);
+                Array.Copy(body, 0, preamble, preambleLength, body.Length);
+
+                //Return the combined byte array
+                return preamble;
+            }
+        }
+
     }
-    */
+  
 
     public class Rewriter : ITask
     {
