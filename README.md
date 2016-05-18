@@ -1,11 +1,12 @@
 P#
 ====================
-A toolkit for **building**, **analyzing** and **systematically testing** asynchronous reactive software, such as web-services and distributed systems.
+A toolkit for **building**, **analyzing**, **systematically testing** and **debugging** asynchronous reactive software, such as web-services and distributed systems.
 
 ## Features
 The P# framework provides:
 - Language extensions to C# for building **event-driven asynchronous** applications, writing **test harnesses**, and specifying **safety and liveness properties**.
-- A **systematic testing engine** that can capture and control all the specified nondeterminism in the system, and systematically explore the actual executable code to discover bugs.
+- A **systematic testing engine** that can capture and control all specified nondeterminism in the system, systematically explore the actual executable code to discover bugs, and report bug traces. A P# bug trace provides a global order of all communication events, and thus is easier to debug.
+- Support for **replaying** bug traces, and **debugging** them using the Visual Studio debugger.
 
 Although P# primarily targets .NET, it has also experimental support for systematically testing native C++ code.
 
@@ -47,6 +48,17 @@ The P# tester can be used to systematically test a P# program to find safety pro
 Where ${DLL\_PATH} is the path to your P# program and ${DLL\_NAME} is the name of your P# program.
 
 You can optionally give the number of testing iterations to perform using `/i:value`.
+
+## Replay and debug buggy executions
+The P# replayer can be used to reproduce and debug buggy executions (found by `PSharpTester.exe`). To invoke the replayer use the following command:
+
+```
+.\PSharpReplayer.exe /test:${DLL_PATH}\${DLL_NAME}.dll /trace:${TRACE_PATH}\${TRACE_NAME}.pstrace
+```
+
+Where ${TRACE\_PATH} is the path to the bug trace (dumped by `PSharpTester.exe`) and ${TRACE\_NAME} is the name of the bug trace.
+
+You can attach the Visual Studio debugger on this buggy execution, to get the familiar VS debugging experience, by using `/break`. When using this flag, P# will automatically instrument a breakpoint when the bug is found. You can also insert your own breakpoints in the source code.
 
 ## Options
 

@@ -303,7 +303,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             configuration.Verbose = 2;
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
 
-            var engine = TestingEngine.Create(configuration, TestProgram.Execute).Run();
+            var engine = TestingEngineFactory.CreateBugFindingEngine(configuration, TestProgram.Execute).Run();
             //Assert.AreEqual(0, TestingEngine.NumOfFoundBugs);
             //Assert.AreEqual(5, TestingEngine.ExploredDepth);
         }

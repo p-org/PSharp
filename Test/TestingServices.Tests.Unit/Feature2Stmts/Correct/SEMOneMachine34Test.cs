@@ -127,7 +127,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
             configuration.SchedulingIterations = 100;
 
-            var engine = TestingEngine.Create(configuration, TestProgram.Execute).Run();
+            var engine = TestingEngineFactory.CreateBugFindingEngine(configuration, TestProgram.Execute).Run();
             Assert.AreEqual(0, engine.NumOfFoundBugs);
         }
     }

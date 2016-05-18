@@ -71,9 +71,8 @@ namespace Microsoft.PSharp
         /// <param name="dll">Assembly</param>
         private void TestAssembly(string dll)
         {
-            // Creates and runs the P# testing engine
-            // to find bugs in the P# program.
-            TestingEngine.Create(this.Configuration, dll).Run();
+            // Creates and runs the P# testing engine to find bugs in the P# program.
+            TestingEngineFactory.CreateBugFindingEngine(this.Configuration, dll).Run();
         }
 
         #endregion

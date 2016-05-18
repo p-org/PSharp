@@ -27,7 +27,7 @@ namespace Microsoft.PSharp.Visualization
     /// <summary>
     /// Class implementing a P# program visualizer.
     /// </summary>
-    class PSharpProgramVisualizer : IProgramVisualizer
+    internal class PSharpProgramVisualizer : IProgramVisualizer
     {
         // Form controls
         private Form Form;

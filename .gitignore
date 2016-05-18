@@ -12,6 +12,7 @@
 [Dd]ebugPublic/
 [Rr]elease/
 x64/
+Binaries/
 build/
 bld/
 [Bb]in/
@@ -66,6 +67,7 @@ ipch/
 *.ncb
 *.opensdf
 *.sdf
+*.vc.db
 *.cachefile
 
 # Visual Studio profiler

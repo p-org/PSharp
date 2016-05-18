@@ -17,7 +17,7 @@ namespace Microsoft.PSharp.Visualization
     /// <summary>
     /// A P# program transition.
     /// </summary>
-    struct Transition
+    internal struct Transition
     {
         /// <summary>
         /// The origin machine.

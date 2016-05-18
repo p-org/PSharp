@@ -93,7 +93,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             configuration.CacheProgramState = true;
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
 
-            var engine = TestingEngine.Create(configuration, TestProgram.Execute).Run();
+            var engine = TestingEngineFactory.CreateBugFindingEngine(configuration, TestProgram.Execute).Run();
             var bugReport = "Monitor 'WatchDog' detected infinite execution that violates a liveness property.";
             Assert.AreEqual(bugReport, engine.BugReport);
         }

@@ -17,7 +17,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\Binaries\Debug\</OutputPath>
+    <OutputPath>..\..\Binaries\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -25,7 +25,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\Binaries\Release\</OutputPath>
+    <OutputPath>..\..\Binaries\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -64,22 +64,23 @@
     <Reference Include="System.ServiceModel" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Attributes\Cold.cs" />
-    <Compile Include="Attributes\IgnoreEvents.cs" />
-    <Compile Include="Attributes\EntryPoint.cs" />
-    <Compile Include="Attributes\Test.cs" />
-    <Compile Include="Attributes\DeferEvents.cs" />
-    <Compile Include="Attributes\OnEventPushState.cs" />
-    <Compile Include="Attributes\OnExit.cs" />
-    <Compile Include="Attributes\OnEntry.cs" />
-    <Compile Include="Attributes\OnEventDoAction.cs" />
-    <Compile Include="Attributes\OnEventGotoState.cs" />
-    <Compile Include="Attributes\Hot.cs" />
-    <Compile Include="Attributes\Start.cs" />
-    <Compile Include="Events\Default.cs" />
-    <Compile Include="Events\Event.cs" />
-    <Compile Include="Events\GotoStateEvent.cs" />
-    <Compile Include="Events\Halt.cs" />
+    <Compile Include="Library\Attributes\Cold.cs" />
+    <Compile Include="Library\Attributes\IgnoreEvents.cs" />
+    <Compile Include="Library\Attributes\EntryPoint.cs" />
+    <Compile Include="Library\Attributes\Test.cs" />
+    <Compile Include="Library\Attributes\DeferEvents.cs" />
+    <Compile Include="Library\Attributes\OnEventPushState.cs" />
+    <Compile Include="Library\Attributes\OnExit.cs" />
+    <Compile Include="Library\Attributes\OnEntry.cs" />
+    <Compile Include="Library\Attributes\OnEventDoAction.cs" />
+    <Compile Include="Library\Attributes\OnEventGotoState.cs" />
+    <Compile Include="Library\Attributes\Hot.cs" />
+    <Compile Include="Library\Attributes\Start.cs" />
+    <Compile Include="Library\EventHandlers\EventWaitHandler.cs" />
+    <Compile Include="Library\Events\Default.cs" />
+    <Compile Include="Library\Events\Event.cs" />
+    <Compile Include="Library\Events\GotoStateEvent.cs" />
+    <Compile Include="Library\Events\Halt.cs" />
     <Compile Include="Exceptions\PSharpGenericException.cs" />
     <Compile Include="Net\NetworkProviders\DefaultNetworkProvider.cs" />
     <Compile Include="Options\CompilationTarget.cs" />
@@ -87,15 +88,15 @@
     <Compile Include="Net\INetworkProvider.cs" />
     <Compile Include="Utilities\ErrorReporter.cs" />
     <Compile Include="Utilities\IO.cs" />
-    <Compile Include="Library\ActionBindings.cs" />
-    <Compile Include="Library\GotoStateTransitions.cs" />
+    <Compile Include="Library\EventHandlers\ActionBindings.cs" />
+    <Compile Include="Library\EventHandlers\GotoStateTransitions.cs" />
     <Compile Include="Library\AbstractMachine.cs" />
     <Compile Include="Library\MachineId.cs" />
     <Compile Include="Library\Machine.cs" />
     <Compile Include="Library\MachineState.cs" />
     <Compile Include="Library\Monitor.cs" />
     <Compile Include="Library\MonitorState.cs" />
-    <Compile Include="Library\PushStateTransitions.cs" />
+    <Compile Include="Library\EventHandlers\PushStateTransitions.cs" />
     <Compile Include="Options\BaseCommandLineOptions.cs" />
     <Compile Include="Options\Configuration.cs" />
     <Compile Include="Utilities\Profiler.cs" />
