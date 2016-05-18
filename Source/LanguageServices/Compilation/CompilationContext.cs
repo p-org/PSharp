@@ -85,6 +85,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <summary>
         /// Loads the user-specified solution.
         /// </summary>
+        /// <returns>CompilationContext</returns>
         public CompilationContext LoadSolution()
         {
             // Create a new workspace.
@@ -126,10 +127,45 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <summary>
         /// Loads the given solution.
         /// </summary>
+        /// <returns>CompilationContext</returns>
         public CompilationContext LoadSolution(Solution solution)
         {
             // Create a new workspace.
             var workspace = MSBuildWorkspace.Create();
+
+            this.InstallCompilationTargets(solution);
+            this.HasInitialized = true;
+
+            return this;
+        }
+
+        /// <summary>
+        /// Loads the given solution.
+        /// </summary>
+        /// <param name="text">Text</param>
+        /// <param name="suffix">Optional suffix</param>
+        /// <returns>CompilationContext</returns>
+        public CompilationContext LoadSolution(string text, string suffix = "psharp")
+        {
+            var workspace = new AdhocWorkspace();
+            var solutionInfo = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create());
+            var solution = workspace.AddSolution(solutionInfo);
+            var project = workspace.AddProject("Test", "C#");
+
+            var references = new MetadataReference[]
+            {
+                MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(Machine).Assembly.Location)
+            };
+
+            project = project.AddMetadataReferences(references);
+            workspace.TryApplyChanges(project.Solution);
+
+            var sourceText = SourceText.From(text);
+            var doc = project.AddDocument("Program", sourceText, null, "Program." + suffix);
+
+            solution = doc.Project.Solution;
 
             this.InstallCompilationTargets(solution);
             this.HasInitialized = true;

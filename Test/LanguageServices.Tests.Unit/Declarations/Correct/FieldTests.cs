@@ -39,8 +39,10 @@ start state S { }
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
 
-            var solution = base.GetSolution(test);
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            //var solution = base.GetSolution(test);
+            //var context = CompilationContext.Create(configuration).LoadSolution(solution);
+
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();
