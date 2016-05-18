@@ -23,7 +23,7 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.LanguageServices.Tests.Unit
 {
     [TestClass]
-    public class FieldTests : BasePSharpTest
+    public class FieldTests
     {
         [TestMethod, Timeout(10000)]
         public void TestIntFieldDeclaration()
@@ -38,9 +38,6 @@ start state S { }
 
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
-
-            //var solution = base.GetSolution(test);
-            //var context = CompilationContext.Create(configuration).LoadSolution(solution);
 
             var context = CompilationContext.Create(configuration).LoadSolution(test);
 
@@ -81,8 +78,7 @@ start state S { }
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
 
-            var solution = base.GetSolution(test);
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();
@@ -121,8 +117,7 @@ start state S { }
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
 
-            var solution = base.GetSolution(test);
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();

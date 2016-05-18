@@ -24,7 +24,7 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
 {
     [TestClass]
-    public class AccessAfterCreateMachineFailTests : BasePSharpTest
+    public class AccessAfterCreateMachineFailTests
     {
         [TestMethod, Timeout(10000)]
         public void TestAccessAfterCreateMachineFail()
@@ -70,16 +70,14 @@ class M : Machine
  }
 }
 }";
-
-            var solution = base.GetSolution(test);
-
+            
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
             configuration.Verbose = 2;
 
             IO.StartWritingToMemory();
 
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test, "cs");
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();
@@ -150,16 +148,14 @@ class M : Machine
  }
 }
 }";
-
-            var solution = base.GetSolution(test);
-
+            
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
             configuration.Verbose = 2;
 
             IO.StartWritingToMemory();
 
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test, "cs");
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();

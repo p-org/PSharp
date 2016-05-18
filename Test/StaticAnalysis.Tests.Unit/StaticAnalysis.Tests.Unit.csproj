@@ -106,7 +106,6 @@
     <Compile Include="Advanced\StaticError\ExternalLibraryCallFailTests.cs" />
     <Compile Include="Advanced\StaticError\DuplicateSendsFailTests.cs" />
     <Compile Include="Advanced\StaticError\ComplexAccessesInCallFailTests.cs" />
-    <Compile Include="BasePSharpTest.cs" />
     <Compile Include="ControlFlow\Correct\IfStatementTests.cs" />
     <Compile Include="ControlFlow\Correct\SwitchStatementTests.cs" />
     <Compile Include="ControlFlow\StaticError\SwitchStatementFailTests.cs" />

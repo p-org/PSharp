@@ -23,7 +23,7 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.LanguageServices.Tests.Unit
 {
     [TestClass]
-    public class SendTests : BasePSharpTest
+    public class SendTests
     {
         [TestMethod, Timeout(10000)]
         public void TestSendStatement()
@@ -47,8 +47,7 @@ send(this.Target, e1);
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
 
-            var solution = base.GetSolution(test);
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();
@@ -107,8 +106,7 @@ send(this.Target, e1, 10);
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
 
-            var solution = base.GetSolution(test);
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();
@@ -171,8 +169,7 @@ send(this.Target, e1, 10, s);
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
 
-            var solution = base.GetSolution(test);
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();

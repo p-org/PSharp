@@ -23,7 +23,7 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
 {
     [TestClass]
-    public class IfStatementFailTests : BasePSharpTest
+    public class IfStatementFailTests
     {
         [TestMethod, Timeout(10000)]
         public void TestIfStatement1Fail()
@@ -101,8 +101,7 @@ class M : Machine
 
             IO.StartWritingToMemory();
 
-            var solution = base.GetSolution(test);
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test, "cs");
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();
@@ -189,8 +188,7 @@ class M : Machine
 
             IO.StartWritingToMemory();
 
-            var solution = base.GetSolution(test);
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test, "cs");
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();
@@ -281,8 +279,7 @@ class M : Machine
 
             IO.StartWritingToMemory();
 
-            var solution = base.GetSolution(test);
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test, "cs");
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();
@@ -373,8 +370,7 @@ class M : Machine
 
             IO.StartWritingToMemory();
 
-            var solution = base.GetSolution(test);
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test, "cs");
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();
@@ -462,8 +458,7 @@ class M : Machine
 
             IO.StartWritingToMemory();
 
-            var solution = base.GetSolution(test);
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test, "cs");
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();
@@ -551,8 +546,7 @@ class M : Machine
 
             IO.StartWritingToMemory();
 
-            var solution = base.GetSolution(test);
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test, "cs");
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();
@@ -650,8 +644,7 @@ class M : Machine
 
             IO.StartWritingToMemory();
 
-            var solution = base.GetSolution(test);
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test, "cs");
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();
@@ -746,8 +739,7 @@ class M : Machine
 
             IO.StartWritingToMemory();
 
-            var solution = base.GetSolution(test);
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test, "cs");
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();

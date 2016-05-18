@@ -23,7 +23,7 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
 {
     [TestClass]
-    public class UsingStatementFailTests : BasePSharpTest
+    public class UsingStatementFailTests
     {
         [TestMethod, Timeout(10000)]
         public void TestUsingStatementFail()
@@ -81,8 +81,7 @@ class M : Machine
 
             IO.StartWritingToMemory();
 
-            var solution = base.GetSolution(test);
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test, "cs");
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();

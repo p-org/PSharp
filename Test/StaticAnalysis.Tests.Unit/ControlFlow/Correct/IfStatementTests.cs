@@ -23,7 +23,7 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
 {
     [TestClass]
-    public class IfStatementTests : BasePSharpTest
+    public class IfStatementTests
     {
         [TestMethod, Timeout(10000)]
         public void TestIfStatement1()
@@ -101,8 +101,7 @@ class M : Machine
 
             IO.StartWritingToMemory();
 
-            var solution = base.GetSolution(test);
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test, "cs");
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();
@@ -196,8 +195,7 @@ class M : Machine
 
             IO.StartWritingToMemory();
 
-            var solution = base.GetSolution(test);
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test, "cs");
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();

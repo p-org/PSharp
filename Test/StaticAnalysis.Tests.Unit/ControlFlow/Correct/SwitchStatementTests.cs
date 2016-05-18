@@ -23,7 +23,7 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
 {
     [TestClass]
-    public class SwitchStatementTests : BasePSharpTest
+    public class SwitchStatementTests
     {
         [TestMethod, Timeout(10000)]
         public void TestSwitchStatement()
@@ -95,8 +95,7 @@ class M : Machine
 
             IO.StartWritingToMemory();
 
-            var solution = base.GetSolution(test);
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test, "cs");
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();

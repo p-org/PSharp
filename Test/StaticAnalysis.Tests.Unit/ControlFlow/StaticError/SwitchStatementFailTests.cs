@@ -23,7 +23,7 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
 {
     [TestClass]
-    public class SwitchStatementFailTests : BasePSharpTest
+    public class SwitchStatementFailTests
     {
         [TestMethod, Timeout(10000)]
         public void TestSwitchStatement1Fail()
@@ -92,8 +92,7 @@ class M : Machine
 
             IO.StartWritingToMemory();
 
-            var solution = base.GetSolution(test);
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test, "cs");
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();
@@ -183,8 +182,7 @@ class M : Machine
 
             IO.StartWritingToMemory();
 
-            var solution = base.GetSolution(test);
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test, "cs");
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();
@@ -275,8 +273,7 @@ class M : Machine
 
             IO.StartWritingToMemory();
 
-            var solution = base.GetSolution(test);
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test, "cs");
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();

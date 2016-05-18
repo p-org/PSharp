@@ -23,7 +23,7 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.LanguageServices.Tests.Unit
 {
     [TestClass]
-    public class StateTests : BasePSharpTest
+    public class StateTests
     {
         [TestMethod, Timeout(10000)]
         public void TestStateDeclaration()
@@ -39,8 +39,7 @@ state S2 { }
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
 
-            var solution = base.GetSolution(test);
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();
@@ -83,8 +82,7 @@ entry{}
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
 
-            var solution = base.GetSolution(test);
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();
@@ -128,8 +126,7 @@ exit{}
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
 
-            var solution = base.GetSolution(test);
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();
@@ -174,8 +171,7 @@ exit {}
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
 
-            var solution = base.GetSolution(test);
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();
@@ -223,8 +219,7 @@ on e goto S2;
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
 
-            var solution = base.GetSolution(test);
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();
@@ -266,8 +261,7 @@ on e2 goto S3;
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
 
-            var solution = base.GetSolution(test);
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();
@@ -309,8 +303,7 @@ on e goto S2 with {};
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
 
-            var solution = base.GetSolution(test);
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();
@@ -354,8 +347,7 @@ on e do Bar;
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
 
-            var solution = base.GetSolution(test);
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();
@@ -397,8 +389,7 @@ on e2 do Baz;
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
 
-            var solution = base.GetSolution(test);
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();
@@ -440,8 +431,7 @@ on e do {};
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
 
-            var solution = base.GetSolution(test);
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();
@@ -486,8 +476,7 @@ on e2 do Bar;
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
 
-            var solution = base.GetSolution(test);
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();
@@ -529,8 +518,7 @@ ignore e;
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
 
-            var solution = base.GetSolution(test);
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();
@@ -571,8 +559,7 @@ ignore e1, e2;
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
 
-            var solution = base.GetSolution(test);
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();
@@ -612,8 +599,7 @@ defer e;
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
 
-            var solution = base.GetSolution(test);
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();
@@ -654,8 +640,7 @@ defer e1,e2;
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
 
-            var solution = base.GetSolution(test);
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();

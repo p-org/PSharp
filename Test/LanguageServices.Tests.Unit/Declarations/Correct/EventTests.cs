@@ -23,7 +23,7 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.LanguageServices.Tests.Unit
 {
     [TestClass]
-    public class EventTests : BasePSharpTest
+    public class EventTests
     {
         [TestMethod, Timeout(10000)]
         public void TestEventDeclaration()
@@ -38,8 +38,7 @@ public event e3;
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
 
-            var solution = base.GetSolution(test);
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();
@@ -87,8 +86,7 @@ public event e3 (n:int);
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
 
-            var solution = base.GetSolution(test);
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();

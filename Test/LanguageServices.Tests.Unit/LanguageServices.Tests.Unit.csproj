@@ -91,7 +91,6 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="BasePSharpTest.cs" />
     <Compile Include="Declarations\Correct\FieldTests.cs" />
     <Compile Include="Statements\Correct\SendTests.cs" />
     <Compile Include="Statements\Correct\GotoStateTests.cs" />

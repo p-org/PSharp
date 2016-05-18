@@ -24,7 +24,7 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
 {
     [TestClass]
-    public class WriteAccessAfterSendFailTests : BasePSharpTest
+    public class WriteAccessAfterSendFailTests
     {
         [TestMethod, Timeout(10000)]
         public void TestWriteAccessAfterSend1Fail()
@@ -71,16 +71,14 @@ class M : Machine
  }
 }
 }";
-
-            var solution = base.GetSolution(test);
-
+            
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
             configuration.Verbose = 2;
 
             IO.StartWritingToMemory();
 
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test, "cs");
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();
@@ -147,16 +145,14 @@ class M : Machine
  }
 }
 }";
-
-            var solution = base.GetSolution(test);
-
+            
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
             configuration.Verbose = 2;
 
             IO.StartWritingToMemory();
 
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test, "cs");
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();
@@ -226,16 +222,14 @@ class M : Machine
  }
 }
 }";
-
-            var solution = base.GetSolution(test);
-
+            
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
             configuration.Verbose = 2;
 
             IO.StartWritingToMemory();
 
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test, "cs");
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();
@@ -297,16 +291,14 @@ class M : Machine
  }
 }
 }";
-
-            var solution = base.GetSolution(test);
-
+            
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
             configuration.Verbose = 2;
 
             IO.StartWritingToMemory();
 
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test, "cs");
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();
@@ -375,16 +367,14 @@ class M : Machine
  }
 }
 }";
-
-            var solution = base.GetSolution(test);
-
+            
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
             configuration.Verbose = 2;
 
             IO.StartWritingToMemory();
 
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test, "cs");
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();
@@ -452,16 +442,14 @@ class M : Machine
  }
 }
 }";
-
-            var solution = base.GetSolution(test);
-
+            
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
             configuration.Verbose = 2;
 
             IO.StartWritingToMemory();
 
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test, "cs");
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();
@@ -533,16 +521,14 @@ class M : Machine
  }
 }
 }";
-
-            var solution = base.GetSolution(test);
-
+            
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
             configuration.Verbose = 2;
 
             IO.StartWritingToMemory();
 
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test, "cs");
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();
@@ -615,16 +601,14 @@ class M : Machine
  }
 }
 }";
-
-            var solution = base.GetSolution(test);
-
+            
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
             configuration.Verbose = 2;
 
             IO.StartWritingToMemory();
 
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test, "cs");
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();
@@ -704,9 +688,7 @@ class M : Machine
  }
 }
 }";
-
-            var solution = base.GetSolution(test);
-
+            
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
             configuration.Verbose = 2;
@@ -714,7 +696,7 @@ class M : Machine
 
             IO.StartWritingToMemory();
 
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test, "cs");
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();
@@ -784,16 +766,14 @@ class M : Machine
  }
 }
 }";
-
-            var solution = base.GetSolution(test);
-
+            
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
             configuration.Verbose = 2;
 
             IO.StartWritingToMemory();
 
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test, "cs");
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();
@@ -870,16 +850,14 @@ class M : Machine
  }
 }
 }";
-
-            var solution = base.GetSolution(test);
-
+            
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
             configuration.Verbose = 2;
 
             IO.StartWritingToMemory();
 
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(test, "cs");
 
             ParsingEngine.Create(context).Run();
             RewritingEngine.Create(context).Run();

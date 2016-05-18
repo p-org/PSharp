@@ -125,7 +125,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         }
 
         /// <summary>
-        /// Loads the given solution.
+        /// Loads the specified solution.
         /// </summary>
         /// <returns>CompilationContext</returns>
         public CompilationContext LoadSolution(Solution solution)
@@ -140,32 +140,15 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         }
 
         /// <summary>
-        /// Loads the given solution.
+        /// Loads a solution from the specified text.
         /// </summary>
         /// <param name="text">Text</param>
-        /// <param name="suffix">Optional suffix</param>
+        /// <param name="extension">Extension</param>
         /// <returns>CompilationContext</returns>
-        public CompilationContext LoadSolution(string text, string suffix = "psharp")
+        public CompilationContext LoadSolution(string text, string extension = "psharp")
         {
-            var workspace = new AdhocWorkspace();
-            var solutionInfo = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create());
-            var solution = workspace.AddSolution(solutionInfo);
-            var project = workspace.AddProject("Test", "C#");
-
-            var references = new MetadataReference[]
-            {
-                MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(Machine).Assembly.Location)
-            };
-
-            project = project.AddMetadataReferences(references);
-            workspace.TryApplyChanges(project.Solution);
-
-            var sourceText = SourceText.From(text);
-            var doc = project.AddDocument("Program", sourceText, null, "Program." + suffix);
-
-            solution = doc.Project.Solution;
+            // Create a new solution from the specified text.
+            var solution = this.GetSolution(text, extension);
 
             this.InstallCompilationTargets(solution);
             this.HasInitialized = true;
@@ -184,6 +167,35 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         }
 
         /// <summary>
+        /// Returns a P# solution from the specified text.
+        /// </summary>
+        /// <param name="text">Text</param>
+        /// <param name="extension">Extension</param>
+        /// <returns>Solution</returns>
+        public Solution GetSolution(string text, string extension = "psharp")
+        {
+            var workspace = new AdhocWorkspace();
+            var solutionInfo = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create());
+            var solution = workspace.AddSolution(solutionInfo);
+            var project = workspace.AddProject("Test", "C#");
+
+            var references = new MetadataReference[]
+            {
+                MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(Machine).Assembly.Location)
+            };
+
+            project = project.AddMetadataReferences(references);
+            workspace.TryApplyChanges(project.Solution);
+
+            var sourceText = SourceText.From(text);
+            var doc = project.AddDocument("Program", sourceText, null, "Program." + extension);
+
+            return doc.Project.Solution;
+        }
+
+        /// <summary>
         /// Returns the P# projects associated with the active
         /// compilation target.
         /// </summary>
@@ -194,7 +206,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         }
 
         /// <summary>
-        /// Returns the project with the given name.
+        /// Returns the project with the specified name.
         /// </summary>
         /// <param name="name">Project name</param>
         /// <returns>Project</returns>
@@ -206,7 +218,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         }
 
         /// <summary>
-        /// Replaces the syntax tree with the given text in the project.
+        /// Replaces the syntax tree with the specified text in the project.
         /// </summary>
         /// <param name="tree">SyntaxTree</param>
         /// <param name="text">Text</param>
