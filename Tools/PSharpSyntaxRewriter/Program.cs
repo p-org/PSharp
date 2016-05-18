@@ -16,9 +16,14 @@ using Microsoft.Build.Framework;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 
+using System.Runtime.InteropServices;
+using Microsoft.VisualStudio.Shell;
+using VSLangProj80;
+using Microsoft.VisualStudio.OLE.Interop;
+
 namespace PSharpSyntaxRewriter
 {
-    class Program
+    public class Program
     {
         static void Main(string[] args)
         {
@@ -96,13 +101,14 @@ namespace PSharpSyntaxRewriter
         }
     }
 
-    
-    public class PSharpCodeGenerator : IVsSingleFileGenerator
+    [ComVisible(true)]
+    [Guid(GuidList.guidSimpleFileGeneratorString)]
+    [ProvideObject(typeof(PSharpCodeGenerator))]
+    [CodeGeneratorRegistration(typeof(PSharpCodeGenerator), "PSharpCodeGenerator", vsContextGuids.vsContextGuidVCSProject, GeneratesDesignTimeSource = true)]
+    [CodeGeneratorRegistration(typeof(PSharpCodeGenerator), "PSharpCodeGenerator", vsContextGuids.vsContextGuidVBProject, GeneratesDesignTimeSource = true)]
+    public class PSharpCodeGenerator : IVsSingleFileGenerator, IObjectWithSite
     {
-#pragma warning disable 0414
-        //The name of this generator (use for 'Custom Tool' property of project item)
-        internal static string name = "PSharpCodeGenerator";
-#pragma warning restore 0414
+        //internal static string name = "PSharpCodeGenerator";
 
         public int DefaultExtension(out string pbstrDefaultExtension)
         {
@@ -113,24 +119,46 @@ namespace PSharpSyntaxRewriter
         public int Generate(string wszInputFilePath, string bstrInputFileContents, string wszDefaultNamespace, IntPtr[] rgbOutputFileContents, out uint pcbOutput, IVsGeneratorProgress pGenerateProgress)
         {
             if (bstrInputFileContents == null)
-            {
-                throw new ArgumentNullException(bstrInputFileContents);
-            }
+                throw new ArgumentException(bstrInputFileContents);
 
             var bytes = GenerateCode(bstrInputFileContents);
 
             if (bytes == null)
             {
-                rgbOutputFileContents = null;
+                rgbOutputFileContents[0] = IntPtr.Zero;
                 pcbOutput = 0;
-                return VSConstants.E_FAIL;
             }
-
-            int outputLength = bytes.Length;
-            rgbOutputFileContents[0] = System.Runtime.InteropServices.Marshal.AllocCoTaskMem(outputLength);
-            System.Runtime.InteropServices.Marshal.Copy(bytes, 0, rgbOutputFileContents[0], outputLength);
-            pcbOutput = (uint)outputLength;
+            else
+            {
+                rgbOutputFileContents[0] = Marshal.AllocCoTaskMem(bytes.Length);
+                Marshal.Copy(bytes, 0, rgbOutputFileContents[0], bytes.Length);
+                pcbOutput = (uint)bytes.Length;
+            }
             return VSConstants.S_OK;
+        }
+
+        private object site = null;
+
+        public void GetSite(ref Guid riid, out IntPtr ppvSite)
+        {
+            if (site == null)
+                Marshal.ThrowExceptionForHR(VSConstants.E_NOINTERFACE);
+
+            // Query for the interface using the site object initially passed to the generator
+            IntPtr punk = Marshal.GetIUnknownForObject(site);
+            int hr = Marshal.QueryInterface(punk, ref riid, out ppvSite);
+            Marshal.Release(punk);
+            Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(hr);
+        }
+
+        public void SetSite(object pUnkSite)
+        {
+            // Save away the site object for later use
+            site = pUnkSite;
+
+            // These are initialized on demand via our private CodeProvider and SiteServiceProvider properties
+            //codeDomProvider = null;
+            //serviceProvider = null;
         }
 
         byte[] GenerateCode(string input)
@@ -138,6 +166,8 @@ namespace PSharpSyntaxRewriter
             var output = Program.Translate(input);
             if (output == null) return null;
 
+            return Encoding.UTF8.GetBytes(output);
+            /*
             using (System.IO.StringWriter writer = new System.IO.StringWriter(new StringBuilder()))
             {
                 writer.WriteLine("{0}", output);
@@ -160,10 +190,16 @@ namespace PSharpSyntaxRewriter
                 //Return the combined byte array
                 return preamble;
             }
+            */
         }
 
     }
-  
+
+    static class GuidList
+    {
+        public const string guidSimpleFileGeneratorString = "FBB82BF8-A8BF-442A-8060-159042C0EFFF";
+        public static readonly Guid guidSimpleFileGenerator = new Guid(guidSimpleFileGeneratorString);
+    }
 
     public class Rewriter : ITask
     {
