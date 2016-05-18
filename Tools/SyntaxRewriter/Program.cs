@@ -1,28 +1,40 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿//-----------------------------------------------------------------------
+// <copyright file="Program.cs">
+//      Copyright (c) Microsoft Corporation. All rights reserved.
+// 
+//      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+//      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+//      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+//      IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+//      CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+//      TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// </copyright>
+//-----------------------------------------------------------------------
+
+using System;
+using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
+
+using Microsoft.Build.Framework;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.OLE.Interop;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+
+using VSLangProj80;
 
 using Microsoft.PSharp.LanguageServices.Compilation;
 using Microsoft.PSharp.LanguageServices.Parsing;
 using Microsoft.PSharp.Utilities;
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
-
-using Microsoft.Build.Framework;
-
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell.Interop;
-
-using System.Runtime.InteropServices;
-using Microsoft.VisualStudio.Shell;
-using VSLangProj80;
-using Microsoft.VisualStudio.OLE.Interop;
-
-namespace PSharpSyntaxRewriter
+namespace Microsoft.PSharp
 {
+    /// <summary>
+    /// The P# syntax rewriter.
+    /// </summary>
     public class Program
     {
         static void Main(string[] args)
@@ -49,14 +61,18 @@ namespace PSharpSyntaxRewriter
             Console.WriteLine("{0}", Translate(input_string));
         }
 
+        /// <summary>
+        /// Translates the specified text from P# to C#.
+        /// </summary>
+        /// <param name="text">Text</param>
+        /// <returns>Text</returns>
         public static string Translate(string text)
         {
             //System.Diagnostics.Debugger.Launch();
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
 
-            var solution = GetSolution(text);
-            var context = CompilationContext.Create(configuration).LoadSolution(solution);
+            var context = CompilationContext.Create(configuration).LoadSolution(text);
 
             try
             {
@@ -75,29 +91,6 @@ namespace PSharpSyntaxRewriter
             {
                 return null;
             }
-        }
-
-        static Solution GetSolution(string text, string suffix = "psharp")
-        {
-            var workspace = new AdhocWorkspace();
-            var solutionInfo = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create());
-            var solution = workspace.AddSolution(solutionInfo);
-            var project = workspace.AddProject("Test", "C#");
-
-            var references = new MetadataReference[]
-            {
-                MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(Microsoft.PSharp.Machine).Assembly.Location)
-            };
-
-            project = project.AddMetadataReferences(references);
-            workspace.TryApplyChanges(project.Solution);
-
-            var sourceText = SourceText.From(text);
-            var doc = project.AddDocument("Program", sourceText, null, "Program." + suffix);
-
-            return doc.Project.Solution;
         }
     }
 
@@ -134,6 +127,7 @@ namespace PSharpSyntaxRewriter
                 Marshal.Copy(bytes, 0, rgbOutputFileContents[0], bytes.Length);
                 pcbOutput = (uint)bytes.Length;
             }
+
             return VSConstants.S_OK;
         }
 
@@ -220,8 +214,8 @@ namespace PSharpSyntaxRewriter
                 if (outp == null) return false;
                 System.IO.File.WriteAllText(OutputFiles[i].ItemSpec, outp);
             }
+
             return true;
         }
-
     }
 }

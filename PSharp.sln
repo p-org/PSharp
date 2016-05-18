@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Source", "Source", "{6F835BCA-788A-4C38-933B-DBE71F40797F}"
 EndProject
@@ -46,7 +46,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Replayer", "Tools\Replayer\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tester", "Tools\Tester\Tester.csproj", "{F30AE100-BE49-4944-B5A2-6D8D4310CC0B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PSharpSyntaxRewriter", "Tools\PSharpSyntaxRewriter\PSharpSyntaxRewriter.csproj", "{09842F43-E27A-4DFC-8DE6-61DDACB788CD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SyntaxRewriter", "Tools\SyntaxRewriter\SyntaxRewriter.csproj", "{09842F43-E27A-4DFC-8DE6-61DDACB788CD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
