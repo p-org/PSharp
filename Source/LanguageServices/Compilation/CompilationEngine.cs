@@ -105,7 +105,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
 
         #endregion
 
-        #region private methods
+        #region constructor methods
 
         /// <summary>
         /// Constructor.
@@ -114,35 +114,6 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         private CompilationEngine(CompilationContext context)
         {
             this.CompilationContext = context;
-        }
-
-        /// <summary>
-        /// Compiles the given P# project.
-        /// </summary>
-        /// <param name="project">Project</param>
-        private void CompileProject(Project project)
-        {
-            var compilation = project.GetCompilationAsync().Result;
-
-            try
-            {
-                if (this.CompilationContext.ActiveCompilationTarget == CompilationTarget.Library ||
-                    this.CompilationContext.ActiveCompilationTarget == CompilationTarget.Testing ||
-                    this.CompilationContext.ActiveCompilationTarget == CompilationTarget.Remote)
-                {
-                    this.ToFile(compilation, OutputKind.DynamicallyLinkedLibrary,
-                        project.OutputFilePath);
-                }
-                else
-                {
-                    this.ToFile(compilation, project.CompilationOptions.OutputKind,
-                        project.OutputFilePath);
-                }
-            }
-            catch (ApplicationException ex)
-            {
-                ErrorReporter.ReportAndExit(ex.Message);
-            }
         }
 
         #endregion
@@ -156,7 +127,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <param name="outputKind">OutputKind</param>
         /// <param name="outputPath">OutputPath</param>
         /// <returns>Output</returns>
-        private string ToFile(CodeAnalysis.Compilation compilation, OutputKind outputKind, string outputPath)
+        public string ToFile(CodeAnalysis.Compilation compilation, OutputKind outputKind, string outputPath)
         {
             string assemblyFileName = null;
             if (outputKind == OutputKind.ConsoleApplication)
@@ -177,12 +148,12 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
             {
                 outputDirectory = Path.GetDirectoryName(outputPath);
             }
-
-            this.OutputDirectoryMap.Add(compilation.AssemblyName, outputDirectory);
-
+            
             string fileName = outputDirectory + Path.DirectorySeparatorChar + assemblyFileName;
             string pdbFileName = outputDirectory + Path.DirectorySeparatorChar + compilation.AssemblyName + ".pdb";
-            this.ProjectAssemblyPathMap.Add(compilation.AssemblyName, fileName);
+
+            this.OutputDirectoryMap?.Add(compilation.AssemblyName, outputDirectory);
+            this.ProjectAssemblyPathMap?.Add(compilation.AssemblyName, fileName);
 
             // Link external references.
             this.LinkExternalAssembliesToProject(compilation);
@@ -214,7 +185,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <param name="compilation">Compilation</param>
         /// <param name="outputKind">OutputKind</param>
         /// <returns>Assembly</returns>
-        private Assembly ToAssembly(CodeAnalysis.Compilation compilation, OutputKind outputKind)
+        public Assembly ToAssembly(CodeAnalysis.Compilation compilation, OutputKind outputKind)
         {
             string assemblyFileName = null;
             if (outputKind == OutputKind.ConsoleApplication)
@@ -244,6 +215,39 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
 
             var message = string.Join("\r\n", emitResult.Diagnostics);
             throw new ApplicationException(message);
+        }
+
+        #endregion
+
+        #region private methods
+
+        /// <summary>
+        /// Compiles the given P# project.
+        /// </summary>
+        /// <param name="project">Project</param>
+        private void CompileProject(Project project)
+        {
+            var compilation = project.GetCompilationAsync().Result;
+
+            try
+            {
+                if (this.CompilationContext.ActiveCompilationTarget == CompilationTarget.Library ||
+                    this.CompilationContext.ActiveCompilationTarget == CompilationTarget.Testing ||
+                    this.CompilationContext.ActiveCompilationTarget == CompilationTarget.Remote)
+                {
+                    this.ToFile(compilation, OutputKind.DynamicallyLinkedLibrary,
+                        project.OutputFilePath);
+                }
+                else
+                {
+                    this.ToFile(compilation, project.CompilationOptions.OutputKind,
+                        project.OutputFilePath);
+                }
+            }
+            catch (ApplicationException ex)
+            {
+                ErrorReporter.ReportAndExit(ex.Message);
+            }
         }
 
         #endregion
