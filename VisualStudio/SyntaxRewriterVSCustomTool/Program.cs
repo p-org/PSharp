@@ -99,7 +99,8 @@ namespace Microsoft.PSharp
 
         byte[] GenerateCode(string input)
         {
-            var output = SyntaxRewriter.Translate(input);
+            string errors;
+            var output = SyntaxRewriter.Translate(input, out errors);
             if (output == null) return null;
 
             return Encoding.UTF8.GetBytes(output);
