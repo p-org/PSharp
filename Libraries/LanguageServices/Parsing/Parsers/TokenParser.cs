@@ -97,7 +97,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 this.ExpectedTokenTypes = ex.ExpectedTokenTypes;
                 this.ReportParsingError();
 
-                if (base.Options.ThrowParsingException)
+                if (base.Options.ThrowParsingException &&
+                    this.ErrorLog.Length > 0)
                 {
                     throw ex;
                 }

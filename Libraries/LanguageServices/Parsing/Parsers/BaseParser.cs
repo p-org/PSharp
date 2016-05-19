@@ -52,14 +52,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// Constructor.
         /// </summary>
-        //public BaseParser()
-        //{
-        //    this.ParsingOptions = ParsingOptions.Create();
-        //}
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
         /// <param name="options">ParsingOptions</param>
         public BaseParser(ParsingOptions options)
         {

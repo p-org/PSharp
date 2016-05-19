@@ -100,7 +100,8 @@ namespace Microsoft.PSharp.LanguageServices
         /// <summary>
         /// Parses the project.
         /// </summary>
-        public void Parse()
+        /// <param name="options">ParsingOptions</param>
+        public void Parse(ParsingOptions options)
         {
             var project = this.CompilationContext.GetProjectWithName(this.Name);
             var compilation = project.GetCompilationAsync().Result;
@@ -109,11 +110,11 @@ namespace Microsoft.PSharp.LanguageServices
             {
                 if (this.CompilationContext.IsPSharpFile(tree))
                 {
-                    this.ParsePSharpSyntaxTree(tree);
+                    this.ParsePSharpSyntaxTree(tree, options);
                 }
                 else if (this.CompilationContext.IsCSharpFile(tree))
                 {
-                    this.ParseCSharpSyntaxTree(tree);
+                    this.ParseCSharpSyntaxTree(tree, options);
                 }
             }
         }
@@ -167,14 +168,12 @@ namespace Microsoft.PSharp.LanguageServices
         /// th
         /// </summary>
         /// <param name="tree">SyntaxTree</param>
-        private void ParsePSharpSyntaxTree(SyntaxTree tree)
+        /// <param name="options">ParsingOptions</param>
+        private void ParsePSharpSyntaxTree(SyntaxTree tree, ParsingOptions options)
         {
             var root = (CompilationUnitSyntax)tree.GetRoot();
 
             var tokens = new PSharpLexer().Tokenize(root.ToFullString());
-
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .EnableExitOnError().DisableThrowParsingException();
             var program = new PSharpParser(this, tree, options).ParseTokens(tokens);
 
             this.PSharpPrograms.Add(program as PSharpProgram);
@@ -186,12 +185,11 @@ namespace Microsoft.PSharp.LanguageServices
         /// th
         /// </summary>
         /// <param name="tree">SyntaxTree</param>
-        private void ParseCSharpSyntaxTree(SyntaxTree tree)
+        /// <param name="options">ParsingOptions</param>
+        private void ParseCSharpSyntaxTree(SyntaxTree tree, ParsingOptions options)
         {
             var root = (CompilationUnitSyntax)tree.GetRoot();
 
-            ParsingOptions options = ParsingOptions.CreateDefault()
-                .EnableExitOnError().DisableThrowParsingException();
             var program = new CSharpParser(this, tree, options).Parse();
 
             this.CSharpPrograms.Add(program as CSharpProgram);

@@ -31,18 +31,37 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// </summary>
         private CompilationContext CompilationContext;
 
+        /// <summary>
+        /// The parsing options.
+        /// </summary>
+        private ParsingOptions Options;
+
         #endregion
 
         #region public API
 
         /// <summary>
-        /// Creates a P# parsing engine.
+        /// Creates a P# parsing engine for the specified compilation
+        /// context and using the default parsing options.
         /// </summary>
         /// <param name="context">CompilationContext</param>
+        /// <param name="options">ParsingOptions</param>
         /// <returns>ParsingEngine</returns>
         public static ParsingEngine Create(CompilationContext context)
         {
-            return new ParsingEngine(context);
+            return new ParsingEngine(context, ParsingOptions.CreateDefault());
+        }
+
+        /// <summary>
+        /// Creates a P# parsing engine for the specified compilation
+        /// context and using the specified parsing options.
+        /// </summary>
+        /// <param name="context">CompilationContext</param>
+        /// <param name="options">ParsingOptions</param>
+        /// <returns>ParsingEngine</returns>
+        public static ParsingEngine Create(CompilationContext context, ParsingOptions options)
+        {
+            return new ParsingEngine(context, options);
         }
 
         /// <summary>
@@ -57,7 +76,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 foreach (var project in this.CompilationContext.GetSolution().Projects)
                 {
                     var psharpProject = new PSharpProject(this.CompilationContext, project.Name);
-                    psharpProject.Parse();
+                    psharpProject.Parse(this.Options);
                     this.CompilationContext.GetProjects().Add(psharpProject);
                 }
             }
@@ -78,7 +97,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     }
 
                     var psharpProject = new PSharpProject(this.CompilationContext, project.Name);
-                    psharpProject.Parse();
+                    psharpProject.Parse(this.Options);
                     this.CompilationContext.GetProjects().Add(psharpProject);
                 }
             }
@@ -94,9 +113,11 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// Constructor.
         /// </summary>
         /// <param name="context">CompilationContext</param>
-        private ParsingEngine(CompilationContext context)
+        /// <param name="options">ParsingOptions</param>
+        private ParsingEngine(CompilationContext context, ParsingOptions options)
         {
             this.CompilationContext = context;
+            this.Options = options;
         }
 
         #endregion
