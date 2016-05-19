@@ -208,13 +208,10 @@ namespace Microsoft.PSharp.VisualStudio
                 case TokenType.Using:
 
                 case TokenType.MachineDecl:
-                case TokenType.ModelDecl:
                 case TokenType.Monitor:
                 case TokenType.StateDecl:
                 case TokenType.EventDecl:
-                case TokenType.FunDecl:
 
-                case TokenType.MainMachine:
                 case TokenType.StartState:
 
                 case TokenType.OnAction:
@@ -237,8 +234,6 @@ namespace Microsoft.PSharp.VisualStudio
                 case TokenType.SizeOf:
                 case TokenType.In:
                 case TokenType.As:
-                case TokenType.Keys:
-                case TokenType.Values:
 
                 case TokenType.IfCondition:
                 case TokenType.ElseCondition:
@@ -263,10 +258,8 @@ namespace Microsoft.PSharp.VisualStudio
                 case TokenType.SendEvent:
                 case TokenType.ToMachine:
                 case TokenType.RaiseEvent:
-                case TokenType.Models:
                 case TokenType.Assert:
                 case TokenType.Assume:
-                case TokenType.Payload:
                 case TokenType.Trigger:
 
                 case TokenType.HaltEvent:
@@ -282,10 +275,6 @@ namespace Microsoft.PSharp.VisualStudio
                 case TokenType.Float:
                 case TokenType.Double:
                 case TokenType.Bool:
-                case TokenType.Foreign:
-                case TokenType.Any:
-                case TokenType.Seq:
-                case TokenType.Map:
                     classification = "PSharp.Keyword";
                     break;
 

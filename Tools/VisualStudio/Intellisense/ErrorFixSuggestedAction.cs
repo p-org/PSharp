@@ -15,11 +15,12 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
-
+using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 
@@ -32,17 +33,28 @@ namespace Microsoft.PSharp.VisualStudio
 
         private bool IsDisposed;
 
-        public IEnumerable<SuggestedActionSet> ActionSets
+        public string DisplayText
         {
             get
             {
-                return null;
+                return "TEST";
             }
         }
 
-        public string DisplayText
+        public bool HasActionSets
         {
-            get { return "TEST"; }
+            get
+            {
+                return false;
+            }
+        }
+
+        public bool HasPreview
+        {
+            get
+            {
+                return true;
+            }
         }
 
         public string IconAutomationText
@@ -53,9 +65,12 @@ namespace Microsoft.PSharp.VisualStudio
             }
         }
 
-        public ImageSource IconSource
+        public ImageMoniker IconMoniker
         {
-            get { return null; }
+            get
+            {
+                return new ImageMoniker();
+            }
         }
 
         public string InputGestureText
@@ -63,6 +78,15 @@ namespace Microsoft.PSharp.VisualStudio
             get
             {
                 return null;
+            }
+        }
+
+        public void Dispose()
+        {
+            if (!this.IsDisposed)
+            {
+                GC.SuppressFinalize(this);
+                this.IsDisposed = true;
             }
         }
 
@@ -75,12 +99,17 @@ namespace Microsoft.PSharp.VisualStudio
             //m_display = string.Format("Convert '{0}' to lower case", span.GetText(m_snapshot));
         }
 
-        public object GetPreview(CancellationToken cancellationToken)
+        public Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<object> GetPreviewAsync(CancellationToken cancellationToken)
         {
             var textBlock = new TextBlock();
             textBlock.Padding = new Thickness(5);
             textBlock.Inlines.Add(new Run() { Text = "test" });
-            return textBlock;
+            return Task.FromResult<object>(textBlock);
         }
 
         public void Invoke(CancellationToken cancellationToken)
@@ -93,14 +122,6 @@ namespace Microsoft.PSharp.VisualStudio
             telemetryId = Guid.Empty;
             return false;
         }
-
-        public void Dispose()
-        {
-            if (!this.IsDisposed)
-            {
-                GC.SuppressFinalize(this);
-                this.IsDisposed = true;
-            }
-        }
     }
+
 }
