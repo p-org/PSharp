@@ -49,8 +49,10 @@ namespace Microsoft.PSharp
                 return;
             }
 
+
             // Translate and print on console
-            Console.WriteLine("{0}", Translate(input_string));
+            var output = Translate(input_string);
+            Console.WriteLine("{0}", output == null ? "Parse Error" : output);
         }
 
         /// <summary>
@@ -60,7 +62,6 @@ namespace Microsoft.PSharp
         /// <returns>Text</returns>
         public static string Translate(string text)
         {
-            //System.Diagnostics.Debugger.Launch();
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
 

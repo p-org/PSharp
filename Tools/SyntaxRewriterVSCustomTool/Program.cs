@@ -35,32 +35,6 @@ namespace Microsoft.PSharp
     /// <summary>
     /// VSIX custom tool implementation for the P# syntax rewriter.
     /// </summary>
-    public class SyntaxRewriterCustomToolTester
-    {
-        static void Main(string[] args)
-        {
-            if (args.Length != 1)
-            {
-                Console.WriteLine("Usage: SyntaxRewriter.exe file.psharp");
-                return;
-            }
-
-            // Get input file as string
-            var input_string = "";
-            try
-            {
-                input_string = System.IO.File.ReadAllText(args[0]);
-            }
-            catch (System.IO.IOException e)
-            {
-                Console.WriteLine("Error: {0}", e.Message);
-                return;
-            }
-
-            // Translate and print on console
-            Console.WriteLine("{0}", SyntaxRewriter.Translate(input_string));
-        }
-    }
 
     [ComVisible(true)]
     [Guid(GuidList.guidSimpleFileGeneratorString)]
