@@ -126,8 +126,10 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <param name="compilation">Compilation</param>
         /// <param name="outputKind">OutputKind</param>
         /// <param name="outputPath">OutputPath</param>
+        /// <param name="enableDebugInformation">Enables debug information</param>
         /// <returns>Output</returns>
-        public string ToFile(CodeAnalysis.Compilation compilation, OutputKind outputKind, string outputPath)
+        public string ToFile(CodeAnalysis.Compilation compilation, OutputKind outputKind, string outputPath,
+            bool enableDebugInformation)
         {
             string assemblyFileName = null;
             if (outputKind == OutputKind.ConsoleApplication)
@@ -162,7 +164,15 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
             using (FileStream outputFile = new FileStream(fileName, FileMode.Create, FileAccess.Write),
                 outputPdbFile = new FileStream(pdbFileName, FileMode.Create, FileAccess.Write))
             {
-                emitResult = compilation.Emit(outputFile, outputPdbFile);
+                if (enableDebugInformation)
+                {
+                    emitResult = compilation.Emit(outputFile, outputPdbFile);
+                }
+                else
+                {
+                    emitResult = compilation.Emit(outputFile, null);
+                }
+                
                 if (emitResult.Success)
                 {
                     IO.PrintLine("... Writing {0}", fileName);
@@ -176,8 +186,11 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
             IO.PrintLine("---");
 
             var message = string.Join("\r\n", emitResult.Diagnostics);
+            Console.WriteLine(message);
             throw new ApplicationException(message);
         }
+
+        
 
         /// <summary>
         /// Compiles the given compilation and returns the assembly.
@@ -236,12 +249,12 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
                     this.CompilationContext.ActiveCompilationTarget == CompilationTarget.Remote)
                 {
                     this.ToFile(compilation, OutputKind.DynamicallyLinkedLibrary,
-                        project.OutputFilePath);
+                        project.OutputFilePath, true);
                 }
                 else
                 {
                     this.ToFile(compilation, project.CompilationOptions.OutputKind,
-                        project.OutputFilePath);
+                        project.OutputFilePath, true);
                 }
             }
             catch (ApplicationException ex)
