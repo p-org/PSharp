@@ -51,8 +51,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// Constructor.
         /// </summary>
-        public CSharpParser()
-            : base()
+        /// <param name="exitOnError">Exits on error</param>
+        public CSharpParser(bool exitOnError)
+            : base(exitOnError)
         {
             this.ErrorLog = new List<Tuple<SyntaxToken, string>>();
             this.WarningLog = new List<Tuple<SyntaxToken, string>>();
@@ -168,7 +169,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// </summary>
         private void ReportParsingWarnings()
         {
-            if (!base.IsRunningInternally || !ErrorReporter.ShowWarnings)
+            if (!base.ExitOnError || !ErrorReporter.ShowWarnings)
             {
                 return;
             }
@@ -197,7 +198,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// </summary>
         private void ReportParsingErrors()
         {
-            if (!base.IsRunningInternally)
+            if (!base.ExitOnError)
             {
                 return;
             }

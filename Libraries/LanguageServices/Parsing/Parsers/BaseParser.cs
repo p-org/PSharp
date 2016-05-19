@@ -41,11 +41,11 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         protected IPSharpProgram Program;
 
         /// <summary>
-        /// True if the parser is running internally and not from
-        /// visual studio or another external tool.
+        /// True if the parser should exit when it
+        /// finds an error.
         /// Else false.
         /// </summary>
-        protected bool IsRunningInternally;
+        protected bool ExitOnError;
 
         #endregion
 
@@ -54,9 +54,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// Constructor.
         /// </summary>
-        public BaseParser()
+        /// <param name="exitOnError">Exits on error</param>
+        public BaseParser(bool exitOnError)
         {
-            this.IsRunningInternally = false;
+            this.ExitOnError = exitOnError;
         }
 
         /// <summary>
@@ -64,12 +65,12 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// </summary>
         /// <param name="project">PSharpProject</param>
         /// <param name="tree">SyntaxTree</param>
-        /// <param name="exitAtError">Exits at error</param>
-        internal BaseParser(PSharpProject project, SyntaxTree tree, bool exitAtError)
+        /// <param name="exitOnError">Exits on error</param>
+        internal BaseParser(PSharpProject project, SyntaxTree tree, bool exitOnError)
         {
             this.Project = project;
             this.SyntaxTree = tree;
-            this.IsRunningInternally = exitAtError;
+            this.ExitOnError = exitOnError;
         }
 
         #endregion

@@ -32,8 +32,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// Constructor.
         /// </summary>
-        public PSharpParser()
-            : base()
+        /// <param name="exitOnError">Exits on error</param>
+        public PSharpParser(bool exitOnError)
+            : base(exitOnError)
         {
 
         }
