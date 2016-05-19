@@ -157,6 +157,25 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         }
 
         /// <summary>
+        /// Loads a solution from the specified text.
+        /// </summary>
+        /// <param name="text">Text</param>
+        /// <param name="references">MetadataReferences</param>
+        /// <param name="extension">Extension</param>
+        /// <returns>CompilationContext</returns>
+        public CompilationContext LoadSolution(string text, ISet<MetadataReference> references,
+            string extension = "psharp")
+        {
+            // Create a new solution from the specified text.
+            var solution = this.GetSolution(text, references, extension);
+
+            this.InstallCompilationTargets(solution);
+            this.HasInitialized = true;
+
+            return this;
+        }
+
+        /// <summary>
         /// Returns the P# solution associated with the active
         /// compilation target.
         /// </summary>
@@ -174,20 +193,36 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <returns>Solution</returns>
         public Solution GetSolution(string text, string extension = "psharp")
         {
-            var workspace = new AdhocWorkspace();
-            var solutionInfo = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create());
-            var solution = workspace.AddSolution(solutionInfo);
-            var project = workspace.AddProject("Test", "C#");
-
-            var references = new MetadataReference[]
+            var references = new HashSet<MetadataReference>
             {
                 MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(Machine).Assembly.Location)
             };
 
-            project = project.AddMetadataReferences(references);
-            workspace.TryApplyChanges(project.Solution);
+            Project project = this.CreateProject(references);
+
+            var sourceText = SourceText.From(text);
+            var doc = project.AddDocument("Program", sourceText, null, "Program." + extension);
+
+            return doc.Project.Solution;
+        }
+
+        /// <summary>
+        /// Returns a P# solution from the specified text.
+        /// </summary>
+        /// <param name="text">Text</param>
+        /// <param name="references">MetadataReferences</param>
+        /// <param name="extension">Extension</param>
+        /// <returns>Solution</returns>
+        public Solution GetSolution(string text, ISet<MetadataReference> references,
+            string extension = "psharp")
+        {
+            references.Add(MetadataReference.CreateFromFile(typeof(object).Assembly.Location));
+            references.Add(MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location));
+            references.Add(MetadataReference.CreateFromFile(typeof(Machine).Assembly.Location));
+
+            Project project = this.CreateProject(references);
 
             var sourceText = SourceText.From(text);
             var doc = project.AddDocument("Program", sourceText, null, "Program." + extension);
@@ -306,6 +341,24 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
                 this.SolutionMap.Add(target, solution);
                 this.PSharpProjectMap.Add(target, new List<PSharpProject>());
             }
+        }
+
+        /// <summary>
+        /// Creates a new P# project using the specified references.
+        /// </summary>
+        /// <param name="references">MetadataReferences</param>
+        /// <returns>Project</returns>
+        private Project CreateProject(ISet<MetadataReference> references)
+        {
+            var workspace = new AdhocWorkspace();
+            var solutionInfo = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create());
+            var solution = workspace.AddSolution(solutionInfo);
+            var project = workspace.AddProject("Test", "C#");
+
+            project = project.AddMetadataReferences(references);
+            workspace.TryApplyChanges(project.Solution);
+
+            return project;
         }
 
         #endregion
