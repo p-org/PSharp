@@ -3,11 +3,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{76083D7A-E51C-4267-8DED-86E7A4FBDF58}</ProjectGuid>
+    <ProjectGuid>{D388CB45-F077-4278-B174-796A8C9BF927}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Microsoft.PSharp.StaticAnalysis.Tests.Unit</RootNamespace>
-    <AssemblyName>Microsoft.PSharp.StaticAnalysis.Tests.Unit</AssemblyName>
+    <RootNamespace>Microsoft.PSharp.TestingServices.Tests.Unit</RootNamespace>
+    <AssemblyName>Microsoft.PSharp.TestingServices.Tests.Unit</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -90,11 +90,11 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\References\Roslyn\Microsoft.CodeAnalysis.Workspaces.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.CodeAnalysis.Workspaces.Desktop, Version=42.42.42.42, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\References\Roslyn\Microsoft.CodeAnalysis.Workspaces.Desktop.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Collections.Immutable, Version=1.1.33.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\References\Roslyn\System.Collections.Immutable.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <Choose>
     <When Condition="('$(VisualStudioVersion)' == '10.0' or '$(VisualStudioVersion)' == '') and '$(TargetFrameworkVersion)' == 'v3.5'">
@@ -109,61 +109,83 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="AccessChecking\Correct\AccessAfterCreateMachineTests.cs" />
-    <Compile Include="AccessChecking\Correct\ResetAfterSendTests.cs" />
-    <Compile Include="AccessChecking\Correct\AccessAfterSendTests.cs" />
-    <Compile Include="AccessChecking\Correct\AccessBeforeCreateMachineTests.cs" />
-    <Compile Include="AccessChecking\Correct\AccessBeforeSendTests.cs" />
-    <Compile Include="AccessChecking\StaticError\AccessAfterCreateMachineFailTests.cs" />
-    <Compile Include="Advanced\Correct\ReturnAliasAccessTests.cs" />
-    <Compile Include="Advanced\StaticError\NestedAccessesInCallFailTests.cs" />
-    <Compile Include="Advanced\StaticError\ReturnAliasAccessFailTests.cs" />
-    <Compile Include="AccessChecking\StaticError\ReadAccessAfterSendFailTests.cs" />
-    <Compile Include="AccessChecking\StaticError\AliasAccessAfterSendFailTests.cs" />
-    <Compile Include="AccessChecking\StaticError\WriteAccessAfterSendFailTests.cs" />
-    <Compile Include="Advanced\StaticError\ExternalLibraryCallFailTests.cs" />
-    <Compile Include="Advanced\StaticError\DuplicateSendsFailTests.cs" />
-    <Compile Include="Advanced\StaticError\ComplexAccessesInCallFailTests.cs" />
-    <Compile Include="ControlFlow\Correct\IfStatementTests.cs" />
-    <Compile Include="ControlFlow\Correct\SwitchStatementTests.cs" />
-    <Compile Include="ControlFlow\StaticError\SwitchStatementFailTests.cs" />
-    <Compile Include="ControlFlow\StaticError\UsingStatementFailTests.cs" />
-    <Compile Include="ControlFlow\StaticError\IfStatementFailTests.cs" />
-    <Compile Include="DirectAccess\Correct\MemberVisibilityTests.cs" />
-    <Compile Include="DirectAccess\StaticError\MemberVisibilityFailTests.cs" />
-    <Compile Include="FieldOwnership\Correct\FieldSendAliasTests.cs" />
-    <Compile Include="FieldOwnership\Correct\FieldSendingTests.cs" />
-    <Compile Include="FieldOwnership\StaticError\FieldSendAliasFailTests.cs" />
-    <Compile Include="FieldOwnership\StaticError\FieldAliasAccessAfterSendFailTests.cs" />
-    <Compile Include="FieldOwnership\StaticError\FieldGivenUpOwnershipFailTests.cs" />
-    <Compile Include="FieldOwnership\StaticError\FieldSendingFailTests.cs" />
-    <Compile Include="ControlFlow\Correct\NoStatementsWithLoopTest.cs" />
-    <Compile Include="ControlFlow\Correct\NoStatementsTest.cs" />
-    <Compile Include="ControlFlow\Correct\AccessInLoopTests.cs" />
-    <Compile Include="ControlFlow\Correct\BasicLoopTest.cs" />
-    <Compile Include="ControlFlow\StaticError\AccessInLoopFailTests.cs" />
-    <Compile Include="Inheritance\Correct\AccessInVirtualMethodTests.cs" />
-    <Compile Include="Inheritance\StaticError\AccessInVirtualMethodFailTests.cs" />
+    <Compile Include="AsyncAwait\DynamicError\SimpleAsyncAwaitFailTest.cs" />
+    <Compile Include="Feature1SMLevelDecls\Correct\MaxInstances2Test.cs" />
+    <Compile Include="Feature1SMLevelDecls\Correct\MethodCallTest.cs" />
+    <Compile Include="Feature1SMLevelDecls\Correct\BugRepro1Test.cs" />
+    <Compile Include="Feature1SMLevelDecls\Correct\AlonBugTest.cs" />
+    <Compile Include="Feature1SMLevelDecls\DynamicError\AlonBugFailTest.cs" />
+    <Compile Include="Feature1SMLevelDecls\DynamicError\MaxInstances1FailTest.cs" />
+    <Compile Include="Feature2Stmts\Correct\GotoStateTest.cs" />
+    <Compile Include="Feature2Stmts\Correct\CurrentStateTest.cs" />
+    <Compile Include="Feature2Stmts\Correct\SEMOneMachine35Test.cs" />
+    <Compile Include="Feature2Stmts\Correct\SEMOneMachine34Test.cs" />
+    <Compile Include="Feature2Stmts\Correct\SEMOneMachine33Test.cs" />
+    <Compile Include="Feature2Stmts\Correct\ReceiveEventTest.cs" />
+    <Compile Include="Feature2Stmts\DynamicError\GotoStateExitFailTest.cs" />
+    <Compile Include="Feature2Stmts\DynamicError\GotoStateFailTest.cs" />
+    <Compile Include="Feature2Stmts\DynamicError\ReceiveEventFailTest.cs" />
+    <Compile Include="Integration\Correct\ExternalCalls\ReceivingExternalEventTest.cs" />
+    <Compile Include="Integration\Correct\OneMachine\SEMOneMachine42Test.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine38Test.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine37Test.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine36Test.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine32Test.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine25Test.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine20Test.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine17Test.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine16Test.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine15Test.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine14Test.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine13Test.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine12Test.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine11Test.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine10Test.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine9Test.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine8Test.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine6Test.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine5Test.cs" />
+    <Compile Include="Integration\Correct\TwoMachines\SEMTwoMachines15Test.cs" />
+    <Compile Include="Integration\Correct\TwoMachines\SEMTwoMachines14Test.cs" />
+    <Compile Include="Integration\DynamicError\TwoMachines\SEMTwoMachines13Test.cs" />
+    <Compile Include="Integration\DynamicError\TwoMachines\SEMTwoMachines10Test.cs" />
+    <Compile Include="Integration\DynamicError\TwoMachines\SEMTwoMachines6Test.cs" />
+    <Compile Include="Integration\DynamicError\TwoMachines\SEMTwoMachines4Test.cs" />
+    <Compile Include="Integration\DynamicError\TwoMachines\SEMTwoMachines2Test.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine3Test.cs" />
+    <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine1Test.cs" />
+    <Compile Include="Integration\DynamicError\Advanced\BangaloreToRedmondTest.cs" />
+    <Compile Include="Integration\DynamicError\BasicTransitions\Actions6FailTest.cs" />
+    <Compile Include="Integration\DynamicError\BasicTransitions\Actions5FailTest.cs" />
+    <Compile Include="Integration\DynamicError\BasicTransitions\Actions1FailTest.cs" />
+    <Compile Include="Integration\DynamicError\Advanced\SendInterleavingsTest.cs" />
+    <Compile Include="Liveness\Correct\Liveness1Test.cs" />
+    <Compile Include="Liveness\Correct\FairNondet1Test.cs" />
+    <Compile Include="Liveness\Correct\Liveness4Test.cs" />
+    <Compile Include="Liveness\Correct\WarmStateTest.cs" />
+    <Compile Include="Liveness\DynamicError\Liveness2BugFoundTest.cs" />
+    <Compile Include="Liveness\DynamicError\Liveness3Test.cs" />
+    <Compile Include="Liveness\DynamicError\Liveness2LoopMachineTest.cs" />
+    <Compile Include="Liveness\DynamicError\Nondet1Test.cs" />
+    <Compile Include="Liveness\DynamicError\WarmStateBugTest.cs" />
+    <Compile Include="Liveness\DynamicError\Liveness2Test.cs" />
+    <Compile Include="Liveness\DynamicError\HotStateTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TaskParallelism\DynamicError\SimpleTaskFailTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="PSharp.snk" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Source\Core\Core.csproj">
+    <ProjectReference Include="..\..\Libraries\Core\Core.csproj">
       <Project>{2e330c40-60ea-4a94-8813-9747b93a1795}</Project>
       <Name>Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Source\LanguageServices\LanguageServices.csproj">
-      <Project>{06ccbe95-2e41-4188-bb97-aee702c1bd25}</Project>
-      <Name>LanguageServices</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Source\StaticAnalysis\StaticAnalysis.csproj">
-      <Project>{da00a188-9d9e-4d4f-901c-c2a2cbc84cb6}</Project>
-      <Name>StaticAnalysis</Name>
+    <ProjectReference Include="..\..\Libraries\TestingServices\TestingServices.csproj">
+      <Project>{d88418ab-c8b8-4fb2-9fba-f0e994e42f37}</Project>
+      <Name>TestingServices</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
       <ItemGroup>

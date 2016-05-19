@@ -3,11 +3,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{9C634793-A03A-4CE2-B2FC-782D859F48D3}</ProjectGuid>
+    <ProjectGuid>{76083D7A-E51C-4267-8DED-86E7A4FBDF58}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Microsoft.PSharp.LanguageServices.Tests.Unit</RootNamespace>
-    <AssemblyName>Microsoft.PSharp.LanguageServices.Tests.Unit</AssemblyName>
+    <RootNamespace>Microsoft.PSharp.StaticAnalysis.Tests.Unit</RootNamespace>
+    <AssemblyName>Microsoft.PSharp.StaticAnalysis.Tests.Unit</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -109,38 +109,60 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="Declarations\Correct\FieldTests.cs" />
-    <Compile Include="Statements\Correct\SendTests.cs" />
-    <Compile Include="Statements\Correct\GotoStateTests.cs" />
-    <Compile Include="Statements\Correct\RaiseTests.cs" />
-    <Compile Include="Declarations\Correct\MethodTests.cs" />
-    <Compile Include="Declarations\Correct\StateTests.cs" />
-    <Compile Include="Declarations\Correct\MachineTests.cs" />
-    <Compile Include="Declarations\Correct\EventTests.cs" />
-    <Compile Include="Declarations\Correct\NamespaceTests.cs" />
-    <Compile Include="Declarations\Correct\UsingTests.cs" />
-    <Compile Include="Declarations\StaticError\NamespaceFailTests.cs" />
-    <Compile Include="Declarations\StaticError\EventFailTests.cs" />
-    <Compile Include="Declarations\StaticError\MachineFailTests.cs" />
-    <Compile Include="Declarations\StaticError\FieldFailTests.cs" />
-    <Compile Include="Declarations\StaticError\StateFailTests.cs" />
-    <Compile Include="Declarations\StaticError\UsingFailTests.cs" />
+    <Compile Include="AccessChecking\Correct\AccessAfterCreateMachineTests.cs" />
+    <Compile Include="AccessChecking\Correct\ResetAfterSendTests.cs" />
+    <Compile Include="AccessChecking\Correct\AccessAfterSendTests.cs" />
+    <Compile Include="AccessChecking\Correct\AccessBeforeCreateMachineTests.cs" />
+    <Compile Include="AccessChecking\Correct\AccessBeforeSendTests.cs" />
+    <Compile Include="AccessChecking\StaticError\AccessAfterCreateMachineFailTests.cs" />
+    <Compile Include="Advanced\Correct\ReturnAliasAccessTests.cs" />
+    <Compile Include="Advanced\StaticError\NestedAccessesInCallFailTests.cs" />
+    <Compile Include="Advanced\StaticError\ReturnAliasAccessFailTests.cs" />
+    <Compile Include="AccessChecking\StaticError\ReadAccessAfterSendFailTests.cs" />
+    <Compile Include="AccessChecking\StaticError\AliasAccessAfterSendFailTests.cs" />
+    <Compile Include="AccessChecking\StaticError\WriteAccessAfterSendFailTests.cs" />
+    <Compile Include="Advanced\StaticError\ExternalLibraryCallFailTests.cs" />
+    <Compile Include="Advanced\StaticError\DuplicateSendsFailTests.cs" />
+    <Compile Include="Advanced\StaticError\ComplexAccessesInCallFailTests.cs" />
+    <Compile Include="ControlFlow\Correct\IfStatementTests.cs" />
+    <Compile Include="ControlFlow\Correct\SwitchStatementTests.cs" />
+    <Compile Include="ControlFlow\StaticError\SwitchStatementFailTests.cs" />
+    <Compile Include="ControlFlow\StaticError\UsingStatementFailTests.cs" />
+    <Compile Include="ControlFlow\StaticError\IfStatementFailTests.cs" />
+    <Compile Include="DirectAccess\Correct\MemberVisibilityTests.cs" />
+    <Compile Include="DirectAccess\StaticError\MemberVisibilityFailTests.cs" />
+    <Compile Include="FieldOwnership\Correct\FieldSendAliasTests.cs" />
+    <Compile Include="FieldOwnership\Correct\FieldSendingTests.cs" />
+    <Compile Include="FieldOwnership\StaticError\FieldSendAliasFailTests.cs" />
+    <Compile Include="FieldOwnership\StaticError\FieldAliasAccessAfterSendFailTests.cs" />
+    <Compile Include="FieldOwnership\StaticError\FieldGivenUpOwnershipFailTests.cs" />
+    <Compile Include="FieldOwnership\StaticError\FieldSendingFailTests.cs" />
+    <Compile Include="ControlFlow\Correct\NoStatementsWithLoopTest.cs" />
+    <Compile Include="ControlFlow\Correct\NoStatementsTest.cs" />
+    <Compile Include="ControlFlow\Correct\AccessInLoopTests.cs" />
+    <Compile Include="ControlFlow\Correct\BasicLoopTest.cs" />
+    <Compile Include="ControlFlow\StaticError\AccessInLoopFailTests.cs" />
+    <Compile Include="Inheritance\Correct\AccessInVirtualMethodTests.cs" />
+    <Compile Include="Inheritance\StaticError\AccessInVirtualMethodFailTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="PSharp.snk" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Source\Core\Core.csproj">
+    <ProjectReference Include="..\..\Libraries\Core\Core.csproj">
       <Project>{2e330c40-60ea-4a94-8813-9747b93a1795}</Project>
       <Name>Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Source\LanguageServices\LanguageServices.csproj">
+    <ProjectReference Include="..\..\Libraries\LanguageServices\LanguageServices.csproj">
       <Project>{06ccbe95-2e41-4188-bb97-aee702c1bd25}</Project>
       <Name>LanguageServices</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Libraries\StaticAnalysis\StaticAnalysis.csproj">
+      <Project>{da00a188-9d9e-4d4f-901c-c2a2cbc84cb6}</Project>
+      <Name>StaticAnalysis</Name>
+    </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
       <ItemGroup>

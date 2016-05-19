@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{6CF10554-1535-4FE0-A949-EEA5025D8604}</ProjectGuid>
+    <ProjectGuid>{1297AD2C-6883-4844-B643-A132BE3D5CF4}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis</RootNamespace>
-    <AssemblyName>Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis</AssemblyName>
+    <RootNamespace>Microsoft.PSharp.Remote</RootNamespace>
+    <AssemblyName>Microsoft.PSharp.Remote</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -17,7 +17,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\Binaries\</OutputPath>
+    <OutputPath>..\..\..\Binaries\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -25,7 +25,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\Binaries\</OutputPath>
+    <OutputPath>..\..\..\Binaries\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -73,46 +73,22 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.CodeAnalysis">
-      <HintPath>..\..\References\Roslyn\Microsoft.CodeAnalysis.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.CodeAnalysis.CSharp">
-      <HintPath>..\..\References\Roslyn\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.CodeAnalysis.Workspaces, Version=42.42.42.42, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\References\Roslyn\Microsoft.CodeAnalysis.Workspaces.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Collections.Immutable, Version=1.1.37.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\References\Roslyn\System.Collections.Immutable.dll</HintPath>
-    </Reference>
+    <Reference Include="System.ServiceModel" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Library\IAnalysisPass.cs" />
-    <Compile Include="DataFlow\Analyses\TaintTrackingAnalysis.cs" />
-    <Compile Include="AnalysisContext.cs" />
-    <Compile Include="ControlFlow\IControlFlowNode.cs" />
-    <Compile Include="ControlFlow\LoopHeadControlFlowNode.cs" />
-    <Compile Include="ControlFlow\ControlFlowGraph.cs" />
-    <Compile Include="ControlFlow\ControlFlowNode.cs" />
-    <Compile Include="ControlFlow\Statement.cs" />
-    <Compile Include="DataFlow\DataFlowGraph.cs" />
-    <Compile Include="DataFlow\DataFlowInfo.cs" />
-    <Compile Include="DataFlow\DataFlowNode.cs" />
-    <Compile Include="Library\MethodSideEffectsInfo.cs" />
-    <Compile Include="Library\MethodSummaryResolver.cs" />
-    <Compile Include="Library\SymbolDefinition.cs" />
-    <Compile Include="DataFlow\IDataFlowNode.cs" />
-    <Compile Include="DataFlow\IDataFlowAnalysis.cs" />
-    <Compile Include="Graphs\IGraph.cs" />
-    <Compile Include="Graphs\ITraversable.cs" />
-    <Compile Include="Graphs\INode.cs" />
-    <Compile Include="Graphs\Graph.cs" />
-    <Compile Include="Library\GivenUpOwnershipSymbol.cs" />
-    <Compile Include="Library\MethodSummary.cs" />
+    <Compile Include="Communication\IContainerService.cs" />
+    <Compile Include="Communication\IManagerService.cs" />
+    <Compile Include="Communication\IRemoteCommunication.cs" />
+    <Compile Include="NetworkProviders\InterProcessNetworkProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Serialization\KnownTypesProvider.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\Core.csproj">
+      <Project>{2e330c40-60ea-4a94-8813-9747b93a1795}</Project>
+      <Name>Core</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="PSharp.snk" />

@@ -79,12 +79,6 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SyntaxRewriter\SyntaxRewriter.csproj">
-      <Project>{09842f43-e27a-4dfc-8de6-61ddacb788cd}</Project>
-      <Name>SyntaxRewriter</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="source.extension.vsixmanifest" />
   </ItemGroup>
   <PropertyGroup>

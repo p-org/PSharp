@@ -118,7 +118,7 @@
     <None Include="PSharp.snk" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Libraries\DataFlowAnalysis\DataFlowAnalysis.csproj">
+    <ProjectReference Include="..\AddOns\DataFlowAnalysis\DataFlowAnalysis.csproj">
       <Project>{6cf10554-1535-4fe0-a949-eea5025d8604}</Project>
       <Name>DataFlowAnalysis</Name>
     </ProjectReference>
