@@ -7,7 +7,7 @@
     <ProjectGuid>{63CB2FAD-F0C2-4557-9EA5-E8E84D29575E}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SyntaxRewriterVSCustomTool</RootNamespace>
+    <RootNamespace>Microsoft.PSharp</RootNamespace>
     <AssemblyName>SyntaxRewriterVSCustomTool</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -81,6 +81,9 @@
   <ItemGroup>
     <None Include="source.extension.vsixmanifest" />
   </ItemGroup>
+  <PropertyGroup>
+    <UseCodebase>true</UseCodebase>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Tools\SyntaxRewriter\SyntaxRewriter.csproj">
       <Project>{09842f43-e27a-4dfc-8de6-61ddacb788cd}</Project>
@@ -90,15 +93,6 @@
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'VsixCustomTool|AnyCPU'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\VsixCustomTool\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <DebugType>full</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject />

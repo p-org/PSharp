@@ -133,7 +133,7 @@ namespace Microsoft.PSharp
 
     static class GuidList
     {
-        public const string guidSimpleFileGeneratorString = "FBB82BF8-A8BF-442A-8060-159042C0EFFF";
+        public const string guidSimpleFileGeneratorString = "4AE23236-C934-4F7F-98AD-E20043E08A4A";
         public static readonly Guid guidSimpleFileGenerator = new Guid(guidSimpleFileGeneratorString);
     }
 

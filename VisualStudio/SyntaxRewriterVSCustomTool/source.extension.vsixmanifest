@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Vsix Version="1.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2010">
-  <Identifier Id="FBB82BF8-A8BF-442A-8060-159042C0EFFF">
+  <Identifier Id="4AE23236-C934-4F7F-98AD-E20043E08A4A">
     <Name>PSharpCodeGenerator</Name>
     <Author>Microsoft</Author>
     <Version>1.0</Version>
