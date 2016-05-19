@@ -41,11 +41,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         protected IPSharpProgram Program;
 
         /// <summary>
-        /// True if the parser should exit when it
-        /// finds an error.
-        /// Else false.
+        /// The parsing options.
         /// </summary>
-        protected bool ExitOnError;
+        protected ParsingOptions Options;
 
         #endregion
 
@@ -54,10 +52,18 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="exitOnError">Exits on error</param>
-        public BaseParser(bool exitOnError)
+        //public BaseParser()
+        //{
+        //    this.ParsingOptions = ParsingOptions.Create();
+        //}
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="options">ParsingOptions</param>
+        public BaseParser(ParsingOptions options)
         {
-            this.ExitOnError = exitOnError;
+            this.Options = options;
         }
 
         /// <summary>
@@ -65,12 +71,12 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// </summary>
         /// <param name="project">PSharpProject</param>
         /// <param name="tree">SyntaxTree</param>
-        /// <param name="exitOnError">Exits on error</param>
-        internal BaseParser(PSharpProject project, SyntaxTree tree, bool exitOnError)
+        /// <param name="options">ParsingOptions</param>
+        internal BaseParser(PSharpProject project, SyntaxTree tree, ParsingOptions options)
         {
             this.Project = project;
             this.SyntaxTree = tree;
-            this.ExitOnError = exitOnError;
+            this.Options = options;
         }
 
         #endregion

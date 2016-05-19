@@ -172,7 +172,10 @@ namespace Microsoft.PSharp.LanguageServices
             var root = (CompilationUnitSyntax)tree.GetRoot();
 
             var tokens = new PSharpLexer().Tokenize(root.ToFullString());
-            var program = new PSharpParser(this, tree).ParseTokens(tokens);
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .EnableExitOnError().DisableThrowParsingException();
+            var program = new PSharpParser(this, tree, options).ParseTokens(tokens);
 
             this.PSharpPrograms.Add(program as PSharpProgram);
             this.ProgramMap.Add(program, tree);
@@ -187,7 +190,9 @@ namespace Microsoft.PSharp.LanguageServices
         {
             var root = (CompilationUnitSyntax)tree.GetRoot();
 
-            var program = new CSharpParser(this, tree).Parse();
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .EnableExitOnError().DisableThrowParsingException();
+            var program = new CSharpParser(this, tree, options).Parse();
 
             this.CSharpPrograms.Add(program as CSharpProgram);
             this.ProgramMap.Add(program, tree);

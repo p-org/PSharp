@@ -32,9 +32,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="exitOnError">Exits on error</param>
-        public PSharpParser(bool exitOnError)
-            : base(exitOnError)
+        /// <param name="options">ParsingOptions</param>
+        public PSharpParser(ParsingOptions options)
+            : base(options)
         {
 
         }
@@ -44,9 +44,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// </summary>
         /// <param name="project">PSharpProject</param>
         /// <param name="tree">SyntaxTree</param>
-        /// <param name="exitAtError">Exits at error</param>
-        internal PSharpParser(PSharpProject project, SyntaxTree tree, bool exitAtError = true)
-            : base(project, tree, exitAtError)
+        /// <param name="options">ParsingOptions</param>
+        internal PSharpParser(PSharpProject project, SyntaxTree tree, ParsingOptions options)
+            : base(project, tree, options)
         {
 
         }
