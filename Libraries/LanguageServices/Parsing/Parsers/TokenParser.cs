@@ -100,7 +100,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 if (base.Options.ThrowParsingException &&
                     this.ErrorLog.Length > 0)
                 {
-                    throw ex;
+                    throw new ParsingException(this.ErrorLog, ex.ExpectedTokenTypes);
                 }
             }
             
@@ -139,7 +139,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// </summary>
         protected void ReportParsingError()
         {
-            if (!base.Options.ExitOnError || this.ErrorLog.Length == 0)
+            if ( (!base.Options.ExitOnError && !base.Options.ThrowParsingException) || this.ErrorLog.Length == 0)
             {
                 return;
             }
@@ -190,7 +190,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 this.ErrorLog += "^";
             }
 
-            ErrorReporter.ReportAndExit(this.ErrorLog);
+            if(base.Options.ExitOnError) ErrorReporter.ReportAndExit(this.ErrorLog);
         }
 
         #endregion

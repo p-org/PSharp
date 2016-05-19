@@ -51,8 +51,9 @@ namespace Microsoft.PSharp
 
 
             // Translate and print on console
-            var output = Translate(input_string);
-            Console.WriteLine("{0}", output == null ? "Parse Error" : output);
+            string errors = "";
+            var output = Translate(input_string, out errors);
+            Console.WriteLine("{0}", output == null ? "Parse Error: " + errors : output);
         }
 
         /// <summary>
@@ -60,10 +61,11 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="text">Text</param>
         /// <returns>Text</returns>
-        public static string Translate(string text)
+        public static string Translate(string text, out string errors)
         {
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
+            errors = null;
 
             var context = CompilationContext.Create(configuration).LoadSolution(text);
 
@@ -76,12 +78,14 @@ namespace Microsoft.PSharp
 
                 return syntaxTree.ToString();
             }
-            catch (ParsingException)
+            catch (ParsingException ex)
             {
+                errors = ex.Message;
                 return null;
             }
-            catch (RewritingException)
+            catch (RewritingException ex)
             {
+                errors = ex.Message;
                 return null;
             }
         }
@@ -102,7 +106,8 @@ namespace Microsoft.PSharp
             for (int i = 0; i < InputFiles.Length; i++)
             {
                 var inp = System.IO.File.ReadAllText(InputFiles[i].ItemSpec);
-                var outp = SyntaxRewriter.Translate(inp);
+                string errors;
+                var outp = SyntaxRewriter.Translate(inp, out errors);
                 if (outp == null) return false;
                 System.IO.File.WriteAllText(OutputFiles[i].ItemSpec, outp);
             }
