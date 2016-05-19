@@ -123,6 +123,7 @@
     <Compile Include="Parsing\Parsers\BaseParser.cs" />
     <Compile Include="Parsing\Parsers\CSharpParser.cs" />
     <Compile Include="Parsing\Parsers\PSharpParser.cs" />
+    <Compile Include="Parsing\ParsingOptions.cs" />
     <Compile Include="Parsing\RewritingEngine.cs" />
     <Compile Include="Parsing\Visitors\Framework\BaseMachineVisitor.cs" />
     <Compile Include="Parsing\Visitors\Framework\MonitorStateDeclarationParser.cs" />

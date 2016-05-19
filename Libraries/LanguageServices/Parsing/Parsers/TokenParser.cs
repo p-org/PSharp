@@ -56,9 +56,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="exitOnError">Exits on error</param>
-        public TokenParser(bool exitOnError)
-            : base(exitOnError)
+        /// <param name="options">ParsingOptions</param>
+        public TokenParser(ParsingOptions options)
+            : base(options)
         {
             this.ErrorLog = "";
         }
@@ -68,9 +68,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// </summary>
         /// <param name="project">PSharpProject</param>
         /// <param name="tree">SyntaxTree</param>
-        /// <param name="exitOnError">Exits on error</param>
-        internal TokenParser(PSharpProject project, SyntaxTree tree, bool exitOnError)
-            : base(project, tree, exitOnError)
+        /// <param name="options">ParsingOptions</param>
+        internal TokenParser(PSharpProject project, SyntaxTree tree, ParsingOptions options)
+            : base(project, tree, options)
         {
             this.ErrorLog = "";
         }
@@ -96,6 +96,11 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 this.ErrorLog = ex.Message;
                 this.ExpectedTokenTypes = ex.ExpectedTokenTypes;
                 this.ReportParsingError();
+
+                if (base.Options.ThrowParsingException)
+                {
+                    throw ex;
+                }
             }
             
             return this.Program;
@@ -133,7 +138,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// </summary>
         protected void ReportParsingError()
         {
-            if (this.ErrorLog.Length == 0)
+            if (!base.Options.ExitOnError || this.ErrorLog.Length == 0)
             {
                 return;
             }
@@ -184,14 +189,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                 this.ErrorLog += "^";
             }
 
-            if (base.ExitOnError)
-            {
-                ErrorReporter.ReportAndExit(this.ErrorLog);
-            }
-            else
-            {
-                ErrorReporter.Report(this.ErrorLog);
-            }
+            ErrorReporter.ReportAndExit(this.ErrorLog);
         }
 
         #endregion

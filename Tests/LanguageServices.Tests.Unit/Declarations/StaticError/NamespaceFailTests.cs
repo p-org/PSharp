@@ -27,8 +27,10 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
         {
             var test = "private";
 
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
             var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), false);
+                SyntaxFactory.ParseSyntaxTree(test), options);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
@@ -42,8 +44,10 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
         {
             var test = "namespace { }";
 
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
             var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), false);
+                SyntaxFactory.ParseSyntaxTree(test), options);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);

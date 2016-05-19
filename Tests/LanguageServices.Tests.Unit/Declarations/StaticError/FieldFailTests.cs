@@ -33,8 +33,10 @@ start state S { }
 }
 }";
 
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
             var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), false);
+                SyntaxFactory.ParseSyntaxTree(test), options);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
@@ -54,8 +56,10 @@ start state S { }
 }
 }";
 
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
             var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), false);
+                SyntaxFactory.ParseSyntaxTree(test), options);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
@@ -75,8 +79,10 @@ start state S { }
 }
 }";
 
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
             var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), false);
+                SyntaxFactory.ParseSyntaxTree(test), options);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
@@ -96,8 +102,10 @@ start state S { }
 }
 }";
 
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
             var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), false);
+                SyntaxFactory.ParseSyntaxTree(test), options);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
@@ -117,8 +125,10 @@ start state S { }
 }
 }";
 
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
             var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), false);
+                SyntaxFactory.ParseSyntaxTree(test), options);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);

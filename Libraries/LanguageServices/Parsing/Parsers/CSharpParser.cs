@@ -39,11 +39,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// </summary>
         private List<Tuple<SyntaxToken, string>> WarningLog;
 
-        /// <summary>
-        /// Skips error checking.
-        /// </summary>
-        private bool SkipErrorChecking;
-
         #endregion
 
         #region public API
@@ -51,13 +46,12 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="exitOnError">Exits on error</param>
-        public CSharpParser(bool exitOnError)
-            : base(exitOnError)
+        /// <param name="options">ParsingOptions</param>
+        public CSharpParser(ParsingOptions options)
+            : base(options)
         {
             this.ErrorLog = new List<Tuple<SyntaxToken, string>>();
             this.WarningLog = new List<Tuple<SyntaxToken, string>>();
-            this.SkipErrorChecking = false;
         }
 
         /// <summary>
@@ -65,26 +59,12 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// </summary>
         /// <param name="project">PSharpProject</param>
         /// <param name="tree">SyntaxTree</param>
-        internal CSharpParser(PSharpProject project, SyntaxTree tree)
-            : base(project, tree, true)
+        /// <param name="options">ParsingOptions</param>
+        internal CSharpParser(PSharpProject project, SyntaxTree tree, ParsingOptions options)
+            : base(project, tree, options)
         {
             this.ErrorLog = new List<Tuple<SyntaxToken, string>>();
             this.WarningLog = new List<Tuple<SyntaxToken, string>>();
-            this.SkipErrorChecking = false;
-        }
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="project">PSharpProject</param>
-        /// <param name="tree">SyntaxTree</param>
-        /// <param name="skipErrorChecking">Skips error checking</param>
-        internal CSharpParser(PSharpProject project, SyntaxTree tree, bool skipErrorChecking)
-            : base(project, tree, false)
-        {
-            this.ErrorLog = new List<Tuple<SyntaxToken, string>>();
-            this.WarningLog = new List<Tuple<SyntaxToken, string>>();
-            this.SkipErrorChecking = skipErrorChecking;
         }
 
         /// <summary>
@@ -95,7 +75,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         {
             this.Program = this.CreateNewProgram();
 
-            if (!this.SkipErrorChecking)
+            if (!base.Options.SkipErrorChecking)
             {
                 this.ParseSyntaxTree();
             }
@@ -169,7 +149,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// </summary>
         private void ReportParsingWarnings()
         {
-            if (!base.ExitOnError || !ErrorReporter.ShowWarnings)
+            if (!base.Options.ExitOnError || !ErrorReporter.ShowWarnings)
             {
                 return;
             }
@@ -198,7 +178,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// </summary>
         private void ReportParsingErrors()
         {
-            if (!base.ExitOnError)
+            if (!base.Options.ExitOnError)
             {
                 return;
             }

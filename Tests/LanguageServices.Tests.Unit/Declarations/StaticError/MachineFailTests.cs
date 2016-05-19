@@ -31,8 +31,10 @@ machine M {
 }
 }";
 
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
             var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), false);
+                SyntaxFactory.ParseSyntaxTree(test), options);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
@@ -49,8 +51,10 @@ namespace Foo {
 machine{}
 }";
 
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
             var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), false);
+                SyntaxFactory.ParseSyntaxTree(test), options);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
@@ -71,8 +75,10 @@ start state S { }
 }
 }";
 
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
             var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), false);
+                SyntaxFactory.ParseSyntaxTree(test), options);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
@@ -91,8 +97,10 @@ state S { }
 }
 }";
 
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
             var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), false);
+                SyntaxFactory.ParseSyntaxTree(test), options);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
@@ -112,8 +120,10 @@ state S { }
                 "}" +
                 "}";
 
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
             var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), false);
+                SyntaxFactory.ParseSyntaxTree(test), options);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
@@ -135,8 +145,10 @@ state S3 { }
 }
 }";
 
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
             var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), false);
+                SyntaxFactory.ParseSyntaxTree(test), options);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
@@ -158,8 +170,10 @@ start state S3 { }
 }
 }";
 
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
             var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), false);
+                SyntaxFactory.ParseSyntaxTree(test), options);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);

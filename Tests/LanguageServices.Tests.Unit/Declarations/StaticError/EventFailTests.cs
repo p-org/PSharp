@@ -30,8 +30,10 @@ namespace Foo {
 protected event e;
 }";
 
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
             var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), false);
+                SyntaxFactory.ParseSyntaxTree(test), options);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
@@ -48,8 +50,10 @@ namespace Foo {
 private event e;
 }";
 
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
             var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), false);
+                SyntaxFactory.ParseSyntaxTree(test), options);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
@@ -63,8 +67,10 @@ private event e;
         {
             var test = "event e;";
 
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
             var parser = new PSharpParser(new PSharpProject(),
-                SyntaxFactory.ParseSyntaxTree(test), false);
+                SyntaxFactory.ParseSyntaxTree(test), options);
 
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
