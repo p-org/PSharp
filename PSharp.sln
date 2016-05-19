@@ -48,6 +48,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tester", "Tools\Tester\Test
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SyntaxRewriter", "Tools\SyntaxRewriter\SyntaxRewriter.csproj", "{09842F43-E27A-4DFC-8DE6-61DDACB788CD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SyntaxRewriterVSCustomTool", "Tools\SyntaxRewriterVSCustomTool\SyntaxRewriterVSCustomTool.csproj", "{63CB2FAD-F0C2-4557-9EA5-E8E84D29575E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -56,6 +58,9 @@ Global
 		Release|Any CPU = Release|Any CPU
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
+		VsixCustomTool|Any CPU = VsixCustomTool|Any CPU
+		VsixCustomTool|x64 = VsixCustomTool|x64
+		VsixCustomTool|x86 = VsixCustomTool|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{DA00A188-9D9E-4D4F-901C-C2A2CBC84CB6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -70,6 +75,12 @@ Global
 		{DA00A188-9D9E-4D4F-901C-C2A2CBC84CB6}.Release|x64.Build.0 = Release|x64
 		{DA00A188-9D9E-4D4F-901C-C2A2CBC84CB6}.Release|x86.ActiveCfg = Release|Any CPU
 		{DA00A188-9D9E-4D4F-901C-C2A2CBC84CB6}.Release|x86.Build.0 = Release|Any CPU
+		{DA00A188-9D9E-4D4F-901C-C2A2CBC84CB6}.VsixCustomTool|Any CPU.ActiveCfg = VsixCustomTool|Any CPU
+		{DA00A188-9D9E-4D4F-901C-C2A2CBC84CB6}.VsixCustomTool|Any CPU.Build.0 = VsixCustomTool|Any CPU
+		{DA00A188-9D9E-4D4F-901C-C2A2CBC84CB6}.VsixCustomTool|x64.ActiveCfg = VsixCustomTool|x64
+		{DA00A188-9D9E-4D4F-901C-C2A2CBC84CB6}.VsixCustomTool|x64.Build.0 = VsixCustomTool|x64
+		{DA00A188-9D9E-4D4F-901C-C2A2CBC84CB6}.VsixCustomTool|x86.ActiveCfg = VsixCustomTool|Any CPU
+		{DA00A188-9D9E-4D4F-901C-C2A2CBC84CB6}.VsixCustomTool|x86.Build.0 = VsixCustomTool|Any CPU
 		{2E330C40-60EA-4A94-8813-9747B93A1795}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2E330C40-60EA-4A94-8813-9747B93A1795}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2E330C40-60EA-4A94-8813-9747B93A1795}.Debug|x64.ActiveCfg = Debug|x64
@@ -82,6 +93,12 @@ Global
 		{2E330C40-60EA-4A94-8813-9747B93A1795}.Release|x64.Build.0 = Release|x64
 		{2E330C40-60EA-4A94-8813-9747B93A1795}.Release|x86.ActiveCfg = Release|Any CPU
 		{2E330C40-60EA-4A94-8813-9747B93A1795}.Release|x86.Build.0 = Release|Any CPU
+		{2E330C40-60EA-4A94-8813-9747B93A1795}.VsixCustomTool|Any CPU.ActiveCfg = VsixCustomTool|Any CPU
+		{2E330C40-60EA-4A94-8813-9747B93A1795}.VsixCustomTool|Any CPU.Build.0 = VsixCustomTool|Any CPU
+		{2E330C40-60EA-4A94-8813-9747B93A1795}.VsixCustomTool|x64.ActiveCfg = VsixCustomTool|x64
+		{2E330C40-60EA-4A94-8813-9747B93A1795}.VsixCustomTool|x64.Build.0 = VsixCustomTool|x64
+		{2E330C40-60EA-4A94-8813-9747B93A1795}.VsixCustomTool|x86.ActiveCfg = VsixCustomTool|Any CPU
+		{2E330C40-60EA-4A94-8813-9747B93A1795}.VsixCustomTool|x86.Build.0 = VsixCustomTool|Any CPU
 		{06CCBE95-2E41-4188-BB97-AEE702C1BD25}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{06CCBE95-2E41-4188-BB97-AEE702C1BD25}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{06CCBE95-2E41-4188-BB97-AEE702C1BD25}.Debug|x64.ActiveCfg = Debug|x64
@@ -94,6 +111,12 @@ Global
 		{06CCBE95-2E41-4188-BB97-AEE702C1BD25}.Release|x64.Build.0 = Release|x64
 		{06CCBE95-2E41-4188-BB97-AEE702C1BD25}.Release|x86.ActiveCfg = Release|Any CPU
 		{06CCBE95-2E41-4188-BB97-AEE702C1BD25}.Release|x86.Build.0 = Release|Any CPU
+		{06CCBE95-2E41-4188-BB97-AEE702C1BD25}.VsixCustomTool|Any CPU.ActiveCfg = VsixCustomTool|Any CPU
+		{06CCBE95-2E41-4188-BB97-AEE702C1BD25}.VsixCustomTool|Any CPU.Build.0 = VsixCustomTool|Any CPU
+		{06CCBE95-2E41-4188-BB97-AEE702C1BD25}.VsixCustomTool|x64.ActiveCfg = VsixCustomTool|x64
+		{06CCBE95-2E41-4188-BB97-AEE702C1BD25}.VsixCustomTool|x64.Build.0 = VsixCustomTool|x64
+		{06CCBE95-2E41-4188-BB97-AEE702C1BD25}.VsixCustomTool|x86.ActiveCfg = VsixCustomTool|Any CPU
+		{06CCBE95-2E41-4188-BB97-AEE702C1BD25}.VsixCustomTool|x86.Build.0 = VsixCustomTool|Any CPU
 		{C3EF9C6F-9B39-4A8A-A196-6A403F265E25}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C3EF9C6F-9B39-4A8A-A196-6A403F265E25}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C3EF9C6F-9B39-4A8A-A196-6A403F265E25}.Debug|x64.ActiveCfg = Debug|x64
@@ -106,6 +129,12 @@ Global
 		{C3EF9C6F-9B39-4A8A-A196-6A403F265E25}.Release|x64.Build.0 = Release|x64
 		{C3EF9C6F-9B39-4A8A-A196-6A403F265E25}.Release|x86.ActiveCfg = Release|Any CPU
 		{C3EF9C6F-9B39-4A8A-A196-6A403F265E25}.Release|x86.Build.0 = Release|Any CPU
+		{C3EF9C6F-9B39-4A8A-A196-6A403F265E25}.VsixCustomTool|Any CPU.ActiveCfg = VsixCustomTool|Any CPU
+		{C3EF9C6F-9B39-4A8A-A196-6A403F265E25}.VsixCustomTool|Any CPU.Build.0 = VsixCustomTool|Any CPU
+		{C3EF9C6F-9B39-4A8A-A196-6A403F265E25}.VsixCustomTool|x64.ActiveCfg = VsixCustomTool|x64
+		{C3EF9C6F-9B39-4A8A-A196-6A403F265E25}.VsixCustomTool|x64.Build.0 = VsixCustomTool|x64
+		{C3EF9C6F-9B39-4A8A-A196-6A403F265E25}.VsixCustomTool|x86.ActiveCfg = VsixCustomTool|Any CPU
+		{C3EF9C6F-9B39-4A8A-A196-6A403F265E25}.VsixCustomTool|x86.Build.0 = VsixCustomTool|Any CPU
 		{00ADC66D-16B6-4830-B65B-7585CC9206DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{00ADC66D-16B6-4830-B65B-7585CC9206DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{00ADC66D-16B6-4830-B65B-7585CC9206DC}.Debug|x64.ActiveCfg = Debug|x64
@@ -118,6 +147,12 @@ Global
 		{00ADC66D-16B6-4830-B65B-7585CC9206DC}.Release|x64.Build.0 = Release|x64
 		{00ADC66D-16B6-4830-B65B-7585CC9206DC}.Release|x86.ActiveCfg = Release|Any CPU
 		{00ADC66D-16B6-4830-B65B-7585CC9206DC}.Release|x86.Build.0 = Release|Any CPU
+		{00ADC66D-16B6-4830-B65B-7585CC9206DC}.VsixCustomTool|Any CPU.ActiveCfg = VsixCustomTool|Any CPU
+		{00ADC66D-16B6-4830-B65B-7585CC9206DC}.VsixCustomTool|Any CPU.Build.0 = VsixCustomTool|Any CPU
+		{00ADC66D-16B6-4830-B65B-7585CC9206DC}.VsixCustomTool|x64.ActiveCfg = VsixCustomTool|x64
+		{00ADC66D-16B6-4830-B65B-7585CC9206DC}.VsixCustomTool|x64.Build.0 = VsixCustomTool|x64
+		{00ADC66D-16B6-4830-B65B-7585CC9206DC}.VsixCustomTool|x86.ActiveCfg = VsixCustomTool|Any CPU
+		{00ADC66D-16B6-4830-B65B-7585CC9206DC}.VsixCustomTool|x86.Build.0 = VsixCustomTool|Any CPU
 		{13008B9E-32F1-416F-A0E5-81B23A226D73}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{13008B9E-32F1-416F-A0E5-81B23A226D73}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{13008B9E-32F1-416F-A0E5-81B23A226D73}.Debug|x64.ActiveCfg = Debug|x64
@@ -130,6 +165,12 @@ Global
 		{13008B9E-32F1-416F-A0E5-81B23A226D73}.Release|x64.Build.0 = Release|x64
 		{13008B9E-32F1-416F-A0E5-81B23A226D73}.Release|x86.ActiveCfg = Release|Any CPU
 		{13008B9E-32F1-416F-A0E5-81B23A226D73}.Release|x86.Build.0 = Release|Any CPU
+		{13008B9E-32F1-416F-A0E5-81B23A226D73}.VsixCustomTool|Any CPU.ActiveCfg = VsixCustomTool|Any CPU
+		{13008B9E-32F1-416F-A0E5-81B23A226D73}.VsixCustomTool|Any CPU.Build.0 = VsixCustomTool|Any CPU
+		{13008B9E-32F1-416F-A0E5-81B23A226D73}.VsixCustomTool|x64.ActiveCfg = VsixCustomTool|x64
+		{13008B9E-32F1-416F-A0E5-81B23A226D73}.VsixCustomTool|x64.Build.0 = VsixCustomTool|x64
+		{13008B9E-32F1-416F-A0E5-81B23A226D73}.VsixCustomTool|x86.ActiveCfg = VsixCustomTool|Any CPU
+		{13008B9E-32F1-416F-A0E5-81B23A226D73}.VsixCustomTool|x86.Build.0 = VsixCustomTool|Any CPU
 		{76083D7A-E51C-4267-8DED-86E7A4FBDF58}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{76083D7A-E51C-4267-8DED-86E7A4FBDF58}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{76083D7A-E51C-4267-8DED-86E7A4FBDF58}.Debug|x64.ActiveCfg = Debug|x64
@@ -142,6 +183,12 @@ Global
 		{76083D7A-E51C-4267-8DED-86E7A4FBDF58}.Release|x64.Build.0 = Release|x64
 		{76083D7A-E51C-4267-8DED-86E7A4FBDF58}.Release|x86.ActiveCfg = Release|Any CPU
 		{76083D7A-E51C-4267-8DED-86E7A4FBDF58}.Release|x86.Build.0 = Release|Any CPU
+		{76083D7A-E51C-4267-8DED-86E7A4FBDF58}.VsixCustomTool|Any CPU.ActiveCfg = VsixCustomTool|Any CPU
+		{76083D7A-E51C-4267-8DED-86E7A4FBDF58}.VsixCustomTool|Any CPU.Build.0 = VsixCustomTool|Any CPU
+		{76083D7A-E51C-4267-8DED-86E7A4FBDF58}.VsixCustomTool|x64.ActiveCfg = VsixCustomTool|x64
+		{76083D7A-E51C-4267-8DED-86E7A4FBDF58}.VsixCustomTool|x64.Build.0 = VsixCustomTool|x64
+		{76083D7A-E51C-4267-8DED-86E7A4FBDF58}.VsixCustomTool|x86.ActiveCfg = VsixCustomTool|Any CPU
+		{76083D7A-E51C-4267-8DED-86E7A4FBDF58}.VsixCustomTool|x86.Build.0 = VsixCustomTool|Any CPU
 		{9C634793-A03A-4CE2-B2FC-782D859F48D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9C634793-A03A-4CE2-B2FC-782D859F48D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9C634793-A03A-4CE2-B2FC-782D859F48D3}.Debug|x64.ActiveCfg = Debug|x64
@@ -154,6 +201,12 @@ Global
 		{9C634793-A03A-4CE2-B2FC-782D859F48D3}.Release|x64.Build.0 = Release|x64
 		{9C634793-A03A-4CE2-B2FC-782D859F48D3}.Release|x86.ActiveCfg = Release|Any CPU
 		{9C634793-A03A-4CE2-B2FC-782D859F48D3}.Release|x86.Build.0 = Release|Any CPU
+		{9C634793-A03A-4CE2-B2FC-782D859F48D3}.VsixCustomTool|Any CPU.ActiveCfg = VsixCustomTool|Any CPU
+		{9C634793-A03A-4CE2-B2FC-782D859F48D3}.VsixCustomTool|Any CPU.Build.0 = VsixCustomTool|Any CPU
+		{9C634793-A03A-4CE2-B2FC-782D859F48D3}.VsixCustomTool|x64.ActiveCfg = VsixCustomTool|x64
+		{9C634793-A03A-4CE2-B2FC-782D859F48D3}.VsixCustomTool|x64.Build.0 = VsixCustomTool|x64
+		{9C634793-A03A-4CE2-B2FC-782D859F48D3}.VsixCustomTool|x86.ActiveCfg = VsixCustomTool|Any CPU
+		{9C634793-A03A-4CE2-B2FC-782D859F48D3}.VsixCustomTool|x86.Build.0 = VsixCustomTool|Any CPU
 		{81980F5A-06A4-47F0-86F3-B72F50BAE572}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{81980F5A-06A4-47F0-86F3-B72F50BAE572}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{81980F5A-06A4-47F0-86F3-B72F50BAE572}.Debug|x64.ActiveCfg = Debug|x64
@@ -166,6 +219,12 @@ Global
 		{81980F5A-06A4-47F0-86F3-B72F50BAE572}.Release|x64.Build.0 = Release|x64
 		{81980F5A-06A4-47F0-86F3-B72F50BAE572}.Release|x86.ActiveCfg = Release|Any CPU
 		{81980F5A-06A4-47F0-86F3-B72F50BAE572}.Release|x86.Build.0 = Release|Any CPU
+		{81980F5A-06A4-47F0-86F3-B72F50BAE572}.VsixCustomTool|Any CPU.ActiveCfg = VsixCustomTool|Any CPU
+		{81980F5A-06A4-47F0-86F3-B72F50BAE572}.VsixCustomTool|Any CPU.Build.0 = VsixCustomTool|Any CPU
+		{81980F5A-06A4-47F0-86F3-B72F50BAE572}.VsixCustomTool|x64.ActiveCfg = VsixCustomTool|x64
+		{81980F5A-06A4-47F0-86F3-B72F50BAE572}.VsixCustomTool|x64.Build.0 = VsixCustomTool|x64
+		{81980F5A-06A4-47F0-86F3-B72F50BAE572}.VsixCustomTool|x86.ActiveCfg = VsixCustomTool|Any CPU
+		{81980F5A-06A4-47F0-86F3-B72F50BAE572}.VsixCustomTool|x86.Build.0 = VsixCustomTool|Any CPU
 		{6CF10554-1535-4FE0-A949-EEA5025D8604}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6CF10554-1535-4FE0-A949-EEA5025D8604}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6CF10554-1535-4FE0-A949-EEA5025D8604}.Debug|x64.ActiveCfg = Debug|x64
@@ -178,6 +237,12 @@ Global
 		{6CF10554-1535-4FE0-A949-EEA5025D8604}.Release|x64.Build.0 = Release|x64
 		{6CF10554-1535-4FE0-A949-EEA5025D8604}.Release|x86.ActiveCfg = Release|Any CPU
 		{6CF10554-1535-4FE0-A949-EEA5025D8604}.Release|x86.Build.0 = Release|Any CPU
+		{6CF10554-1535-4FE0-A949-EEA5025D8604}.VsixCustomTool|Any CPU.ActiveCfg = VsixCustomTool|Any CPU
+		{6CF10554-1535-4FE0-A949-EEA5025D8604}.VsixCustomTool|Any CPU.Build.0 = VsixCustomTool|Any CPU
+		{6CF10554-1535-4FE0-A949-EEA5025D8604}.VsixCustomTool|x64.ActiveCfg = VsixCustomTool|x64
+		{6CF10554-1535-4FE0-A949-EEA5025D8604}.VsixCustomTool|x64.Build.0 = VsixCustomTool|x64
+		{6CF10554-1535-4FE0-A949-EEA5025D8604}.VsixCustomTool|x86.ActiveCfg = VsixCustomTool|Any CPU
+		{6CF10554-1535-4FE0-A949-EEA5025D8604}.VsixCustomTool|x86.Build.0 = VsixCustomTool|Any CPU
 		{94ADEDB2-E404-421D-BA8F-9F77DA91D506}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{94ADEDB2-E404-421D-BA8F-9F77DA91D506}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{94ADEDB2-E404-421D-BA8F-9F77DA91D506}.Debug|x64.ActiveCfg = Debug|x64
@@ -190,6 +255,12 @@ Global
 		{94ADEDB2-E404-421D-BA8F-9F77DA91D506}.Release|x64.Build.0 = Release|x64
 		{94ADEDB2-E404-421D-BA8F-9F77DA91D506}.Release|x86.ActiveCfg = Release|Any CPU
 		{94ADEDB2-E404-421D-BA8F-9F77DA91D506}.Release|x86.Build.0 = Release|Any CPU
+		{94ADEDB2-E404-421D-BA8F-9F77DA91D506}.VsixCustomTool|Any CPU.ActiveCfg = VsixCustomTool|Any CPU
+		{94ADEDB2-E404-421D-BA8F-9F77DA91D506}.VsixCustomTool|Any CPU.Build.0 = VsixCustomTool|Any CPU
+		{94ADEDB2-E404-421D-BA8F-9F77DA91D506}.VsixCustomTool|x64.ActiveCfg = VsixCustomTool|x64
+		{94ADEDB2-E404-421D-BA8F-9F77DA91D506}.VsixCustomTool|x64.Build.0 = VsixCustomTool|x64
+		{94ADEDB2-E404-421D-BA8F-9F77DA91D506}.VsixCustomTool|x86.ActiveCfg = VsixCustomTool|Any CPU
+		{94ADEDB2-E404-421D-BA8F-9F77DA91D506}.VsixCustomTool|x86.Build.0 = VsixCustomTool|Any CPU
 		{1297AD2C-6883-4844-B643-A132BE3D5CF4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1297AD2C-6883-4844-B643-A132BE3D5CF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1297AD2C-6883-4844-B643-A132BE3D5CF4}.Debug|x64.ActiveCfg = Debug|x64
@@ -202,6 +273,12 @@ Global
 		{1297AD2C-6883-4844-B643-A132BE3D5CF4}.Release|x64.Build.0 = Release|x64
 		{1297AD2C-6883-4844-B643-A132BE3D5CF4}.Release|x86.ActiveCfg = Release|Any CPU
 		{1297AD2C-6883-4844-B643-A132BE3D5CF4}.Release|x86.Build.0 = Release|Any CPU
+		{1297AD2C-6883-4844-B643-A132BE3D5CF4}.VsixCustomTool|Any CPU.ActiveCfg = VsixCustomTool|Any CPU
+		{1297AD2C-6883-4844-B643-A132BE3D5CF4}.VsixCustomTool|Any CPU.Build.0 = VsixCustomTool|Any CPU
+		{1297AD2C-6883-4844-B643-A132BE3D5CF4}.VsixCustomTool|x64.ActiveCfg = VsixCustomTool|x64
+		{1297AD2C-6883-4844-B643-A132BE3D5CF4}.VsixCustomTool|x64.Build.0 = VsixCustomTool|x64
+		{1297AD2C-6883-4844-B643-A132BE3D5CF4}.VsixCustomTool|x86.ActiveCfg = VsixCustomTool|Any CPU
+		{1297AD2C-6883-4844-B643-A132BE3D5CF4}.VsixCustomTool|x86.Build.0 = VsixCustomTool|Any CPU
 		{D88418AB-C8B8-4FB2-9FBA-F0E994E42F37}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D88418AB-C8B8-4FB2-9FBA-F0E994E42F37}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D88418AB-C8B8-4FB2-9FBA-F0E994E42F37}.Debug|x64.ActiveCfg = Debug|x64
@@ -214,6 +291,12 @@ Global
 		{D88418AB-C8B8-4FB2-9FBA-F0E994E42F37}.Release|x64.Build.0 = Release|x64
 		{D88418AB-C8B8-4FB2-9FBA-F0E994E42F37}.Release|x86.ActiveCfg = Release|Any CPU
 		{D88418AB-C8B8-4FB2-9FBA-F0E994E42F37}.Release|x86.Build.0 = Release|Any CPU
+		{D88418AB-C8B8-4FB2-9FBA-F0E994E42F37}.VsixCustomTool|Any CPU.ActiveCfg = VsixCustomTool|Any CPU
+		{D88418AB-C8B8-4FB2-9FBA-F0E994E42F37}.VsixCustomTool|Any CPU.Build.0 = VsixCustomTool|Any CPU
+		{D88418AB-C8B8-4FB2-9FBA-F0E994E42F37}.VsixCustomTool|x64.ActiveCfg = VsixCustomTool|x64
+		{D88418AB-C8B8-4FB2-9FBA-F0E994E42F37}.VsixCustomTool|x64.Build.0 = VsixCustomTool|x64
+		{D88418AB-C8B8-4FB2-9FBA-F0E994E42F37}.VsixCustomTool|x86.ActiveCfg = VsixCustomTool|Any CPU
+		{D88418AB-C8B8-4FB2-9FBA-F0E994E42F37}.VsixCustomTool|x86.Build.0 = VsixCustomTool|Any CPU
 		{D388CB45-F077-4278-B174-796A8C9BF927}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D388CB45-F077-4278-B174-796A8C9BF927}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D388CB45-F077-4278-B174-796A8C9BF927}.Debug|x64.ActiveCfg = Debug|x64
@@ -226,6 +309,12 @@ Global
 		{D388CB45-F077-4278-B174-796A8C9BF927}.Release|x64.Build.0 = Release|x64
 		{D388CB45-F077-4278-B174-796A8C9BF927}.Release|x86.ActiveCfg = Release|Any CPU
 		{D388CB45-F077-4278-B174-796A8C9BF927}.Release|x86.Build.0 = Release|Any CPU
+		{D388CB45-F077-4278-B174-796A8C9BF927}.VsixCustomTool|Any CPU.ActiveCfg = VsixCustomTool|Any CPU
+		{D388CB45-F077-4278-B174-796A8C9BF927}.VsixCustomTool|Any CPU.Build.0 = VsixCustomTool|Any CPU
+		{D388CB45-F077-4278-B174-796A8C9BF927}.VsixCustomTool|x64.ActiveCfg = VsixCustomTool|x64
+		{D388CB45-F077-4278-B174-796A8C9BF927}.VsixCustomTool|x64.Build.0 = VsixCustomTool|x64
+		{D388CB45-F077-4278-B174-796A8C9BF927}.VsixCustomTool|x86.ActiveCfg = VsixCustomTool|Any CPU
+		{D388CB45-F077-4278-B174-796A8C9BF927}.VsixCustomTool|x86.Build.0 = VsixCustomTool|Any CPU
 		{4E2102B1-1172-4DF1-9387-0126089BDAFE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4E2102B1-1172-4DF1-9387-0126089BDAFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4E2102B1-1172-4DF1-9387-0126089BDAFE}.Debug|x64.ActiveCfg = Debug|x64
@@ -238,6 +327,12 @@ Global
 		{4E2102B1-1172-4DF1-9387-0126089BDAFE}.Release|x64.Build.0 = Release|x64
 		{4E2102B1-1172-4DF1-9387-0126089BDAFE}.Release|x86.ActiveCfg = Release|Any CPU
 		{4E2102B1-1172-4DF1-9387-0126089BDAFE}.Release|x86.Build.0 = Release|Any CPU
+		{4E2102B1-1172-4DF1-9387-0126089BDAFE}.VsixCustomTool|Any CPU.ActiveCfg = VsixCustomTool|Any CPU
+		{4E2102B1-1172-4DF1-9387-0126089BDAFE}.VsixCustomTool|Any CPU.Build.0 = VsixCustomTool|Any CPU
+		{4E2102B1-1172-4DF1-9387-0126089BDAFE}.VsixCustomTool|x64.ActiveCfg = VsixCustomTool|x64
+		{4E2102B1-1172-4DF1-9387-0126089BDAFE}.VsixCustomTool|x64.Build.0 = VsixCustomTool|x64
+		{4E2102B1-1172-4DF1-9387-0126089BDAFE}.VsixCustomTool|x86.ActiveCfg = VsixCustomTool|Any CPU
+		{4E2102B1-1172-4DF1-9387-0126089BDAFE}.VsixCustomTool|x86.Build.0 = VsixCustomTool|Any CPU
 		{F30AE100-BE49-4944-B5A2-6D8D4310CC0B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F30AE100-BE49-4944-B5A2-6D8D4310CC0B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F30AE100-BE49-4944-B5A2-6D8D4310CC0B}.Debug|x64.ActiveCfg = Debug|x64
@@ -250,6 +345,12 @@ Global
 		{F30AE100-BE49-4944-B5A2-6D8D4310CC0B}.Release|x64.Build.0 = Release|x64
 		{F30AE100-BE49-4944-B5A2-6D8D4310CC0B}.Release|x86.ActiveCfg = Release|Any CPU
 		{F30AE100-BE49-4944-B5A2-6D8D4310CC0B}.Release|x86.Build.0 = Release|Any CPU
+		{F30AE100-BE49-4944-B5A2-6D8D4310CC0B}.VsixCustomTool|Any CPU.ActiveCfg = VsixCustomTool|Any CPU
+		{F30AE100-BE49-4944-B5A2-6D8D4310CC0B}.VsixCustomTool|Any CPU.Build.0 = VsixCustomTool|Any CPU
+		{F30AE100-BE49-4944-B5A2-6D8D4310CC0B}.VsixCustomTool|x64.ActiveCfg = VsixCustomTool|x64
+		{F30AE100-BE49-4944-B5A2-6D8D4310CC0B}.VsixCustomTool|x64.Build.0 = VsixCustomTool|x64
+		{F30AE100-BE49-4944-B5A2-6D8D4310CC0B}.VsixCustomTool|x86.ActiveCfg = VsixCustomTool|Any CPU
+		{F30AE100-BE49-4944-B5A2-6D8D4310CC0B}.VsixCustomTool|x86.Build.0 = VsixCustomTool|Any CPU
 		{09842F43-E27A-4DFC-8DE6-61DDACB788CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{09842F43-E27A-4DFC-8DE6-61DDACB788CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{09842F43-E27A-4DFC-8DE6-61DDACB788CD}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -262,6 +363,28 @@ Global
 		{09842F43-E27A-4DFC-8DE6-61DDACB788CD}.Release|x64.Build.0 = Release|Any CPU
 		{09842F43-E27A-4DFC-8DE6-61DDACB788CD}.Release|x86.ActiveCfg = Release|Any CPU
 		{09842F43-E27A-4DFC-8DE6-61DDACB788CD}.Release|x86.Build.0 = Release|Any CPU
+		{09842F43-E27A-4DFC-8DE6-61DDACB788CD}.VsixCustomTool|Any CPU.ActiveCfg = VsixCustomTool|Any CPU
+		{09842F43-E27A-4DFC-8DE6-61DDACB788CD}.VsixCustomTool|Any CPU.Build.0 = VsixCustomTool|Any CPU
+		{09842F43-E27A-4DFC-8DE6-61DDACB788CD}.VsixCustomTool|x64.ActiveCfg = VsixCustomTool|Any CPU
+		{09842F43-E27A-4DFC-8DE6-61DDACB788CD}.VsixCustomTool|x64.Build.0 = VsixCustomTool|Any CPU
+		{09842F43-E27A-4DFC-8DE6-61DDACB788CD}.VsixCustomTool|x86.ActiveCfg = VsixCustomTool|Any CPU
+		{09842F43-E27A-4DFC-8DE6-61DDACB788CD}.VsixCustomTool|x86.Build.0 = VsixCustomTool|Any CPU
+		{63CB2FAD-F0C2-4557-9EA5-E8E84D29575E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{63CB2FAD-F0C2-4557-9EA5-E8E84D29575E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{63CB2FAD-F0C2-4557-9EA5-E8E84D29575E}.Debug|x64.Build.0 = Debug|Any CPU
+		{63CB2FAD-F0C2-4557-9EA5-E8E84D29575E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{63CB2FAD-F0C2-4557-9EA5-E8E84D29575E}.Debug|x86.Build.0 = Debug|Any CPU
+		{63CB2FAD-F0C2-4557-9EA5-E8E84D29575E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{63CB2FAD-F0C2-4557-9EA5-E8E84D29575E}.Release|x64.ActiveCfg = Release|Any CPU
+		{63CB2FAD-F0C2-4557-9EA5-E8E84D29575E}.Release|x64.Build.0 = Release|Any CPU
+		{63CB2FAD-F0C2-4557-9EA5-E8E84D29575E}.Release|x86.ActiveCfg = Release|Any CPU
+		{63CB2FAD-F0C2-4557-9EA5-E8E84D29575E}.Release|x86.Build.0 = Release|Any CPU
+		{63CB2FAD-F0C2-4557-9EA5-E8E84D29575E}.VsixCustomTool|Any CPU.ActiveCfg = VsixCustomTool|Any CPU
+		{63CB2FAD-F0C2-4557-9EA5-E8E84D29575E}.VsixCustomTool|Any CPU.Build.0 = VsixCustomTool|Any CPU
+		{63CB2FAD-F0C2-4557-9EA5-E8E84D29575E}.VsixCustomTool|x64.ActiveCfg = VsixCustomTool|Any CPU
+		{63CB2FAD-F0C2-4557-9EA5-E8E84D29575E}.VsixCustomTool|x64.Build.0 = VsixCustomTool|Any CPU
+		{63CB2FAD-F0C2-4557-9EA5-E8E84D29575E}.VsixCustomTool|x86.ActiveCfg = VsixCustomTool|Any CPU
+		{63CB2FAD-F0C2-4557-9EA5-E8E84D29575E}.VsixCustomTool|x86.Build.0 = VsixCustomTool|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -286,5 +409,6 @@ Global
 		{4E2102B1-1172-4DF1-9387-0126089BDAFE} = {A40ADE08-182B-4570-982B-F16DD3CE04E1}
 		{F30AE100-BE49-4944-B5A2-6D8D4310CC0B} = {A40ADE08-182B-4570-982B-F16DD3CE04E1}
 		{09842F43-E27A-4DFC-8DE6-61DDACB788CD} = {A40ADE08-182B-4570-982B-F16DD3CE04E1}
+		{63CB2FAD-F0C2-4557-9EA5-E8E84D29575E} = {A40ADE08-182B-4570-982B-F16DD3CE04E1}
 	EndGlobalSection
 EndGlobal
