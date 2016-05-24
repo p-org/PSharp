@@ -1,0 +1,216 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{06CCBE95-2E41-4188-BB97-AEE702C1BD25}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Microsoft.PSharp.LanguageServices</RootNamespace>
+    <AssemblyName>Microsoft.PSharp.LanguageServices</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\Binaries\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\Binaries\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>PSharp.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\..\Binaries\x64\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>..\..\Binaries\x64\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'VsixCustomTool|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\VsixCustomTool\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'VsixCustomTool|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\VsixCustomTool\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.CodeAnalysis, Version=42.42.42.42, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\References\Roslyn\Microsoft.CodeAnalysis.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CodeAnalysis.CSharp, Version=42.42.42.42, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\References\Roslyn\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CodeAnalysis.CSharp.Workspaces">
+      <HintPath>..\..\References\Roslyn\Microsoft.CodeAnalysis.CSharp.Workspaces.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CodeAnalysis.Workspaces, Version=42.42.42.42, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\References\Roslyn\Microsoft.CodeAnalysis.Workspaces.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CodeAnalysis.Workspaces.Desktop, Version=42.42.42.42, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\References\Roslyn\Microsoft.CodeAnalysis.Workspaces.Desktop.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Collections.Immutable, Version=1.1.37.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\References\Roslyn\System.Collections.Immutable.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Composition.Hosting">
+      <HintPath>..\..\References\Roslyn\System.Composition.Hosting.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Composition.Runtime">
+      <HintPath>..\..\References\Roslyn\System.Composition.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Composition.TypedParts">
+      <HintPath>..\..\References\Roslyn\System.Composition.TypedParts.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Reflection.Metadata, Version=1.2.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\References\Roslyn\System.Reflection.Metadata.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Compilation\CompilationContext.cs" />
+    <Compile Include="Compilation\CompilationEngine.cs" />
+    <Compile Include="Exceptions.cs" />
+    <Compile Include="Parsing\Lexers\BaseLexer.cs" />
+    <Compile Include="Parsing\Lexers\ILexer.cs" />
+    <Compile Include="Parsing\Lexers\PSharpLexer.cs" />
+    <Compile Include="Parsing\Parsers\IParser.cs" />
+    <Compile Include="Parsing\Parsers\TokenParser.cs" />
+    <Compile Include="Parsing\Parsers\BaseParser.cs" />
+    <Compile Include="Parsing\Parsers\CSharpParser.cs" />
+    <Compile Include="Parsing\Parsers\PSharpParser.cs" />
+    <Compile Include="Parsing\ParsingOptions.cs" />
+    <Compile Include="Parsing\RewritingEngine.cs" />
+    <Compile Include="Parsing\Visitors\Framework\BaseMachineVisitor.cs" />
+    <Compile Include="Parsing\Visitors\Framework\MonitorStateDeclarationParser.cs" />
+    <Compile Include="Parsing\Visitors\Framework\MonitorDeclarationParser.cs" />
+    <Compile Include="Parsing\Visitors\Framework\BaseStateVisitor.cs" />
+    <Compile Include="Parsing\Visitors\Framework\MachineStateDeclarationParser.cs" />
+    <Compile Include="Parsing\Visitors\Framework\MachineDeclarationParser.cs" />
+    <Compile Include="Parsing\Visitors\Framework\BaseVisitor.cs" />
+    <Compile Include="Parsing\Visitors\Syntax\BaseTokenVisitor.cs" />
+    <Compile Include="Parsing\Visitors\Syntax\Blocks\BlockSyntaxVisitor.cs" />
+    <Compile Include="Parsing\Visitors\Syntax\Declarations\DeferEventsDeclarationVisitor.cs" />
+    <Compile Include="Parsing\Visitors\Syntax\Declarations\EventDeclarationVisitor.cs" />
+    <Compile Include="Parsing\Visitors\Syntax\Declarations\FieldOrMethodDeclarationVisitor.cs" />
+    <Compile Include="Parsing\Visitors\Syntax\Declarations\IgnoreEventsDeclarationVisitor.cs" />
+    <Compile Include="Parsing\Visitors\Syntax\Declarations\MachineDeclarationVisitor.cs" />
+    <Compile Include="Parsing\Visitors\Syntax\Declarations\MethodDeclarationVisitor.cs" />
+    <Compile Include="Parsing\Visitors\Syntax\Declarations\StateActionDeclarationVisitor.cs" />
+    <Compile Include="Parsing\Visitors\Syntax\Declarations\StateDeclarationVisitor.cs" />
+    <Compile Include="Parsing\Visitors\Syntax\Declarations\StateEntryDeclarationVisitor.cs" />
+    <Compile Include="Parsing\Visitors\Syntax\Declarations\StateExitDeclarationVisitor.cs" />
+    <Compile Include="Parsing\Visitors\Syntax\Expressions\ArgumentsListVisitor.cs" />
+    <Compile Include="Parsing\Visitors\Syntax\Expressions\AttributeListVisitor.cs" />
+    <Compile Include="Parsing\Visitors\Syntax\Types\TypeIdentifierVisitor.cs" />
+    <Compile Include="Parsing\ParsingEngine.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="PSharpProject.cs" />
+    <Compile Include="Rewriting\CSharp\CSharpRewriter.cs" />
+    <Compile Include="Rewriting\CSharp\Statements\PopRewriter.cs" />
+    <Compile Include="Rewriting\CSharp\Statements\FairNondetRewriter.cs" />
+    <Compile Include="Rewriting\CSharp\Statements\GotoStateRewriter.cs" />
+    <Compile Include="Rewriting\CSharp\Statements\RaiseRewriter.cs" />
+    <Compile Include="Rewriting\PSharp\Expressions\NondeterministicChoiceRewriter.cs" />
+    <Compile Include="Rewriting\PSharp\Expressions\ThisRewriter.cs" />
+    <Compile Include="Rewriting\PSharp\Expressions\CurrentStateRewriter.cs" />
+    <Compile Include="Rewriting\PSharp\Expressions\TriggerRewriter.cs" />
+    <Compile Include="Rewriting\PSharp\PSharpRewriter.cs" />
+    <Compile Include="Rewriting\PSharp\Statements\AssertRewriter.cs" />
+    <Compile Include="Rewriting\PSharp\Statements\CreateRemoteMachineRewriter.cs" />
+    <Compile Include="Rewriting\PSharp\Statements\CreateMachineRewriter.cs" />
+    <Compile Include="Rewriting\PSharp\Statements\MonitorRewriter.cs" />
+    <Compile Include="Rewriting\PSharp\Statements\PopRewriter.cs" />
+    <Compile Include="Rewriting\PSharp\Statements\GotoStateRewriter.cs" />
+    <Compile Include="Rewriting\PSharp\Statements\RaiseRewriter.cs" />
+    <Compile Include="Rewriting\PSharp\Statements\SendRewriter.cs" />
+    <Compile Include="Rewriting\PSharp\Types\HaltEventRewriter.cs" />
+    <Compile Include="Rewriting\PSharp\Types\MachineTypeRewriter.cs" />
+    <Compile Include="Programs\AbstractPSharpProgram.cs" />
+    <Compile Include="Syntax\Blocks\BlockSyntax.cs" />
+    <Compile Include="Programs\CSharpProgram.cs" />
+    <Compile Include="Syntax\Declarations\EntryDeclaration.cs" />
+    <Compile Include="Syntax\Declarations\EventDeclaration.cs" />
+    <Compile Include="Syntax\Declarations\ExitDeclaration.cs" />
+    <Compile Include="Syntax\Declarations\FieldDeclaration.cs" />
+    <Compile Include="Syntax\Declarations\MachineDeclaration.cs" />
+    <Compile Include="Syntax\Declarations\MethodDeclaration.cs" />
+    <Compile Include="Syntax\Declarations\NamespaceDeclaration.cs" />
+    <Compile Include="Syntax\Declarations\StateDeclaration.cs" />
+    <Compile Include="Syntax\Declarations\UsingDeclaration.cs" />
+    <Compile Include="Syntax\Expressions\ExpressionNode.cs" />
+    <Compile Include="Programs\IPSharpProgram.cs" />
+    <Compile Include="Syntax\Modifiers\AccessModifier.cs" />
+    <Compile Include="Syntax\Modifiers\InheritanceModifier.cs" />
+    <Compile Include="Programs\PSharpProgram.cs" />
+    <Compile Include="Syntax\PSharpSyntaxNode.cs" />
+    <Compile Include="Parsing\Tokens\TextUnit.cs" />
+    <Compile Include="Parsing\Tokens\Token.cs" />
+    <Compile Include="Parsing\Tokens\TokenStream.cs" />
+    <Compile Include="Parsing\Tokens\TokenType.cs" />
+    <Compile Include="Parsing\Tokens\TokenTypeRegistry.cs" />
+    <Compile Include="Querying.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Core\Core.csproj">
+      <Project>{2e330c40-60ea-4a94-8813-9747b93a1795}</Project>
+      <Name>Core</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="PSharp.snk" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

@@ -99,11 +99,11 @@
     <None Include="PSharp.snk" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Libraries\Remote\Remote.csproj">
+    <ProjectReference Include="..\..\Libraries\AddOns\Remote\Remote.csproj">
       <Project>{1297ad2c-6883-4844-b643-a132be3d5cf4}</Project>
       <Name>Remote</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Source\Core\Core.csproj">
+    <ProjectReference Include="..\..\Libraries\Core\Core.csproj">
       <Project>{2e330c40-60ea-4a94-8813-9747b93a1795}</Project>
       <Name>Core</Name>
     </ProjectReference>

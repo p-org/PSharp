@@ -49,8 +49,11 @@ namespace Microsoft.PSharp
                 return;
             }
 
+
             // Translate and print on console
-            Console.WriteLine("{0}", Translate(input_string));
+            string errors = "";
+            var output = Translate(input_string, out errors);
+            Console.WriteLine("{0}", output == null ? "Parse Error: " + errors : output);
         }
 
         /// <summary>
@@ -58,11 +61,11 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="text">Text</param>
         /// <returns>Text</returns>
-        public static string Translate(string text)
+        public static string Translate(string text, out string errors)
         {
-            //System.Diagnostics.Debugger.Launch();
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
+            errors = null;
 
             var context = CompilationContext.Create(configuration).LoadSolution(text);
 
@@ -75,12 +78,14 @@ namespace Microsoft.PSharp
 
                 return syntaxTree.ToString();
             }
-            catch (ParsingException)
+            catch (ParsingException ex)
             {
+                errors = ex.Message;
                 return null;
             }
-            catch (RewritingException)
+            catch (RewritingException ex)
             {
+                errors = ex.Message;
                 return null;
             }
         }
@@ -101,9 +106,20 @@ namespace Microsoft.PSharp
             for (int i = 0; i < InputFiles.Length; i++)
             {
                 var inp = System.IO.File.ReadAllText(InputFiles[i].ItemSpec);
-                var outp = SyntaxRewriter.Translate(inp);
-                if (outp == null) return false;
-                System.IO.File.WriteAllText(OutputFiles[i].ItemSpec, outp);
+                string errors;
+                var outp = SyntaxRewriter.Translate(inp, out errors);
+                if (outp != null)
+                {
+                    System.IO.File.WriteAllText(OutputFiles[i].ItemSpec, outp);
+                }
+                else
+                {
+                    // replace Program.psharp with the actual file name
+                    errors = errors.Replace("Program.psharp", System.IO.Path.GetFileName(InputFiles[i].ItemSpec));
+                    // print a compiler error with log
+                    System.IO.File.WriteAllText(OutputFiles[i].ItemSpec, 
+                        string.Format("#error Psharp Compiler Error {0} /* {0} {1} {0} */ ", "\n", errors));
+                }
             }
 
             return true;

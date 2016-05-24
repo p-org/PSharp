@@ -110,22 +110,22 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Source\Core\Core.csproj">
+    <None Include="app.config" />
+    <None Include="PSharp.snk" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Libraries\Core\Core.csproj">
       <Project>{2e330c40-60ea-4a94-8813-9747b93a1795}</Project>
       <Name>Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Source\LanguageServices\LanguageServices.csproj">
+    <ProjectReference Include="..\..\Libraries\LanguageServices\LanguageServices.csproj">
       <Project>{06ccbe95-2e41-4188-bb97-aee702c1bd25}</Project>
       <Name>LanguageServices</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Source\StaticAnalysis\StaticAnalysis.csproj">
+    <ProjectReference Include="..\..\Libraries\StaticAnalysis\StaticAnalysis.csproj">
       <Project>{da00a188-9d9e-4d4f-901c-c2a2cbc84cb6}</Project>
       <Name>StaticAnalysis</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="app.config" />
-    <None Include="PSharp.snk" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
