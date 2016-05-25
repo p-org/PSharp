@@ -122,6 +122,21 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Gets the id of the currently executing machine.
+        /// </summary>
+        /// <returns>MachineId</returns>
+        public virtual MachineId GetCurrentMachine()
+        {
+            this.Assert(Task.CurrentId != null, "The current task " +
+                "does not correspond to a machine.");
+            this.Assert(this.TaskMap.ContainsKey((int)Task.CurrentId),
+                "The current task does not correspond to a machine.",
+                (int)Task.CurrentId);
+            Machine machine = this.TaskMap[(int)Task.CurrentId];
+            return machine.Id;
+        }
+
+        /// <summary>
         /// Sends an asynchronous event to a machine.
         /// </summary>
         /// <param name="target">Target machine id</param>
@@ -162,7 +177,8 @@ namespace Microsoft.PSharp
 
             Machine machine = null;
             bool result = this.MachineMap.TryGetValue(mid.Value, out machine);
-            this.Assert(result, "Machine '{0}({1})' does not belong to this runtime.", mid.Type, mid.Value);
+            this.Assert(result, $"Machine '{mid.Type}({mid.Value})' " +
+                "does not belong to this runtime.");
 
             machine.Receive(eventTypes);
             return machine.ReceivedEvent;
@@ -176,10 +192,12 @@ namespace Microsoft.PSharp
         /// <returns>Received event</returns>
         public virtual Event Receive(params Type[] eventTypes)
         {
-            this.Assert(Task.CurrentId != null, "Only machines can wait to receive an event.");
+            this.Assert(Task.CurrentId != null, "Only machines can " +
+                "wait to receive an event.");
             this.Assert(this.TaskMap.ContainsKey((int)Task.CurrentId),
-                "Only machines can wait to receive an event; task {0} does not belong to a machine.",
-                (int)Task.CurrentId);
+                "Only machines can wait to receive an event; task " +
+                $"{(int)Task.CurrentId} does not correspond to a machine.");
+
             Machine machine = this.TaskMap[(int)Task.CurrentId];
             machine.Receive(eventTypes);
             return machine.ReceivedEvent;
@@ -199,7 +217,8 @@ namespace Microsoft.PSharp
 
             Machine machine = null;
             bool result = this.MachineMap.TryGetValue(mid.Value, out machine);
-            this.Assert(result, "Machine '{0}({1})' does not belong to this runtime.", mid.Type, mid.Value);
+            this.Assert(result, $"Machine '{mid.Type}({mid.Value})' " +
+                "does not belong to this runtime.");
 
             machine.Receive(eventType, predicate);
             return machine.ReceivedEvent;
@@ -214,10 +233,12 @@ namespace Microsoft.PSharp
         /// <returns>Received event</returns>
         public virtual Event Receive(Type eventType, Func<Event, bool> predicate)
         {
-            this.Assert(Task.CurrentId != null, "Only machines can wait to receive an event.");
+            this.Assert(Task.CurrentId != null, "Only machines can " +
+                "wait to receive an event.");
             this.Assert(this.TaskMap.ContainsKey((int)Task.CurrentId),
-                "Only machines can wait to receive an event; task {0} does not belong to a machine.",
-                (int)Task.CurrentId);
+                "Only machines can wait to receive an event; task " +
+                $"{(int)Task.CurrentId} does not belong to a machine.");
+
             Machine machine = this.TaskMap[(int)Task.CurrentId];
             machine.Receive(eventType, predicate);
             return machine.ReceivedEvent;
@@ -237,7 +258,8 @@ namespace Microsoft.PSharp
 
             Machine machine = null;
             bool result = this.MachineMap.TryGetValue(mid.Value, out machine);
-            this.Assert(result, "Machine '{0}({1})' does not belong to this runtime.", mid.Type, mid.Value);
+            this.Assert(result, $"Machine '{mid.Type}({mid.Value})' " +
+                "does not belong to this runtime.");
 
             machine.Receive(eventType, action);
             return machine.ReceivedEvent;
@@ -252,10 +274,12 @@ namespace Microsoft.PSharp
         /// <returns>Received event</returns>
         public virtual Event Receive(Type eventType, Action action)
         {
-            this.Assert(Task.CurrentId != null, "Only machines can wait to receive an event.");
+            this.Assert(Task.CurrentId != null, "Only machines can " +
+                "wait to receive an event.");
             this.Assert(this.TaskMap.ContainsKey((int)Task.CurrentId),
-                "Only machines can wait to receive an event; task {0} does not belong to a machine.",
-                (int)Task.CurrentId);
+                "Only machines can wait to receive an event; task " +
+                $"{(int)Task.CurrentId} does not belong to a machine.");
+
             Machine machine = this.TaskMap[(int)Task.CurrentId];
             machine.Receive(eventType, action);
             return machine.ReceivedEvent;
@@ -271,13 +295,15 @@ namespace Microsoft.PSharp
         /// <param name="predicate">Predicate</param>
         /// <param name="action">Action</param>
         /// <returns>Received event</returns>
-        public virtual Event Receive(MachineId mid, Type eventType, Func<Event, bool> predicate, Action action)
+        public virtual Event Receive(MachineId mid, Type eventType,
+            Func<Event, bool> predicate, Action action)
         {
             this.Assert(mid != null, "A null machine cannot wait to receive an event.");
 
             Machine machine = null;
             bool result = this.MachineMap.TryGetValue(mid.Value, out machine);
-            this.Assert(result, "Machine '{0}({1})' does not belong to this runtime.", mid.Type, mid.Value);
+            this.Assert(result, $"Machine '{mid.Type}({mid.Value})' " +
+                "does not belong to this runtime.");
 
             machine.Receive(eventType, predicate, action);
             return machine.ReceivedEvent;
@@ -294,10 +320,12 @@ namespace Microsoft.PSharp
         /// <returns>Received event</returns>
         public virtual Event Receive(Type eventType, Func<Event, bool> predicate, Action action)
         {
-            this.Assert(Task.CurrentId != null, "Only machines can wait to receive an event.");
+            this.Assert(Task.CurrentId != null, "Only machines can " +
+                "wait to receive an event.");
             this.Assert(this.TaskMap.ContainsKey((int)Task.CurrentId),
-                "Only machines can wait to receive an event; task {0} does not belong to a machine.",
-                (int)Task.CurrentId);
+                "Only machines can wait to receive an event; task " +
+                $"{(int)Task.CurrentId} does not belong to a machine.");
+
             Machine machine = this.TaskMap[(int)Task.CurrentId];
             machine.Receive(eventType, predicate, action);
             return machine.ReceivedEvent;
@@ -316,7 +344,8 @@ namespace Microsoft.PSharp
 
             Machine machine = null;
             bool result = this.MachineMap.TryGetValue(mid.Value, out machine);
-            this.Assert(result, "Machine '{0}({1})' does not belong to this runtime.", mid.Type, mid.Value);
+            this.Assert(result, $"Machine '{mid.Type}({mid.Value})' " +
+                "does not belong to this runtime.");
 
             machine.Receive(events);
             return machine.ReceivedEvent;
@@ -330,10 +359,12 @@ namespace Microsoft.PSharp
         /// <returns>Received event</returns>
         public virtual Event Receive(params Tuple<Type, Func<Event, bool>>[] events)
         {
-            this.Assert(Task.CurrentId != null, "Only machines can wait to receive an event.");
+            this.Assert(Task.CurrentId != null, "Only machines can " +
+                "wait to receive an event.");
             this.Assert(this.TaskMap.ContainsKey((int)Task.CurrentId),
-                "Only machines can wait to receive an event; task {0} does not belong to a machine.",
-                (int)Task.CurrentId);
+                "Only machines can wait to receive an event; task " +
+                $"{(int)Task.CurrentId} does not belong to a machine.");
+
             Machine machine = this.TaskMap[(int)Task.CurrentId];
             machine.Receive(events);
             return machine.ReceivedEvent;
@@ -353,7 +384,8 @@ namespace Microsoft.PSharp
 
             Machine machine = null;
             bool result = this.MachineMap.TryGetValue(mid.Value, out machine);
-            this.Assert(result, "Machine '{0}({1})' does not belong to this runtime.", mid.Type, mid.Value);
+            this.Assert(result, $"Machine '{mid.Type}({mid.Value})' " +
+                "does not belong to this runtime.");
 
             machine.Receive(events);
             return machine.ReceivedEvent;
@@ -368,10 +400,12 @@ namespace Microsoft.PSharp
         /// <returns>Received event</returns>
         public virtual Event Receive(params Tuple<Type, Action>[] events)
         {
-            this.Assert(Task.CurrentId != null, "Only machines can wait to receive an event.");
+            this.Assert(Task.CurrentId != null, "Only machines can " +
+                "wait to receive an event.");
             this.Assert(this.TaskMap.ContainsKey((int)Task.CurrentId),
-                "Only machines can wait to receive an event; task {0} does not belong to a machine.",
-                (int)Task.CurrentId);
+                "Only machines can wait to receive an event; task " +
+                $"{(int)Task.CurrentId} does not belong to a machine.");
+
             Machine machine = this.TaskMap[(int)Task.CurrentId];
             machine.Receive(events);
             return machine.ReceivedEvent;
@@ -385,13 +419,15 @@ namespace Microsoft.PSharp
         /// <param name="mid">MachineId</param>
         /// <param name="events">Event types, predicates and handlers</param>
         /// <returns>Received event</returns>
-        public virtual Event Receive(MachineId mid, params Tuple<Type, Func<Event, bool>, Action>[] events)
+        public virtual Event Receive(MachineId mid, params Tuple<Type,
+            Func<Event, bool>, Action>[] events)
         {
             this.Assert(mid != null, "A null machine cannot wait to receive an event.");
 
             Machine machine = null;
             bool result = this.MachineMap.TryGetValue(mid.Value, out machine);
-            this.Assert(result, "Machine '{0}({1})' does not belong to this runtime.", mid.Type, mid.Value);
+            this.Assert(result, $"Machine '{mid.Type}({mid.Value})' " +
+                "does not belong to this runtime.");
 
             machine.Receive(events);
             return machine.ReceivedEvent;
@@ -406,10 +442,12 @@ namespace Microsoft.PSharp
         /// <returns>Received event</returns>
         public virtual Event Receive(params Tuple<Type, Func<Event, bool>, Action>[] events)
         {
-            this.Assert(Task.CurrentId != null, "Only machines can wait to receive an event.");
+            this.Assert(Task.CurrentId != null, "Only machines can " +
+                "wait to receive an event.");
             this.Assert(this.TaskMap.ContainsKey((int)Task.CurrentId),
-                "Only machines can wait to receive an event; task {0} does not belong to a machine.",
-                (int)Task.CurrentId);
+                "Only machines can wait to receive an event; task " +
+                $"{(int)Task.CurrentId} does not belong to a machine.");
+
             Machine machine = this.TaskMap[(int)Task.CurrentId];
             machine.Receive(events);
             return machine.ReceivedEvent;
@@ -583,7 +621,8 @@ namespace Microsoft.PSharp
         /// <returns>MachineId</returns>
         internal virtual MachineId TryCreateMachine(Type type, Event e)
         {
-            this.Assert(type.IsSubclassOf(typeof(Machine)), "Type '{0}' is not a machine.", type.Name);
+            this.Assert(type.IsSubclassOf(typeof(Machine)),
+                $"Type '{type.Name}' is not a machine.");
 
             MachineId mid = new MachineId(type, this);
             Machine machine = Activator.CreateInstance(type) as Machine;
@@ -591,7 +630,7 @@ namespace Microsoft.PSharp
             machine.InitializeStateInformation();
 
             bool result = this.MachineMap.TryAdd(mid.Value, machine);
-            this.Assert(result, "Machine '{0}({1})' was already created.", type.Name, mid.Value);
+            this.Assert(result, $"Machine '{type.Name}({mid.Value})' was already created.");
 
             Task task = new Task(() =>
             {
@@ -622,7 +661,8 @@ namespace Microsoft.PSharp
         /// <returns>MachineId</returns>
         internal virtual MachineId TryCreateRemoteMachine(Type type, string endpoint, Event e)
         {
-            this.Assert(type.IsSubclassOf(typeof(Machine)), "Type '{0}' is not a machine.", type.Name);
+            this.Assert(type.IsSubclassOf(typeof(Machine)),
+                $"Type '{type.Name}' is not a machine.");
             return this.NetworkProvider.RemoteCreateMachine(type, endpoint, e);
         }
 
