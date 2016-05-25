@@ -28,7 +28,7 @@ namespace Microsoft.PSharp.Utilities
         /// <summary>
         /// Text writer.
         /// </summary>
-        private static StringWriter TextWriter;
+        private static TextWriter TextWriter;
 
         /// <summary>
         /// Enable writting to memory.
@@ -268,6 +268,11 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         internal static string GetOutput()
         {
+            if (!IO.WriteToMemory)
+            {
+                throw new PSharpGenericException("Custom logger not installed");
+            }
+
             return IO.TextWriter.ToString();
         }
 
@@ -276,6 +281,11 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         internal static void StartWritingToMemory()
         {
+            if (IO.WriteToMemory)
+            {
+                throw new PSharpGenericException("Remove the previous logger before installing a new one");
+            }
+
             IO.WriteToMemory = true;
             IO.TextWriter = new StringWriter();
         }
@@ -290,6 +300,31 @@ namespace Microsoft.PSharp.Utilities
             IO.TextWriter = null;
         }
 
+        /// <summary>
+        /// Starts writing all output to the provided textWriter
+        /// </summary>
+        internal static void InstallCustomLogger(TextWriter textWriter)
+        {
+            IO.WriteToMemory = textWriter == null ? false : true;
+            IO.TextWriter = textWriter;
+        }
+
         #endregion
     }
+
+    /// <summary>
+    /// Static class setting custom logging methods
+    /// </summary>
+    public static class IOLogger
+    {
+        /// <summary>
+        /// Starts writing all output to the provided textWriter
+        /// The textWriter must at minimum override Write(char)
+        /// </summary>
+        public static void InstallCustomLogger(TextWriter textWriter)
+        {
+            IO.InstallCustomLogger(textWriter);
+        }
+    }
+
 }
