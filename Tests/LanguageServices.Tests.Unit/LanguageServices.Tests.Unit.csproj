@@ -110,6 +110,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Declarations\Correct\FieldTests.cs" />
+    <Compile Include="Statements\Correct\CreateTests.cs" />
     <Compile Include="Statements\Correct\SendTests.cs" />
     <Compile Include="Statements\Correct\GotoStateTests.cs" />
     <Compile Include="Statements\Correct\RaiseTests.cs" />

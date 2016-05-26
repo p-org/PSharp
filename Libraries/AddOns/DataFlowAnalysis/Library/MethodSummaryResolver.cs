@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// </summary>
         /// <param name="method">MethodDeclarationSyntax</param>
         /// <param name="type">Type</param>
-        /// <param name="call">InvocationExpressionSyntax</param>
+        /// <param name="invocation">InvocationExpressionSyntax</param>
         /// <param name="node">IDataFlowNode</param>
         /// <returns>Boolean</returns>
         private static bool TryGetMethodDeclarationFromType(out MethodDeclarationSyntax method,

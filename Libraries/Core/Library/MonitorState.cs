@@ -79,6 +79,7 @@ namespace Microsoft.PSharp
         /// <param name="monitor">Monitor</param>
         /// <param name="isHot">Is hot</param>
         /// <param name="isCold">Is cold</param>
+        /// </summary>
         internal void InitializeState(Monitor monitor, bool isHot, bool isCold)
         {
             this.Monitor = monitor;

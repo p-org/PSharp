@@ -395,10 +395,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     this.Tokens.Add(new Token(unit, TokenType.SendEvent));
                     break;
 
-                case "to":
-                    this.Tokens.Add(new Token(unit, TokenType.ToMachine));
-                    break;
-
                 case "raise":
                     this.Tokens.Add(new Token(unit, TokenType.RaiseEvent));
                     break;

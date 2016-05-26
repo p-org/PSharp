@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <summary>
         /// Checks if the node is a successor of the specified node.
         /// </summary>
+        /// <param name="successor">INode</param>
         /// <param name="node">INode</param>
         /// <returns>Boolean</returns>
         bool IsSuccessorOf(T successor, T node);
@@ -49,6 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <summary>
         /// Checks if the node is a predecessor of the specified node.
         /// </summary>
+        /// <param name="predecessor">INode</param>
         /// <param name="node">INode</param>
         /// <returns>Boolean</returns>
         bool IsPredecessorOf(T predecessor, T node);

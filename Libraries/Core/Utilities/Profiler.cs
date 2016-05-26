@@ -16,6 +16,9 @@ using System.Diagnostics;
 
 namespace Microsoft.PSharp.Utilities
 {
+    /// <summary>
+    /// The P# profiler.
+    /// </summary>
     public sealed class Profiler
     {
         private Stopwatch StopWatch = null;

@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <summary>
         /// Returns the full name of the given class.
         /// </summary>
-        /// <param name="syntaxNode">SyntaxNode</param>
+        /// <param name="node">SyntaxNode</param>
         /// <returns>string</returns>
         public string GetFullClassName(ClassDeclarationSyntax node)
         {
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <summary>
         /// Returns the full name of the given struct.
         /// </summary>
-        /// <param name="syntaxNode">SyntaxNode</param>
+        /// <param name="node">SyntaxNode</param>
         /// <returns>string</returns>
         public string GetFullStructName(StructDeclarationSyntax node)
         {

@@ -40,7 +40,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         /// <summary>
         /// Visits the syntax node.
         /// </summary>
-        /// <param name="parentNode">Node</param>
+        /// <param name="node">Node</param>
         internal void Visit(BlockSyntax node)
         {
             node.OpenBraceToken = base.TokenStream.Peek();

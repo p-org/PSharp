@@ -14,6 +14,9 @@
 
 namespace Microsoft.PSharp.LanguageServices.Parsing
 {
+    /// <summary>
+    /// The token type registry.
+    /// </summary>
     public static class TokenTypeRegistry
     {
         #region public API
@@ -375,10 +378,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
 
                 case TokenType.SendEvent:
                     text = "send";
-                    break;
-
-                case TokenType.ToMachine:
-                    text = "to";
                     break;
 
                 case TokenType.RaiseEvent:

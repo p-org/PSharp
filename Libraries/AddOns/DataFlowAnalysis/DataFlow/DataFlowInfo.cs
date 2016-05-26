@@ -151,8 +151,8 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <summary>
         /// Assigns the specified type to the definition.
         /// </summary>
-        /// <param name="types">ITypeSymbol</param>
-        /// <param name="symbol">ISymbol</param>
+        /// <param name="type">ITypeSymbol</param>
+        /// <param name="definition">SymbolDefinition</param>
         internal void AssignTypeToDefinition(ITypeSymbol type, SymbolDefinition definition)
         {
             if (type != null)
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// Assigns the specified types to the definition.
         /// </summary>
         /// <param name="types">ITypeSymbols</param>
-        /// <param name="symbol">ISymbol</param>
+        /// <param name="definition">SymbolDefinition</param>
         internal void AssignTypesToDefinition(ISet<ITypeSymbol> types, SymbolDefinition definition)
         {
             if (types.Count > 0 && !types.Any(type => type == null))
@@ -201,7 +201,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// Taints the specified symbol.
         /// </summary>
         /// <param name="taintSymbol">ISymbol</param>
-        /// <param name="taintType">ITypeSymbol</param>
         /// <param name="symbol">ISymbol</param>
         internal void TaintSymbol(ISymbol taintSymbol, ISymbol symbol)
         {
@@ -404,7 +403,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// Returns the killed definitions for the specified symbol.
         /// </summary>
         /// <param name="symbol">Symbol</param>
-        /// <param name="statement">Statement</param>
         /// <returns>SymbolDefinitions</returns>
         private ISet<SymbolDefinition> GetKilledDefinitionsOfSymbol(ISymbol symbol)
         {

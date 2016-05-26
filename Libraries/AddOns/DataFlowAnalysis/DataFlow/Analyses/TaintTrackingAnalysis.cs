@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <summary>
         /// Analyzes the data-flow of the assignment expression.
         /// </summary>
-        /// <param name="binaryExpr">BinaryExpressionSyntax</param>
+        /// <param name="assignment">AssignmentExpressionSyntax</param>
         /// <param name="node">IDataFlowNode</param>
         private void AnalyzeAssignmentExpression(AssignmentExpressionSyntax assignment, IDataFlowNode node)
         {

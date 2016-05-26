@@ -280,7 +280,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Returns true if the current operation has completed.
         /// </summary>
-        /// <param name="opid">OperationId</param>
+        /// <param name="choices">List of machine infos</param>
+        /// <param name="current">MachineInfo</param>
         /// <returns>Boolean</returns>
         private bool HasCurrentOperationCompleted(IEnumerable<MachineInfo> choices, MachineInfo current)
         {

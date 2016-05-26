@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// </summary>
         /// <param name="dfg">DataFlowGraph</param>
         /// <param name="cfgNode">IControlFlowNode</param>
-        /// <param name="statements">Statements</param>
+        /// <param name="summary">MethodSummary</param>
         internal DataFlowNode(IGraph<IDataFlowNode> dfg, IControlFlowNode cfgNode,
             MethodSummary summary)
         {

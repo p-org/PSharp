@@ -34,7 +34,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="project">IPSharpProgram</param>
+        /// <param name="program">IPSharpProgram</param>
         internal MonitorRewriter(IPSharpProgram program)
             : base(program)
         {
