@@ -49,14 +49,14 @@ namespace Microsoft.PSharp.TestingServices
         internal MethodInfo TestMethod;
 
         /// <summary>
-        /// P# test initialization method
+        /// The P# test initialization method.
         /// </summary>
         internal MethodInfo TestInitMethod;
 
         /// <summary>
-        /// P# test close method
+        /// The P# test dispose method.
         /// </summary>
-        internal MethodInfo TestCloseMethod;
+        internal MethodInfo TestDisposeMethod;
 
         /// <summary>
         /// A P# test action.
@@ -146,8 +146,8 @@ namespace Microsoft.PSharp.TestingServices
             this.Configuration = configuration;
             this.Assembly = assembly;
             this.FindEntryPoint();
-            this.TestInitMethod = FindCustomTestMethod(typeof(TestInit));
-            this.TestCloseMethod = FindCustomTestMethod(typeof(TestClose));
+            this.TestInitMethod = FindTestMethod(typeof(TestInit));
+            this.TestDisposeMethod = FindTestMethod(typeof(TestDispose));
             this.Initialize();
         }
 
@@ -171,8 +171,8 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             this.FindEntryPoint();
-            this.TestInitMethod = FindCustomTestMethod(typeof(TestInit));
-            this.TestCloseMethod = FindCustomTestMethod(typeof(TestClose));
+            this.TestInitMethod = FindTestMethod(typeof(TestInit));
+            this.TestDisposeMethod = FindTestMethod(typeof(TestDispose));
             this.Initialize();
         }
 
@@ -343,38 +343,18 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private void FindEntryPoint()
         {
-            List<MethodInfo> testMethods = null;
-
-            try
-            {
-                testMethods = this.Assembly.GetTypes().SelectMany(t => t.GetMethods(BindingFlags.Static |
-                    BindingFlags.Public | BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod)).
-                    Where(m => m.GetCustomAttributes(typeof(Test), false).Length > 0).ToList();
-            }
-            catch (ReflectionTypeLoadException ex)
-            {
-                foreach (var le in ex.LoaderExceptions)
-                {
-                    ErrorReporter.Report(le.Message);
-                }
-
-                ErrorReporter.ReportAndExit($"Failed to load assembly '{this.Assembly.FullName}'");
-            }
-            catch (Exception ex)
-            {
-                ErrorReporter.Report(ex.Message);
-                ErrorReporter.ReportAndExit($"Failed to load assembly '{this.Assembly.FullName}'");
-            }
+            List<MethodInfo> testMethods = this.FindTestMethodsWithAttribute(typeof(Test));
 
             if (testMethods.Count == 0)
             {
-                ErrorReporter.ReportAndExit("Cannot detect a P# test method. " +
-                    "Use the attribute [Test] to declare a test method.");
+                ErrorReporter.ReportAndExit("Cannot detect a P# test method. Use the " +
+                    $"attribute '[{typeof(Test).FullName}]' to declare a test method.");
             }
             else if (testMethods.Count > 1)
             {
-                ErrorReporter.ReportAndExit("Only one test method to the P# program can be declared. " +
-                    $"{testMethods.Count} test methods were found instead.");
+                ErrorReporter.ReportAndExit("Only one test method to the P# program can " +
+                    $"be declared with the attribute '{typeof(Test).FullName}'. " +
+                    $"'{testMethods.Count}' test methods were found instead.");
             }
 
             if (testMethods[0].ReturnType != typeof(void) ||
@@ -387,16 +367,55 @@ namespace Microsoft.PSharp.TestingServices
             {
                 ErrorReporter.ReportAndExit("Incorrect test method declaration. Please " +
                     "declare the test method as follows:\n" +
-                    "  [Test] public static void TestCase(PSharpRuntime runtime) { ... }");
+                    $"  [{typeof(Test).FullName}] public static void " +
+                    $"void {testMethods[0].Name}(PSharpRuntime runtime) {{ ... }}");
             }
 
             this.TestMethod = testMethods[0];
         }
 
         /// <summary>
-        /// Finds a void method with the given attribute
+        /// Finds the test method with the specified attribute.
+        /// Returns null if no such method is found.
         /// </summary>
-        private MethodInfo FindCustomTestMethod(Type attribute)
+        private MethodInfo FindTestMethod(Type attribute)
+        {
+            List<MethodInfo> testMethods = this.FindTestMethodsWithAttribute(attribute);
+
+            if (testMethods.Count == 0)
+            {
+                return null;
+            }
+            else if (testMethods.Count > 1)
+            {
+                ErrorReporter.ReportAndExit("Only one test method to the P# program can " +
+                    $"be declared with the attribute '{attribute.FullName}'. " +
+                    $"'{testMethods.Count}' test methods were found instead.");
+            }
+
+            if (testMethods[0].ReturnType != typeof(void) ||
+                testMethods[0].ContainsGenericParameters ||
+                testMethods[0].IsAbstract || testMethods[0].IsVirtual ||
+                testMethods[0].IsConstructor ||
+                !testMethods[0].IsPublic || !testMethods[0].IsStatic ||
+                testMethods[0].GetParameters().Length != 0)
+            {
+                ErrorReporter.ReportAndExit("Incorrect test method declaration. Please " +
+                    "declare the test method as follows:\n" +
+                    $"  [{attribute.FullName}] public static " +
+                    $"void {testMethods[0].Name}() {{ ... }}");
+            }
+
+            return testMethods[0];
+        }
+
+        /// <summary>
+        /// Finds the test methods with the specified attribute.
+        /// Returns an empty list if no such methods are found.
+        /// </summary>
+        /// <param name="attribute">Type</param>
+        /// <returns>MethodInfos</returns>
+        private List<MethodInfo> FindTestMethodsWithAttribute(Type attribute)
         {
             List<MethodInfo> testMethods = null;
 
@@ -421,29 +440,7 @@ namespace Microsoft.PSharp.TestingServices
                 ErrorReporter.ReportAndExit($"Failed to load assembly '{this.Assembly.FullName}'");
             }
 
-            if (testMethods.Count == 0)
-            {
-                return null;
-            }
-            else if (testMethods.Count > 1)
-            {
-                ErrorReporter.ReportAndExit("Only one test method to the P# program can be declared with attribute " + 
-                    attribute.ToString() + ". " + $"We found {testMethods.Count} test methods instead.");
-            }
-
-            if (testMethods[0].ReturnType != typeof(void) ||
-                testMethods[0].ContainsGenericParameters ||
-                testMethods[0].IsAbstract || testMethods[0].IsVirtual ||
-                testMethods[0].IsConstructor ||
-                !testMethods[0].IsPublic || !testMethods[0].IsStatic ||
-                testMethods[0].GetParameters().Length != 0)
-            {
-                ErrorReporter.ReportAndExit("Incorrect test method declaration. Please " +
-                    "declare the test method as follows:\n" +
-                    "  [{0}] public static void {1}() { ... }", attribute.ToString(), testMethods[0].Name);
-            }
-
-            return testMethods[0];
+            return testMethods;
         }
 
         /// <summary>

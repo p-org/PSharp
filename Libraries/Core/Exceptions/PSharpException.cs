@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="PSharpGenericException.cs">
+// <copyright file="PSharpException.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -17,15 +17,15 @@ using System;
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Implements a P# generic exception.
+    /// Implements the base P# exception.
     /// </summary>
-    internal sealed class PSharpGenericException : Exception
+    internal class PSharpException : Exception
     {
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="message">Message</param>
-        public PSharpGenericException(string message)
+        public PSharpException(string message)
             : base(message)
         {
 

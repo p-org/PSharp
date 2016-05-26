@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="Test.cs">
+// <copyright file="IOLogger.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,29 +12,24 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
+using System.IO;
 
-namespace Microsoft.PSharp
+namespace Microsoft.PSharp.Utilities
 {
     /// <summary>
-    /// Attribute for declaring the entry point to
-    /// a P# program test.
+    /// Static class for setting a custom logger.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Method)]
-    public sealed class Test : Attribute { }
-
-    /// <summary>
-    /// Attribute for declaring the initialization
-    /// method to be called before testing starts.
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Method)]
-    public sealed class TestInit : Attribute { }
-
-    /// <summary>
-    /// Attribute for declaring a cleanup method
-    /// to be called when test terminates.
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Method)]
-    public sealed class TestDispose : Attribute { }
-
+    public static class IOLogger
+    {
+        /// <summary>
+        /// Starts writing all output to the provided logger,
+        /// which is of type TextWriter. The logger must at
+        /// minimum override the method Write(char).
+        /// </summary>
+        /// <param name="logger">TextWriter</param>
+        public static void InstallCustomLogger(TextWriter logger)
+        {
+            IO.InstallCustomLogger(logger);
+        }
+    }
 }

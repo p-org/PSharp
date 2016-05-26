@@ -36,9 +36,8 @@ namespace PingPong
         /// Test initialization method (called before testing starts).
         /// </summary>
         [Microsoft.PSharp.TestInit]
-        public static void Init()
+        public static void Initialize()
         {
-            Console.WriteLine("Calling Init");
             Test.MyLogger = new MyLogger();
             Microsoft.PSharp.Utilities.IOLogger.InstallCustomLogger(Test.MyLogger);
         }
@@ -51,23 +50,21 @@ namespace PingPong
         [Microsoft.PSharp.Test]
         public static void Execute(PSharpRuntime runtime)
         {
-            Console.WriteLine("Calling Execute");
             runtime.CreateMachine(typeof(Server), "TheUltimateServerMachine");
         }
 
         /// <summary>
-        /// Test cleanup (called at the end of testing).
+        /// Test cleanup (called when testing terminates).
         /// </summary>
-        [Microsoft.PSharp.TestClose]
-        public static void Close()
+        [Microsoft.PSharp.TestDispose]
+        public static void Dispose()
         {
-            Console.WriteLine("Calling Close");
             Test.MyLogger.Close();
         }
     }
 
     /// <summary>
-    /// Custom logger. Just dumps to console.
+    /// Custom logger that just dumps to console.
     /// </summary>
     class MyLogger : System.IO.TextWriter
     {

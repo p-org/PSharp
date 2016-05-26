@@ -172,11 +172,13 @@ namespace Microsoft.PSharp.TestingServices
 
             Task task = new Task(() =>
             {
-                // Initialize the test state
                 try
                 {
                     if (base.TestInitMethod != null)
+                    {
+                        // Initializes the test state.
                         base.TestInitMethod.Invoke(null, new object[] { });
+                    }
                 }
                 catch (TargetInvocationException ex)
                 {
@@ -204,7 +206,7 @@ namespace Microsoft.PSharp.TestingServices
                         base.HasRedirectedConsoleOutput = true;
                     }
 
-                    // Start the test.
+                    // Starts the test.
                     if (base.TestAction != null)
                     {
                         base.TestAction(runtime);
@@ -287,13 +289,14 @@ namespace Microsoft.PSharp.TestingServices
                         this.PrintReproducableTrace(runtime);
                     }
                 }
-
-                // Cleanup test state
+                
                 try
                 {
-                    if (base.TestCloseMethod != null)
-                        base.TestCloseMethod.Invoke(null, new object[] { });
-
+                    if (base.TestDisposeMethod != null)
+                    {
+                        // Disposes the test state.
+                        base.TestDisposeMethod.Invoke(null, new object[] { });
+                    }
                 }
                 catch (TargetInvocationException ex)
                 {
