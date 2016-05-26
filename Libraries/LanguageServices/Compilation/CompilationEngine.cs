@@ -126,10 +126,11 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <param name="compilation">Compilation</param>
         /// <param name="outputKind">OutputKind</param>
         /// <param name="outputPath">OutputPath</param>
-        /// <param name="enableDebugInformation">Enables debug information</param>
+        /// <param name="printResults">Prints the compilation results</param>
+        /// <param name="buildDebugFile">Builds the debug file</param>
         /// <returns>Output</returns>
-        public string ToFile(CodeAnalysis.Compilation compilation, OutputKind outputKind, string outputPath,
-            bool enableDebugInformation)
+        public string ToFile(CodeAnalysis.Compilation compilation, OutputKind outputKind,
+            string outputPath, bool printResults, bool buildDebugFile)
         {
             string assemblyFileName = null;
             if (outputKind == OutputKind.ConsoleApplication)
@@ -164,7 +165,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
             using (FileStream outputFile = new FileStream(fileName, FileMode.Create, FileAccess.Write),
                 outputPdbFile = new FileStream(pdbFileName, FileMode.Create, FileAccess.Write))
             {
-                if (enableDebugInformation)
+                if (buildDebugFile)
                 {
                     emitResult = compilation.Emit(outputFile, outputPdbFile);
                 }
@@ -173,7 +174,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
                     emitResult = compilation.Emit(outputFile, null);
                 }
                 
-                if (emitResult.Success)
+                if (emitResult.Success && printResults)
                 {
                     IO.PrintLine("... Writing {0}", fileName);
                     return fileName;
@@ -230,10 +231,6 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
             throw new ApplicationException(message);
         }
 
-        #endregion
-
-        #region private methods
-
         /// <summary>
         /// Compiles the given P# project.
         /// </summary>
@@ -249,12 +246,12 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
                     this.CompilationContext.ActiveCompilationTarget == CompilationTarget.Remote)
                 {
                     this.ToFile(compilation, OutputKind.DynamicallyLinkedLibrary,
-                        project.OutputFilePath, true);
+                        project.OutputFilePath, true, true);
                 }
                 else
                 {
                     this.ToFile(compilation, project.CompilationOptions.OutputKind,
-                        project.OutputFilePath, true);
+                        project.OutputFilePath, true, true);
                 }
             }
             catch (ApplicationException ex)
@@ -292,6 +289,8 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <param name="compilation">Compilation</param>
         private void LinkExternalAssembliesToProject(CodeAnalysis.Compilation compilation)
         {
+            // NOTE: Doesn't do anything yet.
+
             //foreach (var reference in compilation.ExternalReferences)
             //{
             //    if (!(reference is PortableExecutableReference))
