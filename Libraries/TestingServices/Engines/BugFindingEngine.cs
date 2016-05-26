@@ -172,6 +172,20 @@ namespace Microsoft.PSharp.TestingServices
 
             Task task = new Task(() =>
             {
+                // Initialize the test state
+                try
+                {
+                    if (base.TestInitMethod != null)
+                        base.TestInitMethod.Invoke(null, new object[] { });
+                }
+                catch (TargetInvocationException ex)
+                {
+                    if (!(ex.InnerException is TaskCanceledException))
+                    {
+                        ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+                    }
+                }
+
                 for (int i = 0; i < base.Configuration.SchedulingIterations; i++)
                 {
                     if (this.ShouldPrintIteration(i + 1))
@@ -273,6 +287,22 @@ namespace Microsoft.PSharp.TestingServices
                         this.PrintReproducableTrace(runtime);
                     }
                 }
+
+                // Cleanup test state
+                try
+                {
+                    if (base.TestCloseMethod != null)
+                        base.TestCloseMethod.Invoke(null, new object[] { });
+
+                }
+                catch (TargetInvocationException ex)
+                {
+                    if (!(ex.InnerException is TaskCanceledException))
+                    {
+                        ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+                    }
+                }
+
             });
 
             return task;

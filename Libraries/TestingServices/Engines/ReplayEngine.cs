@@ -156,7 +156,13 @@ namespace Microsoft.PSharp.TestingServices
                 {
                     try
                     {
+                        if (base.TestInitMethod != null)
+                            base.TestInitMethod.Invoke(null, new object[] { });
+
                         base.TestMethod.Invoke(null, new object[] { runtime });
+
+                        if (base.TestCloseMethod != null)
+                            base.TestCloseMethod.Invoke(null, new object[] { });
                     }
                     catch (TargetInvocationException ex)
                     {

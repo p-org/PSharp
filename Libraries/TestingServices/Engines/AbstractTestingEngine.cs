@@ -49,6 +49,16 @@ namespace Microsoft.PSharp.TestingServices
         internal MethodInfo TestMethod;
 
         /// <summary>
+        /// P# test initialization method
+        /// </summary>
+        internal MethodInfo TestInitMethod;
+
+        /// <summary>
+        /// P# test close method
+        /// </summary>
+        internal MethodInfo TestCloseMethod;
+
+        /// <summary>
         /// A P# test action.
         /// </summary>
         internal Action<PSharpRuntime> TestAction;
@@ -136,6 +146,8 @@ namespace Microsoft.PSharp.TestingServices
             this.Configuration = configuration;
             this.Assembly = assembly;
             this.FindEntryPoint();
+            this.TestInitMethod = FindCustomTestMethod(typeof(TestInit));
+            this.TestCloseMethod = FindCustomTestMethod(typeof(TestClose));
             this.Initialize();
         }
 
@@ -159,6 +171,8 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             this.FindEntryPoint();
+            this.TestInitMethod = FindCustomTestMethod(typeof(TestInit));
+            this.TestCloseMethod = FindCustomTestMethod(typeof(TestClose));
             this.Initialize();
         }
 
@@ -377,6 +391,59 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             this.TestMethod = testMethods[0];
+        }
+
+        /// <summary>
+        /// Finds a void method with the given attribute
+        /// </summary>
+        private MethodInfo FindCustomTestMethod(Type attribute)
+        {
+            List<MethodInfo> testMethods = null;
+
+            try
+            {
+                testMethods = this.Assembly.GetTypes().SelectMany(t => t.GetMethods(BindingFlags.Static |
+                    BindingFlags.Public | BindingFlags.DeclaredOnly | BindingFlags.InvokeMethod)).
+                    Where(m => m.GetCustomAttributes(attribute, false).Length > 0).ToList();
+            }
+            catch (ReflectionTypeLoadException ex)
+            {
+                foreach (var le in ex.LoaderExceptions)
+                {
+                    ErrorReporter.Report(le.Message);
+                }
+
+                ErrorReporter.ReportAndExit($"Failed to load assembly '{this.Assembly.FullName}'");
+            }
+            catch (Exception ex)
+            {
+                ErrorReporter.Report(ex.Message);
+                ErrorReporter.ReportAndExit($"Failed to load assembly '{this.Assembly.FullName}'");
+            }
+
+            if (testMethods.Count == 0)
+            {
+                return null;
+            }
+            else if (testMethods.Count > 1)
+            {
+                ErrorReporter.ReportAndExit("Only one test method to the P# program can be declared with attribute " + 
+                    attribute.ToString() + ". " + $"We found {testMethods.Count} test methods instead.");
+            }
+
+            if (testMethods[0].ReturnType != typeof(void) ||
+                testMethods[0].ContainsGenericParameters ||
+                testMethods[0].IsAbstract || testMethods[0].IsVirtual ||
+                testMethods[0].IsConstructor ||
+                !testMethods[0].IsPublic || !testMethods[0].IsStatic ||
+                testMethods[0].GetParameters().Length != 0)
+            {
+                ErrorReporter.ReportAndExit("Incorrect test method declaration. Please " +
+                    "declare the test method as follows:\n" +
+                    "  [{0}] public static void {1}() { ... }", attribute.ToString(), testMethods[0].Name);
+            }
+
+            return testMethods[0];
         }
 
         /// <summary>

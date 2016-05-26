@@ -22,4 +22,17 @@ namespace Microsoft.PSharp
     /// </summary>
     [AttributeUsage(AttributeTargets.Method)]
     public sealed class Test : Attribute { }
+
+    /// <summary>
+    /// Method called before testing starts
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Method)]
+    public sealed class TestInit : Attribute { }
+
+    /// <summary>
+    /// Method called after testing ends
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Method)]
+    public sealed class TestClose : Attribute { }
+
 }
