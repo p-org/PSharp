@@ -18,7 +18,7 @@ class Samples(object):
                         'PingPong', 'SimpleAsyncAwait', 'TypesAndGenerics']
 
 def testSamples():
-    Options.ToolPath = os.path.join('..', 'Binaries', 'Release', 'PSharpTester.exe')
+    Options.ToolPath = os.path.join('..', 'Binaries', 'PSharpTester.exe')
     Options.psharpAsLibraryPath = os.path.join('.', 'PsharpAsLibrary', 'Binaries', 'Debug')
     Options.psharpAsLanguagePath = os.path.join('.', 'PsharpAsLanguage', 'Binaries', 'Debug')
 
