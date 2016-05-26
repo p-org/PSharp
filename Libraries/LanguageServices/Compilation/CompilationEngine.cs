@@ -174,9 +174,13 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
                     emitResult = compilation.Emit(outputFile, null);
                 }
                 
-                if (emitResult.Success && printResults)
+                if (emitResult.Success)
                 {
-                    IO.PrintLine("... Writing {0}", fileName);
+                    if (printResults)
+                    {
+                        IO.PrintLine("... Writing {0}", fileName);
+                    }
+                    
                     return fileName;
                 }
             }
