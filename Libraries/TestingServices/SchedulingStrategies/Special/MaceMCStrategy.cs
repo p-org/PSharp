@@ -60,7 +60,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="context">Configuration</param>
+        /// <param name="configuration">Configuration</param>
         public MaceMCStrategy(Configuration configuration)
         {
             this.Configuration = configuration;

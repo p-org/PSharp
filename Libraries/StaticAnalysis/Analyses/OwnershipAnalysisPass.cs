@@ -90,7 +90,6 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         /// <param name="givenUpSymbol">GivenUpOwnershipSymbol</param>
         /// <param name="statement">Statement</param>
-        /// <param name="visited">ControlFlowGraphNodes</param>
         /// <param name="machine">StateMachine</param>
         /// <param name="model">SemanticModel</param>
         /// <param name="trace">TraceInfo</param>

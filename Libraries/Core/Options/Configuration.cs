@@ -17,6 +17,9 @@ using System.Collections.Generic;
 
 namespace Microsoft.PSharp.Utilities
 {
+    /// <summary>
+    /// The P# project configurations.
+    /// </summary>
     public class Configuration
     {
         #region core options
@@ -338,11 +341,11 @@ namespace Microsoft.PSharp.Utilities
         /// Updates the configuration with debugging information enabled
         /// or disabled and returns it.
         /// </summary>
-        /// <param name="level">Verbosity level</param>
+        /// <param name="isEnabled">Is debugging enabled</param>
         /// <returns>Configuration</returns>
-        public Configuration WithDebuggingEnabled(bool value = true)
+        public Configuration WithDebuggingEnabled(bool isEnabled = true)
         {
-            IO.Debugging = value;
+            IO.Debugging = isEnabled;
             return this;
         }
 

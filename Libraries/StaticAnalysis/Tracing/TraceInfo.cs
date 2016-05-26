@@ -154,7 +154,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Merges the given trace to the current trace.
         /// </summary>
-        /// <param name="log">Log</param>
+        /// <param name="traceInfo">TraceInfo</param>
         internal void Merge(TraceInfo traceInfo)
         {
             this.ErrorTrace.AddRange(traceInfo.ErrorTrace);

@@ -86,7 +86,7 @@ namespace Microsoft.PSharp.TestingServices.Threading
         /// Run the task on the P# task scheduler.
         /// </summary>
         /// <typeparam name="TResult">Task result</typeparam>
-        /// <param name="@this">Task</param>
+        /// <param name="this">Task</param>
         /// <returns>Task</returns>
         public static Task<TResult> RunOnPSharpScheduler<TResult>(this Task<TResult> @this)
         {

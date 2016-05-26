@@ -128,7 +128,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
 
         #region private methods
 
-        //// <summary>
+        /// <summary>
         /// Visits a using declaration.
         /// </summary>
         private void VisitUsingDeclaration()

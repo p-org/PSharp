@@ -7,57 +7,73 @@ namespace PingPong
 {
     public class Test
     {
+        /// <summary>
+        /// Custom logger.
+        /// </summary>
+        static MyLogger MyLogger = null;
+
         static void Main(string[] args)
         {
-            // Increase verbosity to see the log 
-            var conf = Microsoft.PSharp.Utilities.Configuration.Create();
-            conf.Verbose = 2;
+            // Increases verbosity to see the log.
+            var configuration = Microsoft.PSharp.Utilities.Configuration.Create();
+            configuration.Verbose = 2;
 
-            // Install custom logger
-            var my_logger = new MyLogger();
-            Microsoft.PSharp.Utilities.IOLogger.InstallCustomLogger(my_logger);
+            // Installs the custom logger.
+            var myLogger = new MyLogger();
+            Microsoft.PSharp.Utilities.IOLogger.InstallCustomLogger(myLogger);
             
-            // Run the program
-            var runtime = PSharpRuntime.Create(conf);
+            // Runs the program.
+            var runtime = PSharpRuntime.Create(configuration);
             Test.Execute(runtime);
 
-            // Done
-            my_logger.Close();
+            // Closes the logger.
+            myLogger.Close();
 
             Console.ReadLine();
         }
 
-        static MyLogger my_logger = null;
-
-        // Test initialization method (called before testing starts)
+        /// <summary>
+        /// Test initialization method (called before testing starts).
+        /// </summary>
         [Microsoft.PSharp.TestInit]
         public static void Init()
         {
             Console.WriteLine("Calling Init");
-            my_logger = new MyLogger();
-            Microsoft.PSharp.Utilities.IOLogger.InstallCustomLogger(my_logger);
+            Test.MyLogger = new MyLogger();
+            Microsoft.PSharp.Utilities.IOLogger.InstallCustomLogger(Test.MyLogger);
         }
 
-        // Execute a test iteration (called repeatedly for each testing iteration)
+        /// <summary>
+        /// Execute a test iteration (called repeatedly for
+        /// each testing iteration).
+        /// </summary>
+        /// <param name="runtime"></param>
         [Microsoft.PSharp.Test]
         public static void Execute(PSharpRuntime runtime)
         {
             Console.WriteLine("Calling Execute");
-            runtime.CreateMachine(typeof(Server));
+            runtime.CreateMachine(typeof(Server), "TheUltimateServerMachine");
         }
 
-        // Test cleanup (called at the end of testing)
+        /// <summary>
+        /// Test cleanup (called at the end of testing).
+        /// </summary>
         [Microsoft.PSharp.TestClose]
         public static void Close()
         {
             Console.WriteLine("Calling Close");
-            my_logger.Close();
+            Test.MyLogger.Close();
         }
     }
 
-    // Custom logger. Just dumps to console
+    /// <summary>
+    /// Custom logger. Just dumps to console.
+    /// </summary>
     class MyLogger : System.IO.TextWriter
     {
+        /// <summary>
+        /// The encoding.
+        /// </summary>
         public override Encoding Encoding
         {
             get
@@ -66,13 +82,16 @@ namespace PingPong
             }
         }
 
-        // Minimum override necessary
+        /// <summary>
+        /// Minimum override necessary.
+        /// </summary>
+        /// <param name="value">Character</param>
         public override void Write(char value)
         {
             Console.Write(value);
         }
 
-        // Below are optional overrides (for performance)
+        // Below are optional overrides (for performance).
 
         public override void Write(string value)
         {

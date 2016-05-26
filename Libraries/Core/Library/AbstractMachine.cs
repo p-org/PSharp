@@ -90,7 +90,7 @@ namespace Microsoft.PSharp
         /// <returns>string</returns>
         public override string ToString()
         {
-            return this.GetType().Name;
+            return this.Id.Name;
         }
 
         #endregion

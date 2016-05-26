@@ -62,7 +62,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        /// <param name="program">Program</param>
         internal override void Rewrite()
         {
             this.StatementBlock.Rewrite();

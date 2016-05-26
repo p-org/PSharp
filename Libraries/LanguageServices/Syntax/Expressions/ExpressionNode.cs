@@ -55,7 +55,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Constructor.
         /// </summary>
         /// <param name="program">Program</param>
-        /// <param name="node">Node</param>
+        /// <param name="node">BlockSyntax</param>
         internal ExpressionNode(IPSharpProgram program, BlockSyntax node)
             : base(program)
         {
@@ -68,7 +68,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        /// <param name="program">Program</param>
         internal override void Rewrite()
         {
             if (this.StmtTokens.Count == 0)

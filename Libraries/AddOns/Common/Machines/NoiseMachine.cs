@@ -14,13 +14,31 @@
 
 namespace Microsoft.PSharp.Common
 {
+    /// <summary>
+    /// An experimental noise machine.
+    /// </summary>
     public class NoiseMachine : Machine
     {
+        /// <summary>
+        /// A configure event.
+        /// </summary>
         public class Configure : Event
         {
+            /// <summary>
+            /// Sender.
+            /// </summary>
             public MachineId Sender;
+
+            /// <summary>
+            /// Duration.
+            /// </summary>
             public int Duration;
 
+            /// <summary>
+            /// Constructor.
+            /// </summary>
+            /// <param name="sender">MachineId</param>
+            /// <param name="duration">Duration</param>
             public Configure(MachineId sender, int duration)
                 : base()
             {
@@ -29,7 +47,14 @@ namespace Microsoft.PSharp.Common
             }
         }
 
+        /// <summary>
+        /// A done event.
+        /// </summary>
         public class Done : Event { }
+
+        /// <summary>
+        /// A noise event.
+        /// </summary>
         private class NoiseEvent : Event { }
 
         private MachineId Sender;

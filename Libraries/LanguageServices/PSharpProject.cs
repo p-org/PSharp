@@ -133,7 +133,6 @@ namespace Microsoft.PSharp.LanguageServices
         /// <summary>
         /// Returns the compilation of the project.
         /// </summary>
-        /// <param name="name">Project name</param>
         /// <returns>Compilation</returns>
         public CodeAnalysis.Compilation GetCompilation()
         {

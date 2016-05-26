@@ -26,13 +26,16 @@ namespace Microsoft.PSharp.Remote
     {
         /// <summary>
         /// Creates a new machine of the given type and with
-        /// the given event.
+        /// the given event. An optional friendly name can be
+        /// specified. If the friendly name is null or the empty
+        /// string, a default value will be given.
         /// </summary>
         /// <param name="typeName">Type of the machine</param>
+        /// <param name="friendlyName">Friendly machine name used for logging</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns> 
         [OperationContract]
-        MachineId CreateMachine(string typeName, Event e);
+        MachineId CreateMachine(string typeName, string friendlyName, Event e);
 
         /// <summary>
         /// Sends an asynchronous event to a machine.

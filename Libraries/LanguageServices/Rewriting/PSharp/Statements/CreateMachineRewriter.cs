@@ -78,22 +78,37 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
             if (node.ArgumentList.Arguments.Count > 1)
             {
                 arguments.Add(node.ArgumentList.Arguments[1]);
-
-                string payload = "";
-                for (int i = 2; i < node.ArgumentList.Arguments.Count; i++)
+                
+                int eventIndex = 1;
+                if (arguments[1].ToString().StartsWith("\"") &&
+                    arguments[1].ToString().EndsWith("\""))
                 {
-                    if (i == node.ArgumentList.Arguments.Count - 1)
-                    {
-                        payload += node.ArgumentList.Arguments[i].ToString();
-                    }
-                    else
-                    {
-                        payload += node.ArgumentList.Arguments[i].ToString() + ", ";
-                    }
+                    eventIndex++;
                 }
 
-                arguments[1] = SyntaxFactory.Argument(SyntaxFactory.ParseExpression(
-                    "new " + arguments[1].ToString() + "(" + payload + ")"));
+                if (node.ArgumentList.Arguments.Count > eventIndex)
+                {
+                    if (eventIndex == 2)
+                    {
+                        arguments.Add(node.ArgumentList.Arguments[eventIndex]);
+                    }
+
+                    string payload = "";
+                    for (int i = eventIndex + 1; i < node.ArgumentList.Arguments.Count; i++)
+                    {
+                        if (i == node.ArgumentList.Arguments.Count - 1)
+                        {
+                            payload += node.ArgumentList.Arguments[i].ToString();
+                        }
+                        else
+                        {
+                            payload += node.ArgumentList.Arguments[i].ToString() + ", ";
+                        }
+                    }
+
+                    arguments[eventIndex] = SyntaxFactory.Argument(SyntaxFactory.ParseExpression(
+                        "new " + arguments[eventIndex].ToString() + "(" + payload + ")"));
+                }
             }
 
             var machineIdentifier = arguments[0].ToString();

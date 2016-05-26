@@ -52,16 +52,20 @@ namespace Microsoft.PSharp.Net
         #region methods
 
         /// <summary>
-        /// Creates a new remote machine of the given
-        /// type and with the given event.
+        /// Creates a new remote machine of the specified type
+        /// and with the specified event. An optional friendly
+        /// name can be specified. If the friendly name is null
+        /// or the empty string, a default value will be given.
         /// </summary>
         /// <param name="type">Type of the machine</param>
+        /// <param name="friendlyName">Friendly machine name used for logging</param>
         /// <param name="endpoint">Endpoint</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns> 
-        MachineId INetworkProvider.RemoteCreateMachine(Type type, string endpoint, Event e)
+        MachineId INetworkProvider.RemoteCreateMachine(Type type, string friendlyName,
+            string endpoint, Event e)
         {
-            return this.Runtime.CreateMachine(type);
+            return this.Runtime.CreateMachine(type, friendlyName, e);
         }
 
         /// <summary>

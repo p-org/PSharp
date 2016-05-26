@@ -18,7 +18,7 @@ class Samples(object):
                         'PingPong', 'SimpleAsyncAwait', 'TypesAndGenerics']
 
 def compileSamples():
-    Options.ToolPath = os.path.join('..', 'Binaries', 'Release', 'PSharpCompiler.exe')
+    Options.ToolPath = os.path.join('..', 'Binaries', 'PSharpCompiler.exe')
     Options.psharpAsLibraryPath = os.path.join('.', 'PsharpAsLibrary', 'Samples.sln')
     Options.psharpAsLanguagePath = os.path.join('.', 'PsharpAsLanguage', 'Samples.sln')
 
