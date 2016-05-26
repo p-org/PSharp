@@ -40,6 +40,25 @@ namespace Microsoft.PSharp
         /// </summary>
         internal int OperationId { get; private set; }
 
+        /// <summary>
+        /// (Optional) Friendly name for the machine
+        /// </summary>
+        protected internal string _friendlyName;
+
+        /// <summary>
+        /// Return the unique friendly name for the machine
+        /// </summary>
+        public string UniqueFriendlyName
+        {
+            get
+            {
+                if (_friendlyName != null)
+                    return string.Format("{0}({1})", _friendlyName, Id.Value);
+                else
+                    return string.Format("{0}({1})", this.GetType().Name, Id.MVal);
+            }
+        }
+
         #endregion
 
         #region generic public and override methods
@@ -50,6 +69,7 @@ namespace Microsoft.PSharp
         public AbstractMachine()
         {
             this.OperationId = 0;
+            this._friendlyName = null;
         }
 
         /// <summary>
@@ -90,7 +110,8 @@ namespace Microsoft.PSharp
         /// <returns>string</returns>
         public override string ToString()
         {
-            return this.GetType().Name;
+            if (UniqueFriendlyName != null) return UniqueFriendlyName;
+            else return this.GetType().Name;
         }
 
         #endregion
@@ -114,6 +135,15 @@ namespace Microsoft.PSharp
         internal void SetOperationId(int opid)
         {
             this.OperationId = opid;
+        }
+
+        /// <summary>
+        /// Sets the friendly name of the machine
+        /// </summary>
+        /// <param name="friendlyName">Friendly name</param>
+        internal void SetFriendlyName(string friendlyName)
+        {
+            this._friendlyName = friendlyName;
         }
 
         /// <summary>

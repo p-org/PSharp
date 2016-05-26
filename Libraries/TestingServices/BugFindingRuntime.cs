@@ -226,8 +226,9 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="e">Event</param>
+        /// <param name="friendlyName">Friendly name given to the machine for logging</param>
         /// <returns>MachineId</returns>
-        internal override MachineId TryCreateMachine(Type type, Event e)
+        internal override MachineId TryCreateMachine(Type type, Event e, string friendlyName)
         {
             this.Assert(type.IsSubclassOf(typeof(Machine)), "Type '{0}' is not a machine.", type.Name);
 
@@ -235,11 +236,12 @@ namespace Microsoft.PSharp.TestingServices
             Object machine = Activator.CreateInstance(type);
             (machine as Machine).SetMachineId(mid);
             (machine as Machine).InitializeStateInformation();
+            (machine as Machine).SetFriendlyName(friendlyName);
 
             bool result = this.MachineMap.TryAdd(mid.Value, machine as Machine);
             this.Assert(result, "Machine {0}({1}) was already created.", type.Name, mid.Value);
 
-            IO.Log("<CreateLog> Machine {0}({1}) is created.", type.Name, mid.MVal);
+            IO.Log("<CreateLog> Machine {0} is created.", (machine as Machine).UniqueFriendlyName);
 
             Task task = new Task(() =>
             {
@@ -281,11 +283,12 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="type">Type of the machine</param>
         /// <param name="endpoint">Endpoint</param>
         /// <param name="e">Event</param>
+        /// <param name="friendlyName">Friendly name given to the machine for logging</param>
         /// <returns>MachineId</returns>
-        internal override MachineId TryCreateRemoteMachine(Type type, string endpoint, Event e)
+        internal override MachineId TryCreateRemoteMachine(Type type, string endpoint, Event e, string friendlyName)
         {
             this.Assert(type.IsSubclassOf(typeof(Machine)), "Type '{0}' is not a machine.", type.Name);
-            return this.TryCreateMachine(type, e);
+            return this.TryCreateMachine(type, e, friendlyName);
         }
 
         /// <summary>
@@ -353,6 +356,21 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
+        /// Returns the name of the machine corresponding to a given Id
+        /// </summary>
+        /// <param name="mid">MachineId</param>
+        /// <returns>Friendly name of the machine</returns>
+        internal string IdToName(MachineId mid)
+        {
+            Machine machine;
+            bool result = this.MachineMap.TryGetValue(mid.Value, out machine);
+            if (result)
+                return machine.UniqueFriendlyName;
+            else
+                return string.Format("{0}({1})", mid.Type, mid.MVal);
+        }
+
+        /// <summary>
         /// Sends an asynchronous event to a machine.
         /// </summary>
         /// <param name="sender">Sender machine</param>
@@ -370,18 +388,19 @@ namespace Microsoft.PSharp.TestingServices
 
             if (this.Configuration.BoundOperations && sender != null)
             {
-                IO.Log("<SendLog> Machine '{0}({1})' sent event '{2}({3})' to '{4}({5})'.",
-                    sender, sender.Id.MVal, e.GetType().FullName, e.OperationId, mid.Type, mid.MVal);
+                //this.MachineMap[mid.MVal]
+                IO.Log("<SendLog> Machine '{0}' sent event '{1}({2})' to '{3}'.",
+                    sender.UniqueFriendlyName, e.GetType().FullName, e.OperationId, IdToName(mid));
             }
             else if (sender != null)
             {
-                IO.Log("<SendLog> Machine '{0}({1})' sent event '{2}' to '{3}({4})'.",
-                    sender, sender.Id.MVal, e.GetType().FullName, mid.Type, mid.MVal);
+                IO.Log("<SendLog> Machine '{0}' sent event '{1}' to '{2}'.",
+                    sender.UniqueFriendlyName, sender.Id.MVal, e.GetType().FullName, IdToName(mid));
             }
             else
             {
-                IO.Log("<SendLog> Event '{0}' was sent to '{1}({2})'.",
-                    e.GetType().FullName, mid.Type, mid.MVal);
+                IO.Log("<SendLog> Event '{0}' was sent to '{1}'.",
+                    e.GetType().FullName, IdToName(mid));
             }
 
             Machine machine = this.MachineMap[mid.Value];
@@ -467,13 +486,13 @@ namespace Microsoft.PSharp.TestingServices
 
             if (this.Configuration.BoundOperations)
             {
-                IO.Log("<RaiseLog> Machine '{0}({1})' raised event '{2}({3})'.",
-                    raiser, raiser.Id.MVal, e.GetType().FullName, e.OperationId);
+                IO.Log("<RaiseLog> Machine '{0}' raised event '{1}({2})'.",
+                    raiser.UniqueFriendlyName, e.GetType().FullName, e.OperationId);
             }
             else
             {
-                IO.Log("<RaiseLog> Machine '{0}({1})' raised event '{2}'.",
-                    raiser, raiser.Id.MVal, e.GetType().FullName);
+                IO.Log("<RaiseLog> Machine '{0}' raised event '{1}'.",
+                    raiser.UniqueFriendlyName, e.GetType().FullName);
             }
         }
 
@@ -489,8 +508,8 @@ namespace Microsoft.PSharp.TestingServices
             var choice = this.BugFinder.GetNextNondeterministicChoice(maxValue);
             if (machine != null)
             {
-                IO.Log("<RandomLog> Machine '{0}({1})' nondeterministically chose '{2}'.",
-                    machine, machine.Id.MVal, choice);
+                IO.Log("<RandomLog> Machine '{0}' nondeterministically chose '{1}'.",
+                    machine.UniqueFriendlyName, machine.Id.MVal, choice);
             }
             else
             {
@@ -512,8 +531,8 @@ namespace Microsoft.PSharp.TestingServices
             var choice = this.BugFinder.GetNextNondeterministicChoice(2, uniqueId);
             if (machine != null)
             {
-                IO.Log("<RandomLog> Machine '{0}({1})' nondeterministically chose '{2}'.",
-                    machine, machine.Id.MVal, choice);
+                IO.Log("<RandomLog> Machine '{0}' nondeterministically chose '{1}'.",
+                    machine.UniqueFriendlyName, choice);
             }
             else
             {
@@ -532,13 +551,13 @@ namespace Microsoft.PSharp.TestingServices
         {
             if (this.Configuration.BoundOperations)
             {
-                IO.Log("<DequeueLog> Machine '{0}({1})' dequeued event '{2}({3})'.",
-                    machine, machine.Id.MVal, e.GetType().FullName, e.OperationId);
+                IO.Log("<DequeueLog> Machine '{0}' dequeued event '{1}({2})'.",
+                    machine.UniqueFriendlyName, e.GetType().FullName, e.OperationId);
             }
             else
             {
-                IO.Log("<DequeueLog> Machine '{0}({1})' dequeued event '{2}'.",
-                    machine, machine.Id.MVal, e.GetType().FullName);
+                IO.Log("<DequeueLog> Machine '{0}' dequeued event '{1}'.",
+                    machine.UniqueFriendlyName, e.GetType().FullName);
             }
             
             var prevMachineOpId = machine.OperationId;
@@ -583,13 +602,13 @@ namespace Microsoft.PSharp.TestingServices
         {
             if (this.Configuration.BoundOperations)
             {
-                IO.Log("<ReceiveLog> Machine '{0}({1})' received event '{2}({3})' and unblocked.",
-                    machine, machine.Id.MVal, e.GetType().FullName, e.OperationId);
+                IO.Log("<ReceiveLog> Machine '{0}' received event '{1}({2})' and unblocked.",
+                    machine.UniqueFriendlyName, e.GetType().FullName, e.OperationId);
             }
             else
             {
-                IO.Log("<ReceiveLog> Machine '{0}({1})' received event '{2}' and unblocked.",
-                    machine, machine.Id.MVal, e.GetType().FullName);
+                IO.Log("<ReceiveLog> Machine '{0}' received event '{1}' and unblocked.",
+                    machine.UniqueFriendlyName, e.GetType().FullName);
             }
 
             this.BugFinder.NotifyTaskReceivedEvent(machine);

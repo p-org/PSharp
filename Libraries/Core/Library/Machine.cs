@@ -164,10 +164,11 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="e">Event</param>
+        /// <param name="friendlyName">Friendly name given to the machine for logging</param>
         /// <returns>MachineId</returns>
-        protected MachineId CreateMachine(Type type, Event e = null)
+        protected MachineId CreateMachine(Type type, Event e = null, string friendlyName = null)
         {
-            return base.Runtime.TryCreateMachine(type, e);
+            return base.Runtime.TryCreateMachine(type, e, friendlyName);
         }
 
         /// <summary>
@@ -178,10 +179,11 @@ namespace Microsoft.PSharp
         /// <param name="type">Type of the machine</param>
         /// <param name="endpoint">Endpoint</param>
         /// <param name="e">Event</param>
+        /// <param name="friendlyName">Friendly name given to the machine for logging</param> 
         /// <returns>MachineId</returns>
-        protected MachineId CreateRemoteMachine(Type type, string endpoint, Event e = null)
+        protected MachineId CreateRemoteMachine(Type type, string endpoint, Event e = null, string friendlyName = null)
         {
-            return base.Runtime.TryCreateRemoteMachine(type, endpoint, e);
+            return base.Runtime.TryCreateRemoteMachine(type, endpoint, e, friendlyName);
         }
 
         /// <summary>
@@ -365,12 +367,12 @@ namespace Microsoft.PSharp
             
             if (this.CurrentState == null)
             {
-                base.Runtime.Log("<PopLog> Machine '{0}({1})' popped.", this, base.Id.MVal);
+                base.Runtime.Log("<PopLog> Machine '{0}' popped.", this.UniqueFriendlyName);
             }
             else
             {
-                base.Runtime.Log("<PopLog> Machine '{0}({1})' popped and reentered state '{2}'.",
-                    this, base.Id.MVal, this.CurrentState.Name);
+                base.Runtime.Log("<PopLog> Machine '{0}' popped and reentered state '{1}'.",
+                    this.UniqueFriendlyName, this.CurrentState.Name);
                 this.ConfigureStateTransitions(this.StateStack.Peek());
             }
         }
@@ -483,8 +485,8 @@ namespace Microsoft.PSharp
                     return;
                 }
 
-                base.Runtime.Log("<EnqueueLog> Machine '{0}({1})' enqueued event '{2}'.",
-                    this, base.Id.MVal, e.GetType().FullName);
+                base.Runtime.Log("<EnqueueLog> Machine '{0}' enqueued event '{1}'.",
+                    this.UniqueFriendlyName, e.GetType().FullName);
 
                 this.Inbox.Add(e);
 
@@ -535,8 +537,8 @@ namespace Microsoft.PSharp
                     {
                         if (this.HasDefaultHandler())
                         {
-                            base.Runtime.Log("<DefaultLog> Machine '{0}({1})' is executing the " +
-                                "default handler in state '{2}'.", this, base.Id.MVal,
+                            base.Runtime.Log("<DefaultLog> Machine '{0}' is executing the " +
+                                "default handler in state '{1}'.", this.UniqueFriendlyName,
                                 this.CurrentState.Name);
 
                             nextEvent = new Default();
@@ -739,8 +741,8 @@ namespace Microsoft.PSharp
                     {
                         lock (this.Inbox)
                         {
-                            base.Runtime.Log("<HaltLog> Machine '{0}({1})' halted.",
-                                this.GetType().Name, base.Id.MVal);
+                            base.Runtime.Log("<HaltLog> Machine '{0}' halted.",
+                                this.UniqueFriendlyName);
                             this.IsHalted = true;
                             this.CleanUpResources();
                         }
@@ -767,13 +769,13 @@ namespace Microsoft.PSharp
 
                     if (this.CurrentState == null)
                     {
-                        base.Runtime.Log("<PopLog> Machine '{0}({1})' popped with unhandled event '{2}'.",
-                            this, base.Id.MVal, e.GetType().FullName);
+                        base.Runtime.Log("<PopLog> Machine '{0}' popped with unhandled event '{1}'.",
+                            this.UniqueFriendlyName, e.GetType().FullName);
                     }
                     else
                     {
-                        base.Runtime.Log("<PopLog> Machine '{0}({1})' popped with unhandled event '{2}' " +
-                            "and reentered state '{3}.", this, base.Id.MVal, e.GetType().FullName,
+                        base.Runtime.Log("<PopLog> Machine '{0}' popped with unhandled event '{1}' " +
+                            "and reentered state '{2}.", this.UniqueFriendlyName, e.GetType().FullName,
                             this.CurrentState.Name);
                         this.ConfigureStateTransitions(this.StateStack.Peek());
                     }
@@ -844,8 +846,8 @@ namespace Microsoft.PSharp
                         events += " '" + ewh.EventType.Name + "'";
                     }
 
-                    base.Runtime.Log("<ReceiveLog> Machine '{0}({1})' is waiting on events:{2}.",
-                        this, base.Id.MVal, events);
+                    base.Runtime.Log("<ReceiveLog> Machine '{0}' is waiting on events:{1}.",
+                        this.UniqueFriendlyName, events);
                     this.IsWaitingToReceive = true;
                 }
             }
@@ -990,7 +992,7 @@ namespace Microsoft.PSharp
         /// <param name="s">Type of the state</param>
         private void PushState(Type s)
         {
-            base.Runtime.Log("<PushLog> Machine '{0}({1})' pushed.", this, base.Id.MVal);
+            base.Runtime.Log("<PushLog> Machine '{0}' pushed.", this.UniqueFriendlyName);
 
             var nextState = this.States.First(val => val.GetType().Equals(s));
             this.ConfigureStateTransitions(nextState);
@@ -1009,8 +1011,8 @@ namespace Microsoft.PSharp
         [DebuggerStepThrough]
         private void Do(Action a)
         {
-            base.Runtime.Log("<ActionLog> Machine '{0}({1})' executed action '{2}' in state '{3}'.",
-                this, base.Id.MVal, a.Method.Name, this.CurrentState.Name);
+            base.Runtime.Log("<ActionLog> Machine '{0}' executed action '{1}' in state '{2}'.",
+                this.UniqueFriendlyName, a.Method.Name, this.CurrentState.Name);
             
             try
             {
@@ -1019,13 +1021,13 @@ namespace Microsoft.PSharp
             catch (OperationCanceledException)
             {
                 base.Runtime.Log("<Exception> OperationCanceledException was thrown from " +
-                    "Machine '{0}({1})'.", this, base.Id.MVal);
+                    "Machine '{0}'.", this.UniqueFriendlyName);
                 this.IsHalted = true;
             }
             catch (TaskSchedulerException)
             {
                 base.Runtime.Log("<Exception> TaskSchedulerException was thrown from " +
-                    "Machine '{0}({1})'.", this, base.Id.MVal);
+                    "Machine '{0}'.", this.UniqueFriendlyName);
                 this.IsHalted = true;
             }
             catch (Exception ex)
@@ -1050,8 +1052,8 @@ namespace Microsoft.PSharp
         [DebuggerStepThrough]
         private void ExecuteCurrentStateOnEntry()
         {
-            base.Runtime.Log("<StateLog> Machine '{0}({1})' entering state '{2}'.",
-                this, base.Id.MVal, this.CurrentState.Name);
+            base.Runtime.Log("<StateLog> Machine '{0}' entering state '{1}'.",
+                this.UniqueFriendlyName, this.CurrentState.Name);
 
             try
             {
@@ -1061,13 +1063,13 @@ namespace Microsoft.PSharp
             catch (OperationCanceledException)
             {
                 base.Runtime.Log("<Exception> OperationCanceledException was thrown from " +
-                    "Machine '{0}({1})'.", this, base.Id.MVal);
+                    "Machine '{0}'.", this.UniqueFriendlyName);
                 this.IsHalted = true;
             }
             catch (TaskSchedulerException)
             {
                 base.Runtime.Log("<Exception> TaskSchedulerException was thrown from " +
-                    "Machine '{0}({1})'.", this, base.Id.MVal);
+                    "Machine '{0}'.", this.UniqueFriendlyName);
                 this.IsHalted = true;
             }
             catch (Exception ex)
@@ -1089,8 +1091,8 @@ namespace Microsoft.PSharp
         [DebuggerStepThrough]
         private void ExecuteCurrentStateOnExit(Action onExit)
         {
-            base.Runtime.Log("<ExitLog> Machine '{0}({1})' exiting state '{2}'.",
-                this, base.Id.MVal, this.CurrentState.Name);
+            base.Runtime.Log("<ExitLog> Machine '{0}' exiting state '{1}'.",
+                this.UniqueFriendlyName, this.CurrentState.Name);
 
             try
             {
@@ -1104,13 +1106,13 @@ namespace Microsoft.PSharp
             catch (OperationCanceledException)
             {
                 base.Runtime.Log("<Exception> OperationCanceledException was thrown from " +
-                    "Machine '{0}({1})'.", this, base.Id.MVal);
+                    "Machine '{0}'.", this.UniqueFriendlyName);
                 this.IsHalted = true;
             }
             catch (TaskSchedulerException)
             {
                 base.Runtime.Log("<Exception> TaskSchedulerException was thrown from " +
-                    "Machine '{0}({1})'.", this, base.Id.MVal);
+                    "Machine '{0}'.", this.UniqueFriendlyName);
                 this.IsHalted = true;
             }
             catch (Exception ex)

@@ -30,9 +30,10 @@ namespace Microsoft.PSharp.Remote
         /// </summary>
         /// <param name="typeName">Type of the machine</param>
         /// <param name="e">Event</param>
+        /// <param name="friendlyName">A friendly name to be given to the machine</param>
         /// <returns>MachineId</returns> 
         [OperationContract]
-        MachineId CreateMachine(string typeName, Event e);
+        MachineId CreateMachine(string typeName, Event e, string friendlyName);
 
         /// <summary>
         /// Sends an asynchronous event to a machine.
