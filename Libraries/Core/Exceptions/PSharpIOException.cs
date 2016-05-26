@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="Test.cs">
+// <copyright file="PSharpIOException.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,29 +12,21 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Attribute for declaring the entry point to
-    /// a P# program test.
+    /// Implements the P# IO exception.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Method)]
-    public sealed class Test : Attribute { }
+    internal sealed class PSharpIOException : PSharpException
+    {
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="message">Message</param>
+        public PSharpIOException(string message)
+            : base(message)
+        {
 
-    /// <summary>
-    /// Attribute for declaring the initialization
-    /// method to be called before testing starts.
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Method)]
-    public sealed class TestInit : Attribute { }
-
-    /// <summary>
-    /// Attribute for declaring a cleanup method
-    /// to be called when test terminates.
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Method)]
-    public sealed class TestDispose : Attribute { }
-
+        }
+    }
 }

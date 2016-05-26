@@ -28,12 +28,12 @@ namespace Microsoft.PSharp.Utilities
         /// <summary>
         /// Text writer.
         /// </summary>
-        private static StringWriter TextWriter;
+        private static TextWriter Logger;
 
         /// <summary>
-        /// Enable writting to memory.
+        /// Enable writting to the installed text writer.
         /// </summary>
-        private static bool WriteToMemory;
+        private static bool WriteToInstalledLogger;
 
         /// <summary>
         /// Enables debug information.
@@ -87,9 +87,9 @@ namespace Microsoft.PSharp.Utilities
         /// <param name="s">String</param>
         internal static void Print(string s)
         {
-            if (IO.WriteToMemory)
+            if (IO.WriteToInstalledLogger)
             {
-                IO.TextWriter.Write(s);
+                IO.Logger.Write(s);
             }
             else
             {
@@ -104,9 +104,9 @@ namespace Microsoft.PSharp.Utilities
         /// <param name="s">String</param>
         internal static void Print(ConsoleColor color, string s)
         {
-            if (IO.WriteToMemory)
+            if (IO.WriteToInstalledLogger)
             {
-                IO.TextWriter.Write(s);
+                IO.Logger.Write(s);
             }
             else
             {
@@ -125,9 +125,9 @@ namespace Microsoft.PSharp.Utilities
         /// <param name="args">Arguments</param>
         internal static void Print(string s, params object[] args)
         {
-            if (IO.WriteToMemory)
+            if (IO.WriteToInstalledLogger)
             {
-                IO.TextWriter.Write(s, args);
+                IO.Logger.Write(s, args);
             }
             else
             {
@@ -144,9 +144,9 @@ namespace Microsoft.PSharp.Utilities
         /// <param name="args">Arguments</param>
         internal static void Print(ConsoleColor color, string s, params object[] args)
         {
-            if (IO.WriteToMemory)
+            if (IO.WriteToInstalledLogger)
             {
-                IO.TextWriter.Write(s, args);
+                IO.Logger.Write(s, args);
             }
             else
             {
@@ -162,9 +162,9 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         internal static void PrintLine()
         {
-            if (IO.WriteToMemory)
+            if (IO.WriteToInstalledLogger)
             {
-                IO.TextWriter.WriteLine();
+                IO.Logger.WriteLine();
             }
             else
             {
@@ -179,9 +179,9 @@ namespace Microsoft.PSharp.Utilities
         /// <param name="s">String</param>
         internal static void PrintLine(string s)
         {
-            if (IO.WriteToMemory)
+            if (IO.WriteToInstalledLogger)
             {
-                IO.TextWriter.WriteLine(s);
+                IO.Logger.WriteLine(s);
             }
             else
             {
@@ -198,9 +198,9 @@ namespace Microsoft.PSharp.Utilities
         /// <param name="args">Arguments</param>
         internal static void PrintLine(string s, params object[] args)
         {
-            if (IO.WriteToMemory)
+            if (IO.WriteToInstalledLogger)
             {
-                IO.TextWriter.WriteLine(s, args);
+                IO.Logger.WriteLine(s, args);
             }
             else
             {
@@ -268,7 +268,12 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         internal static string GetOutput()
         {
-            return IO.TextWriter.ToString();
+            if (!IO.WriteToInstalledLogger)
+            {
+                throw new PSharpIOException("Custom logger not installed.");
+            }
+
+            return IO.Logger.ToString();
         }
 
         /// <summary>
@@ -276,8 +281,14 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         internal static void StartWritingToMemory()
         {
-            IO.WriteToMemory = true;
-            IO.TextWriter = new StringWriter();
+            if (IO.WriteToInstalledLogger)
+            {
+                throw new PSharpIOException("Remove the previous logger " +
+                    "before installing a new one.");
+            }
+
+            IO.WriteToInstalledLogger = true;
+            IO.Logger = new StringWriter();
         }
 
         /// <summary>
@@ -285,9 +296,19 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         internal static void StopWritingToMemory()
         {
-            IO.WriteToMemory = false;
-            IO.TextWriter.Dispose();
-            IO.TextWriter = null;
+            IO.WriteToInstalledLogger = false;
+            IO.Logger.Dispose();
+            IO.Logger = null;
+        }
+
+        /// <summary>
+        /// Starts writing all output to the provided logger.
+        /// </summary>
+        /// <param name="logger">TextWriter</param>
+        internal static void InstallCustomLogger(TextWriter logger)
+        {
+            IO.WriteToInstalledLogger = logger == null ? false : true;
+            IO.Logger = logger;
         }
 
         #endregion

@@ -172,6 +172,22 @@ namespace Microsoft.PSharp.TestingServices
 
             Task task = new Task(() =>
             {
+                try
+                {
+                    if (base.TestInitMethod != null)
+                    {
+                        // Initializes the test state.
+                        base.TestInitMethod.Invoke(null, new object[] { });
+                    }
+                }
+                catch (TargetInvocationException ex)
+                {
+                    if (!(ex.InnerException is TaskCanceledException))
+                    {
+                        ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+                    }
+                }
+
                 for (int i = 0; i < base.Configuration.SchedulingIterations; i++)
                 {
                     if (this.ShouldPrintIteration(i + 1))
@@ -190,7 +206,7 @@ namespace Microsoft.PSharp.TestingServices
                         base.HasRedirectedConsoleOutput = true;
                     }
 
-                    // Start the test.
+                    // Starts the test.
                     if (base.TestAction != null)
                     {
                         base.TestAction(runtime);
@@ -273,6 +289,23 @@ namespace Microsoft.PSharp.TestingServices
                         this.PrintReproducableTrace(runtime);
                     }
                 }
+                
+                try
+                {
+                    if (base.TestDisposeMethod != null)
+                    {
+                        // Disposes the test state.
+                        base.TestDisposeMethod.Invoke(null, new object[] { });
+                    }
+                }
+                catch (TargetInvocationException ex)
+                {
+                    if (!(ex.InnerException is TaskCanceledException))
+                    {
+                        ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+                    }
+                }
+
             });
 
             return task;
