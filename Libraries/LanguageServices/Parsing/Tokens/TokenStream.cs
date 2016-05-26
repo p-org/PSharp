@@ -18,6 +18,9 @@ using System.Linq;
 
 namespace Microsoft.PSharp.LanguageServices.Parsing
 {
+    /// <summary>
+    /// P# syntax token stream.
+    /// </summary>
     public sealed class TokenStream
     {
         #region fields
@@ -76,7 +79,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="program">Program</param>
         /// <param name="tokens">List of tokens</param>
         public TokenStream(List<Token> tokens)
         {

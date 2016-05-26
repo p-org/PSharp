@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <summary>
         /// Pretty prints the graph.
         /// </summary>
+        /// <param name="currentNode">Current node</param>
         /// <param name="visited">Set of visited nodes</param>
         protected override void PrettyPrint(IControlFlowNode currentNode, ISet<IControlFlowNode> visited)
         {

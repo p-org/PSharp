@@ -16,6 +16,9 @@ using System;
 
 namespace Microsoft.PSharp.Utilities
 {
+    /// <summary>
+    /// The P# base command line options.
+    /// </summary>
     public abstract class BaseCommandLineOptions
     {
         #region fields

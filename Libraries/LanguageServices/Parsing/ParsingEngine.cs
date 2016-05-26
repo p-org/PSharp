@@ -45,7 +45,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// context and using the default parsing options.
         /// </summary>
         /// <param name="context">CompilationContext</param>
-        /// <param name="options">ParsingOptions</param>
         /// <returns>ParsingEngine</returns>
         public static ParsingEngine Create(CompilationContext context)
         {

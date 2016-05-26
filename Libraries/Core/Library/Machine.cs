@@ -164,11 +164,24 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="type">Type of the machine</param>
         /// <param name="e">Event</param>
-        /// <param name="friendlyName">Friendly name given to the machine for logging</param>
         /// <returns>MachineId</returns>
-        protected MachineId CreateMachine(Type type, Event e = null, string friendlyName = null)
+        protected MachineId CreateMachine(Type type, Event e = null)
         {
-            return base.Runtime.TryCreateMachine(type, e, friendlyName);
+            return base.Runtime.TryCreateMachine(type, null, e);
+        }
+
+        /// <summary>
+        /// Creates a new machine of the specified type and name, and
+        /// with the specified optional event. This event can only be
+        /// used to access its payload, and cannot be handled.
+        /// </summary>
+        /// <param name="type">Type of the machine</param>
+        /// <param name="friendlyName">Friendly machine name used for logging</param>
+        /// <param name="e">Event</param>
+        /// <returns>MachineId</returns>
+        protected MachineId CreateMachine(Type type, string friendlyName, Event e = null)
+        {
+            return base.Runtime.TryCreateMachine(type, friendlyName, e);
         }
 
         /// <summary>
@@ -179,40 +192,55 @@ namespace Microsoft.PSharp
         /// <param name="type">Type of the machine</param>
         /// <param name="endpoint">Endpoint</param>
         /// <param name="e">Event</param>
-        /// <param name="friendlyName">Friendly name given to the machine for logging</param> 
         /// <returns>MachineId</returns>
-        protected MachineId CreateRemoteMachine(Type type, string endpoint, Event e = null, string friendlyName = null)
+        protected MachineId CreateRemoteMachine(Type type, string endpoint, Event e = null)
         {
-            return base.Runtime.TryCreateRemoteMachine(type, endpoint, e, friendlyName);
+            return base.Runtime.TryCreateRemoteMachine(type, null, endpoint, e);
+        }
+
+        /// <summary>
+        /// Creates a new remote machine of the specified type and name, and
+        /// with the specified optional event. This event can only be used to
+        /// access its payload, and cannot be handled.
+        /// </summary>
+        /// <param name="type">Type of the machine</param>
+        /// <param name="friendlyName">Friendly machine name used for logging</param>
+        /// <param name="endpoint">Endpoint</param>
+        /// <param name="e">Event</param>
+        /// <returns>MachineId</returns>
+        protected MachineId CreateRemoteMachine(Type type, string friendlyName,
+            string endpoint, Event e = null)
+        {
+            return base.Runtime.TryCreateRemoteMachine(type, friendlyName, endpoint, e);
         }
 
         /// <summary>
         /// Sends an asynchronous event to a machine.
         /// </summary>
-        /// <param name="m">MachineId</param>
+        /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="isStarter">Is starting a new operation</param>
         protected void Send(MachineId mid, Event e, bool isStarter = false)
         {
             // If the target machine is null, then report an error and exit.
-            this.Assert(mid != null, "Machine '{0}' is sending to a null machine.", this.GetType().Name);
+            this.Assert(mid != null, $"Machine '{base.Id.Name}' is sending to a null machine.");
             // If the event is null, then report an error and exit.
-            this.Assert(e != null, "Machine '{0}' is sending a null event.", this.GetType().Name);
+            this.Assert(e != null, $"Machine '{base.Id.Name}' is sending a null event.");
             base.Runtime.Send(this, mid, e, isStarter);
         }
 
         /// <summary>
         /// Sends an asynchronous event to a remote machine.
         /// </summary>
-        /// <param name="m">MachineId</param>
+        /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="isStarter">Is starting a new operation</param>
         protected void RemoteSend(MachineId mid, Event e, bool isStarter = false)
         {
             // If the target machine is null, then report an error and exit.
-            this.Assert(mid != null, "Machine '{0}' is sending to a null machine.", this.GetType().Name);
+            this.Assert(mid != null, $"Machine '{base.Id.Name}' is sending to a null machine.");
             // If the event is null, then report an error and exit.
-            this.Assert(e != null, "Machine '{0}' is sending a null event.", this.GetType().Name);
+            this.Assert(e != null, $"Machine '{base.Id.Name}' is sending a null event.");
             base.Runtime.SendRemotely(this, mid, e, isStarter);
         }
 
@@ -224,7 +252,7 @@ namespace Microsoft.PSharp
         protected void Monitor<T>(Event e)
         {
             // If the event is null, then report an error and exit.
-            this.Assert(e != null, "Machine '{0}' is sending a null event.", this.GetType().Name);
+            this.Assert(e != null, $"Machine '{base.Id.Name}' is sending a null event.");
             base.Runtime.Monitor<T>(this, e);
         }
 
@@ -236,8 +264,8 @@ namespace Microsoft.PSharp
         protected void Goto(Type s)
         {
             // If the state is not a state of the machine, then report an error and exit.
-            this.Assert(this.StateTypes.Contains(s), "Machine '{0}' is trying to transition " +
-                " to non-existing state '{1}'.", this.GetType().Name, s.Name);
+            this.Assert(this.StateTypes.Contains(s), $"Machine '{base.Id.Name}' " +
+                $"is trying to transition to non-existing state '{s.Name}'.");
             this.Raise(new GotoStateEvent(s));
         }
 
@@ -249,7 +277,7 @@ namespace Microsoft.PSharp
         protected void Raise(Event e, bool isStarter = false)
         {
             // If the event is null, then report an error and exit.
-            this.Assert(e != null, "Machine '{0}' is raising a null event.", this.GetType().Name);
+            this.Assert(e != null, $"Machine '{base.Id.Name}' is raising a null event.");
             this.RaisedEvent = e;
             base.Runtime.Raise(this, e, isStarter);
         }
@@ -367,12 +395,12 @@ namespace Microsoft.PSharp
             
             if (this.CurrentState == null)
             {
-                base.Runtime.Log("<PopLog> Machine '{0}' popped.", this.UniqueFriendlyName);
+                base.Runtime.Log($"<PopLog> Machine '{base.Id.Name}' popped.");
             }
             else
             {
-                base.Runtime.Log("<PopLog> Machine '{0}' popped and reentered state '{1}'.",
-                    this.UniqueFriendlyName, this.CurrentState.Name);
+                base.Runtime.Log($"<PopLog> Machine '{base.Id.Name}' popped " +
+                    $"and reentered state '{this.CurrentState.Name}'.");
                 this.ConfigureStateTransitions(this.StateStack.Peek());
             }
         }
@@ -419,7 +447,7 @@ namespace Microsoft.PSharp
         [EditorBrowsable(EditorBrowsableState.Never)]
         protected bool FairRandom(int uniqueId)
         {
-            var havocId = this.GetType().Name + "_" + this.CurrentState.Name + "_" + uniqueId;
+            var havocId = base.Id.Name + "_" + this.CurrentState.Name + "_" + uniqueId;
             return base.Runtime.GetFairNondeterministicChoice(this, havocId);
         }
 
@@ -485,23 +513,25 @@ namespace Microsoft.PSharp
                     return;
                 }
 
-                base.Runtime.Log("<EnqueueLog> Machine '{0}' enqueued event '{1}'.",
-                    this.UniqueFriendlyName, e.GetType().FullName);
+                base.Runtime.Log($"<EnqueueLog> Machine '{base.Id.Name}' " +
+                    $"enqueued event '{e.GetType().FullName}'.");
 
                 this.Inbox.Add(e);
 
                 if (e.Assert >= 0)
                 {
                     var eventCount = this.Inbox.Count(val => val.GetType().Equals(e.GetType()));
-                    this.Assert(eventCount <= e.Assert, "There are more than {0} instances of '{1}' " +
-                        "in the input queue of machine '{1}'", e.Assert, e.GetType().FullName, this);
+                    this.Assert(eventCount <= e.Assert, $"There are more than {e.Assert} " +
+                        $"instances of '{e.GetType().FullName}' in the input " +
+                        $"queue of machine '{this}'");
                 }
 
                 if (e.Assume >= 0)
                 {
                     var eventCount = this.Inbox.Count(val => val.GetType().Equals(e.GetType()));
-                    this.Assert(eventCount <= e.Assume, "There are more than {0} instances of '{1}' " +
-                        "in the input queue of machine '{2}'", e.Assume, e.GetType().FullName, this);
+                    this.Assert(eventCount <= e.Assume, $"There are more than {e.Assume} " +
+                        $"instances of '{e.GetType().FullName}' in the input " +
+                        $"queue of machine '{this}'");
                 }
 
                 if (!this.IsRunning)
@@ -537,9 +567,9 @@ namespace Microsoft.PSharp
                     {
                         if (this.HasDefaultHandler())
                         {
-                            base.Runtime.Log("<DefaultLog> Machine '{0}' is executing the " +
-                                "default handler in state '{1}'.", this.UniqueFriendlyName,
-                                this.CurrentState.Name);
+                            base.Runtime.Log($"<DefaultLog> Machine '{base.Id.Name}' " +
+                                "is executing the default handler in state " +
+                                $"'{this.CurrentState.Name}'.");
 
                             nextEvent = new Default();
                             defaultHandling = true;
@@ -741,8 +771,7 @@ namespace Microsoft.PSharp
                     {
                         lock (this.Inbox)
                         {
-                            base.Runtime.Log("<HaltLog> Machine '{0}' halted.",
-                                this.UniqueFriendlyName);
+                            base.Runtime.Log($"<HaltLog> Machine '{base.Id.Name}' halted.");
                             this.IsHalted = true;
                             this.CleanUpResources();
                         }
@@ -751,8 +780,8 @@ namespace Microsoft.PSharp
                     }
 
                     // If the event cannot be handled then report an error and exit.
-                    this.Assert(false, "Machine '{0}' received event '{1}' that cannot be handled.",
-                        this.GetType().Name, e.GetType().FullName);
+                    this.Assert(false, $"Machine '{base.Id.Name}' received event " +
+                        $"'{e.GetType().FullName}' that cannot be handled.");
                 }
 
                 // If current state cannot handle the event then pop the state.
@@ -769,14 +798,14 @@ namespace Microsoft.PSharp
 
                     if (this.CurrentState == null)
                     {
-                        base.Runtime.Log("<PopLog> Machine '{0}' popped with unhandled event '{1}'.",
-                            this.UniqueFriendlyName, e.GetType().FullName);
+                        base.Runtime.Log($"<PopLog> Machine '{base.Id.Name}' " +
+                            $"popped with unhandled event '{e.GetType().FullName}'.");
                     }
                     else
                     {
-                        base.Runtime.Log("<PopLog> Machine '{0}' popped with unhandled event '{1}' " +
-                            "and reentered state '{2}.", this.UniqueFriendlyName, e.GetType().FullName,
-                            this.CurrentState.Name);
+                        base.Runtime.Log($"<PopLog> Machine '{base.Id.Name}' popped " +
+                            $"with unhandled event '{e.GetType().FullName}' and " +
+                            $"reentered state '{this.CurrentState.Name}.");
                         this.ConfigureStateTransitions(this.StateStack.Peek());
                     }
                     
@@ -846,8 +875,8 @@ namespace Microsoft.PSharp
                         events += " '" + ewh.EventType.Name + "'";
                     }
 
-                    base.Runtime.Log("<ReceiveLog> Machine '{0}' is waiting on events:{1}.",
-                        this.UniqueFriendlyName, events);
+                    base.Runtime.Log($"<ReceiveLog> Machine '{base.Id.Name}' " +
+                        $"is waiting on events:{events}.");
                     this.IsWaitingToReceive = true;
                 }
             }
@@ -992,7 +1021,7 @@ namespace Microsoft.PSharp
         /// <param name="s">Type of the state</param>
         private void PushState(Type s)
         {
-            base.Runtime.Log("<PushLog> Machine '{0}' pushed.", this.UniqueFriendlyName);
+            base.Runtime.Log($"<PushLog> Machine '{base.Id.Name}' pushed.");
 
             var nextState = this.States.First(val => val.GetType().Equals(s));
             this.ConfigureStateTransitions(nextState);
@@ -1011,8 +1040,8 @@ namespace Microsoft.PSharp
         [DebuggerStepThrough]
         private void Do(Action a)
         {
-            base.Runtime.Log("<ActionLog> Machine '{0}' executed action '{1}' in state '{2}'.",
-                this.UniqueFriendlyName, a.Method.Name, this.CurrentState.Name);
+            base.Runtime.Log($"<ActionLog> Machine '{base.Id.Name}' executed " +
+                $"action '{a.Method.Name}' in state '{this.CurrentState.Name}'.");
             
             try
             {
@@ -1020,14 +1049,14 @@ namespace Microsoft.PSharp
             }
             catch (OperationCanceledException)
             {
-                base.Runtime.Log("<Exception> OperationCanceledException was thrown from " +
-                    "Machine '{0}'.", this.UniqueFriendlyName);
+                base.Runtime.Log("<Exception> OperationCanceledException was " +
+                    $"thrown from Machine '{base.Id.Name}'.");
                 this.IsHalted = true;
             }
             catch (TaskSchedulerException)
             {
                 base.Runtime.Log("<Exception> TaskSchedulerException was thrown from " +
-                    "Machine '{0}'.", this.UniqueFriendlyName);
+                    $"thrown from Machine '{base.Id.Name}'.");
                 this.IsHalted = true;
             }
             catch (Exception ex)
@@ -1052,8 +1081,8 @@ namespace Microsoft.PSharp
         [DebuggerStepThrough]
         private void ExecuteCurrentStateOnEntry()
         {
-            base.Runtime.Log("<StateLog> Machine '{0}' entering state '{1}'.",
-                this.UniqueFriendlyName, this.CurrentState.Name);
+            base.Runtime.Log($"<StateLog> Machine '{base.Id.Name}' " +
+                $"entering state '{this.CurrentState.Name}'.");
 
             try
             {
@@ -1062,14 +1091,14 @@ namespace Microsoft.PSharp
             }
             catch (OperationCanceledException)
             {
-                base.Runtime.Log("<Exception> OperationCanceledException was thrown from " +
-                    "Machine '{0}'.", this.UniqueFriendlyName);
+                base.Runtime.Log("<Exception> OperationCanceledException was " +
+                    $"thrown from Machine '{base.Id.Name}'.");
                 this.IsHalted = true;
             }
             catch (TaskSchedulerException)
             {
-                base.Runtime.Log("<Exception> TaskSchedulerException was thrown from " +
-                    "Machine '{0}'.", this.UniqueFriendlyName);
+                base.Runtime.Log("<Exception> TaskSchedulerException was " +
+                    $"thrown from Machine '{base.Id.Name}'.");
                 this.IsHalted = true;
             }
             catch (Exception ex)
@@ -1091,8 +1120,8 @@ namespace Microsoft.PSharp
         [DebuggerStepThrough]
         private void ExecuteCurrentStateOnExit(Action onExit)
         {
-            base.Runtime.Log("<ExitLog> Machine '{0}' exiting state '{1}'.",
-                this.UniqueFriendlyName, this.CurrentState.Name);
+            base.Runtime.Log($"<ExitLog> Machine '{base.Id.Name}' " +
+                $"exiting state '{this.CurrentState.Name}'.");
 
             try
             {
@@ -1105,14 +1134,14 @@ namespace Microsoft.PSharp
             }
             catch (OperationCanceledException)
             {
-                base.Runtime.Log("<Exception> OperationCanceledException was thrown from " +
-                    "Machine '{0}'.", this.UniqueFriendlyName);
+                base.Runtime.Log("<Exception> OperationCanceledException was " +
+                    $"thrown from Machine '{base.Id.Name}'.");
                 this.IsHalted = true;
             }
             catch (TaskSchedulerException)
             {
-                base.Runtime.Log("<Exception> TaskSchedulerException was thrown from " +
-                    "Machine '{0}'.", this.UniqueFriendlyName);
+                base.Runtime.Log("<Exception> TaskSchedulerException was " +
+                    $"thrown from Machine '{base.Id.Name}'.");
                 this.IsHalted = true;
             }
             catch (Exception ex)
@@ -1136,10 +1165,10 @@ namespace Microsoft.PSharp
         /// </summary>
         private void AssertStateValidity()
         {
-            this.Assert(this.StateTypes.Count > 0, "Machine '{0}' must " +
-                "have one or more states.", this.GetType().Name);
-            this.Assert(this.StateStack.Peek() != null, "Machine '{0}' " +
-                "must not have a null current state.", this.GetType().Name);
+            this.Assert(this.StateTypes.Count > 0, $"Machine '{base.Id.Name}' " +
+                "must have one or more states.");
+            this.Assert(this.StateStack.Peek() != null, $"Machine '{base.Id.Name}' " +
+                "must not have a null current state.");
         }
 
         /// <summary>
@@ -1149,11 +1178,10 @@ namespace Microsoft.PSharp
         /// <param name="ex">Exception</param>
         private void ReportGenericAssertion(Exception ex)
         {
-            this.Assert(false,
-                "Exception '{0}' was thrown in machine '{1}', '{2}':\n" +
-                "   {3}\n" +
-                "The stack trace is:\n{4}",
-                ex.GetType(), this.GetType().Name, ex.Source, ex.Message, ex.StackTrace);
+            this.Assert(false, $"Exception '{ex.GetType()}' was thrown " +
+                $"in machine '{base.Id.Name}', '{ex.Source}':\n" +
+                $"   {ex.Message}\n" +
+                $"The stack trace is:\n{ex.StackTrace}");
         }
 
         #endregion
@@ -1181,13 +1209,13 @@ namespace Microsoft.PSharp
                     {
                         if (s.IsDefined(typeof(Start), false))
                         {
-                            this.Assert(initialStateType == null, "Machine '{0}' can not have " +
-                                "more than one start states.", this.GetType().Name);
+                            this.Assert(initialStateType == null, $"Machine '{base.Id.Name}' " +
+                                "can not have more than one start states.");
                             initialStateType = s;
                         }
 
-                        this.Assert(s.BaseType == typeof(MachineState), "State '{0}' is " +
-                            "not of the correct type.", s.Name);
+                        this.Assert(s.BaseType == typeof(MachineState), $"State '{s.Name}' " +
+                            "is not of the correct type.");
                         this.StateTypes.Add(s);
                     }
                 }

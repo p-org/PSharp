@@ -102,6 +102,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="configuration">Configuration</param>
         /// <param name="strategy">SchedulingStrategy</param>
         /// <param name="visualizer">Visualizer</param>
+        /// </summary>
         internal PSharpBugFindingRuntime(Configuration configuration, ISchedulingStrategy strategy,
             IProgramVisualizer visualizer)
             : base(configuration)
@@ -222,26 +223,26 @@ namespace Microsoft.PSharp.TestingServices
         #region internal API
 
         /// <summary>
-        /// Tries to create a new machine of the given type.
+        /// Tries to create a new machine of the specified type.
         /// </summary>
         /// <param name="type">Type of the machine</param>
+        /// <param name="friendlyName">Friendly machine name used for logging</param>
         /// <param name="e">Event</param>
-        /// <param name="friendlyName">Friendly name given to the machine for logging</param>
         /// <returns>MachineId</returns>
-        internal override MachineId TryCreateMachine(Type type, Event e, string friendlyName)
+        internal override MachineId TryCreateMachine(Type type, string friendlyName, Event e)
         {
-            this.Assert(type.IsSubclassOf(typeof(Machine)), "Type '{0}' is not a machine.", type.Name);
+            this.Assert(type.IsSubclassOf(typeof(Machine)), $"Type '{type.Name}' " +
+                "is not a machine.");
 
-            MachineId mid = new MachineId(type, this);
+            MachineId mid = new MachineId(type, friendlyName, this);
             Object machine = Activator.CreateInstance(type);
             (machine as Machine).SetMachineId(mid);
             (machine as Machine).InitializeStateInformation();
-            (machine as Machine).SetFriendlyName(friendlyName);
 
             bool result = this.MachineMap.TryAdd(mid.Value, machine as Machine);
-            this.Assert(result, "Machine {0}({1}) was already created.", type.Name, mid.Value);
+            this.Assert(result, $"Machine '{mid.Name}' was already created.");
 
-            IO.Log("<CreateLog> Machine {0} is created.", (machine as Machine).UniqueFriendlyName);
+            IO.Log($"<CreateLog> Machine '{mid.Name}' is created.");
 
             Task task = new Task(() =>
             {
@@ -277,18 +278,19 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Tries to create a new remote machine of the given type.
-        /// The remote machine is created locally for testing.
+        /// Tries to create a new remote machine of the specified type.
         /// </summary>
         /// <param name="type">Type of the machine</param>
+        /// <param name="friendlyName">Friendly machine name used for logging</param>
         /// <param name="endpoint">Endpoint</param>
         /// <param name="e">Event</param>
-        /// <param name="friendlyName">Friendly name given to the machine for logging</param>
         /// <returns>MachineId</returns>
-        internal override MachineId TryCreateRemoteMachine(Type type, string endpoint, Event e, string friendlyName)
+        internal override MachineId TryCreateRemoteMachine(Type type, string friendlyName,
+            string endpoint, Event e)
         {
-            this.Assert(type.IsSubclassOf(typeof(Machine)), "Type '{0}' is not a machine.", type.Name);
-            return this.TryCreateMachine(type, e, friendlyName);
+            this.Assert(type.IsSubclassOf(typeof(Machine)), $"Type '{type.Name}' " +
+                "is not a machine.");
+            return this.TryCreateMachine(type, friendlyName, e);
         }
 
         /// <summary>
@@ -297,15 +299,15 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="type">Type of the monitor</param>
         internal override void TryCreateMonitor(Type type)
         {
-            this.Assert(type.IsSubclassOf(typeof(Monitor)), "Type '{0}' is not a " +
-                "subclass of Monitor.\n", type.Name);
+            this.Assert(type.IsSubclassOf(typeof(Monitor)), $"Type '{type.Name}' " +
+                "is not a subclass of Monitor.\n");
 
-            MachineId mid = new MachineId(type, this);
+            MachineId mid = new MachineId(type, null, this);
             Object monitor = Activator.CreateInstance(type);
             (monitor as Monitor).SetMachineId(mid);
             (monitor as Monitor).InitializeStateInformation();
 
-            IO.Log("<CreateLog> Monitor {0} is created.", type.Name);
+            IO.Log($"<CreateLog> Monitor '{type.Name}' is created.");
 
             this.Monitors.Add(monitor as Monitor);
             this.LivenessChecker.RegisterMonitor(monitor as Monitor);
@@ -319,14 +321,15 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="userTask">Task</param>
         internal override void TryCreateTaskMachine(Task userTask)
         {
-            this.Assert(this.TaskScheduler is TaskWrapperScheduler, "Unable to wrap " +
-                "the task in a machine, because the task wrapper scheduler is not enabled.\n");
+            this.Assert(this.TaskScheduler is TaskWrapperScheduler, "Unable to wrap the " +
+                "task in a machine, because the task wrapper scheduler is not enabled.\n");
 
-            MachineId mid = new MachineId(typeof(TaskMachine), this);
-            TaskMachine taskMachine = new TaskMachine(this.TaskScheduler as TaskWrapperScheduler, userTask);
+            MachineId mid = new MachineId(typeof(TaskMachine), null, this);
+            TaskMachine taskMachine = new TaskMachine(this.TaskScheduler as TaskWrapperScheduler,
+                userTask);
             taskMachine.SetMachineId(mid);
             
-            IO.Log("<CreateLog> TaskMachine({0}) is created.", mid.MVal);
+            IO.Log($"<CreateLog> '{mid.Name}' is created.");
 
             Task task = new Task(() =>
             {
@@ -356,21 +359,6 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Returns the name of the machine corresponding to a given Id
-        /// </summary>
-        /// <param name="mid">MachineId</param>
-        /// <returns>Friendly name of the machine</returns>
-        internal string IdToName(MachineId mid)
-        {
-            Machine machine;
-            bool result = this.MachineMap.TryGetValue(mid.Value, out machine);
-            if (result)
-                return machine.UniqueFriendlyName;
-            else
-                return string.Format("{0}({1})", mid.Type, mid.MVal);
-        }
-
-        /// <summary>
         /// Sends an asynchronous event to a machine.
         /// </summary>
         /// <param name="sender">Sender machine</param>
@@ -389,18 +377,17 @@ namespace Microsoft.PSharp.TestingServices
             if (this.Configuration.BoundOperations && sender != null)
             {
                 //this.MachineMap[mid.MVal]
-                IO.Log("<SendLog> Machine '{0}' sent event '{1}({2})' to '{3}'.",
-                    sender.UniqueFriendlyName, e.GetType().FullName, e.OperationId, IdToName(mid));
+                IO.Log($"<SendLog> Machine '{sender.Id.Name}' sent event " +
+                    $"'{e.GetType().FullName}({e.OperationId})' to '{mid.Name}'.");
             }
             else if (sender != null)
             {
-                IO.Log("<SendLog> Machine '{0}' sent event '{1}' to '{2}'.",
-                    sender.UniqueFriendlyName, sender.Id.MVal, e.GetType().FullName, IdToName(mid));
+                IO.Log($"<SendLog> Machine '{sender.Id.Name}' sent event " +
+                    $"'{e.GetType().FullName}' to '{mid.Name}'.");
             }
             else
             {
-                IO.Log("<SendLog> Event '{0}' was sent to '{1}'.",
-                    e.GetType().FullName, IdToName(mid));
+                IO.Log($"<SendLog> Event '{e.GetType().FullName}' was sent to '{mid.Name}'.");
             }
 
             Machine machine = this.MachineMap[mid.Value];
@@ -486,13 +473,13 @@ namespace Microsoft.PSharp.TestingServices
 
             if (this.Configuration.BoundOperations)
             {
-                IO.Log("<RaiseLog> Machine '{0}' raised event '{1}({2})'.",
-                    raiser.UniqueFriendlyName, e.GetType().FullName, e.OperationId);
+                IO.Log($"<RaiseLog> Machine '{raiser.Id.Name}' raised " +
+                    $"event '{e.GetType().FullName}({e.OperationId})'.");
             }
             else
             {
-                IO.Log("<RaiseLog> Machine '{0}' raised event '{1}'.",
-                    raiser.UniqueFriendlyName, e.GetType().FullName);
+                IO.Log($"<RaiseLog> Machine '{raiser.Id.Name}' raised " +
+                    $"event '{e.GetType().FullName}'.");
             }
         }
 
@@ -508,12 +495,12 @@ namespace Microsoft.PSharp.TestingServices
             var choice = this.BugFinder.GetNextNondeterministicChoice(maxValue);
             if (machine != null)
             {
-                IO.Log("<RandomLog> Machine '{0}' nondeterministically chose '{1}'.",
-                    machine.UniqueFriendlyName, machine.Id.MVal, choice);
+                IO.Log($"<RandomLog> Machine '{machine.Id.Name}' " +
+                    $"nondeterministically chose '{choice}'.");
             }
             else
             {
-                IO.Log("<RandomLog> Runtime nondeterministically chose '{0}'.", choice);
+                IO.Log($"<RandomLog> Runtime nondeterministically chose '{choice}'.");
             }
             
             return choice;
@@ -531,12 +518,12 @@ namespace Microsoft.PSharp.TestingServices
             var choice = this.BugFinder.GetNextNondeterministicChoice(2, uniqueId);
             if (machine != null)
             {
-                IO.Log("<RandomLog> Machine '{0}' nondeterministically chose '{1}'.",
-                    machine.UniqueFriendlyName, choice);
+                IO.Log($"<RandomLog> Machine '{machine.Id.Name}' " +
+                    $"nondeterministically chose '{choice}'.");
             }
             else
             {
-                IO.Log("<RandomLog> Runtime nondeterministically chose '{0}'.", choice);
+                IO.Log($"<RandomLog> Runtime nondeterministically chose '{choice}'.");
             }
 
             return choice;
@@ -551,13 +538,13 @@ namespace Microsoft.PSharp.TestingServices
         {
             if (this.Configuration.BoundOperations)
             {
-                IO.Log("<DequeueLog> Machine '{0}' dequeued event '{1}({2})'.",
-                    machine.UniqueFriendlyName, e.GetType().FullName, e.OperationId);
+                IO.Log($"<DequeueLog> Machine '{machine.Id.Name}' dequeued " +
+                    $"event '{e.GetType().FullName}({e.OperationId})'.");
             }
             else
             {
-                IO.Log("<DequeueLog> Machine '{0}' dequeued event '{1}'.",
-                    machine.UniqueFriendlyName, e.GetType().FullName);
+                IO.Log($"<DequeueLog> Machine '{machine.Id.Name}' dequeued " +
+                    $"event '{e.GetType().FullName}'.");
             }
             
             var prevMachineOpId = machine.OperationId;
@@ -602,13 +589,13 @@ namespace Microsoft.PSharp.TestingServices
         {
             if (this.Configuration.BoundOperations)
             {
-                IO.Log("<ReceiveLog> Machine '{0}' received event '{1}({2})' and unblocked.",
-                    machine.UniqueFriendlyName, e.GetType().FullName, e.OperationId);
+                IO.Log($"<ReceiveLog> Machine '{machine.Id.Name}' received " +
+                    $"event '{e.GetType().FullName}({e.OperationId})' and unblocked.");
             }
             else
             {
-                IO.Log("<ReceiveLog> Machine '{0}' received event '{1}' and unblocked.",
-                    machine.UniqueFriendlyName, e.GetType().FullName);
+                IO.Log($"<ReceiveLog> Machine '{machine.Id.Name}' received " +
+                    $"event '{e.GetType().FullName}' and unblocked.");
             }
 
             this.BugFinder.NotifyTaskReceivedEvent(machine);

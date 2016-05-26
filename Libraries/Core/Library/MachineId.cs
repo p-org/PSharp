@@ -32,6 +32,32 @@ namespace Microsoft.PSharp
         public readonly PSharpRuntime Runtime;
 
         /// <summary>
+        /// Friendly name of the machine.
+        /// </summary>
+        [DataMember]
+        public string Name
+        {
+            get
+            {
+                if (this.FriendlyName != null &&
+                    this.FriendlyName.Length > 0)
+                {
+                    return string.Format("{0}({1})", this.FriendlyName, this.Value);
+                }
+                else
+                {
+                    return string.Format("{0}({1})", this.Type, this.MVal);
+                } 
+            }
+        }
+
+        /// <summary>
+        /// Optional friendly name of the machine.
+        /// </summary>
+        [DataMember]
+        private readonly string FriendlyName;
+
+        /// <summary>
         /// Type of the machine with this id.
         /// </summary>
         [DataMember]
@@ -85,10 +111,12 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="type">Type</param>
+        /// <param name="type">Machine type</param>
+        /// <param name="friendlyName">Friendly machine name</param>
         /// <param name="runtime">PSharpRuntime</param>
-        internal MachineId(Type type, PSharpRuntime runtime)
+        internal MachineId(Type type, string friendlyName, PSharpRuntime runtime)
         {
+            this.FriendlyName = friendlyName;
             this.Runtime = runtime;
 
             lock (MachineId.TypeIdCounter)

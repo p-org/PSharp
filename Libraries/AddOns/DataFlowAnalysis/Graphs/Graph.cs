@@ -60,7 +60,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="entryNode">INode</param>
         protected Graph()
         {
             this.Id = Graph<T>.IdCounter++;
@@ -74,6 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <summary>
         /// Checks if the node is a successor of the specified node.
         /// </summary>
+        /// <param name="successor">INode</param>
         /// <param name="node">INode</param>
         /// <returns>Boolean</returns>
         public bool IsSuccessorOf(T successor, T node)
@@ -84,6 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <summary>
         /// Checks if the node is a predecessor of the specified node.
         /// </summary>
+        /// <param name="predecessor">INode</param>
         /// <param name="node">INode</param>
         /// <returns>Boolean</returns>
         public bool IsPredecessorOf(T predecessor, T node)
@@ -265,6 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
         /// <summary>
         /// Pretty prints the graph.
         /// </summary>
+        /// <param name="currentNode">INode</param>
         /// <param name="visited">Set of visited nodes</param>
         protected virtual void PrettyPrint(T currentNode, ISet<T> visited) { }
 

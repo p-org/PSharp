@@ -106,17 +106,20 @@ namespace Microsoft.PSharp.Remote
         #region network provider methods
 
         /// <summary>
-        /// Creates a new remote machine of the given
-        /// type and with the given event.
+        /// Creates a new remote machine of the specified type
+        /// and with the specified event. An optional friendly
+        /// name can be specified. If the friendly name is null
+        /// or the empty string, a default value will be given.
         /// </summary>
         /// <param name="type">Type of the machine</param>
+        /// <param name="friendlyName">Friendly machine name used for logging</param>
         /// <param name="endpoint">Endpoint</param>
         /// <param name="e">Event</param>
-        /// <param name="friendlyName">Friendly name given to the machine for logging</param>
         /// <returns>MachineId</returns> 
-        MachineId INetworkProvider.RemoteCreateMachine(Type type, string endpoint, Event e, string friendlyName)
+        MachineId INetworkProvider.RemoteCreateMachine(Type type, string friendlyName,
+            string endpoint, Event e)
         {
-            return this.Channel.CreateMachine(type.FullName, e, friendlyName);
+            return this.Channel.CreateMachine(type.FullName, friendlyName, e);
         }
 
         /// <summary>
@@ -144,17 +147,19 @@ namespace Microsoft.PSharp.Remote
 
         /// <summary>
         /// Creates a new machine of the given type and with
-        /// the given event.
+        /// the given event. An optional friendly name can be
+        /// specified. If the friendly name is null or the empty
+        /// string, a default value will be given.
         /// </summary>
         /// <param name="typeName">Type of the machine</param>
+        /// <param name="friendlyName">Friendly machine name used for logging</param>
         /// <param name="e">Event</param>
-        /// <param name="friendlyName">Friendly name given to the machine for logging</param>
         /// <returns>MachineId</returns> 
-        MachineId IRemoteCommunication.CreateMachine(string typeName, Event e, string friendlyName)
+        MachineId IRemoteCommunication.CreateMachine(string typeName, string friendlyName, Event e)
         {
             this.Runtime.Log("<RemoteLog> Received request to create remote machine of type {0}", typeName);
             var resolvedType = this.GetMachineType(typeName);
-            return this.Runtime.CreateMachine(resolvedType, e, friendlyName);
+            return this.Runtime.CreateMachine(resolvedType, friendlyName, e);
         }
 
         /// <summary>

@@ -16,7 +16,7 @@ namespace PingPong
         [Microsoft.PSharp.Test]
         public static void Execute(PSharpRuntime runtime)
         {
-            runtime.CreateMachine(typeof(Server), friendlyName: "TheUltimateServerMachine");
+            runtime.CreateMachine(typeof(Server), "TheUltimateServerMachine");
         }
     }
 }

@@ -202,7 +202,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Adds an action binding.
         /// </summary>
         /// <param name="eventIdentifier">Token</param>
-        /// <param name="stateIdentifier">Token</param>
+        /// <param name="stmtBlock">BlockSyntax</param>
         /// <returns>Boolean</returns>
         internal bool AddActionBinding(Token eventIdentifier, BlockSyntax stmtBlock)
         {
@@ -284,7 +284,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
         /// </summary>
-        /// <param name="program">Program</param>
         internal override void Rewrite()
         {
             string text = "";

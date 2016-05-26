@@ -14,6 +14,9 @@
 
 namespace Microsoft.PSharp.LanguageServices.Parsing
 {
+    /// <summary>
+    /// P# syntax token.
+    /// </summary>
     public sealed class Token
     {
         #region fields

@@ -191,11 +191,8 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
             IO.PrintLine("---");
 
             var message = string.Join("\r\n", emitResult.Diagnostics);
-            Console.WriteLine(message);
             throw new ApplicationException(message);
         }
-
-        
 
         /// <summary>
         /// Compiles the given compilation and returns the assembly.
