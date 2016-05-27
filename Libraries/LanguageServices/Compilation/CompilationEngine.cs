@@ -328,8 +328,16 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <param name="dest">Destination</param>
         private void CopyAssembly(string src, string dest)
         {
-            File.Delete(dest);
-            File.Copy(src, dest);
+            if (src.Equals(dest))
+            {
+                return;
+            }
+
+            if (File.Exists(src))
+            {
+                File.Delete(dest);
+                File.Copy(src, dest);
+            }
 
             if (src.EndsWith(".dll") && dest.EndsWith(".dll"))
             {
