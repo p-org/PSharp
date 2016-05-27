@@ -212,15 +212,17 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
                 assemblyFileName = compilation.AssemblyName + ".dll";
             }
 
+            Assembly assembly = null;
             EmitResult emitResult = null;
             using (var ms = new MemoryStream())
             {
                 emitResult = compilation.Emit(ms);
-                if (emitResult.Success)
-                {
-                    var assembly = Assembly.Load(ms.GetBuffer());
-                    return assembly;
-                }
+                assembly = Assembly.Load(ms.GetBuffer());
+            }
+
+            if (emitResult.Success)
+            {
+                return assembly;
             }
 
             IO.PrintLine("---");
