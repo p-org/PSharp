@@ -77,6 +77,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
                     var project = this.CompilationContext.GetSolution().GetProject(projectId);
                     this.CompileProject(project);
                     this.LinkSolutionAssembliesToProject(project, graph);
+                    this.LinkExternalAssembliesToProject(project, graph);
                 }
             }
             else
@@ -96,6 +97,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
                     var project = this.CompilationContext.GetSolution().GetProject(projectId);
                     this.CompileProject(project);
                     this.LinkSolutionAssembliesToProject(project, graph);
+                    this.LinkExternalAssembliesToProject(project, graph);
                 }
             }
 
@@ -151,15 +153,12 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
             {
                 outputDirectory = Path.GetDirectoryName(outputPath);
             }
-            
+
             string fileName = outputDirectory + Path.DirectorySeparatorChar + assemblyFileName;
             string pdbFileName = outputDirectory + Path.DirectorySeparatorChar + compilation.AssemblyName + ".pdb";
 
             this.OutputDirectoryMap?.Add(compilation.AssemblyName, outputDirectory);
             this.ProjectAssemblyPathMap?.Add(compilation.AssemblyName, fileName);
-
-            // Link external references.
-            this.LinkExternalAssembliesToProject(compilation);
 
             EmitResult emitResult = null;
             using (FileStream outputFile = new FileStream(fileName, FileMode.Create, FileAccess.Write),
@@ -289,18 +288,26 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <summary>
         /// Links the external references to the given P# compilation.
         /// </summary>
-        /// <param name="compilation">Compilation</param>
-        private void LinkExternalAssembliesToProject(CodeAnalysis.Compilation compilation)
+        /// <param name="project">Project</param>
+        /// <param name="graph">ProjectDependencyGraph</param>
+        private void LinkExternalAssembliesToProject(Project project, ProjectDependencyGraph graph)
         {
-            // NOTE: Doesn't do anything yet.
+            var projectPath = this.OutputDirectoryMap[project.AssemblyName];
 
-            //foreach (var reference in compilation.ExternalReferences)
-            //{
-            //    if (!(reference is PortableExecutableReference))
-            //    {
-            //        continue;
-            //    }
-            //}
+            foreach (var projectId in graph.GetProjectsThatThisProjectTransitivelyDependsOn(project.Id))
+            {
+                var requiredProject = this.CompilationContext.GetSolution().GetProject(projectId);
+                foreach (var reference in requiredProject.MetadataReferences)
+                {
+                    //if (!(reference is PortableExecutableReference))
+                    //{
+                    //    continue;
+                    //}
+
+                    var fileName = Path.Combine(projectPath, Path.GetFileName(reference.Display));
+                    this.CopyAssembly(reference.Display, fileName);
+                }
+            }
         }
 
         /// <summary>
@@ -328,27 +335,34 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <param name="dest">Destination</param>
         private void CopyAssembly(string src, string dest)
         {
-            if (src.Equals(dest))
+            try
             {
-                return;
-            }
-
-            if (File.Exists(src))
-            {
-                File.Delete(dest);
-                File.Copy(src, dest);
-            }
-
-            if (src.EndsWith(".dll") && dest.EndsWith(".dll"))
-            {
-                string srcPdb = src.Substring(0, src.Length - 4) + ".pdb",
-                    destPdb = dest.Substring(0, dest.Length - 4) + ".pdb";
-
-                if (File.Exists(srcPdb))
+                if (src.Equals(dest))
                 {
-                    File.Delete(destPdb);
-                    File.Copy(srcPdb, destPdb);
+                    return;
                 }
+
+                if (File.Exists(src))
+                {
+                    File.Delete(dest);
+                    File.Copy(src, dest);
+                }
+
+                if (src.EndsWith(".dll") && dest.EndsWith(".dll"))
+                {
+                    string srcPdb = src.Substring(0, src.Length - 4) + ".pdb",
+                        destPdb = dest.Substring(0, dest.Length - 4) + ".pdb";
+
+                    if (File.Exists(srcPdb))
+                    {
+                        File.Delete(destPdb);
+                        File.Copy(srcPdb, destPdb);
+                    }
+                }
+            }
+            catch (NotSupportedException)
+            {
+                IO.Debug("... Unable to copy {0}", src);
             }
         }
 
