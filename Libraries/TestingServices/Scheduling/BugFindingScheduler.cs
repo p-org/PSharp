@@ -179,7 +179,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     {
                         return;
                     }
-                    
+
                     while (!machineInfo.IsActive)
                     {
                         IO.Debug($"<ScheduleDebug> Sleep task {machineInfo.Id} of machine " +
@@ -238,7 +238,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 this.Runtime.ProgramTrace.AddFairNondeterministicChoice(uniqueId, choice);
             }
-            
+
             if (this.Runtime.Configuration.CacheProgramState &&
                 this.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps)
             {
@@ -361,7 +361,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 return;
             }
-            
+
             var machineInfo = this.TaskMap[(int)id];
 
             IO.Debug($"<ScheduleDebug> Completed task {machineInfo.Id} of machine " +
@@ -410,23 +410,26 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <param name="killTasks">Kill tasks</param>
         internal void NotifyAssertionFailure(string text, bool killTasks = true)
         {
-            this.BugReport = text;
-            
-            ErrorReporter.Report(text);
-
-            IO.Log("<StrategyLog> Found bug using " +
-                $"'{this.Runtime.Configuration.SchedulingStrategy}' strategy.");
-
-            if (this.Strategy.GetDescription().Length > 0)
+            if (!this.BugFound)
             {
-                IO.Log($"<StrategyLog> {this.Strategy.GetDescription()}");
-            }
+                this.BugReport = text;
 
-            this.BugFound = true;
+                ErrorReporter.Report(text);
 
-            if (this.Runtime.Configuration.AttachDebugger)
-            {
-                System.Diagnostics.Debugger.Break();
+                IO.Log("<StrategyLog> Found bug using " +
+                    $"'{this.Runtime.Configuration.SchedulingStrategy}' strategy.");
+
+                if (this.Strategy.GetDescription().Length > 0)
+                {
+                    IO.Log($"<StrategyLog> {this.Strategy.GetDescription()}");
+                }
+
+                this.BugFound = true;
+
+                if (this.Runtime.Configuration.AttachDebugger)
+                {
+                    System.Diagnostics.Debugger.Break();
+                }
             }
 
             if (killTasks)
