@@ -314,6 +314,11 @@ namespace Microsoft.PSharp.TestingServices
                     throw aex;
                 }
 
+                if (aex.InnerException is FileNotFoundException)
+                {
+                    ErrorReporter.ReportAndExit($"{aex.InnerException.Message}");
+                }
+
                 ErrorReporter.ReportAndExit("Exception thrown during testing. Please use " +
                     "/debug to print more information, and contact the developer team.");
             }
