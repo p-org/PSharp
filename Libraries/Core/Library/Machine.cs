@@ -20,6 +20,8 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
+using Microsoft.PSharp.Utilities;
+
 namespace Microsoft.PSharp
 {
     /// <summary>
@@ -1049,13 +1051,13 @@ namespace Microsoft.PSharp
             }
             catch (OperationCanceledException)
             {
-                base.Runtime.Log("<Exception> OperationCanceledException was " +
+                IO.Debug("<Exception> OperationCanceledException was " +
                     $"thrown from Machine '{base.Id.Name}'.");
                 this.IsHalted = true;
             }
             catch (TaskSchedulerException)
             {
-                base.Runtime.Log("<Exception> TaskSchedulerException was thrown from " +
+                IO.Debug("<Exception> TaskSchedulerException was thrown from " +
                     $"thrown from Machine '{base.Id.Name}'.");
                 this.IsHalted = true;
             }
@@ -1091,13 +1093,13 @@ namespace Microsoft.PSharp
             }
             catch (OperationCanceledException)
             {
-                base.Runtime.Log("<Exception> OperationCanceledException was " +
+                IO.Debug("<Exception> OperationCanceledException was " +
                     $"thrown from Machine '{base.Id.Name}'.");
                 this.IsHalted = true;
             }
             catch (TaskSchedulerException)
             {
-                base.Runtime.Log("<Exception> TaskSchedulerException was " +
+                IO.Debug("<Exception> TaskSchedulerException was " +
                     $"thrown from Machine '{base.Id.Name}'.");
                 this.IsHalted = true;
             }
@@ -1134,13 +1136,13 @@ namespace Microsoft.PSharp
             }
             catch (OperationCanceledException)
             {
-                base.Runtime.Log("<Exception> OperationCanceledException was " +
+                IO.Debug("<Exception> OperationCanceledException was " +
                     $"thrown from Machine '{base.Id.Name}'.");
                 this.IsHalted = true;
             }
             catch (TaskSchedulerException)
             {
-                base.Runtime.Log("<Exception> TaskSchedulerException was " +
+                IO.Debug("<Exception> TaskSchedulerException was " +
                     $"thrown from Machine '{base.Id.Name}'.");
                 this.IsHalted = true;
             }
