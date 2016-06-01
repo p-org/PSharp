@@ -1044,32 +1044,42 @@ namespace Microsoft.PSharp
         {
             base.Runtime.Log($"<ActionLog> Machine '{base.Id.Name}' executed " +
                 $"action '{a.Method.Name}' in state '{this.CurrentState.Name}'.");
-            
+
             try
             {
                 a();
             }
-            catch (OperationCanceledException)
-            {
-                IO.Debug("<Exception> OperationCanceledException was " +
-                    $"thrown from Machine '{base.Id.Name}'.");
-                this.IsHalted = true;
-            }
-            catch (TaskSchedulerException)
-            {
-                IO.Debug("<Exception> TaskSchedulerException was thrown from " +
-                    $"thrown from Machine '{base.Id.Name}'.");
-                this.IsHalted = true;
-            }
             catch (Exception ex)
             {
-                if (Debugger.IsAttached)
+                this.IsHalted = true;
+
+                Exception innerException = ex;
+                if (innerException is TargetInvocationException ||
+                    innerException is AggregateException)
                 {
-                    throw ex;
+                    innerException = ex.InnerException;
                 }
 
-                // Handles generic exception.
-                this.ReportGenericAssertion(ex);
+                if (innerException is OperationCanceledException)
+                {
+                    IO.Debug("<Exception> OperationCanceledException was " +
+                        $"thrown from Machine '{base.Id.Name}'.");
+                }
+                else if (innerException is TaskSchedulerException)
+                {
+                    IO.Debug("<Exception> TaskSchedulerException was thrown from " +
+                        $"thrown from Machine '{base.Id.Name}'.");
+                }
+                else
+                {
+                    if (Debugger.IsAttached)
+                    {
+                        throw innerException;
+                    }
+
+                    // Handles generic exception.
+                    this.ReportGenericAssertion(innerException);
+                }
             }
         }
 
@@ -1091,27 +1101,37 @@ namespace Microsoft.PSharp
                 // Performs the on entry statements of the new state.
                 this.StateStack.Peek().ExecuteEntryFunction();
             }
-            catch (OperationCanceledException)
-            {
-                IO.Debug("<Exception> OperationCanceledException was " +
-                    $"thrown from Machine '{base.Id.Name}'.");
-                this.IsHalted = true;
-            }
-            catch (TaskSchedulerException)
-            {
-                IO.Debug("<Exception> TaskSchedulerException was " +
-                    $"thrown from Machine '{base.Id.Name}'.");
-                this.IsHalted = true;
-            }
             catch (Exception ex)
             {
-                if (Debugger.IsAttached)
+                this.IsHalted = true;
+
+                Exception innerException = ex;
+                if (innerException is TargetInvocationException ||
+                    innerException is AggregateException)
                 {
-                    throw ex;
+                    innerException = ex.InnerException;
                 }
 
-                // Handles generic exception.
-                this.ReportGenericAssertion(ex);
+                if (innerException is OperationCanceledException)
+                {
+                    IO.Debug("<Exception> OperationCanceledException was " +
+                        $"thrown from Machine '{base.Id.Name}'.");
+                }
+                else if (innerException is TaskSchedulerException)
+                {
+                    IO.Debug("<Exception> TaskSchedulerException was thrown from " +
+                        $"thrown from Machine '{base.Id.Name}'.");
+                }
+                else
+                {
+                    if (Debugger.IsAttached)
+                    {
+                        throw innerException;
+                    }
+
+                    // Handles generic exception.
+                    this.ReportGenericAssertion(innerException);
+                }
             }
         }
 
@@ -1134,27 +1154,37 @@ namespace Microsoft.PSharp
                     onExit();
                 }
             }
-            catch (OperationCanceledException)
-            {
-                IO.Debug("<Exception> OperationCanceledException was " +
-                    $"thrown from Machine '{base.Id.Name}'.");
-                this.IsHalted = true;
-            }
-            catch (TaskSchedulerException)
-            {
-                IO.Debug("<Exception> TaskSchedulerException was " +
-                    $"thrown from Machine '{base.Id.Name}'.");
-                this.IsHalted = true;
-            }
             catch (Exception ex)
             {
-                if (Debugger.IsAttached)
+                this.IsHalted = true;
+
+                Exception innerException = ex;
+                if (innerException is TargetInvocationException ||
+                    innerException is AggregateException)
                 {
-                    throw ex;
+                    innerException = ex.InnerException;
                 }
 
-                // Handles generic exception.
-                this.ReportGenericAssertion(ex);
+                if (innerException is OperationCanceledException)
+                {
+                    IO.Debug("<Exception> OperationCanceledException was " +
+                        $"thrown from Machine '{base.Id.Name}'.");
+                }
+                else if (innerException is TaskSchedulerException)
+                {
+                    IO.Debug("<Exception> TaskSchedulerException was thrown from " +
+                        $"thrown from Machine '{base.Id.Name}'.");
+                }
+                else
+                {
+                    if (Debugger.IsAttached)
+                    {
+                        throw innerException;
+                    }
+
+                    // Handles generic exception.
+                    this.ReportGenericAssertion(innerException);
+                }
             }
         }
 
