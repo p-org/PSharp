@@ -673,7 +673,12 @@ namespace Microsoft.PSharp.TestingServices
                 }
                 catch (AggregateException)
                 {
-                    break;
+                    lock (this.Lock)
+                    {
+                        this.MachineTasks = this.MachineTasks.FindAll(val => !val.IsCompleted);
+                    }
+
+                    continue;
                 }
 
                 bool moreTasksExist = false;
