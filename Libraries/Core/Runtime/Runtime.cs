@@ -207,8 +207,7 @@ namespace Microsoft.PSharp
 
             Machine machine = null;
             bool result = this.MachineMap.TryGetValue(mid.Value, out machine);
-            this.Assert(result, $"Machine '{mid.Type}({mid.Value})' " +
-                "does not belong to this runtime.");
+            this.Assert(result, $"Machine '{mid.Name}' does not belong to this runtime.");
 
             machine.Receive(eventTypes);
             return machine.ReceivedEvent;
@@ -247,8 +246,7 @@ namespace Microsoft.PSharp
 
             Machine machine = null;
             bool result = this.MachineMap.TryGetValue(mid.Value, out machine);
-            this.Assert(result, $"Machine '{mid.Type}({mid.Value})' " +
-                "does not belong to this runtime.");
+            this.Assert(result, $"Machine '{mid.Name}' does not belong to this runtime.");
 
             machine.Receive(eventType, predicate);
             return machine.ReceivedEvent;
@@ -288,8 +286,7 @@ namespace Microsoft.PSharp
 
             Machine machine = null;
             bool result = this.MachineMap.TryGetValue(mid.Value, out machine);
-            this.Assert(result, $"Machine '{mid.Type}({mid.Value})' " +
-                "does not belong to this runtime.");
+            this.Assert(result, $"Machine '{mid.Name}' does not belong to this runtime.");
 
             machine.Receive(eventType, action);
             return machine.ReceivedEvent;
@@ -332,8 +329,7 @@ namespace Microsoft.PSharp
 
             Machine machine = null;
             bool result = this.MachineMap.TryGetValue(mid.Value, out machine);
-            this.Assert(result, $"Machine '{mid.Type}({mid.Value})' " +
-                "does not belong to this runtime.");
+            this.Assert(result, $"Machine '{mid.Name}' does not belong to this runtime.");
 
             machine.Receive(eventType, predicate, action);
             return machine.ReceivedEvent;
@@ -374,8 +370,7 @@ namespace Microsoft.PSharp
 
             Machine machine = null;
             bool result = this.MachineMap.TryGetValue(mid.Value, out machine);
-            this.Assert(result, $"Machine '{mid.Type}({mid.Value})' " +
-                "does not belong to this runtime.");
+            this.Assert(result, $"Machine '{mid.Name}' does not belong to this runtime.");
 
             machine.Receive(events);
             return machine.ReceivedEvent;
@@ -414,8 +409,7 @@ namespace Microsoft.PSharp
 
             Machine machine = null;
             bool result = this.MachineMap.TryGetValue(mid.Value, out machine);
-            this.Assert(result, $"Machine '{mid.Type}({mid.Value})' " +
-                "does not belong to this runtime.");
+            this.Assert(result, $"Machine '{mid.Name}' does not belong to this runtime.");
 
             machine.Receive(events);
             return machine.ReceivedEvent;
@@ -456,8 +450,7 @@ namespace Microsoft.PSharp
 
             Machine machine = null;
             bool result = this.MachineMap.TryGetValue(mid.Value, out machine);
-            this.Assert(result, $"Machine '{mid.Type}({mid.Value})' " +
-                "does not belong to this runtime.");
+            this.Assert(result, $"Machine '{mid.Name}' does not belong to this runtime.");
 
             machine.Receive(events);
             return machine.ReceivedEvent;
