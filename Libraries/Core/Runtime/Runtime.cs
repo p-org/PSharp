@@ -198,25 +198,6 @@ namespace Microsoft.PSharp
         /// Blocks and waits to receive an event of the specified types.
         /// Returns the received event.
         /// </summary>
-        /// <param name="mid">MachineId</param>
-        /// <param name="eventTypes">Event types</param>
-        /// <returns>Received event</returns>
-        public virtual Event Receive(MachineId mid, params Type[] eventTypes)
-        {
-            this.Assert(mid != null, "A null machine cannot wait to receive an event.");
-
-            Machine machine = null;
-            bool result = this.MachineMap.TryGetValue(mid.Value, out machine);
-            this.Assert(result, $"Machine '{mid.Name}' does not belong to this runtime.");
-
-            machine.Receive(eventTypes);
-            return machine.ReceivedEvent;
-        }
-
-        /// <summary>
-        /// Blocks and waits to receive an event of the specified types.
-        /// Returns the received event.
-        /// </summary>
         /// <param name="eventTypes">Event types</param>
         /// <returns>Received event</returns>
         public virtual Event Receive(params Type[] eventTypes)
@@ -229,26 +210,6 @@ namespace Microsoft.PSharp
 
             Machine machine = this.TaskMap[(int)Task.CurrentId];
             machine.Receive(eventTypes);
-            return machine.ReceivedEvent;
-        }
-
-        /// <summary>
-        /// Blocks and waits to receive an event of the specified types that satisfies
-        /// the specified predicate. Returns the received event.
-        /// </summary>
-        /// <param name="mid">MachineId</param>
-        /// <param name="eventType">Event type</param>
-        /// <param name="predicate">Predicate</param>
-        /// <returns>Received event</returns>
-        public virtual Event Receive(MachineId mid, Type eventType, Func<Event, bool> predicate)
-        {
-            this.Assert(mid != null, "A null machine cannot wait to receive an event.");
-
-            Machine machine = null;
-            bool result = this.MachineMap.TryGetValue(mid.Value, out machine);
-            this.Assert(result, $"Machine '{mid.Name}' does not belong to this runtime.");
-
-            machine.Receive(eventType, predicate);
             return machine.ReceivedEvent;
         }
 
@@ -276,30 +237,10 @@ namespace Microsoft.PSharp
         /// Blocks and waits to receive an event of the specified types, and
         /// executes a specified action on receiving the event.
         /// </summary>
-        /// <param name="mid">MachineId</param>
         /// <param name="eventType">Event type</param>
         /// <param name="action">Action</param>
         /// <returns>Received event</returns>
-        public virtual Event Receive(MachineId mid, Type eventType, Action action)
-        {
-            this.Assert(mid != null, "A null machine cannot wait to receive an event.");
-
-            Machine machine = null;
-            bool result = this.MachineMap.TryGetValue(mid.Value, out machine);
-            this.Assert(result, $"Machine '{mid.Name}' does not belong to this runtime.");
-
-            machine.Receive(eventType, action);
-            return machine.ReceivedEvent;
-        }
-
-        /// <summary>
-        /// Blocks and waits to receive an event of the specified types, and
-        /// executes a specified action on receiving the event.
-        /// </summary>
-        /// <param name="eventType">Event type</param>
-        /// <param name="action">Action</param>
-        /// <returns>Received event</returns>
-        public virtual Event Receive(Type eventType, Action action)
+        public virtual Event Receive(Type eventType, Action<Event> action)
         {
             this.Assert(Task.CurrentId != null, "Only machines can " +
                 "wait to receive an event.");
@@ -317,34 +258,11 @@ namespace Microsoft.PSharp
         /// the specified predicate, and executes a specified action on receiving the
         /// event. Returns the received event.
         /// </summary>
-        /// <param name="mid">MachineId</param>
         /// <param name="eventType">Event type</param>
         /// <param name="predicate">Predicate</param>
         /// <param name="action">Action</param>
         /// <returns>Received event</returns>
-        public virtual Event Receive(MachineId mid, Type eventType,
-            Func<Event, bool> predicate, Action action)
-        {
-            this.Assert(mid != null, "A null machine cannot wait to receive an event.");
-
-            Machine machine = null;
-            bool result = this.MachineMap.TryGetValue(mid.Value, out machine);
-            this.Assert(result, $"Machine '{mid.Name}' does not belong to this runtime.");
-
-            machine.Receive(eventType, predicate, action);
-            return machine.ReceivedEvent;
-        }
-
-        /// <summary>
-        /// Blocks and waits to receive an event of the specified types that satisfies
-        /// the specified predicate, and executes a specified action on receiving the
-        /// event. Returns the received event.
-        /// </summary>
-        /// <param name="eventType">Event type</param>
-        /// <param name="predicate">Predicate</param>
-        /// <param name="action">Action</param>
-        /// <returns>Received event</returns>
-        public virtual Event Receive(Type eventType, Func<Event, bool> predicate, Action action)
+        public virtual Event Receive(Type eventType, Func<Event, bool> predicate, Action<Event> action)
         {
             this.Assert(Task.CurrentId != null, "Only machines can " +
                 "wait to receive an event.");
@@ -354,25 +272,6 @@ namespace Microsoft.PSharp
 
             Machine machine = this.TaskMap[(int)Task.CurrentId];
             machine.Receive(eventType, predicate, action);
-            return machine.ReceivedEvent;
-        }
-
-        /// <summary>
-        /// Blocks and waits to receive an event of the specified types that satisfy
-        /// the specified predicates. Returns the received event.
-        /// </summary>
-        /// <param name="mid">MachineId</param>
-        /// <param name="events">Event types and predicates</param>
-        /// <returns>Received event</returns>
-        public virtual Event Receive(MachineId mid, params Tuple<Type, Func<Event, bool>>[] events)
-        {
-            this.Assert(mid != null, "A null machine cannot wait to receive an event.");
-
-            Machine machine = null;
-            bool result = this.MachineMap.TryGetValue(mid.Value, out machine);
-            this.Assert(result, $"Machine '{mid.Name}' does not belong to this runtime.");
-
-            machine.Receive(events);
             return machine.ReceivedEvent;
         }
 
@@ -400,29 +299,9 @@ namespace Microsoft.PSharp
         /// executes a specified action on receiving the event. Returns the
         /// received event.
         /// </summary>
-        /// <param name="mid">MachineId</param>
         /// <param name="events">Event types and handlers</param>
         /// <returns>Received event</returns>
-        public virtual Event Receive(MachineId mid, params Tuple<Type, Action>[] events)
-        {
-            this.Assert(mid != null, "A null machine cannot wait to receive an event.");
-
-            Machine machine = null;
-            bool result = this.MachineMap.TryGetValue(mid.Value, out machine);
-            this.Assert(result, $"Machine '{mid.Name}' does not belong to this runtime.");
-
-            machine.Receive(events);
-            return machine.ReceivedEvent;
-        }
-
-        /// <summary>
-        /// Blocks and waits to receive an event of the specified types, and
-        /// executes a specified action on receiving the event. Returns the
-        /// received event.
-        /// </summary>
-        /// <param name="events">Event types and handlers</param>
-        /// <returns>Received event</returns>
-        public virtual Event Receive(params Tuple<Type, Action>[] events)
+        public virtual Event Receive(params Tuple<Type, Action<Event>>[] events)
         {
             this.Assert(Task.CurrentId != null, "Only machines can " +
                 "wait to receive an event.");
@@ -440,30 +319,9 @@ namespace Microsoft.PSharp
         /// the specified predicates, and executes a specified action upon receiving
         /// the event. Returns the received event.
         /// </summary>
-        /// <param name="mid">MachineId</param>
         /// <param name="events">Event types, predicates and handlers</param>
         /// <returns>Received event</returns>
-        public virtual Event Receive(MachineId mid, params Tuple<Type,
-            Func<Event, bool>, Action>[] events)
-        {
-            this.Assert(mid != null, "A null machine cannot wait to receive an event.");
-
-            Machine machine = null;
-            bool result = this.MachineMap.TryGetValue(mid.Value, out machine);
-            this.Assert(result, $"Machine '{mid.Name}' does not belong to this runtime.");
-
-            machine.Receive(events);
-            return machine.ReceivedEvent;
-        }
-
-        /// <summary>
-        /// Blocks and waits to receive an event of the specified types that satisfy
-        /// the specified predicates, and executes a specified action upon receiving
-        /// the event. Returns the received event.
-        /// </summary>
-        /// <param name="events">Event types, predicates and handlers</param>
-        /// <returns>Received event</returns>
-        public virtual Event Receive(params Tuple<Type, Func<Event, bool>, Action>[] events)
+        public virtual Event Receive(params Tuple<Type, Func<Event, bool>, Action<Event>>[] events)
         {
             this.Assert(Task.CurrentId != null, "Only machines can " +
                 "wait to receive an event.");

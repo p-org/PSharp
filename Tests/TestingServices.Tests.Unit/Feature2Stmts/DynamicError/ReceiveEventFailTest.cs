@@ -87,7 +87,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             {
                 while (this.Counter < 5)
                 {
-                    this.Receive(new Tuple<Type, Action>(typeof(Ping), () =>
+                    this.Receive(new Tuple<Type, Action<Event>>(typeof(Ping), (Event e) =>
                     {
                         this.SendPong();
                     }));

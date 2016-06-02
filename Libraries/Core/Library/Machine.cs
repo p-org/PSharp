@@ -112,7 +112,7 @@ namespace Microsoft.PSharp
         /// Gets the received event and an optional associated action. If no event
         /// has been received this will return null.
         /// </summary>
-        private Tuple<Event, Action> ReceivedEventHandler;
+        private Tuple<Event, Action<Event>> ReceivedEventHandler;
 
         /// <summary>
         /// Gets the current state.
@@ -316,7 +316,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="eventType">Event type</param>
         /// <param name="action">Action</param>
-        protected internal void Receive(Type eventType, Action action)
+        protected internal void Receive(Type eventType, Action<Event> action)
         {
             this.EventWaitHandlers.Add(new EventWaitHandler(eventType, action));
             this.WaitOnEvent();
@@ -329,7 +329,7 @@ namespace Microsoft.PSharp
         /// <param name="eventType">Event type</param>
         /// <param name="predicate">Predicate</param>
         /// <param name="action">Action</param>
-        protected internal void Receive(Type eventType, Func<Event, bool> predicate, Action action)
+        protected internal void Receive(Type eventType, Func<Event, bool> predicate, Action<Event> action)
         {
             this.EventWaitHandlers.Add(new EventWaitHandler(eventType, predicate, action));
             this.WaitOnEvent();
@@ -355,7 +355,7 @@ namespace Microsoft.PSharp
         /// executes a specified action upon receiving the event.
         /// </summary>
         /// <param name="events">Event types and handlers</param>
-        protected internal void Receive(params Tuple<Type, Action>[] events)
+        protected internal void Receive(params Tuple<Type, Action<Event>>[] events)
         {
             foreach (var e in events)
             {
@@ -371,7 +371,7 @@ namespace Microsoft.PSharp
         /// action upon receiving the event.
         /// </summary>
         /// <param name="events">Event types, predicates and handlers</param>
-        protected internal void Receive(params Tuple<Type, Func<Event, bool>, Action>[] events)
+        protected internal void Receive(params Tuple<Type, Func<Event, bool>, Action<Event>>[] events)
         {
             foreach (var e in events)
             {
@@ -508,7 +508,7 @@ namespace Microsoft.PSharp
                     => val.EventType == e.GetType() && val.Predicate(e));
                 if (eventWaitHandler != null)
                 {
-                    this.ReceivedEventHandler = new Tuple<Event, Action>(
+                    this.ReceivedEventHandler = new Tuple<Event, Action<Event>>(
                         e, eventWaitHandler.Action);
                     this.EventWaitHandlers.Clear();
                     base.Runtime.NotifyReceivedEvent(this, e);
@@ -861,7 +861,7 @@ namespace Microsoft.PSharp
                         => val.EventType == this.Inbox[idx].GetType() && val.Predicate(this.Inbox[idx]));
                     if (eventWaitHandler != null)
                     {
-                        this.ReceivedEventHandler = new Tuple<Event, Action>(
+                        this.ReceivedEventHandler = new Tuple<Event, Action<Event>>(
                             this.Inbox[idx], eventWaitHandler.Action);
                         this.EventWaitHandlers.Clear();
                         this.Inbox.RemoveAt(idx);
@@ -906,7 +906,7 @@ namespace Microsoft.PSharp
             // Executes the associated action, if there is one.
             if (action != null)
             {
-                action();
+                action(this.ReceivedEvent);
             }
         }
 

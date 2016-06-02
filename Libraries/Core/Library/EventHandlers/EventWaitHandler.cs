@@ -37,7 +37,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Action handler.
         /// </summary>
-        internal readonly Action Action;
+        internal readonly Action<Event> Action;
 
         #endregion
 
@@ -69,7 +69,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="eventType">Event type</param>
         /// <param name="action">Action</param>
-        internal EventWaitHandler(Type eventType, Action action)
+        internal EventWaitHandler(Type eventType, Action<Event> action)
         {
             this.EventType = eventType;
             this.Predicate = (Event e) => true;
@@ -82,7 +82,7 @@ namespace Microsoft.PSharp
         /// <param name="eventType">Event type</param>
         /// <param name="predicate">Predicate</param>
         /// <param name="action">Action</param>
-        internal EventWaitHandler(Type eventType, Func<Event, bool> predicate, Action action)
+        internal EventWaitHandler(Type eventType, Func<Event, bool> predicate, Action<Event> action)
         {
             this.EventType = eventType;
             this.Predicate = predicate;
