@@ -12,7 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -39,14 +39,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         protected ISchedulingStrategy Strategy;
 
         /// <summary>
-        /// List of machines to schedule.
+        /// Collection of machines to schedule.
         /// </summary>
-        protected List<MachineInfo> MachineInfos;
+        protected ConcurrentBag<MachineInfo> MachineInfos;
 
         /// <summary>
         /// Map from task ids to machine infos.
         /// </summary>
-        protected Dictionary<int, MachineInfo> TaskMap;
+        protected ConcurrentDictionary<int, MachineInfo> TaskMap;
 
         /// <summary>
         /// True if a bug was found.
@@ -93,8 +93,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             this.Runtime = runtime;
             this.Strategy = strategy;
-            this.MachineInfos = new List<MachineInfo>();
-            this.TaskMap = new Dictionary<int, MachineInfo>();
+            this.MachineInfos = new ConcurrentBag<MachineInfo>();
+            this.TaskMap = new ConcurrentDictionary<int, MachineInfo>();
             this.BugFound = false;
         }
 
@@ -127,11 +127,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             }
 
             MachineInfo machineInfo = null;
-            if (this.TaskMap.ContainsKey((int)id))
-            {
-                machineInfo = this.TaskMap[(int)id];
-            }
-            else
+            if (!this.TaskMap.TryGetValue((int)id, out machineInfo))
             {
                 IO.Debug($"<ScheduleDebug> Unable to schedule task {id}.");
                 this.KillRemainingMachines();
@@ -284,7 +280,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             }
 
             this.MachineInfos.Add(machineInfo);
-            this.TaskMap.Add(id, machineInfo);
+            this.TaskMap.TryAdd(id, machineInfo);
         }
 
         /// <summary>

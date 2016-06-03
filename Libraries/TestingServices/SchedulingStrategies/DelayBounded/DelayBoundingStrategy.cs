@@ -77,7 +77,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <param name="choices">Choices</param>
         /// <param name="current">Curent</param>
         /// <returns>Boolean</returns>
-        public virtual bool TryGetNext(out MachineInfo next, IList<MachineInfo> choices, MachineInfo current)
+        public virtual bool TryGetNext(out MachineInfo next, IEnumerable<MachineInfo> choices, MachineInfo current)
         {
             var machines = choices.OrderBy(mi => mi.Machine.Id.Value).ToList();
 

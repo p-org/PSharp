@@ -148,7 +148,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             var engine = TestingEngineFactory.CreateBugFindingEngine(configuration, TestProgram.Execute).Run();
             Assert.AreEqual(1, engine.NumOfFoundBugs);
-            Assert.AreEqual(10, engine.ExploredDepth);
+            Assert.AreEqual(9, engine.ExploredDepth);
         }
     }
 }

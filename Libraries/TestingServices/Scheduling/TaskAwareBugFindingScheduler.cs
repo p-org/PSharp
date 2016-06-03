@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -29,16 +30,16 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
     internal sealed class TaskAwareBugFindingScheduler : BugFindingScheduler
     {
         #region fields
-        
+
         /// <summary>
-        /// List of user tasks that cannot be directly scheduled.
+        /// Collection of user tasks that cannot be directly scheduled.
         /// </summary>
-        private List<Task> UserTasks;
+        private ConcurrentBag<Task> UserTasks;
 
         /// <summary>
         /// Map from wrapped task ids to machine infos.
         /// </summary>
-        private Dictionary<int, MachineInfo> WrappedTaskMap;
+        private ConcurrentDictionary<int, MachineInfo> WrappedTaskMap;
 
         #endregion
 
@@ -50,10 +51,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <param name="runtime">PSharpBugFindingRuntime</param>
         /// <param name="strategy">SchedulingStrategy</param>
         internal TaskAwareBugFindingScheduler(PSharpBugFindingRuntime runtime, ISchedulingStrategy strategy)
-            : base (runtime, strategy)
+            : base(runtime, strategy)
         {
-            this.UserTasks = new List<Task>();
-            this.WrappedTaskMap = new Dictionary<int, MachineInfo>();
+            this.UserTasks = new ConcurrentBag<Task>();
+            this.WrappedTaskMap = new ConcurrentDictionary<int, MachineInfo>();
         }
 
         /// <summary>
@@ -108,15 +109,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             }
 
             MachineInfo machineInfo = null;
-            if (base.TaskMap.ContainsKey((int)id))
-            {
-                machineInfo = base.TaskMap[(int)id];
-            }
-            else if (this.WrappedTaskMap.ContainsKey((int)id))
-            {
-                machineInfo = this.WrappedTaskMap[(int)id];
-            }
-            else
+            if (!(base.TaskMap.TryGetValue((int)id, out machineInfo) ||
+                this.WrappedTaskMap.TryGetValue((int)id, out machineInfo)))
             {
                 IO.Debug($"<ScheduleDebug> Unable to schedule task {id}.");
                 this.KillRemainingMachines();
@@ -164,7 +158,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     {
                         return;
                     }
-                    
+
                     while (!machineInfo.IsActive)
                     {
                         IO.Debug($"<ScheduleDebug> Sleep task {machineInfo.Id} of machine " +
@@ -200,11 +194,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             }
 
             base.MachineInfos.Add(machineInfo);
-            base.TaskMap.Add(id, machineInfo);
-            
+            base.TaskMap.TryAdd(id, machineInfo);
+
             if (machine is TaskMachine)
             {
-                this.WrappedTaskMap.Add((machine as TaskMachine).WrappedTask.Id, machineInfo);
+                this.WrappedTaskMap.TryAdd((machine as TaskMachine).WrappedTask.Id, machineInfo);
             }
         }
 
@@ -220,13 +214,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             }
 
             MachineInfo machineInfo = null;
-            if (base.TaskMap.ContainsKey((int)id))
+            if (!(base.TaskMap.TryGetValue((int)id, out machineInfo) ||
+                this.WrappedTaskMap.TryGetValue((int)id, out machineInfo)))
             {
-                machineInfo = base.TaskMap[(int)id];
-            }
-            else if (this.WrappedTaskMap.ContainsKey((int)id))
-            {
-                machineInfo = this.WrappedTaskMap[(int)id];
+                IO.Debug($"<ScheduleDebug> Unable to start task {id}.");
+                this.KillRemainingMachines();
+                throw new OperationCanceledException();
             }
 
             IO.Debug($"<ScheduleDebug> Started task {machineInfo.Id} of machine " +
@@ -264,7 +257,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 return;
             }
-            
+
             var machineInfo = this.WrappedTaskMap[(int)id];
 
             IO.Debug($"<ScheduleDebug> Blocked task {machineInfo.Id} of machine " +
@@ -274,9 +267,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             var blockingUnwrappedTasks = new List<Task>();
             foreach (var task in blockingTasks)
             {
-                if (this.WrappedTaskMap.ContainsKey(task.Id))
+                MachineInfo wrappedMachineInfo = null;
+                if (this.WrappedTaskMap.TryGetValue(task.Id, out wrappedMachineInfo))
                 {
-                    blockingWrappedTasks.Add(this.WrappedTaskMap[task.Id]);
+                    blockingWrappedTasks.Add(wrappedMachineInfo);
                 }
                 else
                 {
@@ -301,7 +295,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 return;
             }
-            
+
             var machineInfo = base.TaskMap[(int)id];
 
             IO.Debug($"<ScheduleDebug> Completed task {machineInfo.Id} of machine " +

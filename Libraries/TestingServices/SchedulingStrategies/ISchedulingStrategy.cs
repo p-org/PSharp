@@ -28,7 +28,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <param name="choices">Choices</param>
         /// <param name="current">Curent</param>
         /// <returns>Boolean</returns>
-        bool TryGetNext(out MachineInfo next, IList<MachineInfo> choices, MachineInfo current);
+        bool TryGetNext(out MachineInfo next, IEnumerable<MachineInfo> choices, MachineInfo current);
 
         /// <summary>
         /// Returns the next choice.
