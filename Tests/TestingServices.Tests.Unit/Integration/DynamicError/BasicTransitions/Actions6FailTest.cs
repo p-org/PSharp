@@ -92,7 +92,6 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             void Action1()
             {
-                this.Assert((this.ReceivedEvent as E2).Value == 100); // this assert passes
                 this.Send(GhostMachine, new E3());
             }
         }
@@ -148,7 +147,6 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
 
             var engine = TestingEngineFactory.CreateBugFindingEngine(configuration, TestProgram.Execute).Run();
             Assert.AreEqual(1, engine.NumOfFoundBugs);
-            Assert.AreEqual(9, engine.ExploredDepth);
         }
     }
 }

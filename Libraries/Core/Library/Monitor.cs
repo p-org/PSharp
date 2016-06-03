@@ -434,10 +434,7 @@ namespace Microsoft.PSharp
             {
                 // Performs the on exit statements of the current state.
                 this.State.ExecuteExitFunction();
-                if (onExit != null)
-                {
-                    onExit();
-                }
+                onExit?.Invoke();
             }
             catch (OperationCanceledException ex)
             {

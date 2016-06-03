@@ -903,10 +903,42 @@ namespace Microsoft.PSharp
             var action = this.ReceivedEventHandler.Item2;
             this.ReceivedEventHandler = null;
 
-            // Executes the associated action, if there is one.
-            if (action != null)
+            try
             {
-                action(this.ReceivedEvent);
+                // Executes the associated action, if there is one.
+                action?.Invoke(this.ReceivedEvent);
+            }
+            catch (Exception ex)
+            {
+                this.IsHalted = true;
+
+                Exception innerException = ex;
+                if (innerException is TargetInvocationException ||
+                    innerException is AggregateException)
+                {
+                    innerException = ex.InnerException;
+                }
+
+                if (innerException is OperationCanceledException)
+                {
+                    IO.Debug("<Exception> OperationCanceledException was " +
+                        $"thrown from Machine '{base.Id.Name}'.");
+                }
+                else if (innerException is TaskSchedulerException)
+                {
+                    IO.Debug("<Exception> TaskSchedulerException was thrown from " +
+                        $"thrown from Machine '{base.Id.Name}'.");
+                }
+                else
+                {
+                    if (Debugger.IsAttached)
+                    {
+                        throw innerException;
+                    }
+
+                    // Handles generic exception.
+                    this.ReportGenericAssertion(innerException);
+                }
             }
         }
 
@@ -1149,10 +1181,7 @@ namespace Microsoft.PSharp
             {
                 // Performs the on exit statements of the current state.
                 this.StateStack.Peek().ExecuteExitFunction();
-                if (onExit != null)
-                {
-                    onExit();
-                }
+                onExit?.Invoke();
             }
             catch (Exception ex)
             {

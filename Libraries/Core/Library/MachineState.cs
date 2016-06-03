@@ -152,10 +152,7 @@ namespace Microsoft.PSharp
         /// </summary>
         internal void ExecuteEntryFunction()
         {
-            if (this.EntryAction != null)
-            {
-                this.EntryAction();
-            }
+            this.EntryAction?.Invoke();
         }
 
         /// <summary>
@@ -163,10 +160,7 @@ namespace Microsoft.PSharp
         /// </summary>
         internal void ExecuteExitFunction()
         {
-            if (this.ExitAction != null)
-            {
-                this.ExitAction();
-            }
+            this.ExitAction?.Invoke();
         }
 
         #endregion
