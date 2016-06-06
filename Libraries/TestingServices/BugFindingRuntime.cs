@@ -145,14 +145,7 @@ namespace Microsoft.PSharp.TestingServices
             // If the event is null then report an error and exit.
             this.Assert(e != null, "Cannot send a null event.");
 
-            try
-            {
-                this.Send(null, target, e, false);
-            }
-            catch (OperationCanceledException)
-            {
-                IO.Debug("<Exception> OperationCanceledException was thrown.");
-            }
+            this.Send(null, target, e, false);
         }
 
         /// <summary>
