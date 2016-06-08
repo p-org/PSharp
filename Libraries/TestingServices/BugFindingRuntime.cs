@@ -14,8 +14,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -318,38 +316,13 @@ namespace Microsoft.PSharp.TestingServices
         {
             this.Assert(this.TaskScheduler is TaskWrapperScheduler, "Unable to wrap the " +
                 "task in a machine, because the task wrapper scheduler is not enabled.\n");
-            
+
             MachineId mid = new MachineId(typeof(TaskMachine), null, this);
             TaskMachine taskMachine = new TaskMachine(this.TaskScheduler as TaskWrapperScheduler,
                 userTask);
             taskMachine.SetMachineId(mid);
             
             IO.Log($"<CreateLog> '{mid.Name}' is created.");
-
-            //if (this.Configuration.CheckDataRaces)
-            //{
-            //    MachineTrace trace = new MachineTrace(userTask.Id, mid.GetHashCode());
-            //    List<MachineTrace> RuntimeTrace = new List<MachineTrace>();
-            //    RuntimeTrace.Add(trace);
-
-            //    string iter = Environment.GetEnvironmentVariable("ITERATION");
-            //    int i = Int32.Parse(iter);
-
-            //    string directory = this.Configuration.DirectoryPath + "InstrTrace" + i;
-
-            //    if (!Directory.Exists(directory))
-            //    {
-            //        Directory.CreateDirectory(directory);
-            //    }
-
-            //    string path = directory + "\\" + "rtTrace_" + mid.GetHashCode() + ".osl";
-            //    using (FileStream stream = File.Open(path, FileMode.Create))
-            //    {
-            //        BinaryFormatter binaryFormatter = new BinaryFormatter();
-            //        binaryFormatter.Serialize(stream, RuntimeTrace);
-            //        IO.Debug("... Writing {0}", path);
-            //    }
-            //}
 
             Task task = new Task(() =>
             {
@@ -459,8 +432,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="mid">MachineId</param>
         /// <param name="e">Event</param>
         /// <param name="isStarter">Is starting a new operation</param>
-        internal override void SendRemotely(AbstractMachine sender, MachineId mid,
-            Event e, bool isStarter)
+        internal override void SendRemotely(AbstractMachine sender, MachineId mid, Event e, bool isStarter)
         {
             this.Send(sender, mid, e, isStarter);
         }
@@ -673,38 +645,6 @@ namespace Microsoft.PSharp.TestingServices
 
             return fingerprint;
         }
-
-        ///// <summary>
-        ///// Emits the race instrumentation trace.
-        ///// </summary>
-        ///// <param name="directory">Output directory</param>
-        //internal void EmitRaceInstrumentationTrace(string directory)
-        //{
-        //    foreach (var machine in this.MachineMap.Values)
-        //    {
-        //        IO.Debug("<RaceTracing> Machine id: " + machine.Id.GetHashCode() + " " + machine.Id.ToString());
-        //        foreach (var item in machine.RuntimeTrace)
-        //        {
-        //            if (item.isSend)
-        //            {
-        //                continue;
-        //            }
-
-        //            IO.Debug("<RaceTracing> Action: " + item.actionName + " " + item.actionID);
-        //        }
-
-        //        if (machine.RuntimeTrace.Count > 0)
-        //        {
-        //            string path = directory + "\\" + "rtTrace_" + machine.Id.GetHashCode() + ".osl";
-        //            using (FileStream stream = File.Open(path, FileMode.Create))
-        //            {
-        //                BinaryFormatter binaryFormatter = new BinaryFormatter();
-        //                binaryFormatter.Serialize(stream, machine.RuntimeTrace);
-        //                IO.Debug("... Writing {0}", path);
-        //            }
-        //        }
-        //    }
-        //}
 
         /// <summary>
         /// Waits until all P# machines have finished execution.

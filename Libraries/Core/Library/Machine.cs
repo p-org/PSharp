@@ -138,28 +138,7 @@ namespace Microsoft.PSharp
 
         #endregion
 
-        //#region instrumentation-related fields
-
-        ///// <summary>
-        ///// Runtime trace used during instrumentation.
-        ///// </summary>
-        //internal List<MachineTrace> RuntimeTrace = new List<MachineTrace>();
-
-        ///// <summary>
-        ///// Monotonically increasing action id.
-        ///// </summary>
-        //private int ActionId = 0;
-
-        ///// <summary>
-        ///// Monotonically increasing send id.
-        ///// </summary>
-        //private int SendId = 0;
-
-        //private Event ExitEvent = null;
-
-        //#endregion
-
-        #region machine constructors and destructors
+        #region machine constructors
 
         /// <summary>
         /// Constructor.
@@ -176,28 +155,9 @@ namespace Microsoft.PSharp
             this.IsWaitingToReceive = false;
         }
 
-        //~Machine()
-        //{
-            //if (RuntimeTrace.Count > 0)
-            //{
-            //    string dirPath = base.Runtime.Configuration.DirectoryPath;
-            //    Directory.CreateDirectory(dirPath);
-            
-            //    string path = "rtTrace_" + Id.GetHashCode() + ".osl";
-            //    using (FileStream stream = File.Open(path, FileMode.Create))
-            //    {
-            //        BinaryFormatter binaryFormatter = new BinaryFormatter();
-            //        binaryFormatter.Serialize(stream, RuntimeTrace);
-            //        stream.Close();
-            //    }
-
-            //    File.Move(path, dirPath + "\\" + path);
-            //}
-        //}
-
         #endregion
-        
-        #region P# API methods
+
+        #region P# user API
 
         /// <summary>
         /// Creates a new machine of the specified type and with the
@@ -264,16 +224,6 @@ namespace Microsoft.PSharp
         /// <param name="isStarter">Is starting a new operation</param>
         protected void Send(MachineId mid, Event e, bool isStarter = false)
         {
-//            // If the event is null then report an error and exit.
-//            this.Assert(e != null, "Machine '{0}' is sending a null event.", this.GetType().Name);
-//            if (base.Runtime.Configuration.CheckDataRaces)
-//            {
-//                this.SendId++;
-//                //MachineTrace trace = new MachineTrace(this.SendId, base.Id.GetHashCode(), mid.GetHashCode(), e.ToString(), e.GetHashCode());
-//                MachineTrace trace = new MachineTrace(this.Id.GetHashCode(), this.SendId, mid.GetHashCode(), e.ToString(), e.GetHashCode());
-//                this.RuntimeTrace.Add(trace);
-//            }
-
             // If the target machine is null, then report an error and exit.
             this.Assert(mid != null, $"Machine '{base.Id.Name}' is sending to a null machine.");
             // If the event is null, then report an error and exit.
@@ -873,11 +823,6 @@ namespace Microsoft.PSharp
                 // Checks if the event can trigger a goto state transition.
                 else if (this.GotoTransitions.ContainsKey(e.GetType()))
                 {
-                    //if (base.Runtime.Configuration.CheckDataRaces)
-                    //{
-                    //    ExitEvent = e;
-                    //}
-
                     var transition = this.GotoTransitions[e.GetType()];
                     Type targetState = transition.Item1;
                     Action onExitAction = transition.Item2;
@@ -893,23 +838,13 @@ namespace Microsoft.PSharp
                 else if (this.ActionBindings.ContainsKey(e.GetType()))
                 {
                     Action action = this.ActionBindings[e.GetType()];
-
-                    //if (base.Runtime.Configuration.CheckDataRaces)
-                    //{
-                    //    this.ActionId++;
-                    //    //MachineTrace trace = new MachineTrace(this.Id.GetHashCode(), action.Method.Name, this.ActionId, e.ToString(), e.GetHashCode());
-                    //    MachineTrace trace = new MachineTrace(this.Id.GetHashCode(), action.Method.Name, this.ActionId, e.ToString(), e.GetHashCode());
-                    //    Console.WriteLine("trace from machine1: " + this.Id.GetHashCode() + " " + this.ActionId);
-                    //    this.RuntimeTrace.Add(trace);
-                    //}
-
                     this.Do(action);
                 }
 
                 break;
             }
         }
-        
+
         /// <summary>
         /// Waits for an event to arrive.
         /// </summary>
@@ -1197,15 +1132,6 @@ namespace Microsoft.PSharp
             {
                 // Performs the on entry statements of the new state.
                 this.StateStack.Peek().ExecuteEntryFunction();
-
-                //if (base.Runtime.Configuration.CheckDataRaces)
-                //{
-                //    this.ActionId++;
-                //    //MachineTrace trace = new MachineTrace(this.Id.GetHashCode(), action.Method.Name, this.ActionId, e.ToString(), e.GetHashCode());
-                //    MachineTrace trace = new MachineTrace(this.Id.GetHashCode(), null, this.ActionId, null, 0);
-                //    Console.WriteLine("entry function: " + this.Id.GetHashCode() + " " + this.ActionId);
-                //    this.RuntimeTrace.Add(trace);
-                //}
             }
             catch (Exception ex)
             {
@@ -1256,30 +1182,6 @@ namespace Microsoft.PSharp
                 // Performs the on exit statements of the current state.
                 this.StateStack.Peek().ExecuteExitFunction();
                 onExit?.Invoke();
-
-                //if (base.Runtime.Configuration.CheckDataRaces)
-                //{
-                //    int eventCode = 0;
-
-                //    this.ActionId++;
-                //    MachineTrace trace = new MachineTrace(this.Id.GetHashCode(), null, this.ActionId, null, eventCode);
-                //    Console.WriteLine("exit function: " + this.Id.GetHashCode() + " " + this.ActionId);
-                //    this.RuntimeTrace.Add(trace);
-                //    if (onExit == null)
-                //    {
-                //        ExitEvent = null;
-                //    }
-
-                //    else
-                //    {
-                //        this.ActionId++;
-                //        eventCode = ExitEvent.GetHashCode();
-                //        MachineTrace trace1 = new MachineTrace(this.Id.GetHashCode(), null, this.ActionId, null, eventCode);
-                //        Console.WriteLine("exit function extra: " + this.Id.GetHashCode() + " " + this.ActionId);
-                //        ExitEvent = null;
-                //        this.RuntimeTrace.Add(trace1);
-                //    }
-                //}
             }
             catch (Exception ex)
             {

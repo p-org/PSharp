@@ -342,7 +342,7 @@ namespace Microsoft.PSharp.TestingServices
         #endregion
 
         #region utility methods
-        
+
         /// <summary>
         /// Finds the entry point to the P# program.
         /// </summary>

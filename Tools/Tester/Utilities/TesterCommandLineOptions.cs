@@ -219,10 +219,6 @@ namespace Microsoft.PSharp.Utilities
             {
                 base.Configuration.DynamicEventQueuePrioritization = true;
             }
-            else if (option.ToLower().Equals("/keep-temps"))
-            {
-                base.Configuration.KeepTemporaryFiles = true;
-            }
             else
             {
                 base.ParseOption(option);

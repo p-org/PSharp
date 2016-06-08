@@ -140,7 +140,7 @@ namespace Microsoft.PSharp.Utilities
         public int DepthBound;
 
         /// <summary>
-        /// If true, the P# tester will consider an execution
+        /// If true, then the P# tester will consider an execution
         /// that hits the depth bound as buggy.
         /// </summary>
         public bool ConsiderDepthBoundHitAsBug;
@@ -179,47 +179,22 @@ namespace Microsoft.PSharp.Utilities
         public bool ScheduleIntraMachineConcurrency;
 
         /// <summary>
-        /// If true, the P# tester will perform state
+        /// If true, then the P# tester will perform state
         /// caching when checking liveness properties.
         /// </summary>
         public bool CacheProgramState;
 
         /// <summary>
-        /// If true, the P# tester will try to bound
+        /// If true, then the P# tester will try to bound
         /// the interleavings between operations.
         /// </summary>
         public bool BoundOperations;
 
         /// <summary>
-        /// If true, runtime can reorder events in machine
+        /// If true, the runtime can reorder events in machine
         /// queues dynamically, depending on priorities.
         /// </summary>
         public bool DynamicEventQueuePrioritization;
-
-        /// <summary>
-        /// If true, the P# tester will spawn a monitorable
-        /// testing process.
-        /// </summary>
-        public bool EnableMonitorableTestingProcess;
-
-        /// <summary>
-        /// If true, the temporary files will not get deleted.
-        /// </summary>
-        public bool KeepTemporaryFiles;
-
-        #endregion
-
-        #region data race detection options
-
-        /// <summary>
-        /// If true, the P# tester will check for data races.
-        /// </summary>
-        public bool CheckDataRaces;
-
-        /// <summary>
-        /// Path to store instrumentation traces for race detection.
-        /// </summary>
-        public string RaceDetectionTracesPath;
 
         #endregion
 
@@ -309,6 +284,7 @@ namespace Microsoft.PSharp.Utilities
 
             this.SchedulingStrategy = SchedulingStrategy.Random;
             this.SchedulingIterations = 1;
+            this.RandomSchedulingSeed = null;
 
             this.PerformFullExploration = false;
             this.DepthBound = 10000;
@@ -317,7 +293,6 @@ namespace Microsoft.PSharp.Utilities
             this.DelayBound = 0;
             this.CoinFlipBound = 0;
             this.SafetyPrefixBound = 0;
-            this.RandomSchedulingSeed = null;
 
             this.AttachDebugger = false;
             this.ScheduleIntraMachineConcurrency = false;
@@ -325,11 +300,8 @@ namespace Microsoft.PSharp.Utilities
             this.BoundOperations = false;
             this.DynamicEventQueuePrioritization = false;
 
-            this.CheckDataRaces = false;
-            this.RaceDetectionTracesPath = "";
-
             this.EnableVisualization = false;
-            
+
             this.ContainerId = 0;
             this.NumberOfContainers = 1;
             this.RemoteApplicationFilePath = "";

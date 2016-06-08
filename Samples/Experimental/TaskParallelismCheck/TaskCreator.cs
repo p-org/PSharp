@@ -1,6 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
 using Microsoft.PSharp;
+using Microsoft.PSharp.Threading;
 
 namespace TaskParallelismCheck
 {

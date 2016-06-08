@@ -68,7 +68,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Gets a collection containing the keys.
         /// </summary>
-        /// <returns>Types</returns>
+        /// <returns></returns>
         public IEnumerable<Type> Keys()
         {
             return this.Dictionary.Keys;
