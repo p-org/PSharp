@@ -130,6 +130,15 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
             ClassDeclarationSyntax classDecl);
 
         /// <summary>
+        /// Returns true if the given class declaration is a stategroup.
+        /// </summary>
+        /// <param name="compilation">Compilation</param>
+        /// <param name="classDecl">Class declaration</param>
+        /// <returns>Boolean</returns>
+        protected abstract bool IsStateGroup(CodeAnalysis.Compilation compilation,
+            ClassDeclarationSyntax classDecl);
+
+        /// <summary>
         /// Returns the type of the machine.
         /// </summary>
         /// <returns>Text</returns>
@@ -361,14 +370,14 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         }
 
         /// <summary>
-        /// Checks that no non-state or non-event classes are declared inside the machine.
+        /// Checks that no non-state or non-state-group or non-event classes are declared inside the machine.
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="compilation">Compilation</param>
         private void CheckForNonStateNonEventClasses(ClassDeclarationSyntax machine, CodeAnalysis.Compilation compilation)
         {
             var classIdentifiers = machine.DescendantNodes().OfType<ClassDeclarationSyntax>().
-                Where(val => !this.IsState(compilation, val) && !Querying.IsEventDeclaration(compilation, val)).
+                Where(val => !this.IsState(compilation, val) && !this.IsStateGroup(compilation, val) && !Querying.IsEventDeclaration(compilation, val)).
                 Select(val => val.Identifier).
                 ToList();
 
