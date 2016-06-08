@@ -1266,19 +1266,7 @@ namespace Microsoft.PSharp
                     BindingFlags.NonPublic | BindingFlags.Public |
                     BindingFlags.DeclaredOnly))
                 {
-                    if (s.IsClass && s.IsSubclassOf(typeof(MachineState)))
-                    {
-                        if (s.IsDefined(typeof(Start), false))
-                        {
-                            this.Assert(initialStateType == null, $"Machine '{base.Id.Name}' " +
-                                "can not have more than one start states.");
-                            initialStateType = s;
-                        }
-
-                        this.Assert(s.BaseType == typeof(MachineState), $"State '{s.Name}' " +
-                            "is not of the correct type.");
-                        this.StateTypes.Add(s);
-                    }
+                    ProcessType(s, ref initialStateType);
                 }
 
                 machineType = machineType.BaseType;
@@ -1296,6 +1284,35 @@ namespace Microsoft.PSharp
             this.StateStack.Push(initialState);
 
             this.AssertStateValidity();
+        }
+
+        /// <summary>
+        /// Process a type, looking for a machine state
+        /// </summary>
+        private void ProcessType(Type s, ref Type initialStateType)
+        {
+            if (s.IsClass && s.IsSubclassOf(typeof(MachineState)))
+            {
+                if (s.IsDefined(typeof(Start), false))
+                {
+                    this.Assert(initialStateType == null, $"Machine '{base.Id.Name}' " +
+                        "can not have more than one start states.");
+                    initialStateType = s;
+                }
+
+                this.Assert(s.BaseType == typeof(MachineState), $"State '{s.Name}' " +
+                    "is not of the correct type.");
+                this.StateTypes.Add(s);
+            }
+
+            // If this is a group, recursively walk into it
+            if (s.IsClass && s.IsSubclassOf(typeof(StateGroup)))
+            {
+                foreach (var t in s.GetNestedTypes(BindingFlags.Instance |
+                    BindingFlags.NonPublic | BindingFlags.Public |
+                    BindingFlags.DeclaredOnly))
+                    ProcessType(t, ref initialStateType);
+            }
         }
 
         /// <summary>
