@@ -112,7 +112,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'VsixCustomTool|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\VsixCustomTool\</OutputPath>
+    <OutputPath>..\..\Binaries\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>1</WarningLevel>
     <DebugType>full</DebugType>
