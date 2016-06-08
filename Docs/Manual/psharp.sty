@@ -1,0 +1,83 @@
+% psharp.sty
+% P# mode for the LaTeX listings package.
+% Rustan Leino, 30 May 2008.
+% Example:
+% \begin{psharp}
+% type Field \alpha;
+% var Heap: <<\alpha>>[ref, Field \alpha]\alpha where IsHeap(Heap);
+% function IsHeap(<<\alpha>>[ref, Field \alpha]\alpha) returns (bool);
+% procedure Inc(x: int) returns (y: int)
+%   modifies Heap;
+% {
+%   havoc Heap;
+%   if (0 <= x && x < 100) {
+%     y := x + 1;
+%   }
+% }
+% \end{psharp}
+
+\usepackage{listings}
+
+\lstdefinelanguage{psharp}{
+  sensitive=true,
+  showspaces=false,
+  showtabs=false,
+  breaklines=true,
+  showstringspaces=false,
+  breakatwhitespace=true,
+  escapeinside={(*@}{@*)},
+  commentstyle=\color{OliveGreen},
+  keywordstyle=\color{NavyBlue}\bfseries,
+  stringstyle=\color{RawSienna},
+  basicstyle=\ttfamily\footnotesize,
+  columns=fullflexible,
+  moredelim=**[is][\color{Maroon}\bfseries]{@}{@},
+  morecomment=[l]{//},
+  morekeywords={namespace,class,struct,
+    using,
+    event,machine,state,
+    start,%hot,cold,
+    entry,exit,
+    on,goto,push,do,with,
+    ignore,defer,
+    % types
+    object,void,int,bool,real,float,double,decimal,string,
+    % modifiers
+    private,public,protected,internal,
+    abstract,virtual,override,
+    static,readonly,
+    % expressions
+    this,payload,false,true,null,
+    typeof,nameof,
+    % special events
+    halt, default,
+    % statements
+    create,raise,send,monitor,%assert,
+    new,
+    if,else,while,break,return
+  }
+}
+
+\lstnewenvironment{psharp}[1][]{
+  \lstset{language=psharp,
+    floatplacement={tbp},
+    numbers=left,
+    numberstyle=\footnotesize,
+    numbersep=6pt,
+    captionpos=b,
+    xleftmargin=26pt,
+    xrightmargin=26pt,
+    basicstyle=\footnotesize\tt,#1
+  }
+}{}
+
+\lstnewenvironment{psharpNoLines}[1][]{
+  \lstset{language=psharp,
+    floatplacement={tbp},
+    captionpos=b,
+    numbers=none,
+    xleftmargin=10pt,
+    xrightmargin=10pt,
+    basicstyle=\footnotesize\tt,#1
+  }
+}{}

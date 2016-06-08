@@ -1,0 +1,406 @@
+﻿//-----------------------------------------------------------------------
+// <copyright file="Configuration.cs">
+//      Copyright (c) Microsoft Corporation. All rights reserved.
+// 
+//      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+//      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+//      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+//      IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+//      CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+//      TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// </copyright>
+//-----------------------------------------------------------------------
+
+using System;
+using System.Collections.Generic;
+
+namespace Microsoft.PSharp.Utilities
+{
+    /// <summary>
+    /// The P# project configurations.
+    /// </summary>
+    public class Configuration
+    {
+        #region core options
+
+        /// <summary>
+        /// The path to the solution file.
+        /// </summary>
+        public string SolutionFilePath;
+
+        /// <summary>
+        /// The output path.
+        /// </summary>
+        public string OutputFilePath;
+
+        /// <summary>
+        /// The name of the project to analyze.
+        /// </summary>
+        public string ProjectName;
+
+        /// <summary>
+        /// Verbosity level.
+        /// </summary>
+        public int Verbose;
+
+        /// <summary>
+        /// Timeout.
+        /// </summary>
+        public int Timeout;
+
+        /// <summary>
+        /// Pause on assertion failure.
+        /// </summary>
+        internal bool PauseOnAssertionFailure;
+
+        /// <summary>
+        /// True if interoperation is enabled.
+        /// </summary>
+        public bool InteroperationEnabled;
+
+        #endregion
+
+        #region language service options
+
+        /// <summary>
+        /// Requested compilation targets.
+        /// </summary>
+        public HashSet<CompilationTarget> CompilationTargets;
+
+        /// <summary>
+        /// Runs the analysis stage of the compiler.
+        /// </summary>
+        public bool RunStaticAnalysis;
+
+        /// <summary>
+        /// Reports the control-flow information.
+        /// </summary>
+        public bool ShowControlFlowInformation;
+
+        /// <summary>
+        /// Reports the data-flow information.
+        /// </summary>
+        public bool ShowDataFlowInformation;
+
+        /// <summary>
+        /// Reports the full data-flow information.
+        /// </summary>
+        public bool ShowFullDataFlowInformation;
+
+        /// <summary>
+        /// Reports the runtime results for the static analysis.
+        /// </summary>
+        public bool TimeStaticAnalysis;
+
+        /// <summary>
+        /// Perform the state transition analysis.
+        /// </summary>
+        public bool DoStateTransitionAnalysis;
+
+        #endregion
+
+        #region bug finding options
+
+        /// <summary>
+        /// The assembly to be analyzed for bugs.
+        /// </summary>
+        public string AssemblyToBeAnalyzed;
+
+        /// <summary>
+        /// The trace file to be replayed.
+        /// </summary>
+        public string TraceFile;
+
+        /// <summary>
+        /// Scheduling strategy to use with the P# tester.
+        /// </summary>
+        public SchedulingStrategy SchedulingStrategy;
+
+        /// <summary>
+        /// Number of scheduling iterations.
+        /// </summary>
+        public int SchedulingIterations;
+
+        /// <summary>
+        /// Seed for random scheduling strategies.
+        /// </summary>
+        internal int? RandomSchedulingSeed;
+
+        /// <summary>
+        /// If true, the P# tester performs a full exploration,
+        /// and does not stop when it finds a bug.
+        /// </summary>
+        public bool PerformFullExploration;
+
+        /// <summary>
+        /// Depth bound, in terms of maximum scheduling steps
+        /// to explore. By default it is 10000.
+        /// </summary>
+        public int DepthBound;
+
+        /// <summary>
+        /// If true, the P# tester will consider an execution
+        /// that hits the depth bound as buggy.
+        /// </summary>
+        public bool ConsiderDepthBoundHitAsBug;
+
+        /// <summary>
+        /// The priority switch bound. By default it is 2.
+        /// Used by priority-based schedulers.
+        /// </summary>
+        public int PrioritySwitchBound;
+
+        /// <summary>
+        /// Delay bound. By default it is 2.
+        /// Used by delay-bounding schedulers.
+        /// </summary>
+        public int DelayBound;
+
+        /// <summary>
+        /// Coin-flip bound. By default it is 2.
+        /// </summary>
+        public int CoinFlipBound;
+
+        /// <summary>
+        /// Safety prefix bound. By default it is 0.
+        /// </summary>
+        public int SafetyPrefixBound;
+
+        /// <summary>
+        /// Attaches the debugger during trace replay.
+        /// </summary>
+        public bool AttachDebugger;
+
+        /// <summary>
+        /// If true, then the P# tester will try to schedule
+        /// any intra-machine concurrency.
+        /// </summary>
+        public bool ScheduleIntraMachineConcurrency;
+
+        /// <summary>
+        /// If true, the P# tester will perform state
+        /// caching when checking liveness properties.
+        /// </summary>
+        public bool CacheProgramState;
+
+        /// <summary>
+        /// If true, the P# tester will try to bound
+        /// the interleavings between operations.
+        /// </summary>
+        public bool BoundOperations;
+
+        /// <summary>
+        /// If true, runtime can reorder events in machine
+        /// queues dynamically, depending on priorities.
+        /// </summary>
+        public bool DynamicEventQueuePrioritization;
+
+        /// <summary>
+        /// If true, the P# tester will spawn a monitorable
+        /// testing process.
+        /// </summary>
+        public bool EnableMonitorableTestingProcess;
+
+        /// <summary>
+        /// If true, the temporary files will not get deleted.
+        /// </summary>
+        public bool KeepTemporaryFiles;
+
+        #endregion
+
+        #region data race detection options
+
+        /// <summary>
+        /// If true, the P# tester will check for data races.
+        /// </summary>
+        public bool CheckDataRaces;
+
+        /// <summary>
+        /// Path to store instrumentation traces for race detection.
+        /// </summary>
+        public string RaceDetectionTracesPath;
+
+        #endregion
+
+        #region visualization options
+
+        /// <summary>
+        /// Enables visualization of a P# program.
+        /// </summary>
+        public bool EnableVisualization;
+
+        #endregion
+
+        #region remote manager options
+
+        /// <summary>
+        /// The unique container id.
+        /// </summary>
+        public int ContainerId;
+
+        /// <summary>
+        /// Number of containers.
+        /// </summary>
+        public int NumberOfContainers;
+
+        /// <summary>
+        /// The path to the P# application to run remotely.
+        /// </summary>
+        public string RemoteApplicationFilePath;
+
+        #endregion
+
+        #region debugging options
+
+        /// <summary>
+        /// Redirects the testing console output.
+        /// </summary>
+        public bool RedirectTestConsoleOutput;
+
+        /// <summary>
+        /// If true, then the P# tester will print the trace
+        /// to a file, even if a bug is not found.
+        /// </summary>
+        public bool PrintTrace;
+
+        /// <summary>
+        /// If true, then the P# tester will not output the
+        /// error trace to a file.
+        /// </summary>
+        public bool SuppressTrace;
+
+        /// <summary>
+        /// If true, then P# will throw any internal exceptions.
+        /// </summary>
+        public bool ThrowInternalExceptions;
+
+        #endregion
+
+        #region constructor
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        protected Configuration()
+        {
+            this.SolutionFilePath = "";
+            this.OutputFilePath = "";
+            this.ProjectName = "";
+
+            this.Verbose = 1;
+            this.Timeout = 0;
+
+            this.PauseOnAssertionFailure = false;
+            this.InteroperationEnabled = true;
+
+            this.CompilationTargets = new HashSet<CompilationTarget>();
+            this.CompilationTargets.Add(CompilationTarget.Execution);
+            
+            this.RunStaticAnalysis = false;
+            this.ShowControlFlowInformation = false;
+            this.ShowDataFlowInformation = false;
+            this.ShowFullDataFlowInformation = false;
+            this.TimeStaticAnalysis = false;
+            this.DoStateTransitionAnalysis = false;
+
+            this.AssemblyToBeAnalyzed = "";
+            this.TraceFile = "";
+
+            this.SchedulingStrategy = SchedulingStrategy.Random;
+            this.SchedulingIterations = 1;
+
+            this.PerformFullExploration = false;
+            this.DepthBound = 10000;
+            this.ConsiderDepthBoundHitAsBug = false;
+            this.PrioritySwitchBound = 0;
+            this.DelayBound = 0;
+            this.CoinFlipBound = 0;
+            this.SafetyPrefixBound = 0;
+            this.RandomSchedulingSeed = null;
+
+            this.AttachDebugger = false;
+            this.ScheduleIntraMachineConcurrency = false;
+            this.CacheProgramState = false;
+            this.BoundOperations = false;
+            this.DynamicEventQueuePrioritization = false;
+
+            this.CheckDataRaces = false;
+            this.RaceDetectionTracesPath = "";
+
+            this.EnableVisualization = false;
+            
+            this.ContainerId = 0;
+            this.NumberOfContainers = 1;
+            this.RemoteApplicationFilePath = "";
+
+            this.RedirectTestConsoleOutput = true;
+            this.PrintTrace = false;
+            this.SuppressTrace = false;
+            this.ThrowInternalExceptions = false;
+        }
+
+        #endregion
+
+        #region methods
+
+        /// <summary>
+        /// Creates a new configuration.
+        /// </summary>
+        /// <returns>Configuration</returns>
+        public static Configuration Create()
+        {
+            return new Configuration();
+        }
+
+        /// <summary>
+        /// Updates the configuration with verbose output enabled
+        /// and returns it.
+        /// </summary>
+        /// <param name="level">Verbosity level</param>
+        /// <returns>Configuration</returns>
+        public Configuration WithVerbosityEnabled(int level)
+        {
+            this.Verbose = level;
+            return this;
+        }
+
+        /// <summary>
+        /// Updates the configuration with debugging information enabled
+        /// or disabled and returns it.
+        /// </summary>
+        /// <param name="isEnabled">Is debugging enabled</param>
+        /// <returns>Configuration</returns>
+        public Configuration WithDebuggingEnabled(bool isEnabled = true)
+        {
+            IO.Debugging = isEnabled;
+            return this;
+        }
+
+        /// <summary>
+        /// Updates the configuration with the scheduling strategy
+        /// and returns it.
+        /// </summary>
+        /// <param name="strategy">SchedulingStrategy</param>
+        /// <returns>Configuration</returns>
+        public Configuration WithStrategy(SchedulingStrategy strategy)
+        {
+            this.SchedulingStrategy = strategy;
+            return this;
+        }
+
+        /// <summary>
+        /// Updates the configuration with the number of iterations
+        /// and returns it.
+        /// </summary>
+        /// <param name="iterations">Number of iterations</param>
+        /// <returns>Configuration</returns>
+        public Configuration WithNumberOfIterations(int iterations)
+        {
+            this.SchedulingIterations = iterations;
+            return this;
+        }
+
+        #endregion
+    }
+}

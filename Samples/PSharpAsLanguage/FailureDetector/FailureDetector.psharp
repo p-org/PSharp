@@ -1,0 +1,149 @@
+﻿using System.Collections.Generic;
+
+namespace FailureDetector
+{
+    machine FailureDetector
+    {
+	    List<machine> Nodes;
+		Dictionary<machine, bool> Clients;
+		int Attempts;
+		Dictionary<machine, bool> Alive;
+		Dictionary<machine, bool> Responses;
+        machine Timer;
+
+		start state Init
+        {
+			entry
+			{
+				this.Nodes = new List<machine>();
+				this.Clients = new Dictionary<machine, bool>();
+				this.Alive = new Dictionary<machine, bool>();
+				this.Responses = new Dictionary<machine, bool>();
+                this.Nodes = (trigger as FailureDetectorConfig).nodes;
+
+				this.InitializeAliveSet();
+
+				this.Timer = create(Timer);
+				send(this.Timer, TimerConfig, this);
+
+                raise(Unit);
+			}
+
+			on RegisterClient do
+			{
+			    this.Clients[(trigger as RegisterClient).client] = true;
+			};
+
+			on UnregisterClient do
+			{
+			    if (this.Clients.ContainsKey((trigger as UnregisterClient).client))
+				{
+				    this.Clients.Remove((trigger as UnregisterClient).client);
+				}
+			};
+
+            on Unit push SendPing;
+        }
+
+		state SendPing
+		{
+		    entry
+			{
+			    this.SendPings();
+				send(this.Timer, Start, 100);
+			}
+
+			on Pong do
+			{
+			    if (this.Alive.ContainsKey((trigger as Pong).node))
+				{
+				    this.Responses[(trigger as Pong).node] = true;
+					if (this.Responses.Count == this.Alive.Count)
+					{
+					    send(this.Timer, Cancel);
+						raise(TimerCancelled);
+					}
+				}
+			};
+
+			on TimerCancelled push WaitForCancelResponse;
+
+			on Timeout do
+			{
+			    this.Attempts++;
+				if (this.Responses.Count < this.Alive.Count && this.Attempts < 2)
+				{
+				    raise(Unit);
+				}
+				else
+				{
+				    this.CheckAliveSet();
+					raise(RoundDone);
+				}
+			};
+
+			on Unit goto SendPing;
+			on RoundDone goto Reset;
+		}
+
+		state WaitForCancelResponse
+		{
+		    defer Timeout, Pong;
+
+			on CancelSuccess do
+			{
+			    raise(RoundDone);
+			};
+
+			on CancelFailure do
+			{
+			    pop;
+			};
+		}
+
+		state Reset
+		{
+		    entry
+			{
+			    this.Attempts = 0;
+				this.Responses.Clear();
+				send(this.Timer, Start, 1000);
+			}
+
+			on Timeout goto SendPing;
+
+			ignore Pong;
+		}
+
+		void InitializeAliveSet()
+		{
+			foreach (var node in this.Nodes)
+			{
+			    this.Alive.Add(node, true);
+			}
+		}
+
+		void SendPings()
+		{
+			foreach (var node in this.Nodes)
+			{
+			    if (this.Alive.ContainsKey(node) && !this.Responses.ContainsKey(node))
+				{
+				    monitor<Safety>(MPing, node);
+					send(node, Ping, this);
+				}
+			}
+		}
+
+		void CheckAliveSet()
+		{
+		    foreach (var node in this.Nodes)
+			{
+			    if (this.Alive.ContainsKey(node) && !this.Responses.ContainsKey(node))
+				{
+				    this.Alive.Remove(node);
+				}
+			}
+		}
+    }
+}

@@ -18,7 +18,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\Binaries\Debug\</OutputPath>
+    <OutputPath>..\Binaries\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -27,7 +27,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\Binaries\Release\</OutputPath>
+    <OutputPath>..\Binaries\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -37,13 +37,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.PSharp">
-      <HintPath>..\..\..\Binaries\Release\Microsoft.PSharp.dll</HintPath>
+      <HintPath>..\..\..\Binaries\Microsoft.PSharp.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.PSharp.Interop">
-      <HintPath>..\..\..\Binaries\Release\Microsoft.PSharp.Interop.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.PSharp.SystematicTesting">
-      <HintPath>..\..\..\Binaries\Release\Microsoft.PSharp.SystematicTesting.dll</HintPath>
+    <Reference Include="Microsoft.PSharp.TestingServices">
+      <HintPath>..\..\..\Binaries\Microsoft.PSharp.TestingServices.dll</HintPath>
     </Reference>
     <Reference Include="System" />
   </ItemGroup>

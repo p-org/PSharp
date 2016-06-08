@@ -1,0 +1,85 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ReplicatingStorage
+{
+    monitor LivenessMonitor
+    {
+		Dictionary<int, int> DataMap;
+        int NumberOfReplicas;
+
+		start state Init
+		{
+			entry
+			{
+				this.DataMap = new Dictionary<int, int>();
+			}
+
+			on LConfigureEvent do Configure;
+			on LocalEvent goto Repaired;
+		}
+
+		void Configure()
+        {
+            this.NumberOfReplicas = (trigger as LConfigureEvent).NumberOfReplicas;
+            raise(LocalEvent);
+        }
+		
+		state Repaired 
+		{
+			on NotifyNodeCreated do ProcessNodeCreated;
+			on NotifyNodeFail do FailAndCheckRepair;
+			on NotifyNodeUpdate do ProcessNodeUpdate;
+			on LocalEvent goto Repairing;
+		}
+
+		void ProcessNodeCreated()
+        {
+            var nodeId = (trigger as NotifyNodeCreated).NodeId;
+            this.DataMap.Add(nodeId, 0);
+        }
+
+        void FailAndCheckRepair()
+        {
+            this.ProcessNodeFail();
+            raise(LocalEvent);
+        }
+
+        void ProcessNodeUpdate()
+        {
+            var nodeId = (trigger as NotifyNodeUpdate).NodeId;
+            var data = (trigger as NotifyNodeUpdate).Data;
+            this.DataMap[nodeId] = data;
+        }
+
+		state Repairing
+		{
+			on NotifyNodeCreated do ProcessNodeCreated;
+			on NotifyNodeFail do ProcessNodeFail;
+			on NotifyNodeUpdate do CheckIfRepaired;
+			on LocalEvent goto Repaired;
+		}
+
+		void ProcessNodeFail()
+        {
+            var nodeId = (trigger as NotifyNodeFail).NodeId;
+            this.DataMap.Remove(nodeId);
+        }
+
+        void CheckIfRepaired()
+        {
+            this.ProcessNodeUpdate();
+            var consensus = this.DataMap.Select(kvp => kvp.Value).GroupBy(v => v).
+                OrderByDescending(v => v.Count()).FirstOrDefault();
+
+            var numOfReplicas = consensus.Count();
+            if (numOfReplicas >= this.NumberOfReplicas)
+            {
+                raise(LocalEvent);
+            }
+        }
+    }
+}
