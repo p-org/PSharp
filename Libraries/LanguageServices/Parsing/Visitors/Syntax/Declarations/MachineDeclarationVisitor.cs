@@ -65,7 +65,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 });
             }
 
-            base.TokenStream.CurrentMachine = base.TokenStream.Peek().Text;
             base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit,
                 TokenType.MachineIdentifier));
 
@@ -242,7 +241,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit,
                             TokenType.MachineRightCurlyBracket));
                         node.RightCurlyBracketToken = base.TokenStream.Peek();
-                        base.TokenStream.CurrentMachine = "";
                         fixpoint = true;
                         break;
 
@@ -502,7 +500,71 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         new List<TokenType>());
                 }
 
-                new StateDeclarationVisitor(base.TokenStream).Visit(parentNode, isStart, isHot, isCold, am);
+                new StateDeclarationVisitor(base.TokenStream).Visit(parentNode, null, isStart, isHot, isCold, am);
+            }
+            else if (base.TokenStream.Peek().Type == TokenType.StateGroupDecl)
+            {
+                if (am == AccessModifier.Public)
+                {
+                    throw new ParsingException("A state group cannot be public.",
+                        new List<TokenType>());
+                }
+                else if (am == AccessModifier.Internal)
+                {
+                    throw new ParsingException("A state group cannot be internal.",
+                        new List<TokenType>());
+                }
+
+                if (im == InheritanceModifier.Abstract)
+                {
+                    throw new ParsingException("A state group cannot be abstract.",
+                        new List<TokenType>());
+                }
+                else if (im == InheritanceModifier.Virtual)
+                {
+                    throw new ParsingException("A state group cannot be virtual.",
+                        new List<TokenType>());
+                }
+                else if (im == InheritanceModifier.Override)
+                {
+                    throw new ParsingException("A state group cannot be overriden.",
+                        new List<TokenType>());
+                }
+
+                if (isAsync)
+                {
+                    throw new ParsingException("A state group cannot be async.",
+                        new List<TokenType>());
+                }
+
+                if (isPartial)
+                {
+                    throw new ParsingException("A state group cannot be partial.",
+                        new List<TokenType>());
+                }
+
+
+                if (isHot)
+                {
+                    throw new ParsingException("A state group cannot be hot.",
+                        new List<TokenType>());
+                }
+
+
+                if (isCold)
+                {
+                    throw new ParsingException("A state group cannot be cold.",
+                        new List<TokenType>());
+                }
+
+
+                if (isStart)
+                {
+                    throw new ParsingException("A state group cannot be marked start.",
+                        new List<TokenType>());
+                }
+
+                new StateGroupDeclarationVisitor(base.TokenStream).Visit(parentNode, null, am);
             }
             else
             {

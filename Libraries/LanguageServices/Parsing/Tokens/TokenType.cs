@@ -129,6 +129,16 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         StateRightCurlyBracket,
 
         /// <summary>
+        /// State group left curly bracket token.
+        /// </summary>
+        StateGroupLeftCurlyBracket,
+
+        /// <summary>
+        /// State group right curly bracket token.
+        /// </summary>
+        StateGroupRightCurlyBracket,
+
+        /// <summary>
         /// Semicolon token.
         /// </summary>
         Semicolon,
@@ -553,6 +563,11 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         /// State identifier token.
         /// </summary>
         StateIdentifier,
+
+        /// <summary>
+        /// State group identifier token.
+        /// </summary>
+        StateGroupIdentifier,
 
         /// <summary>
         /// Action identifier token.

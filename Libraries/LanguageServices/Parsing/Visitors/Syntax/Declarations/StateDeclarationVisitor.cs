@@ -64,7 +64,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 });
             }
 
-            base.TokenStream.CurrentState = base.TokenStream.Peek().Text;
             base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit,
                 TokenType.StateIdentifier));
 
@@ -260,7 +259,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit,
                             TokenType.StateRightCurlyBracket));
                         node.RightCurlyBracketToken = base.TokenStream.Peek();
-                        base.TokenStream.CurrentState = "";
                         fixpoint = true;
                         break;
 
