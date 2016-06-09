@@ -64,12 +64,16 @@ You can attach the Visual Studio debugger on this buggy execution, to get the fa
 
 To see various available command line options for the P# tools use the option `/?`.
 
+## How to contribute
+
+We welcome contributions to the P# project! Before you start contributing, though, please read carefully the development guidelines.
+
 ## Contact us
 
 If you would like to use P# in your project, or have any specific questions, please feel free to contact one of the following members of the P# team:
-- Pantazis Deligiannis (p.deligiannis@imperial.ac.uk)
+- Pantazis Deligiannis (p.deligiannis@imperial.ac.uk) [Maintainer]
+- Akash Lal (akashl@microsoft.com) [Maintainer]
 - Shaz Qadeer (qadeer@microsoft.com)
-- Akash Lal (akashl@microsoft.com)
 - Cheng Huang (cheng.huang@microsoft.com)
 
 ## Publications
