@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="TraceStep.cs">
+// <copyright file="ScheduleStep.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,154 +12,158 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-namespace Microsoft.PSharp.TestingServices.Exploration
+namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
 {
     /// <summary>
-    /// Class implementing a P# program trace step.
+    /// Class implementing a P# program schedule step.
     /// </summary>
-    internal sealed class TraceStep
+    internal sealed class ScheduleStep
     {
         #region fields
 
         /// <summary>
-        /// The unique index of this trace step.
+        /// The unique index of this schedule step.
         /// </summary>
         internal int Index;
 
         /// <summary>
-        /// The type of this trace step.
+        /// The type of this schedule step.
         /// </summary>
-        internal TraceStepType Type { get; private set; }
+        internal ScheduleStepType Type { get; private set; }
 
         /// <summary>
         /// The scheduled machine. Only relevant if this is
-        /// a scheduling trace step.
+        /// a regular schedule step.
         /// </summary>
         internal AbstractMachine ScheduledMachine;
 
         /// <summary>
         /// The scheduled machine type. Only relevant if this is
-        /// a scheduling trace step.
+        /// a regular schedule step.
         /// </summary>
         internal string ScheduledMachineType;
 
         /// <summary>
         /// The scheduled machine id. Only relevant if this is
-        /// a scheduling trace step.
+        /// a regular schedule step.
         /// </summary>
         internal int ScheduledMachineId;
 
         /// <summary>
         /// The non-deterministic choice id. Only relevant if
-        /// this is a choice trace step.
+        /// this is a choice schedule step.
         /// </summary>
         internal string NondetId;
 
         /// <summary>
         /// The non-deterministic choice value. Only relevant if
-        /// this is a choice trace step.
+        /// this is a choice schedule step.
         /// </summary>
         internal bool Choice;
 
         /// <summary>
-        /// Previous trace step.
+        /// Previous schedule step.
         /// </summary>
-        internal TraceStep Previous;
+        internal ScheduleStep Previous;
 
         /// <summary>
-        /// Next trace step.
+        /// Next schedule step.
         /// </summary>
-        internal TraceStep Next;
+        internal ScheduleStep Next;
 
         #endregion
 
-        #region internal API
+        #region internal methods
 
         /// <summary>
-        /// Creates a scheduling choice trace step.
+        /// Creates a schedule step.
         /// </summary>
         /// <param name="index">Index</param>
         /// <param name="scheduledMachine">Scheduled machine</param>
-        /// <returns>TraceStep</returns>
-        internal static TraceStep CreateSchedulingChoice(int index, AbstractMachine scheduledMachine)
+        /// <returns>ScheduleStep</returns>
+        internal static ScheduleStep CreateSchedulingChoice(int index, AbstractMachine scheduledMachine)
         {
-            var traceStep = new TraceStep();
+            var scheduleStep = new ScheduleStep();
 
-            traceStep.Index = index;
-            traceStep.Type = TraceStepType.SchedulingChoice;
-            traceStep.ScheduledMachine = scheduledMachine;
-            traceStep.ScheduledMachineType = scheduledMachine.Id.Type.ToString();
-            traceStep.ScheduledMachineId = scheduledMachine.Id.Value;
+            scheduleStep.Index = index;
+            scheduleStep.Type = ScheduleStepType.SchedulingChoice;
 
-            traceStep.Previous = null;
-            traceStep.Next = null;
+            scheduleStep.ScheduledMachine = scheduledMachine;
+            scheduleStep.ScheduledMachineType = scheduledMachine.Id.Type.ToString();
+            scheduleStep.ScheduledMachineId = scheduledMachine.Id.Value;
 
-            return traceStep;
+            scheduleStep.Previous = null;
+            scheduleStep.Next = null;
+
+            return scheduleStep;
         }
 
         /// <summary>
-        /// Creates a scheduling choice trace step.
+        /// Creates a schedule step.
         /// </summary>
         /// <param name="index">Index</param>
         /// <param name="scheduledMachineType">Scheduled machine type</param>
         /// <param name="scheduledMachineId">Scheduled machine id</param>
-        /// <returns>TraceStep</returns>
-        internal static TraceStep CreateSchedulingChoice(int index, string scheduledMachineType,
+        /// <returns>ScheduleStep</returns>
+        internal static ScheduleStep CreateSchedulingChoice(int index, string scheduledMachineType,
             int scheduledMachineId)
         {
-            var traceStep = new TraceStep();
+            var scheduleStep = new ScheduleStep();
 
-            traceStep.Index = index;
-            traceStep.Type = TraceStepType.SchedulingChoice;
-            traceStep.ScheduledMachineType = scheduledMachineType;
-            traceStep.ScheduledMachineId = scheduledMachineId;
+            scheduleStep.Index = index;
+            scheduleStep.Type = ScheduleStepType.SchedulingChoice;
 
-            traceStep.Previous = null;
-            traceStep.Next = null;
+            scheduleStep.ScheduledMachineType = scheduledMachineType;
+            scheduleStep.ScheduledMachineId = scheduledMachineId;
 
-            return traceStep;
+            scheduleStep.Previous = null;
+            scheduleStep.Next = null;
+
+            return scheduleStep;
         }
 
         /// <summary>
-        /// Creates a nondeterministic choice trace step.
+        /// Creates a nondeterministic choice schedule step.
         /// </summary>
         /// <param name="index">Index</param>
         /// <param name="choice">Choice</param>
-        /// <returns>TraceStep</returns>
-        internal static TraceStep CreateNondeterministicChoice(int index, bool choice)
+        /// <returns>ScheduleStep</returns>
+        internal static ScheduleStep CreateNondeterministicChoice(int index, bool choice)
         {
-            var traceStep = new TraceStep();
+            var scheduleStep = new ScheduleStep();
 
-            traceStep.Index = index;
-            traceStep.Type = TraceStepType.NondeterministicChoice;
-            traceStep.Choice = choice;
+            scheduleStep.Index = index;
+            scheduleStep.Type = ScheduleStepType.NondeterministicChoice;
 
-            traceStep.Previous = null;
-            traceStep.Next = null;
+            scheduleStep.Choice = choice;
 
-            return traceStep;
+            scheduleStep.Previous = null;
+            scheduleStep.Next = null;
+
+            return scheduleStep;
         }
 
         /// <summary>
-        /// Creates a fair nondeterministic choice trace step.
+        /// Creates a fair nondeterministic choice schedule step.
         /// </summary>
         /// <param name="index">Index</param>
         /// <param name="uniqueId">Unique id</param>
         /// <param name="choice">Choice</param>
-        /// <returns>TraceStep</returns>
-        internal static TraceStep CreateFairNondeterministicChoice(int index, string uniqueId, bool choice)
+        /// <returns>ScheduleStep</returns>
+        internal static ScheduleStep CreateFairNondeterministicChoice(int index, string uniqueId, bool choice)
         {
-            var traceStep = new TraceStep();
+            var scheduleStep = new ScheduleStep();
 
-            traceStep.Index = index;
-            traceStep.Type = TraceStepType.FairNondeterministicChoice;
-            traceStep.NondetId = uniqueId;
-            traceStep.Choice = choice;
+            scheduleStep.Index = index;
+            scheduleStep.Type = ScheduleStepType.FairNondeterministicChoice;
 
-            traceStep.Previous = null;
-            traceStep.Next = null;
+            scheduleStep.NondetId = uniqueId;
+            scheduleStep.Choice = choice;
 
-            return traceStep;
+            scheduleStep.Previous = null;
+            scheduleStep.Next = null;
+
+            return scheduleStep;
         }
 
         #endregion
@@ -179,13 +183,13 @@ namespace Microsoft.PSharp.TestingServices.Exploration
                 return false;
             }
 
-            TraceStep mid = obj as TraceStep;
-            if (mid == null)
+            ScheduleStep step = obj as ScheduleStep;
+            if (step == null)
             {
                 return false;
             }
 
-            return this.Index == mid.Index;
+            return this.Index == step.Index;
         }
 
         /// <summary>

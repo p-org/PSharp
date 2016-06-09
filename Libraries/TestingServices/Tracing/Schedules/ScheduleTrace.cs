@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="Trace.cs">
+// <copyright file="ScheduleTrace.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,28 +12,27 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 
-namespace Microsoft.PSharp.TestingServices.Exploration
+namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
 {
     /// <summary>
-    /// Class implementing a P# program trace. A trace is a series of
-    /// transitions from some initial state to some end state.
+    /// Class implementing a P# program schedule trace.
+    /// A trace is a series of transitions from some
+    /// initial state to some end state.
     /// </summary>
-    internal sealed class Trace : IEnumerable, IEnumerable<TraceStep>
+    internal sealed class ScheduleTrace : IEnumerable, IEnumerable<ScheduleStep>
     {
         #region fields
 
         /// <summary>
-        /// The steps of the trace.
+        /// The steps of the schedule trace.
         /// </summary>
-        private List<TraceStep> Steps;
+        private List<ScheduleStep> Steps;
 
         /// <summary>
-        /// The number of steps in the trace.
+        /// The number of steps in the schedule trace.
         /// </summary>
         internal int Count
         {
@@ -41,11 +40,11 @@ namespace Microsoft.PSharp.TestingServices.Exploration
         }
 
         /// <summary>
-        /// Index for the trace.
+        /// Index for the schedule trace.
         /// </summary>
         /// <param name="index">Index</param>
-        /// <returns>TraceStep</returns>
-        internal TraceStep this[int index]
+        /// <returns>ScheduleStep</returns>
+        internal ScheduleStep this[int index]
         {
             get { return this.Steps[index]; }
             set { this.Steps[index] = value; }
@@ -58,14 +57,18 @@ namespace Microsoft.PSharp.TestingServices.Exploration
         /// <summary>
         /// Constructor.
         /// </summary>
-        internal Trace()
+        internal ScheduleTrace()
         {
-            this.Steps = new List<TraceStep>();
+            this.Steps = new List<ScheduleStep>();
         }
 
-        internal Trace(string[] traceDump)
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="traceDump">Trace</param>
+        internal ScheduleTrace(string[] traceDump)
         {
-            this.Steps = new List<TraceStep>();
+            this.Steps = new List<ScheduleStep>();
 
             foreach (var step in traceDump)
             {
@@ -91,8 +94,8 @@ namespace Microsoft.PSharp.TestingServices.Exploration
         /// <param name="scheduledMachine">Scheduled machine</param>
         internal void AddSchedulingChoice(AbstractMachine scheduledMachine)
         {
-            var traceStep = TraceStep.CreateSchedulingChoice(this.Count, scheduledMachine);
-            this.Push(traceStep);
+            var scheduleStep = ScheduleStep.CreateSchedulingChoice(this.Count, scheduledMachine);
+            this.Push(scheduleStep);
         }
 
         /// <summary>
@@ -102,9 +105,9 @@ namespace Microsoft.PSharp.TestingServices.Exploration
         /// <param name="scheduledMachineId">Scheduled machine id</param>
         internal void AddSchedulingChoice(string scheduledMachineType, int scheduledMachineId)
         {
-            var traceStep = TraceStep.CreateSchedulingChoice(this.Count,
+            var scheduleStep = ScheduleStep.CreateSchedulingChoice(this.Count,
                 scheduledMachineType, scheduledMachineId);
-            this.Push(traceStep);
+            this.Push(scheduleStep);
         }
 
         /// <summary>
@@ -113,8 +116,8 @@ namespace Microsoft.PSharp.TestingServices.Exploration
         /// <param name="choice">Choice</param>
         internal void AddNondeterministicChoice(bool choice)
         {
-            var traceStep = TraceStep.CreateNondeterministicChoice(this.Count, choice);
-            this.Push(traceStep);
+            var scheduleStep = ScheduleStep.CreateNondeterministicChoice(this.Count, choice);
+            this.Push(scheduleStep);
         }
 
         /// <summary>
@@ -124,15 +127,16 @@ namespace Microsoft.PSharp.TestingServices.Exploration
         /// <param name="choice">Choice</param>
         internal void AddFairNondeterministicChoice(string uniqueId, bool choice)
         {
-            var traceStep = TraceStep.CreateFairNondeterministicChoice(this.Count, uniqueId, choice);
-            this.Push(traceStep);
+            var scheduleStep = ScheduleStep.CreateFairNondeterministicChoice(this.Count, uniqueId, choice);
+            this.Push(scheduleStep);
         }
 
         /// <summary>
-        /// Returns the latest program state and removes it from the trace.
+        /// Returns the latest schedule step and removes
+        /// it from the trace.
         /// </summary>
-        /// <returns>TraceStep</returns>
-        internal TraceStep Pop()
+        /// <returns>ScheduleStep</returns>
+        internal ScheduleStep Pop()
         {
             if (this.Count > 0)
             {
@@ -146,12 +150,12 @@ namespace Microsoft.PSharp.TestingServices.Exploration
         }
 
         /// <summary>
-        /// Returns the latest program state without removing it.
+        /// Returns the latest schedule step without removing it.
         /// </summary>
-        /// <returns>TraceStep</returns>
-        internal TraceStep Peek()
+        /// <returns>ScheduleStep</returns>
+        internal ScheduleStep Peek()
         {
-            TraceStep step = null;
+            ScheduleStep step = null;
 
             if (this.Steps.Count > 0)
             {
@@ -174,7 +178,7 @@ namespace Microsoft.PSharp.TestingServices.Exploration
         /// Returns an enumerator.
         /// </summary>
         /// <returns>IEnumerator</returns>
-        IEnumerator<TraceStep> IEnumerable<TraceStep>.GetEnumerator()
+        IEnumerator<ScheduleStep> IEnumerable<ScheduleStep>.GetEnumerator()
         {
             return this.Steps.GetEnumerator();
         }
@@ -186,8 +190,8 @@ namespace Microsoft.PSharp.TestingServices.Exploration
         /// <summary>
         /// Pushes a new step to the trace.
         /// </summary>
-        /// <param name="step">TraceStep</param>
-        private void Push(TraceStep step)
+        /// <param name="step">ScheduleStep</param>
+        private void Push(ScheduleStep step)
         {
             if (this.Count > 0)
             {

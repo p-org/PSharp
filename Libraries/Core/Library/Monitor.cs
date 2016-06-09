@@ -392,13 +392,14 @@ namespace Microsoft.PSharp
                 liveness = "'cold' ";
             }
 
-            base.Runtime.Log("<MonitorLog> Monitor '{0}' entering " + liveness +
+            base.Runtime.Log("<MonitorLog> Monitor '{0}' enters " + liveness +
                 "state '{1}'.", this, this.CurrentState.Name);
 
             try
             {
-                // Performs the on entry statements of the new state.
-                this.State.ExecuteEntryFunction();
+                // Performs the entry action of the new state,
+                // if there is one available.
+                this.State.EntryAction?.Invoke();
             }
             catch (OperationCanceledException ex)
             {
@@ -427,13 +428,14 @@ namespace Microsoft.PSharp
         [DebuggerStepThrough]
         private void ExecuteCurrentStateOnExit(Action onExit)
         {
-            base.Runtime.Log("<MonitorLog> Monitor '{0}' exiting state '{1}'.",
+            base.Runtime.Log("<MonitorLog> Monitor '{0}' exits state '{1}'.",
                 this, this.CurrentState.Name);
 
             try
             {
-                // Performs the on exit statements of the current state.
-                this.State.ExecuteExitFunction();
+                // Performs the exit action of the current state,
+                // if there is one available.
+                this.State.ExitAction?.Invoke();
                 onExit?.Invoke();
             }
             catch (OperationCanceledException ex)

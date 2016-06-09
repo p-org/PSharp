@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="TraceStepType.cs">
+// <copyright file="MachineActionType.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,15 +12,21 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-namespace Microsoft.PSharp.TestingServices.Exploration
+namespace Microsoft.PSharp.TestingServices.Tracing.Machines
 {
     /// <summary>
-    /// The trace step type.
+    /// The machine action type.
     /// </summary>
-    internal enum TraceStepType
+    public enum MachineActionType
     {
-        SchedulingChoice = 0,
-        NondeterministicChoice,
-        FairNondeterministicChoice
+        /// <summary>
+        /// An event sending action.
+        /// </summary>
+        SendAction = 0,
+
+        /// <summary>
+        /// An invocation action.
+        /// </summary>
+        InvocationAction
     }
 }

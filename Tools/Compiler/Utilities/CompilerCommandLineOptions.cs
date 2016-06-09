@@ -130,9 +130,9 @@ namespace Microsoft.PSharp.Utilities
         {
             string help = "\n";
 
-            help += "--------------";
-            help += "\nBasic options:";
-            help += "\n--------------";
+            help += " --------------";
+            help += "\n Basic options:";
+            help += "\n --------------";
             help += "\n  /?\t\t Show this help menu";
             help += "\n  /s:[x]\t Path to a P# solution";
             help += "\n  /p:[x]\t Name of a project in the P# solution";
@@ -142,14 +142,14 @@ namespace Microsoft.PSharp.Utilities
             help += "\n  /warnings-on\t Show warnings";
             help += "\n  /debug\t Enable debugging";
 
-            help += "\n\n--------------------";
-            help += "\nCompilation options:";
-            help += "\n--------------------";
+            help += "\n\n --------------------";
+            help += "\n Compilation options:";
+            help += "\n --------------------";
             help += "\n  /t:[x]\t The compilation target ('exe', 'lib' or 'test')";
 
-            help += "\n\n---------------------------";
-            help += "\nExperimental options:";
-            help += "\n---------------------------";
+            help += "\n\n ---------------------";
+            help += "\n Experimental options:";
+            help += "\n ---------------------";
             help += "\n  /tpl\t\t Enable intra-machine concurrency scheduling";
 
             help += "\n";

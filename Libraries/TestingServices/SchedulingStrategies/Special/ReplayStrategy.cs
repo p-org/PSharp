@@ -16,7 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Microsoft.PSharp.TestingServices.Exploration;
+using Microsoft.PSharp.TestingServices.Tracing.Schedule;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
@@ -34,9 +34,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         protected Configuration Configuration;
 
         /// <summary>
-        /// The P# program trace.
+        /// The P# program schedule trace.
         /// </summary>
-        private Trace ProgramTrace;
+        private ScheduleTrace ScheduleTrace;
 
         /// <summary>
         /// The maximum number of explored steps.
@@ -56,11 +56,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// Constructor.
         /// </summary>
         /// <param name="configuration">Configuration</param>
-        /// <param name="trace">Trace</param>
-        public ReplayStrategy(Configuration configuration, Trace trace)
+        /// <param name="trace">ScheduleTrace</param>
+        public ReplayStrategy(Configuration configuration, ScheduleTrace trace)
         {
             this.Configuration = configuration;
-            this.ProgramTrace = trace;
+            this.ScheduleTrace = trace;
             this.MaxExploredSteps = 0;
             this.ExploredSteps = 0;
         }
@@ -86,13 +86,13 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 }
             }
 
-            if (this.ExploredSteps >= this.ProgramTrace.Count)
+            if (this.ExploredSteps >= this.ScheduleTrace.Count)
             {
                 ErrorReporter.ReportAndExit("Trace is not reproducible: execution is longer than trace.");
             }
 
-            TraceStep nextStep = this.ProgramTrace[this.ExploredSteps];
-            if (nextStep.Type != TraceStepType.SchedulingChoice)
+            ScheduleStep nextStep = this.ScheduleTrace[this.ExploredSteps];
+            if (nextStep.Type != ScheduleStepType.SchedulingChoice)
             {
                 ErrorReporter.ReportAndExit("Trace is not reproducible: next step is not a scheduling choice.");
             }
@@ -119,13 +119,13 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public bool GetNextChoice(int maxValue, out bool next)
         {
-            if (this.ExploredSteps >= this.ProgramTrace.Count)
+            if (this.ExploredSteps >= this.ScheduleTrace.Count)
             {
                 ErrorReporter.ReportAndExit("Trace is not reproducible: execution is longer than trace.");
             }
 
-            TraceStep nextStep = this.ProgramTrace[this.ExploredSteps];
-            if (nextStep.Type != TraceStepType.NondeterministicChoice)
+            ScheduleStep nextStep = this.ScheduleTrace[this.ExploredSteps];
+            if (nextStep.Type != ScheduleStepType.NondeterministicChoice)
             {
                 ErrorReporter.ReportAndExit("Trace is not reproducible: next step is not a nondeterministic choice.");
             }

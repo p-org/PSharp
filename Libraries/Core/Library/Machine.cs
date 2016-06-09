@@ -117,7 +117,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Gets the current state.
         /// </summary>
-        protected Type CurrentState
+        protected internal Type CurrentState
         {
             get
             {
@@ -402,7 +402,7 @@ namespace Microsoft.PSharp
             else
             {
                 base.Runtime.Log($"<PopLog> Machine '{base.Id.Name}' popped " +
-                    $"and reentered state '{this.CurrentState.Name}'.");
+                    $"and reentered state '{this.CurrentState.FullName}'.");
                 this.ConfigureStateTransitions(this.StateStack.Peek());
             }
         }
@@ -449,7 +449,7 @@ namespace Microsoft.PSharp
         [EditorBrowsable(EditorBrowsableState.Never)]
         protected bool FairRandom(int uniqueId)
         {
-            var havocId = base.Id.Name + "_" + this.CurrentState.Name + "_" + uniqueId;
+            var havocId = base.Id.Name + "_" + this.CurrentState.FullName + "_" + uniqueId;
             return base.Runtime.GetFairNondeterministicChoice(this, havocId);
         }
 
@@ -571,7 +571,7 @@ namespace Microsoft.PSharp
                         {
                             base.Runtime.Log($"<DefaultLog> Machine '{base.Id.Name}' " +
                                 "is executing the default handler in state " +
-                                $"'{this.CurrentState.Name}'.");
+                                $"'{this.CurrentState.FullName}'.");
 
                             nextEvent = new Default();
                             defaultHandling = true;
@@ -807,7 +807,7 @@ namespace Microsoft.PSharp
                     {
                         base.Runtime.Log($"<PopLog> Machine '{base.Id.Name}' popped " +
                             $"with unhandled event '{e.GetType().FullName}' and " +
-                            $"reentered state '{this.CurrentState.Name}.");
+                            $"reentered state '{this.CurrentState.FullName}.");
                         this.ConfigureStateTransitions(this.StateStack.Peek());
                     }
                     
@@ -905,7 +905,8 @@ namespace Microsoft.PSharp
 
             try
             {
-                // Executes the associated action, if there is one.
+                // Invokes the received event action,
+                // if there is one available.
                 action?.Invoke(this.ReceivedEvent);
             }
             catch (Exception ex)
@@ -1068,18 +1069,17 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Performs an action.
+        /// Invokes an action.
         /// </summary>
-        /// <param name="a">Action</param>
+        /// <param name="action">Action</param>
         [DebuggerStepThrough]
-        private void Do(Action a)
+        private void Do(Action action)
         {
-            base.Runtime.Log($"<ActionLog> Machine '{base.Id.Name}' executed " +
-                $"action '{a.Method.Name}' in state '{this.CurrentState.Name}'.");
+            base.Runtime.NotifyInvokedAction(this, action);
 
             try
             {
-                a();
+                action();
             }
             catch (Exception ex)
             {
@@ -1126,12 +1126,19 @@ namespace Microsoft.PSharp
         private void ExecuteCurrentStateOnEntry()
         {
             base.Runtime.Log($"<StateLog> Machine '{base.Id.Name}' " +
-                $"entering state '{this.CurrentState.Name}'.");
+                $"enters state '{this.CurrentState.FullName}'.");
+
+            Action entryAction = this.StateStack.Peek().EntryAction;
 
             try
             {
-                // Performs the on entry statements of the new state.
-                this.StateStack.Peek().ExecuteEntryFunction();
+                // Invokes the entry action of the new state,
+                // if there is one available.
+                if (entryAction != null)
+                {
+                    base.Runtime.NotifyInvokedAction(this, entryAction);
+                    entryAction();
+                }
             }
             catch (Exception ex)
             {
@@ -1170,18 +1177,32 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Executes the on exit function of the current state.
         /// </summary>
-        /// <param name="onExit">Goto on exit action</param>
+        /// <param name="eventHandlerExitAction">Event handler exit action</param>
         [DebuggerStepThrough]
-        private void ExecuteCurrentStateOnExit(Action onExit)
+        private void ExecuteCurrentStateOnExit(Action eventHandlerExitAction)
         {
             base.Runtime.Log($"<ExitLog> Machine '{base.Id.Name}' " +
-                $"exiting state '{this.CurrentState.Name}'.");
+                $"exits state '{this.CurrentState.FullName}'.");
+
+            Action exitAction = this.StateStack.Peek().ExitAction;
 
             try
             {
-                // Performs the on exit statements of the current state.
-                this.StateStack.Peek().ExecuteExitFunction();
-                onExit?.Invoke();
+                // Invokes the exit action of the current state,
+                // if there is one available.
+                if (exitAction != null)
+                {
+                    base.Runtime.NotifyInvokedAction(this, exitAction);
+                    exitAction();
+                }
+
+                // Invokes the exit action of the event handler,
+                // if there is one available.
+                if (eventHandlerExitAction != null)
+                {
+                    base.Runtime.NotifyInvokedAction(this, eventHandlerExitAction);
+                    eventHandlerExitAction();
+                }
             }
             catch (Exception ex)
             {

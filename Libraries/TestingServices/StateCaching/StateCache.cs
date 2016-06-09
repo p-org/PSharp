@@ -12,11 +12,10 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Microsoft.PSharp.TestingServices.Exploration;
+using Microsoft.PSharp.TestingServices.Tracing.Schedule;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices.StateCaching
@@ -34,9 +33,9 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
         private PSharpBugFindingRuntime Runtime;
 
         /// <summary>
-        /// A map from trace steps to states.
+        /// A map from schedule steps to states.
         /// </summary>
-        private Dictionary<TraceStep, State> StateMap;
+        private Dictionary<ScheduleStep, State> StateMap;
 
         #endregion
 
@@ -49,37 +48,37 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
         internal StateCache(PSharpBugFindingRuntime runtime)
         {
             this.Runtime = runtime;
-            this.StateMap = new Dictionary<TraceStep, State>();
+            this.StateMap = new Dictionary<ScheduleStep, State>();
         }
 
         /// <summary>
         /// Captures a snapshot of the program state.
         /// </summary>
-        /// <param name="traceStep">Trace step</param>
-        internal void CaptureState(TraceStep traceStep)
+        /// <param name="scheduleStep">ScheduleStep</param>
+        internal void CaptureState(ScheduleStep scheduleStep)
         {
             var fingerprint = this.Runtime.GetProgramState();
             var enabledMachines = this.Runtime.BugFinder.GetEnabledMachines();
             var state = new State(fingerprint, enabledMachines, this.Runtime.LivenessChecker.GetMonitorStatus());
 
-            if (traceStep.Type == TraceStepType.SchedulingChoice)
+            if (scheduleStep.Type == ScheduleStepType.SchedulingChoice)
             {
                 IO.Debug("<LivenessDebug> Captured program state '{0}' at " +
                     "scheduling choice.", fingerprint.GetHashCode());
             }
-            else if (traceStep.Type == TraceStepType.NondeterministicChoice)
+            else if (scheduleStep.Type == ScheduleStepType.NondeterministicChoice)
             {
                 IO.Debug("<LivenessDebug> Captured program state '{0}' at nondeterministic " +
-                    "choice '{1}'.", fingerprint.GetHashCode(), traceStep.Choice);
+                    "choice '{1}'.", fingerprint.GetHashCode(), scheduleStep.Choice);
             }
-            else if (traceStep.Type == TraceStepType.FairNondeterministicChoice)
+            else if (scheduleStep.Type == ScheduleStepType.FairNondeterministicChoice)
             {
                 IO.Debug("<LivenessDebug> Captured program state '{0}' at fair nondeterministic choice " +
-                    "'{1}-{2}'.", fingerprint.GetHashCode(), traceStep.NondetId, traceStep.Choice);
+                    "'{1}-{2}'.", fingerprint.GetHashCode(), scheduleStep.NondetId, scheduleStep.Choice);
             }
             
             var stateExists = this.StateMap.Values.Any(val => val.Fingerprint.Equals(fingerprint));
-            this.StateMap.Add(traceStep, state);
+            this.StateMap.Add(scheduleStep, state);
 
             if (stateExists)
             {

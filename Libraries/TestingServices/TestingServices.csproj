@@ -50,15 +50,21 @@
     <DocumentationFile>..\..\Binaries\Microsoft.PSharp.TestingServices.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.ExtendedReflection">
+      <HintPath>..\..\References\ExtendedReflection\Microsoft.ExtendedReflection.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BugFindingRuntime.cs" />
+    <Compile Include="Runtime\BugFindingRuntime.cs" />
     <Compile Include="Engines\TestingEngineFactory.cs" />
     <Compile Include="Engines\ITestingEngine.cs" />
-    <Compile Include="Exploration\Trace.cs" />
-    <Compile Include="Exploration\TraceStep.cs" />
-    <Compile Include="Exploration\TraceStepType.cs" />
+    <Compile Include="Tracing\Machines\MachineActionInfo.cs" />
+    <Compile Include="Tracing\Machines\MachineActionTrace.cs" />
+    <Compile Include="Tracing\Machines\MachineActionType.cs" />
+    <Compile Include="Tracing\Schedules\ScheduleTrace.cs" />
+    <Compile Include="Tracing\Schedules\ScheduleStep.cs" />
+    <Compile Include="Tracing\Schedules\ScheduleStepType.cs" />
     <Compile Include="Liveness\LivenessChecker.cs" />
     <Compile Include="SchedulingStrategies\DelayBounded\ExhaustiveDelayBoundingStrategy.cs" />
     <Compile Include="SchedulingStrategies\DelayBounded\RandomDelayBoundingStrategy.cs" />
@@ -101,6 +107,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="PSharp.snk" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="RaceDetection\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

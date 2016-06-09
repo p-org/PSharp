@@ -38,12 +38,12 @@ namespace Microsoft.PSharp
         /// <summary>
         /// A map from unique machine ids to machines.
         /// </summary>
-        protected ConcurrentDictionary<int, Machine> MachineMap;
+        protected IDictionary<int, Machine> MachineMap;
 
         /// <summary>
         /// A map from task ids to machines.
         /// </summary>
-        protected ConcurrentDictionary<int, Machine> TaskMap;
+        protected IDictionary<int, Machine> TaskMap;
 
         /// <summary>
         /// Network provider for remote communication.
@@ -511,13 +511,10 @@ namespace Microsoft.PSharp
             machine.SetMachineId(mid);
             machine.InitializeStateInformation();
 
-            bool result = this.MachineMap.TryAdd(mid.Value, machine);
-            this.Assert(result, $"Machine '{mid.Name}' was already created.");
+            this.MachineMap.Add(mid.Value, machine);
 
             Task task = new Task(() =>
             {
-                this.TaskMap.TryAdd(Task.CurrentId.Value, machine);
-
                 try
                 {
                     machine.GotoStartState(e);
@@ -525,10 +522,11 @@ namespace Microsoft.PSharp
                 }
                 finally
                 {
-                    this.TaskMap.TryRemove(Task.CurrentId.Value, out machine);
+                    this.TaskMap.Remove(Task.CurrentId.Value);
                 }
             });
 
+            this.TaskMap.Add(task.Id, machine);
             task.Start();
 
             return mid;
@@ -589,18 +587,17 @@ namespace Microsoft.PSharp
 
             Task task = new Task(() =>
             {
-                this.TaskMap.TryAdd(Task.CurrentId.Value, machine as Machine);
-
                 try
                 {
                     machine.RunEventHandler();
                 }
                 finally
                 {
-                    this.TaskMap.TryRemove(Task.CurrentId.Value, out machine);
+                    this.TaskMap.Remove(Task.CurrentId.Value);
                 }
             });
 
+            this.TaskMap.Add(task.Id, machine);
             task.Start();
         }
 
@@ -668,6 +665,16 @@ namespace Microsoft.PSharp
         internal virtual bool GetFairNondeterministicChoice(AbstractMachine machine, string uniqueId)
         {
             return this.GetNondeterministicChoice(machine, 2);
+        }
+
+        /// <summary>
+        /// Notifies that a machine invoked an action.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <param name="action">Action</param>
+        internal virtual void NotifyInvokedAction(Machine machine, Action action)
+        {
+            // No-op for real execution.
         }
 
         /// <summary>
