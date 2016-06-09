@@ -186,7 +186,7 @@ namespace Microsoft.PSharp
         /// <returns>Boolean</returns>
         internal bool IsInHotState(out string stateName)
         {
-            stateName = this.CurrentState.Name;
+            stateName = this.CurrentState.FullName;
             return this.State.IsHot;
         }
 
@@ -207,7 +207,7 @@ namespace Microsoft.PSharp
         /// <returns>Boolean</returns>
         internal bool IsInColdState(out string stateName)
         {
-            stateName = this.CurrentState.Name;
+            stateName = this.CurrentState.FullName;
             return this.State.IsCold;
         }
 
@@ -243,7 +243,7 @@ namespace Microsoft.PSharp
                 if (!this.CanHandleEvent(e.GetType()))
                 {
                     base.Runtime.Log("<MonitorLog> Monitor '{0}' exiting state '{1}'.",
-                        this, this.CurrentState.Name);
+                        this, this.CurrentState.FullName);
                     this.State = null;
                     continue;
                 }
@@ -341,16 +341,16 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Performs an action.
         /// </summary>
-        /// <param name="a">Action</param>
+        /// <param name="action">Action</param>
         [DebuggerStepThrough]
-        private void Do(Action a)
+        private void Do(Action action)
         {
             base.Runtime.Log("<MonitorLog> Monitor '{0}' executed action '{1}' in state '{2}'.",
-                this, a.Method.Name, this.CurrentState.Name);
+                this, action.Method.Name, this.CurrentState.FullName);
 
             try
             {
-                a();
+                action();
             }
             catch (OperationCanceledException ex)
             {
@@ -393,7 +393,7 @@ namespace Microsoft.PSharp
             }
 
             base.Runtime.Log("<MonitorLog> Monitor '{0}' enters " + liveness +
-                "state '{1}'.", this, this.CurrentState.Name);
+                "state '{1}'.", this, this.CurrentState.FullName);
 
             try
             {
@@ -429,7 +429,7 @@ namespace Microsoft.PSharp
         private void ExecuteCurrentStateOnExit(Action onExit)
         {
             base.Runtime.Log("<MonitorLog> Monitor '{0}' exits state '{1}'.",
-                this, this.CurrentState.Name);
+                this, this.CurrentState.FullName);
 
             try
             {
