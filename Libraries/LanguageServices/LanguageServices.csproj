@@ -133,6 +133,7 @@
     <Compile Include="Parsing\Visitors\Framework\MachineStateDeclarationParser.cs" />
     <Compile Include="Parsing\Visitors\Framework\MachineDeclarationParser.cs" />
     <Compile Include="Parsing\Visitors\Framework\BaseVisitor.cs" />
+    <Compile Include="Parsing\Visitors\Framework\StateGroupDeclarationParser.cs" />
     <Compile Include="Parsing\Visitors\Syntax\BaseTokenVisitor.cs" />
     <Compile Include="Parsing\Visitors\Syntax\Blocks\BlockSyntaxVisitor.cs" />
     <Compile Include="Parsing\Visitors\Syntax\Declarations\DeferEventsDeclarationVisitor.cs" />

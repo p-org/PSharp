@@ -201,6 +201,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     case TokenType.HotState:
                     case TokenType.ColdState:
                     case TokenType.StateDecl:
+                    case TokenType.StateGroupDecl:
                     case TokenType.Void:
                     case TokenType.MachineDecl:
                     case TokenType.Object:
@@ -260,6 +261,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                             TokenType.HotState,
                             TokenType.ColdState,
                             TokenType.StateDecl,
+                            TokenType.StateGroupDecl,
                             TokenType.LeftSquareBracket,
                             TokenType.RightCurlyBracket
                     });
@@ -283,6 +285,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 
             while (!base.TokenStream.Done &&
                 base.TokenStream.Peek().Type != TokenType.StateDecl &&
+                base.TokenStream.Peek().Type != TokenType.StateGroupDecl &&
                 base.TokenStream.Peek().Type != TokenType.MachineDecl &&
                 base.TokenStream.Peek().Type != TokenType.Void &&
                 base.TokenStream.Peek().Type != TokenType.Object &&
@@ -411,6 +414,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 
             if (base.TokenStream.Done ||
                 (base.TokenStream.Peek().Type != TokenType.StateDecl &&
+                base.TokenStream.Peek().Type != TokenType.StateGroupDecl &&
                 base.TokenStream.Peek().Type != TokenType.MachineDecl &&
                 base.TokenStream.Peek().Type != TokenType.Void &&
                 base.TokenStream.Peek().Type != TokenType.Object &&
@@ -434,6 +438,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     new List<TokenType>
                 {
                     TokenType.StateDecl,
+                    TokenType.StateGroupDecl,
                     TokenType.MachineDecl,
                     TokenType.Void,
                     TokenType.Object,

@@ -231,6 +231,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     this.Tokens.Add(new Token(unit, TokenType.StateDecl));
                     break;
 
+                case "group":
+                    this.Tokens.Add(new Token(unit, TokenType.StateGroupDecl));
+                    break;
+
                 case "event":
                     this.Tokens.Add(new Token(unit, TokenType.EventDecl));
                     break;

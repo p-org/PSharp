@@ -212,6 +212,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
                     text = "state";
                     break;
 
+                case TokenType.StateGroupDecl:
+                    text = "group";
+                    break;
+
                 case TokenType.EventDecl:
                     text = "event";
                     break;

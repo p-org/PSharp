@@ -515,6 +515,11 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         StateDecl,
 
         /// <summary>
+        /// State group token.
+        /// </summary>
+        StateGroupDecl,
+
+        /// <summary>
         /// Event token.
         /// </summary>
         EventDecl,
