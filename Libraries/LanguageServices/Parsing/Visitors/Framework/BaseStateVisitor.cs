@@ -84,15 +84,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
             ClassDeclarationSyntax classDecl);
 
         /// <summary>
-        /// Returns true if the given class declaration is a stategroup.
-        /// </summary>
-        /// <param name="compilation">Compilation</param>
-        /// <param name="classDecl">Class declaration</param>
-        /// <returns>Boolean</returns>
-        protected abstract bool IsStateGroup(CodeAnalysis.Compilation compilation,
-            ClassDeclarationSyntax classDecl);
-
-        /// <summary>
         /// Returns the type of the state.
         /// </summary>
         /// <returns>Text</returns>

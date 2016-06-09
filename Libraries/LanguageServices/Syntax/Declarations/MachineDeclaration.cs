@@ -84,6 +84,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         internal List<StateDeclaration> StateDeclarations;
 
         /// <summary>
+        /// List of state group declarations.
+        /// </summary>
+        internal List<StateGroupDeclaration> StateGroupDeclarations;
+
+        /// <summary>
         /// List of method declarations.
         /// </summary>
         internal List<MethodDeclaration> MethodDeclarations;
@@ -111,6 +116,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             this.BaseNameTokens = new List<Token>();
             this.FieldDeclarations = new List<FieldDeclaration>();
             this.StateDeclarations = new List<StateDeclaration>();
+            this.StateGroupDeclarations = new List<StateGroupDeclaration>();
             this.MethodDeclarations = new List<MethodDeclaration>();
         }
 
@@ -128,6 +134,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             }
 
             foreach (var node in this.StateDeclarations)
+            {
+                node.Rewrite();
+            }
+
+            foreach (var node in this.StateGroupDeclarations)
             {
                 node.Rewrite();
             }
@@ -163,9 +174,21 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             base.TextUnit = new TextUnit(text, this.MachineKeyword.TextUnit.Line);
         }
 
+        /// <summary>
+        /// Returns all state declarations inside this machine (recursively)
+        /// </summary>
+        internal List<StateDeclaration> GetAllStateDeclarations()
+        {
+            var ret = new List<StateDeclaration>();
+            ret.AddRange(StateDeclarations);
+            StateGroupDeclarations.ForEach(g => ret.AddRange(g.GetAllStateDeclarations()));
+            return ret;
+        }
+
         #endregion
 
         #region private methods
+
 
         /// <summary>
         /// Returns the rewritten machine declaration.
@@ -223,7 +246,12 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             {
                 text += node.TextUnit.Text;
             }
-            
+
+            foreach (var node in this.StateGroupDeclarations)
+            {
+                text += node.TextUnit.Text;
+            }
+
             return text;
         }
 

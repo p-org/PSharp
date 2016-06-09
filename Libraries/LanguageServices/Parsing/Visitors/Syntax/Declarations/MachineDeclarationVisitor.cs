@@ -151,13 +151,14 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             this.VisitNextPSharpIntraMachineDeclaration(node);
             parentNode.MachineDeclarations.Add(node);
 
-            if (node.StateDeclarations.Count == 0 && node.BaseNameTokens.Count == 0)
+            var stateDeclarations = node.GetAllStateDeclarations();
+            if (stateDeclarations.Count == 0 && node.BaseNameTokens.Count == 0)
             {
                 throw new ParsingException("A machine must declare at least one state.",
                     new List<TokenType>());
             }
 
-            var startStates = node.StateDeclarations.FindAll(s => s.IsStart);
+            var startStates = stateDeclarations.FindAll(s => s.IsStart);
             if (startStates.Count == 0 && node.BaseNameTokens.Count == 0)
             {
                 throw new ParsingException("A machine must declare a start state.",

@@ -49,6 +49,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         internal readonly MachineDeclaration Machine;
 
         /// <summary>
+        /// Parent state group (if any).
+        /// </summary>
+        internal readonly StateGroupDeclaration Group;
+
+        /// <summary>
         /// The state keyword.
         /// </summary>
         internal Token StateKeyword;
@@ -130,7 +135,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <param name="isStart">Is start state</param>
         /// <param name="isHot">Is hot state</param>
         /// <param name="isCold">Is cold state</param>
-        internal StateDeclaration(IPSharpProgram program, MachineDeclaration machineNode,
+        internal StateDeclaration(IPSharpProgram program, MachineDeclaration machineNode, StateGroupDeclaration groupNode,
             bool isStart, bool isHot, bool isCold)
             : base(program)
         {
@@ -138,6 +143,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             this.IsHot = isHot;
             this.IsCold = isCold;
             this.Machine = machineNode;
+            this.Group = groupNode;
             this.GotoStateTransitions = new Dictionary<Token, Token>();
             this.PushStateTransitions = new Dictionary<Token, Token>();
             this.ActionBindings = new Dictionary<Token, Token>();
@@ -339,13 +345,22 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             text += this.InstrumentIgnoredEvents();
             text += this.InstrumentDeferredEvents();
 
-            if (this.AccessModifier == AccessModifier.Protected)
+            if (this.Group != null)
             {
-                text += "protected ";
+                // When inside a group, the state should be made public
+                text += "public ";
             }
-            else if (this.AccessModifier == AccessModifier.Private)
+            else
             {
-                text += "private ";
+                // Otherwise, we look at the access modifier provided by the user
+                if (this.AccessModifier == AccessModifier.Protected)
+                {
+                    text += "protected ";
+                }
+                else if (this.AccessModifier == AccessModifier.Private)
+                {
+                    text += "private ";
+                }
             }
 
             if (!this.Machine.IsMonitor)

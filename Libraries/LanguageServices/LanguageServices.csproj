@@ -146,6 +146,7 @@
     <Compile Include="Parsing\Visitors\Syntax\Declarations\StateDeclarationVisitor.cs" />
     <Compile Include="Parsing\Visitors\Syntax\Declarations\StateEntryDeclarationVisitor.cs" />
     <Compile Include="Parsing\Visitors\Syntax\Declarations\StateExitDeclarationVisitor.cs" />
+    <Compile Include="Parsing\Visitors\Syntax\Declarations\StateGroupDeclarationVisitor.cs" />
     <Compile Include="Parsing\Visitors\Syntax\Expressions\ArgumentsListVisitor.cs" />
     <Compile Include="Parsing\Visitors\Syntax\Expressions\AttributeListVisitor.cs" />
     <Compile Include="Parsing\Visitors\Syntax\Types\TypeIdentifierVisitor.cs" />
@@ -183,6 +184,7 @@
     <Compile Include="Syntax\Declarations\MethodDeclaration.cs" />
     <Compile Include="Syntax\Declarations\NamespaceDeclaration.cs" />
     <Compile Include="Syntax\Declarations\StateDeclaration.cs" />
+    <Compile Include="Syntax\Declarations\StateGroupDeclaration.cs" />
     <Compile Include="Syntax\Declarations\UsingDeclaration.cs" />
     <Compile Include="Syntax\Expressions\ExpressionNode.cs" />
     <Compile Include="Programs\IPSharpProgram.cs" />
