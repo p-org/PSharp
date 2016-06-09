@@ -66,7 +66,7 @@ To see various available command line options for the P# tools use the option `/
 
 ## How to contribute
 
-We welcome contributions to the P# project! Before you start contributing, though, please read carefully the development guidelines.
+We welcome contributions to the P# project! Before you start contributing, though, please read carefully the [development guidelines](https://github.com/p-org/PSharp/wiki/Contributing-Code).
 
 ## Contact us
 
