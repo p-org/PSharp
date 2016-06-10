@@ -171,6 +171,7 @@
     <Compile Include="Rewriting\PSharp\Statements\GotoStateRewriter.cs" />
     <Compile Include="Rewriting\PSharp\Statements\RaiseRewriter.cs" />
     <Compile Include="Rewriting\PSharp\Statements\SendRewriter.cs" />
+    <Compile Include="Rewriting\PSharp\Statements\TypeofRewriter.cs" />
     <Compile Include="Rewriting\PSharp\Types\HaltEventRewriter.cs" />
     <Compile Include="Rewriting\PSharp\Types\MachineTypeRewriter.cs" />
     <Compile Include="Programs\AbstractPSharpProgram.cs" />

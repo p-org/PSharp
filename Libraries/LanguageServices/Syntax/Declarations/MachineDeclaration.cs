@@ -98,6 +98,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         internal Token RightCurlyBracketToken;
 
+        /// <summary>
+        /// Map for all generated methods
+        /// </summary>
+        internal Dictionary<string, List<Token>> GeneratedMethodToQualifiedStateName;
+
         #endregion
 
         #region internal API
@@ -118,6 +123,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             this.StateDeclarations = new List<StateDeclaration>();
             this.StateGroupDeclarations = new List<StateGroupDeclaration>();
             this.MethodDeclarations = new List<MethodDeclaration>();
+            this.GeneratedMethodToQualifiedStateName = new Dictionary<string, List<Token>>();
         }
 
         /// <summary>

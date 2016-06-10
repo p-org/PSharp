@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="GotoStateRewriter.cs">
+// <copyright file="TypeofRewriter.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -23,9 +23,9 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 {
     /// <summary>
-    /// The goto state statement rewriter.
+    /// Rewrite typeof statements to fully qualify state names.
     /// </summary>
-    internal sealed class GotoStateRewriter : PSharpRewriter
+    internal sealed class TypeofRewriter : PSharpRewriter
     {
         #region public API
 
@@ -33,7 +33,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// Constructor.
         /// </summary>
         /// <param name="program">IPSharpProgram</param>
-        internal GotoStateRewriter(IPSharpProgram program)
+        internal TypeofRewriter(IPSharpProgram program)
             : base(program)
         {
 
@@ -44,28 +44,13 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// </summary>
         internal void Rewrite()
         {
-            var statements = base.Program.GetSyntaxTree().GetRoot().DescendantNodes().OfType<ExpressionStatementSyntax>().
+            /*
+            var statements = base.Program.GetSyntaxTree().GetRoot().DescendantNodes().OfType<TypeOfExpressionSyntax>().
                 Where(val => val.Expression is InvocationExpressionSyntax).
                 Where(val => (val.Expression as InvocationExpressionSyntax).Expression is IdentifierNameSyntax).
                 Where(val => ((val.Expression as InvocationExpressionSyntax).Expression as IdentifierNameSyntax).
                     Identifier.ValueText.Equals("jump")).
                 ToList();
-
-            /*
-            foreach (var st in statements)
-            {
-                Console.WriteLine("======== Level 0 ========");
-                Console.WriteLine("{0}", st);
-
-                var i = 1;
-                foreach (var n in st.Ancestors())
-                {
-                    Console.WriteLine("======== Level {0} ========", i); i++;
-                    Console.WriteLine("{0}", n);
-                }
-            }
-            */
-
 
             if (statements.Count == 0)
             {
@@ -77,6 +62,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
                 computeReplacementNode: (node, rewritten) => this.RewriteStatement(rewritten));
 
             base.UpdateSyntaxTree(root.ToString());
+            */
         }
 
         #endregion
@@ -94,12 +80,12 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 
             var arguments = new List<ArgumentSyntax>();
             arguments.Add(invocation.ArgumentList.Arguments[0]);
-            
+
             arguments[0] = SyntaxFactory.Argument(SyntaxFactory.ParseExpression(
                 "typeof(" + arguments[0].ToString() + ")"));
             invocation = invocation.WithArgumentList(SyntaxFactory.ArgumentList(
                 SyntaxFactory.SeparatedList(arguments)));
-            
+
             var text = "{ " +
                 node.WithExpression(invocation.WithExpression(SyntaxFactory.IdentifierName("this.Goto"))).ToString() +
                 "return; }";
