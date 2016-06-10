@@ -262,8 +262,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         private string GetRewrittenStateOnEntryAndExitActions()
         {
             string text = "";
-
-            foreach (var state in this.StateDeclarations)
+            
+            foreach (var state in this.GetAllStateDeclarations())
             {
                 if (state.EntryDeclaration != null)
                 {
@@ -289,25 +289,25 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         {
             string text = "";
 
-            foreach (var state in this.StateDeclarations)
+            foreach (var state in this.GetAllStateDeclarations())
             {
                 foreach (var withAction in state.TransitionsOnExitActions)
                 {
                     var onExitAction = withAction.Value;
                     onExitAction.Rewrite();
-                    text += "protected void psharp_" + state.Identifier.TextUnit.Text + "_" +
+                    text += "protected void psharp_" + state.GetFullyQualifiedName() + "_" +
                         withAction.Key.TextUnit.Text + "_action()";
                     text += onExitAction.TextUnit.Text + "\n";
                 }
             }
 
-            foreach (var state in this.StateDeclarations)
+            foreach (var state in this.GetAllStateDeclarations())
             {
                 foreach (var withAction in state.ActionHandlers)
                 {
                     var onExitAction = withAction.Value;
                     onExitAction.Rewrite();
-                    text += "protected void psharp_" + state.Identifier.TextUnit.Text + "_" +
+                    text += "protected void psharp_" + state.GetFullyQualifiedName() + "_" +
                         withAction.Key.TextUnit.Text + "_action()";
                     text += onExitAction.TextUnit.Text + "\n";
                 }

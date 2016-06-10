@@ -310,6 +310,24 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             base.TextUnit = new TextUnit(text, this.StateKeyword.TextUnit.Line);
         }
 
+
+        /// <summary>
+        /// Return fully qualified state name
+        /// </summary>
+        /// <returns>Text</returns>
+        internal string GetFullyQualifiedName()
+        {
+            var qualifiedName = this.Identifier.TextUnit.Text;
+            var containingGroup = this.Group;
+            while (containingGroup != null)
+            {
+                qualifiedName = containingGroup.Identifier.TextUnit.Text + "_" + qualifiedName;
+                containingGroup = containingGroup.Group;
+            }
+
+            return qualifiedName;
+        }
+
         #endregion
 
         #region private methods
@@ -391,7 +409,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             string text = "[OnEntry(nameof(";
 
-            text += "psharp_" + this.Identifier.TextUnit.Text + "_on_entry_action";
+            text += "psharp_" + this.GetFullyQualifiedName() + "_on_entry_action";
             text += "))]\n";
 
             return text;
@@ -410,7 +428,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             string text = "[OnExit(nameof(";
 
-            text += "psharp_" + this.Identifier.TextUnit.Text + "_on_exit_action";
+            text += "psharp_" + this.GetFullyQualifiedName() + "_on_exit_action";
             text += "))]\n";
 
             return text;
@@ -434,7 +452,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 var onExitName = "";
                 if (this.TransitionsOnExitActions.ContainsKey(transition.Key))
                 {
-                    onExitName = "psharp_" + this.Identifier.TextUnit.Text + "_" +
+                    onExitName = "psharp_" + this.GetFullyQualifiedName() + "_" +
                         transition.Key.TextUnit.Text + "_action";
                 }
 
@@ -530,7 +548,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 var actionName = "";
                 if (this.ActionHandlers.ContainsKey(binding.Key))
                 {
-                    actionName = "psharp_" + this.Identifier.TextUnit.Text + "_" +
+                    actionName = "psharp_" + this.GetFullyQualifiedName() + "_" +
                         binding.Key.TextUnit.Text + "_action";
                 }
 
@@ -643,6 +661,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             return text;
         }
+
 
         #endregion
     }

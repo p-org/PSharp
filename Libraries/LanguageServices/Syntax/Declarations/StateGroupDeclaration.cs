@@ -135,6 +135,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                     this.Identifier.TextUnit.Text, this.Machine.Identifier.TextUnit.Text);
             }
 
+            text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
+
             base.TextUnit = new TextUnit(text, this.StateGroupKeyword.TextUnit.Line);
         }
 
@@ -189,8 +191,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             {
                 text += node.TextUnit.Text;
             }
-
-            text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
 
             return text;
         }
