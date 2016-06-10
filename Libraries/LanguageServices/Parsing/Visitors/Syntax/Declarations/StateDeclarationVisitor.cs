@@ -99,7 +99,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 this.VisitNextPIntraStateDeclaration(node);
             }
 
-            parentNode.StateDeclarations.Add(node);
+            // insert into (immediately) containing group or machine declaration
+            if (groupNode != null) groupNode.StateDeclarations.Add(node);
+            else parentNode.StateDeclarations.Add(node);
         }
 
         /// <summary>
@@ -165,7 +167,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit,
                             TokenType.StateRightCurlyBracket));
                         node.RightCurlyBracketToken = base.TokenStream.Peek();
-                        base.TokenStream.CurrentState = "";
                         fixpoint = true;
                         break;
 

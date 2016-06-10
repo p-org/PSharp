@@ -86,12 +86,12 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <summary>
         /// Dictionary containing goto state transitions.
         /// </summary>
-        internal Dictionary<Token, Token> GotoStateTransitions;
+        internal Dictionary<Token, List<Token>> GotoStateTransitions;
 
         /// <summary>
         /// Dictionary containing push state transitions.
         /// </summary>
-        internal Dictionary<Token, Token> PushStateTransitions;
+        internal Dictionary<Token, List<Token>> PushStateTransitions;
 
         /// <summary>
         /// Dictionary containing actions bindings.
@@ -144,8 +144,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             this.IsCold = isCold;
             this.Machine = machineNode;
             this.Group = groupNode;
-            this.GotoStateTransitions = new Dictionary<Token, Token>();
-            this.PushStateTransitions = new Dictionary<Token, Token>();
+            this.GotoStateTransitions = new Dictionary<Token, List<Token>>();
+            this.PushStateTransitions = new Dictionary<Token, List<Token>>();
             this.ActionBindings = new Dictionary<Token, Token>();
             this.TransitionsOnExitActions = new Dictionary<Token, BlockSyntax>();
             this.ActionHandlers = new Dictionary<Token, BlockSyntax>();
@@ -157,10 +157,10 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Adds a goto state transition.
         /// </summary>
         /// <param name="eventIdentifier">Token</param>
-        /// <param name="stateIdentifier">Token</param>
+        /// <param name="stateIdentifiers">Token list</param>
         /// <param name="stmtBlock">Statement block</param>
         /// <returns>Boolean</returns>
-        internal bool AddGotoStateTransition(Token eventIdentifier, Token stateIdentifier,
+        internal bool AddGotoStateTransition(Token eventIdentifier, List<Token> stateIdentifiers,
             BlockSyntax stmtBlock = null)
         {
             if (this.GotoStateTransitions.ContainsKey(eventIdentifier) ||
@@ -170,7 +170,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 return false;
             }
 
-            this.GotoStateTransitions.Add(eventIdentifier, stateIdentifier);
+            this.GotoStateTransitions.Add(eventIdentifier, stateIdentifiers);
             if (stmtBlock != null)
             {
                 this.TransitionsOnExitActions.Add(eventIdentifier, stmtBlock);
@@ -183,9 +183,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Adds a push state transition.
         /// </summary>
         /// <param name="eventIdentifier">Token</param>
-        /// <param name="stateIdentifier">Token</param>
+        /// <param name="stateIdentifiers">Token list</param>
         /// <returns>Boolean</returns>
-        internal bool AddPushStateTransition(Token eventIdentifier, Token stateIdentifier)
+        internal bool AddPushStateTransition(Token eventIdentifier, List<Token> stateIdentifiers)
         {
             if (this.Machine.IsMonitor)
             {
@@ -199,7 +199,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 return false;
             }
 
-            this.PushStateTransitions.Add(eventIdentifier, stateIdentifier);
+            this.PushStateTransitions.Add(eventIdentifier, stateIdentifiers);
 
             return true;
         }
@@ -453,7 +453,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                     text += "typeof(" + transition.Key.TextUnit.Text + ")";
                 }
 
-                text += ", typeof(" + transition.Value.TextUnit.Text + ")";
+                var stateIdent = transition.Value.
+                    Select(token => token.TextUnit.Text).
+                    Aggregate("", (acc, ident) => (acc == "") ? ident : acc + "." + ident);
+                    
+                text += ", typeof(" + stateIdent + ")";
 
                 if (onExitName.Length > 0)
                 {
@@ -496,7 +500,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                     text += "typeof(" + transition.Key.TextUnit.Text + ")";
                 }
 
-                text += ", typeof(" + transition.Value.TextUnit.Text + ")";
+                var stateIdent = transition.Value.
+                    Select(token => token.TextUnit.Text).
+                    Aggregate("", (acc, ident) => (acc == "") ? ident : acc + "." + ident);
+
+                text += ", typeof(" + stateIdent + ")";
 
                 text += ")]\n";
             }

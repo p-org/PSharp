@@ -100,6 +100,17 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 }
             }
 
+            if (!expectsComma)
+            {
+                throw new ParsingException("Expected event identifier.",
+                    new List<TokenType>
+                {
+                    TokenType.Identifier,
+                    TokenType.HaltEvent,
+                    TokenType.DefaultEvent
+                });
+            }
+
             if (base.TokenStream.Done ||
                 (base.TokenStream.Peek().Type != TokenType.DoAction &&
                 base.TokenStream.Peek().Type != TokenType.GotoState &&
@@ -179,25 +190,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             }
             else if (base.TokenStream.Peek().Type == TokenType.GotoState)
             {
-                base.TokenStream.Index++;
-                base.TokenStream.SkipWhiteSpaceAndCommentTokens();
-
-                if (base.TokenStream.Done ||
-                    base.TokenStream.Peek().Type != TokenType.Identifier)
-                {
-                    throw new ParsingException("Expected state identifier.",
-                        new List<TokenType>
-                    {
-                        TokenType.Identifier
-                    });
-                }
-
-                base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit,
-                    TokenType.StateIdentifier));
-                var stateIdentifier = base.TokenStream.Peek();
-
-                base.TokenStream.Index++;
-                base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                var stateIdentifiers = ConsumeState();
 
                 if (base.TokenStream.Done ||
                     (base.TokenStream.Peek().Type != TokenType.WithExit &&
@@ -233,7 +226,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 
                     foreach (var eventIdentifier in eventIdentifiers)
                     {
-                        if (!parentNode.AddGotoStateTransition(eventIdentifier, stateIdentifier, blockNode))
+                        if (!parentNode.AddGotoStateTransition(eventIdentifier, stateIdentifiers, blockNode))
                         {
                             throw new ParsingException("Unexpected goto state transition.",
                                 new List<TokenType>());
@@ -254,7 +247,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 {
                     foreach (var eventIdentifier in eventIdentifiers)
                     {
-                        if (!parentNode.AddGotoStateTransition(eventIdentifier, stateIdentifier))
+                        if (!parentNode.AddGotoStateTransition(eventIdentifier, stateIdentifiers))
                         {
                             throw new ParsingException("Unexpected goto state transition.",
                                 new List<TokenType>());
@@ -270,25 +263,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         new List<TokenType>());
                 }
 
-                base.TokenStream.Index++;
-                base.TokenStream.SkipWhiteSpaceAndCommentTokens();
-
-                if (base.TokenStream.Done ||
-                    base.TokenStream.Peek().Type != TokenType.Identifier)
-                {
-                    throw new ParsingException("Expected state identifier.",
-                        new List<TokenType>
-                    {
-                        TokenType.Identifier
-                    });
-                }
-
-                base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit,
-                    TokenType.StateIdentifier));
-                var stateIdentifier = base.TokenStream.Peek();
-
-                base.TokenStream.Index++;
-                base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+                var stateIdentifiers = ConsumeState();
 
                 if (base.TokenStream.Done ||
                     base.TokenStream.Peek().Type != TokenType.Semicolon)
@@ -302,13 +277,77 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 
                 foreach (var eventIdentifier in eventIdentifiers)
                 {
-                    if (!parentNode.AddPushStateTransition(eventIdentifier, stateIdentifier))
+                    if (!parentNode.AddPushStateTransition(eventIdentifier, stateIdentifiers))
                     {
                         throw new ParsingException("Unexpected push state transition.",
                             new List<TokenType>());
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Consume state-identifier(.state-identifier)*
+        /// Stops at [With|SemiColon]
+        /// </summary>
+        private List<Token> ConsumeState()
+        {
+            base.TokenStream.Index++;
+            base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+
+            if (base.TokenStream.Done ||
+                base.TokenStream.Peek().Type != TokenType.Identifier)
+            {
+                throw new ParsingException("Expected state identifier.",
+                    new List<TokenType>
+                {
+                        TokenType.Identifier
+                });
+            }
+
+            var stateIdentifiers = new List<Token>();
+            bool expectsDot = false;
+
+            while (!base.TokenStream.Done &&
+                base.TokenStream.Peek().Type != TokenType.WithExit &&
+                base.TokenStream.Peek().Type != TokenType.Semicolon)
+            {
+                if ((!expectsDot && base.TokenStream.Peek().Type != TokenType.Identifier) ||
+                    (expectsDot && base.TokenStream.Peek().Type != TokenType.Dot))
+                {
+                    break;
+                }
+
+                if (base.TokenStream.Peek().Type == TokenType.Identifier)
+                {
+                    base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit,
+                        TokenType.StateIdentifier));
+                    stateIdentifiers.Add(base.TokenStream.Peek());
+
+                    base.TokenStream.Index++;
+                    base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+
+                    expectsDot = true;
+                }
+                else if (base.TokenStream.Peek().Type == TokenType.Dot)
+                {
+                    base.TokenStream.Index++;
+                    base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+
+                    expectsDot = false;
+                }
+            }
+
+            if (!expectsDot)
+            {
+                throw new ParsingException("Expected state identifier.",
+                    new List<TokenType>
+                {
+                        TokenType.Identifier
+                });
+            }
+
+            return stateIdentifiers;
         }
     }
 }

@@ -39,9 +39,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         /// </summary>
         /// <param name="parentNode">Containing machine</param>
         /// <param name="groupNode">Containing group</param>
-        /// <param name="isPartial">Is partial</param>
         /// <param name="accMod">Access modifier</param>
-        /// <param name="inhMod">Inheritance modifier</param>
         internal void Visit(MachineDeclaration parentNode, StateGroupDeclaration groupNode, AccessModifier accMod)
         {
             var node = new StateGroupDeclaration(base.TokenStream.Program, parentNode, groupNode);
@@ -87,8 +85,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             base.TokenStream.Index++;
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-            this.VisitNextPSharpIntraMachineDeclaration(node);
+            this.VisitNextPSharpIntraGroupDeclaration(node);
             parentNode.StateGroupDeclarations.Add(node);
+
+            
 
             var stateDeclarations = node.GetAllStateDeclarations();
             if (stateDeclarations.Count == 0)
@@ -99,10 +99,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         }
 
         /// <summary>
-        /// Visits the next intra-machine declration.
+        /// Visits the next intra-group declration.
         /// </summary>
         /// <param name="node">Node</param>
-        private void VisitNextPSharpIntraMachineDeclaration(StateGroupDeclaration node)
+        private void VisitNextPSharpIntraGroupDeclaration(StateGroupDeclaration node)
         {
             bool fixpoint = false;
             while (!fixpoint)
@@ -154,7 +154,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     case TokenType.Public:
                     case TokenType.Async:
                     case TokenType.Partial:
-                        this.VisitMachineLevelDeclaration(node);
+                        this.VisitGroupLevelDeclaration(node);
                         base.TokenStream.Index++;
                         break;
 
@@ -197,10 +197,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         }
 
         /// <summary>
-        /// Visits a machine level declaration.
+        /// Visits a group level declaration.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        private void VisitMachineLevelDeclaration(MachineDeclaration parentNode)
+        private void VisitGroupLevelDeclaration(StateGroupDeclaration parentNode)
         {
             AccessModifier am = AccessModifier.None;
             InheritanceModifier im = InheritanceModifier.None;
@@ -341,49 +341,13 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 
             if (base.TokenStream.Done ||
                 (base.TokenStream.Peek().Type != TokenType.StateDecl &&
-                base.TokenStream.Peek().Type != TokenType.StateGroupDecl &&
-                base.TokenStream.Peek().Type != TokenType.MachineDecl &&
-                base.TokenStream.Peek().Type != TokenType.Void &&
-                base.TokenStream.Peek().Type != TokenType.Object &&
-                base.TokenStream.Peek().Type != TokenType.String &&
-                base.TokenStream.Peek().Type != TokenType.Sbyte &&
-                base.TokenStream.Peek().Type != TokenType.Byte &&
-                base.TokenStream.Peek().Type != TokenType.Short &&
-                base.TokenStream.Peek().Type != TokenType.Ushort &&
-                base.TokenStream.Peek().Type != TokenType.Int &&
-                base.TokenStream.Peek().Type != TokenType.Uint &&
-                base.TokenStream.Peek().Type != TokenType.Long &&
-                base.TokenStream.Peek().Type != TokenType.Ulong &&
-                base.TokenStream.Peek().Type != TokenType.Char &&
-                base.TokenStream.Peek().Type != TokenType.Bool &&
-                base.TokenStream.Peek().Type != TokenType.Decimal &&
-                base.TokenStream.Peek().Type != TokenType.Float &&
-                base.TokenStream.Peek().Type != TokenType.Double &&
-                base.TokenStream.Peek().Type != TokenType.Identifier))
+                base.TokenStream.Peek().Type != TokenType.StateGroupDecl))
             {
-                throw new ParsingException("Expected state or method declaration.",
+                throw new ParsingException("Expected state or group declaration.",
                     new List<TokenType>
                 {
                     TokenType.StateDecl,
-                    TokenType.StateGroupDecl,
-                    TokenType.MachineDecl,
-                    TokenType.Void,
-                    TokenType.Object,
-                    TokenType.String,
-                    TokenType.Sbyte,
-                    TokenType.Byte,
-                    TokenType.Short,
-                    TokenType.Ushort,
-                    TokenType.Int,
-                    TokenType.Uint,
-                    TokenType.Long,
-                    TokenType.Ulong,
-                    TokenType.Char,
-                    TokenType.Bool,
-                    TokenType.Decimal,
-                    TokenType.Float,
-                    TokenType.Double,
-                    TokenType.Identifier
+                    TokenType.StateGroupDecl
                 });
             }
 
@@ -428,9 +392,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         new List<TokenType>());
                 }
 
-                new StateDeclarationVisitor(base.TokenStream).Visit(parentNode, null, isStart, isHot, isCold, am);
+                new StateDeclarationVisitor(base.TokenStream).Visit(parentNode.Machine, parentNode, isStart, isHot, isCold, am);
             }
-            else if (base.TokenStream.Peek().Type == TokenType.StateGroupDecl)
+            else // (base.TokenStream.Peek().Type == TokenType.StateGroupDecl)
             {
                 if (am == AccessModifier.Public)
                 {
@@ -492,22 +456,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         new List<TokenType>());
                 }
 
-                new StateGroupDeclarationVisitor(base.TokenStream).Visit(parentNode, null, am);
-            }
-            else
-            {
-                if (am == AccessModifier.Public)
-                {
-                    throw new ParsingException("A field or method cannot be public.",
-                        new List<TokenType>());
-                }
-                else if (am == AccessModifier.Internal)
-                {
-                    throw new ParsingException("A field or method cannot be internal.",
-                        new List<TokenType>());
-                }
-
-                new FieldOrMethodDeclarationVisitor(base.TokenStream).Visit(parentNode, am, im, isAsync, isPartial);
+                new StateGroupDeclarationVisitor(base.TokenStream).Visit(parentNode.Machine, parentNode, am);
             }
         }
     }
