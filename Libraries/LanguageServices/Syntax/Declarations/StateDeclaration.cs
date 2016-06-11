@@ -432,7 +432,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 return "";
             }
 
-            var generatedProcName = "psharp_" + this.GetFullyQualifiedName() + "_on_entry_action";
+            var generatedProcName = "psharp_" + this.GetFullyQualifiedName() + "_on_exit_action";
             GeneratedMethodNames.Add(generatedProcName);
 
             return "[OnExit(nameof(" + generatedProcName +   "))]\n";

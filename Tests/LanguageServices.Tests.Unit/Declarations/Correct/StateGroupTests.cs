@@ -100,14 +100,15 @@ namespace Foo
 {
 class M : Machine
 {
+class G : StateGroup
+{
 [Microsoft.PSharp.Start]
-[OnEntry(nameof(psharp_S_on_entry_action))]
-class S : MachineState
+[OnEntry(nameof(psharp_G_S_on_entry_action))]
+public class S : MachineState
 {
 }
-protected void psharp_S_on_entry_action()
-{
 }
+protected void psharp_G_S_on_entry_action(){}
 }
 }";
 
