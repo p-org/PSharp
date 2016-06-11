@@ -39,6 +39,11 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// </summary>
         List<string> CurrentQualifiedStateName;
 
+        /// <summary>
+        /// Generated methods state mapping
+        /// </summary>
+        Dictionary<Tuple<string, string, string>, Tuple<HashSet<string>, List<string>>> GeneratedMethodsToQualifiedStateNames;
+
         #endregion
 
         #region public API
@@ -52,6 +57,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         {
             CurrentAllQualifiedStateNames = new HashSet<string>();
             CurrentQualifiedStateName = new List<string>();
+            GeneratedMethodsToQualifiedStateNames = new Dictionary<Tuple<string, string, string>, Tuple<HashSet<string>, List<string>>>();
         }
 
         /// <summary>
@@ -59,39 +65,21 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// </summary>
         internal void Rewrite(Dictionary<Tuple<string, string, string>, Tuple<HashSet<string>, List<string>>> GeneratedMethodsToQualifiedStateNames)
         {
-            var methods = base.Program.GetSyntaxTree().GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().
+            System.Diagnostics.Debugger.Launch();
+            this.GeneratedMethodsToQualifiedStateNames = GeneratedMethodsToQualifiedStateNames;
+
+            var typeofnodes = base.Program.GetSyntaxTree().GetRoot().DescendantNodes()
+                .OfType<TypeOfExpressionSyntax>().
                 ToList();
 
-            foreach (var method in methods)
-            {
-                // Get containing class 
-                var classdecl = method.Ancestors().OfType<ClassDeclarationSyntax>().FirstOrDefault();
-                if (classdecl == null) continue;
+            if (typeofnodes.Count == 0)
+                return;
 
-                // Get containing namespace
-                var namespacedecl = classdecl.Ancestors().OfType<NamespaceDeclarationSyntax>().FirstOrDefault();
-                if (namespacedecl == null) continue;
-                
-                var key = Tuple.Create(method.Identifier.ValueText, classdecl.Identifier.ValueText, namespacedecl.Name.ToString());
+            var root = base.Program.GetSyntaxTree().GetRoot().ReplaceNodes(
+                nodes: typeofnodes,
+                computeReplacementNode: (node, rewritten) => this.RewriteStatement(rewritten));
 
-                // Is this a generated method
-                if (!GeneratedMethodsToQualifiedStateNames.ContainsKey(key)) continue;
-
-                var value = GeneratedMethodsToQualifiedStateNames[key];
-                CurrentAllQualifiedStateNames = value.Item1;
-                CurrentQualifiedStateName = value.Item2;
-
-                // lets visit typeof nodes now
-                var typeofnodes = method.DescendantNodes().OfType<TypeOfExpressionSyntax>().ToList();
-
-                var root = base.Program.GetSyntaxTree().GetRoot().ReplaceNodes(
-                    nodes: typeofnodes,
-                    computeReplacementNode: (node, rewritten) => this.RewriteStatement(rewritten));
-
-                base.UpdateSyntaxTree(root.ToString());
-
-            }
-
+            base.UpdateSyntaxTree(root.ToString());
         }
 
         #endregion
@@ -112,7 +100,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
             for (int i = CurrentQualifiedStateName.Count - 2; i >= 0; i--)
             {
                 var prefix = CurrentQualifiedStateName[0];
-                for (int j = 1; j <= i; j++) prefix += "." + CurrentQualifiedStateName[0];
+                for (int j = 1; j <= i; j++) prefix += "." + CurrentQualifiedStateName[j];
                 if (CurrentAllQualifiedStateNames.Contains(prefix + "." + state))
                     return prefix + "." + state;
             }
@@ -148,13 +136,34 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// <returns>SyntaxNode</returns>
         private SyntaxNode RewriteStatement(TypeOfExpressionSyntax node)
         {
+            // Get containing method
+            var methoddecl = node.Ancestors().OfType<MethodDeclarationSyntax>().FirstOrDefault();
+            if (methoddecl == null) return node;
+
+            // Get containing class 
+            var classdecl = methoddecl.Ancestors().OfType<ClassDeclarationSyntax>().FirstOrDefault();
+            if (classdecl == null) return node;
+
+            // Get containing namespace
+            var namespacedecl = classdecl.Ancestors().OfType<NamespaceDeclarationSyntax>().FirstOrDefault();
+            if (namespacedecl == null) return node;
+
+            var key = Tuple.Create(methoddecl.Identifier.ValueText, classdecl.Identifier.ValueText, namespacedecl.Name.ToString());
+
+            // Is this a generated method
+            if (!GeneratedMethodsToQualifiedStateNames.ContainsKey(key)) return node;
+
+            var value = GeneratedMethodsToQualifiedStateNames[key];
+            CurrentAllQualifiedStateNames = value.Item1;
+            CurrentQualifiedStateName = value.Item2;
+
             var typeUsed = node.Type.ToString();
             var fullyQualifiedName = GetFullyQualifiedStateName(typeUsed);
             if (fullyQualifiedName == typeUsed) return node;
 
             var tokenizedName = ToTokens(fullyQualifiedName);
 
-            var rewritten  = SyntaxFactory.ParseExpression("typeof(" + fullyQualifiedName + ")");
+            var rewritten = SyntaxFactory.ParseExpression("typeof(" + fullyQualifiedName + ")");
             rewritten = rewritten.WithTriviaFrom(node);
 
             return rewritten;
