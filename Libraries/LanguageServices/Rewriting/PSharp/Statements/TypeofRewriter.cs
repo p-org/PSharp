@@ -65,7 +65,6 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// </summary>
         internal void Rewrite(Dictionary<Tuple<string, string, string>, Tuple<HashSet<string>, List<string>>> GeneratedMethodsToQualifiedStateNames)
         {
-            System.Diagnostics.Debugger.Launch();
             this.GeneratedMethodsToQualifiedStateNames = GeneratedMethodsToQualifiedStateNames;
 
             var typeofnodes = base.Program.GetSyntaxTree().GetRoot().DescendantNodes()
