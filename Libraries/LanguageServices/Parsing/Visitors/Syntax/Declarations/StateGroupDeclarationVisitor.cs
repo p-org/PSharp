@@ -86,9 +86,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
             this.VisitNextPSharpIntraGroupDeclaration(node);
-            parentNode.StateGroupDeclarations.Add(node);
-
-            
+            if (groupNode == null) parentNode.StateGroupDeclarations.Add(node);
+            else groupNode.StateGroupDeclarations.Add(node);
 
             var stateDeclarations = node.GetAllStateDeclarations();
             if (stateDeclarations.Count == 0)
