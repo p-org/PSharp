@@ -123,6 +123,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         internal Token RightCurlyBracketToken;
 
+        /// <summary>
+        /// Set of all generated method names
+        /// </summary>
+        internal HashSet<string> GeneratedMethodNames;
+
         #endregion
 
         #region internal API
@@ -132,6 +137,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         /// <param name="program">Program</param>
         /// <param name="machineNode">PMachineDeclarationNode</param>
+        /// <param name="groupNode">State group declaration</param>
         /// <param name="isStart">Is start state</param>
         /// <param name="isHot">Is hot state</param>
         /// <param name="isCold">Is cold state</param>
@@ -151,6 +157,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             this.ActionHandlers = new Dictionary<Token, BlockSyntax>();
             this.DeferredEvents = new HashSet<Token>();
             this.IgnoredEvents = new HashSet<Token>();
+            this.GeneratedMethodNames = new HashSet<string>();
         }
 
         /// <summary>
@@ -313,15 +320,16 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
         /// <summary>
         /// Return fully qualified state name
+        /// <param name="delimiter">Delimiter</param>
         /// </summary>
         /// <returns>Text</returns>
-        internal string GetFullyQualifiedName()
+        internal string GetFullyQualifiedName(char delimiter = '_')
         {
             var qualifiedName = this.Identifier.TextUnit.Text;
             var containingGroup = this.Group;
             while (containingGroup != null)
             {
-                qualifiedName = containingGroup.Identifier.TextUnit.Text + "_" + qualifiedName;
+                qualifiedName = containingGroup.Identifier.TextUnit.Text + delimiter + qualifiedName;
                 containingGroup = containingGroup.Group;
             }
 
@@ -407,12 +415,10 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 return "";
             }
 
-            string text = "[OnEntry(nameof(";
+            var generatedProcName = "psharp_" + this.GetFullyQualifiedName() + "_on_entry_action";
+            GeneratedMethodNames.Add(generatedProcName);
 
-            text += "psharp_" + this.GetFullyQualifiedName() + "_on_entry_action";
-            text += "))]\n";
-
-            return text;
+            return "[OnEntry(nameof(" + generatedProcName + "))]\n";
         }
 
         /// <summary>
@@ -426,12 +432,10 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 return "";
             }
 
-            string text = "[OnExit(nameof(";
+            var generatedProcName = "psharp_" + this.GetFullyQualifiedName() + "_on_entry_action";
+            GeneratedMethodNames.Add(generatedProcName);
 
-            text += "psharp_" + this.GetFullyQualifiedName() + "_on_exit_action";
-            text += "))]\n";
-
-            return text;
+            return "[OnExit(nameof(" + generatedProcName +   "))]\n";
         }
 
         /// <summary>
@@ -454,6 +458,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 {
                     onExitName = "psharp_" + this.GetFullyQualifiedName() + "_" +
                         transition.Key.TextUnit.Text + "_action";
+                    GeneratedMethodNames.Add(onExitName);
                 }
 
                 text += "[OnEventGotoState(";
@@ -550,6 +555,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 {
                     actionName = "psharp_" + this.GetFullyQualifiedName() + "_" +
                         binding.Key.TextUnit.Text + "_action";
+                    GeneratedMethodNames.Add(actionName);
                 }
 
                 text += "[OnEventDoAction(";

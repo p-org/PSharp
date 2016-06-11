@@ -101,7 +101,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <summary>
         /// Map for all generated methods
         /// </summary>
-        internal Dictionary<string, List<Token>> GeneratedMethodToQualifiedStateName;
+        internal Dictionary<string, List<string>> GeneratedMethodToQualifiedStateName;
 
         #endregion
 
@@ -123,7 +123,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             this.StateDeclarations = new List<StateDeclaration>();
             this.StateGroupDeclarations = new List<StateGroupDeclaration>();
             this.MethodDeclarations = new List<MethodDeclaration>();
-            this.GeneratedMethodToQualifiedStateName = new Dictionary<string, List<Token>>();
+            this.GeneratedMethodToQualifiedStateName = new Dictionary<string, List<string>>();
         }
 
         /// <summary>
@@ -178,6 +178,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
 
             base.TextUnit = new TextUnit(text, this.MachineKeyword.TextUnit.Line);
+
+            GatherGeneratedMethods();
         }
 
         /// <summary>
@@ -268,7 +270,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         private string GetRewrittenStateOnEntryAndExitActions()
         {
             string text = "";
-            
+
             foreach (var state in this.GetAllStateDeclarations())
             {
                 if (state.EntryDeclaration != null)
@@ -320,6 +322,33 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             }
 
             return text;
+        }
+
+        /// <summary>
+        /// Populate the set of generated methods and the states they came from.
+        /// </summary>
+        /// <returns>Text</returns>
+        private void GatherGeneratedMethods()
+        {
+            var GetStateTokenList = new Func<StateDeclaration, List<string>>(state =>
+            {
+                var ls = new List<string>();
+                ls.Insert(0, state.Identifier.TextUnit.Text);
+                var group = state.Group;
+                while (group != null)
+                {
+                    ls.Insert(0, group.Identifier.TextUnit.Text);
+                    group = group.Group;
+                }
+                return ls;
+            });
+
+            foreach (var state in this.GetAllStateDeclarations())
+            {
+                var tokens = GetStateTokenList(state);
+                foreach (var method in state.GeneratedMethodNames)
+                    GeneratedMethodToQualifiedStateName.Add(method, tokens);
+            }
         }
 
         #endregion

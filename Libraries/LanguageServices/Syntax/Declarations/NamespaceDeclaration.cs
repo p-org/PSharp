@@ -72,7 +72,16 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             this.EventDeclarations = new List<EventDeclaration>();
             this.MachineDeclarations = new List<MachineDeclaration>();
         }
-        
+
+        /// <summary>
+        /// Qualified name of the namespace
+        /// </summary>
+        internal string Name()
+        {
+            return IdentifierTokens.Select(t => t.TextUnit.Text).
+                Aggregate("", (acc, name) => acc + name);
+        }
+
         /// <summary>
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.

@@ -117,6 +117,26 @@ namespace Microsoft.PSharp.LanguageServices
             new GotoStateRewriter(this).Rewrite();
             new PopRewriter(this).Rewrite();
             new AssertRewriter(this).Rewrite();
+
+            var dict = new Dictionary<Tuple<string, string, string>, Tuple<HashSet<string>, List<string>>>();
+            foreach (var nspace in NamespaceDeclarations)
+            {
+                foreach (var machine in nspace.MachineDeclarations)
+                {
+                    var AllQualifiedNames = new HashSet<string>();
+                    foreach (var state in machine.GetAllStateDeclarations())
+                    {
+                        AllQualifiedNames.Add(state.GetFullyQualifiedName('.'));
+                    }
+                    foreach (var method in machine.GeneratedMethodToQualifiedStateName)
+                    {
+                        dict.Add(Tuple.Create(method.Key, machine.Identifier.TextUnit.Text, nspace.Name()),
+                            Tuple.Create(AllQualifiedNames, method.Value));
+                    }
+                }
+            }
+            
+            new TypeofRewriter(this).Rewrite(dict);
         }
 
         /// <summary>

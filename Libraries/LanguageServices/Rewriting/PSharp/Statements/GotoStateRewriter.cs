@@ -51,22 +51,6 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
                     Identifier.ValueText.Equals("jump")).
                 ToList();
 
-            /*
-            foreach (var st in statements)
-            {
-                Console.WriteLine("======== Level 0 ========");
-                Console.WriteLine("{0}", st);
-
-                var i = 1;
-                foreach (var n in st.Ancestors())
-                {
-                    Console.WriteLine("======== Level {0} ========", i); i++;
-                    Console.WriteLine("{0}", n);
-                }
-            }
-            */
-
-
             if (statements.Count == 0)
             {
                 return;
