@@ -122,9 +122,12 @@ protected void psharp_G_S_on_entry_action(){}
             var test = @"
 namespace Foo {
 machine M {
+group G 
+{
 start state S
 {
 exit{}
+}
 }
 }
 }";
@@ -145,18 +148,19 @@ namespace Foo
 {
 class M : Machine
 {
+class G : StateGroup
+{
 [Microsoft.PSharp.Start]
-[OnExit(nameof(psharp_S_on_exit_action))]
-class S : MachineState
+[OnExit(nameof(psharp_G_S_on_exit_action))]
+public class S : MachineState
 {
 }
-protected void psharp_S_on_exit_action()
-{
 }
+protected void psharp_G_S_on_exit_action(){}
 }
 }";
 
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty).Replace("\n", string.Empty),
                 syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
@@ -166,10 +170,13 @@ protected void psharp_S_on_exit_action()
             var test = @"
 namespace Foo {
 machine M {
+group G
+{
 start state S
 {
 entry {}
 exit {}
+}
 }
 }
 }";
@@ -190,22 +197,21 @@ namespace Foo
 {
 class M : Machine
 {
+class G : StateGroup
+{
 [Microsoft.PSharp.Start]
-[OnEntry(nameof(psharp_S_on_entry_action))]
-[OnExit(nameof(psharp_S_on_exit_action))]
-class S : MachineState
+[OnEntry(nameof(psharp_G_S_on_entry_action))]
+[OnExit(nameof(psharp_G_S_on_exit_action))]
+public class S : MachineState
 {
 }
-protected void psharp_S_on_entry_action()
-{
 }
-protected void psharp_S_on_exit_action()
-{
-}
+protected void psharp_G_S_on_entry_action(){}
+protected void psharp_G_S_on_exit_action(){}
 }
 }";
 
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty).Replace("\n", string.Empty),
                 syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
@@ -215,9 +221,15 @@ protected void psharp_S_on_exit_action()
             var test = @"
 namespace Foo {
 machine M {
+group G
+{
 start state S1
 {
 on e goto S2;
+}
+}
+state S2
+{
 }
 }
 }";
@@ -238,15 +250,21 @@ namespace Foo
 {
 class M : Machine
 {
+class S2 : MachineState
+{
+}
+class G : StateGroup
+{
 [Microsoft.PSharp.Start]
 [OnEventGotoState(typeof(e), typeof(S2))]
-class S1 : MachineState
+public class S1 : MachineState
 {
+}
 }
 }
 }";
 
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty).Replace("\n", string.Empty),
                 syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
@@ -256,10 +274,15 @@ class S1 : MachineState
             var test = @"
 namespace Foo {
 machine M {
+group G
+{
 start state S1
 {
 on e1 goto S2;
 on e2 goto S3;
+}
+state S2 {}
+state S3 {}
 }
 }
 }";
@@ -280,16 +303,25 @@ namespace Foo
 {
 class M : Machine
 {
+class G : StateGroup
+{
 [Microsoft.PSharp.Start]
 [OnEventGotoState(typeof(e1), typeof(S2))]
 [OnEventGotoState(typeof(e2), typeof(S3))]
-class S1 : MachineState
+public class S1 : MachineState
 {
+}
+public class S2 : MachineState
+{
+}
+public class S3 : MachineState
+{
+}
 }
 }
 }";
 
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty).Replace("\n", string.Empty),
                 syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
@@ -299,9 +331,12 @@ class S1 : MachineState
             var test = @"
 namespace Foo {
 machine M {
+group G
+{
 start state S1
 {
 on e goto S2 with {};
+}
 }
 }
 }";
@@ -322,18 +357,19 @@ namespace Foo
 {
 class M : Machine
 {
+class G : StateGroup
+{
 [Microsoft.PSharp.Start]
-[OnEventGotoState(typeof(e), typeof(S2), nameof(psharp_S1_e_action))]
-class S1 : MachineState
+[OnEventGotoState(typeof(e), typeof(S2), nameof(psharp_G_S1_e_action))]
+public class S1 : MachineState
 {
 }
-protected void psharp_S1_e_action()
-{
 }
+protected void psharp_G_S1_e_action(){}
 }
 }";
 
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty).Replace("\n", string.Empty),
                 syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
@@ -343,11 +379,14 @@ protected void psharp_S1_e_action()
             var test = @"
 namespace Foo {
 machine M {
+group G
+{
 start state S1
 {
 on e do Bar;
 }
 }
+}
 }";
 
             var configuration = Configuration.Create();
@@ -365,59 +404,19 @@ using Microsoft.PSharp;
 namespace Foo
 {
 class M : Machine
+{
+class G : StateGroup
 {
 [Microsoft.PSharp.Start]
 [OnEventDoAction(typeof(e), nameof(Bar))]
-class S1 : MachineState
+public class S1 : MachineState
 {
+}
 }
 }
 }";
 
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
-                syntaxTree.ToString().Replace("\n", string.Empty));
-        }
-
-        [TestMethod, Timeout(10000)]
-        public void TestOnEventDoActionDeclaration2()
-        {
-            var test = @"
-namespace Foo {
-machine M {
-start state S1
-{
-on e1 do Bar;
-on e2 do Baz;
-}
-}
-}";
-
-            var configuration = Configuration.Create();
-            configuration.Verbose = 2;
-
-            var context = CompilationContext.Create(configuration).LoadSolution(test);
-
-            ParsingEngine.Create(context).Run();
-            RewritingEngine.Create(context).Run();
-
-            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
-
-            var expected = @"
-using Microsoft.PSharp;
-namespace Foo
-{
-class M : Machine
-{
-[Microsoft.PSharp.Start]
-[OnEventDoAction(typeof(e1), nameof(Bar))]
-[OnEventDoAction(typeof(e2), nameof(Baz))]
-class S1 : MachineState
-{
-}
-}
-}";
-
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty).Replace("\n", string.Empty),
                 syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
@@ -427,9 +426,12 @@ class S1 : MachineState
             var test = @"
 namespace Foo {
 machine M {
+group G
+{
 start state S1
 {
 on e do {};
+}
 }
 }
 }";
@@ -450,18 +452,19 @@ namespace Foo
 {
 class M : Machine
 {
+class G : StateGroup
+{
 [Microsoft.PSharp.Start]
-[OnEventDoAction(typeof(e), nameof(psharp_S1_e_action))]
-class S1 : MachineState
+[OnEventDoAction(typeof(e), nameof(psharp_G_S1_e_action))]
+public class S1 : MachineState
 {
 }
-protected void psharp_S1_e_action()
-{
 }
+protected void psharp_G_S1_e_action(){}
 }
 }";
 
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty).Replace("\n", string.Empty),
                 syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
@@ -471,12 +474,15 @@ protected void psharp_S1_e_action()
             var test = @"
 namespace Foo {
 machine M {
+group G
+{
 start state S1
 {
 on e1 goto S2;
 on e2 do Bar;
 }
 }
+}
 }";
 
             var configuration = Configuration.Create();
@@ -494,29 +500,33 @@ using Microsoft.PSharp;
 namespace Foo
 {
 class M : Machine
+{
+class G : StateGroup
 {
 [Microsoft.PSharp.Start]
 [OnEventGotoState(typeof(e1), typeof(S2))]
 [OnEventDoAction(typeof(e2), nameof(Bar))]
-class S1 : MachineState
+public class S1 : MachineState
 {
+}
 }
 }
 }";
 
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty).Replace("\n", string.Empty),
                 syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
         [TestMethod, Timeout(10000)]
-        public void TestIgnoreEventDeclaration()
+        public void TestNestedGroup()
         {
             var test = @"
 namespace Foo {
 machine M {
-start state S
-{
-ignore e;
+group G1 {
+group G2 {
+start state S1 { entry { jump(S1); } }
+}
 }
 }
 }";
@@ -537,27 +547,37 @@ namespace Foo
 {
 class M : Machine
 {
+class G1 : StateGroup
+{
+public class G2 : StateGroup
+{
 [Microsoft.PSharp.Start]
-[IgnoreEvents(typeof(e))]
-class S : MachineState
+[OnEntry(nameof(psharp_G1_G2_S1_on_entry_action))]
+public class S1 : MachineState
 {
 }
 }
+}
+protected void psharp_G1_G2_S1_on_entry_action(){ { this.Goto(typeof(G1.G2.S1));return; } }
+}
 }";
 
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty).Replace("\n", string.Empty),
                 syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
         [TestMethod, Timeout(10000)]
-        public void TestIgnoreEventDeclaration2()
+        public void TestNestedGroup2()
         {
             var test = @"
 namespace Foo {
 machine M {
-start state S
-{
-ignore e1, e2;
+group G1 {
+group G2 {
+group G3 {
+start state S1 { entry { jump(S1); } }
+}
+}
 }
 }
 }";
@@ -578,26 +598,39 @@ namespace Foo
 {
 class M : Machine
 {
+class G1 : StateGroup
+{
+public class G2 : StateGroup
+{
+public class G3 : StateGroup
+{
 [Microsoft.PSharp.Start]
-[IgnoreEvents(typeof(e1), typeof(e2))]
-class S : MachineState
+[OnEntry(nameof(psharp_G1_G2_G3_S1_on_entry_action))]
+public class S1 : MachineState
 {
 }
 }
+}
+}
+protected void psharp_G1_G2_G3_S1_on_entry_action(){ { this.Goto(typeof(G1.G2.G3.S1));return; } }
+}
 }";
 
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), syntaxTree.ToString().Replace("\n", string.Empty));
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty).Replace("\n", string.Empty),
+                syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
         [TestMethod, Timeout(10000)]
-        public void TestDeferEventDeclaration()
+        public void TestMultipleGroups()
         {
             var test = @"
 namespace Foo {
 machine M {
-start state S
-{
-defer e;
+group G1 {
+  start state S1 { entry { jump(S1); } }
+}
+group G2 {
+  state S1 { entry { jump(S1); } }
 }
 }
 }";
@@ -618,27 +651,44 @@ namespace Foo
 {
 class M : Machine
 {
+class G1 : StateGroup
+{
 [Microsoft.PSharp.Start]
-[DeferEvents(typeof(e))]
-class S : MachineState
+[OnEntry(nameof(psharp_G1_S1_on_entry_action))]
+public class S1 : MachineState
 {
 }
 }
+class G2 : StateGroup
+{
+[OnEntry(nameof(psharp_G2_S1_on_entry_action))]
+public class S1 : MachineState
+{
+}
+}
+protected void psharp_G1_S1_on_entry_action(){ { this.Goto(typeof(G1.S1));return; } }
+protected void psharp_G2_S1_on_entry_action(){ { this.Goto(typeof(G2.S1));return; } }
+}
 }";
 
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty).Replace("\n", string.Empty),
                 syntaxTree.ToString().Replace("\n", string.Empty));
         }
 
         [TestMethod, Timeout(10000)]
-        public void TestDeferEventDeclaration2()
+        public void TestMultipleGroups2()
         {
             var test = @"
 namespace Foo {
 machine M {
-start state S
-{
-defer e1,e2;
+group G1 {
+  start state S1 { entry { jump(S2); } }
+  state S2 { entry { jump(S1); } }
+}
+group G2 {
+  state S1 { entry { jump(S2); } }
+  state S2 { entry { jump(S1); } }
+  state S3 { entry { jump(G1.S1); } }
 }
 }
 }";
@@ -659,16 +709,115 @@ namespace Foo
 {
 class M : Machine
 {
-[Microsoft.PSharp.Start]
-[DeferEvents(typeof(e1), typeof(e2))]
-class S : MachineState
+class G1 : StateGroup
 {
+[Microsoft.PSharp.Start]
+[OnEntry(nameof(psharp_G1_S1_on_entry_action))]
+public class S1 : MachineState
+{
+}
+[OnEntry(nameof(psharp_G1_S2_on_entry_action))]
+public class S2 : MachineState
+{
+}
+}
+class G2 : StateGroup
+{
+[OnEntry(nameof(psharp_G2_S1_on_entry_action))]
+public class S1 : MachineState
+{
+}
+[OnEntry(nameof(psharp_G2_S2_on_entry_action))]
+public class S2 : MachineState
+{
+}
+[OnEntry(nameof(psharp_G2_S3_on_entry_action))]
+public class S3 : MachineState
+{
+}
+}
+protected void psharp_G1_S1_on_entry_action(){ { this.Goto(typeof(G1.S2));return; } }
+protected void psharp_G1_S2_on_entry_action(){ { this.Goto(typeof(G1.S1));return; } }
+protected void psharp_G2_S1_on_entry_action(){ { this.Goto(typeof(G2.S2));return; } }
+protected void psharp_G2_S2_on_entry_action(){ { this.Goto(typeof(G2.S1));return; } }
+protected void psharp_G2_S3_on_entry_action(){ { this.Goto(typeof(G1.S1));return; } }
+}
+}";
+
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty).Replace("\n", string.Empty),
+                syntaxTree.ToString().Replace("\n", string.Empty));
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestNestedGroups2()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+group G1 {
+  start state S1 { entry { jump(G3.S2); } }
+  group G3 {
+    state S2 { entry { jump(S1); } }
+    state S3 { entry { jump(S2); } }
+  }
 }
 }
 }";
 
-            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
+
+            var expected = @"
+using Microsoft.PSharp;
+namespace Foo
+{
+class M : Machine
+{
+class G1 : StateGroup
+{
+public class G3 : StateGroup
+{
+[OnEntry(nameof(psharp_G1_G3_S2_on_entry_action))]
+public class S2 : MachineState
+{
+}
+[OnEntry(nameof(psharp_G1_G3_S3_on_entry_action))]
+public class S3 : MachineState
+{
+}
+}
+[Microsoft.PSharp.Start]
+[OnEntry(nameof(psharp_G1_S1_on_entry_action))]
+public class S1 : MachineState
+{
+}
+}
+protected void psharp_G1_S1_on_entry_action(){ { this.Goto(typeof(G1.G3.S2));return; } }
+protected void psharp_G1_G3_S2_on_entry_action(){ { this.Goto(typeof(G1.S1));return; } }
+protected void psharp_G1_G3_S3_on_entry_action(){ { this.Goto(typeof(G1.G3.S2));return; } }
+}
+}
+";
+
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty).Replace("\n", string.Empty),
                 syntaxTree.ToString().Replace("\n", string.Empty));
         }
+
+
+
+
+
+
+
+
+
     }
+
 }
