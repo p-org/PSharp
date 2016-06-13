@@ -20,8 +20,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-using Microsoft.PSharp.LanguageServices.Compilation;
-
 namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 {
     /// <summary>
@@ -92,7 +90,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
             foreach (var machine in machines)
             {
                 this.CheckForAtLeastOneState(machine, compilation);
-                this.CheckForNonStateNonEventClasses(machine, compilation);
+                this.CheckForIllegalClasses(machine, compilation);
                 this.CheckForStructs(machine);
                 this.CheckForStartState(machine, compilation);
 
@@ -326,7 +324,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="compilation">Compilation</param>
-        private void DiscoverMachineActionsThatPop(ClassDeclarationSyntax machine, CodeAnalysis.Compilation compilation)
+        private void DiscoverMachineActionsThatPop(ClassDeclarationSyntax machine,
+            CodeAnalysis.Compilation compilation)
         {
             this.ActionsThaPop.Add(machine, new List<MethodDeclarationSyntax>());
 
@@ -358,7 +357,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="compilation">Compilation</param>
-        private void CheckForAtLeastOneState(ClassDeclarationSyntax machine, CodeAnalysis.Compilation compilation)
+        private void CheckForAtLeastOneState(ClassDeclarationSyntax machine,
+            CodeAnalysis.Compilation compilation)
         {
             var states = machine.DescendantNodes().OfType<ClassDeclarationSyntax>().
                 Where(val => this.IsState(compilation, val)).
@@ -366,30 +366,34 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
             if (states.Count == 0)
             {
-                base.WarningLog.Add(Tuple.Create(machine.Identifier, this.GetTypeOfMachine().ToLower() + " '" +
-                    machine.Identifier.ValueText + "' must declare at least one state (unless the machine " +
+                base.WarningLog.Add(Tuple.Create(machine.Identifier, $"{this.GetTypeOfMachine().ToLower()} " +
+                    $"'{machine.Identifier.ValueText}' must declare at least one state (unless the machine " +
                     "inherits at least one state from a base machine, or is partial, and one state has " +
                     "been already declared in another part of the declaration)."));
             }
         }
 
         /// <summary>
-        /// Checks that no non-state or non-state-group or non-event classes are declared inside the machine.
+        /// Checks that no non-state or non-state-group or non-event
+        /// classes are declared inside the machine.
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="compilation">Compilation</param>
-        private void CheckForNonStateNonEventClasses(ClassDeclarationSyntax machine, CodeAnalysis.Compilation compilation)
+        private void CheckForIllegalClasses(ClassDeclarationSyntax machine,
+            CodeAnalysis.Compilation compilation)
         {
             var classIdentifiers = machine.DescendantNodes().OfType<ClassDeclarationSyntax>().
-                Where(val => !this.IsState(compilation, val) && !this.IsStateGroup(compilation, val) && !Querying.IsEventDeclaration(compilation, val)).
+                Where(val => !this.IsState(compilation, val) &&
+                    !this.IsStateGroup(compilation, val) &&
+                    !Querying.IsEventDeclaration(compilation, val)).
                 Select(val => val.Identifier).
                 ToList();
 
             foreach (var identifier in classIdentifiers)
             {
-                base.ErrorLog.Add(Tuple.Create(identifier, "Not allowed to declare non-state class '" +
-                    identifier.ValueText + "' inside " + this.GetTypeOfMachine().ToLower() + " '" +
-                    machine.Identifier.ValueText + "'."));
+                base.ErrorLog.Add(Tuple.Create(identifier, "Not allowed to declare non-state class " +
+                    $"'{identifier.ValueText}' inside {this.GetTypeOfMachine().ToLower()} " +
+                    $"'{machine.Identifier.ValueText}'."));
             }
         }
 
@@ -398,7 +402,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="compilation">Compilation</param>
-        private void CheckForNoStateGroupClasses(ClassDeclarationSyntax machine, CodeAnalysis.Compilation compilation)
+        private void CheckForNoStateGroupClasses(ClassDeclarationSyntax machine,
+            CodeAnalysis.Compilation compilation)
         {
             var classIdentifiers = machine.DescendantNodes().OfType<ClassDeclarationSyntax>().
                 Where(val => this.IsStateGroup(compilation, val)).
@@ -425,9 +430,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
             foreach (var identifier in structIdentifiers)
             {
-                base.ErrorLog.Add(Tuple.Create(identifier, "Not allowed to declare struct '" +
-                    identifier.ValueText + "' inside " + this.GetTypeOfMachine().ToLower() + " '" +
-                    machine.Identifier.ValueText + "'."));
+                base.ErrorLog.Add(Tuple.Create(identifier, "Not allowed to declare struct " +
+                    $"'{identifier.ValueText}' inside {this.GetTypeOfMachine().ToLower()} " +
+                    $"'{machine.Identifier.ValueText}'."));
             }
         }
 
@@ -449,15 +454,15 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
             if (stateAttributes.Count == 0)
             {
-                base.WarningLog.Add(Tuple.Create(machine.Identifier, this.GetTypeOfMachine().ToLower() + " '" +
-                    machine.Identifier.ValueText + "' must declare a start state (unless the machine " +
+                base.WarningLog.Add(Tuple.Create(machine.Identifier, $"{this.GetTypeOfMachine().ToLower()} " +
+                    $"'{machine.Identifier.ValueText}' must declare a start state (unless the machine " +
                     "inherits a start state from a base machine, or is partial, and one state has been " +
                     "already declared in another part of the declaration)."));
             }
             else if (stateAttributes.Count > 1)
             {
-                base.ErrorLog.Add(Tuple.Create(machine.Identifier, this.GetTypeOfMachine().ToLower() + " '" +
-                    machine.Identifier.ValueText + "' must declare only one start state."));
+                base.ErrorLog.Add(Tuple.Create(machine.Identifier, $"{this.GetTypeOfMachine().ToLower()} " +
+                    $"'{machine.Identifier.ValueText}' must declare only one start state."));
             }
         }
 
@@ -487,9 +492,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
                 if (hasNestedRaise)
                 {
-                    base.WarningLog.Add(Tuple.Create(action.Identifier, "Method '" + action.Identifier.ValueText +
-                        "' of " + this.GetTypeOfMachine().ToLower() + " `" + machine.Identifier.ValueText +
-                        "` must not call a method that raises an event."));
+                    base.WarningLog.Add(Tuple.Create(action.Identifier, $"Method '{action.Identifier.ValueText}' " +
+                        $"of {this.GetTypeOfMachine().ToLower()} '{machine.Identifier.ValueText}' " +
+                        "must not call a method that raises an event."));
                 }
             }
         }
@@ -520,9 +525,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
                 if (hasNestedPop)
                 {
-                    base.WarningLog.Add(Tuple.Create(action.Identifier, "Method '" + action.Identifier.ValueText +
-                        "' of " + this.GetTypeOfMachine().ToLower() + " `" + machine.Identifier.ValueText +
-                        "` must not call a method that pops a state."));
+                    base.WarningLog.Add(Tuple.Create(action.Identifier, $"Method '{action.Identifier.ValueText}' " +
+                        $"of {this.GetTypeOfMachine().ToLower()} '{machine.Identifier.ValueText}' " +
+                        "must not call a method that pops a state."));
                 }
             }
         }
@@ -554,9 +559,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
                 if (hasRaise)
                 {
-                    base.WarningLog.Add(Tuple.Create(method.Identifier, "Method '" + method.Identifier.ValueText +
-                        "' of " + this.GetTypeOfMachine().ToLower() + " `" + machine.Identifier.ValueText +
-                        "` must not raise an event."));
+                    base.WarningLog.Add(Tuple.Create(method.Identifier, $"Method '{method.Identifier.ValueText}' " +
+                        $"of {this.GetTypeOfMachine().ToLower()} '{machine.Identifier.ValueText}' " +
+                        "must not raise an event."));
                 }
 
                 var hasNestedRaise = method.DescendantNodes().OfType<InvocationExpressionSyntax>().
@@ -576,9 +581,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
                 if (hasNestedRaise)
                 {
-                    base.WarningLog.Add(Tuple.Create(method.Identifier, "Method '" + method.Identifier.ValueText +
-                        "' of " + this.GetTypeOfMachine().ToLower() + " `" + machine.Identifier.ValueText +
-                        "` must not call a method that raises an event."));
+                    base.WarningLog.Add(Tuple.Create(method.Identifier, $"Method '{method.Identifier.ValueText}' " +
+                        $"of {this.GetTypeOfMachine().ToLower()} '{machine.Identifier.ValueText}' " +
+                        "must not call a method that raises an event."));
                 }
             }
         }
@@ -610,9 +615,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
                 if (hasPop)
                 {
-                    base.WarningLog.Add(Tuple.Create(method.Identifier, "Method '" + method.Identifier.ValueText +
-                        "' of " + this.GetTypeOfMachine().ToLower() + " `" + machine.Identifier.ValueText +
-                        "` must not pop a state."));
+                    base.WarningLog.Add(Tuple.Create(method.Identifier, $"Method '{method.Identifier.ValueText}' " +
+                        $"of {this.GetTypeOfMachine().ToLower()} '{machine.Identifier.ValueText}' " +
+                        "must not pop a state."));
                 }
 
                 var hasNestedPop = method.DescendantNodes().OfType<InvocationExpressionSyntax>().
@@ -632,9 +637,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
 
                 if (hasNestedPop)
                 {
-                    base.WarningLog.Add(Tuple.Create(method.Identifier, "Method '" + method.Identifier.ValueText +
-                        "' of " + this.GetTypeOfMachine().ToLower() + " `" + machine.Identifier.ValueText +
-                        "` must not call a method that pops a state."));
+                    base.WarningLog.Add(Tuple.Create(method.Identifier, $"Method '{method.Identifier.ValueText}' " +
+                        $"of {this.GetTypeOfMachine().ToLower()} '{machine.Identifier.ValueText}' " +
+                        "must not call a method that pops a state."));
                 }
             }
         }

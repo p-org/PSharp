@@ -33,7 +33,8 @@ namespace Microsoft.PSharp.LanguageServices
         /// <param name="compilation">Compilation</param>
         /// <param name="classDecl">Class declaration</param>
         /// <returns>Boolean</returns>
-        internal static bool IsMachine(CodeAnalysis.Compilation compilation, ClassDeclarationSyntax classDecl)
+        internal static bool IsMachine(CodeAnalysis.Compilation compilation,
+            ClassDeclarationSyntax classDecl)
         {
             var result = false;
             if (classDecl.BaseList == null)
@@ -69,7 +70,8 @@ namespace Microsoft.PSharp.LanguageServices
         /// <param name="compilation">Compilation</param>
         /// <param name="classDecl">Class declaration</param>
         /// <returns>Boolean</returns>
-        internal static bool IsMachineState(CodeAnalysis.Compilation compilation, ClassDeclarationSyntax classDecl)
+        internal static bool IsMachineState(CodeAnalysis.Compilation compilation,
+            ClassDeclarationSyntax classDecl)
         {
             var result = false;
             if (classDecl.BaseList == null)
@@ -100,12 +102,13 @@ namespace Microsoft.PSharp.LanguageServices
         }
 
         /// <summary>
-        /// Returns true if the given class declaration is a P# machine state.
+        /// Returns true if the given class declaration is a P# machine state group.
         /// </summary>
         /// <param name="compilation">Compilation</param>
         /// <param name="classDecl">Class declaration</param>
         /// <returns>Boolean</returns>
-        internal static bool IsMachineStateGroup(CodeAnalysis.Compilation compilation, ClassDeclarationSyntax classDecl)
+        internal static bool IsMachineStateGroup(CodeAnalysis.Compilation compilation,
+            ClassDeclarationSyntax classDecl)
         {
             var result = false;
             if (classDecl.BaseList == null)
@@ -141,7 +144,8 @@ namespace Microsoft.PSharp.LanguageServices
         /// <param name="compilation">Compilation</param>
         /// <param name="classDecl">Class declaration</param>
         /// <returns>Boolean</returns>
-        internal static bool IsEventDeclaration(CodeAnalysis.Compilation compilation, ClassDeclarationSyntax classDecl)
+        internal static bool IsEventDeclaration(CodeAnalysis.Compilation compilation,
+            ClassDeclarationSyntax classDecl)
         {
             var result = false;
             if (classDecl.BaseList == null)
@@ -177,7 +181,8 @@ namespace Microsoft.PSharp.LanguageServices
         /// <param name="compilation">Compilation</param>
         /// <param name="classDecl">Class declaration</param>
         /// <returns>Boolean</returns>
-        internal static bool IsMonitor(CodeAnalysis.Compilation compilation, ClassDeclarationSyntax classDecl)
+        internal static bool IsMonitor(CodeAnalysis.Compilation compilation,
+            ClassDeclarationSyntax classDecl)
         {
             var result = false;
             if (classDecl.BaseList == null)
@@ -213,7 +218,8 @@ namespace Microsoft.PSharp.LanguageServices
         /// <param name="compilation">Compilation</param>
         /// <param name="classDecl">Class declaration</param>
         /// <returns>Boolean</returns>
-        internal static bool IsMonitorState(CodeAnalysis.Compilation compilation, ClassDeclarationSyntax classDecl)
+        internal static bool IsMonitorState(CodeAnalysis.Compilation compilation,
+            ClassDeclarationSyntax classDecl)
         {
             var result = false;
             if (classDecl.BaseList == null)

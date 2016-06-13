@@ -1280,8 +1280,7 @@ namespace Microsoft.PSharp
             }
             
             var initialState = this.States.FirstOrDefault(val => val.GetType().Equals(initialStateType));
-            this.Assert(initialState != null, $"Machine '{base.Id.Name}' " +
-                "must declare a start state.");
+            this.Assert(initialState != null, $"Machine '{base.Id.Name}' must declare a start state.");
 
             this.ConfigureStateTransitions(initialState);
             this.StateStack.Push(initialState);
