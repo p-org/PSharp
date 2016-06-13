@@ -10,8 +10,8 @@ The P# framework provides:
 
 Although P# primarily targets .NET, it has also experimental support for systematically testing native C++ code.
 
-## How to build and use
-Check the P# [wiki](https://github.com/p-org/PSharp/wiki):
+## Documentation
+The best way to build and start using P# is to read our [wiki](https://github.com/p-org/PSharp/wiki):
 
 - [Building P#](https://github.com/p-org/PSharp/wiki/Build-Instructions)
 - [P# Compiler](https://github.com/p-org/PSharp/wiki/Compilation)
@@ -19,9 +19,14 @@ Check the P# [wiki](https://github.com/p-org/PSharp/wiki):
 - [P# Replayer/Debugger](https://github.com/p-org/PSharp/wiki/Bug-Reproduction)
 - [Samples and Walkthroughs](https://github.com/p-org/PSharp/wiki/Samples-and-Walkthroughs)
 
+You can also read the manual and available publications:
+
+- [Manual](https://github.com/p-org/PSharp/blob/master/Docs/Manual/manual.pdf)  
+- [Publications](https://github.com/p-org/PSharp/wiki/Publications)
+
 ## How to contribute
 
-We welcome contributions to the P# project! Before you start contributing, though, please read carefully the [development guidelines](https://github.com/p-org/PSharp/wiki/Contributing-Code).
+We welcome contributions to the P# project! However, before you start contributing, please read carefully the [development guidelines](https://github.com/p-org/PSharp/wiki/Contributing-Code).
 
 ## Contact us
 
@@ -30,7 +35,3 @@ If you would like to use P# in your project, or have any specific questions, ple
 - Akash Lal (akashl@microsoft.com) [Maintainer]
 - Shaz Qadeer (qadeer@microsoft.com)
 - Cheng Huang (cheng.huang@microsoft.com)
-
-## Publications
-- **[Uncovering Bugs in Distributed Storage Systems During Testing (not in Production!)](https://www.usenix.org/node/194442)**. Pantazis Deligiannis, Matt McCutchen, Paul Thomson, Shuo Chen, Alastair F. Donaldson, John Erickson, Cheng Huang, Akash Lal, Rashmi Mudduluru, Shaz Qadeer and Wolfram Schulte. In the *14th USENIX Conference on File and Storage Technologies* (FAST), 2016.
-- **[Asynchronous Programming, Analysis and Testing with State Machines](https://dl.acm.org/citation.cfm?id=2737996)**. Pantazis Deligiannis, Alastair F. Donaldson, Jeroen Ketema, Akash Lal and Paul Thomson. In the *36th Annual ACM SIGPLAN Conference on Programming Language Design and Implementation* (PLDI), 2015.
