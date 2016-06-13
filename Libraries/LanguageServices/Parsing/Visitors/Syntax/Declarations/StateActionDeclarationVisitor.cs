@@ -190,7 +190,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             }
             else if (base.TokenStream.Peek().Type == TokenType.GotoState)
             {
-                var stateIdentifiers = ConsumeState();
+                var stateIdentifiers = this.ConsumeState();
 
                 if (base.TokenStream.Done ||
                     (base.TokenStream.Peek().Type != TokenType.WithExit &&
@@ -263,7 +263,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         new List<TokenType>());
                 }
 
-                var stateIdentifiers = ConsumeState();
+                var stateIdentifiers = this.ConsumeState();
 
                 if (base.TokenStream.Done ||
                     base.TokenStream.Peek().Type != TokenType.Semicolon)
@@ -287,8 +287,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         }
 
         /// <summary>
-        /// Consume state-identifier(.state-identifier)*
-        /// Stops at [With|SemiColon]
+        /// Consumes state-identifier(.state-identifier)*.
+        /// Stops at [With|SemiColon].
         /// </summary>
         private List<Token> ConsumeState()
         {

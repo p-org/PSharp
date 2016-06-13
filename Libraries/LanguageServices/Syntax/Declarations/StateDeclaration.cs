@@ -319,7 +319,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
 
         /// <summary>
-        /// Return fully qualified state name
+        /// Returns the fully qualified state name.
         /// <param name="delimiter">Delimiter</param>
         /// </summary>
         /// <returns>Text</returns>
@@ -476,11 +476,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                     text += "typeof(" + transition.Key.TextUnit.Text + ")";
                 }
 
-                var stateIdent = transition.Value.
+                var stateIdentifier = transition.Value.
                     Select(token => token.TextUnit.Text).
-                    Aggregate("", (acc, ident) => (acc == "") ? ident : acc + "." + ident);
+                    Aggregate("", (acc, id) => (acc == "") ? id : acc + "." + id);
                     
-                text += ", typeof(" + stateIdent + ")";
+                text += ", typeof(" + stateIdentifier + ")";
 
                 if (onExitName.Length > 0)
                 {
@@ -523,11 +523,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                     text += "typeof(" + transition.Key.TextUnit.Text + ")";
                 }
 
-                var stateIdent = transition.Value.
+                var stateIdentifier = transition.Value.
                     Select(token => token.TextUnit.Text).
-                    Aggregate("", (acc, ident) => (acc == "") ? ident : acc + "." + ident);
+                    Aggregate("", (acc, id) => (acc == "") ? id : acc + "." + id);
 
-                text += ", typeof(" + stateIdent + ")";
+                text += ", typeof(" + stateIdentifier + ")";
 
                 text += ")]\n";
             }

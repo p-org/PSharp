@@ -99,9 +99,15 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 this.VisitNextPIntraStateDeclaration(node);
             }
 
-            // insert into (immediately) containing group or machine declaration
-            if (groupNode != null) groupNode.StateDeclarations.Add(node);
-            else parentNode.StateDeclarations.Add(node);
+            // Insert into (immediately) containing group or machine declaration.
+            if (groupNode != null)
+            {
+                groupNode.StateDeclarations.Add(node);
+            }
+            else
+            {
+                parentNode.StateDeclarations.Add(node);
+            }
         }
 
         /// <summary>
