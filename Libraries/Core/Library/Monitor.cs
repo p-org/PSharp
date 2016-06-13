@@ -105,8 +105,8 @@ namespace Microsoft.PSharp
         protected void Goto(Type s)
         {
             // If the state is not a state of the monitor, then report an error and exit.
-            this.Assert(this.StateTypes.Contains(s), "Monitor '{0}' is trying to transition " +
-                " to non-existing state '{1}'.", this.GetType().Name, s.Name);
+            this.Assert(this.StateTypes.Contains(s), $"Monitor '{this.GetType().Name}' " +
+                $"is trying to transition to non-existing state '{s.Name}'.");
             this.Raise(new GotoStateEvent(s));
         }
 
@@ -117,9 +117,9 @@ namespace Microsoft.PSharp
         protected void Raise(Event e)
         {
             // If the event is null, then report an error and exit.
-            this.Assert(e != null, "Monitor '{0}' is raising a null event.", this.GetType().Name);
-            base.Runtime.Log("<MonitorLog> Monitor '{0}' raised event '{1}'.",
-                this, e.GetType().FullName);
+            this.Assert(e != null, $"Monitor '{this.GetType().Name}' is raising a null event.");
+            base.Runtime.Log($"<MonitorLog> Monitor '{this.GetType().Name}' " +
+                $"raised event '{e.GetType().FullName}'.");
             this.HandleEvent(e);
         }
 
@@ -164,8 +164,8 @@ namespace Microsoft.PSharp
         /// <param name="e">Event</param>
         internal void MonitorEvent(Event e)
         {
-            base.Runtime.Log("<MonitorLog> Monitor '{0}' is processing event '{1}'.",
-                this, e.GetType().FullName);
+            base.Runtime.Log($"<MonitorLog> Monitor '{this.GetType().Name}' " +
+                $"is processing event '{e.GetType().FullName}'.");
             this.HandleEvent(e);
         }
 
@@ -235,15 +235,15 @@ namespace Microsoft.PSharp
                 if (this.State == null)
                 {
                     // If the event cannot be handled, then report an error and exit.
-                    this.Assert(false, "Monitor '{0}' received event '{1}' that cannot be handled.",
-                        this.GetType().Name, e.GetType().FullName);
+                    this.Assert(false, $"Monitor '{this.GetType().Name}' received event " +
+                        $"'{e.GetType().FullName}' that cannot be handled.");
                 }
 
                 // If current state cannot handle the event then null the state.
                 if (!this.CanHandleEvent(e.GetType()))
                 {
-                    base.Runtime.Log("<MonitorLog> Monitor '{0}' exiting state '{1}'.",
-                        this, this.CurrentState.Name);
+                    base.Runtime.Log($"<MonitorLog> Monitor '{this.GetType().Name}' " +
+                        $"exiting state '{this.CurrentState.Name}'.");
                     this.State = null;
                     continue;
                 }
@@ -345,8 +345,8 @@ namespace Microsoft.PSharp
         [DebuggerStepThrough]
         private void Do(Action a)
         {
-            base.Runtime.Log("<MonitorLog> Monitor '{0}' executed action '{1}' in state '{2}'.",
-                this, a.Method.Name, this.CurrentState.Name);
+            base.Runtime.Log($"<MonitorLog> Monitor '{this.GetType().Name}' executed " +
+                $"action '{a.Method.Name}' in state '{this.CurrentState.Name}'.");
 
             try
             {
@@ -392,8 +392,8 @@ namespace Microsoft.PSharp
                 liveness = "'cold' ";
             }
 
-            base.Runtime.Log("<MonitorLog> Monitor '{0}' entering " + liveness +
-                "state '{1}'.", this, this.CurrentState.Name);
+            base.Runtime.Log($"<MonitorLog> Monitor '{this.GetType().Name}' entering " +
+                $"{liveness}state '{this.CurrentState.Name}'.");
 
             try
             {
@@ -427,8 +427,8 @@ namespace Microsoft.PSharp
         [DebuggerStepThrough]
         private void ExecuteCurrentStateOnExit(Action onExit)
         {
-            base.Runtime.Log("<MonitorLog> Monitor '{0}' exiting state '{1}'.",
-                this, this.CurrentState.Name);
+            base.Runtime.Log($"<MonitorLog> Monitor '{this.GetType().Name}' " +
+                $"exiting state '{this.CurrentState.Name}'.");
 
             try
             {
@@ -507,10 +507,10 @@ namespace Microsoft.PSharp
         /// </summary>
         private void AssertStateValidity()
         {
-            this.Assert(this.StateTypes.Count > 0, "Monitor '{0}' must " +
-                "have one or more states.\n", this.GetType().Name);
-            this.Assert(this.State != null, "Monitor '{0}' " +
-                "must not have a null current state.\n", this.GetType().Name);
+            this.Assert(this.StateTypes.Count > 0, $"Monitor '{this.GetType().Name}' " +
+                "must have one or more states.\n");
+            this.Assert(this.State != null, $"Monitor '{this.GetType().Name}' " +
+                "must not have a null current state.\n");
         }
 
         /// <summary>
@@ -520,9 +520,10 @@ namespace Microsoft.PSharp
         /// <param name="ex">Exception</param>
         private void ReportGenericAssertion(Exception ex)
         {
-            this.Assert(false, "Exception '{0}' was thrown in monitor '{1}', '{2}':\n   {3}\n" +
-                "The stack trace is:\n{4}",
-                ex.GetType(), this.GetType().Name, ex.Source, ex.Message, ex.StackTrace);
+            this.Assert(false, $"Exception '{ex.GetType()}' was thrown " +
+                $"in monitor '{this.GetType().Name}', '{ex.Source}':\n" +
+                $"   {ex.Message}\n" +
+                $"The stack trace is:\n{ex.StackTrace}");
         }
 
         #endregion
@@ -546,19 +547,7 @@ namespace Microsoft.PSharp
                     BindingFlags.NonPublic | BindingFlags.Public |
                     BindingFlags.DeclaredOnly))
                 {
-                    if (s.IsClass && s.IsSubclassOf(typeof(MonitorState)))
-                    {
-                        if (s.IsDefined(typeof(Start), false))
-                        {
-                            this.Assert(initialStateType == null, "Monitor '{0}' can not have " +
-                                "more than one start states.\n", this.GetType().Name);
-                            initialStateType = s;
-                        }
-
-                        this.Assert(s.BaseType == typeof(MonitorState), "State '{0}' is " +
-                            "not of the correct type.\n", s.Name);
-                        this.StateTypes.Add(s);
-                    }
+                    this.ExtractStateTypes(s, ref initialStateType);
                 }
 
                 monitorType = monitorType.BaseType;
@@ -586,12 +575,55 @@ namespace Microsoft.PSharp
 
                 this.States.Add(state);
             }
+            
+            var initialState = this.States.FirstOrDefault(val => val.GetType().Equals(initialStateType));
+            this.Assert(initialState != null, $"Monitor '{this.GetType().Name}' must declare a start state.");
 
-            var initialState = this.States.First(val => val.GetType().Equals(initialStateType));
             this.ConfigureStateTransitions(initialState);
             this.State = initialState;
 
             this.AssertStateValidity();
+        }
+
+        /// <summary>
+        /// Process a type, looking for monitor states.
+        /// </summary>
+        /// <param name="type">Type</param>
+        /// <param name="initialStateType">Type</param>
+        private void ExtractStateTypes(Type type, ref Type initialStateType)
+        {
+            Stack<Type> stack = new Stack<Type>();
+            stack.Push(type);
+
+            while (stack.Count > 0)
+            {
+                Type nextType = stack.Pop();
+
+                if (nextType.IsClass && nextType.IsSubclassOf(typeof(MonitorState)))
+                {
+                    if (nextType.IsDefined(typeof(Start), false))
+                    {
+                        this.Assert(initialStateType == null, $"Monitor '{this.GetType().Name}' " +
+                            "can not declare more than one start states.");
+                        initialStateType = nextType;
+                    }
+
+                    this.StateTypes.Add(nextType);
+                }
+                else if (nextType.IsClass && nextType.IsSubclassOf(typeof(StateGroup)))
+                {
+                    // Adds the contents of the group of states to the stack.
+                    foreach (var t in nextType.GetNestedTypes(BindingFlags.Instance |
+                        BindingFlags.NonPublic | BindingFlags.Public |
+                        BindingFlags.DeclaredOnly))
+                    {
+                        this.Assert(t.IsSubclassOf(typeof(StateGroup)) ||
+                            t.IsSubclassOf(typeof(MonitorState)), $"'{t.Name}' " +
+                            $"is neither a group of states nor a state.");
+                        stack.Push(t);
+                    }
+                }
+            }
         }
 
         #endregion
