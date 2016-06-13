@@ -442,6 +442,28 @@ void Bar() { }
         }
 
         [TestMethod, Timeout(10000)]
+        public void TestMachineStartGroup()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+start group G { }
+}
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("A state group cannot be marked start.",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
         public void TestMachineColdGroup()
         {
             var test = @"
@@ -460,6 +482,28 @@ cold group G { }
             var program = parser.ParseTokens(tokens);
 
             Assert.AreEqual("A state group cannot be cold.",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestMachineHotGroup()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+hot group G { }
+}
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("A state group cannot be hot.",
                 parser.GetParsingErrorLog());
         }
 
@@ -854,6 +898,28 @@ void Bar() { }
         }
 
         [TestMethod, Timeout(10000)]
+        public void TestMonitorStartGroup()
+        {
+            var test = @"
+namespace Foo {
+monitor M {
+start group G { }
+}
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("A state group cannot be marked start.",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
         public void TestMonitorColdGroup()
         {
             var test = @"
@@ -872,6 +938,28 @@ cold group G { }
             var program = parser.ParseTokens(tokens);
 
             Assert.AreEqual("A state group cannot be cold.",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestMonitorHotGroup()
+        {
+            var test = @"
+namespace Foo {
+monitor M {
+hot group G { }
+}
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("A state group cannot be hot.",
                 parser.GetParsingErrorLog());
         }
 

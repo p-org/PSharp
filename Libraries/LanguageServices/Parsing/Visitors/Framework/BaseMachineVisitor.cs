@@ -90,6 +90,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
             foreach (var machine in machines)
             {
                 this.CheckForAtLeastOneState(machine, compilation);
+                this.CheckForAtLeastOneStateOrGroup(machine, compilation);
                 this.CheckForIllegalClasses(machine, compilation);
                 this.CheckForStructs(machine);
                 this.CheckForStartState(machine, compilation);
@@ -366,6 +367,33 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
                     $"'{machine.Identifier.ValueText}' must declare at least one state (unless the machine " +
                     "inherits at least one state from a base machine, or is partial, and one state has " +
                     "been already declared in another part of the declaration)."));
+            }
+        }
+
+        /// <summary>
+        /// Checks that at least one state or group is declared inside a group.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <param name="compilation">Compilation</param>
+        private void CheckForAtLeastOneStateOrGroup(ClassDeclarationSyntax machine,
+            CodeAnalysis.Compilation compilation)
+        {
+            var stateGroups = machine.DescendantNodes().OfType<ClassDeclarationSyntax>().
+                Where(val => Querying.IsMachineStateGroup(compilation, val)).
+                ToList();
+
+            foreach (var stateGroup in stateGroups)
+            {
+                var contents = stateGroup.DescendantNodes().OfType<ClassDeclarationSyntax>().
+                Where(val => Querying.IsMachineState(compilation, val) ||
+                    Querying.IsMachineStateGroup(compilation, val)).
+                ToList();
+
+                if (contents.Count == 0)
+                {
+                    base.WarningLog.Add(Tuple.Create(stateGroup.Identifier, "State group " +
+                        $"'{stateGroup.Identifier.ValueText}' must declare at least one state or group."));
+                }
             }
         }
 
