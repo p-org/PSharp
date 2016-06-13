@@ -38,15 +38,16 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         /// Visits the syntax node.
         /// </summary>
         /// <param name="parentNode">Node</param>
+        /// <param name="groupNode">Parent state group</param>
         /// <param name="isStart">Is start state</param>
         /// <param name="isHot">Is start state</param>
         /// <param name="isCold">Is start state</param>
         /// <param name="accMod">Access modifier</param>
-        internal void Visit(MachineDeclaration parentNode, bool isStart, bool isHot, bool isCold,
-            AccessModifier accMod)
+        internal void Visit(MachineDeclaration parentNode, StateGroupDeclaration groupNode,
+            bool isStart, bool isHot, bool isCold, AccessModifier accMod)
         {
             var node = new StateDeclaration(base.TokenStream.Program, parentNode,
-                isStart, isHot, isCold);
+                groupNode, isStart, isHot, isCold);
             node.AccessModifier = accMod;
             node.StateKeyword = base.TokenStream.Peek();
 
@@ -63,7 +64,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 });
             }
 
-            base.TokenStream.CurrentState = base.TokenStream.Peek().Text;
             base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit,
                 TokenType.StateIdentifier));
 
@@ -99,7 +99,15 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 this.VisitNextPIntraStateDeclaration(node);
             }
 
-            parentNode.StateDeclarations.Add(node);
+            // Insert into (immediately) containing group or machine declaration.
+            if (groupNode != null)
+            {
+                groupNode.StateDeclarations.Add(node);
+            }
+            else
+            {
+                parentNode.StateDeclarations.Add(node);
+            }
         }
 
         /// <summary>
@@ -165,7 +173,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit,
                             TokenType.StateRightCurlyBracket));
                         node.RightCurlyBracketToken = base.TokenStream.Peek();
-                        base.TokenStream.CurrentState = "";
                         fixpoint = true;
                         break;
 
@@ -259,7 +266,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit,
                             TokenType.StateRightCurlyBracket));
                         node.RightCurlyBracketToken = base.TokenStream.Peek();
-                        base.TokenStream.CurrentState = "";
                         fixpoint = true;
                         break;
 

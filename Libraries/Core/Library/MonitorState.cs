@@ -169,8 +169,9 @@ namespace Microsoft.PSharp
 
             do
             {
-                method = monitorType.GetMethod(actionName, BindingFlags.NonPublic |
-                    BindingFlags.Instance | BindingFlags.FlattenHierarchy);
+                method = monitorType.GetMethod(actionName, BindingFlags.Public |
+                    BindingFlags.NonPublic | BindingFlags.Instance |
+                    BindingFlags.FlattenHierarchy);
                 monitorType = monitorType.BaseType;
             }
             while (method == null && monitorType != typeof(Monitor));

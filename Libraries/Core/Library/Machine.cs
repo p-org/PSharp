@@ -1259,26 +1259,14 @@ namespace Microsoft.PSharp
 
             Type machineType = this.GetType();
             Type initialStateType = null;
-
+            
             while (machineType != typeof(Machine))
             {
                 foreach (var s in machineType.GetNestedTypes(BindingFlags.Instance |
                     BindingFlags.NonPublic | BindingFlags.Public |
                     BindingFlags.DeclaredOnly))
                 {
-                    if (s.IsClass && s.IsSubclassOf(typeof(MachineState)))
-                    {
-                        if (s.IsDefined(typeof(Start), false))
-                        {
-                            this.Assert(initialStateType == null, $"Machine '{base.Id.Name}' " +
-                                "can not have more than one start states.");
-                            initialStateType = s;
-                        }
-
-                        this.Assert(s.BaseType == typeof(MachineState), $"State '{s.Name}' " +
-                            "is not of the correct type.");
-                        this.StateTypes.Add(s);
-                    }
+                    this.ExtractStateTypes(s, ref initialStateType);
                 }
 
                 machineType = machineType.BaseType;
@@ -1290,12 +1278,55 @@ namespace Microsoft.PSharp
                 state.InitializeState(this);
                 this.States.Add(state);
             }
+            
+            var initialState = this.States.FirstOrDefault(val => val.GetType().Equals(initialStateType));
+            this.Assert(initialState != null, $"Machine '{base.Id.Name}' must declare a start state.");
 
-            var initialState = this.States.First(val => val.GetType().Equals(initialStateType));
             this.ConfigureStateTransitions(initialState);
             this.StateStack.Push(initialState);
 
             this.AssertStateValidity();
+        }
+
+        /// <summary>
+        /// Process a type, looking for machine states.
+        /// </summary>
+        /// <param name="type">Type</param>
+        /// <param name="initialStateType">Type</param>
+        private void ExtractStateTypes(Type type, ref Type initialStateType)
+        {
+            Stack<Type> stack = new Stack<Type>();
+            stack.Push(type);
+
+            while (stack.Count > 0)
+            {
+                Type nextType = stack.Pop();
+                
+                if (nextType.IsClass && nextType.IsSubclassOf(typeof(MachineState)))
+                {
+                    if (nextType.IsDefined(typeof(Start), false))
+                    {
+                        this.Assert(initialStateType == null, $"Machine '{base.Id.Name}' " +
+                            "can not declare more than one start states.");
+                        initialStateType = nextType;
+                    }
+                    
+                    this.StateTypes.Add(nextType);
+                }
+                else if (nextType.IsClass && nextType.IsSubclassOf(typeof(StateGroup)))
+                {
+                    // Adds the contents of the group of states to the stack.
+                    foreach (var t in nextType.GetNestedTypes(BindingFlags.Instance |
+                        BindingFlags.NonPublic | BindingFlags.Public |
+                        BindingFlags.DeclaredOnly))
+                    {
+                        this.Assert(t.IsSubclassOf(typeof(StateGroup)) ||
+                            t.IsSubclassOf(typeof(MachineState)), $"'{t.Name}' " +
+                            $"is neither a group of states nor a state.");
+                        stack.Push(t);
+                    }
+                }
+            }
         }
 
         /// <summary>

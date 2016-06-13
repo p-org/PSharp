@@ -29,6 +29,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         #region fields
 
         /// <summary>
+        /// The namespace parent node.
+        /// </summary>
+        internal readonly NamespaceDeclaration Namespace;
+
+        /// <summary>
         /// True if the machine is a monitor.
         /// </summary>
         internal readonly bool IsMonitor;
@@ -84,6 +89,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         internal List<StateDeclaration> StateDeclarations;
 
         /// <summary>
+        /// List of state group declarations.
+        /// </summary>
+        internal List<StateGroupDeclaration> StateGroupDeclarations;
+
+        /// <summary>
         /// List of method declarations.
         /// </summary>
         internal List<MethodDeclaration> MethodDeclarations;
@@ -93,6 +103,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         internal Token RightCurlyBracketToken;
 
+        /// <summary>
+        /// Set of all rewritten method.
+        /// </summary>
+        internal HashSet<QualifiedMethod> RewrittenMethods;
+
         #endregion
 
         #region internal API
@@ -101,17 +116,22 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Constructor.
         /// </summary>
         /// <param name="program">Program</param>
+        /// <param name="namespaceNode">NamespaceDeclaration</param>
         /// <param name="isMonitor">Is a monitor</param>
         /// <param name="isPartial">Is partial</param>
-        internal MachineDeclaration(IPSharpProgram program, bool isMonitor, bool isPartial)
+        internal MachineDeclaration(IPSharpProgram program, NamespaceDeclaration namespaceNode,
+            bool isMonitor, bool isPartial)
             : base(program)
         {
+            this.Namespace = namespaceNode;
             this.IsMonitor = isMonitor;
             this.IsPartial = isPartial;
             this.BaseNameTokens = new List<Token>();
             this.FieldDeclarations = new List<FieldDeclaration>();
             this.StateDeclarations = new List<StateDeclaration>();
+            this.StateGroupDeclarations = new List<StateGroupDeclaration>();
             this.MethodDeclarations = new List<MethodDeclaration>();
+            this.RewrittenMethods = new HashSet<QualifiedMethod>();
         }
 
         /// <summary>
@@ -128,6 +148,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             }
 
             foreach (var node in this.StateDeclarations)
+            {
+                node.Rewrite();
+            }
+
+            foreach (var node in this.StateGroupDeclarations)
             {
                 node.Rewrite();
             }
@@ -161,11 +186,25 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             text += this.RightCurlyBracketToken.TextUnit.Text + "\n";
 
             base.TextUnit = new TextUnit(text, this.MachineKeyword.TextUnit.Line);
+
+            this.PopulateRewrittenMethodsWithStates();
+        }
+
+        /// <summary>
+        /// Returns all state declarations inside this machine (recursively).
+        /// </summary>
+        internal List<StateDeclaration> GetAllStateDeclarations()
+        {
+            var decls = new List<StateDeclaration>();
+            decls.AddRange(this.StateDeclarations);
+            this.StateGroupDeclarations.ForEach(g => decls.AddRange(g.GetAllStateDeclarations()));
+            return decls;
         }
 
         #endregion
 
         #region private methods
+
 
         /// <summary>
         /// Returns the rewritten machine declaration.
@@ -223,7 +262,12 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             {
                 text += node.TextUnit.Text;
             }
-            
+
+            foreach (var node in this.StateGroupDeclarations)
+            {
+                text += node.TextUnit.Text;
+            }
+
             return text;
         }
 
@@ -235,7 +279,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         {
             string text = "";
 
-            foreach (var state in this.StateDeclarations)
+            foreach (var state in this.GetAllStateDeclarations())
             {
                 if (state.EntryDeclaration != null)
                 {
@@ -261,31 +305,57 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         {
             string text = "";
 
-            foreach (var state in this.StateDeclarations)
+            foreach (var state in this.GetAllStateDeclarations())
             {
                 foreach (var withAction in state.TransitionsOnExitActions)
                 {
                     var onExitAction = withAction.Value;
                     onExitAction.Rewrite();
-                    text += "protected void psharp_" + state.Identifier.TextUnit.Text + "_" +
+                    text += "protected void psharp_" + state.GetFullyQualifiedName() + "_" +
                         withAction.Key.TextUnit.Text + "_action()";
                     text += onExitAction.TextUnit.Text + "\n";
                 }
             }
 
-            foreach (var state in this.StateDeclarations)
+            foreach (var state in this.GetAllStateDeclarations())
             {
                 foreach (var withAction in state.ActionHandlers)
                 {
                     var onExitAction = withAction.Value;
                     onExitAction.Rewrite();
-                    text += "protected void psharp_" + state.Identifier.TextUnit.Text + "_" +
+                    text += "protected void psharp_" + state.GetFullyQualifiedName() + "_" +
                         withAction.Key.TextUnit.Text + "_action()";
                     text += onExitAction.TextUnit.Text + "\n";
                 }
             }
 
             return text;
+        }
+
+        /// <summary>
+        /// Populated the set of rewritten methods and
+        /// the states they came from.
+        /// </summary>
+        private void PopulateRewrittenMethodsWithStates()
+        {
+            foreach (var state in this.GetAllStateDeclarations())
+            {
+                var tokens = new List<string>();
+                tokens.Insert(0, state.Identifier.TextUnit.Text);
+
+                var group = state.Group;
+                while (group != null)
+                {
+                    tokens.Insert(0, group.Identifier.TextUnit.Text);
+                    group = group.Group;
+                }
+                
+                foreach (var method in state.RewrittenMethods)
+                {
+                    method.QualifiedStateName = tokens;
+                    this.RewrittenMethods.Add(method);
+                } 
+            }
         }
 
         #endregion

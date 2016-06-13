@@ -66,7 +66,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         {
             this.StatementBlock.Rewrite();
 
-            string text = "protected void psharp_" + this.State.Identifier.TextUnit.Text + 
+            string text = "protected void psharp_" + this.State.GetFullyQualifiedName() + 
                 "_on_exit_action()";
             text += StatementBlock.TextUnit.Text;
 

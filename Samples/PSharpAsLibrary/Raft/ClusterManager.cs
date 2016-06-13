@@ -74,7 +74,7 @@ namespace Raft
         }
 
         [OnEntry(nameof(ConfiguringOnInit))]
-        [OnEventGotoState(typeof(LocalEvent), typeof(Unavailable))]
+        [OnEventGotoState(typeof(LocalEvent), typeof(Availability.Unavailable))]
         class Configuring : MachineState { }
 
         void ConfiguringOnInit()
@@ -89,11 +89,22 @@ namespace Raft
             this.Raise(new LocalEvent());
         }
 
-        [OnEventDoAction(typeof(NotifyLeaderUpdate), nameof(BecomeAvailable))]
-        [OnEventDoAction(typeof(ShutDown), nameof(ShuttingDown))]
-        [OnEventGotoState(typeof(LocalEvent), typeof(Available))]
-        [DeferEvents(typeof(Client.Request))]
-        class Unavailable : MachineState { }
+        class Availability : StateGroup
+        {
+            [OnEventDoAction(typeof(NotifyLeaderUpdate), nameof(BecomeAvailable))]
+            [OnEventDoAction(typeof(ShutDown), nameof(ShuttingDown))]
+            [OnEventGotoState(typeof(LocalEvent), typeof(Available))]
+            [DeferEvents(typeof(Client.Request))]
+            public class Unavailable : MachineState { }
+
+
+            [OnEventDoAction(typeof(Client.Request), nameof(SendClientRequestToLeader))]
+            [OnEventDoAction(typeof(RedirectRequest), nameof(RedirectClientRequest))]
+            [OnEventDoAction(typeof(NotifyLeaderUpdate), nameof(RefreshLeader))]
+            [OnEventDoAction(typeof(ShutDown), nameof(ShuttingDown))]
+            [OnEventGotoState(typeof(LocalEvent), typeof(Unavailable))]
+            public class Available : MachineState { }
+        }
 
         void BecomeAvailable()
         {
@@ -101,12 +112,6 @@ namespace Raft
             this.Raise(new LocalEvent());
         }
 
-        [OnEventDoAction(typeof(Client.Request), nameof(SendClientRequestToLeader))]
-        [OnEventDoAction(typeof(RedirectRequest), nameof(RedirectClientRequest))]
-        [OnEventDoAction(typeof(NotifyLeaderUpdate), nameof(RefreshLeader))]
-        [OnEventDoAction(typeof(ShutDown), nameof(ShuttingDown))]
-        [OnEventGotoState(typeof(LocalEvent), typeof(Unavailable))]
-        class Available : MachineState { }
 
         void SendClientRequestToLeader()
         {

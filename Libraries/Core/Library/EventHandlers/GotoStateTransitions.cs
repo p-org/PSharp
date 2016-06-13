@@ -19,7 +19,7 @@ using System.Collections.Generic;
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Class representing a collection of goto state transitions.
+    /// Defines a collection of goto state transitions.
     /// </summary>
     internal sealed class GotoStateTransitions : IEnumerable<KeyValuePair<Type, Tuple<Type, Action>>>
     {

@@ -29,6 +29,16 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         #region fields
 
         /// <summary>
+        /// The machine parent node.
+        /// </summary>
+        internal readonly MachineDeclaration Machine;
+
+        /// <summary>
+        /// Parent state group (if any).
+        /// </summary>
+        internal readonly StateGroupDeclaration Group;
+
+        /// <summary>
         /// True if the state is the start state.
         /// </summary>
         internal readonly bool IsStart;
@@ -42,11 +52,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// True if the state is a cold state.
         /// </summary>
         internal readonly bool IsCold;
-
-        /// <summary>
-        /// The machine parent node.
-        /// </summary>
-        internal readonly MachineDeclaration Machine;
 
         /// <summary>
         /// The state keyword.
@@ -81,12 +86,12 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// <summary>
         /// Dictionary containing goto state transitions.
         /// </summary>
-        internal Dictionary<Token, Token> GotoStateTransitions;
+        internal Dictionary<Token, List<Token>> GotoStateTransitions;
 
         /// <summary>
         /// Dictionary containing push state transitions.
         /// </summary>
-        internal Dictionary<Token, Token> PushStateTransitions;
+        internal Dictionary<Token, List<Token>> PushStateTransitions;
 
         /// <summary>
         /// Dictionary containing actions bindings.
@@ -118,6 +123,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         internal Token RightCurlyBracketToken;
 
+        /// <summary>
+        /// Set of all rewritten method.
+        /// </summary>
+        internal HashSet<QualifiedMethod> RewrittenMethods;
+
         #endregion
 
         #region internal API
@@ -126,35 +136,38 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Constructor.
         /// </summary>
         /// <param name="program">Program</param>
-        /// <param name="machineNode">PMachineDeclarationNode</param>
+        /// <param name="machineNode">MachineDeclarationNode</param>
+        /// <param name="groupNode">StateGroupDeclaration</param>
         /// <param name="isStart">Is start state</param>
         /// <param name="isHot">Is hot state</param>
         /// <param name="isCold">Is cold state</param>
         internal StateDeclaration(IPSharpProgram program, MachineDeclaration machineNode,
-            bool isStart, bool isHot, bool isCold)
+            StateGroupDeclaration groupNode, bool isStart, bool isHot, bool isCold)
             : base(program)
         {
+            this.Machine = machineNode;
+            this.Group = groupNode;
             this.IsStart = isStart;
             this.IsHot = isHot;
             this.IsCold = isCold;
-            this.Machine = machineNode;
-            this.GotoStateTransitions = new Dictionary<Token, Token>();
-            this.PushStateTransitions = new Dictionary<Token, Token>();
+            this.GotoStateTransitions = new Dictionary<Token, List<Token>>();
+            this.PushStateTransitions = new Dictionary<Token, List<Token>>();
             this.ActionBindings = new Dictionary<Token, Token>();
             this.TransitionsOnExitActions = new Dictionary<Token, BlockSyntax>();
             this.ActionHandlers = new Dictionary<Token, BlockSyntax>();
             this.DeferredEvents = new HashSet<Token>();
             this.IgnoredEvents = new HashSet<Token>();
+            this.RewrittenMethods = new HashSet<QualifiedMethod>();
         }
 
         /// <summary>
         /// Adds a goto state transition.
         /// </summary>
         /// <param name="eventIdentifier">Token</param>
-        /// <param name="stateIdentifier">Token</param>
+        /// <param name="stateIdentifiers">Token list</param>
         /// <param name="stmtBlock">Statement block</param>
         /// <returns>Boolean</returns>
-        internal bool AddGotoStateTransition(Token eventIdentifier, Token stateIdentifier,
+        internal bool AddGotoStateTransition(Token eventIdentifier, List<Token> stateIdentifiers,
             BlockSyntax stmtBlock = null)
         {
             if (this.GotoStateTransitions.ContainsKey(eventIdentifier) ||
@@ -164,7 +177,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 return false;
             }
 
-            this.GotoStateTransitions.Add(eventIdentifier, stateIdentifier);
+            this.GotoStateTransitions.Add(eventIdentifier, stateIdentifiers);
             if (stmtBlock != null)
             {
                 this.TransitionsOnExitActions.Add(eventIdentifier, stmtBlock);
@@ -177,9 +190,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Adds a push state transition.
         /// </summary>
         /// <param name="eventIdentifier">Token</param>
-        /// <param name="stateIdentifier">Token</param>
+        /// <param name="stateIdentifiers">Token list</param>
         /// <returns>Boolean</returns>
-        internal bool AddPushStateTransition(Token eventIdentifier, Token stateIdentifier)
+        internal bool AddPushStateTransition(Token eventIdentifier, List<Token> stateIdentifiers)
         {
             if (this.Machine.IsMonitor)
             {
@@ -193,7 +206,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 return false;
             }
 
-            this.PushStateTransitions.Add(eventIdentifier, stateIdentifier);
+            this.PushStateTransitions.Add(eventIdentifier, stateIdentifiers);
 
             return true;
         }
@@ -304,6 +317,25 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             base.TextUnit = new TextUnit(text, this.StateKeyword.TextUnit.Line);
         }
 
+
+        /// <summary>
+        /// Returns the fully qualified state name.
+        /// <param name="delimiter">Delimiter</param>
+        /// </summary>
+        /// <returns>Text</returns>
+        internal string GetFullyQualifiedName(char delimiter = '_')
+        {
+            var qualifiedName = this.Identifier.TextUnit.Text;
+            var containingGroup = this.Group;
+            while (containingGroup != null)
+            {
+                qualifiedName = containingGroup.Identifier.TextUnit.Text + delimiter + qualifiedName;
+                containingGroup = containingGroup.Group;
+            }
+
+            return qualifiedName;
+        }
+
         #endregion
 
         #region private methods
@@ -339,13 +371,22 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             text += this.InstrumentIgnoredEvents();
             text += this.InstrumentDeferredEvents();
 
-            if (this.AccessModifier == AccessModifier.Protected)
+            if (this.Group != null)
             {
-                text += "protected ";
+                // When inside a group, the state should be made public.
+                text += "public ";
             }
-            else if (this.AccessModifier == AccessModifier.Private)
+            else
             {
-                text += "private ";
+                // Otherwise, we look at the access modifier provided by the user.
+                if (this.AccessModifier == AccessModifier.Protected)
+                {
+                    text += "protected ";
+                }
+                else if (this.AccessModifier == AccessModifier.Private)
+                {
+                    text += "private ";
+                }
             }
 
             if (!this.Machine.IsMonitor)
@@ -374,12 +415,12 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 return "";
             }
 
-            string text = "[OnEntry(nameof(";
+            var generatedProcName = "psharp_" + this.GetFullyQualifiedName() + "_on_entry_action";
+            this.RewrittenMethods.Add(new QualifiedMethod(generatedProcName,
+                this.Machine.Identifier.TextUnit.Text,
+                this.Machine.Namespace.QualifiedName));
 
-            text += "psharp_" + this.Identifier.TextUnit.Text + "_on_entry_action";
-            text += "))]\n";
-
-            return text;
+            return "[OnEntry(nameof(" + generatedProcName + "))]\n";
         }
 
         /// <summary>
@@ -393,12 +434,12 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 return "";
             }
 
-            string text = "[OnExit(nameof(";
+            var generatedProcName = "psharp_" + this.GetFullyQualifiedName() + "_on_exit_action";
+            this.RewrittenMethods.Add(new QualifiedMethod(generatedProcName,
+                this.Machine.Identifier.TextUnit.Text,
+                this.Machine.Namespace.QualifiedName));
 
-            text += "psharp_" + this.Identifier.TextUnit.Text + "_on_exit_action";
-            text += "))]\n";
-
-            return text;
+            return "[OnExit(nameof(" + generatedProcName +   "))]\n";
         }
 
         /// <summary>
@@ -419,8 +460,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 var onExitName = "";
                 if (this.TransitionsOnExitActions.ContainsKey(transition.Key))
                 {
-                    onExitName = "psharp_" + this.Identifier.TextUnit.Text + "_" +
+                    onExitName = "psharp_" + this.GetFullyQualifiedName() + "_" +
                         transition.Key.TextUnit.Text + "_action";
+                    this.RewrittenMethods.Add(new QualifiedMethod(onExitName,
+                        this.Machine.Identifier.TextUnit.Text,
+                        this.Machine.Namespace.QualifiedName));
                 }
 
                 text += "[OnEventGotoState(";
@@ -438,7 +482,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                     text += "typeof(" + transition.Key.TextUnit.Text + ")";
                 }
 
-                text += ", typeof(" + transition.Value.TextUnit.Text + ")";
+                var stateIdentifier = transition.Value.
+                    Select(token => token.TextUnit.Text).
+                    Aggregate("", (acc, id) => (acc == "") ? id : acc + "." + id);
+                    
+                text += ", typeof(" + stateIdentifier + ")";
 
                 if (onExitName.Length > 0)
                 {
@@ -481,7 +529,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                     text += "typeof(" + transition.Key.TextUnit.Text + ")";
                 }
 
-                text += ", typeof(" + transition.Value.TextUnit.Text + ")";
+                var stateIdentifier = transition.Value.
+                    Select(token => token.TextUnit.Text).
+                    Aggregate("", (acc, id) => (acc == "") ? id : acc + "." + id);
+
+                text += ", typeof(" + stateIdentifier + ")";
 
                 text += ")]\n";
             }
@@ -507,8 +559,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 var actionName = "";
                 if (this.ActionHandlers.ContainsKey(binding.Key))
                 {
-                    actionName = "psharp_" + this.Identifier.TextUnit.Text + "_" +
+                    actionName = "psharp_" + this.GetFullyQualifiedName() + "_" +
                         binding.Key.TextUnit.Text + "_action";
+                    this.RewrittenMethods.Add(new QualifiedMethod(actionName,
+                        this.Machine.Identifier.TextUnit.Text,
+                        this.Machine.Namespace.QualifiedName));
                 }
 
                 text += "[OnEventDoAction(";
@@ -620,6 +675,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             return text;
         }
+
 
         #endregion
     }

@@ -117,6 +117,9 @@ namespace Microsoft.PSharp.LanguageServices
             new GotoStateRewriter(this).Rewrite();
             new PopRewriter(this).Rewrite();
             new AssertRewriter(this).Rewrite();
+
+            var qualifiedMethods = this.GetResolvedRewrittenQualifiedMethods();
+            new TypeofRewriter(this).Rewrite(qualifiedMethods);
         }
 
         /// <summary>
@@ -144,6 +147,34 @@ namespace Microsoft.PSharp.LanguageServices
             var root = base.GetSyntaxTree().GetCompilationUnitRoot().
                 WithUsings(SyntaxFactory.List(list));
             base.UpdateSyntaxTree(root.SyntaxTree.ToString());
+        }
+
+        /// <summary>
+        /// Resolves and returns the rewritten qualified methods of this program.
+        /// </summary>
+        /// <returns>QualifiedMethods</returns>
+        private HashSet<QualifiedMethod> GetResolvedRewrittenQualifiedMethods()
+        {
+            var qualifiedMethods = new HashSet<QualifiedMethod>();
+            foreach (var ns in NamespaceDeclarations)
+            {
+                foreach (var machine in ns.MachineDeclarations)
+                {
+                    var allQualifiedNames = new HashSet<string>();
+                    foreach (var state in machine.GetAllStateDeclarations())
+                    {
+                        allQualifiedNames.Add(state.GetFullyQualifiedName('.'));
+                    }
+
+                    foreach (var method in machine.RewrittenMethods)
+                    {
+                        method.MachineQualifiedStateNames = allQualifiedNames;
+                        qualifiedMethods.Add(method);
+                    }
+                }
+            }
+
+            return qualifiedMethods;
         }
 
         #endregion

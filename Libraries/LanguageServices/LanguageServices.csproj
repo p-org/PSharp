@@ -145,6 +145,7 @@
     <Compile Include="Parsing\Visitors\Syntax\Declarations\StateDeclarationVisitor.cs" />
     <Compile Include="Parsing\Visitors\Syntax\Declarations\StateEntryDeclarationVisitor.cs" />
     <Compile Include="Parsing\Visitors\Syntax\Declarations\StateExitDeclarationVisitor.cs" />
+    <Compile Include="Parsing\Visitors\Syntax\Declarations\StateGroupDeclarationVisitor.cs" />
     <Compile Include="Parsing\Visitors\Syntax\Expressions\ArgumentsListVisitor.cs" />
     <Compile Include="Parsing\Visitors\Syntax\Expressions\AttributeListVisitor.cs" />
     <Compile Include="Parsing\Visitors\Syntax\Types\TypeIdentifierVisitor.cs" />
@@ -169,6 +170,7 @@
     <Compile Include="Rewriting\PSharp\Statements\GotoStateRewriter.cs" />
     <Compile Include="Rewriting\PSharp\Statements\RaiseRewriter.cs" />
     <Compile Include="Rewriting\PSharp\Statements\SendRewriter.cs" />
+    <Compile Include="Rewriting\PSharp\Statements\TypeofRewriter.cs" />
     <Compile Include="Rewriting\PSharp\Types\HaltEventRewriter.cs" />
     <Compile Include="Rewriting\PSharp\Types\MachineTypeRewriter.cs" />
     <Compile Include="Programs\AbstractPSharpProgram.cs" />
@@ -182,6 +184,7 @@
     <Compile Include="Syntax\Declarations\MethodDeclaration.cs" />
     <Compile Include="Syntax\Declarations\NamespaceDeclaration.cs" />
     <Compile Include="Syntax\Declarations\StateDeclaration.cs" />
+    <Compile Include="Syntax\Declarations\StateGroupDeclaration.cs" />
     <Compile Include="Syntax\Declarations\UsingDeclaration.cs" />
     <Compile Include="Syntax\Expressions\ExpressionNode.cs" />
     <Compile Include="Programs\IPSharpProgram.cs" />
@@ -195,6 +198,7 @@
     <Compile Include="Parsing\Tokens\TokenType.cs" />
     <Compile Include="Parsing\Tokens\TokenTypeRegistry.cs" />
     <Compile Include="Querying.cs" />
+    <Compile Include="Syntax\QualifiedMethod.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj">

@@ -58,16 +58,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         }
 
         /// <summary>
-        /// The name of the currently parsed machine.
-        /// </summary>
-        internal string CurrentMachine;
-
-        /// <summary>
-        /// The name of the currently parsed state.
-        /// </summary>
-        internal string CurrentState;
-
-        /// <summary>
         /// The program this token stream belongs to.
         /// </summary>
         internal IPSharpProgram Program;
@@ -84,8 +74,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
         {
             this.Tokens = tokens.ToList();
             this.Index = 0;
-            this.CurrentMachine = "";
-            this.CurrentState = "";
         }
 
         /// <summary>
