@@ -20,6 +20,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Microsoft.PSharp.LanguageServices.Syntax;
+
 namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
 {
     /// <summary>
@@ -30,19 +32,20 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         #region fields
 
         /// <summary>
-        /// Set of all qualified state names in the current machine
+        /// Set of all qualified state names in the current machine.
         /// </summary>
         private HashSet<string> CurrentAllQualifiedStateNames;
 
         /// <summary>
-        /// Qualified state name corresponding to the procedure currently being rewritten
+        /// Qualified state name corresponding to the procedure
+        /// currently being rewritten.
         /// </summary>
         private List<string> CurrentQualifiedStateName;
 
         /// <summary>
-        /// Generated methods state mapping
+        /// Set of rewritten qualified methods.
         /// </summary>
-        private Dictionary<Tuple<string, string, string>, Tuple<HashSet<string>, List<string>>> GeneratedMethodsToQualifiedStateNames;
+        private HashSet<QualifiedMethod> RewrittenQualifiedMethods;
 
         #endregion
 
@@ -55,17 +58,18 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         internal TypeofRewriter(IPSharpProgram program)
             : base(program)
         {
-            CurrentAllQualifiedStateNames = new HashSet<string>();
-            CurrentQualifiedStateName = new List<string>();
-            GeneratedMethodsToQualifiedStateNames = new Dictionary<Tuple<string, string, string>, Tuple<HashSet<string>, List<string>>>();
+            this.CurrentAllQualifiedStateNames = new HashSet<string>();
+            this.CurrentQualifiedStateName = new List<string>();
+            this.RewrittenQualifiedMethods = new HashSet<QualifiedMethod>();
         }
 
         /// <summary>
         /// Rewrites the typeof statements in the program.
         /// </summary>
-        internal void Rewrite(Dictionary<Tuple<string, string, string>, Tuple<HashSet<string>, List<string>>> GeneratedMethodsToQualifiedStateNames)
+        /// <param name="rewrittenQualifiedMethods">QualifiedMethods</param>
+        internal void Rewrite(HashSet<QualifiedMethod> rewrittenQualifiedMethods)
         {
-            this.GeneratedMethodsToQualifiedStateNames = GeneratedMethodsToQualifiedStateNames;
+            this.RewrittenQualifiedMethods = rewrittenQualifiedMethods;
 
             var typeofnodes = base.Program.GetSyntaxTree().GetRoot().DescendantNodes()
                 .OfType<TypeOfExpressionSyntax>().
@@ -86,36 +90,54 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         #region private methods
         
         /// <summary>
-        /// Rewrites the type inside typeof
+        /// Rewrites the type inside typeof.
         /// </summary>
         /// <param name="node">ExpressionStatementSyntax</param>
         /// <returns>SyntaxNode</returns>
         private SyntaxNode RewriteStatement(TypeOfExpressionSyntax node)
         {
-            // Get containing method
+            // Gets containing method.
             var methoddecl = node.Ancestors().OfType<MethodDeclarationSyntax>().FirstOrDefault();
-            if (methoddecl == null) return node;
+            if (methoddecl == null)
+            {
+                return node;
+            }
 
-            // Get containing class 
+            // Gets containing class.
             var classdecl = methoddecl.Ancestors().OfType<ClassDeclarationSyntax>().FirstOrDefault();
-            if (classdecl == null) return node;
+            if (classdecl == null)
+            {
+                return node;
+            }
 
-            // Get containing namespace
+            // Gets containing namespace.
             var namespacedecl = classdecl.Ancestors().OfType<NamespaceDeclarationSyntax>().FirstOrDefault();
-            if (namespacedecl == null) return node;
+            if (namespacedecl == null)
+            {
+                return node;
+            }
 
-            var key = Tuple.Create(methoddecl.Identifier.ValueText, classdecl.Identifier.ValueText, namespacedecl.Name.ToString());
+            var key = Tuple.Create(methoddecl.Identifier.ValueText, classdecl.Identifier.ValueText,
+                namespacedecl.Name.ToString());
 
-            // Is this a generated method
-            if (!GeneratedMethodsToQualifiedStateNames.ContainsKey(key)) return node;
-
-            var value = GeneratedMethodsToQualifiedStateNames[key];
-            CurrentAllQualifiedStateNames = value.Item1;
-            CurrentQualifiedStateName = value.Item2;
+            var rewrittenMethod = this.RewrittenQualifiedMethods.SingleOrDefault(
+                val => val.Name.Equals(methoddecl.Identifier.ValueText) &&
+                val.MachineName.Equals(classdecl.Identifier.ValueText) &&
+                val.NamespaceName.Equals(namespacedecl.Name.ToString()));
+            if (rewrittenMethod == null)
+            {
+                return node;
+            }
+            
+            this.CurrentAllQualifiedStateNames = rewrittenMethod.MachineQualifiedStateNames;
+            this.CurrentQualifiedStateName = rewrittenMethod.QualifiedStateName;
 
             var typeUsed = node.Type.ToString();
             var fullyQualifiedName = this.GetFullyQualifiedStateName(typeUsed);
-            if (fullyQualifiedName == typeUsed) return node;
+            if (fullyQualifiedName == typeUsed)
+            {
+                return node;
+            }
 
             var tokenizedName = this.ToTokens(fullyQualifiedName);
 
@@ -126,22 +148,31 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         }
 
         /// <summary>
-        /// Given a partially-qualified state name, return the fully qualified
-        /// state name.
+        /// Given a partially-qualified state name, return the
+        /// fully qualified state name.
         /// </summary>
         /// <param name="state">Partially qualified state name</param>
         /// <returns>Fully qualified state name</returns>
         private string GetFullyQualifiedStateName(string state)
         {
-            if (CurrentQualifiedStateName.Count < 1 || CurrentAllQualifiedStateNames.Count == 0)
-                return state;
-
-            for (int i = CurrentQualifiedStateName.Count - 2; i >= 0; i--)
+            if (this.CurrentQualifiedStateName.Count < 1 ||
+                CurrentAllQualifiedStateNames.Count == 0)
             {
-                var prefix = CurrentQualifiedStateName[0];
-                for (int j = 1; j <= i; j++) prefix += "." + CurrentQualifiedStateName[j];
-                if (CurrentAllQualifiedStateNames.Contains(prefix + "." + state))
+                return state;
+            }
+
+            for (int i = this.CurrentQualifiedStateName.Count - 2; i >= 0; i--)
+            {
+                var prefix = this.CurrentQualifiedStateName[0];
+                for (int j = 1; j <= i; j++)
+                {
+                    prefix += "." + this.CurrentQualifiedStateName[j];
+                }
+
+                if (this.CurrentAllQualifiedStateNames.Contains(prefix + "." + state))
+                {
                     return prefix + "." + state;
+                }  
             }
 
             return state;

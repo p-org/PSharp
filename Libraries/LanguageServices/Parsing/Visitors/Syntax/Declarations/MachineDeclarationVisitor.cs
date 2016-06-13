@@ -47,7 +47,8 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         internal void Visit(IPSharpProgram program, NamespaceDeclaration parentNode, bool isMonitor,
             bool isPartial, AccessModifier accMod, InheritanceModifier inhMod)
         {
-            var node = new MachineDeclaration(base.TokenStream.Program, isMonitor, isPartial);
+            var node = new MachineDeclaration(base.TokenStream.Program,
+                parentNode, isMonitor, isPartial);
             node.AccessModifier = accMod;
             node.InheritanceModifier = inhMod;
             node.MachineKeyword = base.TokenStream.Peek();

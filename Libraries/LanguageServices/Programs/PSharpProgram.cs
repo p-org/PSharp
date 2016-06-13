@@ -118,25 +118,8 @@ namespace Microsoft.PSharp.LanguageServices
             new PopRewriter(this).Rewrite();
             new AssertRewriter(this).Rewrite();
 
-            var dict = new Dictionary<Tuple<string, string, string>, Tuple<HashSet<string>, List<string>>>();
-            foreach (var nspace in NamespaceDeclarations)
-            {
-                foreach (var machine in nspace.MachineDeclarations)
-                {
-                    var AllQualifiedNames = new HashSet<string>();
-                    foreach (var state in machine.GetAllStateDeclarations())
-                    {
-                        AllQualifiedNames.Add(state.GetFullyQualifiedName('.'));
-                    }
-                    foreach (var method in machine.GeneratedMethodToQualifiedStateName)
-                    {
-                        dict.Add(Tuple.Create(method.Key, machine.Identifier.TextUnit.Text, nspace.Name()),
-                            Tuple.Create(AllQualifiedNames, method.Value));
-                    }
-                }
-            }
-            
-            new TypeofRewriter(this).Rewrite(dict);
+            var qualifiedMethods = this.GetResolvedRewrittenQualifiedMethods();
+            new TypeofRewriter(this).Rewrite(qualifiedMethods);
         }
 
         /// <summary>
@@ -164,6 +147,34 @@ namespace Microsoft.PSharp.LanguageServices
             var root = base.GetSyntaxTree().GetCompilationUnitRoot().
                 WithUsings(SyntaxFactory.List(list));
             base.UpdateSyntaxTree(root.SyntaxTree.ToString());
+        }
+
+        /// <summary>
+        /// Resolves and returns the rewritten qualified methods of this program.
+        /// </summary>
+        /// <returns>QualifiedMethods</returns>
+        private HashSet<QualifiedMethod> GetResolvedRewrittenQualifiedMethods()
+        {
+            var qualifiedMethods = new HashSet<QualifiedMethod>();
+            foreach (var ns in NamespaceDeclarations)
+            {
+                foreach (var machine in ns.MachineDeclarations)
+                {
+                    var allQualifiedNames = new HashSet<string>();
+                    foreach (var state in machine.GetAllStateDeclarations())
+                    {
+                        allQualifiedNames.Add(state.GetFullyQualifiedName('.'));
+                    }
+
+                    foreach (var method in machine.RewrittenMethods)
+                    {
+                        method.MachineQualifiedStateNames.UnionWith(allQualifiedNames);
+                        qualifiedMethods.Add(method);
+                    }
+                }
+            }
+
+            return qualifiedMethods;
         }
 
         #endregion

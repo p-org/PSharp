@@ -57,6 +57,18 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// </summary>
         internal Token RightCurlyBracketToken;
 
+        /// <summary>
+        /// Qualified name of the namespace.
+        /// </summary>
+        internal string QualifiedName
+        {
+            get
+            {
+                return this.IdentifierTokens.Select(t => t.TextUnit.Text).
+                    Aggregate("", (acc, name) => acc + name);
+            }
+        }
+
         #endregion
 
         #region internal API
@@ -71,15 +83,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             this.IdentifierTokens = new List<Token>();
             this.EventDeclarations = new List<EventDeclaration>();
             this.MachineDeclarations = new List<MachineDeclaration>();
-        }
-
-        /// <summary>
-        /// Qualified name of the namespace.
-        /// </summary>
-        internal string Name()
-        {
-            return this.IdentifierTokens.Select(t => t.TextUnit.Text).
-                Aggregate("", (acc, name) => acc + name);
         }
 
         /// <summary>

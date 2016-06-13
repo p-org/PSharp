@@ -199,6 +199,7 @@
     <Compile Include="Parsing\Tokens\TokenType.cs" />
     <Compile Include="Parsing\Tokens\TokenTypeRegistry.cs" />
     <Compile Include="Querying.cs" />
+    <Compile Include="Syntax\QualifiedMethod.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj">

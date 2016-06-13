@@ -29,6 +29,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         #region fields
 
         /// <summary>
+        /// The namespace parent node.
+        /// </summary>
+        internal readonly NamespaceDeclaration Namespace;
+
+        /// <summary>
         /// True if the machine is a monitor.
         /// </summary>
         internal readonly bool IsMonitor;
@@ -99,9 +104,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         internal Token RightCurlyBracketToken;
 
         /// <summary>
-        /// Map for all generated methods.
+        /// Set of all rewritten method.
         /// </summary>
-        internal Dictionary<string, List<string>> GeneratedMethodToQualifiedStateName;
+        internal HashSet<QualifiedMethod> RewrittenMethods;
 
         #endregion
 
@@ -111,11 +116,14 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Constructor.
         /// </summary>
         /// <param name="program">Program</param>
+        /// <param name="namespaceNode">NamespaceDeclaration</param>
         /// <param name="isMonitor">Is a monitor</param>
         /// <param name="isPartial">Is partial</param>
-        internal MachineDeclaration(IPSharpProgram program, bool isMonitor, bool isPartial)
+        internal MachineDeclaration(IPSharpProgram program, NamespaceDeclaration namespaceNode,
+            bool isMonitor, bool isPartial)
             : base(program)
         {
+            this.Namespace = namespaceNode;
             this.IsMonitor = isMonitor;
             this.IsPartial = isPartial;
             this.BaseNameTokens = new List<Token>();
@@ -123,7 +131,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             this.StateDeclarations = new List<StateDeclaration>();
             this.StateGroupDeclarations = new List<StateGroupDeclaration>();
             this.MethodDeclarations = new List<MethodDeclaration>();
-            this.GeneratedMethodToQualifiedStateName = new Dictionary<string, List<string>>();
+            this.RewrittenMethods = new HashSet<QualifiedMethod>();
         }
 
         /// <summary>
@@ -179,7 +187,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             base.TextUnit = new TextUnit(text, this.MachineKeyword.TextUnit.Line);
 
-            this.GatherGeneratedMethods();
+            this.PopulateRewrittenMethodsWithStates();
         }
 
         /// <summary>
@@ -325,32 +333,27 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         }
 
         /// <summary>
-        /// Populate the set of generated methods and the states they came from.
+        /// Populated the set of rewritten methods and
+        /// the states they came from.
         /// </summary>
-        /// <returns>Text</returns>
-        private void GatherGeneratedMethods()
+        private void PopulateRewrittenMethodsWithStates()
         {
-            var GetStateTokenList = new Func<StateDeclaration, List<string>>(state =>
+            foreach (var state in this.GetAllStateDeclarations())
             {
-                var ls = new List<string>();
-                ls.Insert(0, state.Identifier.TextUnit.Text);
+                var tokens = new List<string>();
+                tokens.Insert(0, state.Identifier.TextUnit.Text);
 
                 var group = state.Group;
                 while (group != null)
                 {
-                    ls.Insert(0, group.Identifier.TextUnit.Text);
+                    tokens.Insert(0, group.Identifier.TextUnit.Text);
                     group = group.Group;
                 }
-
-                return ls;
-            });
-
-            foreach (var state in this.GetAllStateDeclarations())
-            {
-                var tokens = GetStateTokenList(state);
-                foreach (var method in state.GeneratedMethodNames)
+                
+                foreach (var method in state.RewrittenMethods)
                 {
-                    GeneratedMethodToQualifiedStateName.Add(method, tokens);
+                    method.QualifiedStateName.AddRange(tokens);
+                    this.RewrittenMethods.Add(method);
                 } 
             }
         }

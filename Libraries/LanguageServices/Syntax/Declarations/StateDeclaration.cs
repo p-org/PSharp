@@ -29,6 +29,16 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         #region fields
 
         /// <summary>
+        /// The machine parent node.
+        /// </summary>
+        internal readonly MachineDeclaration Machine;
+
+        /// <summary>
+        /// Parent state group (if any).
+        /// </summary>
+        internal readonly StateGroupDeclaration Group;
+
+        /// <summary>
         /// True if the state is the start state.
         /// </summary>
         internal readonly bool IsStart;
@@ -42,16 +52,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// True if the state is a cold state.
         /// </summary>
         internal readonly bool IsCold;
-
-        /// <summary>
-        /// The machine parent node.
-        /// </summary>
-        internal readonly MachineDeclaration Machine;
-
-        /// <summary>
-        /// Parent state group (if any).
-        /// </summary>
-        internal readonly StateGroupDeclaration Group;
 
         /// <summary>
         /// The state keyword.
@@ -124,9 +124,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         internal Token RightCurlyBracketToken;
 
         /// <summary>
-        /// Set of all generated method names.
+        /// Set of all rewritten method.
         /// </summary>
-        internal HashSet<string> GeneratedMethodNames;
+        internal HashSet<QualifiedMethod> RewrittenMethods;
 
         #endregion
 
@@ -145,11 +145,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             StateGroupDeclaration groupNode, bool isStart, bool isHot, bool isCold)
             : base(program)
         {
+            this.Machine = machineNode;
+            this.Group = groupNode;
             this.IsStart = isStart;
             this.IsHot = isHot;
             this.IsCold = isCold;
-            this.Machine = machineNode;
-            this.Group = groupNode;
             this.GotoStateTransitions = new Dictionary<Token, List<Token>>();
             this.PushStateTransitions = new Dictionary<Token, List<Token>>();
             this.ActionBindings = new Dictionary<Token, Token>();
@@ -157,7 +157,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             this.ActionHandlers = new Dictionary<Token, BlockSyntax>();
             this.DeferredEvents = new HashSet<Token>();
             this.IgnoredEvents = new HashSet<Token>();
-            this.GeneratedMethodNames = new HashSet<string>();
+            this.RewrittenMethods = new HashSet<QualifiedMethod>();
         }
 
         /// <summary>
@@ -416,7 +416,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             }
 
             var generatedProcName = "psharp_" + this.GetFullyQualifiedName() + "_on_entry_action";
-            this.GeneratedMethodNames.Add(generatedProcName);
+            this.RewrittenMethods.Add(new QualifiedMethod(generatedProcName,
+                this.Machine.Identifier.TextUnit.Text,
+                this.Machine.Namespace.QualifiedName));
 
             return "[OnEntry(nameof(" + generatedProcName + "))]\n";
         }
@@ -433,7 +435,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             }
 
             var generatedProcName = "psharp_" + this.GetFullyQualifiedName() + "_on_exit_action";
-            this.GeneratedMethodNames.Add(generatedProcName);
+            this.RewrittenMethods.Add(new QualifiedMethod(generatedProcName,
+                this.Machine.Identifier.TextUnit.Text,
+                this.Machine.Namespace.QualifiedName));
 
             return "[OnExit(nameof(" + generatedProcName +   "))]\n";
         }
@@ -458,7 +462,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 {
                     onExitName = "psharp_" + this.GetFullyQualifiedName() + "_" +
                         transition.Key.TextUnit.Text + "_action";
-                    this.GeneratedMethodNames.Add(onExitName);
+                    this.RewrittenMethods.Add(new QualifiedMethod(onExitName,
+                        this.Machine.Identifier.TextUnit.Text,
+                        this.Machine.Namespace.QualifiedName));
                 }
 
                 text += "[OnEventGotoState(";
@@ -555,7 +561,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 {
                     actionName = "psharp_" + this.GetFullyQualifiedName() + "_" +
                         binding.Key.TextUnit.Text + "_action";
-                    this.GeneratedMethodNames.Add(actionName);
+                    this.RewrittenMethods.Add(new QualifiedMethod(actionName,
+                        this.Machine.Identifier.TextUnit.Text,
+                        this.Machine.Namespace.QualifiedName));
                 }
 
                 text += "[OnEventDoAction(";
