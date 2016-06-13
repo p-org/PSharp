@@ -26,7 +26,7 @@ You can also read the manual and available publications:
 
 ## How to contribute
 
-We welcome contributions to the P# project! However, before you start contributing, please read carefully the [development guidelines](https://github.com/p-org/PSharp/wiki/Contributing-Code).
+We welcome contributions! However, before you start contributing, please read carefully the [development guidelines](https://github.com/p-org/PSharp/wiki/Contributing-Code).
 
 ## Contact us
 
