@@ -136,13 +136,13 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Constructor.
         /// </summary>
         /// <param name="program">Program</param>
-        /// <param name="machineNode">PMachineDeclarationNode</param>
-        /// <param name="groupNode">State group declaration</param>
+        /// <param name="machineNode">MachineDeclarationNode</param>
+        /// <param name="groupNode">StateGroupDeclaration</param>
         /// <param name="isStart">Is start state</param>
         /// <param name="isHot">Is hot state</param>
         /// <param name="isCold">Is cold state</param>
-        internal StateDeclaration(IPSharpProgram program, MachineDeclaration machineNode, StateGroupDeclaration groupNode,
-            bool isStart, bool isHot, bool isCold)
+        internal StateDeclaration(IPSharpProgram program, MachineDeclaration machineNode,
+            StateGroupDeclaration groupNode, bool isStart, bool isHot, bool isCold)
             : base(program)
         {
             this.IsStart = isStart;
@@ -373,12 +373,12 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             if (this.Group != null)
             {
-                // When inside a group, the state should be made public
+                // When inside a group, the state should be made public.
                 text += "public ";
             }
             else
             {
-                // Otherwise, we look at the access modifier provided by the user
+                // Otherwise, we look at the access modifier provided by the user.
                 if (this.AccessModifier == AccessModifier.Protected)
                 {
                     text += "protected ";

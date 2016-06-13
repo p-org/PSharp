@@ -38,16 +38,16 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         /// Visits the syntax node.
         /// </summary>
         /// <param name="parentNode">Node</param>
-        /// <param name="groupNode">parent state group</param>
+        /// <param name="groupNode">Parent state group</param>
         /// <param name="isStart">Is start state</param>
         /// <param name="isHot">Is start state</param>
         /// <param name="isCold">Is start state</param>
         /// <param name="accMod">Access modifier</param>
-        internal void Visit(MachineDeclaration parentNode, StateGroupDeclaration groupNode, bool isStart, bool isHot, bool isCold,
-            AccessModifier accMod)
+        internal void Visit(MachineDeclaration parentNode, StateGroupDeclaration groupNode,
+            bool isStart, bool isHot, bool isCold, AccessModifier accMod)
         {
-            var node = new StateDeclaration(base.TokenStream.Program, parentNode, groupNode,
-                isStart, isHot, isCold);
+            var node = new StateDeclaration(base.TokenStream.Program, parentNode,
+                groupNode, isStart, isHot, isCold);
             node.AccessModifier = accMod;
             node.StateKeyword = base.TokenStream.Peek();
 

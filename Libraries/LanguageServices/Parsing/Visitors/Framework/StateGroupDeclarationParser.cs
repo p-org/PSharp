@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="MachineStateDeclarationParser.cs">
+// <copyright file="StateGroupDeclarationParser.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -17,7 +17,6 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
@@ -51,16 +50,15 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
             var project = base.Project.CompilationContext.GetProjectWithName(base.Project.Name);
             var compilation = project.GetCompilationAsync().Result;
 
-            var stategroups = tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().
+            var stateGroups = tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().
                 Where(val => Querying.IsMachineStateGroup(compilation, val)).
                 ToList();
 
-            foreach (var stategroup in stategroups)
+            foreach (var stateGroup in stateGroups)
             {
-                this.CheckForNonStateClasses(stategroup, compilation);
-                this.CheckForAtLeastOneState(stategroup, compilation);
-                this.CheckForNoMonitorStates(stategroup, compilation);
-                this.CheckForStructs(stategroup);
+                this.CheckForNonStateClasses(stateGroup, compilation);
+                this.CheckForAtLeastOneStateOrGroup(stateGroup, compilation);
+                this.CheckForStructs(stateGroup);
             }
         }
 
@@ -72,74 +70,59 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
         /// <summary>
         /// Checks that no non-state or non-state-group classes are declared inside the group.
         /// </summary>
-        /// <param name="stategroup">State group</param>
+        /// <param name="stateGroup">State group</param>
         /// <param name="compilation">Compilation</param>
-        private void CheckForNonStateClasses(ClassDeclarationSyntax stategroup, CodeAnalysis.Compilation compilation)
+        private void CheckForNonStateClasses(ClassDeclarationSyntax stateGroup,
+            CodeAnalysis.Compilation compilation)
         {
-            var classIdentifiers = stategroup.DescendantNodes().OfType<ClassDeclarationSyntax>().
-                Where(val => !Querying.IsMachineState(compilation, val) && !Querying.IsMachineStateGroup(compilation, val)).
+            var classIdentifiers = stateGroup.DescendantNodes().OfType<ClassDeclarationSyntax>().
+                Where(val => !Querying.IsMachineState(compilation, val) &&
+                    !Querying.IsMachineStateGroup(compilation, val)).
                 Select(val => val.Identifier).
                 ToList();
 
             foreach (var identifier in classIdentifiers)
             {
-                base.ErrorLog.Add(Tuple.Create(identifier, "Not allowed to declare non-state, non-group class '" +
-                    identifier.ValueText + "' inside state group '" +
-                    stategroup.Identifier.ValueText + "'."));
+                base.ErrorLog.Add(Tuple.Create(identifier, "Not allowed to declare non-state, " +
+                    $"non-group class '{identifier.ValueText}' inside state group " +
+                    $"'{stateGroup.Identifier.ValueText}'."));
             }
         }
 
         /// <summary>
-        /// Checks that at least one state is declared inside the group.
+        /// Checks that at least one state or group is declared inside the group.
         /// </summary>
-        /// <param name="stategroup">State group</param>
+        /// <param name="stateGroup">State group</param>
         /// <param name="compilation">Compilation</param>
-        private void CheckForAtLeastOneState(ClassDeclarationSyntax stategroup, CodeAnalysis.Compilation compilation)
+        private void CheckForAtLeastOneStateOrGroup(ClassDeclarationSyntax stateGroup,
+            CodeAnalysis.Compilation compilation)
         {
-            var states = stategroup.DescendantNodes().OfType<ClassDeclarationSyntax>().
-                Where(val => Querying.IsMachineState(compilation, val) || Querying.IsMachineStateGroup(compilation, val)).
+            var states = stateGroup.DescendantNodes().OfType<ClassDeclarationSyntax>().
+                Where(val => Querying.IsMachineState(compilation, val) ||
+                    Querying.IsMachineStateGroup(compilation, val)).
                 ToList();
 
             if (states.Count == 0)
             {
-                base.WarningLog.Add(Tuple.Create(stategroup.Identifier, "State group '" +
-                    stategroup.Identifier.ValueText + "' must declare at least one state or group."));
-            }
-        }
-
-        /// <summary>
-        /// Checks that at least one state is declared inside the group.
-        /// </summary>
-        /// <param name="stategroup">State group</param>
-        /// <param name="compilation">Compilation</param>
-        private void CheckForNoMonitorStates(ClassDeclarationSyntax stategroup, CodeAnalysis.Compilation compilation)
-        {
-            var states = stategroup.DescendantNodes().OfType<ClassDeclarationSyntax>().
-                Where(val => Querying.IsMonitorState(compilation, val)).
-                ToList();
-
-            if (states.Count != 0)
-            {
-                base.WarningLog.Add(Tuple.Create(stategroup.Identifier, "State group '" +
-                    stategroup.Identifier.ValueText + "' cannot contain a monitor state '" + states.First().Identifier.ValueText + "'."));
+                base.WarningLog.Add(Tuple.Create(stateGroup.Identifier, "State group " +
+                    $"'{stateGroup.Identifier.ValueText}' must declare at least one state or group."));
             }
         }
 
         /// <summary>
         /// Checks that no structs are declared inside the group.
         /// </summary>
-        /// <param name="stategroup">State group</param>
-        private void CheckForStructs(ClassDeclarationSyntax stategroup)
+        /// <param name="stateGroup">State group</param>
+        private void CheckForStructs(ClassDeclarationSyntax stateGroup)
         {
-            var structIdentifiers = stategroup.DescendantNodes().OfType<StructDeclarationSyntax>().
+            var structIdentifiers = stateGroup.DescendantNodes().OfType<StructDeclarationSyntax>().
                 Select(val => val.Identifier).
                 ToList();
 
             foreach (var identifier in structIdentifiers)
             {
-                base.ErrorLog.Add(Tuple.Create(identifier, "Not allowed to declare struct '" +
-                    identifier.ValueText + "' inside state group '" +
-                    stategroup.Identifier.ValueText + "'."));
+                base.ErrorLog.Add(Tuple.Create(identifier, "Not allowed to declare struct " +
+                    $"'{identifier.ValueText}' inside state group '{stateGroup.Identifier.ValueText}'."));
             }
         }
 

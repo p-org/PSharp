@@ -102,10 +102,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
                     this.CheckForNestedPopStatementsInActions(machine);
                     this.CheckForPopStatementsInMethods(machine);
                 }
-                else
-                {
-                    this.CheckForNoStateGroupClasses(machine, compilation);
-                }
             }
         }
 
@@ -394,27 +390,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Framework
                 base.ErrorLog.Add(Tuple.Create(identifier, "Not allowed to declare non-state class " +
                     $"'{identifier.ValueText}' inside {this.GetTypeOfMachine().ToLower()} " +
                     $"'{machine.Identifier.ValueText}'."));
-            }
-        }
-
-        /// <summary>
-        /// Checks that no state groups are declared inside the machine.
-        /// </summary>
-        /// <param name="machine">Machine</param>
-        /// <param name="compilation">Compilation</param>
-        private void CheckForNoStateGroupClasses(ClassDeclarationSyntax machine,
-            CodeAnalysis.Compilation compilation)
-        {
-            var classIdentifiers = machine.DescendantNodes().OfType<ClassDeclarationSyntax>().
-                Where(val => this.IsStateGroup(compilation, val)).
-                Select(val => val.Identifier).
-                ToList();
-
-            foreach (var identifier in classIdentifiers)
-            {
-                base.ErrorLog.Add(Tuple.Create(identifier, "Not allowed to declare state groups '" +
-                    identifier.ValueText + "' inside " + this.GetTypeOfMachine().ToLower() + " '" +
-                    machine.Identifier.ValueText + "'."));
             }
         }
 

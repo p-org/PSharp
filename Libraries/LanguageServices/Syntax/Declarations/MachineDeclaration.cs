@@ -183,14 +183,14 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         }
 
         /// <summary>
-        /// Returns all state declarations inside this machine (recursively)
+        /// Returns all state declarations inside this machine (recursively).
         /// </summary>
         internal List<StateDeclaration> GetAllStateDeclarations()
         {
-            var ret = new List<StateDeclaration>();
-            ret.AddRange(StateDeclarations);
-            StateGroupDeclarations.ForEach(g => ret.AddRange(g.GetAllStateDeclarations()));
-            return ret;
+            var decls = new List<StateDeclaration>();
+            decls.AddRange(this.StateDeclarations);
+            this.StateGroupDeclarations.ForEach(g => decls.AddRange(g.GetAllStateDeclarations()));
+            return decls;
         }
 
         #endregion

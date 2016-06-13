@@ -433,7 +433,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 base.TokenStream.Peek().Type != TokenType.Double &&
                 base.TokenStream.Peek().Type != TokenType.Identifier))
             {
-                throw new ParsingException("Expected state or method declaration.",
+                throw new ParsingException("Expected state, group or method declaration.",
                     new List<TokenType>
                 {
                     TokenType.StateDecl,
@@ -543,24 +543,19 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         new List<TokenType>());
                 }
 
-
-                if (isHot)
+                if (isStart)
+                {
+                    throw new ParsingException("A state group cannot be marked start.",
+                        new List<TokenType>());
+                }
+                else if (isHot)
                 {
                     throw new ParsingException("A state group cannot be hot.",
                         new List<TokenType>());
                 }
-
-
-                if (isCold)
+                else if (isCold)
                 {
                     throw new ParsingException("A state group cannot be cold.",
-                        new List<TokenType>());
-                }
-
-
-                if (isStart)
-                {
-                    throw new ParsingException("A state group cannot be marked start.",
                         new List<TokenType>());
                 }
 

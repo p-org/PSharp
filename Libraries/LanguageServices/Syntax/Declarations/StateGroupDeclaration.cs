@@ -81,8 +81,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Constructor.
         /// </summary>
         /// <param name="program">Program</param>
-        /// <param name="machineNode">PMachineDeclarationNode</param>
-        /// <param name="groupNode">Parent group declaration</param>
+        /// <param name="machineNode">MachineDeclarationNode</param>
+        /// <param name="groupNode">StateGroupDeclaration</param>
         internal StateGroupDeclaration(IPSharpProgram program, MachineDeclaration machineNode,
             StateGroupDeclaration groupNode)
             : base(program)
@@ -94,16 +94,16 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         }
 
         /// <summary>
-        /// Returns all state declarations inside this group (recursively)
+        /// Returns all state declarations inside this group (recursively).
         /// </summary>
         internal List<StateDeclaration> GetAllStateDeclarations()
         {
-            var ret = new List<StateDeclaration>();
-            ret.AddRange(StateDeclarations);
-            StateGroupDeclarations.ForEach(g => ret.AddRange(g.GetAllStateDeclarations()));
-            return ret;
-        } 
-                 
+            var decls = new List<StateDeclaration>();
+            decls.AddRange(this.StateDeclarations);
+            this.StateGroupDeclarations.ForEach(g => decls.AddRange(g.GetAllStateDeclarations()));
+            return decls;
+        }
+
         /// <summary>
         /// Rewrites the syntax node declaration to the intermediate C#
         /// representation.
@@ -151,16 +151,15 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         private string GetRewrittenStateGroupDeclaration()
         {
             string text = "";
-
-
+            
             if (this.Group != null)
             {
-                // When inside a group, the state should be made public
+                // When inside a group, the state should be made public.
                 text += "public ";
             }
             else
             {
-                // Otherwise, we look at the access modifier provided by the user
+                // Otherwise, we look at the access modifier provided by the user.
                 if (this.AccessModifier == AccessModifier.Protected)
                 {
                     text += "protected ";
@@ -171,15 +170,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 }
             }
 
-            if (!this.Machine.IsMonitor)
-            {
-                text += "class " + this.Identifier.TextUnit.Text + " : StateGroup";
-            }
-            else
-            {
-                text += "class " + this.Identifier.TextUnit.Text + " : StateGroup";
-            }
-
+            text += "class " + this.Identifier.TextUnit.Text + " : StateGroup";
             text += "\n" + this.LeftCurlyBracketToken.TextUnit.Text + "\n";
 
             foreach (var node in this.StateGroupDeclarations)

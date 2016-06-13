@@ -20,7 +20,7 @@ using Microsoft.PSharp.LanguageServices.Syntax;
 namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 {
     /// <summary>
-    /// The P# state declaration parsing visitor.
+    /// The P# state group declaration parsing visitor.
     /// </summary>
     internal sealed class StateGroupDeclarationVisitor : BaseTokenVisitor
     {
@@ -86,8 +86,15 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
             this.VisitNextPSharpIntraGroupDeclaration(node);
-            if (groupNode == null) parentNode.StateGroupDeclarations.Add(node);
-            else groupNode.StateGroupDeclarations.Add(node);
+
+            if (groupNode == null)
+            {
+                parentNode.StateGroupDeclarations.Add(node);
+            }
+            else
+            {
+                groupNode.StateGroupDeclarations.Add(node);
+            }
 
             var stateDeclarations = node.GetAllStateDeclarations();
             if (stateDeclarations.Count == 0)
@@ -98,7 +105,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         }
 
         /// <summary>
-        /// Visits the next intra-group declration.
+        /// Visits the next intra-group declaration.
         /// </summary>
         /// <param name="node">Node</param>
         private void VisitNextPSharpIntraGroupDeclaration(StateGroupDeclaration node)
@@ -129,30 +136,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     case TokenType.ColdState:
                     case TokenType.StateDecl:
                     case TokenType.StateGroupDecl:
-                    case TokenType.Void:
-                    case TokenType.MachineDecl:
-                    case TokenType.Object:
-                    case TokenType.String:
-                    case TokenType.Sbyte:
-                    case TokenType.Byte:
-                    case TokenType.Short:
-                    case TokenType.Ushort:
-                    case TokenType.Int:
-                    case TokenType.Uint:
-                    case TokenType.Long:
-                    case TokenType.Ulong:
-                    case TokenType.Char:
-                    case TokenType.Bool:
-                    case TokenType.Decimal:
-                    case TokenType.Float:
-                    case TokenType.Double:
-                    case TokenType.Identifier:
                     case TokenType.Private:
                     case TokenType.Protected:
                     case TokenType.Internal:
                     case TokenType.Public:
-                    case TokenType.Async:
-                    case TokenType.Partial:
                         this.VisitGroupLevelDeclaration(node);
                         base.TokenStream.Index++;
                         break;
@@ -212,24 +199,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             while (!base.TokenStream.Done &&
                 base.TokenStream.Peek().Type != TokenType.StateDecl &&
                 base.TokenStream.Peek().Type != TokenType.StateGroupDecl &&
-                base.TokenStream.Peek().Type != TokenType.MachineDecl &&
-                base.TokenStream.Peek().Type != TokenType.Void &&
-                base.TokenStream.Peek().Type != TokenType.Object &&
-                base.TokenStream.Peek().Type != TokenType.String &&
-                base.TokenStream.Peek().Type != TokenType.Sbyte &&
-                base.TokenStream.Peek().Type != TokenType.Byte &&
-                base.TokenStream.Peek().Type != TokenType.Short &&
-                base.TokenStream.Peek().Type != TokenType.Ushort &&
-                base.TokenStream.Peek().Type != TokenType.Int &&
-                base.TokenStream.Peek().Type != TokenType.Uint &&
-                base.TokenStream.Peek().Type != TokenType.Long &&
-                base.TokenStream.Peek().Type != TokenType.Ulong &&
-                base.TokenStream.Peek().Type != TokenType.Char &&
-                base.TokenStream.Peek().Type != TokenType.Bool &&
-                base.TokenStream.Peek().Type != TokenType.Decimal &&
-                base.TokenStream.Peek().Type != TokenType.Float &&
-                base.TokenStream.Peek().Type != TokenType.Double &&
-                base.TokenStream.Peek().Type != TokenType.Identifier)
+                base.TokenStream.Peek().Type != TokenType.MachineDecl)
             {
                 if (am != AccessModifier.None &&
                     (base.TokenStream.Peek().Type == TokenType.Public ||
@@ -391,9 +361,10 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         new List<TokenType>());
                 }
 
-                new StateDeclarationVisitor(base.TokenStream).Visit(parentNode.Machine, parentNode, isStart, isHot, isCold, am);
+                new StateDeclarationVisitor(base.TokenStream).Visit(parentNode.Machine,
+                    parentNode, isStart, isHot, isCold, am);
             }
-            else // (base.TokenStream.Peek().Type == TokenType.StateGroupDecl)
+            else if (base.TokenStream.Peek().Type == TokenType.StateGroupDecl)
             {
                 if (am == AccessModifier.Public)
                 {
@@ -434,24 +405,19 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         new List<TokenType>());
                 }
 
-
-                if (isHot)
+                if (isStart)
+                {
+                    throw new ParsingException("A state group cannot be marked start.",
+                        new List<TokenType>());
+                }
+                else if (isHot)
                 {
                     throw new ParsingException("A state group cannot be hot.",
                         new List<TokenType>());
                 }
-
-
-                if (isCold)
+                else if (isCold)
                 {
                     throw new ParsingException("A state group cannot be cold.",
-                        new List<TokenType>());
-                }
-
-
-                if (isStart)
-                {
-                    throw new ParsingException("A state group cannot be marked start.",
                         new List<TokenType>());
                 }
 

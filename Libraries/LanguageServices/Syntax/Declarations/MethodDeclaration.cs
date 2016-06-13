@@ -96,7 +96,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Constructor.
         /// </summary>
         /// <param name="program">Program</param>
-        /// <param name="machineNode">PMachineDeclarationNode</param>
+        /// <param name="machineNode">MachineDeclarationNode</param>
         internal MethodDeclaration(IPSharpProgram program, MachineDeclaration machineNode)
             : base(program)
         {
