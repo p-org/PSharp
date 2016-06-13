@@ -117,6 +117,17 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 base.TokenStream.SkipWhiteSpaceAndCommentTokens();
             }
 
+            if (!expectsComma)
+            {
+                throw new ParsingException("Expected event identifier.",
+                    new List<TokenType>
+                {
+                    TokenType.Identifier,
+                    TokenType.HaltEvent,
+                    TokenType.DefaultEvent
+                });
+            }
+
             if (base.TokenStream.Done ||
                 base.TokenStream.Peek().Type != TokenType.Semicolon)
             {
