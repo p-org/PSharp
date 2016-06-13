@@ -346,5 +346,170 @@ defer e1,e2,;
             Assert.AreEqual("Expected event identifier.",
                 parser.GetParsingErrorLog());
         }
+
+
+        [TestMethod, Timeout(10000)]
+        public void TestGroupInsideState()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+start state S
+{
+group G { 
+state S2 { }
+}
+defer e1,e2;
+}
+}
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("Unexpected token.",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestEmptyGroup()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+group G { }
+start state S
+{
+defer e1,e2;
+}
+}
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("A state group must declare at least one state.",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestEmptyNestedGroup()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+group G { 
+start state S
+{
+defer e1,e2;
+}
+group G2 { }
+}
+}
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("A state group must declare at least one state.",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestMethodInsideGroup()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+group G { 
+start state S
+{
+defer e1,e2;
+}
+void Bar() { }
+}
+}
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("Expected state or group declaration.",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestColdGroup()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+cold group G { 
+start state S
+{
+defer e1,e2;
+}
+}
+}
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("A state group cannot be cold.",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestGroupName()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+group G.G2 { 
+start state S
+{
+defer e1,e2;
+}
+}
+}
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("Expected \"{\".",
+                parser.GetParsingErrorLog());
+        }
     }
 }
