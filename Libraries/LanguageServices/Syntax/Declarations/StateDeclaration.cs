@@ -124,7 +124,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         internal Token RightCurlyBracketToken;
 
         /// <summary>
-        /// Set of all generated method names
+        /// Set of all generated method names.
         /// </summary>
         internal HashSet<string> GeneratedMethodNames;
 
@@ -416,7 +416,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             }
 
             var generatedProcName = "psharp_" + this.GetFullyQualifiedName() + "_on_entry_action";
-            GeneratedMethodNames.Add(generatedProcName);
+            this.GeneratedMethodNames.Add(generatedProcName);
 
             return "[OnEntry(nameof(" + generatedProcName + "))]\n";
         }
@@ -433,7 +433,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             }
 
             var generatedProcName = "psharp_" + this.GetFullyQualifiedName() + "_on_exit_action";
-            GeneratedMethodNames.Add(generatedProcName);
+            this.GeneratedMethodNames.Add(generatedProcName);
 
             return "[OnExit(nameof(" + generatedProcName +   "))]\n";
         }
@@ -458,7 +458,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 {
                     onExitName = "psharp_" + this.GetFullyQualifiedName() + "_" +
                         transition.Key.TextUnit.Text + "_action";
-                    GeneratedMethodNames.Add(onExitName);
+                    this.GeneratedMethodNames.Add(onExitName);
                 }
 
                 text += "[OnEventGotoState(";
@@ -555,7 +555,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 {
                     actionName = "psharp_" + this.GetFullyQualifiedName() + "_" +
                         binding.Key.TextUnit.Text + "_action";
-                    GeneratedMethodNames.Add(actionName);
+                    this.GeneratedMethodNames.Add(actionName);
                 }
 
                 text += "[OnEventDoAction(";

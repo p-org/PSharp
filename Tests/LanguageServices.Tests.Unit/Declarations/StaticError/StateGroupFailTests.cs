@@ -454,7 +454,7 @@ void Bar() { }
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual("Expected state or group declaration.",
+            Assert.AreEqual("Unexpected token 'void'.",
                 parser.GetParsingErrorLog());
         }
 

@@ -32,17 +32,17 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// <summary>
         /// Set of all qualified state names in the current machine
         /// </summary>
-        HashSet<string> CurrentAllQualifiedStateNames;
+        private HashSet<string> CurrentAllQualifiedStateNames;
 
         /// <summary>
         /// Qualified state name corresponding to the procedure currently being rewritten
         /// </summary>
-        List<string> CurrentQualifiedStateName;
+        private List<string> CurrentQualifiedStateName;
 
         /// <summary>
         /// Generated methods state mapping
         /// </summary>
-        Dictionary<Tuple<string, string, string>, Tuple<HashSet<string>, List<string>>> GeneratedMethodsToQualifiedStateNames;
+        private Dictionary<Tuple<string, string, string>, Tuple<HashSet<string>, List<string>>> GeneratedMethodsToQualifiedStateNames;
 
         #endregion
 
@@ -84,50 +84,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         #endregion
 
         #region private methods
-
-        /// <summary>
-        /// Given a partially-qualified state name, return the fully qualified
-        /// state name.
-        /// </summary>
-        /// <param name="state">Partially qualified state name</param>
-        /// <returns>Fully qualified state name</returns>
-        private string GetFullyQualifiedStateName(string state)
-        {
-            if (CurrentQualifiedStateName.Count < 1 || CurrentAllQualifiedStateNames.Count == 0)
-                return state;
-
-            for (int i = CurrentQualifiedStateName.Count - 2; i >= 0; i--)
-            {
-                var prefix = CurrentQualifiedStateName[0];
-                for (int j = 1; j <= i; j++) prefix += "." + CurrentQualifiedStateName[j];
-                if (CurrentAllQualifiedStateNames.Contains(prefix + "." + state))
-                    return prefix + "." + state;
-            }
-
-            return state;
-        }
-
-        /// <summary>
-        /// Tokenize a qualified name.
-        /// </summary>
-        /// <param name="state">Qualified name</param>
-        /// <returns>Tokenized name</returns>
-        private static List<string> ToTokens(string state)
-        {
-            return state.Split('.').ToList();
-        }
-
-        /// <summary>
-        /// Collapse a tokenized qualified name.
-        /// </summary>
-        /// <param name="state">Tokenized qualified name</param>
-        /// <returns>Qualified name</returns>
-        private static string FromTokens(List<string> state)
-        {
-            return state.Aggregate("", (acc, name) => acc == "" ? name : acc + "." + name);
-        }
-
-
+        
         /// <summary>
         /// Rewrites the type inside typeof
         /// </summary>
@@ -157,15 +114,57 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
             CurrentQualifiedStateName = value.Item2;
 
             var typeUsed = node.Type.ToString();
-            var fullyQualifiedName = GetFullyQualifiedStateName(typeUsed);
+            var fullyQualifiedName = this.GetFullyQualifiedStateName(typeUsed);
             if (fullyQualifiedName == typeUsed) return node;
 
-            var tokenizedName = ToTokens(fullyQualifiedName);
+            var tokenizedName = this.ToTokens(fullyQualifiedName);
 
             var rewritten = SyntaxFactory.ParseExpression("typeof(" + fullyQualifiedName + ")");
             rewritten = rewritten.WithTriviaFrom(node);
 
             return rewritten;
+        }
+
+        /// <summary>
+        /// Given a partially-qualified state name, return the fully qualified
+        /// state name.
+        /// </summary>
+        /// <param name="state">Partially qualified state name</param>
+        /// <returns>Fully qualified state name</returns>
+        private string GetFullyQualifiedStateName(string state)
+        {
+            if (CurrentQualifiedStateName.Count < 1 || CurrentAllQualifiedStateNames.Count == 0)
+                return state;
+
+            for (int i = CurrentQualifiedStateName.Count - 2; i >= 0; i--)
+            {
+                var prefix = CurrentQualifiedStateName[0];
+                for (int j = 1; j <= i; j++) prefix += "." + CurrentQualifiedStateName[j];
+                if (CurrentAllQualifiedStateNames.Contains(prefix + "." + state))
+                    return prefix + "." + state;
+            }
+
+            return state;
+        }
+
+        /// <summary>
+        /// Tokenizes a qualified name.
+        /// </summary>
+        /// <param name="state">Qualified name</param>
+        /// <returns>Tokenized name</returns>
+        private List<string> ToTokens(string state)
+        {
+            return state.Split('.').ToList();
+        }
+
+        /// <summary>
+        /// Collapses a tokenized qualified name.
+        /// </summary>
+        /// <param name="state">Tokenized qualified name</param>
+        /// <returns>Qualified name</returns>
+        private string FromTokens(List<string> state)
+        {
+            return state.Aggregate("", (acc, name) => acc == "" ? name : acc + "." + name);
         }
 
         #endregion

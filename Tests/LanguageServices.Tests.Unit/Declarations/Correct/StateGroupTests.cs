@@ -809,15 +809,5 @@ protected void psharp_G1_G3_S3_on_entry_action(){ { this.Goto(typeof(G1.G3.S2));
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty).Replace("\n", string.Empty),
                 syntaxTree.ToString().Replace("\n", string.Empty));
         }
-
-
-
-
-
-
-
-
-
     }
-
 }

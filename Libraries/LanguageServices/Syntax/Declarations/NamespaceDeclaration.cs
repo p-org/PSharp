@@ -74,11 +74,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         }
 
         /// <summary>
-        /// Qualified name of the namespace
+        /// Qualified name of the namespace.
         /// </summary>
         internal string Name()
         {
-            return IdentifierTokens.Select(t => t.TextUnit.Text).
+            return this.IdentifierTokens.Select(t => t.TextUnit.Text).
                 Aggregate("", (acc, name) => acc + name);
         }
 

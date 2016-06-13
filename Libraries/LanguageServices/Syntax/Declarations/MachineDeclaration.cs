@@ -99,7 +99,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         internal Token RightCurlyBracketToken;
 
         /// <summary>
-        /// Map for all generated methods
+        /// Map for all generated methods.
         /// </summary>
         internal Dictionary<string, List<string>> GeneratedMethodToQualifiedStateName;
 
@@ -179,7 +179,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             base.TextUnit = new TextUnit(text, this.MachineKeyword.TextUnit.Line);
 
-            GatherGeneratedMethods();
+            this.GatherGeneratedMethods();
         }
 
         /// <summary>
@@ -334,12 +334,14 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             {
                 var ls = new List<string>();
                 ls.Insert(0, state.Identifier.TextUnit.Text);
+
                 var group = state.Group;
                 while (group != null)
                 {
                     ls.Insert(0, group.Identifier.TextUnit.Text);
                     group = group.Group;
                 }
+
                 return ls;
             });
 
@@ -347,7 +349,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             {
                 var tokens = GetStateTokenList(state);
                 foreach (var method in state.GeneratedMethodNames)
+                {
                     GeneratedMethodToQualifiedStateName.Add(method, tokens);
+                } 
             }
         }
 
