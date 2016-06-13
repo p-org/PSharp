@@ -1259,14 +1259,14 @@ namespace Microsoft.PSharp
 
             Type machineType = this.GetType();
             Type initialStateType = null;
-
+            
             while (machineType != typeof(Machine))
             {
                 foreach (var s in machineType.GetNestedTypes(BindingFlags.Instance |
                     BindingFlags.NonPublic | BindingFlags.Public |
                     BindingFlags.DeclaredOnly))
                 {
-                    ProcessType(s, ref initialStateType);
+                    this.ExtractStateTypes(s, ref initialStateType);
                 }
 
                 machineType = machineType.BaseType;
@@ -1278,8 +1278,11 @@ namespace Microsoft.PSharp
                 state.InitializeState(this);
                 this.States.Add(state);
             }
+            
+            var initialState = this.States.FirstOrDefault(val => val.GetType().Equals(initialStateType));
+            this.Assert(initialState != null, $"Machine '{base.Id.Name}' " +
+                "must declare a start state.");
 
-            var initialState = this.States.First(val => val.GetType().Equals(initialStateType));
             this.ConfigureStateTransitions(initialState);
             this.StateStack.Push(initialState);
 
@@ -1287,31 +1290,43 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Process a type, looking for a machine state
+        /// Process a type, looking for machine states.
         /// </summary>
-        private void ProcessType(Type s, ref Type initialStateType)
+        /// <param name="type">Type</param>
+        /// <param name="initialStateType">Type</param>
+        private void ExtractStateTypes(Type type, ref Type initialStateType)
         {
-            if (s.IsClass && s.IsSubclassOf(typeof(MachineState)))
+            Stack<Type> stack = new Stack<Type>();
+            stack.Push(type);
+
+            while (stack.Count > 0)
             {
-                if (s.IsDefined(typeof(Start), false))
+                Type nextType = stack.Pop();
+                
+                if (nextType.IsClass && nextType.IsSubclassOf(typeof(MachineState)))
                 {
-                    this.Assert(initialStateType == null, $"Machine '{base.Id.Name}' " +
-                        "can not have more than one start states.");
-                    initialStateType = s;
+                    if (nextType.IsDefined(typeof(Start), false))
+                    {
+                        this.Assert(initialStateType == null, $"Machine '{base.Id.Name}' " +
+                            "can not declare more than one start states.");
+                        initialStateType = nextType;
+                    }
+                    
+                    this.StateTypes.Add(nextType);
                 }
-
-                this.Assert(s.BaseType == typeof(MachineState), $"State '{s.Name}' " +
-                    "is not of the correct type.");
-                this.StateTypes.Add(s);
-            }
-
-            // If this is a group, recursively walk into it
-            if (s.IsClass && s.IsSubclassOf(typeof(StateGroup)))
-            {
-                foreach (var t in s.GetNestedTypes(BindingFlags.Instance |
-                    BindingFlags.NonPublic | BindingFlags.Public |
-                    BindingFlags.DeclaredOnly))
-                    ProcessType(t, ref initialStateType);
+                else if (nextType.IsClass && nextType.IsSubclassOf(typeof(StateGroup)))
+                {
+                    // Adds the contents of the group of states to the stack.
+                    foreach (var t in nextType.GetNestedTypes(BindingFlags.Instance |
+                        BindingFlags.NonPublic | BindingFlags.Public |
+                        BindingFlags.DeclaredOnly))
+                    {
+                        this.Assert(t.IsSubclassOf(typeof(StateGroup)) ||
+                            t.IsSubclassOf(typeof(MachineState)), $"'{t.Name}' " +
+                            $"is neither a group of states nor a state.");
+                        stack.Push(t);
+                    }
+                }
             }
         }
 

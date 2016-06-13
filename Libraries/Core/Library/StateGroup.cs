@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="StateGRoup.cs">
+// <copyright file="StateGroup.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,15 +12,11 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Reflection;
-
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Abstract class used for representing a group of related states
+    /// Abstract class used for representing a
+    /// group of related states.
     /// </summary>
     public abstract class StateGroup { }
-
 }
