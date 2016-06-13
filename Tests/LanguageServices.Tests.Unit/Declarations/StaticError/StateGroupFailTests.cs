@@ -23,7 +23,7 @@ namespace Microsoft.PSharp.LanguageServices.Tests.Unit
     public class StateGroupFailTests
     {
         [TestMethod, Timeout(10000)]
-        public void TestStateDeclarationWithMoreThanOneEntry()
+        public void TestMachineStateDeclarationWithMoreThanOneEntry()
         {
             var test = @"
 namespace Foo {
@@ -51,7 +51,7 @@ entry{}
         }
 
         [TestMethod, Timeout(10000)]
-        public void TestStateDeclarationWithMoreThanOneExit()
+        public void TestMachineStateDeclarationWithMoreThanOneExit()
         {
             var test = @"
 namespace Foo {
@@ -79,7 +79,7 @@ exit {}
         }
 
         [TestMethod, Timeout(10000)]
-        public void TestEntryDeclarationWithUnexpectedIdentifier()
+        public void TestMachineEntryDeclarationWithUnexpectedIdentifier()
         {
             var test = @"
 namespace Foo {
@@ -106,7 +106,7 @@ entry Bar {}
         }
 
         [TestMethod, Timeout(10000)]
-        public void TestOnEventGotoStateDeclarationWithoutSemicolon()
+        public void TestMachineOnEventGotoStateDeclarationWithoutSemicolon()
         {
             var test = @"
 namespace Foo {
@@ -133,7 +133,7 @@ on e goto S2
         }
 
         [TestMethod, Timeout(10000)]
-        public void TestOnEventGotoStateDeclarationWithoutState()
+        public void TestMachineOnEventGotoStateDeclarationWithoutState()
         {
             var test = @"
 namespace Foo {
@@ -161,7 +161,7 @@ on e goto;
         }
 
         [TestMethod, Timeout(10000)]
-        public void TestOnEventDoActionDeclarationWithoutSemicolon()
+        public void TestMachineOnEventDoActionDeclarationWithoutSemicolon()
         {
             var test = @"
 namespace Foo {
@@ -186,7 +186,7 @@ on e do Bar
         }
 
         [TestMethod, Timeout(10000)]
-        public void TestOnEventDoActionDeclarationWithoutAction()
+        public void TestMachineOnEventDoActionDeclarationWithoutAction()
         {
             var test = @"
 namespace Foo {
@@ -213,7 +213,7 @@ on e do;
         }
 
         [TestMethod, Timeout(10000)]
-        public void TestOnEventDeclarationWithoutHandler()
+        public void TestMachineOnEventDeclarationWithoutHandler()
         {
             var test = @"
 namespace Foo {
@@ -240,7 +240,7 @@ on e;
         }
 
         [TestMethod, Timeout(10000)]
-        public void TestIgnoreEventDeclarationWithoutComma()
+        public void TestMachineIgnoreEventDeclarationWithoutComma()
         {
             var test = @"
 namespace Foo {
@@ -267,7 +267,7 @@ ignore e1 e2;
         }
 
         [TestMethod, Timeout(10000)]
-        public void TestIgnoreEventDeclarationWithExtraComma()
+        public void TestMachineIgnoreEventDeclarationWithExtraComma()
         {
             var test = @"
 namespace Foo {
@@ -294,7 +294,7 @@ ignore e1,e2,;
         }
 
         [TestMethod, Timeout(10000)]
-        public void TestDeferEventDeclarationWithoutComma()
+        public void TestMachineDeferEventDeclarationWithoutComma()
         {
             var test = @"
 namespace Foo {
@@ -321,7 +321,7 @@ defer e1 e2;
         }
 
         [TestMethod, Timeout(10000)]
-        public void TestDeferEventDeclarationWithExtraComma()
+        public void TestMachineDeferEventDeclarationWithExtraComma()
         {
             var test = @"
 namespace Foo {
@@ -346,21 +346,16 @@ defer e1,e2,;
             Assert.AreEqual("Expected event identifier.",
                 parser.GetParsingErrorLog());
         }
-
-
+        
         [TestMethod, Timeout(10000)]
-        public void TestGroupInsideState()
+        public void TestMachineGroupInsideState()
         {
             var test = @"
 namespace Foo {
 machine M {
 start state S
 {
-group G { 
-state S2 { }
-}
-defer e1,e2;
-}
+group G { }
 }
 }";
 
@@ -377,16 +372,12 @@ defer e1,e2;
         }
 
         [TestMethod, Timeout(10000)]
-        public void TestEmptyGroup()
+        public void TestMachineEmptyGroup()
         {
             var test = @"
 namespace Foo {
 machine M {
 group G { }
-start state S
-{
-defer e1,e2;
-}
 }
 }";
 
@@ -403,16 +394,12 @@ defer e1,e2;
         }
 
         [TestMethod, Timeout(10000)]
-        public void TestEmptyNestedGroup()
+        public void TestMachineEmptyNestedGroup()
         {
             var test = @"
 namespace Foo {
 machine M {
-group G { 
-start state S
-{
-defer e1,e2;
-}
+group G {
 group G2 { }
 }
 }
@@ -431,16 +418,12 @@ group G2 { }
         }
 
         [TestMethod, Timeout(10000)]
-        public void TestMethodInsideGroup()
+        public void TestMachineMethodInsideGroup()
         {
             var test = @"
 namespace Foo {
 machine M {
-group G { 
-start state S
-{
-defer e1,e2;
-}
+group G {
 void Bar() { }
 }
 }
@@ -459,17 +442,12 @@ void Bar() { }
         }
 
         [TestMethod, Timeout(10000)]
-        public void TestColdGroup()
+        public void TestMachineColdGroup()
         {
             var test = @"
 namespace Foo {
 machine M {
-cold group G { 
-start state S
-{
-defer e1,e2;
-}
-}
+cold group G { }
 }
 }";
 
@@ -486,17 +464,424 @@ defer e1,e2;
         }
 
         [TestMethod, Timeout(10000)]
-        public void TestGroupName()
+        public void TestMachineGroupName()
         {
             var test = @"
 namespace Foo {
 machine M {
-group G.G2 { 
+group G.G2 { }
+}
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("Expected \"{\".",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestMonitorStateDeclarationWithMoreThanOneEntry()
+        {
+            var test = @"
+namespace Foo {
+monitor M {
+group G {
 start state S
 {
-defer e1,e2;
+entry {}
+entry{}
 }
 }
+}
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("Duplicate entry declaration.",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestMonitorStateDeclarationWithMoreThanOneExit()
+        {
+            var test = @"
+namespace Foo {
+monitor M {
+group G {
+start state S
+{
+exit{}
+exit {}
+}
+}
+}
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("Duplicate exit declaration.",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestMonitorEntryDeclarationWithUnexpectedIdentifier()
+        {
+            var test = @"
+namespace Foo {
+monitor M {
+group G {
+start state S
+{
+entry Bar {}
+}
+}
+}
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("Expected \"{\".",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestMonitorOnEventGotoStateDeclarationWithoutSemicolon()
+        {
+            var test = @"
+namespace Foo {
+monitor M {
+group G {
+start state S1
+{
+on e goto S2
+}
+}
+}
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("Expected \";\".",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestMonitorOnEventGotoStateDeclarationWithoutState()
+        {
+            var test = @"
+namespace Foo {
+monitor M {
+group G 
+{
+start state S1
+{
+on e goto;
+}
+}
+}
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("Expected state identifier.",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestMonitorOnEventDoActionDeclarationWithoutSemicolon()
+        {
+            var test = @"
+namespace Foo {
+monitor M {
+start state S1
+{
+on e do Bar
+}
+}
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("Expected \";\".",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestMonitorOnEventDoActionDeclarationWithoutAction()
+        {
+            var test = @"
+namespace Foo {
+monitor M {
+group G {
+start state S1
+{
+on e do;
+}
+}
+}
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("Expected action identifier.",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestMonitorOnEventDeclarationWithoutHandler()
+        {
+            var test = @"
+namespace Foo {
+monitor M {
+group G {
+start state S1
+{
+on e;
+}
+}
+}
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("Expected \"do\", \"goto\" or \"push\".",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestMonitorIgnoreEventDeclarationWithoutComma()
+        {
+            var test = @"
+namespace Foo {
+monitor M {
+group G {
+start state S
+{
+ignore e1 e2;
+}
+}
+}
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("Expected \",\".",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestMonitorIgnoreEventDeclarationWithExtraComma()
+        {
+            var test = @"
+namespace Foo {
+monitor M {
+group G {
+start state S
+{
+ignore e1,e2,;
+}
+}
+}
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("Expected event identifier.",
+                parser.GetParsingErrorLog());
+        }
+        
+        [TestMethod, Timeout(10000)]
+        public void TestMonitorGroupInsideState()
+        {
+            var test = @"
+namespace Foo {
+monitor M {
+start state S
+{
+group G { }
+}
+}
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("Unexpected token.",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestMonitorEmptyGroup()
+        {
+            var test = @"
+namespace Foo {
+monitor M {
+group G { }
+}
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("A state group must declare at least one state.",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestMonitorEmptyNestedGroup()
+        {
+            var test = @"
+namespace Foo {
+monitor M {
+group G
+{
+group G2 { }
+}
+}
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("A state group must declare at least one state.",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestMonitorMethodInsideGroup()
+        {
+            var test = @"
+namespace Foo {
+monitor M {
+group G
+{
+void Bar() { }
+}
+}
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("Unexpected token 'void'.",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestMonitorColdGroup()
+        {
+            var test = @"
+namespace Foo {
+monitor M {
+cold group G { }
+}
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("A state group cannot be cold.",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestMonitorGroupName()
+        {
+            var test = @"
+namespace Foo {
+monitor M {
+group G.G2 { }
 }
 }";
 

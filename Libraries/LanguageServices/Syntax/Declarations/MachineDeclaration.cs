@@ -352,7 +352,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 
                 foreach (var method in state.RewrittenMethods)
                 {
-                    method.QualifiedStateName.AddRange(tokens);
+                    method.QualifiedStateName = tokens;
                     this.RewrittenMethods.Add(method);
                 } 
             }

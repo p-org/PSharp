@@ -58,9 +58,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             this.Name = name;
             this.MachineName = machineName;
             this.NamespaceName = namespaceName;
-
-            this.QualifiedStateName = new List<string>();
-            this.MachineQualifiedStateNames = new HashSet<string>();
         }
     }
 }

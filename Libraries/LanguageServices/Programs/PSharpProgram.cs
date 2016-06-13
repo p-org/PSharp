@@ -168,7 +168,7 @@ namespace Microsoft.PSharp.LanguageServices
 
                     foreach (var method in machine.RewrittenMethods)
                     {
-                        method.MachineQualifiedStateNames.UnionWith(allQualifiedNames);
+                        method.MachineQualifiedStateNames = allQualifiedNames;
                         qualifiedMethods.Add(method);
                     }
                 }
