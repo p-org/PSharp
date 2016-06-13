@@ -17,7 +17,7 @@ using System;
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// An event wait handler.
+    /// Defines an event wait handler.
     /// </summary>
     internal class EventWaitHandler
     {

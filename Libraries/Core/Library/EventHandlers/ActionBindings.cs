@@ -19,7 +19,7 @@ using System.Collections.Generic;
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Class representing a collection of action bindings.
+    /// Defines a collection of action bindings.
     /// </summary>
     internal sealed class ActionBindings : IEnumerable<KeyValuePair<Type, Action>>
     {

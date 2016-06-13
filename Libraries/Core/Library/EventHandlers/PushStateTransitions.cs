@@ -19,7 +19,7 @@ using System.Collections.Generic;
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Class representing a collection of push state transitions.
+    /// Defines a collection of push state transitions.
     /// </summary>
     internal sealed class PushStateTransitions : IEnumerable<KeyValuePair<Type, Type>>
     {
