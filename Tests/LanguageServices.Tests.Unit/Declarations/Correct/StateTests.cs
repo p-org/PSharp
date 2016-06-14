@@ -295,7 +295,7 @@ namespace Foo {
 machine M {
 start state S1
 {
-on e goto S2 with {};
+on e goto S2 with {}
 }
 }
 }";
@@ -423,7 +423,7 @@ namespace Foo {
 machine M {
 start state S1
 {
-on e do {};
+on e do {}
 }
 }
 }";

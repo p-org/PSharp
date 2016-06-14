@@ -147,9 +147,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         parentNode.Machine, null);
                     new BlockSyntaxVisitor(base.TokenStream).Visit(blockNode);
 
-                    base.TokenStream.Index++;
-                    base.TokenStream.SkipWhiteSpaceAndCommentTokens();
-
                     foreach (var eventIdentifier in eventIdentifiers)
                     {
                         if (!parentNode.AddActionBinding(eventIdentifier, blockNode))
@@ -176,16 +173,16 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 
                     base.TokenStream.Index++;
                     base.TokenStream.SkipWhiteSpaceAndCommentTokens();
-                }
 
-                if (base.TokenStream.Done ||
-                    base.TokenStream.Peek().Type != TokenType.Semicolon)
-                {
-                    throw new ParsingException("Expected \";\".",
-                        new List<TokenType>
+                    if (base.TokenStream.Done ||
+                        base.TokenStream.Peek().Type != TokenType.Semicolon)
                     {
-                        TokenType.Semicolon
-                    });
+                        throw new ParsingException("Expected \";\".",
+                            new List<TokenType>
+                        {
+                                TokenType.Semicolon
+                        });
+                    }
                 }
             }
             else if (base.TokenStream.Peek().Type == TokenType.GotoState)
@@ -221,9 +218,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     var blockNode = new BlockSyntax(base.TokenStream.Program, parentNode.Machine, null);
                     new BlockSyntaxVisitor(base.TokenStream).Visit(blockNode);
 
-                    base.TokenStream.Index++;
-                    base.TokenStream.SkipWhiteSpaceAndCommentTokens();
-
                     foreach (var eventIdentifier in eventIdentifiers)
                     {
                         if (!parentNode.AddGotoStateTransition(eventIdentifier, stateIdentifiers, blockNode))
@@ -231,16 +225,6 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                             throw new ParsingException("Unexpected goto state transition.",
                                 new List<TokenType>());
                         }
-                    }
-
-                    if (base.TokenStream.Done ||
-                        base.TokenStream.Peek().Type != TokenType.Semicolon)
-                    {
-                        throw new ParsingException("Expected \";\".",
-                            new List<TokenType>
-                        {
-                            TokenType.Semicolon
-                        });
                     }
                 }
                 else

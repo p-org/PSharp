@@ -32,7 +32,7 @@ namespace FailureDetector
 			on RegisterClient do
 			{
 			    this.Clients[(trigger as RegisterClient).client] = true;
-			};
+			}
 
 			on UnregisterClient do
 			{
@@ -40,7 +40,7 @@ namespace FailureDetector
 				{
 				    this.Clients.Remove((trigger as UnregisterClient).client);
 				}
-			};
+			}
 
             on Unit push SendPing;
         }
@@ -64,7 +64,7 @@ namespace FailureDetector
 						raise(TimerCancelled);
 					}
 				}
-			};
+			}
 
 			on TimerCancelled push WaitForCancelResponse;
 
@@ -80,7 +80,7 @@ namespace FailureDetector
 				    this.CheckAliveSet();
 					raise(RoundDone);
 				}
-			};
+			}
 
 			on Unit goto SendPing;
 			on RoundDone goto Reset;
@@ -93,12 +93,12 @@ namespace FailureDetector
 			on CancelSuccess do
 			{
 			    raise(RoundDone);
-			};
+			}
 
 			on CancelFailure do
 			{
 			    pop;
-			};
+			}
 		}
 
 		state Reset

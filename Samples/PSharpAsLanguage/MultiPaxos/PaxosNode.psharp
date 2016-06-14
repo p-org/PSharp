@@ -223,12 +223,12 @@ namespace MultiPaxos
 				    MaxRound = round;
 				
 			    send(Timer, cancelTimer);
-			};
+			}
 
 			on success goto ProposeValuePhase2 with
 			{
 			    send(Timer, cancelTimer);
-		    };
+		    }
 
 			on timeout goto ProposeValuePhase1;
 		}
@@ -310,7 +310,7 @@ namespace MultiPaxos
 				    MaxRound = round;
 				
 			    send(Timer, cancelTimer);
-			};
+			}
 
 			on timeout goto ProposeValuePhase1;
 		}

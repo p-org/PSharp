@@ -21,7 +21,7 @@
             on Cancel goto WaitForReq with
             {
                 send(this.Target, CancelFailure);
-            };
+            }
 
             on Start goto WaitForCancel;
         }
@@ -41,12 +41,12 @@
 				    send(this.Target, CancelFailure);
 					send(this.Target, Timeout);
 				}
-            };
+            }
 
             on default goto WaitForReq with
             {
                 send(this.Target, Timeout);
-            };
+            }
         }
     }
 }

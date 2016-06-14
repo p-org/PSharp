@@ -8,7 +8,7 @@
 			{
 			    monitor<Safety>(MPong, this);
 				send((trigger as Ping).client, Pong, this);
-			};
+			}
         }
     }
 }

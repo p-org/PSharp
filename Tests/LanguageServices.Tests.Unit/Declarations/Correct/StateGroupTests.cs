@@ -335,7 +335,7 @@ group G
 {
 start state S1
 {
-on e goto S2 with {};
+on e goto S2 with {}
 }
 }
 }
@@ -430,7 +430,7 @@ group G
 {
 start state S1
 {
-on e do {};
+on e do {}
 }
 }
 }
@@ -1120,7 +1120,7 @@ group G
 {
 start state S1
 {
-on e goto S2 with {};
+on e goto S2 with {}
 }
 }
 }
@@ -1215,7 +1215,7 @@ group G
 {
 start state S1
 {
-on e do {};
+on e do {}
 }
 }
 }

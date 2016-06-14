@@ -22,14 +22,14 @@ namespace FailureDetector
 
 				this.Pending[(trigger as MPing).client] = this.Pending[(trigger as MPing).client] + 1;
 				assert(this.Pending[(trigger as MPing).client] <= 3, "1");
-			};
+			}
 
 			on MPong do
 			{
 			    assert(this.Pending.ContainsKey((trigger as MPong).node), "2");
 				assert(this.Pending[(trigger as MPong).node] > 0, "3");
 				this.Pending[(trigger as MPong).node] = this.Pending[(trigger as MPong).node] - 1;
-			};
+			}
         }
     }
 }
