@@ -27,7 +27,7 @@ using Microsoft.PSharp.Visualization;
 namespace Microsoft.PSharp.TestingServices
 {
     /// <summary>
-    /// Static class implementing the P# bug-finding runtime.
+    /// Class implementing the P# bug-finding runtime.
     /// </summary>
     internal sealed class PSharpBugFindingRuntime : PSharpRuntime
     {
@@ -369,7 +369,6 @@ namespace Microsoft.PSharp.TestingServices
 
             if (this.Configuration.BoundOperations && sender != null)
             {
-                //this.MachineMap[mid.MVal]
                 IO.Log($"<SendLog> Machine '{sender.Id.Name}' sent event " +
                     $"'{e.GetType().FullName}({e.OperationId})' to '{mid.Name}'.");
             }
@@ -384,20 +383,18 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             EventOriginInfo originInfo = null;
-
-            // Record sender's current state before it changes it
             if (this.Configuration.EnableVisualization)
             {
                 if (sender == null || !(sender is Machine))
                 {
-                    // Message comes from outside P#
-                    // Can it come from a monitor? I guess not.
+                    // Message comes from outside P#.
                     originInfo = new EventOriginInfo("Env", "Env");
                 }
-                else {
+                else
+                {
                     originInfo = new EventOriginInfo(
                         (sender as Machine).GetType().Name,
-                        (sender as Machine).CurrentStateName);
+                        (sender as Machine).CurrentState.Name);
                 }
             }
 
@@ -561,8 +558,8 @@ namespace Microsoft.PSharp.TestingServices
             var prevMachineOpId = machine.OperationId;
             machine.SetOperationId(e.OperationId);
 
-            // Visualizes the received event and the state transition,
-            // if there is any.
+            // Visualizes the received event and the state
+            // transition, if there is any.
             if (this.Configuration.EnableVisualization)
             {
                 this.VisualizeReceivedEvent(machine, e, eInfo);
@@ -736,11 +733,11 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="eInfo">EventOriginInfo</param>
         private void VisualizeReceivedEvent(Machine machine, Event e, EventOriginInfo eInfo)
         {
-            string originMachine = eInfo.machine;
-            string originState = eInfo.state;
+            string originMachine = eInfo.Machine;
+            string originState = eInfo.State;
             string edgeLabel = e.GetType().Name;
             string destMachine = machine.GetType().Name;
-            string destState = machine.CurrentStateName;
+            string destState = machine.CurrentState.Name;
 
             this.Visualizer.AddTransition(originMachine, originState, edgeLabel, destMachine, destState);
         }
@@ -753,7 +750,7 @@ namespace Microsoft.PSharp.TestingServices
         private void VisualizeStateTransition(Machine machine, Event e)
         {
             string originMachine = machine.GetType().Name;
-            string originState = machine.CurrentStateName;
+            string originState = machine.CurrentState.Name;
             string destMachine = machine.GetType().Name;
 
             string edgeLabel = "";

@@ -94,14 +94,15 @@ namespace Microsoft.PSharp
         private List<Event> Inbox;
 
         /// <summary>
-        /// For each event in the inbox, this keeps tracks of the event's origin (machine, state) information.
-        /// Used for program visualization.
+        /// For each event in the inbox, this keeps tracks of the
+        /// event origin (machine, state) information. Used for
+        /// program visualization.
         /// </summary>
         private List<EventOriginInfo> InboxOriginInfo;
 
         /// <summary>
-        /// Gets the raised event. If no event has been raised this will
-        /// return null.
+        /// Gets the raised event. If no event has been raised
+        /// this will return null.
         /// </summary>
         private Event RaisedEvent;
 
@@ -129,7 +130,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Gets the current state.
         /// </summary>
-        protected Type CurrentState
+        protected internal Type CurrentState
         {
             get
             {
@@ -139,19 +140,6 @@ namespace Microsoft.PSharp
                 }
 
                 return this.StateStack.Peek().GetType();
-            }
-        }
-
-        /// <summary>
-        /// Name of the current state (for debugging)
-        /// </summary>
-        public string CurrentStateName
-        {
-            get
-            {
-                var state = CurrentState;
-                if (state == null) return null;
-                return state.Name;
             }
         }
 
@@ -308,9 +296,7 @@ namespace Microsoft.PSharp
             this.Assert(e != null, $"Machine '{base.Id.Name}' is raising a null event.");
             this.RaisedEvent = e;
             this.RaisedEventOriginInfo = new EventOriginInfo(
-                this.GetType().Name,
-                this.CurrentStateName
-                );
+                this.GetType().Name, this.CurrentState.Name);
             base.Runtime.Raise(this, e, isStarter);
         }
 
