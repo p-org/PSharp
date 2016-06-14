@@ -250,7 +250,8 @@ namespace Microsoft.PSharp.TestingServices
 
             if (this.Configuration.EnableVisualization)
             {
-                this.Visualizer = new PSharpProgramVisualizer();
+                //this.Visualizer = new PSharpProgramVisualizer();
+                this.Visualizer = new PSharpDgmlVisualizer("trace.dgml");
             }
 
             this.HasRedirectedConsoleOutput = false;
@@ -265,15 +266,15 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         protected void Execute(Task task)
         {
+            if (this.Configuration.AttachDebugger)
+            {
+                System.Diagnostics.Debugger.Launch();
+            }
+
             Task visualizationTask = null;
             if (this.Configuration.EnableVisualization)
             {
                 visualizationTask = this.StartVisualizing();
-            }
-
-            if (this.Configuration.AttachDebugger)
-            {
-                System.Diagnostics.Debugger.Launch();
             }
 
             this.Profiler.StartMeasuringExecutionTime();

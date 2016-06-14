@@ -94,10 +94,22 @@ namespace Microsoft.PSharp
         private List<Event> Inbox;
 
         /// <summary>
+        /// For each event in the inbox, this keeps tracks of the event's origin (machine, state) information.
+        /// Used for program visualization.
+        /// </summary>
+        private List<EventOriginInfo> InboxOriginInfo;
+
+        /// <summary>
         /// Gets the raised event. If no event has been raised this will
         /// return null.
         /// </summary>
         private Event RaisedEvent;
+
+        /// <summary>
+        /// Raised event's origin (machine, state) information.
+        /// Used for program visualization.
+        /// </summary>
+        private EventOriginInfo RaisedEventOriginInfo;
 
         /// <summary>
         /// A list of event wait handlers. They denote the types of events that
@@ -131,6 +143,19 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Name of the current state (for debugging)
+        /// </summary>
+        public string CurrentStateName
+        {
+            get
+            {
+                var state = CurrentState;
+                if (state == null) return null;
+                return state.Name;
+            }
+        }
+
+        /// <summary>
         /// Gets the latest received event, or null if no event
         /// has been received.
         /// </summary>
@@ -147,6 +172,7 @@ namespace Microsoft.PSharp
             : base()
         {
             this.Inbox = new List<Event>();
+            this.InboxOriginInfo = new List<EventOriginInfo>();
             this.StateStack = new Stack<MachineState>();
             this.EventWaitHandlers = new List<EventWaitHandler>();
 
@@ -281,6 +307,10 @@ namespace Microsoft.PSharp
             // If the event is null, then report an error and exit.
             this.Assert(e != null, $"Machine '{base.Id.Name}' is raising a null event.");
             this.RaisedEvent = e;
+            this.RaisedEventOriginInfo = new EventOriginInfo(
+                this.GetType().Name,
+                this.CurrentStateName
+                );
             base.Runtime.Raise(this, e, isStarter);
         }
 
@@ -495,7 +525,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="e">Event</param>
         /// <param name="runNewHandler">Run a new handler</param>
-        internal void Enqueue(Event e, ref bool runNewHandler)
+        internal void Enqueue(Event e, ref bool runNewHandler, EventOriginInfo originInfo = null)
         {
             lock (this.Inbox)
             {
@@ -519,6 +549,7 @@ namespace Microsoft.PSharp
                     $"enqueued event '{e.GetType().FullName}'.");
 
                 this.Inbox.Add(e);
+                this.InboxOriginInfo.Add(originInfo);
 
                 if (e.Assert >= 0)
                 {
@@ -556,13 +587,14 @@ namespace Microsoft.PSharp
             }
 
             Event nextEvent = null;
+            EventOriginInfo nextEventOriginInfo = null;
             while (!this.IsHalted)
             {
                 var defaultHandling = false;
                 var dequeued = false;
                 lock (this.Inbox)
                 {
-                    dequeued = this.GetNextEvent(out nextEvent);
+                    dequeued = this.GetNextEvent(out nextEvent, out nextEventOriginInfo);
 
                     // Check if next event to process is null.
                     if (nextEvent == null)
@@ -589,11 +621,11 @@ namespace Microsoft.PSharp
                 // to schedule a machine when a new operation is dequeued.
                 if (dequeued)
                 {
-                    base.Runtime.NotifyDequeuedEvent(this, nextEvent);
+                    base.Runtime.NotifyDequeuedEvent(this, nextEvent, nextEventOriginInfo);
                 }
                 else
                 {
-                    base.Runtime.NotifyRaisedEvent(this, nextEvent);
+                    base.Runtime.NotifyRaisedEvent(this, nextEvent, nextEventOriginInfo);
                 }
 
                 // Assigns the received event.
@@ -631,6 +663,8 @@ namespace Microsoft.PSharp
                     else if (this.Inbox[idx].OperationId == opid)
                     {
                         var prioritizedEvent = this.Inbox[idx];
+                        var prioritizedEventOriginInfo = this.InboxOriginInfo[idx];
+
                         var sameSenderConflict = false;
                         for (int prev = 0; prev < idx; prev++)
                         {
@@ -644,6 +678,8 @@ namespace Microsoft.PSharp
                         {
                             this.Inbox.RemoveAt(idx);
                             this.Inbox.Insert(0, prioritizedEvent);
+                            this.InboxOriginInfo.RemoveAt(idx);
+                            this.InboxOriginInfo.Insert(0, prioritizedEventOriginInfo);
                             break;
                         }
                     }
@@ -710,21 +746,26 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="nextEvent">Event</param>
         /// <returns>Boolean</returns>
-        private bool GetNextEvent(out Event nextEvent)
+        private bool GetNextEvent(out Event nextEvent, out EventOriginInfo nextEventOriginInfo)
         {
             bool dequeued = false;
             nextEvent = null;
+            nextEventOriginInfo = null;
 
             // Raised events have priority.
             if (this.RaisedEvent != null)
             {
                 nextEvent = this.RaisedEvent;
+                nextEventOriginInfo = this.RaisedEventOriginInfo;
+
                 this.RaisedEvent = null;
+                this.RaisedEventOriginInfo = null;
 
                 // Checks if the raised event is ignored.
                 if (this.IgnoredEvents.Contains(nextEvent.GetType()))
                 {
                     nextEvent = null;
+                    nextEventOriginInfo = null;
                 }
             }
             // If there is no raised event, then dequeue.
@@ -737,6 +778,7 @@ namespace Microsoft.PSharp
                     if (this.IgnoredEvents.Contains(this.Inbox[idx].GetType()))
                     {
                         this.Inbox.RemoveAt(idx);
+                        this.InboxOriginInfo.RemoveAt(idx);
                         idx--;
                         continue;
                     }
@@ -747,7 +789,9 @@ namespace Microsoft.PSharp
                         !this.DeferredEvents.Contains(this.Inbox[idx].GetType()))
                     {
                         nextEvent = this.Inbox[idx];
+                        nextEventOriginInfo = this.InboxOriginInfo[idx];
                         this.Inbox.RemoveAt(idx);
+                        this.InboxOriginInfo.RemoveAt(idx);
                         dequeued = true;
                         break;
                     }
@@ -865,6 +909,7 @@ namespace Microsoft.PSharp
                             this.Inbox[idx], eventWaitHandler.Action);
                         this.EventWaitHandlers.Clear();
                         this.Inbox.RemoveAt(idx);
+                        this.InboxOriginInfo.RemoveAt(idx);
                         break;
                     }
                 }
@@ -1337,7 +1382,7 @@ namespace Microsoft.PSharp
             this.StateTypes.Clear();
             this.Inbox.Clear();
             this.EventWaitHandlers.Clear();
-
+            this.InboxOriginInfo.Clear();
             this.ReceivedEvent = null;
         }
 

@@ -675,7 +675,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="e">Event</param>
-        internal virtual void NotifyDequeuedEvent(Machine machine, Event e)
+        internal virtual void NotifyDequeuedEvent(Machine machine, Event e, EventOriginInfo eInfo)
         {
             // No-op for real execution.
         }
@@ -685,7 +685,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="e">Event</param>
-        internal virtual void NotifyRaisedEvent(Machine machine, Event e)
+        internal virtual void NotifyRaisedEvent(Machine machine, Event e, EventOriginInfo eInfo)
         {
             // No-op for real execution.
         }
