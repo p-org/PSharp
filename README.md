@@ -10,14 +10,8 @@ The P# framework provides:
 
 Although P# primarily targets .NET, it has also experimental support for systematically testing native C++ code.
 
-## Documentation
-The best way to build and start using P# is to read our [wiki](https://github.com/p-org/PSharp/wiki):
-
-- [Building P#](https://github.com/p-org/PSharp/wiki/Build-Instructions)
-- [P# Compiler](https://github.com/p-org/PSharp/wiki/Compilation)
-- [P# Tester](https://github.com/p-org/PSharp/wiki/Testing)
-- [P# Replayer/Debugger](https://github.com/p-org/PSharp/wiki/Bug-Reproduction)
-- [Samples and Walkthroughs](https://github.com/p-org/PSharp/wiki/Samples-and-Walkthroughs)
+## Getting started
+The best way to build and start using P# is to read our [wiki](https://github.com/p-org/PSharp/wiki).
 
 You can also read the manual and available publications:
 
