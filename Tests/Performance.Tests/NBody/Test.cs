@@ -7,7 +7,7 @@ namespace NBody
 {
     public class Test
     {
-        static readonly int NumOfBodies = 100;
+        static readonly int NumOfBodies = 1000;
         static readonly int NumOfSteps = 100;
 
         static void Main(string[] args)
@@ -23,13 +23,13 @@ namespace NBody
             Console.WriteLine("... P# executed for '" +
                 profiler.Results() + "' seconds.");
 
-            //profiler.StartMeasuringExecutionTime();
+            profiler.StartMeasuringExecutionTime();
 
-            //new TPLTest().Start(Test.NumOfBodies, Test.NumOfSteps);
+            new TPLTest().Start(Test.NumOfBodies, Test.NumOfSteps);
 
-            //profiler.StopMeasuringExecutionTime();
-            //Console.WriteLine("... TPL executed for '" +
-            //    profiler.Results() + "' seconds.");
+            profiler.StopMeasuringExecutionTime();
+            Console.WriteLine("... TPL executed for '" +
+                profiler.Results() + "' seconds.");
         }
 
         [Microsoft.PSharp.Test]
