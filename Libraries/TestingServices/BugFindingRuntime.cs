@@ -379,16 +379,16 @@ namespace Microsoft.PSharp.TestingServices
             if (this.Configuration.BoundOperations && sender != null)
             {
                 IO.Log($"<SendLog> Machine '{sender.Id.Name}' sent event " +
-                    $"'{e.GetType().FullName}({eventInfo.OperationId})' to '{mid.Name}'.");
+                    $"'{eventInfo.EventName}({eventInfo.OperationId})' to '{mid.Name}'.");
             }
             else if (sender != null)
             {
                 IO.Log($"<SendLog> Machine '{sender.Id.Name}' sent event " +
-                    $"'{e.GetType().FullName}' to '{mid.Name}'.");
+                    $"'{eventInfo.EventName}' to '{mid.Name}'.");
             }
             else
             {
-                IO.Log($"<SendLog> Event '{e.GetType().FullName}' was sent to '{mid.Name}'.");
+                IO.Log($"<SendLog> Event '{eventInfo.EventName}' was sent to '{mid.Name}'.");
             }
 
             Machine machine = this.MachineMap[mid.Value];
@@ -475,12 +475,12 @@ namespace Microsoft.PSharp.TestingServices
             if (this.Configuration.BoundOperations)
             {
                 IO.Log($"<RaiseLog> Machine '{raiser.Id.Name}' raised " +
-                    $"event '{eventInfo.Name}({eventInfo.OperationId})'.");
+                    $"event '{eventInfo.EventName}({eventInfo.OperationId})'.");
             }
             else
             {
                 IO.Log($"<RaiseLog> Machine '{raiser.Id.Name}' raised " +
-                    $"event '{eventInfo.Name}'.");
+                    $"event '{eventInfo.EventName}'.");
             }
         }
 
@@ -540,12 +540,12 @@ namespace Microsoft.PSharp.TestingServices
             if (this.Configuration.BoundOperations)
             {
                 IO.Log($"<DequeueLog> Machine '{machine.Id.Name}' dequeued " +
-                    $"event '{eventInfo.Name}({eventInfo.OperationId})'.");
+                    $"event '{eventInfo.EventName}({eventInfo.OperationId})'.");
             }
             else
             {
                 IO.Log($"<DequeueLog> Machine '{machine.Id.Name}' dequeued " +
-                    $"event '{eventInfo.Name}'.");
+                    $"event '{eventInfo.EventName}'.");
             }
             
             var prevMachineOpId = machine.OperationId;
@@ -607,12 +607,12 @@ namespace Microsoft.PSharp.TestingServices
             if (this.Configuration.BoundOperations)
             {
                 IO.Log($"<ReceiveLog> Machine '{machine.Id.Name}' received " +
-                    $"event '{eventInfo.Name}({eventInfo.OperationId})' and unblocked.");
+                    $"event '{eventInfo.EventName}({eventInfo.OperationId})' and unblocked.");
             }
             else
             {
                 IO.Log($"<ReceiveLog> Machine '{machine.Id.Name}' received " +
-                    $"event '{eventInfo.Name}' and unblocked.");
+                    $"event '{eventInfo.EventName}' and unblocked.");
             }
 
             this.BugFinder.NotifyTaskReceivedEvent(machine);
@@ -726,7 +726,7 @@ namespace Microsoft.PSharp.TestingServices
         {
             string originMachine = eventInfo.OriginInfo.SenderMachineName;
             string originState = eventInfo.OriginInfo.SenderStateName;
-            string edgeLabel = eventInfo.Type.Name;
+            string edgeLabel = eventInfo.EventType.Name;
             string destMachine = machine.GetType().Name;
             string destState = machine.CurrentState.Name;
 
@@ -751,10 +751,10 @@ namespace Microsoft.PSharp.TestingServices
                 edgeLabel = "goto";
                 destState = (eventInfo.Event as GotoStateEvent).State.Name;
             }
-            else if (machine.GotoTransitions.ContainsKey(eventInfo.Type))
+            else if (machine.GotoTransitions.ContainsKey(eventInfo.EventType))
             {
-                edgeLabel = eventInfo.Type.Name;
-                destState = machine.GotoTransitions[eventInfo.Type].Item1.Name;
+                edgeLabel = eventInfo.EventType.Name;
+                destState = machine.GotoTransitions[eventInfo.EventType].Item1.Name;
             }
             else
             {

@@ -32,12 +32,12 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Event type.
         /// </summary>
-        internal Type Type { get; private set; }
+        internal Type EventType { get; private set; }
 
         /// <summary>
         /// Event name.
         /// </summary>
-        internal string Name { get; private set; }
+        internal string EventName { get; private set; }
 
         /// <summary>
         /// Information regarding the event origin.
@@ -60,8 +60,8 @@ namespace Microsoft.PSharp
         internal EventInfo(Event e)
         {
             this.Event = e;
-            this.Type = e.GetType();
-            this.Name = this.Type.FullName;
+            this.EventType = e.GetType();
+            this.EventName = this.EventType.FullName;
         }
 
         /// <summary>
@@ -72,7 +72,8 @@ namespace Microsoft.PSharp
         internal EventInfo(Event e, EventOriginInfo originInfo)
         {
             this.Event = e;
-            this.Type = e.GetType();
+            this.EventType = e.GetType();
+            this.EventName = this.EventType.FullName;
             this.OriginInfo = originInfo;
         }
 

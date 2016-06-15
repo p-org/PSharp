@@ -506,7 +506,7 @@ namespace Microsoft.PSharp
                 }
 
                 EventWaitHandler eventWaitHandler = this.EventWaitHandlers.FirstOrDefault(
-                    val => val.EventType == eventInfo.Type &&
+                    val => val.EventType == eventInfo.EventType &&
                            val.Predicate(eventInfo.Event));
                 if (eventWaitHandler != null)
                 {
@@ -518,23 +518,23 @@ namespace Microsoft.PSharp
                 }
 
                 base.Runtime.Log($"<EnqueueLog> Machine '{base.Id.Name}' " +
-                    $"enqueued event '{eventInfo.Type.FullName}'.");
+                    $"enqueued event '{eventInfo.EventName}'.");
 
                 this.Inbox.Add(eventInfo);
 
                 if (eventInfo.Event.Assert >= 0)
                 {
-                    var eventCount = this.Inbox.Count(val => val.GetType().Equals(eventInfo.Type));
+                    var eventCount = this.Inbox.Count(val => val.EventType.Equals(eventInfo.EventType));
                     this.Assert(eventCount <= eventInfo.Event.Assert, "There are more than " +
-                        $"{eventInfo.Event.Assert} instances of '{eventInfo.Type.FullName}' " +
+                        $"{eventInfo.Event.Assert} instances of '{eventInfo.EventName}' " +
                         $"in the input queue of machine '{this}'");
                 }
 
                 if (eventInfo.Event.Assume >= 0)
                 {
-                    var eventCount = this.Inbox.Count(val => val.GetType().Equals(eventInfo.Type));
+                    var eventCount = this.Inbox.Count(val => val.EventType.Equals(eventInfo.EventType));
                     this.Assert(eventCount <= eventInfo.Event.Assume, "There are more than " +
-                        $"{eventInfo.Event.Assume} instances of '{eventInfo.Type.FullName}' " +
+                        $"{eventInfo.Event.Assume} instances of '{eventInfo.EventName}' " +
                         $"in the input queue of machine '{this}'");
                 }
 
@@ -698,7 +698,7 @@ namespace Microsoft.PSharp
 
                 foreach (var e in this.Inbox)
                 {
-                    hash = hash * 31 + e.GetType().GetHashCode();
+                    hash = hash * 31 + e.EventType.GetHashCode();
                 }
 
                 return hash;
@@ -729,7 +729,7 @@ namespace Microsoft.PSharp
                 this.RaisedEvent = null;
 
                 // Checks if the raised event is ignored.
-                if (this.IgnoredEvents.Contains(nextEventInfo.Type))
+                if (this.IgnoredEvents.Contains(nextEventInfo.EventType))
                 {
                     nextEventInfo = null;
                 }
@@ -741,7 +741,7 @@ namespace Microsoft.PSharp
                 for (int idx = 0; idx < this.Inbox.Count; idx++)
                 {
                     // Remove an ignored event.
-                    if (this.IgnoredEvents.Contains(this.Inbox[idx].GetType()))
+                    if (this.IgnoredEvents.Contains(this.Inbox[idx].EventType))
                     {
                         this.Inbox.RemoveAt(idx);
                         idx--;
@@ -750,8 +750,8 @@ namespace Microsoft.PSharp
 
                     // Dequeue the first event that is not handled by the state,
                     // or is not deferred.
-                    if (!this.CanHandleEvent(this.Inbox[idx].GetType()) ||
-                        !this.DeferredEvents.Contains(this.Inbox[idx].GetType()))
+                    if (!this.CanHandleEvent(this.Inbox[idx].EventType) ||
+                        !this.DeferredEvents.Contains(this.Inbox[idx].EventType))
                     {
                         nextEventInfo = this.Inbox[idx];
                         this.Inbox.RemoveAt(idx);
@@ -865,7 +865,7 @@ namespace Microsoft.PSharp
                     // Dequeues the first event that the machine waits
                     // to receive, if there is one in the inbox.
                     EventWaitHandler eventWaitHandler = this.EventWaitHandlers.FirstOrDefault(
-                        val => val.EventType == this.Inbox[idx].GetType() &&
+                        val => val.EventType == this.Inbox[idx].EventType &&
                                val.Predicate(this.Inbox[idx].Event));
                     if (eventWaitHandler != null)
                     {
