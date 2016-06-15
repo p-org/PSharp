@@ -250,7 +250,7 @@ namespace Microsoft.PSharp.TestingServices
 
             if (this.Configuration.EnableVisualization)
             {
-                this.Visualizer = new PSharpDgmlVisualizer("trace.dgml");
+                this.InitializeVisualizer();
             }
 
             this.HasRedirectedConsoleOutput = false;
@@ -337,6 +337,18 @@ namespace Microsoft.PSharp.TestingServices
         {
             Task visualizationTask = this.Visualizer.StartAsync();
             return visualizationTask;
+        }
+
+        /// <summary>
+        /// Returns the traces directory.
+        /// </summary>
+        /// <returns>Path</returns>
+        protected string GetTracesDirectory()
+        {
+            string directoryPath = Path.GetDirectoryName(this.Assembly.Location) +
+                Path.DirectorySeparatorChar + "traces" + Path.DirectorySeparatorChar;
+            Directory.CreateDirectory(directoryPath);
+            return directoryPath;
         }
 
         #endregion
@@ -446,6 +458,17 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             return testMethods;
+        }
+
+        /// <summary>
+        /// Initializes the visualizer.
+        /// </summary>
+        private void InitializeVisualizer()
+        {
+            var name = Path.GetFileNameWithoutExtension(this.Assembly.Location);
+            var directoryPath = this.GetTracesDirectory();
+            var graphFile = directoryPath + name + ".dgml";
+            this.Visualizer = new PSharpDgmlVisualizer(graphFile);
         }
 
         /// <summary>

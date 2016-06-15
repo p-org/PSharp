@@ -27,9 +27,9 @@ namespace Microsoft.PSharp.Visualization
         #region fields
 
         /// <summary>
-        /// The log file.
+        /// The graph file.
         /// </summary>
-        private readonly string Logfile;
+        private readonly string GraphFile;
 
         /// <summary>
         /// The XML writer.
@@ -53,10 +53,10 @@ namespace Microsoft.PSharp.Visualization
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="logfile">Log file</param>
-        public PSharpDgmlVisualizer(string logfile)
+        /// <param name="graphFile">Graph file</param>
+        public PSharpDgmlVisualizer(string graphFile)
         {
-            this.Logfile = logfile;
+            this.GraphFile = graphFile;
             this.Writer = null;
 
             this.MachinesToStates = new Dictionary<string, HashSet<string>>();
@@ -89,8 +89,8 @@ namespace Microsoft.PSharp.Visualization
         /// </summary>
         public void Refresh()
         {
-            this.Writer = new XmlTextWriter(this.Logfile, Encoding.UTF8);
-            this.Dump();
+            this.Writer = new XmlTextWriter(this.GraphFile, Encoding.UTF8);
+            this.WriteVisualizationGraph();
             this.Writer.Close();
         }
 
@@ -115,7 +115,10 @@ namespace Microsoft.PSharp.Visualization
 
         #region private methods
 
-        private void Dump()
+        /// <summary>
+        /// Writes the visualization graph.
+        /// </summary>
+        private void WriteVisualizationGraph()
         {
             // Starts document.
             this.Writer.WriteStartDocument(true);
