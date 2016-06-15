@@ -15,6 +15,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -36,14 +37,19 @@ namespace Microsoft.PSharp
         internal Configuration Configuration;
 
         /// <summary>
-        /// A map from unique machine ids to machines.
+        /// Map from unique machine ids to machines.
         /// </summary>
         protected ConcurrentDictionary<int, Machine> MachineMap;
 
         /// <summary>
-        /// A map from task ids to machines.
+        /// Map from task ids to machines.
         /// </summary>
         protected ConcurrentDictionary<int, Machine> TaskMap;
+
+        /// <summary>
+        /// Collection of machine tasks.
+        /// </summary>
+        protected ConcurrentBag<Task> MachineTasks;
 
         /// <summary>
         /// Network provider for remote communication.
@@ -431,6 +437,36 @@ namespace Microsoft.PSharp
             }
         }
 
+        /// <summary>
+        /// Waits until all P# machines have finished execution.
+        /// </summary>
+        public void Wait()
+        {
+            Task[] taskArray = null;
+
+            while (true)
+            {
+                taskArray = this.MachineTasks.ToArray();
+
+                try
+                {
+                    Task.WaitAll(taskArray);
+                }
+                catch (AggregateException)
+                {
+                    this.MachineTasks = new ConcurrentBag<Task>(
+                        this.MachineTasks.Where(val => !val.IsCompleted));
+
+                    continue;
+                }
+
+                if (taskArray.Length == this.MachineTasks.Count)
+                {
+                    break;
+                }
+            }
+        }
+
         #endregion
 
         #region initialization
@@ -486,6 +522,7 @@ namespace Microsoft.PSharp
         {
             this.MachineMap = new ConcurrentDictionary<int, Machine>();
             this.TaskMap = new ConcurrentDictionary<int, Machine>();
+            this.MachineTasks = new ConcurrentBag<Task>();
 
             MachineId.ResetMachineIDCounter();
         }
@@ -516,8 +553,6 @@ namespace Microsoft.PSharp
 
             Task task = new Task(() =>
             {
-                this.TaskMap.TryAdd(Task.CurrentId.Value, machine);
-
                 try
                 {
                     machine.GotoStartState(e);
@@ -528,6 +563,9 @@ namespace Microsoft.PSharp
                     this.TaskMap.TryRemove(Task.CurrentId.Value, out machine);
                 }
             });
+
+            this.MachineTasks.Add(task);
+            this.TaskMap.TryAdd(task.Id, machine);
 
             task.Start();
 
@@ -599,7 +637,7 @@ namespace Microsoft.PSharp
 
             Task task = new Task(() =>
             {
-                this.TaskMap.TryAdd(Task.CurrentId.Value, machine as Machine);
+                this.TaskMap.TryAdd(Task.CurrentId.Value, machine);
 
                 try
                 {
@@ -610,6 +648,9 @@ namespace Microsoft.PSharp
                     this.TaskMap.TryRemove(Task.CurrentId.Value, out machine);
                 }
             });
+
+            this.MachineTasks.Add(task);
+            this.TaskMap.TryAdd(task.Id, machine);
 
             task.Start();
         }

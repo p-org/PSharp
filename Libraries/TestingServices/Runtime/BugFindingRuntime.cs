@@ -13,7 +13,9 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -32,21 +34,11 @@ namespace Microsoft.PSharp.TestingServices
     internal sealed class PSharpBugFindingRuntime : PSharpRuntime
     {
         #region fields
-        
-        /// <summary>
-        /// List of machine tasks.
-        /// </summary>
-        private List<Task> MachineTasks;
 
         /// <summary>
         /// List of monitors in the program.
         /// </summary>
         private List<Monitor> Monitors;
-
-        /// <summary>
-        /// Lock used by the runtime.
-        /// </summary>
-        private Object Lock = new Object();
 
         /// <summary>
         /// The P# program trace.
@@ -88,11 +80,6 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private int OperationIdCounter;
 
-        /// <summary>
-        /// True if runtime is running.
-        /// </summary>
-        private bool IsRunning = false;
-
         #endregion
 
         #region public API
@@ -108,8 +95,7 @@ namespace Microsoft.PSharp.TestingServices
             : base(configuration)
         {
             this.RootTaskId = Task.CurrentId;
-
-            this.MachineTasks = new List<Task>();
+            
             this.Monitors = new List<Monitor>();
 
             if (this.Configuration.ScheduleIntraMachineConcurrency)
@@ -129,8 +115,6 @@ namespace Microsoft.PSharp.TestingServices
             this.Visualizer = visualizer;
 
             this.OperationIdCounter = 0;
-
-            this.IsRunning = true;
         }
 
         /// <summary>
@@ -228,11 +212,11 @@ namespace Microsoft.PSharp.TestingServices
                 "is not a machine.");
 
             MachineId mid = new MachineId(type, friendlyName, this);
-            Object machine = Activator.CreateInstance(type);
-            (machine as Machine).SetMachineId(mid);
-            (machine as Machine).InitializeStateInformation();
+            Machine machine = Activator.CreateInstance(type) as Machine;
+            machine.SetMachineId(mid);
+            machine.InitializeStateInformation();
 
-            bool result = this.MachineMap.TryAdd(mid.Value, machine as Machine);
+            bool result = this.MachineMap.TryAdd(mid.Value, machine);
             this.Assert(result, $"Machine '{mid.Name}' was already created.");
 
             IO.Log($"<CreateLog> Machine '{mid.Name}' is created.");
@@ -241,19 +225,16 @@ namespace Microsoft.PSharp.TestingServices
             {
                 this.BugFinder.NotifyTaskStarted();
 
-                (machine as Machine).GotoStartState(e);
-                (machine as Machine).RunEventHandler();
+                machine.GotoStartState(e);
+                machine.RunEventHandler();
 
                 this.BugFinder.NotifyTaskCompleted();
             });
 
-            lock (this.Lock)
-            {
-                this.MachineTasks.Add(task);
-                this.TaskMap.TryAdd(task.Id, machine as Machine);
-            }
+            this.MachineTasks.Add(task);
+            base.TaskMap.TryAdd(task.Id, machine);
 
-            this.BugFinder.NotifyNewTaskCreated(task.Id, machine as Machine);
+            this.BugFinder.NotifyNewTaskCreated(task.Id, machine);
 
             if (this.Configuration.ScheduleIntraMachineConcurrency)
             {
@@ -331,10 +312,7 @@ namespace Microsoft.PSharp.TestingServices
                 this.BugFinder.NotifyTaskCompleted();
             });
 
-            lock (this.Lock)
-            {
-                this.MachineTasks.Add(task);
-            }
+            this.MachineTasks.Add(task);
 
             this.BugFinder.NotifyNewTaskCreated(task.Id, taskMachine);
 
@@ -411,11 +389,8 @@ namespace Microsoft.PSharp.TestingServices
                 this.BugFinder.NotifyTaskCompleted();
             });
 
-            lock (this.Lock)
-            {
-                this.MachineTasks.Add(task);
-                this.TaskMap.TryAdd(task.Id, machine as Machine);
-            }
+            this.MachineTasks.Add(task);
+            base.TaskMap.TryAdd(task.Id, machine);
 
             this.BugFinder.NotifyNewTaskCreated(task.Id, machine);
 
@@ -668,49 +643,6 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             return fingerprint;
-        }
-
-        /// <summary>
-        /// Waits until all P# machines have finished execution.
-        /// </summary>
-        internal void Wait()
-        {
-            Task[] taskArray = null;
-
-            while (this.IsRunning)
-            {
-                lock (this.Lock)
-                {
-                    taskArray = this.MachineTasks.ToArray();
-                }
-
-                try
-                {
-                    Task.WaitAll(taskArray);
-                }
-                catch (AggregateException)
-                {
-                    lock (this.Lock)
-                    {
-                        this.MachineTasks = this.MachineTasks.FindAll(val => !val.IsCompleted);
-                    }
-
-                    continue;
-                }
-
-                bool moreTasksExist = false;
-                lock (this.Lock)
-                {
-                    moreTasksExist = taskArray.Length != this.MachineTasks.Count;
-                }
-
-                if (!moreTasksExist)
-                {
-                    break;
-                }
-            }
-
-            this.IsRunning = false;
         }
 
         #endregion

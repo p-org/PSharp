@@ -52,7 +52,7 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BugFindingRuntime.cs" />
+    <Compile Include="Runtime\BugFindingRuntime.cs" />
     <Compile Include="Engines\TestingEngineFactory.cs" />
     <Compile Include="Engines\ITestingEngine.cs" />
     <Compile Include="Exploration\Trace.cs" />
