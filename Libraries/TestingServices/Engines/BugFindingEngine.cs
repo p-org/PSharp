@@ -322,10 +322,7 @@ namespace Microsoft.PSharp.TestingServices
         private void PrintReadableTrace(StringWriter sw)
         {
             var name = Path.GetFileNameWithoutExtension(this.Assembly.Location);
-            var directoryPath = Path.GetDirectoryName(this.Assembly.Location) +
-                Path.DirectorySeparatorChar + "traces" + Path.DirectorySeparatorChar;
-
-            Directory.CreateDirectory(directoryPath);
+            var directoryPath = base.GetTracesDirectory();
 
             var traces = Directory.GetFiles(directoryPath, name + "*.txt");
             var path = directoryPath + name + "_" + traces.Length + ".txt";
@@ -341,10 +338,7 @@ namespace Microsoft.PSharp.TestingServices
         private void PrintReproducableTrace(PSharpBugFindingRuntime runtime)
         {
             var name = Path.GetFileNameWithoutExtension(this.Assembly.Location);
-            var directoryPath = Path.GetDirectoryName(this.Assembly.Location) +
-                Path.DirectorySeparatorChar + "traces" + Path.DirectorySeparatorChar;
-
-            Directory.CreateDirectory(directoryPath);
+            var directoryPath = base.GetTracesDirectory();
 
             var traces = Directory.GetFiles(directoryPath, name + "*.pstrace");
             var path = directoryPath + name + "_" + traces.Length + ".pstrace";

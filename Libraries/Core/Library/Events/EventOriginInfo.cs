@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="Event.cs">
+// <copyright file="EventOriginInfo.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -12,57 +12,43 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System.Runtime.Serialization;
+using System;
 
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Abstract class representing an event.
+    /// Class containing origin information
+    /// regarding an event.
     /// </summary>
-    [DataContract]
-    public abstract class Event
+    internal class EventOriginInfo
     {
-        #region fields
+        /// <summary>
+        /// The sender machine id.
+        /// </summary>
+        internal MachineId SenderMachineId { get; private set; }
 
         /// <summary>
-        /// Specifies that there must not be more than k instances
-        /// of e in the input queue of any machine.
+        /// The sender machine name.
         /// </summary>
-        [DataMember]
-        protected internal readonly int Assert;
+        internal string SenderMachineName { get; private set; }
 
         /// <summary>
-        /// Speciﬁes that during testing, an execution that increases
-        /// the cardinality of e beyond k in some queue must not be
-        /// generated.
+        /// The sender machine state name.
         /// </summary>
-        [DataMember]
-        protected internal readonly int Assume;
-
-        #endregion
-
-        #region protected methods
+        internal string SenderStateName { get; private set; }
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        protected Event()
+        /// <param name="senderMachineId">Sender machine id</param>
+        /// <param name="senderMachineName">Sender machine name</param>
+        /// <param name="senderStateName">Sender state name</param>
+        internal EventOriginInfo(MachineId senderMachineId, string senderMachineName,
+            string senderStateName)
         {
-            this.Assert = -1;
-            this.Assume = -1;
+            this.SenderMachineId = senderMachineId;
+            this.SenderMachineName = senderMachineName;
+            this.SenderStateName = senderStateName;
         }
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="assert">Assert</param>
-        /// <param name="assume">Assume</param>
-        protected Event(int assert, int assume)
-        {
-            this.Assert = assert;
-            this.Assume = assume;
-        }
-
-        #endregion
     }
 }

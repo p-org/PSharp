@@ -29,115 +29,137 @@ namespace Microsoft.PSharp.Visualization
     /// </summary>
     internal class PSharpProgramVisualizer : IProgramVisualizer
     {
-        // Form controls
-        private Form Form;
-        private Graph Graph;
-        private GViewer Viewer;
-        private Control TextBox;
+        #region fields
 
-        // statics
+        /// <summary>
+        /// The window form.
+        /// </summary>
+        private Form Form;
+
+        /// <summary>
+        /// The MSagl graph.
+        /// </summary>
+        private Graph Graph;
+
+        /// <summary>
+        /// The MSagl graph viewer.
+        /// </summary>
+        private GViewer Viewer;
+
+        /// <summary>
+        /// The controls.
+        /// </summary>
+        private Control TextBox;
+        
+        /// <summary>
+        /// Font size for nodes.
+        /// </summary>
         private readonly double NodeFontSize = 8.0;
+
+        /// <summary>
+        /// Font size for subgraphs.
+        /// </summary>
         private readonly double SubgraphFontSize = 8.0;
+
+        /// <summary>
+        /// Font size for edges.
+        /// </summary>
         private readonly double EdgeFontSize = 4.0;
 
-        // P# Program
+        /// <summary>
+        /// Set of machines.
+        /// </summary>
         private HashSet<string> Machines;
-        private Dictionary<string, HashSet<string>> States;
+
+        /// <summary>
+        /// Map from machines to states.
+        /// </summary>
+        private Dictionary<string, HashSet<string>> MachinesToStates;
+
+        /// <summary>
+        /// Map of transitions to edges.
+        /// </summary>
         private Dictionary<Transition, Edge> Transitions;
+
+        /// <summary>
+        /// Collection of pending transitions.
+        /// </summary>
         private ConcurrentBag<Transition> PendingTransitions;
 
+        /// <summary>
+        /// Map from machines to subgraphs.
+        /// </summary>
         private Dictionary<string, Subgraph> MachineToSubgraph;
+
+        /// <summary>
+        /// Map from states to nodes.
+        /// </summary>
         private Dictionary<Tuple<string, string>, Node> StateToNode;
+
+        /// <summary>
+        /// Set of collapsed machines.
+        /// </summary>
         private HashSet<string> CollapsedMachines;
 
+        /// <summary>
+        /// The refresh delegate.
+        /// </summary>
+        private delegate void RefreshDelegate();
+
+        #endregion
+
+        #region constructors
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
         public PSharpProgramVisualizer()
         {
             this.Graph = new Graph("P# Program");
             this.Machines = new HashSet<string>();
-            this.States = new Dictionary<string, HashSet<string>>();
+            this.MachinesToStates = new Dictionary<string, HashSet<string>>();
             this.MachineToSubgraph = new Dictionary<string, Subgraph>();
-            this.States = new Dictionary<string, HashSet<string>>();
+            this.MachinesToStates = new Dictionary<string, HashSet<string>>();
             this.StateToNode = new Dictionary<Tuple<string, string>, Node>();
             this.CollapsedMachines = new HashSet<string>();
             this.Transitions = new Dictionary<Transition, Edge>();
-            this.PendingTransitions = new System.Collections.Concurrent.ConcurrentBag<Transition>();
+            this.PendingTransitions = new ConcurrentBag<Transition>();
         }
 
-        public void AddMachine(string machine)
-        {
-            if (this.Machines.Contains(machine)) return;
+        #endregion
 
-            lock (this.Graph)
+        #region methods
+
+        /// <summary>
+        /// Adds a new machine.
+        /// </summary>
+        /// <param name="machineName">Machine name</param>
+        public void AddMachine(string machineName)
+        {
+            if (!this.Machines.Contains(machineName))
             {
-                AddMachineInternal(machine);
+                lock (this.Graph)
+                {
+                    this.AddMachineInternal(machineName);
+                }
             }
-        }
-
-        void AddMachineInternal(string machine)
-        {
-            if (this.Machines.Contains(machine)) return;
-            this.Machines.Add(machine);
-            this.States.Add(machine, new HashSet<string>());
-
-            var subgraph = new Subgraph(machine);
-            subgraph.Label.FontSize = this.SubgraphFontSize;
-
-            this.Graph.RootSubgraph.AddSubgraph(subgraph);
-            this.MachineToSubgraph.Add(machine, subgraph);
-        }
-
-        public void AddState(string machine, string state)
-        {
-            AddMachine(machine);
-            if (this.States[machine].Contains(state)) return;
-
-            lock(this.Graph)
-            {
-                AddStateInternal(machine, state);
-            }
-        }
-
-        void AddStateInternal(string machine, string state)
-        {
-            AddMachineInternal(machine);
-            if (this.States[machine].Contains(state)) return;
-
-            this.States[machine].Add(state);
-
-            var node = this.Graph.AddNode(string.Format("{0}::{1}", state, machine));
-            node.Label.FontSize = this.NodeFontSize;
-
-            node.LabelText = state;
-            this.MachineToSubgraph[machine].AddNode(node);
-
-            this.StateToNode.Add(Tuple.Create(state, machine), node);
         }
 
         /// <summary>
-        /// Adds a new transition.
+        /// Adds a new state.
         /// </summary>
-        /// <param name="machineOrigin">Origin machine</param>
-        /// <param name="stateOrigin">Origin state</param>
-        /// <param name="edgeLabel">Edge label</param>
-        /// <param name="machineTarget">Target machine</param>
-        /// <param name="stateTarget">Target state</param>
-        public void AddTransition(string machineOrigin, string stateOrigin, string edgeLabel,
-            string machineTarget, string stateTarget)
+        /// <param name="machineName">Machine name</param>
+        /// <param name="stateName">State name</param>
+        public void AddState(string machineName, string stateName)
         {
-            //this.PendingTransitions.Add(new Transition(machineOrigin, stateOrigin, edgeLabel, machineTarget, stateTarget));
-            var tr = new Transition(machineOrigin, stateOrigin, edgeLabel, machineTarget, stateTarget);
-            if (this.Transitions.ContainsKey(tr)) return;
+            this.AddMachine(machineName);
 
-            lock (this.Graph)
+            if (!this.MachinesToStates[machineName].Contains(stateName))
             {
-                AddStateInternal(tr.MachineOrigin, tr.StateOrigin);
-                AddStateInternal(tr.MachineTarget, tr.StateTarget);
-
-                var edge = this.Graph.AddEdge(GetNode(tr.StateOrigin, tr.MachineOrigin).Id,
-                    tr.EdgeLabel, GetNode(tr.StateTarget, tr.MachineTarget).Id);
-                edge.Label.FontSize = this.EdgeFontSize;
-
-                this.Transitions.Add(tr, edge);
+                lock (this.Graph)
+                {
+                    this.AddStateInternal(machineName, stateName);
+                }
             }
         }
 
@@ -147,25 +169,24 @@ namespace Microsoft.PSharp.Visualization
         /// <returns>Task</returns>
         public Task StartAsync()
         {
-            //System.Diagnostics.Debugger.Break();
-
-            //create a form
+            // Creates a new form.
             this.Form = new Form();
             this.Form.Size = new System.Drawing.Size(500, 500);
 
-            //create a viewer object
+            // Creates a new graph viewer.
             this.Viewer = new GViewer();
-            this.Viewer.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.Viewer.Dock = DockStyle.Fill;
             this.Viewer.AutoScroll = false;
-            //this.Viewer.CurrentLayoutMethod = LayoutMethod.MDS;
 
-            // control
-            var b = CreateCommandButton();
-            this.Form.Controls.Add(b);
-            b.BringToFront();
+            // Creates a control.
+            var button = CreateCommandButton();
+            this.Form.Controls.Add(button);
+            button.BringToFront();
 
-            this.Viewer.ObjectUnderMouseCursorChanged += new EventHandler<Microsoft.Msagl.Drawing.ObjectUnderMouseCursorChangedEventArgs>(viewer_ObjectUnderMouseCursorChanged);
-            this.Viewer.MouseDown += new MouseEventHandler(viewer_MouseDown);
+            this.Viewer.ObjectUnderMouseCursorChanged +=
+                new EventHandler<ObjectUnderMouseCursorChangedEventArgs>(
+                    ViewerObjectUnderMouseCursorChanged);
+            this.Viewer.MouseDown += new MouseEventHandler(ViewerMouseDown);
             this.Viewer.SuspendLayout();
 
             this.Form.SuspendLayout();
@@ -179,7 +200,209 @@ namespace Microsoft.PSharp.Visualization
             return Task.Run(() => this.Form.ShowDialog());
         }
 
-        Control CreateCommandButton()
+        /// <summary>
+        /// Refreshes the visualization.
+        /// </summary>
+        public void Refresh()
+        {
+            if (this.Form.IsHandleCreated)
+            {
+                lock (this.Form)
+                {
+                    this.Form.SuspendLayout();
+                    this.Form.Invoke(new RefreshDelegate(RefreshInternal));
+                    this.Form.ResumeLayout();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Adds a new transition.
+        /// </summary>
+        /// <param name="machineOrigin">Origin machine</param>
+        /// <param name="stateOrigin">Origin state</param>
+        /// <param name="edgeLabel">Edge label</param>
+        /// <param name="machineTarget">Target machine</param>
+        /// <param name="stateTarget">Target state</param>
+        public void AddTransition(string machineOrigin, string stateOrigin, string edgeLabel,
+            string machineTarget, string stateTarget)
+        {
+            var tr = new Transition(machineOrigin, stateOrigin, edgeLabel, machineTarget, stateTarget);
+            if (this.Transitions.ContainsKey(tr)) return;
+
+            lock (this.Graph)
+            {
+                this.AddStateInternal(tr.MachineOrigin, tr.StateOrigin);
+                this.AddStateInternal(tr.MachineTarget, tr.StateTarget);
+
+                var edge = this.Graph.AddEdge(this.GetNode(tr.StateOrigin, tr.MachineOrigin).Id,
+                    tr.EdgeLabel, this.GetNode(tr.StateTarget, tr.MachineTarget).Id);
+                edge.Label.FontSize = this.EdgeFontSize;
+
+                this.Transitions.Add(tr, edge);
+            }
+        }
+
+        #endregion
+
+        #region protected methods
+
+        /// <summary>
+        /// Hides an event.
+        /// </summary>
+        /// <param name="eventName">Event name</param>
+        protected void HideEvent(string eventName)
+        {
+            // Deletes the corresponding transitions of the machine.
+            foreach (var t in this.Transitions.Where(tr => tr.Key.EdgeLabel == eventName))
+            {
+                this.Graph.RemoveEdge(t.Value);
+            }
+        }
+
+        /// <summary>
+        /// Unhides an event.
+        /// </summary>
+        /// <param name="eventName">Event name</param>
+        protected void UnHideEvent(string eventName)
+        {
+            var trlist = new List<Transition>(this.Transitions.Where(
+                t => t.Key.EdgeLabel == eventName).Select(t => t.Key));
+
+            // Add the corresponding transitions back.
+            foreach (var t in trlist)
+            {
+                var edge = this.Graph.AddEdge(GetNode(t.StateOrigin, t.MachineOrigin).Id,
+                    t.EdgeLabel, GetNode(t.StateTarget, t.MachineTarget).Id);
+                edge.Label.FontSize = this.EdgeFontSize;
+
+                this.Transitions[t] = edge;
+            }
+        }
+
+        /// <summary>
+        /// Gets a node.
+        /// </summary>
+        /// <param name="stateName">State name</param>
+        /// <param name="machineName">Machine name</param>
+        /// <returns></returns>
+        protected Node GetNode(string stateName, string machineName)
+        {
+            if (!this.CollapsedMachines.Contains(machineName))
+            {
+                return this.StateToNode[Tuple.Create(stateName, machineName)];
+            }
+
+            return this.MachineToSubgraph[machineName];
+        }
+
+        /// <summary>
+        /// Processes the specified input.
+        /// </summary>
+        /// <param name="line">Line</param>
+        protected void ProcessInput(string line)
+        {
+            var tok = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            if (tok.Length == 0) return;
+
+            switch (tok[0])
+            {
+                case "collapse":
+                    lock (this.Graph)
+                    {
+                        if (tok.Length == 2)
+                        {
+                            Collapse(tok[1]);
+                        }
+                    }
+                    break;
+
+                case "expand":
+                    lock (this.Graph)
+                    {
+                        if (tok.Length == 2)
+                        {
+                            Expand(tok[1]);
+                        }
+                    }
+                    break;
+
+                case "hide":
+                    lock (this.Graph)
+                    {
+                        if (tok.Length == 2)
+                        {
+                            HideEvent(tok[1]);
+                        }
+                    }
+                    break;
+
+                case "unhide":
+                    lock (this.Graph)
+                    {
+                        if (tok.Length == 2)
+                        {
+                            UnHideEvent(tok[1]);
+                        }
+                    }
+                    break;
+
+                default:
+                    Console.WriteLine("Unknown command");
+                    break;
+            }
+        }
+
+        #endregion
+
+        #region private methods
+
+        /// <summary>
+        /// Adds a new machine.
+        /// </summary>
+        /// <param name="machineName">Machine name</param>
+        private void AddMachineInternal(string machineName)
+        {
+            if (!this.Machines.Contains(machineName))
+            {
+                this.Machines.Add(machineName);
+                this.MachinesToStates.Add(machineName, new HashSet<string>());
+
+                var subgraph = new Subgraph(machineName);
+                subgraph.Label.FontSize = this.SubgraphFontSize;
+
+                this.Graph.RootSubgraph.AddSubgraph(subgraph);
+                this.MachineToSubgraph.Add(machineName, subgraph);
+            }
+        }
+
+        /// <summary>
+        /// Adds a new state.
+        /// </summary>
+        /// <param name="machineName">Machine name</param>
+        /// <param name="stateName">State name</param>
+        private void AddStateInternal(string machineName, string stateName)
+        {
+            this.AddMachineInternal(machineName);
+            if (!this.MachinesToStates[machineName].Contains(stateName))
+            {
+                this.MachinesToStates[machineName].Add(stateName);
+
+                var node = this.Graph.AddNode(string.Format("{0}::{1}", stateName, machineName));
+                node.Label.FontSize = this.NodeFontSize;
+
+                node.LabelText = stateName;
+                this.MachineToSubgraph[machineName].AddNode(node);
+
+                this.StateToNode.Add(Tuple.Create(stateName, machineName), node);
+            }
+        }
+
+        /// <summary>
+        /// Creates a command button.
+        /// </summary>
+        /// <returns>Control</returns>
+        private Control CreateCommandButton()
         {
             var button = new TextBox();
             this.TextBox = button;
@@ -192,22 +415,26 @@ namespace Microsoft.PSharp.Visualization
             button.AcceptsReturn = false;
             button.KeyUp += Button_KeyUp;
             
-
             return button;
         }
 
+        /// <summary>
+        /// Processes a pressed key up button.
+        /// </summary>
+        /// <param name="sender">Sender</param>
+        /// <param name="e">KeyEventArgs</param>
         private void Button_KeyUp(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter)
             {
-                ProcessInput(this.TextBox.Text);
+                this.ProcessInput(this.TextBox.Text);
 
                 if (this.Form.IsHandleCreated)
                 {
-                    lock(this.Graph)
+                    lock(this.Form)
                     {
                         this.Form.SuspendLayout();
-                        this.Form.Invoke(new RefreshDelegate(Refresh));
+                        this.Form.Invoke(new RefreshDelegate(RefreshInternal));
                         this.Form.ResumeLayout();
                     }
                 }
@@ -216,15 +443,33 @@ namespace Microsoft.PSharp.Visualization
             }
         }
 
-        void viewer_ObjectUnderMouseCursorChanged(object sender, Microsoft.Msagl.Drawing.ObjectUnderMouseCursorChangedEventArgs e)
+        /// <summary>
+        /// Event handler for when the mouse cursor changes.
+        /// </summary>
+        /// <param name="sender">Sender</param>
+        /// <param name="e">ObjectUnderMouseCursorChangedEventArgs</param>
+        void ViewerObjectUnderMouseCursorChanged(object sender,
+            ObjectUnderMouseCursorChangedEventArgs e)
         {
+
         }
 
-        void viewer_MouseDown(object sender, MouseEventArgs e)
+        /// <summary>
+        /// Event handler for when the user presses the mouse down.
+        /// </summary>
+        /// <param name="sender">Sender</param>
+        /// <param name="e">MouseEventArgs</param>
+        void ViewerMouseDown(object sender, MouseEventArgs e)
         {
+
         }
 
-        void viewer_Scroll(object sender, ScrollEventArgs e)
+        /// <summary>
+        /// Event handler for when the user scrolls.
+        /// </summary>
+        /// <param name="sender">Sender</param>
+        /// <param name="e">ScrollEventArgs</param>
+        void ViewerScroll(object sender, ScrollEventArgs e)
         {
             Console.WriteLine(e.NewValue);
         }
@@ -232,114 +477,137 @@ namespace Microsoft.PSharp.Visualization
         /// <summary>
         /// Refreshes the visualization.
         /// </summary>
-        public void Refresh()
+        private void RefreshInternal()
         {
-            if (!this.Form.IsHandleCreated) return;
-
-            lock(this.Graph)
+            if (this.Form.IsHandleCreated)
             {
-                // Save viewer state
-                var z = this.Viewer.ZoomF;
-                // refresh
-                this.Viewer.Graph = this.Graph;
-                // Restore viewer state
-                this.Viewer.ZoomF = z;
+                lock (this.Graph)
+                {
+                    // Saves the viewer state.
+                    var z = this.Viewer.ZoomF;
+                    // Refreshes.
+                    this.Viewer.Graph = this.Graph;
+                    // Restores the viewer state.
+                    this.Viewer.ZoomF = z;
+                }
             }
         }
 
-        private delegate void RefreshDelegate();
-
-        private void Expand(string machine)
+        /// <summary>
+        /// Expands the machine in the graph.
+        /// </summary>
+        /// <param name="machineName">Machine name</param>
+        private void Expand(string machineName)
         {
-            if(!this.CollapsedMachines.Contains(machine))
+            if (!Machines.Contains(machineName) ||
+                !this.CollapsedMachines.Contains(machineName))
+            {
                 return;
-            this.CollapsedMachines.Remove(machine);
+            }
 
-            // delete all edges on the subgraph node
+            this.CollapsedMachines.Remove(machineName);
+
+            // Deletes all edges on the subgraph node.
             var outgoing = new List<Transition>(
-                this.Transitions.Where(tr => tr.Key.MachineOrigin == machine && tr.Key.MachineTarget != machine)
+                this.Transitions.Where(tr => tr.Key.MachineOrigin == machineName &&
+                tr.Key.MachineTarget != machineName)
                 .Select(tr => tr.Key));
 
             var incoming = new List<Transition>(
-                this.Transitions.Where(tr => tr.Key.MachineOrigin != machine && tr.Key.MachineTarget == machine)
+                this.Transitions.Where(tr => tr.Key.MachineOrigin != machineName &&
+                tr.Key.MachineTarget == machineName)
                 .Select(tr => tr.Key));
 
             var self = new List<Transition>(
-                this.Transitions.Where(tr => tr.Key.MachineOrigin == machine && tr.Key.MachineTarget == machine)
+                this.Transitions.Where(tr => tr.Key.MachineOrigin == machineName &&
+                tr.Key.MachineTarget == machineName)
                 .Select(tr => tr.Key));
 
             foreach (var t in outgoing.Concat(incoming))
-                this.Graph.RemoveEdge(this.Transitions[t]);
-
-            this.Graph.RemoveNode(this.Graph.FindNode(machine));
-
-            // re-create subgraph
-            this.MachineToSubgraph[machine] = new Subgraph(machine);
-            this.MachineToSubgraph[machine].Label.FontSize = this.SubgraphFontSize;
-
-            this.Graph.RootSubgraph.AddSubgraph(this.MachineToSubgraph[machine]);
-
-            // add machine states
-            foreach (var state in this.States[machine])
             {
-                var old_node = this.StateToNode[Tuple.Create(state, machine)];
+                this.Graph.RemoveEdge(this.Transitions[t]);
+            }
+
+            this.Graph.RemoveNode(this.Graph.FindNode(machineName));
+
+            // Re-creates the subgraph.
+            this.MachineToSubgraph[machineName] = new Subgraph(machineName);
+            this.MachineToSubgraph[machineName].Label.FontSize = this.SubgraphFontSize;
+
+            this.Graph.RootSubgraph.AddSubgraph(this.MachineToSubgraph[machineName]);
+
+            // Adds the machine states.
+            foreach (var state in this.MachinesToStates[machineName])
+            {
+                var old_node = this.StateToNode[Tuple.Create(state, machineName)];
 
                 var new_node = this.Graph.AddNode(old_node.Id);
                 new_node.Label.FontSize = this.NodeFontSize;
                 new_node.LabelText = state;
 
-                this.MachineToSubgraph[machine].AddNode(new_node);
-                this.StateToNode[Tuple.Create(state, machine)] = new_node;
+                this.MachineToSubgraph[machineName].AddNode(new_node);
+                this.StateToNode[Tuple.Create(state, machineName)] = new_node;
             }
 
-            // Add intra-machine transitions
+            // Adds the intra-machine transitions.
             foreach (var t in self)
             {
-                var edge = this.Graph.AddEdge(GetNode(t.StateOrigin, t.MachineOrigin).Id,
-                    t.EdgeLabel, GetNode(t.StateTarget, t.MachineTarget).Id);
+                var edge = this.Graph.AddEdge(this.GetNode(t.StateOrigin, t.MachineOrigin).Id,
+                    t.EdgeLabel, this.GetNode(t.StateTarget, t.MachineTarget).Id);
                 edge.Label.FontSize = this.EdgeFontSize;
                 this.Transitions[t] = edge;
             }
 
-            // Add inter-machine transitions
+            // Adds the inter-machine transitions.
             foreach (var t in outgoing.Concat(incoming))
             {
-                var edge = this.Graph.AddEdge(GetNode(t.StateOrigin, t.MachineOrigin).Id,
-                    t.EdgeLabel, GetNode(t.StateTarget, t.MachineTarget).Id);
+                var edge = this.Graph.AddEdge(this.GetNode(t.StateOrigin, t.MachineOrigin).Id,
+                    t.EdgeLabel, this.GetNode(t.StateTarget, t.MachineTarget).Id);
                 edge.Label.FontSize = this.EdgeFontSize;
                 this.Transitions[t] = edge;
             }
         }
 
-        private void Collapse(string machine)
+        /// <summary>
+        /// Collapses the machine in the graph.
+        /// </summary>
+        /// <param name="machineName">Machine name</param>
+        private void Collapse(string machineName)
         {
-            if (this.CollapsedMachines.Contains(machine))
+            if (!Machines.Contains(machineName) ||
+                this.CollapsedMachines.Contains(machineName))
+            {
                 return;
+            }
 
-            this.CollapsedMachines.Add(machine);
+            this.CollapsedMachines.Add(machineName);
             
-            // delete transitions of the machine
-            foreach (var t in this.Transitions.Where(tr => tr.Key.MachineOrigin == machine || tr.Key.MachineTarget == machine))
+            // Deletes the transitions of the machine.
+            foreach (var t in this.Transitions.Where(
+                tr => tr.Key.MachineOrigin == machineName ||
+                tr.Key.MachineTarget == machineName))
             {
                 this.Graph.RemoveEdge(t.Value);
             }
             
-            // remove machine states
-            foreach (var state in this.States[machine])
+            // Removes the machine states.
+            foreach (var state in this.MachinesToStates[machineName])
             {
-                this.MachineToSubgraph[machine].RemoveNode(this.StateToNode[Tuple.Create(state, machine)]);
-                this.Graph.RemoveNode(this.StateToNode[Tuple.Create(state, machine)]);
+                this.MachineToSubgraph[machineName].RemoveNode(this.StateToNode[Tuple.Create(state, machineName)]);
+                this.Graph.RemoveNode(this.StateToNode[Tuple.Create(state, machineName)]);
             }
 
-            this.Graph.RootSubgraph.RemoveSubgraph(this.MachineToSubgraph[machine]);
+            this.Graph.RootSubgraph.RemoveSubgraph(this.MachineToSubgraph[machineName]);
 
-            // add edges to the subgraph node
+            // Adds the edges to the subgraph node.
             var outgoing = new List<Transition>(
-                this.Transitions.Where(tr => tr.Key.MachineOrigin == machine && tr.Key.MachineTarget != machine)
+                this.Transitions.Where(tr => tr.Key.MachineOrigin == machineName &&
+                tr.Key.MachineTarget != machineName)
                 .Select(tr => tr.Key));
 
             var incoming = new List<Transition>(
-                this.Transitions.Where(tr => tr.Key.MachineOrigin != machine && tr.Key.MachineTarget == machine)
+                this.Transitions.Where(tr => tr.Key.MachineOrigin != machineName &&
+                tr.Key.MachineTarget == machineName)
                 .Select(tr => tr.Key));
 
             outgoing.ForEach(t => this.Transitions.Remove(t));
@@ -347,46 +615,14 @@ namespace Microsoft.PSharp.Visualization
 
             foreach (var t in outgoing.Concat(incoming))
             {
-                var edge = this.Graph.AddEdge(GetNode(t.StateOrigin, t.MachineOrigin).Id,
-                    t.EdgeLabel, GetNode(t.StateTarget, t.MachineTarget).Id);
+                var edge = this.Graph.AddEdge(this.GetNode(t.StateOrigin, t.MachineOrigin).Id,
+                    t.EdgeLabel, this.GetNode(t.StateTarget, t.MachineTarget).Id);
                 edge.Label.FontSize = this.EdgeFontSize;
 
                 this.Transitions.Add(t, edge);
             }
         }
 
-        protected Node GetNode(string state, string machine)
-        {
-            if (!this.CollapsedMachines.Contains(machine))
-            {
-                return this.StateToNode[Tuple.Create(state, machine)];
-            }
-            return this.MachineToSubgraph[machine];
-        }
-
-        protected void ProcessInput(string line)
-        {
-            var tok = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            if (tok.Length == 0) return;
-
-            switch (tok[0])
-            {
-                case "collapse":
-                    lock(this.Graph)
-                    {
-                        Collapse(tok[1]);
-                    }
-                    break;
-                case "expand":
-                    lock (this.Graph)
-                    {
-                        Expand(tok[1]);
-                    }
-                    break;
-                default:
-                    Console.WriteLine("Unknown command");
-                    break;
-            }
-        }
+        #endregion
     }
 }

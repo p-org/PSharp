@@ -577,10 +577,20 @@ namespace Microsoft.PSharp
         /// <param name="isStarter">Is starting a new operation</param>
         internal virtual void Send(AbstractMachine sender, MachineId mid, Event e, bool isStarter)
         {
+            EventOriginInfo originInfo = null;
+            if (sender != null && sender is Machine)
+            {
+                originInfo = new EventOriginInfo(sender.Id,
+                    (sender as Machine).GetType().Name,
+                    (sender as Machine).CurrentState.Name);
+            }
+
+            EventInfo eventInfo = new EventInfo(e, originInfo);
+
             Machine machine = this.MachineMap[mid.Value];
 
             bool runHandler = false;
-            machine.Enqueue(e, ref runHandler);
+            machine.Enqueue(eventInfo, ref runHandler);
 
             if (!runHandler)
             {
@@ -631,9 +641,9 @@ namespace Microsoft.PSharp
         /// Raises an event internally and returns from the execution context.
         /// </summary>
         /// <param name="raiser">Raiser machine</param>
-        /// <param name="e">Event</param>
+        /// <param name="eventInfo">EventInfo</param>
         /// <param name="isStarter">Is starting a new operation</param>
-        internal virtual void Raise(AbstractMachine raiser, Event e, bool isStarter)
+        internal virtual void Raise(AbstractMachine raiser, EventInfo eventInfo, bool isStarter)
         {
             // No-op for real execution.
         }
@@ -674,8 +684,8 @@ namespace Microsoft.PSharp
         /// Notifies that a machine dequeued an event.
         /// </summary>
         /// <param name="machine">Machine</param>
-        /// <param name="e">Event</param>
-        internal virtual void NotifyDequeuedEvent(Machine machine, Event e)
+        /// <param name="eventInfo">EventInfo</param>
+        internal virtual void NotifyDequeuedEvent(Machine machine, EventInfo eventInfo)
         {
             // No-op for real execution.
         }
@@ -684,8 +694,8 @@ namespace Microsoft.PSharp
         /// Notifies that a machine raised an event.
         /// </summary>
         /// <param name="machine">Machine</param>
-        /// <param name="e">Event</param>
-        internal virtual void NotifyRaisedEvent(Machine machine, Event e)
+        /// <param name="eventInfo">EventInfo</param>
+        internal virtual void NotifyRaisedEvent(Machine machine, EventInfo eventInfo)
         {
             // No-op for real execution.
         }
@@ -709,8 +719,8 @@ namespace Microsoft.PSharp
         /// Notifies that a machine received an event that it was waiting for.
         /// </summary>
         /// <param name="machine">Machine</param>
-        /// <param name="e">Event</param>
-        internal virtual void NotifyReceivedEvent(Machine machine, Event e)
+        /// <param name="eventInfo">EventInfo</param>
+        internal virtual void NotifyReceivedEvent(Machine machine, EventInfo eventInfo)
         {
             lock (machine)
             {

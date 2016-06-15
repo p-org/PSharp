@@ -58,10 +58,6 @@ namespace Microsoft.PSharp.Utilities
             {
                 base.Configuration.AttachDebugger = true;
             }
-            //else if (option.ToLower().Equals("/visualize"))
-            //{
-            //    base.Configuration.EnableVisualization = true;
-            //}
             else if (option.ToLower().Equals("/print-trace"))
             {
                 base.Configuration.PrintTrace = true;

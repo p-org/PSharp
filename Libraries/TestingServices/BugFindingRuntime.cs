@@ -27,7 +27,7 @@ using Microsoft.PSharp.Visualization;
 namespace Microsoft.PSharp.TestingServices
 {
     /// <summary>
-    /// Static class implementing the P# bug-finding runtime.
+    /// Class implementing the P# bug-finding runtime.
     /// </summary>
     internal sealed class PSharpBugFindingRuntime : PSharpRuntime
     {
@@ -360,33 +360,41 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="isStarter">Is starting a new operation</param>
         internal override void Send(AbstractMachine sender, MachineId mid, Event e, bool isStarter)
         {
-            if (sender != null)
+            EventOriginInfo originInfo = null;
+            if (sender != null && sender is Machine)
             {
-                e.SetSenderMachine(sender.Id);
+                originInfo = new EventOriginInfo(sender.Id,
+                    (sender as Machine).GetType().Name,
+                    (sender as Machine).CurrentState.Name);
+            }
+            else
+            {
+                // Message comes from outside P#.
+                originInfo = new EventOriginInfo(null, "Env", "Env");
             }
 
-            this.SetOperationIdForEvent(e, sender, isStarter);
+            EventInfo eventInfo = new EventInfo(e, originInfo);
+            this.SetOperationIdForEvent(eventInfo, sender, isStarter);
 
             if (this.Configuration.BoundOperations && sender != null)
             {
-                //this.MachineMap[mid.MVal]
                 IO.Log($"<SendLog> Machine '{sender.Id.Name}' sent event " +
-                    $"'{e.GetType().FullName}({e.OperationId})' to '{mid.Name}'.");
+                    $"'{eventInfo.EventName}({eventInfo.OperationId})' to '{mid.Name}'.");
             }
             else if (sender != null)
             {
                 IO.Log($"<SendLog> Machine '{sender.Id.Name}' sent event " +
-                    $"'{e.GetType().FullName}' to '{mid.Name}'.");
+                    $"'{eventInfo.EventName}' to '{mid.Name}'.");
             }
             else
             {
-                IO.Log($"<SendLog> Event '{e.GetType().FullName}' was sent to '{mid.Name}'.");
+                IO.Log($"<SendLog> Event '{eventInfo.EventName}' was sent to '{mid.Name}'.");
             }
 
             Machine machine = this.MachineMap[mid.Value];
 
             bool runNewHandler = false;
-            machine.Enqueue(e, ref runNewHandler);
+            machine.Enqueue(eventInfo, ref runNewHandler);
             
             if (!runNewHandler)
             {
@@ -394,7 +402,7 @@ namespace Microsoft.PSharp.TestingServices
                 return;
             }
 
-            machine.SetOperationId(e.OperationId);
+            machine.SetOperationId(eventInfo.OperationId);
 
             Task task = new Task(() =>
             {
@@ -458,21 +466,21 @@ namespace Microsoft.PSharp.TestingServices
         /// Raises an event internally and returns from the execution context.
         /// </summary>
         /// <param name="raiser">Raiser machine</param>
-        /// <param name="e">Event</param>
+        /// <param name="eventInfo">EventInfo</param>
         /// <param name="isStarter">Is starting a new operation</param>
-        internal override void Raise(AbstractMachine raiser, Event e, bool isStarter)
+        internal override void Raise(AbstractMachine raiser, EventInfo eventInfo, bool isStarter)
         {
-            this.SetOperationIdForEvent(e, raiser, isStarter);
+            this.SetOperationIdForEvent(eventInfo, raiser, isStarter);
 
             if (this.Configuration.BoundOperations)
             {
                 IO.Log($"<RaiseLog> Machine '{raiser.Id.Name}' raised " +
-                    $"event '{e.GetType().FullName}({e.OperationId})'.");
+                    $"event '{eventInfo.EventName}({eventInfo.OperationId})'.");
             }
             else
             {
                 IO.Log($"<RaiseLog> Machine '{raiser.Id.Name}' raised " +
-                    $"event '{e.GetType().FullName}'.");
+                    $"event '{eventInfo.EventName}'.");
             }
         }
 
@@ -526,22 +534,31 @@ namespace Microsoft.PSharp.TestingServices
         /// Notifies that a machine dequeued an event.
         /// </summary>
         /// <param name="machine">Machine</param>
-        /// <param name="e">Event</param>
-        internal override void NotifyDequeuedEvent(Machine machine, Event e)
+        /// <param name="eventInfo">EventInfo</param>
+        internal override void NotifyDequeuedEvent(Machine machine, EventInfo eventInfo)
         {
             if (this.Configuration.BoundOperations)
             {
                 IO.Log($"<DequeueLog> Machine '{machine.Id.Name}' dequeued " +
-                    $"event '{e.GetType().FullName}({e.OperationId})'.");
+                    $"event '{eventInfo.EventName}({eventInfo.OperationId})'.");
             }
             else
             {
                 IO.Log($"<DequeueLog> Machine '{machine.Id.Name}' dequeued " +
-                    $"event '{e.GetType().FullName}'.");
+                    $"event '{eventInfo.EventName}'.");
             }
             
             var prevMachineOpId = machine.OperationId;
-            machine.SetOperationId(e.OperationId);
+            machine.SetOperationId(eventInfo.OperationId);
+            
+            if (this.Configuration.EnableVisualization)
+            {
+                // Visualizes the received event and the state
+                // transition, if there is any.
+                this.VisualizeReceivedEvent(machine, eventInfo);
+                this.VisualizeStateTransition(machine, eventInfo);
+            }
+
             //if (this.Configuration.BoundOperations && prevMachineOpId != machine.OperationId)
             //{
             //    this.BugFinder.Schedule();
@@ -552,11 +569,18 @@ namespace Microsoft.PSharp.TestingServices
         /// Notifies that a machine raised an event.
         /// </summary>
         /// <param name="machine">Machine</param>
-        /// <param name="e">Event</param>
-        internal override void NotifyRaisedEvent(Machine machine, Event e)
+        /// <param name="eventInfo">EventInfo</param>
+        internal override void NotifyRaisedEvent(Machine machine, EventInfo eventInfo)
         {
             var prevMachineOpId = machine.OperationId;
-            machine.SetOperationId(e.OperationId);
+            machine.SetOperationId(eventInfo.OperationId);
+            
+            if (this.Configuration.EnableVisualization)
+            {
+                // Visualizes the state transition, if there is any.
+                this.VisualizeStateTransition(machine, eventInfo);
+            }
+
             //if (this.Configuration.BoundOperations && prevMachineOpId != machine.OperationId)
             //{
             //    this.BugFinder.Schedule();
@@ -577,18 +601,18 @@ namespace Microsoft.PSharp.TestingServices
         /// Notifies that a machine received an event that it was waiting for.
         /// </summary>
         /// <param name="machine">Machine</param>
-        /// <param name="e">Event</param>
-        internal override void NotifyReceivedEvent(Machine machine, Event e)
+        /// <param name="eventInfo">EventInfo</param>
+        internal override void NotifyReceivedEvent(Machine machine, EventInfo eventInfo)
         {
             if (this.Configuration.BoundOperations)
             {
                 IO.Log($"<ReceiveLog> Machine '{machine.Id.Name}' received " +
-                    $"event '{e.GetType().FullName}({e.OperationId})' and unblocked.");
+                    $"event '{eventInfo.EventName}({eventInfo.OperationId})' and unblocked.");
             }
             else
             {
                 IO.Log($"<ReceiveLog> Machine '{machine.Id.Name}' received " +
-                    $"event '{e.GetType().FullName}' and unblocked.");
+                    $"event '{eventInfo.EventName}' and unblocked.");
             }
 
             this.BugFinder.NotifyTaskReceivedEvent(machine);
@@ -694,25 +718,72 @@ namespace Microsoft.PSharp.TestingServices
         #region private methods
 
         /// <summary>
+        /// Visualizes a received event.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <param name="eventInfo">EventInfo</param>
+        private void VisualizeReceivedEvent(Machine machine, EventInfo eventInfo)
+        {
+            string originMachine = eventInfo.OriginInfo.SenderMachineName;
+            string originState = eventInfo.OriginInfo.SenderStateName;
+            string edgeLabel = eventInfo.EventType.Name;
+            string destMachine = machine.GetType().Name;
+            string destState = machine.CurrentState.Name;
+
+            this.Visualizer.AddTransition(originMachine, originState, edgeLabel, destMachine, destState);
+        }
+
+        /// <summary>
+        /// Visualizes a state transition.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <param name="eventInfo">EventInfo</param>
+        private void VisualizeStateTransition(Machine machine, EventInfo eventInfo)
+        {
+            string originMachine = machine.GetType().Name;
+            string originState = machine.CurrentState.Name;
+            string destMachine = machine.GetType().Name;
+
+            string edgeLabel = "";
+            string destState = "";
+            if (eventInfo.Event is GotoStateEvent)
+            {
+                edgeLabel = "goto";
+                destState = (eventInfo.Event as GotoStateEvent).State.Name;
+            }
+            else if (machine.GotoTransitions.ContainsKey(eventInfo.EventType))
+            {
+                edgeLabel = eventInfo.EventType.Name;
+                destState = machine.GotoTransitions[eventInfo.EventType].Item1.Name;
+            }
+            else
+            {
+                return;
+            }
+
+            this.Visualizer.AddTransition(originMachine, originState, edgeLabel, destMachine, destState);
+        }
+
+        /// <summary>
         /// Sets the operation id for the given event.
         /// </summary>
-        /// <param name="e">Event</param>
+        /// <param name="eventInfo">EventInfo</param>
         /// <param name="sender">Sender machine</param>
         /// <param name="isStarter">Is starting a new operation</param>
-        private void SetOperationIdForEvent(Event e, AbstractMachine sender, bool isStarter)
+        private void SetOperationIdForEvent(EventInfo eventInfo, AbstractMachine sender, bool isStarter)
         {
             if (isStarter)
             {
                 this.OperationIdCounter++;
-                e.SetOperationId(this.OperationIdCounter);
+                eventInfo.SetOperationId(this.OperationIdCounter);
             }
             else if (sender != null)
             {
-                e.SetOperationId(sender.OperationId);
+                eventInfo.SetOperationId(sender.OperationId);
             }
             else
             {
-                e.SetOperationId(0);
+                eventInfo.SetOperationId(0);
             }
         }
 
