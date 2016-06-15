@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -35,12 +36,12 @@ namespace Microsoft.PSharp.TestingServices.Threading
         /// <summary>
         /// The machine tasks.
         /// </summary>
-        private List<Task> MachineTasks;
+        private ConcurrentBag<Task> MachineTasks;
 
         /// <summary>
         /// The wrapped in a machine user tasks.
         /// </summary>
-        private List<Task> WrappedTasks;
+        private ConcurrentBag<Task> WrappedTasks;
 
         #endregion
 
@@ -51,11 +52,11 @@ namespace Microsoft.PSharp.TestingServices.Threading
         /// </summary>
         /// <param name="runtime">PSharpRuntime</param>
         /// <param name="machineTasks">Machine tasks</param>
-        internal TaskWrapperScheduler(PSharpRuntime runtime, List<Task> machineTasks)
+        internal TaskWrapperScheduler(PSharpRuntime runtime, ConcurrentBag<Task> machineTasks)
         {
             this.Runtime = runtime;
             this.MachineTasks = machineTasks;
-            this.WrappedTasks = new List<Task>();
+            this.WrappedTasks = new ConcurrentBag<Task>();
         }
 
         /// <summary>
