@@ -250,7 +250,6 @@ namespace Microsoft.PSharp.TestingServices
 
             if (this.Configuration.EnableVisualization)
             {
-                //this.Visualizer = new PSharpProgramVisualizer();
                 this.Visualizer = new PSharpDgmlVisualizer("trace.dgml");
             }
 
