@@ -12,33 +12,43 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// Defines an event origin info. Used
-    /// during visualization.
+    /// Class containing origin information
+    /// regarding an event.
     /// </summary>
-    public class EventOriginInfo 
+    internal class EventOriginInfo
     {
         /// <summary>
-        /// Sender machine.
+        /// The sender machine id.
         /// </summary>
-        public string Machine { get; private set; }
+        internal MachineId SenderMachineId { get; private set; }
 
         /// <summary>
-        /// Sender machine state.
+        /// The sender machine name.
         /// </summary>
-        public string State { get; private set; }
+        internal string SenderMachineName { get; private set; }
+
+        /// <summary>
+        /// The sender machine state name.
+        /// </summary>
+        internal string SenderStateName { get; private set; }
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="machine">Machine name</param>
-        /// <param name="state">State name</param>
-        public EventOriginInfo(string machine, string state)
+        /// <param name="senderMachineId">Sender machine id</param>
+        /// <param name="senderMachineName">Sender machine name</param>
+        /// <param name="senderStateName">Sender state name</param>
+        internal EventOriginInfo(MachineId senderMachineId, string senderMachineName,
+            string senderStateName)
         {
-            this.Machine = machine;
-            this.State = state;
+            this.SenderMachineId = senderMachineId;
+            this.SenderMachineName = senderMachineName;
+            this.SenderStateName = senderStateName;
         }
     }
 }

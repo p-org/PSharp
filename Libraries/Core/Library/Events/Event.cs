@@ -25,16 +25,6 @@ namespace Microsoft.PSharp
         #region fields
 
         /// <summary>
-        /// The machine id of the sender of this event.
-        /// </summary>
-        internal MachineId Sender { get; private set; }
-
-        /// <summary>
-        /// The operation id of this event.
-        /// </summary>
-        internal int OperationId { get; private set; }
-
-        /// <summary>
         /// Specifies that there must not be more than k instances
         /// of e in the input queue of any machine.
         /// </summary>
@@ -71,28 +61,6 @@ namespace Microsoft.PSharp
         {
             this.Assert = assert;
             this.Assume = assume;
-        }
-
-        #endregion
-
-        #region internal methods
-
-        /// <summary>
-        /// Sets the machine id of the sender of this event.
-        /// </summary>
-        /// <param name="mid">MachineId</param>
-        internal void SetSenderMachine(MachineId mid)
-        {
-            this.Sender = mid;
-        }
-
-        /// <summary>
-        /// Sets the operation id of this event.
-        /// </summary>
-        /// <param name="opid">OperationId</param>
-        internal void SetOperationId(int opid)
-        {
-            this.OperationId = opid;
         }
 
         #endregion
