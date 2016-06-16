@@ -60,19 +60,19 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.ExtendedReflection">
-      <HintPath>..\..\References\ExtendedReflection\Microsoft.ExtendedReflection.dll</HintPath>
+      <HintPath>..\..\..\References\ExtendedReflection\Microsoft.ExtendedReflection.dll</HintPath>
     </Reference>
     <Reference Include="QuickGraph">
-      <HintPath>..\..\References\QuickGraph\QuickGraph.dll</HintPath>
+      <HintPath>..\..\..\References\QuickGraph\QuickGraph.dll</HintPath>
     </Reference>
     <Reference Include="QuickGraph.Data">
-      <HintPath>..\..\References\QuickGraph\QuickGraph.Data.dll</HintPath>
+      <HintPath>..\..\..\References\QuickGraph\QuickGraph.Data.dll</HintPath>
     </Reference>
     <Reference Include="QuickGraph.Graphviz">
-      <HintPath>..\..\References\QuickGraph\QuickGraph.Graphviz.dll</HintPath>
+      <HintPath>..\..\..\References\QuickGraph\QuickGraph.Graphviz.dll</HintPath>
     </Reference>
     <Reference Include="QuickGraph.Serialization">
-      <HintPath>..\..\References\QuickGraph\QuickGraph.Serialization.dll</HintPath>
+      <HintPath>..\..\..\References\QuickGraph\QuickGraph.Serialization.dll</HintPath>
     </Reference>
     <Reference Include="System" />
   </ItemGroup>
