@@ -19,8 +19,8 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
-using Microsoft.PSharp.TestingServices.Exploration;
 using Microsoft.PSharp.TestingServices.Scheduling;
+using Microsoft.PSharp.TestingServices.Tracing.Schedule;
 using Microsoft.PSharp.Utilities;
 using Microsoft.PSharp.Visualization;
 
@@ -196,7 +196,7 @@ namespace Microsoft.PSharp.TestingServices
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Replay)
             {
                 string[] traceDump = File.ReadAllLines(this.Configuration.TraceFile);
-                Trace trace = new Trace(traceDump);
+                ScheduleTrace trace = new ScheduleTrace(traceDump);
                 this.Strategy = new ReplayStrategy(this.Configuration, trace);
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Random)

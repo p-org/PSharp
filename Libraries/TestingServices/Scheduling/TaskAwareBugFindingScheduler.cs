@@ -125,11 +125,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 throw new OperationCanceledException();
             }
 
-            base.Runtime.ProgramTrace.AddSchedulingChoice(next.Machine);
+            base.Runtime.ScheduleTrace.AddSchedulingChoice(next.Machine);
             if (base.Runtime.Configuration.CacheProgramState &&
                 base.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps)
             {
-                base.Runtime.StateCache.CaptureState(base.Runtime.ProgramTrace.Peek());
+                base.Runtime.StateCache.CaptureState(base.Runtime.ScheduleTrace.Peek());
             }
 
             IO.Debug($"<ScheduleDebug> Schedule task {next.Id} of machine " +

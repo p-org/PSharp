@@ -198,6 +198,15 @@ namespace Microsoft.PSharp.Utilities
 
         #endregion
 
+        #region data race detection options
+
+        /// <summary>
+        /// Enables data-race detection during testing.
+        /// </summary>
+        public bool EnableDataRaceDetection;
+
+        #endregion
+
         #region visualization options
 
         /// <summary>
@@ -299,6 +308,7 @@ namespace Microsoft.PSharp.Utilities
             this.CacheProgramState = false;
             this.BoundOperations = false;
             this.DynamicEventQueuePrioritization = false;
+            this.EnableDataRaceDetection = false;
 
             this.EnableVisualization = false;
 

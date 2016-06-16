@@ -92,7 +92,8 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
 
             var engine = TestingEngineFactory.CreateBugFindingEngine(configuration, TestProgram.Execute).Run();
-            var bugReport = "Monitor 'WatchDog' detected liveness property violation in hot state 'CannotGetUserInput'.";
+            var bugReport = "Monitor 'WatchDog' detected liveness property violation in hot state " +
+                "'Microsoft.PSharp.TestingServices.Tests.Unit.Liveness2BugFoundTest+WatchDog+CannotGetUserInput'.";
             Assert.AreEqual(bugReport, engine.BugReport);
         }
     }

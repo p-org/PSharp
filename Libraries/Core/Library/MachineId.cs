@@ -119,6 +119,9 @@ namespace Microsoft.PSharp
             this.FriendlyName = friendlyName;
             this.Runtime = runtime;
 
+            this.Type = type.Name;
+            this.EndPoint = this.Runtime.NetworkProvider.GetLocalEndPoint();
+
             lock (MachineId.TypeIdCounter)
             {
                 if (!MachineId.TypeIdCounter.ContainsKey(type))
@@ -127,10 +130,7 @@ namespace Microsoft.PSharp
                 }
 
                 this.Value = MachineId.IdCounter++;
-                this.Type = type.Name;
                 this.MVal = MachineId.TypeIdCounter[type]++;
-
-                this.EndPoint = this.Runtime.NetworkProvider.GetLocalEndPoint();
             }
         }
 

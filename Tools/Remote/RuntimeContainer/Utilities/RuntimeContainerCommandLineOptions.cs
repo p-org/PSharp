@@ -84,9 +84,9 @@ namespace Microsoft.PSharp.Remote
         {
             string help = "\n";
 
-            help += "--------------";
-            help += "\nBasic options:";
-            help += "\n--------------";
+            help += " --------------";
+            help += "\n Basic options:";
+            help += "\n --------------";
             help += "\n  /?\t\t Show this help menu";
             help += "\n  /load:[x]\t Path to the P# application to execute";
             help += "\n  /timeout:[x]\t Timeout for the tool (default is no timeout)";

@@ -20,7 +20,7 @@ using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Threading.Tasks;
 
-using Microsoft.PSharp.TestingServices.Exploration;
+using Microsoft.PSharp.TestingServices.Tracing.Schedule;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices
@@ -344,10 +344,10 @@ namespace Microsoft.PSharp.TestingServices
             var path = directoryPath + name + "_" + traces.Length + ".pstrace";
 
             StringBuilder stringBuilder = new StringBuilder();
-            for (int idx = 0; idx < runtime.ProgramTrace.Count; idx++)
+            for (int idx = 0; idx < runtime.ScheduleTrace.Count; idx++)
             {
-                TraceStep step = runtime.ProgramTrace[idx];
-                if (step.Type == TraceStepType.SchedulingChoice)
+                ScheduleStep step = runtime.ScheduleTrace[idx];
+                if (step.Type == ScheduleStepType.SchedulingChoice)
                 {
                     stringBuilder.Append(step.ScheduledMachine.Id);
                 }
@@ -356,7 +356,7 @@ namespace Microsoft.PSharp.TestingServices
                     stringBuilder.Append(step.Choice);
                 }
 
-                if (idx < runtime.ProgramTrace.Count - 1)
+                if (idx < runtime.ScheduleTrace.Count - 1)
                 {
                     stringBuilder.Append(Environment.NewLine);
                 }

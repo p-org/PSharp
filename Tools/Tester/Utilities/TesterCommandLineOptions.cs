@@ -154,13 +154,17 @@ namespace Microsoft.PSharp.Utilities
 
                 base.Configuration.SchedulingIterations = i;
             }
+            else if (option.ToLower().Equals("/explore"))
+            {
+                base.Configuration.PerformFullExploration = true;
+            }
             else if (option.ToLower().Equals("/visualize"))
             {
                 base.Configuration.EnableVisualization = true;
             }
-            else if (option.ToLower().Equals("/explore"))
+            else if (option.ToLower().Equals("/detect-races"))
             {
-                base.Configuration.PerformFullExploration = true;
+                base.Configuration.EnableDataRaceDetection = true;
             }
             else if (option.ToLower().StartsWith("/sch-seed:") && option.Length > 10)
             {
@@ -276,9 +280,9 @@ namespace Microsoft.PSharp.Utilities
         {
             string help = "\n";
 
-            help += "--------------";
-            help += "\nBasic options:";
-            help += "\n--------------";
+            help += " --------------";
+            help += "\n Basic options:";
+            help += "\n --------------";
             help += "\n  /?\t\t Show this help menu";
             help += "\n  /s:[x]\t Path to a P# solution";
             help += "\n  /test:[x]\t Name of a project in the P# solution to test";
@@ -287,18 +291,23 @@ namespace Microsoft.PSharp.Utilities
             help += "\n  /v:[x]\t Enable verbose mode (values from '1' to '3')";
             help += "\n  /debug\t Enable debugging";
 
-            help += "\n\n---------------------------";
-            help += "\nSystematic testing options:";
-            help += "\n---------------------------";
-            help += "\n  /i:[x]\t\t Number of schedules to explore for bugs";
-            help += "\n  /interactive\t\t Enable interactive scheduling";
-            help += "\n  /sch:[x]\t\t Choose a systematic testing strategy ('random' by default)";
-            help += "\n  /max-steps:[x]\t Max scheduling steps to be explored ('10000' by default)";
-            help += "\n  /sch-seed:[x]\t\t Choose a scheduling seed (signed 32-bit integer)";
+            help += "\n\n ---------------------------";
+            help += "\n Systematic testing options:";
+            help += "\n ---------------------------";
+            help += "\n  /i:[x]\t Number of schedules to explore for bugs";
+            help += "\n  /interactive\t Enable interactive scheduling";
+            help += "\n  /sch:[x]\t Choose a systematic testing strategy ('random' by default)";
+            help += "\n  /max-steps:[x] Max scheduling steps to be explored ('10000' by default)";
+            help += "\n  /sch-seed:[x]\t Choose a scheduling seed (signed 32-bit integer)";
 
-            help += "\n\n---------------------------";
-            help += "\nExperimental options:";
-            help += "\n---------------------------";
+            help += "\n\n ----------------------------";
+            help += "\n Data race detection options:";
+            help += "\n ----------------------------";
+            help += "\n  /detect-races\t Enable data-race detection";
+
+            help += "\n\n ---------------------";
+            help += "\n Experimental options:";
+            help += "\n ---------------------";
             help += "\n  /tpl\t Enable intra-machine concurrency scheduling";
 
             help += "\n";

@@ -186,7 +186,7 @@ namespace Microsoft.PSharp
         /// <returns>Boolean</returns>
         internal bool IsInHotState(out string stateName)
         {
-            stateName = this.CurrentState.Name;
+            stateName = this.CurrentState.FullName;
             return this.State.IsHot;
         }
 
@@ -207,7 +207,7 @@ namespace Microsoft.PSharp
         /// <returns>Boolean</returns>
         internal bool IsInColdState(out string stateName)
         {
-            stateName = this.CurrentState.Name;
+            stateName = this.CurrentState.FullName;
             return this.State.IsCold;
         }
 
@@ -243,7 +243,7 @@ namespace Microsoft.PSharp
                 if (!this.CanHandleEvent(e.GetType()))
                 {
                     base.Runtime.Log($"<MonitorLog> Monitor '{this.GetType().Name}' " +
-                        $"exiting state '{this.CurrentState.Name}'.");
+                        $"exiting state '{this.CurrentState.FullName}'.");
                     this.State = null;
                     continue;
                 }
@@ -341,16 +341,16 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Performs an action.
         /// </summary>
-        /// <param name="a">Action</param>
+        /// <param name="action">Action</param>
         [DebuggerStepThrough]
-        private void Do(Action a)
+        private void Do(Action action)
         {
             base.Runtime.Log($"<MonitorLog> Monitor '{this.GetType().Name}' executed " +
-                $"action '{a.Method.Name}' in state '{this.CurrentState.Name}'.");
+                $"action '{action.Method.Name}' in state '{this.CurrentState.FullName}'.");
 
             try
             {
-                a();
+                action();
             }
             catch (OperationCanceledException ex)
             {
@@ -391,14 +391,15 @@ namespace Microsoft.PSharp
             {
                 liveness = "'cold' ";
             }
-
+            
             base.Runtime.Log($"<MonitorLog> Monitor '{this.GetType().Name}' entering " +
-                $"{liveness}state '{this.CurrentState.Name}'.");
+                $"{liveness}state '{this.CurrentState.FullName}'.");
 
             try
             {
-                // Performs the on entry statements of the new state.
-                this.State.ExecuteEntryFunction();
+                // Performs the entry action of the new state,
+                // if there is one available.
+                this.State.EntryAction?.Invoke();
             }
             catch (OperationCanceledException ex)
             {
@@ -428,12 +429,13 @@ namespace Microsoft.PSharp
         private void ExecuteCurrentStateOnExit(Action onExit)
         {
             base.Runtime.Log($"<MonitorLog> Monitor '{this.GetType().Name}' " +
-                $"exiting state '{this.CurrentState.Name}'.");
+                $"exiting state '{this.CurrentState.FullName}'.");
 
             try
             {
-                // Performs the on exit statements of the current state.
-                this.State.ExecuteExitFunction();
+                // Performs the exit action of the current state,
+                // if there is one available.
+                this.State.ExitAction?.Invoke();
                 onExit?.Invoke();
             }
             catch (OperationCanceledException ex)
