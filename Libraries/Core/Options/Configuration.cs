@@ -50,6 +50,11 @@ namespace Microsoft.PSharp.Utilities
         public int Timeout;
 
         /// <summary>
+        /// Enables profiling.
+        /// </summary>
+        public bool EnableProfiling;
+
+        /// <summary>
         /// Pause on assertion failure.
         /// </summary>
         internal bool PauseOnAssertionFailure;
@@ -89,11 +94,6 @@ namespace Microsoft.PSharp.Utilities
         public bool ShowFullDataFlowInformation;
 
         /// <summary>
-        /// Reports the runtime results for the static analysis.
-        /// </summary>
-        public bool TimeStaticAnalysis;
-
-        /// <summary>
         /// Perform the state transition analysis.
         /// </summary>
         public bool DoStateTransitionAnalysis;
@@ -125,7 +125,7 @@ namespace Microsoft.PSharp.Utilities
         /// <summary>
         /// Seed for random scheduling strategies.
         /// </summary>
-        internal int? RandomSchedulingSeed;
+        public int? RandomSchedulingSeed;
 
         /// <summary>
         /// If true, the P# tester performs a full exploration,
@@ -275,6 +275,7 @@ namespace Microsoft.PSharp.Utilities
             this.Verbose = 1;
             this.Timeout = 0;
 
+            this.EnableProfiling = false;
             this.PauseOnAssertionFailure = false;
             this.InteroperationEnabled = true;
 
@@ -285,7 +286,6 @@ namespace Microsoft.PSharp.Utilities
             this.ShowControlFlowInformation = false;
             this.ShowDataFlowInformation = false;
             this.ShowFullDataFlowInformation = false;
-            this.TimeStaticAnalysis = false;
             this.DoStateTransitionAnalysis = false;
 
             this.AssemblyToBeAnalyzed = "";

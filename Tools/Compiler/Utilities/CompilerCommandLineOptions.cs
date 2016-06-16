@@ -100,7 +100,7 @@ namespace Microsoft.PSharp.Utilities
             }
             else if (option.ToLower().Equals("/time"))
             {
-                base.Configuration.TimeStaticAnalysis = true;
+                base.Configuration.EnableProfiling = true;
             }
             else if (option.ToLower().Equals("/xsa"))
             {

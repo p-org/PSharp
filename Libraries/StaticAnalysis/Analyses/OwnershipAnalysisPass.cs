@@ -40,7 +40,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         internal override void Run(ISet<StateMachine> machines)
         {
             // Starts profiling the ownership analysis.
-            if (base.Configuration.TimeStaticAnalysis)
+            if (base.Configuration.EnableProfiling)
             {
                 base.Profiler.StartMeasuringExecutionTime();
             }
@@ -51,7 +51,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
 
             // Stops profiling the ownership analysis.
-            if (base.Configuration.TimeStaticAnalysis)
+            if (base.Configuration.EnableProfiling)
             {
                 base.Profiler.StopMeasuringExecutionTime();
                 this.PrintProfilingResults();

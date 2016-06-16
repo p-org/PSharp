@@ -117,7 +117,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         private void AnalyzeProject(Project project)
         {
             // Starts profiling the analysis.
-            if (this.CompilationContext.Configuration.TimeStaticAnalysis)
+            if (this.CompilationContext.Configuration.EnableProfiling)
             {
                 this.Profiler.StartMeasuringExecutionTime();
             }
@@ -149,7 +149,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 Run(machines);
 
             // Stops profiling the analysis.
-            if (this.CompilationContext.Configuration.TimeStaticAnalysis)
+            if (this.CompilationContext.Configuration.EnableProfiling)
             {
                 this.Profiler.StopMeasuringExecutionTime();
                 IO.PrintLine("... Total static analysis runtime: '" +
