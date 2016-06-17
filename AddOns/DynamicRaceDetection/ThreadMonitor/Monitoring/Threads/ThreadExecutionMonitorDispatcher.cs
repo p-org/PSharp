@@ -63,13 +63,32 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
         /// The call stack.
         /// </summary>
         private SafeStack<Method> CallStack;
+        
+        /// <summary>
+        /// Is event action handler called.
+        /// </summary>
+        private bool IsDoHandlerCalled;
+        
+        /// <summary>
+        /// Is entry action called.
+        /// </summary>
+        private bool IsEntryActionCalled;
 
+        /// <summary>
+        /// Is exit action called.
+        /// </summary>
+        private bool IsExitActionCalled;
 
-        private bool isDoCalled = false;
-        private bool isEntryFuntionCalled = false;
-        private bool isExitFuntionCalled = false;
-        private bool isAction = false;
-        private bool recordRW = false;
+        /// <summary>
+        /// Is method an action.
+        /// </summary>
+        private bool IsAction;
+
+        /// <summary>
+        /// Record read-write.
+        /// </summary>
+        private bool RecordRW;
+
         private string currentAction;
         private int currentMachineId;
         private bool isCreateMachine = false;
@@ -101,6 +120,12 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
             
             this.Trace = new SafeList<string>();
             this.CallStack = new SafeStack<Method>();
+
+            this.IsDoHandlerCalled = false;
+            this.IsEntryActionCalled = false;
+            this.IsExitActionCalled = false;
+            this.IsAction = false;
+            this.RecordRW = false;
 
             testingEngine.RegisterPerIterationCallBack(EmitThreadTrace);
         }
@@ -151,7 +176,7 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
             UIntPtr objH, objO;
             ObjectTracking.GetObjectHandle(location, out objH, out objO);
 
-            if (recordRW && !this.CallStack.Peek().FullName.Contains("Microsoft.PSharp") && objH != null)
+            if (this.RecordRW && !this.CallStack.Peek().FullName.Contains("Microsoft.PSharp") && objH != null)
             {
                 //Hack
                 if (this.CallStack.Peek().ToString().Contains("Monitor"))
@@ -191,8 +216,8 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
             UIntPtr objH, objO;
             ObjectTracking.GetObjectHandle(location, out objH, out objO);
 
-            //trace.Add("storing outside: " + location + " " + objH + " " + objO + " " + this.CallStack.Peek() + recordRW);
-            if (recordRW && !this.CallStack.Peek().FullName.Contains("Microsoft.PSharp") && objH != null)
+            //trace.Add("storing outside: " + location + " " + objH + " " + objO + " " + this.CallStack.Peek() + this.RecordRW);
+            if (this.RecordRW && !this.CallStack.Peek().FullName.Contains("Microsoft.PSharp") && objH != null)
             {
                 //Hack
                 if (this.CallStack.Peek().ToString().Contains("Monitor"))
@@ -231,14 +256,14 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
         {
             this.Trace.Add("Entering: " + method.FullName);
             this.CallStack.Push(method);
-            if (isAction && !method.FullName.Contains("Microsoft.PSharp"))
+            if (this.IsAction && !method.FullName.Contains("Microsoft.PSharp"))
             {
                 this.Trace.Add("ACTION!!!!!!");
                 this.Trace.Add("method: " + method.FullName);
                 ThreadTrace obj = this.ThreadTrace[this.ThreadTrace.Count - 1];
                 obj.set(method.FullName);
-                isAction = false;
-                recordRW = true;
+                this.IsAction = false;
+                this.RecordRW = true;
                 currentAction = method.FullName;
             }
 
@@ -255,7 +280,7 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
             Method leaving = this.CallStack.Pop();
             if (leaving.FullName.Equals(currentAction))
             {
-                recordRW = false;
+                this.RecordRW = false;
             }
             /*if(!leaving.FullName.Contains("Microsoft.PSharp"))
                 trace.Add("leaving: " + leaving);*/
@@ -278,15 +303,15 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
 
             else if (method.FullName.Equals("Microsoft.PSharp.Machine.Do"))
             {
-                isDoCalled = true;
+                this.IsDoHandlerCalled = true;
                 this.Trace.Add("do called");
             }
 
             else if (method.FullName.Equals("Microsoft.PSharp.Machine.ExecuteCurrentStateOnEntry"))
-                isEntryFuntionCalled = true;
+                this.IsEntryActionCalled = true;
 
             else if (method.FullName.Equals("Microsoft.PSharp.Machine.ExecuteCurrentStateOnExit"))
-                isExitFuntionCalled = true;
+                this.IsExitActionCalled = true;
 
             else if ((method.FullName.Equals("Microsoft.PSharp.Machine.Send") ||
                 method.FullName.Equals("Microsoft.PSharp.PSharpRuntime.SendEvent")) &&
@@ -346,7 +371,7 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
 
         public override void CallReceiver(object receiver)
         {
-            if (isDoCalled || isEntryFuntionCalled || isExitFuntionCalled)
+            if (this.IsDoHandlerCalled || this.IsEntryActionCalled || this.IsExitActionCalled)
             {
                 /*if (!localIter.Equals(Environment.GetEnvironmentVariable("ITERATION")))
                 {
@@ -393,11 +418,11 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
 
                 this.Trace.Add("call receiver: " + mc.GetType() + " " + mcID);
 
-                isDoCalled = false;
-                isEntryFuntionCalled = false;
-                isExitFuntionCalled = false;
+                this.IsDoHandlerCalled = false;
+                this.IsEntryActionCalled = false;
+                this.IsExitActionCalled = false;
 
-                isAction = true;
+                this.IsAction = true;
                 ThreadTrace obj = new ThreadTrace(mcID);
 
                 if (actionIds.ContainsKey(mcID))
