@@ -44,14 +44,27 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
         /// </summary>
         private Configuration Configuration;
 
+        /// <summary>
+        /// The thread index.
+        /// </summary>
         private readonly int ThreadIndex;
-        private readonly IThreadMonitor CallMonitor;
-        private readonly IEventLog Log;
 
-        private SafeList<string> trace = new SafeList<string>();
-        private List<ThreadTrace> thTrace = new List<ThreadTrace>();
+        /// <summary>
+        /// The trace.
+        /// </summary>
+        private SafeList<string> Trace = new SafeList<string>();
 
-        private SafeStack<Method> callStack;
+        /// <summary>
+        /// The thread trace.
+        /// </summary>
+        private List<ThreadTrace> ThreadTrace = new List<ThreadTrace>();
+
+        /// <summary>
+        /// The call stack.
+        /// </summary>
+        private SafeStack<Method> CallStack;
+
+
         private bool isDoCalled = false;
         private bool isEntryFuntionCalled = false;
         private bool isExitFuntionCalled = false;
@@ -82,14 +95,12 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
             : base(threadIndex)
         {
             SafeDebug.AssertNotNull(callMonitor, "callMonitor");
-
-            this.Log = log;
+            
             this.ThreadIndex = threadIndex;
-            this.CallMonitor = callMonitor;
             this.Configuration = configuration;
             
-            trace = new SafeList<string>();
-            callStack = new SafeStack<Method>();
+            this.Trace = new SafeList<string>();
+            this.CallStack = new SafeStack<Method>();
 
             testingEngine.RegisterPerIterationCallBack(EmitThreadTrace);
         }
@@ -98,26 +109,12 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
 
         #region methods
 
-        [Conditional("DEBUG")]
-        protected void Trace(string arg)
-        {
-
-        }
-
-        /// <summary>
-        /// Log an exception
-        /// </summary>
-        protected void LogException(Exception e)
-        {
-            // throw e;
-        }
-
         /// <summary>
         /// Emits the thread trace.
         /// </summary>
         void EmitThreadTrace(int iteration)
         {
-            if (thTrace.Count > 0)
+            if (this.ThreadTrace.Count > 0)
             {
                 string directoryPath = Path.GetDirectoryName(this.Configuration.AssemblyToBeAnalyzed) +
                     Path.DirectorySeparatorChar + "Output";
@@ -136,7 +133,7 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
 
                     try
                     {
-                        bformatter.Serialize(stream, thTrace);
+                        bformatter.Serialize(stream, this.ThreadTrace);
                     }
                     catch (Exception ex)
                     {
@@ -145,7 +142,7 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
                 }
             }
 
-            thTrace.Clear();
+            this.ThreadTrace.Clear();
         }
 
         [DebuggerNonUserCodeAttribute]
@@ -154,92 +151,33 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
             UIntPtr objH, objO;
             ObjectTracking.GetObjectHandle(location, out objH, out objO);
 
-            if (recordRW && !callStack.Peek().FullName.Contains("Microsoft.PSharp") && objH != null)
+            if (recordRW && !this.CallStack.Peek().FullName.Contains("Microsoft.PSharp") && objH != null)
             {
                 //Hack
-                if (callStack.Peek().ToString().Contains("Monitor"))
+                if (this.CallStack.Peek().ToString().Contains("Monitor"))
                 {
-                    Console.WriteLine("Load in monitor: " + callStack.Peek().ToString());
+                    Console.WriteLine("Load in monitor: " + this.CallStack.Peek().ToString());
                     return;
                 }
                 //end hack
 
-                ThreadTrace obj = thTrace[thTrace.Count - 1];
+                ThreadTrace obj = this.ThreadTrace[this.ThreadTrace.Count - 1];
                 obj.accesses.Add(new ActionInstr(false, location, objH, objO, GetSourceLocation(location)));
-                trace.Add("load: " + objH + " " + objO + " " + callStack.Peek() + " " + GetSourceLocation(location));
+                this.Trace.Add("load: " + objH + " " + objO + " " + this.CallStack.Peek() + " " + GetSourceLocation(location));
             }
-            else if (!callStack.Peek().FullName.Contains("Microsoft.PSharp") && objH != null)
+            else if (!this.CallStack.Peek().FullName.Contains("Microsoft.PSharp") && objH != null)
             {
                 foreach (Tuple<Method, int> m in taskMethods)
                 {
                     //TODO: This is fragile (for tasks)
-                    if (callStack.Peek().ShortName.Contains(m.Item1.ShortName))
+                    if (this.CallStack.Peek().ShortName.Contains(m.Item1.ShortName))
                     {
                         ThreadTrace obj = new ThreadTrace(m.Item2, m.Item1.ShortName);
                         obj.accesses.Add(new ActionInstr(false, location, objH, objO, GetSourceLocation(location)));
-                        thTrace.Add(obj);
-                        //trace.Add("load: " + objH + " " + objO + " " + callStack.Peek());
+                        this.ThreadTrace.Add(obj);
+                        //trace.Add("load: " + objH + " " + objO + " " + this.CallStack.Peek());
                     }
                 }
-            }
-        }
-
-        public override void LoadedValue<T>(T value)
-        {
-            /*if (recordRW && !callStack.Peek().FullName.Contains("Microsoft.PSharp") && value != null)
-            {
-                ThreadTrace obj = thTrace[thTrace.Count - 1];
-                obj.accesses[obj.accesses.Count - 1].srcLocation += ";val:" + value;
-                //trace.Add("loaded value: " + value.GetType());
-                // thTrace[thTrace.Count - 1].accesses[thTrace[thTrace.Count - 1].accesses.Count - 1].set(value.GetHashCode());
-            }*/
-        }
-
-        public override void LoadedValueByRef<T>(ref T value)
-        {
-            if (recordRW && !callStack.Peek().FullName.Contains("Microsoft.PSharp") && value != null)
-            {
-                /*trace.Add("loaded value by ref: " + value.GetType());
-                ThreadTrace obj = thTrace[thTrace.Count - 1];
-                obj.accesses[obj.accesses.Count - 1].srcLocation += ";ref: " + value;*/
-                //trace.Add("loaded value: " + value.GetType());
-                // thTrace[thTrace.Count - 1].accesses[thTrace[thTrace.Count - 1].accesses.Count - 1].set(value.GetHashCode());
-            }
-        }
-
-        public override void LoadedValueObject(object value)
-        {
-            if (recordRW && !callStack.Peek().FullName.Contains("Microsoft.PSharp") && value != null)
-            {
-                /*trace.Add("loaded value object: " + value.GetType());
-                ThreadTrace obj = thTrace[thTrace.Count - 1];
-                obj.accesses[obj.accesses.Count - 1].srcLocation += ";obj: " + value;*/
-                //trace.Add("loaded value: " + value.GetType());
-                // thTrace[thTrace.Count - 1].accesses[thTrace[thTrace.Count - 1].accesses.Count - 1].set(value.GetHashCode());
-            }
-        }
-
-        public override void LoadedValuePtr(UIntPtr value, TypeEx pointerType)
-        {
-            if (recordRW && !callStack.Peek().FullName.Contains("Microsoft.PSharp") && value != null)
-            {
-                /*trace.Add("loaded value pointer: " + value.GetType() + " " + pointerType.GetType());
-                ThreadTrace obj = thTrace[thTrace.Count - 1];
-                obj.accesses[obj.accesses.Count - 1].srcLocation += ";ptr: " + value;*/
-                //trace.Add("loaded value: " + value.GetType());
-                // thTrace[thTrace.Count - 1].accesses[thTrace[thTrace.Count - 1].accesses.Count - 1].set(value.GetHashCode());
-            }
-        }
-
-        public override void LoadedValueTypedReference(TypedReference typedReference)
-        {
-            if (recordRW && !callStack.Peek().FullName.Contains("Microsoft.PSharp"))
-            {
-                /*trace.Add("loaded value typed reference: ");
-                ThreadTrace obj = thTrace[thTrace.Count - 1];
-                obj.accesses[obj.accesses.Count - 1].srcLocation += ";typ_ref: ";*/
-                //trace.Add("loaded value: " + value.GetType());
-                // thTrace[thTrace.Count - 1].accesses[thTrace[thTrace.Count - 1].accesses.Count - 1].set(value.GetHashCode());
             }
         }
 
@@ -247,120 +185,42 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
         public override void Store(UIntPtr location, uint size, int codeLabel, bool is_volatile)
         {
             //TODO: Do not record writes within a constructor (BoundedAsyncRacy)
-            if (callStack.Peek().IsConstructor)
+            if (this.CallStack.Peek().IsConstructor)
                 return;
 
             UIntPtr objH, objO;
             ObjectTracking.GetObjectHandle(location, out objH, out objO);
 
-            //trace.Add("storing outside: " + location + " " + objH + " " + objO + " " + callStack.Peek() + recordRW);
-            if (recordRW && !callStack.Peek().FullName.Contains("Microsoft.PSharp") && objH != null)
+            //trace.Add("storing outside: " + location + " " + objH + " " + objO + " " + this.CallStack.Peek() + recordRW);
+            if (recordRW && !this.CallStack.Peek().FullName.Contains("Microsoft.PSharp") && objH != null)
             {
                 //Hack
-                if (callStack.Peek().ToString().Contains("Monitor"))
+                if (this.CallStack.Peek().ToString().Contains("Monitor"))
                 {
-                    Console.WriteLine("store in monitor: " + callStack.Peek().ToString());
+                    Console.WriteLine("store in monitor: " + this.CallStack.Peek().ToString());
                     return;
                 }
                 //end hack
 
                 //trace.Add("got object handle: " + objH + " offset: " + objO);
-                ThreadTrace obj = thTrace[thTrace.Count - 1];
+                ThreadTrace obj = this.ThreadTrace[this.ThreadTrace.Count - 1];
                 obj.accesses.Add(new ActionInstr(true, location, objH, objO, GetSourceLocation(location)));
-                trace.Add("store: " + location + " " + objH + " " + objO + " " + callStack.Peek() + " " + GetSourceLocation(location));
+                this.Trace.Add("store: " + location + " " + objH + " " + objO + " " + this.CallStack.Peek() + " " + GetSourceLocation(location));
             }
-            else if(!callStack.Peek().FullName.Contains("Microsoft.PSharp") && objH != null)
+            else if(!this.CallStack.Peek().FullName.Contains("Microsoft.PSharp") && objH != null)
             {
                 foreach(Tuple<Method, int> m in taskMethods)
                 {
                     //TODO: This is fragile
-                    if (callStack.Peek().ShortName.Contains(m.Item1.ShortName))
+                    if (this.CallStack.Peek().ShortName.Contains(m.Item1.ShortName))
                     {
                         ThreadTrace obj = new ThreadTrace(m.Item2, m.Item1.ShortName);
                         obj.accesses.Add(new ActionInstr(true, location, objH, objO, GetSourceLocation(location)));
-                        thTrace.Add(obj);
-                        //trace.Add("store: " + location + " " + objH + " " + objO + " " + callStack.Peek() + " " + m.Item2);
+                        this.ThreadTrace.Add(obj);
+                        //trace.Add("store: " + location + " " + objH + " " + objO + " " + this.CallStack.Peek() + " " + m.Item2);
                     }
                 }
             }
-        }
-
-        public override void StoredValue<T>(T value)
-        {
-            //trace.Add("store value outside: " + value);
-            if (recordRW && !callStack.Peek().FullName.Contains("Microsoft.PSharp") && value != null)
-            {
-                //ThreadTrace obj = thTrace[thTrace.Count - 1];
-                //obj.accesses[obj.accesses.Count - 1].srcLocation += ";val: " + value.Tostring() + " = " + value.GetHashCode();
-                //trace.Add("stored value: " + value + " " + value.GetHashCode());
-                //thTrace[thTrace.Count - 1].accesses[thTrace[thTrace.Count - 1].accesses.Count - 1].set(value.GetHashCode());
-            }
-        }
-
-        public override void StoredValueByRef<T>(ref T value)
-        {
-            /*if (recordRW && !callStack.Peek().FullName.Contains("Microsoft.PSharp") && value != null)
-            {
-                ThreadTrace obj = thTrace[thTrace.Count - 1];
-                obj.accesses[obj.accesses.Count - 1].srcLocation += ";ref: " + value.Tostring() + " = " + value.GetHashCode();
-                //trace.Add("stored value: " + value + " " + value.GetHashCode());
-                //thTrace[thTrace.Count - 1].accesses[thTrace[thTrace.Count - 1].accesses.Count - 1].set(value.GetHashCode());
-            }*/
-        }
-
-        public override void StoredValueObject(object value)
-        {
-            /*if (recordRW && !callStack.Peek().FullName.Contains("Microsoft.PSharp") && value != null)
-            {
-                ThreadTrace obj = thTrace[thTrace.Count - 1];
-                obj.accesses[obj.accesses.Count - 1].srcLocation += ";obj: " + value.Tostring() + " = " + value.GetHashCode();
-                //trace.Add("stored value: " + value + " " + value.GetHashCode());
-                //thTrace[thTrace.Count - 1].accesses[thTrace[thTrace.Count - 1].accesses.Count - 1].set(value.GetHashCode());
-            }*/
-        }
-
-        public override void StoredValuePtr(UIntPtr value, TypeEx pointerType)
-        {
-            /*if (recordRW && !callStack.Peek().FullName.Contains("Microsoft.PSharp") && value != null)
-            {
-                ThreadTrace obj = thTrace[thTrace.Count - 1];
-                obj.accesses[obj.accesses.Count - 1].srcLocation += ";ptr: " + value.Tostring() + " = " + value.GetHashCode();
-                //trace.Add("stored value: " + value + " " + value.GetHashCode());
-                //thTrace[thTrace.Count - 1].accesses[thTrace[thTrace.Count - 1].accesses.Count - 1].set(value.GetHashCode());
-            }*/
-        }
-
-        public override void StoredValueTypedReference(TypedReference typedReference)
-        {
-            /*if (recordRW && !callStack.Peek().FullName.Contains("Microsoft.PSharp"))
-            {
-                ThreadTrace obj = thTrace[thTrace.Count - 1];
-                obj.accesses[obj.accesses.Count - 1].srcLocation += ";typ_ref: ";
-                //trace.Add("stored value: " + value + " " + value.GetHashCode());
-                //thTrace[thTrace.Count - 1].accesses[thTrace[thTrace.Count - 1].accesses.Count - 1].set(value.GetHashCode());
-            }*/
-        }
-
-        /*public override void StoredValueByRef<T>(ref T value)
-        {
-            if (recordRW && !callStack.Peek().FullName.Contains("Microsoft.PSharp") && value != null)
-            {
-                ThreadTrace obj = thTrace[thTrace.Count - 1];
-                obj.accesses[obj.accesses.Count - 1].srcLocation += ";" + value.GetType() + " = " + value.Tostring();
-                //trace.Add("stored value: " + value + " " + value.GetHashCode());
-                //thTrace[thTrace.Count - 1].accesses[thTrace[thTrace.Count - 1].accesses.Count - 1].set(value.GetHashCode());
-            }
-        }*/
-
-        [DebuggerNonUserCodeAttribute]
-        public override void AfterNewobjObject(object newObject)
-        {
-            //trace.Add("new object: " + newObject.GetType() + " " + newObject.GetHashCode());
-        }
-
-        public override void AfterNewobj<T>(T newValue)
-        {
-            //trace.Add("new struct? " + newValue.GetType() + " " + newValue.GetHashCode());
         }
 
         /// <summary>
@@ -369,13 +229,13 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
         /// <remarks>Only one to push on callstack.</remarks>
         public override bool EnterMethod(Method method)
         {
-            trace.Add("Entering: " + method.FullName);
-            callStack.Push(method);
+            this.Trace.Add("Entering: " + method.FullName);
+            this.CallStack.Push(method);
             if (isAction && !method.FullName.Contains("Microsoft.PSharp"))
             {
-                trace.Add("ACTION!!!!!!");
-                trace.Add("method: " + method.FullName);
-                ThreadTrace obj = thTrace[thTrace.Count - 1];
+                this.Trace.Add("ACTION!!!!!!");
+                this.Trace.Add("method: " + method.FullName);
+                ThreadTrace obj = this.ThreadTrace[this.ThreadTrace.Count - 1];
                 obj.set(method.FullName);
                 isAction = false;
                 recordRW = true;
@@ -385,43 +245,14 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
             return false;
         }
 
-        /// <Summary>
-        /// Retrieve the arguments of a method
-        /// </Summary>
-        /// <remarks>EnterMethod must return true in order to get the arguments using this method.</remarks>
-        public override void Argument<T>(int index, T value)
-        {
-            //myTrace.add("arg: " + index);
-        }
-
-        public override void ArgumentByRef<T>(int index, ref T value)
-        {
-            //myTrace.add("arg ref: " + index);
-        }
-
-        public override void ArgumentPtr(int index, UIntPtr value, TypeEx pointerType)
-        {
-            //myTrace.add("arg ptr: " + index);
-        }
-
-        public override void ArgumentTypedReference(int index, TypedReference typedReference)
-        {
-            //myTrace.add("arg typRef: " + index);
-        }
-
-        public override void ArgumentNotSupported(int index)
-        {
-            //myTrace.add("arg: done; " + index);
-        }
-
         /// <summary>
         /// Just before returning from method body.
         /// </summary>
         /// <remarks>Only method allowed to pop from callstack.</remarks>
         public override void LeaveMethod()
         {
-            //trace.Add("Leaving: " + callStack.Peek());
-            Method leaving = callStack.Pop();
+            //trace.Add("Leaving: " + this.CallStack.Peek());
+            Method leaving = this.CallStack.Pop();
             if (leaving.FullName.Equals(currentAction))
             {
                 recordRW = false;
@@ -431,33 +262,24 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
         }
 
         /// <summary>
-        /// Constructor call.
-        /// </summary>
-        /// <param name="method"></param>
-        public override void Newobj(Method method)
-        {
-
-        }
-
-        /// <summary>
         /// Regular instruction; <see cref="System.Reflection.Emit.OpCodes.Call"/>
         /// </summary>
         /// <param name="method">callee</param>
         public override void Call(Method method)
         {
-            trace.Add("Method Call: " + method.FullName);
+            this.Trace.Add("Method Call: " + method.FullName);
             if ((method.FullName.Contains("Microsoft.PSharp.Machine.CreateMachine") ||
                 method.FullName.Contains("Microsoft.PSharp.PSharpRuntime.CreateMachine")) &&
-                !callStack.Peek().FullName.Contains(".Main"))
+                !this.CallStack.Peek().FullName.Contains(".Main"))
             {
                 isCreateMachine = true;
-                trace.Add("call: " + method + " " + isCreateMachine);
+                this.Trace.Add("call: " + method + " " + isCreateMachine);
             }
 
             else if (method.FullName.Equals("Microsoft.PSharp.Machine.Do"))
             {
                 isDoCalled = true;
-                trace.Add("do called");
+                this.Trace.Add("do called");
             }
 
             else if (method.FullName.Equals("Microsoft.PSharp.Machine.ExecuteCurrentStateOnEntry"))
@@ -468,10 +290,10 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
 
             else if ((method.FullName.Equals("Microsoft.PSharp.Machine.Send") ||
                 method.FullName.Equals("Microsoft.PSharp.PSharpRuntime.SendEvent")) &&
-                !callStack.Peek().FullName.Contains(".Main"))
+                !this.CallStack.Peek().FullName.Contains(".Main"))
             {
-                trace.Add("send: " + method.FullName);
-                ThreadTrace obj = thTrace[thTrace.Count - 1];
+                this.Trace.Add("send: " + method.FullName);
+                ThreadTrace obj = this.ThreadTrace[this.ThreadTrace.Count - 1];
 
                 if (sendIds.ContainsKey(currentMachineId))
                 {
@@ -497,7 +319,7 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
                     //race.Add("call result object: " + isCreateMachine + " " + r.GetHashCode().Tostring());
                     isCreateMachine = false;
 
-                    ThreadTrace obj = thTrace[thTrace.Count - 1];
+                    ThreadTrace obj = this.ThreadTrace[this.ThreadTrace.Count - 1];
                     obj.accesses.Add(new ActionInstr(r.GetHashCode(), true));
                 }
             }
@@ -506,12 +328,12 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
                 try
                 {
                     Task tid = (Task)value;
-                    trace.Add("Task created: " + tid.Id);
+                    this.Trace.Add("Task created: " + tid.Id);
                     if(taskMethods.Count > 0)
                     {
                         Method m = taskMethods[taskMethods.Count - 1].Item1;
                         taskMethods[taskMethods.Count - 1] = new Tuple<Method, int>(m, tid.Id);
-                        ThreadTrace obj = thTrace[thTrace.Count - 1];
+                        ThreadTrace obj = this.ThreadTrace[this.ThreadTrace.Count - 1];
                         obj.accesses.Add(new ActionInstr(true, tid.Id));
                     }
                 }
@@ -530,7 +352,7 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
                 {
                     //Console.WriteLine("iteration changed for {0} from {1} to {2}", threadIndex, localIter, Environment.GetEnvironmentVariable("ITERATION"));
 
-                    if (thTrace.Count > 0 && !localIter.Equals("-1"))
+                    if (this.ThreadTrace.Count > 0 && !localIter.Equals("-1"))
                     {
                         string path = Environment.GetEnvironmentVariable("DIRPATH") + "InstrTrace" + localIter + "\\";  //thTrace_" + threadIndex + ".osl";
                         if (!Directory.Exists(path))
@@ -544,7 +366,7 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
 
                         try
                         {
-                            bformatter.Serialize(stream, thTrace);
+                            bformatter.Serialize(stream, this.ThreadTrace);
                         }
                         catch (Exception ex)
                         {
@@ -553,7 +375,7 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
                         stream.Close();
                     }
 
-                    thTrace = new List<ThreadTrace>();
+                    this.ThreadTrace = new List<ThreadTrace>();
                     localIter = Environment.GetEnvironmentVariable("ITERATION");
                     if(cleared != Int32.Parse(localIter))
                     {
@@ -569,7 +391,7 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
 
                 this.currentMachineId = mcID;
 
-                trace.Add("call receiver: " + mc.GetType() + " " + mcID);
+                this.Trace.Add("call receiver: " + mc.GetType() + " " + mcID);
 
                 isDoCalled = false;
                 isEntryFuntionCalled = false;
@@ -581,16 +403,16 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
                 if (actionIds.ContainsKey(mcID))
                 {
                     actionIds[mcID]++;
-                    trace.Add("action id: " + actionIds[mcID]);
+                    this.Trace.Add("action id: " + actionIds[mcID]);
                 }
                 else
                 {
                     actionIds.Add(mcID, 1);
-                    trace.Add("action id: 1");
+                    this.Trace.Add("action id: 1");
                 }
 
                 obj.set(actionIds[mcID]);
-                thTrace.Add(obj);
+                this.ThreadTrace.Add(obj);
             }
         }
 
@@ -600,32 +422,11 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
         /// <param name="method">callee before vtable lookup</param>
         public override void Callvirt(Method method)
         {
-            trace.Add("Virtual call: " + method.FullName);
+            this.Trace.Add("Virtual call: " + method.FullName);
             if (method.FullName.Contains("System.Threading.Tasks.Task.Start"))
             {
-                taskMethods.Add(new Tuple<Method, int>(callStack.Peek(), -1));
+                taskMethods.Add(new Tuple<Method, int>(this.CallStack.Peek(), -1));
             }
-        }
-
-        /// <summary>
-        /// This method is called after <see cref="Callvirt"/> to indicate the 
-        /// actual type of the receiver object.
-        /// </summary>
-        /// <remarks>
-        /// This method is only called when the receiver was not null,
-        /// and an exception is thrown otherwise.
-        /// When the receiver is a boxed value, 
-        /// <paramref name="type"/> is the value type.
-        /// When a constrained call is performed, 
-        /// the type is the type pointed to by the receiver pointer.
-        /// When the receiver is a remote object, <paramref name="type"/>
-        /// might not be a class but an interface.
-        /// </remarks>
-        /// <param name="codeLabel">code label</param>
-        /// <param name="type">actual receiver type</param>
-        public override void CallvirtType(TypeEx type, int codeLabel)
-        {
-
         }
 
         public string GetSourceLocation(UIntPtr location)
