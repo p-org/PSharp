@@ -69,11 +69,10 @@ namespace Microsoft.PSharp.TestingServices
         /// Creates a new P# bug-finding engine.
         /// </summary>
         /// <param name="configuration">Configuration</param>
-        /// <param name="assemblyName">Assembly name</param>
         /// <returns>BugFindingEngine</returns>
-        internal static BugFindingEngine Create(Configuration configuration, string assemblyName)
+        internal static BugFindingEngine Create(Configuration configuration)
         {
-            return new BugFindingEngine(configuration, assemblyName);
+            return new BugFindingEngine(configuration);
         }
 
         /// <summary>
@@ -123,9 +122,8 @@ namespace Microsoft.PSharp.TestingServices
         /// Constructor.
         /// </summary>
         /// <param name="configuration">Configuration</param>
-        /// <param name="action">Action</param>
-        private BugFindingEngine(Configuration configuration, Action<PSharpRuntime> action)
-            : base(configuration, action)
+        private BugFindingEngine(Configuration configuration)
+            : base(configuration)
         {
             this.Initialize();
         }
@@ -145,9 +143,9 @@ namespace Microsoft.PSharp.TestingServices
         /// Constructor.
         /// </summary>
         /// <param name="configuration">Configuration</param>
-        /// <param name="assemblyName">Assembly name</param>
-        private BugFindingEngine(Configuration configuration, string assemblyName)
-            : base(configuration, assemblyName)
+        /// <param name="action">Action</param>
+        private BugFindingEngine(Configuration configuration, Action<PSharpRuntime> action)
+            : base(configuration, action)
         {
             this.Initialize();
         }

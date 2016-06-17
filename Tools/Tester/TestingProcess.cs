@@ -49,7 +49,9 @@ namespace Microsoft.PSharp
         public void Start()
         {
             IO.PrintLine(". Testing " + this.Configuration.AssemblyToBeAnalyzed);
-            this.TestAssembly(this.Configuration.AssemblyToBeAnalyzed);
+
+            // Creates and runs the P# testing engine to find bugs in the P# program.
+            TestingEngineFactory.CreateBugFindingEngine(this.Configuration).Run();
         }
 
         #endregion
@@ -63,16 +65,6 @@ namespace Microsoft.PSharp
         private TestingProcess(Configuration configuration)
         {
             this.Configuration = configuration;
-        }
-        
-        /// <summary>
-        /// Tests the given P# assembly.
-        /// </summary>
-        /// <param name="dll">Assembly</param>
-        private void TestAssembly(string dll)
-        {
-            // Creates and runs the P# testing engine to find bugs in the P# program.
-            TestingEngineFactory.CreateBugFindingEngine(this.Configuration, dll).Run();
         }
 
         #endregion

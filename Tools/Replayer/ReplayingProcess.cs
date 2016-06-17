@@ -49,7 +49,9 @@ namespace Microsoft.PSharp
         public void Start()
         {
             IO.PrintLine(". Reproducing trace in " + this.Configuration.AssemblyToBeAnalyzed);
-            this.TestAssembly(this.Configuration.AssemblyToBeAnalyzed);
+
+            // Creates and runs the P# replay engine to reproduce a bug.
+            TestingEngineFactory.CreateReplayEngine(this.Configuration).Run();
         }
 
         #endregion
@@ -64,16 +66,6 @@ namespace Microsoft.PSharp
         {
             configuration.SchedulingStrategy = SchedulingStrategy.Replay;
             this.Configuration = configuration;
-        }
-        
-        /// <summary>
-        /// Tests the given P# assembly.
-        /// </summary>
-        /// <param name="dll">Assembly</param>
-        private void TestAssembly(string dll)
-        {
-            // Creates and runs the P# replay engine to reproduce a bug.
-            TestingEngineFactory.CreateReplayEngine(this.Configuration, dll).Run();
         }
 
         #endregion

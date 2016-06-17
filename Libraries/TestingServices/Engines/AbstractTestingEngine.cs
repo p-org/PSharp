@@ -126,12 +126,23 @@ namespace Microsoft.PSharp.TestingServices
         /// Constructor.
         /// </summary>
         /// <param name="configuration">Configuration</param>
-        /// <param name="action">Action</param>
-        protected AbstractTestingEngine(Configuration configuration, Action<PSharpRuntime> action)
+        protected AbstractTestingEngine(Configuration configuration)
         {
             this.Profiler = new Profiler();
             this.Configuration = configuration;
-            this.TestAction = action;
+
+            try
+            {
+                this.Assembly = Assembly.LoadFrom(configuration.AssemblyToBeAnalyzed);
+            }
+            catch (FileNotFoundException ex)
+            {
+                ErrorReporter.ReportAndExit(ex.Message);
+            }
+
+            this.FindEntryPoint();
+            this.TestInitMethod = FindTestMethod(typeof(TestInit));
+            this.TestDisposeMethod = FindTestMethod(typeof(TestDispose));
             this.Initialize();
         }
 
@@ -155,24 +166,12 @@ namespace Microsoft.PSharp.TestingServices
         /// Constructor.
         /// </summary>
         /// <param name="configuration">Configuration</param>
-        /// <param name="assemblyName">Assembly name</param>
-        protected AbstractTestingEngine(Configuration configuration, string assemblyName)
+        /// <param name="action">Action</param>
+        protected AbstractTestingEngine(Configuration configuration, Action<PSharpRuntime> action)
         {
             this.Profiler = new Profiler();
             this.Configuration = configuration;
-
-            try
-            {
-                this.Assembly = Assembly.LoadFrom(assemblyName);
-            }
-            catch (FileNotFoundException ex)
-            {
-                ErrorReporter.ReportAndExit(ex.Message);
-            }
-
-            this.FindEntryPoint();
-            this.TestInitMethod = FindTestMethod(typeof(TestInit));
-            this.TestDisposeMethod = FindTestMethod(typeof(TestDispose));
+            this.TestAction = action;
             this.Initialize();
         }
 
@@ -497,9 +496,8 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>Path</returns>
         protected string GetRuntimeTracesDirectory()
         {
-            string directoryPath = this.GetOutputDirectory();
-            return directoryPath + Path.DirectorySeparatorChar + "RuntimeTraces" +
-                Path.DirectorySeparatorChar;
+            return this.GetOutputDirectory() + Path.DirectorySeparatorChar +
+                "RuntimeTraces" + Path.DirectorySeparatorChar;
         }
 
         /// <summary>

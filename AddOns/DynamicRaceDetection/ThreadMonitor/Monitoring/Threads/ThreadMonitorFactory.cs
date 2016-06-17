@@ -18,27 +18,57 @@ using Microsoft.ExtendedReflection.Monitoring;
 
 using Microsoft.PSharp.Monitoring.AllCallbacks;
 using Microsoft.PSharp.Monitoring.ComponentModel;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.Monitoring.CallsOnly
 {
     /// <summary>
     /// Multiplexes calls to all registered call monitors.
     /// </summary>
-    internal sealed class ThreadMonitorFactory
-        : ThreadMonitorBase
-        , IThreadMonitorFactory
+    internal sealed class ThreadMonitorFactory : ThreadMonitorBase, IThreadMonitorFactory
     {
-        private readonly ThreadMonitorCollection monitors = new ThreadMonitorCollection();
+        #region fields
 
+        /// <summary>
+        /// The P# configuration.
+        /// </summary>
+        private Configuration Configuration;
+
+        /// <summary>
+        /// Thread monitors.
+        /// </summary>
+        private readonly ThreadMonitorCollection ThreadMonitors;
+
+        /// <summary>
+        /// Thread monitors.
+        /// </summary>
         public ThreadMonitorCollection Monitors
         {
-            get { return this.monitors; }
+            get
+            {
+                return this.ThreadMonitors;
+            }
         }
+
+        #endregion
+
+        #region constructors
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        public ThreadMonitorFactory(ICopComponent host) : base(host) { }
+        /// <param name="host">ICopComponent</param>
+        /// <param name="configuration">Configuration</param>
+        public ThreadMonitorFactory(ICopComponent host, Configuration configuration)
+            : base(host)
+        {
+            this.Configuration = configuration;
+            this.ThreadMonitors = new ThreadMonitorCollection();
+        }
+
+        #endregion
+
+        #region methods
 
         public override Exception Load(UIntPtr location, uint size, bool @volatile)
         {
@@ -146,7 +176,6 @@ namespace Microsoft.PSharp.Monitoring.CallsOnly
                     "unexpected error occurred");
             }
             
-            // Print summaries
             try
             {
                 foreach (IThreadMonitor callMonitor in this.Monitors)
@@ -164,7 +193,14 @@ namespace Microsoft.PSharp.Monitoring.CallsOnly
             }
         }
 
-        bool IThreadMonitorFactory.TryCreateThreadMonitor(int threadID, out IThreadExecutionMonitor monitor)
+        /// <summary>
+        /// Tries to create a new thread monitor.
+        /// </summary>
+        /// <param name="threadID">ThreadId</param>
+        /// <param name="monitor">IThreadExecutionMonitor</param>
+        /// <returns>Boolean</returns>
+        bool IThreadMonitorFactory.TryCreateThreadMonitor(int threadID,
+            out IThreadExecutionMonitor monitor)
         {
             if (this.Monitors.Count == 0)
             {
@@ -174,11 +210,11 @@ namespace Microsoft.PSharp.Monitoring.CallsOnly
             else
             {
                 monitor = new ThreadExecutionMonitorDispatcher(
-                    this.Host.Log,
-                    threadID,
-                    this);
+                    this.Host.Log, threadID, this, this.Configuration);
                 return true;
             }
         }
+
+        #endregion
     }
 }

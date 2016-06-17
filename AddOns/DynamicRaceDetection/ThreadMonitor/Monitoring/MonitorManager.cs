@@ -19,39 +19,70 @@ using Microsoft.ExtendedReflection.Utilities.Safe.Diagnostics;
 
 using Microsoft.PSharp.Monitoring.ComponentModel;
 using Microsoft.PSharp.Monitoring.CallsOnly;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.Monitoring
 {
     /// <summary>
     /// Manager of registered monitors
     /// </summary>
-    internal class MonitorManager
-        : CopComponentBase
-        , IMonitorManager
-        , IExecutionMonitor
+    internal class MonitorManager : CopComponentBase, IMonitorManager, IExecutionMonitor
     {
+        #region fields
+
         /// <summary>
-        /// (Calls-only)
+        /// The P# configuration.
+        /// </summary>
+        private Configuration Configuration;
+
+        /// <summary>
+        /// Calls-only.
         /// </summary>
         internal ThreadMonitorManager ThreadMonitorManager
         {
             get { return this.GetService<ThreadMonitorManager>(); }
         }
 
-        private ThreadMonitorFactory threadMonitorFactory;
+        /// <summary>
+        /// The thread monitor factory.
+        /// </summary>
+        private ThreadMonitorFactory MonitorFactory;
+
+        /// <summary>
+        /// The thread monitor factory.
+        /// </summary>
         internal ThreadMonitorFactory ThreadMonitorFactory
         {
             get
             {
-                if (this.threadMonitorFactory == null)
+                if (this.MonitorFactory == null)
                 {
-                    this.threadMonitorFactory = new ThreadMonitorFactory(this.ThreadMonitorManager);
-                    this.ThreadMonitorManager.AddMonitorFactory(this.threadMonitorFactory);
+                    this.MonitorFactory = new ThreadMonitorFactory(
+                        this.ThreadMonitorManager, this.Configuration);
+                    this.ThreadMonitorManager.AddMonitorFactory(this.MonitorFactory);
                 }
 
-                return this.threadMonitorFactory;
+                return this.MonitorFactory;
             }
         }
+
+        #endregion
+
+        #region constructors
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="configuration">Configuration</param>
+        public MonitorManager(Configuration configuration)
+            : base()
+        {
+            this.Configuration = configuration;
+        }
+
+        #endregion
+
+        #region methods
 
         /// <summary>
         /// Clears the execution monitors monitor.
@@ -143,6 +174,8 @@ namespace Microsoft.PSharp.Monitoring
         {
             this.ThreadMonitorManager.DestroyThread(index);
         }
+
+        #endregion
 
         #region Injection (disabled)
 

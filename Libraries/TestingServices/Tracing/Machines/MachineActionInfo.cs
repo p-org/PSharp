@@ -39,17 +39,26 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Machines
         /// <summary>
         /// The machine id.
         /// </summary>
-        public MachineId MachineId { get; private set; }
+        [DataMember]
+        public int MachineId { get; private set; }
 
         /// <summary>
         /// The send target machine id.
         /// </summary>
-        public MachineId TargetMachineId { get; private set; }
+        [DataMember]
+        public int TargetMachineId { get; private set; }
 
         /// <summary>
         /// The send event.
         /// </summary>
-        public Event Event { get; private set; }
+        [DataMember]
+        public string EventName { get; private set; }
+
+        /// <summary>
+        /// The send event.
+        /// </summary>
+        [DataMember]
+        public int EventId { get; private set; }
 
         /// <summary>
         /// The send id.
@@ -101,9 +110,10 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Machines
             actionInfo.Index = index;
             actionInfo.Type = MachineActionType.SendAction;
 
-            actionInfo.MachineId = mid;
-            actionInfo.TargetMachineId = targetMachineId;
-            actionInfo.Event = e;
+            actionInfo.MachineId = mid.Value;
+            actionInfo.TargetMachineId = targetMachineId.Value;
+            actionInfo.EventName = e.GetType().FullName;
+            actionInfo.EventId = e.GetHashCode();
             actionInfo.SendId = sendId;
 
             actionInfo.Previous = null;
@@ -128,7 +138,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Machines
             actionInfo.Index = index;
             actionInfo.Type = MachineActionType.InvocationAction;
 
-            actionInfo.MachineId = mid;
+            actionInfo.MachineId = mid.Value;
             actionInfo.Action = action;
             actionInfo.ActionId = actionId;
 

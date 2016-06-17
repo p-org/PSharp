@@ -19,45 +19,106 @@ using Microsoft.ExtendedReflection.Collections;
 using Microsoft.ExtendedReflection.Utilities.Safe.Diagnostics;
 
 using Microsoft.PSharp.Monitoring.ComponentModel;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.Monitoring
 {
+    /// <summary>
+    /// Class implementing a thread monitor manager.
+    /// </summary>
     internal sealed class ThreadMonitorManager : CopComponentBase, IInternalService
     {
-        private readonly SafeList<IThreadMonitorFactory> monitorFactories = new SafeList<IThreadMonitorFactory>();
+        #region fields
 
+        /// <summary>
+        /// The P# configuration.
+        /// </summary>
+        private Configuration Configuration;
+
+        /// <summary>
+        /// The monitor factories.
+        /// </summary>
+        private readonly SafeList<IThreadMonitorFactory> MonitorFactories;
+
+        /// <summary>
+        /// The thread execution monitors.
+        /// </summary>
+        private readonly SafeList<ThreadExecutionMonitorMultiplexer> ThreadExecutionMonitors;
+
+        /// <summary>
+        /// The destroyed execution monitor ids.
+        /// </summary>
+        private readonly SafeQueue<int> DestroyedExecutionMonitorIds;
+
+        /// <summary>
+        /// Collection of execution monitors.
+        /// </summary>
+        public IEnumerable<ThreadExecutionMonitorMultiplexer> ExecutionMonitors
+        {
+            get { return this.ThreadExecutionMonitors; }
+        }
+
+        #endregion
+
+        #region constructors
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="configuration">Configuration</param>
+        public ThreadMonitorManager(Configuration configuration)
+            : base()
+        {
+            this.Configuration = configuration;
+            this.MonitorFactories = new SafeList<IThreadMonitorFactory>();
+            this.ThreadExecutionMonitors = new SafeList<ThreadExecutionMonitorMultiplexer>();
+            this.DestroyedExecutionMonitorIds = new SafeQueue<int>();
+        }
+
+        #endregion
+
+        #region methods
+
+        /// <summary>
+        /// Adds the monitor to the specified factory.
+        /// </summary>
+        /// <param name="monitorFactory">IThreadMonitorFactory</param>
         public void AddMonitorFactory(IThreadMonitorFactory monitorFactory)
         {
             SafeDebug.AssumeNotNull(monitorFactory, "monitorFactory");
-            this.monitorFactories.Add(monitorFactory);
+            this.MonitorFactories.Add(monitorFactory);
         }
 
-        private readonly SafeList<ThreadExecutionMonitorMultiplexer> executionMonitors = new SafeList<ThreadExecutionMonitorMultiplexer>();
-        private readonly SafeQueue<int> destroyedExecutionMonitorIds = new SafeQueue<int>();
-        public IEnumerable<ThreadExecutionMonitorMultiplexer> ExecutionMonitors
-        {
-            get { return this.executionMonitors; }
-        }
-
+        /// <summary>
+        /// Gets the thread with the specified id.
+        /// </summary>
+        /// <param name="threadID"></param>
+        /// <returns></returns>
         public IThreadExecutionMonitor GetThread(int threadID)
         {
-            return this.executionMonitors[threadID];
+            return this.ThreadExecutionMonitors[threadID];
         }
 
+        /// <summary>
+        /// Creates a thread.
+        /// </summary>
+        /// <returns>ThreadId</returns>
         public int CreateThread()
         {
             int threadId;
-            if (!this.destroyedExecutionMonitorIds.TryDequeue(out threadId))
+            if (!this.DestroyedExecutionMonitorIds.TryDequeue(out threadId))
             {
-                threadId = this.executionMonitors.Count;
-                this.executionMonitors.Add(null);
+                threadId = this.ThreadExecutionMonitors.Count;
+                this.ThreadExecutionMonitors.Add(null);
             }
 
-            SafeDebug.Assert(this.executionMonitors[threadId] == null, "this.destroyedExecutionMonitorIds[threadId] == null");
+            SafeDebug.Assert(this.ThreadExecutionMonitors[threadId] == null,
+                "this.destroyedExecutionMonitorIds[threadId] == null");
 
-            SafeList<IThreadExecutionMonitor> childExecutionMonitors = new SafeList<IThreadExecutionMonitor>(2); // all callbacks
+            SafeList<IThreadExecutionMonitor> childExecutionMonitors =
+                new SafeList<IThreadExecutionMonitor>(2); // all callbacks
 
-            foreach (var monitorFactory in this.monitorFactories)
+            foreach (var monitorFactory in this.MonitorFactories)
             {
                 IThreadExecutionMonitor monitor;
                 if (monitorFactory.TryCreateThreadMonitor(threadId, out monitor))
@@ -66,20 +127,27 @@ namespace Microsoft.PSharp.Monitoring
                 }
             }
 
-            this.executionMonitors[threadId] =
+            this.ThreadExecutionMonitors[threadId] =
                 new ThreadExecutionMonitorMultiplexer(childExecutionMonitors);
 
             return threadId;
         }
 
+        /// <summary>
+        /// Destroys the specified thread.
+        /// </summary>
+        /// <param name="index">Index</param>
         public void DestroyThread(int index)
         {
-            SafeDebug.Assert(this.executionMonitors[index] != null, "this.executionMonitors[index] != null");
-            IThreadExecutionMonitor m = this.executionMonitors[index];
+            SafeDebug.Assert(this.ThreadExecutionMonitors[index] != null,
+                "this.executionMonitors[index] != null");
+            IThreadExecutionMonitor m = this.ThreadExecutionMonitors[index];
             m.Destroy();
-            this.destroyedExecutionMonitorIds.Enqueue(index);
-            this.executionMonitors[index] = null;
+            this.DestroyedExecutionMonitorIds.Enqueue(index);
+            this.ThreadExecutionMonitors[index] = null;
         }
+
+        #endregion
     }
 }
 

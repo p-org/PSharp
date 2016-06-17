@@ -90,7 +90,7 @@ namespace Microsoft.PSharp.Monitoring
             resolver.Attach();
 
             var engine = new RemoteRaceInstrumentationEngine();
-            engine.Execute(this.Configuration, dll);
+            engine.Execute(this.Configuration);
         }
         
         #endregion

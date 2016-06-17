@@ -76,7 +76,6 @@
     <Compile Include="Monitoring\IMonitorManager.cs" />
     <Compile Include="Monitoring\Threads\IThreadMonitor.cs" />
     <Compile Include="Monitoring\MonitorManager.cs" />
-    <Compile Include="Library\EntryPoint.cs" />
     <Compile Include="Monitoring\Objects\ObjectAccessHandler.cs" />
     <Compile Include="Monitoring\Objects\ObjectAccessThreadMonitor.cs" />
     <Compile Include="Program.cs" />

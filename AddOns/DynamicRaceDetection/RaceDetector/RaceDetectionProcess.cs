@@ -19,6 +19,7 @@ using System.Reflection;
 
 using Microsoft.ExtendedReflection.Monitoring;
 
+using Microsoft.PSharp.DynamicRaceDetection;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp
@@ -83,20 +84,6 @@ namespace Microsoft.PSharp
             string[] includedAssemblies = new string[referencedAssemblies.Count];
             referencedAssemblies.CopyTo(includedAssemblies, 0);
 
-            //var newArgs = args.ToList();
-            //newArgs.Remove("/race-detection");
-            //newArgs.Add("/race-detection-no-monitorable-process");
-
-            //this.Configuration.DirectoryPath = ".\\";
-            //IEnumerable<string> dirNames = Directory.EnumerateDirectories(this.Configuration.DirectoryPath);
-            //foreach (string item in dirNames)
-            //{
-            //    if (item.Contains("InstrTrace"))
-            //    {
-            //        Directory.Delete(this.Configuration.DirectoryPath + item, true);
-            //    }
-            //}
-
             // Starts profiling the access monitor.
             if (this.Configuration.EnableProfiling)
             {
@@ -151,7 +138,7 @@ namespace Microsoft.PSharp
                 this.Profiler.StartMeasuringExecutionTime();
             }
 
-            //OfflineRaces.Program.findRaces();
+            new OfflineRaces(this.Configuration).findRaces();
 
             // Stops profiling the race detection.
             if (this.Configuration.EnableProfiling)

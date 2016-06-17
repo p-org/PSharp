@@ -26,18 +26,26 @@ using Microsoft.ExtendedReflection.Monitoring;
 using Microsoft.ExtendedReflection.Utilities.Safe.Diagnostics;
 
 using Microsoft.PSharp.Monitoring.CallsOnly;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.Monitoring.AllCallbacks
 {
     /// <summary>
-    /// Ignores all callbacks, except method/constructor calls and corresponding returns.
+    /// Ignores all callbacks, except method/constructor
+    /// calls and corresponding returns.
     /// </summary>
     internal class ThreadExecutionMonitorDispatcher : ThreadExecutionMonitorEmpty
     {
-        // one of these per thread!
-        private readonly int threadIndex;
-        private readonly IThreadMonitor callMonitor;
-        private readonly IEventLog log;
+        #region fields
+
+        /// <summary>
+        /// The P# configuration.
+        /// </summary>
+        private Configuration Configuration;
+
+        private readonly int ThreadIndex;
+        private readonly IThreadMonitor CallMonitor;
+        private readonly IEventLog Log;
 
         private SafeList<string> trace = new SafeList<string>();
         private List<ThreadTrace> thTrace = new List<ThreadTrace>();
@@ -52,15 +60,14 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
         private int currentMachineId;
         private bool isCreateMachine = false;
 
-        //private string localIter = "-1";
-
         private static Dictionary<int, int> actionIds = new Dictionary<int, int>();
         private static Dictionary<int, int> sendIds = new Dictionary<int, int>();
-        //static int cleared = -1;
-
-        //async await tasks
+        
         private static List<Tuple<Method, int>> taskMethods = new List<Tuple<Method, int>>();
-        //end async await tasks
+
+        #endregion
+
+        #region constructors and destructors
 
         /// <summary>
         /// Constructor.
@@ -68,47 +75,68 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
         /// <param name="log">IEventLog</param>
         /// <param name="threadIndex">Thread index</param>
         /// <param name="callMonitor">IThreadMonitor</param>
-        public ThreadExecutionMonitorDispatcher(IEventLog log, int threadIndex, IThreadMonitor callMonitor)
+        /// <param name="configuration">Configuration</param>
+        public ThreadExecutionMonitorDispatcher(IEventLog log, int threadIndex,
+            IThreadMonitor callMonitor, Configuration configuration)
             : base(threadIndex)
         {
             SafeDebug.AssertNotNull(callMonitor, "callMonitor");
 
-            this.log = log;
-            this.threadIndex = threadIndex;
-            this.callMonitor = callMonitor;
+            this.Log = log;
+            this.ThreadIndex = threadIndex;
+            this.CallMonitor = callMonitor;
+            this.Configuration = configuration;
             
             trace = new SafeList<string>();
             callStack = new SafeStack<Method>();
         }
 
+        /// <summary>
+        /// Destructor.
+        /// </summary>
         ~ThreadExecutionMonitorDispatcher()
         {
             if (thTrace.Count > 0)
             {
-                //string env = Environment.GetEnvironmentVariable("ITERATION");
-                //string path = Environment.GetEnvironmentVariable("DIRPATH") + "InstrTrace" + env + "\\";
-                //string path = "D:\\Psharp\\Binaries\\Debug\\";
+                string directoryPath = Path.GetDirectoryName(this.Configuration.AssemblyToBeAnalyzed) +
+                    Path.DirectorySeparatorChar + "Output";
+                string traceDirectoryPath = directoryPath + Path.DirectorySeparatorChar +
+                    "ThreadTraces" + Path.DirectorySeparatorChar;
+                Directory.CreateDirectory(traceDirectoryPath);
 
-                string path = "C:\\Users\\t-padeli\\workspace\\PSharp\\Samples\\PSharpAsLibrary\\Binaries\\Debug\\traces\\race_traces_0\\thTrace_" + threadIndex + ".osl";
-                Console.WriteLine("TEST: " + path);
-                Stream stream = File.Open(path, FileMode.Create);
-                BinaryFormatter bformatter = new BinaryFormatter();
+                var name = Path.GetFileNameWithoutExtension(this.Configuration.AssemblyToBeAnalyzed);
+                int iteration = Directory.GetFiles(traceDirectoryPath, name +
+                    "iteration_*_tid_" + ThreadIndex + ".osl").Length;
 
-                try
+                Console.WriteLine(">>>>>>>>>" + iteration);
+
+                string path = traceDirectoryPath + name + "_iteration_" +
+                    iteration + "_tid_" + ThreadIndex + ".osl";
+
+                using (Stream stream = File.Open(path, FileMode.Create))
                 {
-                    bformatter.Serialize(stream, thTrace);
+                    BinaryFormatter bformatter = new BinaryFormatter();
+
+                    try
+                    {
+                        bformatter.Serialize(stream, thTrace);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("EXCEPTION: " + ex);
+                    }
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("EXCEPTION: " + ex);
-                }
-                stream.Close();
             }
         }
 
-        [System.Diagnostics.Conditional("DEBUG")]
+        #endregion
+
+        #region methods
+
+        [Conditional("DEBUG")]
         protected void Trace(string arg)
         {
+
         }
 
         /// <summary>
@@ -642,6 +670,7 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
 
             return ret;
         }
+
+        #endregion
     }
 }
-

@@ -20,12 +20,13 @@ using Microsoft.ExtendedReflection.Symbols;
 using Microsoft.ExtendedReflection.ComponentModel;
 
 using Microsoft.PSharp.Monitoring.CallsOnly;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.Monitoring
 {
     /// <summary>
     /// Race instrumentation engine.
-    /// </remarks>
+    /// </summary>
     internal sealed class RaceInstrumentationEngine : Engine
     {
         private static RaceInstrumentationEngine SingletonEngine;
@@ -39,8 +40,11 @@ namespace Microsoft.PSharp.Monitoring
         /// <summary>
         /// Initializes a new instance of the race instrumentation engine.
         /// </summary>
-        public RaceInstrumentationEngine()
-            : base(new Container(), new EngineOptions(), new MonitorManager(), new ThreadMonitorManager())
+        /// <param name="configuration">Configuration</param>
+        public RaceInstrumentationEngine(Configuration configuration)
+            : base(new Container(), new EngineOptions(),
+                  new MonitorManager(configuration),
+                  new ThreadMonitorManager(configuration))
         {
             if (RaceInstrumentationEngine.SingletonEngine != null)
             {
@@ -60,9 +64,7 @@ namespace Microsoft.PSharp.Monitoring
             }
 
             ((IMonitorManager)this.GetService<MonitorManager>()).RegisterThreadMonitor(
-               new ThreadMonitorFactory(
-                   (ThreadMonitorManager)this.GetService<ThreadMonitorManager>()
-                   ));
+               new ThreadMonitorFactory(this.GetService<ThreadMonitorManager>(), configuration));
 
             ((IMonitorManager)this.GetService<MonitorManager>()).RegisterObjectAccessThreadMonitor();
 
@@ -89,7 +91,7 @@ namespace Microsoft.PSharp.Monitoring
 
         private IExecutionMonitor ExecutionMonitor
         {
-            get { return (IExecutionMonitor)this.GetService<MonitorManager>(); }
+            get { return this.GetService<MonitorManager>(); }
         }
 
         private sealed class StackFrameFilter : IStackFrameFilter

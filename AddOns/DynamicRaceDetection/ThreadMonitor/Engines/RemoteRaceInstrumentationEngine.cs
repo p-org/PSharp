@@ -46,18 +46,18 @@ namespace Microsoft.PSharp.Monitoring
         #region public methods
 
         /// <summary>
-        /// Executes the entry point of the specified P# assembly.
+        /// Invokes the P# testing engine.
         /// </summary>
         /// <param name="configuration">Configuration</param>
-        /// <param name="dll">Assembly</param>
-        public void Execute(Configuration configuration, string dll)
+        public void Execute(Configuration configuration)
         {
-            var assembly = Assembly.LoadFrom(dll);
-            new RaceInstrumentationEngine();
+            var assembly = Assembly.LoadFrom(configuration.AssemblyToBeAnalyzed);
+            new RaceInstrumentationEngine(configuration);
 
             this.TryLoadReferencedAssemblies(new[] { assembly });
+            
             // Creates and runs the P# testing engine to find bugs in the P# program.
-            TestingEngineFactory.CreateBugFindingEngine(configuration, dll).Run();
+            TestingEngineFactory.CreateBugFindingEngine(configuration).Run();
         }
 
         public override object InitializeLifetimeService()
