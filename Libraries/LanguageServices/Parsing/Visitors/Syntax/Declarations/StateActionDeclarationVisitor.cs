@@ -14,6 +14,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 using Microsoft.PSharp.LanguageServices.Syntax;
 
@@ -57,50 +59,168 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 });
             }
 
-            var eventIdentifiers = new List<Token>();
+            var eventIdentifiers = new List<List<Token>>();
+            eventIdentifiers.Add(new List<Token>());
 
-            bool expectsComma = false;
+            int genericCount = 0;
             while (!base.TokenStream.Done &&
                 base.TokenStream.Peek().Type != TokenType.DoAction &&
                 base.TokenStream.Peek().Type != TokenType.GotoState &&
                 base.TokenStream.Peek().Type != TokenType.PushState)
             {
-                if ((!expectsComma &&
-                    base.TokenStream.Peek().Type != TokenType.Identifier &&
+                if (base.TokenStream.Peek().Type != TokenType.Identifier &&
+                    base.TokenStream.Peek().Type != TokenType.Dot &&
+                    base.TokenStream.Peek().Type != TokenType.Comma &&
+                    base.TokenStream.Peek().Type != TokenType.LeftAngleBracket &&
+                    base.TokenStream.Peek().Type != TokenType.RightAngleBracket &&
+                    base.TokenStream.Peek().Type != TokenType.Object &&
+                    base.TokenStream.Peek().Type != TokenType.String &&
+                    base.TokenStream.Peek().Type != TokenType.Sbyte &&
+                    base.TokenStream.Peek().Type != TokenType.Byte &&
+                    base.TokenStream.Peek().Type != TokenType.Short &&
+                    base.TokenStream.Peek().Type != TokenType.Ushort &&
+                    base.TokenStream.Peek().Type != TokenType.Int &&
+                    base.TokenStream.Peek().Type != TokenType.Uint &&
+                    base.TokenStream.Peek().Type != TokenType.Long &&
+                    base.TokenStream.Peek().Type != TokenType.Ulong &&
+                    base.TokenStream.Peek().Type != TokenType.Char &&
+                    base.TokenStream.Peek().Type != TokenType.Bool &&
+                    base.TokenStream.Peek().Type != TokenType.Decimal &&
+                    base.TokenStream.Peek().Type != TokenType.Float &&
+                    base.TokenStream.Peek().Type != TokenType.Double &&
                     base.TokenStream.Peek().Type != TokenType.HaltEvent &&
-                    base.TokenStream.Peek().Type != TokenType.DefaultEvent) ||
-                    (expectsComma && base.TokenStream.Peek().Type != TokenType.Comma))
+                    base.TokenStream.Peek().Type != TokenType.DefaultEvent)
                 {
                     break;
                 }
 
-                if (base.TokenStream.Peek().Type == TokenType.Identifier ||
+                if (genericCount == 0 &&
+                    base.TokenStream.Peek().Type == TokenType.Comma)
+                {
+                    if (eventIdentifiers.Last().Count == 0)
+                    {
+                        throw new ParsingException("Expected event identifier.",
+                            new List<TokenType>
+                            {
+                                TokenType.Identifier,
+                                TokenType.HaltEvent,
+                                TokenType.DefaultEvent
+                            });
+                    }
+
+                    eventIdentifiers.Add(new List<Token>());
+                }
+                else if (base.TokenStream.Peek().Type == TokenType.LeftAngleBracket)
+                {
+                    if (eventIdentifiers.Last().Count == 0)
+                    {
+                        throw new ParsingException("Expected event identifier.",
+                            new List<TokenType>
+                            {
+                                TokenType.Identifier,
+                                TokenType.HaltEvent,
+                                TokenType.DefaultEvent
+                            });
+                    }
+
+                    eventIdentifiers.Last().Add(base.TokenStream.Peek());
+                    genericCount++;
+                }
+                else if (base.TokenStream.Peek().Type == TokenType.RightAngleBracket)
+                {
+                    if (eventIdentifiers.Last().Count == 0)
+                    {
+                        throw new ParsingException("Expected event identifier.",
+                            new List<TokenType>
+                            {
+                                TokenType.Identifier,
+                                TokenType.HaltEvent,
+                                TokenType.DefaultEvent
+                            });
+                    }
+
+                    if (genericCount == 0)
+                    {
+                        throw new ParsingException("Invalid generic expression.",
+                            new List<TokenType>
+                            {
+                                TokenType.Identifier
+                            });
+                    }
+
+                    eventIdentifiers.Last().Add(base.TokenStream.Peek());
+                    genericCount--;
+                }
+                else if (base.TokenStream.Peek().Type == TokenType.Dot ||
+                    base.TokenStream.Peek().Type == TokenType.Comma)
+                {
+                    if (eventIdentifiers.Last().Count == 0)
+                    {
+                        throw new ParsingException("Expected event identifier.",
+                            new List<TokenType>
+                            {
+                                TokenType.Identifier,
+                                TokenType.HaltEvent,
+                                TokenType.DefaultEvent
+                            });
+                    }
+
+                    eventIdentifiers.Last().Add(base.TokenStream.Peek());
+                }
+                else if (base.TokenStream.Peek().Type == TokenType.Identifier)
+                {
+                    base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit,
+                        TokenType.EventIdentifier));
+                    eventIdentifiers.Last().Add(base.TokenStream.Peek());
+                }
+                else if (base.TokenStream.Peek().Type == TokenType.Object ||
+                    base.TokenStream.Peek().Type == TokenType.String ||
+                    base.TokenStream.Peek().Type == TokenType.Sbyte ||
+                    base.TokenStream.Peek().Type == TokenType.Byte ||
+                    base.TokenStream.Peek().Type == TokenType.Short ||
+                    base.TokenStream.Peek().Type == TokenType.Ushort ||
+                    base.TokenStream.Peek().Type == TokenType.Int ||
+                    base.TokenStream.Peek().Type == TokenType.Uint ||
+                    base.TokenStream.Peek().Type == TokenType.Long ||
+                    base.TokenStream.Peek().Type == TokenType.Ulong ||
+                    base.TokenStream.Peek().Type == TokenType.Char ||
+                    base.TokenStream.Peek().Type == TokenType.Bool ||
+                    base.TokenStream.Peek().Type == TokenType.Decimal ||
+                    base.TokenStream.Peek().Type == TokenType.Float ||
+                    base.TokenStream.Peek().Type == TokenType.Double ||
                     base.TokenStream.Peek().Type == TokenType.HaltEvent ||
                     base.TokenStream.Peek().Type == TokenType.DefaultEvent)
                 {
-                    if (base.TokenStream.Peek().Type == TokenType.Identifier)
-                    {
-                        base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit,
-                            TokenType.EventIdentifier));
-                    }
-
-                    eventIdentifiers.Add(base.TokenStream.Peek());
-
-                    base.TokenStream.Index++;
-                    base.TokenStream.SkipWhiteSpaceAndCommentTokens();
-
-                    expectsComma = true;
+                    eventIdentifiers.Last().Add(base.TokenStream.Peek());
                 }
-                else if (base.TokenStream.Peek().Type == TokenType.Comma)
+
+                if (eventIdentifiers.Last().Count > 0 &&
+                    eventIdentifiers.Last().Any(token => token.Type == TokenType.HaltEvent ||
+                    token.Type == TokenType.DefaultEvent))
                 {
-                    base.TokenStream.Index++;
-                    base.TokenStream.SkipWhiteSpaceAndCommentTokens();
-
-                    expectsComma = false;
+                    throw new ParsingException("Special events 'halt' and 'default' cannot be generic.",
+                        new List<TokenType>
+                        {
+                            TokenType.Identifier
+                        });
                 }
+
+                base.TokenStream.Index++;
+                base.TokenStream.SkipWhiteSpaceAndCommentTokens();
             }
 
-            if (!expectsComma)
+            if (genericCount > 0)
+            {
+                throw new ParsingException("Invalid generic expression.",
+                    new List<TokenType>
+                {
+                    TokenType.Identifier,
+                    TokenType.HaltEvent,
+                    TokenType.DefaultEvent
+                });
+            }
+
+            if (eventIdentifiers.Last().Count == 0)
             {
                 throw new ParsingException("Expected event identifier.",
                     new List<TokenType>
@@ -125,6 +245,21 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 });
             }
 
+            var resolvedEventIdentifiers = new Dictionary<Token, List<Token>>();
+            foreach (var eventIdentifier in eventIdentifiers)
+            {
+                StringBuilder identifierBuilder = new StringBuilder();
+                foreach (var token in eventIdentifier)
+                {
+                    identifierBuilder.Append(token.TextUnit.Text);
+                }
+
+                TextUnit textUnit = new TextUnit(identifierBuilder.ToString(),
+                    eventIdentifier[0].TextUnit.Line);
+                resolvedEventIdentifiers.Add(new Token(textUnit, TokenType.EventIdentifier),
+                    eventIdentifier);
+            }
+
             if (base.TokenStream.Peek().Type == TokenType.DoAction)
             {
                 base.TokenStream.Index++;
@@ -147,9 +282,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         parentNode.Machine, null);
                     new BlockSyntaxVisitor(base.TokenStream).Visit(blockNode);
 
-                    foreach (var eventIdentifier in eventIdentifiers)
+                    foreach (var kvp in resolvedEventIdentifiers)
                     {
-                        if (!parentNode.AddActionBinding(eventIdentifier, blockNode))
+                        if (!parentNode.AddActionBinding(kvp.Key, kvp.Value, blockNode))
                         {
                             throw new ParsingException("Unexpected action handler.",
                                 new List<TokenType>());
@@ -162,9 +297,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     TokenType.ActionIdentifier));
 
                     var actionIdentifier = base.TokenStream.Peek();
-                    foreach (var eventIdentifier in eventIdentifiers)
+                    foreach (var kvp in resolvedEventIdentifiers)
                     {
-                        if (!parentNode.AddActionBinding(eventIdentifier, actionIdentifier))
+                        if (!parentNode.AddActionBinding(kvp.Key, kvp.Value, actionIdentifier))
                         {
                             throw new ParsingException("Unexpected action handler.",
                                 new List<TokenType>());
@@ -218,9 +353,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     var blockNode = new BlockSyntax(base.TokenStream.Program, parentNode.Machine, null);
                     new BlockSyntaxVisitor(base.TokenStream).Visit(blockNode);
 
-                    foreach (var eventIdentifier in eventIdentifiers)
+                    foreach (var kvp in resolvedEventIdentifiers)
                     {
-                        if (!parentNode.AddGotoStateTransition(eventIdentifier, stateIdentifiers, blockNode))
+                        if (!parentNode.AddGotoStateTransition(kvp.Key, kvp.Value, stateIdentifiers, blockNode))
                         {
                             throw new ParsingException("Unexpected goto state transition.",
                                 new List<TokenType>());
@@ -229,9 +364,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                 }
                 else
                 {
-                    foreach (var eventIdentifier in eventIdentifiers)
+                    foreach (var kvp in resolvedEventIdentifiers)
                     {
-                        if (!parentNode.AddGotoStateTransition(eventIdentifier, stateIdentifiers))
+                        if (!parentNode.AddGotoStateTransition(kvp.Key, kvp.Value, stateIdentifiers))
                         {
                             throw new ParsingException("Unexpected goto state transition.",
                                 new List<TokenType>());
@@ -259,9 +394,9 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     });
                 }
 
-                foreach (var eventIdentifier in eventIdentifiers)
+                foreach (var kvp in resolvedEventIdentifiers)
                 {
-                    if (!parentNode.AddPushStateTransition(eventIdentifier, stateIdentifiers))
+                    if (!parentNode.AddPushStateTransition(kvp.Key, kvp.Value, stateIdentifiers))
                     {
                         throw new ParsingException("Unexpected push state transition.",
                             new List<TokenType>());

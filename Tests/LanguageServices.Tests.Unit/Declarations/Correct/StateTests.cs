@@ -288,6 +288,131 @@ class S1 : MachineState
         }
 
         [TestMethod, Timeout(10000)]
+        public void TestOnSimpleGenericEventGotoStateDeclaration()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+start state S1
+{
+on e<int> goto S2;
+}
+}
+}";
+
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
+
+            var expected = @"
+using Microsoft.PSharp;
+namespace Foo
+{
+class M : Machine
+{
+[Microsoft.PSharp.Start]
+[OnEventGotoState(typeof(e<int>), typeof(S2))]
+class S1 : MachineState
+{
+}
+}
+}";
+
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
+                syntaxTree.ToString().Replace("\n", string.Empty));
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestOnComplexGenericEventGotoStateDeclaration()
+        {
+            var test = @"
+using System.Collection.Generic;
+namespace Foo {
+machine M {
+start state S1
+{
+on e<List<Tuple<bool, object>>, Dictionary<string, float>> goto S2;
+}
+}
+}";
+
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
+
+            var expected = @"
+using Microsoft.PSharp;
+using System.Collection.Generic;
+namespace Foo
+{
+class M : Machine
+{
+[Microsoft.PSharp.Start]
+[OnEventGotoState(typeof(e<List<Tuple<bool,object>>,Dictionary<string,float>>), typeof(S2))]
+class S1 : MachineState
+{
+}
+}
+}";
+
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
+                syntaxTree.ToString().Replace("\n", string.Empty));
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestOnQualifiedEventGotoStateDeclaration()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+start state S1
+{
+on Foo.e goto S2;
+}
+}
+}";
+
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
+
+            var expected = @"
+using Microsoft.PSharp;
+namespace Foo
+{
+class M : Machine
+{
+[Microsoft.PSharp.Start]
+[OnEventGotoState(typeof(Foo.e), typeof(S2))]
+class S1 : MachineState
+{
+}
+}
+}";
+
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
+                syntaxTree.ToString().Replace("\n", string.Empty));
+        }
+
+        [TestMethod, Timeout(10000)]
         public void TestOnEventGotoStateDeclarationWithBody()
         {
             var test = @"
@@ -405,6 +530,131 @@ class M : Machine
 [Microsoft.PSharp.Start]
 [OnEventDoAction(typeof(e1), nameof(Bar))]
 [OnEventDoAction(typeof(e2), nameof(Baz))]
+class S1 : MachineState
+{
+}
+}
+}";
+
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
+                syntaxTree.ToString().Replace("\n", string.Empty));
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestOnSimpleGenericEventDoActionDeclaration()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+start state S1
+{
+on e<int> do Bar;
+}
+}
+}";
+
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
+
+            var expected = @"
+using Microsoft.PSharp;
+namespace Foo
+{
+class M : Machine
+{
+[Microsoft.PSharp.Start]
+[OnEventDoAction(typeof(e<int>), nameof(Bar))]
+class S1 : MachineState
+{
+}
+}
+}";
+
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
+                syntaxTree.ToString().Replace("\n", string.Empty));
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestOnComplexGenericEventDoActionDeclaration()
+        {
+            var test = @"
+using System.Collection.Generic;
+namespace Foo {
+machine M {
+start state S1
+{
+on e<List<Tuple<bool, object>>, Dictionary<string, float>> do Bar;
+}
+}
+}";
+
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
+
+            var expected = @"
+using Microsoft.PSharp;
+using System.Collection.Generic;
+namespace Foo
+{
+class M : Machine
+{
+[Microsoft.PSharp.Start]
+[OnEventDoAction(typeof(e<List<Tuple<bool,object>>,Dictionary<string,float>>), nameof(Bar))]
+class S1 : MachineState
+{
+}
+}
+}";
+
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
+                syntaxTree.ToString().Replace("\n", string.Empty));
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestOnQualifiedEventDoActionDeclaration()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+start state S1
+{
+on Foo.e do Bar;
+}
+}
+}";
+
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
+
+            var expected = @"
+using Microsoft.PSharp;
+namespace Foo
+{
+class M : Machine
+{
+[Microsoft.PSharp.Start]
+[OnEventDoAction(typeof(Foo.e), nameof(Bar))]
 class S1 : MachineState
 {
 }

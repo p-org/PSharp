@@ -100,6 +100,56 @@ entry Bar {}
         }
 
         [TestMethod, Timeout(10000)]
+        public void TestOnEventGotoStateDeclarationWithoutEvent()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+start state S1
+{
+on goto S2
+}
+}
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("Expected event identifier.",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestOnEventGotoStateDeclarationWithCommaError()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+start state S1
+{
+on e, goto S2
+}
+}
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("Expected event identifier.",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
         public void TestOnEventGotoStateDeclarationWithoutSemicolon()
         {
             var test = @"
@@ -150,6 +200,131 @@ on e goto;
         }
 
         [TestMethod, Timeout(10000)]
+        public void TestOnEventGotoStateDeclarationWithGenericError1()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+start state S1
+{
+on <> goto S2;
+}
+}
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("Expected event identifier.",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestOnEventGotoStateDeclarationWithGenericError2()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+start state S1
+{
+on e> goto S2;
+}
+}
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("Invalid generic expression.",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestOnEventGotoStateDeclarationWithGenericError3()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+start state S1
+{
+on e<List<int>>> goto S2;
+}
+}
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("Invalid generic expression.",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestOnEventDoActionDeclarationWithoutEvent()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+start state S1
+{
+on do Bar
+}
+}
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("Expected event identifier.",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestOnEventDoActionDeclarationWithCommaError()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+start state S1
+{
+on e, do Bar
+}
+}
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("Expected event identifier.",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
         public void TestOnEventDoActionDeclarationWithoutSemicolon()
         {
             var test = @"
@@ -196,6 +371,81 @@ on e do;
             var program = parser.ParseTokens(tokens);
 
             Assert.AreEqual("Expected action identifier.",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestOnEventDoActionDeclarationWithGenericError1()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+start state S1
+{
+on <> do Bar;
+}
+}
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("Expected event identifier.",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestOnEventDoActionDeclarationWithGenericError2()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+start state S1
+{
+on e> do Bar;
+}
+}
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("Invalid generic expression.",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestOnEventDoActionDeclarationWithGenericError3()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+start state S1
+{
+on e<List<int>>> do Bar;
+}
+}
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("Invalid generic expression.",
                 parser.GetParsingErrorLog());
         }
 
