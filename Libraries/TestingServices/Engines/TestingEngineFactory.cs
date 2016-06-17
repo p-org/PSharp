@@ -43,7 +43,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="configuration">Configuration</param>
         /// <param name="assembly">Assembly</param>
         /// <returns>BugFindingEngine</returns>
-        internal static ITestingEngine CreateBugFindingEngine(Configuration configuration, Assembly assembly)
+        public static ITestingEngine CreateBugFindingEngine(Configuration configuration, Assembly assembly)
         {
             return BugFindingEngine.Create(configuration, assembly);
         }
@@ -54,7 +54,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="configuration">Configuration</param>
         /// <param name="assemblyName">Assembly name</param>
         /// <returns>BugFindingEngine</returns>
-        internal static ITestingEngine CreateBugFindingEngine(Configuration configuration, string assemblyName)
+        public static ITestingEngine CreateBugFindingEngine(Configuration configuration, string assemblyName)
         {
             return BugFindingEngine.Create(configuration, assemblyName);
         }
@@ -76,7 +76,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="configuration">Configuration</param>
         /// <param name="assembly">Assembly</param>
         /// <returns>BugFindingEngine</returns>
-        internal static ITestingEngine CreateReplayEngine(Configuration configuration, Assembly assembly)
+        public static ITestingEngine CreateReplayEngine(Configuration configuration, Assembly assembly)
         {
             return ReplayEngine.Create(configuration, assembly);
         }
@@ -87,7 +87,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="configuration">Configuration</param>
         /// <param name="assemblyName">Assembly name</param>
         /// <returns>BugFindingEngine</returns>
-        internal static ITestingEngine CreateReplayEngine(Configuration configuration, string assemblyName)
+        public static ITestingEngine CreateReplayEngine(Configuration configuration, string assemblyName)
         {
             return ReplayEngine.Create(configuration, assemblyName);
         }

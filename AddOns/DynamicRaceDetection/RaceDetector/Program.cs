@@ -32,7 +32,7 @@ namespace Microsoft.PSharp
             var configuration = new RaceDetectorCommandLineOptions(args).Parse();
 
             // Creates and starts a dynamic race detection process.
-            RaceDetectionProcess.Create(configuration).Start();
+            RaceDetectionProcess.Create(configuration).Start(args);
 
             IO.PrintLine(". Done");
         }

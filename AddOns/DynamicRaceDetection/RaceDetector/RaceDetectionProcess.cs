@@ -18,7 +18,6 @@ using System.Diagnostics;
 using System.Reflection;
 
 using Microsoft.ExtendedReflection.Monitoring;
-using Microsoft.ExtendedReflection.Utilities.Safe;
 
 using Microsoft.PSharp.Utilities;
 
@@ -56,34 +55,13 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Starts the P# testing process.
+        /// Starts the P# dynamic race detection process.
         /// </summary>
-        public void Start()
+        /// <param name="args">Arguments</param>
+        public void Start(string[] args)
         {
-            IO.PrintLine(". Testing " + this.Configuration.AssemblyToBeAnalyzed);
-            this.MonitorAssembly(this.Configuration.AssemblyToBeAnalyzed);
-        }
+            IO.PrintLine(". Monitoring " + this.Configuration.AssemblyToBeAnalyzed);
 
-        #endregion
-
-        #region private methods
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="configuration">Configuration</param>
-        private RaceDetectionProcess(Configuration configuration)
-        {
-            this.Profiler = new Profiler();
-            this.Configuration = configuration;
-        }
-        
-        /// <summary>
-        /// Monitor the given P# assembly.
-        /// </summary>
-        /// <param name="dll">Assembly</param>
-        private void MonitorAssembly(string dll)
-        {
             StringCollection referencedAssemblies = new StringCollection();
             string input = this.Configuration.AssemblyToBeAnalyzed;
 
@@ -108,7 +86,7 @@ namespace Microsoft.PSharp
             //var newArgs = args.ToList();
             //newArgs.Remove("/race-detection");
             //newArgs.Add("/race-detection-no-monitorable-process");
-            
+
             //this.Configuration.DirectoryPath = ".\\";
             //IEnumerable<string> dirNames = Directory.EnumerateDirectories(this.Configuration.DirectoryPath);
             //foreach (string item in dirNames)
@@ -129,7 +107,7 @@ namespace Microsoft.PSharp
 
             ProcessStartInfo info = ControllerSetUp.GetMonitorableProcessStartInfo(
                 AppDomain.CurrentDomain.BaseDirectory + "\\PSharpThreadMonitor.exe",
-                new String[] { WrapString(input) }, // arguments
+                args, // arguments
                 MonitorInstrumentationFlags.All, // monitor flags
                 true, // track gc accesses
 
@@ -144,9 +122,7 @@ namespace Microsoft.PSharp
                 includedAssemblies,
                 null, //assembliesToExcludeMonitor to exclude monitor
 
-                null,
-                null, null, null,
-                null, null,
+                null, null, null, null, null, null,
 
                 null, // clrmonitor log file name
                 false, // clrmonitor  log verbose
@@ -154,10 +130,7 @@ namespace Microsoft.PSharp
                 true, // protect all cctors
                 false, // disable mscrolib suppressions
                 ProfilerInteraction.Fail, // profiler interaction
-                null, "", ""
-                );
-
-            IO.PrintLine(". Starts monitorable testing process");
+                null, "", "");
 
             var process = new Process();
             process.StartInfo = info;
@@ -189,21 +162,18 @@ namespace Microsoft.PSharp
             }
         }
 
+        #endregion
+
+        #region private methods
+
         /// <summary>
-        /// Wraps the given string.
+        /// Constructor.
         /// </summary>
-        /// <param name="text">Text</param>
-        /// <returns></returns>
-        private string WrapString(string text)
+        /// <param name="configuration">Configuration</param>
+        private RaceDetectionProcess(Configuration configuration)
         {
-            if (text == null)
-            {
-                return text;
-            }
-            else
-            {
-                return SafeString.IndexOf(text, ' ') != -1 ? "\"" + text.TrimEnd('\\') + "\"" : text;
-            }
+            this.Profiler = new Profiler();
+            this.Configuration = configuration;
         }
 
         #endregion

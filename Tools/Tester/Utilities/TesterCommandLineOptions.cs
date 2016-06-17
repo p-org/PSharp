@@ -300,11 +300,6 @@ namespace Microsoft.PSharp.Utilities
             help += "\n  /max-steps:[x] Max scheduling steps to be explored ('10000' by default)";
             help += "\n  /sch-seed:[x]\t Choose a scheduling seed (signed 32-bit integer)";
 
-            help += "\n\n ----------------------------";
-            help += "\n Data race detection options:";
-            help += "\n ----------------------------";
-            help += "\n  /detect-races\t Enable data-race detection";
-
             help += "\n\n ---------------------";
             help += "\n Experimental options:";
             help += "\n ---------------------";

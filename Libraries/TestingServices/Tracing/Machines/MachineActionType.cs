@@ -12,21 +12,26 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System.Runtime.Serialization;
+
 namespace Microsoft.PSharp.TestingServices.Tracing.Machines
 {
     /// <summary>
     /// The machine action type.
     /// </summary>
+    [DataContract]
     public enum MachineActionType
     {
         /// <summary>
         /// An event sending action.
         /// </summary>
+        [EnumMember(Value = "SendAction")]
         SendAction = 0,
 
         /// <summary>
         /// An invocation action.
         /// </summary>
+        [EnumMember(Value = "InvocationAction")]
         InvocationAction
     }
 }

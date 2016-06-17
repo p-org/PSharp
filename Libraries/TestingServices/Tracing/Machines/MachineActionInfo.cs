@@ -13,13 +13,14 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Runtime.Serialization;
 
 namespace Microsoft.PSharp.TestingServices.Tracing.Machines
 {
     /// <summary>
     /// Class implementing a P# machine action info.
     /// </summary>
-    [Serializable]
+    [DataContract(IsReference = true)]
     public class MachineActionInfo
     {
         #region fields
@@ -32,6 +33,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Machines
         /// <summary>
         /// The type of this action info.
         /// </summary>
+        [DataMember]
         public MachineActionType Type { get; private set; }
 
         /// <summary>
@@ -52,6 +54,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Machines
         /// <summary>
         /// The send id.
         /// </summary>
+        [DataMember]
         public int SendId { get; private set; }
 
         /// <summary>
@@ -62,16 +65,19 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Machines
         /// <summary>
         /// The action id.
         /// </summary>
+        [DataMember]
         public int ActionId { get; private set; }
 
         /// <summary>
         /// Previous action info.
         /// </summary>
+        [DataMember]
         internal MachineActionInfo Previous;
 
         /// <summary>
         /// Next action info.
         /// </summary>
+        [DataMember]
         internal MachineActionInfo Next;
 
         #endregion

@@ -276,6 +276,11 @@ namespace Microsoft.PSharp.TestingServices
                 visualizationTask = this.StartVisualizing();
             }
 
+            if (this.Configuration.EnableDataRaceDetection)
+            {
+                this.CreateRuntimeTracesDirectory();
+            }
+
             this.Profiler.StartMeasuringExecutionTime();
             task.Start();
 
@@ -325,6 +330,12 @@ namespace Microsoft.PSharp.TestingServices
             finally
             {
                 this.Profiler.StopMeasuringExecutionTime();
+
+                if (!this.Configuration.KeepTemporaryFiles &&
+                    this.Assembly != null)
+                {
+                    this.CleanTemporaryFiles();
+                }
             }
         }
 
@@ -337,18 +348,6 @@ namespace Microsoft.PSharp.TestingServices
         {
             Task visualizationTask = this.Visualizer.StartAsync();
             return visualizationTask;
-        }
-
-        /// <summary>
-        /// Returns the traces directory.
-        /// </summary>
-        /// <returns>Path</returns>
-        protected string GetTracesDirectory()
-        {
-            string directoryPath = Path.GetDirectoryName(this.Assembly.Location) +
-                Path.DirectorySeparatorChar + "traces" + Path.DirectorySeparatorChar;
-            Directory.CreateDirectory(directoryPath);
-            return directoryPath;
         }
 
         #endregion
@@ -466,9 +465,50 @@ namespace Microsoft.PSharp.TestingServices
         private void InitializeVisualizer()
         {
             var name = Path.GetFileNameWithoutExtension(this.Assembly.Location);
-            var directoryPath = this.GetTracesDirectory();
+            var directoryPath = this.GetOutputDirectory();
             var graphFile = directoryPath + name + ".dgml";
             this.Visualizer = new PSharpDgmlVisualizer(graphFile);
+        }
+
+        /// <summary>
+        /// Returns the output directory.
+        /// </summary>
+        /// <returns>Path</returns>
+        protected string GetOutputDirectory()
+        {
+            string directoryPath = Path.GetDirectoryName(this.Assembly.Location) +
+                Path.DirectorySeparatorChar + "Output" + Path.DirectorySeparatorChar;
+            Directory.CreateDirectory(directoryPath);
+            return directoryPath;
+        }
+
+        /// <summary>
+        /// Creates the runtime traces directory.
+        /// </summary>
+        protected void CreateRuntimeTracesDirectory()
+        {
+            string directoryPath = this.GetRuntimeTracesDirectory();
+            Directory.CreateDirectory(directoryPath);
+        }
+
+        /// <summary>
+        /// Returns the runtime traces directory.
+        /// </summary>
+        /// <returns>Path</returns>
+        protected string GetRuntimeTracesDirectory()
+        {
+            string directoryPath = this.GetOutputDirectory();
+            return directoryPath + Path.DirectorySeparatorChar + "RuntimeTraces" +
+                Path.DirectorySeparatorChar;
+        }
+
+        /// <summary>
+        /// Cleans the temporary files.
+        /// </summary>
+        protected void CleanTemporaryFiles()
+        {
+            string directoryPath = this.GetRuntimeTracesDirectory();
+            Directory.Delete(directoryPath, true);
         }
 
         /// <summary>

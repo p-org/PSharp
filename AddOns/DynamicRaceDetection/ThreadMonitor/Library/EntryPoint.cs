@@ -20,13 +20,6 @@ using Microsoft.ExtendedReflection.Monitoring;
 
 namespace Microsoft.PSharp.Monitoring
 {
-    public static class InvokeArgs
-    {
-        public static PSharpRuntime runtime;
-        public static Action<PSharpRuntime> TestAction;
-        public static MethodInfo TestMethod;
-    }
-
     class EntryPoint
     {
         public EntryPoint(Assembly assembly)

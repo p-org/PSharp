@@ -49,7 +49,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// A map from unique machine ids to action traces.
         /// </summary>
-        private IDictionary<MachineId, MachineActionTrace> MachineActionTraceMap;
+        internal IDictionary<MachineId, MachineActionTrace> MachineActionTraceMap;
 
         /// <summary>
         /// The P# task scheduler.

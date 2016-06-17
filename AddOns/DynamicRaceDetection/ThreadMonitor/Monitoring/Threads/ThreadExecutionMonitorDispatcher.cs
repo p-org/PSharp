@@ -32,20 +32,17 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
     /// <summary>
     /// Ignores all callbacks, except method/constructor calls and corresponding returns.
     /// </summary>
-    /// <remarks>
-    /// Cheap brother of InstructionInterpreter.
-    /// </remarks>
     internal class ThreadExecutionMonitorDispatcher : ThreadExecutionMonitorEmpty
     {
         // one of these per thread!
-        readonly int threadIndex;
-        readonly IThreadMonitor callMonitor;
-        readonly IEventLog log;
+        private readonly int threadIndex;
+        private readonly IThreadMonitor callMonitor;
+        private readonly IEventLog log;
 
-        SafeList<string> trace = new SafeList<string>();
-        List<ThreadTrace> thTrace = new List<ThreadTrace>();
+        private SafeList<string> trace = new SafeList<string>();
+        private List<ThreadTrace> thTrace = new List<ThreadTrace>();
 
-        SafeStack<Method> callStack;
+        private SafeStack<Method> callStack;
         private bool isDoCalled = false;
         private bool isEntryFuntionCalled = false;
         private bool isExitFuntionCalled = false;
@@ -57,17 +54,20 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
 
         //private string localIter = "-1";
 
-        static Dictionary<int, int> actionIds = new Dictionary<int, int>();
-        static Dictionary<int, int> sendIds = new Dictionary<int, int>();
+        private static Dictionary<int, int> actionIds = new Dictionary<int, int>();
+        private static Dictionary<int, int> sendIds = new Dictionary<int, int>();
         //static int cleared = -1;
 
         //async await tasks
-        static List<Tuple<Method, int>> taskMethods = new List<Tuple<Method, int>>();
+        private static List<Tuple<Method, int>> taskMethods = new List<Tuple<Method, int>>();
         //end async await tasks
 
         /// <summary>
-        /// Constructor
+        /// Constructor.
         /// </summary>
+        /// <param name="log">IEventLog</param>
+        /// <param name="threadIndex">Thread index</param>
+        /// <param name="callMonitor">IThreadMonitor</param>
         public ThreadExecutionMonitorDispatcher(IEventLog log, int threadIndex, IThreadMonitor callMonitor)
             : base(threadIndex)
         {
@@ -76,40 +76,21 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
             this.log = log;
             this.threadIndex = threadIndex;
             this.callMonitor = callMonitor;
-
-            //myTrace = new Trace.MyTrace();
+            
             trace = new SafeList<string>();
             callStack = new SafeStack<Method>();
         }
 
         ~ThreadExecutionMonitorDispatcher()
         {
-            /*Console.WriteLine("\nDestructor called " + threadIndex);
-            foreach (var item in trace)
-            {
-                Console.WriteLine(item);
-            }
-            foreach (var item in thTrace)
-            {
-                Console.WriteLine("check: " + item.machineID + " " + item.actionName + " " + item.actionID);
-                Console.WriteLine("memory accesses");
-                foreach(var it in item.accesses)
-                {
-                    if (it.isSend)
-                        Console.WriteLine("send");
-                    else
-                        Console.WriteLine(it.location + " " + " " + it.objectHash + " " + it.write);
-                }
-            }*/
-
             if (thTrace.Count > 0)
             {
-                string env = Environment.GetEnvironmentVariable("ITERATION");
-                string path = Environment.GetEnvironmentVariable("DIRPATH") + "InstrTrace" + env + "\\";
+                //string env = Environment.GetEnvironmentVariable("ITERATION");
+                //string path = Environment.GetEnvironmentVariable("DIRPATH") + "InstrTrace" + env + "\\";
                 //string path = "D:\\Psharp\\Binaries\\Debug\\";
 
-                path += "thTrace_" + threadIndex + ".osl";
-
+                string path = "C:\\Users\\t-padeli\\workspace\\PSharp\\Samples\\PSharpAsLibrary\\Binaries\\Debug\\traces\\race_traces_0\\thTrace_" + threadIndex + ".osl";
+                Console.WriteLine("TEST: " + path);
                 Stream stream = File.Open(path, FileMode.Create);
                 BinaryFormatter bformatter = new BinaryFormatter();
 

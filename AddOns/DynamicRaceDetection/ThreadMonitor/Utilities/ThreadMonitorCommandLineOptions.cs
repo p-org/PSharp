@@ -42,10 +42,6 @@ namespace Microsoft.PSharp.Utilities
             {
                 base.Configuration.AssemblyToBeAnalyzed = option.Substring(6);
             }
-            else if (option.ToLower().Equals("/interactive"))
-            {
-                base.Configuration.SchedulingStrategy = SchedulingStrategy.Interactive;
-            }
             else if (option.ToLower().StartsWith("/sch:"))
             {
                 string scheduler = option.ToLower().Substring(5);
@@ -158,13 +154,9 @@ namespace Microsoft.PSharp.Utilities
             {
                 base.Configuration.PerformFullExploration = true;
             }
-            else if (option.ToLower().Equals("/visualize"))
+            else if (option.ToLower().Equals("/keep-temp"))
             {
-                base.Configuration.EnableVisualization = true;
-            }
-            else if (option.ToLower().Equals("/detect-races"))
-            {
-                base.Configuration.EnableDataRaceDetection = true;
+                base.Configuration.KeepTemporaryFiles = true;
             }
             else if (option.ToLower().StartsWith("/sch-seed:") && option.Length > 10)
             {
@@ -202,10 +194,6 @@ namespace Microsoft.PSharp.Utilities
                 }
 
                 base.Configuration.SafetyPrefixBound = i;
-            }
-            else if (option.ToLower().Equals("/print-trace"))
-            {
-                base.Configuration.PrintTrace = true;
             }
             else if (option.ToLower().Equals("/tpl"))
             {
@@ -299,11 +287,6 @@ namespace Microsoft.PSharp.Utilities
             help += "\n  /sch:[x]\t Choose a systematic testing strategy ('random' by default)";
             help += "\n  /max-steps:[x] Max scheduling steps to be explored ('10000' by default)";
             help += "\n  /sch-seed:[x]\t Choose a scheduling seed (signed 32-bit integer)";
-
-            help += "\n\n ----------------------------";
-            help += "\n Data race detection options:";
-            help += "\n ----------------------------";
-            help += "\n  /detect-races\t Enable data-race detection";
 
             help += "\n\n ---------------------";
             help += "\n Experimental options:";

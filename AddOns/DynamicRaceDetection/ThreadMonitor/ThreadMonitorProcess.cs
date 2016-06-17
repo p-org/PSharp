@@ -12,7 +12,12 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Microsoft.PSharp.TestingServices;
+using System;
+using System.IO;
+using System.Reflection;
+
+using Microsoft.ExtendedReflection.Utilities;
+
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.Monitoring
@@ -63,32 +68,29 @@ namespace Microsoft.PSharp.Monitoring
         private ThreadMonitorProcess(Configuration configuration)
         {
             this.Configuration = configuration;
+            configuration.EnableDataRaceDetection = true;
         }
-        
+
         /// <summary>
-        /// Monitors the given P# assembly.
+        /// Monitors the specified P# assembly.
         /// </summary>
         /// <param name="dll">Assembly</param>
         private void MonitorAssembly(string dll)
         {
-            // Creates and runs the P# testing engine to find bugs in the P# program.
-            //TestingEngineFactory.CreateBugFindingEngine(this.Configuration, dll).Run();
+            var path = Assembly.GetAssembly(typeof(Program)).Location;
+            var assembly = Assembly.LoadFrom(dll);
 
-            System.Console.WriteLine("reached " + dll);
+            string[] searchDirectories = new[]{
+                Path.GetDirectoryName(path),
+                Path.GetDirectoryName(assembly.Location),
+            };
 
-            //var path = Assembly.GetAssembly(typeof(Program)).Location;
-            //var assembly = Assembly.LoadFrom(executable);
+            var resolver = new AssemblyResolver();
+            Array.ForEach(searchDirectories, d => resolver.AddSearchDirectory(d));
+            resolver.Attach();
 
-            //string[] searchDirectories = new[]{
-            //    Path.GetDirectoryName(path),
-            //    Path.GetDirectoryName(assembly.Location),
-            //};
-
-            //var resolver = new AssemblyResolver();
-            //Array.ForEach(searchDirectories, d => resolver.AddSearchDirectory(d));
-            //resolver.Attach();
-            //var engine = new RemoteRaceInstrumentationEngine();
-            //engine.Execute(executable, args);
+            var engine = new RemoteRaceInstrumentationEngine();
+            engine.Execute(this.Configuration, dll);
         }
         
         #endregion

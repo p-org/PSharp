@@ -15,6 +15,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 namespace Microsoft.PSharp.TestingServices.Tracing.Machines
 {
@@ -23,6 +24,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Machines
     /// trace. It includes all actions that the
     /// machine performs during its execution.
     /// </summary>
+    [DataContract]
     public sealed class MachineActionTrace : IEnumerable, IEnumerable<MachineActionInfo>
     {
         #region fields
@@ -35,6 +37,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Machines
         /// <summary>
         /// The action infos of the trace.
         /// </summary>
+        [DataMember]
         private List<MachineActionInfo> ActionInfos;
 
         /// <summary>

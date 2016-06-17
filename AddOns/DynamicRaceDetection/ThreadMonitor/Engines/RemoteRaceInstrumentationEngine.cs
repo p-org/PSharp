@@ -15,31 +15,109 @@
 using System;
 using System.Reflection;
 
+using Microsoft.ExtendedReflection.Collections;
+
+using Microsoft.PSharp.TestingServices;
+using Microsoft.PSharp.Utilities;
+
 namespace Microsoft.PSharp.Monitoring
 {
     [Serializable]
     internal class RemoteRaceInstrumentationEngine : MarshalByRefObject
     {
+        #region fields
+
+        private static SafeDictionary<string, Assembly> Assemblies;
+
+        #endregion
+
+        #region constructors
+
+        /// <summary>
+        /// Static constructor.
+        /// </summary>
+        static RemoteRaceInstrumentationEngine()
+        {
+            RemoteRaceInstrumentationEngine.Assemblies = new SafeDictionary<string, Assembly>();
+        }
+
+        #endregion
+
+        #region public methods
+
+        /// <summary>
+        /// Executes the entry point of the specified P# assembly.
+        /// </summary>
+        /// <param name="configuration">Configuration</param>
+        /// <param name="dll">Assembly</param>
+        public void Execute(Configuration configuration, string dll)
+        {
+            var assembly = Assembly.LoadFrom(dll);
+            new RaceInstrumentationEngine();
+
+            this.TryLoadReferencedAssemblies(new[] { assembly });
+            // Creates and runs the P# testing engine to find bugs in the P# program.
+            TestingEngineFactory.CreateBugFindingEngine(configuration, dll).Run();
+        }
+
         public override object InitializeLifetimeService()
         {
             return null;
         }
 
-        public void Execute(string executable, string[] args)
-        {
-            try
-            {
-                var assembly = Assembly.LoadFrom(executable);
-                new RaceInstrumentationEngine();
+        #endregion
 
-                new EntryPoint(assembly);
-                //Environment.Exit(0);
-            }
-            catch (Exception e)
+        #region private methods
+
+        /// <summary>
+        /// Tries to load the referenced assemblies.
+        /// </summary>
+        /// <param name="inputAssemblies">Assemblies</param>
+        private void TryLoadReferencedAssemblies(Assembly[] inputAssemblies)
+        {
+            var ws = new SafeDictionary<string, Assembly>();
+            
+            foreach (Assembly a in inputAssemblies)
             {
-                Console.WriteLine(e.Message);
-                //Environment.Exit(-1);
+                if (a == null)
+                {
+                    continue;
+                }
+
+                // recursively load all the assemblies reachables from the root!
+                if (!RemoteRaceInstrumentationEngine.Assemblies.ContainsKey(
+                    a.GetName().FullName) && !ws.ContainsKey(a.GetName().FullName))
+                {
+                    ws.Add(a.GetName().FullName, a);
+                }
+
+                while (ws.Count > 0)
+                {
+                    var en = ws.Keys.GetEnumerator();
+                    en.MoveNext();
+                    var a_name = en.Current;
+                    var a_assembly = ws[a_name];
+                    RemoteRaceInstrumentationEngine.Assemblies.Add(a_name, a_assembly);
+                    ws.Remove(a_name);
+
+                    foreach (AssemblyName name in a_assembly.GetReferencedAssemblies())
+                    {
+                        Assembly b;
+                        ExtendedReflection.Utilities.ReflectionHelper.TryLoadAssembly(name.FullName, out b);
+
+                        if (b != null)
+                        {
+                            if (!RemoteRaceInstrumentationEngine.Assemblies.ContainsKey(b.GetName().FullName) &&
+                                !ws.ContainsKey(b.GetName().FullName))
+                            {
+                                ws.Add(b.GetName().FullName, b);
+                            }
+                        }
+                    }
+                }
             }
         }
+
+        #endregion
     }
 }

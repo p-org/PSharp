@@ -55,6 +55,11 @@ namespace Microsoft.PSharp.Utilities
         public bool EnableProfiling;
 
         /// <summary>
+        /// Keeps the temporary files.
+        /// </summary>
+        public bool KeepTemporaryFiles;
+
+        /// <summary>
         /// Pause on assertion failure.
         /// </summary>
         internal bool PauseOnAssertionFailure;
@@ -276,6 +281,8 @@ namespace Microsoft.PSharp.Utilities
             this.Timeout = 0;
 
             this.EnableProfiling = false;
+            this.KeepTemporaryFiles = false;
+
             this.PauseOnAssertionFailure = false;
             this.InteroperationEnabled = true;
 
