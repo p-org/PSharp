@@ -78,5 +78,45 @@ private event e;
             Assert.AreEqual("Must be declared inside a namespace.",
                 parser.GetParsingErrorLog());
         }
+
+        [TestMethod, Timeout(10000)]
+        public void TestEventDeclarationWithGenericError1()
+        {
+            var test = @"
+namespace Foo {
+event e>;
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("Expected \"(\" or \";\".",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestEventDeclarationWithGenericError2()
+        {
+            var test = @"
+namespace Foo {
+event e<;
+}";
+
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("Invalid generic expression.",
+                parser.GetParsingErrorLog());
+        }
     }
 }
