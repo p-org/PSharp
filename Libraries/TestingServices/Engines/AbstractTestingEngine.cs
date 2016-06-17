@@ -74,6 +74,12 @@ namespace Microsoft.PSharp.TestingServices
         protected IProgramVisualizer Visualizer;
 
         /// <summary>
+        /// Set of callbacks to invoke at the end
+        /// of each iteration.
+        /// </summary>
+        protected ISet<Action<int>> PerIterationCallbacks;
+
+        /// <summary>
         /// A guard for printing info.
         /// </summary>
         protected int PrintGuard;
@@ -114,6 +120,18 @@ namespace Microsoft.PSharp.TestingServices
         public abstract ITestingEngine Run();
 
         /// <summary>
+        /// Registers a callback to invoke at the end
+        /// of each iteration. The callback takes as
+        /// a parameter an integer representing the
+        /// current iteration.
+        /// </summary>
+        /// <param name="callback">Callback</param>
+        public void RegisterPerIterationCallBack(Action<int> callback)
+        {
+            this.PerIterationCallbacks.Add(callback);
+        }
+
+        /// <summary>
         /// Reports the testing results.
         /// </summary>
         public abstract void Report();
@@ -130,6 +148,8 @@ namespace Microsoft.PSharp.TestingServices
         {
             this.Profiler = new Profiler();
             this.Configuration = configuration;
+
+            this.PerIterationCallbacks = new HashSet<Action<int>>();
 
             try
             {
@@ -155,6 +175,7 @@ namespace Microsoft.PSharp.TestingServices
         {
             this.Profiler = new Profiler();
             this.Configuration = configuration;
+            this.PerIterationCallbacks = new HashSet<Action<int>>();
             this.Assembly = assembly;
             this.FindEntryPoint();
             this.TestInitMethod = FindTestMethod(typeof(TestInit));
@@ -171,6 +192,7 @@ namespace Microsoft.PSharp.TestingServices
         {
             this.Profiler = new Profiler();
             this.Configuration = configuration;
+            this.PerIterationCallbacks = new HashSet<Action<int>>();
             this.TestAction = action;
             this.Initialize();
         }

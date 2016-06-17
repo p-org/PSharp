@@ -51,13 +51,15 @@ namespace Microsoft.PSharp.Monitoring
         /// <param name="configuration">Configuration</param>
         public void Execute(Configuration configuration)
         {
+            // Creates and runs the P# testing engine to find bugs in the P# program.
+            ITestingEngine testingEngine = TestingEngineFactory.CreateBugFindingEngine(configuration);
+
             var assembly = Assembly.LoadFrom(configuration.AssemblyToBeAnalyzed);
-            new RaceInstrumentationEngine(configuration);
+            new RaceInstrumentationEngine(testingEngine, configuration);
 
             this.TryLoadReferencedAssemblies(new[] { assembly });
             
-            // Creates and runs the P# testing engine to find bugs in the P# program.
-            TestingEngineFactory.CreateBugFindingEngine(configuration).Run();
+            testingEngine.Run();
         }
 
         public override object InitializeLifetimeService()

@@ -239,6 +239,12 @@ namespace Microsoft.PSharp.TestingServices
                         this.EmitRaceInstrumentationTraces(runtime, i);
                     }
 
+                    // Invoke the per iteration callbacks, if any.
+                    foreach (var callback in base.PerIterationCallbacks)
+                    {
+                        callback(i);
+                    }
+
                     // Checks for any liveness property violations. Requires
                     // that the program has terminated and no safety property
                     // violations have been found.

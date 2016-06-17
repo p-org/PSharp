@@ -21,6 +21,7 @@ using Microsoft.ExtendedReflection.ComponentModel;
 
 using Microsoft.PSharp.Monitoring.CallsOnly;
 using Microsoft.PSharp.Utilities;
+using Microsoft.PSharp.TestingServices;
 
 namespace Microsoft.PSharp.Monitoring
 {
@@ -41,9 +42,9 @@ namespace Microsoft.PSharp.Monitoring
         /// Initializes a new instance of the race instrumentation engine.
         /// </summary>
         /// <param name="configuration">Configuration</param>
-        public RaceInstrumentationEngine(Configuration configuration)
+        public RaceInstrumentationEngine(ITestingEngine testingEngine, Configuration configuration)
             : base(new Container(), new EngineOptions(),
-                  new MonitorManager(configuration),
+                  new MonitorManager(testingEngine, configuration),
                   new ThreadMonitorManager(configuration))
         {
             if (RaceInstrumentationEngine.SingletonEngine != null)
@@ -64,7 +65,8 @@ namespace Microsoft.PSharp.Monitoring
             }
 
             ((IMonitorManager)this.GetService<MonitorManager>()).RegisterThreadMonitor(
-               new ThreadMonitorFactory(this.GetService<ThreadMonitorManager>(), configuration));
+               new ThreadMonitorFactory(this.GetService<ThreadMonitorManager>(),
+               testingEngine, configuration));
 
             ((IMonitorManager)this.GetService<MonitorManager>()).RegisterObjectAccessThreadMonitor();
 

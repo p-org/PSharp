@@ -19,6 +19,7 @@ using Microsoft.ExtendedReflection.Monitoring;
 using Microsoft.PSharp.Monitoring.AllCallbacks;
 using Microsoft.PSharp.Monitoring.ComponentModel;
 using Microsoft.PSharp.Utilities;
+using Microsoft.PSharp.TestingServices;
 
 namespace Microsoft.PSharp.Monitoring.CallsOnly
 {
@@ -33,6 +34,8 @@ namespace Microsoft.PSharp.Monitoring.CallsOnly
         /// The P# configuration.
         /// </summary>
         private Configuration Configuration;
+
+        private ITestingEngine TestingEngine;
 
         /// <summary>
         /// Thread monitors.
@@ -59,10 +62,12 @@ namespace Microsoft.PSharp.Monitoring.CallsOnly
         /// </summary>
         /// <param name="host">ICopComponent</param>
         /// <param name="configuration">Configuration</param>
-        public ThreadMonitorFactory(ICopComponent host, Configuration configuration)
+        public ThreadMonitorFactory(ICopComponent host, ITestingEngine testingEngine,
+            Configuration configuration)
             : base(host)
         {
             this.Configuration = configuration;
+            this.TestingEngine = testingEngine;
             this.ThreadMonitors = new ThreadMonitorCollection();
         }
 
@@ -209,8 +214,8 @@ namespace Microsoft.PSharp.Monitoring.CallsOnly
             }
             else
             {
-                monitor = new ThreadExecutionMonitorDispatcher(
-                    this.Host.Log, threadID, this, this.Configuration);
+                monitor = new ThreadExecutionMonitorDispatcher(this.Host.Log,
+                    threadID, this, this.TestingEngine, this.Configuration);
                 return true;
             }
         }

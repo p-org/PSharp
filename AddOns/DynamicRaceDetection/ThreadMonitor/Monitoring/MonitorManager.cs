@@ -19,6 +19,7 @@ using Microsoft.ExtendedReflection.Utilities.Safe.Diagnostics;
 
 using Microsoft.PSharp.Monitoring.ComponentModel;
 using Microsoft.PSharp.Monitoring.CallsOnly;
+using Microsoft.PSharp.TestingServices;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.Monitoring
@@ -34,6 +35,11 @@ namespace Microsoft.PSharp.Monitoring
         /// The P# configuration.
         /// </summary>
         private Configuration Configuration;
+
+        /// <summary>
+        /// The P# testing engine.
+        /// </summary>
+        private ITestingEngine TestingEngine;
 
         /// <summary>
         /// Calls-only.
@@ -58,7 +64,7 @@ namespace Microsoft.PSharp.Monitoring
                 if (this.MonitorFactory == null)
                 {
                     this.MonitorFactory = new ThreadMonitorFactory(
-                        this.ThreadMonitorManager, this.Configuration);
+                        this.ThreadMonitorManager, this.TestingEngine, this.Configuration);
                     this.ThreadMonitorManager.AddMonitorFactory(this.MonitorFactory);
                 }
 
@@ -74,9 +80,10 @@ namespace Microsoft.PSharp.Monitoring
         /// Constructor.
         /// </summary>
         /// <param name="configuration">Configuration</param>
-        public MonitorManager(Configuration configuration)
+        public MonitorManager(ITestingEngine testingEngine, Configuration configuration)
             : base()
         {
+            this.TestingEngine = testingEngine;
             this.Configuration = configuration;
         }
 

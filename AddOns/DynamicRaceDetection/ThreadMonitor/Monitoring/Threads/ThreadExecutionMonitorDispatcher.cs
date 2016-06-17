@@ -27,6 +27,7 @@ using Microsoft.ExtendedReflection.Utilities.Safe.Diagnostics;
 
 using Microsoft.PSharp.Monitoring.CallsOnly;
 using Microsoft.PSharp.Utilities;
+using Microsoft.PSharp.TestingServices;
 
 namespace Microsoft.PSharp.Monitoring.AllCallbacks
 {
@@ -77,7 +78,7 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
         /// <param name="callMonitor">IThreadMonitor</param>
         /// <param name="configuration">Configuration</param>
         public ThreadExecutionMonitorDispatcher(IEventLog log, int threadIndex,
-            IThreadMonitor callMonitor, Configuration configuration)
+            IThreadMonitor callMonitor, ITestingEngine testingEngine, Configuration configuration)
             : base(threadIndex)
         {
             SafeDebug.AssertNotNull(callMonitor, "callMonitor");
@@ -89,44 +90,8 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
             
             trace = new SafeList<string>();
             callStack = new SafeStack<Method>();
-        }
 
-        /// <summary>
-        /// Destructor.
-        /// </summary>
-        ~ThreadExecutionMonitorDispatcher()
-        {
-            if (thTrace.Count > 0)
-            {
-                string directoryPath = Path.GetDirectoryName(this.Configuration.AssemblyToBeAnalyzed) +
-                    Path.DirectorySeparatorChar + "Output";
-                string traceDirectoryPath = directoryPath + Path.DirectorySeparatorChar +
-                    "ThreadTraces" + Path.DirectorySeparatorChar;
-                Directory.CreateDirectory(traceDirectoryPath);
-
-                var name = Path.GetFileNameWithoutExtension(this.Configuration.AssemblyToBeAnalyzed);
-                int iteration = Directory.GetFiles(traceDirectoryPath, name +
-                    "iteration_*_tid_" + ThreadIndex + ".osl").Length;
-
-                Console.WriteLine(">>>>>>>>>" + iteration);
-
-                string path = traceDirectoryPath + name + "_iteration_" +
-                    iteration + "_tid_" + ThreadIndex + ".osl";
-
-                using (Stream stream = File.Open(path, FileMode.Create))
-                {
-                    BinaryFormatter bformatter = new BinaryFormatter();
-
-                    try
-                    {
-                        bformatter.Serialize(stream, thTrace);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("EXCEPTION: " + ex);
-                    }
-                }
-            }
+            testingEngine.RegisterPerIterationCallBack(EmitThreadTrace);
         }
 
         #endregion
@@ -147,7 +112,41 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
             // throw e;
         }
 
-        #region callbacks
+        /// <summary>
+        /// Emits the thread trace.
+        /// </summary>
+        void EmitThreadTrace(int iteration)
+        {
+            if (thTrace.Count > 0)
+            {
+                string directoryPath = Path.GetDirectoryName(this.Configuration.AssemblyToBeAnalyzed) +
+                    Path.DirectorySeparatorChar + "Output";
+                string traceDirectoryPath = directoryPath + Path.DirectorySeparatorChar +
+                    "ThreadTraces" + Path.DirectorySeparatorChar;
+                Directory.CreateDirectory(traceDirectoryPath);
+
+                var name = Path.GetFileNameWithoutExtension(this.Configuration.AssemblyToBeAnalyzed);
+
+                string path = traceDirectoryPath + name + "_iteration_" +
+                    iteration + "_tid_" + ThreadIndex + ".osl";
+
+                using (Stream stream = File.Open(path, FileMode.Create))
+                {
+                    BinaryFormatter bformatter = new BinaryFormatter();
+
+                    try
+                    {
+                        bformatter.Serialize(stream, thTrace);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("EXCEPTION: " + ex);
+                    }
+                }
+            }
+
+            thTrace.Clear();
+        }
 
         [DebuggerNonUserCodeAttribute]
         public override void Load(UIntPtr location, uint size, int codeLabel, bool is_volatile)
@@ -628,8 +627,6 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
         {
 
         }
-
-        #endregion
 
         public string GetSourceLocation(UIntPtr location)
         {
