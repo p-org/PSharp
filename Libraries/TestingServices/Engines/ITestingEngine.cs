@@ -12,6 +12,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+
 namespace Microsoft.PSharp.TestingServices
 {
     /// <summary>
@@ -45,6 +47,15 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <returns>ITestingEngine</returns>
         ITestingEngine Run();
+
+        /// <summary>
+        /// Registers a callback to invoke at the end
+        /// of each iteration. The callback takes as
+        /// a parameter an integer representing the
+        /// current iteration.
+        /// </summary>
+        /// <param name="callback">Callback</param>
+        void RegisterPerIterationCallBack(Action<int> callback);
 
         /// <summary>
         /// Reports the testing results.
