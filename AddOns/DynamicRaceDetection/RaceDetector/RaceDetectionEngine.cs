@@ -1,0 +1,831 @@
+﻿//-----------------------------------------------------------------------
+// <copyright file="RaceDetectionEngine.cs">
+//      Copyright (c) Microsoft Corporation. All rights reserved.
+// 
+//      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+//      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+//      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+//      IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+//      CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+//      TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// </copyright>
+//-----------------------------------------------------------------------
+
+using QuickGraph;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
+
+using Microsoft.PSharp.Monitoring;
+using Microsoft.PSharp.TestingServices.Tracing.Machines;
+using System.Runtime.Serialization;
+using Microsoft.PSharp.Utilities;
+
+namespace Microsoft.PSharp.DynamicRaceDetection
+{
+    /// <summary>
+    /// The race detection engine.
+    /// </summary>
+    public class RaceDetectionEngine
+    {
+        #region fields
+
+        /// <summary>
+        /// The P# configuration.
+        /// </summary>
+        private Configuration Configuration;
+
+        /// <summary>
+        /// The happens-before graph.
+        /// </summary>
+        List<ThreadTrace> AllThreadTraces;
+        
+        BidirectionalGraph<Node, Edge> CGraph;
+
+        int VcCount = 0;
+
+        #endregion
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="configuration">Configuration</param>
+        public RaceDetectionEngine(Configuration configuration)
+        {
+            this.Configuration = configuration;
+
+            this.AllThreadTraces = new List<ThreadTrace>();
+            this.CGraph = new BidirectionalGraph<Node, Edge>();
+        }
+
+        /// <summary>
+        /// Starts the engine.
+        /// </summary>
+        public void Start()
+        {
+            IO.PrintLine(". Searching for data races");
+            
+            string directoryPath = Path.GetDirectoryName(this.Configuration.AssemblyToBeAnalyzed) +
+                    Path.DirectorySeparatorChar + "Output";
+            string runtimeTraceDirectoryPath = directoryPath + Path.DirectorySeparatorChar +
+                "RuntimeTraces" + Path.DirectorySeparatorChar;
+            string threadTraceDirectoryPath = directoryPath + Path.DirectorySeparatorChar +
+                "ThreadTraces" + Path.DirectorySeparatorChar;
+
+            string[] fileEntries = Directory.GetFiles(threadTraceDirectoryPath, "*");
+            foreach (string fileName in fileEntries)
+            {
+                //Deserialize thread traces
+                //Open the file written above and read values from it.
+
+                Stream stream = File.Open(fileName, FileMode.Open);
+                BinaryFormatter bformatter = new BinaryFormatter();
+                List<ThreadTrace> tt = (List<ThreadTrace>)bformatter.Deserialize(stream);
+
+                for (int i = 0; i < tt.Count; i++)
+                {
+                    this.AllThreadTraces.Add(tt[i]);
+                    //IO.PrintLine(tt[i].MachineId + " " + tt[i].ActionId);
+                }
+                stream.Close();
+            }
+
+            string[] mFileEntries = Directory.GetFiles(runtimeTraceDirectoryPath, "*");
+            this.VcCount = mFileEntries.Count() + 5;
+
+            //TODO: fix this
+            /*
+            foreach (string fileName in mFileEntries)
+            {
+                //chain decomposition
+                int tc = Int32.Parse(fileName.Substring(22, fileName.Length - 4 - 22));
+                if (tc > this.VcCount)
+                    this.VcCount = tc;
+            }
+            this.VcCount = this.VcCount + 1;
+            */
+
+            foreach (string fileName in mFileEntries)
+            {
+                IO.PrintLine($"... Parsing '{fileName}'");
+
+                MachineActionTrace machineTrace = null;
+                using (FileStream stream = File.Open(fileName, FileMode.Open))
+                {
+                    DataContractSerializer serializer = new DataContractSerializer(
+                        typeof(MachineActionTrace));
+                    machineTrace = serializer.ReadObject(stream) as MachineActionTrace;
+                }
+
+                //this.UpdateTasks(machineTrace);
+                this.UpdateGraph(machineTrace);
+            }
+
+            this.UpdateGraphCrossEdges();
+            this.PruneGraph();
+            this.UpdateVectorsT();
+            this.DetectRacesFast();
+
+            this.CGraph.Clear();
+            this.AllThreadTraces.Clear();
+        }
+
+        /// <summary>
+        /// Updates the tasks.
+        /// </summary>
+        /// <param name="machineTrace">MachineActionTrace</param>
+        void UpdateTasks(MachineActionTrace machineTrace)
+        {
+            //int currentMachineVC = 0;
+
+            //foreach (MachineActionInfo info in machineTrace)
+            //{
+            //    if (info.isTaskMachine)
+            //    {
+            //        //ThreadTrace matching = null;
+            //        var matching = this.AllThreadTraces.Where(item => item.IsTask && item.TaskId == mt.TaskId);
+
+            //        if (matching.Count() == 0)
+            //            continue;
+
+            //        Node cn = new CActBegin(info.MachineId, info.TaskId);
+            //        ((CActBegin)cn).IsStart = true;
+            //        cn.VectorClock = new int[this.VcCount];
+            //        currentMachineVC++;
+            //        try
+            //        {
+            //            cn.VectorClock[info.MachineId] = currentMachineVC;
+            //        }
+            //        catch (Exception ex)
+            //        {
+            //            IO.PrintLine("failed: " + this.VcCount + " " + info.MachineId);
+            //            IO.PrintLine(ex);
+            //            Environment.Exit(Environment.ExitCode);
+            //        }
+            //        this.CGraph.AddVertex(cn);
+
+            //        foreach (var m in matching)
+            //        {
+            //            if (m.accesses.Count > 0)
+            //            {
+            //                foreach (ActionInstr ins in m.accesses)
+            //                {
+            //                    ((CActBegin)cn).Addresses.Add(new MemAccess(ins.IsWrite, ins.Location, ins.ObjHandle, ins.Offset, ins.SrcLocation, mt.MachineId));
+            //                }
+            //            }
+            //        }
+            //    }
+            //}
+        }
+
+        /// <summary>
+        /// Updates the graph.
+        /// </summary>
+        /// <param name="machineTrace">MachineActionTrace</param>
+        void UpdateGraph(MachineActionTrace machineTrace)
+        {
+            int currentMachineVC = 0;
+
+            Node cLatestAction = null;
+            foreach (MachineActionInfo info in machineTrace)
+            {
+                if (info.Type != MachineActionType.SendAction && (info.ActionId != 0)/* && !info.isTaskMachine*/)
+                {
+                    ThreadTrace matching = null;
+
+                    try
+                    {
+                        matching = this.AllThreadTraces.Where(item => item.MachineId == info.MachineId &&
+                            item.ActionId == info.ActionId).Single();
+                    }
+                    catch (Exception)
+                    {
+                        //TODO: check correctness
+                        //In case entry and exit functions not defined.   
+                        //IO.PrintLine("Skipping entry/exit actions: " + mt.MachineId + " " + mt.ActionId + " " + mt.ActionName);          
+                        continue;
+                    }
+
+                    Node cn = new CActBegin(matching.MachineId, matching.ActionName,
+                        matching.ActionId, info.EventName, info.EventId);
+                    if(matching.ActionId == 1)
+                    {
+                        ((CActBegin)cn).IsStart = true;
+                    }
+
+                    cn.VectorClock = new int[this.VcCount];
+                    currentMachineVC++;
+
+                    try
+                    {
+                        cn.VectorClock[info.MachineId] = currentMachineVC;
+                    }
+                    catch (Exception ex)
+                    {
+                        IO.PrintLine("failed: " + this.VcCount + " " + info.MachineId);
+                        IO.PrintLine(ex.ToString());
+                        Environment.Exit(Environment.ExitCode);
+                    }
+
+                    this.CGraph.AddVertex(cn);
+                    
+                    if(cLatestAction != null)
+                    {
+                        this.CGraph.AddEdge(new Edge(cLatestAction, cn));
+                    }
+
+                    Node cLatest = cn;
+                    cLatestAction = cn;
+                    
+
+                    bool createNew = false;
+
+                    foreach (ActionInstr ins in matching.Accesses)
+                    {
+                        // User trace send event.
+                        Node cn1;
+
+                        if (createNew)
+                        {
+                            Node cnn = new CActBegin(matching.MachineId, matching.ActionName,
+                                matching.ActionId, info.EventName, info.EventId);
+                            cnn.VectorClock = new int[this.VcCount];
+                            currentMachineVC++;
+
+                            try
+                            {
+                                cnn.VectorClock[info.MachineId] = currentMachineVC;
+                            }
+                            catch (Exception ex)
+                            {
+                                IO.PrintLine("failed: " + this.VcCount + " " + info.MachineId);
+                                IO.PrintLine(ex.ToString());
+                                Environment.Exit(Environment.ExitCode);
+                            }
+
+                            this.CGraph.AddVertex(cnn);
+
+                            cn = cnn;
+                            this.CGraph.AddEdge(new Edge(cLatest, cn));
+                            createNew = false;
+                            cLatest = cn;
+                        }
+
+                        if (ins.IsSend)
+                        {
+                            MachineActionInfo machineSend = machineTrace.Where(
+                                item => item.MachineId == matching.MachineId &&
+                                item.SendId == ins.SendId).Single();
+   
+                            cn1 = new SendEvent(machineSend.MachineId, machineSend.SendId,
+                                machineSend.TargetMachineId, machineSend.EventName, machineSend.EventId);
+                            cn1.VectorClock = new int[this.VcCount];
+                            currentMachineVC++;
+
+                            try
+                            {
+                                cn1.VectorClock[info.MachineId] = currentMachineVC;
+                            }
+                            catch (Exception ex)
+                            {
+                                IO.PrintLine("failed: " + this.VcCount + " " + info.MachineId);
+                                IO.PrintLine(ex.ToString());
+                                Environment.Exit(Environment.ExitCode);
+                            }
+
+                            this.CGraph.AddVertex(cn1);
+                            this.CGraph.AddEdge(new Edge(cLatest, cn1));
+                            
+                            createNew = true;
+                        }
+                        // User trace create machine.
+                        else if (ins.IsCreate)
+                        {
+                            cn1 = new CreateMachine(ins.CreateMachineId);
+                            cn1.VectorClock = new int[this.VcCount];
+                            currentMachineVC++;
+
+                            try
+                            {
+                                cn1.VectorClock[info.MachineId] = currentMachineVC;
+                            }
+                            catch (Exception ex)
+                            {
+                                IO.PrintLine("failed: " + this.VcCount + " " + info.MachineId);
+                                IO.PrintLine(ex.ToString());
+                                Environment.Exit(Environment.ExitCode);
+                            }
+
+                            this.CGraph.AddVertex(cn1);
+                            this.CGraph.AddEdge(new Edge(cLatest, cn1));
+                            
+                            createNew = true;
+                        }
+                        // User trace task creation.
+                        else if (ins.IsTask)
+                        {
+                            cn1 = new CreateTask(ins.TaskId);
+                            cn1.VectorClock = new int[this.VcCount];
+                            currentMachineVC++;
+
+                            try
+                            {
+                                cn1.VectorClock[info.MachineId] = currentMachineVC;
+                            }
+                            catch (Exception ex)
+                            {
+                                IO.PrintLine("failed: " + this.VcCount + " " + info.MachineId);
+                                IO.PrintLine(ex.ToString());
+                                Environment.Exit(Environment.ExitCode);
+                            }
+
+                            this.CGraph.AddVertex(cn1);
+                            this.CGraph.AddEdge(new Edge(cLatest, cn1));
+                            
+
+                            createNew = true;
+                        }
+                        // User trace reads/writes.
+                        else
+                        {
+                            ((CActBegin)cn).Addresses.Add(new MemAccess(ins.IsWrite, ins.Location,
+                                ins.ObjHandle, ins.Offset, ins.SrcLocation, info.MachineId));
+                            cn1 = cn;
+           
+                        }
+
+                        cLatest = cn1;
+                        cLatestAction = cn1;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Prunes the graph.
+        /// </summary>
+        void PruneGraph()
+        {
+            List<Node> remove = new List<Node>();
+            foreach(Node u in this.CGraph.Vertices)
+            {
+                if (u.GetType().ToString().Contains("CActBegin"))
+                {
+                    CActBegin m = (CActBegin)u;
+                    if (m.Addresses.Count == 0)
+                    {
+                        remove.Add(u);
+                        continue;
+                    }
+
+                    bool found = false;
+                    foreach (Node v in this.CGraph.Vertices)
+                    {
+                        if (v.GetType().ToString().Contains("CActBegin"))
+                        {
+                            CActBegin n = (CActBegin)v;
+
+                            if (m.Equals(n) || m.MachineId == n.MachineId)
+                            {
+                                continue;
+                            }
+
+                            foreach (MemAccess ma in m.Addresses)
+                            {
+                                var list = n.Addresses.Where(item
+                                    => item.ObjHandle == ma.ObjHandle &&
+                                    item.Offset == ma.Offset);
+                                if (list.Count() > 0)
+                                {
+                                    found = true;
+                                    break;
+                                }
+                            }                        
+                        }
+                        if (found == true)
+                        {
+                            break;
+                        } 
+                    }
+
+                    if (found == false)
+                    {
+                        remove.Add(u);
+                    }
+                }
+            }
+
+            foreach (Node u in remove)
+            {
+                if (this.CGraph.InDegree(u) == 0 || this.CGraph.OutDegree(u) == 0)
+                {
+                    this.CGraph.RemoveVertex(u);
+                } 
+                else
+                {
+                    IEnumerable<Edge> fromEdges = this.CGraph.InEdges(u);
+                    IEnumerable<Edge> toEdges = this.CGraph.OutEdges(u);
+                    foreach (Edge fromEdge in fromEdges)
+                    {
+                        Node from = fromEdge.Source;
+                        foreach (Edge toEdge in toEdges)
+                        {
+                            Node to = toEdge.Target;
+                            this.CGraph.AddEdge(new Edge(from, to));
+                        }
+
+                        this.CGraph.RemoveVertex(u);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Updates the graph cross edges.
+        /// </summary>
+        void UpdateGraphCrossEdges()
+        {
+            foreach (Node n in this.CGraph.Vertices)
+            {
+                if (n.GetType().ToString().Contains("SendEvent"))
+                {
+                    IEnumerable<Node> actBegins = this.CGraph.Vertices.Where(item
+                        => item.GetType().ToString().Contains("CActBegin"));
+                    foreach (Node n1 in actBegins)
+                    {
+                        SendEvent sendNode = (SendEvent)n;
+                        CActBegin beginNode = (CActBegin)n1;
+                        if (sendNode.ToMachine == beginNode.MachineId &&
+                            sendNode.SendEventId == beginNode.EventId)
+                        {
+                            this.CGraph.AddEdge(new Edge(sendNode, beginNode));
+                            for(int i = 0; i < this.VcCount; i++)
+                            {
+                                beginNode.VectorClock[i] = Math.Max(beginNode.VectorClock[i],
+                                    sendNode.VectorClock[i]);
+                            }
+                        }
+                    }
+                }
+                else if (n.GetType().ToString().Contains("CreateMachine"))
+                {
+                    IEnumerable<Node> actBegins = this.CGraph.Vertices.Where(item
+                        => item.GetType().ToString().Contains("CActBegin"));
+                    foreach (Node n1 in actBegins)
+                    {
+                        CreateMachine createNode = (CreateMachine)n;
+                        CActBegin beginNode = (CActBegin)n1;
+                        if (createNode.CreateMachineId == beginNode.MachineId && beginNode.ActionId == 1)
+                        {
+                            this.CGraph.AddEdge(new Edge(createNode, beginNode));
+                            for (int i = 0; i < this.VcCount; i++)
+                            {
+                                beginNode.VectorClock[i] = Math.Max(beginNode.VectorClock[i],
+                                    createNode.VectorClock[i]);
+                            }
+                        }    
+                    }
+                }
+                else if (n.GetType().ToString().Contains("CreateTask"))
+                {
+                    IEnumerable<Node> actBegins = this.CGraph.Vertices.Where(item
+                        => item.GetType().ToString().Contains("CActBegin"));
+                    foreach (Node n1 in actBegins)
+                    {
+                        CreateTask createNode = (CreateTask)n;
+                        CActBegin beginNode = (CActBegin)n1;
+                        if (createNode.TaskId == beginNode.TaskId)
+                        {
+                            this.CGraph.AddEdge(new Edge(createNode, beginNode));
+                            for (int i = 0; i < this.VcCount; i++)
+                            {
+                                beginNode.VectorClock[i] = Math.Max(beginNode.VectorClock[i],
+                                    createNode.VectorClock[i]);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        void UpdateVectorsT()
+        {
+            if (this.CGraph.VertexCount == 0)
+            {
+                return;
+            }
+                
+            BidirectionalGraph<Node, Edge> topoGraph = this.CGraph.Clone(); 
+
+            while (topoGraph.VertexCount > 0)
+            {
+                Node current = topoGraph.Vertices.Where(item => topoGraph.InDegree(item) == 0).First();
+                IEnumerable<Edge> outEdges = topoGraph.Edges.Where(item => item.Source.Equals(current));
+                foreach (Edge outEdge in outEdges)
+                {
+                    Node succ = outEdge.Target;
+                    Node successor = this.CGraph.Vertices.Where(v => v.Equals(succ)).Single();
+                    for (int i = 0; i < this.VcCount; i++)
+                    {
+                        //succ.VectorClock[i] = Math.Max(succ.VectorClock[i], current.VectorClock[i]);
+                        successor.VectorClock[i] = Math.Max(successor.VectorClock[i], current.VectorClock[i]);
+                    }
+                }
+                topoGraph.RemoveVertex(current);
+            }
+        }
+
+        /// <summary>
+        /// Prints the graph.
+        /// </summary>
+        void PrintGraph()
+        {
+            IO.PrintLine("Printing compressed graph");
+            foreach (Node n in this.CGraph.Vertices)
+            {
+                if (n.GetType().ToString().Contains("CActBegin"))
+                {
+                    IO.PrintLine(n.GetHashCode() + " " + n.ToString() + " " +
+                        ((CActBegin)n).MachineId + " " + ((CActBegin)n).ActionId +
+                        " " + ((CActBegin)n).ActionName + " " + ((CActBegin)n).IsTask);
+                    IO.PrintLine("[{0}]", string.Join(", ", n.VectorClock));
+                    foreach (MemAccess m in ((CActBegin)n).Addresses)
+                    {
+                        IO.PrintLine(m.IsWrite + " " + m.Location + " " + m.ObjHandle + " " + m.Offset);
+                    }
+                }
+                else if (n.GetType().ToString().Contains("SendEvent"))
+                {
+                    IO.PrintLine(n.GetHashCode() + " " + n.ToString() + " " +
+                        ((SendEvent)n).MachineId + " " + ((SendEvent)n).ToMachine);
+                    IO.PrintLine("[{0}]", string.Join(", ", n.VectorClock));
+                }
+                else if (n.GetType().ToString().Contains("CreateMachine"))
+                {
+                    IO.PrintLine(n.GetHashCode() + " " + n.ToString() + " " +
+                        ((CreateMachine)n).CreateMachineId);
+                    IO.PrintLine("[{0}]", string.Join(", ", n.VectorClock));
+                }
+                else if (n.GetType().ToString().Contains("CreateTask"))
+                {
+                    IO.PrintLine(n.GetHashCode() + " " + n.ToString() + " " +
+                        ((CreateTask)n).TaskId);
+                    IO.PrintLine("[{0}]", string.Join(", ", n.VectorClock));
+                }
+            }
+
+            IO.PrintLine();
+
+            foreach (Edge e in this.CGraph.Edges)
+            {
+                IO.PrintLine(e.Source.GetHashCode() + " ---> " + e.Target.GetHashCode());
+            }
+
+            IO.PrintLine();
+        }
+
+        void DetectRacesAgain()
+        {
+            IO.PrintLine("\nDETECTING RACES");
+
+            List<Tuple<CActBegin, CActBegin>> checkRaces = new List<Tuple<CActBegin, CActBegin>>();
+
+            foreach (Node n1 in this.CGraph.Vertices)
+            {
+                if (n1.GetType().ToString().Contains("CActBegin"))
+                {
+                    CActBegin v1 = (CActBegin)n1;
+                    foreach (Node n2 in this.CGraph.Vertices)
+                    {
+                        if (n2.GetType().ToString().Contains("CActBegin"))
+                        {
+                            if (n1.Equals(n2))
+                            {
+                                continue;
+                            } 
+
+                            CActBegin v2 = (CActBegin)n2;
+                            if (v1.MachineId == v2.MachineId)
+                            {
+                                continue;
+                            }
+
+                            bool found = false;
+                            foreach(MemAccess ma in v1.Addresses)
+                            {
+                                var list = v2.Addresses.Where(item
+                                    => item.ObjHandle == ma.ObjHandle &&
+                                    item.Offset == ma.Offset);
+                                if (list.Count() > 0)
+
+                                {
+                                    found = true;
+                                    break;
+                                }
+                            }
+
+                            if (found == false)
+                            {
+                                continue;
+                            }
+
+                            if (!(cExistsPath(v1, v2) || cExistsPath(v2, v1)))
+                            {
+                                checkRaces.Add(new Tuple<CActBegin, CActBegin>(v1, v2));
+                            }
+                        }
+                    }
+                }
+            }
+
+            List<Tuple<string, string>> reportedRaces = new List<Tuple<string, string>>();
+            foreach (Tuple<CActBegin, CActBegin> checking in checkRaces)
+            {
+                List<MemAccess> addressList1 = checking.Item1.Addresses;
+                List<MemAccess> addressList2 = checking.Item2.Addresses;
+
+                foreach (MemAccess m in addressList1)
+                {
+                    foreach(MemAccess n in addressList2)
+                    {
+                        if (!(m.IsWrite || n.IsWrite))
+                        {
+                            continue;
+                        }
+
+                        if (m.ObjHandle == UIntPtr.Zero && m.Offset == UIntPtr.Zero &&
+                            n.ObjHandle == UIntPtr.Zero && n.Offset == UIntPtr.Zero)
+                        {
+                            continue;
+                        }
+
+                        if (reportedRaces.Where(item
+                            => item.Item1.Equals(m.SrcLocation + ";" + m.IsWrite) &&
+                            item.Item2.Equals(n.SrcLocation + ";" + n.IsWrite)).Any()
+                            || reportedRaces.Where(item => item.Item1.Equals(n.SrcLocation + ";" + n.IsWrite) &&
+                            item.Item2.Equals(m.SrcLocation + ";" + m.IsWrite)).Any())
+                        {
+                            continue;
+                        }
+
+                        if (m.ObjHandle == n.ObjHandle && m.Offset == n.Offset)
+                        {
+                            IO.PrintLine("RACE: " + m.SrcLocation + ";" + m.IsWrite + " AND " +
+                                n.SrcLocation + ";" + n.IsWrite);
+                            reportedRaces.Add(new Tuple<string, string>(m.SrcLocation + ";" +
+                                m.IsWrite, n.SrcLocation + ";" + n.IsWrite));
+                        }
+                    }
+                }
+            }
+        }
+
+        void DetectRacesFast()
+        {
+            IO.PrintLine("\nDETECTING RACES FAST");
+
+            if (this.CGraph.VertexCount == 0)
+            {
+                return;
+            }
+
+            List<Tuple<CActBegin, CActBegin>> checkRaces = new List<Tuple<CActBegin, CActBegin>>();
+
+            foreach (Node n1 in this.CGraph.Vertices)
+            {
+                if (n1.GetType().ToString().Contains("CActBegin"))
+                {
+                    CActBegin v1 = (CActBegin)n1;
+                    foreach (Node n2 in this.CGraph.Vertices)
+                    {
+                        if (n2.GetType().ToString().Contains("CActBegin"))
+                        {
+                            if (n1.Equals(n2))
+                            {
+                                continue;
+                            }
+
+                            CActBegin v2 = (CActBegin)n2;
+
+                            if (v1.MachineId == v2.MachineId)
+                            {
+                                continue;
+                            }
+
+                            bool ordered = true;
+                            for(int i = 0; i < this.VcCount; i++)
+                            {
+                                if(v1.VectorClock[i] > v2.VectorClock[i])
+                                {
+                                    ordered = false;
+                                    break;
+                                }
+                            }
+
+                            if (ordered == true)
+                            {
+                                continue;
+                            }
+
+                            bool orderedR = true;
+                            for (int i = 0; i < this.VcCount; i++)
+                            {
+                                if (v2.VectorClock[i] > v1.VectorClock[i])
+                                {
+                                    orderedR = false;
+                                    break;
+                                }
+                            }
+
+                            if (orderedR == true)
+                            {
+                                continue;
+                            }
+
+                            checkRaces.Add(new Tuple<CActBegin, CActBegin>(v1, v2));
+                        }
+                    }
+                }
+            }
+
+            List<Tuple<string, string>> reportedRaces = new List<Tuple<string, string>>();
+            foreach (Tuple<CActBegin, CActBegin> checking in checkRaces)
+            {
+                List<MemAccess> addressList1 = checking.Item1.Addresses;
+                List<MemAccess> addressList2 = checking.Item2.Addresses;
+
+                foreach (MemAccess m in addressList1)
+                {
+                    foreach (MemAccess n in addressList2)
+                    {
+                        if (!(m.IsWrite || n.IsWrite))
+                        {
+                            continue;
+                        }
+
+                        if (m.ObjHandle == UIntPtr.Zero && m.Offset == UIntPtr.Zero &&
+                            n.ObjHandle == UIntPtr.Zero && n.Offset == UIntPtr.Zero)
+                        {
+                            continue;
+                        }
+
+                        if (reportedRaces.Where(item
+                            => item.Item1.Equals(m.SrcLocation + ";" + m.IsWrite) &&
+                            item.Item2.Equals(n.SrcLocation + ";" + n.IsWrite)).Any()
+                            || reportedRaces.Where(item => item.Item1.Equals(n.SrcLocation + ";" + n.IsWrite) &&
+                            item.Item2.Equals(m.SrcLocation + ";" + m.IsWrite)).Any())
+                        {
+                            continue;
+                        }
+
+                        if (m.ObjHandle == n.ObjHandle && m.Offset == n.Offset)
+                        {
+                            IO.PrintLine("RACE: " + m.SrcLocation + ";" + m.IsWrite + " AND " +
+                                n.SrcLocation + ";" + n.IsWrite);
+                            reportedRaces.Add(new Tuple<string, string>(m.SrcLocation + ";" + m.IsWrite,
+                                n.SrcLocation + ";" + n.IsWrite));
+                        }
+                    }
+                }
+            }
+        }
+
+        bool cExistsPath(Node n1, Node n2)
+        {
+            foreach (Node n in this.CGraph.Vertices)
+            {
+                n.IsVisited = false;
+            }
+
+            Stack<Node> dfsS = new Stack<Node>();
+            dfsS.Push(n1);
+
+            while (dfsS.Count > 0)
+            {
+                Node visiting = dfsS.Pop();
+                visiting.IsVisited = true;
+
+                IEnumerable<Edge> outEdges = this.CGraph.Edges.Where(item => item.Source.Equals(visiting));
+                foreach (Edge outEdge in outEdges)
+                {
+                    Node successor = outEdge.Target;
+                    if (successor.Equals(n2))
+                    {
+                        return true;
+                    }
+
+                    if (!successor.IsVisited)
+                    {
+                        dfsS.Push(successor);
+                    }   
+                }
+            }
+
+            return false;
+        }
+    }
+}

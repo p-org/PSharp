@@ -102,6 +102,7 @@ namespace Microsoft.PSharp.Utilities
             }
             else if (option.ToLower().Equals("/debug"))
             {
+                this.Configuration.EnableDebugging = true;
                 IO.Debugging = true;
             }
             else if (option.ToLower().Equals("/warnings-on"))
@@ -122,7 +123,7 @@ namespace Microsoft.PSharp.Utilities
             }
             else if (option.ToLower().Equals("/interop"))
             {
-                Configuration.InteroperationEnabled = true;
+                this.Configuration.InteroperationEnabled = true;
             }
             else
                 {

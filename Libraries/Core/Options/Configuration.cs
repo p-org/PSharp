@@ -50,6 +50,11 @@ namespace Microsoft.PSharp.Utilities
         public int Timeout;
 
         /// <summary>
+        /// Enables debugging.
+        /// </summary>
+        public bool EnableDebugging;
+
+        /// <summary>
         /// Enables profiling.
         /// </summary>
         public bool EnableProfiling;
@@ -280,6 +285,7 @@ namespace Microsoft.PSharp.Utilities
             this.Verbose = 1;
             this.Timeout = 0;
 
+            this.EnableDebugging = false;
             this.EnableProfiling = false;
             this.KeepTemporaryFiles = false;
 
