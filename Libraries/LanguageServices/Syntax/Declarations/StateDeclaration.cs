@@ -84,12 +84,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         internal ExitDeclaration ExitDeclaration;
 
         /// <summary>
-        /// Map from resolved event identifier tokens to their
-        /// list of tokens.
-        /// </summary>
-        private Dictionary<Token, List<Token>> ResolvedEventIdentifierTokens;
-
-        /// <summary>
         /// Dictionary containing goto state transitions.
         /// </summary>
         internal Dictionary<Token, List<Token>> GotoStateTransitions;
@@ -125,6 +119,12 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         internal HashSet<Token> IgnoredEvents;
 
         /// <summary>
+        /// Map from resolved event identifier tokens to their
+        /// list of tokens and type id.
+        /// </summary>
+        internal Dictionary<Token, Tuple<List<Token>, int>> ResolvedEventIdentifierTokens;
+
+        /// <summary>
         /// The right curly bracket token.
         /// </summary>
         internal Token RightCurlyBracketToken;
@@ -156,7 +156,6 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             this.IsStart = isStart;
             this.IsHot = isHot;
             this.IsCold = isCold;
-            this.ResolvedEventIdentifierTokens = new Dictionary<Token, List<Token>>();
             this.GotoStateTransitions = new Dictionary<Token, List<Token>>();
             this.PushStateTransitions = new Dictionary<Token, List<Token>>();
             this.ActionBindings = new Dictionary<Token, Token>();
@@ -164,6 +163,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             this.ActionHandlers = new Dictionary<Token, BlockSyntax>();
             this.DeferredEvents = new HashSet<Token>();
             this.IgnoredEvents = new HashSet<Token>();
+            this.ResolvedEventIdentifierTokens = new Dictionary<Token, Tuple<List<Token>, int>>();
             this.RewrittenMethods = new HashSet<QualifiedMethod>();
         }
 
@@ -191,7 +191,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 this.TransitionsOnExitActions.Add(eventIdentifier, stmtBlock);
             }
 
-            this.ResolvedEventIdentifierTokens[eventIdentifier] = eventIdentifierTokens;
+            this.ResolvedEventIdentifierTokens[eventIdentifier] = Tuple.Create(
+                eventIdentifierTokens, this.ResolvedEventIdentifierTokens.Count);
 
             return true;
         }
@@ -219,7 +220,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             }
 
             this.PushStateTransitions.Add(eventIdentifier, stateIdentifiers);
-            this.ResolvedEventIdentifierTokens[eventIdentifier] = eventIdentifierTokens;
+            this.ResolvedEventIdentifierTokens[eventIdentifier] = Tuple.Create(
+                eventIdentifierTokens, this.ResolvedEventIdentifierTokens.Count);
 
             return true;
         }
@@ -243,7 +245,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             this.ActionBindings.Add(eventIdentifier, null);
             this.ActionHandlers.Add(eventIdentifier, stmtBlock);
-            this.ResolvedEventIdentifierTokens[eventIdentifier] = eventIdentifierTokens;
+            this.ResolvedEventIdentifierTokens[eventIdentifier] = Tuple.Create(
+                eventIdentifierTokens, this.ResolvedEventIdentifierTokens.Count);
 
             return true;
         }
@@ -266,7 +269,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             }
 
             this.ActionBindings.Add(eventIdentifier, actionIdentifier);
-            this.ResolvedEventIdentifierTokens[eventIdentifier] = eventIdentifierTokens;
+            this.ResolvedEventIdentifierTokens[eventIdentifier] = Tuple.Create(
+                eventIdentifierTokens, this.ResolvedEventIdentifierTokens.Count);
 
             return true;
         }
@@ -353,6 +357,31 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             }
 
             return qualifiedName;
+        }
+
+        /// <summary>
+        /// Returns the resolved event handler name that corresponds to the
+        /// specified event identifier.
+        /// </summary>
+        /// <param name="eventIdentifier">Token</param>
+        /// <returns>Name</returns>
+        internal string GetResolvedEventHandlerName(Token eventIdentifier)
+        {
+            var resolvedEvent = this.ResolvedEventIdentifierTokens[eventIdentifier];
+            var eventIdentifierTokens = resolvedEvent.Item1.TakeWhile(tok => tok.Type != TokenType.LeftAngleBracket);
+            string qualifiedEventIdentifier = "";
+            foreach (var tok in eventIdentifierTokens.Where(tok => tok.Type != TokenType.Dot))
+            {
+                qualifiedEventIdentifier += $"_{tok.TextUnit.Text}";
+            }
+
+            string typeId = "";
+            if (eventIdentifierTokens.Count() != resolvedEvent.Item1.Count)
+            {
+                typeId += "_type_" + this.ResolvedEventIdentifierTokens[eventIdentifier].Item2;
+            }
+
+            return qualifiedEventIdentifier + typeId;
         }
 
         #endregion
@@ -479,8 +508,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 var onExitName = "";
                 if (this.TransitionsOnExitActions.ContainsKey(transition.Key))
                 {
-                    onExitName = "psharp_" + this.GetFullyQualifiedName() + "_" +
-                        transition.Key.TextUnit.Text + "_action";
+                    onExitName = "psharp_" + this.GetFullyQualifiedName() +
+                        this.GetResolvedEventHandlerName(transition.Key) + "_action";
                     this.RewrittenMethods.Add(new QualifiedMethod(onExitName,
                         this.Machine.Identifier.TextUnit.Text,
                         this.Machine.Namespace.QualifiedName));
@@ -578,8 +607,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 var actionName = "";
                 if (this.ActionHandlers.ContainsKey(binding.Key))
                 {
-                    actionName = "psharp_" + this.GetFullyQualifiedName() + "_" +
-                        binding.Key.TextUnit.Text + "_action";
+                    actionName = "psharp_" + this.GetFullyQualifiedName() +
+                        this.GetResolvedEventHandlerName(binding.Key) + "_action";
                     this.RewrittenMethods.Add(new QualifiedMethod(actionName,
                         this.Machine.Identifier.TextUnit.Text,
                         this.Machine.Namespace.QualifiedName));

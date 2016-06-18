@@ -311,8 +311,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 {
                     var onExitAction = withAction.Value;
                     onExitAction.Rewrite();
-                    text += "protected void psharp_" + state.GetFullyQualifiedName() + "_" +
-                        withAction.Key.TextUnit.Text + "_action()";
+                    text += "protected void psharp_" + state.GetFullyQualifiedName() +
+                        state.GetResolvedEventHandlerName(withAction.Key) + "_action()";
                     text += onExitAction.TextUnit.Text + "\n";
                 }
             }
@@ -323,8 +323,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 {
                     var onExitAction = withAction.Value;
                     onExitAction.Rewrite();
-                    text += "protected void psharp_" + state.GetFullyQualifiedName() + "_" +
-                        withAction.Key.TextUnit.Text + "_action()";
+                    text += "protected void psharp_" + state.GetFullyQualifiedName() +
+                        state.GetResolvedEventHandlerName(withAction.Key) + "_action()";
                     text += onExitAction.TextUnit.Text + "\n";
                 }
             }
