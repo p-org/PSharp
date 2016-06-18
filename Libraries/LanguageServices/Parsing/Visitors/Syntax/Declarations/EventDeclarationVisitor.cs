@@ -77,6 +77,122 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             if (base.TokenStream.Done ||
                 (base.TokenStream.Peek().Type != TokenType.Assert &&
                 base.TokenStream.Peek().Type != TokenType.Assume &&
+                base.TokenStream.Peek().Type != TokenType.LeftAngleBracket &&
+                base.TokenStream.Peek().Type != TokenType.LeftParenthesis &&
+                base.TokenStream.Peek().Type != TokenType.Semicolon))
+            {
+                throw new ParsingException("Expected \"(\" or \";\".",
+                    new List<TokenType>
+                {
+                    TokenType.Assert,
+                    TokenType.Assume,
+                    TokenType.LeftParenthesis,
+                    TokenType.Semicolon
+                });
+            }
+            
+            int genericCount = 0;
+            while (!base.TokenStream.Done &&
+                base.TokenStream.Peek().Type != TokenType.Assert &&
+                base.TokenStream.Peek().Type != TokenType.Assume &&
+                base.TokenStream.Peek().Type != TokenType.LeftParenthesis &&
+                base.TokenStream.Peek().Type != TokenType.Semicolon)
+            {
+                if (base.TokenStream.Peek().Type != TokenType.Identifier &&
+                    base.TokenStream.Peek().Type != TokenType.Dot &&
+                    base.TokenStream.Peek().Type != TokenType.Comma &&
+                    base.TokenStream.Peek().Type != TokenType.LeftAngleBracket &&
+                    base.TokenStream.Peek().Type != TokenType.RightAngleBracket &&
+                    base.TokenStream.Peek().Type != TokenType.Object &&
+                    base.TokenStream.Peek().Type != TokenType.String &&
+                    base.TokenStream.Peek().Type != TokenType.Sbyte &&
+                    base.TokenStream.Peek().Type != TokenType.Byte &&
+                    base.TokenStream.Peek().Type != TokenType.Short &&
+                    base.TokenStream.Peek().Type != TokenType.Ushort &&
+                    base.TokenStream.Peek().Type != TokenType.Int &&
+                    base.TokenStream.Peek().Type != TokenType.Uint &&
+                    base.TokenStream.Peek().Type != TokenType.Long &&
+                    base.TokenStream.Peek().Type != TokenType.Ulong &&
+                    base.TokenStream.Peek().Type != TokenType.Char &&
+                    base.TokenStream.Peek().Type != TokenType.Bool &&
+                    base.TokenStream.Peek().Type != TokenType.Decimal &&
+                    base.TokenStream.Peek().Type != TokenType.Float &&
+                    base.TokenStream.Peek().Type != TokenType.Double)
+                {
+                    break;
+                }
+
+                if (genericCount == 0 &&
+                    base.TokenStream.Peek().Type == TokenType.Comma)
+                {
+                    throw new ParsingException("Expected generic type.",
+                        new List<TokenType>
+                        {
+                            TokenType.Identifier
+                        });
+                }
+                else if (base.TokenStream.Peek().Type == TokenType.LeftAngleBracket)
+                {
+                    node.GenericType.Add(base.TokenStream.Peek());
+                    genericCount++;
+                }
+                else if (base.TokenStream.Peek().Type == TokenType.RightAngleBracket)
+                {
+                    if (genericCount == 0)
+                    {
+                        throw new ParsingException("Invalid generic expression.",
+                            new List<TokenType>
+                            {
+                                TokenType.Identifier
+                            });
+                    }
+
+                    node.GenericType.Add(base.TokenStream.Peek());
+                    genericCount--;
+                }
+                else if (base.TokenStream.Peek().Type == TokenType.Identifier)
+                {
+                    base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit,
+                        TokenType.EventIdentifier));
+                    node.GenericType.Add(base.TokenStream.Peek());
+                }
+                else if (base.TokenStream.Peek().Type == TokenType.Dot ||
+                    base.TokenStream.Peek().Type == TokenType.Comma ||
+                    base.TokenStream.Peek().Type == TokenType.Object ||
+                    base.TokenStream.Peek().Type == TokenType.String ||
+                    base.TokenStream.Peek().Type == TokenType.Sbyte ||
+                    base.TokenStream.Peek().Type == TokenType.Byte ||
+                    base.TokenStream.Peek().Type == TokenType.Short ||
+                    base.TokenStream.Peek().Type == TokenType.Ushort ||
+                    base.TokenStream.Peek().Type == TokenType.Int ||
+                    base.TokenStream.Peek().Type == TokenType.Uint ||
+                    base.TokenStream.Peek().Type == TokenType.Long ||
+                    base.TokenStream.Peek().Type == TokenType.Ulong ||
+                    base.TokenStream.Peek().Type == TokenType.Char ||
+                    base.TokenStream.Peek().Type == TokenType.Bool ||
+                    base.TokenStream.Peek().Type == TokenType.Decimal ||
+                    base.TokenStream.Peek().Type == TokenType.Float ||
+                    base.TokenStream.Peek().Type == TokenType.Double)
+                {
+                    node.GenericType.Add(base.TokenStream.Peek());
+                }
+
+                base.TokenStream.Index++;
+                base.TokenStream.SkipWhiteSpaceAndCommentTokens();
+            }
+
+            if (genericCount > 0)
+            {
+                throw new ParsingException("Invalid generic expression.",
+                    new List<TokenType>
+                {
+                    TokenType.Identifier
+                });
+            }
+            
+            if (base.TokenStream.Done ||
+                (base.TokenStream.Peek().Type != TokenType.Assert &&
+                base.TokenStream.Peek().Type != TokenType.Assume &&
                 base.TokenStream.Peek().Type != TokenType.LeftParenthesis &&
                 base.TokenStream.Peek().Type != TokenType.Semicolon))
             {

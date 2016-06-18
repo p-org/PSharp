@@ -84,6 +84,12 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         internal ExitDeclaration ExitDeclaration;
 
         /// <summary>
+        /// Map from resolved event identifier tokens to their
+        /// list of tokens.
+        /// </summary>
+        private Dictionary<Token, List<Token>> ResolvedEventIdentifierTokens;
+
+        /// <summary>
         /// Dictionary containing goto state transitions.
         /// </summary>
         internal Dictionary<Token, List<Token>> GotoStateTransitions;
@@ -150,6 +156,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             this.IsStart = isStart;
             this.IsHot = isHot;
             this.IsCold = isCold;
+            this.ResolvedEventIdentifierTokens = new Dictionary<Token, List<Token>>();
             this.GotoStateTransitions = new Dictionary<Token, List<Token>>();
             this.PushStateTransitions = new Dictionary<Token, List<Token>>();
             this.ActionBindings = new Dictionary<Token, Token>();
@@ -164,11 +171,12 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Adds a goto state transition.
         /// </summary>
         /// <param name="eventIdentifier">Token</param>
+        /// <param name="eventIdentifierTokens">Tokens</param>
         /// <param name="stateIdentifiers">Token list</param>
         /// <param name="stmtBlock">Statement block</param>
         /// <returns>Boolean</returns>
-        internal bool AddGotoStateTransition(Token eventIdentifier, List<Token> stateIdentifiers,
-            BlockSyntax stmtBlock = null)
+        internal bool AddGotoStateTransition(Token eventIdentifier, List<Token> eventIdentifierTokens,
+            List<Token> stateIdentifiers, BlockSyntax stmtBlock = null)
         {
             if (this.GotoStateTransitions.ContainsKey(eventIdentifier) ||
                 this.PushStateTransitions.ContainsKey(eventIdentifier) ||
@@ -183,6 +191,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 this.TransitionsOnExitActions.Add(eventIdentifier, stmtBlock);
             }
 
+            this.ResolvedEventIdentifierTokens[eventIdentifier] = eventIdentifierTokens;
+
             return true;
         }
 
@@ -190,9 +200,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Adds a push state transition.
         /// </summary>
         /// <param name="eventIdentifier">Token</param>
+        /// <param name="eventIdentifierTokens">Tokens</param>
         /// <param name="stateIdentifiers">Token list</param>
         /// <returns>Boolean</returns>
-        internal bool AddPushStateTransition(Token eventIdentifier, List<Token> stateIdentifiers)
+        internal bool AddPushStateTransition(Token eventIdentifier, List<Token> eventIdentifierTokens,
+            List<Token> stateIdentifiers)
         {
             if (this.Machine.IsMonitor)
             {
@@ -207,6 +219,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             }
 
             this.PushStateTransitions.Add(eventIdentifier, stateIdentifiers);
+            this.ResolvedEventIdentifierTokens[eventIdentifier] = eventIdentifierTokens;
 
             return true;
         }
@@ -215,9 +228,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Adds an action binding.
         /// </summary>
         /// <param name="eventIdentifier">Token</param>
+        /// <param name="eventIdentifierTokens">Tokens</param>
         /// <param name="stmtBlock">BlockSyntax</param>
         /// <returns>Boolean</returns>
-        internal bool AddActionBinding(Token eventIdentifier, BlockSyntax stmtBlock)
+        internal bool AddActionBinding(Token eventIdentifier, List<Token> eventIdentifierTokens,
+            BlockSyntax stmtBlock)
         {
             if (this.GotoStateTransitions.ContainsKey(eventIdentifier) ||
                 this.PushStateTransitions.ContainsKey(eventIdentifier) ||
@@ -228,6 +243,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
             this.ActionBindings.Add(eventIdentifier, null);
             this.ActionHandlers.Add(eventIdentifier, stmtBlock);
+            this.ResolvedEventIdentifierTokens[eventIdentifier] = eventIdentifierTokens;
 
             return true;
         }
@@ -236,9 +252,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Adds an action binding.
         /// </summary>
         /// <param name="eventIdentifier">Token</param>
+        /// <param name="eventIdentifierTokens">Tokens</param>
         /// <param name="actionIdentifier">Token</param>
         /// <returns>Boolean</returns>
-        internal bool AddActionBinding(Token eventIdentifier, Token actionIdentifier)
+        internal bool AddActionBinding(Token eventIdentifier, List<Token> eventIdentifierTokens,
+            Token actionIdentifier)
         {
             if (this.GotoStateTransitions.ContainsKey(eventIdentifier) ||
                 this.PushStateTransitions.ContainsKey(eventIdentifier) ||
@@ -248,6 +266,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             }
 
             this.ActionBindings.Add(eventIdentifier, actionIdentifier);
+            this.ResolvedEventIdentifierTokens[eventIdentifier] = eventIdentifierTokens;
 
             return true;
         }

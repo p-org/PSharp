@@ -74,6 +74,102 @@ public class e3 : Event
         }
 
         [TestMethod, Timeout(10000)]
+        public void TestSimpleGenericEventDeclaration()
+        {
+            var test = @"
+namespace Foo {
+event e1<T>;
+internal event e2;
+public event e3;
+}";
+
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
+
+            var expected = @"
+using Microsoft.PSharp;
+namespace Foo
+{
+class e1<T> : Event
+{
+ public e1()
+  : base()
+ { }
+}
+internal class e2 : Event
+{
+ public e2()
+  : base()
+ { }
+}
+public class e3 : Event
+{
+ public e3()
+  : base()
+ { }
+}
+}";
+
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
+                syntaxTree.ToString().Replace("\n", string.Empty));
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestComplexGenericEventDeclaration()
+        {
+            var test = @"
+namespace Foo {
+event e1<T, K>;
+internal event e2;
+public event e3;
+}";
+
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
+
+            var expected = @"
+using Microsoft.PSharp;
+namespace Foo
+{
+class e1<T,K> : Event
+{
+ public e1()
+  : base()
+ { }
+}
+internal class e2 : Event
+{
+ public e2()
+  : base()
+ { }
+}
+public class e3 : Event
+{
+ public e3()
+  : base()
+ { }
+}
+}";
+
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
+                syntaxTree.ToString().Replace("\n", string.Empty));
+        }
+
+        [TestMethod, Timeout(10000)]
         public void TestEventDeclarationWithPayload()
         {
             var test = @"
@@ -102,6 +198,65 @@ class e1 : Event
  public string m;
  public int n;
  public e1(string m, int n)
+  : base()
+ {
+  this.m = m;
+  this.n = n;
+ }
+}
+internal class e2 : Event
+{
+ public string m;
+ public e2(string m)
+  : base()
+ {
+  this.m = m;
+ }
+}
+public class e3 : Event
+{
+ public int n;
+ public e3(int n)
+  : base()
+ {
+  this.n = n;
+ }
+}
+}";
+
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
+                syntaxTree.ToString().Replace("\n", string.Empty));
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestGenericEventDeclarationWithPayload()
+        {
+            var test = @"
+namespace Foo {
+event e1<T, K> (m:K, n:T);
+internal event e2 (m:string);
+public event e3 (n:int);
+}";
+
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
+
+            var expected = @"
+using Microsoft.PSharp;
+namespace Foo
+{
+class e1<T,K> : Event
+{
+ public K m;
+ public T n;
+ public e1(K m, T n)
   : base()
  {
   this.m = m;

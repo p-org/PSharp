@@ -43,6 +43,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         internal Token Identifier;
 
         /// <summary>
+        /// The generic type of the event.
+        /// </summary>
+        internal List<Token> GenericType;
+
+        /// <summary>
         /// The left parenthesis token.
         /// </summary>
         internal Token LeftParenthesis;
@@ -98,6 +103,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         internal EventDeclaration(IPSharpProgram program)
             : base(program)
         {
+            this.GenericType = new List<Token>();
             this.PayloadTypes = new List<Token>();
             this.PayloadIdentifiers = new List<Token>();
         }
@@ -153,7 +159,14 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 text += "internal ";
             }
 
-            text += "class " + this.Identifier.TextUnit.Text + " : Event";
+            text += "class " + this.Identifier.TextUnit.Text;
+
+            foreach (var token in this.GenericType)
+            {
+                text += token.TextUnit.Text;
+            }
+
+            text += " : Event";
 
             text += "\n";
             text += "{\n";

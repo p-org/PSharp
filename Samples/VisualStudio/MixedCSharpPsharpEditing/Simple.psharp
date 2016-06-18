@@ -1,16 +1,24 @@
 ﻿using System;
 
-/* About this sample:
+/* This sample illustrates mixed P# and C# programming.
+ * 
+ * Following is the P# program. In this sample, we write
+ * all machine and state declarations compactly in P# syntax.
+ * We write the actual event handlers in C# syntax in a C# file
+ * to get full use of Intllisense and other IDE features of VS
+ * including debugging.
  *
- * This is a program in P# syntax.
- * On hitting "Build", the auto-generated C# code is placed
- * in the file obj\Debug\Simple.psharp.cs and this file is
+ * Further:
+ *
+ * On hitting "Build", C# is auto-generated from the P# code and placed
+ * in the file obj\Debug\Simple.psharp.cs. This file is then
  * automatically included for compilation. Any syntax errors,
  * made either in the P# syntax or the embedded C# will be 
  * shown by Visual Studio.
  *
  * After all compilation errors are sorted out, use PSharpCompiler
- * and PSharpTester for deployment and testing of your program.
+ * and PSharpTester for deployment and testing of your program. Do not
+ * deploy after just building from VS.
  *
  * For debugging, you are free to set breakpoints in the auto-generated
  * C# code.
@@ -27,10 +35,12 @@ namespace MixedProgramming
     {
 	   machine Bid;
 
+	   /* This is a machine with a single state S */
 	   start state S {
 	     entry {
+		    /* Create a B machine */
 		    Bid = create(B);
-			/* foo is written entirely in C# */
+			/* Call foo. foo is written entirely in C# */
 		    foo(Bid);
 		 }
 	   }
@@ -41,6 +51,7 @@ namespace MixedProgramming
     {
 	   start state S {
 	     entry { }
+		 /* On event "evt" execute bar (written in C#) */
 		 on evt do bar;		 
 	   }
     }
