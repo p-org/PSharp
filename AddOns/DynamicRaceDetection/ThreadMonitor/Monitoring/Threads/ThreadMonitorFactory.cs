@@ -150,19 +150,6 @@ namespace Microsoft.PSharp.Monitoring.CallsOnly
             return null;
         }
 
-        /// <summary>
-        /// Never called.
-        /// </summary>
-        public override void DisposeTesteeReferences()
-        {
-
-        }
-
-        public override void Destroy()
-        {
-
-        }
-
         public override void RunCompleted()
         {
             try

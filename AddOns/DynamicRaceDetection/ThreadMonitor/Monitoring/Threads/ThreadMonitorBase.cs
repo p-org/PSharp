@@ -24,10 +24,10 @@ namespace Microsoft.PSharp.Monitoring.CallsOnly
     /// Abstract base class to help implement
     /// <see cref="IThreadMonitor"/>
     /// </summary>
-    internal abstract class ThreadMonitorBase
-        : ComponentElementBase
-        , IThreadMonitor
+    internal abstract class ThreadMonitorBase : ComponentElementBase, IThreadMonitor
     {
+        #region constructors
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ThreadMonitorBase"/> class.
         /// </summary>
@@ -35,16 +35,20 @@ namespace Microsoft.PSharp.Monitoring.CallsOnly
         protected ThreadMonitorBase(ICopComponent host)
             : base(host)
         {
+
         }
 
-        #region Memory access addresses
+        #endregion
+
+        #region methods
+
         /// <summary>
         /// This method is called when a (non-local) memory location is loaded from.
         /// </summary>
         /// <param name="location">An identifier of the memory address.</param>
         /// <param name="size">The size of the data loaded.</param>
         /// <param name="volatile">indicates if the access is volatile</param>
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.Diagnostics.DebuggerNonUserCode]
         public virtual Exception Load(UIntPtr location, uint size, bool @volatile) { return null; }
 
         /// <summary>
@@ -53,16 +57,15 @@ namespace Microsoft.PSharp.Monitoring.CallsOnly
         /// <param name="location">An identifier of the memory address.</param>
         /// <param name="size">The size of the data stored.</param>
         /// <param name="volatile">indicates if the access is volatile</param>
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.Diagnostics.DebuggerNonUserCode]
         public virtual Exception Store(UIntPtr location, uint size, bool @volatile) { return null; }
-        #endregion
 
         /// <summary>
-        /// This method is called after an object allocation
+        /// This method is called after an object allocation.
         /// </summary>
         /// <param name="newObject">allocated object</param>
         /// <returns></returns>
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        [global::System.Diagnostics.DebuggerNonUserCode]
         public virtual Exception ObjectAllocationAccess(object newObject) { return null; }
 
         /// <summary>
@@ -82,8 +85,10 @@ namespace Microsoft.PSharp.Monitoring.CallsOnly
         public virtual void RunCompleted() { }
 
         /// <summary>
-        /// Thread destroyed
+        /// Thread destroyed.
         /// </summary>
         public virtual void Destroy() { }
+
+        #endregion
     }
 }
