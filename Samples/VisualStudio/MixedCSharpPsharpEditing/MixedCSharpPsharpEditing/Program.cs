@@ -34,10 +34,6 @@ namespace MixedProgramming
         {
             // "evt" is visible to IntelliSense
             // (after building once)
-            //
-            // Navigating to the definition of "evt" will take
-            // you to the generated code where IntelliSense picks up
-            // the type
             this.Send(Bid, new evt("hello", "world"));
         }
     }
