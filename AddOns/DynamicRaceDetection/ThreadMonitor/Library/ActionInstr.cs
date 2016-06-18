@@ -19,56 +19,112 @@ namespace Microsoft.PSharp.Monitoring
     [Serializable]
     public class ActionInstr
     {
-        public bool isSend;
-        public bool isCreate;
-        public bool isTask;
+        #region fields
 
-        //memory access fields
-        public bool isWrite;
-        public UIntPtr location;
-        public UIntPtr objHandle;
-        public UIntPtr offset;
-        public string srcLocation;
+        /// <summary>
+        /// Is a send.
+        /// </summary>
+        public bool IsSend;
 
-        //send event fields
-        public int sendID;
+        /// <summary>
+        /// Is a create.
+        /// </summary>
+        public bool IsCreate;
 
-        //create machine fields
-        public int createMachineID;
+        /// <summary>
+        /// Is a task.
+        /// </summary>
+        public bool IsTask;
 
-        //task Id
-        public int taskId;
+        /// <summary>
+        /// Is a write memory access.
+        /// </summary>
+        public bool IsWrite;
 
-        public ActionInstr(bool isWrite, UIntPtr location, UIntPtr objHandle, UIntPtr offset, string srcLocation)
+        /// <summary>
+        /// The location.
+        /// </summary>
+        public UIntPtr Location;
+
+        /// <summary>
+        /// The object handle.
+        /// </summary>
+        public UIntPtr ObjHandle;
+
+        /// <summary>
+        /// The offset.
+        /// </summary>
+        public UIntPtr Offset;
+
+        /// <summary>
+        /// The source location.
+        /// </summary>
+        public string SrcLocation;
+
+        /// <summary>
+        /// The send id.
+        /// </summary>
+        public int SendId;
+
+        /// <summary>
+        /// Create machine id.
+        /// </summary>
+        public int CreateMachineId;
+
+        /// <summary>
+        /// The task id.
+        /// </summary>
+        public int TaskId;
+
+        #endregion
+
+        #region constructors
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        public ActionInstr(bool isWrite, UIntPtr location, UIntPtr objHandle,
+            UIntPtr offset, string srcLocation)
         {
-            this.isWrite = isWrite;
-            this.location = location;
-            this.objHandle = objHandle;
-            this.offset = offset;
-            this.isSend = false;
-            this.srcLocation = srcLocation;
-            this.isTask = false;
+            this.IsWrite = isWrite;
+            this.Location = location;
+            this.ObjHandle = objHandle;
+            this.Offset = offset;
+            this.IsSend = false;
+            this.SrcLocation = srcLocation;
+            this.IsTask = false;
         }
 
-        public ActionInstr(int sendID)
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        public ActionInstr(int sendId)
         {
-            this.sendID = sendID;
-            this.isSend = true;
-            this.isTask = false;
+            this.SendId = sendId;
+            this.IsSend = true;
+            this.IsTask = false;
         }
 
-        public ActionInstr(int createMachineID, bool isCreate)
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        public ActionInstr(int createMachineId, bool isCreate)
         {
-            this.createMachineID = createMachineID;
-            this.isCreate = isCreate;
-            this.isSend = false;
-            this.isTask = false;
+            this.CreateMachineId = createMachineId;
+            this.IsCreate = isCreate;
+            this.IsSend = false;
+            this.IsTask = false;
         }
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
         public ActionInstr(bool isTask, int taskId)
         {
-            this.isTask = isTask;
-            this.taskId = taskId;
+            this.IsTask = isTask;
+            this.TaskId = taskId;
         }
+
+        #endregion
     }
 }

@@ -20,11 +20,10 @@ using Microsoft.PSharp.Monitoring.ComponentModel;
 namespace Microsoft.PSharp.Monitoring.CallsOnly
 {
     /// <summary>
-    /// Memory access monitor. 
-    /// to enabled.
+    /// Memory access monitor.
     /// </summary>
     /// <remarks>
-    /// Notifes listener of read/write events
+    /// Notifies listener of read/write events.
     /// </remarks>
     internal sealed class ObjectAccessThreadMonitor : ThreadMonitorBase
     {
@@ -46,19 +45,19 @@ namespace Microsoft.PSharp.Monitoring.CallsOnly
         /// <summary>
         /// Initializes a new instance of the <see cref="ObjectAccessThreadMonitor"/> class.
         /// </summary>
-        /// <param name="host">The host.</param>
+        /// <param name="host">ICopComponent</param>
         internal ObjectAccessThreadMonitor(ICopComponent host)
             : base(host)
         { }
 
         /// <summary>
-        /// Notifies a write access
+        /// Notifies a write access.
         /// </summary>
-        /// <param name="interiorPointer">The interior pointer.</param>
-        /// <param name="size">The size.</param>
-        /// <param name="volatile">indicates if the access is volatile</param>
-        /// <returns></returns>
-        [DebuggerNonUserCodeAttribute]
+        /// <param name="interiorPointer">UIntPtr</param>
+        /// <param name="size">Dize</param>
+        /// <param name="volatile">Indicates if the access is volatile</param>
+        /// <returns>Exception</returns>
+        [DebuggerNonUserCode]
         public override Exception Store(UIntPtr interiorPointer, uint size, bool @volatile)
         {
             RawAccessHandler rh = WriteRawAccess;
@@ -72,13 +71,13 @@ namespace Microsoft.PSharp.Monitoring.CallsOnly
         }
 
         /// <summary>
-        /// Notifies a read access
+        /// Notifies a read access.
         /// </summary>
-        /// <param name="interiorPointer">The interior pointer.</param>
-        /// <param name="size">The size.</param>
-        /// <param name="volatile">indicates if the access is volatile</param>
-        /// <returns></returns>
-        [DebuggerNonUserCodeAttribute]
+        /// <param name="interiorPointer">UIntPtr</param>
+        /// <param name="size">Size</param>
+        /// <param name="volatile">Indicates if the access is volatile</param>
+        /// <returns>Exception</returns>
+        [DebuggerNonUserCode]
         public override Exception Load(UIntPtr interiorPointer, uint size, bool @volatile)
         {
             RawAccessHandler rh = ReadRawAccess;
@@ -91,7 +90,12 @@ namespace Microsoft.PSharp.Monitoring.CallsOnly
             return null;
         }
 
-        [DebuggerNonUserCodeAttribute]
+        /// <summary>
+        /// Notifies an object allocation.
+        /// </summary>
+        /// <param name="newObject">Object</param>
+        /// <returns>Exception</returns>
+        [DebuggerNonUserCode]
         public override Exception ObjectAllocationAccess(object newObject)
         {
             ObjectAllocationHandler rh = ObjectAllocationHandlerEvent;

@@ -20,37 +20,82 @@ namespace Microsoft.PSharp.Monitoring
     [Serializable]
     public class ThreadTrace
     {
-        public int machineID;
-        public String actionName;
-        public int actionID;
-        public List<ActionInstr> accesses = new List<ActionInstr>();
+        #region fields
 
-        public string iteration = null;
+        /// <summary>
+        /// The machine id.
+        /// </summary>
+        public int MachineId;
 
-        public bool isTask;
-        public int taskId;
+        /// <summary>
+        /// The action name.
+        /// </summary>
+        public string ActionName;
 
-        public ThreadTrace(int machineID)
+        /// <summary>
+        /// The action id.
+        /// </summary>
+        public int ActionId;
+
+        /// <summary>
+        /// List of accesses.
+        /// </summary>
+        public List<ActionInstr> Accesses;
+
+        /// <summary>
+        /// The iteration.
+        /// </summary>
+        public string Iteration = null;
+
+        /// <summary>
+        /// Is a task.
+        /// </summary>
+        public bool IsTask;
+
+        /// <summary>
+        /// Task id.
+        /// </summary>
+        public int TaskId;
+
+        #endregion
+
+        #region constructors
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="machineId">Machine id</param>
+        /// <returns>ThreadTrace</returns>
+        public static ThreadTrace CreateTraceForMachine(int machineId)
         {
-            this.machineID = machineID;
-            this.isTask = false;
-            this.taskId = -1;
+            ThreadTrace trace = new ThreadTrace();
+
+            trace.MachineId = machineId;
+            trace.IsTask = false;
+            trace.TaskId = -1;
+
+            trace.Accesses = new List<ActionInstr>();
+
+            return trace;
         }
 
-        public void set(String actionName)
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="taskId">Task id</param>
+        /// <returns>ThreadTrace</returns>
+        public static ThreadTrace CreateTraceForTask(int taskId)
         {
-            this.actionName = actionName;
+            ThreadTrace trace = new ThreadTrace();
+
+            trace.IsTask = true;
+            trace.TaskId = taskId;
+
+            trace.Accesses = new List<ActionInstr>();
+
+            return trace;
         }
 
-        public void set(int actionID)
-        {
-            this.actionID = actionID;
-        }
-
-        public ThreadTrace(int taskId, string actionName)
-        {
-            this.isTask = true;
-            this.taskId = taskId;
-        }
+        #endregion
     }
 }

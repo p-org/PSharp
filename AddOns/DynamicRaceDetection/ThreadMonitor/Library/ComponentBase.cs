@@ -17,7 +17,7 @@ using Microsoft.ExtendedReflection.ComponentModel;
 namespace Microsoft.PSharp.Monitoring.ComponentModel
 {
     /// <summary>
-    /// Base class for CopComponentBase.
+    /// Base class for P# CopComponentBase.
     /// </summary>
     internal class CopComponentBase : ComponentBase, ICopComponent
     {
@@ -26,7 +26,6 @@ namespace Microsoft.PSharp.Monitoring.ComponentModel
         /// <summary>
         /// Gets the services.
         /// </summary>
-        /// <value>The services.</value>
         public new ICopComponentServices Services
         {
             get

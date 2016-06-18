@@ -20,7 +20,7 @@ using Microsoft.PSharp.Monitoring.CallsOnly;
 namespace Microsoft.PSharp.Monitoring
 {
     /// <summary>
-    /// Service to register monitors
+    /// Service to register monitors.
     /// </summary>
     internal interface IMonitorManager
         : IService
@@ -28,13 +28,13 @@ namespace Microsoft.PSharp.Monitoring
         /// <summary>
         /// Registers a thread monitor.
         /// </summary>
-        /// <param name="threadMonitor">The thread monitor.</param>
+        /// <param name="threadMonitor">IThreadMonitor</param>
         void RegisterThreadMonitor(IThreadMonitor threadMonitor);
 
         /// <summary>
         /// Registers a thread monitor factory.
         /// </summary>
-        /// <param name="monitorFactory">The monitor factory.</param>
+        /// <param name="monitorFactory">IThreadMonitorFactory</param>
         void RegisterThreadMonitorFactory(IThreadMonitorFactory monitorFactory);
 
         /// <summary>
@@ -43,7 +43,7 @@ namespace Microsoft.PSharp.Monitoring
         void RegisterObjectAccessThreadMonitor();
 
         /// <summary>
-        /// get rid of accummulated execution monitors
+        /// Gets rid of accummulated execution monitors.
         /// </summary>
         void DisposeExecutionMonitors();
     }

@@ -17,7 +17,7 @@ using Microsoft.ExtendedReflection.ComponentModel;
 namespace Microsoft.PSharp.Monitoring.ComponentModel
 {
     /// <summary>
-    /// Services available in ChessCop components
+    /// Services available in P# cop components
     /// </summary>
     internal interface ICopComponentServices : IComponentServices
     {

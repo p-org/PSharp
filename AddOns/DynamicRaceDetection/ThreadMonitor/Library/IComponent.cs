@@ -17,7 +17,7 @@ using Microsoft.ExtendedReflection.ComponentModel;
 namespace Microsoft.PSharp.Monitoring.ComponentModel
 {
     /// <summary>
-    /// A ChessCop component
+    /// A P# cop component.
     /// </summary>
     internal interface ICopComponent : IComponent
     {
