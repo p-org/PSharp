@@ -72,7 +72,6 @@
     <Compile Include="Engines\RaceInstrumentationEngine.cs" />
     <Compile Include="Library\IComponent.cs" />
     <Compile Include="Library\IComponentServices.cs" />
-    <Compile Include="Library\IInternalService.cs" />
     <Compile Include="Monitoring\IMonitorManager.cs" />
     <Compile Include="Monitoring\Threads\IThreadMonitor.cs" />
     <Compile Include="Monitoring\MonitorManager.cs" />

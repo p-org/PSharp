@@ -14,6 +14,7 @@
 
 using System.Collections.Generic;
 
+using Microsoft.ExtendedReflection.ComponentModel;
 using Microsoft.ExtendedReflection.Monitoring;
 using Microsoft.ExtendedReflection.Collections;
 using Microsoft.ExtendedReflection.Utilities.Safe.Diagnostics;
@@ -26,7 +27,7 @@ namespace Microsoft.PSharp.Monitoring
     /// <summary>
     /// Class implementing a thread monitor manager.
     /// </summary>
-    internal sealed class ThreadMonitorManager : CopComponentBase, IInternalService
+    internal sealed class ThreadMonitorManager : CopComponentBase, IService
     {
         #region fields
 
