@@ -50,6 +50,21 @@ namespace Microsoft.PSharp.Utilities
         public int Timeout;
 
         /// <summary>
+        /// Enables debugging.
+        /// </summary>
+        public bool EnableDebugging;
+
+        /// <summary>
+        /// Enables profiling.
+        /// </summary>
+        public bool EnableProfiling;
+
+        /// <summary>
+        /// Keeps the temporary files.
+        /// </summary>
+        public bool KeepTemporaryFiles;
+
+        /// <summary>
         /// Pause on assertion failure.
         /// </summary>
         internal bool PauseOnAssertionFailure;
@@ -89,11 +104,6 @@ namespace Microsoft.PSharp.Utilities
         public bool ShowFullDataFlowInformation;
 
         /// <summary>
-        /// Reports the runtime results for the static analysis.
-        /// </summary>
-        public bool TimeStaticAnalysis;
-
-        /// <summary>
         /// Perform the state transition analysis.
         /// </summary>
         public bool DoStateTransitionAnalysis;
@@ -125,7 +135,7 @@ namespace Microsoft.PSharp.Utilities
         /// <summary>
         /// Seed for random scheduling strategies.
         /// </summary>
-        internal int? RandomSchedulingSeed;
+        public int? RandomSchedulingSeed;
 
         /// <summary>
         /// If true, the P# tester performs a full exploration,
@@ -198,6 +208,15 @@ namespace Microsoft.PSharp.Utilities
 
         #endregion
 
+        #region data race detection options
+
+        /// <summary>
+        /// Enables data-race detection during testing.
+        /// </summary>
+        public bool EnableDataRaceDetection;
+
+        #endregion
+
         #region visualization options
 
         /// <summary>
@@ -266,6 +285,10 @@ namespace Microsoft.PSharp.Utilities
             this.Verbose = 1;
             this.Timeout = 0;
 
+            this.EnableDebugging = false;
+            this.EnableProfiling = false;
+            this.KeepTemporaryFiles = false;
+
             this.PauseOnAssertionFailure = false;
             this.InteroperationEnabled = true;
 
@@ -276,7 +299,6 @@ namespace Microsoft.PSharp.Utilities
             this.ShowControlFlowInformation = false;
             this.ShowDataFlowInformation = false;
             this.ShowFullDataFlowInformation = false;
-            this.TimeStaticAnalysis = false;
             this.DoStateTransitionAnalysis = false;
 
             this.AssemblyToBeAnalyzed = "";
@@ -299,6 +321,7 @@ namespace Microsoft.PSharp.Utilities
             this.CacheProgramState = false;
             this.BoundOperations = false;
             this.DynamicEventQueuePrioritization = false;
+            this.EnableDataRaceDetection = false;
 
             this.EnableVisualization = false;
 

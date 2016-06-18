@@ -5,15 +5,15 @@
 *.suo
 *.user
 *.sln.docstates
-
+*.opendb
 
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/
 x64/
-Binaries/
-build/
+[Bb]inaries/
+[Bb]uild/
 bld/
 [Bb]in/
 [Oo]bj/

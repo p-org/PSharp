@@ -101,9 +101,9 @@ namespace Microsoft.PSharp.Utilities
         {
             string help = "\n";
 
-            help += "--------------";
-            help += "\nBasic options:";
-            help += "\n--------------";
+            help += " --------------";
+            help += "\n Basic options:";
+            help += "\n --------------";
             help += "\n  /?\t\t Show this help menu";
             help += "\n  /s:[x]\t Path to a P# solution";
             help += "\n  /test:[x]\t Name of a project in the P# solution to test";
@@ -112,15 +112,15 @@ namespace Microsoft.PSharp.Utilities
             help += "\n  /v:[x]\t Enable verbose mode (values from '1' to '3')";
             help += "\n  /debug\t Enable debugging";
 
-            help += "\n\n---------------------------";
-            help += "\nReplaying options:";
-            help += "\n---------------------------";
+            help += "\n\n ------------------";
+            help += "\n Replaying options:";
+            help += "\n ------------------";
             help += "\n  /trace:[x]\t Trace to replay";
             help += "\n  /break:[x]\t Attach debugger and break at bug";
 
-            help += "\n\n---------------------------";
-            help += "\nExperimental options:";
-            help += "\n---------------------------";
+            help += "\n\n ---------------------";
+            help += "\n Experimental options:";
+            help += "\n ---------------------";
             help += "\n  /tpl\t Enable intra-machine concurrency scheduling";
 
             help += "\n";

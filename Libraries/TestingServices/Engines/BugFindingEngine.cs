@@ -17,10 +17,12 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
-using Microsoft.PSharp.TestingServices.Exploration;
+using Microsoft.PSharp.TestingServices.Tracing.Machines;
+using Microsoft.PSharp.TestingServices.Tracing.Schedule;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices
@@ -67,11 +69,10 @@ namespace Microsoft.PSharp.TestingServices
         /// Creates a new P# bug-finding engine.
         /// </summary>
         /// <param name="configuration">Configuration</param>
-        /// <param name="assemblyName">Assembly name</param>
         /// <returns>BugFindingEngine</returns>
-        internal static BugFindingEngine Create(Configuration configuration, string assemblyName)
+        internal static BugFindingEngine Create(Configuration configuration)
         {
-            return new BugFindingEngine(configuration, assemblyName);
+            return new BugFindingEngine(configuration);
         }
 
         /// <summary>
@@ -121,9 +122,8 @@ namespace Microsoft.PSharp.TestingServices
         /// Constructor.
         /// </summary>
         /// <param name="configuration">Configuration</param>
-        /// <param name="action">Action</param>
-        private BugFindingEngine(Configuration configuration, Action<PSharpRuntime> action)
-            : base(configuration, action)
+        private BugFindingEngine(Configuration configuration)
+            : base(configuration)
         {
             this.Initialize();
         }
@@ -143,9 +143,9 @@ namespace Microsoft.PSharp.TestingServices
         /// Constructor.
         /// </summary>
         /// <param name="configuration">Configuration</param>
-        /// <param name="assemblyName">Assembly name</param>
-        private BugFindingEngine(Configuration configuration, string assemblyName)
-            : base(configuration, assemblyName)
+        /// <param name="action">Action</param>
+        private BugFindingEngine(Configuration configuration, Action<PSharpRuntime> action)
+            : base(configuration, action)
         {
             this.Initialize();
         }
@@ -234,6 +234,17 @@ namespace Microsoft.PSharp.TestingServices
                         base.Visualizer.Refresh();
                     }
 
+                    if (this.Configuration.EnableDataRaceDetection)
+                    {
+                        this.EmitRaceInstrumentationTraces(runtime, i);
+                    }
+
+                    // Invoke the per iteration callbacks, if any.
+                    foreach (var callback in base.PerIterationCallbacks)
+                    {
+                        callback(i);
+                    }
+
                     // Checks for any liveness property violations. Requires
                     // that the program has terminated and no safety property
                     // violations have been found.
@@ -277,16 +288,16 @@ namespace Microsoft.PSharp.TestingServices
                     {
                         if (sw != null && !base.Configuration.SuppressTrace)
                         {
-                            this.PrintReadableTrace(sw);
-                            this.PrintReproducableTrace(runtime);
+                            this.EmitReadableTrace(sw);
+                            this.EmitReproducableTrace(runtime);
                         }
 
                         break;
                     }
                     else if (sw != null && base.Configuration.PrintTrace)
                     {
-                        this.PrintReadableTrace(sw);
-                        this.PrintReproducableTrace(runtime);
+                        this.EmitReadableTrace(sw);
+                        this.EmitReproducableTrace(runtime);
                     }
                 }
                 
@@ -316,38 +327,38 @@ namespace Microsoft.PSharp.TestingServices
         #region utility methods
 
         /// <summary>
-        /// Outputs a readable trace.
+        /// Emits a readable trace.
         /// </summary>
         /// <param name="sw">StringWriter</param>
-        private void PrintReadableTrace(StringWriter sw)
+        private void EmitReadableTrace(StringWriter sw)
         {
-            var name = Path.GetFileNameWithoutExtension(this.Assembly.Location);
-            var directoryPath = base.GetTracesDirectory();
+            string name = Path.GetFileNameWithoutExtension(this.Assembly.Location);
+            string directoryPath = base.GetOutputDirectory();
 
-            var traces = Directory.GetFiles(directoryPath, name + "*.txt");
-            var path = directoryPath + name + "_" + traces.Length + ".txt";
+            string[] traces = Directory.GetFiles(directoryPath, name + "*.txt");
+            string path = directoryPath + name + "_" + traces.Length + ".txt";
 
             IO.PrintLine($"... Writing {path}");
             File.WriteAllText(path, sw.ToString());
         }
 
         /// <summary>
-        /// Outputs a reproducable trace.
+        /// Emits a reproducable trace.
         /// </summary>
         /// <param name="runtime">Runtime</param>
-        private void PrintReproducableTrace(PSharpBugFindingRuntime runtime)
+        private void EmitReproducableTrace(PSharpBugFindingRuntime runtime)
         {
-            var name = Path.GetFileNameWithoutExtension(this.Assembly.Location);
-            var directoryPath = base.GetTracesDirectory();
+            string name = Path.GetFileNameWithoutExtension(this.Assembly.Location);
+            string directoryPath = base.GetOutputDirectory();
 
-            var traces = Directory.GetFiles(directoryPath, name + "*.pstrace");
-            var path = directoryPath + name + "_" + traces.Length + ".pstrace";
+            string[] traces = Directory.GetFiles(directoryPath, name + "*.pstrace");
+            string path = directoryPath + name + "_" + traces.Length + ".pstrace";
 
             StringBuilder stringBuilder = new StringBuilder();
-            for (int idx = 0; idx < runtime.ProgramTrace.Count; idx++)
+            for (int idx = 0; idx < runtime.ScheduleTrace.Count; idx++)
             {
-                TraceStep step = runtime.ProgramTrace[idx];
-                if (step.Type == TraceStepType.SchedulingChoice)
+                ScheduleStep step = runtime.ScheduleTrace[idx];
+                if (step.Type == ScheduleStepType.SchedulingChoice)
                 {
                     stringBuilder.Append(step.ScheduledMachine.Id);
                 }
@@ -356,7 +367,7 @@ namespace Microsoft.PSharp.TestingServices
                     stringBuilder.Append(step.Choice);
                 }
 
-                if (idx < runtime.ProgramTrace.Count - 1)
+                if (idx < runtime.ScheduleTrace.Count - 1)
                 {
                     stringBuilder.Append(Environment.NewLine);
                 }
@@ -364,6 +375,41 @@ namespace Microsoft.PSharp.TestingServices
 
             IO.PrintLine($"... Writing {path}");
             File.WriteAllText(path, stringBuilder.ToString());
+        }
+
+        /// <summary>
+        /// Emits race instrumentation traces.
+        /// </summary>
+        /// <param name="runtime">Runtime</param>
+        /// <param name="iteration">Iteration</param>
+        private void EmitRaceInstrumentationTraces(PSharpBugFindingRuntime runtime, int iteration)
+        {
+            string name = Path.GetFileNameWithoutExtension(this.Assembly.Location);
+            string directoryPath = base.GetRuntimeTracesDirectory();
+            
+            foreach (var kvp in runtime.MachineActionTraceMap)
+            {
+                IO.Debug("<RaceTracing> Machine id: " + kvp.Key);
+                foreach (var actionTrace in kvp.Value)
+                {
+                    if (actionTrace.Type == MachineActionType.InvocationAction)
+                    {
+                        IO.Debug("<RaceTracing> Action: " + actionTrace.Action + " " + actionTrace.ActionId);
+                    }
+                }
+
+                if (kvp.Value.Count > 0)
+                {
+                    string path = directoryPath + name + "_iteration_" + iteration +
+                        "_machine_" + kvp.Key.GetHashCode() + ".osl";
+                    using (FileStream stream = File.Open(path, FileMode.Create))
+                    {
+                        DataContractSerializer serializer = new DataContractSerializer(kvp.Value.GetType());
+                        serializer.WriteObject(stream, kvp.Value);
+                        IO.Debug("... Writing {0}", path);
+                    }
+                }
+            }
         }
 
         /// <summary>

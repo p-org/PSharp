@@ -21,7 +21,7 @@ namespace Microsoft.PSharp.Utilities
     /// <summary>
     /// Static class implementing IO methods.
     /// </summary>
-    internal static class IO
+    public static class IO
     {
         #region fields
 
@@ -42,7 +42,7 @@ namespace Microsoft.PSharp.Utilities
 
         #endregion
 
-        #region API
+        #region public methods
 
         /// <summary>
         /// Static constructor.
@@ -67,7 +67,7 @@ namespace Microsoft.PSharp.Utilities
         /// Returns the next character from the standard input stream.
         /// </summary>
         /// <returns>int</returns>
-        internal static int Get()
+        public static int Get()
         {
             return Console.Read();
         }
@@ -76,7 +76,7 @@ namespace Microsoft.PSharp.Utilities
         /// Returns the next line of characters from the standard input stream.
         /// </summary>
         /// <returns>string</returns>
-        internal static string GetLine()
+        public static string GetLine()
         {
             return Console.ReadLine();
         }
@@ -85,7 +85,7 @@ namespace Microsoft.PSharp.Utilities
         ///  Writes the specified string value to the output stream.
         /// </summary>
         /// <param name="s">String</param>
-        internal static void Print(string s)
+        public static void Print(string s)
         {
             if (IO.WriteToInstalledLogger)
             {
@@ -102,7 +102,7 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         /// <param name="color">ConsoleColor</param>
         /// <param name="s">String</param>
-        internal static void Print(ConsoleColor color, string s)
+        public static void Print(ConsoleColor color, string s)
         {
             if (IO.WriteToInstalledLogger)
             {
@@ -123,7 +123,7 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         /// <param name="s">String</param>
         /// <param name="args">Arguments</param>
-        internal static void Print(string s, params object[] args)
+        public static void Print(string s, params object[] args)
         {
             if (IO.WriteToInstalledLogger)
             {
@@ -142,7 +142,7 @@ namespace Microsoft.PSharp.Utilities
         /// <param name="color">ConsoleColor</param>
         /// <param name="s">String</param>
         /// <param name="args">Arguments</param>
-        internal static void Print(ConsoleColor color, string s, params object[] args)
+        public static void Print(ConsoleColor color, string s, params object[] args)
         {
             if (IO.WriteToInstalledLogger)
             {
@@ -160,7 +160,7 @@ namespace Microsoft.PSharp.Utilities
         /// <summary>
         /// Writes a new line, to the output stream.
         /// </summary>
-        internal static void PrintLine()
+        public static void PrintLine()
         {
             if (IO.WriteToInstalledLogger)
             {
@@ -177,7 +177,7 @@ namespace Microsoft.PSharp.Utilities
         /// current line terminator, to the output stream.
         /// </summary>
         /// <param name="s">String</param>
-        internal static void PrintLine(string s)
+        public static void PrintLine(string s)
         {
             if (IO.WriteToInstalledLogger)
             {
@@ -196,7 +196,7 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         /// <param name="s">String</param>
         /// <param name="args">Arguments</param>
-        internal static void PrintLine(string s, params object[] args)
+        public static void PrintLine(string s, params object[] args)
         {
             if (IO.WriteToInstalledLogger)
             {
@@ -214,7 +214,7 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         /// <param name="s">String</param>
         /// <param name="args">Arguments</param>
-        internal static void PrettyPrint(string s, params object[] args)
+        public static void PrettyPrint(string s, params object[] args)
         {
             string message = IO.Format(s, args);
             IO.Print(message);
@@ -227,7 +227,7 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         /// <param name="s">String</param>
         /// <param name="args">Arguments</param>
-        internal static void PrettyPrintLine(string s, params object[] args)
+        public static void PrettyPrintLine(string s, params object[] args)
         {
             string message = IO.Format(s, args);
             IO.PrintLine(message);
@@ -239,7 +239,7 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         /// <param name="s">String</param>
         /// <param name="args">Arguments</param>
-        internal static void Log(string s, params object[] args)
+        public static void Log(string s, params object[] args)
         {
             string message = IO.Format(s, args);
             IO.PrintLine(message);
@@ -252,7 +252,7 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         /// <param name="s">String</param>
         /// <param name="args">Arguments</param>
-        internal static void Debug(string s, params object[] args)
+        public static void Debug(string s, params object[] args)
         {
             if (!IO.Debugging)
             {
@@ -262,6 +262,10 @@ namespace Microsoft.PSharp.Utilities
             string message = IO.Format(s, args);
             IO.PrintLine(message);
         }
+
+        #endregion
+
+        #region internal methods
 
         /// <summary>
         /// Returns the output that was written to memory.

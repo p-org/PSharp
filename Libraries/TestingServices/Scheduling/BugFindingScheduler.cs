@@ -142,11 +142,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 throw new TaskCanceledException();
             }
 
-            this.Runtime.ProgramTrace.AddSchedulingChoice(next.Machine);
+            this.Runtime.ScheduleTrace.AddSchedulingChoice(next.Machine);
             if (this.Runtime.Configuration.CacheProgramState &&
                 this.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps)
             {
-                this.Runtime.StateCache.CaptureState(this.Runtime.ProgramTrace.Peek());
+                this.Runtime.StateCache.CaptureState(this.Runtime.ScheduleTrace.Peek());
             }
 
             IO.Debug($"<ScheduleDebug> Schedule task {next.Id} of machine " +
@@ -228,17 +228,17 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
             if (uniqueId == null)
             {
-                this.Runtime.ProgramTrace.AddNondeterministicChoice(choice);
+                this.Runtime.ScheduleTrace.AddNondeterministicChoice(choice);
             }
             else
             {
-                this.Runtime.ProgramTrace.AddFairNondeterministicChoice(uniqueId, choice);
+                this.Runtime.ScheduleTrace.AddFairNondeterministicChoice(uniqueId, choice);
             }
 
             if (this.Runtime.Configuration.CacheProgramState &&
                 this.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps)
             {
-                this.Runtime.StateCache.CaptureState(this.Runtime.ProgramTrace.Peek());
+                this.Runtime.StateCache.CaptureState(this.Runtime.ScheduleTrace.Peek());
             }
 
             return choice;

@@ -51,7 +51,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         internal override void Run(ISet<StateMachine> machines)
         {
             // Starts profiling the summarization.
-            if (base.Configuration.TimeStaticAnalysis)
+            if (base.Configuration.EnableProfiling)
             {
                 this.Profiler.StartMeasuringExecutionTime();
             }
@@ -60,7 +60,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             this.ComputeStateMachineInheritanceInformation(machines);
 
             // Stops profiling the summarization.
-            if (base.Configuration.TimeStaticAnalysis)
+            if (base.Configuration.EnableProfiling)
             {
                 this.Profiler.StopMeasuringExecutionTime();
                 this.PrintProfilingResults();

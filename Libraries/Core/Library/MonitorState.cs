@@ -31,14 +31,14 @@ namespace Microsoft.PSharp
         private Monitor Monitor;
 
         /// <summary>
-        /// The entry action, if the OnEntry is not overriden.
+        /// The entry action of the state.
         /// </summary>
-        private Action EntryAction;
+        internal Action EntryAction { get; private set; }
 
         /// <summary>
-        /// The exit action, if the OnExit is not overriden.
+        /// The exit action of the state.
         /// </summary>
-        private Action ExitAction;
+        internal Action ExitAction { get; private set; }
 
         /// <summary>
         /// Dictionary containing all the goto state transitions.
@@ -135,22 +135,6 @@ namespace Microsoft.PSharp
             {
                 this.IgnoredEvents.UnionWith(ignoreEventsAttribute.Events);
             }
-        }
-
-        /// <summary>
-        /// Executes the on entry function.
-        /// </summary>
-        internal void ExecuteEntryFunction()
-        {
-            this.EntryAction?.Invoke();
-        }
-
-        /// <summary>
-        /// Executes the on exit function.
-        /// </summary>
-        internal void ExecuteExitFunction()
-        {
-            this.ExitAction?.Invoke();
         }
 
         #endregion

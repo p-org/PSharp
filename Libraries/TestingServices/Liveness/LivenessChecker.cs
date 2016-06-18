@@ -12,12 +12,11 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Microsoft.PSharp.TestingServices.Exploration;
 using Microsoft.PSharp.TestingServices.StateCaching;
+using Microsoft.PSharp.TestingServices.Tracing.Schedule;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices
@@ -86,30 +85,30 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Checks liveness at a trace cycle.
+        /// Checks liveness at a schedule trace cycle.
         /// </summary>
         /// <param name="root">Cycle start</param>
         /// <param name="stateMap">Map of states</param>
-        internal void CheckLivenessAtTraceCycle(Fingerprint root, Dictionary<TraceStep, State> stateMap)
+        internal void CheckLivenessAtTraceCycle(Fingerprint root, Dictionary<ScheduleStep, State> stateMap)
         {
-            var cycle = new Dictionary<TraceStep, State>();
+            var cycle = new Dictionary<ScheduleStep, State>();
 
             do
             {
-                var traceStep = this.Runtime.ProgramTrace.Pop();
-                var state = stateMap[traceStep];
-                cycle.Add(traceStep, state);
+                var scheduleStep = this.Runtime.ScheduleTrace.Pop();
+                var state = stateMap[scheduleStep];
+                cycle.Add(scheduleStep, state);
 
                 IO.Debug("<LivenessDebug> Cycle contains {0} with {1}.",
-                    traceStep.Type, state.Fingerprint.ToString());
+                    scheduleStep.Type, state.Fingerprint.ToString());
                 
                 // The state can be safely removed, because the liveness detection
                 // algorithm currently removes cycles, so a specific state can only
-                // appear once in the trace.
-                stateMap.Remove(traceStep);
+                // appear once in the schedule trace.
+                stateMap.Remove(scheduleStep);
             }
-            while (this.Runtime.ProgramTrace.Peek() != null && !stateMap[
-                this.Runtime.ProgramTrace.Peek()].Fingerprint.Equals(root));
+            while (this.Runtime.ScheduleTrace.Peek() != null && !stateMap[
+                this.Runtime.ScheduleTrace.Peek()].Fingerprint.Equals(root));
             
             if (!this.IsSchedulingFair(cycle))
             {
@@ -169,10 +168,10 @@ namespace Microsoft.PSharp.TestingServices
         #region private methods
 
         /// <summary>
-        /// Checks if the scheduling is fair in a trace cycle.
+        /// Checks if the scheduling is fair in a schedule trace cycle.
         /// </summary>
         /// <param name="cycle">Cycle of states</param>
-        private bool IsSchedulingFair(Dictionary<TraceStep, State> cycle)
+        private bool IsSchedulingFair(Dictionary<ScheduleStep, State> cycle)
         {
             var result = false;
 
@@ -180,7 +179,7 @@ namespace Microsoft.PSharp.TestingServices
             var scheduledMachines = new HashSet<AbstractMachine>();
 
             var schedulingChoiceSteps= cycle.Where(
-                val => val.Key.Type == TraceStepType.SchedulingChoice);
+                val => val.Key.Type == ScheduleStepType.SchedulingChoice);
             foreach (var step in schedulingChoiceSteps)
             {
                 scheduledMachines.Add(step.Key.ScheduledMachine);
@@ -206,10 +205,10 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Checks if the nondeterminism is fair in a trace cycle.
+        /// Checks if the nondeterminism is fair in a schedule trace cycle.
         /// </summary>
         /// <param name="cycle">Cycle of states</param>
-        private bool IsNondeterminismFair(Dictionary<TraceStep, State> cycle)
+        private bool IsNondeterminismFair(Dictionary<ScheduleStep, State> cycle)
         {
             var result = false;
 
@@ -217,7 +216,7 @@ namespace Microsoft.PSharp.TestingServices
             var falseChoices = new HashSet<string>();
 
             var fairNondeterministicChoiceSteps = cycle.Where(
-                val => val.Key.Type == TraceStepType.FairNondeterministicChoice);
+                val => val.Key.Type == ScheduleStepType.FairNondeterministicChoice);
             foreach (var step in fairNondeterministicChoiceSteps)
             {
                 if (step.Key.Choice)
@@ -240,11 +239,11 @@ namespace Microsoft.PSharp.TestingServices
 
         /// <summary>
         /// Gets all monitors that are in hot state, but not in cold
-        /// state during the trace cycle.
+        /// state during the schedule trace cycle.
         /// </summary>
         /// <param name="cycle">Cycle of states</param>
         /// <returns>Monitors</returns>
-        private HashSet<Monitor> GetHotMonitors(Dictionary<TraceStep, State> cycle)
+        private HashSet<Monitor> GetHotMonitors(Dictionary<ScheduleStep, State> cycle)
         {
             var monitors = new HashSet<Monitor>();
 

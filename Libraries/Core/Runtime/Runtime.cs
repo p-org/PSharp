@@ -563,7 +563,7 @@ namespace Microsoft.PSharp
                     this.TaskMap.TryRemove(Task.CurrentId.Value, out machine);
                 }
             });
-
+            
             this.MachineTasks.Add(task);
             this.TaskMap.TryAdd(task.Id, machine);
 
@@ -637,8 +637,6 @@ namespace Microsoft.PSharp
 
             Task task = new Task(() =>
             {
-                this.TaskMap.TryAdd(Task.CurrentId.Value, machine);
-
                 try
                 {
                     machine.RunEventHandler();
@@ -648,10 +646,10 @@ namespace Microsoft.PSharp
                     this.TaskMap.TryRemove(Task.CurrentId.Value, out machine);
                 }
             });
-
+            
             this.MachineTasks.Add(task);
             this.TaskMap.TryAdd(task.Id, machine);
-
+            
             task.Start();
         }
 
@@ -719,6 +717,16 @@ namespace Microsoft.PSharp
         internal virtual bool GetFairNondeterministicChoice(AbstractMachine machine, string uniqueId)
         {
             return this.GetNondeterministicChoice(machine, 2);
+        }
+
+        /// <summary>
+        /// Notifies that a machine invoked an action.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <param name="action">Action</param>
+        internal virtual void NotifyInvokedAction(Machine machine, Action action)
+        {
+            // No-op for real execution.
         }
 
         /// <summary>

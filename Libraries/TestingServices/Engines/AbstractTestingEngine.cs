@@ -19,8 +19,8 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
-using Microsoft.PSharp.TestingServices.Exploration;
 using Microsoft.PSharp.TestingServices.Scheduling;
+using Microsoft.PSharp.TestingServices.Tracing.Schedule;
 using Microsoft.PSharp.Utilities;
 using Microsoft.PSharp.Visualization;
 
@@ -74,6 +74,12 @@ namespace Microsoft.PSharp.TestingServices
         protected IProgramVisualizer Visualizer;
 
         /// <summary>
+        /// Set of callbacks to invoke at the end
+        /// of each iteration.
+        /// </summary>
+        protected ISet<Action<int>> PerIterationCallbacks;
+
+        /// <summary>
         /// A guard for printing info.
         /// </summary>
         protected int PrintGuard;
@@ -114,6 +120,18 @@ namespace Microsoft.PSharp.TestingServices
         public abstract ITestingEngine Run();
 
         /// <summary>
+        /// Registers a callback to invoke at the end
+        /// of each iteration. The callback takes as
+        /// a parameter an integer representing the
+        /// current iteration.
+        /// </summary>
+        /// <param name="callback">Callback</param>
+        public void RegisterPerIterationCallBack(Action<int> callback)
+        {
+            this.PerIterationCallbacks.Add(callback);
+        }
+
+        /// <summary>
         /// Reports the testing results.
         /// </summary>
         public abstract void Report();
@@ -126,12 +144,25 @@ namespace Microsoft.PSharp.TestingServices
         /// Constructor.
         /// </summary>
         /// <param name="configuration">Configuration</param>
-        /// <param name="action">Action</param>
-        protected AbstractTestingEngine(Configuration configuration, Action<PSharpRuntime> action)
+        protected AbstractTestingEngine(Configuration configuration)
         {
             this.Profiler = new Profiler();
             this.Configuration = configuration;
-            this.TestAction = action;
+
+            this.PerIterationCallbacks = new HashSet<Action<int>>();
+
+            try
+            {
+                this.Assembly = Assembly.LoadFrom(configuration.AssemblyToBeAnalyzed);
+            }
+            catch (FileNotFoundException ex)
+            {
+                ErrorReporter.ReportAndExit(ex.Message);
+            }
+
+            this.FindEntryPoint();
+            this.TestInitMethod = FindTestMethod(typeof(TestInit));
+            this.TestDisposeMethod = FindTestMethod(typeof(TestDispose));
             this.Initialize();
         }
 
@@ -144,6 +175,7 @@ namespace Microsoft.PSharp.TestingServices
         {
             this.Profiler = new Profiler();
             this.Configuration = configuration;
+            this.PerIterationCallbacks = new HashSet<Action<int>>();
             this.Assembly = assembly;
             this.FindEntryPoint();
             this.TestInitMethod = FindTestMethod(typeof(TestInit));
@@ -155,24 +187,13 @@ namespace Microsoft.PSharp.TestingServices
         /// Constructor.
         /// </summary>
         /// <param name="configuration">Configuration</param>
-        /// <param name="assemblyName">Assembly name</param>
-        protected AbstractTestingEngine(Configuration configuration, string assemblyName)
+        /// <param name="action">Action</param>
+        protected AbstractTestingEngine(Configuration configuration, Action<PSharpRuntime> action)
         {
             this.Profiler = new Profiler();
             this.Configuration = configuration;
-
-            try
-            {
-                this.Assembly = Assembly.LoadFrom(assemblyName);
-            }
-            catch (FileNotFoundException ex)
-            {
-                ErrorReporter.ReportAndExit(ex.Message);
-            }
-
-            this.FindEntryPoint();
-            this.TestInitMethod = FindTestMethod(typeof(TestInit));
-            this.TestDisposeMethod = FindTestMethod(typeof(TestDispose));
+            this.PerIterationCallbacks = new HashSet<Action<int>>();
+            this.TestAction = action;
             this.Initialize();
         }
 
@@ -196,7 +217,7 @@ namespace Microsoft.PSharp.TestingServices
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Replay)
             {
                 string[] traceDump = File.ReadAllLines(this.Configuration.TraceFile);
-                Trace trace = new Trace(traceDump);
+                ScheduleTrace trace = new ScheduleTrace(traceDump);
                 this.Strategy = new ReplayStrategy(this.Configuration, trace);
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Random)
@@ -276,6 +297,11 @@ namespace Microsoft.PSharp.TestingServices
                 visualizationTask = this.StartVisualizing();
             }
 
+            if (this.Configuration.EnableDataRaceDetection)
+            {
+                this.CreateRuntimeTracesDirectory();
+            }
+
             this.Profiler.StartMeasuringExecutionTime();
             task.Start();
 
@@ -325,6 +351,12 @@ namespace Microsoft.PSharp.TestingServices
             finally
             {
                 this.Profiler.StopMeasuringExecutionTime();
+
+                if (!this.Configuration.KeepTemporaryFiles &&
+                    this.Assembly != null)
+                {
+                    this.CleanTemporaryFiles();
+                }
             }
         }
 
@@ -337,18 +369,6 @@ namespace Microsoft.PSharp.TestingServices
         {
             Task visualizationTask = this.Visualizer.StartAsync();
             return visualizationTask;
-        }
-
-        /// <summary>
-        /// Returns the traces directory.
-        /// </summary>
-        /// <returns>Path</returns>
-        protected string GetTracesDirectory()
-        {
-            string directoryPath = Path.GetDirectoryName(this.Assembly.Location) +
-                Path.DirectorySeparatorChar + "traces" + Path.DirectorySeparatorChar;
-            Directory.CreateDirectory(directoryPath);
-            return directoryPath;
         }
 
         #endregion
@@ -466,9 +486,49 @@ namespace Microsoft.PSharp.TestingServices
         private void InitializeVisualizer()
         {
             var name = Path.GetFileNameWithoutExtension(this.Assembly.Location);
-            var directoryPath = this.GetTracesDirectory();
+            var directoryPath = this.GetOutputDirectory();
             var graphFile = directoryPath + name + ".dgml";
             this.Visualizer = new PSharpDgmlVisualizer(graphFile);
+        }
+
+        /// <summary>
+        /// Returns the output directory.
+        /// </summary>
+        /// <returns>Path</returns>
+        protected string GetOutputDirectory()
+        {
+            string directoryPath = Path.GetDirectoryName(this.Assembly.Location) +
+                Path.DirectorySeparatorChar + "Output" + Path.DirectorySeparatorChar;
+            Directory.CreateDirectory(directoryPath);
+            return directoryPath;
+        }
+
+        /// <summary>
+        /// Creates the runtime traces directory.
+        /// </summary>
+        protected void CreateRuntimeTracesDirectory()
+        {
+            string directoryPath = this.GetRuntimeTracesDirectory();
+            Directory.CreateDirectory(directoryPath);
+        }
+
+        /// <summary>
+        /// Returns the runtime traces directory.
+        /// </summary>
+        /// <returns>Path</returns>
+        protected string GetRuntimeTracesDirectory()
+        {
+            return this.GetOutputDirectory() + Path.DirectorySeparatorChar +
+                "RuntimeTraces" + Path.DirectorySeparatorChar;
+        }
+
+        /// <summary>
+        /// Cleans the temporary files.
+        /// </summary>
+        protected void CleanTemporaryFiles()
+        {
+            string directoryPath = this.GetRuntimeTracesDirectory();
+            Directory.Delete(directoryPath, true);
         }
 
         /// <summary>

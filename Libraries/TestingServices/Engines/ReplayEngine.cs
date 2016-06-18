@@ -33,11 +33,10 @@ namespace Microsoft.PSharp.TestingServices
         /// Creates a new P# replaying engine.
         /// </summary>
         /// <param name="configuration">Configuration</param>
-        /// <param name="action">Action</param>
         /// <returns>ReplayEngine</returns>
-        public static ReplayEngine Create(Configuration configuration, Action<PSharpRuntime> action)
+        public static ReplayEngine Create(Configuration configuration)
         {
-            return new ReplayEngine(configuration, action);
+            return new ReplayEngine(configuration);
         }
 
         /// <summary>
@@ -46,7 +45,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="configuration">Configuration</param>
         /// <param name="assembly">Assembly</param>
         /// <returns>ReplayEngine</returns>
-        internal static ReplayEngine Create(Configuration configuration, Assembly assembly)
+        public static ReplayEngine Create(Configuration configuration, Assembly assembly)
         {
             return new ReplayEngine(configuration, assembly);
         }
@@ -55,11 +54,11 @@ namespace Microsoft.PSharp.TestingServices
         /// Creates a new P# replaying engine.
         /// </summary>
         /// <param name="configuration">Configuration</param>
-        /// <param name="assemblyName">Assembly name</param>
+        /// <param name="action">Action</param>
         /// <returns>ReplayEngine</returns>
-        internal static ReplayEngine Create(Configuration configuration, string assemblyName)
+        public static ReplayEngine Create(Configuration configuration, Action<PSharpRuntime> action)
         {
-            return new ReplayEngine(configuration, assemblyName);
+            return new ReplayEngine(configuration, action);
         }
 
         /// <summary>
@@ -95,9 +94,8 @@ namespace Microsoft.PSharp.TestingServices
         /// Constructor.
         /// </summary>
         /// <param name="configuration">Configuration</param>
-        /// <param name="action">Action</param>
-        private ReplayEngine(Configuration configuration, Action<PSharpRuntime> action)
-            : base(configuration, action)
+        private ReplayEngine(Configuration configuration)
+            : base(configuration)
         {
 
         }
@@ -117,9 +115,9 @@ namespace Microsoft.PSharp.TestingServices
         /// Constructor.
         /// </summary>
         /// <param name="configuration">Configuration</param>
-        /// <param name="assemblyName">Assembly name</param>
-        private ReplayEngine(Configuration configuration, string assemblyName)
-            : base(configuration, assemblyName)
+        /// <param name="action">Action</param>
+        private ReplayEngine(Configuration configuration, Action<PSharpRuntime> action)
+            : base(configuration, action)
         {
 
         }
