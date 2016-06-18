@@ -17,7 +17,7 @@ using Microsoft.ExtendedReflection.ComponentModel;
 namespace Microsoft.PSharp.Monitoring.ComponentModel
 {
     /// <summary>
-    /// List of available P# cop services.
+    /// List of available services.
     /// </summary>
     internal class CopComponentServices : ComponentServices, ICopComponentServices
     {

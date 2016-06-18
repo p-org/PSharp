@@ -22,11 +22,17 @@ using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.Monitoring
 {
+    /// <summary>
+    /// The remote race instrumentation engine.
+    /// </summary>
     [Serializable]
     internal class RemoteRaceInstrumentationEngine : MarshalByRefObject
     {
         #region fields
 
+        /// <summary>
+        /// Map of assemblies.
+        /// </summary>
         private static SafeDictionary<string, Assembly> Assemblies;
 
         #endregion
@@ -38,7 +44,7 @@ namespace Microsoft.PSharp.Monitoring
         /// </summary>
         static RemoteRaceInstrumentationEngine()
         {
-            RemoteRaceInstrumentationEngine.Assemblies = new SafeDictionary<string, Assembly>();
+            Assemblies = new SafeDictionary<string, Assembly>();
         }
 
         #endregion
@@ -87,7 +93,7 @@ namespace Microsoft.PSharp.Monitoring
                 }
 
                 // recursively load all the assemblies reachables from the root!
-                if (!RemoteRaceInstrumentationEngine.Assemblies.ContainsKey(
+                if (!Assemblies.ContainsKey(
                     a.GetName().FullName) && !ws.ContainsKey(a.GetName().FullName))
                 {
                     ws.Add(a.GetName().FullName, a);
@@ -99,7 +105,7 @@ namespace Microsoft.PSharp.Monitoring
                     en.MoveNext();
                     var a_name = en.Current;
                     var a_assembly = ws[a_name];
-                    RemoteRaceInstrumentationEngine.Assemblies.Add(a_name, a_assembly);
+                    Assemblies.Add(a_name, a_assembly);
                     ws.Remove(a_name);
 
                     foreach (AssemblyName name in a_assembly.GetReferencedAssemblies())
@@ -109,7 +115,7 @@ namespace Microsoft.PSharp.Monitoring
 
                         if (b != null)
                         {
-                            if (!RemoteRaceInstrumentationEngine.Assemblies.ContainsKey(b.GetName().FullName) &&
+                            if (!Assemblies.ContainsKey(b.GetName().FullName) &&
                                 !ws.ContainsKey(b.GetName().FullName))
                             {
                                 ws.Add(b.GetName().FullName, b);

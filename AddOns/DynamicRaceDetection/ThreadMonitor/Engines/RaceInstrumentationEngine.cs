@@ -13,7 +13,6 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Diagnostics;
 
 using Microsoft.ExtendedReflection.Monitoring;
 using Microsoft.ExtendedReflection.Symbols;
@@ -30,32 +29,65 @@ namespace Microsoft.PSharp.Monitoring
     /// </summary>
     internal sealed class RaceInstrumentationEngine : Engine
     {
-        private static RaceInstrumentationEngine SingletonEngine;
-
-        public static void DisposeExecutionMonitors()
-        {
-            Debug.Assert(RaceInstrumentationEngine.SingletonEngine != null);
-            RaceInstrumentationEngine.SingletonEngine.GetService<IMonitorManager>().DisposeExecutionMonitors();
-        }
+        #region classes
 
         /// <summary>
-        /// Initializes a new instance of the race instrumentation engine.
+        /// A stack frame filter.
         /// </summary>
+        private sealed class StackFrameFilter : IStackFrameFilter
+        {
+            public bool Exclude(StackFrameName frame)
+            {
+                string v = frame.Value;
+                return v.Contains("Microsoft.ExtendedReflection") ||
+                    v.Contains("___redirect") ||
+                    v.Contains("___lateredirect") ||
+                    v.Contains("__Substitutions") ||
+                    v.Contains("mscorlib") ||
+                    v.Contains("System.Reflection");
+            }
+        }
+
+        #endregion
+
+        #region fields
+
+        /// <summary>
+        /// The singleton engine.
+        /// </summary>
+        private static RaceInstrumentationEngine SingletonEngine;
+
+        /// <summary>
+        /// The execution monitor.
+        /// </summary>
+        private IExecutionMonitor ExecutionMonitor
+        {
+            get { return this.GetService<MonitorManager>(); }
+        }
+
+        #endregion
+
+        #region constructors
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="testingEngine">ITestingEngine</param>
         /// <param name="configuration">Configuration</param>
         public RaceInstrumentationEngine(ITestingEngine testingEngine, Configuration configuration)
             : base(new Container(), new EngineOptions(),
                   new MonitorManager(testingEngine, configuration),
                   new ThreadMonitorManager(configuration))
         {
-            if (RaceInstrumentationEngine.SingletonEngine != null)
+            if (SingletonEngine != null)
             {
-                throw new InvalidOperationException("RaceInstrumentationEngine created more than once");
+                throw new InvalidOperationException("RaceInstrumentationEngine created more than once.");
             }
 
-            RaceInstrumentationEngine.SingletonEngine = this;
+            SingletonEngine = this;
 
             // required?
-            AppDomain.CurrentDomain.ProcessExit += new EventHandler(CurrentDomain_ProcessExit);
+            AppDomain.CurrentDomain.ProcessExit += new EventHandler(CurrentDomainProcessExit);
             this.GetService<ISymbolManager>().AddStackFrameFilter(new StackFrameFilter());
 
             if (!ControllerEnvironment.IsMonitoringEnabled)
@@ -75,6 +107,10 @@ namespace Microsoft.PSharp.Monitoring
             _ThreadContext.Start(this.ExecutionMonitor, tid);
         }
 
+        #endregion
+
+        #region methods
+        
         /// <summary>
         /// Adds the symbol manager.
         /// </summary>
@@ -91,29 +127,25 @@ namespace Microsoft.PSharp.Monitoring
             base.AddComponents();
         }
 
-        private IExecutionMonitor ExecutionMonitor
+        /// <summary>
+        /// Disposes the execution monitors.
+        /// </summary>
+        public static void DisposeExecutionMonitors()
         {
-            get { return this.GetService<MonitorManager>(); }
+            SingletonEngine.GetService<IMonitorManager>().DisposeExecutionMonitors();
         }
 
-        private sealed class StackFrameFilter : IStackFrameFilter
-        {
-            public bool Exclude(StackFrameName frame)
-            {
-                string v = frame.Value;
-                return v.Contains("Microsoft.ExtendedReflection") ||
-                    v.Contains("___redirect") ||
-                    v.Contains("___lateredirect") ||
-                    v.Contains("__Substitutions") ||
-                    v.Contains("mscorlib") ||
-                    v.Contains("System.Reflection");
-            }
-        }
-
-        void CurrentDomain_ProcessExit(object sender, EventArgs e)
+        /// <summary>
+        /// Event handler.
+        /// </summary>
+        /// <param name="sender">Sender</param>
+        /// <param name="e">EventArgs</param>
+        void CurrentDomainProcessExit(object sender, EventArgs e)
         {
             this.ExecutionMonitor.Terminate();
             this.Log.Close();
         }
+
+        #endregion
     }
 }
