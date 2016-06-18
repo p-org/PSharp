@@ -79,6 +79,7 @@ namespace Microsoft.PSharp.Monitoring
         /// <summary>
         /// Constructor.
         /// </summary>
+        /// <param name="testingEngine">ITestingEngine</param>
         /// <param name="configuration">Configuration</param>
         public MonitorManager(ITestingEngine testingEngine, Configuration configuration)
             : base()
@@ -94,15 +95,12 @@ namespace Microsoft.PSharp.Monitoring
         /// <summary>
         /// Clears the execution monitors monitor.
         /// </summary>
-        void IMonitorManager.DisposeExecutionMonitors()
-        {
-
-        }
+        void IMonitorManager.DisposeExecutionMonitors() { }
 
         /// <summary>
         /// Registers the thread monitor.
         /// </summary>
-        /// <param name="threadMonitor">The thread monitor.</param>
+        /// <param name="threadMonitor">IThreadMonitor</param>
         void IMonitorManager.RegisterThreadMonitor(IThreadMonitor threadMonitor)
         {
             if (threadMonitor == null)
@@ -118,7 +116,7 @@ namespace Microsoft.PSharp.Monitoring
         /// </summary>
         void IMonitorManager.RegisterObjectAccessThreadMonitor()
         {
-            // ensure we only have 1
+            // Ensure we only have 1.
             foreach (IThreadMonitor monitor in this.ThreadMonitorFactory.Monitors)
             {
                 if (monitor is ObjectAccessThreadMonitor)
@@ -133,7 +131,7 @@ namespace Microsoft.PSharp.Monitoring
         /// <summary>
         /// Registers the thread monitor factory.
         /// </summary>
-        /// <param name="monitorFactory">The monitor factory.</param>
+        /// <param name="monitorFactory">IThreadMonitorFactory</param>
         void IMonitorManager.RegisterThreadMonitorFactory(IThreadMonitorFactory monitorFactory)
         {
             SafeDebug.AssertNotNull(monitorFactory, "monitorFactory");
