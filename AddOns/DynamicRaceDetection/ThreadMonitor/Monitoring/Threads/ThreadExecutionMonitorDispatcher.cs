@@ -187,7 +187,7 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
                 //end hack
 
                 ThreadTrace obj = this.ThreadTrace[this.ThreadTrace.Count - 1];
-                obj.accesses.Add(new ActionInstr(false, location, objH, objO, GetSourceLocation(location)));
+                obj.Accesses.Add(new ActionInstr(false, location, objH, objO, GetSourceLocation(location)));
                 this.Trace.Add("load: " + objH + " " + objO + " " + this.CallStack.Peek() + " " + GetSourceLocation(location));
             }
             else if (!this.CallStack.Peek().FullName.Contains("Microsoft.PSharp") && objH != null)
@@ -197,8 +197,8 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
                     //TODO: This is fragile (for tasks)
                     if (this.CallStack.Peek().ShortName.Contains(m.Item1.ShortName))
                     {
-                        ThreadTrace obj = new ThreadTrace(m.Item2, m.Item1.ShortName);
-                        obj.accesses.Add(new ActionInstr(false, location, objH, objO, GetSourceLocation(location)));
+                        ThreadTrace obj = Monitoring.ThreadTrace.CreateTraceForTask(m.Item2);
+                        obj.Accesses.Add(new ActionInstr(false, location, objH, objO, GetSourceLocation(location)));
                         this.ThreadTrace.Add(obj);
                         //trace.Add("load: " + objH + " " + objO + " " + this.CallStack.Peek());
                     }
@@ -229,7 +229,7 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
 
                 //trace.Add("got object handle: " + objH + " offset: " + objO);
                 ThreadTrace obj = this.ThreadTrace[this.ThreadTrace.Count - 1];
-                obj.accesses.Add(new ActionInstr(true, location, objH, objO, GetSourceLocation(location)));
+                obj.Accesses.Add(new ActionInstr(true, location, objH, objO, GetSourceLocation(location)));
                 this.Trace.Add("store: " + location + " " + objH + " " + objO + " " + this.CallStack.Peek() + " " + GetSourceLocation(location));
             }
             else if(!this.CallStack.Peek().FullName.Contains("Microsoft.PSharp") && objH != null)
@@ -239,8 +239,8 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
                     //TODO: This is fragile
                     if (this.CallStack.Peek().ShortName.Contains(m.Item1.ShortName))
                     {
-                        ThreadTrace obj = new ThreadTrace(m.Item2, m.Item1.ShortName);
-                        obj.accesses.Add(new ActionInstr(true, location, objH, objO, GetSourceLocation(location)));
+                        ThreadTrace obj = Monitoring.ThreadTrace.CreateTraceForTask(m.Item2);
+                        obj.Accesses.Add(new ActionInstr(true, location, objH, objO, GetSourceLocation(location)));
                         this.ThreadTrace.Add(obj);
                         //trace.Add("store: " + location + " " + objH + " " + objO + " " + this.CallStack.Peek() + " " + m.Item2);
                     }
@@ -261,7 +261,7 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
                 this.Trace.Add("ACTION!!!!!!");
                 this.Trace.Add("method: " + method.FullName);
                 ThreadTrace obj = this.ThreadTrace[this.ThreadTrace.Count - 1];
-                obj.set(method.FullName);
+                obj.ActionName = method.FullName;
                 this.IsAction = false;
                 this.RecordRW = true;
                 currentAction = method.FullName;
@@ -329,7 +329,7 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
                     sendIds.Add(currentMachineId, 1);
                 }
 
-                obj.accesses.Add(new ActionInstr(sendIds[currentMachineId]));
+                obj.Accesses.Add(new ActionInstr(sendIds[currentMachineId]));
             }
         }
 
@@ -345,7 +345,7 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
                     isCreateMachine = false;
 
                     ThreadTrace obj = this.ThreadTrace[this.ThreadTrace.Count - 1];
-                    obj.accesses.Add(new ActionInstr(r.GetHashCode(), true));
+                    obj.Accesses.Add(new ActionInstr(r.GetHashCode(), true));
                 }
             }
             catch (Exception)
@@ -359,7 +359,7 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
                         Method m = taskMethods[taskMethods.Count - 1].Item1;
                         taskMethods[taskMethods.Count - 1] = new Tuple<Method, int>(m, tid.Id);
                         ThreadTrace obj = this.ThreadTrace[this.ThreadTrace.Count - 1];
-                        obj.accesses.Add(new ActionInstr(true, tid.Id));
+                        obj.Accesses.Add(new ActionInstr(true, tid.Id));
                     }
                 }
                 catch (Exception)
@@ -423,7 +423,7 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
                 this.IsExitActionCalled = false;
 
                 this.IsAction = true;
-                ThreadTrace obj = new ThreadTrace(mcID);
+                ThreadTrace obj = Monitoring.ThreadTrace.CreateTraceForMachine(mcID);
 
                 if (actionIds.ContainsKey(mcID))
                 {
@@ -436,7 +436,7 @@ namespace Microsoft.PSharp.Monitoring.AllCallbacks
                     this.Trace.Add("action id: 1");
                 }
 
-                obj.set(actionIds[mcID]);
+                obj.ActionId = actionIds[mcID];
                 this.ThreadTrace.Add(obj);
             }
         }
