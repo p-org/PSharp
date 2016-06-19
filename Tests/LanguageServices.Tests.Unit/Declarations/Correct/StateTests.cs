@@ -457,6 +457,148 @@ protected void psharp_S1_e_action()
         }
 
         [TestMethod, Timeout(10000)]
+        public void TestOnSimpleGenericEventGotoStateDeclarationWithBody()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+start state S1
+{
+on e<int> goto S2 with {}
+}
+}
+}";
+
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
+
+            var expected = @"
+using Microsoft.PSharp;
+namespace Foo
+{
+class M : Machine
+{
+[Microsoft.PSharp.Start]
+[OnEventGotoState(typeof(e<int>), typeof(S2), nameof(psharp_S1_e_type_0_action))]
+class S1 : MachineState
+{
+}
+protected void psharp_S1_e_type_0_action()
+{
+}
+}
+}";
+
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
+                syntaxTree.ToString().Replace("\n", string.Empty));
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestOnComplexGenericEventGotoStateDeclarationWithBody()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+start state S1
+{
+on e<List<Tuple<bool, object>>, Dictionary<string, float>> goto S2 with {}
+}
+}
+}";
+
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
+
+            var expected = @"
+using Microsoft.PSharp;
+namespace Foo
+{
+class M : Machine
+{
+[Microsoft.PSharp.Start]
+[OnEventGotoState(typeof(e<List<Tuple<bool,object>>,Dictionary<string,float>>), typeof(S2), nameof(psharp_S1_e_type_0_action))]
+class S1 : MachineState
+{
+}
+protected void psharp_S1_e_type_0_action()
+{
+}
+}
+}";
+
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
+                syntaxTree.ToString().Replace("\n", string.Empty));
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestOMultipleGenericEventGotoStateDeclarationWithBody()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+start state S1
+{
+on e goto S2 with {}
+on e<int> goto S2 with {}
+on e<List<Tuple<bool, object>>, Dictionary<string, float>> goto S2 with {}
+}
+}
+}";
+
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
+
+            var expected = @"
+using Microsoft.PSharp;
+namespace Foo
+{
+class M : Machine
+{
+[Microsoft.PSharp.Start]
+[OnEventGotoState(typeof(e), typeof(S2), nameof(psharp_S1_e_action))]
+[OnEventGotoState(typeof(e<int>), typeof(S2), nameof(psharp_S1_e_type_1_action))]
+[OnEventGotoState(typeof(e<List<Tuple<bool,object>>,Dictionary<string,float>>), typeof(S2), nameof(psharp_S1_e_type_2_action))]
+class S1 : MachineState
+{
+}
+protected void psharp_S1_e_action()
+{
+}
+protected void psharp_S1_e_type_1_action()
+{
+}
+protected void psharp_S1_e_type_2_action()
+{
+}
+}
+}";
+
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
+                syntaxTree.ToString().Replace("\n", string.Empty));
+        }
+
+        [TestMethod, Timeout(10000)]
         public void TestOnEventDoActionDeclaration()
         {
             var test = @"

@@ -374,6 +374,54 @@ protected void psharp_G_S1_e_action(){}
         }
 
         [TestMethod, Timeout(10000)]
+        public void TestMachineOnSimpleGenericEventGotoStateDeclarationWithBody()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+group G
+{
+start state S1
+{
+on e<int> goto S2 with {}
+}
+}
+}
+}";
+
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
+
+            var expected = @"
+using Microsoft.PSharp;
+namespace Foo
+{
+class M : Machine
+{
+class G : StateGroup
+{
+[Microsoft.PSharp.Start]
+[OnEventGotoState(typeof(e<int>), typeof(S2), nameof(psharp_G_S1_e_type_0_action))]
+public class S1 : MachineState
+{
+}
+}
+protected void psharp_G_S1_e_type_0_action(){}
+}
+}";
+
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty).Replace("\n", string.Empty),
+                syntaxTree.ToString().Replace("\n", string.Empty));
+        }
+
+        [TestMethod, Timeout(10000)]
         public void TestMachineOnEventDoActionDeclaration()
         {
             var test = @"
@@ -461,6 +509,54 @@ public class S1 : MachineState
 }
 }
 protected void psharp_G_S1_e_action(){}
+}
+}";
+
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty).Replace("\n", string.Empty),
+                syntaxTree.ToString().Replace("\n", string.Empty));
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestMachineOnSimpleGenericEventDoActionDeclarationWithBody()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+group G
+{
+start state S1
+{
+on e<int> do {}
+}
+}
+}
+}";
+
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
+
+            var expected = @"
+using Microsoft.PSharp;
+namespace Foo
+{
+class M : Machine
+{
+class G : StateGroup
+{
+[Microsoft.PSharp.Start]
+[OnEventDoAction(typeof(e<int>), nameof(psharp_G_S1_e_type_0_action))]
+public class S1 : MachineState
+{
+}
+}
+protected void psharp_G_S1_e_type_0_action(){}
 }
 }";
 
