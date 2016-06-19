@@ -528,7 +528,10 @@ namespace Microsoft.PSharp.TestingServices
         protected void CleanTemporaryFiles()
         {
             string directoryPath = this.GetRuntimeTracesDirectory();
-            Directory.Delete(directoryPath, true);
+            if (Directory.Exists(directoryPath))
+            {
+                Directory.Delete(directoryPath, true);
+            }
         }
 
         /// <summary>
