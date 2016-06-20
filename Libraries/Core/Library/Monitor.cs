@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -29,14 +30,16 @@ namespace Microsoft.PSharp
         #region fields
 
         /// <summary>
-        /// Set of all possible states types.
+        /// Map from machine types to a set of all
+        /// possible states types.
         /// </summary>
-        private HashSet<Type> StateTypes;
+        private static ConcurrentDictionary<Type, HashSet<Type>> StateTypeMap;
 
         /// <summary>
-        /// Set of all available states.
+        /// Map from machine types to a set of all
+        /// available states.
         /// </summary>
-        private HashSet<MonitorState> States;
+        private static ConcurrentDictionary<Type, HashSet<MonitorState>> StateMap;
 
         /// <summary>
         /// The monitor state.
@@ -52,6 +55,11 @@ namespace Microsoft.PSharp
         /// Dictionary containing all the current action bindings.
         /// </summary>
         private ActionBindings ActionBindings;
+
+        /// <summary>
+        /// Map from action names to actions.
+        /// </summary>
+        private Dictionary<string, Action> ActionMap;
 
         /// <summary>
         /// Set of currently ignored event types.
@@ -82,7 +90,16 @@ namespace Microsoft.PSharp
 
         #endregion
 
-        #region monitor constructors
+        #region constructors
+
+        /// <summary>
+        /// Static constructor.
+        /// </summary>
+        static Monitor()
+        {
+            StateTypeMap = new ConcurrentDictionary<Type, HashSet<Type>>();
+            StateMap = new ConcurrentDictionary<Type, HashSet<MonitorState>>();
+        }
 
         /// <summary>
         /// Constructor.
@@ -90,7 +107,7 @@ namespace Microsoft.PSharp
         protected Monitor()
             : base()
         {
-
+            this.ActionMap = new Dictionary<string, Action>();
         }
 
         #endregion
@@ -105,7 +122,7 @@ namespace Microsoft.PSharp
         protected void Goto(Type s)
         {
             // If the state is not a state of the monitor, then report an error and exit.
-            this.Assert(this.StateTypes.Contains(s), $"Monitor '{this.GetType().Name}' " +
+            this.Assert(StateTypeMap[this.GetType()].Contains(s), $"Monitor '{this.GetType().Name}' " +
                 $"is trying to transition to non-existing state '{s.Name}'.");
             this.Raise(new GotoStateEvent(s));
         }
@@ -213,7 +230,7 @@ namespace Microsoft.PSharp
 
         #endregion
 
-        #region private methods
+        #region event handling methods
 
         /// <summary>
         /// Handles the given event.
@@ -258,15 +275,13 @@ namespace Microsoft.PSharp
                 else if (this.GotoTransitions.ContainsKey(e.GetType()))
                 {
                     var transition = this.GotoTransitions[e.GetType()];
-                    Type targetState = transition.Item1;
-                    Action onExitAction = transition.Item2;
-                    this.GotoState(targetState, onExitAction);
+                    this.GotoState(transition.Item1, transition.Item2);
                 }
                 // Checks if the event can trigger an action.
                 else if (this.ActionBindings.ContainsKey(e.GetType()))
                 {
-                    Action action = this.ActionBindings[e.GetType()];
-                    this.Do(action);
+                    string actionName = this.ActionBindings[e.GetType()];
+                    this.Do(actionName);
                 }
 
                 break;
@@ -308,27 +323,16 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Configures the state transitions of the monitor.
-        /// </summary>
-        /// <param name="state">State</param>
-        private void ConfigureStateTransitions(MonitorState state)
-        {
-            this.GotoTransitions = state.GotoTransitions;
-            this.ActionBindings = state.ActionBindings;
-            this.IgnoredEvents = state.IgnoredEvents;
-        }
-
-        /// <summary>
         /// Performs a goto transition to the given state.
         /// </summary>
         /// <param name="s">Type of the state</param>
-        /// <param name="onExit">Goto on exit action</param>
-        private void GotoState(Type s, Action onExit)
+        /// <param name="onExitActionName">Action name</param>
+        private void GotoState(Type s, string onExitActionName)
         {
             // The monitor performs the on exit statements of the current state.
-            this.ExecuteCurrentStateOnExit(onExit);
+            this.ExecuteCurrentStateOnExit(onExitActionName);
 
-            var nextState = this.States.First(val => val.GetType().Equals(s));
+            var nextState = StateMap[this.GetType()].First(val => val.GetType().Equals(s));
             this.ConfigureStateTransitions(nextState);
             
             // The monitor transitions to the new state.
@@ -339,12 +343,14 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Performs an action.
+        /// Invokes an action.
         /// </summary>
-        /// <param name="action">Action</param>
+        /// <param name="actionName">Action name</param>
         [DebuggerStepThrough]
-        private void Do(Action action)
+        private void Do(string actionName)
         {
+            Action action = this.ActionMap[actionName];
+
             base.Runtime.Log($"<MonitorLog> Monitor '{this.GetType().Name}' executed " +
                 $"action '{action.Method.Name}' in state '{this.CurrentState.FullName}'.");
 
@@ -372,10 +378,6 @@ namespace Microsoft.PSharp
             }
         }
 
-        #endregion
-
-        #region helper methods
-
         /// <summary>
         /// Executes the on entry function of the current state.
         /// </summary>
@@ -395,11 +397,17 @@ namespace Microsoft.PSharp
             base.Runtime.Log($"<MonitorLog> Monitor '{this.GetType().Name}' entering " +
                 $"{liveness}state '{this.CurrentState.FullName}'.");
 
+            Action entryAction = null;
+            if (this.State.EntryAction != null)
+            {
+                entryAction = this.ActionMap[this.State.EntryAction];
+            }
+
             try
             {
-                // Performs the entry action of the new state,
+                // Invokes the entry action of the new state,
                 // if there is one available.
-                this.State.EntryAction?.Invoke();
+                entryAction?.Invoke();
             }
             catch (OperationCanceledException ex)
             {
@@ -424,19 +432,32 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Executes the on exit function of the current state.
         /// </summary>
-        /// <param name="onExit">Goto on exit action</param>
+        /// <param name="eventHandlerExitActionName">Action name</param>
         [DebuggerStepThrough]
-        private void ExecuteCurrentStateOnExit(Action onExit)
+        private void ExecuteCurrentStateOnExit(string eventHandlerExitActionName)
         {
             base.Runtime.Log($"<MonitorLog> Monitor '{this.GetType().Name}' " +
                 $"exiting state '{this.CurrentState.FullName}'.");
 
+            Action exitAction = null;
+            if (this.State.ExitAction != null)
+            {
+                exitAction = this.ActionMap[this.State.ExitAction];
+            }
+
             try
             {
-                // Performs the exit action of the current state,
+                // Invokes the exit action of the current state,
                 // if there is one available.
-                this.State.ExitAction?.Invoke();
-                onExit?.Invoke();
+                exitAction?.Invoke();
+
+                // Invokes the exit action of the event handler,
+                // if there is one available.
+                if (eventHandlerExitActionName != null)
+                {
+                    Action eventHandlerExitAction = this.ActionMap[eventHandlerExitActionName];
+                    eventHandlerExitAction();
+                }
             }
             catch (OperationCanceledException ex)
             {
@@ -502,6 +523,168 @@ namespace Microsoft.PSharp
 
         #endregion
 
+        #region state transitioning methods
+
+        /// <summary>
+        /// Configures the state transitions of the monitor.
+        /// </summary>
+        /// <param name="state">State</param>
+        private void ConfigureStateTransitions(MonitorState state)
+        {
+            this.GotoTransitions = state.GotoTransitions;
+            this.ActionBindings = state.ActionBindings;
+            this.IgnoredEvents = state.IgnoredEvents;
+        }
+
+        /// <summary>
+        /// Initializes information about the states of the monitor.
+        /// </summary>
+        internal void InitializeStateInformation()
+        {
+            // Caches the available state types for this monitor type.
+            if (StateTypeMap.TryAdd(this.GetType(), new HashSet<Type>()))
+            {
+                Type monitorType = this.GetType();
+                while (monitorType != typeof(Monitor))
+                {
+                    foreach (var s in monitorType.GetNestedTypes(BindingFlags.Instance |
+                        BindingFlags.NonPublic | BindingFlags.Public |
+                        BindingFlags.DeclaredOnly))
+                    {
+                        this.ExtractStateTypes(s);
+                    }
+
+                    monitorType = monitorType.BaseType;
+                }
+            }
+
+            // Caches the available state instances for this monitor type.
+            if (StateMap.TryAdd(this.GetType(), new HashSet<MonitorState>()))
+            {
+                foreach (var type in StateTypeMap[this.GetType()])
+                {
+                    var state = Activator.CreateInstance(type) as MonitorState;
+                    state.InitializeState();
+
+                    this.Assert((state.IsCold && !state.IsHot) ||
+                        (!state.IsCold && state.IsHot) ||
+                        (!state.IsCold && !state.IsHot),
+                        $"State '{type.FullName}' of monitor '{base.Id.Name}' " +
+                        "cannot be both cold and hot.");
+
+                    StateMap[this.GetType()].Add(state);
+                }
+            }
+
+            // Populates the map of actions for this monitor instance.
+            foreach (var state in StateMap[this.GetType()])
+            {
+                if (state.EntryAction != null &&
+                    !this.ActionMap.ContainsKey(state.EntryAction))
+                {
+                    this.ActionMap.Add(state.EntryAction, this.GetActionWithName(state.EntryAction));
+                }
+
+                if (state.ExitAction != null &&
+                    !this.ActionMap.ContainsKey(state.ExitAction))
+                {
+                    this.ActionMap.Add(state.ExitAction, this.GetActionWithName(state.ExitAction));
+                }
+
+                foreach (var transition in state.GotoTransitions)
+                {
+                    if (transition.Value.Item2 != null &&
+                        !this.ActionMap.ContainsKey(transition.Value.Item2))
+                    {
+                        this.ActionMap.Add(transition.Value.Item2,
+                            this.GetActionWithName(transition.Value.Item2));
+                    }
+                }
+
+                foreach (var action in state.ActionBindings)
+                {
+                    if (!this.ActionMap.ContainsKey(action.Value))
+                    {
+                        this.ActionMap.Add(action.Value, this.GetActionWithName(action.Value));
+                    }
+                }
+            }
+
+            var initialStates = StateMap[this.GetType()].Where(state => state.IsStart).ToList();
+            this.Assert(initialStates.Count != 0, $"Monitor '{base.Id.Name}' must declare a start state.");
+            this.Assert(initialStates.Count == 1, $"Monitor '{base.Id.Name}' " +
+                "can not declare more than one start states.");
+
+            this.ConfigureStateTransitions(initialStates.Single());
+            this.State = initialStates.Single();
+
+            this.AssertStateValidity();
+        }
+
+        /// <summary>
+        /// Processes a type, looking for monitor states.
+        /// </summary>
+        /// <param name="type">Type</param>
+        private void ExtractStateTypes(Type type)
+        {
+            Stack<Type> stack = new Stack<Type>();
+            stack.Push(type);
+
+            while (stack.Count > 0)
+            {
+                Type nextType = stack.Pop();
+
+                if (nextType.IsClass && nextType.IsSubclassOf(typeof(MonitorState)))
+                {
+                    StateTypeMap[this.GetType()].Add(nextType);
+                }
+                else if (nextType.IsClass && nextType.IsSubclassOf(typeof(StateGroup)))
+                {
+                    // Adds the contents of the group of states to the stack.
+                    foreach (var t in nextType.GetNestedTypes(BindingFlags.Instance |
+                        BindingFlags.NonPublic | BindingFlags.Public |
+                        BindingFlags.DeclaredOnly))
+                    {
+                        this.Assert(t.IsSubclassOf(typeof(StateGroup)) ||
+                            t.IsSubclassOf(typeof(MonitorState)), $"'{t.Name}' " +
+                            $"is neither a group of states nor a state.");
+                        stack.Push(t);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns the action with the specified name.
+        /// </summary>
+        /// <param name="actionName">Action name</param>
+        /// <returns>Action</returns>
+        private Action GetActionWithName(string actionName)
+        {
+            MethodInfo method = null;
+            Type monitorType = this.GetType();
+
+            do
+            {
+                method = monitorType.GetMethod(actionName, BindingFlags.Public |
+                    BindingFlags.NonPublic | BindingFlags.Instance |
+                    BindingFlags.FlattenHierarchy);
+                monitorType = monitorType.BaseType;
+            }
+            while (method == null && monitorType != typeof(Monitor));
+
+            this.Assert(method != null, "Cannot detect action declaration '{0}' " +
+                "in monitor '{1}'.", actionName, this.GetType().Name);
+            this.Assert(method.GetParameters().Length == 0, "Action '{0}' in monitor " +
+                "'{1}' must have 0 formal parameters.", method.Name, this.GetType().Name);
+            this.Assert(method.ReturnType == typeof(void), "Action '{0}' in monitor " +
+                "'{1}' must have 'void' return type.", method.Name, this.GetType().Name);
+
+            return (Action)Delegate.CreateDelegate(typeof(Action), this, method);
+        }
+
+        #endregion
+
         #region error checking
 
         /// <summary>
@@ -509,7 +692,7 @@ namespace Microsoft.PSharp
         /// </summary>
         private void AssertStateValidity()
         {
-            this.Assert(this.StateTypes.Count > 0, $"Monitor '{this.GetType().Name}' " +
+            this.Assert(StateTypeMap[this.GetType()].Count > 0, $"Monitor '{this.GetType().Name}' " +
                 "must have one or more states.\n");
             this.Assert(this.State != null, $"Monitor '{this.GetType().Name}' " +
                 "must not have a null current state.\n");
@@ -526,106 +709,6 @@ namespace Microsoft.PSharp
                 $"in monitor '{this.GetType().Name}', '{ex.Source}':\n" +
                 $"   {ex.Message}\n" +
                 $"The stack trace is:\n{ex.StackTrace}");
-        }
-
-        #endregion
-
-        #region configuration and cleanup methods
-
-        /// <summary>
-        /// Initializes information about the states of the monitor.
-        /// </summary>
-        internal void InitializeStateInformation()
-        {
-            this.StateTypes = new HashSet<Type>();
-            this.States = new HashSet<MonitorState>();
-
-            Type monitorType = this.GetType();
-            Type initialStateType = null;
-
-            while (monitorType != typeof(Monitor))
-            {
-                foreach (var s in monitorType.GetNestedTypes(BindingFlags.Instance |
-                    BindingFlags.NonPublic | BindingFlags.Public |
-                    BindingFlags.DeclaredOnly))
-                {
-                    this.ExtractStateTypes(s, ref initialStateType);
-                }
-
-                monitorType = monitorType.BaseType;
-            }
-
-            foreach (var type in this.StateTypes)
-            {
-                var isHot = false;
-                var isCold = false;
-
-                var hotAttribute = type.GetCustomAttribute(typeof(Hot), false) as Hot;
-                if (hotAttribute != null)
-                {
-                    isHot = true;
-                }
-
-                var coldAttribute = type.GetCustomAttribute(typeof(Cold), false) as Cold;
-                if (coldAttribute != null)
-                {
-                    isCold = true;
-                }
-
-                MonitorState state = Activator.CreateInstance(type) as MonitorState;
-                state.InitializeState(this, isHot, isCold);
-
-                this.States.Add(state);
-            }
-            
-            var initialState = this.States.FirstOrDefault(val => val.GetType().Equals(initialStateType));
-            this.Assert(initialState != null, $"Monitor '{this.GetType().Name}' must declare a start state.");
-
-            this.ConfigureStateTransitions(initialState);
-            this.State = initialState;
-
-            this.AssertStateValidity();
-        }
-
-        /// <summary>
-        /// Process a type, looking for monitor states.
-        /// </summary>
-        /// <param name="type">Type</param>
-        /// <param name="initialStateType">Type</param>
-        private void ExtractStateTypes(Type type, ref Type initialStateType)
-        {
-            Stack<Type> stack = new Stack<Type>();
-            stack.Push(type);
-
-            while (stack.Count > 0)
-            {
-                Type nextType = stack.Pop();
-
-                if (nextType.IsClass && nextType.IsSubclassOf(typeof(MonitorState)))
-                {
-                    if (nextType.IsDefined(typeof(Start), false))
-                    {
-                        this.Assert(initialStateType == null, $"Monitor '{this.GetType().Name}' " +
-                            "can not declare more than one start states.");
-                        initialStateType = nextType;
-                    }
-
-                    this.StateTypes.Add(nextType);
-                }
-                else if (nextType.IsClass && nextType.IsSubclassOf(typeof(StateGroup)))
-                {
-                    // Adds the contents of the group of states to the stack.
-                    foreach (var t in nextType.GetNestedTypes(BindingFlags.Instance |
-                        BindingFlags.NonPublic | BindingFlags.Public |
-                        BindingFlags.DeclaredOnly))
-                    {
-                        this.Assert(t.IsSubclassOf(typeof(StateGroup)) ||
-                            t.IsSubclassOf(typeof(MonitorState)), $"'{t.Name}' " +
-                            $"is neither a group of states nor a state.");
-                        stack.Push(t);
-                    }
-                }
-            }
         }
 
         #endregion

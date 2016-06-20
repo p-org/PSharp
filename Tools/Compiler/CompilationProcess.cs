@@ -48,8 +48,15 @@ namespace Microsoft.PSharp
         /// </summary>
         public void Start()
         {
-            IO.PrintLine($". Compiling ({this.CompilationContext.Configuration.CompilationTarget}::" +
-                $"{this.CompilationContext.Configuration.OptimizationTarget})");
+            if (this.CompilationContext.Configuration.CompilationTarget == CompilationTarget.Testing)
+            {
+                IO.PrintLine($". Compiling ({this.CompilationContext.Configuration.CompilationTarget})");
+            }
+            else
+            {
+                IO.PrintLine($". Compiling ({this.CompilationContext.Configuration.CompilationTarget}::" +
+                    $"{this.CompilationContext.Configuration.OptimizationTarget})");
+            }
 
             // Creates and runs a P# compilation engine.
             CompilationEngine.Create(this.CompilationContext).Run();

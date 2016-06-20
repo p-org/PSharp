@@ -240,8 +240,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         private void CompileProject(Project project)
         {
             CompilationOptions options = null;
-            if (this.CompilationContext.Configuration.CompilationTarget == CompilationTarget.Testing ||
-                this.CompilationContext.Configuration.OptimizationTarget == OptimizationTarget.Debug)
+            if (this.CompilationContext.Configuration.OptimizationTarget == OptimizationTarget.Debug)
             {
                 options = project.CompilationOptions.WithOptimizationLevel(OptimizationLevel.Debug);
             }

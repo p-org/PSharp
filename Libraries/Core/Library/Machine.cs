@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -32,14 +33,16 @@ namespace Microsoft.PSharp
         #region fields
 
         /// <summary>
-        /// Set of all possible states types.
+        /// Map from machine types to a set of all
+        /// possible states types.
         /// </summary>
-        private HashSet<Type> StateTypes;
+        private static ConcurrentDictionary<Type, HashSet<Type>> StateTypeMap;
 
         /// <summary>
-        /// Set of all available states.
+        /// Map from machine types to a set of all
+        /// available states.
         /// </summary>
-        private HashSet<MachineState> States;
+        private static ConcurrentDictionary<Type, HashSet<MachineState>> StateMap;
 
         /// <summary>
         /// A stack of machine states. The state on the top of
@@ -61,6 +64,11 @@ namespace Microsoft.PSharp
         /// Dictionary containing all the current action bindings.
         /// </summary>
         internal ActionBindings ActionBindings;
+
+        /// <summary>
+        /// Map from action names to actions.
+        /// </summary>
+        private Dictionary<string, Action> ActionMap;
 
         /// <summary>
         /// Set of currently ignored event types.
@@ -138,7 +146,16 @@ namespace Microsoft.PSharp
 
         #endregion
 
-        #region machine constructors
+        #region constructors
+
+        /// <summary>
+        /// Static constructor.
+        /// </summary>
+        static Machine()
+        {
+            StateTypeMap = new ConcurrentDictionary<Type, HashSet<Type>>();
+            StateMap = new ConcurrentDictionary<Type, HashSet<MachineState>>();
+        }
 
         /// <summary>
         /// Constructor.
@@ -148,6 +165,7 @@ namespace Microsoft.PSharp
         {
             this.Inbox = new List<EventInfo>();
             this.StateStack = new Stack<MachineState>();
+            this.ActionMap = new Dictionary<string, Action>();
             this.EventWaitHandlers = new List<EventWaitHandler>();
 
             this.IsRunning = true;
@@ -266,7 +284,7 @@ namespace Microsoft.PSharp
         protected void Goto(Type s)
         {
             // If the state is not a state of the machine, then report an error and exit.
-            this.Assert(this.StateTypes.Contains(s), $"Machine '{base.Id.Name}' " +
+            this.Assert(StateTypeMap[this.GetType()].Contains(s), $"Machine '{base.Id.Name}' " +
                 $"is trying to transition to non-existing state '{s.Name}'.");
             this.Raise(new GotoStateEvent(s));
         }
@@ -707,7 +725,7 @@ namespace Microsoft.PSharp
 
         #endregion
 
-        #region private methods
+        #region event handling methods
 
         /// <summary>
         /// Gets the next available event. It gives priority to raised events,
@@ -831,9 +849,7 @@ namespace Microsoft.PSharp
                 else if (this.GotoTransitions.ContainsKey(e.GetType()))
                 {
                     var transition = this.GotoTransitions[e.GetType()];
-                    Type targetState = transition.Item1;
-                    Action onExitAction = transition.Item2;
-                    this.GotoState(targetState, onExitAction);
+                    this.GotoState(transition.Item1, transition.Item2);
                 }
                 // Checks if the event can trigger a push state transition.
                 else if (this.PushTransitions.ContainsKey(e.GetType()))
@@ -844,8 +860,8 @@ namespace Microsoft.PSharp
                 // Checks if the event can trigger an action.
                 else if (this.ActionBindings.ContainsKey(e.GetType()))
                 {
-                    Action action = this.ActionBindings[e.GetType()];
-                    this.Do(action);
+                    string actionName = this.ActionBindings[e.GetType()];
+                    this.Do(actionName);
                 }
 
                 break;
@@ -987,7 +1003,104 @@ namespace Microsoft.PSharp
 
             return false;
         }
-        
+
+        /// <summary>
+        /// Performs a goto transition to the specified state.
+        /// </summary>
+        /// <param name="s">Type of the state</param>
+        /// <param name="onExitActionName">Action name</param>
+        private void GotoState(Type s, string onExitActionName)
+        {
+            // The machine performs the on exit action of the current state.
+            this.ExecuteCurrentStateOnExit(onExitActionName);
+            if (this.IsHalted)
+            {
+                return;
+            }
+
+            this.StateStack.Pop();
+
+            var nextState = StateMap[this.GetType()].First(val => val.GetType().Equals(s));
+            this.ConfigureStateTransitions(nextState);
+
+            // The machine transitions to the new state.
+            this.StateStack.Push(nextState);
+
+            // The machine performs the on entry action of the new state.
+            this.ExecuteCurrentStateOnEntry();
+        }
+
+        /// <summary>
+        /// Performs a push transition to the specified state.
+        /// </summary>
+        /// <param name="s">Type of the state</param>
+        private void PushState(Type s)
+        {
+            base.Runtime.Log($"<PushLog> Machine '{base.Id.Name}' pushed.");
+
+            var nextState = StateMap[this.GetType()].First(val => val.GetType().Equals(s));
+            this.ConfigureStateTransitions(nextState);
+
+            // The machine transitions to the new state.
+            this.StateStack.Push(nextState);
+
+            // The machine performs the on entry statements of the new state.
+            this.ExecuteCurrentStateOnEntry();
+        }
+
+        /// <summary>
+        /// Invokes an action.
+        /// </summary>
+        /// <param name="actionName">Action name</param>
+        [DebuggerStepThrough]
+        private void Do(string actionName)
+        {
+            Action action = this.ActionMap[actionName];
+
+            base.Runtime.NotifyInvokedAction(this, action);
+
+            try
+            {
+                action();
+            }
+            catch (Exception ex)
+            {
+                this.IsHalted = true;
+
+                Exception innerException = ex;
+                if (innerException is TargetInvocationException ||
+                    innerException is AggregateException)
+                {
+                    innerException = ex.InnerException;
+                }
+
+                if (innerException is OperationCanceledException)
+                {
+                    IO.Debug("<Exception> OperationCanceledException was " +
+                        $"thrown from Machine '{base.Id.Name}'.");
+                }
+                else if (innerException is TaskSchedulerException)
+                {
+                    IO.Debug("<Exception> TaskSchedulerException was thrown from " +
+                        $"thrown from Machine '{base.Id.Name}'.");
+                }
+                else
+                {
+                    if (Debugger.IsAttached)
+                    {
+                        throw innerException;
+                    }
+
+                    // Handles generic exception.
+                    this.ReportGenericAssertion(innerException);
+                }
+            }
+        }
+
+        #endregion
+
+        #region state transitioning methods
+
         /// <summary>
         /// Configures the state transitions of the machine.
         /// </summary>
@@ -1033,101 +1146,6 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Performs a goto transition to the specified state.
-        /// </summary>
-        /// <param name="s">Type of the state</param>
-        /// <param name="onExit">Goto on exit action</param>
-        private void GotoState(Type s, Action onExit)
-        {
-            // The machine performs the on exit action of the current state.
-            this.ExecuteCurrentStateOnExit(onExit);
-            if (this.IsHalted)
-            {
-                return;
-            }
-
-            this.StateStack.Pop();
-            
-            var nextState = this.States.First(val => val.GetType().Equals(s));
-            this.ConfigureStateTransitions(nextState);
-
-            // The machine transitions to the new state.
-            this.StateStack.Push(nextState);
-
-            // The machine performs the on entry action of the new state.
-            this.ExecuteCurrentStateOnEntry();
-        }
-
-        /// <summary>
-        /// Performs a push transition to the specified state.
-        /// </summary>
-        /// <param name="s">Type of the state</param>
-        private void PushState(Type s)
-        {
-            base.Runtime.Log($"<PushLog> Machine '{base.Id.Name}' pushed.");
-
-            var nextState = this.States.First(val => val.GetType().Equals(s));
-            this.ConfigureStateTransitions(nextState);
-
-            // The machine transitions to the new state.
-            this.StateStack.Push(nextState);
-
-            // The machine performs the on entry statements of the new state.
-            this.ExecuteCurrentStateOnEntry();
-        }
-
-        /// <summary>
-        /// Invokes an action.
-        /// </summary>
-        /// <param name="action">Action</param>
-        [DebuggerStepThrough]
-        private void Do(Action action)
-        {
-            base.Runtime.NotifyInvokedAction(this, action);
-
-            try
-            {
-                action();
-            }
-            catch (Exception ex)
-            {
-                this.IsHalted = true;
-
-                Exception innerException = ex;
-                if (innerException is TargetInvocationException ||
-                    innerException is AggregateException)
-                {
-                    innerException = ex.InnerException;
-                }
-
-                if (innerException is OperationCanceledException)
-                {
-                    IO.Debug("<Exception> OperationCanceledException was " +
-                        $"thrown from Machine '{base.Id.Name}'.");
-                }
-                else if (innerException is TaskSchedulerException)
-                {
-                    IO.Debug("<Exception> TaskSchedulerException was thrown from " +
-                        $"thrown from Machine '{base.Id.Name}'.");
-                }
-                else
-                {
-                    if (Debugger.IsAttached)
-                    {
-                        throw innerException;
-                    }
-
-                    // Handles generic exception.
-                    this.ReportGenericAssertion(innerException);
-                }
-            }
-        }
-
-        #endregion
-
-        #region helper methods
-
-        /// <summary>
         /// Executes the on entry function of the current state.
         /// </summary>
         [DebuggerStepThrough]
@@ -1135,8 +1153,12 @@ namespace Microsoft.PSharp
         {
             base.Runtime.Log($"<StateLog> Machine '{base.Id.Name}' " +
                 $"enters state '{this.CurrentState.FullName}'.");
-
-            Action entryAction = this.StateStack.Peek().EntryAction;
+            
+            Action entryAction = null;
+            if (this.StateStack.Peek().EntryAction != null)
+            {
+                entryAction = this.ActionMap[this.StateStack.Peek().EntryAction];
+            }
 
             try
             {
@@ -1185,14 +1207,18 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Executes the on exit function of the current state.
         /// </summary>
-        /// <param name="eventHandlerExitAction">Event handler exit action</param>
+        /// <param name="eventHandlerExitActionName">Action name</param>
         [DebuggerStepThrough]
-        private void ExecuteCurrentStateOnExit(Action eventHandlerExitAction)
+        private void ExecuteCurrentStateOnExit(string eventHandlerExitActionName)
         {
             base.Runtime.Log($"<ExitLog> Machine '{base.Id.Name}' " +
                 $"exits state '{this.CurrentState.FullName}'.");
 
-            Action exitAction = this.StateStack.Peek().ExitAction;
+            Action exitAction = null;
+            if (this.StateStack.Peek().ExitAction != null)
+            {
+                exitAction = this.ActionMap[this.StateStack.Peek().ExitAction];
+            }
 
             try
             {
@@ -1206,8 +1232,9 @@ namespace Microsoft.PSharp
 
                 // Invokes the exit action of the event handler,
                 // if there is one available.
-                if (eventHandlerExitAction != null)
+                if (eventHandlerExitActionName != null)
                 {
+                    Action eventHandlerExitAction = this.ActionMap[eventHandlerExitActionName];
                     base.Runtime.NotifyInvokedAction(this, eventHandlerExitAction);
                     eventHandlerExitAction();
                 }
@@ -1246,6 +1273,146 @@ namespace Microsoft.PSharp
             }
         }
 
+        /// <summary>
+        /// Initializes information about the states of the machine.
+        /// </summary>
+        internal void InitializeStateInformation()
+        {
+            // Caches the available state types for this machine type.
+            if (StateTypeMap.TryAdd(this.GetType(), new HashSet<Type>()))
+            {
+                Type machineType = this.GetType();
+                while (machineType != typeof(Machine))
+                {
+                    foreach (var s in machineType.GetNestedTypes(BindingFlags.Instance |
+                        BindingFlags.NonPublic | BindingFlags.Public |
+                        BindingFlags.DeclaredOnly))
+                    {
+                        this.ExtractStateTypes(s);
+                    }
+
+                    machineType = machineType.BaseType;
+                }
+            }
+
+            // Caches the available state instances for this machine type.
+            if (StateMap.TryAdd(this.GetType(), new HashSet<MachineState>()))
+            {
+                foreach (var type in StateTypeMap[this.GetType()])
+                {
+                    var state = Activator.CreateInstance(type) as MachineState;
+                    state.InitializeState();
+                    StateMap[this.GetType()].Add(state);
+                }
+            }
+
+            // Populates the map of actions for this machine instance.
+            foreach (var state in StateMap[this.GetType()])
+            {
+                if (state.EntryAction != null &&
+                    !this.ActionMap.ContainsKey(state.EntryAction))
+                {
+                    this.ActionMap.Add(state.EntryAction, this.GetActionWithName(state.EntryAction));
+                }
+
+                if (state.ExitAction != null &&
+                    !this.ActionMap.ContainsKey(state.ExitAction))
+                {
+                    this.ActionMap.Add(state.ExitAction, this.GetActionWithName(state.ExitAction));
+                }
+
+                foreach (var transition in state.GotoTransitions)
+                {
+                    if (transition.Value.Item2 != null &&
+                        !this.ActionMap.ContainsKey(transition.Value.Item2))
+                    {
+                        this.ActionMap.Add(transition.Value.Item2,
+                            this.GetActionWithName(transition.Value.Item2));
+                    }
+                }
+
+                foreach (var action in state.ActionBindings)
+                {
+                    if (!this.ActionMap.ContainsKey(action.Value))
+                    {
+                        this.ActionMap.Add(action.Value, this.GetActionWithName(action.Value));
+                    }
+                }
+            }
+
+            var initialStates = StateMap[this.GetType()].Where(state => state.IsStart).ToList();
+            this.Assert(initialStates.Count != 0, $"Machine '{base.Id.Name}' must declare a start state.");
+            this.Assert(initialStates.Count == 1, $"Machine '{base.Id.Name}' " +
+                "can not declare more than one start states.");
+
+            this.ConfigureStateTransitions(initialStates.Single());
+            this.StateStack.Push(initialStates.Single());
+
+            this.AssertStateValidity();
+        }
+
+        /// <summary>
+        /// Processes a type, looking for machine states.
+        /// </summary>
+        /// <param name="type">Type</param>
+        private void ExtractStateTypes(Type type)
+        {
+            Stack<Type> stack = new Stack<Type>();
+            stack.Push(type);
+
+            while (stack.Count > 0)
+            {
+                Type nextType = stack.Pop();
+
+                if (nextType.IsClass && nextType.IsSubclassOf(typeof(MachineState)))
+                {
+                    StateTypeMap[this.GetType()].Add(nextType);
+                }
+                else if (nextType.IsClass && nextType.IsSubclassOf(typeof(StateGroup)))
+                {
+                    // Adds the contents of the group of states to the stack.
+                    foreach (var t in nextType.GetNestedTypes(BindingFlags.Instance |
+                        BindingFlags.NonPublic | BindingFlags.Public |
+                        BindingFlags.DeclaredOnly))
+                    {
+                        this.Assert(t.IsSubclassOf(typeof(StateGroup)) ||
+                            t.IsSubclassOf(typeof(MachineState)), $"'{t.Name}' " +
+                            $"is neither a group of states nor a state.");
+                        stack.Push(t);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns the action with the specified name.
+        /// </summary>
+        /// <param name="actionName">Action name</param>
+        /// <returns>Action</returns>
+        private Action GetActionWithName(string actionName)
+        {
+            MethodInfo method = null;
+            Type machineType = this.GetType();
+
+            do
+            {
+                method = machineType.GetMethod(actionName, BindingFlags.Public |
+                    BindingFlags.NonPublic | BindingFlags.Instance |
+                    BindingFlags.FlattenHierarchy);
+                machineType = machineType.BaseType;
+            }
+            while (method == null && machineType != typeof(Machine));
+
+            this.Assert(method != null, "Cannot detect action declaration '{0}' " +
+                "in machine '{1}'.", actionName, this.GetType().Name);
+            this.Assert(method.GetParameters().Length == 0, "Action '{0}' in machine " +
+                "'{1}' must have 0 formal parameters.", method.Name, this.GetType().Name);
+            this.Assert(method.ReturnType == typeof(void), "Action '{0}' in machine " +
+                "'{1}' must have 'void' return type.", method.Name, this.GetType().Name);
+
+            return (Action)Delegate.CreateDelegate(typeof(Action), this, method);
+        }
+
         #endregion
 
         #region error checking
@@ -1255,7 +1422,7 @@ namespace Microsoft.PSharp
         /// </summary>
         private void AssertStateValidity()
         {
-            this.Assert(this.StateTypes.Count > 0, $"Machine '{base.Id.Name}' " +
+            this.Assert(StateTypeMap[this.GetType()].Count > 0, $"Machine '{base.Id.Name}' " +
                 "must have one or more states.");
             this.Assert(this.StateStack.Peek() != null, $"Machine '{base.Id.Name}' " +
                 "must not have a null current state.");
@@ -1276,94 +1443,13 @@ namespace Microsoft.PSharp
 
         #endregion
 
-        #region configuration and cleanup methods
-
-        /// <summary>
-        /// Initializes information about the states of the machine.
-        /// </summary>
-        internal void InitializeStateInformation()
-        {
-            this.StateTypes = new HashSet<Type>();
-            this.States = new HashSet<MachineState>();
-
-            Type machineType = this.GetType();
-            Type initialStateType = null;
-            
-            while (machineType != typeof(Machine))
-            {
-                foreach (var s in machineType.GetNestedTypes(BindingFlags.Instance |
-                    BindingFlags.NonPublic | BindingFlags.Public |
-                    BindingFlags.DeclaredOnly))
-                {
-                    this.ExtractStateTypes(s, ref initialStateType);
-                }
-
-                machineType = machineType.BaseType;
-            }
-
-            foreach (var type in this.StateTypes)
-            {
-                MachineState state = Activator.CreateInstance(type) as MachineState;
-                state.InitializeState(this);
-                this.States.Add(state);
-            }
-            
-            var initialState = this.States.FirstOrDefault(val => val.GetType().Equals(initialStateType));
-            this.Assert(initialState != null, $"Machine '{base.Id.Name}' must declare a start state.");
-
-            this.ConfigureStateTransitions(initialState);
-            this.StateStack.Push(initialState);
-
-            this.AssertStateValidity();
-        }
-
-        /// <summary>
-        /// Process a type, looking for machine states.
-        /// </summary>
-        /// <param name="type">Type</param>
-        /// <param name="initialStateType">Type</param>
-        private void ExtractStateTypes(Type type, ref Type initialStateType)
-        {
-            Stack<Type> stack = new Stack<Type>();
-            stack.Push(type);
-
-            while (stack.Count > 0)
-            {
-                Type nextType = stack.Pop();
-                
-                if (nextType.IsClass && nextType.IsSubclassOf(typeof(MachineState)))
-                {
-                    if (nextType.IsDefined(typeof(Start), false))
-                    {
-                        this.Assert(initialStateType == null, $"Machine '{base.Id.Name}' " +
-                            "can not declare more than one start states.");
-                        initialStateType = nextType;
-                    }
-                    
-                    this.StateTypes.Add(nextType);
-                }
-                else if (nextType.IsClass && nextType.IsSubclassOf(typeof(StateGroup)))
-                {
-                    // Adds the contents of the group of states to the stack.
-                    foreach (var t in nextType.GetNestedTypes(BindingFlags.Instance |
-                        BindingFlags.NonPublic | BindingFlags.Public |
-                        BindingFlags.DeclaredOnly))
-                    {
-                        this.Assert(t.IsSubclassOf(typeof(StateGroup)) ||
-                            t.IsSubclassOf(typeof(MachineState)), $"'{t.Name}' " +
-                            $"is neither a group of states nor a state.");
-                        stack.Push(t);
-                    }
-                }
-            }
-        }
+        #region cleanup methods
 
         /// <summary>
         /// Cleans up resources at machine termination.
         /// </summary>
         private void CleanUpResources()
         {
-            this.StateTypes.Clear();
             this.Inbox.Clear();
             this.EventWaitHandlers.Clear();
             this.ReceivedEvent = null;
