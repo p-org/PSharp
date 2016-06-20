@@ -82,6 +82,7 @@
     <Compile Include="Exceptions\PSharpException.cs" />
     <Compile Include="Library\StateGroup.cs" />
     <Compile Include="Net\NetworkProviders\DefaultNetworkProvider.cs" />
+    <Compile Include="Options\OptimizationTarget.cs" />
     <Compile Include="Options\CompilationTarget.cs" />
     <Compile Include="Options\SchedulingStrategy.cs" />
     <Compile Include="Net\INetworkProvider.cs" />

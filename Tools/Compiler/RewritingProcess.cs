@@ -51,13 +51,8 @@ namespace Microsoft.PSharp
         {
             IO.PrintLine(". Rewriting");
 
-            foreach (var target in this.CompilationContext.Configuration.CompilationTargets)
-            {
-                this.CompilationContext.ActiveCompilationTarget = target;
-
-                // Creates and runs a P# rewriting engine.
-                RewritingEngine.Create(this.CompilationContext).Run();
-            }
+            // Creates and runs a P# rewriting engine.
+            RewritingEngine.Create(this.CompilationContext).Run();
         }
 
         #endregion

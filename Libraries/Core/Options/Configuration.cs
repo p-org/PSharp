@@ -79,9 +79,14 @@ namespace Microsoft.PSharp.Utilities
         #region language service options
 
         /// <summary>
-        /// Requested compilation targets.
+        /// Requested compilation target.
         /// </summary>
-        public HashSet<CompilationTarget> CompilationTargets;
+        public CompilationTarget CompilationTarget;
+
+        /// <summary>
+        /// Requested optimization target.
+        /// </summary>
+        public OptimizationTarget OptimizationTarget;
 
         /// <summary>
         /// Runs the analysis stage of the compiler.
@@ -292,8 +297,8 @@ namespace Microsoft.PSharp.Utilities
             this.PauseOnAssertionFailure = false;
             this.InteroperationEnabled = true;
 
-            this.CompilationTargets = new HashSet<CompilationTarget>();
-            this.CompilationTargets.Add(CompilationTarget.Execution);
+            this.CompilationTarget = CompilationTarget.Execution;
+            this.OptimizationTarget = OptimizationTarget.Release;
             
             this.RunStaticAnalysis = false;
             this.ShowControlFlowInformation = false;

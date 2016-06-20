@@ -46,28 +46,40 @@ namespace Microsoft.PSharp.Utilities
             {
                 if (option.ToLower().Substring(3).Equals("exe"))
                 {
-                    base.Configuration.CompilationTargets.Clear();
-                    base.Configuration.CompilationTargets.Add(CompilationTarget.Execution);
+                    base.Configuration.CompilationTarget = CompilationTarget.Execution;
                 }
                 else if (option.ToLower().Substring(3).Equals("lib"))
                 {
-                    base.Configuration.CompilationTargets.Clear();
-                    base.Configuration.CompilationTargets.Add(CompilationTarget.Library);
+                    base.Configuration.CompilationTarget = CompilationTarget.Library;
                 }
                 else if (option.ToLower().Substring(3).Equals("test"))
                 {
-                    base.Configuration.CompilationTargets.Clear();
-                    base.Configuration.CompilationTargets.Add(CompilationTarget.Testing);
+                    base.Configuration.CompilationTarget = CompilationTarget.Testing;
                 }
                 else if (option.ToLower().Substring(3).Equals("remote"))
                 {
-                    base.Configuration.CompilationTargets.Clear();
-                    base.Configuration.CompilationTargets.Add(CompilationTarget.Remote);
+                    base.Configuration.CompilationTarget = CompilationTarget.Remote;
                 }
                 else
                 {
-                    ErrorReporter.ReportAndExit("Please give a valid compilation target '/t:[x]', " +
-                        "where [x] is 'all', 'exe', 'lib' or 'test'.");
+                    ErrorReporter.ReportAndExit("Please give a valid compilation target " +
+                        "'/t:[x]', where [x] is 'all', 'exe', 'lib' or 'test'.");
+                }
+            }
+            else if (option.ToLower().StartsWith("/optimization:") && option.Length > 14)
+            {
+                if (option.ToLower().Substring(14).Equals("debug"))
+                {
+                    base.Configuration.OptimizationTarget = OptimizationTarget.Debug;
+                }
+                else if (option.ToLower().Substring(14).Equals("release"))
+                {
+                    base.Configuration.OptimizationTarget = OptimizationTarget.Release;
+                }
+                else
+                {
+                    ErrorReporter.ReportAndExit("Please give a valid optimization target " +
+                        "'/optimization:[x]', where [x] is 'debug' or 'release'.");
                 }
             }
             else if (option.ToLower().Equals("/analyze"))

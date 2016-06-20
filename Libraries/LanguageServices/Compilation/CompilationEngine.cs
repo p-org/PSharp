@@ -159,7 +159,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
 
             this.OutputDirectoryMap?.Add(compilation.AssemblyName, outputDirectory);
             this.ProjectAssemblyPathMap?.Add(compilation.AssemblyName, fileName);
-
+            
             EmitResult emitResult = null;
             using (FileStream outputFile = new FileStream(fileName, FileMode.Create, FileAccess.Write),
                 outputPdbFile = new FileStream(pdbFileName, FileMode.Create, FileAccess.Write))
@@ -239,13 +239,26 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <param name="project">Project</param>
         private void CompileProject(Project project)
         {
-            var compilation = project.GetCompilationAsync().Result;
+            CompilationOptions options = null;
+            if (this.CompilationContext.Configuration.CompilationTarget == CompilationTarget.Testing ||
+                this.CompilationContext.Configuration.OptimizationTarget == OptimizationTarget.Debug)
+            {
+                options = project.CompilationOptions.WithOptimizationLevel(OptimizationLevel.Debug);
+            }
+            else if (this.CompilationContext.Configuration.OptimizationTarget == OptimizationTarget.Release)
+            {
+                options = project.CompilationOptions.WithOptimizationLevel(OptimizationLevel.Release);
+            }
 
+            project = project.WithCompilationOptions(options);
+
+            var compilation = project.GetCompilationAsync().Result;
+            
             try
             {
-                if (this.CompilationContext.ActiveCompilationTarget == CompilationTarget.Library ||
-                    this.CompilationContext.ActiveCompilationTarget == CompilationTarget.Testing ||
-                    this.CompilationContext.ActiveCompilationTarget == CompilationTarget.Remote)
+                if (this.CompilationContext.Configuration.CompilationTarget == CompilationTarget.Library ||
+                    this.CompilationContext.Configuration.CompilationTarget == CompilationTarget.Testing ||
+                    this.CompilationContext.Configuration.CompilationTarget == CompilationTarget.Remote)
                 {
                     this.ToFile(compilation, OutputKind.DynamicallyLinkedLibrary,
                         project.OutputFilePath, true, true);
