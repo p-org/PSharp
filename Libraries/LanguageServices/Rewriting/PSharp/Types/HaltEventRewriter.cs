@@ -71,9 +71,9 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// <returns>ExpressionSyntax</returns>
         private ExpressionSyntax RewriteType(IdentifierNameSyntax node)
         {
-            var text = "Halt";
+            var text = typeof(Halt).FullName;
 
-            var rewritten = SyntaxFactory.ParseExpression(text);
+            var rewritten = SyntaxFactory.ParseName(text); 
             rewritten = rewritten.WithTriviaFrom(node);
 
             return rewritten;

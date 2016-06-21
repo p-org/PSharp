@@ -523,5 +523,125 @@ defer e1 e2;
             Assert.AreEqual("Expected \",\".",
                 parser.GetParsingErrorLog());
         }
+
+        [TestMethod, Timeout(10000)]
+        public void TestQualifiedHaltEvent()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+start state S
+{
+on Foo.halt goto S2;
+}
+}
+}";
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("Expected identifier.",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestQualifiedDefaultEvent()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+start state S
+{
+on Foo.default goto S2;
+}
+}
+}";
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("Expected identifier.",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestGenericHaltEvent()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+start state S
+{
+on halt<int> goto S2;
+}
+}
+}";
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("Expected identifier.",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestGenericDefaultEvent()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+start state S
+{
+on default<int> goto S2;
+}
+}
+}";
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("Expected identifier.",
+                parser.GetParsingErrorLog());
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestIncorrectGenericEvent()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+start state S
+{
+on e<<int> goto S2;
+}
+}
+}";
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .DisableThrowParsingException();
+            var parser = new PSharpParser(new PSharpProject(),
+                SyntaxFactory.ParseSyntaxTree(test), options);
+
+            var tokens = new PSharpLexer().Tokenize(test);
+            var program = parser.ParseTokens(tokens);
+
+            Assert.AreEqual("Unexpected token inside a generic name.",
+                parser.GetParsingErrorLog());
+        }
     }
 }
