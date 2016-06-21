@@ -592,7 +592,7 @@ on halt<int> goto S2;
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual("Expected identifier.",
+            Assert.AreEqual("Invalid generic expression.",
                 parser.GetParsingErrorLog());
         }
 
@@ -616,7 +616,7 @@ on default<int> goto S2;
             var tokens = new PSharpLexer().Tokenize(test);
             var program = parser.ParseTokens(tokens);
 
-            Assert.AreEqual("Expected identifier.",
+            Assert.AreEqual("Invalid generic expression.",
                 parser.GetParsingErrorLog());
         }
 

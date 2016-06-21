@@ -1105,7 +1105,7 @@ namespace Foo {
 machine M {
 start state S
 {
-defer e1<int>, Foo.e2<Bar.e3>;
+defer e1<int>, halt, default, Foo.e2<Bar.e3>;
 }
 }
 }";
@@ -1127,7 +1127,7 @@ namespace Foo
 class M : Machine
 {
 [Microsoft.PSharp.Start]
-[DeferEvents(typeof(e1<int>), typeof(Foo.e2<Bar.e3>))]
+[DeferEvents(typeof(e1<int>), typeof(Microsoft.PSharp.Halt), typeof(Microsoft.PSharp.Default), typeof(Foo.e2<Bar.e3>))]
 class S : MachineState
 {
 }
