@@ -389,12 +389,13 @@ namespace Microsoft.PSharp.TestingServices
             
             foreach (var kvp in runtime.MachineActionTraceMap)
             {
-                IO.Debug("<RaceTracing> Machine id: " + kvp.Key);
+                IO.Debug($"<RaceTracing> Machine id '{kvp.Key}'");
                 foreach (var actionTrace in kvp.Value)
                 {
                     if (actionTrace.Type == MachineActionType.InvocationAction)
                     {
-                        IO.Debug("<RaceTracing> Action: " + actionTrace.Action + " " + actionTrace.ActionId);
+                        IO.Debug($"<RaceTracing> Action '{actionTrace.ActionName}' " +
+                            $"'{actionTrace.ActionId}'");
                     }
                 }
 
@@ -406,7 +407,7 @@ namespace Microsoft.PSharp.TestingServices
                     {
                         DataContractSerializer serializer = new DataContractSerializer(kvp.Value.GetType());
                         serializer.WriteObject(stream, kvp.Value);
-                        IO.Debug("... Writing {0}", path);
+                        IO.Debug($"... Writing {path}");
                     }
                 }
             }

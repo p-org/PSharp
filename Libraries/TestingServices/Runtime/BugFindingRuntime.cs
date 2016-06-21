@@ -15,7 +15,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -542,15 +542,15 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="action">Action</param>
-        internal override void NotifyInvokedAction(Machine machine, Action action)
+        internal override void NotifyInvokedAction(Machine machine, MethodInfo action)
         {
             this.Log($"<ActionLog> Machine '{machine.Id.Name}' invoked action " +
-                $"'{action.Method.Name}' in state '{machine.CurrentState.FullName}'.");
+                $"'{action.Name}' in state '{machine.CurrentState.FullName}'.");
 
             if (this.Configuration.EnableDataRaceDetection)
             {
                 // Traces machine actions, if data-race detection is enabled.
-                this.MachineActionTraceMap[machine.Id].AddInvocationActionInfo(action);
+                this.MachineActionTraceMap[machine.Id].AddInvocationActionInfo(action.Name);
             }
         }
 

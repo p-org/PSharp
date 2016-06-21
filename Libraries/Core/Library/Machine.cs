@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -45,6 +46,12 @@ namespace Microsoft.PSharp
         private static ConcurrentDictionary<Type, HashSet<MachineState>> StateMap;
 
         /// <summary>
+        /// Map from machine types to a set of all
+        /// available actions.
+        /// </summary>
+        private static ConcurrentDictionary<Type, Dictionary<string, MethodInfo>> MachineActionMap;
+
+        /// <summary>
         /// A stack of machine states. The state on the top of
         /// the stack represents the current state.
         /// </summary>
@@ -68,7 +75,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Map from action names to actions.
         /// </summary>
-        private Dictionary<string, Action> ActionMap;
+        private Dictionary<string, MethodInfo> ActionMap;
 
         /// <summary>
         /// Set of currently ignored event types.
@@ -155,6 +162,7 @@ namespace Microsoft.PSharp
         {
             StateTypeMap = new ConcurrentDictionary<Type, HashSet<Type>>();
             StateMap = new ConcurrentDictionary<Type, HashSet<MachineState>>();
+            MachineActionMap = new ConcurrentDictionary<Type, Dictionary<string, MethodInfo>>();
         }
 
         /// <summary>
@@ -165,7 +173,7 @@ namespace Microsoft.PSharp
         {
             this.Inbox = new List<EventInfo>();
             this.StateStack = new Stack<MachineState>();
-            this.ActionMap = new Dictionary<string, Action>();
+            this.ActionMap = new Dictionary<string, MethodInfo>();
             this.EventWaitHandlers = new List<EventWaitHandler>();
 
             this.IsRunning = true;
@@ -1055,13 +1063,13 @@ namespace Microsoft.PSharp
         [DebuggerStepThrough]
         private void Do(string actionName)
         {
-            Action action = this.ActionMap[actionName];
+            MethodInfo action = this.ActionMap[actionName];
 
             base.Runtime.NotifyInvokedAction(this, action);
 
             try
             {
-                action();
+                action.Invoke(this, null);
             }
             catch (Exception ex)
             {
@@ -1154,7 +1162,7 @@ namespace Microsoft.PSharp
             base.Runtime.Log($"<StateLog> Machine '{base.Id.Name}' " +
                 $"enters state '{this.CurrentState.FullName}'.");
             
-            Action entryAction = null;
+            MethodInfo entryAction = null;
             if (this.StateStack.Peek().EntryAction != null)
             {
                 entryAction = this.ActionMap[this.StateStack.Peek().EntryAction];
@@ -1167,7 +1175,7 @@ namespace Microsoft.PSharp
                 if (entryAction != null)
                 {
                     base.Runtime.NotifyInvokedAction(this, entryAction);
-                    entryAction();
+                    entryAction.Invoke(this, null);
                 }
             }
             catch (Exception ex)
@@ -1214,7 +1222,7 @@ namespace Microsoft.PSharp
             base.Runtime.Log($"<ExitLog> Machine '{base.Id.Name}' " +
                 $"exits state '{this.CurrentState.FullName}'.");
 
-            Action exitAction = null;
+            MethodInfo exitAction = null;
             if (this.StateStack.Peek().ExitAction != null)
             {
                 exitAction = this.ActionMap[this.StateStack.Peek().ExitAction];
@@ -1227,16 +1235,16 @@ namespace Microsoft.PSharp
                 if (exitAction != null)
                 {
                     base.Runtime.NotifyInvokedAction(this, exitAction);
-                    exitAction();
+                    exitAction.Invoke(this, null);
                 }
 
                 // Invokes the exit action of the event handler,
                 // if there is one available.
                 if (eventHandlerExitActionName != null)
                 {
-                    Action eventHandlerExitAction = this.ActionMap[eventHandlerExitActionName];
+                    MethodInfo eventHandlerExitAction = this.ActionMap[eventHandlerExitActionName];
                     base.Runtime.NotifyInvokedAction(this, eventHandlerExitAction);
-                    eventHandlerExitAction();
+                    eventHandlerExitAction.Invoke(this, null);
                 }
             }
             catch (Exception ex)
@@ -1278,69 +1286,86 @@ namespace Microsoft.PSharp
         /// </summary>
         internal void InitializeStateInformation()
         {
+            Type machineType = this.GetType();
+
             // Caches the available state types for this machine type.
-            if (StateTypeMap.TryAdd(this.GetType(), new HashSet<Type>()))
+            if (StateTypeMap.TryAdd(machineType, new HashSet<Type>()))
             {
-                Type machineType = this.GetType();
-                while (machineType != typeof(Machine))
+                Type baseType = machineType;
+                while (baseType != typeof(Machine))
                 {
-                    foreach (var s in machineType.GetNestedTypes(BindingFlags.Instance |
+                    foreach (var s in baseType.GetNestedTypes(BindingFlags.Instance |
                         BindingFlags.NonPublic | BindingFlags.Public |
                         BindingFlags.DeclaredOnly))
                     {
                         this.ExtractStateTypes(s);
                     }
 
-                    machineType = machineType.BaseType;
+                    baseType = baseType.BaseType;
                 }
             }
 
             // Caches the available state instances for this machine type.
-            if (StateMap.TryAdd(this.GetType(), new HashSet<MachineState>()))
+            if (StateMap.TryAdd(machineType, new HashSet<MachineState>()))
             {
-                foreach (var type in StateTypeMap[this.GetType()])
+                foreach (var type in StateTypeMap[machineType])
                 {
-                    var state = Activator.CreateInstance(type) as MachineState;
+                    var constructor = Expression.Lambda<Func<MachineState>>(
+                        Expression.New(type.GetConstructor(Type.EmptyTypes))).Compile();
+                    MachineState state = constructor();
+                    
                     state.InitializeState();
-                    StateMap[this.GetType()].Add(state);
+                    StateMap[machineType].Add(state);
+                }
+            }
+
+            // Caches the actions declarations for this machine type.
+            if (MachineActionMap.TryAdd(machineType, new Dictionary<string, MethodInfo>()))
+            {
+                foreach (var state in StateMap[machineType])
+                {
+                    if (state.EntryAction != null &&
+                        !MachineActionMap[machineType].ContainsKey(state.EntryAction))
+                    {
+                        MachineActionMap[machineType].Add(state.EntryAction,
+                            this.GetActionWithName(state.EntryAction));
+                    }
+
+                    if (state.ExitAction != null &&
+                        !MachineActionMap[machineType].ContainsKey(state.ExitAction))
+                    {
+                        MachineActionMap[machineType].Add(state.ExitAction,
+                            this.GetActionWithName(state.ExitAction));
+                    }
+
+                    foreach (var transition in state.GotoTransitions)
+                    {
+                        if (transition.Value.Item2 != null &&
+                            !MachineActionMap[machineType].ContainsKey(transition.Value.Item2))
+                        {
+                            MachineActionMap[machineType].Add(transition.Value.Item2,
+                                this.GetActionWithName(transition.Value.Item2));
+                        }
+                    }
+
+                    foreach (var action in state.ActionBindings)
+                    {
+                        if (!MachineActionMap[machineType].ContainsKey(action.Value))
+                        {
+                            MachineActionMap[machineType].Add(action.Value,
+                                this.GetActionWithName(action.Value));
+                        }
+                    }
                 }
             }
 
             // Populates the map of actions for this machine instance.
-            foreach (var state in StateMap[this.GetType()])
+            foreach (var kvp in MachineActionMap[machineType])
             {
-                if (state.EntryAction != null &&
-                    !this.ActionMap.ContainsKey(state.EntryAction))
-                {
-                    this.ActionMap.Add(state.EntryAction, this.GetActionWithName(state.EntryAction));
-                }
-
-                if (state.ExitAction != null &&
-                    !this.ActionMap.ContainsKey(state.ExitAction))
-                {
-                    this.ActionMap.Add(state.ExitAction, this.GetActionWithName(state.ExitAction));
-                }
-
-                foreach (var transition in state.GotoTransitions)
-                {
-                    if (transition.Value.Item2 != null &&
-                        !this.ActionMap.ContainsKey(transition.Value.Item2))
-                    {
-                        this.ActionMap.Add(transition.Value.Item2,
-                            this.GetActionWithName(transition.Value.Item2));
-                    }
-                }
-
-                foreach (var action in state.ActionBindings)
-                {
-                    if (!this.ActionMap.ContainsKey(action.Value))
-                    {
-                        this.ActionMap.Add(action.Value, this.GetActionWithName(action.Value));
-                    }
-                }
+                this.ActionMap.Add(kvp.Key, kvp.Value);
             }
 
-            var initialStates = StateMap[this.GetType()].Where(state => state.IsStart).ToList();
+            var initialStates = StateMap[machineType].Where(state => state.IsStart).ToList();
             this.Assert(initialStates.Count != 0, $"Machine '{base.Id.Name}' must declare a start state.");
             this.Assert(initialStates.Count == 1, $"Machine '{base.Id.Name}' " +
                 "can not declare more than one start states.");
@@ -1388,8 +1413,8 @@ namespace Microsoft.PSharp
         /// Returns the action with the specified name.
         /// </summary>
         /// <param name="actionName">Action name</param>
-        /// <returns>Action</returns>
-        private Action GetActionWithName(string actionName)
+        /// <returns>MethodInfo</returns>
+        private MethodInfo GetActionWithName(string actionName)
         {
             MethodInfo method = null;
             Type machineType = this.GetType();
@@ -1409,8 +1434,8 @@ namespace Microsoft.PSharp
                 "'{1}' must have 0 formal parameters.", method.Name, this.GetType().Name);
             this.Assert(method.ReturnType == typeof(void), "Action '{0}' in machine " +
                 "'{1}' must have 'void' return type.", method.Name, this.GetType().Name);
-
-            return (Action)Delegate.CreateDelegate(typeof(Action), this, method);
+            
+            return method;
         }
 
         #endregion
