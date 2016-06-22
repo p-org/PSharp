@@ -115,6 +115,16 @@ namespace Microsoft.PSharp.Utilities
 
         #endregion
 
+        #region runtime options
+
+        /// <summary>
+        /// Clears the runtime caches every time
+        /// the runtime terminates execution.
+        /// </summary>
+        internal bool ClearRuntimeCaches;
+
+        #endregion
+
         #region bug finding options
 
         /// <summary>
@@ -305,6 +315,8 @@ namespace Microsoft.PSharp.Utilities
             this.ShowDataFlowInformation = false;
             this.ShowFullDataFlowInformation = false;
             this.DoStateTransitionAnalysis = false;
+
+            this.ClearRuntimeCaches = true;
 
             this.AssemblyToBeAnalyzed = "";
             this.TraceFile = "";

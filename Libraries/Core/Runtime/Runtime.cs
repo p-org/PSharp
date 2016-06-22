@@ -542,8 +542,15 @@ namespace Microsoft.PSharp
             this.MachineMap = new ConcurrentDictionary<int, Machine>();
             this.TaskMap = new ConcurrentDictionary<int, Machine>();
             this.MachineTasks = new ConcurrentBag<Task>();
-
+            
             MachineId.ResetMachineIDCounter();
+
+            if (this.Configuration.ClearRuntimeCaches)
+            {
+                Machine.ResetCaches();
+                PSharp.Monitor.ResetCaches();
+                MachineConstructorMap.Clear();
+            }
         }
 
         #endregion
@@ -561,12 +568,9 @@ namespace Microsoft.PSharp
         {
             this.Assert(type.IsSubclassOf(typeof(Machine)),
                 $"Type '{type.Name}' is not a machine.");
-
-            //Profiler profiler = new Profiler();
-            //profiler.StartMeasuringExecutionTime();
-
+            
             MachineId mid = new MachineId(type, friendlyName, this);
-
+            
             if (!MachineConstructorMap.ContainsKey(type))
             {
                 Func<Machine> constructor = Expression.Lambda<Func<Machine>>(
@@ -578,9 +582,6 @@ namespace Microsoft.PSharp
             
             machine.SetMachineId(mid);
             machine.InitializeStateInformation();
-
-            //profiler.StopMeasuringExecutionTime();
-            //Console.WriteLine($"... Configured machine {type.FullName} in '{profiler.Results()}' seconds.");
 
             bool result = this.MachineMap.TryAdd(mid.Value, machine);
             this.Assert(result, $"Machine '{mid.Name}' was already created.");

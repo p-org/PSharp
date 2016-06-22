@@ -1358,7 +1358,7 @@ namespace Microsoft.PSharp
                     }
                 }
             }
-
+            
             // Populates the map of actions for this machine instance.
             foreach (var kvp in MachineActionMap[machineType])
             {
@@ -1369,7 +1369,7 @@ namespace Microsoft.PSharp
             this.Assert(initialStates.Count != 0, $"Machine '{base.Id.Name}' must declare a start state.");
             this.Assert(initialStates.Count == 1, $"Machine '{base.Id.Name}' " +
                 "can not declare more than one start states.");
-
+            
             this.ConfigureStateTransitions(initialStates.Single());
             this.StateStack.Push(initialStates.Single());
 
@@ -1469,6 +1469,16 @@ namespace Microsoft.PSharp
         #endregion
 
         #region cleanup methods
+
+        /// <summary>
+        /// Resets the static caches.
+        /// </summary>
+        internal static void ResetCaches()
+        {
+            StateTypeMap.Clear();
+            StateMap.Clear();
+            MachineActionMap.Clear();
+        }
 
         /// <summary>
         /// Cleans up resources at machine termination.

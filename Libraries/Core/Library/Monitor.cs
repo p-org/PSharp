@@ -30,16 +30,22 @@ namespace Microsoft.PSharp
         #region fields
 
         /// <summary>
-        /// Map from machine types to a set of all
+        /// Map from monitor types to a set of all
         /// possible states types.
         /// </summary>
         private static ConcurrentDictionary<Type, HashSet<Type>> StateTypeMap;
 
         /// <summary>
-        /// Map from machine types to a set of all
+        /// Map from monitor types to a set of all
         /// available states.
         /// </summary>
         private static ConcurrentDictionary<Type, HashSet<MonitorState>> StateMap;
+
+        /// <summary>
+        /// Map from monitor types to a set of all
+        /// available actions.
+        /// </summary>
+        private static ConcurrentDictionary<Type, Dictionary<string, MethodInfo>> MonitorActionMap;
 
         /// <summary>
         /// The monitor state.
@@ -59,7 +65,7 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Map from action names to actions.
         /// </summary>
-        private Dictionary<string, Action> ActionMap;
+        private Dictionary<string, MethodInfo> ActionMap;
 
         /// <summary>
         /// Set of currently ignored event types.
@@ -99,6 +105,7 @@ namespace Microsoft.PSharp
         {
             StateTypeMap = new ConcurrentDictionary<Type, HashSet<Type>>();
             StateMap = new ConcurrentDictionary<Type, HashSet<MonitorState>>();
+            MonitorActionMap = new ConcurrentDictionary<Type, Dictionary<string, MethodInfo>>();
         }
 
         /// <summary>
@@ -107,7 +114,7 @@ namespace Microsoft.PSharp
         protected Monitor()
             : base()
         {
-            this.ActionMap = new Dictionary<string, Action>();
+            this.ActionMap = new Dictionary<string, MethodInfo>();
         }
 
         #endregion
@@ -349,14 +356,14 @@ namespace Microsoft.PSharp
         [DebuggerStepThrough]
         private void Do(string actionName)
         {
-            Action action = this.ActionMap[actionName];
+            MethodInfo action = this.ActionMap[actionName];
 
             base.Runtime.Log($"<MonitorLog> Monitor '{this.GetType().Name}' executed " +
-                $"action '{action.Method.Name}' in state '{this.CurrentState.FullName}'.");
+                $"action '{action.Name}' in state '{this.CurrentState.FullName}'.");
 
             try
             {
-                action();
+                action.Invoke(this, null);
             }
             catch (OperationCanceledException ex)
             {
@@ -397,7 +404,7 @@ namespace Microsoft.PSharp
             base.Runtime.Log($"<MonitorLog> Monitor '{this.GetType().Name}' entering " +
                 $"{liveness}state '{this.CurrentState.FullName}'.");
 
-            Action entryAction = null;
+            MethodInfo entryAction = null;
             if (this.State.EntryAction != null)
             {
                 entryAction = this.ActionMap[this.State.EntryAction];
@@ -407,7 +414,7 @@ namespace Microsoft.PSharp
             {
                 // Invokes the entry action of the new state,
                 // if there is one available.
-                entryAction?.Invoke();
+                entryAction?.Invoke(this, null);
             }
             catch (OperationCanceledException ex)
             {
@@ -439,7 +446,7 @@ namespace Microsoft.PSharp
             base.Runtime.Log($"<MonitorLog> Monitor '{this.GetType().Name}' " +
                 $"exiting state '{this.CurrentState.FullName}'.");
 
-            Action exitAction = null;
+            MethodInfo exitAction = null;
             if (this.State.ExitAction != null)
             {
                 exitAction = this.ActionMap[this.State.ExitAction];
@@ -449,14 +456,14 @@ namespace Microsoft.PSharp
             {
                 // Invokes the exit action of the current state,
                 // if there is one available.
-                exitAction?.Invoke();
+                exitAction?.Invoke(this, null);
 
                 // Invokes the exit action of the event handler,
                 // if there is one available.
                 if (eventHandlerExitActionName != null)
                 {
-                    Action eventHandlerExitAction = this.ActionMap[eventHandlerExitActionName];
-                    eventHandlerExitAction();
+                    MethodInfo eventHandlerExitAction = this.ActionMap[eventHandlerExitActionName];
+                    eventHandlerExitAction.Invoke(this, null);
                 }
             }
             catch (OperationCanceledException ex)
@@ -541,27 +548,29 @@ namespace Microsoft.PSharp
         /// </summary>
         internal void InitializeStateInformation()
         {
+            Type monitorType = this.GetType();
+
             // Caches the available state types for this monitor type.
-            if (StateTypeMap.TryAdd(this.GetType(), new HashSet<Type>()))
+            if (StateTypeMap.TryAdd(monitorType, new HashSet<Type>()))
             {
-                Type monitorType = this.GetType();
-                while (monitorType != typeof(Monitor))
+                Type baseType = monitorType;
+                while (baseType != typeof(Monitor))
                 {
-                    foreach (var s in monitorType.GetNestedTypes(BindingFlags.Instance |
+                    foreach (var s in baseType.GetNestedTypes(BindingFlags.Instance |
                         BindingFlags.NonPublic | BindingFlags.Public |
                         BindingFlags.DeclaredOnly))
                     {
                         this.ExtractStateTypes(s);
                     }
 
-                    monitorType = monitorType.BaseType;
+                    baseType = baseType.BaseType;
                 }
             }
 
             // Caches the available state instances for this monitor type.
-            if (StateMap.TryAdd(this.GetType(), new HashSet<MonitorState>()))
+            if (StateMap.TryAdd(monitorType, new HashSet<MonitorState>()))
             {
-                foreach (var type in StateTypeMap[this.GetType()])
+                foreach (var type in StateTypeMap[monitorType])
                 {
                     var state = Activator.CreateInstance(type) as MonitorState;
                     state.InitializeState();
@@ -572,45 +581,57 @@ namespace Microsoft.PSharp
                         $"State '{type.FullName}' of monitor '{base.Id.Name}' " +
                         "cannot be both cold and hot.");
 
-                    StateMap[this.GetType()].Add(state);
+                    StateMap[monitorType].Add(state);
+                }
+            }
+
+            // Caches the actions declarations for this monitor type.
+            if (MonitorActionMap.TryAdd(monitorType, new Dictionary<string, MethodInfo>()))
+            {
+                foreach (var state in StateMap[monitorType])
+                {
+                    if (state.EntryAction != null &&
+                        !MonitorActionMap[monitorType].ContainsKey(state.EntryAction))
+                    {
+                        MonitorActionMap[monitorType].Add(state.EntryAction,
+                            this.GetActionWithName(state.EntryAction));
+                    }
+
+                    if (state.ExitAction != null &&
+                        !MonitorActionMap[monitorType].ContainsKey(state.ExitAction))
+                    {
+                        MonitorActionMap[monitorType].Add(state.ExitAction,
+                            this.GetActionWithName(state.ExitAction));
+                    }
+
+                    foreach (var transition in state.GotoTransitions)
+                    {
+                        if (transition.Value.Item2 != null &&
+                            !MonitorActionMap[monitorType].ContainsKey(transition.Value.Item2))
+                        {
+                            MonitorActionMap[monitorType].Add(transition.Value.Item2,
+                                this.GetActionWithName(transition.Value.Item2));
+                        }
+                    }
+
+                    foreach (var action in state.ActionBindings)
+                    {
+                        if (!MonitorActionMap[monitorType].ContainsKey(action.Value))
+                        {
+                            MonitorActionMap[monitorType].Add(action.Value,
+                                this.GetActionWithName(action.Value));
+                        }
+                    }
                 }
             }
 
             // Populates the map of actions for this monitor instance.
-            foreach (var state in StateMap[this.GetType()])
+            foreach (var kvp in MonitorActionMap[monitorType])
             {
-                if (state.EntryAction != null &&
-                    !this.ActionMap.ContainsKey(state.EntryAction))
-                {
-                    this.ActionMap.Add(state.EntryAction, this.GetActionWithName(state.EntryAction));
-                }
-
-                if (state.ExitAction != null &&
-                    !this.ActionMap.ContainsKey(state.ExitAction))
-                {
-                    this.ActionMap.Add(state.ExitAction, this.GetActionWithName(state.ExitAction));
-                }
-
-                foreach (var transition in state.GotoTransitions)
-                {
-                    if (transition.Value.Item2 != null &&
-                        !this.ActionMap.ContainsKey(transition.Value.Item2))
-                    {
-                        this.ActionMap.Add(transition.Value.Item2,
-                            this.GetActionWithName(transition.Value.Item2));
-                    }
-                }
-
-                foreach (var action in state.ActionBindings)
-                {
-                    if (!this.ActionMap.ContainsKey(action.Value))
-                    {
-                        this.ActionMap.Add(action.Value, this.GetActionWithName(action.Value));
-                    }
-                }
+                this.ActionMap.Add(kvp.Key, kvp.Value);
             }
 
-            var initialStates = StateMap[this.GetType()].Where(state => state.IsStart).ToList();
+            var initialStates = StateMap[monitorType].Where(state => state.IsStart).ToList();
             this.Assert(initialStates.Count != 0, $"Monitor '{base.Id.Name}' must declare a start state.");
             this.Assert(initialStates.Count == 1, $"Monitor '{base.Id.Name}' " +
                 "can not declare more than one start states.");
@@ -659,7 +680,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="actionName">Action name</param>
         /// <returns>Action</returns>
-        private Action GetActionWithName(string actionName)
+        private MethodInfo GetActionWithName(string actionName)
         {
             MethodInfo method = null;
             Type monitorType = this.GetType();
@@ -680,7 +701,7 @@ namespace Microsoft.PSharp
             this.Assert(method.ReturnType == typeof(void), "Action '{0}' in monitor " +
                 "'{1}' must have 'void' return type.", method.Name, this.GetType().Name);
 
-            return (Action)Delegate.CreateDelegate(typeof(Action), this, method);
+            return method;
         }
 
         #endregion
@@ -709,6 +730,20 @@ namespace Microsoft.PSharp
                 $"in monitor '{this.GetType().Name}', '{ex.Source}':\n" +
                 $"   {ex.Message}\n" +
                 $"The stack trace is:\n{ex.StackTrace}");
+        }
+
+        #endregion
+
+        #region cleanup methods
+
+        /// <summary>
+        /// Resets the static caches.
+        /// </summary>
+        internal static void ResetCaches()
+        {
+            StateTypeMap.Clear();
+            StateMap.Clear();
+            MonitorActionMap.Clear();
         }
 
         #endregion
