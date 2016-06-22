@@ -127,16 +127,16 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     var m = availableMachines[idx];
                     if (this.Configuration.BoundOperations)
                     {
-                        IO.PrintLine(">> [{0}] '{1}({2})' with operation id '{3}'",
-                            idx, m.Machine, m.Machine.Id.MVal, m.Machine.OperationId);
+                        IO.PrintLine($">> [{idx}] '{m.Machine.Id}' with " +
+                            $"operation id '{m.Machine.OperationId}'");
                     }
                     else
                     {
-                        IO.PrintLine(">> [{0}] '{1}({2})'", idx, m.Machine, m.Machine.Id.MVal);
+                        IO.PrintLine($">> [{idx}] '{m.Machine.Id}'");
                     }
                 }
 
-                IO.PrintLine(">> Choose machine to schedule [step '{0}']", this.ExploredSteps);
+                IO.PrintLine($">> Choose machine to schedule [step '{this.ExploredSteps}']");
 
                 var input = IO.GetLine();
                 if (input.Equals("replay"))
@@ -232,7 +232,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                     break;
                 }
 
-                IO.PrintLine(">> Choose true or false [step '{0}']", this.ExploredSteps);
+                IO.PrintLine($">> Choose true or false [step '{this.ExploredSteps}']");
 
                 var input = IO.GetLine();
                 if (input.Equals("replay"))
@@ -410,7 +410,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             var result = true;
 
-            IO.PrintLine(">> Replay up to first ?? steps [step '{0}']", this.ExploredSteps);
+            IO.PrintLine($">> Replay up to first ?? steps [step '{this.ExploredSteps}']");
 
             try
             {
@@ -440,15 +440,15 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             var result = true;
 
-            IO.PrintLine(">> Jump to ?? step [step '{0}']", this.ExploredSteps);
+            IO.PrintLine($">> Jump to ?? step [step '{this.ExploredSteps}']");
 
             try
             {
                 var steps = Convert.ToInt32(IO.GetLine());
                 if (steps < this.ExploredSteps)
                 {
-                    IO.PrintLine(">> Expected integer greater than {0}, please retry ...",
-                        this.ExploredSteps);
+                    IO.PrintLine(">> Expected integer greater than " +
+                        $"{this.ExploredSteps}, please retry ...");
                     result = false;
                 }
 

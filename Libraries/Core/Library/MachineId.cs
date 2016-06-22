@@ -13,8 +13,8 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.Runtime.Serialization;
+using System.Threading;
 
 namespace Microsoft.PSharp
 {
@@ -32,24 +32,10 @@ namespace Microsoft.PSharp
         public readonly PSharpRuntime Runtime;
 
         /// <summary>
-        /// Friendly name of the machine.
+        /// Name of the machine.
         /// </summary>
         [DataMember]
-        public string Name
-        {
-            get
-            {
-                if (this.FriendlyName != null &&
-                    this.FriendlyName.Length > 0)
-                {
-                    return string.Format("{0}({1})", this.FriendlyName, this.Value);
-                }
-                else
-                {
-                    return string.Format("{0}({1})", this.Type, this.MVal);
-                } 
-            }
-        }
+        public readonly string Name;
 
         /// <summary>
         /// Optional friendly name of the machine.
@@ -70,12 +56,6 @@ namespace Microsoft.PSharp
         internal readonly int Value;
 
         /// <summary>
-        /// Machine-type-specific id value.
-        /// </summary>
-        [DataMember]
-        internal readonly int MVal;
-
-        /// <summary>
         /// Endpoint.
         /// </summary>
         [DataMember]
@@ -90,11 +70,6 @@ namespace Microsoft.PSharp
         /// </summary>
         private static int IdCounter;
 
-        /// <summary>
-        /// Id specific to a machine type.
-        /// </summary>
-        private static Dictionary<Type, int> TypeIdCounter;
-
         #endregion
 
         #region internal API
@@ -104,8 +79,7 @@ namespace Microsoft.PSharp
         /// </summary>
         static MachineId()
         {
-            MachineId.IdCounter = 0;
-            MachineId.TypeIdCounter = new Dictionary<Type, int>();
+            IdCounter = 0;
         }
 
         /// <summary>
@@ -119,18 +93,18 @@ namespace Microsoft.PSharp
             this.FriendlyName = friendlyName;
             this.Runtime = runtime;
 
-            this.Type = type.Name;
+            this.Type = type.FullName;
             this.EndPoint = this.Runtime.NetworkProvider.GetLocalEndPoint();
+            
+            this.Value = Interlocked.Increment(ref IdCounter);
 
-            lock (MachineId.TypeIdCounter)
+            if (this.FriendlyName != null && this.FriendlyName.Length > 0)
             {
-                if (!MachineId.TypeIdCounter.ContainsKey(type))
-                {
-                    MachineId.TypeIdCounter.Add(type, 0);
-                }
-
-                this.Value = MachineId.IdCounter++;
-                this.MVal = MachineId.TypeIdCounter[type]++;
+                this.Name = string.Format("{0}({1})", this.FriendlyName, this.Value);
+            }
+            else
+            {
+                this.Name = string.Format("{0}({1})", this.Type, this.Value);
             }
         }
 
@@ -139,8 +113,7 @@ namespace Microsoft.PSharp
         /// </summary>
         internal static void ResetMachineIDCounter()
         {
-            MachineId.IdCounter = 0;
-            MachineId.TypeIdCounter.Clear();
+            IdCounter = 0;
         }
 
         #endregion
@@ -184,9 +157,7 @@ namespace Microsoft.PSharp
         /// <returns>string</returns>
         public override string ToString()
         {
-            var text = "[" + this.Type + "," + this.MVal + "," +
-                this.EndPoint + "]";
-            return text;
+            return this.Name;
         }
 
         #endregion

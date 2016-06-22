@@ -578,7 +578,7 @@ namespace Microsoft.PSharp
                     this.Assert((state.IsCold && !state.IsHot) ||
                         (!state.IsCold && state.IsHot) ||
                         (!state.IsCold && !state.IsHot),
-                        $"State '{type.FullName}' of monitor '{base.Id.Name}' " +
+                        $"State '{type.FullName}' of monitor '{base.Id}' " +
                         "cannot be both cold and hot.");
 
                     StateMap[monitorType].Add(state);
@@ -632,8 +632,8 @@ namespace Microsoft.PSharp
             }
 
             var initialStates = StateMap[monitorType].Where(state => state.IsStart).ToList();
-            this.Assert(initialStates.Count != 0, $"Monitor '{base.Id.Name}' must declare a start state.");
-            this.Assert(initialStates.Count == 1, $"Monitor '{base.Id.Name}' " +
+            this.Assert(initialStates.Count != 0, $"Monitor '{base.Id}' must declare a start state.");
+            this.Assert(initialStates.Count == 1, $"Monitor '{base.Id}' " +
                 "can not declare more than one start states.");
 
             this.ConfigureStateTransitions(initialStates.Single());

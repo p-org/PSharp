@@ -235,9 +235,9 @@ namespace Microsoft.PSharp.TestingServices
             machine.InitializeStateInformation();
             
             bool result = this.MachineMap.TryAdd(mid.Value, machine);
-            this.Assert(result, $"Machine '{mid.Name}' was already created.");
+            this.Assert(result, $"Machine '{mid}' was already created.");
 
-            this.Log($"<CreateLog> Machine '{mid.Name}' is created.");
+            this.Log($"<CreateLog> Machine '{mid}' is created.");
             
             if (this.Configuration.EnableDataRaceDetection)
             {
@@ -332,7 +332,7 @@ namespace Microsoft.PSharp.TestingServices
                 userTask);
             taskMachine.SetMachineId(mid);
 
-            this.Log($"<CreateLog> '{mid.Name}' is created.");
+            this.Log($"<CreateLog> '{mid}' is created.");
 
             Task task = new Task(() =>
             {
@@ -385,17 +385,17 @@ namespace Microsoft.PSharp.TestingServices
 
             if (this.Configuration.BoundOperations && sender != null)
             {
-                IO.Log($"<SendLog> Machine '{sender.Id.Name}' sent event " +
-                    $"'{eventInfo.EventName}({eventInfo.OperationId})' to '{mid.Name}'.");
+                IO.Log($"<SendLog> Machine '{sender.Id}' sent event " +
+                    $"'{eventInfo.EventName}({eventInfo.OperationId})' to '{mid}'.");
             }
             else if (sender != null)
             {
-                IO.Log($"<SendLog> Machine '{sender.Id.Name}' sent event " +
-                    $"'{eventInfo.EventName}' to '{mid.Name}'.");
+                IO.Log($"<SendLog> Machine '{sender.Id}' sent event " +
+                    $"'{eventInfo.EventName}' to '{mid}'.");
             }
             else
             {
-                IO.Log($"<SendLog> Event '{eventInfo.EventName}' was sent to '{mid.Name}'.");
+                IO.Log($"<SendLog> Event '{eventInfo.EventName}' was sent to '{mid}'.");
             }
 
             if (this.Configuration.EnableDataRaceDetection && sender != null)
@@ -491,12 +491,12 @@ namespace Microsoft.PSharp.TestingServices
 
             if (this.Configuration.BoundOperations)
             {
-                IO.Log($"<RaiseLog> Machine '{raiser.Id.Name}' raised " +
+                IO.Log($"<RaiseLog> Machine '{raiser.Id}' raised " +
                     $"event '{eventInfo.EventName}({eventInfo.OperationId})'.");
             }
             else
             {
-                IO.Log($"<RaiseLog> Machine '{raiser.Id.Name}' raised " +
+                IO.Log($"<RaiseLog> Machine '{raiser.Id}' raised " +
                     $"event '{eventInfo.EventName}'.");
             }
         }
@@ -513,7 +513,7 @@ namespace Microsoft.PSharp.TestingServices
             var choice = this.BugFinder.GetNextNondeterministicChoice(maxValue);
             if (machine != null)
             {
-                this.Log($"<RandomLog> Machine '{machine.Id.Name}' " +
+                this.Log($"<RandomLog> Machine '{machine.Id}' " +
                     $"nondeterministically chose '{choice}'.");
             }
             else
@@ -536,7 +536,7 @@ namespace Microsoft.PSharp.TestingServices
             var choice = this.BugFinder.GetNextNondeterministicChoice(2, uniqueId);
             if (machine != null)
             {
-                this.Log($"<RandomLog> Machine '{machine.Id.Name}' " +
+                this.Log($"<RandomLog> Machine '{machine.Id}' " +
                     $"nondeterministically chose '{choice}'.");
             }
             else
@@ -554,7 +554,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="action">Action</param>
         internal override void NotifyInvokedAction(Machine machine, MethodInfo action)
         {
-            this.Log($"<ActionLog> Machine '{machine.Id.Name}' invoked action " +
+            this.Log($"<ActionLog> Machine '{machine.Id}' invoked action " +
                 $"'{action.Name}' in state '{machine.CurrentState.FullName}'.");
 
             if (this.Configuration.EnableDataRaceDetection)
@@ -573,12 +573,12 @@ namespace Microsoft.PSharp.TestingServices
         {
             if (this.Configuration.BoundOperations)
             {
-                IO.Log($"<DequeueLog> Machine '{machine.Id.Name}' dequeued " +
+                IO.Log($"<DequeueLog> Machine '{machine.Id}' dequeued " +
                     $"event '{eventInfo.EventName}({eventInfo.OperationId})'.");
             }
             else
             {
-                IO.Log($"<DequeueLog> Machine '{machine.Id.Name}' dequeued " +
+                IO.Log($"<DequeueLog> Machine '{machine.Id}' dequeued " +
                     $"event '{eventInfo.EventName}'.");
             }
             
@@ -640,12 +640,12 @@ namespace Microsoft.PSharp.TestingServices
         {
             if (this.Configuration.BoundOperations)
             {
-                IO.Log($"<ReceiveLog> Machine '{machine.Id.Name}' received " +
+                IO.Log($"<ReceiveLog> Machine '{machine.Id}' received " +
                     $"event '{eventInfo.EventName}({eventInfo.OperationId})' and unblocked.");
             }
             else
             {
-                IO.Log($"<ReceiveLog> Machine '{machine.Id.Name}' received " +
+                IO.Log($"<ReceiveLog> Machine '{machine.Id}' received " +
                     $"event '{eventInfo.EventName}' and unblocked.");
             }
 

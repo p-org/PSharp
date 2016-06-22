@@ -251,9 +251,9 @@ namespace Microsoft.PSharp
         protected void Send(MachineId mid, Event e, bool isStarter = false)
         {
             // If the target machine is null, then report an error and exit.
-            this.Assert(mid != null, $"Machine '{base.Id.Name}' is sending to a null machine.");
+            this.Assert(mid != null, $"Machine '{base.Id}' is sending to a null machine.");
             // If the event is null, then report an error and exit.
-            this.Assert(e != null, $"Machine '{base.Id.Name}' is sending a null event.");
+            this.Assert(e != null, $"Machine '{base.Id}' is sending a null event.");
             base.Runtime.Send(this, mid, e, isStarter);
         }
 
@@ -266,9 +266,9 @@ namespace Microsoft.PSharp
         protected void RemoteSend(MachineId mid, Event e, bool isStarter = false)
         {
             // If the target machine is null, then report an error and exit.
-            this.Assert(mid != null, $"Machine '{base.Id.Name}' is sending to a null machine.");
+            this.Assert(mid != null, $"Machine '{base.Id}' is sending to a null machine.");
             // If the event is null, then report an error and exit.
-            this.Assert(e != null, $"Machine '{base.Id.Name}' is sending a null event.");
+            this.Assert(e != null, $"Machine '{base.Id}' is sending a null event.");
             base.Runtime.SendRemotely(this, mid, e, isStarter);
         }
 
@@ -280,7 +280,7 @@ namespace Microsoft.PSharp
         protected void Monitor<T>(Event e)
         {
             // If the event is null, then report an error and exit.
-            this.Assert(e != null, $"Machine '{base.Id.Name}' is sending a null event.");
+            this.Assert(e != null, $"Machine '{base.Id}' is sending a null event.");
             base.Runtime.Monitor<T>(this, e);
         }
 
@@ -292,7 +292,7 @@ namespace Microsoft.PSharp
         protected void Goto(Type s)
         {
             // If the state is not a state of the machine, then report an error and exit.
-            this.Assert(StateTypeMap[this.GetType()].Contains(s), $"Machine '{base.Id.Name}' " +
+            this.Assert(StateTypeMap[this.GetType()].Contains(s), $"Machine '{base.Id}' " +
                 $"is trying to transition to non-existing state '{s.Name}'.");
             this.Raise(new GotoStateEvent(s));
         }
@@ -305,7 +305,7 @@ namespace Microsoft.PSharp
         protected void Raise(Event e, bool isStarter = false)
         {
             // If the event is null, then report an error and exit.
-            this.Assert(e != null, $"Machine '{base.Id.Name}' is raising a null event.");
+            this.Assert(e != null, $"Machine '{base.Id}' is raising a null event.");
             this.RaisedEvent = new EventInfo(e, new EventOriginInfo(
                 base.Id, this.GetType().Name, this.CurrentState.Name));
             base.Runtime.Raise(this, this.RaisedEvent, isStarter);
@@ -424,11 +424,11 @@ namespace Microsoft.PSharp
             
             if (this.CurrentState == null)
             {
-                base.Runtime.Log($"<PopLog> Machine '{base.Id.Name}' popped.");
+                base.Runtime.Log($"<PopLog> Machine '{base.Id}' popped.");
             }
             else
             {
-                base.Runtime.Log($"<PopLog> Machine '{base.Id.Name}' popped " +
+                base.Runtime.Log($"<PopLog> Machine '{base.Id}' popped " +
                     $"and reentered state '{this.CurrentState.FullName}'.");
                 this.ConfigureStateTransitions(this.StateStack.Peek());
             }
@@ -543,7 +543,7 @@ namespace Microsoft.PSharp
                     return;
                 }
 
-                base.Runtime.Log($"<EnqueueLog> Machine '{base.Id.Name}' " +
+                base.Runtime.Log($"<EnqueueLog> Machine '{base.Id}' " +
                     $"enqueued event '{eventInfo.EventName}'.");
 
                 this.Inbox.Add(eventInfo);
@@ -598,7 +598,7 @@ namespace Microsoft.PSharp
                     {
                         if (this.HasDefaultHandler())
                         {
-                            base.Runtime.Log($"<DefaultLog> Machine '{base.Id.Name}' " +
+                            base.Runtime.Log($"<DefaultLog> Machine '{base.Id}' " +
                                 "is executing the default handler in state " +
                                 $"'{this.CurrentState.FullName}'.");
 
@@ -806,7 +806,7 @@ namespace Microsoft.PSharp
                     {
                         lock (this.Inbox)
                         {
-                            base.Runtime.Log($"<HaltLog> Machine '{base.Id.Name}' halted.");
+                            base.Runtime.Log($"<HaltLog> Machine '{base.Id}' halted.");
                             this.IsHalted = true;
                             this.CleanUpResources();
                         }
@@ -815,7 +815,7 @@ namespace Microsoft.PSharp
                     }
 
                     // If the event cannot be handled then report an error and exit.
-                    this.Assert(false, $"Machine '{base.Id.Name}' received event " +
+                    this.Assert(false, $"Machine '{base.Id}' received event " +
                         $"'{e.GetType().FullName}' that cannot be handled.");
                 }
 
@@ -833,12 +833,12 @@ namespace Microsoft.PSharp
 
                     if (this.CurrentState == null)
                     {
-                        base.Runtime.Log($"<PopLog> Machine '{base.Id.Name}' " +
+                        base.Runtime.Log($"<PopLog> Machine '{base.Id}' " +
                             $"popped with unhandled event '{e.GetType().FullName}'.");
                     }
                     else
                     {
-                        base.Runtime.Log($"<PopLog> Machine '{base.Id.Name}' popped " +
+                        base.Runtime.Log($"<PopLog> Machine '{base.Id}' popped " +
                             $"with unhandled event '{e.GetType().FullName}' and " +
                             $"reentered state '{this.CurrentState.FullName}.");
                         this.ConfigureStateTransitions(this.StateStack.Peek());
@@ -909,7 +909,7 @@ namespace Microsoft.PSharp
                         events += " '" + ewh.EventType.Name + "'";
                     }
 
-                    base.Runtime.Log($"<ReceiveLog> Machine '{base.Id.Name}' " +
+                    base.Runtime.Log($"<ReceiveLog> Machine '{base.Id}' " +
                         $"is waiting on events:{events}.");
                     this.IsWaitingToReceive = true;
                 }
@@ -955,12 +955,12 @@ namespace Microsoft.PSharp
                 if (innerException is OperationCanceledException)
                 {
                     IO.Debug("<Exception> OperationCanceledException was " +
-                        $"thrown from Machine '{base.Id.Name}'.");
+                        $"thrown from Machine '{base.Id}'.");
                 }
                 else if (innerException is TaskSchedulerException)
                 {
                     IO.Debug("<Exception> TaskSchedulerException was thrown from " +
-                        $"thrown from Machine '{base.Id.Name}'.");
+                        $"thrown from Machine '{base.Id}'.");
                 }
                 else
                 {
@@ -1044,7 +1044,7 @@ namespace Microsoft.PSharp
         /// <param name="s">Type of the state</param>
         private void PushState(Type s)
         {
-            base.Runtime.Log($"<PushLog> Machine '{base.Id.Name}' pushed.");
+            base.Runtime.Log($"<PushLog> Machine '{base.Id}' pushed.");
 
             var nextState = StateMap[this.GetType()].First(val => val.GetType().Equals(s));
             this.ConfigureStateTransitions(nextState);
@@ -1085,12 +1085,12 @@ namespace Microsoft.PSharp
                 if (innerException is OperationCanceledException)
                 {
                     IO.Debug("<Exception> OperationCanceledException was " +
-                        $"thrown from Machine '{base.Id.Name}'.");
+                        $"thrown from Machine '{base.Id}'.");
                 }
                 else if (innerException is TaskSchedulerException)
                 {
                     IO.Debug("<Exception> TaskSchedulerException was thrown from " +
-                        $"thrown from Machine '{base.Id.Name}'.");
+                        $"thrown from Machine '{base.Id}'.");
                 }
                 else
                 {
@@ -1159,7 +1159,7 @@ namespace Microsoft.PSharp
         [DebuggerStepThrough]
         private void ExecuteCurrentStateOnEntry()
         {
-            base.Runtime.Log($"<StateLog> Machine '{base.Id.Name}' " +
+            base.Runtime.Log($"<StateLog> Machine '{base.Id}' " +
                 $"enters state '{this.CurrentState.FullName}'.");
             
             MethodInfo entryAction = null;
@@ -1192,12 +1192,12 @@ namespace Microsoft.PSharp
                 if (innerException is OperationCanceledException)
                 {
                     IO.Debug("<Exception> OperationCanceledException was " +
-                        $"thrown from Machine '{base.Id.Name}'.");
+                        $"thrown from Machine '{base.Id}'.");
                 }
                 else if (innerException is TaskSchedulerException)
                 {
                     IO.Debug("<Exception> TaskSchedulerException was thrown from " +
-                        $"thrown from Machine '{base.Id.Name}'.");
+                        $"thrown from Machine '{base.Id}'.");
                 }
                 else
                 {
@@ -1219,7 +1219,7 @@ namespace Microsoft.PSharp
         [DebuggerStepThrough]
         private void ExecuteCurrentStateOnExit(string eventHandlerExitActionName)
         {
-            base.Runtime.Log($"<ExitLog> Machine '{base.Id.Name}' " +
+            base.Runtime.Log($"<ExitLog> Machine '{base.Id}' " +
                 $"exits state '{this.CurrentState.FullName}'.");
 
             MethodInfo exitAction = null;
@@ -1261,12 +1261,12 @@ namespace Microsoft.PSharp
                 if (innerException is OperationCanceledException)
                 {
                     IO.Debug("<Exception> OperationCanceledException was " +
-                        $"thrown from Machine '{base.Id.Name}'.");
+                        $"thrown from Machine '{base.Id}'.");
                 }
                 else if (innerException is TaskSchedulerException)
                 {
                     IO.Debug("<Exception> TaskSchedulerException was thrown from " +
-                        $"thrown from Machine '{base.Id.Name}'.");
+                        $"thrown from Machine '{base.Id}'.");
                 }
                 else
                 {
@@ -1366,8 +1366,8 @@ namespace Microsoft.PSharp
             }
 
             var initialStates = StateMap[machineType].Where(state => state.IsStart).ToList();
-            this.Assert(initialStates.Count != 0, $"Machine '{base.Id.Name}' must declare a start state.");
-            this.Assert(initialStates.Count == 1, $"Machine '{base.Id.Name}' " +
+            this.Assert(initialStates.Count != 0, $"Machine '{base.Id}' must declare a start state.");
+            this.Assert(initialStates.Count == 1, $"Machine '{base.Id}' " +
                 "can not declare more than one start states.");
             
             this.ConfigureStateTransitions(initialStates.Single());
@@ -1447,9 +1447,9 @@ namespace Microsoft.PSharp
         /// </summary>
         private void AssertStateValidity()
         {
-            this.Assert(StateTypeMap[this.GetType()].Count > 0, $"Machine '{base.Id.Name}' " +
+            this.Assert(StateTypeMap[this.GetType()].Count > 0, $"Machine '{base.Id}' " +
                 "must have one or more states.");
-            this.Assert(this.StateStack.Peek() != null, $"Machine '{base.Id.Name}' " +
+            this.Assert(this.StateStack.Peek() != null, $"Machine '{base.Id}' " +
                 "must not have a null current state.");
         }
 
@@ -1461,7 +1461,7 @@ namespace Microsoft.PSharp
         private void ReportGenericAssertion(Exception ex)
         {
             this.Assert(false, $"Exception '{ex.GetType()}' was thrown " +
-                $"in machine '{base.Id.Name}', '{ex.Source}':\n" +
+                $"in machine '{base.Id}', '{ex.Source}':\n" +
                 $"   {ex.Message}\n" +
                 $"The stack trace is:\n{ex.StackTrace}");
         }

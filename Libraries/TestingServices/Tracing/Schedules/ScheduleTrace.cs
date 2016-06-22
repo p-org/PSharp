@@ -82,7 +82,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
                 }
                 else
                 {
-                    string[] machineId = step.TrimStart('[').TrimEnd(']').Split(',');
+                    string[] machineId = step.TrimEnd(')').Split('(');
                     this.AddSchedulingChoice(machineId[0], int.Parse(machineId[1]));
                 }
             }

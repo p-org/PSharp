@@ -269,10 +269,6 @@ namespace Microsoft.PSharp.TestingServices
                 this.Configuration.CacheProgramState = false;
             }
 
-            // Do not clear the runtime caches in the end of
-            // each iteration to speedup testing.
-            this.Configuration.ClearRuntimeCaches = false;
-
             if (this.Configuration.EnableVisualization)
             {
                 this.InitializeVisualizer();
