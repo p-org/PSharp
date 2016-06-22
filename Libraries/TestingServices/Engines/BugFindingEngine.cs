@@ -245,6 +245,10 @@ namespace Microsoft.PSharp.TestingServices
                         callback(i);
                     }
 
+                    // Cleans up the runtime before the next
+                    // iteration starts.
+                    this.CleanUpRuntime();
+
                     // Checks for any liveness property violations. Requires
                     // that the program has terminated and no safety property
                     // violations have been found.
@@ -320,6 +324,16 @@ namespace Microsoft.PSharp.TestingServices
             });
 
             return task;
+        }
+
+        /// <summary>
+        /// Cleans up the P# runtime. Called before the next
+        /// testing iteration starts.
+        /// </summary>
+        private void CleanUpRuntime()
+        {
+            // Resets the machine id counter.
+            MachineId.ResetMachineIDCounter();
         }
 
         #endregion

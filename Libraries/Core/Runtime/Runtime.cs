@@ -542,15 +542,6 @@ namespace Microsoft.PSharp
             this.MachineMap = new ConcurrentDictionary<int, Machine>();
             this.TaskMap = new ConcurrentDictionary<int, Machine>();
             this.MachineTasks = new ConcurrentBag<Task>();
-            
-            MachineId.ResetMachineIDCounter();
-
-            if (this.Configuration.ClearRuntimeCaches)
-            {
-                Machine.ResetCaches();
-                PSharp.Monitor.ResetCaches();
-                MachineConstructorMap.Clear();
-            }
         }
 
         #endregion
@@ -577,14 +568,14 @@ namespace Microsoft.PSharp
                     Expression.New(type.GetConstructor(Type.EmptyTypes))).Compile();
                 MachineConstructorMap[type] = constructor;
             }
-
+            
             Machine machine = MachineConstructorMap[type]();
             
             machine.SetMachineId(mid);
             machine.InitializeStateInformation();
-
+            
             bool result = this.MachineMap.TryAdd(mid.Value, machine);
-            this.Assert(result, $"Machine '{mid.Name}' was already created.");
+            this.Assert(result, $"Machine '{mid}' was already created.");
             
             Task task = new Task(() =>
             {
@@ -601,7 +592,7 @@ namespace Microsoft.PSharp
             
             this.MachineTasks.Add(task);
             this.TaskMap.TryAdd(task.Id, machine);
-
+            
             task.Start();
 
             return mid;

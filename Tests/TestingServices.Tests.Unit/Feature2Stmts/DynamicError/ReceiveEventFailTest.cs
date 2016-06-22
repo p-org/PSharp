@@ -126,7 +126,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             var engine = TestingEngineFactory.CreateBugFindingEngine(configuration, TestProgram.Execute).Run();
             Assert.AreEqual(1, engine.NumOfFoundBugs);
             var bugReport = "Livelock detected. Machine 'Microsoft.PSharp.TestingServices." +
-                "Tests.Unit.ReceiveEventFailTest+Client(0)' is waiting for an event, but " +
+                "Tests.Unit.ReceiveEventFailTest+Client(2)' is waiting for an event, but " +
                 "no other machine is enabled.";
             Assert.AreEqual(bugReport, engine.BugReport);
         }

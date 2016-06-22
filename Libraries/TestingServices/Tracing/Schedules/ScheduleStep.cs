@@ -89,7 +89,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Schedule
             scheduleStep.Type = ScheduleStepType.SchedulingChoice;
 
             scheduleStep.ScheduledMachine = scheduledMachine;
-            scheduleStep.ScheduledMachineType = scheduledMachine.Id.Type.ToString();
+            scheduleStep.ScheduledMachineType = scheduledMachine.Id.Type;
             scheduleStep.ScheduledMachineId = scheduledMachine.Id.Value;
 
             scheduleStep.Previous = null;

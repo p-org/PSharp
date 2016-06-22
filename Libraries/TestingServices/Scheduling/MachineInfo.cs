@@ -164,9 +164,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>string</returns>
         public override string ToString()
         {
-            var text = $"Task {this.Id} of machine {this.Machine.GetType()}({this.Machine.Id.MVal})::" +
-                $"enabled[{this.IsEnabled}], waiting[{this.IsWaitingToReceive}], blocked[{this.IsBlocked}], " +
-                $"active[{this.IsActive}], started[{this.HasStarted}], completed[{this.IsCompleted}]";
+            var text = $"Task {this.Id} of machine {this.Machine.Id}::" +
+                $"enabled[{this.IsEnabled}], waiting[{this.IsWaitingToReceive}], " +
+                $"blocked[{this.IsBlocked}], active[{this.IsActive}], " +
+                $"started[{this.HasStarted}], completed[{this.IsCompleted}]";
             return text;
         }
 
