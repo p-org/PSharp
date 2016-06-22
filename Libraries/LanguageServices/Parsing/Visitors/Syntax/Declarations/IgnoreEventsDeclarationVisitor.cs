@@ -12,8 +12,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
+using System.Text;
 
 using Microsoft.PSharp.LanguageServices.Syntax;
 
@@ -45,7 +45,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 
             var nameVisitor = new NameVisitor(base.TokenStream);
 
-            // Consume multiple generic event names
+            // Consumes multiple generic event names.
             var eventIdentifiers =
                 nameVisitor.ConsumeMultipleNames(TokenType.EventIdentifier, tt => nameVisitor.ConsumeGenericEventName(tt));
 
@@ -54,13 +54,13 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             {
                 if (eventIdentifier.Count == 1)
                 {
-                    // we don't want to collapse halt and default events to
-                    // event identifiers
+                    // We don't want to collapse halt and default
+                    // events to event identifiers.
                     resolvedEventIdentifiers.Add(eventIdentifier[0], eventIdentifier);
                 }
                 else
                 {
-                    var identifierBuilder = new System.Text.StringBuilder();
+                    var identifierBuilder = new StringBuilder();
                     foreach (var token in eventIdentifier)
                     {
                         identifierBuilder.Append(token.TextUnit.Text);

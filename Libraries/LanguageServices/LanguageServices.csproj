@@ -109,7 +109,6 @@
     <Compile Include="Parsing\Visitors\Framework\MachineStateDeclarationParser.cs" />
     <Compile Include="Parsing\Visitors\Framework\MachineDeclarationParser.cs" />
     <Compile Include="Parsing\Visitors\Framework\BaseVisitor.cs" />
-    <Compile Include="Parsing\Visitors\Identifiers\NameVisitor.cs" />
     <Compile Include="Parsing\Visitors\Syntax\BaseTokenVisitor.cs" />
     <Compile Include="Parsing\Visitors\Syntax\Blocks\BlockSyntaxVisitor.cs" />
     <Compile Include="Parsing\Visitors\Syntax\Declarations\DeferEventsDeclarationVisitor.cs" />
@@ -125,6 +124,7 @@
     <Compile Include="Parsing\Visitors\Syntax\Declarations\StateGroupDeclarationVisitor.cs" />
     <Compile Include="Parsing\Visitors\Syntax\Expressions\ArgumentsListVisitor.cs" />
     <Compile Include="Parsing\Visitors\Syntax\Expressions\AttributeListVisitor.cs" />
+    <Compile Include="Parsing\Visitors\Syntax\Identifiers\NameVisitor.cs" />
     <Compile Include="Parsing\Visitors\Syntax\Types\TypeIdentifierVisitor.cs" />
     <Compile Include="Parsing\ParsingEngine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

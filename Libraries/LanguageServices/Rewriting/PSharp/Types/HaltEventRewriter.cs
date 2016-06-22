@@ -12,8 +12,6 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
@@ -44,7 +42,8 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         /// </summary>
         internal void Rewrite()
         {
-            var types = base.Program.GetSyntaxTree().GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().
+            var types = base.Program.GetSyntaxTree().GetRoot().
+                DescendantNodes().OfType<IdentifierNameSyntax>().
                 Where(val => val.Identifier.ValueText.Equals("halt")).
                 ToList();
 
@@ -73,7 +72,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.PSharp
         {
             var text = typeof(Halt).FullName;
 
-            var rewritten = SyntaxFactory.ParseName(text); 
+            var rewritten = SyntaxFactory.ParseName(text);
             rewritten = rewritten.WithTriviaFrom(node);
 
             return rewritten;

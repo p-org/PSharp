@@ -374,7 +374,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         internal string GetResolvedEventHandlerName(Token eventIdentifier)
         {
             var resolvedEvent = this.ResolvedEventIdentifierTokens[eventIdentifier];
-            var eventIdentifierTokens = resolvedEvent.Item1.TakeWhile(tok => tok.Type != TokenType.LeftAngleBracket);
+            var eventIdentifierTokens = resolvedEvent.Item1.TakeWhile(
+                tok => tok.Type != TokenType.LeftAngleBracket);
             string qualifiedEventIdentifier = "";
             foreach (var tok in eventIdentifierTokens.Where(tok => tok.Type != TokenType.Dot))
             {

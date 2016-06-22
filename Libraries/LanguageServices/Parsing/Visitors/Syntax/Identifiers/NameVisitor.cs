@@ -15,12 +15,10 @@
 using System;
 using System.Collections.Generic;
 
-using Microsoft.PSharp.LanguageServices.Syntax;
-
 namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 {
     /// <summary>
-    /// The P# defer events declaration parsing visitor.
+    /// The P# name parsing visitor.
     /// </summary>
     internal sealed class NameVisitor : BaseTokenVisitor
     {
@@ -35,14 +33,16 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         }
 
         /// <summary>
-        /// Consume a qualified name from the tokenstream.
+        /// Consumes a qualified name from the tokenstream.
         /// QN = Identifier || Identifier.QN
         /// </summary>
-        internal List<Token> ConsumeQualifiedName(TokenType Replacement)
+        /// <param name="replacement">TokenType</param>
+        /// <returns>Tokens</returns>
+        internal List<Token> ConsumeQualifiedName(TokenType replacement)
         {
             var qualifiedName = new List<Token>();
 
-            // consume identifier
+            // Consumes identifier.
             if (base.TokenStream.Done ||
                 base.TokenStream.Peek().Type != TokenType.Identifier)
             {
@@ -54,7 +54,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             }
 
             base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit,
-                Replacement));
+                replacement));
             qualifiedName.Add(base.TokenStream.Peek());
 
             base.TokenStream.Index++;
@@ -62,12 +62,12 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 
             while (!base.TokenStream.Done && base.TokenStream.Peek().Type == TokenType.Dot)
             {
-                // consume dot
+                // Consumes dot.
                 qualifiedName.Add(base.TokenStream.Peek());
                 base.TokenStream.Index++;
                 base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-                // consume identifier
+                // Consumes identifier.
                 if (base.TokenStream.Done || base.TokenStream.Peek().Type != TokenType.Identifier)
                 {
                     throw new ParsingException("Expected identifier.",
@@ -77,7 +77,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                     });
                 }
 
-                base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit, Replacement));
+                base.TokenStream.Swap(new Token(base.TokenStream.Peek().TextUnit, replacement));
                 qualifiedName.Add(base.TokenStream.Peek());
 
                 base.TokenStream.Index++;
@@ -88,10 +88,12 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         }
 
         /// <summary>
-        /// Consume a qualified event name from the tokenstream.
+        /// Consumes a qualified event name from the tokenstream.
         /// QEN = halt || default || QN
         /// </summary>
-        internal List<Token> ConsumeQualifiedEventName(TokenType Replacement)
+        /// <param name="replacement">TokenType</param>
+        /// <returns>Tokens</returns>
+        internal List<Token> ConsumeQualifiedEventName(TokenType replacement)
         {
             var qualifiedName = new List<Token>();
 
@@ -118,7 +120,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             }
             else
             {
-                qualifiedName = ConsumeQualifiedName(Replacement);
+                qualifiedName = ConsumeQualifiedName(replacement);
             }
 
             return qualifiedName;
@@ -126,47 +128,53 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
 
 
         /// <summary>
-        /// Consume comma-separated names from the tokenstream.
+        /// Consumes comma-separated names from the tokenstream.
         /// </summary>
-        internal List<List<Token>> ConsumeMultipleNames(TokenType Replacement, Func<TokenType, List<Token>> ConsumeName)
+        /// <param name="replacement">TokenType</param>
+        /// <param name="consumeName">Func</param>
+        /// <returns>Tokens</returns>
+        internal List<List<Token>> ConsumeMultipleNames(TokenType replacement,
+            Func<TokenType, List<Token>> consumeName)
         {
             var names = new List<List<Token>>();
 
-            // consume qualified name
-            names.Add(ConsumeName(Replacement));
+            // Consumes qualified name.
+            names.Add(consumeName(replacement));
 
             while (!base.TokenStream.Done && base.TokenStream.Peek().Type == TokenType.Comma)
             {
-                // consume comma
+                // Consumes comma.
                 base.TokenStream.Index++;
                 base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-                // consume qualified name
-                names.Add(ConsumeName(Replacement));
+                // Consumes qualified name.
+                names.Add(consumeName(replacement));
             }
 
             return names;
         }
 
         /// <summary>
-        /// Consume a generic name
+        /// Consumes a generic name.
         /// GN = QN || QN LBR matched RBR
         /// </summary>
-        internal List<Token> ConsumeGenericName(TokenType Replacement)
+        /// <param name="replacement">TokenType</param>
+        /// <returns>Tokens</returns>
+        internal List<Token> ConsumeGenericName(TokenType replacement)
         {
-            // consume qualified name
-            var qualifiedName = ConsumeQualifiedName(Replacement);
+            // Consumes qualified name.
+            var qualifiedName = ConsumeQualifiedName(replacement);
 
             if (!base.TokenStream.Done && base.TokenStream.Peek().Type == TokenType.LeftAngleBracket)
             {
-                var balanced_count = 0;
+                var balancedCount = 0;
 
-                // consume bracket
+                // Consumes bracket.
                 qualifiedName.Add(base.TokenStream.Peek());
                 base.TokenStream.Index++;
                 base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-                // consume until matching bracket
+                // Consumes until matching bracket.
                 while (!base.TokenStream.Done)
                 {
                     if (base.TokenStream.Peek().Type != TokenType.Identifier &&
@@ -203,13 +211,13 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         base.TokenStream.Index++;
                         base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-                        if (balanced_count == 0)
+                        if (balancedCount == 0)
                         {
-                            // we're done
+                            // Done.
                             return qualifiedName;
                         }
 
-                        balanced_count--;
+                        balancedCount--;
                     }
                     else if (base.TokenStream.Peek().Type == TokenType.LeftAngleBracket)
                     {
@@ -217,7 +225,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
                         base.TokenStream.Index++;
                         base.TokenStream.SkipWhiteSpaceAndCommentTokens();
 
-                        balanced_count++;
+                        balancedCount++;
                     }
                     else
                     {
@@ -239,10 +247,12 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
         }
 
         /// <summary>
-        /// Consume a generic event name
+        /// Consumes a generic event name.
         /// GEN = halt || default || GEN 
         /// </summary>
-        internal List<Token> ConsumeGenericEventName(TokenType Replacement)
+        /// <param name="replacement">TokenType</param>
+        /// <returns>Tokens</returns>
+        internal List<Token> ConsumeGenericEventName(TokenType replacement)
         {
             var qualifiedName = new List<Token>();
 
@@ -269,7 +279,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing.Syntax
             }
             else
             {
-                qualifiedName = ConsumeGenericName(Replacement);
+                qualifiedName = ConsumeGenericName(replacement);
             }
 
             return qualifiedName;
