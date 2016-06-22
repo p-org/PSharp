@@ -63,11 +63,6 @@ namespace Microsoft.PSharp
         /// </summary>
         internal INetworkProvider NetworkProvider;
 
-        /// <summary>
-        /// The runtime profiler.
-        /// </summary>
-        private Profiler Profiler;
-
         #endregion
 
         #region constructors
@@ -134,9 +129,6 @@ namespace Microsoft.PSharp
         /// <returns>MachineId</returns>
         public virtual MachineId CreateMachine(Type type, Event e = null)
         {
-            this.Profiler.StopMeasuringExecutionTime();
-            Console.WriteLine($"Creating machine '{this.Profiler.Results()}'");
-            this.Profiler.StartMeasuringExecutionTime();
             return this.TryCreateMachine(type, null, e);
         }
 
@@ -469,8 +461,6 @@ namespace Microsoft.PSharp
         /// </summary>
         public void Wait()
         {
-            //Console.WriteLine($"Runtime waiting '{this.Profiler.Results()}'");
-
             Task[] taskArray = null;
 
             while (true)
@@ -494,9 +484,6 @@ namespace Microsoft.PSharp
                     break;
                 }
             }
-
-            this.Profiler.StopMeasuringExecutionTime();
-            //Console.WriteLine($"Runtime finished '{this.Profiler.Results()}'");
         }
 
         #endregion
@@ -555,9 +542,6 @@ namespace Microsoft.PSharp
             this.MachineMap = new ConcurrentDictionary<int, Machine>();
             this.TaskMap = new ConcurrentDictionary<int, Machine>();
             this.MachineTasks = new ConcurrentBag<Task>();
-
-            this.Profiler = new Profiler();
-            this.Profiler.StartMeasuringExecutionTime();
         }
 
         #endregion
@@ -573,63 +557,42 @@ namespace Microsoft.PSharp
         /// <returns>MachineId</returns>
         internal virtual MachineId TryCreateMachine(Type type, string friendlyName, Event e)
         {
-            //Console.WriteLine($"Try create machine '{this.Profiler.Results()}'");
-
             this.Assert(type.IsSubclassOf(typeof(Machine)),
                 $"Type '{type.Name}' is not a machine.");
-
-            //Console.WriteLine($"Assert if type is machine '{this.Profiler.Results()}'");
-
+            
             MachineId mid = new MachineId(type, friendlyName, this);
-
-            //Console.WriteLine($"Created machine id '{this.Profiler.Results()}'");
-
+            
             if (!MachineConstructorMap.ContainsKey(type))
             {
                 Func<Machine> constructor = Expression.Lambda<Func<Machine>>(
                     Expression.New(type.GetConstructor(Type.EmptyTypes))).Compile();
                 MachineConstructorMap[type] = constructor;
             }
-
-            //Console.WriteLine($"Created expression '{this.Profiler.Results()}'");
-
+            
             Machine machine = MachineConstructorMap[type]();
             
             machine.SetMachineId(mid);
-
-            //Console.WriteLine($"Set machine id '{this.Profiler.Results()}'");
-
             machine.InitializeStateInformation();
-
-            //Console.WriteLine($"Initialized state info '{this.Profiler.Results()}'");
-
+            
             bool result = this.MachineMap.TryAdd(mid.Value, machine);
             this.Assert(result, $"Machine '{mid}' was already created.");
-
-            //Console.WriteLine($"Add and assert machine '{this.Profiler.Results()}'");
-
+            
             Task task = new Task(() =>
             {
                 try
                 {
                     machine.GotoStartState(e);
                     machine.RunEventHandler();
-
-                    //Console.WriteLine($"Machine finished '{this.Profiler.Results()}'");
                 }
                 finally
                 {
                     this.TaskMap.TryRemove(Task.CurrentId.Value, out machine);
                 }
             });
-
-            //Console.WriteLine($"Created task '{this.Profiler.Results()}'");
-
+            
             this.MachineTasks.Add(task);
             this.TaskMap.TryAdd(task.Id, machine);
-
-            //Console.WriteLine($"Machine created '{this.Profiler.Results()}'");
-
+            
             task.Start();
 
             return mid;
