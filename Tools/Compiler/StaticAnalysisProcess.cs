@@ -51,11 +51,8 @@ namespace Microsoft.PSharp
         {
             IO.PrintLine(". Analyzing");
 
-            foreach (var target in this.CompilationContext.Configuration.CompilationTargets)
-            {
-                // Creates and runs a P# static analysis engine.
-                StaticAnalysisEngine.Create(this.CompilationContext).Run();
-            }
+            // Creates and runs a P# static analysis engine.
+            StaticAnalysisEngine.Create(this.CompilationContext).Run();
 
             // Prints error statistics and profiling results.
             AnalysisErrorReporter.PrintStats();

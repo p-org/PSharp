@@ -51,10 +51,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="System.Reflection.Metadata, Version=1.0.12.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\References\Roslyn\System.Reflection.Metadata.dll</HintPath>
-    </Reference>
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceModel" />
   </ItemGroup>
@@ -82,6 +78,7 @@
     <Compile Include="Exceptions\PSharpException.cs" />
     <Compile Include="Library\StateGroup.cs" />
     <Compile Include="Net\NetworkProviders\DefaultNetworkProvider.cs" />
+    <Compile Include="Options\OptimizationTarget.cs" />
     <Compile Include="Options\CompilationTarget.cs" />
     <Compile Include="Options\SchedulingStrategy.cs" />
     <Compile Include="Net\INetworkProvider.cs" />

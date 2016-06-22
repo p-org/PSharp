@@ -48,14 +48,18 @@ namespace Microsoft.PSharp
         /// </summary>
         public void Start()
         {
-            foreach (var target in this.CompilationContext.Configuration.CompilationTargets)
+            if (this.CompilationContext.Configuration.CompilationTarget == CompilationTarget.Testing)
             {
-                IO.PrintLine(". Compiling ({0})", target.ToString());
-                this.CompilationContext.ActiveCompilationTarget = target;
-
-                // Creates and runs a P# compilation engine.
-                CompilationEngine.Create(this.CompilationContext).Run();
+                IO.PrintLine($". Compiling ({this.CompilationContext.Configuration.CompilationTarget})");
             }
+            else
+            {
+                IO.PrintLine($". Compiling ({this.CompilationContext.Configuration.CompilationTarget}::" +
+                    $"{this.CompilationContext.Configuration.OptimizationTarget})");
+            }
+
+            // Creates and runs a P# compilation engine.
+            CompilationEngine.Create(this.CompilationContext).Run();
         }
 
         #endregion

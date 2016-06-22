@@ -31,6 +31,12 @@ namespace Microsoft.PSharp
 
             // Parses the command line options to get the configuration.
             var configuration = new CompilerCommandLineOptions(args).Parse();
+            
+            // If the compiler compiles for testing, the optimization should be debug.
+            if (configuration.CompilationTarget == CompilationTarget.Testing)
+            {
+                configuration.OptimizationTarget = OptimizationTarget.Debug;
+            }
 
             // Creates the compilation context and loads the solution.
             var context = CompilationContext.Create(configuration).LoadSolution();

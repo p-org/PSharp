@@ -100,7 +100,7 @@ namespace Microsoft.PSharp
         /// <returns>IEnumerator</returns>
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return (IEnumerator)this.Dictionary.GetEnumerator();
+            return this.Dictionary.GetEnumerator();
         }
     }
 }

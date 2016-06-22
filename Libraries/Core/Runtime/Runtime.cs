@@ -16,6 +16,8 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -47,6 +49,11 @@ namespace Microsoft.PSharp
         protected ConcurrentDictionary<int, Machine> TaskMap;
 
         /// <summary>
+        /// Map from machine types to constructors.
+        /// </summary>
+        protected static ConcurrentDictionary<Type, Func<Machine>> MachineConstructorMap;
+
+        /// <summary>
         /// Collection of machine tasks.
         /// </summary>
         protected ConcurrentBag<Task> MachineTasks;
@@ -55,6 +62,18 @@ namespace Microsoft.PSharp
         /// Network provider for remote communication.
         /// </summary>
         internal INetworkProvider NetworkProvider;
+
+        #endregion
+
+        #region constructors
+
+        /// <summary>
+        /// Static constructor.
+        /// </summary>
+        static PSharpRuntime()
+        {
+            MachineConstructorMap = new ConcurrentDictionary<Type, Func<Machine>>();
+        }
 
         #endregion
 
@@ -523,8 +542,15 @@ namespace Microsoft.PSharp
             this.MachineMap = new ConcurrentDictionary<int, Machine>();
             this.TaskMap = new ConcurrentDictionary<int, Machine>();
             this.MachineTasks = new ConcurrentBag<Task>();
-
+            
             MachineId.ResetMachineIDCounter();
+
+            if (this.Configuration.ClearRuntimeCaches)
+            {
+                Machine.ResetCaches();
+                PSharp.Monitor.ResetCaches();
+                MachineConstructorMap.Clear();
+            }
         }
 
         #endregion
@@ -542,15 +568,24 @@ namespace Microsoft.PSharp
         {
             this.Assert(type.IsSubclassOf(typeof(Machine)),
                 $"Type '{type.Name}' is not a machine.");
-
+            
             MachineId mid = new MachineId(type, friendlyName, this);
-            Machine machine = Activator.CreateInstance(type) as Machine;
+            
+            if (!MachineConstructorMap.ContainsKey(type))
+            {
+                Func<Machine> constructor = Expression.Lambda<Func<Machine>>(
+                    Expression.New(type.GetConstructor(Type.EmptyTypes))).Compile();
+                MachineConstructorMap[type] = constructor;
+            }
+
+            Machine machine = MachineConstructorMap[type]();
+            
             machine.SetMachineId(mid);
             machine.InitializeStateInformation();
 
             bool result = this.MachineMap.TryAdd(mid.Value, machine);
             this.Assert(result, $"Machine '{mid.Name}' was already created.");
-
+            
             Task task = new Task(() =>
             {
                 try
@@ -724,7 +759,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="action">Action</param>
-        internal virtual void NotifyInvokedAction(Machine machine, Action action)
+        internal virtual void NotifyInvokedAction(Machine machine, MethodInfo action)
         {
             // No-op for real execution.
         }

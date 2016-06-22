@@ -21,7 +21,7 @@ namespace Microsoft.PSharp
     /// <summary>
     /// Defines a collection of goto state transitions.
     /// </summary>
-    internal sealed class GotoStateTransitions : IEnumerable<KeyValuePair<Type, Tuple<Type, Action>>>
+    internal sealed class GotoStateTransitions : IEnumerable<KeyValuePair<Type, Tuple<Type, string>>>
     {
         /// <summary>
         /// A dictionary of goto state transitions. A key represents
@@ -30,14 +30,14 @@ namespace Microsoft.PSharp
         /// which can execute after the default OnExit function of
         /// the exiting state.
         /// </summary>
-        private Dictionary<Type, Tuple<Type, Action>> Dictionary;
+        private Dictionary<Type, Tuple<Type, string>> Dictionary;
 
         /// <summary>
         /// Constructor of the GotoStateTransitions class.
         /// </summary>
         public GotoStateTransitions()
         {
-            this.Dictionary = new Dictionary<Type, Tuple<Type, Action>>();
+            this.Dictionary = new Dictionary<Type, Tuple<Type, string>>();
         }
 
         /// <summary>
@@ -48,9 +48,9 @@ namespace Microsoft.PSharp
         /// <param name="e">Type of the event</param>
         /// <param name="s">Type of the state</param>
         /// <param name="a">Optional OnExit lambda</param>
-        public void Add(Type e, Type s, Action a = null)
+        public void Add(Type e, Type s, string a = null)
         {
-            this.Dictionary.Add(e, new Tuple<Type, Action>(s, a));
+            this.Dictionary.Add(e, new Tuple<Type, string>(s, a));
         }
 
         /// <summary>
@@ -59,7 +59,7 @@ namespace Microsoft.PSharp
         /// </summary>
         /// <param name="key">Type of the event</param>
         /// <returns>Type of the state</returns>
-        public Tuple<Type, Action> this[Type key]
+        public Tuple<Type, string> this[Type key]
         {
             internal get
             {
@@ -94,7 +94,7 @@ namespace Microsoft.PSharp
         /// Returns an enumerator that iterates through the collection.
         /// </summary>
         /// <returns>IEnumerator</returns>
-        public IEnumerator<KeyValuePair<Type, Tuple<Type, Action>>> GetEnumerator()
+        public IEnumerator<KeyValuePair<Type, Tuple<Type, string>>> GetEnumerator()
         {
             return this.Dictionary.GetEnumerator();
         }
@@ -105,7 +105,7 @@ namespace Microsoft.PSharp
         /// <returns>IEnumerator</returns>
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return (IEnumerator)this.Dictionary.GetEnumerator();
+            return this.Dictionary.GetEnumerator();
         }
     }
 }

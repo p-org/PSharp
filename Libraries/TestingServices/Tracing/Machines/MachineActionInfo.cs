@@ -69,7 +69,8 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Machines
         /// <summary>
         /// The action.
         /// </summary>
-        public Action Action { get; private set; }
+        [DataMember]
+        public string ActionName { get; private set; }
 
         /// <summary>
         /// The action id.
@@ -127,11 +128,11 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Machines
         /// </summary>
         /// <param name="index">Index</param>
         /// <param name="mid">MachineId</param>
-        /// <param name="action">Action</param>
+        /// <param name="actionName">Action name</param>
         /// <param name="actionId">Action id</param>
         /// <returns>MachineActionInfo</returns>
         internal static MachineActionInfo CreateInvocationActionInfo(int index, MachineId mid,
-            Action action, int actionId)
+            string actionName, int actionId)
         {
             var actionInfo = new MachineActionInfo();
 
@@ -139,7 +140,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Machines
             actionInfo.Type = MachineActionType.InvocationAction;
 
             actionInfo.MachineId = mid.Value;
-            actionInfo.Action = action;
+            actionInfo.ActionName = actionName;
             actionInfo.ActionId = actionId;
 
             actionInfo.Previous = null;

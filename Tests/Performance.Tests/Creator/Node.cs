@@ -12,7 +12,7 @@ namespace Creator
 
         void InitOnEntry()
         {
-            this.Execute();
+            //this.Execute();
         }
 
         void Execute()

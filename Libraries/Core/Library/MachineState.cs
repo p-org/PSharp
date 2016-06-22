@@ -24,21 +24,16 @@ namespace Microsoft.PSharp
     public abstract class MachineState
     {
         #region fields
-
-        /// <summary>
-        /// Handle to the machine that owns this state instance.
-        /// </summary>
-        private Machine Machine;
-
+        
         /// <summary>
         /// The entry action of the state.
         /// </summary>
-        internal Action EntryAction { get; private set; }
+        internal string EntryAction { get; private set; }
 
         /// <summary>
         /// The exit action of the state.
         /// </summary>
-        internal Action ExitAction { get; private set; }
+        internal string ExitAction { get; private set; }
 
         /// <summary>
         /// Dictionary containing all the goto state transitions.
@@ -65,6 +60,11 @@ namespace Microsoft.PSharp
         /// </summary>
         internal HashSet<Type> DeferredEvents;
 
+        /// <summary>
+        /// True if this is the start state.
+        /// </summary>
+        internal bool IsStart { get; private set; }
+
         #endregion
 
         #region P# internal methods
@@ -77,10 +77,9 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Initializes the state.
         /// </summary>
-        /// <param name="machine">Machine</param>
-        internal void InitializeState(Machine machine)
+        internal void InitializeState()
         {
-            this.Machine = machine;
+            this.IsStart = false;
 
             this.GotoTransitions = new GotoStateTransitions();
             this.PushTransitions = new PushStateTransitions();
@@ -94,12 +93,12 @@ namespace Microsoft.PSharp
 
             if (entryAttribute != null)
             {
-                this.EntryAction = this.GetActionWithName(entryAttribute.Action);
+                this.EntryAction = entryAttribute.Action;
             }
 
             if (exitAttribute != null)
             {
-                this.ExitAction = this.GetActionWithName(exitAttribute.Action);
+                this.ExitAction = exitAttribute.Action;
             }
 
             var gotoAttributes = this.GetType().GetCustomAttributes(typeof(OnEventGotoState), false)
@@ -117,8 +116,7 @@ namespace Microsoft.PSharp
                 }
                 else
                 {
-                    Action action = this.GetActionWithName(attr.Action);
-                    this.GotoTransitions.Add(attr.Event, attr.State, action);
+                    this.GotoTransitions.Add(attr.Event, attr.State, attr.Action);
                 }
             }
 
@@ -129,8 +127,7 @@ namespace Microsoft.PSharp
 
             foreach (var attr in doAttributes)
             {
-                Action action = this.GetActionWithName(attr.Action);
-                this.ActionBindings.Add(attr.Event, action);
+                this.ActionBindings.Add(attr.Event, attr.Action);
             }
 
             var ignoreEventsAttribute = this.GetType().GetCustomAttribute(typeof(IgnoreEvents), false) as IgnoreEvents;
@@ -145,39 +142,11 @@ namespace Microsoft.PSharp
             {
                 this.DeferredEvents.UnionWith(deferEventsAttribute.Events);
             }
-        }
 
-        #endregion
-
-        #region private methods
-
-        /// <summary>
-        /// Returns the action with the specified name.
-        /// </summary>
-        /// <param name="actionName">Action name</param>
-        /// <returns>Action</returns>
-        private Action GetActionWithName(string actionName)
-        {
-            MethodInfo method = null;
-            Type machineType = this.Machine.GetType();
-
-            do
+            if (this.GetType().IsDefined(typeof(Start), false))
             {
-                method = machineType.GetMethod(actionName, BindingFlags.Public |
-                    BindingFlags.NonPublic | BindingFlags.Instance |
-                    BindingFlags.FlattenHierarchy);
-                machineType = machineType.BaseType;
+                this.IsStart = true;
             }
-            while (method == null && machineType != typeof(Machine));
-
-            this.Machine.Runtime.Assert(method != null, "Cannot detect action declaration '{0}' " +
-                "in machine '{1}'.", actionName, this.Machine.GetType().Name);
-            this.Machine.Runtime.Assert(method.GetParameters().Length == 0, "Action '{0}' in machine " +
-                "'{1}' must have 0 formal parameters.", method.Name, this.Machine.GetType().Name);
-            this.Machine.Runtime.Assert(method.ReturnType == typeof(void), "Action '{0}' in machine " +
-                "'{1}' must have 'void' return type.", method.Name, this.Machine.GetType().Name);
-
-            return (Action)Delegate.CreateDelegate(typeof(Action), this.Machine, method);
         }
 
         #endregion

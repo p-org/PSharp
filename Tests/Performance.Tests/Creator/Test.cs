@@ -7,11 +7,19 @@ namespace Creator
 {
     public class Test
     {
-        static readonly int NumOfNodes = 100000;
+        static readonly int NumOfNodes = 1000;
 
         static void Main(string[] args)
         {
             Profiler profiler = new Profiler();
+            profiler.StartMeasuringExecutionTime();
+
+            new TPLTest().Start(Test.NumOfNodes);
+
+            profiler.StopMeasuringExecutionTime();
+            Console.WriteLine("... TPL executed for '" +
+                profiler.Results() + "' seconds.");
+
             profiler.StartMeasuringExecutionTime();
 
             var runtime = PSharpRuntime.Create();
@@ -20,14 +28,6 @@ namespace Creator
 
             profiler.StopMeasuringExecutionTime();
             Console.WriteLine("... P# executed for '" +
-                profiler.Results() + "' seconds.");
-
-            profiler.StartMeasuringExecutionTime();
-
-            new TPLTest().Start(Test.NumOfNodes);
-
-            profiler.StopMeasuringExecutionTime();
-            Console.WriteLine("... TPL executed for '" +
                 profiler.Results() + "' seconds.");
         }
 

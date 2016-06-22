@@ -38,19 +38,14 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         internal Configuration Configuration;
 
         /// <summary>
-        /// The active compilation target.
+        /// The solution of the P# program.
         /// </summary>
-        internal CompilationTarget ActiveCompilationTarget;
+        private Solution Solution;
 
         /// <summary>
-        /// The solution of the P# program per compilation target.
+        /// List of P# projects in the solution.
         /// </summary>
-        private Dictionary<CompilationTarget, Solution> SolutionMap;
-
-        /// <summary>
-        /// List of P# projects per compilation target.
-        /// </summary>
-        private Dictionary<CompilationTarget, List<PSharpProject>> PSharpProjectMap;
+        private List<PSharpProject> PSharpProjects;
 
         /// <summary>
         /// True if program info has been initialized.
@@ -107,7 +102,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
                 ErrorReporter.ReportAndExit("Please give a valid solution path.");
             }
 
-            this.InstallCompilationTargets(solution);
+            this.Solution = solution;
 
             if (!this.Configuration.ProjectName.Equals(""))
             {
@@ -130,12 +125,8 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <returns>CompilationContext</returns>
         public CompilationContext LoadSolution(Solution solution)
         {
-            // Create a new workspace.
-            var workspace = MSBuildWorkspace.Create();
-
-            this.InstallCompilationTargets(solution);
+            this.Solution = solution;
             this.HasInitialized = true;
-
             return this;
         }
 
@@ -149,10 +140,8 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         {
             // Create a new solution from the specified text.
             var solution = this.GetSolution(text, extension);
-
-            this.InstallCompilationTargets(solution);
+            this.Solution = solution;
             this.HasInitialized = true;
-
             return this;
         }
 
@@ -168,21 +157,18 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         {
             // Create a new solution from the specified text.
             var solution = this.GetSolution(text, references, extension);
-
-            this.InstallCompilationTargets(solution);
+            this.Solution = solution;
             this.HasInitialized = true;
-
             return this;
         }
 
         /// <summary>
-        /// Returns the P# solution associated with the active
-        /// compilation target.
+        /// Returns the P# solution.
         /// </summary>
         /// <returns>Solution</returns>
         public Solution GetSolution()
         {
-            return this.SolutionMap[this.ActiveCompilationTarget];
+            return this.Solution;
         }
 
         /// <summary>
@@ -231,13 +217,12 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         }
 
         /// <summary>
-        /// Returns the P# projects associated with the active
-        /// compilation target.
+        /// Returns the P# projects.
         /// </summary>
         /// <returns>List of P# projects</returns>
         public List<PSharpProject> GetProjects()
         {
-            return this.PSharpProjectMap[this.ActiveCompilationTarget];
+            return this.PSharpProjects;
         }
 
         /// <summary>
@@ -247,8 +232,8 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <returns>Project</returns>
         public Project GetProjectWithName(string name)
         {
-            var project = this.SolutionMap[this.ActiveCompilationTarget].Projects.
-                Where(p => p.Name.Equals(name)).FirstOrDefault();
+            var project = this.Solution.Projects.Where(
+                p => p.Name.Equals(name)).FirstOrDefault();
             return project;
         }
 
@@ -273,7 +258,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
             doc = doc.WithSyntaxRoot(tree.GetRoot());
             project = doc.Project;
 
-            this.SolutionMap[this.ActiveCompilationTarget] = project.Solution;
+            this.Solution = project.Solution;
 
             return doc.GetSyntaxTreeAsync().Result;
         }
@@ -325,22 +310,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         private CompilationContext(Configuration configuration)
         {
             this.Configuration = configuration;
-            this.ActiveCompilationTarget = configuration.CompilationTargets.First();
-            this.SolutionMap = new Dictionary<CompilationTarget, Solution>();
-            this.PSharpProjectMap = new Dictionary<CompilationTarget, List<PSharpProject>>();
-        }
-
-        /// <summary>
-        /// Installs the requested compilation targets.
-        /// </summary>
-        /// <param name="solution">Solution</param>
-        private void InstallCompilationTargets(Solution solution)
-        {
-            foreach (var target in this.Configuration.CompilationTargets)
-            {
-                this.SolutionMap.Add(target, solution);
-                this.PSharpProjectMap.Add(target, new List<PSharpProject>());
-            }
+            this.PSharpProjects = new List<PSharpProject>();
         }
 
         /// <summary>
@@ -355,7 +325,19 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
             var solution = workspace.AddSolution(solutionInfo);
             var project = workspace.AddProject("Test", "C#");
 
+            CompilationOptions options = null;
+            if (this.Configuration.OptimizationTarget == OptimizationTarget.Debug)
+            {
+                options = project.CompilationOptions.WithOptimizationLevel(OptimizationLevel.Debug);
+            }
+            else if (this.Configuration.OptimizationTarget == OptimizationTarget.Release)
+            {
+                options = project.CompilationOptions.WithOptimizationLevel(OptimizationLevel.Release);
+            }
+
+            project = project.WithCompilationOptions(options);
             project = project.AddMetadataReferences(references);
+
             workspace.TryApplyChanges(project.Solution);
 
             return project;

@@ -21,29 +21,29 @@ namespace Microsoft.PSharp
     /// <summary>
     /// Defines a collection of action bindings.
     /// </summary>
-    internal sealed class ActionBindings : IEnumerable<KeyValuePair<Type, Action>>
+    internal sealed class ActionBindings : IEnumerable<KeyValuePair<Type, string>>
     {
         /// <summary>
         /// A dictionary of action bindings. A key represents
         /// the type of an event, and the value is the action
         /// that is triggered by the event.
         /// </summary>
-        private Dictionary<Type, Action> Dictionary;
+        private Dictionary<Type, string> Dictionary;
 
         /// <summary>
         /// Constructor of the ActionBindings class.
         /// </summary>
         public ActionBindings()
         {
-            this.Dictionary = new Dictionary<Type, Action>();
+            this.Dictionary = new Dictionary<Type, string>();
         }
 
         /// <summary>
         /// Adds the specified pair of event and action to the collection.
         /// </summary>
         /// <param name="e">Type of the event</param>
-        /// <param name="a">Action</param>
-        public void Add(Type e, Action a)
+        /// <param name="a">Action name</param>
+        public void Add(Type e, string a)
         {
             this.Dictionary.Add(e, a);
         }
@@ -52,8 +52,8 @@ namespace Microsoft.PSharp
         /// Returns the action triggered by the specified type of event.
         /// </summary>
         /// <param name="key">Type of the event</param>
-        /// <returns>Action</returns>
-        public Action this[Type key]
+        /// <returns>Action name</returns>
+        public string this[Type key]
         {
             internal get
             {
@@ -88,7 +88,7 @@ namespace Microsoft.PSharp
         /// Returns an enumerator that iterates through the collection.
         /// </summary>
         /// <returns>IEnumerator</returns>
-        public IEnumerator<KeyValuePair<Type, Action>> GetEnumerator()
+        public IEnumerator<KeyValuePair<Type, string>> GetEnumerator()
         {
             return this.Dictionary.GetEnumerator();
         }
@@ -99,7 +99,7 @@ namespace Microsoft.PSharp
         /// <returns>IEnumerator</returns>
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return (IEnumerator)this.Dictionary.GetEnumerator();
+            return this.Dictionary.GetEnumerator();
         }
     }
 }

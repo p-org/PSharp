@@ -51,15 +51,12 @@ namespace Microsoft.PSharp
         {
             IO.PrintLine(". Parsing");
 
-            foreach (var target in this.CompilationContext.Configuration.CompilationTargets)
-            {
-                // Creates the P# parsing options.
-                ParsingOptions options = ParsingOptions.CreateDefault()
-                    .EnableExitOnError().DisableThrowParsingException();
+            // Creates the P# parsing options.
+            ParsingOptions options = ParsingOptions.CreateDefault()
+                .EnableExitOnError().DisableThrowParsingException();
 
-                // Creates and runs a P# parsing engine.
-                ParsingEngine.Create(this.CompilationContext, options).Run();
-            }
+            // Creates and runs a P# parsing engine.
+            ParsingEngine.Create(this.CompilationContext, options).Run();
         }
 
         #endregion
