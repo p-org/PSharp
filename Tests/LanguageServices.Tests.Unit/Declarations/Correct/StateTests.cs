@@ -976,6 +976,46 @@ class S : MachineState
         }
 
         [TestMethod, Timeout(10000)]
+        public void TestIgnoreEventDeclarationQualifiedComplex()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+start state S
+{
+ignore e1<int>, Foo.e2<Bar.e3>;
+}
+}
+}";
+
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
+
+            var expected = @"
+using Microsoft.PSharp;
+namespace Foo
+{
+class M : Machine
+{
+[Microsoft.PSharp.Start]
+[IgnoreEvents(typeof(e1<int>), typeof(Foo.e2<Bar.e3>))]
+class S : MachineState
+{
+}
+}
+}";
+
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), syntaxTree.ToString().Replace("\n", string.Empty));
+        }
+
+        [TestMethod, Timeout(10000)]
         public void TestDeferEventDeclaration()
         {
             var test = @"
@@ -1055,6 +1095,126 @@ class S : MachineState
 
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty),
                 syntaxTree.ToString().Replace("\n", string.Empty));
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestDeferEventDeclarationQualifiedComplex()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+start state S
+{
+defer e1<int>, halt, default, Foo.e2<Bar.e3>;
+}
+}
+}";
+
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
+
+            var expected = @"
+using Microsoft.PSharp;
+namespace Foo
+{
+class M : Machine
+{
+[Microsoft.PSharp.Start]
+[DeferEvents(typeof(e1<int>), typeof(Microsoft.PSharp.Halt), typeof(Microsoft.PSharp.Default), typeof(Foo.e2<Bar.e3>))]
+class S : MachineState
+{
+}
+}
+}";
+
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), syntaxTree.ToString().Replace("\n", string.Empty));
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestDefaultEvent()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+start state S
+{
+on default goto S2;
+}
+}
+}";
+
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
+
+            var expected = @"
+using Microsoft.PSharp;
+namespace Foo
+{
+class M : Machine
+{
+[Microsoft.PSharp.Start]
+[OnEventGotoState(typeof(Microsoft.PSharp.Default), typeof(S2))]
+class S : MachineState
+{
+}
+}
+}";
+
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), syntaxTree.ToString().Replace("\n", string.Empty));
+        }
+
+        [TestMethod, Timeout(10000)]
+        public void TestHaltEvent()
+        {
+            var test = @"
+namespace Foo {
+machine M {
+start state S
+{
+on halt goto S2;
+}
+}
+}";
+
+            var configuration = Configuration.Create();
+            configuration.Verbose = 2;
+
+            var context = CompilationContext.Create(configuration).LoadSolution(test);
+
+            ParsingEngine.Create(context).Run();
+            RewritingEngine.Create(context).Run();
+
+            var syntaxTree = context.GetProjects()[0].PSharpPrograms[0].GetSyntaxTree();
+
+            var expected = @"
+using Microsoft.PSharp;
+namespace Foo
+{
+class M : Machine
+{
+[Microsoft.PSharp.Start]
+[OnEventGotoState(typeof(Microsoft.PSharp.Halt), typeof(S2))]
+class S : MachineState
+{
+}
+}
+}";
+
+            Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), syntaxTree.ToString().Replace("\n", string.Empty));
         }
     }
 }

@@ -279,8 +279,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Adds a deferred event.
         /// </summary>
         /// <param name="eventIdentifier">Token</param>
+        /// <param name="eventIdentifierTokens">Tokens</param>
         /// <returns>Boolean</returns>
-        internal bool AddDeferredEvent(Token eventIdentifier)
+        internal bool AddDeferredEvent(Token eventIdentifier, List<Token> eventIdentifierTokens)
         {
             if (this.Machine.IsMonitor)
             {
@@ -294,6 +295,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             }
 
             this.DeferredEvents.Add(eventIdentifier);
+            this.ResolvedEventIdentifierTokens[eventIdentifier] = Tuple.Create(
+                eventIdentifierTokens, this.ResolvedEventIdentifierTokens.Count);
 
             return true;
         }
@@ -302,8 +305,9 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         /// Adds an ignored event.
         /// </summary>
         /// <param name="eventIdentifier">Token</param>
+        /// <param name="eventIdentifierTokens">Tokens</param>
         /// <returns>Boolean</returns>
-        internal bool AddIgnoredEvent(Token eventIdentifier)
+        internal bool AddIgnoredEvent(Token eventIdentifier, List<Token> eventIdentifierTokens)
         {
             if (this.DeferredEvents.Contains(eventIdentifier) ||
                 this.IgnoredEvents.Contains(eventIdentifier))
@@ -312,6 +316,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             }
 
             this.IgnoredEvents.Add(eventIdentifier);
+            this.ResolvedEventIdentifierTokens[eventIdentifier] = Tuple.Create(
+                eventIdentifierTokens, this.ResolvedEventIdentifierTokens.Count);
 
             return true;
         }
@@ -368,7 +374,8 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
         internal string GetResolvedEventHandlerName(Token eventIdentifier)
         {
             var resolvedEvent = this.ResolvedEventIdentifierTokens[eventIdentifier];
-            var eventIdentifierTokens = resolvedEvent.Item1.TakeWhile(tok => tok.Type != TokenType.LeftAngleBracket);
+            var eventIdentifierTokens = resolvedEvent.Item1.TakeWhile(
+                tok => tok.Type != TokenType.LeftAngleBracket);
             string qualifiedEventIdentifier = "";
             foreach (var tok in eventIdentifierTokens.Where(tok => tok.Type != TokenType.Dot))
             {
@@ -519,11 +526,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
                 if (transition.Key.Type == TokenType.HaltEvent)
                 {
-                    text += "typeof(Microsoft.PSharp.Halt)";
+                    text += "typeof(" + typeof(Halt).FullName + ")";
                 }
                 else if (transition.Key.Type == TokenType.DefaultEvent)
                 {
-                    text += "typeof(Microsoft.PSharp.Default)";
+                    text += "typeof(" + typeof(Default).FullName + ")";
                 }
                 else
                 {
@@ -566,11 +573,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
                 if (transition.Key.Type == TokenType.HaltEvent)
                 {
-                    text += "typeof(Microsoft.PSharp.Halt)";
+                    text += "typeof(" + typeof(Halt).FullName + ")";
                 }
                 else if (transition.Key.Type == TokenType.DefaultEvent)
                 {
-                    text += "typeof(Microsoft.PSharp.Default)";
+                    text += "typeof(" + typeof(Default).FullName + ")";
                 }
                 else
                 {
@@ -618,11 +625,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
 
                 if (binding.Key.Type == TokenType.HaltEvent)
                 {
-                    text += "typeof(Microsoft.PSharp.Halt)";
+                    text += "typeof(" + typeof(Halt).FullName + ")";
                 }
                 else if (binding.Key.Type == TokenType.DefaultEvent)
                 {
-                    text += "typeof(Microsoft.PSharp.Default)";
+                    text += "typeof(" + typeof(Default).FullName + ")";
                 }
                 else
                 {
@@ -662,11 +669,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             {
                 if (eventIds[idx].Type == TokenType.HaltEvent)
                 {
-                    text += "typeof(Microsoft.PSharp.Halt)";
+                    text += "typeof(" + typeof(Halt).FullName + ")";
                 }
                 else if (eventIds[idx].Type == TokenType.DefaultEvent)
                 {
-                    text += "typeof(Microsoft.PSharp.Default)";
+                    text += "typeof(" + typeof(Default).FullName + ")";
                 }
                 else
                 {
@@ -702,11 +709,11 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
             {
                 if (eventIds[idx].Type == TokenType.HaltEvent)
                 {
-                    text += "typeof(Microsoft.PSharp.Halt)";
+                    text += "typeof(" + typeof(Halt).FullName + ")";
                 }
                 else if (eventIds[idx].Type == TokenType.DefaultEvent)
                 {
-                    text += "typeof(Microsoft.PSharp.Default)";
+                    text += "typeof(" + typeof(Default).FullName + ")";
                 }
                 else
                 {
