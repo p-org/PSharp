@@ -1,0 +1,48 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25123.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RaceDetector", "RaceDetector\RaceDetector.csproj", "{FEC49B4E-0785-4EA8-82B6-8F1D246ABC9F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThreadMonitor", "ThreadMonitor\ThreadMonitor.csproj", "{F9C12014-B9A5-4A0A-9E32-5E233A2CB904}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+		VsixCustomTool|Any CPU = VsixCustomTool|Any CPU
+		VsixCustomTool|x64 = VsixCustomTool|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FEC49B4E-0785-4EA8-82B6-8F1D246ABC9F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FEC49B4E-0785-4EA8-82B6-8F1D246ABC9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FEC49B4E-0785-4EA8-82B6-8F1D246ABC9F}.Debug|x64.ActiveCfg = Debug|x64
+		{FEC49B4E-0785-4EA8-82B6-8F1D246ABC9F}.Debug|x64.Build.0 = Debug|x64
+		{FEC49B4E-0785-4EA8-82B6-8F1D246ABC9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FEC49B4E-0785-4EA8-82B6-8F1D246ABC9F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FEC49B4E-0785-4EA8-82B6-8F1D246ABC9F}.Release|x64.ActiveCfg = Release|x64
+		{FEC49B4E-0785-4EA8-82B6-8F1D246ABC9F}.Release|x64.Build.0 = Release|x64
+		{FEC49B4E-0785-4EA8-82B6-8F1D246ABC9F}.VsixCustomTool|Any CPU.ActiveCfg = Release|Any CPU
+		{FEC49B4E-0785-4EA8-82B6-8F1D246ABC9F}.VsixCustomTool|Any CPU.Build.0 = Release|Any CPU
+		{FEC49B4E-0785-4EA8-82B6-8F1D246ABC9F}.VsixCustomTool|x64.ActiveCfg = Release|x64
+		{FEC49B4E-0785-4EA8-82B6-8F1D246ABC9F}.VsixCustomTool|x64.Build.0 = Release|x64
+		{F9C12014-B9A5-4A0A-9E32-5E233A2CB904}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F9C12014-B9A5-4A0A-9E32-5E233A2CB904}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F9C12014-B9A5-4A0A-9E32-5E233A2CB904}.Debug|x64.ActiveCfg = Debug|x64
+		{F9C12014-B9A5-4A0A-9E32-5E233A2CB904}.Debug|x64.Build.0 = Debug|x64
+		{F9C12014-B9A5-4A0A-9E32-5E233A2CB904}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F9C12014-B9A5-4A0A-9E32-5E233A2CB904}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F9C12014-B9A5-4A0A-9E32-5E233A2CB904}.Release|x64.ActiveCfg = Release|x64
+		{F9C12014-B9A5-4A0A-9E32-5E233A2CB904}.Release|x64.Build.0 = Release|x64
+		{F9C12014-B9A5-4A0A-9E32-5E233A2CB904}.VsixCustomTool|Any CPU.ActiveCfg = Release|Any CPU
+		{F9C12014-B9A5-4A0A-9E32-5E233A2CB904}.VsixCustomTool|Any CPU.Build.0 = Release|Any CPU
+		{F9C12014-B9A5-4A0A-9E32-5E233A2CB904}.VsixCustomTool|x64.ActiveCfg = Release|x64
+		{F9C12014-B9A5-4A0A-9E32-5E233A2CB904}.VsixCustomTool|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

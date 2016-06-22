@@ -1,5 +1,0 @@
-namespace AbstractPong
-{
-	internal event Unit(a: string);
-}
-

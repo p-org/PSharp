@@ -62,17 +62,29 @@
     <Reference Include="Microsoft.ExtendedReflection">
       <HintPath>..\..\..\References\ExtendedReflection\Microsoft.ExtendedReflection.dll</HintPath>
     </Reference>
-    <Reference Include="QuickGraph">
-      <HintPath>..\..\..\References\QuickGraph\QuickGraph.dll</HintPath>
+    <Reference Include="Microsoft.PSharp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=c4566cf0a7f74012, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Binaries\Microsoft.PSharp.dll</HintPath>
     </Reference>
-    <Reference Include="QuickGraph.Data">
-      <HintPath>..\..\..\References\QuickGraph\QuickGraph.Data.dll</HintPath>
+    <Reference Include="Microsoft.PSharp.TestingServices, Version=1.0.0.0, Culture=neutral, PublicKeyToken=c4566cf0a7f74012, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Binaries\Microsoft.PSharp.TestingServices.dll</HintPath>
     </Reference>
-    <Reference Include="QuickGraph.Graphviz">
-      <HintPath>..\..\..\References\QuickGraph\QuickGraph.Graphviz.dll</HintPath>
+    <Reference Include="QuickGraph, Version=3.6.61114.0, Culture=neutral, PublicKeyToken=f3fb40175eec2af3, processorArchitecture=MSIL">
+      <HintPath>..\packages\QuickGraph.3.6.61119.7\lib\net4\QuickGraph.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="QuickGraph.Serialization">
-      <HintPath>..\..\..\References\QuickGraph\QuickGraph.Serialization.dll</HintPath>
+    <Reference Include="QuickGraph.Data, Version=3.6.61114.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\QuickGraph.3.6.61119.7\lib\net4\QuickGraph.Data.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="QuickGraph.Graphviz, Version=3.6.61114.0, Culture=neutral, PublicKeyToken=f3fb40175eec2af3, processorArchitecture=MSIL">
+      <HintPath>..\packages\QuickGraph.3.6.61119.7\lib\net4\QuickGraph.Graphviz.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="QuickGraph.Serialization, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\QuickGraph.3.6.61119.7\lib\net4\QuickGraph.Serialization.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Runtime.Serialization" />
@@ -93,20 +105,13 @@
     <Compile Include="Utilities\RaceDetectorCommandLineOptions.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Libraries\Core\Core.csproj">
-      <Project>{2e330c40-60ea-4a94-8813-9747b93a1795}</Project>
-      <Name>Core</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Libraries\TestingServices\TestingServices.csproj">
-      <Project>{d88418ab-c8b8-4fb2-9fba-f0e994e42f37}</Project>
-      <Name>TestingServices</Name>
-    </ProjectReference>
     <ProjectReference Include="..\ThreadMonitor\ThreadMonitor.csproj">
       <Project>{f9c12014-b9a5-4a0a-9e32-5e233a2cb904}</Project>
       <Name>ThreadMonitor</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="packages.config" />
     <None Include="PSharp.snk" />
   </ItemGroup>
   <ItemGroup />
