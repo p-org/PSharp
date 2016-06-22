@@ -15,6 +15,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -220,7 +221,16 @@ namespace Microsoft.PSharp.TestingServices
                 "is not a machine.");
 
             MachineId mid = new MachineId(type, friendlyName, this);
-            Machine machine = Activator.CreateInstance(type) as Machine;
+
+            if (!MachineConstructorMap.ContainsKey(type))
+            {
+                Func<Machine> constructor = Expression.Lambda<Func<Machine>>(
+                    Expression.New(type.GetConstructor(Type.EmptyTypes))).Compile();
+                MachineConstructorMap[type] = constructor;
+            }
+
+            Machine machine = MachineConstructorMap[type]();
+
             machine.SetMachineId(mid);
             machine.InitializeStateInformation();
             
