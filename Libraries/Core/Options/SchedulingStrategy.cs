@@ -32,6 +32,10 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         Random,
         /// <summary>
+        /// Random scheduling only at dequeue.
+        /// </summary>
+        RandomAtDequeue,
+        /// <summary>
         /// Random coin-flipping scheduling.
         /// </summary>
         RandomCoin,

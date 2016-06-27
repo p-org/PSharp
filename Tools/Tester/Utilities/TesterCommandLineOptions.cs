@@ -53,6 +53,10 @@ namespace Microsoft.PSharp.Utilities
                 {
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.Random;
                 }
+                else if (scheduler.ToLower().Equals("random-dequeue"))
+                {
+                    base.Configuration.SchedulingStrategy = SchedulingStrategy.RandomAtDequeue;
+                }
                 else if (scheduler.StartsWith("random-coin"))
                 {
                     int i = 0;
@@ -242,6 +246,7 @@ namespace Microsoft.PSharp.Utilities
 
             if (base.Configuration.SchedulingStrategy != SchedulingStrategy.Interactive &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.Random &&
+                base.Configuration.SchedulingStrategy != SchedulingStrategy.RandomAtDequeue &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.RandomCoin &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.DFS &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.IDDFS &&

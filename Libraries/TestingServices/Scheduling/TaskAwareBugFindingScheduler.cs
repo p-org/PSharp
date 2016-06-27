@@ -125,6 +125,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 throw new OperationCanceledException();
             }
 
+            machineInfo.IsInsideTask = false;
+
             base.Runtime.ScheduleTrace.AddSchedulingChoice(next.Machine);
             if (base.Runtime.Configuration.CacheProgramState &&
                 base.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps)
@@ -302,6 +304,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 $"'{machineInfo.Machine.Id}'.");
 
             machineInfo.IsEnabled = false;
+            machineInfo.IsInsideTask = false;
             machineInfo.IsCompleted = true;
 
             foreach (var mi in base.MachineInfos.Where(val => val.IsBlocked))

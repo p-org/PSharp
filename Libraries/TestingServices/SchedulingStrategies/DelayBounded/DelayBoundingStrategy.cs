@@ -208,6 +208,15 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>String</returns>
         public abstract string GetDescription();
 
+        /// <summary>
+        /// Should the scheduling strategy be called at a Dequeue event?
+        /// </summary>
+        /// <returns>String</returns>
+        public bool RequiresDequeueSchedulingPoint()
+        {
+            return false;
+        }
+
         #endregion
     }
 }

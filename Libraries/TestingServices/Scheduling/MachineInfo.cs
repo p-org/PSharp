@@ -83,6 +83,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
+        /// Is machine executing an action handler.
+        /// </summary>
+        public bool IsInsideTask
+        {
+            get; internal set;
+        }
+
+        /// <summary>
         /// Has the machine started.
         /// </summary>
         public bool HasStarted
@@ -117,6 +125,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.IsActive = false;
             this.HasStarted = false;
             this.IsCompleted = false;
+            this.IsInsideTask = false;
 
             this.BlockingWrappedTasks = new List<MachineInfo>();
             this.BlockingUnwrappedTasks = new List<Task>();
@@ -167,7 +176,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             var text = $"Task {this.Id} of machine {this.Machine.Id}::" +
                 $"enabled[{this.IsEnabled}], waiting[{this.IsWaitingToReceive}], " +
                 $"blocked[{this.IsBlocked}], active[{this.IsActive}], " +
-                $"started[{this.HasStarted}], completed[{this.IsCompleted}]";
+                $"started[{this.HasStarted}], completed[{this.IsCompleted}], inside-task[{this.IsInsideTask}]";
             return text;
         }
 

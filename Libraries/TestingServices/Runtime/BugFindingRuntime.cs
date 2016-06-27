@@ -404,6 +404,8 @@ namespace Microsoft.PSharp.TestingServices
                 this.MachineActionTraceMap[sender.Id].AddSendActionInfo(mid, e);
             }
 
+            this.BugFinder.NotifyMachineSend(Task.CurrentId.Value, sender);
+
             Machine machine = this.MachineMap[mid.Value];
 
             bool runNewHandler = false;
@@ -591,6 +593,11 @@ namespace Microsoft.PSharp.TestingServices
                 // transition, if there is any.
                 this.VisualizeReceivedEvent(machine, eventInfo);
                 this.VisualizeStateTransition(machine, eventInfo);
+            }
+
+            if (this.BugFinder.RequiresDequeueSchedulingPoint())
+            {
+                this.BugFinder.Schedule();
             }
 
             //if (this.Configuration.BoundOperations && prevMachineOpId != machine.OperationId)

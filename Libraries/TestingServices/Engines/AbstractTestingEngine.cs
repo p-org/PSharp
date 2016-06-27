@@ -224,6 +224,10 @@ namespace Microsoft.PSharp.TestingServices
             {
                 this.Strategy = new RandomStrategy(this.Configuration);
             }
+            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.RandomAtDequeue)
+            {
+                this.Strategy = new RandomAtDequeueStrategy(this.Configuration);
+            }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.RandomCoin)
             {
                 this.Strategy = new RandomCoinStrategy(this.Configuration,

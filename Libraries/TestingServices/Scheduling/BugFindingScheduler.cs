@@ -99,6 +99,15 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
+        /// Should the scheduling strategy be called at a Dequeue event?
+        /// </summary>
+        /// <returns>String</returns>
+        public bool RequiresDequeueSchedulingPoint()
+        {
+            return Strategy.RequiresDequeueSchedulingPoint();
+        }
+
+        /// <summary>
         /// Schedules the next machine to execute.
         /// </summary>
         internal virtual void Schedule()
@@ -141,6 +150,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 this.KillRemainingMachines();
                 throw new TaskCanceledException();
             }
+
+            machineInfo.IsInsideTask = false;
 
             this.Runtime.ScheduleTrace.AddSchedulingChoice(next.Machine);
             if (this.Runtime.Configuration.CacheProgramState &&
@@ -267,6 +278,20 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         /// <param name="id">TaskId</param>
         /// <param name="machine">Machine</param>
+        internal virtual void NotifyMachineSend(int id, AbstractMachine machine)
+        {
+            var machineInfo = this.TaskMap[(int)id];
+
+            IO.Debug($"<ScheduleDebug> Machine '{machineInfo.Machine.Id}' is scheduling a Send");
+
+            machineInfo.IsInsideTask = true;
+        }
+
+        /// <summary>
+        /// Notify that a new task has been created for the given machine.
+        /// </summary>
+        /// <param name="id">TaskId</param>
+        /// <param name="machine">Machine</param>
         internal virtual void NotifyNewTaskCreated(int id, AbstractMachine machine)
         {
             var machineInfo = new MachineInfo(id, machine);
@@ -362,6 +387,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 $"'{machineInfo.Machine.Id}'.");
 
             machineInfo.IsEnabled = false;
+            machineInfo.IsInsideTask = false;
             machineInfo.IsCompleted = true;
 
             this.Schedule();
@@ -454,6 +480,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 machineInfo.IsActive = true;
                 machineInfo.IsEnabled = false;
+                machineInfo.IsInsideTask = false;
 
                 if (!machineInfo.IsCompleted)
                 {
