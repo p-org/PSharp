@@ -31,8 +31,8 @@ namespace Microsoft.PSharp
             // Parses the command line options to get the configuration.
             var configuration = new TesterCommandLineOptions(args).Parse();
 
-            // Creates and starts a testing process.
-            TestingProcess.Create(configuration).Start();
+            // Creates and runs a testing process.
+            TestingDispatcher.Create(configuration).Invoke();
 
             IO.PrintLine(". Done");
         }

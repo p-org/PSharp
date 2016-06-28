@@ -69,7 +69,6 @@ namespace Microsoft.PSharp.TestingServices
         {
             Task task = this.CreateBugReproducingTask();
             base.Execute(task);
-            this.Report();
             return this;
         }
 
@@ -210,7 +209,7 @@ namespace Microsoft.PSharp.TestingServices
                 {
                     base.BugReport = "";
                 }
-            });
+            }, base.CancellationTokenSource.Token);
 
             return task;
         }

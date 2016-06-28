@@ -153,7 +153,10 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
             configuration.DepthBound = 3;
 
-            var engine = TestingEngineFactory.CreateBugFindingEngine(configuration, TestProgram.Execute).Run();
+            var engine = TestingEngineFactory.CreateBugFindingEngine(
+                configuration, TestProgram.Execute);
+            engine.Run();
+
             Assert.AreEqual(1, engine.NumOfFoundBugs);
         }
     }

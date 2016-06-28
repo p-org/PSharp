@@ -39,6 +39,16 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private int ExploredSchedules;
 
+        /// <summary>
+        /// The readable trace, if any.
+        /// </summary>
+        private string ReadableTrace;
+
+        /// <summary>
+        /// The reproducable trace, if any.
+        /// </summary>
+        private string ReproducableTrace;
+
         #endregion
 
         #region public API
@@ -49,7 +59,8 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="configuration">Configuration</param>
         /// <param name="action">Action</param>
         /// <returns>BugFindingEngine</returns>
-        public static BugFindingEngine Create(Configuration configuration, Action<PSharpRuntime> action)
+        public static BugFindingEngine Create(Configuration configuration,
+            Action<PSharpRuntime> action)
         {
             return new BugFindingEngine(configuration, action);
         }
@@ -83,8 +94,32 @@ namespace Microsoft.PSharp.TestingServices
         {
             Task task = this.CreateBugFindingTask();
             this.Execute(task);
-            this.Report();
             return this;
+        }
+
+        /// <summary>
+        /// Tries to emit the testing traces, if any.
+        /// </summary>
+        public override void TryEmitTraces()
+        {
+            // Emits the human readable trace, if any.
+
+            string name = Path.GetFileNameWithoutExtension(this.Assembly.Location);
+            string directoryPath = base.GetOutputDirectory();
+
+            string[] readableTraces = Directory.GetFiles(directoryPath, name + "*.txt");
+            string readableTracesPath = directoryPath + name + "_" + readableTraces.Length + ".txt";
+
+            IO.PrintLine($"... Writing {readableTracesPath}");
+            File.WriteAllText(readableTracesPath, this.ReadableTrace);
+
+            // Emits the reproducable trace, if any.
+            
+            string[] reproTraces = Directory.GetFiles(directoryPath, name + "*.pstrace");
+            string reproTracesPath = directoryPath + name + "_" + reproTraces.Length + ".pstrace";
+            
+            IO.PrintLine($"... Writing {reproTracesPath}");
+            File.WriteAllText(reproTracesPath, this.ReproducableTrace);
         }
 
         /// <summary>
@@ -190,6 +225,11 @@ namespace Microsoft.PSharp.TestingServices
 
                 for (int i = 0; i < base.Configuration.SchedulingIterations; i++)
                 {
+                    if (this.CancellationTokenSource.IsCancellationRequested)
+                    {
+                        break;
+                    }
+
                     if (this.ShouldPrintIteration(i + 1))
                     {
                         IO.PrintLine($"..... Iteration #{i + 1}");
@@ -292,16 +332,16 @@ namespace Microsoft.PSharp.TestingServices
                     {
                         if (sw != null && !base.Configuration.SuppressTrace)
                         {
-                            this.EmitReadableTrace(sw);
-                            this.EmitReproducableTrace(runtime);
+                            this.ReadableTrace = sw.ToString();
+                            this.ConstructReproducableTrace(runtime);
                         }
 
                         break;
                     }
                     else if (sw != null && base.Configuration.PrintTrace)
                     {
-                        this.EmitReadableTrace(sw);
-                        this.EmitReproducableTrace(runtime);
+                        this.ReadableTrace = sw.ToString();
+                        this.ConstructReproducableTrace(runtime);
                     }
                 }
                 
@@ -321,7 +361,7 @@ namespace Microsoft.PSharp.TestingServices
                     }
                 }
 
-            });
+            }, base.CancellationTokenSource.Token);
 
             return task;
         }
@@ -341,33 +381,11 @@ namespace Microsoft.PSharp.TestingServices
         #region utility methods
 
         /// <summary>
-        /// Emits a readable trace.
-        /// </summary>
-        /// <param name="sw">StringWriter</param>
-        private void EmitReadableTrace(StringWriter sw)
-        {
-            string name = Path.GetFileNameWithoutExtension(this.Assembly.Location);
-            string directoryPath = base.GetOutputDirectory();
-
-            string[] traces = Directory.GetFiles(directoryPath, name + "*.txt");
-            string path = directoryPath + name + "_" + traces.Length + ".txt";
-
-            IO.PrintLine($"... Writing {path}");
-            File.WriteAllText(path, sw.ToString());
-        }
-
-        /// <summary>
-        /// Emits a reproducable trace.
+        /// Constructs a reproducable trace.
         /// </summary>
         /// <param name="runtime">Runtime</param>
-        private void EmitReproducableTrace(PSharpBugFindingRuntime runtime)
+        private void ConstructReproducableTrace(PSharpBugFindingRuntime runtime)
         {
-            string name = Path.GetFileNameWithoutExtension(this.Assembly.Location);
-            string directoryPath = base.GetOutputDirectory();
-
-            string[] traces = Directory.GetFiles(directoryPath, name + "*.pstrace");
-            string path = directoryPath + name + "_" + traces.Length + ".pstrace";
-
             StringBuilder stringBuilder = new StringBuilder();
             for (int idx = 0; idx < runtime.ScheduleTrace.Count; idx++)
             {
@@ -387,8 +405,7 @@ namespace Microsoft.PSharp.TestingServices
                 }
             }
 
-            IO.PrintLine($"... Writing {path}");
-            File.WriteAllText(path, stringBuilder.ToString());
+            this.ReproducableTrace = stringBuilder.ToString();
         }
 
         /// <summary>

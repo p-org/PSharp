@@ -91,7 +91,10 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             configuration.Verbose = 2;
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
 
-            var engine = TestingEngineFactory.CreateBugFindingEngine(configuration, TestProgram.Execute).Run();
+            var engine = TestingEngineFactory.CreateBugFindingEngine(
+                configuration, TestProgram.Execute);
+            engine.Run();
+
             var bugReport = "Monitor 'WatchDog' detected liveness property violation in hot state " +
                 "'Microsoft.PSharp.TestingServices.Tests.Unit.Liveness2BugFoundTest+WatchDog+CannotGetUserInput'.";
             Assert.AreEqual(bugReport, engine.BugReport);

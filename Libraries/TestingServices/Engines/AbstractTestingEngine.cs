@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.TestingServices.Scheduling;
@@ -93,7 +94,16 @@ namespace Microsoft.PSharp.TestingServices
         /// The profiler.
         /// </summary>
         protected Profiler Profiler;
-        
+
+        /// <summary>
+        /// The testing task cancellation token source.
+        /// </summary>
+        protected CancellationTokenSource CancellationTokenSource;
+
+        #endregion
+
+        #region properties
+
         /// <summary>
         /// The latest bug report, if any.
         /// </summary>
@@ -118,6 +128,22 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <returns>ITestingEngine</returns>
         public abstract ITestingEngine Run();
+
+        /// <summary>
+        /// Stops the P# testing engine.
+        /// </summary>
+        public void Stop()
+        {
+            this.CancellationTokenSource.Cancel();
+        }
+
+        /// <summary>
+        /// Tries to emit the testing traces, if any.
+        /// </summary>
+        public virtual void TryEmitTraces()
+        {
+            // No-op, must be implemented in subclass.
+        }
 
         /// <summary>
         /// Registers a callback to invoke at the end
@@ -188,7 +214,8 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="configuration">Configuration</param>
         /// <param name="action">Action</param>
-        protected AbstractTestingEngine(Configuration configuration, Action<PSharpRuntime> action)
+        protected AbstractTestingEngine(Configuration configuration,
+            Action<PSharpRuntime> action)
         {
             this.Profiler = new Profiler();
             this.Configuration = configuration;
@@ -202,6 +229,8 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private void Initialize()
         {
+            this.CancellationTokenSource = new CancellationTokenSource();
+
             this.BugReport = "";
             this.NumOfFoundBugs = 0;
             this.ExploredDepth = 0;

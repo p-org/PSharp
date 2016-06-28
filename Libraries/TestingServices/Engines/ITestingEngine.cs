@@ -49,6 +49,16 @@ namespace Microsoft.PSharp.TestingServices
         ITestingEngine Run();
 
         /// <summary>
+        /// Stops the P# testing engine.
+        /// </summary>
+        void Stop();
+
+        /// <summary>
+        /// Tries to emit the testing traces, if any.
+        /// </summary>
+        void TryEmitTraces();
+
+        /// <summary>
         /// Registers a callback to invoke at the end
         /// of each iteration. The callback takes as
         /// a parameter an integer representing the

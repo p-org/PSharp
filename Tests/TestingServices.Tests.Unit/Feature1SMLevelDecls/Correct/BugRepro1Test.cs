@@ -104,7 +104,10 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             configuration.SuppressTrace = true;
             configuration.Verbose = 2;
 
-            var engine = TestingEngineFactory.CreateBugFindingEngine(configuration, TestProgram.Execute).Run();
+            var engine = TestingEngineFactory.CreateBugFindingEngine(
+                configuration, TestProgram.Execute);
+            engine.Run();
+
             Assert.AreEqual(0, engine.NumOfFoundBugs);
         }
     }

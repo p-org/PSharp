@@ -13,13 +13,13 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 
 namespace Microsoft.PSharp.Utilities
 {
     /// <summary>
     /// The P# project configurations.
     /// </summary>
+    [Serializable]
     public class Configuration
     {
         #region core options
@@ -153,6 +153,11 @@ namespace Microsoft.PSharp.Utilities
         /// to explore. By default it is 10000.
         /// </summary>
         public int DepthBound;
+
+        /// <summary>
+        /// Number of parallel bug-finding tasks.
+        /// </summary>
+        public int ParallelBugFindingTasks;
 
         /// <summary>
         /// If true, then the P# tester will consider an execution
@@ -315,6 +320,7 @@ namespace Microsoft.PSharp.Utilities
 
             this.PerformFullExploration = false;
             this.DepthBound = 10000;
+            this.ParallelBugFindingTasks = 1;
             this.ConsiderDepthBoundHitAsBug = false;
             this.PrioritySwitchBound = 0;
             this.DelayBound = 0;
@@ -326,6 +332,7 @@ namespace Microsoft.PSharp.Utilities
             this.CacheProgramState = false;
             this.BoundOperations = false;
             this.DynamicEventQueuePrioritization = false;
+            
             this.EnableDataRaceDetection = false;
 
             this.EnableVisualization = false;

@@ -50,8 +50,11 @@ namespace Microsoft.PSharp
         {
             IO.PrintLine(". Reproducing trace in " + this.Configuration.AssemblyToBeAnalyzed);
 
-            // Creates and runs the P# replay engine to reproduce a bug.
-            TestingEngineFactory.CreateReplayEngine(this.Configuration).Run();
+            // Creates a new P# replay engine to reproduce a bug.
+            ITestingEngine engine = TestingEngineFactory.CreateReplayEngine(this.Configuration);
+
+            engine.Run();
+            engine.Report();
         }
 
         #endregion

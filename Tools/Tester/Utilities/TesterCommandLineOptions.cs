@@ -148,11 +148,22 @@ namespace Microsoft.PSharp.Utilities
                 int i = 0;
                 if (!int.TryParse(option.Substring(3), out i) && i > 0)
                 {
-                    ErrorReporter.ReportAndExit("Please give a valid number of iterations " +
-                        "'/i:[x]', where [x] > 0.");
+                    ErrorReporter.ReportAndExit("Please give a valid number of " +
+                        "iterations '/i:[x]', where [x] > 0.");
                 }
 
                 base.Configuration.SchedulingIterations = i;
+            }
+            else if (option.ToLower().StartsWith("/parallel:") && option.Length > 10)
+            {
+                int i = 0;
+                if (!int.TryParse(option.Substring(10), out i) && i > 1)
+                {
+                    ErrorReporter.ReportAndExit("Please give a valid number of " +
+                        "parallel tasks '/parallel:[x]', where [x] > 1.");
+                }
+
+                base.Configuration.ParallelBugFindingTasks = i;
             }
             else if (option.ToLower().Equals("/explore"))
             {
