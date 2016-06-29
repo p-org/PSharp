@@ -58,7 +58,6 @@
     <Compile Include="Runtime\BugFindingRuntime.cs" />
     <Compile Include="Engines\TestingEngineFactory.cs" />
     <Compile Include="Engines\ITestingEngine.cs" />
-    <Compile Include="Processes\TestingProcess.cs" />
     <Compile Include="Tracing\Machines\MachineActionInfo.cs" />
     <Compile Include="Tracing\Machines\MachineActionTrace.cs" />
     <Compile Include="Tracing\Machines\MachineActionType.cs" />

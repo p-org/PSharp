@@ -165,6 +165,28 @@ namespace Microsoft.PSharp.Utilities
 
                 base.Configuration.ParallelBugFindingTasks = i;
             }
+            else if (option.ToLower().StartsWith("/testing-process-id:") && option.Length > 20)
+            {
+                int i = 0;
+                if (!int.TryParse(option.Substring(20), out i) && i >= 0)
+                {
+                    ErrorReporter.ReportAndExit("Please give a valid testing " +
+                        "process id '/testing-process-id:[x]', where [x] >= 0.");
+                }
+
+                base.Configuration.TestingProcessId = i;
+            }
+            else if (option.ToLower().StartsWith("/parent-process-id:") && option.Length > 19)
+            {
+                int i = 0;
+                if (!int.TryParse(option.Substring(19), out i) && i >= 0)
+                {
+                    ErrorReporter.ReportAndExit("Please give a valid parent " +
+                        "process id '/parent-process-id:[x]', where [x] >= 0.");
+                }
+
+                base.Configuration.ParentProcessId = i;
+            }
             else if (option.ToLower().Equals("/explore"))
             {
                 base.Configuration.PerformFullExploration = true;
@@ -298,7 +320,7 @@ namespace Microsoft.PSharp.Utilities
             help += "\n  /s:[x]\t Path to a P# solution";
             help += "\n  /test:[x]\t Name of a project in the P# solution to test";
             help += "\n  /o:[x]\t Path for output files";
-            help += "\n  /timeout:[x]\t Timeout (default is no timeout)";
+            help += "\n  /timeout:[x]\t Timeout in seconds (default is no timeout)";
             help += "\n  /v:[x]\t Enable verbose mode (values from '1' to '3')";
             help += "\n  /debug\t Enable debugging";
 
@@ -306,6 +328,7 @@ namespace Microsoft.PSharp.Utilities
             help += "\n Systematic testing options:";
             help += "\n ---------------------------";
             help += "\n  /i:[x]\t Number of schedules to explore for bugs";
+            help += "\n  /parallel:[x]\t Number of parallel testing tasks";
             help += "\n  /interactive\t Enable interactive scheduling";
             help += "\n  /sch:[x]\t Choose a systematic testing strategy ('random' by default)";
             help += "\n  /max-steps:[x] Max scheduling steps to be explored ('10000' by default)";

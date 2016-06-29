@@ -13,17 +13,16 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Threading.Tasks;
+using System.Diagnostics;
 
-using Microsoft.PSharp.TestingServices;
 using Microsoft.PSharp.Utilities;
 
-namespace Microsoft.PSharp
+namespace Microsoft.PSharp.TestingServices
 {
     /// <summary>
     /// The P# testing dispatcher.
     /// </summary>
-    internal sealed class TestingDispatcher : MarshalByRefObject
+    internal sealed class TestingDispatcher
     {
         #region fields
 
@@ -33,14 +32,9 @@ namespace Microsoft.PSharp
         private Configuration Configuration;
 
         /// <summary>
-        /// App domains executing the testing processes.
+        /// The testing processes.
         /// </summary>
-        private AppDomain[] TestingProcessDomains;
-
-        /// <summary>
-        /// The parallel testing processes.
-        /// </summary>
-        private TestingProcess[] TestingProcesses;
+        private Process[] TestingProcesses;
 
         /// <summary>
         /// The testing profiler.
@@ -72,18 +66,11 @@ namespace Microsoft.PSharp
         public void Invoke()
         {
             IO.PrintLine(". Testing " + this.Configuration.AssemblyToBeAnalyzed);
-            
-            this.TestingProcessDomains = new AppDomain[this.Configuration.ParallelBugFindingTasks];
-            this.TestingProcesses = new TestingProcess[this.Configuration.ParallelBugFindingTasks];
 
-            // Creates the testing process domains.
+            // Creates one or more testing processes.
             for (int testId = 0; testId < this.Configuration.ParallelBugFindingTasks; testId++)
             {
-                this.TestingProcessDomains[testId] = AppDomain.CreateDomain($"TestingProcess-{testId}");
-                this.TestingProcesses[testId] = this.TestingProcessDomains[testId].
-                    CreateInstanceAndUnwrap(
-                    typeof(TestingProcess).Assembly.FullName,
-                    typeof(TestingProcess).FullName) as TestingProcess;
+                this.TestingProcesses[testId] = TestingProcessFactory.Create(testId, this.Configuration);
             }
 
             if (this.Configuration.ParallelBugFindingTasks > 1)
@@ -94,34 +81,42 @@ namespace Microsoft.PSharp
 
             this.Profiler.StartMeasuringExecutionTime();
 
-            // Runs the testing processes in parallel.
-            Parallel.For(0, this.Configuration.ParallelBugFindingTasks, testId =>
+            // Starts the testing processes.
+            for (int testId = 0; testId < this.Configuration.ParallelBugFindingTasks; testId++)
             {
-                this.TestingProcesses[testId].HandleDetectedBug += new TestingProcess.NotificationHandler(
-                    ReportResultsAndTerminateTesting);
-                this.TestingProcesses[testId].Configure(testId, this.Configuration);
                 this.TestingProcesses[testId].Start();
-            });
+            }
+
+            // Waits the testing processes to exit.
+            for (int testId = 0; testId < this.Configuration.ParallelBugFindingTasks; testId++)
+            {
+                this.TestingProcesses[testId].WaitForExit();
+            }
+
+            //// Runs the testing processes in parallel.
+            //Parallel.For(0, this.Configuration.ParallelBugFindingTasks, testId =>
+            //{
+            //    this.TestingProcesses[testId].HandleDetectedBug += new TestingProcess.NotificationHandler(
+            //        ReportResultsAndTerminateTesting);
+            //    this.TestingProcesses[testId].Configure(testId, this.Configuration);
+            //    this.TestingProcesses[testId].Start();
+            //});
 
             this.Profiler.StopMeasuringExecutionTime();
 
             if (!this.BugFound)
             {
-                if (this.Configuration.ParallelBugFindingTasks == 1)
-                {
-                    this.TestingProcesses[0].Report();
-                }
-                else
-                {
-                    IO.PrintLine($"... Elapsed {this.Profiler.Results()} sec.");
-                }
+            //    if (this.Configuration.ParallelBugFindingTasks == 1)
+            //    {
+            //        this.TestingProcesses[0].Report();
+            //    }
+            //    else
+            //    {
+            //        IO.PrintLine($"... Elapsed {this.Profiler.Results()} sec.");
+            //    }
             }
 
-            // Unloads the testing process domains.
-            foreach (var testingProcessDomain in this.TestingProcessDomains)
-            {
-                AppDomain.Unload(testingProcessDomain);
-            }
+            IO.PrintLine($"... Elapsed {this.Profiler.Results()} sec.");
         }
 
         #endregion
@@ -134,6 +129,7 @@ namespace Microsoft.PSharp
         /// <param name="configuration">Configuration</param>
         private TestingDispatcher(Configuration configuration)
         {
+            this.TestingProcesses = new Process[configuration.ParallelBugFindingTasks];
             this.Profiler = new Profiler();
             this.BugFound = false;
 
@@ -152,11 +148,11 @@ namespace Microsoft.PSharp
         #region private methods
 
         /// <summary>
-        /// Reports the bug-finding results and terminates
+        /// Reports the bug-finding results and kills
         /// the testing processes.
         /// </summary>
         /// <param name="processId">Unique process id</param>
-        private void ReportResultsAndTerminateTesting(int processId)
+        private void ReportResultsAndKillTestingProcesses(int processId)
         {
             this.BugFound = true;
 
@@ -164,12 +160,12 @@ namespace Microsoft.PSharp
             {
                 if (testingProcess.Id == processId)
                 {
-                    testingProcess.TryEmitTraces();
-                    testingProcess.Report();
+                    //testingProcess.TryEmitTraces();
+                    //testingProcess.Report();
                 }
                 else
                 {
-                    testingProcess.Stop();
+                    testingProcess.Kill();
                 }
             }
         }

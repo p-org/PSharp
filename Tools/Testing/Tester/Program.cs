@@ -14,12 +14,13 @@
 
 using System;
 
+using Microsoft.PSharp.TestingServices;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// The P# language compiler.
+    /// The P# tester.
     /// </summary>
     class Program
     {
@@ -31,10 +32,19 @@ namespace Microsoft.PSharp
             // Parses the command line options to get the configuration.
             var configuration = new TesterCommandLineOptions(args).Parse();
 
-            // Creates and runs a testing process.
-            TestingDispatcher.Create(configuration).Invoke();
+            if (configuration.TestingProcessId >= 0)
+            {
+                // Creates and runs a testing process.
+                TestingProcess testingProcess = TestingProcess.Create(configuration);
+                testingProcess.Start();
+            }
+            else
+            {
+                // Creates and runs the testing dispatcher.
+                TestingDispatcher.Create(configuration).Invoke();
 
-            IO.PrintLine(". Done");
+                IO.PrintLine(". Done");
+            }
         }
 
         /// <summary>

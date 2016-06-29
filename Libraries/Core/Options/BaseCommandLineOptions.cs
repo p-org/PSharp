@@ -116,7 +116,7 @@ namespace Microsoft.PSharp.Utilities
                     i > 0)
                 {
                     ErrorReporter.ReportAndExit("Please give a valid timeout " +
-                        "'/timeout:[x]', where [x] > 0.");
+                        "'/timeout:[x]', where [x] > 0 seconds.");
                 }
 
                 this.Configuration.Timeout = i;

@@ -40,29 +40,9 @@ namespace Microsoft.PSharp.Utilities
         public string ProjectName;
 
         /// <summary>
-        /// Verbosity level.
-        /// </summary>
-        public int Verbose;
-
-        /// <summary>
-        /// Timeout.
+        /// Timeout in seconds.
         /// </summary>
         public int Timeout;
-
-        /// <summary>
-        /// Enables debugging.
-        /// </summary>
-        public bool EnableDebugging;
-
-        /// <summary>
-        /// Enables profiling.
-        /// </summary>
-        public bool EnableProfiling;
-
-        /// <summary>
-        /// Keeps the temporary files.
-        /// </summary>
-        public bool KeepTemporaryFiles;
 
         /// <summary>
         /// Pause on assertion failure.
@@ -160,6 +140,11 @@ namespace Microsoft.PSharp.Utilities
         public int ParallelBugFindingTasks;
 
         /// <summary>
+        /// The unique testing process id.
+        /// </summary>
+        public int TestingProcessId;
+
+        /// <summary>
         /// If true, then the P# tester will consider an execution
         /// that hits the depth bound as buggy.
         /// </summary>
@@ -255,12 +240,32 @@ namespace Microsoft.PSharp.Utilities
 
         #endregion
 
-        #region debugging options
+        #region diagnostics options
+        
+        /// <summary>
+        /// Verbosity level.
+        /// </summary>
+        public int Verbose;
+
+        /// <summary>
+        /// Enables debugging.
+        /// </summary>
+        public bool EnableDebugging;
+
+        /// <summary>
+        /// Enables profiling.
+        /// </summary>
+        public bool EnableProfiling;
+
+        /// <summary>
+        /// Keeps the temporary files.
+        /// </summary>
+        public bool KeepTemporaryFiles;
 
         /// <summary>
         /// Redirects the testing console output.
         /// </summary>
-        public bool RedirectTestConsoleOutput;
+        internal bool RedirectTestConsoleOutput;
 
         /// <summary>
         /// If true, then the P# tester will print the trace
@@ -272,12 +277,17 @@ namespace Microsoft.PSharp.Utilities
         /// If true, then the P# tester will not output the
         /// error trace to a file.
         /// </summary>
-        public bool SuppressTrace;
+        internal bool SuppressTrace;
 
         /// <summary>
         /// If true, then P# will throw any internal exceptions.
         /// </summary>
-        public bool ThrowInternalExceptions;
+        internal bool ThrowInternalExceptions;
+
+        /// <summary>
+        /// The parent process id.
+        /// </summary>
+        internal int ParentProcessId;
 
         #endregion
 
@@ -291,14 +301,9 @@ namespace Microsoft.PSharp.Utilities
             this.SolutionFilePath = "";
             this.OutputFilePath = "";
             this.ProjectName = "";
-
-            this.Verbose = 1;
+            
             this.Timeout = 0;
-
-            this.EnableDebugging = false;
-            this.EnableProfiling = false;
-            this.KeepTemporaryFiles = false;
-
+            
             this.PauseOnAssertionFailure = false;
             this.InteroperationEnabled = true;
 
@@ -321,6 +326,7 @@ namespace Microsoft.PSharp.Utilities
             this.PerformFullExploration = false;
             this.DepthBound = 10000;
             this.ParallelBugFindingTasks = 1;
+            this.TestingProcessId = -1;
             this.ConsiderDepthBoundHitAsBug = false;
             this.PrioritySwitchBound = 0;
             this.DelayBound = 0;
@@ -341,10 +347,15 @@ namespace Microsoft.PSharp.Utilities
             this.NumberOfContainers = 1;
             this.RemoteApplicationFilePath = "";
 
+            this.Verbose = 1;
+            this.EnableDebugging = false;
+            this.EnableProfiling = false;
+            this.KeepTemporaryFiles = false;
             this.RedirectTestConsoleOutput = true;
             this.PrintTrace = false;
             this.SuppressTrace = false;
             this.ThrowInternalExceptions = false;
+            this.ParentProcessId = -1;
         }
 
         #endregion
