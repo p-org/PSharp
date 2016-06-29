@@ -143,7 +143,7 @@ namespace Microsoft.PSharp.TestingServices
 
             if (base.Configuration.DepthBound > 0)
             {
-                IO.PrintLine($"... Used depth bound of {base.Configuration.DepthBound}.");
+                IO.PrintLine($"... Configured to explore up to '{base.Configuration.DepthBound}' max steps.");
             }
 
             IO.PrintLine($"... Elapsed {base.Profiler.Results()} sec.");
