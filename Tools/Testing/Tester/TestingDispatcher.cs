@@ -75,12 +75,12 @@ namespace Microsoft.PSharp.TestingServices
 
             if (this.Configuration.ParallelBugFindingTasks > 1)
             {
-                IO.PrintLine($"... Running '{this.Configuration.ParallelBugFindingTasks}' " +
+                IO.PrintLine($"... Created '{this.Configuration.ParallelBugFindingTasks}' " +
                     "parallel testing tasks");
             }
             else
             {
-                IO.PrintLine($"... Running a single testing task");
+                IO.PrintLine($"... Created a single testing task");
             }
 
             this.Profiler.StartMeasuringExecutionTime();

@@ -353,7 +353,7 @@ namespace Microsoft.PSharp.TestingServices
             {
                 if (this.CancellationTokenSource.IsCancellationRequested)
                 {
-                    IO.Error.PrintLine("..... Testing task {0}timed out",
+                    IO.Error.PrintLine("... Testing task {0}timed out",
                         this.Configuration.TestingProcessId >= 0 ?
                         $"'{this.Configuration.TestingProcessId}' " : "");
                 }
