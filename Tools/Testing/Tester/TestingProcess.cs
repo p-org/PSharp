@@ -41,14 +41,14 @@ namespace Microsoft.PSharp.TestingServices
 
         #endregion
 
-        #region API
+        #region internal methods
 
         /// <summary>
         /// Creates a P# testing process.
         /// </summary>
         /// <param name="configuration">Configuration</param>
         /// <returns>TestingProcess</returns>
-        public static TestingProcess Create(Configuration configuration)
+        internal static TestingProcess Create(Configuration configuration)
         {
             return new TestingProcess(configuration);
         }
@@ -56,16 +56,11 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Starts the P# testing process.
         /// </summary>
-        public void Start()
+        internal void Start()
         {
             Timer timer = this.CreateParentStatusMonitorTimer();
             timer.Start();
-
-            if (this.Configuration.Timeout > 0)
-            {
-                this.CreateTimeoutTimer().Start();
-            }
-
+            
             this.TestingEngine.Run();
 
             timer.Stop();
@@ -74,7 +69,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Tries to emit the traces, if any.
         /// </summary>
-        public void TryEmitTraces()
+        internal void TryEmitTraces()
         {
             this.TestingEngine.TryEmitTraces();
         }
@@ -82,7 +77,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Reports the testing results.
         /// </summary>
-        public void Report()
+        internal void Report()
         {
             this.TestingEngine.Report();
         }
@@ -119,18 +114,6 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Creates a timer that fires when the testing process timeouts.
-        /// </summary>
-        /// <returns>Timer</returns>
-        private Timer CreateTimeoutTimer()
-        {
-            Timer timer = new Timer(this.Configuration.Timeout * 1000);
-            timer.Elapsed += HandleTimeout;
-            timer.AutoReset = false;
-            return timer;
-        }
-
-        /// <summary>
         /// Checks the status of the parent process. If the parent
         /// process exits, then this process should also exit.
         /// </summary>
@@ -144,16 +127,6 @@ namespace Microsoft.PSharp.TestingServices
             {
                 Environment.Exit(1);
             }
-        }
-
-        /// <summary>
-        /// Handles the timeout by exiting the process.
-        /// </summary>
-        /// <param name="sender">Sender</param>
-        /// <param name="e">ElapsedEventArgs</param>
-        private void HandleTimeout(object sender, ElapsedEventArgs e)
-        {
-            Environment.Exit(1);
         }
 
         #endregion

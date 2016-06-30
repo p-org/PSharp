@@ -331,23 +331,31 @@ namespace Microsoft.PSharp.TestingServices
                 this.CreateRuntimeTracesDirectory();
             }
 
-            this.Profiler.StartMeasuringExecutionTime();
-            task.Start();
+            if (this.Configuration.Timeout > 0)
+            {
+                this.CancellationTokenSource.CancelAfter(
+                    this.Configuration.Timeout * 1000);
+            }
 
+            this.Profiler.StartMeasuringExecutionTime();
+            
             try
             {
-                if (this.Configuration.Timeout > 0)
-                {
-                    task.Wait(this.Configuration.Timeout * 1000);
-                }
-                else
-                {
-                    task.Wait();
-                }
-
+                task.Start();
+                task.Wait(this.CancellationTokenSource.Token);
+                
                 if (this.Configuration.EnableVisualization)
                 {
-                    visualizationTask.Wait();
+                    visualizationTask.Wait(this.CancellationTokenSource.Token);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                if (this.CancellationTokenSource.IsCancellationRequested)
+                {
+                    IO.Error.PrintLine("..... Testing task {0}timed out",
+                        this.Configuration.TestingProcessId >= 0 ?
+                        $"'{this.Configuration.TestingProcessId}' " : "");
                 }
             }
             catch (AggregateException aex)

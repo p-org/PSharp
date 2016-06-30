@@ -45,17 +45,17 @@ namespace Microsoft.PSharp.TestingServices
         /// Checks if a bug was discovered.
         /// </summary>
         private bool BugFound;
-        
+
         #endregion
 
-        #region API
+        #region internal methods
 
         /// <summary>
         /// Creates a new P# testing dispatcher.
         /// </summary>
         /// <param name="configuration">Configuration</param>
         /// <returns>TestingDispatcher</returns>
-        public static TestingDispatcher Create(Configuration configuration)
+        internal static TestingDispatcher Create(Configuration configuration)
         {
             return new TestingDispatcher(configuration);
         }
@@ -63,7 +63,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Invokes the P# testing dispatcher.
         /// </summary>
-        public void Invoke()
+        internal void Invoke()
         {
             IO.PrintLine(". Testing " + this.Configuration.AssemblyToBeAnalyzed);
 
@@ -76,7 +76,11 @@ namespace Microsoft.PSharp.TestingServices
             if (this.Configuration.ParallelBugFindingTasks > 1)
             {
                 IO.PrintLine($"... Running '{this.Configuration.ParallelBugFindingTasks}' " +
-                    "testing tasks in parallel.");
+                    "parallel testing tasks");
+            }
+            else
+            {
+                IO.PrintLine($"... Running a single testing task");
             }
 
             this.Profiler.StartMeasuringExecutionTime();
