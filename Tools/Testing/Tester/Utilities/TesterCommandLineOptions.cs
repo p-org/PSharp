@@ -165,6 +165,17 @@ namespace Microsoft.PSharp.Utilities
 
                 base.Configuration.ParallelBugFindingTasks = i;
             }
+            else if (option.ToLower().StartsWith("/testing-scheduler-process-id:") && option.Length > 30)
+            {
+                int i = 0;
+                if (!int.TryParse(option.Substring(30), out i) && i >= 0)
+                {
+                    ErrorReporter.ReportAndExit("Please give a valid testing scheduler " +
+                        "process id '/testing-process-scheduler-id:[x]', where [x] >= 0.");
+                }
+
+                base.Configuration.TestingSchedulerProcessId = i;
+            }
             else if (option.ToLower().StartsWith("/testing-process-id:") && option.Length > 20)
             {
                 int i = 0;
@@ -175,17 +186,6 @@ namespace Microsoft.PSharp.Utilities
                 }
 
                 base.Configuration.TestingProcessId = i;
-            }
-            else if (option.ToLower().StartsWith("/parent-process-id:") && option.Length > 19)
-            {
-                int i = 0;
-                if (!int.TryParse(option.Substring(19), out i) && i >= 0)
-                {
-                    ErrorReporter.ReportAndExit("Please give a valid parent " +
-                        "process id '/parent-process-id:[x]', where [x] >= 0.");
-                }
-
-                base.Configuration.ParentProcessId = i;
             }
             else if (option.ToLower().Equals("/explore"))
             {

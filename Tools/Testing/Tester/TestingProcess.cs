@@ -15,6 +15,7 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.ServiceModel;
 using System.Timers;
 
 using Microsoft.PSharp.Utilities;
@@ -39,6 +40,11 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private ITestingEngine TestingEngine;
 
+        /// <summary>
+        /// The remote testing scheduler.
+        /// </summary>
+        private ITestingProcessScheduler TestingScheduler;
+
         #endregion
 
         #region internal methods
@@ -58,28 +64,32 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         internal void Start()
         {
-            Timer timer = this.CreateParentStatusMonitorTimer();
-            timer.Start();
+            Timer timer = null;
+            if (this.Configuration.ParallelBugFindingTasks > 1)
+            {
+                timer = this.CreateParentStatusMonitorTimer();
+                timer.Start();
+            }
             
             this.TestingEngine.Run();
+            if (this.Configuration.ParallelBugFindingTasks == 1)
+            {
+                if (this.TestingEngine.NumOfFoundBugs > 0)
+                {
+                    this.TestingEngine.TryEmitTraces();
+                }
+                
+                this.TestingEngine.Report();
+            }
+            else if (this.TestingEngine.NumOfFoundBugs > 0)
+            {
+                this.NotifyBugFound();
+            }
 
-            timer.Stop();
-        }
-
-        /// <summary>
-        /// Tries to emit the traces, if any.
-        /// </summary>
-        internal void TryEmitTraces()
-        {
-            this.TestingEngine.TryEmitTraces();
-        }
-
-        /// <summary>
-        /// Reports the testing results.
-        /// </summary>
-        internal void Report()
-        {
-            this.TestingEngine.Report();
+            if (timer != null)
+            {
+                timer.Stop();
+            }
         }
 
         #endregion
@@ -102,6 +112,28 @@ namespace Microsoft.PSharp.TestingServices
         #region private methods
 
         /// <summary>
+        /// Notifies the remote testing scheduler
+        /// about a discovered bug.
+        /// </summary>
+        private void NotifyBugFound()
+        {
+            Uri address = new Uri("http://localhost:8080/psharp/testing/scheduler/");
+
+            WSHttpBinding binding = new WSHttpBinding();
+            EndpointAddress endpoint = new EndpointAddress(address);
+
+            this.TestingScheduler = ChannelFactory<ITestingProcessScheduler>.
+                CreateChannel(binding, endpoint);
+            IO.PrettyPrintLine("... Notifying remote testing scheduler " + this.Configuration.TestingProcessId);
+            if (this.TestingScheduler.NotifyBugFound(this.Configuration.TestingProcessId))
+            {
+                IO.PrettyPrintLine("... AGREED " + this.Configuration.TestingProcessId);
+                this.TestingEngine.TryEmitTraces();
+                this.TestingEngine.Report();
+            }
+        }
+
+        /// <summary>
         /// Creates a timer that monitors the status of the parent process.
         /// </summary>
         /// <returns>Timer</returns>
@@ -122,7 +154,7 @@ namespace Microsoft.PSharp.TestingServices
         private void CheckParentStatus(object sender, ElapsedEventArgs e)
         {
             Process parent = Process.GetProcesses().FirstOrDefault(val
-                => val.Id == this.Configuration.ParentProcessId);
+                => val.Id == this.Configuration.TestingSchedulerProcessId);
             if (parent == null || !parent.ProcessName.Equals("PSharpTester"))
             {
                 Environment.Exit(1);

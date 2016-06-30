@@ -102,24 +102,28 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         public override void TryEmitTraces()
         {
-            // Emits the human readable trace, if any.
-
             string name = Path.GetFileNameWithoutExtension(this.Assembly.Location);
             string directoryPath = base.GetOutputDirectory();
 
-            string[] readableTraces = Directory.GetFiles(directoryPath, name + "*.txt");
-            string readableTracesPath = directoryPath + name + "_" + readableTraces.Length + ".txt";
+            // Emits the human readable trace, if any.
+            if (!this.ReadableTrace.Equals(""))
+            {
+                string[] readableTraces = Directory.GetFiles(directoryPath, name + "*.txt");
+                string readableTracesPath = directoryPath + name + "_" + readableTraces.Length + ".txt";
 
-            IO.PrintLine($"... Writing {readableTracesPath}");
-            File.WriteAllText(readableTracesPath, this.ReadableTrace);
+                IO.PrintLine($"... Writing {readableTracesPath}");
+                File.WriteAllText(readableTracesPath, this.ReadableTrace);
+            }
 
             // Emits the reproducable trace, if any.
-            
-            string[] reproTraces = Directory.GetFiles(directoryPath, name + "*.pstrace");
-            string reproTracesPath = directoryPath + name + "_" + reproTraces.Length + ".pstrace";
-            
-            IO.PrintLine($"... Writing {reproTracesPath}");
-            File.WriteAllText(reproTracesPath, this.ReproducableTrace);
+            if (!this.ReproducableTrace.Equals(""))
+            {
+                string[] reproTraces = Directory.GetFiles(directoryPath, name + "*.pstrace");
+                string reproTracesPath = directoryPath + name + "_" + reproTraces.Length + ".pstrace";
+
+                IO.PrintLine($"... Writing {reproTracesPath}");
+                File.WriteAllText(reproTracesPath, this.ReproducableTrace);
+            }
         }
 
         /// <summary>

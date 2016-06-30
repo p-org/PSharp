@@ -136,8 +136,14 @@ namespace Microsoft.PSharp.Utilities
 
         /// <summary>
         /// Number of parallel bug-finding tasks.
+        /// By default it is 1 task.
         /// </summary>
         public int ParallelBugFindingTasks;
+
+        /// <summary>
+        /// The testing scheduler process id.
+        /// </summary>
+        internal int TestingSchedulerProcessId;
 
         /// <summary>
         /// The unique testing process id.
@@ -284,11 +290,6 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         internal bool ThrowInternalExceptions;
 
-        /// <summary>
-        /// The parent process id.
-        /// </summary>
-        internal int ParentProcessId;
-
         #endregion
 
         #region constructor
@@ -326,6 +327,7 @@ namespace Microsoft.PSharp.Utilities
             this.PerformFullExploration = false;
             this.DepthBound = 10000;
             this.ParallelBugFindingTasks = 1;
+            this.TestingSchedulerProcessId = -1;
             this.TestingProcessId = -1;
             this.ConsiderDepthBoundHitAsBug = false;
             this.PrioritySwitchBound = 0;
@@ -355,7 +357,6 @@ namespace Microsoft.PSharp.Utilities
             this.PrintTrace = false;
             this.SuppressTrace = false;
             this.ThrowInternalExceptions = false;
-            this.ParentProcessId = -1;
         }
 
         #endregion

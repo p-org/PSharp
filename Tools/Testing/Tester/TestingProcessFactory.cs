@@ -71,7 +71,8 @@ namespace Microsoft.PSharp.TestingServices
                 arguments.Append($"/debug ");
             }
 
-            arguments.Append($"/parent-process-id:{Process.GetCurrentProcess().Id} ");
+            arguments.Append($"/parallel:{configuration.ParallelBugFindingTasks} ");
+            arguments.Append($"/testing-scheduler-process-id:{Process.GetCurrentProcess().Id} ");
             arguments.Append($"/testing-process-id:{id}");
 
             return arguments.ToString();
