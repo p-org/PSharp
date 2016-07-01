@@ -12,8 +12,6 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System.Collections.Generic;
-
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -22,7 +20,7 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.CSharp
     /// <summary>
     /// An abstract C# program rewriter.
     /// </summary>
-    internal abstract class CSharpRewriter
+    public abstract class CSharpRewriter
     {
         #region fields
 
