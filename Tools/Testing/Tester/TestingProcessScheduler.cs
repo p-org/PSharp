@@ -13,8 +13,10 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.ServiceModel;
+using System.ServiceModel.Description;
 
 using Microsoft.PSharp.Utilities;
 
@@ -34,9 +36,9 @@ namespace Microsoft.PSharp.TestingServices
         private Configuration Configuration;
 
         /// <summary>
-        /// The testing processes.
+        /// Map from testing process ids to testing processes.
         /// </summary>
-        private Process[] TestingProcesses;
+        private Dictionary<int, Process> TestingProcesses;
 
         /// <summary>
         /// The notification listening service.
@@ -75,21 +77,24 @@ namespace Microsoft.PSharp.TestingServices
             {
                 if (!this.BugFound)
                 {
+                    IO.PrintLine($"... Testing task '{processId}' " +
+                        "found a bug.");
+
                     this.BugFound = true;
                     foreach (var testingProcess in this.TestingProcesses)
                     {
-                        if (testingProcess.Id == processId)
+                        if (testingProcess.Key == processId)
                         {
                             result = true;
                         }
                         else
                         {
-                            testingProcess.Kill();
+                            testingProcess.Value.Kill();
                         }
                     }
                 }
             }
-
+            
             return result;
         }
 
@@ -119,11 +124,11 @@ namespace Microsoft.PSharp.TestingServices
             // Creates the user specified number of testing processes.
             for (int testId = 0; testId < this.Configuration.ParallelBugFindingTasks; testId++)
             {
-                this.TestingProcesses[testId] = TestingProcessFactory.Create(testId, this.Configuration);
+                this.TestingProcesses.Add(testId, TestingProcessFactory.Create(testId, this.Configuration));
             }
 
             IO.PrintLine($"... Created '{this.Configuration.ParallelBugFindingTasks}' " +
-                "parallel testing tasks");
+                "parallel testing tasks.");
 
             this.Profiler.StartMeasuringExecutionTime();
 
@@ -141,7 +146,7 @@ namespace Microsoft.PSharp.TestingServices
 
             this.Profiler.StopMeasuringExecutionTime();
 
-            IO.PrintLine($"... Elapsed {this.Profiler.Results()} sec.");
+            IO.PrintLine($"... Parallel testing elapsed {this.Profiler.Results()} sec.");
         }
 
         #endregion
@@ -154,7 +159,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="configuration">Configuration</param>
         private TestingProcessScheduler(Configuration configuration)
         {
-            this.TestingProcesses = new Process[configuration.ParallelBugFindingTasks];
+            this.TestingProcesses = new Dictionary<int, Process>();
             this.Profiler = new Profiler();
             this.SchedulerLock = new object();
             this.BugFound = false;
@@ -176,14 +181,19 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private void OpenNotificationListener()
         {
-            IO.PrettyPrintLine("... Opening notification listener");
-
             Uri address = new Uri("http://localhost:8080/psharp/testing/scheduler/");
             WSHttpBinding binding = new WSHttpBinding();
 
             this.NotificationService = new ServiceHost(this);
             this.NotificationService.AddServiceEndpoint(typeof(ITestingProcessScheduler), binding, address);
 
+            if (this.Configuration.EnableDebugging)
+            {
+                ServiceDebugBehavior debug = this.NotificationService.Description.
+                    Behaviors.Find<ServiceDebugBehavior>();
+                debug.IncludeExceptionDetailInFaults = true;
+            }
+            
             try
             {
                 this.NotificationService.Open();

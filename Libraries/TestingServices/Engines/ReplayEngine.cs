@@ -16,6 +16,7 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
+using System.Text;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.Utilities;
@@ -73,16 +74,23 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Reports the testing results.
+        /// Returns a report with the testing results.
         /// </summary>
-        public override void Report()
+        /// <returns>Report</returns>
+        public override string Report()
         {
-            IO.PrintLine("... Reproduced {0} bug{1}.", base.NumOfFoundBugs,
-                base.NumOfFoundBugs == 1 ? "" : "s");
-            IO.PrintLine("... Instrumented {0} scheduling point{1}.",
-                base.ExploredDepth, base.ExploredDepth == 1 ? "" : "s");
+            StringBuilder report = new StringBuilder();
 
-            IO.PrintLine($"... Elapsed {base.Profiler.Results()} sec.");
+            report.AppendFormat("... Reproduced {0} bug{1}.", base.NumOfFoundBugs,
+                base.NumOfFoundBugs == 1 ? "" : "s");
+            report.AppendLine();
+            report.AppendFormat("... Instrumented {0} scheduling point{1}.",
+                base.ExploredDepth, base.ExploredDepth == 1 ? "" : "s");
+            report.AppendLine();
+
+            report.Append($"... Elapsed {base.Profiler.Results()} sec.");
+
+            return report.ToString();
         }
 
         #endregion

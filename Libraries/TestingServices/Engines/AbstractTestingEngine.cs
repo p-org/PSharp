@@ -158,9 +158,10 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Reports the testing results.
+        /// Returns a report with the testing results.
         /// </summary>
-        public abstract void Report();
+        /// <returns>Report</returns>
+        public abstract string Report();
 
         #endregion
 
@@ -353,9 +354,17 @@ namespace Microsoft.PSharp.TestingServices
             {
                 if (this.CancellationTokenSource.IsCancellationRequested)
                 {
-                    IO.Error.PrintLine("... Testing task {0}timed out",
-                        this.Configuration.TestingProcessId >= 0 ?
-                        $"'{this.Configuration.TestingProcessId}' " : "");
+                    if (this.Configuration.TestingProcessId >= 0)
+                    {
+                        IO.Error.PrintLine("... Task " +
+                            $"{this.Configuration.TestingProcessId} timed out.");
+                    }
+                    else
+                    {
+                        IO.Error.PrintLine("... Timed out.");
+                        IO.Error.PrintLine(this.Report());
+                        IO.Error.PrintLine(". Done");
+                    }
                 }
             }
             catch (AggregateException aex)

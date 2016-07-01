@@ -31,7 +31,7 @@ namespace Microsoft.PSharp
 
         #endregion
 
-        #region API
+        #region public methods
 
         /// <summary>
         /// Creates a P# replaying process.
@@ -54,7 +54,7 @@ namespace Microsoft.PSharp
             ITestingEngine engine = TestingEngineFactory.CreateReplayEngine(this.Configuration);
 
             engine.Run();
-            engine.Report();
+            IO.PrintLine(engine.Report());
         }
 
         #endregion

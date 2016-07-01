@@ -74,12 +74,11 @@ namespace Microsoft.PSharp.TestingServices
             this.TestingEngine.Run();
             if (this.Configuration.ParallelBugFindingTasks == 1)
             {
+                IO.PrintLine(this.TestingEngine.Report());
                 if (this.TestingEngine.NumOfFoundBugs > 0)
                 {
                     this.TestingEngine.TryEmitTraces();
                 }
-                
-                this.TestingEngine.Report();
             }
             else if (this.TestingEngine.NumOfFoundBugs > 0)
             {
@@ -124,12 +123,11 @@ namespace Microsoft.PSharp.TestingServices
 
             this.TestingScheduler = ChannelFactory<ITestingProcessScheduler>.
                 CreateChannel(binding, endpoint);
-            IO.PrettyPrintLine("... Notifying remote testing scheduler " + this.Configuration.TestingProcessId);
+
             if (this.TestingScheduler.NotifyBugFound(this.Configuration.TestingProcessId))
             {
-                IO.PrettyPrintLine("... AGREED " + this.Configuration.TestingProcessId);
+                IO.PrintLine(this.TestingEngine.Report());
                 this.TestingEngine.TryEmitTraces();
-                this.TestingEngine.Report();
             }
         }
 

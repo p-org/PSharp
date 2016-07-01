@@ -127,30 +127,12 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Reports the testing results.
+        /// Returns a report with the testing results.
         /// </summary>
-        public override void Report()
+        /// <returns>Report</returns>
+        public override string Report()
         {
-            IO.PrintLine("... Found {0} bug{1}.", base.NumOfFoundBugs,
-                base.NumOfFoundBugs == 1 ? "" : "s");
-            IO.PrintLine("... Explored {0} {1} schedule{2}.", this.ExploredSchedules,
-                base.Strategy.HasFinished() ? "(all)" : "",
-                this.ExploredSchedules == 1 ? "" : "s");
-
-            if (this.ExploredSchedules > 0)
-            {
-                IO.PrintLine("... Found {0}% buggy schedules.",
-                    (base.NumOfFoundBugs * 100 / this.ExploredSchedules));
-                IO.PrintLine("... Instrumented {0} scheduling point{1} (on last iteration).",
-                    base.ExploredDepth, base.ExploredDepth == 1 ? "" : "s");
-            }
-
-            if (base.Configuration.DepthBound > 0)
-            {
-                IO.PrintLine($"... Configured to explore up to '{base.Configuration.DepthBound}' max steps.");
-            }
-
-            IO.PrintLine($"... Elapsed {base.Profiler.Results()} sec.");
+            return this.CreateReport("...");
         }
 
         #endregion
@@ -202,12 +184,20 @@ namespace Microsoft.PSharp.TestingServices
         #region core methods
 
         /// <summary>
-        /// Creates a bug-finding task.
+        /// Creates a new bug-finding task.
         /// </summary>
         /// <returns>Task</returns>
         private Task CreateBugFindingTask()
         {
-            IO.PrintLine($"... Using '{base.Configuration.SchedulingStrategy}' strategy");
+            if (base.Configuration.TestingProcessId >= 0)
+            {
+                IO.Error.PrintLine($"... Task {this.Configuration.TestingProcessId} is " +
+                    $"using '{base.Configuration.SchedulingStrategy}' strategy.");
+            }
+            else
+            {
+                IO.PrintLine($"... Using '{base.Configuration.SchedulingStrategy}' strategy.");
+            }
 
             Task task = new Task(() =>
             {
@@ -337,6 +327,7 @@ namespace Microsoft.PSharp.TestingServices
                         if (sw != null && !base.Configuration.SuppressTrace)
                         {
                             this.ReadableTrace = sw.ToString();
+                            this.ReadableTrace += this.CreateReport("<StrategyLog>");
                             this.ConstructReproducableTrace(runtime);
                         }
 
@@ -345,6 +336,7 @@ namespace Microsoft.PSharp.TestingServices
                     else if (sw != null && base.Configuration.PrintTrace)
                     {
                         this.ReadableTrace = sw.ToString();
+                        this.ReadableTrace += this.CreateReport("<StrategyLog>");
                         this.ConstructReproducableTrace(runtime);
                     }
                 }
@@ -383,6 +375,46 @@ namespace Microsoft.PSharp.TestingServices
         #endregion
 
         #region utility methods
+
+        /// <summary>
+        /// Creates a new testing report with the specified prefix.
+        /// </summary>
+        /// <param name="prefix">Prefix</param>
+        /// <returns>Report</returns>
+        private string CreateReport(string prefix)
+        {
+            StringBuilder report = new StringBuilder();
+
+            report.AppendFormat("{0} Found {1} bug{2}.", prefix, base.NumOfFoundBugs,
+                base.NumOfFoundBugs == 1 ? "" : "s");
+            report.AppendLine();
+            report.AppendFormat("{0} Explored {1} {2} schedule{3}.", prefix,
+                this.ExploredSchedules,
+                base.Strategy.HasFinished() ? "(all)" : "",
+                this.ExploredSchedules == 1 ? "" : "s");
+            report.AppendLine();
+
+            if (this.ExploredSchedules > 0)
+            {
+                report.AppendFormat("{0} Found {1}% buggy schedules.", prefix,
+                    (base.NumOfFoundBugs * 100 / this.ExploredSchedules));
+                report.AppendLine();
+                report.AppendFormat("{0} Instrumented {1} scheduling point{2} (on last iteration).",
+                    prefix, base.ExploredDepth, base.ExploredDepth == 1 ? "" : "s");
+                report.AppendLine();
+            }
+
+            if (base.Configuration.DepthBound > 0)
+            {
+                report.Append($"{prefix} Configured to explore up to " +
+                    $"'{base.Configuration.DepthBound}' max steps.");
+                report.AppendLine();
+            }
+
+            report.Append($"{prefix} Elapsed {base.Profiler.Results()} sec.");
+
+            return report.ToString();
+        }
 
         /// <summary>
         /// Constructs a reproducable trace.

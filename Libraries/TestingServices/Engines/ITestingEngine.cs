@@ -68,9 +68,10 @@ namespace Microsoft.PSharp.TestingServices
         void RegisterPerIterationCallBack(Action<int> callback);
 
         /// <summary>
-        /// Reports the testing results.
+        /// Returns a report with the testing results.
         /// </summary>
-        void Report();
+        /// <returns>Report</returns>
+        string Report();
 
         #endregion
     }
