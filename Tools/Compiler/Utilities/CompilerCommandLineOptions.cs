@@ -82,6 +82,16 @@ namespace Microsoft.PSharp.Utilities
                         "'/optimization:[x]', where [x] is 'debug' or 'release'.");
                 }
             }
+            else if (option.ToLower().StartsWith("/pass:") && option.Length > 6)
+            {
+                if (!option.ToLower().Substring(6).EndsWith(".dll"))
+                {
+                    ErrorReporter.ReportAndExit("Please give a valid custom compiler pass dll " +
+                        "'/pass:[x]', where [x] is a 'dll'.");
+                }
+
+                base.Configuration.CustomCompilerPassAssemblyPaths.Add(option.Substring(6));
+            }
             else if (option.ToLower().Equals("/analyze"))
             {
                 base.Configuration.RunStaticAnalysis = true;
