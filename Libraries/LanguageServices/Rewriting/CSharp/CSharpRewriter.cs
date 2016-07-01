@@ -31,7 +31,16 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.CSharp
 
         #endregion
 
-        #region protected API
+        #region internal methods
+
+        /// <summary>
+        /// Rewrites the program.
+        /// </summary>
+        public abstract void Rewrite();
+
+        #endregion
+
+        #region protected methods
 
         /// <summary>
         /// Constructor.

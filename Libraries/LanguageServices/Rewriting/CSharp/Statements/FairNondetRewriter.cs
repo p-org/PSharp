@@ -57,9 +57,9 @@ namespace Microsoft.PSharp.LanguageServices.Rewriting.CSharp
         }
 
         /// <summary>
-        /// Rewrites the fair nondet statements in the program.
+        /// Rewrites the program.
         /// </summary>
-        internal void Rewrite()
+        public override void Rewrite()
         {
             var compilation = base.Program.GetProject().GetCompilation();
             var model = compilation.GetSemanticModel(base.Program.GetSyntaxTree());
