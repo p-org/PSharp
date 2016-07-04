@@ -68,6 +68,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 return;
             }
 
+            if (this.BugFound)
+            {
+                this.KillRemainingMachines();
+                throw new OperationCanceledException();
+            }
+
             // Check if the scheduling steps bound has been reached.
             if (this.Strategy.HasReachedDepthBound())
             {

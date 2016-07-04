@@ -12,6 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -104,9 +105,15 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         internal virtual void Schedule()
         {
             int? id = Task.CurrentId;
-            if (id == null || id == this.Runtime.RootTaskId || this.BugFound)
+            if (id == null || id == this.Runtime.RootTaskId)
             {
                 return;
+            }
+
+            if (this.BugFound)
+            {
+                this.KillRemainingMachines();
+                throw new OperationCanceledException();
             }
 
             // Check if the scheduling steps bound has been reached.
@@ -122,7 +129,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 {
                     IO.Debug($"<ScheduleDebug> {msg}");
                     this.KillRemainingMachines();
-                    throw new TaskCanceledException();
+                    throw new OperationCanceledException();
                 }
             }
 
@@ -131,7 +138,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 IO.Debug($"<ScheduleDebug> Unable to schedule task '{id}'.");
                 this.KillRemainingMachines();
-                throw new TaskCanceledException();
+                throw new OperationCanceledException();
             }
 
             MachineInfo next = null;
@@ -139,7 +146,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 IO.Debug("<ScheduleDebug> Schedule explored.");
                 this.KillRemainingMachines();
-                throw new TaskCanceledException();
+                throw new OperationCanceledException();
             }
 
             this.Runtime.ScheduleTrace.AddSchedulingChoice(next.Machine);
@@ -187,7 +194,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
                     if (!machineInfo.IsEnabled)
                     {
-                        throw new TaskCanceledException();
+                        throw new OperationCanceledException();
                     }
                 }
             }
@@ -214,7 +221,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 {
                     IO.Debug($"<ScheduleDebug> {msg}");
                     this.KillRemainingMachines();
-                    throw new TaskCanceledException();
+                    throw new OperationCanceledException();
                 }
             }
 
@@ -223,7 +230,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 IO.Debug("<ScheduleDebug> Schedule explored.");
                 this.KillRemainingMachines();
-                throw new TaskCanceledException();
+                throw new OperationCanceledException();
             }
 
             if (uniqueId == null)
@@ -314,7 +321,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
                 if (!machineInfo.IsEnabled)
                 {
-                    throw new TaskCanceledException();
+                    throw new OperationCanceledException();
                 }
             }
         }
@@ -438,7 +445,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         internal void Stop()
         {
             this.KillRemainingMachines();
-            throw new TaskCanceledException();
+            throw new OperationCanceledException();
         }
 
         #endregion
