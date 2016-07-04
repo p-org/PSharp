@@ -101,6 +101,12 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="configuration">Configuration</param>
         private TestingProcess(Configuration configuration)
         {
+            if (configuration.ParallelBugFindingTasks > 1 &&
+                configuration.SchedulingStrategy == SchedulingStrategy.Portfolio)
+            {
+                TestingPortfolio.ConfigureStrategyForCurrentProcess(configuration);
+            }
+
             this.Configuration = configuration;
             this.TestingEngine = TestingEngineFactory.CreateBugFindingEngine(
                 this.Configuration);
@@ -137,7 +143,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>Timer</returns>
         private Timer CreateParentStatusMonitorTimer()
         {
-            Timer timer = new Timer(2000);
+            Timer timer = new Timer(5000);
             timer.Elapsed += CheckParentStatus;
             timer.AutoReset = true;
             return timer;

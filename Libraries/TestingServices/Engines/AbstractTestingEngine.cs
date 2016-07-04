@@ -298,6 +298,11 @@ namespace Microsoft.PSharp.TestingServices
                 this.Configuration.PerformFullExploration = false;
                 this.Configuration.CacheProgramState = false;
             }
+            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Portfolio)
+            {
+                ErrorReporter.ReportAndExit("Portfolio testing strategy in only " +
+                    "available in parallel testing.");
+            }
 
             if (this.Configuration.EnableVisualization)
             {

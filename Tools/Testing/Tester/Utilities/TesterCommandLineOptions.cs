@@ -49,7 +49,11 @@ namespace Microsoft.PSharp.Utilities
             else if (option.ToLower().StartsWith("/sch:"))
             {
                 string scheduler = option.ToLower().Substring(5);
-                if (scheduler.ToLower().Equals("random"))
+                if (scheduler.ToLower().Equals("portfolio"))
+                {
+                    base.Configuration.SchedulingStrategy = SchedulingStrategy.Portfolio;
+                }
+                else if (scheduler.ToLower().Equals("random"))
                 {
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.Random;
                 }
@@ -274,6 +278,7 @@ namespace Microsoft.PSharp.Utilities
             }
 
             if (base.Configuration.SchedulingStrategy != SchedulingStrategy.Interactive &&
+                base.Configuration.SchedulingStrategy != SchedulingStrategy.Portfolio &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.Random &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.RandomCoin &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.DFS &&

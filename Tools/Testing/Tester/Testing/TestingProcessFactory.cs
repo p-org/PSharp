@@ -60,15 +60,25 @@ namespace Microsoft.PSharp.TestingServices
         {
             StringBuilder arguments = new StringBuilder();
 
+            if (configuration.EnableDebugging)
+            {
+                arguments.Append($"/debug ");
+            }
+
             arguments.Append($"/test:{configuration.AssemblyToBeAnalyzed} ");
             arguments.Append($"/i:{configuration.SchedulingIterations} ");
             arguments.Append($"/timeout:{configuration.Timeout} ");
             arguments.Append($"/max-steps:{configuration.DepthBound} ");
-            arguments.Append($"/max-steps:{configuration.DepthBound} ");
 
-            if (configuration.EnableDebugging)
+            if (configuration.SchedulingStrategy == SchedulingStrategy.PCT)
             {
-                arguments.Append($"/debug ");
+                arguments.Append($"/sch:{configuration.SchedulingStrategy}:" +
+                    $"{configuration.PrioritySwitchBound} ");
+            }
+            else if (configuration.SchedulingStrategy == SchedulingStrategy.Random ||
+                configuration.SchedulingStrategy == SchedulingStrategy.Portfolio)
+            {
+                arguments.Append($"/sch:{configuration.SchedulingStrategy} ");
             }
 
             arguments.Append($"/parallel:{configuration.ParallelBugFindingTasks} ");
