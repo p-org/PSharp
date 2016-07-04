@@ -69,6 +69,11 @@ namespace Microsoft.PSharp.Utilities
         public OptimizationTarget OptimizationTarget;
 
         /// <summary>
+        /// List of assembly paths to used-defined compiler passes.
+        /// </summary>
+        internal ISet<string> CustomCompilerPassAssemblyPaths;
+
+        /// <summary>
         /// Runs the analysis stage of the compiler.
         /// </summary>
         public bool RunStaticAnalysis;
@@ -310,7 +315,9 @@ namespace Microsoft.PSharp.Utilities
 
             this.CompilationTarget = CompilationTarget.Execution;
             this.OptimizationTarget = OptimizationTarget.Release;
-            
+
+            this.CustomCompilerPassAssemblyPaths = new HashSet<string>();
+
             this.RunStaticAnalysis = false;
             this.ShowControlFlowInformation = false;
             this.ShowDataFlowInformation = false;

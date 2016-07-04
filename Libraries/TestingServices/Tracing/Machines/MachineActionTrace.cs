@@ -81,8 +81,8 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Machines
         {
             this.MachineId = mid;
             this.ActionInfos = new List<MachineActionInfo>();
-            this.SendIdCounter = 0;
-            this.ActionIdCounter = 0;
+            this.SendIdCounter = 1;
+            this.ActionIdCounter = 1;
         }
 
         /// <summary>

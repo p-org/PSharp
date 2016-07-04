@@ -14,6 +14,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -62,6 +64,7 @@ namespace Microsoft.PSharp.LanguageServices
         public override void Rewrite()
         {
             this.RewriteStatements();
+            this.PerformCustomRewriting();
 
             if (IO.Debugging)
             {
@@ -82,6 +85,64 @@ namespace Microsoft.PSharp.LanguageServices
             new GotoStateRewriter(this).Rewrite();
             new PopRewriter(this).Rewrite();
             new FairNondetRewriter(this).Rewrite();
+        }
+
+        /// <summary>
+        /// Performs custom rewriting.
+        /// </summary>
+        private void PerformCustomRewriting()
+        {
+            foreach (var assembly in base.Project.CompilationContext.CustomCompilerPassAssemblies)
+            {
+                foreach (var pass in this.FindCustomRewritingPasses(assembly, typeof(CustomCSharpRewritingPass)))
+                {
+                    CSharpRewriter rewriter = null;
+
+                    try
+                    {
+                        rewriter = Activator.CreateInstance(pass, this) as CSharpRewriter;
+                    }
+                    catch (MissingMethodException)
+                    {
+                        ErrorReporter.ReportAndExit($"Public constructor of {pass} not found.");
+                    }
+
+                    rewriter.Rewrite();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Finds the custom rewriting passes with the specified attribute.
+        /// Returns null if no such method is found.
+        /// </summary>
+        /// <param name="assembly">Assembly</param>
+        /// <param name="attribute">Type</param>
+        /// <returns>Types</returns>
+        private List<Type> FindCustomRewritingPasses(Assembly assembly, Type attribute)
+        {
+            List<Type> passes = null;
+
+            try
+            {
+                passes = assembly.GetTypes().Where(m => m.GetCustomAttributes(attribute, false).Length > 0).ToList();
+            }
+            catch (ReflectionTypeLoadException ex)
+            {
+                foreach (var le in ex.LoaderExceptions)
+                {
+                    ErrorReporter.Report(le.Message);
+                }
+
+                ErrorReporter.ReportAndExit($"Failed to load assembly '{assembly.FullName}'");
+            }
+            catch (Exception ex)
+            {
+                ErrorReporter.Report(ex.Message);
+                ErrorReporter.ReportAndExit($"Failed to load assembly '{assembly.FullName}'");
+            }
+
+            return passes;
         }
 
         #endregion

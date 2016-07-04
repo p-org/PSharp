@@ -946,10 +946,14 @@ namespace Microsoft.PSharp
                 this.IsHalted = true;
 
                 Exception innerException = ex;
-                if (innerException is TargetInvocationException ||
-                    innerException is AggregateException)
+                while (innerException is TargetInvocationException)
                 {
-                    innerException = ex.InnerException;
+                    innerException = innerException.InnerException;
+                }
+
+                if (innerException is AggregateException)
+                {
+                    innerException = innerException.InnerException;
                 }
 
                 if (innerException is OperationCanceledException)
@@ -1076,10 +1080,14 @@ namespace Microsoft.PSharp
                 this.IsHalted = true;
 
                 Exception innerException = ex;
-                if (innerException is TargetInvocationException ||
-                    innerException is AggregateException)
+                while (innerException is TargetInvocationException)
                 {
-                    innerException = ex.InnerException;
+                    innerException = innerException.InnerException;
+                }
+
+                if (innerException is AggregateException)
+                {
+                    innerException = innerException.InnerException;
                 }
 
                 if (innerException is OperationCanceledException)
@@ -1098,7 +1106,7 @@ namespace Microsoft.PSharp
                     {
                         throw innerException;
                     }
-
+                    
                     // Handles generic exception.
                     this.ReportGenericAssertion(innerException);
                 }
@@ -1183,10 +1191,14 @@ namespace Microsoft.PSharp
                 this.IsHalted = true;
 
                 Exception innerException = ex;
-                if (innerException is TargetInvocationException ||
-                    innerException is AggregateException)
+                while (innerException is TargetInvocationException)
                 {
-                    innerException = ex.InnerException;
+                    innerException = innerException.InnerException;
+                }
+
+                if (innerException is AggregateException)
+                {
+                    innerException = innerException.InnerException;
                 }
 
                 if (innerException is OperationCanceledException)
@@ -1252,10 +1264,14 @@ namespace Microsoft.PSharp
                 this.IsHalted = true;
 
                 Exception innerException = ex;
-                if (innerException is TargetInvocationException ||
-                    innerException is AggregateException)
+                while (innerException is TargetInvocationException)
                 {
-                    innerException = ex.InnerException;
+                    innerException = innerException.InnerException;
+                }
+
+                if (innerException is AggregateException)
+                {
+                    innerException = innerException.InnerException;
                 }
 
                 if (innerException is OperationCanceledException)

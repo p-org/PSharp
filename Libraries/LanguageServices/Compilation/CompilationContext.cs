@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
@@ -35,7 +36,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// <summary>
         /// Configuration.
         /// </summary>
-        internal Configuration Configuration;
+        internal readonly Configuration Configuration;
 
         /// <summary>
         /// The solution of the P# program.
@@ -46,6 +47,11 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         /// List of P# projects in the solution.
         /// </summary>
         private List<PSharpProject> PSharpProjects;
+
+        /// <summary>
+        /// Set of custom compiler pass assemblies.
+        /// </summary>
+        internal readonly ISet<Assembly> CustomCompilerPassAssemblies;
 
         /// <summary>
         /// True if program info has been initialized.
@@ -311,6 +317,8 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
         {
             this.Configuration = configuration;
             this.PSharpProjects = new List<PSharpProject>();
+            this.CustomCompilerPassAssemblies = new HashSet<Assembly>();
+            this.LoadCustomCompilerPasses();
         }
 
         /// <summary>
@@ -341,6 +349,24 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
             workspace.TryApplyChanges(project.Solution);
 
             return project;
+        }
+
+        /// <summary>
+        /// Loads the user-specified compiler passes.
+        /// </summary>
+        private void LoadCustomCompilerPasses()
+        {
+            foreach (var path in this.Configuration.CustomCompilerPassAssemblyPaths)
+            {
+                try
+                {
+                    this.CustomCompilerPassAssemblies.Add(Assembly.LoadFrom(path));
+                }
+                catch (FileNotFoundException)
+                {
+                    ErrorReporter.ReportAndExit($"Could not find compiler pass '{path}'");
+                }
+            }
         }
 
         #endregion
