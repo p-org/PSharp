@@ -28,6 +28,10 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         Replay,
         /// <summary>
+        /// Portfolio scheduling.
+        /// </summary>
+        Portfolio,
+        /// <summary>
         /// Random scheduling.
         /// </summary>
         Random,

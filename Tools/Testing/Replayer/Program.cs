@@ -19,7 +19,7 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// The P# language compiler.
+    /// The P# trace replayer.
     /// </summary>
     class Program
     {

@@ -14,12 +14,13 @@
 
 using System;
 
+using Microsoft.PSharp.TestingServices;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp
 {
     /// <summary>
-    /// The P# language compiler.
+    /// The P# tester.
     /// </summary>
     class Program
     {
@@ -31,10 +32,31 @@ namespace Microsoft.PSharp
             // Parses the command line options to get the configuration.
             var configuration = new TesterCommandLineOptions(args).Parse();
 
-            // Creates and starts a testing process.
-            TestingProcess.Create(configuration).Start();
+            if (configuration.ParallelBugFindingTasks == 1 ||
+                configuration.TestingProcessId < 0)
+            {
+                IO.PrintLine(". Testing " + configuration.AssemblyToBeAnalyzed);
+            }
+            
+            if (configuration.ParallelBugFindingTasks == 1 ||
+                configuration.TestingProcessId >= 0)
+            {
+                // Creates and runs a testing process.
+                TestingProcess testingProcess = TestingProcess.Create(configuration);
+                testingProcess.Start();
+            }
+            else
+            {
+                // Creates and runs the testing process scheduler, if there
+                // are more than one user specified parallel tasks.
+                TestingProcessScheduler.Create(configuration).Run();
+            }
 
-            IO.PrintLine(". Done");
+            if (configuration.ParallelBugFindingTasks == 1 ||
+                configuration.TestingProcessId < 0)
+            {
+                IO.PrintLine(". Done");
+            }
         }
 
         /// <summary>

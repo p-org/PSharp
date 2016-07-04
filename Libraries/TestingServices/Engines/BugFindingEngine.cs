@@ -39,6 +39,16 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private int ExploredSchedules;
 
+        /// <summary>
+        /// The readable trace, if any.
+        /// </summary>
+        private string ReadableTrace;
+
+        /// <summary>
+        /// The reproducable trace, if any.
+        /// </summary>
+        private string ReproducableTrace;
+
         #endregion
 
         #region public API
@@ -49,7 +59,8 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="configuration">Configuration</param>
         /// <param name="action">Action</param>
         /// <returns>BugFindingEngine</returns>
-        public static BugFindingEngine Create(Configuration configuration, Action<PSharpRuntime> action)
+        public static BugFindingEngine Create(Configuration configuration,
+            Action<PSharpRuntime> action)
         {
             return new BugFindingEngine(configuration, action);
         }
@@ -83,35 +94,45 @@ namespace Microsoft.PSharp.TestingServices
         {
             Task task = this.CreateBugFindingTask();
             this.Execute(task);
-            this.Report();
             return this;
         }
 
         /// <summary>
-        /// Reports the testing results.
+        /// Tries to emit the testing traces, if any.
         /// </summary>
-        public override void Report()
+        public override void TryEmitTraces()
         {
-            IO.PrintLine("... Found {0} bug{1}.", base.NumOfFoundBugs,
-                base.NumOfFoundBugs == 1 ? "" : "s");
-            IO.PrintLine("... Explored {0} {1} schedule{2}.", this.ExploredSchedules,
-                base.Strategy.HasFinished() ? "(all)" : "",
-                this.ExploredSchedules == 1 ? "" : "s");
+            string name = Path.GetFileNameWithoutExtension(this.Assembly.Location);
+            string directoryPath = base.GetOutputDirectory();
 
-            if (this.ExploredSchedules > 0)
+            // Emits the human readable trace, if any.
+            if (!this.ReadableTrace.Equals(""))
             {
-                IO.PrintLine("... Found {0}% buggy schedules.",
-                    (base.NumOfFoundBugs * 100 / this.ExploredSchedules));
-                IO.PrintLine("... Instrumented {0} scheduling point{1} (on last iteration).",
-                    base.ExploredDepth, base.ExploredDepth == 1 ? "" : "s");
+                string[] readableTraces = Directory.GetFiles(directoryPath, name + "*.txt");
+                string readableTracesPath = directoryPath + name + "_" + readableTraces.Length + ".txt";
+
+                IO.PrintLine($"... Writing {readableTracesPath}");
+                File.WriteAllText(readableTracesPath, this.ReadableTrace);
             }
 
-            if (base.Configuration.DepthBound > 0)
+            // Emits the reproducable trace, if any.
+            if (!this.ReproducableTrace.Equals(""))
             {
-                IO.PrintLine($"... Used depth bound of {base.Configuration.DepthBound}.");
-            }
+                string[] reproTraces = Directory.GetFiles(directoryPath, name + "*.pstrace");
+                string reproTracesPath = directoryPath + name + "_" + reproTraces.Length + ".pstrace";
 
-            IO.PrintLine($"... Elapsed {base.Profiler.Results()} sec.");
+                IO.PrintLine($"... Writing {reproTracesPath}");
+                File.WriteAllText(reproTracesPath, this.ReproducableTrace);
+            }
+        }
+
+        /// <summary>
+        /// Returns a report with the testing results.
+        /// </summary>
+        /// <returns>Report</returns>
+        public override string Report()
+        {
+            return this.CreateReport("...");
         }
 
         #endregion
@@ -163,12 +184,20 @@ namespace Microsoft.PSharp.TestingServices
         #region core methods
 
         /// <summary>
-        /// Creates a bug-finding task.
+        /// Creates a new bug-finding task.
         /// </summary>
         /// <returns>Task</returns>
         private Task CreateBugFindingTask()
         {
-            IO.PrintLine($"... Using '{base.Configuration.SchedulingStrategy}' strategy");
+            if (base.Configuration.TestingProcessId >= 0)
+            {
+                IO.Error.PrintLine($"... Task {this.Configuration.TestingProcessId} is " +
+                    $"using '{base.Configuration.SchedulingStrategy}' strategy.");
+            }
+            else
+            {
+                IO.PrintLine($"... Using '{base.Configuration.SchedulingStrategy}' strategy.");
+            }
 
             Task task = new Task(() =>
             {
@@ -190,6 +219,11 @@ namespace Microsoft.PSharp.TestingServices
 
                 for (int i = 0; i < base.Configuration.SchedulingIterations; i++)
                 {
+                    if (this.CancellationTokenSource.IsCancellationRequested)
+                    {
+                        break;
+                    }
+
                     if (this.ShouldPrintIteration(i + 1))
                     {
                         IO.PrintLine($"..... Iteration #{i + 1}");
@@ -292,16 +326,18 @@ namespace Microsoft.PSharp.TestingServices
                     {
                         if (sw != null && !base.Configuration.SuppressTrace)
                         {
-                            this.EmitReadableTrace(sw);
-                            this.EmitReproducableTrace(runtime);
+                            this.ReadableTrace = sw.ToString();
+                            this.ReadableTrace += this.CreateReport("<StrategyLog>");
+                            this.ConstructReproducableTrace(runtime);
                         }
 
                         break;
                     }
                     else if (sw != null && base.Configuration.PrintTrace)
                     {
-                        this.EmitReadableTrace(sw);
-                        this.EmitReproducableTrace(runtime);
+                        this.ReadableTrace = sw.ToString();
+                        this.ReadableTrace += this.CreateReport("<StrategyLog>");
+                        this.ConstructReproducableTrace(runtime);
                     }
                 }
                 
@@ -321,7 +357,7 @@ namespace Microsoft.PSharp.TestingServices
                     }
                 }
 
-            });
+            }, base.CancellationTokenSource.Token);
 
             return task;
         }
@@ -341,33 +377,51 @@ namespace Microsoft.PSharp.TestingServices
         #region utility methods
 
         /// <summary>
-        /// Emits a readable trace.
+        /// Creates a new testing report with the specified prefix.
         /// </summary>
-        /// <param name="sw">StringWriter</param>
-        private void EmitReadableTrace(StringWriter sw)
+        /// <param name="prefix">Prefix</param>
+        /// <returns>Report</returns>
+        private string CreateReport(string prefix)
         {
-            string name = Path.GetFileNameWithoutExtension(this.Assembly.Location);
-            string directoryPath = base.GetOutputDirectory();
+            StringBuilder report = new StringBuilder();
 
-            string[] traces = Directory.GetFiles(directoryPath, name + "*.txt");
-            string path = directoryPath + name + "_" + traces.Length + ".txt";
+            report.AppendFormat("{0} Found {1} bug{2}.", prefix, base.NumOfFoundBugs,
+                base.NumOfFoundBugs == 1 ? "" : "s");
+            report.AppendLine();
+            report.AppendFormat("{0} Explored {1} {2} schedule{3}.", prefix,
+                this.ExploredSchedules,
+                base.Strategy.HasFinished() ? "(all)" : "",
+                this.ExploredSchedules == 1 ? "" : "s");
+            report.AppendLine();
 
-            IO.PrintLine($"... Writing {path}");
-            File.WriteAllText(path, sw.ToString());
+            if (this.ExploredSchedules > 0)
+            {
+                report.AppendFormat("{0} Found {1}% buggy schedules.", prefix,
+                    (base.NumOfFoundBugs * 100 / this.ExploredSchedules));
+                report.AppendLine();
+                report.AppendFormat("{0} Instrumented {1} scheduling point{2} (on last iteration).",
+                    prefix, base.ExploredDepth, base.ExploredDepth == 1 ? "" : "s");
+                report.AppendLine();
+            }
+
+            if (base.Configuration.DepthBound > 0)
+            {
+                report.Append($"{prefix} Configured to explore up to " +
+                    $"'{base.Configuration.DepthBound}' max steps.");
+                report.AppendLine();
+            }
+
+            report.Append($"{prefix} Elapsed {base.Profiler.Results()} sec.");
+
+            return report.ToString();
         }
 
         /// <summary>
-        /// Emits a reproducable trace.
+        /// Constructs a reproducable trace.
         /// </summary>
         /// <param name="runtime">Runtime</param>
-        private void EmitReproducableTrace(PSharpBugFindingRuntime runtime)
+        private void ConstructReproducableTrace(PSharpBugFindingRuntime runtime)
         {
-            string name = Path.GetFileNameWithoutExtension(this.Assembly.Location);
-            string directoryPath = base.GetOutputDirectory();
-
-            string[] traces = Directory.GetFiles(directoryPath, name + "*.pstrace");
-            string path = directoryPath + name + "_" + traces.Length + ".pstrace";
-
             StringBuilder stringBuilder = new StringBuilder();
             for (int idx = 0; idx < runtime.ScheduleTrace.Count; idx++)
             {
@@ -387,8 +441,7 @@ namespace Microsoft.PSharp.TestingServices
                 }
             }
 
-            IO.PrintLine($"... Writing {path}");
-            File.WriteAllText(path, stringBuilder.ToString());
+            this.ReproducableTrace = stringBuilder.ToString();
         }
 
         /// <summary>

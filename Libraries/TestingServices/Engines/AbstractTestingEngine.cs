@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.TestingServices.Scheduling;
@@ -93,7 +94,16 @@ namespace Microsoft.PSharp.TestingServices
         /// The profiler.
         /// </summary>
         protected Profiler Profiler;
-        
+
+        /// <summary>
+        /// The testing task cancellation token source.
+        /// </summary>
+        protected CancellationTokenSource CancellationTokenSource;
+
+        #endregion
+
+        #region properties
+
         /// <summary>
         /// The latest bug report, if any.
         /// </summary>
@@ -120,6 +130,22 @@ namespace Microsoft.PSharp.TestingServices
         public abstract ITestingEngine Run();
 
         /// <summary>
+        /// Stops the P# testing engine.
+        /// </summary>
+        public void Stop()
+        {
+            this.CancellationTokenSource.Cancel();
+        }
+
+        /// <summary>
+        /// Tries to emit the testing traces, if any.
+        /// </summary>
+        public virtual void TryEmitTraces()
+        {
+            // No-op, must be implemented in subclass.
+        }
+
+        /// <summary>
         /// Registers a callback to invoke at the end
         /// of each iteration. The callback takes as
         /// a parameter an integer representing the
@@ -132,9 +158,10 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Reports the testing results.
+        /// Returns a report with the testing results.
         /// </summary>
-        public abstract void Report();
+        /// <returns>Report</returns>
+        public abstract string Report();
 
         #endregion
 
@@ -188,7 +215,8 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="configuration">Configuration</param>
         /// <param name="action">Action</param>
-        protected AbstractTestingEngine(Configuration configuration, Action<PSharpRuntime> action)
+        protected AbstractTestingEngine(Configuration configuration,
+            Action<PSharpRuntime> action)
         {
             this.Profiler = new Profiler();
             this.Configuration = configuration;
@@ -202,6 +230,8 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private void Initialize()
         {
+            this.CancellationTokenSource = new CancellationTokenSource();
+
             this.BugReport = "";
             this.NumOfFoundBugs = 0;
             this.ExploredDepth = 0;
@@ -268,6 +298,11 @@ namespace Microsoft.PSharp.TestingServices
                 this.Configuration.PerformFullExploration = false;
                 this.Configuration.CacheProgramState = false;
             }
+            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Portfolio)
+            {
+                ErrorReporter.ReportAndExit("Portfolio testing strategy in only " +
+                    "available in parallel testing.");
+            }
 
             if (this.Configuration.EnableVisualization)
             {
@@ -302,23 +337,39 @@ namespace Microsoft.PSharp.TestingServices
                 this.CreateRuntimeTracesDirectory();
             }
 
-            this.Profiler.StartMeasuringExecutionTime();
-            task.Start();
+            if (this.Configuration.Timeout > 0)
+            {
+                this.CancellationTokenSource.CancelAfter(
+                    this.Configuration.Timeout * 1000);
+            }
 
+            this.Profiler.StartMeasuringExecutionTime();
+            
             try
             {
-                if (this.Configuration.Timeout > 0)
-                {
-                    task.Wait(this.Configuration.Timeout * 1000);
-                }
-                else
-                {
-                    task.Wait();
-                }
-
+                task.Start();
+                task.Wait(this.CancellationTokenSource.Token);
+                
                 if (this.Configuration.EnableVisualization)
                 {
-                    visualizationTask.Wait();
+                    visualizationTask.Wait(this.CancellationTokenSource.Token);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                if (this.CancellationTokenSource.IsCancellationRequested)
+                {
+                    if (this.Configuration.TestingProcessId >= 0)
+                    {
+                        IO.Error.PrintLine("... Task " +
+                            $"{this.Configuration.TestingProcessId} timed out.");
+                    }
+                    else
+                    {
+                        IO.Error.PrintLine("... Timed out.");
+                        IO.Error.PrintLine(this.Report());
+                        IO.Error.PrintLine(". Done");
+                    }
                 }
             }
             catch (AggregateException aex)

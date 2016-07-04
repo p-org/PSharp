@@ -49,7 +49,11 @@ namespace Microsoft.PSharp.Utilities
             else if (option.ToLower().StartsWith("/sch:"))
             {
                 string scheduler = option.ToLower().Substring(5);
-                if (scheduler.ToLower().Equals("random"))
+                if (scheduler.ToLower().Equals("portfolio"))
+                {
+                    base.Configuration.SchedulingStrategy = SchedulingStrategy.Portfolio;
+                }
+                else if (scheduler.ToLower().Equals("random"))
                 {
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.Random;
                 }
@@ -148,11 +152,44 @@ namespace Microsoft.PSharp.Utilities
                 int i = 0;
                 if (!int.TryParse(option.Substring(3), out i) && i > 0)
                 {
-                    ErrorReporter.ReportAndExit("Please give a valid number of iterations " +
-                        "'/i:[x]', where [x] > 0.");
+                    ErrorReporter.ReportAndExit("Please give a valid number of " +
+                        "iterations '/i:[x]', where [x] > 0.");
                 }
 
                 base.Configuration.SchedulingIterations = i;
+            }
+            else if (option.ToLower().StartsWith("/parallel:") && option.Length > 10)
+            {
+                int i = 0;
+                if (!int.TryParse(option.Substring(10), out i) && i > 1)
+                {
+                    ErrorReporter.ReportAndExit("Please give a valid number of " +
+                        "parallel tasks '/parallel:[x]', where [x] > 1.");
+                }
+
+                base.Configuration.ParallelBugFindingTasks = i;
+            }
+            else if (option.ToLower().StartsWith("/testing-scheduler-process-id:") && option.Length > 30)
+            {
+                int i = 0;
+                if (!int.TryParse(option.Substring(30), out i) && i >= 0)
+                {
+                    ErrorReporter.ReportAndExit("Please give a valid testing scheduler " +
+                        "process id '/testing-process-scheduler-id:[x]', where [x] >= 0.");
+                }
+
+                base.Configuration.TestingSchedulerProcessId = i;
+            }
+            else if (option.ToLower().StartsWith("/testing-process-id:") && option.Length > 20)
+            {
+                int i = 0;
+                if (!int.TryParse(option.Substring(20), out i) && i >= 0)
+                {
+                    ErrorReporter.ReportAndExit("Please give a valid testing " +
+                        "process id '/testing-process-id:[x]', where [x] >= 0.");
+                }
+
+                base.Configuration.TestingProcessId = i;
             }
             else if (option.ToLower().Equals("/explore"))
             {
@@ -241,6 +278,7 @@ namespace Microsoft.PSharp.Utilities
             }
 
             if (base.Configuration.SchedulingStrategy != SchedulingStrategy.Interactive &&
+                base.Configuration.SchedulingStrategy != SchedulingStrategy.Portfolio &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.Random &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.RandomCoin &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.DFS &&
@@ -287,7 +325,7 @@ namespace Microsoft.PSharp.Utilities
             help += "\n  /s:[x]\t Path to a P# solution";
             help += "\n  /test:[x]\t Name of a project in the P# solution to test";
             help += "\n  /o:[x]\t Path for output files";
-            help += "\n  /timeout:[x]\t Timeout (default is no timeout)";
+            help += "\n  /timeout:[x]\t Timeout in seconds (default is no timeout)";
             help += "\n  /v:[x]\t Enable verbose mode (values from '1' to '3')";
             help += "\n  /debug\t Enable debugging";
 
@@ -295,6 +333,7 @@ namespace Microsoft.PSharp.Utilities
             help += "\n Systematic testing options:";
             help += "\n ---------------------------";
             help += "\n  /i:[x]\t Number of schedules to explore for bugs";
+            help += "\n  /parallel:[x]\t Number of parallel testing tasks";
             help += "\n  /interactive\t Enable interactive scheduling";
             help += "\n  /sch:[x]\t Choose a systematic testing strategy ('random' by default)";
             help += "\n  /max-steps:[x] Max scheduling steps to be explored ('10000' by default)";

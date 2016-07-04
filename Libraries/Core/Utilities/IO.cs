@@ -23,6 +23,112 @@ namespace Microsoft.PSharp.Utilities
     /// </summary>
     public static class IO
     {
+        #region error
+
+        /// <summary>
+        /// Static class implementing IO error
+        /// reporting methods.
+        /// </summary>
+        public static class Error
+        {
+            /// <summary>
+            ///  Writes the specified string value to the output stream.
+            /// </summary>
+            /// <param name="s">String</param>
+            public static void Print(string s)
+            {
+                Console.Error.Write(s);
+            }
+
+            /// <summary>
+            ///  Writes the specified string value to the output stream.
+            /// </summary>
+            /// <param name="color">ConsoleColor</param>
+            /// <param name="s">String</param>
+            public static void Print(ConsoleColor color, string s)
+            {
+                var previousForegroundColor = Console.ForegroundColor;
+                Console.ForegroundColor = color;
+                Console.Error.Write(s);
+                Console.ForegroundColor = previousForegroundColor;
+            }
+
+            /// <summary>
+            /// Writes the text representation of the specified array
+            /// of objects to the output stream.
+            /// </summary>
+            /// <param name="s">String</param>
+            /// <param name="args">Arguments</param>
+            public static void Print(string s, params object[] args)
+            {
+                Console.Error.Write(s, args);
+            }
+
+            /// <summary>
+            /// Writes the text representation of the specified array
+            /// of objects to the output stream.
+            /// </summary>
+            /// <param name="color">ConsoleColor</param>
+            /// <param name="s">String</param>
+            /// <param name="args">Arguments</param>
+            public static void Print(ConsoleColor color, string s, params object[] args)
+            {
+                var previousForegroundColor = Console.ForegroundColor;
+                Console.ForegroundColor = color;
+                Console.Error.Write(s, args);
+                Console.ForegroundColor = previousForegroundColor;
+            }
+
+            /// <summary>
+            /// Writes the specified string value, followed by the
+            /// current line terminator, to the output stream.
+            /// </summary>
+            /// <param name="s">String</param>
+            public static void PrintLine(string s)
+            {
+                Console.Error.WriteLine(s);
+            }
+
+            /// <summary>
+            /// Writes the text representation of the specified array
+            /// of objects, followed by the current line terminator, to
+            /// the output stream.
+            /// </summary>
+            /// <param name="s">String</param>
+            /// <param name="args">Arguments</param>
+            public static void PrintLine(string s, params object[] args)
+            {
+                Console.Error.WriteLine(s, args);
+            }
+
+            /// <summary>
+            /// Writes the text representation of the specified array
+            /// of objects to the output stream. The text is formatted.
+            /// </summary>
+            /// <param name="s">String</param>
+            /// <param name="args">Arguments</param>
+            public static void PrettyPrint(string s, params object[] args)
+            {
+                string message = IO.Format(s, args);
+                IO.Error.Print(message);
+            }
+
+            /// <summary>
+            /// Writes the text representation of the specified array
+            /// of objects, followed by the current line terminator, to
+            /// the output stream. The text is formatted.
+            /// </summary>
+            /// <param name="s">String</param>
+            /// <param name="args">Arguments</param>
+            public static void PrettyPrintLine(string s, params object[] args)
+            {
+                string message = IO.Format(s, args);
+                IO.Error.PrintLine(message);
+            }
+        }
+
+        #endregion
+
         #region fields
 
         /// <summary>

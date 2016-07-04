@@ -5,11 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{C3EF9C6F-9B39-4A8A-A196-6A403F265E25}</ProjectGuid>
+    <ProjectGuid>{F30AE100-BE49-4944-B5A2-6D8D4310CC0B}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Microsoft.PSharp</RootNamespace>
-    <AssemblyName>PSharpCompiler</AssemblyName>
+    <AssemblyName>PSharpTester</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <PublishUrl>publish\</PublishUrl>
@@ -31,14 +31,14 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <OutputPath>..\..\Binaries\</OutputPath>
+    <OutputPath>..\..\..\Binaries\</OutputPath>
     <DefineConstants>TRACE;DEBUG</DefineConstants>
     <Prefer32Bit>false</Prefer32Bit>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <OutputPath>..\..\Binaries\</OutputPath>
+    <OutputPath>..\..\..\Binaries\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <Optimize>true</Optimize>
     <Prefer32Bit>false</Prefer32Bit>
@@ -51,22 +51,24 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'VsixCustomTool|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>..\..\Binaries\</OutputPath>
+    <OutputPath>..\..\..\Binaries\</OutputPath>
     <DefineConstants>TRACE;DEBUG</DefineConstants>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.ServiceModel" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CompilationProcess.cs" />
-    <Compile Include="RewritingProcess.cs" />
-    <Compile Include="Utilities\CompilerCommandLineOptions.cs" />
-    <Compile Include="ParsingProcess.cs" />
+    <Compile Include="Remote\ITestingProcessScheduler.cs" />
+    <Compile Include="Testing\TestingPortfolio.cs" />
+    <Compile Include="Testing\TestingProcess.cs" />
+    <Compile Include="Testing\TestingProcessFactory.cs" />
+    <Compile Include="Utilities\TesterCommandLineOptions.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="StaticAnalysisProcess.cs" />
+    <Compile Include="Testing\TestingProcessScheduler.cs" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.5">
@@ -85,19 +87,16 @@
     <None Include="PSharp.snk" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Libraries\Core\Core.csproj">
+    <ProjectReference Include="..\..\..\Libraries\Core\Core.csproj">
       <Project>{2e330c40-60ea-4a94-8813-9747b93a1795}</Project>
       <Name>Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Libraries\LanguageServices\LanguageServices.csproj">
-      <Project>{06ccbe95-2e41-4188-bb97-aee702c1bd25}</Project>
-      <Name>LanguageServices</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Libraries\StaticAnalysis\StaticAnalysis.csproj">
-      <Project>{da00a188-9d9e-4d4f-901c-c2a2cbc84cb6}</Project>
-      <Name>StaticAnalysis</Name>
+    <ProjectReference Include="..\..\..\Libraries\TestingServices\TestingServices.csproj">
+      <Project>{d88418ab-c8b8-4fb2-9fba-f0e994e42f37}</Project>
+      <Name>TestingServices</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

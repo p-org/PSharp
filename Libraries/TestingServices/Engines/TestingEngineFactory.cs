@@ -42,7 +42,8 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="configuration">Configuration</param>
         /// <param name="assembly">Assembly</param>
         /// <returns>BugFindingEngine</returns>
-        public static ITestingEngine CreateBugFindingEngine(Configuration configuration, Assembly assembly)
+        public static ITestingEngine CreateBugFindingEngine(
+            Configuration configuration, Assembly assembly)
         {
             return BugFindingEngine.Create(configuration, assembly);
         }
@@ -53,8 +54,8 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="configuration">Configuration</param>
         /// <param name="action">Action</param>
         /// <returns>BugFindingEngine</returns>
-        public static ITestingEngine CreateBugFindingEngine(Configuration configuration,
-            Action<PSharpRuntime> action)
+        public static ITestingEngine CreateBugFindingEngine(
+            Configuration configuration, Action<PSharpRuntime> action)
         {
             return BugFindingEngine.Create(configuration, action);
         }

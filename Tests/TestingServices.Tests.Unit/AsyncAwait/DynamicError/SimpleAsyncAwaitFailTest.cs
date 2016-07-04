@@ -85,7 +85,10 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
             configuration.ScheduleIntraMachineConcurrency = true;
 
-            var engine = TestingEngineFactory.CreateBugFindingEngine(configuration, TestProgram.Execute).Run();
+            var engine = TestingEngineFactory.CreateBugFindingEngine(
+                configuration, TestProgram.Execute);
+            engine.Run();
+
             var bugReport = "Value is '3' (expected less than '3').";
             Assert.AreEqual(bugReport, engine.BugReport);
         }
