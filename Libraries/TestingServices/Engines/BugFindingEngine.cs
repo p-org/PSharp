@@ -177,6 +177,8 @@ namespace Microsoft.PSharp.TestingServices
         private void Initialize()
         {
             this.ExploredSchedules = 0;
+            this.ReadableTrace = "";
+            this.ReproducableTrace = "";
         }
 
         #endregion
