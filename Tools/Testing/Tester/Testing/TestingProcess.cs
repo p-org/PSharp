@@ -72,10 +72,12 @@ namespace Microsoft.PSharp.TestingServices
             }
             
             this.TestingEngine.Run();
+
             if (this.Configuration.ParallelBugFindingTasks == 1)
             {
                 IO.PrintLine(this.TestingEngine.Report());
-                if (this.TestingEngine.NumOfFoundBugs > 0)
+                if (this.TestingEngine.NumOfFoundBugs > 0 ||
+                    this.Configuration.PrintTrace)
                 {
                     this.TestingEngine.TryEmitTraces();
                 }

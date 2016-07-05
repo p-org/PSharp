@@ -309,6 +309,12 @@ namespace Microsoft.PSharp.TestingServices
                 this.InitializeVisualizer();
             }
 
+            if (this.Configuration.PrintTrace)
+            {
+                this.Configuration.SchedulingIterations = 1;
+                this.Configuration.PerformFullExploration = false;
+            }
+
             this.HasRedirectedConsoleOutput = false;
         }
 
