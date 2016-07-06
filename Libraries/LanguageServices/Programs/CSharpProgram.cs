@@ -92,23 +92,60 @@ namespace Microsoft.PSharp.LanguageServices
         /// </summary>
         private void PerformCustomRewriting()
         {
+            Queue<Type> rewritingPasses = new Queue<Type>();
+            Dictionary<Type, List<Type>> passDependencies = new Dictionary<Type, List<Type>>();
+            HashSet<Queue<Type>> snapshot = new HashSet<Queue<Type>>();
+
             foreach (var assembly in base.Project.CompilationContext.CustomCompilerPassAssemblies)
             {
                 foreach (var pass in this.FindCustomRewritingPasses(assembly, typeof(CustomCSharpRewritingPass)))
                 {
-                    CSharpRewriter rewriter = null;
-
-                    try
-                    {
-                        rewriter = Activator.CreateInstance(pass, this) as CSharpRewriter;
-                    }
-                    catch (MissingMethodException)
-                    {
-                        ErrorReporter.ReportAndExit($"Public constructor of {pass} not found.");
-                    }
-
-                    rewriter.Rewrite();
+                    rewritingPasses.Enqueue(pass);
+                    passDependencies.Add(pass, this.FindDependenciesOfPass(pass));
                 }
+            }
+
+            while (rewritingPasses.Count > 0)
+            {
+                Type nextPass = rewritingPasses.Dequeue();
+
+
+                bool allDependenciesDone = true;
+                foreach (var dependency in passDependencies[nextPass])
+                {
+                    if (rewritingPasses.Contains(dependency))
+                    {
+                        allDependenciesDone = false;
+                        break;
+                    }
+                }
+
+                if (!allDependenciesDone)
+                {
+                    rewritingPasses.Enqueue(nextPass);
+
+                    if(snapshot.Any(item => item.SequenceEqual(rewritingPasses)))
+                    {
+                        ErrorReporter.ReportAndExit("Possible cycle in the rewriting " +
+                            "pass dependencies, or dependency missing.");
+                    }
+
+                    snapshot.Add(rewritingPasses);
+                    continue;
+                }
+
+                CSharpRewriter rewriter = null;
+
+                try
+                {
+                    rewriter = Activator.CreateInstance(nextPass, this) as CSharpRewriter;
+                }
+                catch (MissingMethodException)
+                {
+                    ErrorReporter.ReportAndExit($"Public constructor of {nextPass} not found.");
+                }
+
+                rewriter.Rewrite();
             }
         }
 
@@ -143,6 +180,25 @@ namespace Microsoft.PSharp.LanguageServices
             }
 
             return passes;
+        }
+
+        /// <summary>
+        /// Finds the dependencies of the specified pass.
+        /// </summary>
+        /// <param name="pass">Pass</param>
+        /// <returns>Types</returns>
+        private List<Type> FindDependenciesOfPass(Type pass)
+        {
+            var result = new List<Type>();
+
+            if (pass.IsDefined(typeof(RewritingPassDependency), false))
+            {
+                var dependencyAttribute = pass.GetCustomAttribute(
+                    typeof(RewritingPassDependency), false) as RewritingPassDependency;
+                result.AddRange(dependencyAttribute.Dependencies);
+            }
+
+            return result;
         }
 
         #endregion

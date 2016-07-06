@@ -141,6 +141,7 @@
     <Compile Include="Parsing\ParsingEngine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PSharpProject.cs" />
+    <Compile Include="Rewriting\Attributes\RewritingPassDependency.cs" />
     <Compile Include="Rewriting\Attributes\CustomCSharpRewritingPass.cs" />
     <Compile Include="Rewriting\CSharp\CSharpRewriter.cs" />
     <Compile Include="Rewriting\CSharp\Statements\PopRewriter.cs" />
