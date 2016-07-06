@@ -31,5 +31,13 @@ namespace Microsoft.PSharp.Utilities
         {
             IO.InstallCustomLogger(logger);
         }
+
+        /// <summary>
+        /// Removes the custom logger. Defaults to the console.
+        /// </summary>
+        public static void RemoveCustomLogger()
+        {
+            IO.InstallCustomLogger(null);
+        }
     }
 }

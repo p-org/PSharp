@@ -60,6 +60,11 @@ namespace Microsoft.PSharp.TestingServices
         internal MethodInfo TestDisposeMethod;
 
         /// <summary>
+        /// The P# test dispose method per iteration.
+        /// </summary>
+        internal MethodInfo TestIterationDisposeMethod;
+
+        /// <summary>
         /// A P# test action.
         /// </summary>
         internal Action<PSharpRuntime> TestAction;
@@ -190,6 +195,7 @@ namespace Microsoft.PSharp.TestingServices
             this.FindEntryPoint();
             this.TestInitMethod = FindTestMethod(typeof(TestInit));
             this.TestDisposeMethod = FindTestMethod(typeof(TestDispose));
+            this.TestIterationDisposeMethod = FindTestMethod(typeof(TestIterationDispose));
             this.Initialize();
         }
 
@@ -207,6 +213,7 @@ namespace Microsoft.PSharp.TestingServices
             this.FindEntryPoint();
             this.TestInitMethod = FindTestMethod(typeof(TestInit));
             this.TestDisposeMethod = FindTestMethod(typeof(TestDispose));
+            this.TestIterationDisposeMethod = FindTestMethod(typeof(TestIterationDispose));
             this.Initialize();
         }
 

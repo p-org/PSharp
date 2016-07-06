@@ -170,11 +170,6 @@ namespace Microsoft.PSharp.TestingServices
                         // Starts the test.
                         base.TestMethod.Invoke(null, new object[] { runtime });
 
-                        if (base.TestDisposeMethod != null)
-                        {
-                            // Disposes the test state.
-                            base.TestDisposeMethod.Invoke(null, new object[] { });
-                        }  
                     }
                     catch (TargetInvocationException ex)
                     {
@@ -191,6 +186,30 @@ namespace Microsoft.PSharp.TestingServices
                 if (base.Configuration.EnableVisualization)
                 {
                     base.Visualizer.Refresh();
+                }
+
+                try
+                {
+                    // Invokes user-provided cleanup for this iteration.
+                    if (base.TestIterationDisposeMethod != null)
+                    {
+                        // Disposes the test state.
+                        base.TestIterationDisposeMethod.Invoke(null, new object[] { });
+                    }
+
+                    // Invokes user-provided cleanup for all iterations.
+                    if (base.TestDisposeMethod != null)
+                    {
+                        // Disposes the test state.
+                        base.TestDisposeMethod.Invoke(null, new object[] { });
+                    }
+                }
+                catch (TargetInvocationException ex)
+                {
+                    if (!(ex.InnerException is TaskCanceledException))
+                    {
+                        ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+                    }
                 }
 
                 // Checks for any liveness property violations. Requires
