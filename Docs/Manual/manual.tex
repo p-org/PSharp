@@ -58,13 +58,13 @@
 
 \item The \emph{surface syntax} of \ps can be used to write an entire system from scratch. The surface \ps syntax directly extends \cs with new language constructs, which allows for rapid prototyping. However, to use the surface syntax, a developer has to use the \ps compiler, which is built on top of Roslyn. The main disadvantage of this approach is that \ps does not yet fully integrate with the Visual Studio integrated development environment (IDE), and thus does not support high-productivity features such as IntelliSense (e.g. for auto-completition and automated refactoring).
 
-\item \ps can be used as a \cs library to write an entire system from scratch. This approach is slightly more verbose than the above, but allows full integration with Visual Studio. Note that most examples in this guide will use the \ps surface syntax, since it is less verbose. See \S\ref{sec:example} for an example of using \ps as a \cs library.
+\item \ps can be used as a \cs library to write an entire system from scratch. This approach is slightly more verbose than the above, but allows full integration with Visual Studio. Note that most examples in this guide will use the \ps surface syntax, since it is less verbose. See \S\ref{sec:basics:example} for an example of using \ps as a \cs library.
 \end{itemize}
 
 \newparagraph{Repository} The \ps framework is publicly available as open-source and can be found at its git repository at \textcolor{blue}{\url{https://github.com/p-org/PSharp}}.\\
 
 \noindent
-In the rest of this guide, we first introduce the basic features of a \ps program (see \S\ref{sec:basics}) and then discuss how \ps can be embedded in \cs code (see \S\ref{sec:interop}). Next, we present an example of a simple program using both the \ps surface syntax and \ps as a library (see \S\ref{sec:example}). We then present the more advanced features of \ps (see \S\ref{sec:advanced}). Next, we illustrate how someone can write safety properties in \ps (see \S\ref{sec:safetyproperties}), which can be systematically checked for bugs. Finally, we provide an overview of the tools for compiling and systematically testing a \ps program.
+In the rest of this guide, we first introduce the basic features of a \ps program (see \S\ref{sec:basics}) and then discuss how \ps can be embedded in \cs code (see \S\ref{sec:interop}). Next, we present an example of a simple program using both the \ps surface syntax and \ps as a library (see \S\ref{sec:basics:example}). We then present the more advanced features of \ps (see \S\ref{sec:advanced}). Next, we illustrate how someone can write safety properties in \ps (see \S\ref{sec:safetyproperties}), which can be systematically checked for bugs. Finally, we provide an overview of the tools for compiling and systematically testing a \ps program.
 
 % Basic features of a P# program
 \section{Basic features of a \ps program}
@@ -152,32 +152,9 @@ The declaration \texttt{on Unit goto AnotherState} indicates that when the machi
 
 \ps also supports specifying invariants (i.e.\ assertions) on the local state of a machine. The developer can achieve this by using the \texttt{assert} statement, which accepts as input a predicate that must always hold in that specific program point, e.g.\ \texttt{assert(k == 0)}, which holds if the integer \texttt{k} equals to 0.
 
-% Interoperability
-\section{Interoperability Between \ps and \cs}
-\label{sec:interop}
-
-Because \ps is built on top of the \cs language, the entry point of a \ps program (i.e.\ the first machine that the \ps runtime will instantiate and execute) must be explicitly declared inside a host \cs program (typically in the \texttt{Main} method), as follows:
-
-\begin{psharpNoLines}
-using Microsoft.PSharp;
-public class HostProgram {
-  static void Main(string[] args) {
-    PSharpRuntime.Create().CreateMachine(typeof(Server));
-    Console.ReadLine();
-  }
-}
-\end{psharpNoLines}
-
-\noindent
-The developer must first import the \ps runtime library (\texttt{Microsoft.PSharp.dll}), then create a \texttt{PSharpRuntime} instance, and finally invoke the \texttt{CreateMachine} runtime method to instantiate the first \ps machine (\texttt{Server} in the above example).
-
-The \texttt{CreateMachine} method is part of the .NET interoperability API (a set of methods for calling \ps from native \cs code) that is exposed by \texttt{PSharpRuntime}. This method accepts as a parameter the type of the machine to be instantiated, and returns an object of the \texttt{MachineId} type, which contains a reference to the created \ps machine. Because \texttt{CreateMachine} is an asynchronous method, we call the \texttt{Console.ReadLine} method, which pauses the main thread until a console input has been given, so that the host \cs program does not exit prematurely.
-
-The \texttt{PSharpRuntime} .NET interoperability API also provides the \texttt{SendEvent} method for sending events to a \ps machine from native \cs. This method accepts as parameters an object of type \texttt{MachineId}, an event and an optional payload. Although the developer has to use \texttt{CreateMachine} and \texttt{SendEvent} to call \ps code from native \cs, the opposite is straightforward, as it only requires accessing a \cs object from \ps code.
-
 % A Simple Example Program
-\section{A Simple Example Program}
-\label{sec:example}
+\subsection{A Simple Example Program}
+\label{sec:basics:example}
 
 The following \ps program shows a \texttt{Client} machine and a \texttt{Server} machine that communicate asynchronously by exchanging \texttt{Ping} and \texttt{Pong} events:
 
@@ -256,7 +233,30 @@ After the \texttt{Server} machine has initialized, the \ps runtime executes the 
 
 \texttt{Client} starts executing (asynchronously) when it is created by \texttt{Server}. The \texttt{Client} machine stores the received payload (which is a reference to the \texttt{Server} machine) in the \texttt{server} field (line 42), and then raises \texttt{Unit} to transition to the \texttt{Active} state. In the new state, \texttt{Client} calls the \texttt{SendPing} method to send a \texttt{Ping} event to \texttt{Server} (line 55). In turn, the \texttt{Server} machine dequeues \texttt{Ping} and handles it by sending a \texttt{Pong} event to \texttt{Client} (line 27), which subsequently responds by sending a new \texttt{Ping} event to \texttt{Server}. This asynchronous exchange of \texttt{Ping} and \texttt{Pong} events continues indefinitely.
 
-The above example can be written using \ps as a \cs library as follows:
+% Interoperability
+\section{Interoperability Between \ps and \cs}
+\label{sec:interop}
+
+Because \ps is built on top of the \cs language, the entry point of a \ps program (i.e.\ the first machine that the \ps runtime will instantiate and execute) must be explicitly declared inside a host \cs program (typically in the \texttt{Main} method), as follows:
+
+\begin{psharpNoLines}
+using Microsoft.PSharp;
+public class HostProgram {
+  static void Main(string[] args) {
+    PSharpRuntime.Create().CreateMachine(typeof(Server));
+    Console.ReadLine();
+  }
+}
+\end{psharpNoLines}
+
+\noindent
+The developer must first import the \ps runtime library (\texttt{Microsoft.PSharp.dll}), then create a \texttt{PSharpRuntime} instance, and finally invoke the \texttt{CreateMachine} runtime method to instantiate the first \ps machine (\texttt{Server} in the above example).
+
+The \texttt{CreateMachine} method is part of the .NET interoperability API (a set of methods for calling \ps from native \cs code) that is exposed by \texttt{PSharpRuntime}. This method accepts as a parameter the type of the machine to be instantiated, and returns an object of the \texttt{MachineId} type, which contains a reference to the created \ps machine. Because \texttt{CreateMachine} is an asynchronous method, we call the \texttt{Console.ReadLine} method, which pauses the main thread until a console input has been given, so that the host \cs program does not exit prematurely.
+
+The \texttt{PSharpRuntime} .NET interoperability API also provides the \texttt{SendEvent} method for sending events to a \ps machine from native \cs. This method accepts as parameters an object of type \texttt{MachineId}, an event and an optional payload. Although the developer has to use \texttt{CreateMachine} and \texttt{SendEvent} to call \ps code from native \cs, the opposite is straightforward, as it only requires accessing a \cs object from \ps code.
+
+The example of \S\ref{sec:basics:example} can be written using \ps as a \cs library as follows:
 
 \begin{psharp}
 // PingPong.cs
@@ -337,9 +337,126 @@ A state transition can be declared using the \texttt{[OnEventGotoState(...)]} at
 
 Note that even when using \ps as a \cs library, the program has to still be compiled using the \ps compiler as the compiler performs some important static checking to find \ps syntax-related errors and rewriting (e.g.\ a \texttt{return} statement is instrumented after a \texttt{raise}).
 
+% Advanced features of P#
+\section{Advanced features of \ps}
+\label{sec:advanced}
+
+The following is a discussion of more advanced features of \ps, such as explicit termination of machines, modeling components and the environment of a system, and specifying safety and liveness properties.
+
+\subsection{Explicit termination of \ps machines}
+\label{sec:termination}
+
+In order to terminate a \ps machine explicitly, it must dequeue a special event named \texttt{halt}, which is provided by \ps (the user cannot declare it). A \texttt{halt} event (\texttt{Halt} when using \ps as a library) can be raised and/or send to another machine. Termination of a machine due to an unhandled \texttt{halt} event is valid behavior (the \ps runtime does not report an error). From the point of view of formal operational semantics, a halted machine is fully receptive and consumes any event that is sent to it. The \ps runtime implements this semantics efficiently by cleaning up resources allocated to a halted machine and recording that the machine has halted. An event sent to a halted machine is simply dropped. A halted machine cannot be restarted; it remains halted forever.
+
+% Modeling System Components using P#
+\subsection{Modeling System Components using \ps}
+\label{sec:advanced:modeling}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=.7\linewidth]{figures/example_code}
+\caption[Pseudocode of a simple distributed storage system]{Pseudocode of a simple distributed storage system that is responsible for replicating the data sent by a client.}
+\label{fig:example}
+\end{figure*}
+
+Figure~\ref{fig:example} presents the pseudocode of a simple distributed storage system that was contrived for the purposes of explaining our \ps testing methodology. The system consists of a client, a server and three storage nodes (SNs). The client sends the server a \texttt{ClientReq} message that contains data to be replicated (\texttt{DataToReplicate}), and then waits to get an acknowledgement (by calling the \texttt{receive} method) before sending the next request. When the server receives \texttt{ClientReq}, it first stores the data locally (in the \texttt{Data} field), and then broadcasts a \texttt{ReplReq} message to all SNs. When an SN receives \texttt{ReplReq}, it handles the message by storing the received data locally (by calling the \texttt{store} method). Each SN has a timer installed, which sends periodic \texttt{Timeout} messages. Upon receiving \texttt{Timeout}, an SN sends a \texttt{Sync} message to the server that contains the storage log. The server handles the \texttt{Sync} message by calling the \texttt{isUpToDate} method to check if the SN log is up-to-date. If it is not, the server sends a repeat \texttt{ReplReq} message to the outdated SN. If the SN log is up-to-date, then the server increments a replica counter by one. Finally, when there are three replicas available, the server sends an \texttt{Ack} message to the client.
+
+There are two bugs in this example. The first bug is that the server does not keep track of unique replicas. The replica counter increments upon each up-to-date \texttt{Sync}, even if the syncing SN is already considered a replica. This means that the server might send an \texttt{Ack} message when fewer than three replicas exist, which is erroneous behaviour. The second bug is that the server does not reset the replica counter to 0 upon sending an \texttt{Ack} message. This means that when the client sends another \texttt{ClientReq} message, it will never receive \texttt{Ack}, and thus block indefinitely. To systematically test this example, the developer must first create a \ps test harness, and then specify the correctness properties of the system. Figure~\ref{fig:example:model} illustrates a test harness that can find the above two bugs.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=.7\linewidth]{figures/example}
+\caption[The \ps test harness for the example in Figure~\ref{fig:example}]{The \ps test harness for the example in Figure~\ref{fig:example}.}
+\label{fig:example:model}
+\end{figure}
+
+Each box in the figure represents a concurrently running \ps machine, while an arrow represents an event being sent from one machine to another. We use three kinds of boxes: (i) a box with rounded corners and thick border denotes a real component wrapped inside a \ps machine; (ii) a box with thin border denotes a modeled component; and (iii) a box with dashed border denotes a special \ps machine used for safety or liveness checking (see \S\ref{sec:advanced:safety} and \S\ref{sec:advanced:liveness}).
+
+We do not model the server component since we want to test its actual implementation. The server is wrapped inside a \ps machine, which is responsible for (i) sending the system messages (as payload of a \ps event) via the \ps \texttt{send(...)} method, instead of the real network, and (ii) delivering received messages to the wrapped component. We model the SNs so that they store data in memory rather than on disk (which can be inefficient during testing). We also model the client so that it can drive the system by repeatedly sending a nondeterministically generated \texttt{ClientReq}, and then waiting for an \texttt{Ack} event. Finally, we model the timer so that \ps takes control of all time-related nondeterminism in the system. This allows the \ps testing engine to control when a \texttt{Timeout} event will be sent to the SNs during testing, and (systematically) explore different schedules.
+
+\ps uses object-oriented language features such as interfaces and dynamic method dispatch to connect the real code with the modeled code. Developers in industry are used to working with such features, and heavily employ them in testing production systems. In our experience, this significantly lowers the bar for engineering teams inside Microsoft to embrace \ps for testing.
+
+\subsection{Writing safety properties}
+\label{sec:advanced:safety}
+
+Safety property specifications generalize the notion of source code assertions; a safety property violation is a finite trace leading to an erroneous state. \ps supports the usual assertions for specifying safety properties that are local to a \ps machine (see \S\ref{sec:basics}), and also provides a way to specify global assertions in the form of a \emph{safety monitor}, a special \ps machine that can receive, but not send, events.
+
+A safety monitor maintains local state that is modified in response to events received from ordinary (non-monitor) machines. This local state is used to maintain a history of the computation that is relevant to the property being specified. An erroneous global behavior is flagged via an assertion on the private state of the safety monitor. Thus, a monitor cleanly separates the instrumentation state required for specification (inside the monitor) from the program state (outside the monitor).
+
+The first bug in the example of \S\ref{sec:advanced:modeling} is a safety bug. To find it, the developer can write a safety monitor (see Figure~\ref{fig:example:model}) that contains a map from unique SN ids to a Boolean value, which denotes if the SN is a replica or not. Each time an SN replicates the latest data, it notifies the monitor to update the map. Each time the server issues an \texttt{Ack}, it also notifies the monitor. If the monitor detects that an \texttt{Ack} was sent without three replicas actually existing, a safety violation is triggered. The following code snippet shows the \ps source code for this safety monitor:
+
+\begin{psharp}
+monitor SafetyMonitor {
+  // Map from unique SNs ids to a boolean value
+  // that denotes if a node is replica or not
+  Dictionary<int, bool> replicas;
+
+  start state Checking {
+    entry {
+      var node_ids = (HashSet<int>)payload;
+      this.replicas = new Dictionary<int, bool>();
+      foreach (var id in node_ids) {
+        this.replicas.Add(id, false);
+      }
+    }
+    
+    // Notification that the SN is up-to-date
+    on NotifyUpdated do {
+      var node_id = (int)payload;
+      this.replicas[node_id] = true;
+    };
+    
+    // Notification that the SN is out-of-date
+    on NotifyOutdated do {
+      var node_id = (int)payload;
+      this.replicas[node_id] = false;
+    };
+    
+    // Notification that an Ack was issued
+    on NotifyAck do {
+      // Assert that 3 replicas exist
+      assert(this.replicas.All(n => n.Value));
+    };
+  }
+}
+\end{psharp}
+
+\subsection{Writing liveness properties}
+\label{sec:advanced:liveness}
+
+Liveness property specifications generalize nontermination; a liveness property violation is an infinite trace that exhibits lack of progress. Typically, a liveness property is specified via a temporal logic formula. We take a different approach and allow the developers to write a \emph{liveness monitor}. Similar to a safety monitor, a liveness monitor can receive, but not send, events.
+
+A liveness monitor contains two special states: the \emph{hot} and the \emph{cold} state. The hot state denotes a point in the execution where progress is required, but has not happened yet; e.g.\ a node has failed, but a new one has not launched yet. A liveness monitor transitions to the hot state when it is notified that the system must make progress. A liveness monitor leaves the hot state and enters the cold state when it is notified that the system has progressed. An infinite execution is erroneous if the liveness monitor stays in the hot state for an infinitely long period of time. Our liveness monitors can encode arbitrary temporal logic properties.
+
+A liveness property violation is witnessed by an \emph{infinite} execution in which all concurrently executing \ps machines are \emph{fairly} scheduled. Since it is impossible to generate an infinite execution by executing a program for a finite amount of time, our implementation of liveness checking in \ps approximates an infinite execution using several heuristics. In this work, we consider an execution longer than a large user-supplied bound as an ``infinite'' execution. Note that checking for fairness is not relevant when using this heuristic, due to our pragmatic use of a large bound.
+
+The second bug in the example of \S\ref{sec:advanced:modeling} is a liveness bug. To detect it, the developer can write a liveness monitor (see Figure~\ref{fig:example:model}) that transitions from a hot state, which denotes that the client sent a \texttt{ClientReq} and waits for an \texttt{Ack}, to a cold state, which denotes that the server has sent an \texttt{Ack} in response to the last \texttt{ClientReq}. Each time a server receives a \texttt{ClientReq}, it notifies the monitor to transition to the hot state. Each time the server issues an \texttt{Ack}, it notifies the monitor to transition to the cold state. If the monitor is in a hot state when the bounded infinite execution terminates, a liveness violation is triggered. The following code snippet shows the \ps source code for this liveness monitor:
+
+\begin{psharp}
+monitor LivenessMonitor {
+  start hot state Progressing {
+    // Notification that the server issued an Ack
+    on NotifyAck do {
+      raise(Unit);
+    };
+    on Unit goto Progressed;
+  }
+  
+  cold state Progressed {
+    // Notification that server received ClientReq
+    on NotifyClientRequest do {
+      raise(Unit);
+    };
+    on Unit goto Progressing;
+  }
+}
+\end{psharp}
+
 % The P# compiler
-\subsection{Compiling and Testing \ps Programs}
-\label{psharp:coding:compilation}
+\section{Compiling and Testing \ps Programs}
+\label{sec:compilation}
+
+To compile a \ps program, the developer must use the \ps compiler (\texttt{PSharpCompiler.exe}), which is built on top of the Microsoft Roslyn compiler. The \ps compilation process consists of two phases: \emph{parsing} and \emph{rewriting}. In the parsing phase, the input \ps program is parsed using a recursive-descent parser to produce an abstract syntax tree (AST). In the rewriting phase, the \ps compiler traverses the produced AST, and rewrites all \ps statements to native (intermediate) \cs code. Finally, the \ps compiler invokes the Roslyn compiler to build the intermediate \cs program, link it with the \ps runtime library, and produce a .NET executable.
 
 \begin{figure}[t]
 \centering
@@ -347,8 +464,6 @@ Note that even when using \ps as a \cs library, the program has to still be comp
 \caption{The typical \ps workflow.}
 \label{fig:workflow}
 \end{figure}
-
-To compile a \ps program, the developer must use the \ps compiler (\texttt{PSharpCompiler.exe}), which is built on top of the Microsoft Roslyn compiler. The \ps compilation process consists of two phases: \emph{parsing} and \emph{rewriting}. In the parsing phase, the input \ps program is parsed using a recursive-descent parser to produce an abstract syntax tree (AST). In the rewriting phase, the \ps compiler traverses the produced AST, and rewrites all \ps statements to native (intermediate) \cs code. Finally, the \ps compiler invokes the Roslyn compiler to build the intermediate \cs program, link it with the \ps runtime library, and produce a .NET executable.
 
 To test a \ps program, the developer must use the \texttt{PSharpTester.exe} systematic testing tool (see \textcolor{blue}{\url{https://github.com/p-org/PSharp}} for instructions), or use the \ps systematic testing APIs, as follows:
 
@@ -383,36 +498,6 @@ namespace Example
 \end{psharp}
 
 The developer must first create a \texttt{Configuration} object, which declares testing options such as the number of testing iterations. Next, the developer must create a \texttt{TestingEngine}, passing the configuration instance and the entry point to the test (in our case \texttt{Execute}), which must be annotated with the \texttt{[Microsoft.PSharp.Test]} attribute, as arguments. Finally, the \texttt{Run} method must be invoked to start testing the \ps program.
-
-% Advanced features of P#
-\section{Advanced features of \ps}
-\label{sec:advanced}
-
-The following is a discussion of more advanced features of \ps, such as termination of machines, specifying safety and liveness properties, and modeling the environment.
-
-\subsection{Termination of \ps machines}
-\label{sec:termination}
-
-In order to terminate a \ps machine cleanly, it must dequeue a special event named \texttt{halt}, which is provided by \ps (the user cannot declare it). A \texttt{halt} event (\texttt{Halt} when using \ps as a library) can be raised and/or send to another machine. Termination of a machine due to an unhandled \texttt{halt} event is valid behavior (the \ps runtime does not report an error). From the point of view of formal operational semantics, a halted machine is fully receptive and consumes any event that is sent to it. The \ps runtime implements this semantics efficiently by cleaning up resources allocated to a halted machine and recording that the machine has halted. An event sent to a halted machine is simply dropped. A halted machine cannot be restarted; it remains halted forever.
-
-\subsection{Writing safety properties}
-\label{sec:safety}
-
-The most important safety specification of a \ps program is that every event dequeued by a machine is handled; otherwise, the \ps runtime reports an unhandled event error. The PingPong program satisfies this specification since the \texttt{Server} machine handles the \texttt{Ping} event and the \texttt{Client} machine handles the \texttt{Pong} event in every state where an event dequeue is possible.
-
-TODO
-
-\subsection{Writing liveness properties}
-\label{sec:liveness}
-
-TODO
-
-\subsection{Modeling the environment}
-\label{sec:modeling}
-
-The following example illustrates the more advanced features of the \ps language. This program implements a failure detection protocol. A \texttt{FailureDetector} machine is given a list of machines, each of which represents a daemon running at a node of a distributed system. The \texttt{FailureDetector} sends each machine in the list a \texttt{Ping} event and determines whether a machine has failed. A machine has failed if it does not respond with a \texttt{Pong} event within a certain time period. The \texttt{FailureDetector} uses an operating system timer to implement the bounded wait for the \texttt{Pong} event.
-
-TODO
 
 %\newpage
 
