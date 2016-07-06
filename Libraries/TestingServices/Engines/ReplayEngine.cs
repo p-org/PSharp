@@ -190,14 +190,14 @@ namespace Microsoft.PSharp.TestingServices
 
                 try
                 {
-                    // user-provided cleanup for the iteration
+                    // Invokes user-provided cleanup for this iteration.
                     if (base.TestIterationDisposeMethod != null)
                     {
                         // Disposes the test state.
                         base.TestIterationDisposeMethod.Invoke(null, new object[] { });
                     }
 
-                    // user-provided cleanup for all iterations
+                    // Invokes user-provided cleanup for all iterations.
                     if (base.TestDisposeMethod != null)
                     {
                         // Disposes the test state.

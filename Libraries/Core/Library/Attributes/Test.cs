@@ -31,15 +31,15 @@ namespace Microsoft.PSharp
     public sealed class TestInit : Attribute { }
 
     /// <summary>
-    /// Attribute for declaring a cleanup method
-    /// to be called when all test iteration terminate.
+    /// Attribute for declaring a cleanup method to be
+    /// called when all test iterations terminate.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method)]
     public sealed class TestDispose : Attribute { }
 
     /// <summary>
-    /// Attribute for declaring a cleanup method
-    /// to be called when each test iteration terminates.
+    /// Attribute for declaring a cleanup method to be
+    /// called when each test iteration terminates.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method)]
     public sealed class TestIterationDispose : Attribute { }
