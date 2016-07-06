@@ -265,6 +265,23 @@ namespace Microsoft.PSharp.TestingServices
                     // Wait for test to terminate.
                     runtime.Wait();
 
+                    // user-provided cleanup for the iteration
+                    try
+                    {
+                        if (base.TestIterationDisposeMethod != null)
+                        {
+                            // Disposes the test state.
+                            base.TestIterationDisposeMethod.Invoke(null, new object[] { });
+                        }
+                    }
+                    catch (TargetInvocationException ex)
+                    {
+                        if (!(ex.InnerException is TaskCanceledException))
+                        {
+                            ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+                        }
+                    }
+
                     if (base.Configuration.EnableVisualization)
                     {
                         base.Visualizer.Refresh();
