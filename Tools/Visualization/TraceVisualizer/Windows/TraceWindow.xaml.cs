@@ -81,6 +81,45 @@ namespace Microsoft.PSharp.Visualization
                         }
                     }
                 }
+                else if (header.Equals("Sender Machine"))
+                {
+                    for (int i = 0; i < this.BugTraceView.Items.Count; i++)
+                    {
+                        DataGridRow row = (DataGridRow)this.BugTraceView.ItemContainerGenerator.ContainerFromIndex(i);
+                        TextBlock cellContent = this.BugTraceView.Columns[1].GetCellContent(row) as TextBlock;
+                        if (cellContent != null && cellContent.Text != null &&
+                            !cellContent.Text.Equals(item.SenderMachine))
+                        {
+                            row.Background = new SolidColorBrush(Colors.LightGray);
+                        }
+                    }
+                }
+                else if (header.Equals("Target Machine"))
+                {
+                    for (int i = 0; i < this.BugTraceView.Items.Count; i++)
+                    {
+                        DataGridRow row = (DataGridRow)this.BugTraceView.ItemContainerGenerator.ContainerFromIndex(i);
+                        TextBlock cellContent = this.BugTraceView.Columns[3].GetCellContent(row) as TextBlock;
+                        if (cellContent != null && cellContent.Text != null &&
+                            !cellContent.Text.Equals(item.TargetMachine))
+                        {
+                            row.Background = new SolidColorBrush(Colors.LightGray);
+                        }
+                    }
+                }
+                else if (header.Equals("Event"))
+                {
+                    for (int i = 0; i < this.BugTraceView.Items.Count; i++)
+                    {
+                        DataGridRow row = (DataGridRow)this.BugTraceView.ItemContainerGenerator.ContainerFromIndex(i);
+                        TextBlock cellContent = this.BugTraceView.Columns[2].GetCellContent(row) as TextBlock;
+                        if (cellContent != null && cellContent.Text != null &&
+                            !cellContent.Text.Equals(item.Event))
+                        {
+                            row.Background = new SolidColorBrush(Colors.LightGray);
+                        }
+                    }
+                }
             }
         }
 
@@ -115,8 +154,25 @@ namespace Microsoft.PSharp.Visualization
                     e = traceStep.Event;
                 }
 
-                string senderMachine = $"{traceStep.Machine}({traceStep.MachineId})";
-                string targetMachine = $"{traceStep.TargetMachine}({traceStep.TargetMachineId})";
+                string senderMachine = "";
+                if (traceStep.MachineId > 0)
+                {
+                    senderMachine = $"{traceStep.Machine}({traceStep.MachineId})";
+                }
+                else
+                {
+                    senderMachine = $"Environment";
+                }
+
+                string targetMachine = "";
+                if (traceStep.TargetMachineId > 0)
+                {
+                    targetMachine = $"{traceStep.TargetMachine}({traceStep.TargetMachineId})";
+                }
+                else
+                {
+                    targetMachine = $"Environment";
+                }
 
                 traceList.Add(new BugTraceObject()
                 {

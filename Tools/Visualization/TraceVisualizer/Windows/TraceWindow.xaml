@@ -19,6 +19,7 @@
             </Menu>
             <DataGrid Name="BugTraceView"
                       AutoGenerateColumns="False"
+                      IsReadOnly="True"
                       HorizontalAlignment="Stretch"
                       VerticalAlignment="Stretch"
                       CurrentCellChanged="Row_CurrentCellChanged"
@@ -50,6 +51,17 @@
                         </Style.Triggers>
                     </Style>
                 </DataGrid.RowStyle>
+                <DataGrid.CellStyle>
+                    <Style TargetType="DataGridCell">
+                        <Setter Property="Foreground" Value="Black"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="{x:Null}"/>
+                                <Setter Property="BorderBrush" Value="{x:Null}"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </DataGrid.CellStyle>
             </DataGrid>
         </DockPanel>
     </Grid>
