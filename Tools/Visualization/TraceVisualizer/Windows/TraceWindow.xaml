@@ -22,12 +22,12 @@
           HorizontalAlignment="Stretch"
           VerticalAlignment="Stretch" Margin="0,0,0,0.333">
                 <DataGrid.Columns >
-                    <DataGridTextColumn Binding="{Binding Path=Type}" MinWidth="50" />
-                    <DataGridTextColumn Binding="{Binding Path=Machine}" MinWidth="50" />
-                    <DataGridTextColumn Binding="{Binding Path=MachineId}" MinWidth="50" />
-                    <DataGridTextColumn Binding="{Binding Path=TargetMachine}" MinWidth="50" />
-                    <DataGridTextColumn Binding="{Binding Path=TargetMachineId}" MinWidth="50" />
-                    <DataGridTextColumn Binding="{Binding Path=Event}" MinWidth="50" />
+                    <DataGridTextColumn Binding="{Binding Path=Type}" Header="Type" MinWidth="50" />
+                    <DataGridTextColumn Binding="{Binding Path=Machine}" Header="Machine" MinWidth="50" />
+                    <DataGridTextColumn Binding="{Binding Path=MachineId}" Header="MachineId" MinWidth="50" />
+                    <DataGridTextColumn Binding="{Binding Path=TargetMachine}" Header="Target" MinWidth="50" />
+                    <DataGridTextColumn Binding="{Binding Path=TargetMachineId}" Header="TargetId" MinWidth="50" />
+                    <DataGridTextColumn Binding="{Binding Path=Event}" Header="Event" MinWidth="50" />
                 </DataGrid.Columns>
             </DataGrid>
         </DockPanel>

@@ -17,13 +17,13 @@ namespace Microsoft.PSharp.Visualization
     /// <summary>
     /// Class implementing a bug trace object.
     /// </summary>
-    internal class BugTraceObject
+    public class BugTraceObject
     {
-        internal string Type { get; set; }
-        internal string Machine { get; set; }
-        internal int MachineId { get; set; }
-        internal string TargetMachine { get; set; }
-        internal int TargetMachineId { get; set; }
-        internal string Event { get; set; }
+        public string Type { get; set; }
+        public string Machine { get; set; }
+        public int MachineId { get; set; }
+        public string TargetMachine { get; set; }
+        public int TargetMachineId { get; set; }
+        public string Event { get; set; }
     }
 }
