@@ -77,14 +77,15 @@ namespace Microsoft.PSharp.Visualization
                     e = traceStep.Event;
                 }
 
+                string senderMachine = $"{traceStep.Machine}({traceStep.MachineId})";
+                string targetMachine = $"{traceStep.TargetMachine}({traceStep.TargetMachineId})";
+
                 traceList.Add(new BugTraceObject()
                 {
                     Type = type,
-                    Machine = traceStep.Machine,
-                    MachineId = traceStep.MachineId,
-                    TargetMachine = traceStep.TargetMachine,
-                    TargetMachineId = traceStep.TargetMachineId,
-                    Event = e
+                    SenderMachine = senderMachine,
+                    Event = e,
+                    TargetMachine = targetMachine
                 });
             }
 
