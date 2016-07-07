@@ -17,24 +17,35 @@
                 <MenuItem Header="_Visualize">
                 </MenuItem>
             </Menu>
-            <DataGrid AutoGenerateColumns="False" 
-          Name="BugTraceList" 
-          HorizontalAlignment="Stretch"
-          VerticalAlignment="Stretch" Margin="0,0,0,0.333">
-                <DataGrid.Columns >
-                    <DataGridTextColumn Binding="{Binding Path=Type}" Header="Type" MinWidth="60"/>
-                    <DataGridTextColumn Binding="{Binding Path=SenderMachine}" Header="Sender Machine" MinWidth="150"/>
-                    <DataGridTextColumn Binding="{Binding Path=Event}" Header="Event" MinWidth="120"/>
-                    <DataGridTextColumn Binding="{Binding Path=TargetMachine}" Header="Target Machine" MinWidth="150"/>
+            <DataGrid Name="BugTraceView"
+                      AutoGenerateColumns="False"
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Stretch"
+                      CurrentCellChanged="Row_CurrentCellChanged"
+                      MouseLeave="Row_MouseLeave"
+                      Margin="0,0,0,0.333">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Binding="{Binding Path=Type}"
+                                        Header="Type"
+                                        MinWidth="60"/>
+                    <DataGridTextColumn Binding="{Binding Path=SenderMachine}"
+                                        Header="Sender Machine"
+                                        MinWidth="150"/>
+                    <DataGridTextColumn Binding="{Binding Path=Event}"
+                                        Header="Event"
+                                        MinWidth="120"/>
+                    <DataGridTextColumn Binding="{Binding Path=TargetMachine}"
+                                        Header="Target Machine"
+                                        MinWidth="150"/>
                 </DataGrid.Columns>
                 <DataGrid.RowStyle>
                     <Style TargetType="DataGridRow">
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding Path=Type}" Value="Create">
-                                <Setter Property="Background" Value="Aqua"></Setter>
+                                <Setter Property="Background" Value="Aqua"/>
                             </DataTrigger>
                             <DataTrigger Binding="{Binding Path=Type}" Value="Send">
-                                <Setter Property="Background" Value="GreenYellow"></Setter>
+                                <Setter Property="Background" Value="GreenYellow"/>
                             </DataTrigger>
                         </Style.Triggers>
                     </Style>

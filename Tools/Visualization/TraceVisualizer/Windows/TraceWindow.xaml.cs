@@ -48,8 +48,46 @@ namespace Microsoft.PSharp.Visualization
         private void MenuItem_Load_Click(object sender, RoutedEventArgs e)
         {
             this.BugTrace = IO.LoadTrace();
-            var traceList = this.GetObservableTrace();
-            this.BugTraceList.ItemsSource = traceList;
+            if (this.BugTrace != null)
+            {
+                var traceList = this.GetObservableTrace();
+                this.BugTraceView.ItemsSource = traceList;
+            }
+        }
+
+        private void Row_CurrentCellChanged(object sender, EventArgs e)
+        {
+            //MessageBox.Show((string)this.BugTraceView.CurrentColumn.Header);
+
+            // Restores the trace view style.
+            this.RestoreTraceViewStyle();
+
+            if (this.BugTraceView.CurrentColumn.Header is string &&
+                this.BugTraceView.CurrentCell.Item is BugTraceObject)
+            {
+                string header = (string)this.BugTraceView.CurrentColumn.Header;
+                BugTraceObject item = (BugTraceObject)this.BugTraceView.CurrentCell.Item;
+
+                if (header.Equals("Type"))
+                {
+                    for (int i = 0; i < this.BugTraceView.Items.Count; i++)
+                    {
+                        DataGridRow row = (DataGridRow)this.BugTraceView.ItemContainerGenerator.ContainerFromIndex(i);
+                        TextBlock cellContent = this.BugTraceView.Columns[0].GetCellContent(row) as TextBlock;
+                        if (cellContent != null && cellContent.Text != null &&
+                            !cellContent.Text.Equals(item.Type))
+                        {
+                            row.Background = new SolidColorBrush(Colors.LightGray);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void Row_MouseLeave(object sender, EventArgs e)
+        {
+            // Restores the trace view style.
+            this.RestoreTraceViewStyle();
         }
 
         #endregion
@@ -90,6 +128,29 @@ namespace Microsoft.PSharp.Visualization
             }
 
             return traceList;
+        }
+
+        /// <summary>
+        /// Restores the style of the trace view.
+        /// </summary>
+        private void RestoreTraceViewStyle()
+        {
+            for (int i = 0; i < this.BugTraceView.Items.Count; i++)
+            {
+                DataGridRow row = (DataGridRow)this.BugTraceView.ItemContainerGenerator.ContainerFromIndex(i);
+                TextBlock cellContent = this.BugTraceView.Columns[0].GetCellContent(row) as TextBlock;
+                if (cellContent != null && cellContent.Text != null)
+                {
+                    if (cellContent.Text.Equals("Create"))
+                    {
+                        row.Background = new SolidColorBrush(Colors.Aqua);
+                    }
+                    else if (cellContent.Text.Equals("Send"))
+                    {
+                        row.Background = new SolidColorBrush(Colors.GreenYellow);
+                    }
+                }
+            }
         }
 
         #endregion

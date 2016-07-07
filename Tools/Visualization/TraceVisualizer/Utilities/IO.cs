@@ -43,10 +43,13 @@ namespace Microsoft.PSharp.Visualization
             if (result == true)
             {
                 string fileName = openFileDialog.FileName;
-                using (Stream stream = File.Open(fileName, FileMode.Open))
+                if (fileName != null)
                 {
-                    DataContractSerializer serializer = new DataContractSerializer(typeof(BugTrace));
-                    trace = (BugTrace)serializer.ReadObject(stream);
+                    using (Stream stream = File.Open(fileName, FileMode.Open))
+                    {
+                        DataContractSerializer serializer = new DataContractSerializer(typeof(BugTrace));
+                        trace = (BugTrace)serializer.ReadObject(stream);
+                    }
                 }
             }
 
