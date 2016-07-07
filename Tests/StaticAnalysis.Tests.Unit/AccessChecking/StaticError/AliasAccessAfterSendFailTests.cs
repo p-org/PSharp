@@ -79,6 +79,7 @@ class M : Machine
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
             configuration.Verbose = 2;
+            configuration.EnableDataRaceAnalysis = true;
 
             IO.StartWritingToMemory();
 

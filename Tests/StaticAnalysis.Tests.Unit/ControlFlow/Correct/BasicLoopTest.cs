@@ -48,6 +48,7 @@ class M : Machine
 }";
 
             var configuration = Configuration.Create();
+            configuration.EnableDataRaceAnalysis = true;
             configuration.Verbose = 2;
 
             IO.StartWritingToMemory();

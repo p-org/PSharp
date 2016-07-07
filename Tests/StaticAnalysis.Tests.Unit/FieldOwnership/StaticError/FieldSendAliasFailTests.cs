@@ -82,6 +82,7 @@ class M : Machine
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
             configuration.Verbose = 2;
+            configuration.EnableDataRaceAnalysis = true;
             configuration.DoStateTransitionAnalysis = false;
 
             IO.StartWritingToMemory();
@@ -165,6 +166,7 @@ class M : Machine
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
             configuration.Verbose = 2;
+            configuration.EnableDataRaceAnalysis = true;
             configuration.DoStateTransitionAnalysis = false;
 
             IO.StartWritingToMemory();
@@ -248,6 +250,7 @@ class M : Machine
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
             configuration.Verbose = 2;
+            configuration.EnableDataRaceAnalysis = true;
             configuration.DoStateTransitionAnalysis = false;
 
             IO.StartWritingToMemory();
@@ -340,6 +343,7 @@ class M : Machine
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
             configuration.Verbose = 2;
+            configuration.EnableDataRaceAnalysis = true;
             configuration.DoStateTransitionAnalysis = false;
 
             IO.StartWritingToMemory();
@@ -424,12 +428,14 @@ class M : Machine
   Letter otherLetter = new Letter(""test"", 0);
   otherLetter = this.Letter; // ERROR
   return otherLetter;
+ }
 }
 }";
             
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
             configuration.Verbose = 2;
+            configuration.EnableDataRaceAnalysis = true;
             configuration.DoStateTransitionAnalysis = false;
 
             IO.StartWritingToMemory();
@@ -507,6 +513,7 @@ class M : Machine
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
             configuration.Verbose = 2;
+            configuration.EnableDataRaceAnalysis = true;
             configuration.DoStateTransitionAnalysis = false;
 
             IO.StartWritingToMemory();
@@ -601,6 +608,7 @@ class M : Machine
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
             configuration.Verbose = 2;
+            configuration.EnableDataRaceAnalysis = true;
             configuration.DoStateTransitionAnalysis = false;
 
             IO.StartWritingToMemory();

@@ -92,12 +92,28 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             this.FindAllStates();
             this.AnalyzeAllStates();
-            this.Summarize();
         }
 
         #endregion
 
         #region internal methods
+
+        /// <summary>
+        /// Summarizes the state-machine.
+        /// </summary>
+        internal void Summarize()
+        {
+            foreach (var method in this.GetMethodDeclarations())
+            {
+                if (method.Body == null ||
+                    this.MethodSummaries.ContainsKey(method))
+                {
+                    continue;
+                }
+
+                this.SummarizeMethod(method);
+            }
+        }
 
         /// <summary>
         /// Returns all the successor summaries.
@@ -107,8 +123,12 @@ namespace Microsoft.PSharp.StaticAnalysis
         internal ISet<MethodSummary> GetSuccessorSummaries(MethodSummary summary)
         {
             var summaries = new HashSet<MethodSummary>();
-            var fromStates = new HashSet<MachineState>();
+            if (this.MethodSummaries.Count == 0)
+            {
+                return summaries;
+            }
 
+            var fromStates = new HashSet<MachineState>();
             foreach (var state in this.MachineStates)
             {
                 var summaryActions = state.MachineActions.FindAll(action
@@ -175,23 +195,6 @@ namespace Microsoft.PSharp.StaticAnalysis
             foreach (var state in this.MachineStates)
             {
                 state.Analyze();
-            }
-        }
-
-        /// <summary>
-        /// Summarizes the state-machine.
-        /// </summary>
-        private void Summarize()
-        {
-            foreach (var method in this.GetMethodDeclarations())
-            {
-                if (method.Body == null ||
-                    this.MethodSummaries.ContainsKey(method))
-                {
-                    continue;
-                }
-
-                this.SummarizeMethod(method);
             }
         }
 

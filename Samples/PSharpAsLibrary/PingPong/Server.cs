@@ -3,7 +3,7 @@ using Microsoft.PSharp;
 
 namespace PingPong
 {
-    internal class Server : Machine
+    internal class Server<T> : Machine
     {
         MachineId Client;
 
@@ -15,12 +15,12 @@ namespace PingPong
         {
             this.Client = this.CreateMachine(typeof(Client), "TheUltimateClientMachine");
             this.Send(this.Client, new Config(this.Id));
-            this.Goto(typeof(Active));
+            this.Goto(typeof(Active<int>));
         }
 
         [OnEntry(nameof(ActiveOnEntry))]
         [OnEventDoAction(typeof(Ping), nameof(SendPong))]
-        class Active : MachineState { }
+        class Active<N> : MachineState { }
 
         void ActiveOnEntry()
         {

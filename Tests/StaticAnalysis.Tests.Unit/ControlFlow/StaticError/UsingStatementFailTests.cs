@@ -78,6 +78,7 @@ class M : Machine
 
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
+            configuration.EnableDataRaceAnalysis = true;
 
             IO.StartWritingToMemory();
 

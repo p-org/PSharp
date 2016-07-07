@@ -101,6 +101,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Analyses\NoGenericStatesAnalysisPass.cs" />
     <Compile Include="Summarization\StateMachines\StateTransition.cs" />
     <Compile Include="Analyses\OwnershipAnalysisPass.cs" />
     <Compile Include="Analyses\GivesUpOwnershipAnalysisPass.cs" />

@@ -73,12 +73,7 @@ namespace Microsoft.PSharp.Utilities
         /// List of assembly paths to used-defined compiler passes.
         /// </summary>
         internal ISet<string> CustomCompilerPassAssemblyPaths;
-
-        /// <summary>
-        /// Runs the analysis stage of the compiler.
-        /// </summary>
-        public bool RunStaticAnalysis;
-
+        
         /// <summary>
         /// Reports the control-flow information.
         /// </summary>
@@ -93,6 +88,11 @@ namespace Microsoft.PSharp.Utilities
         /// Reports the full data-flow information.
         /// </summary>
         public bool ShowFullDataFlowInformation;
+
+        /// <summary>
+        /// Enables the data race analysis passes of the compiler.
+        /// </summary>
+        public bool EnableDataRaceAnalysis;
 
         /// <summary>
         /// Perform the state transition analysis.
@@ -318,11 +318,11 @@ namespace Microsoft.PSharp.Utilities
             this.OptimizationTarget = OptimizationTarget.Release;
 
             this.CustomCompilerPassAssemblyPaths = new HashSet<string>();
-
-            this.RunStaticAnalysis = false;
+            
             this.ShowControlFlowInformation = false;
             this.ShowDataFlowInformation = false;
             this.ShowFullDataFlowInformation = false;
+            this.EnableDataRaceAnalysis = false;
             this.DoStateTransitionAnalysis = false;
 
             this.AssemblyToBeAnalyzed = "";

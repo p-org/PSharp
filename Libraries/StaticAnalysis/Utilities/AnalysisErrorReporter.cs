@@ -60,7 +60,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <summary>
         /// Prints the static analysis error statistics.
         /// </summary>
-        public static void PrintStats()
+        public static void PrintStats(bool exitOnError = false)
         {
             IO.PrintLine(AnalysisErrorReporter.GetStats());
         }

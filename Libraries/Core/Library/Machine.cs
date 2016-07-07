@@ -1342,11 +1342,25 @@ namespace Microsoft.PSharp
                 foreach (var type in StateTypeMap[machineType])
                 {
                     Type stateType = type;
-                    if (this.GetType().IsGenericType)
+                    if (type.IsGenericType)
                     {
-                        stateType = type.MakeGenericType(this.GetType().GetGenericArguments());
+                        Type declaringType = this.GetType();
+                        while (!declaringType.IsGenericType ||
+                            !type.DeclaringType.FullName.Equals(declaringType.FullName.Substring(
+                            0, declaringType.FullName.IndexOf('['))))
+                        {
+                            Console.WriteLine(declaringType.BaseType.FullName);
+                            declaringType = declaringType.BaseType;
+                        }
+
+                        Console.WriteLine(typeof(object).BaseType);
+
+                        if (declaringType.IsGenericType)
+                        {
+                            stateType = type.MakeGenericType(declaringType.GetGenericArguments());
+                        }
                     }
-                    
+
                     ConstructorInfo constructor = stateType.GetConstructor(Type.EmptyTypes);
                     var lambda = Expression.Lambda<Func<MachineState>>(
                         Expression.New(constructor)).Compile();

@@ -92,9 +92,9 @@ namespace Microsoft.PSharp.Utilities
 
                 base.Configuration.CustomCompilerPassAssemblyPaths.Add(option.Substring(6));
             }
-            else if (option.ToLower().Equals("/analyze"))
+            else if (option.ToLower().Equals("/check-races"))
             {
-                base.Configuration.RunStaticAnalysis = true;
+                base.Configuration.EnableDataRaceAnalysis = true;
             }
             else if (option.ToLower().Equals("/emit-control-flow"))
             {

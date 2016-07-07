@@ -83,12 +83,14 @@ class M : Machine
   Letter otherLetter = new Letter(""test"", 0);
   otherLetter = this.Letter;
   return otherLetter;
+ }
 }
 }";
             
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
             configuration.Verbose = 2;
+            configuration.EnableDataRaceAnalysis = true;
 
             IO.StartWritingToMemory();
 

@@ -62,7 +62,7 @@ struct Envelope
 
  public Envelope(string address, int id)
  {
-  this.Letter = new Letter("");
+  this.Letter = new Letter("""");
   this.Address = address;
   this.Id = id;
  }
@@ -115,6 +115,7 @@ class M : Machine
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
             configuration.Verbose = 2;
+            configuration.EnableDataRaceAnalysis = true;
             configuration.DoStateTransitionAnalysis = false;
 
             IO.StartWritingToMemory();
@@ -215,6 +216,7 @@ class M : Machine
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
             configuration.Verbose = 2;
+            configuration.EnableDataRaceAnalysis = true;
             configuration.DoStateTransitionAnalysis = false;
 
             IO.StartWritingToMemory();
@@ -311,6 +313,7 @@ class M : Machine
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
             configuration.Verbose = 2;
+            configuration.EnableDataRaceAnalysis = true;
             configuration.DoStateTransitionAnalysis = false;
 
             IO.StartWritingToMemory();
@@ -407,6 +410,7 @@ class M : Machine
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
             configuration.Verbose = 2;
+            configuration.EnableDataRaceAnalysis = true;
             configuration.DoStateTransitionAnalysis = false;
 
             IO.StartWritingToMemory();
@@ -499,6 +503,7 @@ class M : Machine
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
             configuration.Verbose = 2;
+            configuration.EnableDataRaceAnalysis = true;
             configuration.DoStateTransitionAnalysis = false;
 
             IO.StartWritingToMemory();
@@ -586,6 +591,7 @@ class M : Machine
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
             configuration.Verbose = 2;
+            configuration.EnableDataRaceAnalysis = true;
             configuration.DoStateTransitionAnalysis = false;
 
             IO.StartWritingToMemory();
@@ -667,6 +673,7 @@ class M : Machine
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
             configuration.Verbose = 2;
+            configuration.EnableDataRaceAnalysis = true;
             configuration.DoStateTransitionAnalysis = false;
 
             IO.StartWritingToMemory();
@@ -754,6 +761,7 @@ class M : Machine
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
             configuration.Verbose = 2;
+            configuration.EnableDataRaceAnalysis = true;
             configuration.DoStateTransitionAnalysis = false;
 
             IO.StartWritingToMemory();
@@ -842,6 +850,7 @@ class M : Machine
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
             configuration.Verbose = 2;
+            configuration.EnableDataRaceAnalysis = true;
             configuration.DoStateTransitionAnalysis = false;
 
             IO.StartWritingToMemory();
@@ -931,6 +940,7 @@ class M : Machine
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
             configuration.Verbose = 2;
+            configuration.EnableDataRaceAnalysis = true;
             configuration.DoStateTransitionAnalysis = false;
 
             IO.StartWritingToMemory();
@@ -1035,6 +1045,7 @@ class M : Machine
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
             configuration.Verbose = 2;
+            configuration.EnableDataRaceAnalysis = true;
             configuration.DoStateTransitionAnalysis = false;
 
             IO.StartWritingToMemory();

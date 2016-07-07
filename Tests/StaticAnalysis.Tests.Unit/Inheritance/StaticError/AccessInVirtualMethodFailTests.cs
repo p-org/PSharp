@@ -92,6 +92,7 @@ class M : Machine
 
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
+            configuration.EnableDataRaceAnalysis = true;
 
             IO.StartWritingToMemory();
 
@@ -174,7 +175,7 @@ class M : Machine
   this.Target = this.CreateMachine(typeof(M));
 
   Envelope envelope;
-  if (letter.Text == "")
+  if (letter.Text == """")
   {
     envelope = new Envelope();
   }
@@ -192,6 +193,7 @@ class M : Machine
 
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
+            configuration.EnableDataRaceAnalysis = true;
 
             IO.StartWritingToMemory();
 
@@ -274,7 +276,7 @@ class M : Machine
   this.Target = this.CreateMachine(typeof(M));
 
   Envelope envelope;
-  if (letter.Text == "")
+  if (letter.Text == """")
     envelope = new Envelope();
   else
     envelope = new SuperEnvelope();
@@ -288,6 +290,7 @@ class M : Machine
 
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
+            configuration.EnableDataRaceAnalysis = true;
 
             IO.StartWritingToMemory();
 
@@ -393,6 +396,7 @@ class M : Machine
 
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
+            configuration.EnableDataRaceAnalysis = true;
 
             IO.StartWritingToMemory();
 
@@ -503,6 +507,7 @@ class M : Machine
 
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
+            configuration.EnableDataRaceAnalysis = true;
 
             IO.StartWritingToMemory();
 
@@ -614,6 +619,7 @@ class M : Machine
 
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
+            configuration.EnableDataRaceAnalysis = true;
 
             IO.StartWritingToMemory();
 
@@ -730,6 +736,7 @@ class M : Machine
 
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
+            configuration.EnableDataRaceAnalysis = true;
 
             IO.StartWritingToMemory();
 
@@ -849,6 +856,7 @@ class M : Machine
 
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
+            configuration.EnableDataRaceAnalysis = true;
 
             IO.StartWritingToMemory();
 
@@ -969,6 +977,7 @@ class M : Machine
 
             var configuration = Configuration.Create();
             configuration.Verbose = 2;
+            configuration.EnableDataRaceAnalysis = true;
             configuration.DoStateTransitionAnalysis = false;
 
             IO.StartWritingToMemory();
