@@ -27,7 +27,6 @@ namespace PingPong
         {
             if (this.Counter == 5)
             {
-                this.Assert(false);
                 this.Raise(new Halt());
             }
         }
