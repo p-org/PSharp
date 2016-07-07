@@ -194,7 +194,7 @@ namespace Microsoft.PSharp.LanguageServices.Parsing
 
             if (base.Options.ExitOnError)
             {
-                ErrorReporter.ReportAndExit(this.ErrorLog.ToString());
+                IO.Error.ReportAndExit(this.ErrorLog.ToString());
             }
         }
 

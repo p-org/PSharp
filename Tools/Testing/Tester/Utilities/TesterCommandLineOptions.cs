@@ -63,7 +63,7 @@ namespace Microsoft.PSharp.Utilities
                     if (scheduler.Equals("random-coin") ||
                         !int.TryParse(scheduler.Substring(12), out i) && i >= 0)
                     {
-                        ErrorReporter.ReportAndExit("Please give a valid number of coin " +
+                        IO.Error.ReportAndExit("Please give a valid number of coin " +
                             "flip bound '/sch:random-coin:[bound]', where [bound] >= 0.");
                     }
 
@@ -76,7 +76,7 @@ namespace Microsoft.PSharp.Utilities
                     if (scheduler.Equals("pct") ||
                         !int.TryParse(scheduler.Substring(4), out i) && i >= 0)
                     {
-                        ErrorReporter.ReportAndExit("Please give a valid number of priority " +
+                        IO.Error.ReportAndExit("Please give a valid number of priority " +
                             "switch bound '/sch:pct:[bound]', where [bound] >= 0.");
                     }
 
@@ -97,7 +97,7 @@ namespace Microsoft.PSharp.Utilities
                     if (scheduler.Equals("db") ||
                         !int.TryParse(scheduler.Substring(3), out i) && i >= 0)
                     {
-                        ErrorReporter.ReportAndExit("Please give a valid delay " +
+                        IO.Error.ReportAndExit("Please give a valid delay " +
                             "bound '/sch:db:[bound]', where [bound] >= 0.");
                     }
 
@@ -110,7 +110,7 @@ namespace Microsoft.PSharp.Utilities
                     if (scheduler.Equals("rdb") ||
                         !int.TryParse(scheduler.Substring(4), out i) && i >= 0)
                     {
-                        ErrorReporter.ReportAndExit("Please give a valid delay " +
+                        IO.Error.ReportAndExit("Please give a valid delay " +
                             "bound '/sch:rdb:[bound]', where [bound] >= 0.");
                     }
 
@@ -128,7 +128,7 @@ namespace Microsoft.PSharp.Utilities
                     if (scheduler.Equals("pob") ||
                         !int.TryParse(scheduler.Substring(4), out i) && i >= 0)
                     {
-                        ErrorReporter.ReportAndExit("Please give a valid number of priority " +
+                        IO.Error.ReportAndExit("Please give a valid number of priority " +
                             "switch points '/sch:pob:[x]', where [x] >= 0.");
                     }
 
@@ -142,7 +142,7 @@ namespace Microsoft.PSharp.Utilities
                 }
                 else
                 {
-                    ErrorReporter.ReportAndExit("Please give a valid scheduling strategy " +
+                    IO.Error.ReportAndExit("Please give a valid scheduling strategy " +
                         "'/sch:[x]', where [x] is 'random', 'pct' or 'dfs' (other " +
                         "experimental strategies also exist, but are not listed here).");
                 }
@@ -152,7 +152,7 @@ namespace Microsoft.PSharp.Utilities
                 int i = 0;
                 if (!int.TryParse(option.Substring(3), out i) && i > 0)
                 {
-                    ErrorReporter.ReportAndExit("Please give a valid number of " +
+                    IO.Error.ReportAndExit("Please give a valid number of " +
                         "iterations '/i:[x]', where [x] > 0.");
                 }
 
@@ -163,7 +163,7 @@ namespace Microsoft.PSharp.Utilities
                 int i = 0;
                 if (!int.TryParse(option.Substring(10), out i) && i > 1)
                 {
-                    ErrorReporter.ReportAndExit("Please give a valid number of " +
+                    IO.Error.ReportAndExit("Please give a valid number of " +
                         "parallel tasks '/parallel:[x]', where [x] > 1.");
                 }
 
@@ -174,7 +174,7 @@ namespace Microsoft.PSharp.Utilities
                 int i = 0;
                 if (!int.TryParse(option.Substring(30), out i) && i >= 0)
                 {
-                    ErrorReporter.ReportAndExit("Please give a valid testing scheduler " +
+                    IO.Error.ReportAndExit("Please give a valid testing scheduler " +
                         "process id '/testing-process-scheduler-id:[x]', where [x] >= 0.");
                 }
 
@@ -185,7 +185,7 @@ namespace Microsoft.PSharp.Utilities
                 int i = 0;
                 if (!int.TryParse(option.Substring(20), out i) && i >= 0)
                 {
-                    ErrorReporter.ReportAndExit("Please give a valid testing " +
+                    IO.Error.ReportAndExit("Please give a valid testing " +
                         "process id '/testing-process-id:[x]', where [x] >= 0.");
                 }
 
@@ -208,7 +208,7 @@ namespace Microsoft.PSharp.Utilities
                 int seed;
                 if (!int.TryParse(option.Substring(10), out seed))
                 {
-                    ErrorReporter.ReportAndExit("Please give a valid random scheduling " +
+                    IO.Error.ReportAndExit("Please give a valid random scheduling " +
                         "seed '/sch-seed:[x]', where [x] is a signed 32-bit integer.");
                 }
 
@@ -219,7 +219,7 @@ namespace Microsoft.PSharp.Utilities
                 int i = 0;
                 if (!int.TryParse(option.Substring(11), out i) && i >= 0)
                 {
-                    ErrorReporter.ReportAndExit("Please give a valid number of max scheduling " +
+                    IO.Error.ReportAndExit("Please give a valid number of max scheduling " +
                         " steps to explore '/max-steps:[x]', where [x] >= 0.");
                 }
 
@@ -234,7 +234,7 @@ namespace Microsoft.PSharp.Utilities
                 int i = 0;
                 if (!int.TryParse(option.Substring(8), out i) && i >= 0)
                 {
-                    ErrorReporter.ReportAndExit("Please give a valid safety prefix " +
+                    IO.Error.ReportAndExit("Please give a valid safety prefix " +
                         "bound '/prefix:[x]', where [x] >= 0.");
                 }
 
@@ -273,7 +273,7 @@ namespace Microsoft.PSharp.Utilities
         {
             if (base.Configuration.AssemblyToBeAnalyzed.Equals(""))
             {
-                ErrorReporter.ReportAndExit("Please give a valid path to a P# " +
+                IO.Error.ReportAndExit("Please give a valid path to a P# " +
                     "program's dll using '/test:[x]'.");
             }
 
@@ -290,7 +290,7 @@ namespace Microsoft.PSharp.Utilities
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.PrioritizedOperationBounding &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.MaceMC)
             {
-                ErrorReporter.ReportAndExit("Please give a valid scheduling strategy " +
+                IO.Error.ReportAndExit("Please give a valid scheduling strategy " +
                         "'/sch:[x]', where [x] is 'random', 'pct' or 'dfs' (other " +
                         "experimental strategies also exist, but are not listed here).");
             }
@@ -298,14 +298,14 @@ namespace Microsoft.PSharp.Utilities
             if (base.Configuration.SafetyPrefixBound > 0 &&
                 base.Configuration.SafetyPrefixBound >= base.Configuration.DepthBound)
             {
-                ErrorReporter.ReportAndExit("Please give a safety prefix bound that is less than the " +
+                IO.Error.ReportAndExit("Please give a safety prefix bound that is less than the " +
                     "max scheduling steps bound.");
             }
 
             if (base.Configuration.SchedulingStrategy.Equals("iddfs") &&
                 base.Configuration.DepthBound == 0)
             {
-                ErrorReporter.ReportAndExit("The Iterative Deepening DFS scheduler ('iddfs') " +
+                IO.Error.ReportAndExit("The Iterative Deepening DFS scheduler ('iddfs') " +
                     "must have a max scheduling steps bound, which can be given using " +
                     "'/max-steps:[bound]', where [bound] > 0.");
             }

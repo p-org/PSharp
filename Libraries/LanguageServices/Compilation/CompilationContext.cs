@@ -101,11 +101,11 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
             }
             catch (AggregateException ex)
             {
-                ErrorReporter.ReportAndExit(ex.InnerException.Message);
+                IO.Error.ReportAndExit(ex.InnerException.Message);
             }
             catch (Exception)
             {
-                ErrorReporter.ReportAndExit("Please give a valid solution path.");
+                IO.Error.ReportAndExit("Please give a valid solution path.");
             }
 
             this.Solution = solution;
@@ -116,7 +116,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
                 var project = this.GetProjectWithName(this.Configuration.ProjectName);
                 if (project == null)
                 {
-                    ErrorReporter.ReportAndExit("Please give a valid project name.");
+                    IO.Error.ReportAndExit("Please give a valid project name.");
                 }
             }
             
@@ -364,7 +364,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
                 }
                 catch (FileNotFoundException)
                 {
-                    ErrorReporter.ReportAndExit($"Could not find compiler pass '{path}'");
+                    IO.Error.ReportAndExit($"Could not find compiler pass '{path}'");
                 }
             }
         }

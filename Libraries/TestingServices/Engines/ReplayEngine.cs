@@ -140,7 +140,7 @@ namespace Microsoft.PSharp.TestingServices
         private Task CreateBugReproducingTask()
         {
             Task task = new Task(() =>
-            {   
+            {
                 var runtime = new PSharpBugFindingRuntime(base.Configuration,
                     base.Strategy, base.Visualizer);
 
@@ -151,7 +151,7 @@ namespace Microsoft.PSharp.TestingServices
                     sw = base.RedirectConsoleOutput();
                     base.HasRedirectedConsoleOutput = true;
                 }
-
+                
                 // Start the test.
                 if (base.TestAction != null)
                 {

@@ -126,7 +126,7 @@ namespace Microsoft.PSharp.LanguageServices
 
                     if(snapshot.Any(item => item.SequenceEqual(rewritingPasses)))
                     {
-                        ErrorReporter.ReportAndExit("Possible cycle in the rewriting " +
+                        IO.Error.ReportAndExit("Possible cycle in the rewriting " +
                             "pass dependencies, or dependency missing.");
                     }
 
@@ -142,7 +142,7 @@ namespace Microsoft.PSharp.LanguageServices
                 }
                 catch (MissingMethodException)
                 {
-                    ErrorReporter.ReportAndExit($"Public constructor of {nextPass} not found.");
+                    IO.Error.ReportAndExit($"Public constructor of {nextPass} not found.");
                 }
 
                 rewriter.Rewrite();
@@ -171,12 +171,12 @@ namespace Microsoft.PSharp.LanguageServices
                     ErrorReporter.Report(le.Message);
                 }
 
-                ErrorReporter.ReportAndExit($"Failed to load assembly '{assembly.FullName}'");
+                IO.Error.ReportAndExit($"Failed to load assembly '{assembly.FullName}'");
             }
             catch (Exception ex)
             {
                 ErrorReporter.Report(ex.Message);
-                ErrorReporter.ReportAndExit($"Failed to load assembly '{assembly.FullName}'");
+                IO.Error.ReportAndExit($"Failed to load assembly '{assembly.FullName}'");
             }
 
             return passes;
