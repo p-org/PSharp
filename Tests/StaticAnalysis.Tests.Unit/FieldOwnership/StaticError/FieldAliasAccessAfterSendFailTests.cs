@@ -13,7 +13,6 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Linq;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -24,7 +23,7 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
 {
     [TestClass]
-    public class FieldAliasAccessAfterSendFailTests
+    public class FieldAliasAccessAfterSendFailTests : BaseTest
     {
         [TestMethod, Timeout(10000)]
         public void TestFieldAliasAccessAfterSend1Fail()
@@ -77,9 +76,7 @@ class M : Machine
 }
 }";
             
-            var configuration = Configuration.Create();
-            configuration.ProjectName = "Test";
-            configuration.Verbose = 2;
+            var configuration = base.GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
 
             IO.StartWritingToMemory();
@@ -93,7 +90,7 @@ class M : Machine
             StaticAnalysisEngine.Create(context).Run();
 
             var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... Static analysis detected '3' errors";
+            var expected = "Static analysis detected '3' errors.";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             IO.StopWritingToMemory();
@@ -156,9 +153,7 @@ class M : Machine
 }
 }";
             
-            var configuration = Configuration.Create();
-            configuration.ProjectName = "Test";
-            configuration.Verbose = 2;
+            var configuration = base.GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
 
             IO.StartWritingToMemory();
@@ -172,7 +167,7 @@ class M : Machine
             StaticAnalysisEngine.Create(context).Run();
 
             var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... Static analysis detected '2' errors";
+            var expected = "Static analysis detected '2' errors.";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             IO.StopWritingToMemory();

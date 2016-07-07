@@ -23,7 +23,7 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
 {
     [TestClass]
-    public class BasicLoopTest
+    public class BasicLoopTest : BaseTest
     {
         [TestMethod, Timeout(10000)]
         public void TestBasicLoop()
@@ -47,8 +47,7 @@ class M : Machine
 }
 }";
 
-            var configuration = Configuration.Create();
-            configuration.Verbose = 2;
+            var configuration = base.GetConfiguration();
 
             IO.StartWritingToMemory();
 
@@ -61,7 +60,7 @@ class M : Machine
             StaticAnalysisEngine.Create(context).Run();
 
             var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... No static analysis errors detected (but absolutely no warranty provided)";
+            var expected = "No static analysis errors detected.";
 
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 

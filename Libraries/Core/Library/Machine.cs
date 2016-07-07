@@ -1342,11 +1342,27 @@ namespace Microsoft.PSharp
                 foreach (var type in StateTypeMap[machineType])
                 {
                     Type stateType = type;
-                    if (this.GetType().IsGenericType)
+                    if (type.IsGenericType)
                     {
-                        stateType = type.MakeGenericType(this.GetType().GetGenericArguments());
+                        // If the state type is generic (only possible if inherited by a
+                        // generic machine declaration), then iterate through the base
+                        // machine classes to identify the runtime generic type, and use
+                        // it to instantiate the runtime state type. This type can be
+                        // then used to create the state constructor.
+                        Type declaringType = this.GetType();
+                        while (!declaringType.IsGenericType ||
+                            !type.DeclaringType.FullName.Equals(declaringType.FullName.Substring(
+                            0, declaringType.FullName.IndexOf('['))))
+                        {
+                            declaringType = declaringType.BaseType;
+                        }
+
+                        if (declaringType.IsGenericType)
+                        {
+                            stateType = type.MakeGenericType(declaringType.GetGenericArguments());
+                        }
                     }
-                    
+
                     ConstructorInfo constructor = stateType.GetConstructor(Type.EmptyTypes);
                     var lambda = Expression.Lambda<Func<MachineState>>(
                         Expression.New(constructor)).Compile();

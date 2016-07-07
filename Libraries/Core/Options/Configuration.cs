@@ -75,9 +75,19 @@ namespace Microsoft.PSharp.Utilities
         internal ISet<string> CustomCompilerPassAssemblyPaths;
 
         /// <summary>
-        /// Runs the analysis stage of the compiler.
+        /// Enables the data flow analysis.
         /// </summary>
-        public bool RunStaticAnalysis;
+        public bool AnalyzeDataFlow;
+
+        /// <summary>
+        /// Enables the static data race analysis.
+        /// </summary>
+        public bool AnalyzeDataRaces;
+
+        /// <summary>
+        /// Perform the state transition analysis.
+        /// </summary>
+        public bool DoStateTransitionAnalysis;
 
         /// <summary>
         /// Reports the control-flow information.
@@ -93,11 +103,6 @@ namespace Microsoft.PSharp.Utilities
         /// Reports the full data-flow information.
         /// </summary>
         public bool ShowFullDataFlowInformation;
-
-        /// <summary>
-        /// Perform the state transition analysis.
-        /// </summary>
-        public bool DoStateTransitionAnalysis;
 
         #endregion
 
@@ -260,6 +265,11 @@ namespace Microsoft.PSharp.Utilities
         public int Verbose;
 
         /// <summary>
+        /// Shows warnings.
+        /// </summary>
+        public bool ShowWarnings;
+
+        /// <summary>
         /// Enables debugging.
         /// </summary>
         public bool EnableDebugging;
@@ -319,11 +329,12 @@ namespace Microsoft.PSharp.Utilities
 
             this.CustomCompilerPassAssemblyPaths = new HashSet<string>();
 
-            this.RunStaticAnalysis = false;
+            this.AnalyzeDataFlow = false;
+            this.AnalyzeDataRaces = false;
+            this.DoStateTransitionAnalysis = false;
             this.ShowControlFlowInformation = false;
             this.ShowDataFlowInformation = false;
             this.ShowFullDataFlowInformation = false;
-            this.DoStateTransitionAnalysis = false;
 
             this.AssemblyToBeAnalyzed = "";
             this.TraceFile = "";
@@ -358,6 +369,7 @@ namespace Microsoft.PSharp.Utilities
             this.RemoteApplicationFilePath = "";
 
             this.Verbose = 1;
+            this.ShowWarnings = false;
             this.EnableDebugging = false;
             this.EnableProfiling = false;
             this.KeepTemporaryFiles = false;

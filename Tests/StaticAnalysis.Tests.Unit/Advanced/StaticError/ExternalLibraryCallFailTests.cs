@@ -13,7 +13,6 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Linq;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -24,7 +23,7 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
 {
     [TestClass]
-    public class ExternalLibraryCallFailTests
+    public class ExternalLibraryCallFailTests : BaseTest
     {
         [TestMethod, Timeout(10000)]
         public void TestExternalLibraryCallFail()
@@ -72,9 +71,7 @@ class M : Machine
 }
 }";
             
-            var configuration = Configuration.Create();
-            configuration.ProjectName = "Test";
-            configuration.Verbose = 2;
+            var configuration = base.GetConfiguration();
 
             IO.StartWritingToMemory();
             ErrorReporter.ShowWarnings = true;
@@ -88,7 +85,7 @@ class M : Machine
             StaticAnalysisEngine.Create(context).Run();
 
             var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... Static analysis detected '0' errors and '1' warning";
+            var expected = "Static analysis detected '0' errors and '1' warning.";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             var error = "Warning: Method 'FirstOnEntryAction' of machine 'Foo.M' calls a " +

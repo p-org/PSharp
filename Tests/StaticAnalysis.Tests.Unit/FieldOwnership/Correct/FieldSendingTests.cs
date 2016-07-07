@@ -13,7 +13,6 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Linq;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -24,7 +23,7 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
 {
     [TestClass]
-    public class FieldSendingTests
+    public class FieldSendingTests : BaseTest
     {
         [TestMethod, Timeout(10000)]
         public void TestFieldSending()
@@ -60,9 +59,7 @@ class M : Machine
 }
 }";
             
-            var configuration = Configuration.Create();
-            configuration.ProjectName = "Test";
-            configuration.Verbose = 2;
+            var configuration = base.GetConfiguration();
 
             IO.StartWritingToMemory();
 
@@ -75,7 +72,7 @@ class M : Machine
             StaticAnalysisEngine.Create(context).Run();
 
             var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... No static analysis errors detected (but absolutely no warranty provided)";
+            var expected = "No static analysis errors detected.";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             IO.StopWritingToMemory();

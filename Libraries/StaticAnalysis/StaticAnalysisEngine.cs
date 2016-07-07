@@ -124,36 +124,89 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             // Create a state-machine static analysis context.
             var context = AnalysisContext.Create(project);
+            this.PerformErrorChecking(context);
+
             this.RegisterImmutableTypes(context);
             this.RegisterGivesUpOwnershipOperations(context);
 
             // Creates and runs an analysis pass that computes the
             // summaries for every P# machine.
             ISet<StateMachine> machines = new HashSet<StateMachine>();
-            MachineSummarizationPass.Create(context, this.CompilationContext.Configuration).
-                Run(machines);
 
-            // Creates and runs an analysis pass that finds if a machine exposes
-            // any fields or methods to other machines.
-            DirectAccessAnalysisPass.Create(context, this.CompilationContext.Configuration).
-                Run(machines);
+            try
+            {
+                // Creates summaries for each machine, which can be used for subsequent
+                // analyses. Optionally performs data-flow analysis.
+                MachineSummarizationPass.Create(context, this.CompilationContext.Configuration).
+                    Run(machines);
 
-            // Creates and runs an analysis pass that detects if any method
-            // in each machine is erroneously giving up ownership.
-            GivesUpOwnershipAnalysisPass.Create(context, this.CompilationContext.Configuration).
-                Run(machines);
+                // Creates and runs an analysis pass that detects if a machine contains
+                // states that are declared as generic. This is not allowed by P#.
+                NoGenericStatesAnalysisPass.Create(context, this.CompilationContext.Configuration).
+                    Run(machines);
 
-            // Creates and runs an analysis pass that detects if all methods
-            // in each machine respect given up ownerships.
-            RespectsOwnershipAnalysisPass.Create(context, this.CompilationContext.Configuration).
-                Run(machines);
+                // Creates and runs an analysis pass that finds if a machine exposes
+                // any fields or methods to other machines.
+                DirectAccessAnalysisPass.Create(context, this.CompilationContext.Configuration).
+                    Run(machines);
 
+                if (this.CompilationContext.Configuration.AnalyzeDataRaces)
+                {
+                    // Creates and runs an analysis pass that detects if any method
+                    // in each machine is erroneously giving up ownership.
+                    GivesUpOwnershipAnalysisPass.Create(context, this.CompilationContext.Configuration).
+                        Run(machines);
+
+                    // Creates and runs an analysis pass that detects if all methods
+                    // in each machine respect given up ownerships.
+                    RespectsOwnershipAnalysisPass.Create(context, this.CompilationContext.Configuration).
+                        Run(machines);
+                }
+            }
+            catch (Exception ex)
+            {
+                if (this.CompilationContext.Configuration.ThrowInternalExceptions)
+                {
+                    throw ex;
+                }
+
+                IO.PrintLine($"... Failed to analyze project '{project.Name}'");
+                IO.Debug(ex.ToString());
+            }
+            
             // Stops profiling the analysis.
             if (this.CompilationContext.Configuration.EnableProfiling)
             {
                 this.Profiler.StopMeasuringExecutionTime();
                 IO.PrintLine("... Total static analysis runtime: '" +
                     this.Profiler.Results() + "' seconds.");
+            }
+        }
+
+        /// <summary>
+        /// Performs error checking on the P# compilation. It
+        /// reports any found diagnostics and exits.
+        /// </summary>
+        /// <param name="context">AnalysisContext</param>
+        /// <returns>GivesUpOwnershipAnalysisPass</returns>
+        private void PerformErrorChecking(AnalysisContext context)
+        {
+            List<Diagnostic> diagnostics = new List<Diagnostic>();
+            foreach (var syntaxTree in context.Compilation.SyntaxTrees)
+            {
+                diagnostics.AddRange(syntaxTree.GetDiagnostics());
+            }
+
+            if (diagnostics.Count > 0)
+            {
+                var message = string.Join("\r\n", diagnostics);
+
+                if (this.CompilationContext.Configuration.ThrowInternalExceptions)
+                {
+                    throw new PSharpException(message);
+                }
+
+                IO.Error.ReportAndExit(message);
             }
         }
 

@@ -13,7 +13,6 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Linq;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -24,7 +23,7 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
 {
     [TestClass]
-    public class ReturnAliasAccessFailTests
+    public class ReturnAliasAccessFailTests : BaseTest
     {
         [TestMethod, Timeout(10000)]
         public void TestReturnAliasAccess1Fail()
@@ -81,9 +80,7 @@ class M : Machine
 }
 }";
             
-            var configuration = Configuration.Create();
-            configuration.ProjectName = "Test";
-            configuration.Verbose = 2;
+            var configuration = base.GetConfiguration();
 
             IO.StartWritingToMemory();
 
@@ -96,7 +93,7 @@ class M : Machine
             StaticAnalysisEngine.Create(context).Run();
 
             var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... Static analysis detected '1' error";
+            var expected = "Static analysis detected '1' error.";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' " +
@@ -158,7 +155,7 @@ class M : Machine
 
  Letter Foo(Letter letter)
  {
-  return this.Bar(letter;
+  return this.Bar(letter);
  }
 
  Letter Bar(Letter letter)
@@ -168,9 +165,7 @@ class M : Machine
 }
 }";
             
-            var configuration = Configuration.Create();
-            configuration.ProjectName = "Test";
-            configuration.Verbose = 2;
+            var configuration = base.GetConfiguration();
 
             IO.StartWritingToMemory();
 
@@ -183,7 +178,7 @@ class M : Machine
             StaticAnalysisEngine.Create(context).Run();
 
             var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... Static analysis detected '1' error";
+            var expected = "Static analysis detected '1' error.";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' " +
@@ -251,9 +246,7 @@ class M : Machine
 }
 }";
             
-            var configuration = Configuration.Create();
-            configuration.ProjectName = "Test";
-            configuration.Verbose = 2;
+            var configuration = base.GetConfiguration();
 
             IO.StartWritingToMemory();
 
@@ -266,7 +259,7 @@ class M : Machine
             StaticAnalysisEngine.Create(context).Run();
 
             var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... Static analysis detected '1' error";
+            var expected = "Static analysis detected '1' error.";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' " +
@@ -341,9 +334,7 @@ class M : Machine
 }
 }";
             
-            var configuration = Configuration.Create();
-            configuration.ProjectName = "Test";
-            configuration.Verbose = 2;
+            var configuration = base.GetConfiguration();
 
             IO.StartWritingToMemory();
 
@@ -356,7 +347,7 @@ class M : Machine
             StaticAnalysisEngine.Create(context).Run();
 
             var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... Static analysis detected '1' error";
+            var expected = "Static analysis detected '1' error.";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' " +
@@ -437,9 +428,7 @@ class M : Machine
 }
 }";
             
-            var configuration = Configuration.Create();
-            configuration.ProjectName = "Test";
-            configuration.Verbose = 2;
+            var configuration = base.GetConfiguration();
 
             IO.StartWritingToMemory();
 
@@ -452,7 +441,7 @@ class M : Machine
             StaticAnalysisEngine.Create(context).Run();
 
             var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... Static analysis detected '1' error";
+            var expected = "Static analysis detected '1' error.";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' " +
@@ -532,9 +521,7 @@ class M : Machine
 }
 }";
             
-            var configuration = Configuration.Create();
-            configuration.ProjectName = "Test";
-            configuration.Verbose = 2;
+            var configuration = base.GetConfiguration();
 
             IO.StartWritingToMemory();
 
@@ -547,7 +534,7 @@ class M : Machine
             StaticAnalysisEngine.Create(context).Run();
 
             var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... Static analysis detected '1' error";
+            var expected = "Static analysis detected '1' error.";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             var error = "Error: Method 'FirstOnEntryAction' of machine 'Foo.M' " +
@@ -631,9 +618,7 @@ class M : Machine
 }
 }";
             
-            var configuration = Configuration.Create();
-            configuration.ProjectName = "Test";
-            configuration.Verbose = 2;
+            var configuration = base.GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
 
             IO.StartWritingToMemory();
@@ -647,7 +632,7 @@ class M : Machine
             StaticAnalysisEngine.Create(context).Run();
 
             var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... Static analysis detected '1' error";
+            var expected = "Static analysis detected '1' error.";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             var error = "Error: Method 'Foo' of machine 'Foo.M' sends 'envelope', " +
@@ -730,9 +715,7 @@ class M : Machine
 }
 }";
             
-            var configuration = Configuration.Create();
-            configuration.ProjectName = "Test";
-            configuration.Verbose = 2;
+            var configuration = base.GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
 
             IO.StartWritingToMemory();
@@ -746,7 +729,7 @@ class M : Machine
             StaticAnalysisEngine.Create(context).Run();
 
             var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... Static analysis detected '1' error";
+            var expected = "Static analysis detected '1' error.";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             var error = "Error: Method 'Foo' of machine 'Foo.M' sends 'envelope', " +

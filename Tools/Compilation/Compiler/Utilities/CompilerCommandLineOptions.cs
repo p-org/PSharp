@@ -92,9 +92,14 @@ namespace Microsoft.PSharp.Utilities
 
                 base.Configuration.CustomCompilerPassAssemblyPaths.Add(option.Substring(6));
             }
-            else if (option.ToLower().Equals("/analyze"))
+            else if (option.ToLower().Equals("/dfa"))
             {
-                base.Configuration.RunStaticAnalysis = true;
+                base.Configuration.AnalyzeDataFlow = true;
+            }
+            else if (option.ToLower().Equals("/check-races"))
+            {
+                base.Configuration.AnalyzeDataFlow = true;
+                base.Configuration.AnalyzeDataRaces = true;
             }
             else if (option.ToLower().Equals("/emit-control-flow"))
             {
@@ -169,10 +174,11 @@ namespace Microsoft.PSharp.Utilities
             help += "\n --------------------";
             help += "\n  /t:[x]\t The compilation target ('exe', 'lib' or 'test')";
 
-            help += "\n\n ---------------------";
-            help += "\n Experimental options:";
-            help += "\n ---------------------";
-            help += "\n  /tpl\t\t Enable intra-machine concurrency scheduling";
+            help += "\n\n --------------------";
+            help += "\n Analysis options:";
+            help += "\n --------------------";
+            help += "\n  /dfa\t\t Enables data-flow analysis";
+            help += "\n  /check-races\t Enables race-checking analysis";
 
             help += "\n";
 

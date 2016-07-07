@@ -159,9 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DataFlowAnalysis
             var baseTypes = new List<INamedTypeSymbol>();
 
             var model = this.Compilation.GetSemanticModel(node.SyntaxTree);
-            string nodeName = this.GetFullClassName(node);
-
-            INamedTypeSymbol typeSymbol = model.Compilation.GetTypeByMetadataName(nodeName);
+            INamedTypeSymbol typeSymbol = model.GetDeclaredSymbol(node);
             while (typeSymbol.BaseType != null)
             {
                 baseTypes.Add(typeSymbol.BaseType);

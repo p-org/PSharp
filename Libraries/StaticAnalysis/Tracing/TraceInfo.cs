@@ -138,6 +138,19 @@ namespace Microsoft.PSharp.StaticAnalysis
         }
 
         /// <summary>
+        /// Adds new error trace to the trace for
+        /// the specified syntax token.
+        /// </summary>
+        /// <param name="syntaxToken">SyntaxToken</param>
+        internal void AddErrorTrace(SyntaxToken syntaxToken)
+        {
+            var errorTraceStep = new ErrorTraceStep(syntaxToken.ToString(),
+                syntaxToken.SyntaxTree.FilePath, syntaxToken.SyntaxTree.GetLineSpan(
+                    syntaxToken.Span).StartLinePosition.Line + 1);
+            this.ErrorTrace.Add(errorTraceStep);
+        }
+
+        /// <summary>
         /// Inserts a new call to the trace.
         /// </summary>
         /// <param name="method">Method</param>
