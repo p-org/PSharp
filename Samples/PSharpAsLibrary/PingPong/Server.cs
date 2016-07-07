@@ -15,19 +15,19 @@ namespace PingPong
         {
             this.Client = this.CreateMachine(typeof(Client), "TheUltimateClientMachine");
             this.Send(this.Client, new Config(this.Id));
-            this.Goto(typeof(Active<int>));
+            this.Goto(typeof(Active));
         }
 
         [OnEntry(nameof(ActiveOnEntry))]
         [OnEventDoAction(typeof(Ping), nameof(SendPong))]
-        class Active<N> : MachineState { }
+        class Active : MachineState { }
 
         void ActiveOnEntry()
         {
             this.SendPong();
         }
 
-        public void SendPong()
+        void SendPong()
         {
             this.Send(this.Client, new Pong());
         }

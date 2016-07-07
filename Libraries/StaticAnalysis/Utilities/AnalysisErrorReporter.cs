@@ -58,11 +58,21 @@ namespace Microsoft.PSharp.StaticAnalysis
         }
 
         /// <summary>
-        /// Prints the static analysis error statistics.
+        /// Returns the number of found errors.
         /// </summary>
-        public static void PrintStats(bool exitOnError = false)
+        /// <returns>Number of errors</returns>
+        public static int GetErrorCount()
         {
-            IO.PrintLine(GetStats());
+            return ErrorCount;
+        }
+
+        /// <summary>
+        /// Returns the number of found warnings.
+        /// </summary>
+        /// <returns>Number of warnings</returns>
+        public static int GetWarningCount()
+        {
+            return WarningCount;
         }
 
         /// <summary>
@@ -82,19 +92,28 @@ namespace Microsoft.PSharp.StaticAnalysis
                 warningStr = "warnings";
             }
 
-            if (WarningCount > 0)
+            if (ErrorReporter.ShowWarnings &&
+                WarningCount > 0)
             {
-                return "... Static analysis detected '" + ErrorCount + "' " + errorStr +
-                    " and '" + WarningCount + "' " + warningStr;
+                return $"Static analysis detected '{ErrorCount}' {errorStr}" +
+                    $" and '{WarningCount}' {warningStr}.";
             }
             else if (ErrorCount > 0)
             {
-                return "... Static analysis detected '" + ErrorCount + "' " + errorStr;
+                return $"Static analysis detected '{ErrorCount}' {errorStr}.";
             }
             else
             {
-                return "... No static analysis errors detected";
+                return "No static analysis errors detected.";
             }
+        }
+
+        /// <summary>
+        /// Prints the static analysis error statistics.
+        /// </summary>
+        public static void PrintStats()
+        {
+            IO.PrintLine(GetStats());
         }
 
         /// <summary>

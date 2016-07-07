@@ -177,7 +177,7 @@ namespace Microsoft.PSharp.Utilities
             help += "\n\n --------------------";
             help += "\n Analysis options:";
             help += "\n --------------------";
-            help += "\n  /dfa\t Enables data-flow analysis";
+            help += "\n  /dfa\t\t Enables data-flow analysis";
             help += "\n  /check-races\t Enables race-checking analysis";
 
             help += "\n";
