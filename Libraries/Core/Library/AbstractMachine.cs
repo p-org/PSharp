@@ -12,6 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
 using System.ComponentModel;
 
 namespace Microsoft.PSharp

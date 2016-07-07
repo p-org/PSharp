@@ -33,7 +33,7 @@ namespace Microsoft.PSharp
         {
             if (args.Length != 1)
             {
-                Console.WriteLine("Usage: PSharpSyntaxRewriter.exe file.psharp");
+                IO.PrintLine("Usage: PSharpSyntaxRewriter.exe file.psharp");
                 return;
             }
 
@@ -45,7 +45,7 @@ namespace Microsoft.PSharp
             }
             catch (System.IO.IOException e)
             {
-                Console.WriteLine("Error: {0}", e.Message);
+                IO.PrintLine("Error: {0}", e.Message);
                 return;
             }
 
@@ -53,7 +53,7 @@ namespace Microsoft.PSharp
             // Translate and print on console
             string errors = "";
             var output = Translate(input_string, out errors);
-            Console.WriteLine("{0}", output == null ? "Parse Error: " + errors : output);
+            IO.PrintLine("{0}", output == null ? "Parse Error: " + errors : output);
         }
 
         /// <summary>

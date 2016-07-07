@@ -555,7 +555,7 @@ namespace Microsoft.PSharp.TestingServices
         internal override void NotifyInvokedAction(Machine machine, MethodInfo action)
         {
             this.Log($"<ActionLog> Machine '{machine.Id}' invoked action " +
-                $"'{action.Name}' in state '{machine.CurrentState.FullName}'.");
+                $"'{action.Name}' in state '{machine.CurrentStateName}'.");
 
             if (this.Configuration.EnableDataRaceDetection)
             {

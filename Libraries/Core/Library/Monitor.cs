@@ -89,6 +89,18 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Gets the current state name.
+        /// </summary>
+        internal string CurrentStateName
+        {
+            get
+            {
+                return $"{this.CurrentState.DeclaringType}." +
+                    $"{this.CurrentState.Name}";
+            }
+        }
+
+        /// <summary>
         /// Gets the latest received event, or null if no event
         /// has been received.
         /// </summary>
@@ -210,7 +222,7 @@ namespace Microsoft.PSharp
         /// <returns>Boolean</returns>
         internal bool IsInHotState(out string stateName)
         {
-            stateName = this.CurrentState.FullName;
+            stateName = this.CurrentStateName;
             return this.State.IsHot;
         }
 
@@ -231,7 +243,7 @@ namespace Microsoft.PSharp
         /// <returns>Boolean</returns>
         internal bool IsInColdState(out string stateName)
         {
-            stateName = this.CurrentState.FullName;
+            stateName = this.CurrentStateName;
             return this.State.IsCold;
         }
 
@@ -267,7 +279,7 @@ namespace Microsoft.PSharp
                 if (!this.CanHandleEvent(e.GetType()))
                 {
                     base.Runtime.Log($"<MonitorLog> Monitor '{this.GetType().Name}' " +
-                        $"exiting state '{this.CurrentState.FullName}'.");
+                        $"exiting state '{this.CurrentStateName}'.");
                     this.State = null;
                     continue;
                 }
@@ -359,7 +371,7 @@ namespace Microsoft.PSharp
             MethodInfo action = this.ActionMap[actionName];
 
             base.Runtime.Log($"<MonitorLog> Monitor '{this.GetType().Name}' executed " +
-                $"action '{action.Name}' in state '{this.CurrentState.FullName}'.");
+                $"action '{action.Name}' in state '{this.CurrentStateName}'.");
 
             try
             {
@@ -402,7 +414,7 @@ namespace Microsoft.PSharp
             }
             
             base.Runtime.Log($"<MonitorLog> Monitor '{this.GetType().Name}' entering " +
-                $"{liveness}state '{this.CurrentState.FullName}'.");
+                $"{liveness}state '{this.CurrentStateName}'.");
 
             MethodInfo entryAction = null;
             if (this.State.EntryAction != null)
@@ -444,7 +456,7 @@ namespace Microsoft.PSharp
         private void ExecuteCurrentStateOnExit(string eventHandlerExitActionName)
         {
             base.Runtime.Log($"<MonitorLog> Monitor '{this.GetType().Name}' " +
-                $"exiting state '{this.CurrentState.FullName}'.");
+                $"exiting state '{this.CurrentStateName}'.");
 
             MethodInfo exitAction = null;
             if (this.State.ExitAction != null)

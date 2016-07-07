@@ -84,6 +84,7 @@
     <Compile Include="Feature2Stmts\DynamicError\GotoStateExitFailTest.cs" />
     <Compile Include="Feature2Stmts\DynamicError\GotoStateFailTest.cs" />
     <Compile Include="Feature2Stmts\DynamicError\ReceiveEventFailTest.cs" />
+    <Compile Include="Generics\Correct\GenericMachineTest.cs" />
     <Compile Include="Integration\Correct\ExternalCalls\ReceivingExternalEventTest.cs" />
     <Compile Include="Integration\Correct\OneMachine\SEMOneMachine42Test.cs" />
     <Compile Include="Integration\DynamicError\OneMachine\SEMOneMachine38Test.cs" />

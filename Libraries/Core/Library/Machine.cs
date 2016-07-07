@@ -146,6 +146,18 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Gets the current state name.
+        /// </summary>
+        internal string CurrentStateName
+        {
+            get
+            {
+                return $"{this.CurrentState.DeclaringType}." +
+                    $"{this.CurrentState.Name}";
+            }
+        }
+
+        /// <summary>
         /// Gets the latest received event, or null if no event
         /// has been received.
         /// </summary>
@@ -292,7 +304,9 @@ namespace Microsoft.PSharp
         protected void Goto(Type s)
         {
             // If the state is not a state of the machine, then report an error and exit.
-            this.Assert(StateTypeMap[this.GetType()].Contains(s), $"Machine '{base.Id}' " +
+            this.Assert(StateTypeMap[this.GetType()].Any(val
+                => val.DeclaringType.Equals(s.DeclaringType) &&
+                val.Name.Equals(s.Name)), $"Machine '{base.Id}' " +
                 $"is trying to transition to non-existing state '{s.Name}'.");
             this.Raise(new GotoStateEvent(s));
         }
@@ -429,7 +443,7 @@ namespace Microsoft.PSharp
             else
             {
                 base.Runtime.Log($"<PopLog> Machine '{base.Id}' popped " +
-                    $"and reentered state '{this.CurrentState.FullName}'.");
+                    $"and reentered state '{this.CurrentStateName}'.");
                 this.ConfigureStateTransitions(this.StateStack.Peek());
             }
         }
@@ -476,7 +490,7 @@ namespace Microsoft.PSharp
         [EditorBrowsable(EditorBrowsableState.Never)]
         protected bool FairRandom(int uniqueId)
         {
-            var havocId = base.Id.Name + "_" + this.CurrentState.FullName + "_" + uniqueId;
+            var havocId = base.Id.Name + "_" + this.CurrentStateName + "_" + uniqueId;
             return base.Runtime.GetFairNondeterministicChoice(this, havocId);
         }
 
@@ -600,7 +614,7 @@ namespace Microsoft.PSharp
                         {
                             base.Runtime.Log($"<DefaultLog> Machine '{base.Id}' " +
                                 "is executing the default handler in state " +
-                                $"'{this.CurrentState.FullName}'.");
+                                $"'{this.CurrentStateName}'.");
 
                             nextEventInfo = new EventInfo(new Default(), new EventOriginInfo(
                                 base.Id, this.GetType().Name, this.CurrentState.Name));
@@ -840,7 +854,7 @@ namespace Microsoft.PSharp
                     {
                         base.Runtime.Log($"<PopLog> Machine '{base.Id}' popped " +
                             $"with unhandled event '{e.GetType().FullName}' and " +
-                            $"reentered state '{this.CurrentState.FullName}.");
+                            $"reentered state '{this.CurrentStateName}.");
                         this.ConfigureStateTransitions(this.StateStack.Peek());
                     }
                     
@@ -1031,8 +1045,9 @@ namespace Microsoft.PSharp
             }
 
             this.StateStack.Pop();
-
-            var nextState = StateMap[this.GetType()].First(val => val.GetType().Equals(s));
+            
+            var nextState = StateMap[this.GetType()].First(val
+                => val.GetType().Equals(s));
             this.ConfigureStateTransitions(nextState);
 
             // The machine transitions to the new state.
@@ -1168,7 +1183,7 @@ namespace Microsoft.PSharp
         private void ExecuteCurrentStateOnEntry()
         {
             base.Runtime.Log($"<StateLog> Machine '{base.Id}' " +
-                $"enters state '{this.CurrentState.FullName}'.");
+                $"enters state '{this.CurrentStateName}'.");
             
             MethodInfo entryAction = null;
             if (this.StateStack.Peek().EntryAction != null)
@@ -1232,7 +1247,7 @@ namespace Microsoft.PSharp
         private void ExecuteCurrentStateOnExit(string eventHandlerExitActionName)
         {
             base.Runtime.Log($"<ExitLog> Machine '{base.Id}' " +
-                $"exits state '{this.CurrentState.FullName}'.");
+                $"exits state '{this.CurrentStateName}'.");
 
             MethodInfo exitAction = null;
             if (this.StateStack.Peek().ExitAction != null)
@@ -1326,10 +1341,17 @@ namespace Microsoft.PSharp
             {
                 foreach (var type in StateTypeMap[machineType])
                 {
-                    var constructor = Expression.Lambda<Func<MachineState>>(
-                        Expression.New(type.GetConstructor(Type.EmptyTypes))).Compile();
-                    MachineState state = constructor();
+                    Type stateType = type;
+                    if (this.GetType().IsGenericType)
+                    {
+                        stateType = type.MakeGenericType(this.GetType().GetGenericArguments());
+                    }
                     
+                    ConstructorInfo constructor = stateType.GetConstructor(Type.EmptyTypes);
+                    var lambda = Expression.Lambda<Func<MachineState>>(
+                        Expression.New(constructor)).Compile();
+                    MachineState state = lambda();
+
                     state.InitializeState();
                     StateMap[machineType].Add(state);
                 }
