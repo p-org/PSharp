@@ -63,6 +63,7 @@ class M : Machine
 
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
+            configuration.ThrowInternalExceptions = true;
             configuration.Verbose = 2;
 
             IO.StartWritingToMemory();
@@ -76,7 +77,7 @@ class M : Machine
             StaticAnalysisEngine.Create(context).Run();
 
             var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... No static analysis errors detected (but absolutely no warranty provided)";
+            var expected = "... No static analysis errors detected";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             IO.StopWritingToMemory();
@@ -137,7 +138,7 @@ class M : Machine
             StaticAnalysisEngine.Create(context).Run();
 
             var stats = AnalysisErrorReporter.GetStats();
-            var expected = "... No static analysis errors detected (but absolutely no warranty provided)";
+            var expected = "... No static analysis errors detected";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
             IO.StopWritingToMemory();

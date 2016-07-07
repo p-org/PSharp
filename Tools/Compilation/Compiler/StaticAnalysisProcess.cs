@@ -53,10 +53,6 @@ namespace Microsoft.PSharp
 
             // Creates and runs a P# static analysis engine.
             StaticAnalysisEngine.Create(this.CompilationContext).Run();
-
-            // Prints error statistics and profiling results.
-            AnalysisErrorReporter.PrintStats();
-            AnalysisErrorReporter.ResetStats();
         }
 
         #endregion

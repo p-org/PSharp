@@ -77,8 +77,10 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     if (state.Declaration.Arity > 0)
                     {
-                        AnalysisErrorReporter.Report($"State '{state.Name}' of machine " +
-                            $"'{machine.Name}' is generic. This is not allowed.");
+                        TraceInfo trace = new TraceInfo();
+                        trace.AddErrorTrace(state.Declaration.Identifier);
+                        AnalysisErrorReporter.Report(trace, $"State '{state.Name}' was" +
+                            $" declared as generic, which is not allowed by P#.");
                     }
                 }
             }

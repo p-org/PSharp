@@ -94,7 +94,7 @@ namespace Microsoft.PSharp.Utilities
             }
             else if (option.ToLower().Equals("/check-races"))
             {
-                base.Configuration.EnableDataRaceAnalysis = true;
+                base.Configuration.AnalyzeDataRaces = true;
             }
             else if (option.ToLower().Equals("/emit-control-flow"))
             {

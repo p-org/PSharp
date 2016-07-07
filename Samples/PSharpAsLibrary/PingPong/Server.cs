@@ -27,7 +27,7 @@ namespace PingPong
             this.SendPong();
         }
 
-        void SendPong()
+        public void SendPong()
         {
             this.Send(this.Client, new Pong());
         }

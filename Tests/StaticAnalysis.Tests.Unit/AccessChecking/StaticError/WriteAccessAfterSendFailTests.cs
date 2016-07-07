@@ -74,8 +74,9 @@ class M : Machine
             
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
+            configuration.ThrowInternalExceptions = true;
             configuration.Verbose = 2;
-            configuration.EnableDataRaceAnalysis = true;
+            configuration.AnalyzeDataRaces = true;
 
             IO.StartWritingToMemory();
 
@@ -149,8 +150,9 @@ class M : Machine
             
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
+            configuration.ThrowInternalExceptions = true;
             configuration.Verbose = 2;
-            configuration.EnableDataRaceAnalysis = true;
+            configuration.AnalyzeDataRaces = true;
 
             IO.StartWritingToMemory();
 
@@ -227,8 +229,9 @@ class M : Machine
             
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
+            configuration.ThrowInternalExceptions = true;
             configuration.Verbose = 2;
-            configuration.EnableDataRaceAnalysis = true;
+            configuration.AnalyzeDataRaces = true;
 
             IO.StartWritingToMemory();
 
@@ -297,8 +300,9 @@ class M : Machine
             
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
+            configuration.ThrowInternalExceptions = true;
             configuration.Verbose = 2;
-            configuration.EnableDataRaceAnalysis = true;
+            configuration.AnalyzeDataRaces = true;
 
             IO.StartWritingToMemory();
 
@@ -374,8 +378,9 @@ class M : Machine
             
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
+            configuration.ThrowInternalExceptions = true;
             configuration.Verbose = 2;
-            configuration.EnableDataRaceAnalysis = true;
+            configuration.AnalyzeDataRaces = true;
 
             IO.StartWritingToMemory();
 
@@ -450,8 +455,9 @@ class M : Machine
             
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
+            configuration.ThrowInternalExceptions = true;
             configuration.Verbose = 2;
-            configuration.EnableDataRaceAnalysis = true;
+            configuration.AnalyzeDataRaces = true;
 
             IO.StartWritingToMemory();
 
@@ -530,8 +536,9 @@ class M : Machine
             
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
+            configuration.ThrowInternalExceptions = true;
             configuration.Verbose = 2;
-            configuration.EnableDataRaceAnalysis = true;
+            configuration.AnalyzeDataRaces = true;
 
             IO.StartWritingToMemory();
 
@@ -611,8 +618,9 @@ class M : Machine
             
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
+            configuration.ThrowInternalExceptions = true;
             configuration.Verbose = 2;
-            configuration.EnableDataRaceAnalysis = true;
+            configuration.AnalyzeDataRaces = true;
 
             IO.StartWritingToMemory();
 
@@ -699,8 +707,9 @@ class M : Machine
             
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
+            configuration.ThrowInternalExceptions = true;
             configuration.Verbose = 2;
-            configuration.EnableDataRaceAnalysis = true;
+            configuration.AnalyzeDataRaces = true;
             configuration.DoStateTransitionAnalysis = false;
 
             IO.StartWritingToMemory();
@@ -778,8 +787,9 @@ class M : Machine
             
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
+            configuration.ThrowInternalExceptions = true;
             configuration.Verbose = 2;
-            configuration.EnableDataRaceAnalysis = true;
+            configuration.AnalyzeDataRaces = true;
 
             IO.StartWritingToMemory();
 
@@ -863,8 +873,9 @@ class M : Machine
             
             var configuration = Configuration.Create();
             configuration.ProjectName = "Test";
+            configuration.ThrowInternalExceptions = true;
             configuration.Verbose = 2;
-            configuration.EnableDataRaceAnalysis = true;
+            configuration.AnalyzeDataRaces = true;
 
             IO.StartWritingToMemory();
 

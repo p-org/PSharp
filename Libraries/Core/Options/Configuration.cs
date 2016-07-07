@@ -90,9 +90,9 @@ namespace Microsoft.PSharp.Utilities
         public bool ShowFullDataFlowInformation;
 
         /// <summary>
-        /// Enables the data race analysis passes of the compiler.
+        /// Enables the static data race analysis.
         /// </summary>
-        public bool EnableDataRaceAnalysis;
+        public bool AnalyzeDataRaces;
 
         /// <summary>
         /// Perform the state transition analysis.
@@ -260,6 +260,11 @@ namespace Microsoft.PSharp.Utilities
         public int Verbose;
 
         /// <summary>
+        /// Shows warnings.
+        /// </summary>
+        public bool ShowWarnings;
+
+        /// <summary>
         /// Enables debugging.
         /// </summary>
         public bool EnableDebugging;
@@ -322,7 +327,7 @@ namespace Microsoft.PSharp.Utilities
             this.ShowControlFlowInformation = false;
             this.ShowDataFlowInformation = false;
             this.ShowFullDataFlowInformation = false;
-            this.EnableDataRaceAnalysis = false;
+            this.AnalyzeDataRaces = false;
             this.DoStateTransitionAnalysis = false;
 
             this.AssemblyToBeAnalyzed = "";
@@ -358,6 +363,7 @@ namespace Microsoft.PSharp.Utilities
             this.RemoteApplicationFilePath = "";
 
             this.Verbose = 1;
+            this.ShowWarnings = false;
             this.EnableDebugging = false;
             this.EnableProfiling = false;
             this.KeepTemporaryFiles = false;

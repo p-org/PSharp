@@ -84,13 +84,13 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     if (field.Modifiers.Any(SyntaxKind.PublicKeyword))
                     {
-                        AnalysisErrorReporter.Report("Field '{0}' of machine '{1}' is declared as " +
-                            "'public'.", field.Declaration.ToString(), machine.Name);
+                        AnalysisErrorReporter.ReportWarning("Field '{0}' of machine '{1}' is declared " +
+                            "as 'public'.", field.Declaration.ToString(), machine.Name);
                     }
                     else if (field.Modifiers.Any(SyntaxKind.InternalKeyword))
                     {
-                        AnalysisErrorReporter.Report("Field '{0}' of machine '{1}' is declared as " +
-                            "'internal'.", field.Declaration.ToString(), machine.Name);
+                        AnalysisErrorReporter.ReportWarning("Field '{0}' of machine '{1}' is declared " +
+                            "as 'internal'.", field.Declaration.ToString(), machine.Name);
                     }
                 }
             }
@@ -110,13 +110,13 @@ namespace Microsoft.PSharp.StaticAnalysis
                 {
                     if (method.Modifiers.Any(SyntaxKind.PublicKeyword))
                     {
-                        AnalysisErrorReporter.Report("Method '{0}' of machine '{1}' is " +
+                        AnalysisErrorReporter.ReportWarning("Method '{0}' of machine '{1}' is " +
                             "declared as 'public'.", method.Identifier.ValueText,
                             machine.Name);
                     }
                     else if (method.Modifiers.Any(SyntaxKind.InternalKeyword))
                     {
-                        AnalysisErrorReporter.Report("Method '{0}' of machine '{1}' is " +
+                        AnalysisErrorReporter.ReportWarning("Method '{0}' of machine '{1}' is " +
                             "declared as 'internal'.", method.Identifier.ValueText,
                             machine.Name);
                     }

@@ -148,7 +148,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 DirectAccessAnalysisPass.Create(context, this.CompilationContext.Configuration).
                     Run(machines);
 
-                if (this.CompilationContext.Configuration.EnableDataRaceAnalysis)
+                if (this.CompilationContext.Configuration.AnalyzeDataRaces)
                 {
                     // Creates and runs an analysis pass that detects if any method
                     // in each machine is erroneously giving up ownership.
@@ -163,6 +163,11 @@ namespace Microsoft.PSharp.StaticAnalysis
             }
             catch (Exception ex)
             {
+                if (this.CompilationContext.Configuration.ThrowInternalExceptions)
+                {
+                    throw ex;
+                }
+
                 IO.PrintLine($"... Failed to analyze project '{project.Name}'");
                 IO.Debug(ex.ToString());
             }

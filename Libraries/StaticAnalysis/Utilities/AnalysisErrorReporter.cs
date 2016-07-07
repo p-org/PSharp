@@ -52,9 +52,9 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         static AnalysisErrorReporter()
         {
-            AnalysisErrorReporter.ErrorCount = 0;
-            AnalysisErrorReporter.WarningCount = 0;
-            AnalysisErrorReporter.ReportedMessages = new HashSet<string>();
+            ErrorCount = 0;
+            WarningCount = 0;
+            ReportedMessages = new HashSet<string>();
         }
 
         /// <summary>
@@ -62,7 +62,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         public static void PrintStats(bool exitOnError = false)
         {
-            IO.PrintLine(AnalysisErrorReporter.GetStats());
+            IO.PrintLine(GetStats());
         }
 
         /// <summary>
@@ -71,29 +71,29 @@ namespace Microsoft.PSharp.StaticAnalysis
         public static string GetStats()
         {
             string errorStr = "error";
-            if (AnalysisErrorReporter.ErrorCount != 1)
+            if (ErrorCount != 1)
             {
                 errorStr = "errors";
             }
 
             string warningStr = "warning";
-            if (AnalysisErrorReporter.WarningCount != 1)
+            if (WarningCount != 1)
             {
                 warningStr = "warnings";
             }
 
-            if (AnalysisErrorReporter.WarningCount > 0)
+            if (WarningCount > 0)
             {
-                return "... Static analysis detected '" + AnalysisErrorReporter.ErrorCount + "' " + errorStr +
-                    " and '" + AnalysisErrorReporter.WarningCount + "' " + warningStr;
+                return "... Static analysis detected '" + ErrorCount + "' " + errorStr +
+                    " and '" + WarningCount + "' " + warningStr;
             }
-            else if (AnalysisErrorReporter.ErrorCount > 0)
+            else if (ErrorCount > 0)
             {
-                return "... Static analysis detected '" + AnalysisErrorReporter.ErrorCount + "' " + errorStr;
+                return "... Static analysis detected '" + ErrorCount + "' " + errorStr;
             }
             else
             {
-                return "... No static analysis errors detected (but absolutely no warranty provided)";
+                return "... No static analysis errors detected";
             }
         }
 
@@ -102,9 +102,9 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// </summary>
         public static void ResetStats()
         {
-            AnalysisErrorReporter.ErrorCount = 0;
-            AnalysisErrorReporter.WarningCount = 0;
-            AnalysisErrorReporter.ReportedMessages = new HashSet<string>();
+            ErrorCount = 0;
+            WarningCount = 0;
+            ReportedMessages = new HashSet<string>();
         }
 
         #endregion
@@ -120,7 +120,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             IO.Print(ConsoleColor.Red, "Error: ");
             IO.Print(ConsoleColor.Yellow, s);
             IO.PrintLine();
-            AnalysisErrorReporter.ErrorCount++;
+            ErrorCount++;
         }
 
         /// <summary>
@@ -134,7 +134,7 @@ namespace Microsoft.PSharp.StaticAnalysis
             IO.Print(ConsoleColor.Red, "Error: ");
             IO.Print(ConsoleColor.Yellow, message);
             IO.PrintLine();
-            AnalysisErrorReporter.ErrorCount++;
+            ErrorCount++;
         }
 
         /// <summary>
@@ -144,7 +144,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="s">String</param>
         internal static void Report(TraceInfo trace, string s)
         {
-            AnalysisErrorReporter.Report(s);
+            Report(s);
             for (int idx = trace.ErrorTrace.Count - 1; idx >= 0; idx--)
             {
                 IO.Print("   at '{0}' ", trace.ErrorTrace[idx].Expression);
@@ -166,7 +166,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 IO.PrintLine();
             }
 
-            AnalysisErrorReporter.WarningCount++;
+            WarningCount++;
         }
 
         /// <summary>
@@ -184,7 +184,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                 IO.PrintLine();
             }
 
-            AnalysisErrorReporter.WarningCount++;
+            WarningCount++;
         }
 
         /// <summary>
@@ -194,7 +194,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="s">String</param>
         internal static void ReportWarning(TraceInfo trace, string s)
         {
-            AnalysisErrorReporter.ReportWarning(s);
+            ReportWarning(s);
             if (ErrorReporter.ShowWarnings)
             {
                 IO.Print("   at '{0}' ", trace.ErrorTrace[trace.ErrorTrace.Count - 1].Expression);
@@ -211,7 +211,7 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="args">Parameters</param>
         internal static void ReportWarning(TraceInfo trace, string s, params object[] args)
         {
-            AnalysisErrorReporter.ReportWarning(s, args);
+            ReportWarning(s, args);
             if (ErrorReporter.ShowWarnings)
             {
                 IO.Print("   at '{0}' ", trace.ErrorTrace[trace.ErrorTrace.Count - 1].Expression);
@@ -240,7 +240,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     trace.Method, trace.State, trace.Machine, trace.Payload);
             }
 
-            AnalysisErrorReporter.ReportErrorTrace(trace, message, true);
+            ReportErrorTrace(trace, message, true);
         }
 
         /// <summary>
@@ -267,7 +267,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     fieldSymbol);
             }
 
-            AnalysisErrorReporter.ReportErrorTrace(trace, message, true);
+            ReportErrorTrace(trace, message, true);
         }
 
         /// <summary>
@@ -292,7 +292,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     trace.State, trace.Machine, trace.Payload, fieldSymbol);
             }
 
-            AnalysisErrorReporter.ReportErrorTrace(trace, message);
+            ReportErrorTrace(trace, message);
         }
 
         /// <summary>
@@ -317,7 +317,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     trace.Method, trace.State, trace.Machine, trace.Payload, fieldSymbol);
             }
 
-            AnalysisErrorReporter.ReportErrorTrace(trace, message);
+            ReportErrorTrace(trace, message);
         }
 
         /// <summary>
@@ -341,7 +341,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     trace.Method, trace.State, trace.Machine, argSymbol);
             }
 
-            AnalysisErrorReporter.ReportErrorTrace(trace, message);
+            ReportErrorTrace(trace, message);
         }
 
         /// <summary>
@@ -366,7 +366,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     trace.Machine);
             }
 
-            AnalysisErrorReporter.ReportWarningTrace(trace, message);
+            ReportWarningTrace(trace, message);
         }
 
         /// <summary>
@@ -390,7 +390,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     trace.Method, trace.State, trace.Machine);
             }
 
-            AnalysisErrorReporter.ReportWarningTrace(trace, message);
+            ReportWarningTrace(trace, message);
         }
 
         #endregion
@@ -407,14 +407,14 @@ namespace Microsoft.PSharp.StaticAnalysis
             bool allowMultiple = false)
         {
             if (!allowMultiple &&
-                AnalysisErrorReporter.ReportedMessages.Contains(message))
+                ReportedMessages.Contains(message))
             {
                 return;
             }
             
-            AnalysisErrorReporter.Report(message);
-            AnalysisErrorReporter.PrintTrace(trace);
-            AnalysisErrorReporter.ReportedMessages.Add(message);
+            Report(message);
+            PrintTrace(trace);
+            ReportedMessages.Add(message);
         }
 
         /// <summary>
@@ -424,14 +424,14 @@ namespace Microsoft.PSharp.StaticAnalysis
         /// <param name="message">Message</param>
         private static void ReportWarningTrace(TraceInfo trace, string message)
         {
-            if (AnalysisErrorReporter.ReportedMessages.Contains(message))
+            if (ReportedMessages.Contains(message))
             {
                 return;
             }
 
-            AnalysisErrorReporter.ReportWarning(message);
-            AnalysisErrorReporter.PrintTrace(trace);
-            AnalysisErrorReporter.ReportedMessages.Add(message);
+            ReportWarning(message);
+            PrintTrace(trace);
+            ReportedMessages.Add(message);
         }
 
         /// <summary>
