@@ -22,6 +22,8 @@ using System.Windows.Forms;
 using Microsoft.Msagl.Drawing;
 using Microsoft.Msagl.GraphViewerGdi;
 
+using Microsoft.PSharp.Utilities;
+
 namespace Microsoft.PSharp.Visualization
 {
     /// <summary>
@@ -348,7 +350,7 @@ namespace Microsoft.PSharp.Visualization
                     break;
 
                 default:
-                    Console.WriteLine("Unknown command");
+                    IO.PrintLine("Unknown command");
                     break;
             }
         }
@@ -471,7 +473,7 @@ namespace Microsoft.PSharp.Visualization
         /// <param name="e">ScrollEventArgs</param>
         void ViewerScroll(object sender, ScrollEventArgs e)
         {
-            Console.WriteLine(e.NewValue);
+            IO.PrintLine($"{e.NewValue}");
         }
 
         /// <summary>
