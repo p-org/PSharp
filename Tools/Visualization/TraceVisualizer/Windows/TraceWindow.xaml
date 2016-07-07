@@ -22,10 +22,15 @@
                       IsReadOnly="True"
                       HorizontalAlignment="Stretch"
                       VerticalAlignment="Stretch"
-                      CurrentCellChanged="Row_CurrentCellChanged"
-                      MouseLeave="Row_MouseLeave"
+                      CurrentCellChanged="TraceView_CurrentCellChanged"
+                      MouseDoubleClick="TraceView_MouseDoubleClick"
+                      MouseDown="TraceView_MouseDown"
+                      MouseLeave="TraceView_MouseLeave"
                       Margin="0,0,0,0.333">
                 <DataGrid.Columns>
+                    <DataGridTextColumn Binding="{Binding Path=Id}"
+                                        Header="Id"
+                                        MinWidth="20"/>
                     <DataGridTextColumn Binding="{Binding Path=Type}"
                                         Header="Type"
                                         MinWidth="60"/>

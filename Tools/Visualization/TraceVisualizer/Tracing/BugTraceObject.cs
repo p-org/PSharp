@@ -19,6 +19,7 @@ namespace Microsoft.PSharp.Visualization
     /// </summary>
     public class BugTraceObject
     {
+        public int Id { get; set; }
         public string Type { get; set; }
         public string SenderMachine { get; set; }
         public string Event { get; set; }

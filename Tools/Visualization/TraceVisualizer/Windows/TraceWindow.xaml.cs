@@ -55,10 +55,8 @@ namespace Microsoft.PSharp.Visualization
             }
         }
 
-        private void Row_CurrentCellChanged(object sender, EventArgs e)
+        private void TraceView_CurrentCellChanged(object sender, EventArgs e)
         {
-            //MessageBox.Show((string)this.BugTraceView.CurrentColumn.Header);
-
             // Restores the trace view style.
             this.RestoreTraceViewStyle();
 
@@ -68,62 +66,150 @@ namespace Microsoft.PSharp.Visualization
                 string header = (string)this.BugTraceView.CurrentColumn.Header;
                 BugTraceObject item = (BugTraceObject)this.BugTraceView.CurrentCell.Item;
 
-                if (header.Equals("Type"))
+                for (int i = 0; i < this.BugTraceView.Items.Count; i++)
                 {
-                    for (int i = 0; i < this.BugTraceView.Items.Count; i++)
+                    DataGridRow row = (DataGridRow)this.BugTraceView.ItemContainerGenerator.ContainerFromIndex(i);
+                    TextBlock typeCellContent = this.BugTraceView.Columns[1].GetCellContent(row) as TextBlock;
+                    TextBlock machineCellContent = this.BugTraceView.Columns[2].GetCellContent(row) as TextBlock;
+                    TextBlock eventCellContent = this.BugTraceView.Columns[3].GetCellContent(row) as TextBlock;
+                    TextBlock targetCellContent = this.BugTraceView.Columns[4].GetCellContent(row) as TextBlock;
+
+                    if (header.Equals("Id"))
                     {
-                        DataGridRow row = (DataGridRow)this.BugTraceView.ItemContainerGenerator.ContainerFromIndex(i);
-                        TextBlock cellContent = this.BugTraceView.Columns[0].GetCellContent(row) as TextBlock;
-                        if (cellContent != null && cellContent.Text != null &&
-                            !cellContent.Text.Equals(item.Type))
+                        if (typeCellContent.Text.Equals("Create"))
+                        {
+                            row.Background = new SolidColorBrush(Colors.Aqua);
+                        }
+                        else if (typeCellContent.Text.Equals("Send"))
+                        {
+                            row.Background = new SolidColorBrush(Colors.GreenYellow);
+                        }
+                    }
+                    else if (header.Equals("Type"))
+                    {
+                        if (!typeCellContent.Text.Equals(item.Type))
                         {
                             row.Background = new SolidColorBrush(Colors.LightGray);
                         }
+                        else if (typeCellContent.Text.Equals("Create"))
+                        {
+                            row.Background = new SolidColorBrush(Colors.Aqua);
+                        }
+                        else if (typeCellContent.Text.Equals("Send"))
+                        {
+                            row.Background = new SolidColorBrush(Colors.GreenYellow);
+                        }
                     }
-                }
-                else if (header.Equals("Sender Machine"))
-                {
-                    for (int i = 0; i < this.BugTraceView.Items.Count; i++)
+                    else if (header.Equals("Sender Machine"))
                     {
-                        DataGridRow row = (DataGridRow)this.BugTraceView.ItemContainerGenerator.ContainerFromIndex(i);
-                        TextBlock cellContent = this.BugTraceView.Columns[1].GetCellContent(row) as TextBlock;
-                        if (cellContent != null && cellContent.Text != null &&
-                            !cellContent.Text.Equals(item.SenderMachine))
+                        if (!machineCellContent.Text.Equals(item.SenderMachine))
                         {
                             row.Background = new SolidColorBrush(Colors.LightGray);
                         }
+                        else if (typeCellContent.Text.Equals("Create"))
+                        {
+                            row.Background = new SolidColorBrush(Colors.Aqua);
+                        }
+                        else if (typeCellContent.Text.Equals("Send"))
+                        {
+                            row.Background = new SolidColorBrush(Colors.GreenYellow);
+                        }
                     }
-                }
-                else if (header.Equals("Target Machine"))
-                {
-                    for (int i = 0; i < this.BugTraceView.Items.Count; i++)
+                    else if (header.Equals("Event"))
                     {
-                        DataGridRow row = (DataGridRow)this.BugTraceView.ItemContainerGenerator.ContainerFromIndex(i);
-                        TextBlock cellContent = this.BugTraceView.Columns[3].GetCellContent(row) as TextBlock;
-                        if (cellContent != null && cellContent.Text != null &&
-                            !cellContent.Text.Equals(item.TargetMachine))
+                        if (!eventCellContent.Text.Equals(item.Event))
                         {
                             row.Background = new SolidColorBrush(Colors.LightGray);
                         }
+                        else if (typeCellContent.Text.Equals("Create"))
+                        {
+                            row.Background = new SolidColorBrush(Colors.Aqua);
+                        }
+                        else if (typeCellContent.Text.Equals("Send"))
+                        {
+                            row.Background = new SolidColorBrush(Colors.GreenYellow);
+                        }
                     }
-                }
-                else if (header.Equals("Event"))
-                {
-                    for (int i = 0; i < this.BugTraceView.Items.Count; i++)
+                    else if (header.Equals("Target Machine"))
                     {
-                        DataGridRow row = (DataGridRow)this.BugTraceView.ItemContainerGenerator.ContainerFromIndex(i);
-                        TextBlock cellContent = this.BugTraceView.Columns[2].GetCellContent(row) as TextBlock;
-                        if (cellContent != null && cellContent.Text != null &&
-                            !cellContent.Text.Equals(item.Event))
+                        if (!targetCellContent.Text.Equals(item.TargetMachine))
                         {
                             row.Background = new SolidColorBrush(Colors.LightGray);
+                        }
+                        else if (typeCellContent.Text.Equals("Create"))
+                        {
+                            row.Background = new SolidColorBrush(Colors.Aqua);
+                        }
+                        else if (typeCellContent.Text.Equals("Send"))
+                        {
+                            row.Background = new SolidColorBrush(Colors.GreenYellow);
                         }
                     }
                 }
             }
         }
 
-        private void Row_MouseLeave(object sender, EventArgs e)
+        private void TraceView_MouseDoubleClick(object sender, EventArgs e)
+        {
+            // Restores the trace view style.
+            this.RestoreTraceViewStyle();
+
+            if (this.BugTraceView.CurrentColumn.Header is string &&
+                this.BugTraceView.CurrentCell.Item is BugTraceObject)
+            {
+                string header = (string)this.BugTraceView.CurrentColumn.Header;
+                BugTraceObject item = (BugTraceObject)this.BugTraceView.CurrentCell.Item;
+
+                for (int i = 0; i < this.BugTraceView.Items.Count; i++)
+                {
+                    DataGridRow row = (DataGridRow)this.BugTraceView.ItemContainerGenerator.ContainerFromIndex(i);
+                    TextBlock typeCellContent = this.BugTraceView.Columns[1].GetCellContent(row) as TextBlock;
+                    TextBlock machineCellContent = this.BugTraceView.Columns[2].GetCellContent(row) as TextBlock;
+                    TextBlock eventCellContent = this.BugTraceView.Columns[3].GetCellContent(row) as TextBlock;
+                    TextBlock targetCellContent = this.BugTraceView.Columns[4].GetCellContent(row) as TextBlock;
+                    
+                    if (header.Equals("Type"))
+                    {
+                        if (!typeCellContent.Text.Equals(item.Type))
+                        {
+                            row.Visibility = Visibility.Collapsed;
+                        }
+                    }
+                    else if (header.Equals("Sender Machine"))
+                    {
+                        if (!machineCellContent.Text.Equals(item.SenderMachine))
+                        {
+                            row.Visibility = Visibility.Collapsed;
+                        }
+                    }
+                    else if (header.Equals("Event"))
+                    {
+                        if (!eventCellContent.Text.Equals(item.Event))
+                        {
+                            row.Visibility = Visibility.Collapsed;
+                        }
+                    }
+                    else if (header.Equals("Target Machine"))
+                    {
+                        if (!targetCellContent.Text.Equals(item.TargetMachine))
+                        {
+                            row.Visibility = Visibility.Collapsed;
+                        }
+                    }
+                }
+            }
+        }
+
+        private void TraceView_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.OriginalSource is ScrollViewer)
+            {
+                // Restores the trace view style.
+                this.RestoreTraceViewStyle();
+            }
+        }
+
+        private void TraceView_MouseLeave(object sender, EventArgs e)
         {
             // Restores the trace view style.
             this.RestoreTraceViewStyle();
@@ -176,6 +262,7 @@ namespace Microsoft.PSharp.Visualization
 
                 traceList.Add(new BugTraceObject()
                 {
+                    Id = traceList.Count,
                     Type = type,
                     SenderMachine = senderMachine,
                     Event = e,
@@ -194,7 +281,7 @@ namespace Microsoft.PSharp.Visualization
             for (int i = 0; i < this.BugTraceView.Items.Count; i++)
             {
                 DataGridRow row = (DataGridRow)this.BugTraceView.ItemContainerGenerator.ContainerFromIndex(i);
-                TextBlock cellContent = this.BugTraceView.Columns[0].GetCellContent(row) as TextBlock;
+                TextBlock cellContent = this.BugTraceView.Columns[1].GetCellContent(row) as TextBlock;
                 if (cellContent != null && cellContent.Text != null)
                 {
                     if (cellContent.Text.Equals("Create"))
@@ -205,6 +292,8 @@ namespace Microsoft.PSharp.Visualization
                     {
                         row.Background = new SolidColorBrush(Colors.GreenYellow);
                     }
+
+                    row.Visibility = Visibility.Visible;
                 }
             }
         }
