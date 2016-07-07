@@ -219,7 +219,8 @@ namespace Microsoft.PSharp.TestingServices
                     }
                 }
 
-                for (int i = 0; i < base.Configuration.SchedulingIterations; i++)
+                int maxIterations = base.Configuration.SchedulingIterations;
+                for (int i = 0; i < maxIterations; i++)
                 {
                     if (this.CancellationTokenSource.IsCancellationRequested)
                     {
@@ -357,6 +358,14 @@ namespace Microsoft.PSharp.TestingServices
                         this.ReadableTrace = sw.ToString();
                         this.ReadableTrace += this.CreateReport("<StrategyLog>");
                         this.ConstructReproducableTrace(runtime);
+                    }
+
+                    // Increases iterations if there is a specified timeout
+                    // and the default iteration given.
+                    if (base.Configuration.SchedulingIterations == 1 &&
+                        base.Configuration.Timeout > 0)
+                    {
+                        maxIterations++;
                     }
                 }
                 
