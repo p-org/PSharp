@@ -304,7 +304,9 @@ namespace Microsoft.PSharp
         protected void Goto(Type s)
         {
             // If the state is not a state of the machine, then report an error and exit.
-            this.Assert(StateTypeMap[this.GetType()].Contains(s), $"Machine '{base.Id}' " +
+            this.Assert(StateTypeMap[this.GetType()].Any(val
+                => val.DeclaringType.Equals(s.DeclaringType) &&
+                val.Name.Equals(s.Name)), $"Machine '{base.Id}' " +
                 $"is trying to transition to non-existing state '{s.Name}'.");
             this.Raise(new GotoStateEvent(s));
         }
@@ -862,9 +864,7 @@ namespace Microsoft.PSharp
                 // Checks if the event is a goto state event.
                 if (e.GetType() == typeof(GotoStateEvent))
                 {
-                    Type targetState = base.GetRuntimeGenericType(
-                        (e as GotoStateEvent).State);
-                    Console.WriteLine(targetState);
+                    Type targetState = (e as GotoStateEvent).State;
                     this.GotoState(targetState, null);
                 }
                 // Checks if the event can trigger a goto state transition.
@@ -1045,8 +1045,9 @@ namespace Microsoft.PSharp
             }
 
             this.StateStack.Pop();
-
-            var nextState = StateMap[this.GetType()].First(val => val.GetType().Equals(s));
+            
+            var nextState = StateMap[this.GetType()].First(val
+                => val.GetType().Equals(s));
             this.ConfigureStateTransitions(nextState);
 
             // The machine transitions to the new state.
@@ -1340,7 +1341,12 @@ namespace Microsoft.PSharp
             {
                 foreach (var type in StateTypeMap[machineType])
                 {
-                    Type stateType = base.GetRuntimeGenericType(type);
+                    Type stateType = type;
+                    if (this.GetType().IsGenericType)
+                    {
+                        stateType = type.MakeGenericType(this.GetType().GetGenericArguments());
+                    }
+                    
                     ConstructorInfo constructor = stateType.GetConstructor(Type.EmptyTypes);
                     var lambda = Expression.Lambda<Func<MachineState>>(
                         Expression.New(constructor)).Compile();
