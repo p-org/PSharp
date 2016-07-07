@@ -23,6 +23,7 @@ using System.Threading.Tasks;
 using Microsoft.PSharp.TestingServices.Scheduling;
 using Microsoft.PSharp.TestingServices.StateCaching;
 using Microsoft.PSharp.TestingServices.Threading;
+using Microsoft.PSharp.TestingServices.Tracing.Error;
 using Microsoft.PSharp.TestingServices.Tracing.Machines;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
 using Microsoft.PSharp.Utilities;
@@ -48,7 +49,13 @@ namespace Microsoft.PSharp.TestingServices
         internal ScheduleTrace ScheduleTrace;
 
         /// <summary>
+        /// The bug trace.
+        /// </summary>
+        internal BugTrace BugTrace;
+
+        /// <summary>
         /// A map from unique machine ids to action traces.
+        /// Only used for dynamic data race detection.
         /// </summary>
         internal IDictionary<MachineId, MachineActionTrace> MachineActionTraceMap;
 
@@ -117,6 +124,7 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             this.ScheduleTrace = new ScheduleTrace();
+            this.BugTrace = new BugTrace();
             this.MachineActionTraceMap = new ConcurrentDictionary<MachineId, MachineActionTrace>();
 
             this.StateCache = new StateCache(this);
@@ -124,6 +132,87 @@ namespace Microsoft.PSharp.TestingServices
             this.Visualizer = visualizer;
 
             this.OperationIdCounter = 0;
+        }
+
+        /// <summary>
+        /// Creates a new machine of the specified type and with
+        /// the specified optional event. This event can only be
+        /// used to access its payload, and cannot be handled.
+        /// </summary>
+        /// <param name="type">Type of the machine</param>
+        /// <param name="e">Event</param>
+        /// <returns>MachineId</returns>
+        public override MachineId CreateMachine(Type type, Event e = null)
+        {
+            MachineId mid = null;
+            if (this.TaskMap.ContainsKey((int)Task.CurrentId))
+            {
+                mid = this.TaskMap[(int)Task.CurrentId].Id;
+            }
+
+            return this.TryCreateMachine(mid, type, null, e);
+        }
+
+        /// <summary>
+        /// Creates a new machine of the specified type and name, and
+        /// with the specified optional event. This event can only be
+        /// used to access its payload, and cannot be handled.
+        /// </summary>
+        /// <param name="type">Type of the machine</param>
+        /// <param name="friendlyName">Friendly machine name used for logging</param>
+        /// <param name="e">Event</param>
+        /// <returns>MachineId</returns>
+        public override MachineId CreateMachine(Type type, string friendlyName, Event e = null)
+        {
+            MachineId mid = null;
+            if (this.TaskMap.ContainsKey((int)Task.CurrentId))
+            {
+                mid = this.TaskMap[(int)Task.CurrentId].Id;
+            }
+
+            return this.TryCreateMachine(mid, type, friendlyName, e);
+        }
+
+        /// <summary>
+        /// Creates a new remote machine of the specified type and with
+        /// the specified optional event. This event can only be used
+        /// to access its payload, and cannot be handled.
+        /// </summary>
+        /// <param name="type">Type of the machine</param>
+        /// <param name="endpoint">Endpoint</param>
+        /// <param name="e">Event</param>
+        /// <returns>MachineId</returns>
+        public override MachineId RemoteCreateMachine(Type type, string endpoint, Event e = null)
+        {
+            MachineId mid = null;
+            if (this.TaskMap.ContainsKey((int)Task.CurrentId))
+            {
+                mid = this.TaskMap[(int)Task.CurrentId].Id;
+            }
+
+            return this.TryCreateRemoteMachine(mid, type, null, endpoint, e);
+        }
+
+        /// <summary>
+        /// Creates a new remote machine of the specified type and name, and
+        /// with the specified optional event. This event can only be used
+        /// to access its payload, and cannot be handled.
+        /// </summary>
+        /// <param name="type">Type of the machine</param>
+        /// <param name="friendlyName">Friendly machine name used for logging</param>
+        /// <param name="endpoint">Endpoint</param>
+        /// <param name="e">Event</param>
+        /// <returns>MachineId</returns>
+        public override MachineId RemoteCreateMachine(Type type, string friendlyName,
+            string endpoint, Event e = null)
+        {
+            MachineId mid = null;
+            if (this.TaskMap.ContainsKey((int)Task.CurrentId))
+            {
+                mid = this.TaskMap[(int)Task.CurrentId].Id;
+            }
+
+            return this.TryCreateRemoteMachine(mid, type, friendlyName, endpoint, e);
         }
 
         /// <summary>
@@ -211,11 +300,13 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Tries to create a new machine of the specified type.
         /// </summary>
+        /// <param name="creator">Machine id of the creator machine</param>
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        internal override MachineId TryCreateMachine(Type type, string friendlyName, Event e)
+        internal override MachineId TryCreateMachine(MachineId creator, Type type,
+            string friendlyName, Event e)
         {
             this.Assert(type.IsSubclassOf(typeof(Machine)), $"Type '{type.Name}' " +
                 "is not a machine.");
@@ -238,7 +329,9 @@ namespace Microsoft.PSharp.TestingServices
             this.Assert(result, $"Machine '{mid}' was already created.");
 
             this.Log($"<CreateLog> Machine '{mid}' is created.");
-            
+
+            // Adds the action to the bug trace.
+            this.BugTrace.AddCreateMachineStep(creator, mid);
             if (this.Configuration.EnableDataRaceDetection)
             {
                 // Traces machine actions, if data-race detection is enabled.
@@ -283,17 +376,18 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Tries to create a new remote machine of the specified type.
         /// </summary>
+        /// <param name="creator">Machine id of the creator machine</param>
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
         /// <param name="endpoint">Endpoint</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        internal override MachineId TryCreateRemoteMachine(Type type, string friendlyName,
-            string endpoint, Event e)
+        internal override MachineId TryCreateRemoteMachine(MachineId creator, Type type,
+            string friendlyName, string endpoint, Event e)
         {
             this.Assert(type.IsSubclassOf(typeof(Machine)), $"Type '{type.Name}' " +
                 "is not a machine.");
-            return this.TryCreateMachine(type, friendlyName, e);
+            return this.TryCreateMachine(creator, type, friendlyName, e);
         }
 
         /// <summary>
@@ -398,10 +492,15 @@ namespace Microsoft.PSharp.TestingServices
                 IO.Log($"<SendLog> Event '{eventInfo.EventName}' was sent to '{mid}'.");
             }
 
-            if (this.Configuration.EnableDataRaceDetection && sender != null)
+            if (sender != null)
             {
-                // Traces machine actions, if data-race detection is enabled.
-                this.MachineActionTraceMap[sender.Id].AddSendActionInfo(mid, e);
+                // Adds the action to the bug trace.
+                this.BugTrace.AddSendEventStep(sender.Id, mid, e);
+                if (this.Configuration.EnableDataRaceDetection)
+                {
+                    // Traces machine actions, if data-race detection is enabled.
+                    this.MachineActionTraceMap[sender.Id].AddSendActionInfo(mid, e);
+                }
             }
 
             Machine machine = this.MachineMap[mid.Value];

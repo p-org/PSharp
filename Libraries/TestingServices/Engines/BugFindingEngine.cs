@@ -21,6 +21,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
+using Microsoft.PSharp.TestingServices.Tracing.Error;
 using Microsoft.PSharp.TestingServices.Tracing.Machines;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
 using Microsoft.PSharp.Utilities;
@@ -43,6 +44,11 @@ namespace Microsoft.PSharp.TestingServices
         /// The readable trace, if any.
         /// </summary>
         private string ReadableTrace;
+
+        /// <summary>
+        /// The bug trace, if any.
+        /// </summary>
+        private BugTrace BugTrace;
 
         /// <summary>
         /// The reproducable trace, if any.
@@ -105,7 +111,7 @@ namespace Microsoft.PSharp.TestingServices
             string name = Path.GetFileNameWithoutExtension(this.Assembly.Location);
             string directoryPath = base.GetOutputDirectory();
 
-            // Emits the human readable trace, if any.
+            // Emits the human readable trace, if it exists.
             if (!this.ReadableTrace.Equals(""))
             {
                 string[] readableTraces = Directory.GetFiles(directoryPath, name + "*.txt");
@@ -115,11 +121,25 @@ namespace Microsoft.PSharp.TestingServices
                 File.WriteAllText(readableTracesPath, this.ReadableTrace);
             }
 
-            // Emits the reproducable trace, if any.
+            // Emits the bug trace, if it exists.
+            if (this.BugTrace != null)
+            {
+                string[] bugTraces = Directory.GetFiles(directoryPath, name + "*.pstrace");
+                string bugTracesPath = directoryPath + name + "_" + bugTraces.Length + ".pstrace";
+
+                using (FileStream stream = File.Open(bugTracesPath, FileMode.Create))
+                {
+                    DataContractSerializer serializer = new DataContractSerializer(typeof(BugTrace));
+                    IO.Debug($"... Writing {bugTracesPath}");
+                    serializer.WriteObject(stream, this.BugTrace);
+                }
+            }
+
+            // Emits the reproducable trace, if it exists.
             if (!this.ReproducableTrace.Equals(""))
             {
-                string[] reproTraces = Directory.GetFiles(directoryPath, name + "*.pstrace");
-                string reproTracesPath = directoryPath + name + "_" + reproTraces.Length + ".pstrace";
+                string[] reproTraces = Directory.GetFiles(directoryPath, name + "*.schedule");
+                string reproTracesPath = directoryPath + name + "_" + reproTraces.Length + ".schedule";
 
                 IO.PrintLine($"... Writing {reproTracesPath}");
                 File.WriteAllText(reproTracesPath, this.ReproducableTrace);
@@ -348,6 +368,7 @@ namespace Microsoft.PSharp.TestingServices
                         {
                             this.ReadableTrace = sw.ToString();
                             this.ReadableTrace += this.CreateReport("<StrategyLog>");
+                            this.BugTrace = runtime.BugTrace;
                             this.ConstructReproducableTrace(runtime);
                         }
 
@@ -357,6 +378,7 @@ namespace Microsoft.PSharp.TestingServices
                     {
                         this.ReadableTrace = sw.ToString();
                         this.ReadableTrace += this.CreateReport("<StrategyLog>");
+                        this.BugTrace = runtime.BugTrace;
                         this.ConstructReproducableTrace(runtime);
                     }
 

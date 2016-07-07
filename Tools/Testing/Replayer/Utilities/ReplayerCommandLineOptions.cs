@@ -42,16 +42,16 @@ namespace Microsoft.PSharp.Utilities
             {
                 base.Configuration.AssemblyToBeAnalyzed = option.Substring(6);
             }
-            else if (option.ToLower().StartsWith("/trace:") && option.Length > 7)
+            else if (option.ToLower().StartsWith("/replay:") && option.Length > 7)
             {
                 string extension = System.IO.Path.GetExtension(option.Substring(7));
-                if (!extension.Equals(".pstrace"))
+                if (!extension.Equals(".schedule"))
                 {
-                    IO.Error.ReportAndExit("Please give a valid trace file " +
-                        "'/trace:[x]', where [x] has extension '.pstrace'.");
+                    IO.Error.ReportAndExit("Please give a valid schedule file " +
+                        "'/replay:[x]', where [x] has extension '.schedule'.");
                 }
 
-                base.Configuration.TraceFile = option.Substring(7);
+                base.Configuration.ScheduleFile = option.Substring(7);
             }
             else if (option.ToLower().Equals("/attach-debugger") ||
                 option.ToLower().Equals("/break"))
@@ -87,10 +87,10 @@ namespace Microsoft.PSharp.Utilities
                     "program's dll using '/test:[x]'.");
             }
 
-            if (base.Configuration.TraceFile.Equals(""))
+            if (base.Configuration.ScheduleFile.Equals(""))
             {
-                IO.Error.ReportAndExit("Please give a valid path to a P# trace " +
-                    "file using '/trace:[x]', where [x] has extension '.pstrace'.");
+                IO.Error.ReportAndExit("Please give a valid path to a P# schedule " +
+                    "file using '/replay:[x]', where [x] has extension '.schedule'.");
             }
         }
 
@@ -115,7 +115,7 @@ namespace Microsoft.PSharp.Utilities
             help += "\n\n ------------------";
             help += "\n Replaying options:";
             help += "\n ------------------";
-            help += "\n  /trace:[x]\t Trace to replay";
+            help += "\n  /replay:[x]\t Schedule to replay";
             help += "\n  /break:[x]\t Attach debugger and break at bug";
 
             help += "\n\n ---------------------";

@@ -114,9 +114,9 @@ namespace Microsoft.PSharp.Utilities
         public string AssemblyToBeAnalyzed;
 
         /// <summary>
-        /// The trace file to be replayed.
+        /// The schedule file to be replayed.
         /// </summary>
-        public string TraceFile;
+        public string ScheduleFile;
 
         /// <summary>
         /// Scheduling strategy to use with the P# tester.
@@ -337,7 +337,7 @@ namespace Microsoft.PSharp.Utilities
             this.ShowFullDataFlowInformation = false;
 
             this.AssemblyToBeAnalyzed = "";
-            this.TraceFile = "";
+            this.ScheduleFile = "";
 
             this.SchedulingStrategy = SchedulingStrategy.Random;
             this.SchedulingIterations = 1;
