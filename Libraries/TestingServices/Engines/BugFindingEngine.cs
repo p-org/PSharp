@@ -130,7 +130,7 @@ namespace Microsoft.PSharp.TestingServices
                 using (FileStream stream = File.Open(bugTracesPath, FileMode.Create))
                 {
                     DataContractSerializer serializer = new DataContractSerializer(typeof(BugTrace));
-                    IO.Debug($"... Writing {bugTracesPath}");
+                    IO.PrintLine($"... Writing {bugTracesPath}");
                     serializer.WriteObject(stream, this.BugTrace);
                 }
             }

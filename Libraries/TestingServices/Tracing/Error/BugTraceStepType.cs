@@ -22,9 +22,9 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
     [DataContract]
     internal enum BugTraceStepType
     {
-        [EnumMember(Value = "SendAction")]
+        [EnumMember(Value = "CreateMachine")]
         CreateMachine = 0,
-        [EnumMember(Value = "SendAction")]
+        [EnumMember(Value = "SendEvent")]
         SendEvent
     }
 }
