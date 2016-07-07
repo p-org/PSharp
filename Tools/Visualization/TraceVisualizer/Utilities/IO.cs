@@ -14,7 +14,7 @@
 
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
+using System.Runtime.Serialization;
 
 using Microsoft.Win32;
 
@@ -45,8 +45,8 @@ namespace Microsoft.PSharp.Visualization
                 string fileName = openFileDialog.FileName;
                 using (Stream stream = File.Open(fileName, FileMode.Open))
                 {
-                    BinaryFormatter bformatter = new BinaryFormatter();
-                    trace = (BugTrace)bformatter.Deserialize(stream);
+                    DataContractSerializer serializer = new DataContractSerializer(typeof(BugTrace));
+                    trace = (BugTrace)serializer.ReadObject(stream);
                 }
             }
 

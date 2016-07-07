@@ -29,7 +29,7 @@ namespace Microsoft.PSharp.Visualization
         /// <summary>
         /// The bug trace.
         /// </summary>
-        private BugTrace Trace;
+        private BugTrace BugTrace;
 
         #endregion
 
@@ -45,13 +45,19 @@ namespace Microsoft.PSharp.Visualization
 
         #region actions
 
+        public class BugTraceObject
+        {
+            public string A { get; set; }
+            public string B { get; set; }
+        }
+
         private void MenuItem_Open_Click(object sender, RoutedEventArgs e)
         {
-            this.Trace = IO.LoadTrace();
-            var traceList = new ObservableCollection<BugTraceStep>();
-            foreach (var step in this.Trace)
+            this.BugTrace = IO.LoadTrace();
+            var traceList = new ObservableCollection<BugTraceObject>();
+            foreach (var traceStep in this.BugTrace)
             {
-                trace.Add(new BugTraceStep() { step });
+                traceList.Add(new BugTraceObject() { A = traceStep.Type.ToString(), B = traceStep.TargetMachine });
             }
         }
 
