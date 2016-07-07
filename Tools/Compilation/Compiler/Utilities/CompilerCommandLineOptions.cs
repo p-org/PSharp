@@ -62,7 +62,7 @@ namespace Microsoft.PSharp.Utilities
                 }
                 else
                 {
-                    ErrorReporter.ReportAndExit("Please give a valid compilation target " +
+                    IO.Error.ReportAndExit("Please give a valid compilation target " +
                         "'/t:[x]', where [x] is 'all', 'exe', 'lib' or 'test'.");
                 }
             }
@@ -78,7 +78,7 @@ namespace Microsoft.PSharp.Utilities
                 }
                 else
                 {
-                    ErrorReporter.ReportAndExit("Please give a valid optimization target " +
+                    IO.Error.ReportAndExit("Please give a valid optimization target " +
                         "'/optimization:[x]', where [x] is 'debug' or 'release'.");
                 }
             }
@@ -86,7 +86,7 @@ namespace Microsoft.PSharp.Utilities
             {
                 if (!option.ToLower().Substring(6).EndsWith(".dll"))
                 {
-                    ErrorReporter.ReportAndExit("Please give a valid custom compiler pass dll " +
+                    IO.Error.ReportAndExit("Please give a valid custom compiler pass dll " +
                         "'/pass:[x]', where [x] is a 'dll'.");
                 }
 
@@ -116,7 +116,7 @@ namespace Microsoft.PSharp.Utilities
                 }
                 else
                 {
-                    ErrorReporter.ReportAndExit("Please give a valid data-flow information " +
+                    IO.Error.ReportAndExit("Please give a valid data-flow information " +
                         "level '/emit-data-flow:[x]', where [x] is 'default' or 'full'.");
                 }
             }
@@ -141,7 +141,7 @@ namespace Microsoft.PSharp.Utilities
         {
             if (base.Configuration.SolutionFilePath.Equals(""))
             {
-                ErrorReporter.ReportAndExit("Please give a valid solution path.");
+                IO.Error.ReportAndExit("Please give a valid solution path.");
             }
         }
 

@@ -148,7 +148,7 @@ namespace Microsoft.PSharp.Remote
             }
             catch (System.ComponentModel.Win32Exception ex)
             {
-                ErrorReporter.ReportAndExit(ex.Message);
+                IO.Error.ReportAndExit(ex.Message);
             }
         }
 

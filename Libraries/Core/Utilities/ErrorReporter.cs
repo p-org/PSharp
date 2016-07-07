@@ -94,27 +94,6 @@ namespace Microsoft.PSharp.Utilities
             }
         }
 
-        /// <summary>
-        /// Reports a generic error to the user and exits.
-        /// </summary>
-        /// <param name="s">String</param>
-        public static void ReportAndExit(string s)
-        {
-            ErrorReporter.Report(s);
-            Environment.Exit(1);
-        }
-
-        /// <summary>
-        /// Reports a generic error to the user and exits.
-        /// </summary>
-        /// <param name="s">String</param>
-        /// <param name="args">Parameters</param>
-        public static void ReportAndExit(string s, params object[] args)
-        {
-            ErrorReporter.Report(s, args);
-            Environment.Exit(1);
-        }
-
         #endregion
     }
 }

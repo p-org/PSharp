@@ -189,7 +189,7 @@ namespace Microsoft.PSharp.TestingServices
             }
             catch (FileNotFoundException ex)
             {
-                ErrorReporter.ReportAndExit(ex.Message);
+                IO.Error.ReportAndExit(ex.Message);
             }
 
             this.FindEntryPoint();
@@ -307,7 +307,7 @@ namespace Microsoft.PSharp.TestingServices
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Portfolio)
             {
-                ErrorReporter.ReportAndExit("Portfolio testing strategy in only " +
+                IO.Error.ReportAndExit("Portfolio testing strategy in only " +
                     "available in parallel testing.");
             }
 
@@ -357,7 +357,7 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             this.Profiler.StartMeasuringExecutionTime();
-            
+
             try
             {
                 task.Start();
@@ -406,10 +406,10 @@ namespace Microsoft.PSharp.TestingServices
 
                 if (aex.InnerException is FileNotFoundException)
                 {
-                    ErrorReporter.ReportAndExit($"{aex.InnerException.Message}");
+                    IO.Error.ReportAndExit($"{aex.InnerException.Message}");
                 }
 
-                ErrorReporter.ReportAndExit("Exception thrown during testing. Please use " +
+                IO.Error.ReportAndExit("Exception thrown during testing. Please use " +
                     "/debug to print more information, and contact the developer team.");
             }
             finally
@@ -448,12 +448,12 @@ namespace Microsoft.PSharp.TestingServices
 
             if (testMethods.Count == 0)
             {
-                ErrorReporter.ReportAndExit("Cannot detect a P# test method. Use the " +
+                IO.Error.ReportAndExit("Cannot detect a P# test method. Use the " +
                     $"attribute '[{typeof(Test).FullName}]' to declare a test method.");
             }
             else if (testMethods.Count > 1)
             {
-                ErrorReporter.ReportAndExit("Only one test method to the P# program can " +
+                IO.Error.ReportAndExit("Only one test method to the P# program can " +
                     $"be declared with the attribute '{typeof(Test).FullName}'. " +
                     $"'{testMethods.Count}' test methods were found instead.");
             }
@@ -466,7 +466,7 @@ namespace Microsoft.PSharp.TestingServices
                 testMethods[0].GetParameters().Length != 1 ||
                 testMethods[0].GetParameters()[0].ParameterType != typeof(PSharpRuntime))
             {
-                ErrorReporter.ReportAndExit("Incorrect test method declaration. Please " +
+                IO.Error.ReportAndExit("Incorrect test method declaration. Please " +
                     "declare the test method as follows:\n" +
                     $"  [{typeof(Test).FullName}] public static void " +
                     $"void {testMethods[0].Name}(PSharpRuntime runtime) {{ ... }}");
@@ -489,7 +489,7 @@ namespace Microsoft.PSharp.TestingServices
             }
             else if (testMethods.Count > 1)
             {
-                ErrorReporter.ReportAndExit("Only one test method to the P# program can " +
+                IO.Error.ReportAndExit("Only one test method to the P# program can " +
                     $"be declared with the attribute '{attribute.FullName}'. " +
                     $"'{testMethods.Count}' test methods were found instead.");
             }
@@ -501,7 +501,7 @@ namespace Microsoft.PSharp.TestingServices
                 !testMethods[0].IsPublic || !testMethods[0].IsStatic ||
                 testMethods[0].GetParameters().Length != 0)
             {
-                ErrorReporter.ReportAndExit("Incorrect test method declaration. Please " +
+                IO.Error.ReportAndExit("Incorrect test method declaration. Please " +
                     "declare the test method as follows:\n" +
                     $"  [{attribute.FullName}] public static " +
                     $"void {testMethods[0].Name}() {{ ... }}");
@@ -533,12 +533,12 @@ namespace Microsoft.PSharp.TestingServices
                     ErrorReporter.Report(le.Message);
                 }
 
-                ErrorReporter.ReportAndExit($"Failed to load assembly '{this.Assembly.FullName}'");
+                IO.Error.ReportAndExit($"Failed to load assembly '{this.Assembly.FullName}'");
             }
             catch (Exception ex)
             {
                 ErrorReporter.Report(ex.Message);
-                ErrorReporter.ReportAndExit($"Failed to load assembly '{this.Assembly.FullName}'");
+                IO.Error.ReportAndExit($"Failed to load assembly '{this.Assembly.FullName}'");
             }
 
             return testMethods;

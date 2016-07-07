@@ -32,7 +32,7 @@ namespace Microsoft.PSharp.Utilities
         public static class Error
         {
             /// <summary>
-            ///  Writes the specified string value to the output stream.
+            ///  Writes the specified string value to the error stream.
             /// </summary>
             /// <param name="s">String</param>
             public static void Print(string s)
@@ -41,7 +41,7 @@ namespace Microsoft.PSharp.Utilities
             }
 
             /// <summary>
-            ///  Writes the specified string value to the output stream.
+            ///  Writes the specified string value to the error stream.
             /// </summary>
             /// <param name="color">ConsoleColor</param>
             /// <param name="s">String</param>
@@ -55,7 +55,7 @@ namespace Microsoft.PSharp.Utilities
 
             /// <summary>
             /// Writes the text representation of the specified array
-            /// of objects to the output stream.
+            /// of objects to the error stream.
             /// </summary>
             /// <param name="s">String</param>
             /// <param name="args">Arguments</param>
@@ -66,7 +66,7 @@ namespace Microsoft.PSharp.Utilities
 
             /// <summary>
             /// Writes the text representation of the specified array
-            /// of objects to the output stream.
+            /// of objects to the error stream.
             /// </summary>
             /// <param name="color">ConsoleColor</param>
             /// <param name="s">String</param>
@@ -80,8 +80,16 @@ namespace Microsoft.PSharp.Utilities
             }
 
             /// <summary>
+            /// Writes a new line, to the error stream.
+            /// </summary>
+            public static void PrintLine()
+            {
+                Console.Error.WriteLine();
+            }
+
+            /// <summary>
             /// Writes the specified string value, followed by the
-            /// current line terminator, to the output stream.
+            /// current line terminator, to the error stream.
             /// </summary>
             /// <param name="s">String</param>
             public static void PrintLine(string s)
@@ -92,7 +100,7 @@ namespace Microsoft.PSharp.Utilities
             /// <summary>
             /// Writes the text representation of the specified array
             /// of objects, followed by the current line terminator, to
-            /// the output stream.
+            /// the error stream.
             /// </summary>
             /// <param name="s">String</param>
             /// <param name="args">Arguments</param>
@@ -103,7 +111,7 @@ namespace Microsoft.PSharp.Utilities
 
             /// <summary>
             /// Writes the text representation of the specified array
-            /// of objects to the output stream. The text is formatted.
+            /// of objects to the error stream. The text is formatted.
             /// </summary>
             /// <param name="s">String</param>
             /// <param name="args">Arguments</param>
@@ -116,7 +124,7 @@ namespace Microsoft.PSharp.Utilities
             /// <summary>
             /// Writes the text representation of the specified array
             /// of objects, followed by the current line terminator, to
-            /// the output stream. The text is formatted.
+            /// the error stream. The text is formatted.
             /// </summary>
             /// <param name="s">String</param>
             /// <param name="args">Arguments</param>
@@ -124,6 +132,32 @@ namespace Microsoft.PSharp.Utilities
             {
                 string message = IO.Format(s, args);
                 IO.Error.PrintLine(message);
+            }
+
+            /// <summary>
+            /// Reports a generic error to the user and exits.
+            /// </summary>
+            /// <param name="s">String</param>
+            public static void ReportAndExit(string s)
+            {
+                IO.Error.Print(ConsoleColor.Red, "Error: ");
+                IO.Error.Print(ConsoleColor.Yellow, s);
+                IO.Error.PrintLine();
+                Environment.Exit(1);
+            }
+
+            /// <summary>
+            /// Reports a generic error to the user and exits.
+            /// </summary>
+            /// <param name="s">String</param>
+            /// <param name="args">Parameters</param>
+            public static void ReportAndExit(string s, params object[] args)
+            {
+                string message = IO.Format(s, args);
+                IO.Error.Print(ConsoleColor.Red, "Error: ");
+                IO.Error.Print(ConsoleColor.Yellow, message);
+                IO.Error.PrintLine();
+                Environment.Exit(1);
             }
         }
 

@@ -121,7 +121,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 IO.Debug("Exception was thrown during rewriting:");
                 IO.Debug(ex.Message);
                 IO.Debug(ex.StackTrace);
-                ErrorReporter.ReportAndExit("Failed to rewrite method '{0}' of machine '{1}'.",
+                IO.Error.ReportAndExit("Failed to rewrite method '{0}' of machine '{1}'.",
                     this.Identifier.TextUnit.Text, this.Machine.Identifier.TextUnit.Text);
             }
 

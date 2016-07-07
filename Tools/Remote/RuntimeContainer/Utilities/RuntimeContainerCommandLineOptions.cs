@@ -48,7 +48,7 @@ namespace Microsoft.PSharp.Remote
                 int i = 0;
                 if (!int.TryParse(option.Substring(4), out i) && i >= 0)
                 {
-                    ErrorReporter.ReportAndExit("Please give a valid container id");
+                    IO.Error.ReportAndExit("Please give a valid container id");
                 }
 
                 base.Configuration.ContainerId = i;
@@ -68,12 +68,12 @@ namespace Microsoft.PSharp.Remote
         {
             if (base.Configuration.RemoteApplicationFilePath.Equals(""))
             {
-                ErrorReporter.ReportAndExit("Please give a valid P# application path.");
+                IO.Error.ReportAndExit("Please give a valid P# application path.");
             }
 
             if (!Path.GetExtension(base.Configuration.RemoteApplicationFilePath).Equals(".dll"))
             {
-                ErrorReporter.ReportAndExit("The application must be a `dll` file.");
+                IO.Error.ReportAndExit("The application must be a `dll` file.");
             }
         }
 

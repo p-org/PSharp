@@ -456,7 +456,8 @@ namespace Microsoft.PSharp.TestingServices
                 ScheduleStep step = runtime.ScheduleTrace[idx];
                 if (step.Type == ScheduleStepType.SchedulingChoice)
                 {
-                    stringBuilder.Append(step.ScheduledMachine.Id);
+                    stringBuilder.Append($"{step.ScheduledMachine.Id.Type}" +
+                        $"({step.ScheduledMachine.Id.Value})");
                 }
                 else
                 {

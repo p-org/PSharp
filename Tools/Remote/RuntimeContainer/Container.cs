@@ -146,7 +146,7 @@ namespace Microsoft.PSharp.Remote
             }
             catch (FileNotFoundException ex)
             {
-                ErrorReporter.ReportAndExit(ex.Message);
+                IO.Error.ReportAndExit(ex.Message);
             }
         }
 
@@ -242,12 +242,12 @@ namespace Microsoft.PSharp.Remote
                 Where(m => m.GetCustomAttributes(typeof(EntryPoint), false).Length > 0).ToList();
             if (entrypoints.Count == 0)
             {
-                ErrorReporter.ReportAndExit("Cannot detect a P# entry point method. " +
+                IO.Error.ReportAndExit("Cannot detect a P# entry point method. " +
                     "Use the attribute [EntryPoint] to declare an entry point.");
             }
             else if (entrypoints.Count > 1)
             {
-                ErrorReporter.ReportAndExit("Only one entry point method to the P# program can be " +
+                IO.Error.ReportAndExit("Only one entry point method to the P# program can be " +
                     "declared. {0} entry points were found instead.", entrypoints.Count);
             }
 

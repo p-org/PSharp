@@ -200,7 +200,7 @@ namespace Microsoft.PSharp.TestingServices
             }
             catch (AddressAccessDeniedException)
             {
-                ErrorReporter.ReportAndExit("Your process does not have access " +
+                IO.Error.ReportAndExit("Your process does not have access " +
                     "rights to open the remote testing notification listener. " +
                     "Please run the process as administrator.");
             }

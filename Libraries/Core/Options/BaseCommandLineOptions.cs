@@ -94,7 +94,7 @@ namespace Microsoft.PSharp.Utilities
                 int i = 0;
                 if (!int.TryParse(option.Substring(3), out i) && i > 0 && i <= 3)
                 {
-                    ErrorReporter.ReportAndExit("Please give a valid verbosity level " +
+                    IO.Error.ReportAndExit("Please give a valid verbosity level " +
                         "'/v:[x]', where 1 <= [x] <= 3.");
                 }
 
@@ -115,7 +115,7 @@ namespace Microsoft.PSharp.Utilities
                 if (!int.TryParse(option.Substring(9), out i) &&
                     i > 0)
                 {
-                    ErrorReporter.ReportAndExit("Please give a valid timeout " +
+                    IO.Error.ReportAndExit("Please give a valid timeout " +
                         "'/timeout:[x]', where [x] > 0 seconds.");
                 }
 
@@ -128,7 +128,7 @@ namespace Microsoft.PSharp.Utilities
             else
                 {
                 this.ShowHelp();
-                ErrorReporter.ReportAndExit("cannot recognise command line option '" +
+                IO.Error.ReportAndExit("cannot recognise command line option '" +
                     option + "'.");
             }
         }

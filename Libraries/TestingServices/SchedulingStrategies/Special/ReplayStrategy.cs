@@ -88,13 +88,13 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
             if (this.ExploredSteps >= this.ScheduleTrace.Count)
             {
-                ErrorReporter.ReportAndExit("Trace is not reproducible: execution is longer than trace.");
+                IO.Error.ReportAndExit("Trace is not reproducible: execution is longer than trace.");
             }
 
             ScheduleStep nextStep = this.ScheduleTrace[this.ExploredSteps];
             if (nextStep.Type != ScheduleStepType.SchedulingChoice)
             {
-                ErrorReporter.ReportAndExit("Trace is not reproducible: next step is not a scheduling choice.");
+                IO.Error.ReportAndExit("Trace is not reproducible: next step is not a scheduling choice.");
             }
 
             next = availableMachines.FirstOrDefault(m => m.Machine.Id.Type.Equals(
@@ -102,7 +102,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 m.Machine.Id.Value == nextStep.ScheduledMachineId);
             if (next == null)
             {
-                ErrorReporter.ReportAndExit("Trace is not reproducible: cannot detect machine with type " +
+                IO.Error.ReportAndExit("Trace is not reproducible: cannot detect machine with type " +
                     $"'{nextStep.ScheduledMachineType}' and id '{nextStep.ScheduledMachineId}'.");
             }
 
@@ -121,13 +121,13 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             if (this.ExploredSteps >= this.ScheduleTrace.Count)
             {
-                ErrorReporter.ReportAndExit("Trace is not reproducible: execution is longer than trace.");
+                IO.Error.ReportAndExit("Trace is not reproducible: execution is longer than trace.");
             }
 
             ScheduleStep nextStep = this.ScheduleTrace[this.ExploredSteps];
             if (nextStep.Type != ScheduleStepType.NondeterministicChoice)
             {
-                ErrorReporter.ReportAndExit("Trace is not reproducible: next step is not a nondeterministic choice.");
+                IO.Error.ReportAndExit("Trace is not reproducible: next step is not a nondeterministic choice.");
             }
 
             next = nextStep.Choice;

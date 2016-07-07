@@ -47,7 +47,7 @@ namespace Microsoft.PSharp.Utilities
                 string extension = System.IO.Path.GetExtension(option.Substring(7));
                 if (!extension.Equals(".pstrace"))
                 {
-                    ErrorReporter.ReportAndExit("Please give a valid trace file " +
+                    IO.Error.ReportAndExit("Please give a valid trace file " +
                         "'/trace:[x]', where [x] has extension '.pstrace'.");
                 }
 
@@ -83,13 +83,13 @@ namespace Microsoft.PSharp.Utilities
         {
             if (base.Configuration.AssemblyToBeAnalyzed.Equals(""))
             {
-                ErrorReporter.ReportAndExit("Please give a valid path to a P# " +
+                IO.Error.ReportAndExit("Please give a valid path to a P# " +
                     "program's dll using '/test:[x]'.");
             }
 
             if (base.Configuration.TraceFile.Equals(""))
             {
-                ErrorReporter.ReportAndExit("Please give a valid path to a P# trace " +
+                IO.Error.ReportAndExit("Please give a valid path to a P# trace " +
                     "file using '/trace:[x]', where [x] has extension '.pstrace'.");
             }
         }

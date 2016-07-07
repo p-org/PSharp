@@ -125,7 +125,7 @@ namespace Microsoft.PSharp.LanguageServices.Syntax
                 IO.Debug("Exception was thrown during rewriting:");
                 IO.Debug(ex.Message);
                 IO.Debug(ex.StackTrace);
-                ErrorReporter.ReportAndExit("Failed to rewrite event '{0}'.",
+                IO.Error.ReportAndExit("Failed to rewrite event '{0}'.",
                     this.Identifier.TextUnit.Text);
             }
 

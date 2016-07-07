@@ -270,7 +270,7 @@ namespace Microsoft.PSharp.LanguageServices.Compilation
             }
             catch (ApplicationException ex)
             {
-                ErrorReporter.ReportAndExit(ex.Message);
+                IO.Error.ReportAndExit(ex.Message);
             }
         }
 
