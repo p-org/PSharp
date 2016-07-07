@@ -12,6 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
 using System.ComponentModel;
 
 namespace Microsoft.PSharp
@@ -125,6 +126,30 @@ namespace Microsoft.PSharp
         internal virtual bool IsOperationPending(int opid)
         {
             return false;
+        }
+
+        #endregion
+
+        #region protected methods
+
+        /// <summary>
+        /// Returns the runtime type of the specified type. If the
+        /// current machine type is a generic, then it creates a
+        /// type using the same generic arguments. Else, it returns
+        /// the specified type.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        protected Type GetRuntimeGenericType(Type type)
+        {
+            Console.WriteLine(this.GetType());
+            Type runtimeType = type;
+            if (this.GetType().IsGenericType)
+            {
+                runtimeType = type.MakeGenericType(this.GetType().GetGenericArguments());
+            }
+
+            return runtimeType;
         }
 
         #endregion

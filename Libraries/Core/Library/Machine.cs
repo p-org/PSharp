@@ -146,6 +146,18 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Gets the current state name.
+        /// </summary>
+        internal string CurrentStateName
+        {
+            get
+            {
+                return $"{this.CurrentState.DeclaringType}." +
+                    $"{this.CurrentState.Name}";
+            }
+        }
+
+        /// <summary>
         /// Gets the latest received event, or null if no event
         /// has been received.
         /// </summary>
@@ -429,7 +441,7 @@ namespace Microsoft.PSharp
             else
             {
                 base.Runtime.Log($"<PopLog> Machine '{base.Id}' popped " +
-                    $"and reentered state '{this.CurrentState.FullName}'.");
+                    $"and reentered state '{this.CurrentStateName}'.");
                 this.ConfigureStateTransitions(this.StateStack.Peek());
             }
         }
@@ -476,7 +488,7 @@ namespace Microsoft.PSharp
         [EditorBrowsable(EditorBrowsableState.Never)]
         protected bool FairRandom(int uniqueId)
         {
-            var havocId = base.Id.Name + "_" + this.CurrentState.FullName + "_" + uniqueId;
+            var havocId = base.Id.Name + "_" + this.CurrentStateName + "_" + uniqueId;
             return base.Runtime.GetFairNondeterministicChoice(this, havocId);
         }
 
@@ -600,7 +612,7 @@ namespace Microsoft.PSharp
                         {
                             base.Runtime.Log($"<DefaultLog> Machine '{base.Id}' " +
                                 "is executing the default handler in state " +
-                                $"'{this.CurrentState.FullName}'.");
+                                $"'{this.CurrentStateName}'.");
 
                             nextEventInfo = new EventInfo(new Default(), new EventOriginInfo(
                                 base.Id, this.GetType().Name, this.CurrentState.Name));
@@ -840,7 +852,7 @@ namespace Microsoft.PSharp
                     {
                         base.Runtime.Log($"<PopLog> Machine '{base.Id}' popped " +
                             $"with unhandled event '{e.GetType().FullName}' and " +
-                            $"reentered state '{this.CurrentState.FullName}.");
+                            $"reentered state '{this.CurrentStateName}.");
                         this.ConfigureStateTransitions(this.StateStack.Peek());
                     }
                     
@@ -850,7 +862,9 @@ namespace Microsoft.PSharp
                 // Checks if the event is a goto state event.
                 if (e.GetType() == typeof(GotoStateEvent))
                 {
-                    Type targetState = (e as GotoStateEvent).State;
+                    Type targetState = base.GetRuntimeGenericType(
+                        (e as GotoStateEvent).State);
+                    Console.WriteLine(targetState);
                     this.GotoState(targetState, null);
                 }
                 // Checks if the event can trigger a goto state transition.
@@ -1168,7 +1182,7 @@ namespace Microsoft.PSharp
         private void ExecuteCurrentStateOnEntry()
         {
             base.Runtime.Log($"<StateLog> Machine '{base.Id}' " +
-                $"enters state '{this.CurrentState.FullName}'.");
+                $"enters state '{this.CurrentStateName}'.");
             
             MethodInfo entryAction = null;
             if (this.StateStack.Peek().EntryAction != null)
@@ -1232,7 +1246,7 @@ namespace Microsoft.PSharp
         private void ExecuteCurrentStateOnExit(string eventHandlerExitActionName)
         {
             base.Runtime.Log($"<ExitLog> Machine '{base.Id}' " +
-                $"exits state '{this.CurrentState.FullName}'.");
+                $"exits state '{this.CurrentStateName}'.");
 
             MethodInfo exitAction = null;
             if (this.StateStack.Peek().ExitAction != null)
@@ -1326,10 +1340,12 @@ namespace Microsoft.PSharp
             {
                 foreach (var type in StateTypeMap[machineType])
                 {
-                    var constructor = Expression.Lambda<Func<MachineState>>(
-                        Expression.New(type.GetConstructor(Type.EmptyTypes))).Compile();
-                    MachineState state = constructor();
-                    
+                    Type stateType = base.GetRuntimeGenericType(type);
+                    ConstructorInfo constructor = stateType.GetConstructor(Type.EmptyTypes);
+                    var lambda = Expression.Lambda<Func<MachineState>>(
+                        Expression.New(constructor)).Compile();
+                    MachineState state = lambda();
+
                     state.InitializeState();
                     StateMap[machineType].Add(state);
                 }
