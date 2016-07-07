@@ -13,7 +13,6 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Linq;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -24,7 +23,7 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
 {
     [TestClass]
-    public class FieldSendingTests
+    public class FieldSendingTests : BaseTest
     {
         [TestMethod, Timeout(10000)]
         public void TestFieldSending()
@@ -60,11 +59,7 @@ class M : Machine
 }
 }";
             
-            var configuration = Configuration.Create();
-            configuration.ProjectName = "Test";
-            configuration.ThrowInternalExceptions = true;
-            configuration.Verbose = 2;
-            configuration.AnalyzeDataRaces = true;
+            var configuration = base.GetConfiguration();
 
             IO.StartWritingToMemory();
 

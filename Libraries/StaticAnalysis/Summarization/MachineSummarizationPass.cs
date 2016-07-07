@@ -109,7 +109,7 @@ namespace Microsoft.PSharp.StaticAnalysis
                     if (Querying.IsMachine(base.AnalysisContext.Compilation, classDecl))
                     {
                         StateMachine stateMachine = new StateMachine(classDecl, base.AnalysisContext);
-                        if (this.Configuration.AnalyzeDataRaces)
+                        if (this.Configuration.AnalyzeDataFlow)
                         {
                             stateMachine.Summarize();
                         }

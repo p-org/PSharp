@@ -23,7 +23,7 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
 {
     [TestClass]
-    public class SwitchStatementFailTests
+    public class SwitchStatementFailTests : BaseTest
     {
         [TestMethod, Timeout(10000)]
         public void TestSwitchStatement1Fail()
@@ -87,11 +87,7 @@ class M : Machine
 }
 }";
 
-            var configuration = Configuration.Create();
-            configuration.ProjectName = "Test";
-            configuration.ThrowInternalExceptions = true;
-            configuration.Verbose = 2;
-            configuration.AnalyzeDataRaces = true;
+            var configuration = base.GetConfiguration();
 
             IO.StartWritingToMemory();
 
@@ -180,11 +176,7 @@ class M : Machine
 }
 }";
 
-            var configuration = Configuration.Create();
-            configuration.ProjectName = "Test";
-            configuration.ThrowInternalExceptions = true;
-            configuration.Verbose = 2;
-            configuration.AnalyzeDataRaces = true;
+            var configuration = base.GetConfiguration();
 
             IO.StartWritingToMemory();
 
@@ -274,11 +266,7 @@ class M : Machine
 }
 }";
 
-            var configuration = Configuration.Create();
-            configuration.ProjectName = "Test";
-            configuration.ThrowInternalExceptions = true;
-            configuration.Verbose = 2;
-            configuration.AnalyzeDataRaces = true;
+            var configuration = base.GetConfiguration();
 
             IO.StartWritingToMemory();
 

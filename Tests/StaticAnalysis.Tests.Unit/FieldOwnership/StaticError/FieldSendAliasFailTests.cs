@@ -23,7 +23,7 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
 {
     [TestClass]
-    public class FieldSendAliasFailTests
+    public class FieldSendAliasFailTests : BaseTest
     {
         [TestMethod, Timeout(10000)]
         public void TestFieldSendAlias1Fail()
@@ -79,11 +79,7 @@ class M : Machine
 }
 }";
             
-            var configuration = Configuration.Create();
-            configuration.ProjectName = "Test";
-            configuration.ThrowInternalExceptions = true;
-            configuration.Verbose = 2;
-            configuration.AnalyzeDataRaces = true;
+            var configuration = base.GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
 
             IO.StartWritingToMemory();
@@ -164,11 +160,7 @@ class M : Machine
 }
 }";
             
-            var configuration = Configuration.Create();
-            configuration.ProjectName = "Test";
-            configuration.ThrowInternalExceptions = true;
-            configuration.Verbose = 2;
-            configuration.AnalyzeDataRaces = true;
+            var configuration = base.GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
 
             IO.StartWritingToMemory();
@@ -249,11 +241,7 @@ class M : Machine
 }
 }";
             
-            var configuration = Configuration.Create();
-            configuration.ProjectName = "Test";
-            configuration.ThrowInternalExceptions = true;
-            configuration.Verbose = 2;
-            configuration.AnalyzeDataRaces = true;
+            var configuration = base.GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
 
             IO.StartWritingToMemory();
@@ -343,11 +331,7 @@ class M : Machine
 }
 }";
             
-            var configuration = Configuration.Create();
-            configuration.ProjectName = "Test";
-            configuration.ThrowInternalExceptions = true;
-            configuration.Verbose = 2;
-            configuration.AnalyzeDataRaces = true;
+            var configuration = base.GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
 
             IO.StartWritingToMemory();
@@ -436,11 +420,7 @@ class M : Machine
 }
 }";
             
-            var configuration = Configuration.Create();
-            configuration.ProjectName = "Test";
-            configuration.ThrowInternalExceptions = true;
-            configuration.Verbose = 2;
-            configuration.AnalyzeDataRaces = true;
+            var configuration = base.GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
 
             IO.StartWritingToMemory();
@@ -515,11 +495,7 @@ class M : Machine
 }
 }";
             
-            var configuration = Configuration.Create();
-            configuration.ProjectName = "Test";
-            configuration.ThrowInternalExceptions = true;
-            configuration.Verbose = 2;
-            configuration.AnalyzeDataRaces = true;
+            var configuration = base.GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
 
             IO.StartWritingToMemory();
@@ -611,11 +587,7 @@ class M : Machine
 }
 }";
             
-            var configuration = Configuration.Create();
-            configuration.ProjectName = "Test";
-            configuration.ThrowInternalExceptions = true;
-            configuration.Verbose = 2;
-            configuration.AnalyzeDataRaces = true;
+            var configuration = base.GetConfiguration();
             configuration.DoStateTransitionAnalysis = false;
 
             IO.StartWritingToMemory();

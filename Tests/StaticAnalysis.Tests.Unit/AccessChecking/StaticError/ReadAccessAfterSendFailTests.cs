@@ -13,7 +13,6 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Linq;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -24,7 +23,7 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
 {
     [TestClass]
-    public class ReadAccessAfterSendFailTests
+    public class ReadAccessAfterSendFailTests : BaseTest
     {
         [TestMethod, Timeout(10000)]
         public void TestReadAccessAfterSend1Fail()
@@ -72,11 +71,7 @@ class M : Machine
 }
 }";
 
-            var configuration = Configuration.Create();
-            configuration.ProjectName = "Test";
-            configuration.ThrowInternalExceptions = true;
-            configuration.Verbose = 2;
-            configuration.AnalyzeDataRaces = true;
+            var configuration = base.GetConfiguration();
 
             IO.StartWritingToMemory();
 
@@ -148,11 +143,7 @@ class M : Machine
 }
 }";
             
-            var configuration = Configuration.Create();
-            configuration.ProjectName = "Test";
-            configuration.ThrowInternalExceptions = true;
-            configuration.Verbose = 2;
-            configuration.AnalyzeDataRaces = true;
+            var configuration = base.GetConfiguration();
 
             IO.StartWritingToMemory();
 
@@ -225,11 +216,7 @@ class M : Machine
 }
 }";
             
-            var configuration = Configuration.Create();
-            configuration.ProjectName = "Test";
-            configuration.ThrowInternalExceptions = true;
-            configuration.Verbose = 2;
-            configuration.AnalyzeDataRaces = true;
+            var configuration = base.GetConfiguration();
 
             IO.StartWritingToMemory();
 
@@ -306,11 +293,7 @@ class M : Machine
 }
 }";
             
-            var configuration = Configuration.Create();
-            configuration.ProjectName = "Test";
-            configuration.ThrowInternalExceptions = true;
-            configuration.Verbose = 2;
-            configuration.AnalyzeDataRaces = true;
+            var configuration = base.GetConfiguration();
 
             IO.StartWritingToMemory();
 

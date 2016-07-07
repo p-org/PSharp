@@ -135,6 +135,8 @@ namespace Microsoft.PSharp.StaticAnalysis
 
             try
             {
+                // Creates summaries for each machine, which can be used for subsequent
+                // analyses. Optionally performs data-flow analysis.
                 MachineSummarizationPass.Create(context, this.CompilationContext.Configuration).
                     Run(machines);
 

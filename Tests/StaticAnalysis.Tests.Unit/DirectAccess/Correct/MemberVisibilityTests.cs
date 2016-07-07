@@ -23,7 +23,7 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
 {
     [TestClass]
-    public class MemberVisibilityTests
+    public class MemberVisibilityTests : BaseTest
     {
         [TestMethod, Timeout(10000)]
         public void TestMemberVisibility()
@@ -45,11 +45,7 @@ class M : Machine
 }
 }";
 
-            var configuration = Configuration.Create();
-            configuration.ProjectName = "Test";
-            configuration.ThrowInternalExceptions = true;
-            configuration.Verbose = 2;
-            configuration.AnalyzeDataRaces = true;
+            var configuration = base.GetConfiguration();
 
             IO.StartWritingToMemory();
 

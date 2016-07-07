@@ -13,7 +13,6 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Linq;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -24,7 +23,7 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.StaticAnalysis.Tests.Unit
 {
     [TestClass]
-    public class MemberVisibilityFailTests
+    public class MemberVisibilityFailTests : BaseTest
     {
         [TestMethod, Timeout(10000)]
         public void TestPublicFieldVisibility()
@@ -48,11 +47,7 @@ class M : Machine
 }
 }";
             
-            var configuration = Configuration.Create();
-            configuration.ProjectName = "Test";
-            configuration.ThrowInternalExceptions = true;
-            configuration.Verbose = 2;
-            configuration.AnalyzeDataRaces = true;
+            var configuration = base.GetConfiguration();
 
             IO.StartWritingToMemory();
 
@@ -71,7 +66,8 @@ class M : Machine
 
             Console.WriteLine(IO.GetOutput());
 
-            var error = "Warning: Field 'int Num' of machine 'Foo.M' is declared as 'public'.";
+            var error = "Warning: Field 'int Num' of machine 'Foo.M' is declared as " +
+                "'public'.   at 'public int Num;' in Program.cs:line 7";
             Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
                 IO.GetOutput().Replace(Environment.NewLine, string.Empty));
 
@@ -100,11 +96,7 @@ class M : Machine
 }
 }";
             
-            var configuration = Configuration.Create();
-            configuration.ProjectName = "Test";
-            configuration.ThrowInternalExceptions = true;
-            configuration.Verbose = 2;
-            configuration.AnalyzeDataRaces = true;
+            var configuration = base.GetConfiguration();
 
             IO.StartWritingToMemory();
 
@@ -121,7 +113,8 @@ class M : Machine
             var expected = "... Static analysis detected '0' errors and '1' warning";
             Assert.AreEqual(expected.Replace(Environment.NewLine, string.Empty), stats);
 
-            var error = "Warning: Method 'FirstOnEntryAction' of machine 'Foo.M' is declared as 'public'.";
+            var error = "Warning: Method 'FirstOnEntryAction' of machine 'Foo.M' is " +
+                "declared as 'public'.   at 'FirstOnEntryAction' in Program.cs:line 13";
             Assert.AreEqual(error.Replace(Environment.NewLine, string.Empty),
                 IO.GetOutput().Replace(Environment.NewLine, string.Empty));
 

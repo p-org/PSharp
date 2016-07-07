@@ -73,7 +73,22 @@ namespace Microsoft.PSharp.Utilities
         /// List of assembly paths to used-defined compiler passes.
         /// </summary>
         internal ISet<string> CustomCompilerPassAssemblyPaths;
-        
+
+        /// <summary>
+        /// Enables the data flow analysis.
+        /// </summary>
+        public bool AnalyzeDataFlow;
+
+        /// <summary>
+        /// Enables the static data race analysis.
+        /// </summary>
+        public bool AnalyzeDataRaces;
+
+        /// <summary>
+        /// Perform the state transition analysis.
+        /// </summary>
+        public bool DoStateTransitionAnalysis;
+
         /// <summary>
         /// Reports the control-flow information.
         /// </summary>
@@ -88,16 +103,6 @@ namespace Microsoft.PSharp.Utilities
         /// Reports the full data-flow information.
         /// </summary>
         public bool ShowFullDataFlowInformation;
-
-        /// <summary>
-        /// Enables the static data race analysis.
-        /// </summary>
-        public bool AnalyzeDataRaces;
-
-        /// <summary>
-        /// Perform the state transition analysis.
-        /// </summary>
-        public bool DoStateTransitionAnalysis;
 
         #endregion
 
@@ -323,12 +328,13 @@ namespace Microsoft.PSharp.Utilities
             this.OptimizationTarget = OptimizationTarget.Release;
 
             this.CustomCompilerPassAssemblyPaths = new HashSet<string>();
-            
+
+            this.AnalyzeDataFlow = false;
+            this.AnalyzeDataRaces = false;
+            this.DoStateTransitionAnalysis = false;
             this.ShowControlFlowInformation = false;
             this.ShowDataFlowInformation = false;
             this.ShowFullDataFlowInformation = false;
-            this.AnalyzeDataRaces = false;
-            this.DoStateTransitionAnalysis = false;
 
             this.AssemblyToBeAnalyzed = "";
             this.TraceFile = "";

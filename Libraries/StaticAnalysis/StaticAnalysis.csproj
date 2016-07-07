@@ -103,8 +103,8 @@
   <ItemGroup>
     <Compile Include="Analyses\NoGenericStatesAnalysisPass.cs" />
     <Compile Include="Summarization\StateMachines\StateTransition.cs" />
-    <Compile Include="Analyses\OwnershipAnalysisPass.cs" />
-    <Compile Include="Analyses\GivesUpOwnershipAnalysisPass.cs" />
+    <Compile Include="Analyses\Ownership\OwnershipAnalysisPass.cs" />
+    <Compile Include="Analyses\Ownership\GivesUpOwnershipAnalysisPass.cs" />
     <Compile Include="Summarization\StateMachines\OnEventPushMachineAction.cs" />
     <Compile Include="Summarization\StateMachines\OnEventGotoMachineAction.cs" />
     <Compile Include="Summarization\StateMachines\OnEventDoMachineAction.cs" />
@@ -120,7 +120,7 @@
     <Compile Include="Analyses\StateMachineAnalysisPass.cs" />
     <Compile Include="StaticAnalysisEngine.cs" />
     <Compile Include="Summarization\MachineSummarizationPass.cs" />
-    <Compile Include="Analyses\RespectsOwnershipAnalysisPass.cs" />
+    <Compile Include="Analyses\Ownership\RespectsOwnershipAnalysisPass.cs" />
     <Compile Include="Analyses\DirectAccessAnalysisPass.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
