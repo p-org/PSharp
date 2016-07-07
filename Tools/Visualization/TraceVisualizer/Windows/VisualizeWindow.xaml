@@ -17,7 +17,6 @@
                 <MenuItem Header="_Visualize">
                 </MenuItem>
             </Menu>
-            <StackPanel></StackPanel>
         </DockPanel>
         <Path Stroke="Green" StrokeThickness="3">
             <Path.Data>
