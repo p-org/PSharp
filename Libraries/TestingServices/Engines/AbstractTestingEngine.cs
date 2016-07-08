@@ -253,9 +253,9 @@ namespace Microsoft.PSharp.TestingServices
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Replay)
             {
-                string[] traceDump = File.ReadAllLines(this.Configuration.TraceFile);
-                ScheduleTrace trace = new ScheduleTrace(traceDump);
-                this.Strategy = new ReplayStrategy(this.Configuration, trace);
+                string[] scheduleDump = File.ReadAllLines(this.Configuration.ScheduleFile);
+                ScheduleTrace schedule = new ScheduleTrace(scheduleDump);
+                this.Strategy = new ReplayStrategy(this.Configuration, schedule);
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Random)
             {

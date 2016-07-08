@@ -207,7 +207,7 @@ namespace Microsoft.PSharp
         /// <returns>MachineId</returns>
         protected MachineId CreateMachine(Type type, Event e = null)
         {
-            return base.Runtime.TryCreateMachine(type, null, e);
+            return base.Runtime.TryCreateMachine(base.Id, type, null, e);
         }
 
         /// <summary>
@@ -221,7 +221,7 @@ namespace Microsoft.PSharp
         /// <returns>MachineId</returns>
         protected MachineId CreateMachine(Type type, string friendlyName, Event e = null)
         {
-            return base.Runtime.TryCreateMachine(type, friendlyName, e);
+            return base.Runtime.TryCreateMachine(base.Id, type, friendlyName, e);
         }
 
         /// <summary>
@@ -235,7 +235,7 @@ namespace Microsoft.PSharp
         /// <returns>MachineId</returns>
         protected MachineId CreateRemoteMachine(Type type, string endpoint, Event e = null)
         {
-            return base.Runtime.TryCreateRemoteMachine(type, null, endpoint, e);
+            return base.Runtime.TryCreateRemoteMachine(base.Id, type, null, endpoint, e);
         }
 
         /// <summary>
@@ -251,7 +251,7 @@ namespace Microsoft.PSharp
         protected MachineId CreateRemoteMachine(Type type, string friendlyName,
             string endpoint, Event e = null)
         {
-            return base.Runtime.TryCreateRemoteMachine(type, friendlyName, endpoint, e);
+            return base.Runtime.TryCreateRemoteMachine(base.Id, type, friendlyName, endpoint, e);
         }
 
         /// <summary>

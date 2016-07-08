@@ -129,7 +129,7 @@ namespace Microsoft.PSharp
         /// <returns>MachineId</returns>
         public virtual MachineId CreateMachine(Type type, Event e = null)
         {
-            return this.TryCreateMachine(type, null, e);
+            return this.TryCreateMachine(null, type, null, e);
         }
 
         /// <summary>
@@ -143,7 +143,7 @@ namespace Microsoft.PSharp
         /// <returns>MachineId</returns>
         public virtual MachineId CreateMachine(Type type, string friendlyName, Event e = null)
         {
-            return this.TryCreateMachine(type, friendlyName, e);
+            return this.TryCreateMachine(null, type, friendlyName, e);
         }
 
         /// <summary>
@@ -157,7 +157,7 @@ namespace Microsoft.PSharp
         /// <returns>MachineId</returns>
         public virtual MachineId RemoteCreateMachine(Type type, string endpoint, Event e = null)
         {
-            return this.TryCreateRemoteMachine(type, null, endpoint, e);
+            return this.TryCreateRemoteMachine(null, type, null, endpoint, e);
         }
 
         /// <summary>
@@ -173,7 +173,7 @@ namespace Microsoft.PSharp
         public virtual MachineId RemoteCreateMachine(Type type, string friendlyName,
             string endpoint, Event e = null)
         {
-            return this.TryCreateRemoteMachine(type, friendlyName, endpoint, e);
+            return this.TryCreateRemoteMachine(null, type, friendlyName, endpoint, e);
         }
 
         /// <summary>
@@ -551,11 +551,13 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Tries to create a new machine of the specified type.
         /// </summary>
+        /// <param name="creator">Machine id of the creator machine</param>
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        internal virtual MachineId TryCreateMachine(Type type, string friendlyName, Event e)
+        internal virtual MachineId TryCreateMachine(MachineId creator, Type type,
+            string friendlyName, Event e)
         {
             this.Assert(type.IsSubclassOf(typeof(Machine)),
                 $"Type '{type.Name}' is not a machine.");
@@ -601,13 +603,14 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Tries to create a new remote machine of the specified type.
         /// </summary>
+        /// <param name="creator">Machine id of the creator machine</param>
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
         /// <param name="endpoint">Endpoint</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        internal virtual MachineId TryCreateRemoteMachine(Type type, string friendlyName,
-            string endpoint, Event e)
+        internal virtual MachineId TryCreateRemoteMachine(MachineId creator, Type type,
+            string friendlyName, string endpoint, Event e)
         {
             this.Assert(type.IsSubclassOf(typeof(Machine)),
                 $"Type '{type.Name}' is not a machine.");
