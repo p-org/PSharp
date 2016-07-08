@@ -19,6 +19,9 @@
             </Menu>
             <DataGrid Name="BugTraceView"
                       AutoGenerateColumns="False"
+                      EnableRowVirtualization="False"
+                      EnableColumnVirtualization="False"
+                      VirtualizingStackPanel.IsVirtualizing="False"
                       IsReadOnly="True"
                       HorizontalAlignment="Stretch"
                       VerticalAlignment="Stretch"
