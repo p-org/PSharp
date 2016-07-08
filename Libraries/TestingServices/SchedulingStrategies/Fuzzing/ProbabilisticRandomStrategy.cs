@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="RandomCoinStrategy.cs">
+// <copyright file="ProbabilisticRandomStrategy.cs">
 //      Copyright (c) Microsoft Corporation. All rights reserved.
 // 
 //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
@@ -21,10 +21,10 @@ using Microsoft.PSharp.Utilities;
 namespace Microsoft.PSharp.TestingServices.Scheduling
 {
     /// <summary>
-    /// Class representing a random-walk scheduling strategy,
-    /// which uses coin-flips to guide machine selection.
+    /// Class representing a probabilistic random-walk
+    /// scheduling strategy.
     /// </summary>
-    public class RandomCoinStrategy : ISchedulingStrategy
+    public class ProbabilisticRandomStrategy : ISchedulingStrategy
     {
         #region fields
 
@@ -67,7 +67,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         /// <param name="configuration">Configuration</param>
         /// <param name="numberOfCoinFlips">Number of coin flips</param>
-        public RandomCoinStrategy(Configuration configuration, int numberOfCoinFlips)
+        public ProbabilisticRandomStrategy(Configuration configuration, int numberOfCoinFlips)
         {
             this.Configuration = configuration;
             this.Seed = this.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
@@ -119,11 +119,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
             if (availableMachines.Count > 1)
             {
-                if (this.ShouldCurrentMachineChange())
-                {
-                    availableMachines.Remove(current);
-                }
-                else if (current.IsEnabled && !current.IsBlocked && !current.IsWaitingToReceive)
+                if (!this.ShouldCurrentMachineChange() &&
+                    current.IsEnabled && !current.IsBlocked && !current.IsWaitingToReceive)
                 {
                     next = current;
                     return true;

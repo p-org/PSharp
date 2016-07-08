@@ -261,9 +261,9 @@ namespace Microsoft.PSharp.TestingServices
             {
                 this.Strategy = new RandomStrategy(this.Configuration);
             }
-            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.RandomCoin)
+            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.ProbabilisticRandom)
             {
-                this.Strategy = new RandomCoinStrategy(this.Configuration,
+                this.Strategy = new ProbabilisticRandomStrategy(this.Configuration,
                     this.Configuration.CoinFlipBound);
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.DFS)

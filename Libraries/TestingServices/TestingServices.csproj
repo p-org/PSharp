@@ -68,7 +68,7 @@
     <Compile Include="SchedulingStrategies\DelayBounded\ExhaustiveDelayBoundingStrategy.cs" />
     <Compile Include="SchedulingStrategies\DelayBounded\RandomDelayBoundingStrategy.cs" />
     <Compile Include="SchedulingStrategies\DelayBounded\DelayBoundingStrategy.cs" />
-    <Compile Include="SchedulingStrategies\Fuzzing\RandomCoinStrategy.cs" />
+    <Compile Include="SchedulingStrategies\Fuzzing\ProbabilisticRandomStrategy.cs" />
     <Compile Include="SchedulingStrategies\OperationBounded\RandomOperationBoundingStrategy.cs" />
     <Compile Include="SchedulingStrategies\OperationBounded\PrioritizedOperationBoundingStrategy.cs" />
     <Compile Include="SchedulingStrategies\Prioritized\PCTStrategy.cs" />

@@ -57,17 +57,17 @@ namespace Microsoft.PSharp.Utilities
                 {
                     base.Configuration.SchedulingStrategy = SchedulingStrategy.Random;
                 }
-                else if (scheduler.StartsWith("random-coin"))
+                else if (scheduler.StartsWith("probabilistic"))
                 {
                     int i = 0;
-                    if (scheduler.Equals("random-coin") ||
-                        !int.TryParse(scheduler.Substring(12), out i) && i >= 0)
+                    if (scheduler.Equals("probabilistic") ||
+                        !int.TryParse(scheduler.Substring(14), out i) && i >= 0)
                     {
                         IO.Error.ReportAndExit("Please give a valid number of coin " +
-                            "flip bound '/sch:random-coin:[bound]', where [bound] >= 0.");
+                            "flip bound '/sch:probabilistic:[bound]', where [bound] >= 0.");
                     }
 
-                    base.Configuration.SchedulingStrategy = SchedulingStrategy.RandomCoin;
+                    base.Configuration.SchedulingStrategy = SchedulingStrategy.ProbabilisticRandom;
                     base.Configuration.CoinFlipBound = i;
                 }
                 else if (scheduler.StartsWith("pct"))
@@ -280,7 +280,7 @@ namespace Microsoft.PSharp.Utilities
             if (base.Configuration.SchedulingStrategy != SchedulingStrategy.Interactive &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.Portfolio &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.Random &&
-                base.Configuration.SchedulingStrategy != SchedulingStrategy.RandomCoin &&
+                base.Configuration.SchedulingStrategy != SchedulingStrategy.ProbabilisticRandom &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.DFS &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.IDDFS &&
                 base.Configuration.SchedulingStrategy != SchedulingStrategy.DelayBounding &&
