@@ -329,9 +329,10 @@ namespace Microsoft.PSharp.TestingServices
             this.Assert(result, $"Machine '{mid}' was already created.");
 
             this.Log($"<CreateLog> Machine '{mid}' is created.");
-
+            
             // Adds the action to the bug trace.
-            this.BugTrace.AddCreateMachineStep(creator, mid);
+            this.BugTrace.AddCreateMachineStep(creator, mid,
+                e == null ? null : new EventInfo(e));
             if (this.Configuration.EnableDataRaceDetection)
             {
                 // Traces machine actions, if data-race detection is enabled.
@@ -405,6 +406,9 @@ namespace Microsoft.PSharp.TestingServices
             (monitor as Monitor).InitializeStateInformation();
 
             this.Log($"<CreateLog> Monitor '{type.Name}' is created.");
+
+            // Adds the action to the bug trace.
+            this.BugTrace.AddCreateMonitorStep(mid);
 
             this.Monitors.Add(monitor as Monitor);
             this.LivenessChecker.RegisterMonitor(monitor as Monitor);
@@ -495,7 +499,7 @@ namespace Microsoft.PSharp.TestingServices
             if (sender != null)
             {
                 // Adds the action to the bug trace.
-                this.BugTrace.AddSendEventStep(sender.Id, mid, e);
+                this.BugTrace.AddSendEventStep(sender.Id, mid, eventInfo);
                 if (this.Configuration.EnableDataRaceDetection)
                 {
                     // Traces machine actions, if data-race detection is enabled.
@@ -598,6 +602,9 @@ namespace Microsoft.PSharp.TestingServices
                 IO.Log($"<RaiseLog> Machine '{raiser.Id}' raised " +
                     $"event '{eventInfo.EventName}'.");
             }
+
+            // Adds the action to the bug trace.
+            this.BugTrace.AddRaiseEventStep(raiser.Id, eventInfo);
         }
 
         /// <summary>
@@ -619,7 +626,10 @@ namespace Microsoft.PSharp.TestingServices
             {
                 this.Log($"<RandomLog> Runtime nondeterministically chose '{choice}'.");
             }
-            
+
+            // Adds the action to the bug trace.
+            this.BugTrace.AddRandomChoiceStep(machine.Id, choice);
+
             return choice;
         }
 
@@ -642,6 +652,9 @@ namespace Microsoft.PSharp.TestingServices
             {
                 this.Log($"<RandomLog> Runtime nondeterministically chose '{choice}'.");
             }
+
+            // Adds the action to the bug trace.
+            this.BugTrace.AddRandomChoiceStep(machine.Id, choice);
 
             return choice;
         }

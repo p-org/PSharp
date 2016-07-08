@@ -15,6 +15,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
+using System.Windows;
 
 using Microsoft.Win32;
 
@@ -48,7 +49,15 @@ namespace Microsoft.PSharp.Visualization
                     using (Stream stream = File.Open(fileName, FileMode.Open))
                     {
                         DataContractSerializer serializer = new DataContractSerializer(typeof(BugTrace));
-                        trace = (BugTrace)serializer.ReadObject(stream);
+                        try
+                        {
+                            trace = (BugTrace)serializer.ReadObject(stream);
+                        }
+                        catch
+                        {
+                            MessageBox.Show($"Bug trace '{fileName}' is not readable." +
+                                "Please make sure you selected a '.pstrace' file.");
+                        }
                     }
                 }
             }

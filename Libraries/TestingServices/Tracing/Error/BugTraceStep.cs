@@ -17,7 +17,7 @@ using System.Runtime.Serialization;
 namespace Microsoft.PSharp.TestingServices.Tracing.Error
 {
     /// <summary>
-    /// Class implementing a P# bug trace traceStep.
+    /// Class implementing a P# bug trace step.
     /// </summary>
     [DataContract(IsReference = true)]
     internal sealed class BugTraceStep
@@ -25,12 +25,12 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         #region fields
 
         /// <summary>
-        /// The unique index of this bug trace traceStep.
+        /// The unique index of this bug trace step.
         /// </summary>
         internal int Index;
 
         /// <summary>
-        /// The type of this bug trace traceStep.
+        /// The type of this bug trace step.
         /// </summary>
         [DataMember]
         internal BugTraceStepType Type { get; private set; }
@@ -66,12 +66,18 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         internal string Event;
 
         /// <summary>
-        /// Previous bug trace traceStep.
+        /// The taken nondeterministic choice.
+        /// </summary>
+        [DataMember]
+        internal bool RandomChoice;
+
+        /// <summary>
+        /// Previous bug trace step.
         /// </summary>
         internal BugTraceStep Previous;
 
         /// <summary>
-        /// Next bug trace traceStep.
+        /// Next bug trace step.
         /// </summary>
         internal BugTraceStep Next;
 
@@ -80,19 +86,22 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         #region internal methods
 
         /// <summary>
-        /// Creates a bug trace traceStep.
+        /// Creates a bug trace step.
         /// </summary>
         /// <param name="index">Index</param>
+        /// <param name="type">BugTraceStepType</param>
         /// <param name="machine">Machine</param>
         /// <param name="targetMachine">Target machine</param>
+        /// <param name="eventInfo">EventInfo</param>
+        /// <param name="choice">Choice</param>
         /// <returns>BugTraceStep</returns>
-        internal static BugTraceStep GetCreateMachineStep(int index, MachineId machine,
-            MachineId targetMachine)
+        internal static BugTraceStep Create(int index, BugTraceStepType type, MachineId machine,
+            MachineId targetMachine, EventInfo eventInfo, bool choice)
         {
             var traceStep = new BugTraceStep();
 
             traceStep.Index = index;
-            traceStep.Type = BugTraceStepType.CreateMachine;
+            traceStep.Type = type;
 
             if (machine != null)
             {
@@ -105,46 +114,18 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
                 traceStep.MachineId = -1;
             }
             
-            traceStep.TargetMachine = targetMachine.Type;
-            traceStep.TargetMachineId = targetMachine.Value;
-
-            traceStep.Previous = null;
-            traceStep.Next = null;
-
-            return traceStep;
-        }
-
-        /// <summary>
-        /// Creates a bug trace traceStep.
-        /// </summary>
-        /// <param name="index">Index</param>
-        /// <param name="machine">Machine</param>
-        /// <param name="targetMachine">Target machine</param>
-        /// <param name="e">Event</param>
-        /// <returns>BugTraceStep</returns>
-        internal static BugTraceStep GetSendEventStep(int index, MachineId machine,
-            MachineId targetMachine, Event e)
-        {
-            var traceStep = new BugTraceStep();
-
-            traceStep.Index = index;
-            traceStep.Type = BugTraceStepType.SendEvent;
-
-            if (machine != null)
+            if (targetMachine != null)
             {
-                traceStep.Machine = machine.Type;
-                traceStep.MachineId = machine.Value;
-            }
-            else
-            {
-                traceStep.Machine = "unknown";
-                traceStep.MachineId = -1;
+                traceStep.TargetMachine = targetMachine.Type;
+                traceStep.TargetMachineId = targetMachine.Value;
             }
 
-            traceStep.TargetMachine = targetMachine.Type;
-            traceStep.TargetMachineId = targetMachine.Value;
+            if (eventInfo != null)
+            {
+                traceStep.Event = eventInfo.EventName;
+            }
 
-            traceStep.Event = e.GetType().FullName;
+            traceStep.RandomChoice = choice;
 
             traceStep.Previous = null;
             traceStep.Next = null;

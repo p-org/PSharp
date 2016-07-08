@@ -33,43 +33,69 @@
                 <DataGrid.Columns>
                     <DataGridTextColumn Binding="{Binding Path=Id}"
                                         Header="Id"
-                                        MinWidth="20"/>
+                                        MinWidth="40"/>
                     <DataGridTextColumn Binding="{Binding Path=Type}"
                                         Header="Type"
-                                        MinWidth="60"/>
+                                        MinWidth="100"/>
                     <DataGridTextColumn Binding="{Binding Path=SenderMachine}"
-                                        Header="Sender Machine"
-                                        MinWidth="150"/>
-                    <DataGridTextColumn Binding="{Binding Path=Event}"
-                                        Header="Event"
-                                        MinWidth="120"/>
+                                        Header="Source Machine"
+                                        MinWidth="160"/>
+                    <DataGridTextColumn Binding="{Binding Path=Action}"
+                                        Header="Action"
+                                        MinWidth="220"/>
                     <DataGridTextColumn Binding="{Binding Path=TargetMachine}"
                                         Header="Target Machine"
-                                        MinWidth="150"/>
+                                        MinWidth="160"/>
                 </DataGrid.Columns>
                 <DataGrid.RowStyle>
                     <Style TargetType="DataGridRow">
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding Path=Type}" Value="Create">
-                                <Setter Property="Background" Value="Aqua"/>
+                            <DataTrigger Binding="{Binding Path=Type}" Value="CreateMachine">
+                                <Setter Property="Foreground" Value="White"/>
+                                <Setter Property="Background" Value="BlueViolet"/>
                             </DataTrigger>
-                            <DataTrigger Binding="{Binding Path=Type}" Value="Send">
+                            <DataTrigger Binding="{Binding Path=Type}" Value="CreateMonitor">
+                                <Setter Property="Foreground" Value="White"/>
+                                <Setter Property="Background" Value="DarkSlateGray"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Path=Type}" Value="SendEvent">
+                                <Setter Property="Foreground" Value="White"/>
+                                <Setter Property="Background" Value="RoyalBlue"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Path=Type}" Value="RaiseEvent">
+                                <Setter Property="Foreground" Value="Black"/>
                                 <Setter Property="Background" Value="GreenYellow"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Path=Type}" Value="RandomChoice">
+                                <Setter Property="Foreground" Value="Black"/>
+                                <Setter Property="Background" Value="Orange"/>
                             </DataTrigger>
                         </Style.Triggers>
                     </Style>
                 </DataGrid.RowStyle>
-                <DataGrid.CellStyle>
-                    <Style TargetType="DataGridCell">
-                        <Setter Property="Foreground" Value="Black"/>
-                        <Style.Triggers>
-                            <Trigger Property="IsSelected" Value="True">
-                                <Setter Property="Background" Value="{x:Null}"/>
-                                <Setter Property="BorderBrush" Value="{x:Null}"/>
-                            </Trigger>
-                        </Style.Triggers>
+                <DataGrid.Resources>
+                    <SolidColorBrush x:Key="{x:Static DataGrid.FocusBorderBrushKey}" Color="#FF000000"/>
+                    <Style TargetType="{x:Type DataGridCell}">
+                        <Setter Property="OverridesDefaultStyle" Value="True"/>
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="BorderBrush" Value="Transparent"/>
+                        <Setter Property="BorderThickness" Value="1"/>
+                        <Setter Property="MinHeight" Value="20"/>
+                        <Setter Property="Padding" Value="10"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="{x:Type DataGridCell}">
+                                    <Border BorderBrush="{TemplateBinding BorderBrush}"
+                                            BorderThickness="{TemplateBinding BorderThickness}"
+                                            Background="{TemplateBinding Background}"
+                                            SnapsToDevicePixels="True">
+                                        <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
                     </Style>
-                </DataGrid.CellStyle>
+                </DataGrid.Resources>
             </DataGrid>
         </DockPanel>
     </Grid>

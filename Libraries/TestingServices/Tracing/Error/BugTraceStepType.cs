@@ -24,7 +24,13 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
     {
         [EnumMember(Value = "CreateMachine")]
         CreateMachine = 0,
+        [EnumMember(Value = "CreateMonitor")]
+        CreateMonitor,
         [EnumMember(Value = "SendEvent")]
-        SendEvent
+        SendEvent,
+        [EnumMember(Value = "RaiseEvent")]
+        RaiseEvent,
+        [EnumMember(Value = "RandomChoice")]
+        RandomChoice
     }
 }
