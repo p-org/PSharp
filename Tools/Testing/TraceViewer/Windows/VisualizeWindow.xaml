@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Microsoft.PSharp.Visualization"
         mc:Ignorable="d"
-        Title="PSharpTraceVisualizer">
+        Title="PSharpTraceViewer">
     <Grid>
         <DockPanel>
             <Menu DockPanel.Dock="Top">
