@@ -100,6 +100,7 @@ namespace Microsoft.PSharp.TestingServices
         {
             Task task = this.CreateBugFindingTask();
             this.Execute(task);
+            IO.PrintLine(this.Report());
             return this;
         }
 
