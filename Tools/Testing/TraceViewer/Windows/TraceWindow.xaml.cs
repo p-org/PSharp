@@ -80,7 +80,7 @@ namespace Microsoft.PSharp.Visualization
                         row.Foreground = new SolidColorBrush(Colors.Black);
                         row.Background = new SolidColorBrush(Colors.LightGray);
                     }
-                    else if (header.Equals("Sender Machine") &&
+                    else if (header.Equals("Source Machine") &&
                         !machineCellContent.Text.Equals(item.SenderMachine))
                     {
                         row.Foreground = new SolidColorBrush(Colors.Black);
