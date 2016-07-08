@@ -36,9 +36,9 @@ namespace Microsoft.PSharp.Utilities
         /// </summary>
         Random,
         /// <summary>
-        /// Random coin-flipping scheduling.
+        /// Probabilistic random-walk scheduling.
         /// </summary>
-        RandomCoin,
+        ProbabilisticRandom,
         /// <summary>
         /// Depth-first search scheduling.
         /// </summary>
