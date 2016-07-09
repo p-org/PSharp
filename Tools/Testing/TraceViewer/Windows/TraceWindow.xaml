@@ -8,27 +8,48 @@
         Title="PSharpTraceViewer">
     <Grid>
         <DockPanel>
-            <Menu DockPanel.Dock="Top">
-                <MenuItem Header="_File">
-                    <MenuItem Header="_Load Bug Trace" Click="MenuItem_Load_Click"/>
-                </MenuItem>
-                <MenuItem Header="_TraceView">
-                </MenuItem>
-                <MenuItem Header="_Visualize">
-                </MenuItem>
-            </Menu>
+            <Grid DockPanel.Dock="Top">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="0.40*"/>
+                </Grid.ColumnDefinitions>
+                <Menu Height="25" Grid.Column="0" HorizontalAlignment="Stretch">
+                    <Menu.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <DockPanel HorizontalAlignment="Left" VerticalAlignment="Stretch"/>
+                        </ItemsPanelTemplate>
+                    </Menu.ItemsPanel>
+                    <MenuItem Header="_File">
+                        <MenuItem Header="_Load Bug Trace" Click="MenuItem_Load_Click"/>
+                    </MenuItem>
+                    <MenuItem Header="_TraceView">
+                    </MenuItem>
+                    <MenuItem Header="_Visualize">
+                    </MenuItem>
+                </Menu>
+                <local:SearchTextBox x:Name="SearchTextBox"
+                                     Grid.Column="1"
+                                     VerticalAlignment="Center"
+                                     HorizontalAlignment="Stretch"
+                                     Margin="0,0,0,0"/>
+            </Grid>
             <DataGrid Name="BugTraceView"
                       AutoGenerateColumns="False"
                       EnableRowVirtualization="False"
                       EnableColumnVirtualization="False"
                       VirtualizingStackPanel.IsVirtualizing="False"
                       IsReadOnly="True"
+                      CanUserAddRows="False"
+                      CanUserDeleteRows="False"
+                      CanUserReorderColumns="False"
+                      CanUserResizeColumns="False"
+                      CanUserResizeRows="False"
+                      CanUserSortColumns="False"
                       HorizontalAlignment="Stretch"
                       VerticalAlignment="Stretch"
                       CurrentCellChanged="TraceView_CurrentCellChanged"
                       MouseDoubleClick="TraceView_MouseDoubleClick"
                       MouseDown="TraceView_MouseDown"
-                      MouseLeave="TraceView_MouseLeave"
                       Margin="0,0,0,0.333">
                 <DataGrid.Columns>
                     <DataGridTextColumn Binding="{Binding Path=Id}"

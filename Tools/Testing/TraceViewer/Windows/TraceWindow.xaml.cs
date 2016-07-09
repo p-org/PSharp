@@ -1,4 +1,18 @@
-﻿using System;
+﻿//-----------------------------------------------------------------------
+// <copyright file="TraceWindow.xaml.cs">
+//      Copyright (c) Microsoft Corporation. All rights reserved.
+// 
+//      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+//      EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+//      MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+//      IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+//      CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+//      TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+//      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// </copyright>
+//-----------------------------------------------------------------------
+
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -31,20 +45,53 @@ namespace Microsoft.PSharp.Visualization
         /// </summary>
         private BugTrace BugTrace;
 
+        /// <summary>
+        /// The open command.
+        /// </summary>
+        public RoutedCommand OpenCommand;
+
+        /// <summary>
+        /// The search command.
+        /// </summary>
+        public RoutedCommand SearchCommand;
+
+        /// <summary>
+        /// Map from search query to rows the
+        /// query is satisfied.
+        /// </summary>
+        private Dictionary<string, Queue<int>> SearchQueryCache;
+
         #endregion
 
-        #region constructor
+        #region constructors
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
         public TraceWindow()
         {
+            this.SearchQueryCache = new Dictionary<string, Queue<int>>();
+
             this.WindowState = WindowState.Maximized;
+
             InitializeComponent();
+
+            this.OpenCommand = new RoutedCommand();
+            this.SearchCommand = new RoutedCommand();
+
+            this.OpenCommand.InputGestures.Add(new KeyGesture(Key.O, ModifierKeys.Control));
+            this.SearchCommand.InputGestures.Add(new KeyGesture(Key.F, ModifierKeys.Control));
+
+            base.CommandBindings.Add(new CommandBinding(this.OpenCommand, MenuItem_Load_Click));
+            base.CommandBindings.Add(new CommandBinding(this.SearchCommand, MenuItem_Search_Focus));
+
+            this.SearchTextBox.Search += SearchTextBox_Search;
         }
 
         #endregion
 
         #region actions
-        
+
         private void MenuItem_Load_Click(object sender, RoutedEventArgs e)
         {
             this.BugTrace = IO.LoadTrace();
@@ -55,12 +102,96 @@ namespace Microsoft.PSharp.Visualization
             }
         }
 
+        /// <summary>
+        /// Focuses on the search text box.
+        /// </summary>
+        /// <param name="sender">Sender</param>
+        /// <param name="e">RoutedEventArgs</param>
+        private void MenuItem_Search_Focus(object sender, RoutedEventArgs e)
+        {
+            this.SearchTextBox.Focus();
+        }
+
+        /// <summary>
+        /// Performs the specified search in the trace view.
+        /// </summary>
+        /// <param name="sender">Sender</param>
+        /// <param name="e">RoutedEventArgs</param>
+        private void SearchTextBox_Search(object sender, RoutedEventArgs e)
+        {
+            // If this is an empty query, clean up and return.
+            if (this.SearchTextBox.Text.Length == 0)
+            {
+                this.RestoreTraceViewStyle();
+                this.SearchQueryCache.Clear();
+                return;
+            }
+
+            // Checks if this is a new search query.
+            if (!this.SearchQueryCache.ContainsKey(this.SearchTextBox.Text))
+            {
+                this.RestoreTraceViewStyle();
+                this.SearchQueryCache.Clear();
+                this.SearchQueryCache.Add(this.SearchTextBox.Text, new Queue<int>());
+
+                // Caches all rows that satisfy the search query, and disables
+                // all remaining rows.
+                for (int i = 0; i < this.BugTraceView.Items.Count; i++)
+                {
+                    DataGridRow row = (DataGridRow)this.BugTraceView.ItemContainerGenerator.ContainerFromIndex(i);
+
+                    bool containsSearch = false;
+                    for (int j = 1; j < this.BugTraceView.Columns.Count; j++)
+                    {
+                        TextBlock cellContent = this.BugTraceView.Columns[j].GetCellContent(row) as TextBlock;
+                        if (cellContent.Text.Contains(this.SearchTextBox.Text))
+                        {
+                            containsSearch = true;
+                            break;
+                        }
+                    }
+
+                    if (containsSearch)
+                    {
+                        this.SearchQueryCache[this.SearchTextBox.Text].Enqueue(i);
+                    }
+                    else
+                    {
+                        row.Foreground = new SolidColorBrush(Colors.Black);
+                        row.Background = new SolidColorBrush(Colors.LightGray);
+                    }
+                }
+            }
+
+            // Restores the style of all rows related to the search query.
+            foreach (var rowId in this.SearchQueryCache[this.SearchTextBox.Text])
+            {
+                DataGridRow row = (DataGridRow)this.BugTraceView.ItemContainerGenerator.ContainerFromIndex(rowId);
+                this.RestoreRow(row);
+            }
+
+            if (this.SearchQueryCache[this.SearchTextBox.Text].Count > 0)
+            {
+                int rowId = this.SearchQueryCache[this.SearchTextBox.Text].Dequeue();
+                this.SearchQueryCache[this.SearchTextBox.Text].Enqueue(rowId);
+
+                DataGridRow row = (DataGridRow)this.BugTraceView.ItemContainerGenerator.ContainerFromIndex(rowId);
+                row.Foreground = new SolidColorBrush(Colors.White);
+                row.Background = new SolidColorBrush(Colors.Black);
+
+                object item = this.BugTraceView.Items[rowId];
+                this.BugTraceView.SelectedItem = item;
+                this.BugTraceView.ScrollIntoView(item);
+            }
+        }
+
         private void TraceView_CurrentCellChanged(object sender, EventArgs e)
         {
-            // Restores the trace view style.
             this.RestoreTraceViewStyle();
 
-            if (this.BugTraceView.CurrentColumn.Header is string &&
+            if (this.BugTraceView.CurrentColumn != null &&
+                this.BugTraceView.CurrentCell != null &&
+                this.BugTraceView.CurrentColumn.Header is string &&
                 this.BugTraceView.CurrentCell.Item is BugTraceObject)
             {
                 string header = (string)this.BugTraceView.CurrentColumn.Header;
@@ -73,7 +204,7 @@ namespace Microsoft.PSharp.Visualization
                     TextBlock machineCellContent = this.BugTraceView.Columns[2].GetCellContent(row) as TextBlock;
                     TextBlock actionCellContent = this.BugTraceView.Columns[3].GetCellContent(row) as TextBlock;
                     TextBlock targetCellContent = this.BugTraceView.Columns[4].GetCellContent(row) as TextBlock;
-
+                    
                     if (header.Equals("Type") &&
                         !typeCellContent.Text.Equals(item.Type))
                     {
@@ -100,7 +231,7 @@ namespace Microsoft.PSharp.Visualization
                     }
                     else
                     {
-                        this.SetRowColor(row, typeCellContent);
+                        this.RestoreRow(row);
                     }
                 }
             }
@@ -108,10 +239,11 @@ namespace Microsoft.PSharp.Visualization
 
         private void TraceView_MouseDoubleClick(object sender, EventArgs e)
         {
-            // Restores the trace view style.
             this.RestoreTraceViewStyle();
 
-            if (this.BugTraceView.CurrentColumn.Header is string &&
+            if (this.BugTraceView.CurrentColumn != null &&
+                this.BugTraceView.CurrentCell != null &&
+                this.BugTraceView.CurrentColumn.Header is string &&
                 this.BugTraceView.CurrentCell.Item is BugTraceObject)
             {
                 string header = (string)this.BugTraceView.CurrentColumn.Header;
@@ -153,15 +285,8 @@ namespace Microsoft.PSharp.Visualization
         {
             if (e.OriginalSource is ScrollViewer)
             {
-                // Restores the trace view style.
                 this.RestoreTraceViewStyle();
             }
-        }
-
-        private void TraceView_MouseLeave(object sender, EventArgs e)
-        {
-            // Restores the trace view style.
-            this.RestoreTraceViewStyle();
         }
 
         #endregion
@@ -245,22 +370,22 @@ namespace Microsoft.PSharp.Visualization
             for (int i = 0; i < this.BugTraceView.Items.Count; i++)
             {
                 DataGridRow row = (DataGridRow)this.BugTraceView.ItemContainerGenerator.ContainerFromIndex(i);
-                TextBlock cellContent = this.BugTraceView.Columns[1].GetCellContent(row) as TextBlock;
-                if (cellContent != null && cellContent.Text != null)
-                {
-                    this.SetRowColor(row, cellContent);
-                    row.Visibility = Visibility.Visible;
-                }
+                this.RestoreRow(row);
             }
         }
 
         /// <summary>
-        /// Sets the row color depending on the specified cell content.
+        /// Restores the specified row to its defalt style.
         /// </summary>
         /// <param name="row">DataGridRow</param>
-        /// <param name="cellContent">TextBlock</param>
-        private void SetRowColor(DataGridRow row, TextBlock cellContent)
+        private void RestoreRow(DataGridRow row)
         {
+            TextBlock cellContent = this.BugTraceView.Columns[1].GetCellContent(row) as TextBlock;
+            if (cellContent != null && cellContent.Text != null)
+            {
+                row.Visibility = Visibility.Visible;
+            }
+
             if (cellContent.Text.Equals("CreateMachine"))
             {
                 row.Foreground = new SolidColorBrush(Colors.White);
