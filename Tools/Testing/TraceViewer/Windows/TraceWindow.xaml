@@ -20,7 +20,14 @@
                         </ItemsPanelTemplate>
                     </Menu.ItemsPanel>
                     <MenuItem Header="_File">
-                        <MenuItem Header="_Load Bug Trace" Click="MenuItem_Load_Click"/>
+                        <MenuItem Header="_Load Bug Trace"
+                                  InputGestureText="Ctrl+O"
+                                  Click="MenuItem_Load_Click"/>
+                    </MenuItem>
+                    <MenuItem Header="_Edit">
+                        <MenuItem Header="_Search"
+                                  InputGestureText="Ctrl+F"
+                                  Click="MenuItem_Search_Focus"/>
                     </MenuItem>
                     <MenuItem Header="_TraceView">
                     </MenuItem>
