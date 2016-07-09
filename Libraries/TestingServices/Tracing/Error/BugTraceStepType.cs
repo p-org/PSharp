@@ -28,6 +28,8 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         CreateMonitor,
         [EnumMember(Value = "SendEvent")]
         SendEvent,
+        [EnumMember(Value = "DequeueEvent")]
+        DequeueEvent,
         [EnumMember(Value = "RaiseEvent")]
         RaiseEvent,
         [EnumMember(Value = "InvokeAction")]

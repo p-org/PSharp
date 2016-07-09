@@ -28,6 +28,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 using Microsoft.PSharp.TestingServices.Tracing.Error;
 
@@ -61,6 +62,11 @@ namespace Microsoft.PSharp.Visualization
         /// </summary>
         private Dictionary<string, Queue<int>> SearchQueryCache;
 
+        /// <summary>
+        /// Checks if the trace view is currently collapsed.
+        /// </summary>
+        private bool IsTraceViewCollapsed;
+
         #endregion
 
         #region constructors
@@ -71,6 +77,7 @@ namespace Microsoft.PSharp.Visualization
         public TraceWindow()
         {
             this.SearchQueryCache = new Dictionary<string, Queue<int>>();
+            this.IsTraceViewCollapsed = false;
 
             this.WindowState = WindowState.Maximized;
 
@@ -185,8 +192,7 @@ namespace Microsoft.PSharp.Visualization
                 this.SearchQueryCache[this.SearchTextBox.Text].Enqueue(rowId);
 
                 DataGridRow row = (DataGridRow)this.BugTraceView.ItemContainerGenerator.ContainerFromIndex(rowId);
-                row.Foreground = new SolidColorBrush(Colors.White);
-                row.Background = new SolidColorBrush(Colors.Black);
+                this.SelectRow(row);
 
                 object item = this.BugTraceView.Items[rowId];
                 this.BugTraceView.SelectedItem = item;
@@ -209,6 +215,8 @@ namespace Microsoft.PSharp.Visualization
                 for (int i = 0; i < this.BugTraceView.Items.Count; i++)
                 {
                     DataGridRow row = (DataGridRow)this.BugTraceView.ItemContainerGenerator.ContainerFromIndex(i);
+                    if (row == null) continue;
+
                     TextBlock typeCellContent = this.BugTraceView.Columns[1].GetCellContent(row) as TextBlock;
                     TextBlock machineCellContent = this.BugTraceView.Columns[2].GetCellContent(row) as TextBlock;
                     TextBlock actionCellContent = this.BugTraceView.Columns[3].GetCellContent(row) as TextBlock;
@@ -242,8 +250,15 @@ namespace Microsoft.PSharp.Visualization
             }
         }
 
-        private void TraceView_MouseDoubleClick(object sender, EventArgs e)
+        private void MenuItem_Collapse_Click(object sender, EventArgs e)
         {
+            if (this.IsTraceViewCollapsed)
+            {
+                this.MenuItem__Collapse.Header = "_Collapse";
+                this.RestoreTraceViewStyle();
+                return;
+            }
+
             this.RestoreTraceViewStyle();
 
             if (this.BugTraceView.CurrentColumn != null &&
@@ -284,6 +299,9 @@ namespace Microsoft.PSharp.Visualization
                     }
                 }
             }
+            
+            this.MenuItem__Collapse.Header = "_Expand";
+            this.IsTraceViewCollapsed = true;
         }
 
         private void TraceView_MouseDown(object sender, MouseButtonEventArgs e)
@@ -322,6 +340,10 @@ namespace Microsoft.PSharp.Visualization
                 {
                     action = $"Sent event '{traceStep.Event}'.";
                 }
+                else if (traceStep.Type == BugTraceStepType.DequeueEvent)
+                {
+                    action = $"Dequeued event '{traceStep.Event}'.";
+                }
                 else if (traceStep.Type == BugTraceStepType.RaiseEvent)
                 {
                     action = $"Raised event '{traceStep.Event}'.";
@@ -357,7 +379,8 @@ namespace Microsoft.PSharp.Visualization
                 {
                     targetMachine = $"[Environment]";
                 }
-                else if (traceStep.Type == BugTraceStepType.RaiseEvent ||
+                else if (traceStep.Type == BugTraceStepType.DequeueEvent ||
+                    traceStep.Type == BugTraceStepType.RaiseEvent ||
                     traceStep.Type == BugTraceStepType.InvokeAction ||
                     traceStep.Type == BugTraceStepType.RandomChoice)
                 {
@@ -385,7 +408,14 @@ namespace Microsoft.PSharp.Visualization
             for (int i = 0; i < this.BugTraceView.Items.Count; i++)
             {
                 DataGridRow row = (DataGridRow)this.BugTraceView.ItemContainerGenerator.ContainerFromIndex(i);
+                if (row == null) continue;
                 this.RestoreRow(row);
+            }
+
+            if (this.IsTraceViewCollapsed)
+            {
+                this.MenuItem__Collapse.Header = "_Collapse";
+                this.IsTraceViewCollapsed = false;
             }
         }
 
@@ -416,6 +446,11 @@ namespace Microsoft.PSharp.Visualization
                 row.Foreground = new SolidColorBrush(Colors.White);
                 row.Background = new SolidColorBrush(Colors.RoyalBlue);
             }
+            else if (cellContent.Text.Equals("DequeueEvent"))
+            {
+                row.Foreground = new SolidColorBrush(Colors.White);
+                row.Background = new SolidColorBrush(Colors.SteelBlue);
+            }
             else if (cellContent.Text.Equals("RaiseEvent"))
             {
                 row.Foreground = new SolidColorBrush(Colors.Black);
@@ -431,6 +466,16 @@ namespace Microsoft.PSharp.Visualization
                 row.Foreground = new SolidColorBrush(Colors.Black);
                 row.Background = new SolidColorBrush(Colors.Orange);
             }
+        }
+
+        /// <summary>
+        /// Selects the specified row.
+        /// </summary>
+        /// <param name="row">DataGridRow</param>
+        private void SelectRow(DataGridRow row)
+        {
+            row.Foreground = new SolidColorBrush(Colors.White);
+            row.Background = new SolidColorBrush(Colors.Black);
         }
 
         /// <summary>

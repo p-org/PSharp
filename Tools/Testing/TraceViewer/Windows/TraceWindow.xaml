@@ -8,37 +8,49 @@
         Title="PSharpTraceViewer">
     <Grid>
         <DockPanel>
+            <Menu DockPanel.Dock="Top"
+                      Height="25"
+                      HorizontalAlignment="Stretch">
+                <Menu.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <DockPanel HorizontalAlignment="Left" VerticalAlignment="Stretch"/>
+                    </ItemsPanelTemplate>
+                </Menu.ItemsPanel>
+                <MenuItem Header="_File">
+                    <MenuItem Header="_Open Trace"
+                                  InputGestureText="Ctrl+O"
+                                  Click="MenuItem_Open_Trace_Click"/>
+                    <MenuItem Header="_Close Trace"
+                                  Click="MenuItem_Close_Trace_Click"/>
+                </MenuItem>
+                <MenuItem Header="_Edit">
+                    <MenuItem Header="_Search"
+                                  InputGestureText="Ctrl+F"
+                                  Click="MenuItem_Search_Focus"/>
+                </MenuItem>
+            </Menu>
             <Grid DockPanel.Dock="Top">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="0.40*"/>
                 </Grid.ColumnDefinitions>
-                <Menu Height="25" Grid.Column="0" HorizontalAlignment="Stretch">
+                <Menu Grid.Column="0"
+                      Height="25"
+                      HorizontalAlignment="Stretch">
                     <Menu.ItemsPanel>
                         <ItemsPanelTemplate>
                             <DockPanel HorizontalAlignment="Left" VerticalAlignment="Stretch"/>
                         </ItemsPanelTemplate>
                     </Menu.ItemsPanel>
-                    <MenuItem Header="_File">
-                        <MenuItem Header="_Open Trace"
-                                  InputGestureText="Ctrl+O"
-                                  Click="MenuItem_Open_Trace_Click"/>
-                        <MenuItem Header="_Close Trace"
-                                  Click="MenuItem_Close_Trace_Click"/>
-                    </MenuItem>
-                    <MenuItem Header="_Edit">
-                        <MenuItem Header="_Search"
-                                  InputGestureText="Ctrl+F"
-                                  Click="MenuItem_Search_Focus"/>
-                    </MenuItem>
-                    <MenuItem Header="_TraceView">
-                    </MenuItem>
-                    <MenuItem Header="_Visualize">
+                    <MenuItem Header="_Collapse"
+                              x:Name="MenuItem__Collapse"
+                              Click="MenuItem_Collapse_Click">
                     </MenuItem>
                 </Menu>
                 <local:SearchTextBox x:Name="SearchTextBox"
                                      Grid.Column="1"
-                                     VerticalAlignment="Center"
+                                     BorderThickness="0"
+                                     VerticalAlignment="Stretch"
                                      HorizontalAlignment="Stretch"
                                      Margin="0,0,0,0"/>
             </Grid>
@@ -57,9 +69,7 @@
                       HorizontalAlignment="Stretch"
                       VerticalAlignment="Stretch"
                       CurrentCellChanged="TraceView_CurrentCellChanged"
-                      MouseDoubleClick="TraceView_MouseDoubleClick"
-                      MouseDown="TraceView_MouseDown"
-                      Margin="0,0,0,0.333">
+                      MouseDown="TraceView_MouseDown">
                 <DataGrid.Columns>
                     <DataGridTextColumn Binding="{Binding Path=Id}"
                                         Header="Id"
@@ -91,6 +101,10 @@
                             <DataTrigger Binding="{Binding Path=Type}" Value="SendEvent">
                                 <Setter Property="Foreground" Value="White"/>
                                 <Setter Property="Background" Value="RoyalBlue"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Path=Type}" Value="DequeueEvent">
+                                <Setter Property="Foreground" Value="White"/>
+                                <Setter Property="Background" Value="SteelBlue"/>
                             </DataTrigger>
                             <DataTrigger Binding="{Binding Path=Type}" Value="RaiseEvent">
                                 <Setter Property="Foreground" Value="Black"/>

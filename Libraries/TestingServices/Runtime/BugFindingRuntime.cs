@@ -696,7 +696,10 @@ namespace Microsoft.PSharp.TestingServices
                 IO.Log($"<DequeueLog> Machine '{machine.Id}' dequeued " +
                     $"event '{eventInfo.EventName}'.");
             }
-            
+
+            // Adds the action to the bug trace.
+            this.BugTrace.AddDequeueEventStep(machine.Id, eventInfo);
+
             var prevMachineOpId = machine.OperationId;
             machine.SetOperationId(eventInfo.OperationId);
             

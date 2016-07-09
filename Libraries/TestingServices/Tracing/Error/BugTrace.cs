@@ -109,6 +109,18 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="eventInfo">EventInfo</param>
+        internal void AddDequeueEventStep(MachineId machine, EventInfo eventInfo)
+        {
+            var scheduleStep = BugTraceStep.Create(this.Count, BugTraceStepType.DequeueEvent,
+                machine, null, eventInfo, null, false);
+            this.Push(scheduleStep);
+        }
+
+        /// <summary>
+        /// Adds a bug trace step.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <param name="eventInfo">EventInfo</param>
         internal void AddRaiseEventStep(MachineId machine, EventInfo eventInfo)
         {
             var scheduleStep = BugTraceStep.Create(this.Count, BugTraceStepType.RaiseEvent,
