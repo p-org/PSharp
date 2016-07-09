@@ -56,9 +56,9 @@
             </Grid>
             <DataGrid Name="BugTraceView"
                       AutoGenerateColumns="False"
-                      EnableRowVirtualization="False"
+                      EnableRowVirtualization="True"
                       EnableColumnVirtualization="False"
-                      VirtualizingStackPanel.IsVirtualizing="False"
+                      VirtualizingStackPanel.IsVirtualizing="True"
                       IsReadOnly="True"
                       CanUserAddRows="False"
                       CanUserDeleteRows="False"
@@ -69,6 +69,7 @@
                       HorizontalAlignment="Stretch"
                       VerticalAlignment="Stretch"
                       CurrentCellChanged="TraceView_CurrentCellChanged"
+                      LoadingRow="TraceView_LoadingRow"
                       MouseDown="TraceView_MouseDown">
                 <DataGrid.Columns>
                     <DataGridTextColumn Binding="{Binding Path=Id}"
@@ -87,40 +88,6 @@
                                         Header="Target Machine"
                                         MinWidth="160"/>
                 </DataGrid.Columns>
-                <DataGrid.RowStyle>
-                    <Style TargetType="DataGridRow">
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding Path=Type}" Value="CreateMachine">
-                                <Setter Property="Foreground" Value="White"/>
-                                <Setter Property="Background" Value="BlueViolet"/>
-                            </DataTrigger>
-                            <DataTrigger Binding="{Binding Path=Type}" Value="CreateMonitor">
-                                <Setter Property="Foreground" Value="White"/>
-                                <Setter Property="Background" Value="DarkSlateGray"/>
-                            </DataTrigger>
-                            <DataTrigger Binding="{Binding Path=Type}" Value="SendEvent">
-                                <Setter Property="Foreground" Value="White"/>
-                                <Setter Property="Background" Value="RoyalBlue"/>
-                            </DataTrigger>
-                            <DataTrigger Binding="{Binding Path=Type}" Value="DequeueEvent">
-                                <Setter Property="Foreground" Value="White"/>
-                                <Setter Property="Background" Value="SteelBlue"/>
-                            </DataTrigger>
-                            <DataTrigger Binding="{Binding Path=Type}" Value="RaiseEvent">
-                                <Setter Property="Foreground" Value="Black"/>
-                                <Setter Property="Background" Value="GreenYellow"/>
-                            </DataTrigger>
-                            <DataTrigger Binding="{Binding Path=Type}" Value="InvokeAction">
-                                <Setter Property="Foreground" Value="Black"/>
-                                <Setter Property="Background" Value="BurlyWood"/>
-                            </DataTrigger>
-                            <DataTrigger Binding="{Binding Path=Type}" Value="RandomChoice">
-                                <Setter Property="Foreground" Value="Black"/>
-                                <Setter Property="Background" Value="Orange"/>
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </DataGrid.RowStyle>
                 <DataGrid.Resources>
                     <SolidColorBrush x:Key="{x:Static DataGrid.FocusBorderBrushKey}" Color="#FF000000"/>
                     <Style TargetType="{x:Type DataGridCell}">

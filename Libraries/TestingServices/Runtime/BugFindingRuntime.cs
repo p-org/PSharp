@@ -772,6 +772,18 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
+        /// Notifies that a machine has halted.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        internal override void NotifyHalted(Machine machine)
+        {
+            IO.Log($"<HaltLog> Machine '{machine.Id}' halted.");
+
+            // Adds the action to the bug trace.
+            this.BugTrace.AddHaltStep(machine.Id);
+        }
+
+        /// <summary>
         /// Notifies that a default handler has been used.
         /// </summary>
         internal override void NotifyDefaultHandlerFired()

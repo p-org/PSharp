@@ -820,7 +820,7 @@ namespace Microsoft.PSharp
                     {
                         lock (this.Inbox)
                         {
-                            base.Runtime.Log($"<HaltLog> Machine '{base.Id}' halted.");
+                            base.Runtime.NotifyHalted(this);
                             this.IsHalted = true;
                             this.CleanUpResources();
                         }

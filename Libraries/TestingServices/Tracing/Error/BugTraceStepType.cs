@@ -35,6 +35,8 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         [EnumMember(Value = "InvokeAction")]
         InvokeAction,
         [EnumMember(Value = "RandomChoice")]
-        RandomChoice
+        RandomChoice,
+        [EnumMember(Value = "Halt")]
+        Halt
     }
 }

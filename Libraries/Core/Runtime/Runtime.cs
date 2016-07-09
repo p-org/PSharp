@@ -808,6 +808,15 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Notifies that a machine has halted.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        internal virtual void NotifyHalted(Machine machine)
+        {
+            // No-op for real execution.
+        }
+
+        /// <summary>
         /// Notifies that a default handler has been used.
         /// </summary>
         internal virtual void NotifyDefaultHandlerFired()

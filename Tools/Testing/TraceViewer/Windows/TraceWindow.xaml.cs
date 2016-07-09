@@ -15,20 +15,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.IO;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.Windows.Threading;
 
 using Microsoft.PSharp.TestingServices.Tracing.Error;
 
@@ -45,6 +35,11 @@ namespace Microsoft.PSharp.Visualization
         /// The bug trace.
         /// </summary>
         private BugTrace BugTrace;
+
+        /// <summary>
+        /// The observable bug trace.
+        /// </summary>
+        private ObservableCollection<BugTraceObject> ObservableBugTrace;
 
         /// <summary>
         /// The open command.
@@ -101,14 +96,11 @@ namespace Microsoft.PSharp.Visualization
 
         private void MenuItem_Open_Trace_Click(object sender, RoutedEventArgs e)
         {
-            this.BugTraceView.ItemsSource = null;
-            this.BugTraceView.Items.Refresh();
-
             this.BugTrace = IO.LoadTrace();
             if (this.BugTrace != null)
             {
-                var traceList = this.GetObservableTrace();
-                this.BugTraceView.ItemsSource = traceList;
+                this.ObservableBugTrace = this.GetObservableTrace();
+                this.BugTraceView.ItemsSource = this.ObservableBugTrace;
                 this.BugTraceView.Items.Refresh();
             }
         }
@@ -151,39 +143,26 @@ namespace Microsoft.PSharp.Visualization
                 this.SearchQueryCache.Clear();
                 this.SearchQueryCache.Add(this.SearchTextBox.Text, new Queue<int>());
 
-                // Caches all rows that satisfy the search query, and disables
-                // all remaining rows.
-                for (int i = 0; i < this.BugTraceView.Items.Count; i++)
+                // Caches all row ids that satisfy the search query.
+                foreach (var item in this.ObservableBugTrace)
                 {
-                    DataGridRow row = (DataGridRow)this.BugTraceView.ItemContainerGenerator.ContainerFromIndex(i);
-
-                    bool containsSearch = false;
-                    for (int j = 1; j < this.BugTraceView.Columns.Count; j++)
+                    if (item.Type.Contains(this.SearchTextBox.Text) ||
+                        item.Action.Contains(this.SearchTextBox.Text) ||
+                        item.Action.Contains(this.SearchTextBox.Text) ||
+                        item.TargetMachine.Contains(this.SearchTextBox.Text))
                     {
-                        TextBlock cellContent = this.BugTraceView.Columns[j].GetCellContent(row) as TextBlock;
-                        if (cellContent.Text.Contains(this.SearchTextBox.Text))
-                        {
-                            containsSearch = true;
-                            break;
-                        }
-                    }
-
-                    if (containsSearch)
-                    {
-                        this.SearchQueryCache[this.SearchTextBox.Text].Enqueue(i);
-                    }
-                    else
-                    {
-                        this.FadeRow(row);
+                        var rowId = this.ObservableBugTrace.IndexOf(item);
+                        this.SearchQueryCache[this.SearchTextBox.Text].Enqueue(rowId);
                     }
                 }
             }
 
-            // Restores the style of all rows related to the search query.
-            foreach (var rowId in this.SearchQueryCache[this.SearchTextBox.Text])
+            // Updates the rows based on the search query.
+            for (int i = 0; i < this.BugTraceView.Items.Count; i++)
             {
-                DataGridRow row = (DataGridRow)this.BugTraceView.ItemContainerGenerator.ContainerFromIndex(rowId);
-                this.RestoreRow(row);
+                DataGridRow row = (DataGridRow)this.BugTraceView.ItemContainerGenerator.ContainerFromIndex(i);
+                if (row == null) continue;
+                this.UpdateRow(row);
             }
 
             if (this.SearchQueryCache[this.SearchTextBox.Text].Count > 0)
@@ -191,12 +170,11 @@ namespace Microsoft.PSharp.Visualization
                 int rowId = this.SearchQueryCache[this.SearchTextBox.Text].Dequeue();
                 this.SearchQueryCache[this.SearchTextBox.Text].Enqueue(rowId);
 
+                this.BugTraceView.SelectedIndex = rowId;
+                this.BugTraceView.ScrollIntoView(this.BugTraceView.SelectedItem);
+
                 DataGridRow row = (DataGridRow)this.BugTraceView.ItemContainerGenerator.ContainerFromIndex(rowId);
                 this.SelectRow(row);
-
-                object item = this.BugTraceView.Items[rowId];
-                this.BugTraceView.SelectedItem = item;
-                this.BugTraceView.ScrollIntoView(item);
             }
         }
 
@@ -216,36 +194,7 @@ namespace Microsoft.PSharp.Visualization
                 {
                     DataGridRow row = (DataGridRow)this.BugTraceView.ItemContainerGenerator.ContainerFromIndex(i);
                     if (row == null) continue;
-
-                    TextBlock typeCellContent = this.BugTraceView.Columns[1].GetCellContent(row) as TextBlock;
-                    TextBlock machineCellContent = this.BugTraceView.Columns[2].GetCellContent(row) as TextBlock;
-                    TextBlock actionCellContent = this.BugTraceView.Columns[3].GetCellContent(row) as TextBlock;
-                    TextBlock targetCellContent = this.BugTraceView.Columns[4].GetCellContent(row) as TextBlock;
-                    
-                    if (header.Equals("Type") &&
-                        !typeCellContent.Text.Equals(item.Type))
-                    {
-                        this.FadeRow(row);
-                    }
-                    else if (header.Equals("Source Machine") &&
-                        !machineCellContent.Text.Equals(item.SenderMachine))
-                    {
-                        this.FadeRow(row);
-                    }
-                    else if (header.Equals("Action") &&
-                        !actionCellContent.Text.Equals(item.Action))
-                    {
-                        this.FadeRow(row);
-                    }
-                    else if (header.Equals("Target Machine") &&
-                        !targetCellContent.Text.Equals(item.TargetMachine))
-                    {
-                        this.FadeRow(row);
-                    }
-                    else
-                    {
-                        this.RestoreRow(row);
-                    }
+                    this.UpdateRow(row);
                 }
             }
         }
@@ -259,49 +208,41 @@ namespace Microsoft.PSharp.Visualization
                 return;
             }
 
-            this.RestoreTraceViewStyle();
+            this.MenuItem__Collapse.Header = "_Expand";
+            this.IsTraceViewCollapsed = true;
 
-            if (this.BugTraceView.CurrentColumn != null &&
-                this.BugTraceView.CurrentCell != null &&
-                this.BugTraceView.CurrentColumn.Header is string &&
+            BugTraceObject selectedItem = null;
+            string selectedHeader = null;
+
+            if (this.BugTraceView.CurrentCell != null &&
                 this.BugTraceView.CurrentCell.Item is BugTraceObject)
             {
-                string header = (string)this.BugTraceView.CurrentColumn.Header;
-                BugTraceObject item = (BugTraceObject)this.BugTraceView.CurrentCell.Item;
+                selectedItem = (BugTraceObject)this.BugTraceView.CurrentCell.Item;
+                selectedHeader = (string)this.BugTraceView.CurrentCell.Column.Header;
+            }
 
+            if (selectedItem != null && selectedHeader != null)
+            {
                 for (int i = 0; i < this.BugTraceView.Items.Count; i++)
                 {
                     DataGridRow row = (DataGridRow)this.BugTraceView.ItemContainerGenerator.ContainerFromIndex(i);
-                    TextBlock typeCellContent = this.BugTraceView.Columns[1].GetCellContent(row) as TextBlock;
-                    TextBlock machineCellContent = this.BugTraceView.Columns[2].GetCellContent(row) as TextBlock;
-                    TextBlock actionCellContent = this.BugTraceView.Columns[3].GetCellContent(row) as TextBlock;
-                    TextBlock targetCellContent = this.BugTraceView.Columns[4].GetCellContent(row) as TextBlock;
-                    
-                    if (header.Equals("Type") &&
-                        !typeCellContent.Text.Equals(item.Type))
+                    if (row == null) continue;
+
+                    BugTraceObject item = (BugTraceObject)row.DataContext;
+
+                    if ((selectedHeader.Equals("Type") &&
+                        !item.Type.Equals(selectedItem.Type)) ||
+                        (selectedHeader.Equals("Source Machine") &&
+                        !item.SenderMachine.Equals(selectedItem.SenderMachine)) ||
+                        (selectedHeader.Equals("Action") &&
+                        !item.Action.Equals(selectedItem.Action)) ||
+                        (selectedHeader.Equals("Target Machine") &&
+                        !item.TargetMachine.Equals(selectedItem.TargetMachine)))
                     {
-                        row.Visibility = Visibility.Collapsed;
-                    }
-                    else if (header.Equals("Source Machine") &&
-                        !machineCellContent.Text.Equals(item.SenderMachine))
-                    {
-                        row.Visibility = Visibility.Collapsed;
-                    }
-                    else if (header.Equals("Action") &&
-                        !actionCellContent.Text.Equals(item.Action))
-                    {
-                        row.Visibility = Visibility.Collapsed;
-                    }
-                    else if (header.Equals("Target Machine") &&
-                        !targetCellContent.Text.Equals(item.TargetMachine))
-                    {
-                        row.Visibility = Visibility.Collapsed;
+                        this.CollapseRow(row);
                     }
                 }
             }
-            
-            this.MenuItem__Collapse.Header = "_Expand";
-            this.IsTraceViewCollapsed = true;
         }
 
         private void TraceView_MouseDown(object sender, MouseButtonEventArgs e)
@@ -310,6 +251,11 @@ namespace Microsoft.PSharp.Visualization
             {
                 this.RestoreTraceViewStyle();
             }
+        }
+
+        private void TraceView_LoadingRow(object sender, DataGridRowEventArgs e)
+        {
+            this.UpdateRow(e.Row);
         }
 
         #endregion
@@ -356,6 +302,10 @@ namespace Microsoft.PSharp.Visualization
                 {
                     action = $"Nondeterministically chose '{traceStep.RandomChoice}'.";
                 }
+                else if (traceStep.Type == BugTraceStepType.Halt)
+                {
+                    action = $"Machine has halted.";
+                }
 
                 string senderMachine = "";
                 if (traceStep.MachineId > 0)
@@ -382,7 +332,8 @@ namespace Microsoft.PSharp.Visualization
                 else if (traceStep.Type == BugTraceStepType.DequeueEvent ||
                     traceStep.Type == BugTraceStepType.RaiseEvent ||
                     traceStep.Type == BugTraceStepType.InvokeAction ||
-                    traceStep.Type == BugTraceStepType.RandomChoice)
+                    traceStep.Type == BugTraceStepType.RandomChoice ||
+                    traceStep.Type == BugTraceStepType.Halt)
                 {
                     targetMachine = $"[Self]";
                 }
@@ -420,52 +371,110 @@ namespace Microsoft.PSharp.Visualization
         }
 
         /// <summary>
+        /// Updates the specified row.
+        /// </summary>
+        /// <param name="row">DataGridRow</param>
+        private void UpdateRow(DataGridRow row)
+        {
+            BugTraceObject loadingItem = (BugTraceObject)row.DataContext;
+            BugTraceObject selectedItem = null;
+            string selectedHeader = null;
+
+            if (this.BugTraceView.CurrentCell != null &&
+                this.BugTraceView.CurrentCell.Item is BugTraceObject)
+            {
+                selectedItem = (BugTraceObject)this.BugTraceView.CurrentCell.Item;
+                selectedHeader = (string)this.BugTraceView.CurrentCell.Column.Header;
+            }
+
+            if (this.SearchTextBox.Text.Length > 0 &&
+                this.SearchQueryCache.ContainsKey(this.SearchTextBox.Text))
+            {
+                int rowId = row.GetIndex();
+                if (this.SearchQueryCache[this.SearchTextBox.Text].Contains(rowId))
+                {
+                    this.RestoreRow(row);
+                }
+                else
+                {
+                    this.FadeRow(row);
+                }
+            }
+            else if (selectedItem != null && selectedHeader != null &&
+                ((selectedHeader.Equals("Type") &&
+                !loadingItem.Type.Equals(selectedItem.Type)) ||
+                (selectedHeader.Equals("Source Machine") &&
+                !loadingItem.SenderMachine.Equals(selectedItem.SenderMachine)) ||
+                (selectedHeader.Equals("Action") &&
+                !loadingItem.Action.Equals(selectedItem.Action)) ||
+                (selectedHeader.Equals("Target Machine") &&
+                !loadingItem.TargetMachine.Equals(selectedItem.TargetMachine))))
+            {
+                if (this.IsTraceViewCollapsed)
+                {
+                    this.CollapseRow(row);
+                }
+                else
+                {
+                    this.FadeRow(row);
+                }
+            }
+            else
+            {
+                this.RestoreRow(row);
+            }
+        }
+
+        /// <summary>
         /// Restores the specified row to its defalt style.
         /// </summary>
         /// <param name="row">DataGridRow</param>
         private void RestoreRow(DataGridRow row)
         {
-            TextBlock cellContent = this.BugTraceView.Columns[1].GetCellContent(row) as TextBlock;
-            if (cellContent != null && cellContent.Text != null)
-            {
-                row.Visibility = Visibility.Visible;
-            }
-
-            if (cellContent.Text.Equals("CreateMachine"))
+            BugTraceObject context = row.DataContext as BugTraceObject;
+            
+            if (context.Type.Equals("CreateMachine"))
             {
                 row.Foreground = new SolidColorBrush(Colors.White);
                 row.Background = new SolidColorBrush(Colors.BlueViolet);
             }
-            else if (cellContent.Text.Equals("CreateMonitor"))
+            else if (context.Type.Equals("CreateMonitor"))
             {
                 row.Foreground = new SolidColorBrush(Colors.White);
                 row.Background = new SolidColorBrush(Colors.DarkSlateGray);
             }
-            else if (cellContent.Text.Equals("SendEvent"))
+            else if (context.Type.Equals("SendEvent"))
             {
                 row.Foreground = new SolidColorBrush(Colors.White);
                 row.Background = new SolidColorBrush(Colors.RoyalBlue);
             }
-            else if (cellContent.Text.Equals("DequeueEvent"))
+            else if (context.Type.Equals("DequeueEvent"))
             {
                 row.Foreground = new SolidColorBrush(Colors.White);
                 row.Background = new SolidColorBrush(Colors.SteelBlue);
             }
-            else if (cellContent.Text.Equals("RaiseEvent"))
+            else if (context.Type.Equals("RaiseEvent"))
             {
                 row.Foreground = new SolidColorBrush(Colors.Black);
                 row.Background = new SolidColorBrush(Colors.GreenYellow);
             }
-            else if (cellContent.Text.Equals("InvokeAction"))
+            else if (context.Type.Equals("InvokeAction"))
             {
                 row.Foreground = new SolidColorBrush(Colors.Black);
                 row.Background = new SolidColorBrush(Colors.BurlyWood);
             }
-            else if (cellContent.Text.Equals("RandomChoice"))
+            else if (context.Type.Equals("RandomChoice"))
             {
                 row.Foreground = new SolidColorBrush(Colors.Black);
                 row.Background = new SolidColorBrush(Colors.Orange);
             }
+            else if (context.Type.Equals("Halt"))
+            {
+                row.Foreground = new SolidColorBrush(Colors.White);
+                row.Background = new SolidColorBrush(Colors.DeepPink);
+            }
+
+            row.Visibility = Visibility.Visible;
         }
 
         /// <summary>
@@ -486,6 +495,15 @@ namespace Microsoft.PSharp.Visualization
         {
             row.Foreground = new SolidColorBrush(Colors.Silver);
             row.Background = new SolidColorBrush(Colors.WhiteSmoke);
+        }
+
+        /// <summary>
+        /// Collapses the specified row.
+        /// </summary>
+        /// <param name="row">DataGridRow</param>
+        private void CollapseRow(DataGridRow row)
+        {
+            row.Visibility = Visibility.Collapsed;
         }
 
         #endregion

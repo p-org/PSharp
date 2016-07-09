@@ -153,6 +153,17 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         }
 
         /// <summary>
+        /// Adds a bug trace step.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        internal void AddHaltStep(MachineId machine)
+        {
+            var scheduleStep = BugTraceStep.Create(this.Count, BugTraceStepType.Halt,
+                machine, null, null, null, false);
+            this.Push(scheduleStep);
+        }
+
+        /// <summary>
         /// Returns the latest bug trace step and
         /// removes it from the trace.
         /// </summary>
