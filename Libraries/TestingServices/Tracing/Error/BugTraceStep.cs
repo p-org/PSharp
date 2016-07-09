@@ -12,6 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System.Reflection;
 using System.Runtime.Serialization;
 
 namespace Microsoft.PSharp.TestingServices.Tracing.Error
@@ -66,6 +67,12 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         internal string Event;
 
         /// <summary>
+        /// The invoked action.
+        /// </summary>
+        [DataMember]
+        internal string InvokedAction;
+
+        /// <summary>
         /// The taken nondeterministic choice.
         /// </summary>
         [DataMember]
@@ -93,10 +100,11 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         /// <param name="machine">Machine</param>
         /// <param name="targetMachine">Target machine</param>
         /// <param name="eventInfo">EventInfo</param>
+        /// <param name="action">MethodInfo</param>
         /// <param name="choice">Choice</param>
         /// <returns>BugTraceStep</returns>
         internal static BugTraceStep Create(int index, BugTraceStepType type, MachineId machine,
-            MachineId targetMachine, EventInfo eventInfo, bool choice)
+            MachineId targetMachine, EventInfo eventInfo, MethodInfo action, bool choice)
         {
             var traceStep = new BugTraceStep();
 
@@ -123,6 +131,11 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
             if (eventInfo != null)
             {
                 traceStep.Event = eventInfo.EventName;
+            }
+
+            if (action != null)
+            {
+                traceStep.InvokedAction = action.Name;
             }
 
             traceStep.RandomChoice = choice;

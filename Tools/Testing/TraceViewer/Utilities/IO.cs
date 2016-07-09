@@ -12,7 +12,6 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Windows;
@@ -35,7 +34,7 @@ namespace Microsoft.PSharp.Visualization
 
             // Sets filter for file extension and default file extension.
             openFileDialog.DefaultExt = ".pstrace";
-            //openFileDialog.Filter = "TXT Files (*.txt)";
+            openFileDialog.Filter = "P# Trace Files|*.pstrace";
 
             // Displays OpenFileDialog by calling the ShowDialog method.
             bool? result = openFileDialog.ShowDialog();

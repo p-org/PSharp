@@ -14,6 +14,7 @@
 
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Runtime.Serialization;
 
 namespace Microsoft.PSharp.TestingServices.Tracing.Error
@@ -75,7 +76,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
             EventInfo eventInfo)
         {
             var scheduleStep = BugTraceStep.Create(this.Count, BugTraceStepType.CreateMachine,
-                machine, targetMachine, eventInfo, false);
+                machine, targetMachine, eventInfo, null, false);
             this.Push(scheduleStep);
         }
 
@@ -86,7 +87,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         internal void AddCreateMonitorStep(MachineId monitor)
         {
             var scheduleStep = BugTraceStep.Create(this.Count, BugTraceStepType.CreateMonitor,
-                null, monitor, null, false);
+                null, monitor, null, null, false);
             this.Push(scheduleStep);
         }
 
@@ -99,7 +100,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         internal void AddSendEventStep(MachineId machine, MachineId targetMachine, EventInfo eventInfo)
         {
             var scheduleStep = BugTraceStep.Create(this.Count, BugTraceStepType.SendEvent,
-                machine, targetMachine, eventInfo, false);
+                machine, targetMachine, eventInfo, null, false);
             this.Push(scheduleStep);
         }
 
@@ -111,7 +112,19 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         internal void AddRaiseEventStep(MachineId machine, EventInfo eventInfo)
         {
             var scheduleStep = BugTraceStep.Create(this.Count, BugTraceStepType.RaiseEvent,
-                machine, null, eventInfo, false);
+                machine, null, eventInfo, null, false);
+            this.Push(scheduleStep);
+        }
+
+        /// <summary>
+        /// Adds a bug trace step.
+        /// </summary>
+        /// <param name="machine">Machine</param>
+        /// <param name="action">MethodInfo</param>
+        internal void AddInvokeActionStep(MachineId machine, MethodInfo action)
+        {
+            var scheduleStep = BugTraceStep.Create(this.Count, BugTraceStepType.InvokeAction,
+                machine, null, null, action, false);
             this.Push(scheduleStep);
         }
 
@@ -123,7 +136,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         internal void AddRandomChoiceStep(MachineId machine, bool choice)
         {
             var scheduleStep = BugTraceStep.Create(this.Count, BugTraceStepType.RandomChoice,
-                machine, null, null, choice);
+                machine, null, null, null, choice);
             this.Push(scheduleStep);
         }
 

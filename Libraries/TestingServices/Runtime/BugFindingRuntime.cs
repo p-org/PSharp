@@ -669,6 +669,9 @@ namespace Microsoft.PSharp.TestingServices
             this.Log($"<ActionLog> Machine '{machine.Id}' invoked action " +
                 $"'{action.Name}' in state '{machine.CurrentStateName}'.");
 
+            // Adds the action to the bug trace.
+            this.BugTrace.AddInvokeActionStep(machine.Id, action);
+
             if (this.Configuration.EnableDataRaceDetection)
             {
                 // Traces machine actions, if data-race detection is enabled.

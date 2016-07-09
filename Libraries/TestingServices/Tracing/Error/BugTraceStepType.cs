@@ -30,6 +30,8 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         SendEvent,
         [EnumMember(Value = "RaiseEvent")]
         RaiseEvent,
+        [EnumMember(Value = "InvokeAction")]
+        InvokeAction,
         [EnumMember(Value = "RandomChoice")]
         RandomChoice
     }

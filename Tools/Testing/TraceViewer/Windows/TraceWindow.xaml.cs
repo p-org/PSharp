@@ -82,7 +82,7 @@ namespace Microsoft.PSharp.Visualization
             this.OpenCommand.InputGestures.Add(new KeyGesture(Key.O, ModifierKeys.Control));
             this.SearchCommand.InputGestures.Add(new KeyGesture(Key.F, ModifierKeys.Control));
 
-            base.CommandBindings.Add(new CommandBinding(this.OpenCommand, MenuItem_Load_Click));
+            base.CommandBindings.Add(new CommandBinding(this.OpenCommand, MenuItem_Open_Trace_Click));
             base.CommandBindings.Add(new CommandBinding(this.SearchCommand, MenuItem_Search_Focus));
 
             this.SearchTextBox.Search += SearchTextBox_Search;
@@ -92,14 +92,24 @@ namespace Microsoft.PSharp.Visualization
 
         #region actions
 
-        private void MenuItem_Load_Click(object sender, RoutedEventArgs e)
+        private void MenuItem_Open_Trace_Click(object sender, RoutedEventArgs e)
         {
+            this.BugTraceView.ItemsSource = null;
+            this.BugTraceView.Items.Refresh();
+
             this.BugTrace = IO.LoadTrace();
             if (this.BugTrace != null)
             {
                 var traceList = this.GetObservableTrace();
                 this.BugTraceView.ItemsSource = traceList;
+                this.BugTraceView.Items.Refresh();
             }
+        }
+
+        private void MenuItem_Close_Trace_Click(object sender, RoutedEventArgs e)
+        {
+            this.BugTraceView.ItemsSource = null;
+            this.BugTraceView.Items.Refresh();
         }
 
         /// <summary>
@@ -157,8 +167,7 @@ namespace Microsoft.PSharp.Visualization
                     }
                     else
                     {
-                        row.Foreground = new SolidColorBrush(Colors.Black);
-                        row.Background = new SolidColorBrush(Colors.LightGray);
+                        this.FadeRow(row);
                     }
                 }
             }
@@ -208,26 +217,22 @@ namespace Microsoft.PSharp.Visualization
                     if (header.Equals("Type") &&
                         !typeCellContent.Text.Equals(item.Type))
                     {
-                        row.Foreground = new SolidColorBrush(Colors.Black);
-                        row.Background = new SolidColorBrush(Colors.LightGray);
+                        this.FadeRow(row);
                     }
                     else if (header.Equals("Source Machine") &&
                         !machineCellContent.Text.Equals(item.SenderMachine))
                     {
-                        row.Foreground = new SolidColorBrush(Colors.Black);
-                        row.Background = new SolidColorBrush(Colors.LightGray);
+                        this.FadeRow(row);
                     }
                     else if (header.Equals("Action") &&
                         !actionCellContent.Text.Equals(item.Action))
                     {
-                        row.Foreground = new SolidColorBrush(Colors.Black);
-                        row.Background = new SolidColorBrush(Colors.LightGray);
+                        this.FadeRow(row);
                     }
                     else if (header.Equals("Target Machine") &&
                         !targetCellContent.Text.Equals(item.TargetMachine))
                     {
-                        row.Foreground = new SolidColorBrush(Colors.Black);
-                        row.Background = new SolidColorBrush(Colors.LightGray);
+                        this.FadeRow(row);
                     }
                     else
                     {
@@ -321,6 +326,10 @@ namespace Microsoft.PSharp.Visualization
                 {
                     action = $"Raised event '{traceStep.Event}'.";
                 }
+                else if (traceStep.Type == BugTraceStepType.InvokeAction)
+                {
+                    action = $"Invoked action '{traceStep.InvokedAction}'.";
+                }
                 else if (traceStep.Type == BugTraceStepType.RandomChoice)
                 {
                     action = $"Nondeterministically chose '{traceStep.RandomChoice}'.";
@@ -336,7 +345,7 @@ namespace Microsoft.PSharp.Visualization
                     traceStep.Type == BugTraceStepType.SendEvent ||
                     traceStep.Type == BugTraceStepType.RandomChoice)
                 {
-                    senderMachine = $"Environment";
+                    senderMachine = $"[Environment]";
                 }
 
                 string targetMachine = "";
@@ -344,9 +353,15 @@ namespace Microsoft.PSharp.Visualization
                 {
                     targetMachine = $"{traceStep.TargetMachine}({traceStep.TargetMachineId})";
                 }
-                else
+                else if (traceStep.Type == BugTraceStepType.SendEvent)
                 {
-                    targetMachine = $"Environment";
+                    targetMachine = $"[Environment]";
+                }
+                else if (traceStep.Type == BugTraceStepType.RaiseEvent ||
+                    traceStep.Type == BugTraceStepType.InvokeAction ||
+                    traceStep.Type == BugTraceStepType.RandomChoice)
+                {
+                    targetMachine = $"[Self]";
                 }
 
                 traceList.Add(new BugTraceObject()
@@ -406,11 +421,26 @@ namespace Microsoft.PSharp.Visualization
                 row.Foreground = new SolidColorBrush(Colors.Black);
                 row.Background = new SolidColorBrush(Colors.GreenYellow);
             }
+            else if (cellContent.Text.Equals("InvokeAction"))
+            {
+                row.Foreground = new SolidColorBrush(Colors.Black);
+                row.Background = new SolidColorBrush(Colors.BurlyWood);
+            }
             else if (cellContent.Text.Equals("RandomChoice"))
             {
                 row.Foreground = new SolidColorBrush(Colors.Black);
                 row.Background = new SolidColorBrush(Colors.Orange);
             }
+        }
+
+        /// <summary>
+        /// Fades the specified row.
+        /// </summary>
+        /// <param name="row">DataGridRow</param>
+        private void FadeRow(DataGridRow row)
+        {
+            row.Foreground = new SolidColorBrush(Colors.Silver);
+            row.Background = new SolidColorBrush(Colors.WhiteSmoke);
         }
 
         #endregion

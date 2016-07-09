@@ -20,9 +20,11 @@
                         </ItemsPanelTemplate>
                     </Menu.ItemsPanel>
                     <MenuItem Header="_File">
-                        <MenuItem Header="_Load Bug Trace"
+                        <MenuItem Header="_Open Trace"
                                   InputGestureText="Ctrl+O"
-                                  Click="MenuItem_Load_Click"/>
+                                  Click="MenuItem_Open_Trace_Click"/>
+                        <MenuItem Header="_Close Trace"
+                                  Click="MenuItem_Close_Trace_Click"/>
                     </MenuItem>
                     <MenuItem Header="_Edit">
                         <MenuItem Header="_Search"
@@ -93,6 +95,10 @@
                             <DataTrigger Binding="{Binding Path=Type}" Value="RaiseEvent">
                                 <Setter Property="Foreground" Value="Black"/>
                                 <Setter Property="Background" Value="GreenYellow"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Path=Type}" Value="InvokeAction">
+                                <Setter Property="Foreground" Value="Black"/>
+                                <Setter Property="Background" Value="BurlyWood"/>
                             </DataTrigger>
                             <DataTrigger Binding="{Binding Path=Type}" Value="RandomChoice">
                                 <Setter Property="Foreground" Value="Black"/>
