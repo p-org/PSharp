@@ -207,7 +207,7 @@ namespace Microsoft.PSharp
         /// <returns>MachineId</returns>
         protected MachineId CreateMachine(Type type, Event e = null)
         {
-            return base.Runtime.TryCreateMachine(base.Id, type, null, e);
+            return base.Runtime.TryCreateMachine(this, type, null, e);
         }
 
         /// <summary>
@@ -221,7 +221,7 @@ namespace Microsoft.PSharp
         /// <returns>MachineId</returns>
         protected MachineId CreateMachine(Type type, string friendlyName, Event e = null)
         {
-            return base.Runtime.TryCreateMachine(base.Id, type, friendlyName, e);
+            return base.Runtime.TryCreateMachine(this, type, friendlyName, e);
         }
 
         /// <summary>
@@ -235,7 +235,7 @@ namespace Microsoft.PSharp
         /// <returns>MachineId</returns>
         protected MachineId CreateRemoteMachine(Type type, string endpoint, Event e = null)
         {
-            return base.Runtime.TryCreateRemoteMachine(base.Id, type, null, endpoint, e);
+            return base.Runtime.TryCreateRemoteMachine(this, type, null, endpoint, e);
         }
 
         /// <summary>
@@ -251,7 +251,7 @@ namespace Microsoft.PSharp
         protected MachineId CreateRemoteMachine(Type type, string friendlyName,
             string endpoint, Event e = null)
         {
-            return base.Runtime.TryCreateRemoteMachine(base.Id, type, friendlyName, endpoint, e);
+            return base.Runtime.TryCreateRemoteMachine(this, type, friendlyName, endpoint, e);
         }
 
         /// <summary>
@@ -322,7 +322,7 @@ namespace Microsoft.PSharp
             this.Assert(e != null, $"Machine '{base.Id}' is raising a null event.");
             this.RaisedEvent = new EventInfo(e, new EventOriginInfo(
                 base.Id, this.GetType().Name, this.CurrentState.Name));
-            base.Runtime.Raise(this, this.RaisedEvent, isStarter);
+            base.Runtime.NotifyRaisedEvent(this, this.RaisedEvent, isStarter);
         }
 
         /// <summary>
@@ -637,7 +637,7 @@ namespace Microsoft.PSharp
                 }
                 else
                 {
-                    base.Runtime.NotifyRaisedEvent(this, nextEventInfo);
+                    base.Runtime.NotifyHandleRaisedEvent(this, nextEventInfo);
                 }
 
                 // Assigns the received event.
@@ -1081,7 +1081,6 @@ namespace Microsoft.PSharp
         private void Do(string actionName)
         {
             MethodInfo action = this.ActionMap[actionName];
-
             base.Runtime.NotifyInvokedAction(this, action);
 
             try
@@ -1180,8 +1179,7 @@ namespace Microsoft.PSharp
         [DebuggerStepThrough]
         private void ExecuteCurrentStateOnEntry()
         {
-            base.Runtime.Log($"<StateLog> Machine '{base.Id}' " +
-                $"enters state '{this.CurrentStateName}'.");
+            base.Runtime.NotifyEnteredState(this);
             
             MethodInfo entryAction = null;
             if (this.StateStack.Peek().EntryAction != null)
@@ -1244,8 +1242,7 @@ namespace Microsoft.PSharp
         [DebuggerStepThrough]
         private void ExecuteCurrentStateOnExit(string eventHandlerExitActionName)
         {
-            base.Runtime.Log($"<ExitLog> Machine '{base.Id}' " +
-                $"exits state '{this.CurrentStateName}'.");
+            base.Runtime.NotifyExitedState(this);
 
             MethodInfo exitAction = null;
             if (this.StateStack.Peek().ExitAction != null)

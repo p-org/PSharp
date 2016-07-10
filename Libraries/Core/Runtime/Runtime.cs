@@ -551,12 +551,12 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Tries to create a new machine of the specified type.
         /// </summary>
-        /// <param name="creator">Machine id of the creator machine</param>
+        /// <param name="creator">Creator machine</param>
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        internal virtual MachineId TryCreateMachine(MachineId creator, Type type,
+        internal virtual MachineId TryCreateMachine(Machine creator, Type type,
             string friendlyName, Event e)
         {
             this.Assert(type.IsSubclassOf(typeof(Machine)),
@@ -603,13 +603,13 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Tries to create a new remote machine of the specified type.
         /// </summary>
-        /// <param name="creator">Machine id of the creator machine</param>
+        /// <param name="creator">Creator machine</param>
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
         /// <param name="endpoint">Endpoint</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        internal virtual MachineId TryCreateRemoteMachine(MachineId creator, Type type,
+        internal virtual MachineId TryCreateRemoteMachine(Machine creator, Type type,
             string friendlyName, string endpoint, Event e)
         {
             this.Assert(type.IsSubclassOf(typeof(Machine)),
@@ -706,17 +706,6 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Raises an event internally and returns from the execution context.
-        /// </summary>
-        /// <param name="raiser">Raiser machine</param>
-        /// <param name="eventInfo">EventInfo</param>
-        /// <param name="isStarter">Is starting a new operation</param>
-        internal virtual void Raise(AbstractMachine raiser, EventInfo eventInfo, bool isStarter)
-        {
-            // No-op for real execution.
-        }
-
-        /// <summary>
         /// Returns a nondeterministic boolean choice, that can be
         /// controlled during analysis or testing.
         /// </summary>
@@ -749,11 +738,29 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
+        /// Notifies that a machine entered a state.
+        /// </summary>
+        /// <param name="machine">AbstractMachine</param>
+        internal virtual void NotifyEnteredState(AbstractMachine machine)
+        {
+            // No-op for real execution.
+        }
+
+        /// <summary>
+        /// Notifies that a machine exited a state.
+        /// </summary>
+        /// <param name="machine">AbstractMachine</param>
+        internal virtual void NotifyExitedState(AbstractMachine machine)
+        {
+            // No-op for real execution.
+        }
+
+        /// <summary>
         /// Notifies that a machine invoked an action.
         /// </summary>
-        /// <param name="machine">Machine</param>
+        /// <param name="machine">AbstractMachine</param>
         /// <param name="action">Action</param>
-        internal virtual void NotifyInvokedAction(Machine machine, MethodInfo action)
+        internal virtual void NotifyInvokedAction(AbstractMachine machine, MethodInfo action)
         {
             // No-op for real execution.
         }
@@ -771,9 +778,20 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Notifies that a machine raised an event.
         /// </summary>
+        /// <param name="machine">AbstractMachine</param>
+        /// <param name="eventInfo">EventInfo</param>
+        /// <param name="isStarter">Is starting a new operation</param>
+        internal virtual void NotifyRaisedEvent(AbstractMachine machine, EventInfo eventInfo, bool isStarter)
+        {
+            // No-op for real execution.
+        }
+
+        /// <summary>
+        /// Notifies that a machine handles a raised event.
+        /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="eventInfo">EventInfo</param>
-        internal virtual void NotifyRaisedEvent(Machine machine, EventInfo eventInfo)
+        internal virtual void NotifyHandleRaisedEvent(Machine machine, EventInfo eventInfo)
         {
             // No-op for real execution.
         }

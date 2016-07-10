@@ -21,7 +21,8 @@ namespace Microsoft.PSharp.Visualization
     {
         public int Id { get; set; }
         public string Type { get; set; }
-        public string SenderMachine { get; set; }
+        public string Machine { get; set; }
+        public string MachineState { get; set; }
         public string Action { get; set; }
         public string TargetMachine { get; set; }
     }

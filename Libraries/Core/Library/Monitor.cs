@@ -154,8 +154,9 @@ namespace Microsoft.PSharp
         {
             // If the event is null, then report an error and exit.
             this.Assert(e != null, $"Monitor '{this.GetType().Name}' is raising a null event.");
-            base.Runtime.Log($"<MonitorLog> Monitor '{this.GetType().Name}' " +
-                $"raised event '{e.GetType().FullName}'.");
+            EventInfo raisedEvent = new EventInfo(e, new EventOriginInfo(
+                base.Id, this.GetType().Name, this.CurrentState.Name));
+            base.Runtime.NotifyRaisedEvent(this, raisedEvent, false);
             this.HandleEvent(e);
         }
 
@@ -278,8 +279,7 @@ namespace Microsoft.PSharp
                 // If current state cannot handle the event then null the state.
                 if (!this.CanHandleEvent(e.GetType()))
                 {
-                    base.Runtime.Log($"<MonitorLog> Monitor '{this.GetType().Name}' " +
-                        $"exiting state '{this.CurrentStateName}'.");
+                    base.Runtime.NotifyExitedState(this);
                     this.State = null;
                     continue;
                 }
@@ -369,9 +369,7 @@ namespace Microsoft.PSharp
         private void Do(string actionName)
         {
             MethodInfo action = this.ActionMap[actionName];
-
-            base.Runtime.Log($"<MonitorLog> Monitor '{this.GetType().Name}' executed " +
-                $"action '{action.Name}' in state '{this.CurrentStateName}'.");
+            base.Runtime.NotifyInvokedAction(this, action);
 
             try
             {
@@ -403,18 +401,7 @@ namespace Microsoft.PSharp
         [DebuggerStepThrough]
         private void ExecuteCurrentStateOnEntry()
         {
-            var liveness = "";
-            if (this.IsInHotState())
-            {
-                liveness = "'hot' ";
-            }
-            else if (this.IsInColdState())
-            {
-                liveness = "'cold' ";
-            }
-            
-            base.Runtime.Log($"<MonitorLog> Monitor '{this.GetType().Name}' entering " +
-                $"{liveness}state '{this.CurrentStateName}'.");
+            base.Runtime.NotifyEnteredState(this);
 
             MethodInfo entryAction = null;
             if (this.State.EntryAction != null)
@@ -455,8 +442,7 @@ namespace Microsoft.PSharp
         [DebuggerStepThrough]
         private void ExecuteCurrentStateOnExit(string eventHandlerExitActionName)
         {
-            base.Runtime.Log($"<MonitorLog> Monitor '{this.GetType().Name}' " +
-                $"exiting state '{this.CurrentStateName}'.");
+            base.Runtime.NotifyExitedState(this);
 
             MethodInfo exitAction = null;
             if (this.State.ExitAction != null)

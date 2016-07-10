@@ -30,8 +30,6 @@ namespace PingPong
         void SendPong()
         {
             this.Send(this.Client, new Pong());
-            this.Receive(typeof(Ping));
-            this.Send(this.Client, new Pong());
         }
     }
 }

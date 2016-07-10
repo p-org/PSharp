@@ -32,6 +32,8 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         DequeueEvent,
         [EnumMember(Value = "RaiseEvent")]
         RaiseEvent,
+        [EnumMember(Value = "GotoState")]
+        GotoState,
         [EnumMember(Value = "InvokeAction")]
         InvokeAction,
         [EnumMember(Value = "WaitToReceive")]

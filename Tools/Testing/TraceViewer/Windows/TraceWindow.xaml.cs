@@ -232,8 +232,10 @@ namespace Microsoft.PSharp.Visualization
 
                     if ((selectedHeader.Equals("Type") &&
                         !item.Type.Equals(selectedItem.Type)) ||
-                        (selectedHeader.Equals("Source Machine") &&
-                        !item.SenderMachine.Equals(selectedItem.SenderMachine)) ||
+                        (selectedHeader.Equals("Machine") &&
+                        !item.Machine.Equals(selectedItem.Machine)) ||
+                        (selectedHeader.Equals("State") &&
+                        !item.MachineState.Equals(selectedItem.MachineState)) ||
                         (selectedHeader.Equals("Action") &&
                         !item.Action.Equals(selectedItem.Action)) ||
                         (selectedHeader.Equals("Target Machine") &&
@@ -294,6 +296,10 @@ namespace Microsoft.PSharp.Visualization
                 {
                     action = $"Raised event '{traceStep.EventInfo.EventName}'.";
                 }
+                else if (traceStep.Type == BugTraceStepType.GotoState)
+                {
+                    action = $"Transitions to state '{traceStep.MachineState}'.";
+                }
                 else if (traceStep.Type == BugTraceStepType.InvokeAction)
                 {
                     action = $"Invoked action '{traceStep.InvokedAction}'.";
@@ -315,17 +321,27 @@ namespace Microsoft.PSharp.Visualization
                     action = $"Machine has halted.";
                 }
 
-                string senderMachine = "";
+                string machine = "";
                 if (traceStep.Machine != null)
                 {
-                    senderMachine = $"{traceStep.Machine}";
+                    machine = $"{traceStep.Machine}";
                 }
                 else if (traceStep.Type == BugTraceStepType.CreateMachine ||
                     traceStep.Type == BugTraceStepType.CreateMonitor ||
                     traceStep.Type == BugTraceStepType.SendEvent ||
                     traceStep.Type == BugTraceStepType.RandomChoice)
                 {
-                    senderMachine = $"[Environment]";
+                    machine = $"[Environment]";
+                }
+
+                string machineState = "";
+                if (traceStep.MachineState != null)
+                {
+                    machineState = traceStep.MachineState;
+                }
+                else
+                {
+                    machineState = "[None]";
                 }
 
                 string targetMachine = "";
@@ -339,6 +355,7 @@ namespace Microsoft.PSharp.Visualization
                 }
                 else if (traceStep.Type == BugTraceStepType.DequeueEvent ||
                     traceStep.Type == BugTraceStepType.RaiseEvent ||
+                    traceStep.Type == BugTraceStepType.GotoState ||
                     traceStep.Type == BugTraceStepType.InvokeAction ||
                     traceStep.Type == BugTraceStepType.WaitToReceive ||
                     traceStep.Type == BugTraceStepType.ReceiveEvent ||
@@ -352,7 +369,8 @@ namespace Microsoft.PSharp.Visualization
                 {
                     Id = traceList.Count,
                     Type = type,
-                    SenderMachine = senderMachine,
+                    Machine = machine,
+                    MachineState = machineState,
                     Action = action,
                     TargetMachine = targetMachine
                 });
@@ -413,8 +431,10 @@ namespace Microsoft.PSharp.Visualization
             else if (selectedItem != null && selectedHeader != null &&
                 ((selectedHeader.Equals("Type") &&
                 !loadingItem.Type.Equals(selectedItem.Type)) ||
-                (selectedHeader.Equals("Source Machine") &&
-                !loadingItem.SenderMachine.Equals(selectedItem.SenderMachine)) ||
+                (selectedHeader.Equals("Machine") &&
+                !loadingItem.Machine.Equals(selectedItem.Machine)) ||
+                (selectedHeader.Equals("State") &&
+                !loadingItem.MachineState.Equals(selectedItem.MachineState)) ||
                 (selectedHeader.Equals("Action") &&
                 !loadingItem.Action.Equals(selectedItem.Action)) ||
                 (selectedHeader.Equals("Target Machine") &&
@@ -466,7 +486,12 @@ namespace Microsoft.PSharp.Visualization
             else if (context.Type.Equals("RaiseEvent"))
             {
                 row.Foreground = new SolidColorBrush(Colors.Black);
-                row.Background = new SolidColorBrush(Colors.PaleGoldenrod);
+                row.Background = new SolidColorBrush(Colors.LightSalmon);
+            }
+            else if (context.Type.Equals("GotoState"))
+            {
+                row.Foreground = new SolidColorBrush(Colors.Black);
+                row.Background = new SolidColorBrush(Colors.Khaki);
             }
             else if (context.Type.Equals("InvokeAction"))
             {
@@ -476,12 +501,12 @@ namespace Microsoft.PSharp.Visualization
             else if (context.Type.Equals("WaitToReceive"))
             {
                 row.Foreground = new SolidColorBrush(Colors.White);
-                row.Background = new SolidColorBrush(Colors.Purple);
+                row.Background = new SolidColorBrush(Colors.DarkOrchid);
             }
             else if (context.Type.Equals("ReceiveEvent"))
             {
                 row.Foreground = new SolidColorBrush(Colors.White);
-                row.Background = new SolidColorBrush(Colors.BlueViolet);
+                row.Background = new SolidColorBrush(Colors.DarkOrchid);
             }
             else if (context.Type.Equals("RandomChoice"))
             {

@@ -43,10 +43,10 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         internal MachineId Machine;
 
         /// <summary>
-        /// The target machine.
+        /// The machine state.
         /// </summary>
         [DataMember]
-        internal MachineId TargetMachine;
+        internal string MachineState;
 
         /// <summary>
         /// Information about the event being sent.
@@ -59,6 +59,12 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         /// </summary>
         [DataMember]
         internal string InvokedAction;
+
+        /// <summary>
+        /// The target machine.
+        /// </summary>
+        [DataMember]
+        internal MachineId TargetMachine;
 
         /// <summary>
         /// The taken nondeterministic choice.
@@ -93,15 +99,16 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         /// <param name="index">Index</param>
         /// <param name="type">BugTraceStepType</param>
         /// <param name="machine">Machine</param>
-        /// <param name="targetMachine">Target machine</param>
+        /// <param name="machineState">MachineState</param>
         /// <param name="eventInfo">EventInfo</param>
         /// <param name="action">MethodInfo</param>
+        /// <param name="targetMachine">Target machine</param>
         /// <param name="choice">Choice</param>
         /// <param name="extraInfo">Extra info</param>
         /// <returns>BugTraceStep</returns>
         internal static BugTraceStep Create(int index, BugTraceStepType type, MachineId machine,
-            MachineId targetMachine, EventInfo eventInfo, MethodInfo action, bool choice,
-            string extraInfo)
+            string machineState, EventInfo eventInfo, MethodInfo action, MachineId targetMachine,
+            bool choice, string extraInfo)
         {
             var traceStep = new BugTraceStep();
 
@@ -109,7 +116,8 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
             traceStep.Type = type;
 
             traceStep.Machine = machine;
-            traceStep.TargetMachine = targetMachine;
+            traceStep.MachineState = machineState;
+
             traceStep.EventInfo = eventInfo;
 
             if (action != null)
@@ -117,6 +125,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
                 traceStep.InvokedAction = action.Name;
             }
 
+            traceStep.TargetMachine = targetMachine;
             traceStep.RandomChoice = choice;
             traceStep.ExtraInfo = extraInfo;
 

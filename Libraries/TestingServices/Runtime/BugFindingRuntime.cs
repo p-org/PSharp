@@ -144,13 +144,13 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>MachineId</returns>
         public override MachineId CreateMachine(Type type, Event e = null)
         {
-            MachineId mid = null;
+            Machine creator = null;
             if (this.TaskMap.ContainsKey((int)Task.CurrentId))
             {
-                mid = this.TaskMap[(int)Task.CurrentId].Id;
+                creator = this.TaskMap[(int)Task.CurrentId];
             }
 
-            return this.TryCreateMachine(mid, type, null, e);
+            return this.TryCreateMachine(creator, type, null, e);
         }
 
         /// <summary>
@@ -164,13 +164,13 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>MachineId</returns>
         public override MachineId CreateMachine(Type type, string friendlyName, Event e = null)
         {
-            MachineId mid = null;
+            Machine creator = null;
             if (this.TaskMap.ContainsKey((int)Task.CurrentId))
             {
-                mid = this.TaskMap[(int)Task.CurrentId].Id;
+                creator = this.TaskMap[(int)Task.CurrentId];
             }
 
-            return this.TryCreateMachine(mid, type, friendlyName, e);
+            return this.TryCreateMachine(creator, type, friendlyName, e);
         }
 
         /// <summary>
@@ -184,13 +184,13 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>MachineId</returns>
         public override MachineId RemoteCreateMachine(Type type, string endpoint, Event e = null)
         {
-            MachineId mid = null;
+            Machine creator = null;
             if (this.TaskMap.ContainsKey((int)Task.CurrentId))
             {
-                mid = this.TaskMap[(int)Task.CurrentId].Id;
+                creator = this.TaskMap[(int)Task.CurrentId];
             }
 
-            return this.TryCreateRemoteMachine(mid, type, null, endpoint, e);
+            return this.TryCreateRemoteMachine(creator, type, null, endpoint, e);
         }
 
         /// <summary>
@@ -206,13 +206,13 @@ namespace Microsoft.PSharp.TestingServices
         public override MachineId RemoteCreateMachine(Type type, string friendlyName,
             string endpoint, Event e = null)
         {
-            MachineId mid = null;
+            Machine creator = null;
             if (this.TaskMap.ContainsKey((int)Task.CurrentId))
             {
-                mid = this.TaskMap[(int)Task.CurrentId].Id;
+                creator = this.TaskMap[(int)Task.CurrentId];
             }
 
-            return this.TryCreateRemoteMachine(mid, type, friendlyName, endpoint, e);
+            return this.TryCreateRemoteMachine(creator, type, friendlyName, endpoint, e);
         }
 
         /// <summary>
@@ -300,12 +300,12 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Tries to create a new machine of the specified type.
         /// </summary>
-        /// <param name="creator">Machine id of the creator machine</param>
+        /// <param name="creator">Creator machine</param>
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        internal override MachineId TryCreateMachine(MachineId creator, Type type,
+        internal override MachineId TryCreateMachine(Machine creator, Type type,
             string friendlyName, Event e)
         {
             this.Assert(type.IsSubclassOf(typeof(Machine)), $"Type '{type.Name}' " +
@@ -328,11 +328,9 @@ namespace Microsoft.PSharp.TestingServices
             bool result = this.MachineMap.TryAdd(mid.Value, machine);
             this.Assert(result, $"Machine '{mid}' was already created.");
 
-            this.Log($"<CreateLog> Machine '{mid}' is created.");
+            IO.Log($"<CreateLog> Machine '{mid}' is created.");
             
-            // Adds the action to the bug trace.
-            this.BugTrace.AddCreateMachineStep(creator, mid,
-                e == null ? null : new EventInfo(e));
+            this.BugTrace.AddCreateMachineStep(creator, mid, e == null ? null : new EventInfo(e));
             if (this.Configuration.EnableDataRaceDetection)
             {
                 // Traces machine actions, if data-race detection is enabled.
@@ -377,13 +375,13 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Tries to create a new remote machine of the specified type.
         /// </summary>
-        /// <param name="creator">Machine id of the creator machine</param>
+        /// <param name="creator">Creator machine</param>
         /// <param name="type">Type of the machine</param>
         /// <param name="friendlyName">Friendly machine name used for logging</param>
         /// <param name="endpoint">Endpoint</param>
         /// <param name="e">Event</param>
         /// <returns>MachineId</returns>
-        internal override MachineId TryCreateRemoteMachine(MachineId creator, Type type,
+        internal override MachineId TryCreateRemoteMachine(Machine creator, Type type,
             string friendlyName, string endpoint, Event e)
         {
             this.Assert(type.IsSubclassOf(typeof(Machine)), $"Type '{type.Name}' " +
@@ -405,9 +403,8 @@ namespace Microsoft.PSharp.TestingServices
             (monitor as Monitor).SetMachineId(mid);
             (monitor as Monitor).InitializeStateInformation();
 
-            this.Log($"<CreateLog> Monitor '{type.Name}' is created.");
+            IO.Log($"<CreateLog> Monitor '{type.Name}' is created.");
 
-            // Adds the action to the bug trace.
             this.BugTrace.AddCreateMonitorStep(mid);
 
             this.Monitors.Add(monitor as Monitor);
@@ -430,7 +427,7 @@ namespace Microsoft.PSharp.TestingServices
                 userTask);
             taskMachine.SetMachineId(mid);
 
-            this.Log($"<CreateLog> '{mid}' is created.");
+            IO.Log($"<CreateLog> '{mid}' is created.");
 
             Task task = new Task(() =>
             {
@@ -498,8 +495,8 @@ namespace Microsoft.PSharp.TestingServices
 
             if (sender != null)
             {
-                // Adds the action to the bug trace.
-                this.BugTrace.AddSendEventStep(sender.Id, mid, eventInfo);
+                this.BugTrace.AddSendEventStep(sender.Id, this.GetStateNameOfMachine(sender),
+                    eventInfo, mid);
                 if (this.Configuration.EnableDataRaceDetection)
                 {
                     // Traces machine actions, if data-race detection is enabled.
@@ -583,31 +580,6 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Raises an event internally and returns from the execution context.
-        /// </summary>
-        /// <param name="raiser">Raiser machine</param>
-        /// <param name="eventInfo">EventInfo</param>
-        /// <param name="isStarter">Is starting a new operation</param>
-        internal override void Raise(AbstractMachine raiser, EventInfo eventInfo, bool isStarter)
-        {
-            this.SetOperationIdForEvent(eventInfo, raiser, isStarter);
-
-            if (this.Configuration.BoundOperations)
-            {
-                IO.Log($"<RaiseLog> Machine '{raiser.Id}' raised " +
-                    $"event '{eventInfo.EventName}({eventInfo.OperationId})'.");
-            }
-            else
-            {
-                IO.Log($"<RaiseLog> Machine '{raiser.Id}' raised " +
-                    $"event '{eventInfo.EventName}'.");
-            }
-
-            // Adds the action to the bug trace.
-            this.BugTrace.AddRaiseEventStep(raiser.Id, eventInfo);
-        }
-
-        /// <summary>
         /// Returns a nondeterministic boolean choice, that can be
         /// controlled during analysis or testing.
         /// </summary>
@@ -619,16 +591,15 @@ namespace Microsoft.PSharp.TestingServices
             var choice = this.BugFinder.GetNextNondeterministicChoice(maxValue);
             if (machine != null)
             {
-                this.Log($"<RandomLog> Machine '{machine.Id}' " +
+                IO.Log($"<RandomLog> Machine '{machine.Id}' " +
                     $"nondeterministically chose '{choice}'.");
             }
             else
             {
-                this.Log($"<RandomLog> Runtime nondeterministically chose '{choice}'.");
+                IO.Log($"<RandomLog> Runtime nondeterministically chose '{choice}'.");
             }
-
-            // Adds the action to the bug trace.
-            this.BugTrace.AddRandomChoiceStep(machine.Id, choice);
+            
+            this.BugTrace.AddRandomChoiceStep(machine.Id, this.GetStateNameOfMachine(machine), choice);
 
             return choice;
         }
@@ -645,37 +616,118 @@ namespace Microsoft.PSharp.TestingServices
             var choice = this.BugFinder.GetNextNondeterministicChoice(2, uniqueId);
             if (machine != null)
             {
-                this.Log($"<RandomLog> Machine '{machine.Id}' " +
+                IO.Log($"<RandomLog> Machine '{machine.Id}' " +
                     $"nondeterministically chose '{choice}'.");
             }
             else
             {
-                this.Log($"<RandomLog> Runtime nondeterministically chose '{choice}'.");
+                IO.Log($"<RandomLog> Runtime nondeterministically chose '{choice}'.");
             }
-
-            // Adds the action to the bug trace.
-            this.BugTrace.AddRandomChoiceStep(machine.Id, choice);
+            
+            this.BugTrace.AddRandomChoiceStep(machine.Id, this.GetStateNameOfMachine(machine), choice);
 
             return choice;
         }
 
         /// <summary>
+        /// Notifies that a machine entered a state.
+        /// </summary>
+        /// <param name="machine">AbstractMachine</param>
+        internal override void NotifyEnteredState(AbstractMachine machine)
+        {
+            if (machine is Machine)
+            {
+                string machineState = (machine as Machine).CurrentStateName;
+                this.BugTrace.AddGotoStateStep(machine.Id, machineState);
+
+                IO.Log($"<StateLog> Machine '{machine.Id}' enters " +
+                    $"state '{machineState}'.");
+            }
+            else if (machine is Monitor)
+            {
+                string liveness = "";
+                string monitorState = (machine as Monitor).CurrentStateName;
+
+                if ((machine as Monitor).IsInHotState())
+                {
+                    liveness = "'hot' ";
+                    monitorState += "[hot]";
+                }
+                else if ((machine as Monitor).IsInColdState())
+                {
+                    liveness = "'cold' ";
+                    monitorState += "[cold]";
+                }
+
+                this.BugTrace.AddGotoStateStep(machine.Id, monitorState);
+
+                IO.Log($"<MonitorLog> Monitor '{machine.GetType().Name}' " +
+                    $"enters {liveness}state '{monitorState}'.");
+            }
+        }
+
+        /// <summary>
+        /// Notifies that a machine exited a state.
+        /// </summary>
+        /// <param name="machine">AbstractMachine</param>
+        internal override void NotifyExitedState(AbstractMachine machine)
+        {
+            if (machine is Machine)
+            {
+                string machineState = (machine as Machine).CurrentStateName;
+
+                IO.Log($"<StateLog> Machine '{machine.Id}' exits " +
+                    $"state '{machineState}'.");
+            }
+            else if (machine is Monitor)
+            {
+                string liveness = "";
+                string monitorState = (machine as Monitor).CurrentStateName;
+
+                if ((machine as Monitor).IsInHotState())
+                {
+                    liveness = "'hot' ";
+                    monitorState += "[hot]";
+                }
+                else if ((machine as Monitor).IsInColdState())
+                {
+                    liveness = "'cold' ";
+                    monitorState += "[cold]";
+                }
+
+                IO.Log($"<MonitorLog> Monitor '{machine.GetType().Name}' " +
+                    $"exits {liveness}state '{monitorState}'.");
+            }
+        }
+
+        /// <summary>
         /// Notifies that a machine invoked an action.
         /// </summary>
-        /// <param name="machine">Machine</param>
+        /// <param name="machine">AbstractMachine</param>
         /// <param name="action">Action</param>
-        internal override void NotifyInvokedAction(Machine machine, MethodInfo action)
+        internal override void NotifyInvokedAction(AbstractMachine machine, MethodInfo action)
         {
-            this.Log($"<ActionLog> Machine '{machine.Id}' invoked action " +
-                $"'{action.Name}' in state '{machine.CurrentStateName}'.");
-
-            // Adds the action to the bug trace.
-            this.BugTrace.AddInvokeActionStep(machine.Id, action);
-
-            if (this.Configuration.EnableDataRaceDetection)
+            if (machine is Machine)
             {
-                // Traces machine actions, if data-race detection is enabled.
-                this.MachineActionTraceMap[machine.Id].AddInvocationActionInfo(action.Name);
+                string machineState = (machine as Machine).CurrentStateName;
+                this.BugTrace.AddInvokeActionStep(machine.Id, machineState, action);
+
+                IO.Log($"<ActionLog> Machine '{machine.Id}' invoked action " +
+                    $"'{action.Name}' in state '{machineState}'.");
+
+                if (this.Configuration.EnableDataRaceDetection)
+                {
+                    // Traces machine actions, if data-race detection is enabled.
+                    this.MachineActionTraceMap[machine.Id].AddInvocationActionInfo(action.Name);
+                }
+            }
+            else if (machine is Monitor)
+            {
+                string monitorState = (machine as Monitor).CurrentStateName;
+                this.BugTrace.AddInvokeActionStep(machine.Id, monitorState, action);
+
+                IO.Log($"<MonitorLog> Monitor '{machine.GetType().Name}' executed " +
+                    $"action '{action.Name}' in state '{monitorState}'.");
             }
         }
 
@@ -696,9 +748,8 @@ namespace Microsoft.PSharp.TestingServices
                 IO.Log($"<DequeueLog> Machine '{machine.Id}' dequeued " +
                     $"event '{eventInfo.EventName}'.");
             }
-
-            // Adds the action to the bug trace.
-            this.BugTrace.AddDequeueEventStep(machine.Id, eventInfo);
+            
+            this.BugTrace.AddDequeueEventStep(machine.Id, machine.CurrentStateName, eventInfo);
 
             var prevMachineOpId = machine.OperationId;
             machine.SetOperationId(eventInfo.OperationId);
@@ -720,9 +771,46 @@ namespace Microsoft.PSharp.TestingServices
         /// <summary>
         /// Notifies that a machine raised an event.
         /// </summary>
+        /// <param name="machine">AbstractMachine</param>
+        /// <param name="eventInfo">EventInfo</param>
+        /// <param name="isStarter">Is starting a new operation</param>
+        internal override void NotifyRaisedEvent(AbstractMachine machine, EventInfo eventInfo,
+            bool isStarter)
+        {
+            if (machine is Machine)
+            {
+                this.SetOperationIdForEvent(eventInfo, machine, isStarter);
+
+                string machineState = (machine as Machine).CurrentStateName;
+                this.BugTrace.AddRaiseEventStep(machine.Id, machineState, eventInfo);
+
+                if (this.Configuration.BoundOperations)
+                {
+                    IO.Log($"<RaiseLog> Machine '{machine.Id}' raised " +
+                        $"event '{eventInfo.EventName}({eventInfo.OperationId})'.");
+                }
+                else
+                {
+                    IO.Log($"<RaiseLog> Machine '{machine.Id}' raised " +
+                        $"event '{eventInfo.EventName}'.");
+                }
+            }
+            else if (machine is Monitor)
+            {
+                string monitorState = (machine as Monitor).CurrentStateName;
+                this.BugTrace.AddRaiseEventStep(machine.Id, monitorState, eventInfo);
+
+                IO.Log($"<MonitorLog> Monitor '{machine.GetType().Name}' raised " +
+                    $"event '{eventInfo.EventName}'.");
+            }
+        }
+
+        /// <summary>
+        /// Notifies that a machine handles a raised event.
+        /// </summary>
         /// <param name="machine">Machine</param>
         /// <param name="eventInfo">EventInfo</param>
-        internal override void NotifyRaisedEvent(Machine machine, EventInfo eventInfo)
+        internal override void NotifyHandleRaisedEvent(Machine machine, EventInfo eventInfo)
         {
             var prevMachineOpId = machine.OperationId;
             machine.SetOperationId(eventInfo.OperationId);
@@ -747,11 +835,10 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="events">Events</param>
         internal override void NotifyWaitEvents(Machine machine, string events)
         {
+            this.BugTrace.AddWaitToReceiveStep(machine.Id, machine.CurrentStateName, events);
+
             IO.Log($"<ReceiveLog> Machine '{machine.Id}' " +
                 $"is waiting on events:{events}.");
-
-            // Adds the action to the bug trace.
-            this.BugTrace.AddWaitToReceiveStep(machine.Id, events);
 
             this.BugFinder.NotifyTaskBlockedOnEvent(Task.CurrentId);
             this.BugFinder.Schedule();
@@ -764,6 +851,8 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="eventInfo">EventInfo</param>
         internal override void NotifyReceivedEvent(Machine machine, EventInfo eventInfo)
         {
+            this.BugTrace.AddReceivedEventStep(machine.Id, machine.CurrentStateName, eventInfo);
+
             if (this.Configuration.BoundOperations)
             {
                 IO.Log($"<ReceiveLog> Machine '{machine.Id}' received " +
@@ -775,9 +864,6 @@ namespace Microsoft.PSharp.TestingServices
                     $"event '{eventInfo.EventName}' and unblocked.");
             }
 
-            // Adds the action to the bug trace.
-            this.BugTrace.AddReceivedEventStep(machine.Id, eventInfo);
-
             this.BugFinder.NotifyTaskReceivedEvent(machine);
             machine.IsWaitingToReceive = false;
         }
@@ -788,10 +874,8 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="machine">Machine</param>
         internal override void NotifyHalted(Machine machine)
         {
+            this.BugTrace.AddHaltStep(machine.Id, null);
             IO.Log($"<HaltLog> Machine '{machine.Id}' halted.");
-
-            // Adds the action to the bug trace.
-            this.BugTrace.AddHaltStep(machine.Id);
         }
 
         /// <summary>
@@ -917,6 +1001,27 @@ namespace Microsoft.PSharp.TestingServices
             {
                 eventInfo.SetOperationId(0);
             }
+        }
+
+        /// <summary>
+        /// Returns the state name of the specified machine,
+        /// if the machine is in such a state.
+        /// </summary>
+        /// <param name="machine">AbstractMachine</param>
+        /// <returns>StateName</returns>
+        private string GetStateNameOfMachine(AbstractMachine machine)
+        {
+            string machineState = null;
+            if (machine is Machine)
+            {
+                machineState = (machine as Machine).CurrentStateName;
+            }
+            else if (machine is Monitor)
+            {
+                machineState = (machine as Monitor).CurrentStateName;
+            }
+
+            return machineState;
         }
 
         #endregion
