@@ -284,19 +284,27 @@ namespace Microsoft.PSharp.Visualization
                 }
                 else if (traceStep.Type == BugTraceStepType.SendEvent)
                 {
-                    action = $"Sent event '{traceStep.Event}'.";
+                    action = $"Sent event '{traceStep.EventInfo.EventName}'.";
                 }
                 else if (traceStep.Type == BugTraceStepType.DequeueEvent)
                 {
-                    action = $"Dequeued event '{traceStep.Event}'.";
+                    action = $"Dequeued event '{traceStep.EventInfo.EventName}'.";
                 }
                 else if (traceStep.Type == BugTraceStepType.RaiseEvent)
                 {
-                    action = $"Raised event '{traceStep.Event}'.";
+                    action = $"Raised event '{traceStep.EventInfo.EventName}'.";
                 }
                 else if (traceStep.Type == BugTraceStepType.InvokeAction)
                 {
                     action = $"Invoked action '{traceStep.InvokedAction}'.";
+                }
+                else if (traceStep.Type == BugTraceStepType.WaitToReceive)
+                {
+                    action = $"Waiting to receive events:{traceStep.ExtraInfo}.";
+                }
+                else if (traceStep.Type == BugTraceStepType.ReceiveEvent)
+                {
+                    action = $"Received events '{traceStep.EventInfo.EventName}' and unblocked.";
                 }
                 else if (traceStep.Type == BugTraceStepType.RandomChoice)
                 {
@@ -308,9 +316,9 @@ namespace Microsoft.PSharp.Visualization
                 }
 
                 string senderMachine = "";
-                if (traceStep.MachineId > 0)
+                if (traceStep.Machine != null)
                 {
-                    senderMachine = $"{traceStep.Machine}({traceStep.MachineId})";
+                    senderMachine = $"{traceStep.Machine}";
                 }
                 else if (traceStep.Type == BugTraceStepType.CreateMachine ||
                     traceStep.Type == BugTraceStepType.CreateMonitor ||
@@ -321,9 +329,9 @@ namespace Microsoft.PSharp.Visualization
                 }
 
                 string targetMachine = "";
-                if (traceStep.TargetMachineId > 0)
+                if (traceStep.TargetMachine != null)
                 {
-                    targetMachine = $"{traceStep.TargetMachine}({traceStep.TargetMachineId})";
+                    targetMachine = $"{traceStep.TargetMachine}";
                 }
                 else if (traceStep.Type == BugTraceStepType.SendEvent)
                 {
@@ -332,6 +340,8 @@ namespace Microsoft.PSharp.Visualization
                 else if (traceStep.Type == BugTraceStepType.DequeueEvent ||
                     traceStep.Type == BugTraceStepType.RaiseEvent ||
                     traceStep.Type == BugTraceStepType.InvokeAction ||
+                    traceStep.Type == BugTraceStepType.WaitToReceive ||
+                    traceStep.Type == BugTraceStepType.ReceiveEvent ||
                     traceStep.Type == BugTraceStepType.RandomChoice ||
                     traceStep.Type == BugTraceStepType.Halt)
                 {
@@ -436,7 +446,7 @@ namespace Microsoft.PSharp.Visualization
             if (context.Type.Equals("CreateMachine"))
             {
                 row.Foreground = new SolidColorBrush(Colors.White);
-                row.Background = new SolidColorBrush(Colors.BlueViolet);
+                row.Background = new SolidColorBrush(Colors.Teal);
             }
             else if (context.Type.Equals("CreateMonitor"))
             {
@@ -456,22 +466,32 @@ namespace Microsoft.PSharp.Visualization
             else if (context.Type.Equals("RaiseEvent"))
             {
                 row.Foreground = new SolidColorBrush(Colors.Black);
-                row.Background = new SolidColorBrush(Colors.GreenYellow);
+                row.Background = new SolidColorBrush(Colors.PaleGoldenrod);
             }
             else if (context.Type.Equals("InvokeAction"))
             {
                 row.Foreground = new SolidColorBrush(Colors.Black);
                 row.Background = new SolidColorBrush(Colors.BurlyWood);
             }
+            else if (context.Type.Equals("WaitToReceive"))
+            {
+                row.Foreground = new SolidColorBrush(Colors.White);
+                row.Background = new SolidColorBrush(Colors.Purple);
+            }
+            else if (context.Type.Equals("ReceiveEvent"))
+            {
+                row.Foreground = new SolidColorBrush(Colors.White);
+                row.Background = new SolidColorBrush(Colors.BlueViolet);
+            }
             else if (context.Type.Equals("RandomChoice"))
             {
-                row.Foreground = new SolidColorBrush(Colors.Black);
-                row.Background = new SolidColorBrush(Colors.Orange);
+                row.Foreground = new SolidColorBrush(Colors.White);
+                row.Background = new SolidColorBrush(Colors.BlueViolet);
             }
             else if (context.Type.Equals("Halt"))
             {
                 row.Foreground = new SolidColorBrush(Colors.White);
-                row.Background = new SolidColorBrush(Colors.DeepPink);
+                row.Background = new SolidColorBrush(Colors.DimGray);
             }
 
             row.Visibility = Visibility.Visible;

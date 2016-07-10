@@ -779,10 +779,12 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Notifies that a machine is waiting to receive an event.
+        /// Notifies that a machine is waiting to receive one
+        /// or more events.
         /// </summary>
         /// <param name="machine">Machine</param>
-        internal virtual void NotifyWaitEvent(Machine machine)
+        /// <param name="events">Events</param>
+        internal virtual void NotifyWaitEvents(Machine machine, string events)
         {
             lock (machine)
             {

@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Runtime.Serialization;
 
 namespace Microsoft.PSharp
 {
@@ -20,21 +21,25 @@ namespace Microsoft.PSharp
     /// Class containing origin information
     /// regarding an event.
     /// </summary>
+    [DataContract]
     internal class EventOriginInfo
     {
         /// <summary>
         /// The sender machine id.
         /// </summary>
+        [DataMember]
         internal MachineId SenderMachineId { get; private set; }
 
         /// <summary>
         /// The sender machine name.
         /// </summary>
+        [DataMember]
         internal string SenderMachineName { get; private set; }
 
         /// <summary>
         /// The sender machine state name.
         /// </summary>
+        [DataMember]
         internal string SenderStateName { get; private set; }
 
         /// <summary>

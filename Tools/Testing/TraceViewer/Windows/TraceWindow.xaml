@@ -77,16 +77,16 @@
                                         MinWidth="40"/>
                     <DataGridTextColumn Binding="{Binding Path=Type}"
                                         Header="Type"
-                                        MinWidth="100"/>
+                                        MinWidth="120"/>
                     <DataGridTextColumn Binding="{Binding Path=SenderMachine}"
                                         Header="Source Machine"
-                                        MinWidth="160"/>
+                                        MinWidth="180"/>
                     <DataGridTextColumn Binding="{Binding Path=Action}"
                                         Header="Action"
                                         MinWidth="220"/>
                     <DataGridTextColumn Binding="{Binding Path=TargetMachine}"
                                         Header="Target Machine"
-                                        MinWidth="160"/>
+                                        MinWidth="180"/>
                 </DataGrid.Columns>
                 <DataGrid.Resources>
                     <SolidColorBrush x:Key="{x:Static DataGrid.FocusBorderBrushKey}" Color="#FF000000"/>

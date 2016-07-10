@@ -13,6 +13,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Runtime.Serialization;
 
 namespace Microsoft.PSharp
 {
@@ -20,6 +21,7 @@ namespace Microsoft.PSharp
     /// Class that contains a P# event, and its
     /// associated information.
     /// </summary>
+    [DataContract]
     internal class EventInfo
     {
         #region fields
@@ -37,11 +39,13 @@ namespace Microsoft.PSharp
         /// <summary>
         /// Event name.
         /// </summary>
+        [DataMember]
         internal string EventName { get; private set; }
 
         /// <summary>
         /// Information regarding the event origin.
         /// </summary>
+        [DataMember]
         internal EventOriginInfo OriginInfo { get; private set; }
 
         /// <summary>

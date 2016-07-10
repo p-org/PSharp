@@ -917,21 +917,19 @@ namespace Microsoft.PSharp
 
                 if (this.ReceivedEventHandler == null)
                 {
-                    var events = "";
-                    foreach (var ewh in this.EventWaitHandlers)
-                    {
-                        events += " '" + ewh.EventType.Name + "'";
-                    }
-
-                    base.Runtime.Log($"<ReceiveLog> Machine '{base.Id}' " +
-                        $"is waiting on events:{events}.");
                     this.IsWaitingToReceive = true;
                 }
             }
 
             if (this.IsWaitingToReceive)
             {
-                base.Runtime.NotifyWaitEvent(this);
+                string events = "";
+                foreach (var ewh in this.EventWaitHandlers)
+                {
+                    events += " '" + ewh.EventType.FullName + "'";
+                }
+                
+                base.Runtime.NotifyWaitEvents(this, events);
                 this.IsWaitingToReceive = false;
             }
             

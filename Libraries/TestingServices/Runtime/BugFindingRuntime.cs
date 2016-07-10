@@ -740,11 +740,19 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
-        /// Notifies that a machine is waiting to receive an event.
+        /// Notifies that a machine is waiting to receive one
+        /// or more events.
         /// </summary>
         /// <param name="machine">Machine</param>
-        internal override void NotifyWaitEvent(Machine machine)
+        /// <param name="events">Events</param>
+        internal override void NotifyWaitEvents(Machine machine, string events)
         {
+            IO.Log($"<ReceiveLog> Machine '{machine.Id}' " +
+                $"is waiting on events:{events}.");
+
+            // Adds the action to the bug trace.
+            this.BugTrace.AddWaitToReceiveStep(machine.Id, events);
+
             this.BugFinder.NotifyTaskBlockedOnEvent(Task.CurrentId);
             this.BugFinder.Schedule();
         }
@@ -766,6 +774,9 @@ namespace Microsoft.PSharp.TestingServices
                 IO.Log($"<ReceiveLog> Machine '{machine.Id}' received " +
                     $"event '{eventInfo.EventName}' and unblocked.");
             }
+
+            // Adds the action to the bug trace.
+            this.BugTrace.AddReceivedEventStep(machine.Id, eventInfo);
 
             this.BugFinder.NotifyTaskReceivedEvent(machine);
             machine.IsWaitingToReceive = false;

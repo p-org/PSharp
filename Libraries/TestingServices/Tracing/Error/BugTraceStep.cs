@@ -40,31 +40,19 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         /// The machine initiating the action.
         /// </summary>
         [DataMember]
-        internal string Machine;
-
-        /// <summary>
-        /// The id of the machine initiating the action.
-        /// </summary>
-        [DataMember]
-        internal int MachineId;
+        internal MachineId Machine;
 
         /// <summary>
         /// The target machine.
         /// </summary>
         [DataMember]
-        internal string TargetMachine;
+        internal MachineId TargetMachine;
 
         /// <summary>
-        /// The id of the target machine.
+        /// Information about the event being sent.
         /// </summary>
         [DataMember]
-        internal int TargetMachineId;
-
-        /// <summary>
-        /// The event being sent.
-        /// </summary>
-        [DataMember]
-        internal string Event;
+        internal EventInfo EventInfo;
 
         /// <summary>
         /// The invoked action.
@@ -77,6 +65,13 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         /// </summary>
         [DataMember]
         internal bool RandomChoice;
+
+        /// <summary>
+        /// Extra information that can be used to
+        /// enhance the trace reported to the user.
+        /// </summary>
+        [DataMember]
+        internal string ExtraInfo;
 
         /// <summary>
         /// Previous bug trace step.
@@ -102,36 +97,20 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
         /// <param name="eventInfo">EventInfo</param>
         /// <param name="action">MethodInfo</param>
         /// <param name="choice">Choice</param>
+        /// <param name="extraInfo">Extra info</param>
         /// <returns>BugTraceStep</returns>
         internal static BugTraceStep Create(int index, BugTraceStepType type, MachineId machine,
-            MachineId targetMachine, EventInfo eventInfo, MethodInfo action, bool choice)
+            MachineId targetMachine, EventInfo eventInfo, MethodInfo action, bool choice,
+            string extraInfo)
         {
             var traceStep = new BugTraceStep();
 
             traceStep.Index = index;
             traceStep.Type = type;
 
-            if (machine != null)
-            {
-                traceStep.Machine = machine.Type;
-                traceStep.MachineId = machine.Value;
-            }
-            else
-            {
-                traceStep.Machine = "unknown";
-                traceStep.MachineId = -1;
-            }
-            
-            if (targetMachine != null)
-            {
-                traceStep.TargetMachine = targetMachine.Type;
-                traceStep.TargetMachineId = targetMachine.Value;
-            }
-
-            if (eventInfo != null)
-            {
-                traceStep.Event = eventInfo.EventName;
-            }
+            traceStep.Machine = machine;
+            traceStep.TargetMachine = targetMachine;
+            traceStep.EventInfo = eventInfo;
 
             if (action != null)
             {
@@ -139,6 +118,7 @@ namespace Microsoft.PSharp.TestingServices.Tracing.Error
             }
 
             traceStep.RandomChoice = choice;
+            traceStep.ExtraInfo = extraInfo;
 
             traceStep.Previous = null;
             traceStep.Next = null;
