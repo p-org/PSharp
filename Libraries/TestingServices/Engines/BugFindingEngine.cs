@@ -454,10 +454,10 @@ namespace Microsoft.PSharp.TestingServices
                 report.AppendLine();
             }
 
-            if (base.Configuration.DepthBound > 0)
+            if (base.Configuration.MaxSchedulingSteps > 0)
             {
                 report.Append($"{prefix} Configured to explore up to " +
-                    $"'{base.Configuration.DepthBound}' max steps.");
+                    $"'{base.Configuration.MaxSchedulingSteps}' max steps.");
                 report.AppendLine();
             }
 

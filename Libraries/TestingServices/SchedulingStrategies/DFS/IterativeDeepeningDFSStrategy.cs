@@ -49,27 +49,27 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         public IterativeDeepeningDFSStrategy(Configuration configuration)
             : base(configuration)
         {
-            this.MaxDepth = configuration.DepthBound;
+            this.MaxDepth = configuration.MaxSchedulingSteps;
             this.CurrentDepth = 1;
         }
 
         /// <summary>  
-        /// Returns the depth bound.
+        /// Returns the maximum number of scheduling steps to explore.
         /// </summary> 
-        /// <returns>Depth bound</returns>  
-        public new int GetDepthBound()
+        /// <returns>Max scheduling steps</returns>
+        public new int GetMaxSchedulingSteps()
         {
             return this.CurrentDepth;
         }
 
         /// <summary>
-        /// True if the scheduling strategy has reached the depth
-        /// bound for the given scheduling iteration.
+        /// True if the scheduling strategy has reached the max
+        /// scheduling steps for the given scheduling iteration.
         /// </summary>
         /// <returns>Depth bound</returns>
-        public new bool HasReachedDepthBound()
+        public new bool HasReachedMaxSchedulingSteps()
         {
-            return base.ExploredSteps == this.GetDepthBound();
+            return base.ExploredSteps == this.GetMaxSchedulingSteps();
         }
 
         /// <summary>

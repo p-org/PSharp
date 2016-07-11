@@ -50,6 +50,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         protected ConcurrentDictionary<int, MachineInfo> TaskMap;
 
         /// <summary>
+        /// Checks if the scheduler is running.
+        /// </summary>
+        protected bool IsSchedulerRunning;
+
+        /// <summary>
         /// True if a bug was found.
         /// </summary>
         internal bool BugFound
@@ -74,6 +79,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
+        /// Checks if the schedule has been fully explored.
+        /// </summary>
+        protected internal bool HasFullyExploredSchedule { get; protected set; }
+
+        /// <summary>
         /// Bug report.
         /// </summary>
         internal string BugReport
@@ -96,7 +106,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.Strategy = strategy;
             this.MachineInfos = new ConcurrentBag<MachineInfo>();
             this.TaskMap = new ConcurrentDictionary<int, MachineInfo>();
+            this.IsSchedulerRunning = true;
             this.BugFound = false;
+            this.HasFullyExploredSchedule = false;
         }
 
         /// <summary>
@@ -110,17 +122,23 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 return;
             }
 
-            if (this.BugFound)
+            if (this.BugFound || !this.IsSchedulerRunning)
             {
                 this.KillRemainingMachines();
                 throw new OperationCanceledException();
             }
 
             // Check if the scheduling steps bound has been reached.
-            if (this.Strategy.HasReachedDepthBound())
+            if (this.Strategy.HasReachedMaxSchedulingSteps())
             {
                 var msg = IO.Format("Scheduling steps bound of " +
-                    $"{this.Strategy.GetDepthBound()} reached.");
+                    $"{this.Strategy.GetMaxSchedulingSteps()} reached.");
+
+                if (this.NumberOfAvailableMachinesToSchedule() == 0)
+                {
+                    this.HasFullyExploredSchedule = true;
+                }
+
                 if (this.Runtime.Configuration.ConsiderDepthBoundHitAsBug)
                 {
                     this.Runtime.BugFinder.NotifyAssertionFailure(msg, true);
@@ -145,11 +163,15 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             if (!this.Strategy.TryGetNext(out next, this.MachineInfos, machineInfo))
             {
                 IO.Debug("<ScheduleDebug> Schedule explored.");
+                this.HasFullyExploredSchedule = true;
                 this.KillRemainingMachines();
                 throw new OperationCanceledException();
             }
 
             this.Runtime.ScheduleTrace.AddSchedulingChoice(next.Machine);
+
+            // Checks the liveness monitors for potential liveness bugs.
+            this.Runtime.LivenessChecker.CheckLivenessAtShedulingStep();
             if (this.Runtime.Configuration.CacheProgramState &&
                 this.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps)
             {
@@ -209,10 +231,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         internal bool GetNextNondeterministicChoice(int maxValue, string uniqueId = null)
         {
             // Check if the scheduling steps bound has been reached.
-            if (this.Strategy.HasReachedDepthBound())
+            if (this.Strategy.HasReachedMaxSchedulingSteps())
             {
                 var msg = IO.Format("Scheduling steps bound of " +
-                    $"{this.Strategy.GetDepthBound()} reached.");
+                    $"{this.Strategy.GetMaxSchedulingSteps()} reached.");
                 if (this.Runtime.Configuration.ConsiderDepthBoundHitAsBug)
                 {
                     this.Runtime.BugFinder.NotifyAssertionFailure(msg, true);
@@ -453,10 +475,23 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         #region protected methods
 
         /// <summary>
+        /// Returns the number of available machines to schedule.
+        /// </summary>
+        /// <returns>Int</returns>
+        protected int NumberOfAvailableMachinesToSchedule()
+        {
+            var availableMachines = this.MachineInfos.Where(
+                m => m.IsEnabled && !m.IsBlocked && !m.IsWaitingToReceive).ToList();
+            return availableMachines.Count;
+        }
+
+        /// <summary>
         /// Kills any remaining machines at the end of the schedule.
         /// </summary>
         protected void KillRemainingMachines()
         {
+            this.IsSchedulerRunning = false;
+
             foreach (var machineInfo in this.MachineInfos)
             {
                 machineInfo.IsActive = true;

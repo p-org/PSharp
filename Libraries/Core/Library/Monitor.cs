@@ -73,6 +73,19 @@ namespace Microsoft.PSharp
         private HashSet<Type> IgnoredEvents;
 
         /// <summary>
+        /// A counter that increases in each step of
+        /// the execution, as long as the monitor
+        /// remains in a hot state. If the temperature
+        /// reaches the specified limit, then a potential
+        /// liveness bug has been found.
+        /// </summary>
+        private int LivenessTemperature;
+
+        #endregion
+
+        #region properties
+
+        /// <summary>
         /// Gets the current state.
         /// </summary>
         protected Type CurrentState
@@ -127,6 +140,7 @@ namespace Microsoft.PSharp
             : base()
         {
             this.ActionMap = new Dictionary<string, MethodInfo>();
+            this.LivenessTemperature = 0;
         }
 
         #endregion
@@ -356,6 +370,11 @@ namespace Microsoft.PSharp
             
             // The monitor transitions to the new state.
             this.State = nextState;
+
+            if (nextState.IsCold)
+            {
+                this.LivenessTemperature = 0;
+            }
 
             // The monitor performs the on entry statements of the new state.
             this.ExecuteCurrentStateOnEntry();
@@ -638,6 +657,24 @@ namespace Microsoft.PSharp
             this.State = initialStates.Single();
 
             this.AssertStateValidity();
+        }
+
+        /// <summary>
+        /// Checks the liveness temperature of the monitor and report
+        /// a potential liveness bug if the temperature passes the
+        /// specified threshold. Only works in a liveness monitor.
+        /// </summary>
+        internal void CheckLivenessTemperature()
+        {
+            if (this.State.IsHot &&
+                base.Runtime.Configuration.LivenessTemperatureThreshold > 0)
+            {
+                this.LivenessTemperature++;
+                base.Runtime.Assert(this.LivenessTemperature <= base.Runtime.
+                    Configuration.LivenessTemperatureThreshold,
+                    $"Monitor '{this.GetType().Name}' detected potential liveness " +
+                    $"bug in hot state '{this.CurrentStateName}'.");
+            }
         }
 
         /// <summary>

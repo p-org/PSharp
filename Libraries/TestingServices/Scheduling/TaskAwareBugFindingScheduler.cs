@@ -68,17 +68,23 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 return;
             }
 
-            if (this.BugFound)
+            if (this.BugFound || !base.IsSchedulerRunning)
             {
                 this.KillRemainingMachines();
                 throw new OperationCanceledException();
             }
 
             // Check if the scheduling steps bound has been reached.
-            if (this.Strategy.HasReachedDepthBound())
+            if (this.Strategy.HasReachedMaxSchedulingSteps())
             {
                 IO.Debug("<ScheduleDebug> Scheduling steps bound of " +
-                    $"{this.Strategy.GetDepthBound()} reached.");
+                    $"{this.Strategy.GetMaxSchedulingSteps()} reached.");
+
+                if (base.NumberOfAvailableMachinesToSchedule() == 0)
+                {
+                    this.HasFullyExploredSchedule = true;
+                }
+
                 this.KillRemainingMachines();
                 throw new OperationCanceledException();
             }
@@ -127,11 +133,15 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             if (!this.Strategy.TryGetNext(out next, this.MachineInfos, machineInfo))
             {
                 IO.Debug("<ScheduleDebug> Schedule explored.");
+                this.HasFullyExploredSchedule = true;
                 this.KillRemainingMachines();
                 throw new OperationCanceledException();
             }
 
             base.Runtime.ScheduleTrace.AddSchedulingChoice(next.Machine);
+
+            // Checks the liveness monitors for potential liveness bugs.
+            base.Runtime.LivenessChecker.CheckLivenessAtShedulingStep();
             if (base.Runtime.Configuration.CacheProgramState &&
                 base.Runtime.Configuration.SafetyPrefixBound <= this.ExploredSteps)
             {

@@ -64,7 +64,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         public MaceMCStrategy(Configuration configuration)
         {
             this.Configuration = configuration;
-            this.MaxDepth = this.Configuration.DepthBound;
+            this.MaxDepth = this.Configuration.MaxSchedulingSteps;
             this.SafetyPrefixDepth = this.Configuration.SafetyPrefixBound;
             this.BoundedDFS = new IterativeDeepeningDFSStrategy(configuration);
             this.Random = new RandomStrategy(configuration);
@@ -79,7 +79,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public bool TryGetNext(out MachineInfo next, IEnumerable<MachineInfo> choices, MachineInfo current)
         {
-            if (this.BoundedDFS.HasReachedDepthBound())
+            if (this.BoundedDFS.HasReachedMaxSchedulingSteps())
             {
                 return this.Random.TryGetNext(out next, choices, current);
             }
@@ -96,7 +96,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Boolean</returns>
         public bool GetNextChoice(int maxValue, out bool next)
         {
-            if (this.BoundedDFS.HasReachedDepthBound())
+            if (this.BoundedDFS.HasReachedMaxSchedulingSteps())
             {
                 return this.Random.GetNextChoice(maxValue, out next);
             }
@@ -112,7 +112,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <returns>Explored steps</returns>
         public int GetExploredSteps()
         {
-            if (this.BoundedDFS.HasReachedDepthBound())
+            if (this.BoundedDFS.HasReachedMaxSchedulingSteps())
             {
                 return this.Random.GetExploredSteps();
             }
@@ -123,12 +123,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Returns the maximum explored steps.
+        /// Returns the maximum explored steps in all iterations.
         /// </summary>
         /// <returns>Explored steps</returns>
         public int GetMaxExploredSteps()
         {
-            if (this.BoundedDFS.HasReachedDepthBound())
+            if (this.BoundedDFS.HasReachedMaxSchedulingSteps())
             {
                 return this.Random.GetMaxExploredSteps();
             }
@@ -139,22 +139,22 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Returns the depth bound.
+        /// Returns the maximum number of scheduling steps to explore.
         /// </summary>
         /// <returns>Depth bound</returns>
-        public int GetDepthBound()
+        public int GetMaxSchedulingSteps()
         {
             return this.MaxDepth;
         }
 
         /// <summary>
-        /// True if the scheduling strategy has reached the depth
-        /// bound for the given scheduling iteration.
+        /// True if the scheduling strategy has reached the max
+        /// scheduling steps for the given scheduling iteration.
         /// </summary>
-        /// <returns>Depth bound</returns>
-        public bool HasReachedDepthBound()
+        /// <returns>Boolean</returns>
+        public bool HasReachedMaxSchedulingSteps()
         {
-            return this.Random.HasReachedDepthBound();
+            return this.Random.HasReachedMaxSchedulingSteps();
         }
 
         /// <summary>

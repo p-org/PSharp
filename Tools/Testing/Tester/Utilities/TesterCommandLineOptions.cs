@@ -223,7 +223,7 @@ namespace Microsoft.PSharp.Utilities
                         " steps to explore '/max-steps:[x]', where [x] >= 0.");
                 }
 
-                base.Configuration.DepthBound = i;
+                base.Configuration.MaxSchedulingSteps = i;
             }
             else if (option.ToLower().Equals("/depth-bound-bug"))
             {
@@ -247,6 +247,17 @@ namespace Microsoft.PSharp.Utilities
             else if (option.ToLower().Equals("/tpl"))
             {
                 base.Configuration.ScheduleIntraMachineConcurrency = true;
+            }
+            else if (option.ToLower().StartsWith("/liveness-temperature-threshold:") && option.Length > 32)
+            {
+                int i = 0;
+                if (!int.TryParse(option.Substring(32), out i) && i >= 0)
+                {
+                    IO.Error.ReportAndExit("Please give a valid liveness temperature threshold " +
+                        "'/liveness-temperature-threshold:[x]', where [x] >= 0.");
+                }
+
+                base.Configuration.LivenessTemperatureThreshold = i;
             }
             else if (option.ToLower().Equals("/state-caching"))
             {
@@ -296,14 +307,14 @@ namespace Microsoft.PSharp.Utilities
             }
             
             if (base.Configuration.SafetyPrefixBound > 0 &&
-                base.Configuration.SafetyPrefixBound >= base.Configuration.DepthBound)
+                base.Configuration.SafetyPrefixBound >= base.Configuration.MaxSchedulingSteps)
             {
                 IO.Error.ReportAndExit("Please give a safety prefix bound that is less than the " +
                     "max scheduling steps bound.");
             }
 
             if (base.Configuration.SchedulingStrategy.Equals("iddfs") &&
-                base.Configuration.DepthBound == 0)
+                base.Configuration.MaxSchedulingSteps == 0)
             {
                 IO.Error.ReportAndExit("The Iterative Deepening DFS scheduler ('iddfs') " +
                     "must have a max scheduling steps bound, which can be given using " +

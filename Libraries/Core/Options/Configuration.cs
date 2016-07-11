@@ -140,10 +140,10 @@ namespace Microsoft.PSharp.Utilities
         public bool PerformFullExploration;
 
         /// <summary>
-        /// Depth bound, in terms of maximum scheduling steps
-        /// to explore. By default it is 10000.
+        /// The maximum scheduling steps to explore.
+        /// By default there is no bound.
         /// </summary>
-        public int DepthBound;
+        public int MaxSchedulingSteps;
 
         /// <summary>
         /// Number of parallel bug-finding tasks.
@@ -199,6 +199,12 @@ namespace Microsoft.PSharp.Utilities
         /// any intra-machine concurrency.
         /// </summary>
         public bool ScheduleIntraMachineConcurrency;
+
+        /// <summary>
+        /// The liveness temperature threshold. If it is 0
+        /// then it is disabled.
+        /// </summary>
+        public int LivenessTemperatureThreshold;
 
         /// <summary>
         /// If true, then the P# tester will perform state
@@ -344,7 +350,7 @@ namespace Microsoft.PSharp.Utilities
             this.RandomSchedulingSeed = null;
 
             this.PerformFullExploration = false;
-            this.DepthBound = 10000;
+            this.MaxSchedulingSteps = 0;
             this.ParallelBugFindingTasks = 1;
             this.TestingSchedulerProcessId = -1;
             this.TestingProcessId = -1;
@@ -356,6 +362,7 @@ namespace Microsoft.PSharp.Utilities
 
             this.AttachDebugger = false;
             this.ScheduleIntraMachineConcurrency = false;
+            this.LivenessTemperatureThreshold = 1000;
             this.CacheProgramState = false;
             this.BoundOperations = false;
             this.DynamicEventQueuePrioritization = false;

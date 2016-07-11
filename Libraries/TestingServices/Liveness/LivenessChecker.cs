@@ -62,12 +62,26 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
+        /// Checks for any liveness property violations. This method
+        /// checks the liveness temperature of each monitor, and
+        /// reports an error if one of the liveness monitors has
+        /// passed the temperature threshold.
+        /// </summary>
+        internal void CheckLivenessAtShedulingStep()
+        {
+            foreach (var monitor in this.Monitors)
+            {
+                monitor.CheckLivenessTemperature();
+            }
+        }
+
+        /// <summary>
         /// Checks for any liveness property violations. Requires
         /// the P# program to have terminated.
         /// </summary>
         internal void CheckLivenessAtTermination()
         {
-            if (this.Runtime.Configuration.CacheProgramState)
+            if (!this.Runtime.BugFinder.HasFullyExploredSchedule)
             {
                 return;
             }
@@ -77,8 +91,8 @@ namespace Microsoft.PSharp.TestingServices
                 var stateName = "";
                 if (monitor.IsInHotState(out stateName))
                 {
-                    string message = IO.Format("Monitor '{0}' detected liveness property " +
-                        "violation in hot state '{1}'.", monitor.GetType().Name, stateName);
+                    string message = IO.Format("Monitor '{0}' detected liveness bug " +
+                        "in hot state '{1}'.", monitor.GetType().Name, stateName);
                     this.Runtime.BugFinder.NotifyAssertionFailure(message, false);
                 }
             }
@@ -131,7 +145,7 @@ namespace Microsoft.PSharp.TestingServices
                 this.Runtime.BugFinder.NotifyAssertionFailure(message, false);
             }
 
-            if (this.Runtime.Configuration.DepthBound == 0 ||
+            if (this.Runtime.Configuration.MaxSchedulingSteps == 0 ||
                 hotMonitors.Count > 0)
             {
                 this.Runtime.BugFinder.Stop();

@@ -166,7 +166,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
                 configuration, TestProgram.Execute);
             engine.Run();
 
-            var bugReport = "Monitor 'M' detected liveness property violation in hot state " +
+            var bugReport = "Monitor 'M' detected liveness bug in hot state " +
                 "'Microsoft.PSharp.TestingServices.Tests.Unit.HotStateTest+M.Init'.";
             Assert.AreEqual(bugReport, engine.BugReport);
         }
