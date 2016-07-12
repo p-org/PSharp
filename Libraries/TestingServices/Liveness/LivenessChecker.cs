@@ -444,14 +444,14 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             }
 
             ScheduleStep nextStep = this.PotentialCycle[this.CurrentCycleIndex].Item1;
-            IO.Debug($"<LivenessDebug> Replaying '{nextStep.ScheduledMachine.Id}'.");
-
             if (nextStep.Type != ScheduleStepType.SchedulingChoice)
             {
                 IO.Debug("Trace is not reproducible: next step is not a scheduling choice.");
                 this.EscapeCycle();
                 return this.BugFindingSchedulingStrategy.TryGetNext(out next, choices, current);
             }
+
+            IO.Debug($"<LivenessDebug> Replaying '{nextStep.Index}' '{nextStep.ScheduledMachine.Id}'.");
 
             next = availableMachines.FirstOrDefault(m => m.Machine.Id.Type.Equals(
                 nextStep.ScheduledMachineType) &&
@@ -482,14 +482,14 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         bool ISchedulingStrategy.GetNextChoice(int maxValue, out bool next)
         {
             ScheduleStep nextStep = this.PotentialCycle[this.CurrentCycleIndex].Item1;
-            IO.Debug($"<LivenessDebug> Replaying '{nextStep.Choice}'.");
-
             if (nextStep.Type != ScheduleStepType.NondeterministicChoice)
             {
                 IO.Debug("Trace is not reproducible: next step is not a nondeterministic choice.");
                 this.EscapeCycle();
                 return this.BugFindingSchedulingStrategy.GetNextChoice(maxValue, out next);
             }
+
+            IO.Debug($"<LivenessDebug> Replaying '{nextStep.Index}' '{nextStep.Choice}'.");
 
             next = nextStep.Choice;
             this.CurrentCycleIndex++;
