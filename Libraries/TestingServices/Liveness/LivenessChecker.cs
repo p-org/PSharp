@@ -176,7 +176,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             {
                 var scheduleStep = this.Runtime.ScheduleTrace.Pop();
                 var state = stateMap[scheduleStep];
-                this.PotentialCycle.Add(Tuple.Create(scheduleStep, state));
+                this.PotentialCycle.Insert(0, Tuple.Create(scheduleStep, state));
 
                 IO.Debug("<LivenessDebug> Cycle contains {0} with {1}.",
                     scheduleStep.Type, state.Fingerprint.ToString());
@@ -231,8 +231,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                 //}
 
                 //this.Runtime.BugFinder.Stop();
-
-                //this.PotentialCycle.Reverse();
+                
                 IO.Debug("<LivenessDebug> ------------- CYCLE --------------.");
                 foreach (var x in this.PotentialCycle)
                 {
@@ -451,6 +450,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             {
                 IO.Debug("Trace is not reproducible: next step is not a scheduling choice.");
                 this.EscapeCycle();
+                return this.BugFindingSchedulingStrategy.TryGetNext(out next, choices, current);
             }
 
             next = availableMachines.FirstOrDefault(m => m.Machine.Id.Type.Equals(
@@ -461,6 +461,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                 IO.Debug("Trace is not reproducible: cannot detect machine with type " +
                     $"'{nextStep.ScheduledMachineType}' and id '{nextStep.ScheduledMachineId}'.");
                 this.EscapeCycle();
+                return this.BugFindingSchedulingStrategy.TryGetNext(out next, choices, current);
             }
 
             this.CurrentCycleIndex++;
@@ -487,6 +488,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             {
                 IO.Debug("Trace is not reproducible: next step is not a nondeterministic choice.");
                 this.EscapeCycle();
+                return this.BugFindingSchedulingStrategy.GetNextChoice(maxValue, out next);
             }
 
             next = nextStep.Choice;
