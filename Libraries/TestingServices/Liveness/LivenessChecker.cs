@@ -69,6 +69,13 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         internal void CheckLivenessAtShedulingStep()
         {
+            // Disable this check if the lasso detection algorithm
+            // is enabled.
+            if (this.Runtime.Configuration.CacheProgramState)
+            {
+                return;
+            }
+
             foreach (var monitor in this.Monitors)
             {
                 monitor.CheckLivenessTemperature();
@@ -77,10 +84,11 @@ namespace Microsoft.PSharp.TestingServices
 
         /// <summary>
         /// Checks for any liveness property violations. Requires
-        /// the P# program to have terminated.
+        /// the P# program to have naturally terminated.
         /// </summary>
         internal void CheckLivenessAtTermination()
         {
+            // Checks if the program has naturally terminated.
             if (!this.Runtime.BugFinder.HasFullyExploredSchedule)
             {
                 return;
@@ -92,7 +100,8 @@ namespace Microsoft.PSharp.TestingServices
                 if (monitor.IsInHotState(out stateName))
                 {
                     string message = IO.Format("Monitor '{0}' detected liveness bug " +
-                        "in hot state '{1}'.", monitor.GetType().Name, stateName);
+                        "in hot state '{1}' at the end of program execution.",
+                        monitor.GetType().Name, stateName);
                     this.Runtime.BugFinder.NotifyAssertionFailure(message, false);
                 }
             }
@@ -136,7 +145,7 @@ namespace Microsoft.PSharp.TestingServices
             }
 
             IO.Debug("<LivenessDebug> Cycle execution is fair.");
-
+            
             var hotMonitors = this.GetHotMonitors(cycle);
             foreach (var monitor in hotMonitors)
             {
@@ -145,8 +154,7 @@ namespace Microsoft.PSharp.TestingServices
                 this.Runtime.BugFinder.NotifyAssertionFailure(message, false);
             }
 
-            if (this.Runtime.Configuration.MaxSchedulingSteps == 0 ||
-                hotMonitors.Count > 0)
+            if (hotMonitors.Count > 0)
             {
                 this.Runtime.BugFinder.Stop();
             }
@@ -259,7 +267,7 @@ namespace Microsoft.PSharp.TestingServices
         /// <returns>Monitors</returns>
         private HashSet<Monitor> GetHotMonitors(Dictionary<ScheduleStep, State> cycle)
         {
-            var monitors = new HashSet<Monitor>();
+            var hotMonitors = new HashSet<Monitor>();
 
             foreach (var step in cycle)
             {
@@ -267,27 +275,33 @@ namespace Microsoft.PSharp.TestingServices
                 {
                     if (kvp.Value == MonitorStatus.Hot)
                     {
-                        monitors.Add(kvp.Key);
+                        hotMonitors.Add(kvp.Key);
                     }
                 }
             }
 
-            if (monitors.Count > 0)
+            if (hotMonitors.Count > 0)
             {
                 foreach (var step in cycle)
                 {
                     foreach (var kvp in step.Value.MonitorStatus)
                     {
                         if (kvp.Value == MonitorStatus.Cold &&
-                            monitors.Contains(kvp.Key))
+                            hotMonitors.Contains(kvp.Key))
                         {
-                            monitors.Remove(kvp.Key);
+                            hotMonitors.Remove(kvp.Key);
                         }
                     }
                 }
             }
 
-            return monitors;
+            foreach (var m in hotMonitors)
+            {
+                IO.Debug($"<LivenessDebug> Monitor {m} remains in the hot " +
+                    "state throughout the lasso.");
+            }
+
+            return hotMonitors;
         }
 
         #endregion
