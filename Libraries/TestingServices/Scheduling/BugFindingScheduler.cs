@@ -71,14 +71,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Maximum number of explored steps.
-        /// </summary>
-        internal int MaxExploredSteps
-        {
-            get { return this.Strategy.GetMaxExploredSteps(); }
-        }
-
-        /// <summary>
         /// Checks if the schedule has been fully explored.
         /// </summary>
         protected internal bool HasFullyExploredSchedule { get; protected set; }
@@ -124,15 +116,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
             if (this.BugFound || !this.IsSchedulerRunning)
             {
-                this.KillRemainingMachines();
-                throw new OperationCanceledException();
+                this.Stop();
             }
 
             // Check if the scheduling steps bound has been reached.
             if (this.Strategy.HasReachedMaxSchedulingSteps())
             {
                 var msg = IO.Format("Scheduling steps bound of " +
-                    $"{this.Strategy.GetMaxSchedulingSteps()} reached.");
+                    $"{this.Runtime.Configuration.MaxSchedulingSteps} reached.");
 
                 if (this.NumberOfAvailableMachinesToSchedule() == 0)
                 {
@@ -146,8 +137,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 else
                 {
                     IO.Debug($"<ScheduleDebug> {msg}");
-                    this.KillRemainingMachines();
-                    throw new OperationCanceledException();
+                    this.Stop();
                 }
             }
 
@@ -155,8 +145,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             if (!this.TaskMap.TryGetValue((int)id, out machineInfo))
             {
                 IO.Debug($"<ScheduleDebug> Unable to schedule task '{id}'.");
-                this.KillRemainingMachines();
-                throw new OperationCanceledException();
+                this.Stop();
             }
 
             MachineInfo next = null;
@@ -164,8 +153,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 IO.Debug("<ScheduleDebug> Schedule explored.");
                 this.HasFullyExploredSchedule = true;
-                this.KillRemainingMachines();
-                throw new OperationCanceledException();
+                this.Stop();
             }
 
             this.Runtime.ScheduleTrace.AddSchedulingChoice(next.Machine);
@@ -234,7 +222,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             if (this.Strategy.HasReachedMaxSchedulingSteps())
             {
                 var msg = IO.Format("Scheduling steps bound of " +
-                    $"{this.Strategy.GetMaxSchedulingSteps()} reached.");
+                    $"{this.Runtime.Configuration.MaxSchedulingSteps} reached.");
                 if (this.Runtime.Configuration.ConsiderDepthBoundHitAsBug)
                 {
                     this.Runtime.BugFinder.NotifyAssertionFailure(msg, true);
@@ -242,8 +230,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 else
                 {
                     IO.Debug($"<ScheduleDebug> {msg}");
-                    this.KillRemainingMachines();
-                    throw new OperationCanceledException();
+                    this.Stop();
                 }
             }
 
@@ -251,8 +238,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             if (!this.Strategy.GetNextChoice(maxValue, out choice))
             {
                 IO.Debug("<ScheduleDebug> Schedule explored.");
-                this.KillRemainingMachines();
-                throw new OperationCanceledException();
+                this.Stop();
             }
 
             if (uniqueId == null)
@@ -466,6 +452,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         internal void Stop()
         {
+            this.IsSchedulerRunning = false;
             this.KillRemainingMachines();
             throw new OperationCanceledException();
         }
@@ -490,8 +477,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         protected void KillRemainingMachines()
         {
-            this.IsSchedulerRunning = false;
-
             foreach (var machineInfo in this.MachineInfos)
             {
                 machineInfo.IsActive = true;

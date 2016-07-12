@@ -12,6 +12,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -19,7 +20,7 @@ using Microsoft.PSharp.TestingServices.StateCaching;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
 using Microsoft.PSharp.Utilities;
 
-namespace Microsoft.PSharp.TestingServices
+namespace Microsoft.PSharp.TestingServices.Liveness
 {
     /// <summary>
     /// Class implementing the P# liveness property checker.
@@ -114,13 +115,13 @@ namespace Microsoft.PSharp.TestingServices
         /// <param name="stateMap">Map of states</param>
         internal void CheckLivenessAtTraceCycle(Fingerprint root, Dictionary<ScheduleStep, State> stateMap)
         {
-            var cycle = new Dictionary<ScheduleStep, State>();
+            var cycle = new List<Tuple<ScheduleStep, State>>();
 
             do
             {
                 var scheduleStep = this.Runtime.ScheduleTrace.Pop();
                 var state = stateMap[scheduleStep];
-                cycle.Add(scheduleStep, state);
+                cycle.Add(Tuple.Create(scheduleStep, state));
 
                 IO.Debug("<LivenessDebug> Cycle contains {0} with {1}.",
                     scheduleStep.Type, state.Fingerprint.ToString());
@@ -147,15 +148,15 @@ namespace Microsoft.PSharp.TestingServices
             IO.Debug("<LivenessDebug> Cycle execution is fair.");
             
             var hotMonitors = this.GetHotMonitors(cycle);
-            foreach (var monitor in hotMonitors)
-            {
-                string message = IO.Format("Monitor '{0}' detected infinite execution that " +
-                    "violates a liveness property.", monitor.GetType().Name);
-                this.Runtime.BugFinder.NotifyAssertionFailure(message, false);
-            }
-
             if (hotMonitors.Count > 0)
             {
+                foreach (var monitor in hotMonitors)
+                {
+                    string message = IO.Format("Monitor '{0}' detected infinite execution that " +
+                        "violates a liveness property.", monitor.GetType().Name);
+                    this.Runtime.BugFinder.NotifyAssertionFailure(message, false);
+                }
+
                 this.Runtime.BugFinder.Stop();
             }
         }
@@ -187,13 +188,13 @@ namespace Microsoft.PSharp.TestingServices
 
         #endregion
 
-        #region private methods
+        #region utility methods
 
         /// <summary>
         /// Checks if the scheduling is fair in a schedule trace cycle.
         /// </summary>
         /// <param name="cycle">Cycle of states</param>
-        private bool IsSchedulingFair(Dictionary<ScheduleStep, State> cycle)
+        private bool IsSchedulingFair(List<Tuple<ScheduleStep, State>> cycle)
         {
             var result = false;
 
@@ -201,11 +202,11 @@ namespace Microsoft.PSharp.TestingServices
             var scheduledMachines = new HashSet<AbstractMachine>();
 
             var schedulingChoiceSteps= cycle.Where(
-                val => val.Key.Type == ScheduleStepType.SchedulingChoice);
+                val => val.Item1.Type == ScheduleStepType.SchedulingChoice);
             foreach (var step in schedulingChoiceSteps)
             {
-                scheduledMachines.Add(step.Key.ScheduledMachine);
-                enabledMachines.UnionWith(step.Value.EnabledMachines);
+                scheduledMachines.Add(step.Item1.ScheduledMachine);
+                enabledMachines.UnionWith(step.Item2.EnabledMachines);
             }
 
             foreach (var m in enabledMachines)
@@ -230,7 +231,7 @@ namespace Microsoft.PSharp.TestingServices
         /// Checks if the nondeterminism is fair in a schedule trace cycle.
         /// </summary>
         /// <param name="cycle">Cycle of states</param>
-        private bool IsNondeterminismFair(Dictionary<ScheduleStep, State> cycle)
+        private bool IsNondeterminismFair(List<Tuple<ScheduleStep, State>> cycle)
         {
             var result = false;
 
@@ -238,16 +239,16 @@ namespace Microsoft.PSharp.TestingServices
             var falseChoices = new HashSet<string>();
 
             var fairNondeterministicChoiceSteps = cycle.Where(
-                val => val.Key.Type == ScheduleStepType.FairNondeterministicChoice);
+                val => val.Item1.Type == ScheduleStepType.FairNondeterministicChoice);
             foreach (var step in fairNondeterministicChoiceSteps)
             {
-                if (step.Key.Choice)
+                if (step.Item1.Choice)
                 {
-                    trueChoices.Add(step.Key.NondetId);
+                    trueChoices.Add(step.Item1.NondetId);
                 }
                 else
                 {
-                    falseChoices.Add(step.Key.NondetId);
+                    falseChoices.Add(step.Item1.NondetId);
                 }
             }
 
@@ -265,13 +266,13 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         /// <param name="cycle">Cycle of states</param>
         /// <returns>Monitors</returns>
-        private HashSet<Monitor> GetHotMonitors(Dictionary<ScheduleStep, State> cycle)
+        private HashSet<Monitor> GetHotMonitors(List<Tuple<ScheduleStep, State>> cycle)
         {
             var hotMonitors = new HashSet<Monitor>();
 
             foreach (var step in cycle)
             {
-                foreach (var kvp in step.Value.MonitorStatus)
+                foreach (var kvp in step.Item2.MonitorStatus)
                 {
                     if (kvp.Value == MonitorStatus.Hot)
                     {
@@ -284,7 +285,7 @@ namespace Microsoft.PSharp.TestingServices
             {
                 foreach (var step in cycle)
                 {
-                    foreach (var kvp in step.Value.MonitorStatus)
+                    foreach (var kvp in step.Item2.MonitorStatus)
                     {
                         if (kvp.Value == MonitorStatus.Cold &&
                             hotMonitors.Contains(kvp.Key))

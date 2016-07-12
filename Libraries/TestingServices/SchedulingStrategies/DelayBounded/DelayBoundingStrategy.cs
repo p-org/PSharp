@@ -146,24 +146,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Returns the maximum explored steps in all iterations.
-        /// </summary>
-        /// <returns>Explored steps</returns>
-        public int GetMaxExploredSteps()
-        {
-            return this.MaxExploredSteps;
-        }
-
-        /// <summary>  
-        /// Returns the maximum number of scheduling steps to explore.
-        /// </summary> 
-        /// <returns>Max scheduling steps</returns>
-        public int GetMaxSchedulingSteps()
-        {
-            return this.Configuration.MaxSchedulingSteps;
-        }
-
-        /// <summary>
         /// True if the scheduling strategy has reached the max
         /// scheduling steps for the given scheduling iteration.
         /// </summary>
@@ -175,7 +157,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 return false;
             }
 
-            return this.ExploredSteps == this.GetMaxSchedulingSteps();
+            return this.ExploredSteps == this.Configuration.MaxSchedulingSteps;
         }
 
         /// <summary>

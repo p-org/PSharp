@@ -43,11 +43,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         private Random Random;
 
         /// <summary>
-        /// The maximum number of explored steps.
-        /// </summary>
-        private int MaxExploredSteps;
-
-        /// <summary>
         /// The number of explored steps.
         /// </summary>
         private int ExploredSteps;
@@ -65,7 +60,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.Configuration = configuration;
             this.Seed = this.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
             this.Random = new Random(this.Seed);
-            this.MaxExploredSteps = 0;
             this.ExploredSteps = 0;
         }
 
@@ -125,25 +119,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             return this.ExploredSteps;
         }
-
-        /// <summary>
-        /// Returns the maximum explored steps in all iterations.
-        /// </summary>
-        /// <returns>Explored steps</returns>
-        public int GetMaxExploredSteps()
-        {
-            return this.MaxExploredSteps;
-        }
-
-        /// <summary>  
-        /// Returns the maximum number of scheduling steps to explore.
-        /// </summary> 
-        /// <returns>Max scheduling steps</returns>
-        public int GetMaxSchedulingSteps()
-        {
-            return this.Configuration.MaxSchedulingSteps;
-        }
-
+        
         /// <summary>
         /// True if the scheduling strategy has reached the max
         /// scheduling steps for the given scheduling iteration.
@@ -156,7 +132,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 return false;
             }
 
-            return this.ExploredSteps == this.GetMaxSchedulingSteps();
+            return this.ExploredSteps == this.Configuration.MaxSchedulingSteps;
         }
 
         /// <summary>
@@ -173,7 +149,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         public void ConfigureNextIteration()
         {
-            this.MaxExploredSteps = Math.Max(this.MaxExploredSteps, this.ExploredSteps);
             this.ExploredSteps = 0;
         }
 
@@ -182,7 +157,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         public void Reset()
         {
-            this.MaxExploredSteps = 0;
             this.ExploredSteps = 0;
             this.Random = new Random(this.Seed);
         }

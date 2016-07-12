@@ -53,11 +53,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         private int NondetIndex;
 
         /// <summary>
-        /// The maximum number of explored steps.
-        /// </summary>
-        private int MaxExploredSteps;
-
-        /// <summary>
         /// The number of explored steps.
         /// </summary>
         protected int ExploredSteps;
@@ -77,7 +72,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.NondetStack = new List<List<NondetChoice>>();
             this.SchIndex = 0;
             this.NondetIndex = 0;
-            this.MaxExploredSteps = 0;
             this.ExploredSteps = 0;
         }
 
@@ -203,36 +197,18 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Returns the maximum explored steps in all iterations.
-        /// </summary>
-        /// <returns>Explored steps</returns>
-        public int GetMaxExploredSteps()
-        {
-            return this.MaxExploredSteps;
-        }
-
-        /// <summary>  
-        /// Returns the maximum number of scheduling steps to explore.
-        /// </summary> 
-        /// <returns>Max scheduling steps</returns>
-        public int GetMaxSchedulingSteps()
-        {
-            return this.Configuration.MaxSchedulingSteps;
-        }
-
-        /// <summary>
         /// True if the scheduling strategy has reached the max
         /// scheduling steps for the given scheduling iteration.
         /// </summary>
         /// <returns>Boolean</returns>
         public bool HasReachedMaxSchedulingSteps()
         {
-            if (this.GetMaxSchedulingSteps() == 0)
+            if (this.Configuration.MaxSchedulingSteps == 0)
             {
                 return false;
             }
 
-            return this.ExploredSteps == this.GetMaxSchedulingSteps();
+            return this.ExploredSteps == this.Configuration.MaxSchedulingSteps;
         }
 
         /// <summary>
@@ -251,7 +227,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         {
             //this.PrintSchedule();
 
-            this.MaxExploredSteps = Math.Max(this.MaxExploredSteps, this.ExploredSteps);
             this.ExploredSteps = 0;
 
             this.SchIndex = 0;
@@ -310,7 +285,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.NondetStack.Clear();
             this.SchIndex = 0;
             this.NondetIndex = 0;
-            this.MaxExploredSteps = 0;
             this.ExploredSteps = 0;
         }
 
