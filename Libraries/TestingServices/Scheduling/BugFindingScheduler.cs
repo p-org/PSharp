@@ -448,6 +448,19 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
+        /// Switches the scheduler to the specified scheduling strategy,
+        /// and returns the previously installed strategy.
+        /// </summary>
+        /// <param name="strategy">ISchedulingStrategy</param>
+        /// <returns>ISchedulingStrategy</returns>
+        internal ISchedulingStrategy SwitchSchedulingStrategy(ISchedulingStrategy strategy)
+        {
+            ISchedulingStrategy previous = this.Strategy;
+            this.Strategy = strategy;
+            return previous;
+        }
+
+        /// <summary>
         /// Stops the scheduler.
         /// </summary>
         internal void Stop()

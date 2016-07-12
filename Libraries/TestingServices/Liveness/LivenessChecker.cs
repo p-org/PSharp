@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Microsoft.PSharp.TestingServices.Scheduling;
 using Microsoft.PSharp.TestingServices.StateCaching;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
 using Microsoft.PSharp.Utilities;
@@ -25,7 +26,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
     /// <summary>
     /// Class implementing the P# liveness property checker.
     /// </summary>
-    internal sealed class LivenessChecker
+    internal sealed class LivenessChecker : ISchedulingStrategy
     {
         #region fields
 
@@ -39,6 +40,36 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         /// </summary>
         private List<Monitor> Monitors;
 
+        /// <summary>
+        /// The latest found potential cycle.
+        /// </summary>
+        private IList<Tuple<ScheduleStep, State>> PotentialCycle;
+
+        /// <summary>
+        /// Monitors that are stuck in the hot state
+        /// for the duration of the latest found
+        /// potential cycle.
+        /// </summary>
+        private ISet<Monitor> HotMonitors;
+
+        /// <summary>
+        /// The scheduling strategy installed with the
+        /// P# bugfinder.
+        /// </summary>
+        private ISchedulingStrategy BugFindingSchedulingStrategy;
+
+        /// <summary>
+        /// A counter that increases in each step of the execution,
+        /// as long as the P# program remains in the same cycle,
+        /// with the liveness monitors at the hot state.
+        /// </summary>
+        private int LivenessTemperature;
+
+        /// <summary>
+        /// The current cycle index.
+        /// </summary>
+        private int CurrentCycleIndex;
+
         #endregion
 
         #region internal methods
@@ -51,6 +82,10 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         {
             this.Runtime = runtime;
             this.Monitors = new List<Monitor>();
+            this.PotentialCycle = new List<Tuple<ScheduleStep, State>>();
+            this.HotMonitors = new HashSet<Monitor>();
+            this.LivenessTemperature = 0;
+            this.CurrentCycleIndex = 0;
         }
 
         /// <summary>
@@ -70,16 +105,30 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         /// </summary>
         internal void CheckLivenessAtShedulingStep()
         {
-            // Disable this check if the lasso detection algorithm
-            // is enabled.
-            if (this.Runtime.Configuration.CacheProgramState)
+            if (this.Runtime.Configuration.CacheProgramState &&
+                this.PotentialCycle.Count > 0)
             {
-                return;
-            }
+                this.LivenessTemperature++;
+                if (this.LivenessTemperature > this.Runtime.Configuration.LivenessTemperatureThreshold)
+                {
+                    IO.Debug("<LivenessDebug> POTENTIAL BUG.");
 
-            foreach (var monitor in this.Monitors)
+                    foreach (var monitor in this.HotMonitors)
+                    {
+                        string message = IO.Format("Monitor '{0}' detected infinite execution that " +
+                            "violates a liveness property.", monitor.GetType().Name);
+                        this.Runtime.BugFinder.NotifyAssertionFailure(message, false);
+                    }
+
+                    this.Runtime.BugFinder.Stop();
+                }
+            }
+            else if (!this.Runtime.Configuration.CacheProgramState)
             {
-                monitor.CheckLivenessTemperature();
+                foreach (var monitor in this.Monitors)
+                {
+                    monitor.CheckLivenessTemperature();
+                }
             }
         }
 
@@ -115,13 +164,19 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         /// <param name="stateMap">Map of states</param>
         internal void CheckLivenessAtTraceCycle(Fingerprint root, Dictionary<ScheduleStep, State> stateMap)
         {
-            var cycle = new List<Tuple<ScheduleStep, State>>();
+            // If there is a potential cycle found, do not create a new
+            // one until the liveness checker has finished exploring the
+            // current cycle.
+            if (this.PotentialCycle.Count > 0)
+            {
+                return;
+            }
 
             do
             {
                 var scheduleStep = this.Runtime.ScheduleTrace.Pop();
                 var state = stateMap[scheduleStep];
-                cycle.Add(Tuple.Create(scheduleStep, state));
+                this.PotentialCycle.Add(Tuple.Create(scheduleStep, state));
 
                 IO.Debug("<LivenessDebug> Cycle contains {0} with {1}.",
                     scheduleStep.Type, state.Fingerprint.ToString());
@@ -134,30 +189,77 @@ namespace Microsoft.PSharp.TestingServices.Liveness
             while (this.Runtime.ScheduleTrace.Peek() != null && !stateMap[
                 this.Runtime.ScheduleTrace.Peek()].Fingerprint.Equals(root));
             
-            if (!this.IsSchedulingFair(cycle))
+            if (!this.IsSchedulingFair(this.PotentialCycle))
             {
                 IO.Debug("<LivenessDebug> Scheduling in cycle is unfair.");
+                this.PotentialCycle.Clear();
                 return;
             }
-            else if (!this.IsNondeterminismFair(cycle))
+            else if (!this.IsNondeterminismFair(this.PotentialCycle))
             {
                 IO.Debug("<LivenessDebug> Nondeterminism in cycle is unfair.");
+                this.PotentialCycle.Clear();
                 return;
             }
 
             IO.Debug("<LivenessDebug> Cycle execution is fair.");
-            
-            var hotMonitors = this.GetHotMonitors(cycle);
-            if (hotMonitors.Count > 0)
-            {
-                foreach (var monitor in hotMonitors)
-                {
-                    string message = IO.Format("Monitor '{0}' detected infinite execution that " +
-                        "violates a liveness property.", monitor.GetType().Name);
-                    this.Runtime.BugFinder.NotifyAssertionFailure(message, false);
-                }
 
-                this.Runtime.BugFinder.Stop();
+            IO.Debug("<LivenessDebug> ------------ SCHEDULE ------------.");
+            foreach (var x in this.Runtime.ScheduleTrace)
+            {
+                if (x.Type == ScheduleStepType.SchedulingChoice)
+                {
+                    IO.Debug($"{x.Index} :: {x.ScheduledMachine.Id}");
+                }
+                else
+                {
+                    IO.Debug($"{x.Index} :: {x.Choice}");
+                }
+            }
+            IO.Debug("<LivenessDebug> ----------------------------------.");
+
+            this.HotMonitors = this.GetHotMonitors(this.PotentialCycle);
+            if (this.HotMonitors.Count > 0)
+            {
+                //IO.Debug("<LivenessDebug> POTENTIAL BUG.");
+
+                //foreach (var monitor in this.HotMonitors)
+                //{
+                //    string message = IO.Format("Monitor '{0}' detected infinite execution that " +
+                //        "violates a liveness property.", monitor.GetType().Name);
+                //    this.Runtime.BugFinder.NotifyAssertionFailure(message, false);
+                //}
+
+                //this.Runtime.BugFinder.Stop();
+
+                //this.PotentialCycle.Reverse();
+                IO.Debug("<LivenessDebug> ------------- CYCLE --------------.");
+                foreach (var x in this.PotentialCycle)
+                {
+                    if (x.Item1.Type == ScheduleStepType.SchedulingChoice)
+                    {
+                        IO.Debug($"{x.Item1.Index} :: {x.Item1.ScheduledMachine.Id}");
+                    }
+                    else
+                    {
+                        IO.Debug($"{x.Item1.Index} :: {x.Item1.Choice}");
+                    }
+                }
+                IO.Debug("<LivenessDebug> ----------------------------------.");
+
+                //CycleReplayStrategy strategy = new CycleReplayStrategy(
+                //    this.Runtime.Configuration,
+                //    this.PotentialCycle.Select(val => val.Item1).ToList());
+                this.BugFindingSchedulingStrategy = this.Runtime.BugFinder.
+                    SwitchSchedulingStrategy(this);
+                //strategy.Initialize(this.BugFindingSchedulingStrategy, this.EscapeCycle);
+                
+                //this.BugFindingSchedulingStrategy = this.Runtime.BugFinder.
+                //    SwitchSchedulingStrategy(this.BugFindingSchedulingStrategy);
+            }
+            else
+            {
+                this.PotentialCycle.Clear();
             }
         }
 
@@ -194,7 +296,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         /// Checks if the scheduling is fair in a schedule trace cycle.
         /// </summary>
         /// <param name="cycle">Cycle of states</param>
-        private bool IsSchedulingFair(List<Tuple<ScheduleStep, State>> cycle)
+        private bool IsSchedulingFair(IEnumerable<Tuple<ScheduleStep, State>> cycle)
         {
             var result = false;
 
@@ -231,7 +333,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         /// Checks if the nondeterminism is fair in a schedule trace cycle.
         /// </summary>
         /// <param name="cycle">Cycle of states</param>
-        private bool IsNondeterminismFair(List<Tuple<ScheduleStep, State>> cycle)
+        private bool IsNondeterminismFair(IEnumerable<Tuple<ScheduleStep, State>> cycle)
         {
             var result = false;
 
@@ -266,7 +368,7 @@ namespace Microsoft.PSharp.TestingServices.Liveness
         /// </summary>
         /// <param name="cycle">Cycle of states</param>
         /// <returns>Monitors</returns>
-        private HashSet<Monitor> GetHotMonitors(List<Tuple<ScheduleStep, State>> cycle)
+        private HashSet<Monitor> GetHotMonitors(IEnumerable<Tuple<ScheduleStep, State>> cycle)
         {
             var hotMonitors = new HashSet<Monitor>();
 
@@ -296,13 +398,158 @@ namespace Microsoft.PSharp.TestingServices.Liveness
                 }
             }
 
-            foreach (var m in hotMonitors)
+            return hotMonitors;
+        }
+
+        /// <summary>
+        /// Escapes the current cycle and continues to explore
+        /// the schedule with the original scheduling strategy.
+        /// </summary>
+        private void EscapeCycle()
+        {
+            IO.Debug("<LivenessDebug> Escaping from unfair cycle.");
+
+            this.PotentialCycle.Clear();
+            this.HotMonitors.Clear();
+
+            this.LivenessTemperature = 0;
+            this.CurrentCycleIndex = 0;
+
+            this.Runtime.BugFinder.SwitchSchedulingStrategy(
+                this.BugFindingSchedulingStrategy);
+        }
+
+        #endregion
+
+        #region scheduling strategy methods
+
+        /// <summary>
+        /// Returns the next machine to schedule.
+        /// </summary>
+        /// <param name="next">Next</param>
+        /// <param name="choices">Choices</param>
+        /// <param name="current">Curent</param>
+        /// <returns>Boolean</returns>
+        bool ISchedulingStrategy.TryGetNext(out MachineInfo next, IEnumerable<MachineInfo> choices, MachineInfo current)
+        {
+            var availableMachines = choices.Where(
+                m => m.IsEnabled && !m.IsBlocked && !m.IsWaitingToReceive).ToList();
+            if (availableMachines.Count == 0)
             {
-                IO.Debug($"<LivenessDebug> Monitor {m} remains in the hot " +
-                    "state throughout the lasso.");
+                availableMachines = choices.Where(m => m.IsWaitingToReceive).ToList();
+                if (availableMachines.Count == 0)
+                {
+                    next = null;
+                    return false;
+                }
             }
 
-            return hotMonitors;
+            ScheduleStep nextStep = this.PotentialCycle[this.CurrentCycleIndex].Item1;
+            IO.Debug($"<LivenessDebug> Replaying '{nextStep.ScheduledMachine.Id}'.");
+
+            if (nextStep.Type != ScheduleStepType.SchedulingChoice)
+            {
+                IO.Debug("Trace is not reproducible: next step is not a scheduling choice.");
+                this.EscapeCycle();
+            }
+
+            next = availableMachines.FirstOrDefault(m => m.Machine.Id.Type.Equals(
+                nextStep.ScheduledMachineType) &&
+                m.Machine.Id.Value == nextStep.ScheduledMachineId);
+            if (next == null)
+            {
+                IO.Debug("Trace is not reproducible: cannot detect machine with type " +
+                    $"'{nextStep.ScheduledMachineType}' and id '{nextStep.ScheduledMachineId}'.");
+                this.EscapeCycle();
+            }
+
+            this.CurrentCycleIndex++;
+            if (this.CurrentCycleIndex == this.PotentialCycle.Count)
+            {
+                this.CurrentCycleIndex = 0;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Returns the next choice.
+        /// </summary>
+        /// <param name="maxValue">Max value</param>
+        /// <param name="next">Next</param>
+        /// <returns>Boolean</returns>
+        bool ISchedulingStrategy.GetNextChoice(int maxValue, out bool next)
+        {
+            ScheduleStep nextStep = this.PotentialCycle[this.CurrentCycleIndex].Item1;
+            IO.Debug($"<LivenessDebug> Replaying '{nextStep.Choice}'.");
+
+            if (nextStep.Type != ScheduleStepType.NondeterministicChoice)
+            {
+                IO.Debug("Trace is not reproducible: next step is not a nondeterministic choice.");
+                this.EscapeCycle();
+            }
+
+            next = nextStep.Choice;
+            this.CurrentCycleIndex++;
+            if (this.CurrentCycleIndex == this.PotentialCycle.Count)
+            {
+                this.CurrentCycleIndex = 0;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Returns the explored steps.
+        /// </summary>
+        /// <returns>Explored steps</returns>
+        int ISchedulingStrategy.GetExploredSteps()
+        {
+            return this.BugFindingSchedulingStrategy.GetExploredSteps();
+        }
+
+        /// <summary>
+        /// True if the scheduling strategy has reached the max
+        /// scheduling steps for the given scheduling iteration.
+        /// </summary>
+        /// <returns>Boolean</returns>
+        bool ISchedulingStrategy.HasReachedMaxSchedulingSteps()
+        {
+            return false;
+        }
+
+        /// <summary>
+        /// Returns true if the scheduling has finished.
+        /// </summary>
+        /// <returns>Boolean</returns>
+        bool ISchedulingStrategy.HasFinished()
+        {
+            return false;
+        }
+
+        /// <summary>
+        /// Configures the next scheduling iteration.
+        /// </summary>
+        void ISchedulingStrategy.ConfigureNextIteration()
+        {
+            this.CurrentCycleIndex = 0;
+        }
+
+        /// <summary>
+        /// Resets the scheduling strategy.
+        /// </summary>
+        void ISchedulingStrategy.Reset()
+        {
+            this.CurrentCycleIndex = 0;
+        }
+
+        /// <summary>
+        /// Returns a textual description of the scheduling strategy.
+        /// </summary>
+        /// <returns>String</returns>
+        string ISchedulingStrategy.GetDescription()
+        {
+            return this.BugFindingSchedulingStrategy.GetDescription();
         }
 
         #endregion
