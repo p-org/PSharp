@@ -103,6 +103,7 @@ namespace Microsoft.PSharp.TestingServices.Tests.Unit
             configuration.SuppressTrace = true;
             configuration.Verbose = 2;
             configuration.SchedulingIterations = 100;
+            configuration.LivenessTemperatureThreshold = 200;
 
             var engine = TestingEngineFactory.CreateBugFindingEngine(
                 configuration, TestProgram.Execute);
