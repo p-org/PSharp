@@ -42,16 +42,16 @@ namespace Microsoft.PSharp.Utilities
             {
                 base.Configuration.AssemblyToBeAnalyzed = option.Substring(6);
             }
-            else if (option.ToLower().StartsWith("/replay:") && option.Length > 7)
+            else if (option.ToLower().StartsWith("/replay:") && option.Length > 8)
             {
-                string extension = System.IO.Path.GetExtension(option.Substring(7));
+                string extension = System.IO.Path.GetExtension(option.Substring(8));
                 if (!extension.Equals(".schedule"))
                 {
                     IO.Error.ReportAndExit("Please give a valid schedule file " +
                         "'/replay:[x]', where [x] has extension '.schedule'.");
                 }
 
-                base.Configuration.ScheduleFile = option.Substring(7);
+                base.Configuration.ScheduleFile = option.Substring(8);
             }
             else if (option.ToLower().Equals("/attach-debugger") ||
                 option.ToLower().Equals("/break"))

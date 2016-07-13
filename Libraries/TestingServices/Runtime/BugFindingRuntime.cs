@@ -642,7 +642,7 @@ namespace Microsoft.PSharp.TestingServices
         internal override int GetNondeterministicIntegerChoice(
             AbstractMachine machine, int maxValue)
         {
-            var choice = this.BugFinder.GetNextNondeterministicIntegerChoice(2);
+            var choice = this.BugFinder.GetNextNondeterministicIntegerChoice(maxValue);
             if (machine != null)
             {
                 IO.Log($"<RandomLog> Machine '{machine.Id}' " +
